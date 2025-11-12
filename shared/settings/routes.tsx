@@ -21,18 +21,14 @@ const chat = {screen: Chat}
 const Display = React.lazy(async () => import('./display'))
 const display = {screen: Display}
 
-const Feedback = React.lazy(async () => import('./feedback/container'))
-const feedback = {
+const feedback = C.makeScreen(React.lazy(async () => import('./feedback/container')), {
   getOptions: C.isMobile
     ? {
         headerShown: true,
         title: 'Feedback',
       }
     : {},
-  screen: function FeedbackScreen(p: C.ViewPropsToPageProps<typeof Feedback>) {
-    return <Feedback {...p.route.params} />
-  },
-}
+})
 
 const Files = React.lazy(async () => import('./files/container'))
 const fs = {screen: Files}
@@ -114,16 +110,12 @@ const ContactsTab = C.isMobile
   : Promise.resolve(() => <></>)
 const contactsTab = {getOptions: {header: undefined, title: 'Contacts'}, screen: ContactsTab}
 
-const WebLinks = React.lazy(async () => import('./web-links'))
-const webLinks = {
-  getOptions: ({route}: C.ViewPropsToPageProps<typeof WebLinks>) => ({
+const webLinks = C.makeScreen(React.lazy(async () => import('./web-links')), {
+  getOptions: ({route}: C.ViewPropsToPageProps<any>) => ({
     header: undefined,
     title: route.params.title,
   }),
-  screen: function WebLinksScreen(p: C.ViewPropsToPageProps<typeof WebLinks>) {
-    return <WebLinks {...p.route.params} />
-  },
-}
+})
 
 const SettingsContactsJoined = React.lazy(async () => import('./contacts-joined'))
 const settingsContactsJoined = {screen: SettingsContactsJoined}

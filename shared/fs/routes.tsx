@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 
-type FsRootProps = C.ViewPropsToPageProps<typeof FsRoot>
+type FsRootProps = C.ViewPropsToPageProps<ReturnType<typeof React.lazy<any>>>
 const getOptions = (ownProps?: FsRootProps) => {
   const path = ownProps?.route.params?.path ?? C.FS.defaultPath
   return C.isMobile
@@ -16,50 +16,22 @@ const getOptions = (ownProps?: FsRootProps) => {
       }
 }
 
-const FsRoot = React.lazy(async () => import('.'))
-const fsRoot = {
-  getOptions,
-  screen: function FsRootScreen(p: FsRootProps) {
-    return <FsRoot {...p.route.params} />
-  },
+export const newRoutes = {
+  fsRoot: C.makeScreen(React.lazy(async () => import('.')), {getOptions}),
 }
-
-const BarePreview = React.lazy(async () => {
-  const {BarePreview} = await import('./filepreview')
-  return {default: BarePreview}
-})
-const barePreview = {
-  screen: function BarePreviewScreen(p: C.ViewPropsToPageProps<typeof BarePreview>) {
-    return <BarePreview {...p.route.params} />
-  },
-}
-
-const Confirm = React.lazy(async () => import('./common/path-item-action/confirm-delete/container'))
-const confirmDelete = {
-  screen: function ConfirmDelete(p: C.ViewPropsToPageProps<typeof Confirm>) {
-    return <Confirm {...p.route.params} />
-  },
-}
-
-const Picker = React.lazy(async () => import('./browser/destination-picker'))
-const destinationPicker = {
-  screen: function DestinationPicker(p: C.ViewPropsToPageProps<typeof Picker>) {
-    return <Picker {...p.route.params} />
-  },
-}
-
-const KextPermission = React.lazy(
-  async () => import('./banner/system-file-manager-integration-banner/kext-permission-popup')
-)
-const kextPermission = {screen: KextPermission}
-
-export const newRoutes = {fsRoot}
 
 export const newModalRoutes = {
-  barePreview,
-  confirmDelete,
-  destinationPicker,
-  kextPermission,
+  barePreview: C.makeScreen(
+    React.lazy(async () => {
+      const {BarePreview} = await import('./filepreview')
+      return {default: BarePreview}
+    })
+  ),
+  confirmDelete: C.makeScreen(React.lazy(async () => import('./common/path-item-action/confirm-delete/container'))),
+  destinationPicker: C.makeScreen(React.lazy(async () => import('./browser/destination-picker'))),
+  kextPermission: C.makeScreen(
+    React.lazy(async () => import('./banner/system-file-manager-integration-banner/kext-permission-popup'))
+  ),
 }
 
 export type RootParamListFS = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

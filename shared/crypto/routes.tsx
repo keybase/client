@@ -5,91 +5,89 @@ import {HeaderLeftCancel2, type HeaderBackButtonProps} from '@/common-adapters/h
 import cryptoRoot from './sub-nav/page'
 import cryptoTeamBuilder from '../team-building/page'
 
-const DecryptInput = React.lazy(async () => {
-  const {DecryptInput} = await import('./operations/decrypt')
-  return {default: DecryptInput}
-})
-const DecryptOutput = React.lazy(async () => {
-  const {DecryptOutput} = await import('./operations/decrypt')
-  return {default: DecryptOutput}
-})
-const EncryptInput = React.lazy(async () => {
-  const {EncryptInput} = await import('./operations/encrypt')
-  return {default: EncryptInput}
-})
-const EncryptOutput = React.lazy(async () => {
-  const {EncryptOutput} = await import('./operations/encrypt')
-  return {default: EncryptOutput}
-})
-const SignInput = React.lazy(async () => {
-  const {SignInput} = await import('./operations/sign')
-  return {default: SignInput}
-})
-const SignOutput = React.lazy(async () => {
-  const {SignOutput} = await import('./operations/sign')
-  return {default: SignOutput}
-})
-const VerifyInput = React.lazy(async () => {
-  const {VerifyInput} = await import('./operations/verify')
-  return {default: VerifyInput}
-})
-const VerifyOutput = React.lazy(async () => {
-  const {VerifyOutput} = await import('./operations/verify')
-  return {default: VerifyOutput}
-})
-
 export const newRoutes = {
-  [Constants.encryptTab]: {
-    getOptions: {headerShown: true, needsKeyboard: true, title: 'Encrypt'},
-    screen: EncryptInput,
-  },
-  [Constants.decryptTab]: {
-    getOptions: {headerShown: true, needsKeyboard: true, title: 'Decrypt'},
-    screen: DecryptInput,
-  },
-  [Constants.signTab]: {
-    getOptions: {headerShown: true, needsKeyboard: true, title: 'Sign'},
-    screen: SignInput,
-  },
-  [Constants.verifyTab]: {
-    getOptions: {headerShown: true, needsKeyboard: true, title: 'Verify'},
-    screen: VerifyInput,
-  },
+  [Constants.decryptTab]: C.makeScreen(
+    React.lazy(async () => {
+      const {DecryptInput} = await import('./operations/decrypt')
+      return {default: DecryptInput}
+    }),
+    {getOptions: {headerShown: true, needsKeyboard: true, title: 'Decrypt'}}
+  ),
+  [Constants.encryptTab]: C.makeScreen(
+    React.lazy(async () => {
+      const {EncryptInput} = await import('./operations/encrypt')
+      return {default: EncryptInput}
+    }),
+    {getOptions: {headerShown: true, needsKeyboard: true, title: 'Encrypt'}}
+  ),
+  [Constants.signTab]: C.makeScreen(
+    React.lazy(async () => {
+      const {SignInput} = await import('./operations/sign')
+      return {default: SignInput}
+    }),
+    {getOptions: {headerShown: true, needsKeyboard: true, title: 'Sign'}}
+  ),
+  [Constants.verifyTab]: C.makeScreen(
+    React.lazy(async () => {
+      const {VerifyInput} = await import('./operations/verify')
+      return {default: VerifyInput}
+    }),
+    {getOptions: {headerShown: true, needsKeyboard: true, title: 'Verify'}}
+  ),
   cryptoRoot,
 }
+
 export const newModalRoutes = {
+  [Constants.decryptOutput]: C.makeScreen(
+    React.lazy(async () => {
+      const {DecryptOutput} = await import('./operations/decrypt')
+      return {default: DecryptOutput}
+    }),
+    {
+      getOptions: {
+        headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
+        headerShown: true,
+        needsKeyboard: false,
+        title: 'Decrypted',
+      },
+    }
+  ),
+  [Constants.encryptOutput]: C.makeScreen(
+    React.lazy(async () => {
+      const {EncryptOutput} = await import('./operations/encrypt')
+      return {default: EncryptOutput}
+    }),
+    {getOptions: {headerShown: true, needsKeyboard: false, title: 'Encrypted'}}
+  ),
+  [Constants.signOutput]: C.makeScreen(
+    React.lazy(async () => {
+      const {SignOutput} = await import('./operations/sign')
+      return {default: SignOutput}
+    }),
+    {
+      getOptions: {
+        headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
+        headerShown: true,
+        needsKeyboard: false,
+        title: 'Signed',
+      },
+    }
+  ),
+  [Constants.verifyOutput]: C.makeScreen(
+    React.lazy(async () => {
+      const {VerifyOutput} = await import('./operations/verify')
+      return {default: VerifyOutput}
+    }),
+    {
+      getOptions: {
+        headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
+        headerShown: true,
+        needsKeyboard: false,
+        title: 'Verified',
+      },
+    }
+  ),
   cryptoTeamBuilder,
-  [Constants.encryptOutput]: {
-    getOptions: {headerShown: true, needsKeyboard: false, title: 'Encrypted'},
-    screen: EncryptOutput,
-  },
-  [Constants.decryptOutput]: {
-    getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
-      headerShown: true,
-      needsKeyboard: false,
-      title: 'Decrypted',
-    },
-    screen: DecryptOutput,
-  },
-  [Constants.signOutput]: {
-    getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
-      headerShown: true,
-      needsKeyboard: false,
-      title: 'Signed',
-    },
-    screen: SignOutput,
-  },
-  [Constants.verifyOutput]: {
-    getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
-      headerShown: true,
-      needsKeyboard: false,
-      title: 'Verified',
-    },
-    screen: VerifyOutput,
-  },
 }
 
 export type RootParamListCrypto = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>
