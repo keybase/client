@@ -67,12 +67,12 @@ export const sharedNewRoutes = {
 const sharedNewModalRoutes = {
   [Constants.settingsLogOutTab]: {screen: React.lazy(async () => import('./logout'))},
   [Constants.settingsPasswordTab]: {screen: React.lazy(async () => import('./password/container'))},
-  archiveModal: {screen: C.makeScreen(React.lazy(async () => import('./archive/modal')))},
+  archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal'))),
   deleteConfirm: {screen: React.lazy(async () => import('./delete-confirm'))},
   disableCertPinningModal: {screen: React.lazy(async () => import('./disable-cert-pinning-modal'))},
   settingsAddEmail: {screen: AddEmail},
   settingsAddPhone: {screen: AddPhone},
-  settingsDeleteAddress: {screen: React.lazy(async () => import('./account/confirm-delete'))},
+  settingsDeleteAddress: C.makeScreen(React.lazy(async () => import('./account/confirm-delete'))),
   settingsVerifyPhone: {
     screen: React.lazy(async () => {
       const {VerifyPhone} = await import('./account/add-modals')

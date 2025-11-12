@@ -2,10 +2,10 @@ import * as React from 'react'
 import * as C from '@/constants'
 
 export const newRoutes = {
-  walletsRoot: C.makeScreen(
-    React.lazy(async () => import('.')),
-    {getOptions: {title: 'Wallet'}}
-  ),
+  walletsRoot: {
+    getOptions: {title: 'Wallet'},
+    screen: React.lazy(async () => import('.')),
+  },
 }
 
 export const newModalRoutes = {

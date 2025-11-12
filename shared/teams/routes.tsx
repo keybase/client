@@ -14,15 +14,14 @@ const useHeaderActions = () => {
   }
 }
 
+const Channel = React.lazy(async () => import('./channel'))
 const teamChannel = {
   getOptions: {
-    headerHideBorder: true,
     headerShown: C.isMobile,
     presentation: 'modal',
     title: '',
   },
-  screen: function TeamChannel(p: C.ViewPropsToPageProps<any>) {
-    const Channel = React.lazy(async () => import('./channel'))
+  screen: function TeamChannel(p: C.ViewPropsToPageProps<typeof Channel>) {
     return (
       <C.Chat.ProviderScreen rp={p}>
         <Channel {...p.route.params} />
@@ -47,43 +46,52 @@ const teamsRoot = {
 }
 
 export const newRoutes = {
-  team: C.makeScreen(React.lazy(async () => import('./team')), {
-    getOptions: {
-      headerHideBorder: true,
-      headerShown: C.isMobile,
-      presentation: 'modal',
-      title: '',
-    },
-  }),
+  team: C.makeScreen(
+    React.lazy(async () => import('./team')),
+    {
+      getOptions: {
+        headerShown: C.isMobile,
+        presentation: 'modal',
+        title: '',
+      },
+    }
+  ),
   teamChannel,
-  teamExternalTeam: C.makeScreen(React.lazy(async () => import('./external-team')), {
-    getOptions: {
-      headerHideBorder: true,
-      headerShown: C.isMobile,
-      presentation: 'modal',
-      title: '',
-    },
-  }),
-  teamMember: C.makeScreen(React.lazy(async () => import('./team/member/index.new')), {
-    getOptions: {
-      headerShown: false,
-    },
-  }),
+  teamExternalTeam: C.makeScreen(
+    React.lazy(async () => import('./external-team')),
+    {
+      getOptions: {
+        headerShown: C.isMobile,
+        presentation: 'modal',
+        title: '',
+      },
+    }
+  ),
+  teamMember: C.makeScreen(
+    React.lazy(async () => import('./team/member/index.new')),
+    {
+      getOptions: {
+        headerShown: false,
+      },
+    }
+  ),
   teamsRoot,
 }
 
 export const newModalRoutes = {
   contactRestricted,
   openTeamWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/open-team-warning'))),
-  retentionWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/retention/warning'))),
+  retentionWarning: C.makeScreen(
+    React.lazy(async () => import('./team/settings-tab/retention/warning/container'))
+  ),
   teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji'))),
-  teamAddEmojiAlias: C.makeScreen(React.lazy(async () => import('./emojis/add-alias'))),
+  teamAddEmojiAlias: C.Chat.makeChatScreen(React.lazy(async () => import('./emojis/add-alias'))),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels'))),
-  teamAddToTeamConfirm: C.makeScreen(React.lazy(async () => import('./add-members-wizard/confirm'))),
-  teamAddToTeamContacts: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-contacts'))),
+  teamAddToTeamConfirm: {screen: React.lazy(async () => import('./add-members-wizard/confirm'))},
+  teamAddToTeamContacts: {screen: React.lazy(async () => import('./add-members-wizard/add-contacts'))},
   teamAddToTeamEmail: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-email'))),
-  teamAddToTeamFromWhere: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-from-where'))),
-  teamAddToTeamPhone: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-phone'))),
+  teamAddToTeamFromWhere: {screen: React.lazy(async () => import('./add-members-wizard/add-from-where'))},
+  teamAddToTeamPhone: {screen: React.lazy(async () => import('./add-members-wizard/add-phone'))},
   teamCreateChannels: C.makeScreen(React.lazy(async () => import('./channel/create-channels'))),
   teamDeleteChannel: C.makeScreen(React.lazy(async () => import('./confirm-modals/delete-channel'))),
   teamDeleteTeam: C.makeScreen(React.lazy(async () => import('./delete-team'))),
@@ -92,23 +100,23 @@ export const newModalRoutes = {
   teamEditTeamInfo: C.makeScreen(React.lazy(async () => import('./team/team-info'))),
   teamInviteByContact: C.makeScreen(React.lazy(async () => import('./invite-by-contact/container'))),
   teamInviteByEmail: C.makeScreen(React.lazy(async () => import('./invite-by-email'))),
-  teamInviteLinkJoin: C.makeScreen(React.lazy(async () => import('./join-team/join-from-invite'))),
+  teamInviteLinkJoin: {screen: React.lazy(async () => import('./join-team/join-from-invite'))},
   teamJoinTeamDialog: C.makeScreen(React.lazy(async () => import('./join-team/container'))),
   teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team'))),
-  teamReallyLeaveTeam: C.makeScreen(React.lazy(async () => import('./confirm-modals/really-leave-team'))),
+  teamReallyLeaveTeam: C.makeScreen(
+    React.lazy(async () => import('./confirm-modals/really-leave-team/container'))
+  ),
   teamReallyRemoveChannelMember: C.makeScreen(
     React.lazy(async () => import('./confirm-modals/confirm-remove-from-channel'))
   ),
   teamReallyRemoveMember: C.makeScreen(React.lazy(async () => import('./confirm-modals/confirm-kick-out'))),
   teamRename: C.makeScreen(React.lazy(async () => import('./rename-team'))),
-  teamWizard1TeamPurpose: C.makeScreen(React.lazy(async () => import('./new-team/wizard/team-purpose'))),
-  teamWizard2TeamInfo: C.makeScreen(React.lazy(async () => import('./new-team/wizard/new-team-info'))),
-  teamWizard4TeamSize: C.makeScreen(React.lazy(async () => import('./new-team/wizard/make-big-team'))),
+  teamWizard1TeamPurpose: {screen: React.lazy(async () => import('./new-team/wizard/team-purpose'))},
+  teamWizard2TeamInfo: {screen: React.lazy(async () => import('./new-team/wizard/new-team-info'))},
+  teamWizard4TeamSize: {screen: React.lazy(async () => import('./new-team/wizard/make-big-team'))},
   teamWizard5Channels: C.makeScreen(React.lazy(async () => import('./new-team/wizard/create-channels'))),
-  teamWizard6Subteams: C.makeScreen(React.lazy(async () => import('./new-team/wizard/create-subteams'))),
-  teamWizardSubteamMembers: C.makeScreen(
-    React.lazy(async () => import('./new-team/wizard/add-subteam-members'))
-  ),
+  teamWizard6Subteams: {screen: React.lazy(async () => import('./new-team/wizard/create-subteams'))},
+  teamWizardSubteamMembers: {screen: React.lazy(async () => import('./new-team/wizard/add-subteam-members'))},
   teamsTeamBuilder,
 }
 

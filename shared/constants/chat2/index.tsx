@@ -1986,6 +1986,25 @@ export const useState_ = Z.createZustand<State>((set, get) => {
   }
 })
 
+import {type ChatProviderProps, ProviderScreen} from './convostate'
+
+export function makeChatScreen<T extends React.LazyExoticComponent<any>>(
+  Component: T,
+  options?: {getOptions?: unknown}
+) {
+  return {
+    ...options,
+    screen: (p: ChatProviderProps<C.ViewPropsToPageProps<T>>) => {
+      const Comp = Component as any
+      return (
+        <ProviderScreen rp={p}>
+          <Comp {...p.route.params} />
+        </ProviderScreen>
+      )
+    },
+  }
+}
+
 export * from './convostate'
 export * from './common'
 export * from './meta'

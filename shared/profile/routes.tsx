@@ -17,7 +17,7 @@ export const newRoutes = {
     React.lazy(async () => import('./user/container')),
     {
       getOptions: {
-        headerLeft: (p: {onPress?: () => void; tintColor: string}) => {
+        headerLeft: p => {
           return (
             <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
               <HeaderLeftArrowCanGoBack onPress={p.onPress} tintColor={p.tintColor} />
@@ -49,27 +49,25 @@ export const newModalRoutes = {
       },
     }
   ),
-  profileConfirmOrPending: C.makeScreen(React.lazy(async () => import('./confirm-or-pending/container'))),
-  profileEdit: C.makeScreen(React.lazy(async () => import('./edit-profile/container'))),
+  profileConfirmOrPending: {screen: React.lazy(async () => import('./confirm-or-pending/container'))},
+  profileEdit: {screen: React.lazy(async () => import('./edit-profile/container'))},
   profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar/container'))),
-  profileFinished: C.makeScreen(React.lazy(async () => import('./pgp/finished'))),
-  profileGenerate: C.makeScreen(React.lazy(async () => import('./pgp/generate'))),
-  profileGenericEnterUsername: C.makeScreen(
-    React.lazy(async () => import('./generic/enter-username/container')),
-    {
-      getOptions: {gesturesEnabled: false},
-    }
-  ),
-  profileGenericProofResult: C.makeScreen(React.lazy(async () => import('./generic/result/container'))),
-  profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import'))),
-  profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice'))),
-  profilePostProof: C.makeScreen(React.lazy(async () => import('./post-proof/container'))),
-  profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list/container'))),
-  profileProveEnterUsername: C.makeScreen(React.lazy(async () => import('./prove-enter-username/container'))),
-  profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('./prove-website-choice/container'))),
-  profileProvideInfo: C.makeScreen(React.lazy(async () => import('./pgp/info'))),
+  profileFinished: {screen: React.lazy(async () => import('./pgp/finished'))},
+  profileGenerate: {screen: React.lazy(async () => import('./pgp/generate'))},
+  profileGenericEnterUsername: {
+    getOptions: {gesturesEnabled: false},
+    screen: React.lazy(async () => import('./generic/enter-username/container')),
+  },
+  profileGenericProofResult: {screen: React.lazy(async () => import('./generic/result/container'))},
+  profileImport: {screen: React.lazy(async () => import('./pgp/import'))},
+  profilePgp: {screen: React.lazy(async () => import('./pgp/choice'))},
+  profilePostProof: {screen: React.lazy(async () => import('./post-proof/container'))},
+  profileProofsList: {screen: React.lazy(async () => import('./generic/proofs-list/container'))},
+  profileProveEnterUsername: {screen: React.lazy(async () => import('./prove-enter-username/container'))},
+  profileProveWebsiteChoice: {screen: React.lazy(async () => import('./prove-website-choice/container'))},
+  profileProvideInfo: {screen: React.lazy(async () => import('./pgp/info'))},
   profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke/container'))),
-  profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('./showcase-team-offer'))),
+  profileShowcaseTeamOffer: {screen: React.lazy(async () => import('./showcase-team-offer'))},
 }
 
 export type RootParamListProfile = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

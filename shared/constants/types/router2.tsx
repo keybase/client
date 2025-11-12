@@ -33,13 +33,17 @@ export type GetOptionsRet =
       headerLeft?: (p: HeaderBackButtonProps) => React.ReactNode
       headerRightActions?: (p: HeaderBackButtonProps) => React.ReactNode
       headerShown?: boolean
+      headerStyle?: Styles.StylesCrossPlatform
+      headerTitle?: () => React.ReactNode
+      headerTransparent?: boolean
       gesturesEnabled?: boolean
       title?: string
       orientation?: 'all' | 'portrait'
       presentation?: 'modal' | 'transparentModal' | 'card'
     }
   | undefined
-export type GetOptions = GetOptionsRet | ((p: GetOptionsParams) => GetOptionsRet)
+
+export type GetOptions = GetOptionsRet | ((p: any) => GetOptionsRet)
 export type RouteDef = {
   getOptions?: GetOptions
   screen: React.ComponentType<ScreenComponentProps>

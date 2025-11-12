@@ -13,11 +13,11 @@ const recoverPasswordStyles = Kb.Styles.styleSheetCreate(() => ({
 
 export const newRoutes = {
   feedback: settingsRoutes[C.Settings.settingsFeedbackTab],
-  login: C.makeScreen(React.lazy(async () => import('.'))),
-  recoverPasswordDeviceSelector: C.makeScreen(
-    React.lazy(async () => import('./recover-password/device-selector/container'))
-  ),
-  recoverPasswordError: C.makeScreen(React.lazy(async () => import('./recover-password/error')), {
+  login: {screen: React.lazy(async () => import('.'))},
+  recoverPasswordDeviceSelector: {
+    screen: React.lazy(async () => import('./recover-password/device-selector/container')),
+  },
+  recoverPasswordError: {
     getOptions: {
       gesturesEnabled: false,
       headerLeft: undefined, // no back button
@@ -30,8 +30,9 @@ export const newRoutes = {
         </Kb.Box2>
       ),
     },
-  }),
-  recoverPasswordExplainDevice: C.makeScreen(React.lazy(async () => import('./recover-password/explain-device')), {
+    screen: React.lazy(async () => import('./recover-password/error')),
+  },
+  recoverPasswordExplainDevice: {
     getOptions: () => ({
       headerBottomStyle: {height: undefined},
       headerLeft: undefined, // no back button
@@ -44,8 +45,9 @@ export const newRoutes = {
         </Kb.Box2>
       ),
     }),
-  }),
-  recoverPasswordPaperKey: C.makeScreen(React.lazy(async () => import('./recover-password/paper-key')), {
+    screen: React.lazy(async () => import('./recover-password/explain-device')),
+  },
+  recoverPasswordPaperKey: {
     getOptions: {
       headerBottomStyle: {height: undefined},
       headerLeft: undefined, // no back button
@@ -58,52 +60,52 @@ export const newRoutes = {
         </Kb.Box2>
       ),
     },
-  }),
-  recoverPasswordPromptResetAccount: C.makeScreen(
-    React.lazy(async () => import('./recover-password/prompt-reset-account')),
-    {
-      getOptions: {
-        headerBottomStyle: {height: undefined},
-        headerLeft: undefined, // no back button
-        headerRightActions: () => (
-          <Kb.Box2 direction="horizontal" style={recoverPasswordStyles.questionBox}>
-            <InfoIcon />
-          </Kb.Box2>
-        ),
-      },
-    }
-  ),
-  recoverPasswordPromptResetPassword: C.makeScreen(
-    React.lazy(async () => import('./recover-password/prompt-reset-password')),
-    {
-      getOptions: {
-        headerBottomStyle: {height: undefined},
-        headerLeft: undefined, // no back button
-        headerRightActions: () => (
-          <Kb.Box2 direction="horizontal" style={recoverPasswordStyles.questionBox}>
-            <InfoIcon />
-          </Kb.Box2>
-        ),
-      },
-    }
-  ),
-  resetConfirm: C.makeScreen(React.lazy(async () => import('./reset/confirm')), {
+    screen: React.lazy(async () => import('./recover-password/paper-key')),
+  },
+  recoverPasswordPromptResetAccount: {
+    getOptions: {
+      headerBottomStyle: {height: undefined},
+      headerLeft: undefined, // no back button
+      headerRightActions: () => (
+        <Kb.Box2 direction="horizontal" style={recoverPasswordStyles.questionBox}>
+          <InfoIcon />
+        </Kb.Box2>
+      ),
+    },
+    screen: React.lazy(async () => import('./recover-password/prompt-reset-account')),
+  },
+  recoverPasswordPromptResetPassword: {
+    getOptions: {
+      headerBottomStyle: {height: undefined},
+      headerLeft: undefined, // no back button
+      headerRightActions: () => (
+        <Kb.Box2 direction="horizontal" style={recoverPasswordStyles.questionBox}>
+          <InfoIcon />
+        </Kb.Box2>
+      ),
+    },
+    screen: React.lazy(async () => import('./recover-password/prompt-reset-password')),
+  },
+  resetConfirm: {
     getOptions: {gesturesEnabled: false},
-  }),
-  resetEnterPassword: C.makeScreen(React.lazy(async () => import('./reset/password-enter'))),
-  resetKnowPassword: C.makeScreen(React.lazy(async () => import('./reset/password-known'))),
+    screen: React.lazy(async () => import('./reset/confirm')),
+  },
+  resetEnterPassword: {screen: React.lazy(async () => import('./reset/password-enter'))},
+  resetKnowPassword: {screen: React.lazy(async () => import('./reset/password-known'))},
   resetWaiting: C.makeScreen(React.lazy(async () => import('./reset/waiting'))),
   ...provisionRoutes,
   ...signupRoutes,
 }
 export const newModalRoutes = {
   proxySettingsModal,
-  recoverPasswordErrorModal: C.makeScreen(React.lazy(async () => import('./recover-password/error-modal')), {
+  recoverPasswordErrorModal: {
     getOptions: {gesturesEnabled: false},
-  }),
-  recoverPasswordSetPassword: C.makeScreen(React.lazy(async () => import('./recover-password/password')), {
+    screen: React.lazy(async () => import('./recover-password/error-modal')),
+  },
+  recoverPasswordSetPassword: {
     getOptions: {gesturesEnabled: false},
-  }),
+    screen: React.lazy(async () => import('./recover-password/password')),
+  },
 }
 
 export type RootParamListLogin = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>
