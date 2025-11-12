@@ -14,8 +14,8 @@ import {produce} from 'immer'
 import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import type {GetOptionsRet} from './types/router2'
 import {registerDebugClear} from '@/util/debug'
-import type {GetOptions} from './types/router2'
 export type PathParam = NavigateAppendType
 export type Route = NavigationState<KBRootParamList>['routes'][0]
 // still a little paranoid about some things being missing in this type
@@ -564,7 +564,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
 // Works for components with or without route params
 export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
-  options?: {getOptions?: GetOptions}
+  options?: {getOptions?: GetOptionsRet | ((props: C.ViewPropsToPageProps<COM>) => GetOptionsRet)}
 ) {
   return {
     ...options,
