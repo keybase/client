@@ -6,16 +6,6 @@ import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
 import crypto from '../crypto/sub-nav/page'
 
-const AddEmail = React.lazy(async () => {
-  const {Email} = await import('./account/add-modals')
-  return {default: Email}
-})
-
-const AddPhone = React.lazy(async () => {
-  const {Phone} = await import('./account/add-modals')
-  return {default: Phone}
-})
-
 const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet'))
 
 const feedback = C.makeScreen(
@@ -55,8 +45,6 @@ export const sharedNewRoutes = {
     getOptions: C.isMobile ? {title: 'Keybase FM 87.7'} : undefined,
     screen: React.lazy(async () => import('../whats-new/container')),
   },
-  addEmail: {screen: AddEmail},
-  addPhone: {screen: AddPhone},
   dbNukeConfirm: {screen: React.lazy(async () => import('./db-nuke-confirm/container'))},
   inviteSent: C.makeScreen(React.lazy(async () => import('./invite-generated/container'))),
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
@@ -70,8 +58,19 @@ const sharedNewModalRoutes = {
   archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal'))),
   deleteConfirm: {screen: React.lazy(async () => import('./delete-confirm'))},
   disableCertPinningModal: {screen: React.lazy(async () => import('./disable-cert-pinning-modal'))},
-  settingsAddEmail: {screen: AddEmail},
-  settingsAddPhone: {screen: AddPhone},
+  settingsAddEmail: {
+    screen: React.lazy(async () => {
+      const {Email} = await import('./account/add-modals')
+      return {default: Email}
+    }),
+  },
+  settingsAddPhone: {
+    screen: React.lazy(async () => {
+      const {Phone} = await import('./account/add-modals')
+      return {default: Phone}
+    }),
+  },
+
   settingsDeleteAddress: C.makeScreen(React.lazy(async () => import('./account/confirm-delete'))),
   settingsVerifyPhone: {
     screen: React.lazy(async () => {
