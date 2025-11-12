@@ -1,12 +1,18 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import chatNewChat from '../team-building/page'
+import {headerNavigationOptions} from './conversation/header-area/container'
+import inboxGetOptions from './inbox/get-options'
+import inboxAndConvoGetOptions from './inbox-and-conversation-2-get-options'
 
 const Convo = React.lazy(async () => import('./conversation/container'))
 
 export const newRoutes = {
   chatConversation: C.Chat.makeChatScreen(Convo, {
-    getOptions: {headerShown: false},
+    getOptions: (route: any) => ({
+      ...headerNavigationOptions(route),
+      presentation: undefined,
+    }),
   }),
   chatEnterPaperkey: {
     getOptions: {headerShown: false},
@@ -15,11 +21,11 @@ export const newRoutes = {
   chatRoot: C.Chat.isSplit
     ? C.Chat.makeChatScreen(
         React.lazy(async () => import('./inbox-and-conversation-2')),
-        {getOptions: {headerShown: false}, skipProvider: true}
+        {getOptions: inboxAndConvoGetOptions, skipProvider: true}
       )
     : C.Chat.makeChatScreen(
         React.lazy(async () => import('./inbox/defer-loading')),
-        {getOptions: {headerShown: false}, skipProvider: true}
+        {getOptions: inboxGetOptions, skipProvider: true}
       ),
 }
 
@@ -32,9 +38,7 @@ export const newModalRoutes = {
     {
       getOptions: {
         ...(C.isIOS ? {orientation: 'all', presentation: 'transparentModal'} : {}),
-        safeAreaStyle: {
-          backgroundColor: 'black', // true black
-        },
+        safeAreaStyle: {backgroundColor: 'black'}, // true black
       },
     }
   ),
@@ -46,7 +50,8 @@ export const newModalRoutes = {
   ),
   chatChooseEmoji: C.Chat.makeChatScreen(React.lazy(async () => import('./emoji-picker/container'))),
   chatConfirmNavigateExternal: C.Chat.makeChatScreen(
-    React.lazy(async () => import('./punycode-link-warning'))
+    React.lazy(async () => import('./punycode-link-warning')),
+    {skipProvider: true}
   ),
   chatConfirmRemoveBot: C.Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/confirm')),
@@ -54,7 +59,12 @@ export const newModalRoutes = {
       canBeNullConvoID: true,
     }
   ),
-  chatCreateChannel: C.Chat.makeChatScreen(React.lazy(async () => import('./create-channel/container'))),
+  chatCreateChannel: C.Chat.makeChatScreen(
+    React.lazy(async () => import('./create-channel/container')),
+    {
+      skipProvider: true,
+    }
+  ),
   chatDeleteHistoryWarning: C.Chat.makeChatScreen(
     React.lazy(async () => import('./delete-history-warning/container'))
   ),
@@ -78,12 +88,18 @@ export const newModalRoutes = {
     })
   ),
   chatNewChat,
-  chatPDF: C.Chat.makeChatScreen(React.lazy(async () => import('./pdf'))),
+  chatPDF: C.Chat.makeChatScreen(
+    React.lazy(async () => import('./pdf')),
+    {getOptions: C.isMobile ? undefined : {modal2: true, modal2Type: 'SuperWide'}}
+  ),
   chatSearchBots: C.Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/search')),
     {canBeNullConvoID: true}
   ),
-  chatSendToChat: C.Chat.makeChatScreen(React.lazy(async () => import('./send-to-chat'))),
+  chatSendToChat: C.Chat.makeChatScreen(
+    React.lazy(async () => import('./send-to-chat')),
+    {skipProvider: true}
+  ),
   chatShowNewTeamDialog: C.Chat.makeChatScreen(React.lazy(async () => import('./new-team-dialog-container'))),
   chatUnfurlMapPopup: C.Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup'))
