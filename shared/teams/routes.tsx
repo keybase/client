@@ -31,7 +31,7 @@ const teamChannel = {
 }
 
 const TeamsScreen = React.lazy(async () => import('./main'))
-const teamsRoot = {
+const teamsRoot = C.makeScreen(TeamsScreen, {
   getOptions: C.isMobile
     ? {headerRightActions: () => null, title: 'Teams'}
     : {
@@ -42,8 +42,7 @@ const teamsRoot = {
         headerTitle: () => 'Teams',
         title: 'Teams',
       },
-  screen: C.makeScreen(TeamsScreen).screen,
-}
+})
 
 export const newRoutes = {
   team: C.makeScreen(
