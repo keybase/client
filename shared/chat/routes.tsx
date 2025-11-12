@@ -55,15 +55,11 @@ export const newModalRoutes = {
   ),
   chatConfirmRemoveBot: C.Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/confirm')),
-    {
-      canBeNullConvoID: true,
-    }
+    {canBeNullConvoID: true}
   ),
   chatCreateChannel: C.Chat.makeChatScreen(
     React.lazy(async () => import('./create-channel/container')),
-    {
-      skipProvider: true,
-    }
+    {skipProvider: true}
   ),
   chatDeleteHistoryWarning: C.Chat.makeChatScreen(
     React.lazy(async () => import('./delete-history-warning/container'))
