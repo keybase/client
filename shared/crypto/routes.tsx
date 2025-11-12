@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '@/constants'
+import * as C from '@/constants'
 import * as Constants from '@/constants/crypto'
 import {HeaderLeftCancel2, type HeaderBackButtonProps} from '@/common-adapters/header-hoc'
 import cryptoRoot from './sub-nav/page'

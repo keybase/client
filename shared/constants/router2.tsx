@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as C from '.'
 import type * as T from './types'
 import {

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type * as C from '@/constants'
+import * as C from '@/constants'
 import {HeaderLeftArrowCanGoBack} from '@/common-adapters/header-hoc'
 
 const Title = React.lazy(async () => import('./search'))
@@ -13,44 +13,53 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export const newRoutes = {
-  profile: C.makeScreen(React.lazy(async () => import('./user/container')), {
-    getOptions: {
-      headerLeft: (p: {onPress?: () => void; tintColor: string}) => {
-        return (
-          <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-            <HeaderLeftArrowCanGoBack onPress={p.onPress} tintColor={p.tintColor} />
-          </Kb.Styles.CanFixOverdrawContext.Provider>
-        )
+  profile: C.makeScreen(
+    React.lazy(async () => import('./user/container')),
+    {
+      getOptions: {
+        headerLeft: (p: {onPress?: () => void; tintColor: string}) => {
+          return (
+            <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
+              <HeaderLeftArrowCanGoBack onPress={p.onPress} tintColor={p.tintColor} />
+            </Kb.Styles.CanFixOverdrawContext.Provider>
+          )
+        },
+        headerShown: true,
+        headerStyle: {backgroundColor: 'transparent'},
+        headerTitle: () => (
+          <React.Suspense>
+            <Title />
+          </React.Suspense>
+        ),
+        headerTransparent: true,
       },
-      headerShown: true,
-      headerStyle: {backgroundColor: 'transparent'},
-      headerTitle: () => (
-        <React.Suspense>
-          <Title />
-        </React.Suspense>
-      ),
-      headerTransparent: true,
-    },
-  }),
+    }
+  ),
 }
 
 export const newModalRoutes = {
-  profileAddToTeam: C.makeScreen(React.lazy(async () => import('./add-to-team/container')), {
-    getOptions: {
-      modal2: true,
-      modal2ClearCover: false,
-      modal2Style: styles.modal2,
-      modal2Type: 'DefaultFullHeight',
-    },
-  }),
+  profileAddToTeam: C.makeScreen(
+    React.lazy(async () => import('./add-to-team/container')),
+    {
+      getOptions: {
+        modal2: true,
+        modal2ClearCover: false,
+        modal2Style: styles.modal2,
+        modal2Type: 'DefaultFullHeight',
+      },
+    }
+  ),
   profileConfirmOrPending: C.makeScreen(React.lazy(async () => import('./confirm-or-pending/container'))),
   profileEdit: C.makeScreen(React.lazy(async () => import('./edit-profile/container'))),
   profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar/container'))),
   profileFinished: C.makeScreen(React.lazy(async () => import('./pgp/finished'))),
   profileGenerate: C.makeScreen(React.lazy(async () => import('./pgp/generate'))),
-  profileGenericEnterUsername: C.makeScreen(React.lazy(async () => import('./generic/enter-username/container')), {
-    getOptions: {gesturesEnabled: false},
-  }),
+  profileGenericEnterUsername: C.makeScreen(
+    React.lazy(async () => import('./generic/enter-username/container')),
+    {
+      getOptions: {gesturesEnabled: false},
+    }
+  ),
   profileGenericProofResult: C.makeScreen(React.lazy(async () => import('./generic/result/container'))),
   profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import'))),
   profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice'))),

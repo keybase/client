@@ -6,182 +6,110 @@ import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
 import crypto from '../crypto/sub-nav/page'
 
-const About = React.lazy(async () => import('./about'))
-const about = {getOptions: {title: 'About'}, screen: About}
-
-const Account = React.lazy(async () => import('./account'))
-const account = {getOptions: {title: 'Your account'}, screen: Account}
-
-const Advanced = React.lazy(async () => import('./advanced'))
-const advanced = {screen: Advanced}
-
-const Chat = React.lazy(async () => import('./chat'))
-const chat = {screen: Chat}
-
-const Display = React.lazy(async () => import('./display'))
-const display = {screen: Display}
-
-const feedback = C.makeScreen(React.lazy(async () => import('./feedback/container')), {
-  getOptions: C.isMobile
-    ? {
-        headerShown: true,
-        title: 'Feedback',
-      }
-    : {},
-})
-
-const Files = React.lazy(async () => import('./files/container'))
-const fs = {screen: Files}
-
-const Invitations = React.lazy(async () => import('./invites'))
-const invitations = {screen: Invitations}
-
-const Notifications = React.lazy(async () => import('./notifications'))
-const notifications = {screen: Notifications}
-
-const WhatsNew = React.lazy(async () => import('../whats-new/container'))
-const whatsNew = {
-  getOptions: C.isMobile ? {title: 'Keybase FM 87.7'} : undefined,
-  screen: WhatsNew,
-}
-
 const AddEmail = React.lazy(async () => {
   const {Email} = await import('./account/add-modals')
   return {default: Email}
 })
-const addEmail = {screen: AddEmail}
 
 const AddPhone = React.lazy(async () => {
   const {Phone} = await import('./account/add-modals')
   return {default: Phone}
 })
-const addPhone = {screen: AddPhone}
-
-const SettingsVerifyPhone = React.lazy(async () => {
-  const {VerifyPhone} = await import('./account/add-modals')
-  return {default: VerifyPhone}
-})
-const settingsVerifyPhone = {screen: SettingsVerifyPhone}
-
-const DbNukeConfirm = React.lazy(async () => import('./db-nuke-confirm/container'))
-const dbNukeConfirm = {screen: DbNukeConfirm}
-
-const MakeIcons = React.lazy(async () => import('./make-icons.page'))
-const makeIcons = {screen: MakeIcons}
-
-const InviteSent = React.lazy(async () => import('./invite-generated'))
-const inviteSent = {screen: InviteSent}
-
-const LogOut = React.lazy(async () => import('./logout'))
-const logOut = {screen: LogOut}
-
-const Password = React.lazy(async () => import('./password'))
-const password = {screen: Password}
-
-const DeleteConfirm = React.lazy(async () => import('./delete-confirm'))
-const deleteConfirm = {screen: DeleteConfirm}
-
-const MobileCheckPassphrase = React.lazy(async () => import('./delete-confirm/check-passphrase'))
-const mobileCheckPassphrase = {screen: MobileCheckPassphrase}
-
-const DisableCertPinningModal = React.lazy(async () => import('./disable-cert-pinning-modal'))
-const disableCertPinningModal = {screen: DisableCertPinningModal}
-
-const SettingsDeleteAddress = React.lazy(async () => import('./account/confirm-delete'))
-const settingsDeleteAddress = {screen: SettingsDeleteAddress}
-
-const KeybaseLinkError = React.lazy(async () => import('../deeplinks/error'))
-const keybaseLinkError = {screen: KeybaseLinkError}
-
-const SettingsRootPhone = React.lazy(async () => import('./root-phone'))
-const settingsRootPhone = {screen: SettingsRootPhone}
 
 const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet'))
-const settingsRootDesktop = {screen: SettingsRootDesktop}
 
-const ScreenprotectorTab = React.lazy(async () => import('./screenprotector'))
-const screenprotectorTab = {
-  getOptions: {header: undefined, title: 'Screen Protector'},
-  screen: ScreenprotectorTab,
-}
-
-const ContactsTab = C.isMobile
-  ? React.lazy(async () => import('./manage-contacts'))
-  : Promise.resolve(() => <></>)
-const contactsTab = {getOptions: {header: undefined, title: 'Contacts'}, screen: ContactsTab}
-
-const webLinks = C.makeScreen(React.lazy(async () => import('./web-links')), {
-  getOptions: ({route}: C.ViewPropsToPageProps<any>) => ({
-    header: undefined,
-    title: route.params.title,
-  }),
-})
-
-const SettingsContactsJoined = React.lazy(async () => import('./contacts-joined'))
-const settingsContactsJoined = {screen: SettingsContactsJoined}
-
-const SettingsPushPrompt = React.lazy(async () => import('./notifications/push-prompt'))
-const settingsPushPrompt = {screen: SettingsPushPrompt}
-
-const Archive = C.featureFlags.archive ? React.lazy(async () => import('./archive')) : () => <></>
-const archive = {getOptions: C.isMobile ? {title: 'Backup'} : undefined, screen: Archive}
-
-const ArchiveModal = React.lazy(async () => import('./archive/modal'))
-const archiveModal = {screen: ArchiveModal}
+const feedback = C.makeScreen(
+  React.lazy(async () => import('./feedback/container')),
+  {getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {}}
+)
 
 export const sharedNewRoutes = {
-  [Constants.settingsAboutTab]: about,
-  [Constants.settingsAccountTab]: account,
-  [Constants.settingsAdvancedTab]: advanced,
-  [Constants.settingsArchiveTab]: archive,
-  [Constants.settingsChatTab]: chat,
+  [Constants.settingsAboutTab]: {
+    getOptions: {title: 'About'},
+    screen: React.lazy(async () => import('./about')),
+  },
+  [Constants.settingsAccountTab]: {
+    getOptions: {title: 'Your account'},
+    screen: React.lazy(async () => import('./account')),
+  },
+  [Constants.settingsAdvancedTab]: {screen: React.lazy(async () => import('./advanced'))},
+  [Constants.settingsArchiveTab]: {
+    getOptions: C.isMobile ? {title: 'Backup'} : undefined,
+    screen: C.featureFlags.archive ? React.lazy(async () => import('./archive')) : () => <></>,
+  },
+  [Constants.settingsChatTab]: {screen: React.lazy(async () => import('./chat'))},
   [Constants.settingsCryptoTab]: crypto,
   [Constants.settingsDevicesTab]: devicesRoutes.devicesRoot,
-  [Constants.settingsDisplayTab]: display,
+  [Constants.settingsDisplayTab]: {screen: React.lazy(async () => import('./display'))},
   [Constants.settingsFeedbackTab]: feedback,
-  [Constants.settingsFsTab]: fs,
+  [Constants.settingsFsTab]: {screen: React.lazy(async () => import('./files/container'))},
   [Constants.settingsGitTab]: gitRoutes.gitRoot,
-  [Constants.settingsInvitationsTab]: invitations,
-  [Constants.settingsNotificationsTab]: notifications,
-  [Constants.settingsScreenprotectorTab]: screenprotectorTab,
+  [Constants.settingsInvitationsTab]: {screen: React.lazy(async () => import('./invites/container'))},
+  [Constants.settingsNotificationsTab]: {screen: React.lazy(async () => import('./notifications/container'))},
+  [Constants.settingsScreenprotectorTab]: {
+    getOptions: {header: undefined, title: 'Screen Protector'},
+    screen: React.lazy(async () => import('./screenprotector')),
+  },
   [Constants.settingsWalletsTab]: {...walletsRoutes.walletsRoot},
-  [Constants.settingsWhatsNewTab]: whatsNew,
-  addEmail,
-  addPhone,
-  dbNukeConfirm,
-  inviteSent,
-  keybaseLinkError,
-  makeIcons,
+  [Constants.settingsWhatsNewTab]: {
+    getOptions: C.isMobile ? {title: 'Keybase FM 87.7'} : undefined,
+    screen: React.lazy(async () => import('../whats-new/container')),
+  },
+  addEmail: {screen: AddEmail},
+  addPhone: {screen: AddPhone},
+  dbNukeConfirm: {screen: React.lazy(async () => import('./db-nuke-confirm/container'))},
+  inviteSent: C.makeScreen(React.lazy(async () => import('./invite-generated/container'))),
+  keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
+  makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
   removeDevice: devicesRoutes.deviceRevoke,
 }
 
 const sharedNewModalRoutes = {
-  [Constants.settingsLogOutTab]: logOut,
-  [Constants.settingsPasswordTab]: password,
-  archiveModal,
-  deleteConfirm,
-  disableCertPinningModal,
-  settingsAddEmail: addEmail,
-  settingsAddPhone: addPhone,
-  settingsDeleteAddress,
-  settingsVerifyPhone,
+  [Constants.settingsLogOutTab]: {screen: React.lazy(async () => import('./logout'))},
+  [Constants.settingsPasswordTab]: {screen: React.lazy(async () => import('./password/container'))},
+  archiveModal: {screen: C.makeScreen(React.lazy(async () => import('./archive/modal')))},
+  deleteConfirm: {screen: React.lazy(async () => import('./delete-confirm'))},
+  disableCertPinningModal: {screen: React.lazy(async () => import('./disable-cert-pinning-modal'))},
+  settingsAddEmail: {screen: AddEmail},
+  settingsAddPhone: {screen: AddPhone},
+  settingsDeleteAddress: {screen: React.lazy(async () => import('./account/confirm-delete'))},
+  settingsVerifyPhone: {
+    screen: React.lazy(async () => {
+      const {VerifyPhone} = await import('./account/add-modals')
+      return {default: VerifyPhone}
+    }),
+  },
 }
 
+const WebLinks = React.lazy(async () => import('./web-links'))
+
 export const newRoutes = {
-  settingsRoot: C.isMobile ? (C.isPhone ? settingsRootPhone : settingsRootDesktop) : settingsRootDesktop,
+  settingsRoot: C.isMobile
+    ? C.isPhone
+      ? {screen: React.lazy(async () => import('./root-phone'))}
+      : {screen: SettingsRootDesktop}
+    : {screen: SettingsRootDesktop},
   ...sharedNewRoutes,
-  [Constants.settingsContactsTab]: contactsTab,
-  webLinks,
+  [Constants.settingsContactsTab]: {
+    getOptions: {header: undefined, title: 'Contacts'},
+    screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : Promise.resolve(() => <></>),
+  },
+  webLinks: C.makeScreen(WebLinks, {
+    getOptions: ({route}: C.ViewPropsToPageProps<typeof WebLinks>) => ({
+      header: undefined,
+      title: route.params.title,
+    }),
+  }),
 }
 
 export const newModalRoutes = {
   ...sharedNewModalRoutes,
-  [Constants.settingsLogOutTab]: logOut,
-  [Constants.settingsPasswordTab]: password,
-  checkPassphraseBeforeDeleteAccount: mobileCheckPassphrase,
+  checkPassphraseBeforeDeleteAccount: {
+    screen: React.lazy(async () => import('./delete-confirm/check-passphrase')),
+  },
   modalFeedback: feedback,
-  settingsContactsJoined,
-  settingsPushPrompt,
+  settingsContactsJoined: {screen: React.lazy(async () => import('./contacts-joined'))},
+  settingsPushPrompt: {screen: React.lazy(async () => import('./notifications/push-prompt'))},
 }
 
 export type RootParamListSettings = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

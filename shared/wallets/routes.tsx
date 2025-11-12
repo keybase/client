@@ -1,8 +1,11 @@
 import * as React from 'react'
-import type * as C from '@/constants'
+import * as C from '@/constants'
 
 export const newRoutes = {
-  walletsRoot: C.makeScreen(React.lazy(async () => import('.')), {getOptions: {title: 'Wallet'}}),
+  walletsRoot: C.makeScreen(
+    React.lazy(async () => import('.')),
+    {getOptions: {title: 'Wallet'}}
+  ),
 }
 
 export const newModalRoutes = {
