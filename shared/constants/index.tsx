@@ -97,11 +97,17 @@ export type PagesToParams<T> = {
 }
 
 // get the views params and wrap them as the page would see it
-export type ViewPropsToPageProps<T> = T extends (p: infer P) => any
-  ? P extends undefined | Record<string, never>
-    ? {route: {params?: undefined}}
-    : {route: {params: P}}
-  : {route: {params?: undefined}}
+export type ViewPropsToPageProps<T> = T extends React.LazyExoticComponent<infer C>
+  ? C extends React.ComponentType<infer P>
+    ? P extends undefined | Record<string, never> | {} | never
+      ? {route: {params?: undefined}}
+      : {route: {params: P}}
+    : {route: {params?: undefined}}
+  : T extends (p: infer P) => any
+    ? P extends undefined | Record<string, never> | {} | never
+      ? {route: {params?: undefined}}
+      : {route: {params: P}}
+    : {route: {params?: undefined}}
 export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
   ? {route: {params: P | undefined}}
   : never
