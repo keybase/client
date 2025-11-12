@@ -2,16 +2,17 @@ import * as React from 'react'
 import * as C from '@/constants'
 import chatNewChat from '../team-building/page'
 
-// Helper to reduce boilerplate for chat screens that need route params
+// Helper to reduce boilerplate for chat screens
+// Works for components with or without route params
 function makeChatScreen<T extends React.LazyExoticComponent<any>>(
   Component: T,
   options?: {getOptions?: unknown}
 ) {
   return {
     ...options,
-    screen: function Screen(p: C.Chat.ChatProviderProps<C.ViewPropsToPageProps<T>>) {
-      const C = Component as any
-      return <C {...p.route.params} />
+    screen: (p: C.Chat.ChatProviderProps<C.ViewPropsToPageProps<T>>) => {
+      const Comp = Component as any
+      return <Comp {...(p.route.params ?? {})} />
     },
   }
 }
@@ -53,13 +54,13 @@ const ChatCreateChannel = React.lazy(async () => import('./create-channel'))
 const chatCreateChannel = makeChatScreen(ChatCreateChannel)
 
 const DeleteHistoryWarning = React.lazy(async () => import('./delete-history-warning/container'))
-const chatDeleteHistoryWarning = {screen: DeleteHistoryWarning}
+const chatDeleteHistoryWarning = makeChatScreen(DeleteHistoryWarning)
 
 const EnterPaperkey = React.lazy(async () => import('./conversation/rekey/enter-paper-key'))
-const chatEnterPaperkey = {getOptions: {headerShown: false}, screen: EnterPaperkey}
+const chatEnterPaperkey = makeChatScreen(EnterPaperkey, {getOptions: {headerShown: false}})
 
 const ForwardMsgPick = React.lazy(async () => import('./conversation/fwd-msg'))
-const chatForwardMsgPick = {screen: ForwardMsgPick}
+const chatForwardMsgPick = makeChatScreen(ForwardMsgPick)
 
 const InfoPanel = React.lazy(async () => import('./conversation/info-panel'))
 const chatInfoPanel = makeChatScreen(InfoPanel)
@@ -71,33 +72,33 @@ const InstallBotPick = React.lazy(async () => import('./conversation/bot/team-pi
 const chatInstallBotPick = makeChatScreen(InstallBotPick)
 
 const LocationPreview = React.lazy(async () => import('./conversation/input-area/location-popup'))
-const chatLocationPreview = {screen: LocationPreview}
+const chatLocationPreview = makeChatScreen(LocationPreview)
 
 const MessagePopup = React.lazy(async () => {
   const {MessagePopupModal} = await import('./conversation/messages/message-popup')
   return {default: MessagePopupModal}
 })
-const chatMessagePopup = {screen: MessagePopup}
+const chatMessagePopup = makeChatScreen(MessagePopup)
 
 const PDF = React.lazy(async () => import('./pdf'))
 const chatPDF = makeChatScreen(PDF)
 
 const RootSingle = React.lazy(async () => import('./inbox/defer-loading'))
-const chatRootSingle = {getOptions: {headerShown: false}, screen: RootSingle}
+const chatRootSingle = makeChatScreen(RootSingle, {getOptions: {headerShown: false}})
 
 const RootSplit = React.lazy(async () => import('./inbox-and-conversation-2'))
-const chatRootSplit = {getOptions: {headerShown: false}, screen: RootSplit}
+const chatRootSplit = makeChatScreen(RootSplit, {getOptions: {headerShown: false}})
 
 const SearchBots = React.lazy(async () => import('./conversation/bot/search'))
 const chatSearchBots = makeChatScreen(SearchBots)
 
 const ShowNewTeamDialog = React.lazy(async () => import('./new-team-dialog-container'))
-const chatShowNewTeamDialog = {screen: ShowNewTeamDialog}
+const chatShowNewTeamDialog = makeChatScreen(ShowNewTeamDialog)
 
 const UnfurlMapPopup = React.lazy(
   async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup')
 )
-const chatUnfurlMapPopup = {screen: UnfurlMapPopup}
+const chatUnfurlMapPopup = makeChatScreen(UnfurlMapPopup)
 
 const SendToChat = React.lazy(async () => import('./send-to-chat'))
 const chatSendToChat = makeChatScreen(SendToChat)

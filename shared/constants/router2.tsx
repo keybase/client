@@ -560,14 +560,16 @@ export const useState_ = Z.createZustand<State>((set, get) => {
 })
 
 // Helper to reduce boilerplate in route definitions
+// Works for components with or without route params
 export function makeScreen<T extends React.LazyExoticComponent<any>>(
   Component: T,
   options?: {getOptions?: any}
 ) {
   return {
     ...options,
-    screen: function Screen(p: C.ViewPropsToPageProps<T>) {
-      return <Component {...p.route.params} />
+    screen: (p: C.ViewPropsToPageProps<T>) => {
+      const Comp = Component as any
+      return <Comp {...(p.route.params ?? {})} />
     },
   }
 }
