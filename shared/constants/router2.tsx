@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '.'
 import type * as T from './types'
 import {
@@ -557,3 +558,16 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
+
+// Helper to reduce boilerplate in route definitions
+export function makeScreen<T extends React.LazyExoticComponent<any>>(
+  Component: T,
+  options?: {getOptions?: any}
+) {
+  return {
+    ...options,
+    screen: function Screen(p: C.ViewPropsToPageProps<T>) {
+      return <Component {...p.route.params} />
+    },
+  }
+}

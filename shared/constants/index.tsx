@@ -2,7 +2,7 @@
 export * from './platform'
 export {wrapErrors} from '@/util/debug'
 export {useState_ as useDarkModeState} from './darkmode'
-export {useState_ as useRouterState} from './router2'
+export {useState_ as useRouterState, makeScreen} from './router2'
 export * as Router2 from './router2'
 export {useState_ as useDeepLinksState} from './deeplinks'
 export * as DeepLinks from './deeplinks'
