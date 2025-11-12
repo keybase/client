@@ -11,6 +11,18 @@ const recoverPasswordStyles = Kb.Styles.styleSheetCreate(() => ({
   questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
 }))
 
+const headerRightActions = () => (
+  <Kb.Box2 direction="horizontal" style={recoverPasswordStyles.questionBox}>
+    <InfoIcon />
+  </Kb.Box2>
+)
+
+const recoverPasswordGetOptions = {
+  headerBottomStyle: {height: undefined},
+  headerLeft: undefined, // no back button
+  headerRightActions,
+}
+
 export const newRoutes = {
   feedback: settingsRoutes[C.Settings.settingsFeedbackTab],
   login: {screen: React.lazy(async () => import('.'))},
@@ -21,69 +33,24 @@ export const newRoutes = {
     getOptions: {
       gesturesEnabled: false,
       headerLeft: undefined, // no back button
-      headerRightActions: () => (
-        <Kb.Box2
-          direction="horizontal"
-          style={Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0)}
-        >
-          <InfoIcon />
-        </Kb.Box2>
-      ),
+      headerRightActions,
     },
     screen: React.lazy(async () => import('./recover-password/error')),
   },
   recoverPasswordExplainDevice: {
-    getOptions: () => ({
-      headerBottomStyle: {height: undefined},
-      headerLeft: undefined, // no back button
-      headerRightActions: () => (
-        <Kb.Box2
-          direction="horizontal"
-          style={Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0)}
-        >
-          <InfoIcon />
-        </Kb.Box2>
-      ),
-    }),
+    getOptions: recoverPasswordGetOptions,
     screen: React.lazy(async () => import('./recover-password/explain-device')),
   },
   recoverPasswordPaperKey: {
-    getOptions: {
-      headerBottomStyle: {height: undefined},
-      headerLeft: undefined, // no back button
-      headerRightActions: () => (
-        <Kb.Box2
-          direction="horizontal"
-          style={Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0)}
-        >
-          <InfoIcon />
-        </Kb.Box2>
-      ),
-    },
+    getOptions: recoverPasswordGetOptions,
     screen: React.lazy(async () => import('./recover-password/paper-key')),
   },
   recoverPasswordPromptResetAccount: {
-    getOptions: {
-      headerBottomStyle: {height: undefined},
-      headerLeft: undefined, // no back button
-      headerRightActions: () => (
-        <Kb.Box2 direction="horizontal" style={recoverPasswordStyles.questionBox}>
-          <InfoIcon />
-        </Kb.Box2>
-      ),
-    },
+    getOptions: recoverPasswordGetOptions,
     screen: React.lazy(async () => import('./recover-password/prompt-reset-account')),
   },
   recoverPasswordPromptResetPassword: {
-    getOptions: {
-      headerBottomStyle: {height: undefined},
-      headerLeft: undefined, // no back button
-      headerRightActions: () => (
-        <Kb.Box2 direction="horizontal" style={recoverPasswordStyles.questionBox}>
-          <InfoIcon />
-        </Kb.Box2>
-      ),
-    },
+    getOptions: recoverPasswordGetOptions,
     screen: React.lazy(async () => import('./recover-password/prompt-reset-password')),
   },
   resetConfirm: {
