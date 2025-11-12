@@ -98,7 +98,7 @@ export type PagesToParams<T> = {
 
 // get the views params and wrap them as the page would see it
 export type ViewPropsToPageProps<T> = T extends (p: infer P) => any
-  ? P extends undefined | void | Record<string, never>
+  ? P extends undefined | Record<string, never>
     ? {route: {params?: undefined}}
     : {route: {params: P}}
   : {route: {params?: undefined}}
