@@ -5,12 +5,13 @@ import chatNewChat from '../team-building/page'
 // Helper to reduce boilerplate for chat screens that need route params
 function makeChatScreen<T extends React.LazyExoticComponent<any>>(
   Component: T,
-  options?: {getOptions?: any}
+  options?: {getOptions?: unknown}
 ) {
   return {
     ...options,
     screen: function Screen(p: C.Chat.ChatProviderProps<C.ViewPropsToPageProps<T>>) {
-      return <Component {...p.route.params} />
+      const C = Component as any
+      return <C {...p.route.params} />
     },
   }
 }
@@ -52,7 +53,7 @@ const ChatCreateChannel = React.lazy(async () => import('./create-channel'))
 const chatCreateChannel = makeChatScreen(ChatCreateChannel)
 
 const DeleteHistoryWarning = React.lazy(async () => import('./delete-history-warning'))
-const chatDeleteHistoryWarning = {screen: DeleteHistoryWarning}
+const chatDeleteHistoryWarning = {screen: makeChatScreen(DeleteHistoryWarning).screen}
 
 const EnterPaperkey = React.lazy(async () => import('./conversation/rekey/enter-paper-key'))
 const chatEnterPaperkey = {getOptions: {headerShown: false}, screen: EnterPaperkey}
