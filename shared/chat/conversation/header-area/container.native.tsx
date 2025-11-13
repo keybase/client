@@ -4,7 +4,6 @@ import * as React from 'react'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import {Keyboard} from 'react-native'
-import {getRouteParamsFromRoute} from '@/router-v2/route-params'
 // import {DebugChatDumpContext} from '@/constants/chat2/debug'
 import * as Styles from '@/styles'
 import {assertionToDisplay} from '@/common-adapters/usernames'
@@ -95,9 +94,8 @@ const BadgeHeaderLeftArray = (p: HeaderBackButtonProps) => {
   return <HeaderLeftArrow badgeNumber={badgeNumber} {...p} />
 }
 
-export const headerNavigationOptions = (route: unknown) => {
-  const conversationIDKey =
-    getRouteParamsFromRoute<'chatConversation'>(route)?.conversationIDKey ?? C.Chat.noConversationIDKey
+export const headerNavigationOptions = (route: {params?: {conversationIDKey?: string}}) => {
+  const conversationIDKey = route.params?.conversationIDKey ?? C.Chat.noConversationIDKey
   return {
     headerLeft: (props: HeaderBackButtonProps) => {
       const {onLabelLayout, labelStyle, ...rest} = props

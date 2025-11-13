@@ -1,12 +1,11 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 
-const Conversation = React.memo(function Conversation() {
+const Conversation = function Conversation() {
   const type = C.useChatContext(s => {
     const meta = s.meta
     switch (s.id) {
@@ -39,7 +38,7 @@ const Conversation = React.memo(function Conversation() {
       // On iOS it is less noticeable because screen transitions slide away to
       // the right, though it is visible for a small amount of time.
       // To solve this we render a blank screen on mobile conversation views with "noConvo"
-      return C.isPhone ? null : <NoConversation />
+      return C.isPhone ? <></> : <NoConversation />
     case 'normal':
       return <Normal />
     case 'youAreReset':
@@ -49,6 +48,6 @@ const Conversation = React.memo(function Conversation() {
     default:
       return <NoConversation />
   }
-})
+}
 
 export default Conversation

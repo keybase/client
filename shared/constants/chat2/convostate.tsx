@@ -3268,10 +3268,10 @@ export function useConvoState_<T>(id: T.Chat.ConversationIDKey, selector: (state
   return useStore(store, selector)
 }
 
-export type ChatProviderProps<T> = T & {route: {params: {conversationIDKey?: string}}}
+export type ChatProviderProps<T> = T & {route: {params: {conversationIDKey?: T.Chat.ConversationIDKey}}}
 
 type RouteParams = {
-  route: {params: {conversationIDKey?: string}}
+  route: {params: {conversationIDKey?: T.Chat.ConversationIDKey}}
 }
 export const ProviderScreen = React.memo(function ProviderScreen(p: {
   children: React.ReactNode
