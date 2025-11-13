@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * *C from '@/constants'
 import * as ConfigConstants from '@/constants/config'
 import * as TrackerConstants from '@/constants/tracker2'
 import './account-switcher.css'
@@ -223,3 +223,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default Container
+

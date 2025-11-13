@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import {keybaseFM} from '@/constants/whats-new'
 import {isAndroid} from '@/constants/platform'
 import SettingsItem from './sub-nav/settings-item'
-import WhatsNewIcon from '../whats-new/icon/container'
+import WhatsNewIcon from '../whats-new/icon'
 import noop from 'lodash/noop'
 
 const PerfRow = () => {
