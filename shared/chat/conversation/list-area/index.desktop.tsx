@@ -225,6 +225,15 @@ const useScrolling = (p: {
   const initScrollRef = React.useRef(false)
   const [didFirstLoad, setDidFirstLoad] = React.useState(false)
 
+  // Reset init scroll when loading new data or switching conversations
+  const prevConvoIDKey = React.useRef(conversationIDKey)
+  React.useEffect(() => {
+    if (!loaded || prevConvoIDKey.current !== conversationIDKey) {
+      initScrollRef.current = false
+      prevConvoIDKey.current = conversationIDKey
+    }
+  }, [loaded, conversationIDKey])
+
   // handle initial load scrolling only. Either scroll to bottom or scroll to centered
   React.useLayoutEffect(() => {
     if (!loaded) return
