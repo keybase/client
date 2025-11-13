@@ -76,7 +76,7 @@ export const newModalRoutes = {
   teamInviteByEmail: C.makeScreen(React.lazy(async () => import('./invite-by-email'))),
   teamInviteLinkJoin: {screen: React.lazy(async () => import('./join-team/join-from-invite'))},
   teamJoinTeamDialog: C.makeScreen(React.lazy(async () => import('./join-team/container'))),
-  teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team'))),
+  teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team/container'))),
   teamReallyLeaveTeam: C.makeScreen(
     React.lazy(async () => import('./confirm-modals/really-leave-team/container'))
   ),
