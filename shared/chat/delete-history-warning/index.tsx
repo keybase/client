@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 
 type Props = {
   onCancel: () => void
@@ -85,4 +86,22 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default DeleteHistoryWarning
+const Container = () => {
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onCancel = () => {
+    navigateUp()
+  }
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const messageDeleteHistory = C.useChatContext(s => s.dispatch.messageDeleteHistory)
+  const onDeleteHistory = () => {
+    clearModals()
+    messageDeleteHistory()
+  }
+  const props = {
+    onCancel,
+    onDeleteHistory,
+  }
+  return <DeleteHistoryWarning {...props} />
+}
+
+export default Container

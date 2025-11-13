@@ -31,7 +31,7 @@ export const newModalRoutes = {
     })
   ),
   confirmDelete: C.makeScreen(
-    React.lazy(async () => import('./common/path-item-action/confirm-delete/container'))
+    React.lazy(async () => import('./common/path-item-action/confirm-delete'))
   ),
   destinationPicker: C.makeScreen(React.lazy(async () => import('./browser/destination-picker'))),
   kextPermission: {

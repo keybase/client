@@ -87,7 +87,7 @@ module.exports = {
     // explicitly
     require('./profile-card').default
 
-    return require('./name-with-icon/container').default
+    return require('./name-with-icon').default
   },
   get ConnectedUsernames() {
     // explicitly require this to make popup work if it's not been imported

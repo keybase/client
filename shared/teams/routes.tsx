@@ -63,7 +63,7 @@ export const newModalRoutes = {
   teamJoinTeamDialog: C.makeScreen(React.lazy(async () => import('./join-team/container'))),
   teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team/container'))),
   teamReallyLeaveTeam: C.makeScreen(
-    React.lazy(async () => import('./confirm-modals/really-leave-team/container'))
+    React.lazy(async () => import('./confirm-modals/really-leave-team'))
   ),
   teamReallyRemoveChannelMember: C.makeScreen(
     React.lazy(async () => import('./confirm-modals/confirm-remove-from-channel'))

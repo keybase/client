@@ -1,5 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as C from '@/constants'
+import * as React from 'react'
 
 export type Props = {
   onBack: () => void
@@ -20,4 +22,36 @@ const ReallyDeleteFile = (props: Props) =>
     />
   ) : null
 
-export default ReallyDeleteFile
+type OwnProps = {
+  path: T.FS.Path
+  mode: 'row' | 'screen'
+}
+
+const Container = (ownProps: OwnProps) => {
+  const {path, mode} = ownProps
+  const deleteFile = C.useFSState(s => s.dispatch.deleteFile)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = navigateUp
+  const onDelete = React.useCallback(() => {
+    if (path !== C.FS.defaultPath) {
+      deleteFile(path)
+    }
+    // If this is a screen menu, then we're deleting the folder we're in,
+    // and we need to navigate up twice.
+    if (mode === 'screen') {
+      navigateUp()
+      navigateUp()
+    } else {
+      navigateUp()
+    }
+  }, [deleteFile, navigateUp, mode, path])
+  const props = {
+    onBack,
+    onDelete,
+    path,
+    title: 'Confirmation',
+  }
+  return <ReallyDeleteFile {...props} />
+}
+
+export default Container
