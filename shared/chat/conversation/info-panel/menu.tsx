@@ -21,65 +21,66 @@ const InfoPanelMenuConnectorVisible = React.memo(function InfoPanelMenuConnector
   return visible ? <InfoPanelMenuConnector {...p} /> : null
 })
 
+const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
+  const {isSmallTeam, pteamID} = p
+  const username = C.useCurrentUserState(s => s.username)
+  const infoMap = C.useUsersState(s => s.infoMap)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
+  const teamMeta = C.useTeamsState(s => (pteamID ? C.Teams.getTeamMeta(s, pteamID) : undefined))
+  const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
+  const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
+
+  const common = {
+    badgeSubscribe: false,
+    canAddPeople: false,
+    channelname: '',
+    fullname: undefined,
+    ignored: false,
+    isInChannel: false,
+    isMuted: false,
+    manageChannelsSubtitle,
+    manageChannelsTitle,
+    participants: [],
+    teamID: T.Teams.noTeamID,
+    teamType: undefined,
+    teamname: '',
+  }
+
+  if (meta.conversationIDKey !== C.Chat.noConversationIDKey) {
+    const participants = C.Chat.getRowParticipants(participantInfo, username)
+    // If it's a one-on-one chat, we need the user's fullname.
+    const fullname =
+      (participants.length === 1 && (infoMap.get(participants[0]!) || {fullname: ''}).fullname) || ''
+    const {teamID, teamname, channelname, membershipType, status, isMuted, teamType} = meta
+    const isInChannel = membershipType !== 'youArePreviewing'
+    const ignored = status === T.RPCChat.ConversationStatus.ignored
+    return {
+      ...common,
+      channelname,
+      fullname,
+      ignored,
+      isInChannel,
+      isMuted,
+      participants,
+      teamID,
+      teamType,
+      teamname,
+    }
+  } else if (pteamID) {
+    const teamID = pteamID
+    const teamname = teamMeta?.teamname ?? ''
+    return {...common, teamID, teamname}
+  }
+  return {...common}
+}
+
 const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: OwnProps) {
   const {attachTo, onHidden, floatingMenuContainerStyle, hasHeader} = p
   const {isSmallTeam, teamID: pteamID} = p
   const visible = true
 
-  const username = C.useCurrentUserState(s => s.username)
-
-  const infoMap = C.useUsersState(s => s.infoMap)
-  const participantInfo = C.useChatContext(s => s.participants)
-  const meta = C.useChatContext(s => s.meta)
-  const teamMeta = C.useTeamsState(s => (pteamID ? C.Teams.getTeamMeta(s, pteamID) : undefined))
-  const data = (() => {
-    const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
-    const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
-
-    const common = {
-      badgeSubscribe: false,
-      canAddPeople: false,
-      channelname: '',
-      fullname: undefined,
-      ignored: false,
-      isInChannel: false,
-      isMuted: false,
-      manageChannelsSubtitle,
-      manageChannelsTitle,
-      participants: [],
-      teamID: T.Teams.noTeamID,
-      teamType: undefined,
-      teamname: '',
-    }
-
-    if (meta.conversationIDKey !== C.Chat.noConversationIDKey) {
-      const participants = C.Chat.getRowParticipants(participantInfo, username)
-      // If it's a one-on-one chat, we need the user's fullname.
-      const fullname =
-        (participants.length === 1 && (infoMap.get(participants[0]!) || {fullname: ''}).fullname) || ''
-      const {teamID, teamname, channelname, membershipType, status, isMuted, teamType} = meta
-      const isInChannel = membershipType !== 'youArePreviewing'
-      const ignored = status === T.RPCChat.ConversationStatus.ignored
-      return {
-        ...common,
-        channelname,
-        fullname,
-        ignored,
-        isInChannel,
-        isMuted,
-        participants,
-        teamID,
-        teamType,
-        teamname,
-      }
-    } else if (pteamID) {
-      const teamID = pteamID
-      const teamname = teamMeta?.teamname ?? ''
-      return {...common, teamID, teamname}
-    }
-    return {...common}
-  })()
-
+  const data = useData({isSmallTeam, pteamID})
   const {teamname, teamID, channelname, isInChannel, ignored, fullname} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 

@@ -316,7 +316,6 @@ import {useHeaderHeight} from '@react-navigation/elements'
 
 const useSafeHeaderHeight = () => {
   try {
-    // eslint-disable-next-line
     return useHeaderHeight()
   } catch {
     return 0

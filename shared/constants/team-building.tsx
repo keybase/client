@@ -284,7 +284,6 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
             get().dispatch.cancelTeamBuilding()
             setTimeout(() => {
               // we want the first item
-              // eslint-disable-next-line no-unreachable-loop
               for (const user of teamSoFar) {
                 const username = user.serviceMap.keybase || user.id
                 C.useProfileState.getState().dispatch.showUserProfile(username)
