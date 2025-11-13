@@ -1,43 +1,20 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Container from '@/util/container'
-import {HeaderRightActions} from './main/header'
 import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
-
-const useHeaderActions = () => {
-  const nav = Container.useSafeNavigation()
-  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
-  return {
-    onCreateTeam: () => launchNewTeamWizardOrModal(),
-    onJoinTeam: () => nav.safeNavigateAppend('teamJoinTeamDialog'),
-  }
-}
-
-const Channel = React.lazy(async () => import('./channel'))
-
-const TeamsScreen = React.lazy(async () => import('./main'))
-const teamsRoot = C.makeScreen(TeamsScreen, {
-  getOptions: C.isMobile
-    ? {headerRightActions: () => null, title: 'Teams'}
-    : {
-        headerRightActions: function HeaderRight() {
-          const actions = useHeaderActions()
-          return <HeaderRightActions {...actions} />
-        },
-        headerTitle: () => 'Teams',
-        title: 'Teams',
-      },
-})
+import teamsRootGetOptions from './get-options'
 
 export const newRoutes = {
   team: C.makeScreen(
     React.lazy(async () => import('./team')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
-  teamChannel: C.Chat.makeChatScreen(Channel, {
-    getOptions: {headerShadowVisible: false, headerTitle: '', underNotch: true},
-  }),
+  teamChannel: C.Chat.makeChatScreen(
+    React.lazy(async () => import('./channel')),
+    {
+      getOptions: {headerShadowVisible: false, headerTitle: '', underNotch: true},
+    }
+  ),
   teamExternalTeam: C.makeScreen(
     React.lazy(async () => import('./external-team')),
     {
@@ -53,7 +30,10 @@ export const newRoutes = {
     React.lazy(async () => import('./team/member/index.new')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
-  teamsRoot,
+  teamsRoot: {
+    getOptions: teamsRootGetOptions,
+    screen: React.lazy(async () => import('./container')),
+  },
 }
 
 export const newModalRoutes = {
