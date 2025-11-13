@@ -302,31 +302,39 @@ const useScrolling = (p: {
   }, [centeredOrdinal, ordinalsLength, isLockedToBottom, isMounted, listRef, firstOrdinal])
 
   // Check to see if our centered ordinal has changed, and if so, scroll to it
-  const [lastCenteredOrdinal, setLastCenteredOrdinal] = React.useState(centeredOrdinal)
-  // Reset when conversation reloads so clicking same search result works
+  // Track both the scroll target and whether we've completed it, keyed by load cycle
+  const [lastScrollKey, setLastScrollKey] = React.useState(
+    `${conversationIDKey}:${centeredOrdinal ?? 'none'}:0`
+  )
+  const [loadCycle, setLoadCycle] = React.useState(0)
   const prevLoadedRef = React.useRef(loaded)
+  
+  // Increment load cycle counter when transitioning from loaded to not loaded
   React.useLayoutEffect(() => {
     if (!loaded && prevLoadedRef.current) {
-      // Conversation is reloading, reset so we can scroll to same ordinal again
-      setLastCenteredOrdinal(undefined)
+      setLoadCycle(c => c + 1)
     }
     prevLoadedRef.current = loaded
   }, [loaded])
+  
   React.useEffect(() => {
-    if (lastCenteredOrdinal === centeredOrdinal) return
+    const scrollKey = `${conversationIDKey}:${centeredOrdinal ?? 'none'}:${loadCycle}`
+    if (lastScrollKey === scrollKey) return
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
       scrollToCentered()
-    } else if (lastCenteredOrdinal && !centeredOrdinal && containsLatestMessage) {
+    } else if (lastScrollKey && !centeredOrdinal && containsLatestMessage) {
       lockedToBottomRef.current = true
       scrollToBottom()
     }
-    setLastCenteredOrdinal(centeredOrdinal)
+    setLastScrollKey(scrollKey)
   }, [
     centeredOrdinal,
+    conversationIDKey,
+    loadCycle,
     scrollToCentered,
-    setLastCenteredOrdinal,
-    lastCenteredOrdinal,
+    setLastScrollKey,
+    lastScrollKey,
     containsLatestMessage,
     scrollToBottom,
   ])
