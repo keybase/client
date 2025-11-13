@@ -3,11 +3,11 @@ import * as Constants from '@/constants/fs'
 import * as Container from '@/util/container'
 import * as FsCommon from '@/fs/common'
 import * as Kb from '@/common-adapters'
-import * as RowCommon from '../rows/common'
+import * as RowCommon from './rows/common'
 import * as T from '@/constants/types'
 import NavHeaderTitle from '@/fs/nav-header/title'
-import Root from '../root'
-import Rows from '../rows/rows-container'
+import Root from './root'
+import Rows from './rows/rows-container'
 import {OriginalOrCompressedButton} from '@/incoming-share'
 
 type OwnProps = {index: number}
@@ -238,12 +238,12 @@ const makeTitle = (targetName: string, parentPath: T.FS.Path) => {
   return (
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.desktopHeader} gap="xtiny">
       <Kb.Text type="Header" style={{flexShrink: 0}}>
-        Move or Copy “
+        Move or Copy "
       </Kb.Text>
       <FsCommon.ItemIcon size={16} path={T.FS.pathConcat(parentPath, targetName)} />
       <FsCommon.Filename type="Header" filename={targetName} />
       <Kb.Text type="Header" style={{flexShrink: 0}}>
-        ”
+        "
       </Kb.Text>
     </Kb.Box2>
   )
@@ -293,3 +293,4 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export default ConnectedDestinationPicker
+

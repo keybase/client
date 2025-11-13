@@ -98,7 +98,7 @@ const TeamRow = (p: RowProps) => {
           <Kb.Box2 direction="vertical" style={styles.membershipTextContainer}>
             <Kb.Text style={styles.membershipText} type="BodySmall">
               {isExplicitMember
-                ? 'Admins aren’t allowing members to feature.'
+                ? 'Admins aren't allowing members to feature.'
                 : 'Add yourself to the team first.'}
             </Kb.Text>
           </Kb.Box2>
@@ -113,7 +113,7 @@ const ShowcaseTeamOfferHeader = () => (
   <Kb.Box style={styles.headerContainer}>
     {!Kb.Styles.isMobile && (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerText}>
-        <Kb.Text type="Header">Feature the teams you’re in</Kb.Text>
+        <Kb.Text type="Header">Feature the teams you're in</Kb.Text>
       </Kb.Box2>
     )}
     <Kb.InfoNote containerStyle={styles.noteContainer}>
@@ -181,3 +181,4 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export default Container
+
