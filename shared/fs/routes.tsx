@@ -7,8 +7,10 @@ const FsRoot = React.lazy(async () => import('.'))
 
 export const newRoutes = {
   fsRoot: C.makeScreen(FsRoot, {
-    getOptions: (ownProps: C.ViewPropsToPageProps<typeof FsRoot>) => {
-      const path = ownProps.route.params.path ?? C.FS.defaultPath
+    getOptions: (ownProps?: C.ViewPropsToPageProps<typeof FsRoot>) => {
+      // strange edge case where the root can actually have no params
+      // eslint-disable-next-line
+      const path = ownProps?.route.params?.path ?? C.FS.defaultPath
       return C.isMobile
         ? {header: () => <MobileHeader path={path} />}
         : {
