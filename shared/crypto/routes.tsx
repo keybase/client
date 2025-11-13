@@ -7,28 +7,28 @@ import cryptoTeamBuilder from '../team-building/page'
 
 export const newRoutes = {
   [Constants.decryptTab]: {
-    getOptions: {headerShown: true, needsKeyboard: true, title: 'Decrypt'},
+    getOptions: {headerShown: true, title: 'Decrypt'},
     screen: React.lazy(async () => {
       const {DecryptInput} = await import('./operations/decrypt')
       return {default: DecryptInput}
     }),
   },
   [Constants.encryptTab]: {
-    getOptions: {headerShown: true, needsKeyboard: true, title: 'Encrypt'},
+    getOptions: {headerShown: true, title: 'Encrypt'},
     screen: React.lazy(async () => {
       const {EncryptInput} = await import('./operations/encrypt')
       return {default: EncryptInput}
     }),
   },
   [Constants.signTab]: {
-    getOptions: {headerShown: true, needsKeyboard: true, title: 'Sign'},
+    getOptions: {headerShown: true, title: 'Sign'},
     screen: React.lazy(async () => {
       const {SignInput} = await import('./operations/sign')
       return {default: SignInput}
     }),
   },
   [Constants.verifyTab]: {
-    getOptions: {headerShown: true, needsKeyboard: true, title: 'Verify'},
+    getOptions: {headerShown: true, title: 'Verify'},
     screen: React.lazy(async () => {
       const {VerifyInput} = await import('./operations/verify')
       return {default: VerifyInput}
@@ -50,7 +50,7 @@ export const newModalRoutes = {
     }),
   },
   [Constants.encryptOutput]: {
-    getOptions: {headerShown: true, needsKeyboard: false, title: 'Encrypted'},
+    getOptions: {headerShown: true, title: 'Encrypted'},
     screen: React.lazy(async () => {
       const {EncryptOutput} = await import('./operations/encrypt')
       return {default: EncryptOutput}
