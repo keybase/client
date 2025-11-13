@@ -222,44 +222,34 @@ const useScrolling = (p: {
     }
   }, [cleanupDebounced])
 
-  const initScrollRef = React.useRef(false)
   const [didFirstLoad, setDidFirstLoad] = React.useState(false)
 
-  // Reset init scroll when loading new data or switching conversations
-  const prevConvoIDKey = React.useRef(conversationIDKey)
-  React.useEffect(() => {
-    if (!loaded || prevConvoIDKey.current !== conversationIDKey) {
-      initScrollRef.current = false
-      prevConvoIDKey.current = conversationIDKey
-    }
-  }, [loaded, conversationIDKey])
-
-  // handle initial load scrolling only. Either scroll to bottom or scroll to centered
+  // Handle scrolling when loaded becomes true. Scroll to centered ordinal if present, else bottom
+  const prevLoadedRef = React.useRef(loaded)
   React.useLayoutEffect(() => {
-    if (!loaded) return
-    if (!initScrollRef.current) {
-      initScrollRef.current = true
-      if (!markedInitiallyLoaded) {
-        markedInitiallyLoaded = true
-        markInitiallyLoadedThreadAsRead()
-      }
+    const justLoaded = loaded && !prevLoadedRef.current
+    prevLoadedRef.current = loaded
+    
+    if (!justLoaded) return
 
-      if (centeredOrdinal) {
-        lockedToBottomRef.current = false
-        scrollToCentered()
-      } else {
-        scrollToBottom()
-      }
+    if (!markedInitiallyLoaded) {
+      markedInitiallyLoaded = true
+      markInitiallyLoadedThreadAsRead()
+    }
+
+    if (centeredOrdinal) {
+      lockedToBottomRef.current = false
+      scrollToCentered()
+    } else {
+      scrollToBottom()
     }
 
     requestAnimationFrame(() => {
       setDidFirstLoad(true)
     })
   }, [
-    listRef,
     loaded,
     centeredOrdinal,
-    isLockedToBottom,
     markInitiallyLoadedThreadAsRead,
     scrollToBottom,
     scrollToCentered,
@@ -301,43 +291,27 @@ const useScrolling = (p: {
     // we want this to fire when the ordinals change
   }, [centeredOrdinal, ordinalsLength, isLockedToBottom, isMounted, listRef, firstOrdinal])
 
-  // Check to see if our centered ordinal has changed, and if so, scroll to it
-  // Track both the scroll target and whether we've completed it, keyed by load cycle
-  const [lastScrollKey, setLastScrollKey] = React.useState(
-    `${conversationIDKey}:${centeredOrdinal ?? 'none'}:0`
-  )
-  const [loadCycle, setLoadCycle] = React.useState(0)
-  const prevLoadedRef = React.useRef(loaded)
-  
-  // Increment load cycle counter when transitioning from loaded to not loaded
-  React.useLayoutEffect(() => {
-    if (!loaded && prevLoadedRef.current) {
-      setLoadCycle(c => c + 1)
-    }
-    prevLoadedRef.current = loaded
-  }, [loaded])
-  
+  // Also handle centered ordinal changing while already loaded (e.g. from thread search results)
+  const prevCenteredOrdinal = React.useRef(centeredOrdinal)
+  const wasLoadedRef = React.useRef(loaded)
   React.useEffect(() => {
-    const scrollKey = `${conversationIDKey}:${centeredOrdinal ?? 'none'}:${loadCycle}`
-    if (lastScrollKey === scrollKey) return
+    const wasLoaded = wasLoadedRef.current
+    const changed = prevCenteredOrdinal.current !== centeredOrdinal
+    prevCenteredOrdinal.current = centeredOrdinal
+    wasLoadedRef.current = loaded
+    
+    // Only scroll if we were already loaded and ordinal changed
+    // (the load effect handles scrolling when loaded transitions to true)
+    if (!wasLoaded || !loaded || !changed) return
+    
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
       scrollToCentered()
-    } else if (lastScrollKey && !centeredOrdinal && containsLatestMessage) {
+    } else if (containsLatestMessage) {
       lockedToBottomRef.current = true
       scrollToBottom()
     }
-    setLastScrollKey(scrollKey)
-  }, [
-    centeredOrdinal,
-    conversationIDKey,
-    loadCycle,
-    scrollToCentered,
-    setLastScrollKey,
-    lastScrollKey,
-    containsLatestMessage,
-    scrollToBottom,
-  ])
+  }, [centeredOrdinal, loaded, containsLatestMessage, scrollToCentered, scrollToBottom])
 
   const {setScrollRef} = React.useContext(ScrollContext)
   React.useEffect(() => {
