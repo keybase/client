@@ -33,18 +33,25 @@ const teamsRoot = C.makeScreen(TeamsScreen, {
 export const newRoutes = {
   team: C.makeScreen(
     React.lazy(async () => import('./team')),
-    {getOptions: {headerShown: C.isMobile, presentation: 'modal', title: ''}}
+    {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
   teamChannel: C.Chat.makeChatScreen(Channel, {
     getOptions: {headerShadowVisible: false, headerTitle: '', underNotch: true},
   }),
   teamExternalTeam: C.makeScreen(
     React.lazy(async () => import('./external-team')),
-    {getOptions: {headerShown: C.isMobile, presentation: 'modal', title: ''}}
+    {
+      getOptions: {
+        header: undefined,
+        headerBottomStyle: {height: undefined},
+        headerShadowVisible: false,
+        title: ' ', // hack: trick router shim so it doesn't add a safe area around us
+      },
+    }
   ),
   teamMember: C.makeScreen(
     React.lazy(async () => import('./team/member/index.new')),
-    {getOptions: {headerShown: false}}
+    {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
   teamsRoot,
 }

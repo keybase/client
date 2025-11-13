@@ -30,11 +30,13 @@ export type GetOptionsRet =
       modal2NoClose?: boolean
       modal2Type?: ModalType
       headerBottomStyle?: Styles.StylesCrossPlatform
+      header?: () => React.ReactNode
       headerLeft?: (p: HeaderBackButtonProps) => React.ReactNode
       headerRightActions?: (p: HeaderBackButtonProps) => React.ReactNode
       headerShown?: boolean
       headerStyle?: Styles.StylesCrossPlatform
-      headerTitle?: () => React.ReactNode
+      headerTitle?: string | (() => React.ReactNode)
+      headerShadowVisible?: boolean
       headerTransparent?: boolean
       gesturesEnabled?: boolean
       title?: string
