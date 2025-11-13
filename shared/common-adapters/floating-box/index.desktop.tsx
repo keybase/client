@@ -9,9 +9,11 @@ const FloatingBox = (props: Props) => {
   const {attachTo, disableEscapeKey, position, positionFallbacks, children, offset} = props
   const {onHidden, remeasureHint, propagateOutsideClicks, containerStyle, matchDimension} = props
 
+  const cur = attachTo?.current
+
   const getTargetRect = React.useCallback(() => {
-    return attachTo?.current?.measure?.()
-  }, [attachTo])
+    return cur?.measure?.()
+  }, [cur])
   const [targetRect, setTargetRect] = React.useState<MeasureDesktop | undefined>(getTargetRect())
 
   React.useEffect(() => {

@@ -67,7 +67,6 @@ export const collapseStyles = (
       return false
     }
     // has a value?
-    // eslint-disable-next-line
     for (const _ in s) {
       return true
     }

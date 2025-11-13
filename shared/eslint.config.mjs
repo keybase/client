@@ -108,7 +108,7 @@ const rules = {
   'promise/catch-or-return': 'error',
   'promise/no-new-statics': 'error',
   'promise/no-return-in-finally': 'error',
-  'promise/always-return': 'warn',
+  'promise/always-return': 'off',
   'promise/no-return-wrap': 'error',
   'promise/param-names': 'error',
   'promise/valid-params': 'error',
