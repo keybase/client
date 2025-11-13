@@ -11,9 +11,7 @@ export const newRoutes = {
   ),
   teamChannel: C.Chat.makeChatScreen(
     React.lazy(async () => import('./channel')),
-    {
-      getOptions: {headerShadowVisible: false, headerTitle: '', underNotch: true},
-    }
+    {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
   teamExternalTeam: C.makeScreen(
     React.lazy(async () => import('./external-team')),

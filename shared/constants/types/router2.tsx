@@ -31,7 +31,7 @@ export type GetOptionsRet =
       modal2Type?: ModalType
       headerBottomStyle?: Styles.StylesCrossPlatform
       header?: () => React.ReactNode
-      headerLeft?: (p: HeaderBackButtonProps) => React.ReactNode
+      headerLeft?: null | ((p: HeaderBackButtonProps) => React.ReactNode)
       headerRightActions?: (p: HeaderBackButtonProps) => React.ReactNode
       headerShown?: boolean
       headerStyle?: Styles.StylesCrossPlatform

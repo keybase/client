@@ -24,11 +24,9 @@ export type Props = {
   hideBackLabel?: boolean
   customComponent?: React.ReactNode
   customSafeAreaBottomStyle?: StylesCrossPlatform // mobile only,
-  customSafeAreaTopStyle?: StylesCrossPlatform // mobile only; use with `underNotch` route tag,
+  customSafeAreaTopStyle?: StylesCrossPlatform // mobile only
   headerStyle?: StylesCrossPlatform
   theme?: 'light' | 'dark' // defaults to 'light',
-  // for nav2. if you use the actual header, its already safe so you can opt out of another safe
-  underNotch?: boolean
 }
 export type LeftActionProps = {
   badgeNumber?: number
