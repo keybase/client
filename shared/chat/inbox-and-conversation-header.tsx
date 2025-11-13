@@ -10,7 +10,13 @@ import type {RootRouteProps} from '@/router-v2/route-params'
 const Header = () => {
   const {params} = useRoute<RootRouteProps<'chatRoot'>>()
   return (
-    <C.ChatProvider canBeNull={true} id={params?.conversationIDKey ?? C.Chat.noConversationIDKey}>
+    <C.ChatProvider
+      canBeNull={true}
+      id={
+        // eslint-disable-next-line
+        params?.conversationIDKey ?? C.Chat.noConversationIDKey
+      }
+    >
       <Header2 />
     </C.ChatProvider>
   )
