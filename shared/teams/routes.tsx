@@ -15,20 +15,6 @@ const useHeaderActions = () => {
 }
 
 const Channel = React.lazy(async () => import('./channel'))
-const teamChannel = {
-  getOptions: {
-    headerShown: C.isMobile,
-    presentation: 'modal',
-    title: '',
-  },
-  screen: function TeamChannel(p: C.ViewPropsToPageProps<typeof Channel>) {
-    return (
-      <C.Chat.ProviderScreen rp={p}>
-        <Channel {...p.route.params} />
-      </C.Chat.ProviderScreen>
-    )
-  },
-}
 
 const TeamsScreen = React.lazy(async () => import('./main'))
 const teamsRoot = C.makeScreen(TeamsScreen, {
@@ -47,32 +33,18 @@ const teamsRoot = C.makeScreen(TeamsScreen, {
 export const newRoutes = {
   team: C.makeScreen(
     React.lazy(async () => import('./team')),
-    {
-      getOptions: {
-        headerShown: C.isMobile,
-        presentation: 'modal',
-        title: '',
-      },
-    }
+    {getOptions: {headerShown: C.isMobile, presentation: 'modal', title: ''}}
   ),
-  teamChannel,
+  teamChannel: C.Chat.makeChatScreen(Channel, {
+    getOptions: {headerShadowVisible: false, headerTitle: '', underNotch: true},
+  }),
   teamExternalTeam: C.makeScreen(
     React.lazy(async () => import('./external-team')),
-    {
-      getOptions: {
-        headerShown: C.isMobile,
-        presentation: 'modal',
-        title: '',
-      },
-    }
+    {getOptions: {headerShown: C.isMobile, presentation: 'modal', title: ''}}
   ),
   teamMember: C.makeScreen(
     React.lazy(async () => import('./team/member/index.new')),
-    {
-      getOptions: {
-        headerShown: false,
-      },
-    }
+    {getOptions: {headerShown: false}}
   ),
   teamsRoot,
 }
@@ -86,7 +58,10 @@ export const newModalRoutes = {
   teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji'))),
   teamAddEmojiAlias: C.Chat.makeChatScreen(React.lazy(async () => import('./emojis/add-alias'))),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels'))),
-  teamAddToTeamConfirm: {screen: React.lazy(async () => import('./add-members-wizard/confirm'))},
+  teamAddToTeamConfirm: {
+    getOptions: {gesturesEnabled: false},
+    screen: React.lazy(async () => import('./add-members-wizard/confirm')),
+  },
   teamAddToTeamContacts: {screen: React.lazy(async () => import('./add-members-wizard/add-contacts'))},
   teamAddToTeamEmail: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-email'))),
   teamAddToTeamFromWhere: {screen: React.lazy(async () => import('./add-members-wizard/add-from-where'))},
@@ -113,7 +88,7 @@ export const newModalRoutes = {
   teamWizard1TeamPurpose: {screen: React.lazy(async () => import('./new-team/wizard/team-purpose'))},
   teamWizard2TeamInfo: {screen: React.lazy(async () => import('./new-team/wizard/new-team-info'))},
   teamWizard4TeamSize: {screen: React.lazy(async () => import('./new-team/wizard/make-big-team'))},
-  teamWizard5Channels: C.makeScreen(React.lazy(async () => import('./new-team/wizard/create-channels'))),
+  teamWizard5Channels: {screen: React.lazy(async () => import('./new-team/wizard/create-channels'))},
   teamWizard6Subteams: {screen: React.lazy(async () => import('./new-team/wizard/create-subteams'))},
   teamWizardSubteamMembers: {screen: React.lazy(async () => import('./new-team/wizard/add-subteam-members'))},
   teamsTeamBuilder,

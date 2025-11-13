@@ -22,17 +22,29 @@ export const sharedNewRoutes = {
     getOptions: {title: 'Your account'},
     screen: React.lazy(async () => import('./account')),
   },
-  [Constants.settingsAdvancedTab]: {screen: React.lazy(async () => import('./advanced'))},
+  [Constants.settingsAdvancedTab]: {
+    getOptions: C.isMobile ? {title: 'Advanced'} : undefined,
+    screen: React.lazy(async () => import('./advanced')),
+  },
   [Constants.settingsArchiveTab]: {
     getOptions: C.isMobile ? {title: 'Backup'} : undefined,
     screen: C.featureFlags.archive ? React.lazy(async () => import('./archive')) : () => <></>,
   },
-  [Constants.settingsChatTab]: {screen: React.lazy(async () => import('./chat'))},
+  [Constants.settingsChatTab]: {
+    getOptions: {title: 'Chat'},
+    screen: React.lazy(async () => import('./chat')),
+  },
   [Constants.settingsCryptoTab]: crypto,
   [Constants.settingsDevicesTab]: devicesRoutes.devicesRoot,
-  [Constants.settingsDisplayTab]: {screen: React.lazy(async () => import('./display'))},
+  [Constants.settingsDisplayTab]: {
+    getOptions: {title: 'Display'},
+    screen: React.lazy(async () => import('./display')),
+  },
   [Constants.settingsFeedbackTab]: feedback,
-  [Constants.settingsFsTab]: {screen: React.lazy(async () => import('./files/container'))},
+  [Constants.settingsFsTab]: {
+    getOptions: C.isMobile ? {title: 'Files'} : undefined,
+    screen: React.lazy(async () => import('./files/container')),
+  },
   [Constants.settingsGitTab]: gitRoutes.gitRoot,
   [Constants.settingsInvitationsTab]: {screen: React.lazy(async () => import('./invites/container'))},
   [Constants.settingsNotificationsTab]: {screen: React.lazy(async () => import('./notifications/container'))},
@@ -85,9 +97,9 @@ const WebLinks = React.lazy(async () => import('./web-links'))
 export const newRoutes = {
   settingsRoot: C.isMobile
     ? C.isPhone
-      ? {screen: React.lazy(async () => import('./root-phone'))}
-      : {screen: SettingsRootDesktop}
-    : {screen: SettingsRootDesktop},
+      ? {getOptions: {title: 'More'}, screen: React.lazy(async () => import('./root-phone'))}
+      : {getOptions: {title: 'Settings'}, screen: SettingsRootDesktop}
+    : {getOptions: {title: 'Settings'}, screen: SettingsRootDesktop},
   ...sharedNewRoutes,
   [Constants.settingsContactsTab]: {
     getOptions: {header: undefined, title: 'Contacts'},
@@ -108,7 +120,9 @@ export const newModalRoutes = {
   },
   modalFeedback: feedback,
   settingsContactsJoined: {screen: React.lazy(async () => import('./contacts-joined'))},
-  settingsPushPrompt: {screen: React.lazy(async () => import('./notifications/push-prompt'))},
+  settingsPushPrompt: {
+    screen: C.isMobile ? React.lazy(async () => import('./notifications/push-prompt')) : () => <></>,
+  },
 }
 
 export type RootParamListSettings = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>
