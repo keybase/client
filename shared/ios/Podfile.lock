@@ -1998,7 +1998,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNReanimated (4.1.3):
+  - RNReanimated (4.1.5):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2020,10 +2020,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - RNReanimated/reanimated (= 4.1.3)
+    - RNReanimated/reanimated (= 4.1.5)
     - RNWorklets
     - Yoga
-  - RNReanimated/reanimated (4.1.3):
+  - RNReanimated/reanimated (4.1.5):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2045,10 +2045,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - RNReanimated/reanimated/apple (= 4.1.3)
+    - RNReanimated/reanimated/apple (= 4.1.5)
     - RNWorklets
     - Yoga
-  - RNReanimated/reanimated/apple (4.1.3):
+  - RNReanimated/reanimated/apple (4.1.5):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2635,7 +2635,7 @@ SPEC CHECKSUMS:
   RNCPicker: 0a2e0c924f89d88878cbda326b0fe1655e35967f
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
   RNGestureHandler: 13d6f24b3bc99e557f48318402edf10b0bc535e0
-  RNReanimated: d6282d5be09ec53b2b69e4addeae2f342c4c99ed
+  RNReanimated: 2a5413dfcf429c7c9ce3f0030e3b7a010c2f9565
   RNScreens: 30e3e86744e6dd0c46ebee546f7f79d70b382c69
   RNWorklets: 54d8dffb7f645873a58484658ddfd4bd1a9a0bc1
   SDWebImage: 9f177d83116802728e122410fb25ad88f5c7608a
