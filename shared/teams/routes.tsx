@@ -38,7 +38,7 @@ export const newModalRoutes = {
   contactRestricted,
   openTeamWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/open-team-warning'))),
   retentionWarning: C.makeScreen(
-    React.lazy(async () => import('./team/settings-tab/retention/warning/container'))
+    React.lazy(async () => import('./team/settings-tab/retention/warning'))
   ),
   teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji'))),
   teamAddEmojiAlias: C.Chat.makeChatScreen(React.lazy(async () => import('./emojis/add-alias'))),
@@ -61,7 +61,7 @@ export const newModalRoutes = {
   teamInviteByEmail: C.makeScreen(React.lazy(async () => import('./invite-by-email'))),
   teamInviteLinkJoin: {screen: React.lazy(async () => import('./join-team/join-from-invite'))},
   teamJoinTeamDialog: C.makeScreen(React.lazy(async () => import('./join-team/container'))),
-  teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team/container'))),
+  teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team'))),
   teamReallyLeaveTeam: C.makeScreen(
     React.lazy(async () => import('./confirm-modals/really-leave-team'))
   ),
