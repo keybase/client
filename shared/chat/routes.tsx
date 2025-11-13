@@ -9,8 +9,9 @@ const Convo = React.lazy(async () => import('./conversation/container'))
 
 export const newRoutes = {
   chatConversation: C.Chat.makeChatScreen(Convo, {
-    getOptions: (route: unknown) => ({
-      ...headerNavigationOptions(route),
+    canBeNullConvoID: true,
+    getOptions: route => ({
+      ...headerNavigationOptions(route.route),
       presentation: undefined,
     }),
   }),
