@@ -303,6 +303,15 @@ const useScrolling = (p: {
 
   // Check to see if our centered ordinal has changed, and if so, scroll to it
   const [lastCenteredOrdinal, setLastCenteredOrdinal] = React.useState(centeredOrdinal)
+  // Reset when conversation reloads so clicking same search result works
+  const prevLoadedRef = React.useRef(loaded)
+  React.useLayoutEffect(() => {
+    if (!loaded && prevLoadedRef.current) {
+      // Conversation is reloading, reset so we can scroll to same ordinal again
+      setLastCenteredOrdinal(undefined)
+    }
+    prevLoadedRef.current = loaded
+  }, [loaded])
   React.useEffect(() => {
     if (lastCenteredOrdinal === centeredOrdinal) return
     if (centeredOrdinal) {
