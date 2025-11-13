@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Container from '@/util/container'
 import * as T from '@/constants/types'
-import {ModalTitle} from '../common'
+import {ModalTitle} from './common'
 
 type Props = {teamID: T.Teams.TeamID}
 
@@ -95,3 +95,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default EditTeamDescription
+

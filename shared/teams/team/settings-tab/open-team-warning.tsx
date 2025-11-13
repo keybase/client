@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {useSettingsTabState} from '../use-settings'
+import {useSettingsTabState} from './use-settings'
 
 type Props = {
   isOpenTeam: boolean
@@ -112,3 +112,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default OpenTeamWarning
+
