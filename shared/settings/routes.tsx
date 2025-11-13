@@ -69,7 +69,7 @@ export const sharedNewRoutes = {
 
 const sharedNewModalRoutes = {
   [Constants.settingsLogOutTab]: {screen: React.lazy(async () => import('./logout'))},
-  [Constants.settingsPasswordTab]: {screen: React.lazy(async () => import('./password/container'))},
+  [Constants.settingsPasswordTab]: {screen: React.lazy(async () => import('./password'))},
   archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal'))),
   deleteConfirm: {screen: React.lazy(async () => import('./delete-confirm'))},
   disableCertPinningModal: {screen: React.lazy(async () => import('./disable-cert-pinning-modal'))},
