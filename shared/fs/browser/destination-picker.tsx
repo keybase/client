@@ -238,12 +238,12 @@ const makeTitle = (targetName: string, parentPath: T.FS.Path) => {
   return (
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.desktopHeader} gap="xtiny">
       <Kb.Text type="Header" style={{flexShrink: 0}}>
-        Move or Copy "
+        {'Move or Copy "'}
       </Kb.Text>
       <FsCommon.ItemIcon size={16} path={T.FS.pathConcat(parentPath, targetName)} />
       <FsCommon.Filename type="Header" filename={targetName} />
       <Kb.Text type="Header" style={{flexShrink: 0}}>
-        "
+        {'"'}
       </Kb.Text>
     </Kb.Box2>
   )
@@ -293,4 +293,3 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export default ConnectedDestinationPicker
-
