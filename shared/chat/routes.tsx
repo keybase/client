@@ -15,7 +15,6 @@ export const newRoutes = {
     }),
   }),
   chatEnterPaperkey: {
-    getOptions: {headerShown: false},
     screen: React.lazy(async () => import('./conversation/rekey/enter-paper-key')),
   },
   chatRoot: C.Chat.isSplit

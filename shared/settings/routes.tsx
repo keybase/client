@@ -47,7 +47,10 @@ export const sharedNewRoutes = {
   },
   [Constants.settingsGitTab]: gitRoutes.gitRoot,
   [Constants.settingsInvitationsTab]: {screen: React.lazy(async () => import('./invites/container'))},
-  [Constants.settingsNotificationsTab]: {screen: React.lazy(async () => import('./notifications/container'))},
+  [Constants.settingsNotificationsTab]: {
+    getOptions: {title: 'Notifications'},
+    screen: React.lazy(async () => import('./notifications/container')),
+  },
   [Constants.settingsScreenprotectorTab]: {
     getOptions: {header: undefined, title: 'Screen Protector'},
     screen: React.lazy(async () => import('./screenprotector')),
