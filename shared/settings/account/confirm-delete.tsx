@@ -99,4 +99,4 @@ const DeleteModal = (props: OwnProps) => {
   )
 }
 
-export {DeleteModal}
+export default DeleteModal

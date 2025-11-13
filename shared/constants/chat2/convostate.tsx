@@ -3229,7 +3229,10 @@ export function getConvoState_(id: T.Chat.ConversationIDKey) {
 
 const Context = React.createContext<MadeStore | null>(null)
 
-type ConvoProviderProps = React.PropsWithChildren<{id: T.Chat.ConversationIDKey; canBeNull?: boolean}>
+type ConvoProviderProps = React.PropsWithChildren<{
+  id: T.Chat.ConversationIDKey
+  canBeNull?: boolean
+}>
 export const ChatProvider_ = React.memo(function ChatProvider_({
   canBeNull,
   children,
@@ -3265,10 +3268,10 @@ export function useConvoState_<T>(id: T.Chat.ConversationIDKey, selector: (state
   return useStore(store, selector)
 }
 
-export type ChatProviderProps<T> = T & {route: {params: {conversationIDKey?: string}}}
+export type ChatProviderProps<T> = T & {route: {params: {conversationIDKey?: T.Chat.ConversationIDKey}}}
 
 type RouteParams = {
-  route: {params: {conversationIDKey?: string}}
+  route: {params: {conversationIDKey?: T.Chat.ConversationIDKey}}
 }
 export const ProviderScreen = React.memo(function ProviderScreen(p: {
   children: React.ReactNode
@@ -3276,11 +3279,9 @@ export const ProviderScreen = React.memo(function ProviderScreen(p: {
   canBeNull?: boolean
 }) {
   return (
-    <React.Suspense>
-      <ChatProvider_ id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
-        {p.children}
-      </ChatProvider_>
-    </React.Suspense>
+    <ChatProvider_ id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
+      {p.children}
+    </ChatProvider_>
   )
 })
 

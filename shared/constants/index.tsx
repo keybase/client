@@ -2,7 +2,7 @@
 export * from './platform'
 export {wrapErrors} from '@/util/debug'
 export {useState_ as useDarkModeState} from './darkmode'
-export {useState_ as useRouterState} from './router2'
+export {useState_ as useRouterState, makeScreen} from './router2'
 export * as Router2 from './router2'
 export {useState_ as useDeepLinksState} from './deeplinks'
 export * as DeepLinks from './deeplinks'
@@ -97,7 +97,18 @@ export type PagesToParams<T> = {
 }
 
 // get the views params and wrap them as the page would see it
-export type ViewPropsToPageProps<T> = T extends (p: infer P) => any ? {route: {params: P}} : never
+export type ViewPropsToPageProps<T> =
+  T extends React.LazyExoticComponent<infer C>
+    ? C extends React.ComponentType<infer P>
+      ? P extends undefined | never
+        ? {route: {params?: undefined}}
+        : {route: {params: P}}
+      : {route: {params?: undefined}}
+    : T extends (p: infer P) => any
+      ? P extends undefined | never
+        ? {route: {params?: undefined}}
+        : {route: {params: P}}
+      : {route: {params?: undefined}}
 export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
   ? {route: {params: P | undefined}}
   : never

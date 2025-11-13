@@ -15,7 +15,11 @@ type Props = {
 
 const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
 
-const CreateChannel = (props: Props) => {
+const CreateChannel = () => {
+  return <CreateChannelsModal />
+}
+
+export const CreateChannelsModal = (props: Props) => {
   const {onSubmitChannels, waiting} = props
   const nav = Container.useSafeNavigation()
   const teamID = props.teamID || T.Teams.newTeamWizardTeamID

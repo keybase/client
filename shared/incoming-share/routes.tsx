@@ -1,8 +1,8 @@
+import * as React from 'react'
 import type * as C from '@/constants'
-import incomingShareNew from './page'
 
 export const newModalRoutes = {
-  incomingShareNew,
+  incomingShareNew: {screen: React.lazy(async () => import('.'))},
 }
 
 export type RootParamListIncomingShare = C.PagesToParams<typeof newModalRoutes>

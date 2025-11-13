@@ -1,14 +1,23 @@
-import type * as C from '@/constants'
-import gitRoot from './page'
-import gitDeleteRepo from './delete-repo.page'
-import gitNewRepo from './new-repo.page'
-import gitSelectChannel from './select-channel.page'
+import * as React from 'react'
+import * as C from '@/constants'
+import {HeaderTitle, HeaderRightActions} from './nav-header'
 
-export const newRoutes = {gitRoot}
+export const newRoutes = {
+  gitRoot: C.makeScreen(React.lazy(async () => import('.')), {
+    getOptions: C.isMobile
+      ? {title: 'Git'}
+      : {
+          headerRightActions: HeaderRightActions,
+          headerTitle: HeaderTitle,
+          title: 'Git',
+        },
+  }),
+}
+
 export const newModalRoutes = {
-  gitDeleteRepo,
-  gitNewRepo,
-  gitSelectChannel,
+  gitDeleteRepo: C.makeScreen(React.lazy(async () => import('./delete-repo'))),
+  gitNewRepo: C.makeScreen(React.lazy(async () => import('./new-repo'))),
+  gitSelectChannel: C.makeScreen(React.lazy(async () => import('./select-channel'))),
 }
 
 export type RootParamListGit = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

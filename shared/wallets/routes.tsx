@@ -1,13 +1,16 @@
-import walletsRoot from './page'
-import reallyRemoveAccount from './really-remove-account/page'
-import removeAccount from './remove-account/page'
+import * as React from 'react'
+import * as C from '@/constants'
+
 export const newRoutes = {
-  walletsRoot,
+  walletsRoot: {
+    getOptions: {title: 'Wallet'},
+    screen: React.lazy(async () => import('.')),
+  },
 }
 
 export const newModalRoutes = {
-  reallyRemoveAccount,
-  removeAccount,
+  reallyRemoveAccount: C.makeScreen(React.lazy(async () => import('./really-remove-account'))),
+  removeAccount: C.makeScreen(React.lazy(async () => import('./remove-account'))),
 }
 
 export type RootParamListWallets = {

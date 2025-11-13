@@ -1,3 +1,4 @@
+import type * as React from 'react'
 import * as C from '.'
 import type * as T from './types'
 import {
@@ -13,6 +14,7 @@ import {produce} from 'immer'
 import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import type {GetOptionsRet} from './types/router2'
 import {registerDebugClear} from '@/util/debug'
 export type PathParam = NavigateAppendType
 export type Route = NavigationState<KBRootParamList>['routes'][0]
@@ -557,3 +559,18 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
+
+// Helper to reduce boilerplate in route definitions
+// Works for components with or without route params
+export function makeScreen<COM extends React.LazyExoticComponent<any>>(
+  Component: COM,
+  options?: {getOptions?: GetOptionsRet | ((props: C.ViewPropsToPageProps<COM>) => GetOptionsRet)}
+) {
+  return {
+    ...options,
+    screen: function Screen(p: C.ViewPropsToPageProps<COM>) {
+      const Comp = Component as any
+      return <Comp {...(p.route.params ?? {})} />
+    },
+  }
+}

@@ -126,4 +126,4 @@ const Screen = __DEV__
     }
   : () => null
 
-export default {screen: Screen}
+export default Screen

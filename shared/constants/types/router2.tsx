@@ -30,16 +30,22 @@ export type GetOptionsRet =
       modal2NoClose?: boolean
       modal2Type?: ModalType
       headerBottomStyle?: Styles.StylesCrossPlatform
-      headerLeft?: (p: HeaderBackButtonProps) => React.ReactNode
+      header?: () => React.ReactNode
+      headerLeft?: null | ((p: HeaderBackButtonProps) => React.ReactNode)
       headerRightActions?: (p: HeaderBackButtonProps) => React.ReactNode
       headerShown?: boolean
+      headerStyle?: Styles.StylesCrossPlatform
+      headerTitle?: string | (() => React.ReactNode)
+      headerShadowVisible?: boolean
+      headerTransparent?: boolean
       gesturesEnabled?: boolean
       title?: string
       orientation?: 'all' | 'portrait'
       presentation?: 'modal' | 'transparentModal' | 'card'
     }
   | undefined
-export type GetOptions = GetOptionsRet | ((p: GetOptionsParams) => GetOptionsRet)
+
+export type GetOptions = GetOptionsRet | ((p: any) => GetOptionsRet)
 export type RouteDef = {
   getOptions?: GetOptions
   screen: React.ComponentType<ScreenComponentProps>

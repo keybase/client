@@ -58,8 +58,8 @@ const ChooseComponent = (props: ChooseComponentProps) => {
 
 type OwnProps = {path?: T.FS.Path}
 
-const Connected = (ownProps?: OwnProps) => {
-  const path = ownProps?.path ?? C.FS.defaultPath
+const Connected = (ownProps: OwnProps) => {
+  const path = ownProps.path ?? C.FS.defaultPath
   const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
   const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
