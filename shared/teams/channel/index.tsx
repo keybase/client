@@ -10,7 +10,7 @@ import {SelectionPopup, useChannelParticipants} from '../common'
 import ChannelTabs, {type TabKey} from './tabs'
 import ChannelHeader from './header'
 import ChannelMemberRow from './rows'
-import BotRow from '../team/rows/bot-row/bot/container'
+import BotRow from '../team/rows/bot-row/bot'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
 

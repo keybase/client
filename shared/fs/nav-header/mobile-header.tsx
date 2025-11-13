@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import type * as T from '@/constants/types'
 import Actions from './actions'
-import MainBanner from './main-banner/container'
+import MainBanner from './main-banner'
 
 /*
  *
