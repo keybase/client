@@ -1,5 +1,5 @@
 // this is loaded up by login/routes and device/routes
-import codePage from './code-page/page'
+import * as React from 'react'
 import error from './error.page'
 import forgotUsername from './forgot-username.page'
 // import gpgSign from './gpg-sign/page'
@@ -10,7 +10,9 @@ import setPublicName from './set-public-name.page'
 import username from './username-or-email/page'
 
 export const newRoutes = {
-  codePage,
+  codePage: {
+    screen: React.lazy(async () => import('./code-page/container')),
+  },
   error,
   forgotUsername,
   // gpgSign,
