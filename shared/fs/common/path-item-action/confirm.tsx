@@ -1,17 +1,58 @@
-import type * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Kb from '@/common-adapters'
+import * as React from 'react'
+import * as T from '@/constants/types'
 import type {FloatingMenuProps} from './types'
+import * as Kb from '@/common-adapters'
 
-export type Props = {
-  confirm: (() => void) | 'disabled'
+type OwnProps = {
   floatingMenuProps: FloatingMenuProps
-  action: 'save-media' | 'send-to-other-app'
   path: T.FS.Path
-  size: number
 }
 
-const ConfirmHeader = (props: Props) => (
+const Container = (ownProps: OwnProps) => {
+  const {path, floatingMenuProps} = ownProps
+  const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
+  const size = C.useFSState(s => C.FS.getPathItem(s.pathItems, path).size)
+
+  const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
+  const download = C.useFSState(s => s.dispatch.download)
+  const _confirm = React.useCallback(
+    ({view, previousView}: typeof _pathItemActionMenu) => {
+      download(path, view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share')
+      setPathItemActionMenuView(previousView)
+    },
+    [setPathItemActionMenuView, download, path]
+  )
+  const action =
+    _pathItemActionMenu.view === T.FS.PathItemActionMenuView.ConfirmSaveMedia
+      ? 'save-media'
+      : 'send-to-other-app'
+
+  const confirm = () => _confirm(_pathItemActionMenu)
+
+  return (
+    <Kb.FloatingMenu
+      closeOnSelect={false}
+      closeText="Cancel"
+      containerStyle={floatingMenuProps.containerStyle}
+      attachTo={floatingMenuProps.attachTo}
+      visible={floatingMenuProps.visible}
+      onHidden={floatingMenuProps.hide}
+      position="bottom right"
+      header={<ConfirmHeader size={size} action={action} />}
+      items={[
+        {
+          disabled: false,
+          icon: 'iconfont-check',
+          onClick: confirm,
+          title: 'Yes, continue',
+        },
+      ]}
+    />
+  )
+}
+
+const ConfirmHeader = (props: {action: 'save-media' | 'send-to-other-app'; size: number}) => (
   <Kb.Box2
     style={styles.confirmTextBox}
     direction="vertical"
@@ -29,28 +70,6 @@ const ConfirmHeader = (props: Props) => (
     </Kb.Text>
   </Kb.Box2>
 )
-
-const PathItemActionConfirm = (props: Props) => (
-  <Kb.FloatingMenu
-    closeOnSelect={false}
-    closeText="Cancel"
-    containerStyle={props.floatingMenuProps.containerStyle}
-    attachTo={props.floatingMenuProps.attachTo}
-    visible={props.floatingMenuProps.visible}
-    onHidden={props.floatingMenuProps.hide}
-    position="bottom right"
-    header={<ConfirmHeader {...props} />}
-    items={[
-      {
-        disabled: props.confirm === 'disabled',
-        icon: 'iconfont-check',
-        onClick: props.confirm !== 'disabled' ? props.confirm : undefined,
-        title: 'Yes, continue',
-      },
-    ]}
-  />
-)
-export default PathItemActionConfirm
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -73,3 +92,5 @@ const styles = Kb.Styles.styleSheetCreate(
       },
     }) as const
 )
+
+export default Container
