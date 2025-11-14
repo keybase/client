@@ -4,7 +4,7 @@ import {Text} from '@/common-adapters'
 import UserNotice from './user-notice'
 import {globalColors} from '@/styles'
 
-const Container = () => {
+const SystemProfileResetNotice = () => {
   const meta = C.useChatContext(s => s.meta)
   const prevConversationIDKey = meta.supersedes
   const username = meta.wasFinalizedBy || ''
@@ -31,4 +31,4 @@ const Container = () => {
   )
 }
 
-export default Container
+export default SystemProfileResetNotice

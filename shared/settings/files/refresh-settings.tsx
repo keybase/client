@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 
-const Container = () => {
+const RefreshSettings = () => {
   const refresh = C.useFSState(s => s.dispatch.loadSettings)
 
   React.useEffect(() => {
@@ -11,4 +11,4 @@ const Container = () => {
   return null
 }
 
-export default Container
+export default RefreshSettings

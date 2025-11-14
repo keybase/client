@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import Modal from '../modal'
 
-const Container = () => {
+const ProveWebsiteChoice = () => {
   const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
   const addProof = C.useProfileState(s => s.dispatch.addProof)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
@@ -44,4 +44,4 @@ const Container = () => {
   )
 }
 
-export default Container
+export default ProveWebsiteChoice

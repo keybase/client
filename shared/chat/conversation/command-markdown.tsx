@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
 
-const Container = () => {
+const CommandMarkdown = () => {
   const md = C.useChatContext(s => s.commandMarkdown)
   const body = md?.body ?? ''
   const title = md?.title ?? undefined
@@ -63,4 +63,4 @@ const styles = Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default CommandMarkdown

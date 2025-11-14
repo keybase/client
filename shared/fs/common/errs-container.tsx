@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import Errs from './errs'
 
-const Container = () => {
+const ErrsContainer = () => {
   const _errors = C.useFSState(s => s.errors)
   const _dismiss = C.useFSState(s => s.dispatch.dismissRedbar)
   const props = {
@@ -13,4 +13,4 @@ const Container = () => {
   return <Errs {...props} />
 }
 
-export default Container
+export default ErrsContainer

@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
-const Container = () => {
+const Preview = () => {
   const meta = C.useChatContext(s => s.meta)
   const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
   const onLeaveChannel = C.useChatContext(s => s.dispatch.leaveConversation)
@@ -54,4 +54,4 @@ const styles = Kb.Styles.styleSheetCreate(
       },
     }) as const
 )
-export default Container
+export default Preview

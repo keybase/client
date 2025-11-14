@@ -1,12 +1,19 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 
-type Props = {
-  onCancel: () => void
-  onDeleteHistory: () => void
-}
+const DeleteHistoryWarning = () => {
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onCancel = () => {
+    navigateUp()
+  }
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const messageDeleteHistory = C.useChatContext(s => s.dispatch.messageDeleteHistory)
+  const onDeleteHistory = () => {
+    clearModals()
+    messageDeleteHistory()
+  }
 
-const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
+  return (
   <Kb.MaybePopup onClose={onCancel}>
     {Kb.Styles.isMobile && <Kb.HeaderHocHeader onCancel={onCancel} />}
     <Kb.Box
@@ -41,7 +48,8 @@ const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
       </Kb.Box>
     </Kb.Box>
   </Kb.MaybePopup>
-)
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -86,22 +94,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const Container = () => {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = () => {
-    navigateUp()
-  }
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const messageDeleteHistory = C.useChatContext(s => s.dispatch.messageDeleteHistory)
-  const onDeleteHistory = () => {
-    clearModals()
-    messageDeleteHistory()
-  }
-  const props = {
-    onCancel,
-    onDeleteHistory,
-  }
-  return <DeleteHistoryWarning {...props} />
-}
-
-export default Container
+export default DeleteHistoryWarning

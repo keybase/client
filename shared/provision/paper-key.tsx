@@ -4,7 +4,7 @@ import * as React from 'react'
 import {SignupScreen, errorBanner} from '../signup/common'
 import {isMobile} from '@/constants/platform'
 
-const Container = () => {
+export const PaperKey = () => {
   const error = C.useProvisionState(s => s.error)
   const hint = C.useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
   const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
@@ -12,46 +12,28 @@ const Container = () => {
   const onBack = () => {
     navigateUp()
   }
-  const onSubmit = C.useProvisionState(s => s.dispatch.dynamic.setPassphrase)
-  const props = {
-    error: error,
-    hint: hint,
-    onBack: onBack,
-    onSubmit: (paperkey: string) => !waiting && onSubmit?.(paperkey),
-    waiting: waiting,
-  }
-  return <PaperKey {...props} />
-}
-
-type Props = {
-  onBack?: () => void
-  onSubmit: (paperKey: string) => void
-  hint: string
-  error: string
-  waiting: boolean
-}
-
-export const PaperKey = (props: Props) => {
+  const _onSubmit = C.useProvisionState(s => s.dispatch.dynamic.setPassphrase)
+  const onSubmit = (paperkey: string) => !waiting && _onSubmit?.(paperkey)
   const [paperKey, setPaperKey] = React.useState('')
 
-  const _onSubmit = () => {
-    props.onSubmit(paperKey)
+  const _onSubmitClick = () => {
+    onSubmit(paperKey)
   }
 
   return (
     <SignupScreen
-      banners={errorBanner(props.error)}
+      banners={errorBanner(error)}
       buttons={[
         {
           disabled: !paperKey,
           label: 'Continue',
-          onClick: _onSubmit,
+          onClick: _onSubmitClick,
           type: 'Success',
-          waiting: props.waiting,
+          waiting,
         },
       ]}
       noBackground={true}
-      onBack={props.onBack}
+      onBack={onBack}
       title={isMobile ? 'Enter paper key' : 'Enter your paper key'}
     >
       <Kb.Box2
@@ -62,7 +44,7 @@ export const PaperKey = (props: Props) => {
       >
         <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
           <Kb.Icon type="icon-paper-key-64" />
-          <Kb.Text type="Header">{props.hint}</Kb.Text>
+          <Kb.Text type="Header">{hint}</Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.inputContainer}>
           <Kb.PlainInput
@@ -72,7 +54,7 @@ export const PaperKey = (props: Props) => {
             placeholder="Type in your entire paper key"
             textType="Body"
             style={styles.input}
-            onEnterKeyDown={_onSubmit}
+            onEnterKeyDown={_onSubmitClick}
             onChangeText={setPaperKey}
             value={paperKey}
           />
@@ -120,4 +102,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default PaperKey

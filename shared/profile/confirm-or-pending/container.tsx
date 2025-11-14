@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
 import Modal from '../modal'
 
-const Container = () => {
+const ConfirmOrPending = () => {
   const proofFound = C.useProfileState(s => s.proofFound)
   const proofStatus = C.useProfileState(s => s.proofStatus)
   const platform = C.useProfileState(s => s.platform)
@@ -90,4 +90,4 @@ const messageMap = new Map([
   ['zcash', 'Your Zcash address has now been signed onto your profile.'],
 ])
 
-export default Container
+export default ConfirmOrPending

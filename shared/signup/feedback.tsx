@@ -6,35 +6,14 @@ import FeedbackForm from '../settings/feedback/index'
 import {SignupScreen, errorBanner} from './common'
 import {useSendFeedback} from '../settings/feedback/shared'
 
-const Container = () => {
-  const {error, sendFeedback} = useSendFeedback()
+const SignupFeedback = () => {
+  const {error: sendError, sendFeedback: onSendFeedback} = useSendFeedback()
   const loggedOut = C.useConfigState(s => !s.loggedIn)
-  const sendError = error
   const sending = C.Waiting.useAnyWaiting(Constants.sendFeedbackWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
-  const onSendFeedback = sendFeedback
-  const props = {
-    loggedOut,
-    onBack,
-    onSendFeedback,
-    sendError,
-    sending,
-  }
-  return <SignupFeedback {...props} />
-}
-
-type Props = {
-  loggedOut: boolean
-  onBack: () => void
-  onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
-  sending: boolean
-  sendError: string
-}
-
-const SignupFeedback = (props: Props) => {
   const [feedbackSent, setFeedbackSent] = React.useState(false)
 
   return (
@@ -46,24 +25,24 @@ const SignupFeedback = (props: Props) => {
               <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
             </Kb.Banner>
           ) : null}
-          {props.sendError ? errorBanner(props.sendError) : null}
+          {sendError ? errorBanner(sendError) : null}
         </>
       }
       title="Send feedback"
-      onBack={props.onBack}
+      onBack={onBack}
       showHeaderInfoicon={false}
-      showHeaderInfoiconRow={!props.loggedOut}
+      showHeaderInfoiconRow={!loggedOut}
     >
       <FeedbackForm
         sendError=""
-        loggedOut={props.loggedOut}
-        sending={props.sending}
-        onSendFeedback={props.onSendFeedback}
+        loggedOut={loggedOut}
+        sending={sending}
+        onSendFeedback={onSendFeedback}
         showInternalSuccessBanner={false}
-        onFeedbackDone={state => setFeedbackSent(!props.sendError && state)}
+        onFeedbackDone={state => setFeedbackSent(!sendError && state)}
       />
     </SignupScreen>
   )
 }
 
-export default Container
+export default SignupFeedback
