@@ -51,7 +51,7 @@ export const newModalRoutes = {
   ),
   profileConfirmOrPending: {screen: React.lazy(async () => import('./confirm-or-pending'))},
   profileEdit: {screen: React.lazy(async () => import('./edit-profile'))},
-  profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar/container'))),
+  profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar'))),
   profileFinished: {screen: React.lazy(async () => import('./pgp/finished'))},
   profileGenerate: {screen: React.lazy(async () => import('./pgp/generate'))},
   profileGenericEnterUsername: {

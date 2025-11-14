@@ -1,19 +1,46 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import type {Props} from '.'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
-import EditAvatar from '.'
 
-type OwnProps = {
-  image?: ImageInfo
-  sendChatNotification?: boolean
-  showBack?: boolean
-  teamID?: string
+type TeamProps = {
   createdTeam?: boolean
-  wizard?: boolean
+  showBack?: boolean
+  teamID: T.Teams.TeamID
+  teamname: string
+  type: 'team'
+  wizard: boolean
+  onSkip: () => void
+}
+type ProfileProps = {
+  createdTeam?: false
+  onSkip?: undefined
+  teamname?: string
+  teamID?: T.Teams.TeamID
+  type: 'profile'
+  showBack?: false
+  wizard?: false
 }
 
-const Container = (ownProps: OwnProps) => {
+type Ret = {
+  error: string
+  image?: ImageInfo
+  onBack: () => void
+  onClose: () => void
+  onSave: (
+    filename: string,
+    crop?: T.RPCGen.ImageCropRect,
+    scaledWidth?: number,
+    offsetLeft?: number,
+    offsetTop?: number
+  ) => void
+  sendChatNotification?: boolean
+  submitting: boolean
+  waitingKey: string
+} & (TeamProps | ProfileProps)
+
+export default (ownProps: Props): Ret => {
   const teamID = ownProps.teamID
   const createdTeam = ownProps.createdTeam ?? false
   const image = ownProps.image
@@ -78,7 +105,7 @@ const Container = (ownProps: OwnProps) => {
     submitting,
     waitingKey: C.Profile.uploadAvatarWaitingKey,
   }
-  const props = teamID
+  return teamID
     ? {
         ...bothProps,
         createdTeam,
@@ -107,7 +134,4 @@ const Container = (ownProps: OwnProps) => {
         onSave: onSaveUserAvatar,
         type: 'profile' as const,
       }
-  return <EditAvatar {...props} />
 }
-
-export default Container
