@@ -4,7 +4,6 @@ import * as Constants from '@/constants/settings'
 import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
-import crypto from '../crypto/sub-nav/page'
 
 const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet'))
 
@@ -34,7 +33,10 @@ export const sharedNewRoutes = {
     getOptions: {title: 'Chat'},
     screen: React.lazy(async () => import('./chat')),
   },
-  [Constants.settingsCryptoTab]: crypto,
+  [Constants.settingsCryptoTab]: {
+    getOptions: C.isMobile ? {title: 'Crypto'} : {title: 'Crypto tools'},
+    screen: React.lazy(async () => import('../crypto/sub-nav')),
+  },
   [Constants.settingsDevicesTab]: devicesRoutes.devicesRoot,
   [Constants.settingsDisplayTab]: {
     getOptions: {title: 'Display'},
