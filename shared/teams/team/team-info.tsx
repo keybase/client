@@ -1,14 +1,14 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
 import {ModalTitle} from '../common'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {teamID: T.Teams.TeamID}
 
 const TeamInfo = (props: Props) => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const {teamID} = props
   const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))

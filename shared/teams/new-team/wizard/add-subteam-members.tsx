@@ -1,14 +1,14 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {ModalTitle} from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const AddSubteamMembers = () => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const [selectedMembers, setSelectedMembers] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()

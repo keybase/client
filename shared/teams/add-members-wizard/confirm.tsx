@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import * as T from '@/constants/types'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import capitalize from 'lodash/capitalize'
@@ -10,6 +9,7 @@ import {useDefaultChannels} from '../team/settings-tab/default-channels'
 import {ModalTitle, ChannelsWidget} from '../common'
 import {pluralize} from '@/util/string'
 import logger from '@/logger'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
 const disabledRolesForNonKeybasePlural = {
@@ -200,7 +200,7 @@ const AlreadyInTeam = ({assertions}: {assertions: ReadonlyArray<string>}) => {
 }
 
 const AddMoreMembers = () => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
   const appendNewTeamBuilder = C.useRouterState(s => s.appendNewTeamBuilder)
   const makePopup = React.useCallback(

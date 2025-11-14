@@ -1,9 +1,9 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {ModalTitle} from '@/teams/common'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   channelname: string
@@ -18,7 +18,7 @@ const EditChannel = (props: Props) => {
   const oldName = props.channelname
   const oldDescription = props.description
 
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
 
   const [name, _setName] = React.useState(oldName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_-]/, ''))

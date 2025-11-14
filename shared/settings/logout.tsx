@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Container from '@/util/container'
+import {useSafeSubmit} from '@/util/safe-submit'
 import * as Constants from '@/constants/settings'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
@@ -42,7 +42,7 @@ const LogoutContainer = () => {
     [submitNewPassword, _setPassword, setPasswordConfirm]
   )
 
-  const onLogout = Container.useSafeSubmit(_onLogout, false)
+  const onLogout = useSafeSubmit(_onLogout, false)
 
   const onUpdatePGPSettings = C.useSettingsPasswordState(s => s.dispatch.loadPgpSettings)
   const hasPGPKeyOnServer = C.useSettingsPasswordState(s => !!s.hasPGPKeyOnServer)

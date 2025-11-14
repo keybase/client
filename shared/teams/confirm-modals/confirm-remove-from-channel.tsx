@@ -2,7 +2,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   members: string[]
@@ -20,7 +20,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
   const channelInfo = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
 
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
   const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)

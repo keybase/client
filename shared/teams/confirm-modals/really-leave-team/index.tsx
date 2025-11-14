@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
+import {useSafeSubmit} from '@/util/safe-submit'
 import type * as T from '@/constants/types'
 import {useTeamsSubscribe, useTeamDetailsSubscribeMountOnly} from '@/teams/subscriber'
 import LastOwnerDialog from './last-owner'
@@ -142,7 +142,7 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   )
   const _onBack = navigateUp
   const onBack = leaving ? () => {} : _onBack
-  const onLeave = Container.useSafeSubmit(_onLeave, !leaving)
+  const onLeave = useSafeSubmit(_onLeave, !leaving)
 
   useTeamDetailsSubscribeMountOnly(teamID)
   return lastOwner ? (

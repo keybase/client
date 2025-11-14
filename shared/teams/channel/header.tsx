@@ -2,9 +2,9 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import {pluralize} from '@/util/string'
 import {Activity, useChannelParticipants} from '../common'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const useRecentJoins = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
@@ -40,7 +40,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     description: description,
     teamID,
   }
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onEditChannel = () => nav.safeNavigateAppend({props: editChannelProps, selected: 'teamEditChannel'})
   const onAddMembers = () =>
     nav.safeNavigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})

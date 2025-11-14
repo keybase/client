@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useSafeNavigation} from '@/util/container'
 import type * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 export type Props = {
   firstItem: boolean

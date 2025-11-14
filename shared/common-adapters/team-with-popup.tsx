@@ -38,7 +38,7 @@ export const TeamWithPopup = (props: Props) => {
   const onHidePopup = () => setShowPopup(false)
   const onShowPopup = () => setShowPopup(true)
 
-  const {default: TeamInfo} = require('../../profile/user/teams/teaminfo') as {default: typeof TeamInfoType}
+  const {default: TeamInfo} = require('../profile/user/teams/teaminfo') as {default: typeof TeamInfoType}
 
   const popup = showPopup && (
     <>

@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {pluralize} from '@/util/string'
@@ -12,7 +12,7 @@ type Props = {teamID: T.Teams.TeamID}
 
 const AddToChannel = (props: Props) => {
   const {teamID} = props
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const conversationIDKey = C.useChatContext(s => s.id)
 
   const [toAdd, setToAdd] = React.useState<Set<string>>(new Set())

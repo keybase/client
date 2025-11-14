@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '@/util/string'
 import {Activity} from '../common'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   firstItem: boolean
@@ -15,7 +15,7 @@ type Props = {
 
 const TeamRow = React.memo(function TeamRow(props: Props) {
   const {firstItem, showChat = true, teamID} = props
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   // useActivityLevels in ../container ensures these are loaded
   const activityLevel = C.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')

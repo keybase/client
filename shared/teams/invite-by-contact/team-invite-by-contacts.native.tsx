@@ -1,10 +1,10 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
 import {useTeamDetailsSubscribe} from '../subscriber'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.
@@ -50,7 +50,7 @@ const TeamInviteByContact = (props: Props) => {
 
   useTeamDetailsSubscribe(teamID)
 
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
 
   const [selectedRole, setSelectedRole] = React.useState('writer' as T.Teams.TeamRoleType)
 

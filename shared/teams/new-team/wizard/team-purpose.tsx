@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import {ModalTitle} from '@/teams/common'
 import * as T from '@/constants/types'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const TeamPurpose = () => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
   const setTeamWizardTeamType = C.useTeamsState(s => s.dispatch.setTeamWizardTeamType)
   const onSubmit = (teamType: T.Teams.TeamWizardTeamType) => setTeamWizardTeamType(teamType)

@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -10,6 +9,7 @@ import {formatTimeForTeamMember, formatTimeRelativeToNow} from '@/util/timestamp
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -111,7 +111,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
 }
 
 const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const waitingKey = C.Teams.removeMemberWaitingKey(teamID, username)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
@@ -270,7 +270,7 @@ type NodeNotInRowProps = {
 }
 const NodeNotInRow = (props: NodeNotInRowProps) => {
   useTeamDetailsSubscribe(props.node.teamID)
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onAddWaitingKey = C.Teams.addMemberWaitingKey(props.node.teamID, props.username)
   const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
   const onAdd = (role: T.Teams.TeamRoleType) => {
@@ -383,7 +383,7 @@ const NodeInRow = (props: NodeInRowProps) => {
   )
   useTeamDetailsSubscribe(props.node.teamID)
 
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onAddToChannels = () =>
     nav.safeNavigateAppend({
       props: {teamID: props.node.teamID, usernames: [props.username]},
@@ -599,7 +599,7 @@ const NodeInRow = (props: NodeInRowProps) => {
 // exported for stories
 export const TeamMemberHeader = (props: Props) => {
   const {teamID, username} = props
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const leaving = useNavUpIfRemovedFromTeam(teamID, username)
 
   const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
@@ -680,7 +680,7 @@ export const TeamMemberHeader = (props: Props) => {
 
 const BlockDropdown = (props: {username: string}) => {
   const {username} = props
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p

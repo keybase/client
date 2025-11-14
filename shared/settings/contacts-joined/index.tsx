@@ -1,8 +1,8 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {FollowButton} from './buttons'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
 
@@ -34,7 +34,7 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
 
 const ContactsJoinedModal = () => {
   const people = C.useSettingsContactsState(s => s.alreadyOnKeybase)
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onClose = () => nav.safeNavigateUp()
   return (
     <Kb.Modal

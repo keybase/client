@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import * as T from '@/constants/types'
 import {useTeamLinkPopup} from './common'
 import {pluralize} from '@/util/string'
 import capitalize from 'lodash/capitalize'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {teamname: string}
 
@@ -129,7 +129,7 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
 }
 
 const Header = ({info}: ExternalTeamProps) => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const teamname = info.name.parts?.join('.')
   const onJoin = () =>
     nav.safeNavigateAppend({props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'})

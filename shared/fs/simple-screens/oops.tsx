@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type OwnProps = {
   path: T.FS.Path
@@ -98,7 +98,7 @@ const NonExistent = (props: Props) => (
 )
 
 const Oops = (props: OwnProps) => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const openParent = () =>
     nav.safeNavigateAppend({props: {path: T.FS.getPathParent(props.path)}, selected: 'fsRoot'})
   switch (props.reason) {

@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   members: string[]
@@ -26,7 +26,7 @@ const ConfirmKickOut = (props: Props) => {
     members.map(member => subteamIDs.map(subteamID => C.Teams.removeMemberWaitingKey(subteamID, member)))
   )
   const waiting = C.Waiting.useAnyWaiting(...waitingKeys)
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
   const setMemberSelected = C.useTeamsState(s => s.dispatch.setMemberSelected)

@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import Teams from './main'
 import openURL from '@/util/open-url'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,
@@ -94,7 +94,7 @@ const Connected = () => {
   // reload activity levels
   useActivityLevels(true)
 
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onCreateTeam = () => launchNewTeamWizardOrModal()
   const onJoinTeam = () => nav.safeNavigateAppend('teamJoinTeamDialog')
 

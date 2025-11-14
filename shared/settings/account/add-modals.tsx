@@ -1,15 +1,15 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import * as Platform from '@/constants/platform'
+import {useSafeNavigation} from '@/util/safe-navigation'
 import {EnterEmailBody} from '@/signup/email/container'
 import {EnterPhoneNumberBody} from '@/signup/phone-number/container'
 import {VerifyBody} from '@/signup/phone-number/verify'
 import {e164ToDisplay} from '@/util/phone-numbers'
 
 export const Email = () => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
 
   const [email, onChangeEmail] = React.useState('')
   const [searchable, onChangeSearchable] = React.useState(true)
@@ -118,7 +118,7 @@ export const Email = () => {
   )
 }
 export const Phone = () => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
 
   const [phoneNumber, onChangeNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)

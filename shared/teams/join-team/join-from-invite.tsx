@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import {Success} from './container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const JoinFromInvite = () => {
   const {inviteID: id, inviteKey: key, inviteDetails: details} = C.useTeamsState(s => s.teamInviteDetails)
@@ -28,7 +28,7 @@ const JoinFromInvite = () => {
   }, [requestInviteLinkDetails, joinTeam, loaded, key, id])
 
   const [clickedJoin, setClickedJoin] = React.useState(false)
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
 
   const onNavUp = () => nav.safeNavigateUp()
   const respondToInviteLink = C.useTeamsState(s => s.dispatch.dynamic.respondToInviteLink)

@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import * as PhoneUtil from '@/util/phone-numbers'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   address: string
@@ -68,7 +68,7 @@ type OwnProps = {
 }
 
 const DeleteModal = (props: OwnProps) => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const itemAddress = props.address
   const itemType = props.type
   const itemSearchable = props.searchable

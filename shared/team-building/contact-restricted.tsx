@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   source: 'newFolder' | 'teamAddSomeFailed' | 'teamAddAllFailed' | 'misc'
@@ -8,7 +8,7 @@ type Props = {
 }
 
 export const ContactRestricted = (props: Props) => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
   let header = ''
   let description = ''

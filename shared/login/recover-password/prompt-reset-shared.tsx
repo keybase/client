@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {SignupScreen} from '@/signup/common'
 import type {ButtonType} from '@/common-adapters/button'
@@ -12,7 +12,7 @@ export type Props = {
 }
 
 const PromptReset = (props: Props) => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const skipPassword = C.useAutoResetState(s => s.skipPassword)
   const error = C.useAutoResetState(s => s.error)
   const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)
