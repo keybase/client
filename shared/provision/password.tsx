@@ -19,7 +19,10 @@ const Password = () => {
     navigateUp()
   }
   const _onSubmit = C.useProvisionState(s => s.dispatch.dynamic.setPassphrase)
-  const onSubmit = (password: string) => !waiting && _onSubmit?.(password)
+  const onSubmit = React.useCallback(
+    (password: string) => !waiting && _onSubmit?.(password),
+    [_onSubmit, waiting]
+  )
   const [password, setPassword] = React.useState('')
   const _onSubmitClick = React.useCallback(() => onSubmit(password), [password, onSubmit])
   const resetState = C.useRecoverState(s => s.dispatch.resetState)
@@ -81,11 +84,7 @@ const Password = () => {
               textType="BodySemibold"
               type="password"
             />
-            <Kb.Text
-              style={styles.forgotPassword}
-              type="BodySmallSecondaryLink"
-              onClick={_onForgotPassword}
-            >
+            <Kb.Text style={styles.forgotPassword} type="BodySmallSecondaryLink" onClick={_onForgotPassword}>
               Forgot password?
             </Kb.Text>
           </Kb.Box2>
