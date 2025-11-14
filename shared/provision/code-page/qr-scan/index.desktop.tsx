@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import QRLines from '@/common-adapters/qr-lines'
+import QRLines from './lines'
 import type {Props} from '.'
 // Basically only used for storybook
 
