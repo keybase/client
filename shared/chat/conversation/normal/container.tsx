@@ -69,9 +69,10 @@ const useOrangeLine = () => {
   return orangeLine
 }
 
-const WithOrange = React.memo(function WithOrange(p: {orangeLine: T.Chat.Ordinal}) {
+const NormalWrapper = React.memo(function NormalWrapper() {
+  const orangeLine = useOrangeLine()
   return (
-    <OrangeLineContext.Provider value={p.orangeLine}>
+    <OrangeLineContext.Provider value={orangeLine}>
       <FocusProvider>
         <ScrollProvider>
           <Normal />
@@ -79,10 +80,5 @@ const WithOrange = React.memo(function WithOrange(p: {orangeLine: T.Chat.Ordinal
       </FocusProvider>
     </OrangeLineContext.Provider>
   )
-})
-
-const NormalWrapper = React.memo(function NormalWrapper() {
-  const orangeLine = useOrangeLine()
-  return <WithOrange orangeLine={orangeLine} />
 })
 export default NormalWrapper

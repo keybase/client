@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import {SelectOtherDevice} from '@/provision/select-other-device'
 
-const ConnectedDeviceSelector = () => {
+const RecoverPasswordDeviceSelector = () => {
   const devices = C.useRecoverState(s => s.devices)
   const submitDeviceSelect = C.useRecoverState(s => s.dispatch.dynamic.submitDeviceSelect)
   const cancel = C.useRecoverState(s => s.dispatch.dynamic.cancel)
@@ -28,4 +28,4 @@ const ConnectedDeviceSelector = () => {
   return <SelectOtherDevice {...props} />
 }
 
-export default ConnectedDeviceSelector
+export default RecoverPasswordDeviceSelector

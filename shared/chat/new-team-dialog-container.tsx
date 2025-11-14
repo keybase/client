@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import {CreateNewTeam} from '../teams/new-team'
 import upperFirst from 'lodash/upperFirst'
 
-const Container = () => {
+const NewTeamDialog = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const baseTeam = ''
   const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))
@@ -26,4 +26,4 @@ const Container = () => {
   return <CreateNewTeam {...props} />
 }
 
-export default Container
+export default NewTeamDialog

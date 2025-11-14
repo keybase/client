@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '@/constants/types'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
@@ -14,20 +13,19 @@ type Props = {
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
 }
 
-const InfoPanelConnector = (props: Props) => {
+const InfoPanelConnector = (ownProps: Props) => {
   const storeSelectedTab = C.useChatState(s => s.infoPanelSelectedTab)
   const setInfoPanelTab = C.useChatState(s => s.dispatch.setInfoPanelTab)
-  const initialTab = props.tab ?? storeSelectedTab
+  const initialTab = ownProps.tab ?? storeSelectedTab
   const conversationIDKey = C.useChatContext(s => s.id)
   const meta = C.useConvoState(conversationIDKey, s => s.meta)
   const shouldNavigateOut = meta.conversationIDKey === C.Chat.noConversationIDKey
   const yourRole = C.useTeamsState(s => C.Teams.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname
-  const smallTeam = meta.teamType !== 'big'
   const teamname = meta.teamname
 
-  const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab)
+  const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab ?? 'members')
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
@@ -50,35 +48,8 @@ const InfoPanelConnector = (props: Props) => {
     setInfoPanelTab(selectedTab)
   }, [selectedTab, storeSelectedTab, setInfoPanelTab])
 
-  const p = {
-    channelname,
-    isPreview,
-    onCancel,
-    onSelectTab,
-    selectedTab: selectedTab ?? 'members',
-    smallTeam,
-    teamname,
-    yourRole,
-  }
-  return <_InfoPanel {...p} conversationIDKey={conversationIDKey} />
-}
-
-export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
-type InfoPanelProps = {
-  channelname?: string
-  isPreview: boolean
-  onCancel?: () => void
-  onSelectTab: (p: Panel) => void
-  selectedTab: Panel
-  smallTeam: boolean
-  teamname?: string
-  yourRole: T.Teams.MaybeTeamRoleType
-}
-
-const _InfoPanel = (props: InfoPanelProps & {conversationIDKey: T.Chat.ConversationIDKey}) => {
   const getTabs = (): Array<TabType<Panel>> => {
-    const showSettings =
-      !props.isPreview || C.Teams.isAdmin(props.yourRole) || C.Teams.isOwner(props.yourRole)
+    const showSettings = !isPreview || C.Teams.isAdmin(yourRole) || C.Teams.isOwner(yourRole)
 
     return [
       {title: 'members' as const},
@@ -93,7 +64,7 @@ const _InfoPanel = (props: InfoPanelProps & {conversationIDKey: T.Chat.Conversat
       data: [{type: 'header-item'}],
       renderItem: () => (
         <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
-          {props.teamname && props.channelname ? <TeamHeader /> : <AdhocHeader />}
+          {teamname && channelname ? <TeamHeader /> : <AdhocHeader />}
         </Kb.Box2>
       ),
     },
@@ -106,8 +77,8 @@ const _InfoPanel = (props: InfoPanelProps & {conversationIDKey: T.Chat.Conversat
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Tabs
               tabs={tabs}
-              selectedTab={props.selectedTab}
-              onSelect={props.onSelectTab}
+              selectedTab={selectedTab}
+              onSelect={onSelectTab}
               style={styles.tabContainer}
               tabStyle={styles.tab}
               clickableTabStyle={styles.clickableTabStyle}
@@ -118,7 +89,7 @@ const _InfoPanel = (props: InfoPanelProps & {conversationIDKey: T.Chat.Conversat
     },
   ] as const
 
-  if (!props.conversationIDKey) {
+  if (!conversationIDKey) {
     // if we dont have a valid conversation ID, just render a spinner
     return (
       <Kb.Box2
@@ -133,9 +104,9 @@ const _InfoPanel = (props: InfoPanelProps & {conversationIDKey: T.Chat.Conversat
   }
 
   let sectionList: React.ReactNode
-  switch (props.selectedTab) {
+  switch (selectedTab) {
     case 'settings':
-      sectionList = <SettingsList isPreview={props.isPreview} commonSections={commonSections} />
+      sectionList = <SettingsList isPreview={isPreview} commonSections={commonSections} />
       break
     case 'members':
       sectionList = <MembersList commonSections={commonSections} />
@@ -163,7 +134,7 @@ const _InfoPanel = (props: InfoPanelProps & {conversationIDKey: T.Chat.Conversat
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
         {Kb.Styles.isMobile && (
-          <Kb.HeaderHocHeader onLeftAction={props.onCancel} leftAction="cancel" customCancelText="Done" />
+          <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" customCancelText="Done" />
         )}
         {sectionList}
       </Kb.Box2>
@@ -171,8 +142,9 @@ const _InfoPanel = (props: InfoPanelProps & {conversationIDKey: T.Chat.Conversat
   }
 }
 
-const tabletContainerBorderSize = 1
+export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 
+const tabletContainerBorderSize = 1
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
@@ -201,17 +173,13 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.xsmall,
       },
       tabContainer: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.white,
-        },
+        common: {backgroundColor: Kb.Styles.globalColors.white},
         // TODO: this is less than ideal
         isElectron: {
           overflowX: 'hidden',
           overflowY: 'hidden',
         },
-        isMobile: {
-          marginTop: 0,
-        },
+        isMobile: {marginTop: 0},
       }),
     }) as const
 )

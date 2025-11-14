@@ -7,23 +7,6 @@ import {OrdinalContext} from './ids-context'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 
-export type Props = {
-  attachmentRef?: React.RefObject<Kb.MeasureRef | null>
-  onAddReaction: () => void
-  onHidden: () => void
-  onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void
-  onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void
-  ordinal: T.Chat.Ordinal
-  reactions: Array<{
-    emoji: string
-    users: Array<{
-      fullName: string
-      username: string
-    }>
-  }>
-  visible: boolean
-}
-
 type OwnProps = {
   attachmentRef?: React.RefObject<Kb.MeasureRef | null>
   emoji?: string
@@ -92,37 +75,22 @@ const ReactionTooltip = (p: OwnProps) => {
     // Filter down to selected emoji
     reactions = reactions.filter(r => r.emoji === emoji)
   }
-  const props = {
-    attachmentRef,
-    onAddReaction,
-    onHidden,
-    onMouseLeave,
-    onMouseOver,
-    ordinal,
-    reactions,
-    visible,
-  }
-
-  return <ReactionTooltipImpl {...props} />
-}
-
-const ReactionTooltipImpl = (props: Props) => {
   const insets = Kb.useSafeAreaInsets()
   const conversationIDKey = C.useChatContext(s => s.id)
-  if (!props.visible) {
+  if (!visible) {
     return null
   }
 
-  const sections = props.reactions.map(r => ({
+  const sections = reactions.map(r => ({
     data: r.users.map(u => ({...u, key: `${u.username}:${r.emoji}`})),
     key: r.emoji,
-    ordinal: props.ordinal,
+    ordinal: ordinal,
     title: r.emoji,
   }))
   return (
     <Kb.Overlay
-      attachTo={props.attachmentRef}
-      onHidden={props.onHidden}
+      attachTo={attachmentRef}
+      onHidden={onHidden}
       position="top center"
       positionFallbacks={positionFallbacks}
       propagateOutsideClicks={true}
@@ -130,17 +98,17 @@ const ReactionTooltipImpl = (props: Props) => {
     >
       {/* need context since this uses a portal... */}
       <C.ChatProvider id={conversationIDKey}>
-        <OrdinalContext.Provider value={props.ordinal}>
+        <OrdinalContext.Provider value={ordinal}>
           <Kb.Box2
-            onMouseLeave={props.onMouseLeave}
-            onMouseOver={props.onMouseOver}
+            onMouseLeave={onMouseLeave}
+            onMouseOver={onMouseOver}
             direction="vertical"
             gap="tiny"
             style={Kb.Styles.collapseStyles([styles.listContainer, {paddingBottom: insets.bottom}])}
           >
             {Kb.Styles.isMobile && (
               <Kb.Box2 direction="horizontal">
-                <Kb.Text type="BodySemiboldLink" onClick={props.onHidden} style={styles.closeButton}>
+                <Kb.Text type="BodySemiboldLink" onClick={onHidden} style={styles.closeButton}>
                   Close
                 </Kb.Text>
                 <Kb.Box2 direction="horizontal" style={{flex: 1}} />
@@ -157,12 +125,7 @@ const ReactionTooltipImpl = (props: Props) => {
             />
             {Kb.Styles.isMobile && (
               <Kb.ButtonBar style={styles.addReactionButtonBar}>
-                <Kb.Button
-                  mode="Secondary"
-                  fullWidth={true}
-                  onClick={props.onAddReaction}
-                  label="Add a reaction"
-                >
+                <Kb.Button mode="Secondary" fullWidth={true} onClick={onAddReaction} label="Add a reaction">
                   <Kb.Icon
                     type="iconfont-reacji"
                     color={Kb.Styles.globalColors.blue}
@@ -231,12 +194,8 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.small,
         paddingTop: Kb.Styles.globalMargins.small,
       },
-      addReactionButtonIcon: {
-        marginRight: Kb.Styles.globalMargins.tiny,
-      },
-      addReactionButtonText: {
-        color: Kb.Styles.globalColors.black_50,
-      },
+      addReactionButtonIcon: {marginRight: Kb.Styles.globalMargins.tiny},
+      addReactionButtonText: {color: Kb.Styles.globalColors.black_50},
       buttonContainer: {
         alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.white,
@@ -246,9 +205,7 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingTop: Kb.Styles.globalMargins.tiny,
       },
-      closeButton: {
-        padding: Kb.Styles.globalMargins.small,
-      },
+      closeButton: {padding: Kb.Styles.globalMargins.small},
       emojiText: {
         color: Kb.Styles.globalColors.black_50,
         flex: -1,
@@ -260,9 +217,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       listContainer: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.white,
-        },
+        common: {backgroundColor: Kb.Styles.globalColors.white},
         isElectron: {
           maxHeight: 320,
           width: 240,

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 
-const Container = () => {
+const DisableCertPinningModal = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
@@ -25,4 +25,4 @@ const Container = () => {
   )
 }
 
-export default Container
+export default DisableCertPinningModal

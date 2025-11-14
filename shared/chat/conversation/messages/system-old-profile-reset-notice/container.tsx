@@ -3,7 +3,7 @@ import type * as T from '@/constants/types'
 import {Text} from '@/common-adapters'
 import UserNotice from '../user-notice'
 
-const Container = () => {
+const SystemOldProfileResetNotice = () => {
   const participantInfo = C.useChatContext(s => s.participants)
   const meta = C.useChatContext(s => s.meta)
   const _participants = participantInfo.all
@@ -35,4 +35,4 @@ const Container = () => {
   )
 }
 
-export default Container
+export default SystemOldProfileResetNotice

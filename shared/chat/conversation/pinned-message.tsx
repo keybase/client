@@ -3,7 +3,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 
-const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
+const PinnedMessage = React.memo(function PinnedMessage() {
   const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = C.useChatContext(
     C.useShallow(s => {
       const {meta, dispatch, id: conversationIDKey} = s
@@ -198,4 +198,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default PinnedMessageContainer
+export default PinnedMessage

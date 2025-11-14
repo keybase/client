@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 
-const Container = () => {
+const ResetUser = () => {
   const meta = C.useChatContext(s => s.meta)
   const participantInfo = C.useChatContext(s => s.participants)
   const resetChatWithoutThem = C.useChatContext(s => s.dispatch.resetChatWithoutThem)
@@ -116,4 +116,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default ResetUser

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 
-const Container = () => {
+const RefreshDriverStatusOnMount = () => {
   const refreshDriverStatusDesktop = C.useFSState(s => s.dispatch.dynamic.refreshDriverStatusDesktop)
   const refresh = React.useCallback(() => refreshDriverStatusDesktop?.(), [refreshDriverStatusDesktop])
 
@@ -12,4 +12,4 @@ const Container = () => {
   return null
 }
 
-export default Container
+export default RefreshDriverStatusOnMount

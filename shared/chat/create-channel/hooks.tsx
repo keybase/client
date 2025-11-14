@@ -1,15 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import type * as T from '@/constants/types'
-import CreateChannel from '.'
 import upperFirst from 'lodash/upperFirst'
+import type {Props} from '.'
 
-type OwnProps = {
-  navToChatOnSuccess?: boolean
-  teamID: T.Teams.TeamID
-}
-
-const Wrapped = (p: OwnProps) => {
+export default (p: Props) => {
   const teamID = p.teamID
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
   const errorText = C.useTeamsState(s => upperFirst(s.errorInChannelCreation))
@@ -30,20 +24,15 @@ const Wrapped = (p: OwnProps) => {
     setChannelCreationError('')
   })
 
-  return (
-    <CreateChannel
-      errorText={errorText}
-      teamname={teamname}
-      onBack={onBack}
-      onClose={onBack}
-      teamID={teamID}
-      channelname={channelname}
-      onChannelnameChange={onChannelnameChange}
-      description={description}
-      onDescriptionChange={onDescriptionChange}
-      onSubmit={onSubmit}
-    />
-  )
+  return {
+    channelname,
+    description,
+    errorText,
+    onBack,
+    onChannelnameChange,
+    onDescriptionChange,
+    onSubmit,
+    teamID,
+    teamname,
+  }
 }
-
-export default Wrapped

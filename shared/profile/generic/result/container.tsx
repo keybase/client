@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from '../shared'
 
-const Container = () => {
+const GenericResult = () => {
   const errorText = C.useProfileState(s =>
     s.errorCode !== undefined ? s.errorText || 'Failed to verify proof' : ''
   )
@@ -93,4 +93,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default GenericResult

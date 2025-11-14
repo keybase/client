@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type {Props} from '.'
+import useHooks from './hooks'
 
 const Prompt = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
@@ -12,7 +13,8 @@ const promptContainerStyle = {
   justifyContent: 'center',
 } as const
 
-const SetExplodePopup = (props: Props) => {
+const SetExplodePopup = (p: Props) => {
+  const props = useHooks(p)
   const items = props.items.map(item => ({
     onClick: () => {
       props.onSelect(item.seconds)
