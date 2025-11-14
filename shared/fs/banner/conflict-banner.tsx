@@ -1,31 +1,56 @@
-import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as React from 'react'
+import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import openUrl from '@/util/open-url'
 
-export type Props = {
-  conflictState: T.FS.ConflictState
-  onFeedback: () => void
-  onFinishResolving: () => void
-  onGoToSamePathInDifferentTlf: (tlfPath: T.FS.Path) => void
-  onHelp: () => void
-  onStartResolving: () => void
-  openInSystemFileManager: (path: T.FS.Path) => void
-  tlfPath: T.FS.Path
+type OwnProps = {
+  path: T.FS.Path
 }
 
-const getActions = (props: Props) => ({
-  feedbackAction: {onClick: props.onFeedback, text: ' Please let us know '},
-  finishRes: {onClick: props.onFinishResolving, text: ' Delete this conflict view '},
-  helpAction: {onClick: props.onHelp, text: ' What does this mean? '},
-  startRes: {onClick: props.onStartResolving, text: ' Resolve conflict '},
-})
+const ConnectedBanner = (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const _tlf = C.useFSState(s => C.FS.getTlfFromPath(s.tlfs, path))
+  const finishManualConflictResolution = C.useFSState(s => s.dispatch.finishManualConflictResolution)
+  const startManualConflictResolution = C.useFSState(s => s.dispatch.startManualConflictResolution)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onFinishResolving = React.useCallback(() => {
+    finishManualConflictResolution(path)
+  }, [finishManualConflictResolution, path])
+  const onGoToSamePathInDifferentTlf = React.useCallback(
+    (tlfPath: T.FS.Path) => {
+      navigateAppend({props: {path: Constants.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
+    },
+    [navigateAppend, path]
+  )
+  const onHelp = React.useCallback(() => {
+    openUrl('https://book.keybase.io/docs/files/details#conflict-resolution')
+  }, [])
+  const onStartResolving = React.useCallback(() => {
+    startManualConflictResolution(path)
+  }, [startManualConflictResolution, path])
 
-const ConflictBanner = (props: Props) => {
-  switch (props.conflictState.type) {
+  const openPathInSystemFileManagerDesktop = C.useFSState(
+    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+  )
+
+  const openInSystemFileManager = React.useCallback(
+    (path: T.FS.Path) => {
+      openPathInSystemFileManagerDesktop?.(path)
+    },
+    [openPathInSystemFileManagerDesktop]
+  )
+
+  const conflictState = _tlf.conflictState
+  const finishRes = {onClick: onFinishResolving, text: ' Delete this conflict view '}
+  const helpAction = {onClick: onHelp, text: ' What does this mean? '}
+  const startRes = {onClick: onStartResolving, text: ' Resolve conflict '}
+
+  switch (conflictState.type) {
     case T.FS.ConflictStateType.NormalView: {
-      const {helpAction, startRes} = getActions(props)
-      if (props.conflictState.stuckInConflict) {
-        const color = props.conflictState.localViewTlfPaths.length ? 'red' : 'yellow'
+      if (conflictState.stuckInConflict) {
+        const color = conflictState.localViewTlfPaths.length ? 'red' : 'yellow'
         return (
           <Kb.Banner color={color}>
             <Kb.BannerParagraph
@@ -41,8 +66,8 @@ const ConflictBanner = (props: Props) => {
           </Kb.Banner>
         )
       }
-      if (props.conflictState.localViewTlfPaths.length) {
-        const localViewCount = props.conflictState.localViewTlfPaths.length
+      if (conflictState.localViewTlfPaths.length) {
+        const localViewCount = conflictState.localViewTlfPaths.length
         return (
           <Kb.Banner color="green">
             <Kb.BannerParagraph
@@ -55,8 +80,8 @@ const ConflictBanner = (props: Props) => {
             />
             <Kb.BannerParagraph
               bannerColor="green"
-              content={props.conflictState.localViewTlfPaths.map((tlfPath, idx) => ({
-                onClick: () => props.onGoToSamePathInDifferentTlf(tlfPath),
+              content={conflictState.localViewTlfPaths.map((tlfPath, idx) => ({
+                onClick: () => onGoToSamePathInDifferentTlf(tlfPath),
                 text: ' Open conflicted copy' + (localViewCount > 1 ? ` #${(idx + 1).toString()} ` : ' '),
               }))}
             />
@@ -67,8 +92,6 @@ const ConflictBanner = (props: Props) => {
       return null
     }
     case T.FS.ConflictStateType.ManualResolvingLocalView: {
-      const conflictState = props.conflictState
-      const {finishRes, helpAction} = getActions(props)
       return (
         <Kb.Banner color="yellow">
           <Kb.BannerParagraph
@@ -76,7 +99,7 @@ const ConflictBanner = (props: Props) => {
             content={[
               'This is a conflicted copy of ',
               {
-                onClick: () => props.onGoToSamePathInDifferentTlf(conflictState.normalViewTlfPath),
+                onClick: () => onGoToSamePathInDifferentTlf(conflictState.normalViewTlfPath),
                 text: T.FS.pathToString(conflictState.normalViewTlfPath),
               },
               '.',
@@ -86,7 +109,7 @@ const ConflictBanner = (props: Props) => {
             bannerColor="yellow"
             content={[
               {
-                onClick: () => props.openInSystemFileManager(conflictState.normalViewTlfPath),
+                onClick: () => openInSystemFileManager(conflictState.normalViewTlfPath),
                 text: ` Open in ${C.fileUIName} `,
               },
               finishRes,
@@ -97,8 +120,8 @@ const ConflictBanner = (props: Props) => {
       )
     }
     default:
-      return <Kb.Text type="Body">{'Unknown conflictState: ' + props.conflictState}</Kb.Text>
+      return <Kb.Text type="Body">{'Unknown conflictState: ' + conflictState}</Kb.Text>
   }
 }
 
-export default ConflictBanner
+export default ConnectedBanner
