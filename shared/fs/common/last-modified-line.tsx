@@ -1,13 +1,15 @@
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import {formatTimeForFS} from '@/util/timestamp'
 
-export type LastModifiedLineProps = {
-  lastModifiedTimestamp?: number
-  lastWriter?: string
+export type OwnProps = {
+  path: T.FS.Path
   mode: 'row' | 'default' | 'menu'
 }
 
-const Username = ({mode, lastWriter}: {mode: LastModifiedLineProps['mode']; lastWriter: string}) =>
+const Username = ({mode, lastWriter}: {mode: OwnProps['mode']; lastWriter: string}) =>
   mode === 'row' && Kb.Styles.isMobile ? (
     <Kb.Text type="BodySmall">{lastWriter}</Kb.Text>
   ) : (
@@ -20,18 +22,23 @@ const Username = ({mode, lastWriter}: {mode: LastModifiedLineProps['mode']; last
     />
   )
 
-const LastModifiedLine = (props: LastModifiedLineProps) => {
+const Container = (ownProps: OwnProps) => {
+  const {path, mode} = ownProps
+  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
+  const lastModifiedTimestamp =
+    _pathItem === Constants.unknownPathItem ? undefined : _pathItem.lastModifiedTimestamp
+  const lastWriter = _pathItem === Constants.unknownPathItem ? undefined : _pathItem.lastWriter
+
   const time =
-    !!props.lastModifiedTimestamp &&
-    (props.mode === 'row' ? '' : 'Last modified ') +
-      formatTimeForFS(props.lastModifiedTimestamp, props.mode !== 'row')
-  const by = !!props.lastWriter && (
+    !!lastModifiedTimestamp &&
+    (mode === 'row' ? '' : 'Last modified ') + formatTimeForFS(lastModifiedTimestamp, mode !== 'row')
+  const by = !!lastWriter && (
     <>
       &nbsp;by&nbsp;
-      <Username mode={props.mode} lastWriter={props.lastWriter} />
+      <Username mode={mode} lastWriter={lastWriter} />
     </>
   )
-  switch (props.mode) {
+  switch (mode) {
     case 'menu':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
@@ -64,4 +71,4 @@ const LastModifiedLine = (props: LastModifiedLineProps) => {
   }
 }
 
-export default LastModifiedLine
+export default Container

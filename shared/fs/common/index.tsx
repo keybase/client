@@ -1,6 +1,6 @@
 export {default as PathItemAction, type ClickableProps} from './path-item-action'
 export {default as OpenInSystemFileManager} from './open-in-system-file-manager'
-export {default as LastModifiedLine} from './last-modified-line-container'
+export {default as LastModifiedLine} from './last-modified-line'
 export {default as TlfInfoLine} from './tlf-info-line-container'
 export {default as ItemIcon} from './item-icon'
 export {default as Errs} from './errs-container'
