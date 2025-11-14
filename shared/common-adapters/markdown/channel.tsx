@@ -1,8 +1,7 @@
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
+import Text, {type StylesTextCrossPlatform} from '../text'
 import * as React from 'react'
-import {Channel} from './channel'
-import type {StylesTextCrossPlatform} from './text'
 
 type OwnProps = {
   name: string
@@ -12,6 +11,7 @@ type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
+  const {name, convID, style, allowFontScaling} = ownProps
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _onClick = React.useCallback(
     (name: string, convID: T.Chat.ConversationIDKey) =>
@@ -23,15 +23,13 @@ const Container = (ownProps: OwnProps) => {
     [previewConversation]
   )
 
-  const props = {
-    allowFontScaling: ownProps.allowFontScaling,
-    convID: ownProps.convID,
-    name: ownProps.name,
-    onClick: () => _onClick(ownProps.name, ownProps.convID),
-    style: ownProps.style,
-  }
+  const onClick = () => _onClick(name, convID)
 
-  return <Channel {...props} />
+  return (
+    <Text type="BodyPrimaryLink" onClick={onClick} style={style} allowFontScaling={!!allowFontScaling}>
+      #{name}
+    </Text>
+  )
 }
 
 export default Container

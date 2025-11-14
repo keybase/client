@@ -39,7 +39,6 @@ export const waitingKey = 'profile:waiting'
 export const uploadAvatarWaitingKey = 'profile:uploadAvatar'
 export const blockUserWaitingKey = 'profile:blockUser'
 export const wotAuthorWaitingKey = 'profile:wotAuthor'
-export const AVATAR_SIZE = 128
 
 type Store = T.Immutable<{
   blockUserModal?: 'waiting' | {error: string}

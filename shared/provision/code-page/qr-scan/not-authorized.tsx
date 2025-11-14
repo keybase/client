@@ -1,10 +1,6 @@
 import * as Styles from '@/styles'
 import * as C from '@/constants'
-import Text from './text'
-import {Box2} from './box'
-import Icon from './icon'
-
-const Kb = {Box2, Icon, Text}
+import * as Kb from '@/common-adapters'
 
 const QRScanNotAuthorized = () => {
   const onOpenSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)

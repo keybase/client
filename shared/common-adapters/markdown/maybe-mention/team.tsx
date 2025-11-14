@@ -1,3 +1,5 @@
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'
@@ -7,29 +9,56 @@ import type {MeasureRef} from 'common-adapters/measure-ref'
 
 const Kb = {Box2, Styles, Text}
 
-export type Props = {
+type OwnProps = {
   allowFontScaling?: boolean
   channel: string
-  description: string
-  inTeam: boolean
-  isOpen: boolean
   name: string
-  numMembers: number
-  onChat?: () => void
-  onJoinTeam: (t: string) => void
-  onViewTeam: () => void
-  publicAdmins: ReadonlyArray<string>
-  resolved: boolean
   style?: StylesTextCrossPlatform
 }
 
-const TeamMention = (props: Props) => {
+const noAdmins: Array<string> = []
+
+const TeamMention = (ownProps: OwnProps) => {
+  const {allowFontScaling, name, channel, style} = ownProps
+  const maybeMentionInfo = C.useChatState(s =>
+    s.maybeMentionMap.get(C.Chat.getTeamMentionName(name, channel))
+  )
+  const mentionInfo =
+    maybeMentionInfo && maybeMentionInfo.status === T.RPCChat.UIMaybeMentionStatus.team
+      ? maybeMentionInfo.team
+      : null
+  const _convID = mentionInfo ? mentionInfo.convID : undefined
+  const description = mentionInfo?.description || ''
+  const inTeam = !!mentionInfo && mentionInfo.inTeam
+  const isOpen = !!mentionInfo && mentionInfo.open
+  const numMembers = mentionInfo?.numMembers || 0
+  const publicAdmins = mentionInfo?.publicAdmins || noAdmins
+  const resolved = !!mentionInfo
+
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const showTeamByName = C.useTeamsState(s => s.dispatch.showTeamByName)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const _onViewTeam = (teamname: string) => {
+    clearModals()
+    showTeamByName(teamname)
+  }
+  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
+  const onJoinTeam = joinTeam
+
+  const convID = _convID ? T.Chat.stringToConversationIDKey(_convID) : undefined
+  const onChat = convID
+    ? () => {
+        previewConversation({conversationIDKey: convID, reason: 'teamMention'})
+      }
+    : undefined
+  const onViewTeam = () => _onViewTeam(name)
+
   const [showPopup, setShowPopup] = React.useState(false)
   const mentionRef = React.useRef<MeasureRef | null>(null)
 
   const handleClick = () => {
-    if (props.onChat) {
-      props.onChat()
+    if (onChat) {
+      onChat()
     } else {
       setShowPopup(true)
     }
@@ -38,9 +67,9 @@ const TeamMention = (props: Props) => {
   const handleMouseOver = () => setShowPopup(true)
   const handleMouseLeave = () => setShowPopup(false)
 
-  let text = `@${props.name}`
-  if (props.channel.length > 0) {
-    text += `#${props.channel}`
+  let text = `@${name}`
+  if (channel.length > 0) {
+    text += `#${channel}`
   }
 
   const content = (
@@ -48,14 +77,14 @@ const TeamMention = (props: Props) => {
       textRef={mentionRef}
       type="BodyBold"
       className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
-      style={Kb.Styles.collapseStyles([props.style, styles.text])}
-      allowFontScaling={props.allowFontScaling}
+      style={Kb.Styles.collapseStyles([style, styles.text])}
+      allowFontScaling={allowFontScaling}
       onClick={handleClick}
     >
       <Kb.Text
         type="BodyBold"
-        style={Kb.Styles.collapseStyles([props.style, styles.resolved, styles.text])}
-        allowFontScaling={props.allowFontScaling}
+        style={Kb.Styles.collapseStyles([style, styles.resolved, styles.text])}
+        allowFontScaling={allowFontScaling}
       >
         {text}
       </Kb.Text>
@@ -65,21 +94,21 @@ const TeamMention = (props: Props) => {
   const popups = (
     <TeamInfo
       attachTo={mentionRef}
-      description={props.description}
-      inTeam={props.inTeam}
-      isOpen={props.isOpen}
-      name={props.name}
-      membersCount={props.numMembers}
-      onChat={props.onChat}
+      description={description}
+      inTeam={inTeam}
+      isOpen={isOpen}
+      name={name}
+      membersCount={numMembers}
+      onChat={onChat}
       onHidden={handleMouseLeave}
-      onJoinTeam={props.onJoinTeam}
-      onViewTeam={props.onViewTeam}
-      publicAdmins={props.publicAdmins}
+      onJoinTeam={onJoinTeam}
+      onViewTeam={onViewTeam}
+      publicAdmins={publicAdmins}
       visible={showPopup}
     />
   )
 
-  return props.resolved ? (
+  return resolved ? (
     Kb.Styles.isMobile ? (
       <>
         {content}
@@ -97,7 +126,7 @@ const TeamMention = (props: Props) => {
       </Kb.Box2>
     )
   ) : (
-    <Kb.Text type="BodySemibold" style={props.style} allowFontScaling={props.allowFontScaling}>
+    <Kb.Text type="BodySemibold" style={style} allowFontScaling={allowFontScaling}>
       {text}
     </Kb.Text>
   )

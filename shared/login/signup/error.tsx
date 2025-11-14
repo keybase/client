@@ -12,30 +12,17 @@ const ConnectedSignupError = () => {
     header = 'Hit an unexpected error; try again?'
     body = 'This might be due to a bad connection.'
   }
-  const props = {
-    body,
-    header,
-    onBack,
-  }
-  return <Error {...props} />
+  return (
+    <Wrapper onBack={() => {}}>
+      <Kb.Text center={true} type="Header" style={{maxWidth: 460, width: '80%'}}>
+        {header}
+      </Kb.Text>
+      <Kb.Text type="Body" center={true}>
+        {body}
+      </Kb.Text>
+      <ContinueButton label="Back" onClick={onBack} />
+    </Wrapper>
+  )
 }
-
-type Props = {
-  header: string
-  body: string
-  onBack: () => void
-}
-
-const Error = (props: Props) => (
-  <Wrapper onBack={() => {}}>
-    <Kb.Text center={true} type="Header" style={{maxWidth: 460, width: '80%'}}>
-      {props.header}
-    </Kb.Text>
-    <Kb.Text type="Body" center={true}>
-      {props.body}
-    </Kb.Text>
-    <ContinueButton label="Back" onClick={props.onBack} />
-  </Wrapper>
-)
 
 export default ConnectedSignupError

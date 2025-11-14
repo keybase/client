@@ -1,16 +1,14 @@
-import * as T from '@/constants/types'
 import * as C from '@/constants'
-import {rowStyles, StillCommon, type StillCommonProps} from './common'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
+import {useOpen} from '@/fs/common/use-open'
+import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 import {LastModifiedLine, Filename} from '@/fs/common'
 
-type StillProps = StillCommonProps & {
-  dismissUploadError?: () => void
-  intentIfDownloading?: T.FS.DownloadIntent
-  isEmpty: boolean
-  type: T.FS.PathType
-  uploading: boolean
-  writingToJournal: boolean
+type OwnProps = {
+  destinationPickerIndex?: number
+  path: T.FS.Path
 }
 
 const getDownloadingText = (intent: T.FS.DownloadIntent) => {
@@ -26,55 +24,78 @@ const getDownloadingText = (intent: T.FS.DownloadIntent) => {
   }
 }
 
-const Still = (props: StillProps) => (
-  <StillCommon
-    path={props.path}
-    onOpen={props.onOpen}
-    inDestinationPicker={props.inDestinationPicker}
-    writingToJournal={props.writingToJournal}
-    uploadErrored={!!props.dismissUploadError}
-    content={
-      <>
-        <Filename path={props.path} type={C.FS.pathTypeToTextType(props.type)} style={rowStyles.rowText} />
-        {props.isEmpty && (
-          <Kb.Meta
-            title="empty"
-            backgroundColor={Kb.Styles.globalColors.greyDark}
-            style={{marginLeft: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.xxtiny}}
-          />
-        )}
-      </>
-    }
-    status={
-      props.dismissUploadError ? (
-        <Kb.Text type="BodySmallError">
-          Upload has failed.{' '}
-          <Kb.Text
-            type="BodySmallPrimaryLink"
-            style={styles.redDark}
-            onClick={e => {
-              e.stopPropagation()
-              props.dismissUploadError?.()
-            }}
-          >
-            Dismiss
-          </Kb.Text>
-        </Kb.Text>
-      ) : props.intentIfDownloading ? (
-        <Kb.Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Kb.Text>
-      ) : props.writingToJournal ? (
-        <Kb.Meta title="Encrypting" backgroundColor={Kb.Styles.globalColors.blue} />
-      ) : props.uploading ? (
-        <Kb.Text type="BodySmall">Uploading ...</Kb.Text>
-      ) : (
-        props.type !== T.FS.PathType.Folder && <LastModifiedLine path={props.path} mode="row" />
-      )
-    }
-  />
-)
+const StillContainer = (p: OwnProps) => {
+  const {destinationPickerIndex, path} = p
+  const _downloads = C.useFSState(s => s.downloads)
+  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
+  const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
+  const _uploads = C.useFSState(s => s.uploads)
 
-export default Still
+  const dismissUpload = C.useFSState(s => s.dispatch.dismissUpload)
+  const writingToJournalUploadState = _uploads.writingToJournal.get(path)
+  const onOpen = useOpen({destinationPickerIndex, path})
+
+  const dismissUploadError = writingToJournalUploadState?.error
+    ? () => dismissUpload(writingToJournalUploadState.uploadID)
+    : undefined
+  const intentIfDownloading = Constants.getDownloadIntent(path, _downloads, _pathItemActionMenu)
+  const isEmpty =
+    _pathItem.type === T.FS.PathType.Folder &&
+    _pathItem.progress === T.FS.ProgressType.Loaded &&
+    !_pathItem.children.size
+  const type = _pathItem.type
+  const uploading = _uploads.syncingPaths.has(path)
+  const writingToJournal = !!writingToJournalUploadState
+
+  return (
+    <StillCommon
+      path={path}
+      onOpen={onOpen}
+      writingToJournal={writingToJournal}
+      uploadErrored={!!dismissUploadError}
+      content={
+        <>
+          <Filename path={path} type={C.FS.pathTypeToTextType(type)} style={rowStyles.rowText} />
+          {isEmpty && (
+            <Kb.Meta
+              title="empty"
+              backgroundColor={Kb.Styles.globalColors.greyDark}
+              style={{marginLeft: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.xxtiny}}
+            />
+          )}
+        </>
+      }
+      status={
+        dismissUploadError ? (
+          <Kb.Text type="BodySmallError">
+            Upload has failed.{' '}
+            <Kb.Text
+              type="BodySmallPrimaryLink"
+              style={styles.redDark}
+              onClick={e => {
+                e.stopPropagation()
+                dismissUploadError()
+              }}
+            >
+              Dismiss
+            </Kb.Text>
+          </Kb.Text>
+        ) : intentIfDownloading ? (
+          <Kb.Text type="BodySmall">{getDownloadingText(intentIfDownloading)}</Kb.Text>
+        ) : writingToJournal ? (
+          <Kb.Meta title="Encrypting" backgroundColor={Kb.Styles.globalColors.blue} />
+        ) : uploading ? (
+          <Kb.Text type="BodySmall">Uploading ...</Kb.Text>
+        ) : (
+          type !== T.FS.PathType.Folder && <LastModifiedLine path={path} mode="row" />
+        )
+      }
+    />
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   redDark: {color: Kb.Styles.globalColors.redDark},
 }))
+
+export default StillContainer

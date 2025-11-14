@@ -1,60 +1,14 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as C from '@/constants'
 import * as React from 'react'
-import Avatar from './avatar.render'
-import {iconTypeToImgSet, urlsToImgSet, type IconType, type IconStyle} from './icon'
+import {iconTypeToImgSet, urlsToImgSet, type IconType, type IconStyle} from '../icon'
 import * as Styles from '@/styles'
-import * as AvatarZus from './avatar-zus'
-import type * as T from '@/constants/types'
+import * as AvatarZus from './store'
 import './avatar.css'
+import type {Props} from '.'
 
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = (typeof avatarSizes)[number]
-
-type URLType = string
-
-export type OwnProps = {
-  borderColor?: string
-  children?: React.ReactNode
-  crop?: T.Teams.AvatarCrop
-  lighterPlaceholders?: boolean
-  editable?: boolean
-  imageOverrideUrl?: string
-  isTeam?: boolean
-  loadingColor?: string
-  onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
-  onEditAvatarClick?: (e?: React.BaseSyntheticEvent) => void
-  opacity?: number
-  size: AvatarSize
-  skipBackground?: boolean
-  style?: Styles.CustomStyles<'borderStyle'>
-  teamname?: string
-  username?: string
-  showFollowingStatus?: boolean // show the green dots or not
-}
-
-export type Props = {
-  borderColor?: string
-  children?: React.ReactNode
-  crop?: T.Teams.AvatarCrop
-  editable?: boolean
-  followIconSize: number
-  followIconType?: IconType
-  followIconStyle: IconStyle
-  imageOverride?: string
-  isTeam: boolean
-  loadingColor?: string
-  name: string
-  onClick?: (e?: React.SyntheticEvent) => void
-  onEditAvatarClick?: (e?: React.SyntheticEvent) => void
-  opacity?: number
-  size: AvatarSize
-  skipBackground?: boolean
-  style?: Styles.CustomStyles<'borderStyle'>
-  teamname?: string
-  url: URLType
-  username?: string
-}
 
 const avatarPlaceHolders: {[key: string]: IconType} = {
   '192': 'icon-placeholder-avatar-192',
@@ -95,7 +49,7 @@ const followIconHelper = (size: AvatarSize, followsYou: boolean, following: bool
 }
 
 const sizes = [960, 256, 192] as const
-const ConnectedAvatar = (ownProps: OwnProps) => {
+export default (ownProps: Props) => {
   const {username, showFollowingStatus, teamname, isTeam: _isTeam, onClick: _onClick} = ownProps
   const {onEditAvatarClick, imageOverrideUrl, size, lighterPlaceholders} = ownProps
   const isTeam = _isTeam || !!teamname
@@ -154,28 +108,25 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
     () => followIconHelper(size, followsYou, following),
     [size, followsYou, following]
   )
-  return (
-    <Avatar
-      blocked={blocked}
-      borderColor={ownProps.borderColor}
-      children={ownProps.children}
-      crop={ownProps.crop}
-      editable={ownProps.editable}
-      followIconSize={iconInfo.iconSize}
-      followIconStyle={iconInfo.iconStyle}
-      followIconType={iconInfo.iconType}
-      isTeam={isTeam}
-      loadingColor={ownProps.loadingColor}
-      name={name || ''}
-      onClick={onClick}
-      onEditAvatarClick={ownProps.onEditAvatarClick}
-      opacity={ownProps.opacity}
-      size={size}
-      skipBackground={ownProps.skipBackground}
-      style={ownProps.style}
-      url={url}
-    />
-  )
-}
 
-export default React.memo(ConnectedAvatar)
+  return {
+    blocked: blocked,
+    borderColor: ownProps.borderColor,
+    children: ownProps.children,
+    crop: ownProps.crop,
+    editable: ownProps.editable,
+    followIconSize: iconInfo.iconSize,
+    followIconStyle: iconInfo.iconStyle,
+    followIconType: iconInfo.iconType,
+    isTeam: isTeam,
+    loadingColor: ownProps.loadingColor,
+    name: name || '',
+    onClick: onClick,
+    onEditAvatarClick: ownProps.onEditAvatarClick,
+    opacity: ownProps.opacity,
+    size: size,
+    skipBackground: ownProps.skipBackground,
+    style: ownProps.style,
+    url: url,
+  }
+}

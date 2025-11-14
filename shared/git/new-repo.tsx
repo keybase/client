@@ -3,22 +3,18 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 
 type OwnProps = {isTeam: boolean}
+const NewTeamSentry = '---NewTeam---'
 
 const Container = (ownProps: OwnProps) => {
   const {isTeam} = ownProps
   const error = C.useGitState(s => s.error)
   const teamnames = C.useTeamsState(s => s.teamnames)
   const teams = [...teamnames].sort(C.Teams.sortTeamnames)
-
   const waitingKey = C.Git.loadingWaitingKey
-
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
   const loadTeams = getTeams
-  const onClose = () => {
-    navigateUp()
-  }
-
+  const onClose = navigateUp
   const createPersonalRepo = C.useGitState(s => s.dispatch.createPersonalRepo)
   const createTeamRepo = C.useGitState(s => s.dispatch.createTeamRepo)
   const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
@@ -35,34 +31,7 @@ const Container = (ownProps: OwnProps) => {
     switchTab(C.Tabs.teamsTab)
     launchNewTeamWizardOrModal()
   }
-  const props = {
-    error,
-    isTeam,
-    loadTeams,
-    onClose,
-    onCreate,
-    onNewTeam,
-    teams,
-    waitingKey,
-  }
-  return <NewRepo {...props} />
-}
 
-type Props = {
-  error?: Error
-  isTeam: boolean
-  onClose: () => void
-  onCreate: (name: string, teamname: string, notifyTeam: boolean) => void
-  onNewTeam: () => void
-  teams?: Array<string>
-  waitingKey: string
-  loadTeams: () => void
-}
-
-const NewTeamSentry = '---NewTeam---'
-
-const NewRepo = (props: Props) => {
-  const {teams, loadTeams, onNewTeam, isTeam, onCreate} = props
   const [name, setName] = React.useState('')
   const [notifyTeam, setNotifyTeam] = React.useState(true)
   const [selectedTeam, setSelectedTeam] = React.useState('')
@@ -72,7 +41,7 @@ const NewRepo = (props: Props) => {
   }, [loadTeams])
 
   const makeDropdownItems = () => {
-    return (teams || []).concat(NewTeamSentry).map(makeDropdownItem)
+    return teams.concat(NewTeamSentry).map(makeDropdownItem)
   }
 
   const makeDropdownItem = (item?: string) => {
@@ -128,7 +97,7 @@ const NewRepo = (props: Props) => {
   }
 
   const dropdownChanged = (idx: number) => {
-    const t = teams?.at(idx)
+    const t = teams.at(idx)
     if (!t) {
       onNewTeam()
     } else {
@@ -144,29 +113,29 @@ const NewRepo = (props: Props) => {
     return name && !(isTeam && !selectedTeam)
   }
   return (
-    <Kb.PopupWrapper onCancel={props.onClose}>
+    <Kb.PopupWrapper onCancel={onClose}>
       <Kb.ScrollView>
         <Kb.Box style={styles.container}>
-          {!!props.error && (
+          {!!error && (
             <Kb.Box style={styles.error}>
               <Kb.Text type="Body" negative={true}>
-                {props.error.message}
+                {error.message}
               </Kb.Text>
             </Kb.Box>
           )}
           <Kb.Text type="Header" style={{marginBottom: 27}}>
-            New {props.isTeam ? 'team' : 'personal'} git repository
+            New {isTeam ? 'team' : 'personal'} git repository
           </Kb.Text>
           <Kb.Icon
-            type={props.isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
+            type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
             style={styles.addIcon}
           />
           <Kb.Text type="Body" style={{marginBottom: 27}}>
-            {props.isTeam
+            {isTeam
               ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
               : 'Your repository will be encrypted and only accessible by you.'}
           </Kb.Text>
-          {props.isTeam && (
+          {isTeam && (
             <Kb.Dropdown
               items={makeDropdownItems()}
               selected={makeDropdownItem(selectedTeam)}
@@ -181,7 +150,7 @@ const NewRepo = (props: Props) => {
             placeholder="Name your repository"
             onEnterKeyDown={onSubmit}
           />
-          {props.isTeam && (
+          {isTeam && (
             <Kb.Checkbox
               label="Notify the team"
               checked={notifyTeam}
@@ -192,16 +161,16 @@ const NewRepo = (props: Props) => {
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
               type="Dim"
-              onClick={props.onClose}
+              onClick={onClose}
               label="Cancel"
-              waitingKey={props.waitingKey}
+              waitingKey={waitingKey}
               onlyDisable={true}
             />
             <Kb.WaitingButton
               onClick={onSubmit}
               label="Create"
               disabled={!canSubmit()}
-              waitingKey={props.waitingKey}
+              waitingKey={waitingKey}
             />
           </Kb.ButtonBar>
         </Kb.Box>

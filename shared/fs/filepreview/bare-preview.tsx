@@ -1,42 +1,42 @@
+import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import Footer from '../footer/footer'
 import View from './view'
 import * as Kbfs from '../common'
 
-type Props = {
-  onBack: () => void
-  path: T.FS.Path
-}
+type OwnProps = {path: T.FS.Path}
 
-const BarePreview = (props: Props) => {
-  const onUrlError = Kbfs.useFsFileContext(props.path)
+const ConnectedBarePreview = (ownProps: OwnProps) => {
+  const path = ownProps.path ?? C.FS.defaultPath
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => navigateUp()
+
+  const onUrlError = Kbfs.useFsFileContext(path)
   return (
     <Kb.Box style={styles.container}>
       <Kb.Box style={styles.header}>
-        <Kb.ClickableBox onClick={props.onBack} style={styles.closeBox}>
+        <Kb.ClickableBox onClick={onBack} style={styles.closeBox}>
           <Kb.Text type="Body" style={styles.text}>
             Close
           </Kb.Text>
         </Kb.ClickableBox>
       </Kb.Box>
       <Kb.Box style={styles.contentContainer}>
-        <View path={props.path} onUrlError={onUrlError} />
+        <View path={path} onUrlError={onUrlError} />
       </Kb.Box>
       <Kb.Box style={styles.footer}>
         <Kbfs.PathItemAction
-          path={props.path}
+          path={path}
           clickable={{actionIconWhite: true, type: 'icon'}}
           initView={T.FS.PathItemActionMenuView.Root}
           mode="screen"
         />
       </Kb.Box>
-      <Footer path={props.path} onlyShowProofBroken={true} />
+      <Footer path={path} onlyShowProofBroken={true} />
     </Kb.Box>
   )
 }
-
-export default BarePreview
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -73,3 +73,9 @@ const styles = Kb.Styles.styleSheetCreate(
       },
     }) as const
 )
+
+const Noop = (_: OwnProps) => {
+  return null
+}
+
+export default C.isMobile ? ConnectedBarePreview : Noop

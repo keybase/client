@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {NativeAnimated, NativeEasing} from './native-wrappers.native'
+import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import * as Styles from '@/styles'
 import type {Props} from './switch-toggle'
 

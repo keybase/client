@@ -1,13 +1,11 @@
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
 
-export type SortBarProps = {
-  sortByNameAsc?: () => void
-  sortByNameDesc?: () => void
-  sortByTimeAsc?: () => void
-  sortByTimeDesc?: () => void
-  sortSetting?: T.FS.SortSetting
+type OwnProps = {
+  path: T.FS.Path
 }
 
 const getTextFromSortSetting = (sortSetting: T.FS.SortSetting) => {
@@ -30,11 +28,42 @@ const makeSortOptionItem = (sortSetting: T.FS.SortSetting, onClick?: () => void)
   title: getTextFromSortSetting(sortSetting),
 })
 
-const Sort = (props: SortBarProps) => {
-  const {sortSetting, sortByNameAsc, sortByNameDesc, sortByTimeAsc, sortByTimeDesc} = props
+const Container = (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
+
+  const setSorting = C.useFSState(s => s.dispatch.setSorting)
+  const _sortSetting = C.useFSState(s => Constants.getPathUserSetting(s.pathUserSettings, path).sort)
+
+  const sortSetting = Constants.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
+      const sortByNameAsc =
+        path === C.FS.defaultPath
+          ? undefined
+          : () => {
+              setSorting(path, T.FS.SortSetting.NameAsc)
+            }
+      const sortByNameDesc =
+        path === C.FS.defaultPath
+          ? undefined
+          : () => {
+              setSorting(path, T.FS.SortSetting.NameDesc)
+            }
+      const sortByTimeAsc =
+        path === C.FS.defaultPath
+          ? undefined
+          : () => {
+              setSorting(path, T.FS.SortSetting.TimeAsc)
+            }
+      const sortByTimeDesc =
+        path === C.FS.defaultPath
+          ? undefined
+          : () => {
+              setSorting(path, T.FS.SortSetting.TimeDesc)
+            }
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
@@ -51,7 +80,7 @@ const Sort = (props: SortBarProps) => {
         />
       )
     },
-    [sortByNameAsc, sortByNameDesc, sortByTimeAsc, sortByTimeDesc]
+    [setSorting, path]
   )
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return sortSetting ? (
@@ -67,4 +96,4 @@ const Sort = (props: SortBarProps) => {
   ) : null
 }
 
-export default Sort
+export default Container

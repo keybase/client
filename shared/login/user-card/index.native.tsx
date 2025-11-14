@@ -2,16 +2,8 @@ import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 
 const UserCard = (p: Props) => {
-  const {
-    avatarBackgroundStyle,
-    avatarSize = 96,
-    outerStyle,
-    onAvatarClicked,
-    username,
-    style,
-    children,
-    lighterPlaceholders,
-  } = p
+  const {avatarBackgroundStyle, avatarSize = 96, outerStyle, onAvatarClicked} = p
+  const {username, style, children, lighterPlaceholders} = p
   return (
     <Kb.Box style={Kb.Styles.collapseStyles([styles.container, outerStyle])}>
       <Kb.Box style={styles.avatar}>

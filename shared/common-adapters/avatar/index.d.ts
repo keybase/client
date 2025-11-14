@@ -1,30 +1,26 @@
 import type * as React from 'react'
 import type * as T from '@/constants/types'
-import type {StylesCrossPlatform} from '@/styles'
-import type {IconType, IconStyle} from './icon'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
 export type Props = {
   borderColor?: string
-  blocked?: boolean
   children?: React.ReactNode
   crop?: T.Teams.AvatarCrop
+  lighterPlaceholders?: boolean
   editable?: boolean
-  followIconSize: 28 | 21
-  followIconType?: IconType
-  followIconStyle: IconStyle
-  isTeam: boolean
-  name: string
+  imageOverrideUrl?: string
+  isTeam?: boolean
   loadingColor?: string
-  onClick?: () => void
-  onEditAvatarClick?: () => void
+  onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
+  onEditAvatarClick?: (e?: React.BaseSyntheticEvent) => void
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
-  skipBackgroundAfterLoaded?: boolean
-  style?: StylesCrossPlatform
-  url: string | null
+  style?: Styles.CustomStyles<'borderStyle'>
+  teamname?: string
+  username?: string
+  showFollowingStatus?: boolean // show the green dots or not
 }
 
 declare const Avatar: (p: Props) => React.ReactNode

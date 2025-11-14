@@ -14,7 +14,7 @@ export {
 } from './bottom-sheet'
 export {default as Animation} from './animation'
 export {default as Avatar} from './avatar'
-export {default as AvatarLine} from './avatar-line'
+export {default as AvatarLine} from './avatar/avatar-line'
 export {default as BackButton} from './back-button'
 export {default as BackgroundRepeatBox} from './background-repeat-box'
 export {default as Badge} from './badge'

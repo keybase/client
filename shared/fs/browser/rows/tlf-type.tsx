@@ -1,27 +1,36 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {rowStyles, StillCommon, type StillCommonProps} from './common'
+import {useOpen} from '@/fs/common/use-open'
+import * as C from '@/constants'
+import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 
-type TlfTypeProps = StillCommonProps
+type OwnProps = {
+  destinationPickerIndex?: number
+  name: T.FS.TlfType
+}
 
-const TlfType = (props: TlfTypeProps) => (
-  <StillCommon
-    path={props.path}
-    onOpen={props.onOpen}
-    inDestinationPicker={props.inDestinationPicker}
-    writingToJournal={false}
-    content={
-      <Kb.Text
-        fixOverdraw={true}
-        type={C.FS.pathTypeToTextType(T.FS.PathType.Folder)}
-        style={rowStyles.rowText}
-        lineClamp={Kb.Styles.isMobile ? 1 : undefined}
-      >
-        {T.FS.getPathName(props.path)}
-      </Kb.Text>
-    }
-  />
-)
+const TLFTypeContainer = (p: OwnProps) => {
+  const {destinationPickerIndex, name} = p
+  const path = T.FS.stringToPath(`/keybase/${name}`)
+  const onOpen = useOpen({destinationPickerIndex, path})
 
-export default TlfType
+  return (
+    <StillCommon
+      path={path}
+      onOpen={onOpen}
+      writingToJournal={false}
+      content={
+        <Kb.Text
+          fixOverdraw={true}
+          type={C.FS.pathTypeToTextType(T.FS.PathType.Folder)}
+          style={rowStyles.rowText}
+          lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+        >
+          {T.FS.getPathName(path)}
+        </Kb.Text>
+      }
+    />
+  )
+}
+
+export default TLFTypeContainer

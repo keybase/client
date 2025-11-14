@@ -1,13 +1,7 @@
 import * as React from 'react'
+import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
-import Text from './text'
-import {Box2} from './box'
 import {CameraView, useCameraPermissions} from 'expo-camera'
-
-const Kb = {
-  Box2,
-  Text,
-}
 
 type Props = {
   onBarCodeRead: (code: string) => void

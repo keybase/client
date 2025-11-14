@@ -1,6 +1,6 @@
 // A mirror of the remote tracker windows.
 import * as C from '@/constants'
-import {useAvatarState} from '@/common-adapters/avatar-zus'
+import {useAvatarState} from '@/common-adapters/avatar/store'
 import * as React from 'react'
 import * as Constants from '@/constants/tracker2'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
