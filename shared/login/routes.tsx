@@ -26,7 +26,7 @@ export const newRoutes = {
   feedback: settingsRoutes[C.Settings.settingsFeedbackTab],
   login: {screen: React.lazy(async () => import('.'))},
   recoverPasswordDeviceSelector: {
-    screen: React.lazy(async () => import('./recover-password/device-selector/container')),
+    screen: React.lazy(async () => import('./recover-password/device-selector')),
   },
   recoverPasswordError: {
     getOptions: {
