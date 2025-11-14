@@ -2,6 +2,7 @@ import type * as T from '@/constants/types'
 import {Box2, Icon, Text, FloatingMenu, type MenuItems} from '@/common-adapters'
 import {platformStyles, globalColors} from '@/styles'
 import type {Props} from '.'
+import useHooks from './hooks'
 
 const quantityTextStyle = platformStyles({
   common: {
@@ -43,7 +44,8 @@ const Item = (props: ItemProps) => {
   )
 }
 
-const SetExplodePopup = (props: Props) => {
+const SetExplodePopup = (p: Props) => {
+  const props = useHooks(p)
   const listItems: MenuItems = props.items.map(it => ({
     disabled: false,
     onClick: () => props.onSelect(it.seconds),

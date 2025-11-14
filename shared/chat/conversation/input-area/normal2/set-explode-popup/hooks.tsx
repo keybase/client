@@ -1,8 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import type * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import SetExplodeTime from '.'
+import type {Props} from '.'
 
 const makeItems = (meta: T.Chat.ConversationMeta) => {
   const convRetention = C.Chat.getEffectiveRetentionPolicy(meta)
@@ -15,15 +14,7 @@ const makeItems = (meta: T.Chat.ConversationMeta) => {
   return items
 }
 
-type OwnProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef | null>
-  onAfterSelect?: (s: number) => void
-  onHidden: () => void
-  visible: boolean
-  setExplodingMode: (mode: number) => void
-}
-
-const SetExplodePopup = React.memo(function SetExplodePopup(p: OwnProps) {
+export default (p: Props) => {
   const {setExplodingMode, onHidden, visible, attachTo, onAfterSelect} = p
   const _meta = C.useChatContext(s => s.meta)
   const selected = C.useChatContext(s => s.explodingMode)
@@ -36,8 +27,7 @@ const SetExplodePopup = React.memo(function SetExplodePopup(p: OwnProps) {
   )
 
   const items = React.useMemo(() => makeItems(_meta), [_meta])
-
-  const props = {
+  return {
     attachTo,
     items,
     onHidden,
@@ -45,7 +35,4 @@ const SetExplodePopup = React.memo(function SetExplodePopup(p: OwnProps) {
     selected,
     visible,
   }
-  return <SetExplodeTime {...props} />
-})
-
-export default SetExplodePopup
+}
