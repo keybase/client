@@ -109,6 +109,8 @@ const useCommon = (ownProps: OwnProps) => {
     if (hasHits && !hadHitsRef.current) {
       hadHitsRef.current = true
       selectResult(0)
+    } else if (!hasHits) {
+      hadHitsRef.current = false
     }
   }, [hasHits, selectResult])
 
