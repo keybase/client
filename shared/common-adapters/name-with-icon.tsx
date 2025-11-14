@@ -1,17 +1,17 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
-import Avatar, {type AvatarSize} from '../avatar'
-import {Box} from '@/common-adapters/box'
-import ClickableBox from '../clickable-box'
-import Icon, {type IconType} from '@/common-adapters/icon'
+import Avatar, {type AvatarSize} from './avatar'
+import {Box} from './box'
+import ClickableBox from './clickable-box'
+import Icon, {type IconType} from './icon'
 import Text, {
   type TextType,
   type StylesTextCrossPlatform,
   type AllowedColors,
   type TextTypeBold,
-} from '@/common-adapters/text'
-import ConnectedUsernames from '../usernames'
+} from './text'
+import ConnectedUsernames from './usernames'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 

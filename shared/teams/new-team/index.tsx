@@ -16,7 +16,7 @@ type Props = {
 }
 
 // used in chat too
-const CreateNewTeam = (props: Props) => {
+export const CreateNewTeam = (props: Props) => {
   const [name, setName] = React.useState('')
   const [joinSubteam, setJoinSubteam] = React.useState(true)
   const waiting = C.Waiting.useAnyWaiting(C.Teams.teamCreationWaitingKey)

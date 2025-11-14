@@ -166,7 +166,6 @@ type OwnProps = {
   text: string
 }
 
-type Status = Props['status']
 const reduceStatus = (status: string): Status => {
   switch (status) {
     case 'claimable':
@@ -189,7 +188,7 @@ const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: Own
   const {error, paymentID, text, allowFontScaling} = p
   const ordinal = React.useContext(OrdinalContext)
   const paymentInfo = C.useChatState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
-  const status = error ? 'error' : paymentInfo?.status ?? 'pending'
+  const status = error ? 'error' : (paymentInfo?.status ?? 'pending')
 
   const you = C.useCurrentUserState(s => s.username)
   // TODO remove

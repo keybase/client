@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import _Password from '@/settings/password'
+import {UpdatePassword} from '@/settings/password'
 
 const Password = () => {
   const error = C.useRecoverState(s => s.passwordError)
@@ -8,7 +8,7 @@ const Password = () => {
   const onSave = (p: string) => {
     submitPassword?.(p)
   }
-  return <_Password error={error} hasRandomPW={false} onSave={onSave} waitingForResponse={waiting} />
+  return <UpdatePassword error={error} hasRandomPW={false} onSave={onSave} waitingForResponse={waiting} />
 }
 
 export default Password

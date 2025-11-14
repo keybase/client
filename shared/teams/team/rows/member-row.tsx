@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/container'
 import type * as T from '@/constants/types'
-import MenuHeader from '../menu-header.new'
+import MenuHeader from './menu-header.new'
 
 export type Props = {
   firstItem: boolean
@@ -78,7 +78,7 @@ export const TeamMemberRow = (props: Props) => {
   const isYou = props.you === props.username
   const teamID = props.teamID
 
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const teamSelectedMembers = C.useTeamsState(s => s.teamSelectedMembers.get(teamID))
   const anySelected = !!teamSelectedMembers?.size
   const selected = !!teamSelectedMembers?.has(props.username)

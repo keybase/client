@@ -17,7 +17,7 @@ type Props = {
   onUpdatePGPSettings?: () => void
 }
 
-const UpdatePassword = (props: Props) => {
+export const UpdatePassword = (props: Props) => {
   const {onUpdatePGPSettings} = props
   const [password, setPassword] = React.useState('')
   const [passwordConfirm, setPasswordConfirm] = React.useState('')
@@ -252,4 +252,3 @@ const Container = () => {
 }
 
 export default Container
-

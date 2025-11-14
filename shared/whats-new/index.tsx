@@ -3,8 +3,6 @@ import * as Kb from '@/common-adapters'
 import type * as C from '@/constants'
 import {currentVersion, lastVersion, lastLastVersion} from '@/constants/whats-new'
 import type {VersionProps} from './versions'
-import openURL from '@/util/open-url'
-import {Current, Last, LastLast} from './versions'
 
 type Props = {
   onNavigate: (props: C.Router2.PathParam) => void
