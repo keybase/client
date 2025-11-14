@@ -8,7 +8,7 @@ module.exports = {
     return require('./avatar').default
   },
   get AvatarLine() {
-    return require('./avatar-line').default
+    return require('./avatar/avatar-line').default
   },
   get BackButton() {
     return require('./back-button').default
