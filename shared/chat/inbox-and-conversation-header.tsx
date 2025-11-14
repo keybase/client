@@ -251,7 +251,7 @@ const Header2 = () => {
             />
             {description ? (
               <>
-                <Kb.Text type="BodySmall" style={styles.desc}>
+                <Kb.Text type="BodySmall" style={styles.descDot}>
                   &nbsp;•&nbsp;
                 </Kb.Text>
                 {description}
@@ -271,12 +271,12 @@ const Header2 = () => {
       <Kb.Box2
         direction="horizontal"
         style={styles.right}
-        fullHeight={!renderDescription}
+        fullHeight={true}
         gap="small"
         alignItems="flex-end"
         alignSelf="flex-end"
       >
-        <Kb.BoxGrow2>
+        <Kb.BoxGrow2 style={{height: '100%'}}>
           <Kb.Box2 direction="vertical" style={styles.headerTitle}>
             {topRow}
             {bottomRow}
@@ -300,7 +300,15 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       desc: {
-        ...Kb.Styles.platformStyles({isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable}}),
+        ...Kb.Styles.platformStyles({
+          isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable, width: '100%'},
+        }),
+        color: Kb.Styles.globalColors.black_50,
+      },
+      descDot: {
+        ...Kb.Styles.platformStyles({
+          isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
+        }),
         color: Kb.Styles.globalColors.black_50,
       },
       descriptionContainer: {
@@ -314,8 +322,8 @@ const styles = Kb.Styles.styleSheetCreate(
       descriptionTooltip: {alignItems: 'flex-start'},
       headerTitle: Kb.Styles.platformStyles({
         common: {
-          flexGrow: 1,
           paddingBottom: Kb.Styles.globalMargins.xtiny,
+          width: '100%',
         },
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
         isTablet: {flex: 1},
