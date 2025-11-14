@@ -78,10 +78,7 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
 }
 
 // Author Avatar
-type LProps = {
-  username?: string
-}
-const LeftSide = React.memo(function LeftSide(p: LProps) {
+const LeftSide = React.memo(function LeftSide(p: {username?: string}) {
   const {username} = p
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
@@ -105,17 +102,10 @@ const LeftSide = React.memo(function LeftSide(p: LProps) {
   ) : null
 })
 
-type TProps = {
-  showUsername: string
-  authorIsOwner: boolean
-  authorIsAdmin: boolean
-  authorIsBot: boolean
-  botAlias: string
-  timestamp: number
-  teamType: T.Chat.TeamType
-}
-const TopSide = React.memo(function TopSide(p: TProps) {
-  const {timestamp, botAlias, showUsername, authorIsBot, authorIsAdmin, authorIsOwner, teamType} = p
+const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUsername: string}) {
+  const {ordinal, showUsername} = p
+  const mdata = useState(ordinal)
+  const {botAlias, authorIsOwner, authorIsAdmin, authorIsBot, timestamp, teamType} = mdata
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onAuthorClick = React.useCallback(() => {
@@ -283,55 +273,6 @@ const useState = (ordinal: T.Chat.Ordinal) => {
   return d
 }
 
-type SProps = {
-  ordinal: T.Chat.Ordinal
-  showUsername: string
-  orangeLineAbove: boolean
-  orangeTime: string
-}
-
-const TopSideWrapper = React.memo(function TopSideWrapper(p: {ordinal: T.Chat.Ordinal; username: string}) {
-  const {ordinal, username} = p
-  const mdata = useState(ordinal)
-  const {botAlias, authorIsOwner, authorIsAdmin, authorIsBot, timestamp, teamType} = mdata
-  return (
-    <TopSide
-      showUsername={username}
-      botAlias={botAlias}
-      timestamp={timestamp}
-      authorIsOwner={authorIsOwner}
-      authorIsAdmin={authorIsAdmin}
-      authorIsBot={authorIsBot}
-      teamType={teamType}
-    />
-  )
-})
-
-const Separator = React.memo(function Separator(p: SProps) {
-  const {ordinal, orangeLineAbove, showUsername, orangeTime} = p
-  return (
-    <Kb.Box2
-      direction="horizontal"
-      style={showUsername ? styles.container : styles.containerNoName}
-      fullWidth={true}
-      pointerEvents="box-none"
-      className="WrapperMessage-hoverColor"
-    >
-      {showUsername ? <LeftSide username={showUsername} /> : null}
-      {showUsername ? <TopSideWrapper username={showUsername} ordinal={ordinal} /> : null}
-      {orangeLineAbove ? (
-        <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine}>
-          {orangeTime ? (
-            <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
-              {orangeTime}
-            </Kb.Text>
-          ) : null}
-        </Kb.Box2>
-      ) : null}
-    </Kb.Box2>
-  )
-})
-
 type Props = {
   leadingItem?: T.Chat.Ordinal
   trailingItem: T.Chat.Ordinal
@@ -351,12 +292,25 @@ const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
   //   >{`orangeLineAbove: ${orangeLineAbove} ordinal:${ordinal} leading:${leadingItem} trailing:${trailingItem}`}</Kb.Text>
   // )
   return ordinal && (showUsername || orangeLineAbove) ? (
-    <Separator
-      ordinal={ordinal}
-      showUsername={showUsername}
-      orangeLineAbove={orangeLineAbove}
-      orangeTime={orangeTime}
-    />
+    <Kb.Box2
+      direction="horizontal"
+      style={showUsername ? styles.container : styles.containerNoName}
+      fullWidth={true}
+      pointerEvents="box-none"
+      className="WrapperMessage-hoverColor"
+    >
+      {showUsername ? <LeftSide username={showUsername} /> : null}
+      {showUsername ? <TopSide showUsername={showUsername} ordinal={ordinal} /> : null}
+      {orangeLineAbove ? (
+        <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine}>
+          {orangeTime ? (
+            <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
+              {orangeTime}
+            </Kb.Text>
+          ) : null}
+        </Kb.Box2>
+      ) : null}
+    </Kb.Box2>
   ) : null
 })
 
