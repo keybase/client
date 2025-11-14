@@ -2087,7 +2087,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const loadMessages = () => {
         // Skip reload if already loaded and not jumping to a specific message
-        const alreadyLoaded = get().loaded
+        const alreadyLoaded = get().loaded && get().messageMap.size
         if (alreadyLoaded && !highlightMessageID) {
           return
         }
