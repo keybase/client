@@ -3,7 +3,7 @@ import * as Constants from '@/constants/settings'
 import type {PendingInvite} from '@/constants/settings-invites'
 import Invites from '.'
 
-const Container = () => {
+const InvitesContainer = () => {
   const acceptedInvites = C.useSettingsInvitesState(s => s.acceptedInvites)
   const error = C.useSettingsInvitesState(s => s.error)
   const inviteEmail = ''
@@ -44,4 +44,4 @@ const Container = () => {
   return <Invites {...props} />
 }
 
-export default Container
+export default InvitesContainer

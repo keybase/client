@@ -6,7 +6,7 @@ type OwnProps = {
   link: string
 }
 
-const Container = (ownProps: OwnProps) => {
+const InviteGeneratedContainer = (ownProps: OwnProps) => {
   const {link, email} = ownProps
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onClose = () => {
@@ -16,4 +16,4 @@ const Container = (ownProps: OwnProps) => {
   return <InviteGenerated {...props} />
 }
 
-export default Container
+export default InviteGeneratedContainer

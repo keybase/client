@@ -12,7 +12,7 @@ type OwnProps = {
   platformHandle: string
   proofId: string
 }
-const Container = (ownProps: OwnProps) => {
+const RevokeProof = (ownProps: OwnProps) => {
   const {platformHandle, platform, proofId, icon} = ownProps
   const errorMessage = C.useProfileState(s => s.revokeError)
   const finishRevoking = C.useProfileState(s => s.dispatch.finishRevoking)
@@ -140,4 +140,4 @@ function formatMessage(platform: T.More.PlatformsExpandedType) {
   return `Are you sure you want to revoke your ${body}?`
 }
 
-export default Container
+export default RevokeProof
