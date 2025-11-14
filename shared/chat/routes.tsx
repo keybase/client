@@ -46,7 +46,7 @@ export const newModalRoutes = {
     React.lazy(async () => import('./conversation/attachment-get-titles'))
   ),
   chatBlockingModal: C.Chat.makeChatScreen(
-    React.lazy(async () => import('./blocking/block-modal/container'))
+    React.lazy(async () => import('./blocking/block-modal'))
   ),
   chatChooseEmoji: C.Chat.makeChatScreen(React.lazy(async () => import('./emoji-picker/container'))),
   chatConfirmNavigateExternal: C.Chat.makeChatScreen(
@@ -62,7 +62,7 @@ export const newModalRoutes = {
     {skipProvider: true}
   ),
   chatDeleteHistoryWarning: C.Chat.makeChatScreen(
-    React.lazy(async () => import('./delete-history-warning/container'))
+    React.lazy(async () => import('./delete-history-warning'))
   ),
   chatForwardMsgPick: C.Chat.makeChatScreen(React.lazy(async () => import('./conversation/fwd-msg'))),
   chatInfoPanel: C.Chat.makeChatScreen(React.lazy(async () => import('./conversation/info-panel'))),

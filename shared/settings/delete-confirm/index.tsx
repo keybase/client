@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import {androidIsTestDevice} from '@/constants/platform'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type CheckboxesProps = {
   checkData: boolean
@@ -40,7 +40,7 @@ const DeleteConfirm = () => {
   const [checkData, setCheckData] = React.useState(false)
   const [checkTeams, setCheckTeams] = React.useState(false)
   const [checkUsername, setCheckUsername] = React.useState(false)
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteForever = () => {

@@ -1,9 +1,9 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import DeviceIcon from '../devices/device-icon'
 import {SignupScreen} from '../signup/common'
+import {useSafeSubmit} from '@/util/safe-submit'
 
 const SelectOtherDeviceContainer = () => {
   const devices = C.useProvisionState(s => s.devices)
@@ -12,7 +12,7 @@ const SelectOtherDeviceContainer = () => {
   const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
-  const onBack = Container.useSafeSubmit(_onBack, false)
+  const onBack = useSafeSubmit(_onBack, false)
   const startAccountReset = C.useAutoResetState(s => s.dispatch.startAccountReset)
 
   const onResetAccount = React.useCallback(() => {

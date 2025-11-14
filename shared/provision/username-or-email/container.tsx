@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
+import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as SignupConstants from '@/constants/signup'
@@ -45,7 +45,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = Container.useSafeSubmit(navigateUp, hasError)
+  const onBack = useSafeSubmit(navigateUp, hasError)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onForgotUsername = React.useCallback(() => navigateAppend('forgotUsername'), [navigateAppend])
   const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)

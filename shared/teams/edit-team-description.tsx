@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import * as T from '@/constants/types'
 import {ModalTitle} from './common'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {teamID: T.Teams.TeamID}
 
@@ -25,7 +25,7 @@ const EditTeamDescription = (props: Props) => {
   const [description, setDescription] = React.useState(origDescription)
   const editTeamDescription = C.useTeamsState(s => s.dispatch.editTeamDescription)
 
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onSave = () => editTeamDescription(teamID, description)
   const onClose = () => nav.safeNavigateUp()
 
@@ -95,4 +95,3 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default EditTeamDescription
-

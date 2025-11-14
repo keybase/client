@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   path: T.FS.Path
@@ -22,7 +22,7 @@ const Breadcrumb = (props: Props) => {
           .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [C.FS.defaultPath])
   }, [apath])
   const {inDestinationPicker} = props
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onOpenPath = React.useCallback(
     (path: T.FS.Path) => {
       inDestinationPicker

@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Constants from '@/constants/provision'
-import * as Container from '@/util/container'
+import {useSafeSubmit} from '@/util/safe-submit'
 import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
@@ -14,7 +14,7 @@ const PublicNameContainer = () => {
   const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
-  const onBack = Container.useSafeSubmit(_onBack, !!error)
+  const onBack = useSafeSubmit(_onBack, !!error)
   const setDeviceName = C.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
   const onSubmit = React.useCallback(
     (name: string) => {

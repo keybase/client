@@ -2,10 +2,10 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import * as Common from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -44,7 +44,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
   const justMe = React.useMemo(() => [myUsername], [myUsername])
   const usernames = props.usernames ?? justMe
   const mode = props.usernames ? 'others' : 'self'
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
 
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
   const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = React.useMemo(
@@ -268,7 +268,7 @@ const HeaderRow = React.memo(function HeaderRow(p: {
   onSelectNone?: () => void
 }) {
   const {mode, teamID, onSelectAll, onSelectNone} = p
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onCreate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
   const canCreate = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).createChannel)
 
@@ -306,7 +306,7 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
   selfMode: boolean
 }) {
   const {meta, reloadChannels, selfMode} = p
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, meta.teamID))
   const isAdmin = yourOperations.deleteChannel
   const canEdit = yourOperations.editChannelDescription

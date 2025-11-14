@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import NewTeamDialog from '../teams/new-team'
+import {CreateNewTeam} from '../teams/new-team'
 import upperFirst from 'lodash/upperFirst'
 
 const Container = () => {
@@ -23,7 +23,7 @@ const Container = () => {
     onClearError,
     onSubmit,
   }
-  return <NewTeamDialog {...props} />
+  return <CreateNewTeam {...props} />
 }
 
 export default Container

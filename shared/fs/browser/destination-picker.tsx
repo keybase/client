@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Constants from '@/constants/fs'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 import * as FsCommon from '@/fs/common'
 import * as Kb from '@/common-adapters'
 import * as RowCommon from './rows/common'
@@ -56,7 +56,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />
     ) : undefined
 
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
 
   const newFolderRow = C.useFSState(s => s.dispatch.newFolderRow)
   const moveOrCopy = C.useFSState(s => s.dispatch.moveOrCopy)

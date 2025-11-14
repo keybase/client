@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Constants from '@/constants/crypto'
-import type * as C from '@/constants'
+import * as C from '@/constants'
 import {HeaderLeftCancel2, type HeaderBackButtonProps} from '@/common-adapters/header-hoc'
-import cryptoRoot from './sub-nav/page'
 import cryptoTeamBuilder from '../team-building/page'
 
 export const newRoutes = {
@@ -34,7 +33,10 @@ export const newRoutes = {
       return {default: VerifyInput}
     }),
   },
-  cryptoRoot,
+  cryptoRoot: {
+    getOptions: C.isMobile ? {title: 'Crypto'} : {title: 'Crypto tools'},
+    screen: React.lazy(async () => import('./sub-nav')),
+  },
 }
 
 export const newModalRoutes = {

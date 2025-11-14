@@ -1,7 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import openUrl from '@/util/open-url'
+import upperFirst from 'lodash/upperFirst'
 
 const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design')
 
@@ -14,7 +16,7 @@ type Props = {
 }
 
 // used in chat too
-const CreateNewTeam = (props: Props) => {
+export const CreateNewTeam = (props: Props) => {
   const [name, setName] = React.useState('')
   const [joinSubteam, setJoinSubteam] = React.useState(true)
   const waiting = C.Waiting.useAnyWaiting(C.Teams.teamCreationWaitingKey)
@@ -109,4 +111,30 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default CreateNewTeam
+type OwnProps = {subteamOf?: T.Teams.TeamID}
+
+const Container = (ownProps: OwnProps) => {
+  const subteamOf = ownProps.subteamOf ?? T.Teams.noTeamID
+  const baseTeam = C.useTeamsState(s => C.Teams.getTeamMeta(s, subteamOf).teamname)
+  const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onCancel = () => {
+    navigateUp()
+  }
+  const resetErrorInTeamCreation = C.useTeamsState(s => s.dispatch.resetErrorInTeamCreation)
+  const createNewTeam = C.useTeamsState(s => s.dispatch.createNewTeam)
+  const onClearError = resetErrorInTeamCreation
+  const onSubmit = (teamname: string, joinSubteam: boolean) => {
+    createNewTeam(teamname, joinSubteam)
+  }
+  const props = {
+    baseTeam,
+    errorText,
+    onCancel,
+    onClearError,
+    onSubmit,
+  }
+  return <CreateNewTeam {...props} />
+}
+
+export default Container

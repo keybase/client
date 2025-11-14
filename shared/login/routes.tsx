@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import {InfoIcon} from '@/signup/common'
-import proxySettingsModal from '../settings/proxy/page'
 import {newRoutes as provisionRoutes} from '../provision/routes-sub'
 import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
 import {newRoutes as signupRoutes} from './signup/routes'
@@ -64,7 +63,9 @@ export const newRoutes = {
   ...signupRoutes,
 }
 export const newModalRoutes = {
-  proxySettingsModal,
+  proxySettingsModal: {
+    screen: React.lazy(async () => import('../settings/proxy')),
+  },
   recoverPasswordErrorModal: {
     getOptions: {gesturesEnabled: false},
     screen: React.lazy(async () => import('./recover-password/error-modal')),

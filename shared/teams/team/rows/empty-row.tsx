@@ -1,7 +1,7 @@
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
@@ -25,7 +25,7 @@ const buttonLabel = {
 
 const useSecondaryAction = (props: Props) => {
   const {teamID, conversationIDKey} = props
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onSecondaryAction = () => {

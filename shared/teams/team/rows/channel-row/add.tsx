@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const ButtonRow = (props: {teamID: T.Teams.TeamID}) => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onCreateChannel = () =>
     nav.safeNavigateAppend({props: {...props, navToChatOnSuccess: false}, selected: 'chatCreateChannel'})
 

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Container from '@/util/container'
+import {useSafeSubmit} from '@/util/safe-submit'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
@@ -28,7 +28,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const _onDelete = React.useCallback(() => {
     deleteTeam(teamID)
   }, [deleteTeam, teamID])
-  const onDelete = Container.useSafeSubmit(_onDelete, !deleteWaiting)
+  const onDelete = useSafeSubmit(_onDelete, !deleteWaiting)
 
   const [checks, setChecks] = React.useState({
     checkChats: false,

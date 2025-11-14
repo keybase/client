@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import TeamMenu from './menu-container'
 import {pluralize} from '@/util/string'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import type * as T from '@/constants/types'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
@@ -267,7 +267,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const meta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const yourUsername = C.useCurrentUserState(s => s.username)
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))

@@ -4,9 +4,9 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import {SelectionPopup, useActivityLevels} from '../common'
-import TeamTabs from './tabs/container'
+import TeamTabs from './tabs'
 import NewTeamHeader from './new-header'
-import Settings from './settings-tab/container'
+import Settings from './settings-tab'
 import {
   useMembersSections,
   useBotSections,

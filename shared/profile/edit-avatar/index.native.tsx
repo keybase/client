@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import {type Props} from '.'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {ModalTitle} from '@/teams/common'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 import {CropZoom, type CropZoomRefType} from 'react-native-zoom-toolkit'
 
 type WrappedProps = {
@@ -15,7 +15,7 @@ const AvatarUploadWrapper = (props: Props) => {
   const {image, error, ...rest} = props
   const [selectedImage, setSelectedImage] = React.useState(image)
   const [imageError, setImageError] = React.useState('')
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const navUp = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
   const onChooseNewAvatar = React.useCallback(() => {

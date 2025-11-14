@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import {ModalTitle} from '@/teams/common'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
   switch (status) {
@@ -25,7 +25,7 @@ const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
 const cannotJoinAsOwner = {admin: `Users can't join open teams as admins`}
 
 const NewTeamInfo = () => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const teamWizardState = C.useTeamsState(s => s.newTeamWizard)
   const parentName = C.useTeamsState(s =>
     teamWizardState.parentTeamID ? C.Teams.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined

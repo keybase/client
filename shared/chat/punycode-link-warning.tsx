@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 import openURL from '@/util/open-url'
 
 type PunycodeLinkWarningProps = {
@@ -10,7 +10,7 @@ type PunycodeLinkWarningProps = {
 
 const PunycodeLinkWarning = (props: PunycodeLinkWarningProps) => {
   const {url, display, punycode} = props
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
   const onConfirm = () => {
     openURL(url)

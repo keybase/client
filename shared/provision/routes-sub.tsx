@@ -1,24 +1,28 @@
 // this is loaded up by login/routes and device/routes
-import codePage from './code-page/page'
-import error from './error.page'
-import forgotUsername from './forgot-username.page'
-// import gpgSign from './gpg-sign/page'
-import paperkey from './paper-key.page'
-import password from './password.page'
-import selectOtherDevice from './select-other-device.page'
-import setPublicName from './set-public-name.page'
-import username from './username-or-email/page'
+import * as React from 'react'
+import * as C from '@/constants'
 
 export const newRoutes = {
-  codePage,
-  error,
-  forgotUsername,
+  codePage: {
+    screen: React.lazy(async () => import('./code-page/container')),
+  },
+  error: {
+    getOptions: {modal2: true},
+    screen: React.lazy(async () => import('./error')),
+  },
+  forgotUsername: {
+    screen: React.lazy(async () => import('./forgot-username')),
+  },
   // gpgSign,
-  paperkey,
-  password,
-  selectOtherDevice,
-  setPublicName,
-  username,
+  paperkey: {
+    screen: React.lazy(async () => import('./paper-key')),
+  },
+  password: {
+    screen: React.lazy(async () => import('./password')),
+  },
+  selectOtherDevice: {screen: React.lazy(async () => import('./select-other-device'))},
+  setPublicName: {screen: React.lazy(async () => import('./set-public-name'))},
+  username: C.makeScreen(React.lazy(async () => import('./username-or-email/container'))),
 }
 
 // No modal routes while not logged in. More plumbing would be necessary to add them, so there is not

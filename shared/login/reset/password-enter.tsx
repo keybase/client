@@ -2,14 +2,14 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const EnterPassword = () => {
   const [password, setPassword] = React.useState('')
   const error = C.useAutoResetState(s => s.error)
   const endTime = C.useAutoResetState(s => s.endTime)
   const waiting = C.Waiting.useAnyWaiting(C.AutoReset.enterPipelineWaitingKey)
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
   const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)

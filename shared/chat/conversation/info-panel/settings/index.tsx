@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
-import RetentionPicker from '@/teams/team/settings-tab/retention/container'
+import RetentionPicker from '@/teams/team/settings-tab/retention'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
 type SettingsPanelProps = {isPreview: boolean}

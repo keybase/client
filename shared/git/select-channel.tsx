@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -19,7 +19,7 @@ const SelectChannel = (ownProps: OwnProps) => {
   const waiting = channelMetas.size === 0 // TODO fix this?
   const channelNames = [...channelMetas.values()].map(info => info.channelname)
   const [selected, setSelected] = React.useState(_selected)
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
   const onSubmit = (channelName: string) => setTeamRepoSettings(channelName, teamname, repoID, false)
   const onCancel = () => nav.safeNavigateUp()

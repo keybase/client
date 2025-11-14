@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Container from '@/util/container'
 import {pluralize} from '@/util/string'
 import {ModalTitle} from '@/teams/common'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   onSubmitChannels?: (channels: Array<string>) => void
@@ -21,7 +21,7 @@ const CreateChannel = () => {
 
 export const CreateChannelsModal = (props: Props) => {
   const {onSubmitChannels, waiting} = props
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const teamID = props.teamID || T.Teams.newTeamWizardTeamID
   const initialChannels = C.useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
 

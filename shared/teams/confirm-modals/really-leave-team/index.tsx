@@ -1,7 +1,10 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useTeamsSubscribe} from '@/teams/subscriber'
+import {useSafeSubmit} from '@/util/safe-submit'
+import type * as T from '@/constants/types'
+import {useTeamsSubscribe, useTeamDetailsSubscribeMountOnly} from '@/teams/subscriber'
+import LastOwnerDialog from './last-owner'
 
 export type Props = {
   error: string
@@ -113,4 +116,52 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default ReallyLeaveTeam
+type OwnProps = {teamID: T.Teams.TeamID}
+
+const ReallyLeaveTeamContainer = (op: OwnProps) => {
+  const teamID = op.teamID
+  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const {settings, members} = C.useTeamsState(s => s.teamDetails.get(teamID) ?? C.Teams.emptyTeamDetails)
+  const open = settings.open
+  const lastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, teamID))
+  const stillLoadingTeam = !members
+  const leaving = C.Waiting.useAnyWaiting(C.Teams.leaveTeamWaitingKey(teamname))
+  const error = C.Waiting.useAnyErrors(C.Teams.leaveTeamWaitingKey(teamname))
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onDeleteTeam = React.useCallback(() => {
+    navigateUp()
+    navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
+  }, [navigateUp, navigateAppend, teamID])
+  const leaveTeam = C.useTeamsState(s => s.dispatch.leaveTeam)
+  const _onLeave = React.useCallback(
+    (permanent: boolean) => {
+      leaveTeam(teamname, permanent, 'teams')
+    },
+    [leaveTeam, teamname]
+  )
+  const _onBack = navigateUp
+  const onBack = leaving ? () => {} : _onBack
+  const onLeave = useSafeSubmit(_onLeave, !leaving)
+
+  useTeamDetailsSubscribeMountOnly(teamID)
+  return lastOwner ? (
+    <LastOwnerDialog
+      onBack={onBack}
+      onDeleteTeam={onDeleteTeam}
+      name={teamname}
+      stillLoadingTeam={stillLoadingTeam}
+    />
+  ) : (
+    <ReallyLeaveTeam
+      error={error?.message ?? ''}
+      onBack={onBack}
+      onDeleteTeam={onDeleteTeam}
+      onLeave={onLeave}
+      open={open}
+      name={teamname}
+    />
+  )
+}
+
+export default ReallyLeaveTeamContainer

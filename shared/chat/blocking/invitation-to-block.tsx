@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
-import * as Container from '@/util/container'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const BlockButtons = () => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const conversationIDKey = C.useChatContext(s => s.id)
 
   const team = C.useChatContext(s => s.meta.teamname)

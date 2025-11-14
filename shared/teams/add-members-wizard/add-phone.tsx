@@ -1,16 +1,16 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import * as T from '@/constants/types'
 import {ModalTitle, usePhoneNumberList} from '../common'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const waitingKey = 'phoneLookup'
 
 const AddPhone = () => {
   const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
   const [error, setError] = React.useState('')
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()

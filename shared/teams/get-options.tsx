@@ -1,10 +1,10 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import {HeaderRightActions} from './main/header'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 const useHeaderActions = () => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
     onCreateTeam: () => launchNewTeamWizardOrModal(),

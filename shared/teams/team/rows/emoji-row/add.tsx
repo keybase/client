@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type OwnProps = {
   teamID: T.Teams.TeamID
@@ -10,7 +10,7 @@ type OwnProps = {
   setFilter: (filter: string) => void
 }
 const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const canManageEmoji = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageEmojis)
   const onAddEmoji = () =>
     nav.safeNavigateAppend({

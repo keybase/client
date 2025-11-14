@@ -1,2 +1,2 @@
-export {default as RequestRow} from './request/container'
-export {default as InviteRow} from './invite/container'
+export {default as RequestRow} from './request'
+export {default as InviteRow} from './invite'

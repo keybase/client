@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as dateFns from 'date-fns'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '@/util/emoji'
 import EmojiMenu from './emoji-menu'
 import {useEmojiState} from '@/teams/emojis/use-emoji'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type OwnProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -17,7 +17,7 @@ type OwnProps = {
 
 const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const username = C.useCurrentUserState(s => s.username)
   const canManageEmoji = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)

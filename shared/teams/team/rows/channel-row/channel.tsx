@@ -1,10 +1,10 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {Activity, useChannelParticipants} from '@/teams/common'
 import {pluralize} from '@/util/string'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type ChannelRowProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -26,7 +26,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none'
   )
 
-  const nav = Container.useSafeNavigation()
+  const nav = useSafeNavigation()
   const setChannelSelected = C.useTeamsState(s => s.dispatch.setChannelSelected)
   const onSelect = (newSelected: boolean) => {
     setChannelSelected(teamID, channel.conversationIDKey, newSelected)

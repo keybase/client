@@ -1,7 +1,7 @@
 import * as Constants from '@/constants/tracker2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import Actions from './actions/container'
+import Actions from './actions'
 import Assertion from '@/tracker2/assertion'
 import Bio from '@/tracker2/bio'
 import Friend from './friend'
