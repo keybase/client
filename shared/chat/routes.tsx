@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import chatNewChat from '../team-building/page'
-import {headerNavigationOptions} from './conversation/header-area/container'
+import {headerNavigationOptions} from './conversation/header-area'
 import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-2-get-options'
 
@@ -45,9 +45,7 @@ export const newModalRoutes = {
   chatAttachmentGetTitles: C.Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/attachment-get-titles'))
   ),
-  chatBlockingModal: C.Chat.makeChatScreen(
-    React.lazy(async () => import('./blocking/block-modal'))
-  ),
+  chatBlockingModal: C.Chat.makeChatScreen(React.lazy(async () => import('./blocking/block-modal'))),
   chatChooseEmoji: C.Chat.makeChatScreen(React.lazy(async () => import('./emoji-picker/container'))),
   chatConfirmNavigateExternal: C.Chat.makeChatScreen(
     React.lazy(async () => import('./punycode-link-warning')),
@@ -61,9 +59,7 @@ export const newModalRoutes = {
     React.lazy(async () => import('./create-channel/container')),
     {skipProvider: true}
   ),
-  chatDeleteHistoryWarning: C.Chat.makeChatScreen(
-    React.lazy(async () => import('./delete-history-warning'))
-  ),
+  chatDeleteHistoryWarning: C.Chat.makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
   chatForwardMsgPick: C.Chat.makeChatScreen(React.lazy(async () => import('./conversation/fwd-msg'))),
   chatInfoPanel: C.Chat.makeChatScreen(React.lazy(async () => import('./conversation/info-panel'))),
   chatInstallBot: C.Chat.makeChatScreen(
