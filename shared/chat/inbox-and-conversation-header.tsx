@@ -276,10 +276,12 @@ const Header2 = () => {
         alignItems="flex-end"
         alignSelf="flex-end"
       >
-        <Kb.Box2 direction="vertical" style={styles.headerTitle}>
-          {topRow}
-          {bottomRow}
-        </Kb.Box2>
+        <Kb.BoxGrow2>
+          <Kb.Box2 direction="vertical" style={styles.headerTitle}>
+            {topRow}
+            {bottomRow}
+          </Kb.Box2>
+        </Kb.BoxGrow2>
         {rightIcons}
       </Kb.Box2>
     </Kb.Box2>
@@ -320,6 +322,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       left: Kb.Styles.platformStyles({
         common: {
+          flexShrink: 0,
           height: Kb.Styles.isTablet ? 36 : 32,
           width: Kb.Styles.globalStyles.mediumSubNavWidth,
         },
