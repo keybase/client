@@ -39,7 +39,7 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   profileAddToTeam: C.makeScreen(
-    React.lazy(async () => import('./add-to-team/container')),
+    React.lazy(async () => import('./add-to-team')),
     {
       getOptions: {
         modal2: true,
