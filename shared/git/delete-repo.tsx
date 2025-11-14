@@ -4,13 +4,12 @@ import * as React from 'react'
 
 type OwnProps = {id: string}
 
-const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : null)
 const emptyGit = C.Git.makeGitInfo()
 const Container = (ownProps: OwnProps) => {
   const {id} = ownProps
   const git = C.useGitState(s => s.idToInfo.get(id) || emptyGit)
   const error = C.useGitState(s => s.error)
-  const name = git.name || ''
+  const _name = git.name || ''
   const teamname = git.teamname || ''
   const waitingKey = C.Git.loadingWaitingKey
 
@@ -29,36 +28,19 @@ const Container = (ownProps: OwnProps) => {
   const onClose = () => {
     navigateUp()
   }
-  const props = {
-    error,
-    name,
-    onClose,
-    onDelete: (notifyTeam: boolean) => _onDelete(teamname, name, notifyTeam),
-    teamname,
-    waitingKey,
-  }
-  return <NullWrapper {...props} />
-}
+  const onDelete = (notifyTeam: boolean) => _onDelete(teamname, name, notifyTeam)
 
-type Props = {
-  error?: Error
-  teamname?: string
-  name: string
-  onDelete: (notifyTeam: boolean) => void
-  onClose: () => void
-  waitingKey: string
-}
-
-const DeleteRepo = (props: Props) => {
   const [name, setName] = React.useState('')
   const [notifyTeam, setNotifyTeam] = React.useState(true)
 
+  if (!_name) return null
+
   const matchesName = () => {
-    if (name === props.name) {
+    if (name === _name) {
       return true
     }
 
-    if (props.teamname && name === `${props.teamname}/${props.name}`) {
+    if (teamname && name === `${teamname}/${_name}`) {
       return true
     }
 
@@ -67,30 +49,30 @@ const DeleteRepo = (props: Props) => {
 
   const onSubmit = () => {
     if (matchesName()) {
-      props.onDelete(notifyTeam)
+      onDelete(notifyTeam)
     }
   }
   return (
-    <Kb.PopupWrapper onCancel={props.onClose} title="Delete repo?">
+    <Kb.PopupWrapper onCancel={onClose} title="Delete repo?">
       <Kb.ScrollView>
         <Kb.Box style={styles.container}>
-          {!!props.error && (
+          {!!error && (
             <Kb.Box style={styles.error}>
               <Kb.Text type="Body" negative={true}>
-                {props.error.message}
+                {error.message}
               </Kb.Text>
             </Kb.Box>
           )}
           <Kb.Text center={true} type="Header" style={{marginBottom: 27}}>
-            Are you sure you want to delete this {props.teamname ? 'team ' : ''}
+            Are you sure you want to delete this {teamname ? 'team ' : ''}
             repository?
           </Kb.Text>
-          <Kb.Icon type={props.teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
+          <Kb.Icon type={teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
           <Kb.Box style={styles.avatarBox}>
-            {!!props.teamname && (
+            {!!teamname && (
               <Kb.Avatar
                 isTeam={true}
-                teamname={props.teamname}
+                teamname={teamname}
                 size={16}
                 style={{marginRight: Kb.Styles.globalMargins.xtiny}}
               />
@@ -99,11 +81,11 @@ const DeleteRepo = (props: Props) => {
               type="BodySemibold"
               style={{color: Kb.Styles.globalColors.redDark, textDecorationLine: 'line-through'}}
             >
-              {props.teamname ? `${props.teamname}/${props.name}` : props.name}
+              {teamname ? `${teamname}/${_name}` : _name}
             </Kb.Text>
           </Kb.Box>
           <Kb.Text center={true} type="Body" style={{marginBottom: Kb.Styles.globalMargins.medium}}>
-            {props.teamname
+            {teamname
               ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
               : 'This will permanently delete your remote files and history. This action cannot be undone.'}
           </Kb.Text>
@@ -117,7 +99,7 @@ const DeleteRepo = (props: Props) => {
             onEnterKeyDown={onSubmit}
             placeholder="Name of the repository"
           />
-          {!!props.teamname && (
+          {!!teamname && (
             <Kb.Checkbox
               label="Notify the team"
               checked={notifyTeam}
@@ -128,10 +110,10 @@ const DeleteRepo = (props: Props) => {
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
               type="Dim"
-              onClick={props.onClose}
+              onClick={onClose}
               label="Cancel"
               style={{marginRight: Kb.Styles.globalMargins.tiny}}
-              waitingKey={props.waitingKey}
+              waitingKey={waitingKey}
               onlyDisable={true}
             />
             <Kb.WaitingButton
@@ -139,7 +121,7 @@ const DeleteRepo = (props: Props) => {
               onClick={onSubmit}
               label={Kb.Styles.isMobile ? 'Delete' : 'Delete this repository'}
               disabled={!matchesName()}
-              waitingKey={props.waitingKey}
+              waitingKey={waitingKey}
             />
           </Kb.ButtonBar>
         </Kb.Box>
