@@ -222,35 +222,39 @@ const useScrolling = (p: {
     }
   }, [cleanupDebounced])
 
-  const initScrollRef = React.useRef(false)
   const [didFirstLoad, setDidFirstLoad] = React.useState(false)
 
-  // handle initial load scrolling only. Either scroll to bottom or scroll to centered
-  React.useLayoutEffect(() => {
-    if (!loaded) return
-    if (!initScrollRef.current) {
-      initScrollRef.current = true
-      if (!markedInitiallyLoaded) {
-        markedInitiallyLoaded = true
-        markInitiallyLoadedThreadAsRead()
-      }
+  // Ensure didFirstLoad is true whenever we're loaded (even if we skipped reload)
+  React.useEffect(() => {
+    if (loaded && !didFirstLoad) {
+      requestAnimationFrame(() => {
+        setDidFirstLoad(true)
+      })
+    }
+  }, [loaded, didFirstLoad])
 
-      if (centeredOrdinal) {
-        lockedToBottomRef.current = false
-        scrollToCentered()
-      } else {
-        scrollToBottom()
-      }
+  // Handle scrolling when loaded becomes true. Scroll to centered ordinal if present, else bottom
+  const prevLoadedRef = React.useRef(loaded)
+  React.useLayoutEffect(() => {
+    const justLoaded = loaded && !prevLoadedRef.current
+    prevLoadedRef.current = loaded
+    
+    if (!justLoaded) return
+
+    if (!markedInitiallyLoaded) {
+      markedInitiallyLoaded = true
+      markInitiallyLoadedThreadAsRead()
     }
 
-    requestAnimationFrame(() => {
-      setDidFirstLoad(true)
-    })
+    if (centeredOrdinal) {
+      lockedToBottomRef.current = false
+      scrollToCentered()
+    } else {
+      scrollToBottom()
+    }
   }, [
-    listRef,
     loaded,
     centeredOrdinal,
-    isLockedToBottom,
     markInitiallyLoadedThreadAsRead,
     scrollToBottom,
     scrollToCentered,
@@ -292,26 +296,27 @@ const useScrolling = (p: {
     // we want this to fire when the ordinals change
   }, [centeredOrdinal, ordinalsLength, isLockedToBottom, isMounted, listRef, firstOrdinal])
 
-  // Check to see if our centered ordinal has changed, and if so, scroll to it
-  const [lastCenteredOrdinal, setLastCenteredOrdinal] = React.useState(centeredOrdinal)
+  // Also handle centered ordinal changing while already loaded (e.g. from thread search results)
+  const prevCenteredOrdinal = React.useRef(centeredOrdinal)
+  const wasLoadedRef = React.useRef(loaded)
   React.useEffect(() => {
-    if (lastCenteredOrdinal === centeredOrdinal) return
+    const wasLoaded = wasLoadedRef.current
+    const changed = prevCenteredOrdinal.current !== centeredOrdinal
+    prevCenteredOrdinal.current = centeredOrdinal
+    wasLoadedRef.current = loaded
+    
+    // Only scroll if we were already loaded and ordinal changed
+    // (the load effect handles scrolling when loaded transitions to true)
+    if (!wasLoaded || !loaded || !changed) return
+    
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
       scrollToCentered()
-    } else if (lastCenteredOrdinal && !centeredOrdinal && containsLatestMessage) {
+    } else if (containsLatestMessage) {
       lockedToBottomRef.current = true
       scrollToBottom()
     }
-    setLastCenteredOrdinal(centeredOrdinal)
-  }, [
-    centeredOrdinal,
-    scrollToCentered,
-    setLastCenteredOrdinal,
-    lastCenteredOrdinal,
-    containsLatestMessage,
-    scrollToBottom,
-  ])
+  }, [centeredOrdinal, loaded, containsLatestMessage, scrollToCentered, scrollToBottom])
 
   const {setScrollRef} = React.useContext(ScrollContext)
   React.useEffect(() => {
