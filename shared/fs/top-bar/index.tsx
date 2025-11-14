@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import * as RowTypes from '../browser/rows/types'
 import Loading from './loading'
 import Sort from './sort'
-import SyncToggle from './sync-toggle-container'
+import SyncToggle from './sync-toggle'
 
 type Props = {
   path: T.FS.Path

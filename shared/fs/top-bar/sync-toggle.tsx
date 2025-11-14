@@ -1,16 +1,85 @@
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
 
-export type Props = {
-  disableSync: () => void
-  enableSync: () => void
-  hideSyncToggle: boolean
-  syncConfig?: T.FS.TlfSyncConfig
-  waiting: boolean
+type OwnProps = {
+  tlfPath: T.FS.Path
 }
 
-const Confirm = (props: Pick<Props, 'waiting' | 'disableSync'> & {showPopup: () => void}) => {
+const Container = (ownProps: OwnProps) => {
+  const {tlfPath} = ownProps
+  const _tlfPathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, ownProps.tlfPath))
+  const _tlfs = C.useFSState(s => s.tlfs)
+  const waiting = C.Waiting.useAnyWaiting(C.FS.syncToggleWaitingKey)
+
+  const setTlfSyncConfig = C.useFSState(s => s.dispatch.setTlfSyncConfig)
+
+  const enableSync = () => {
+    setTlfSyncConfig(tlfPath, true)
+  }
+  const syncConfig = C.FS.getTlfFromPath(_tlfs, tlfPath).syncConfig
+  // Disable sync when the TLF is empty and it's not enabled yet.
+  // Band-aid fix for when new user has a non-exisitent TLF which we
+  // can't enable sync for yet.
+  const hideSyncToggle =
+    syncConfig.mode === T.FS.TlfSyncMode.Disabled &&
+    _tlfPathItem.type === T.FS.PathType.Folder &&
+    !_tlfPathItem.children.size
+
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, hidePopup, showPopup} = p
+      const disableSync = () => {
+        setTlfSyncConfig(tlfPath, false)
+      }
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          visible={true}
+          onHidden={hidePopup}
+          position="bottom left"
+          closeOnSelect={false}
+          containerStyle={styles.floating}
+          header={<Confirm waiting={waiting} disableSync={disableSync} showPopup={showPopup} />}
+          items={
+            Kb.Styles.isMobile
+              ? [
+                  {
+                    danger: true,
+                    disabled: waiting,
+                    icon: 'iconfont-cloud',
+                    inProgress: waiting,
+                    onClick: disableSync,
+                    style: waiting ? {opacity: 0.3} : undefined,
+                    title: waiting ? 'Unsyncing' : 'Yes, unsync',
+                  } as const,
+                ]
+              : []
+          }
+        />
+      )
+    },
+    [waiting, setTlfSyncConfig, tlfPath]
+  )
+  const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  return !hideSyncToggle ? (
+    <>
+      <Kb.Switch
+        align="right"
+        onClick={syncConfig.mode === T.FS.TlfSyncMode.Enabled ? showPopup : enableSync}
+        on={syncConfig.mode === T.FS.TlfSyncMode.Enabled}
+        color="green"
+        label="Sync on this device"
+        ref={popupAnchor}
+        disabled={waiting}
+      />
+      {showingPopup && popup}
+    </>
+  ) : null
+}
+
+const Confirm = (props: {showPopup: () => void; disableSync: () => void; waiting: boolean}) => {
   const {showPopup, waiting, disableSync} = props
   const wasWaiting = React.useRef(waiting)
   React.useEffect(() => {
@@ -58,57 +127,6 @@ const Confirm = (props: Pick<Props, 'waiting' | 'disableSync'> & {showPopup: () 
   )
 }
 
-const SyncToggle = (props: Props) => {
-  const {waiting, disableSync} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup, showPopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          position="bottom left"
-          closeOnSelect={false}
-          containerStyle={styles.floating}
-          header={<Confirm waiting={waiting} disableSync={disableSync} showPopup={showPopup} />}
-          items={
-            Kb.Styles.isMobile
-              ? [
-                  {
-                    danger: true,
-                    disabled: waiting,
-                    icon: 'iconfont-cloud',
-                    inProgress: waiting,
-                    onClick: disableSync,
-                    style: waiting ? {opacity: 0.3} : undefined,
-                    title: waiting ? 'Unsyncing' : 'Yes, unsync',
-                  } as const,
-                ]
-              : []
-          }
-        />
-      )
-    },
-    [disableSync, waiting]
-  )
-  const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
-  return props.syncConfig && !props.hideSyncToggle ? (
-    <>
-      <Kb.Switch
-        align="right"
-        onClick={props.syncConfig.mode === T.FS.TlfSyncMode.Enabled ? showPopup : props.enableSync}
-        on={props.syncConfig.mode === T.FS.TlfSyncMode.Enabled}
-        color="green"
-        label="Sync on this device"
-        ref={popupAnchor}
-        disabled={props.waiting}
-      />
-      {showingPopup && popup}
-    </>
-  ) : null
-}
-
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
@@ -145,4 +163,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default SyncToggle
+export default Container
