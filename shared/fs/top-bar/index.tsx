@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as RowTypes from '../browser/rows/types'
 import Loading from './loading'
-import Sort from './sort-container'
+import Sort from './sort'
 import SyncToggle from './sync-toggle-container'
 
 type Props = {
