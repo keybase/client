@@ -1,10 +1,11 @@
-import Icon from './icon'
+import Icon from '../icon'
 import * as React from 'react'
 import * as Styles from '@/styles'
-import ClickableBox from './clickable-box'
-import Image2 from './image2'
-import Box from './box'
-import type {Props, AvatarSize} from './avatar.render'
+import ClickableBox from '../clickable-box'
+import Image2 from '../image2'
+import Box from '../box'
+import type {Props, AvatarSize} from '.'
+import useHook from './hooks'
 
 const Kb = {
   Box,
@@ -27,7 +28,8 @@ const borderOffset = -1
 const borderSize = 1
 // Layer on top to extend outside of the image
 
-const Avatar = React.memo(function Avatar(props: Props) {
+const Avatar = React.memo(function Avatar(p: Props) {
+  const props = useHook(p)
   const {size} = props
   const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
   const containerStyle = Styles.collapseStyles([boxStyles[size], props.style])

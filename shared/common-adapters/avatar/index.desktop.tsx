@@ -1,7 +1,11 @@
-import Icon, {type IconType} from './icon'
+import Icon, {type IconType} from '../icon'
 import * as Styles from '@/styles'
-import type {Props, AvatarSize} from './avatar.render'
-import {AVATAR_SIZE} from '@/common-adapters/avatar-size'
+import type {Props, AvatarSize} from '.'
+import useHook from './hooks'
+
+const AVATAR_CONTAINER_SIZE = 175
+const AVATAR_BORDER_SIZE = 4
+const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
 
 const avatarSizeToPoopIconType = (s: AvatarSize): IconType | undefined =>
   s === 128
@@ -14,7 +18,8 @@ const avatarSizeToPoopIconType = (s: AvatarSize): IconType | undefined =>
           ? 'icon-poop-32'
           : undefined
 
-const Avatar = (props: Props) => {
+const Avatar = (p: Props) => {
+  const props = useHook(p)
   const avatarSizeClasName = `avatar-${props.isTeam ? 'team' : 'user'}-size-${props.size}`
 
   const scaledAvatarRatio = props.size / AVATAR_SIZE
