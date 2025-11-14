@@ -225,7 +225,7 @@ export interface ConvoState extends ConvoStore {
     loadNewerMessagesDueToScroll: (numOrdinals: number) => void
     loadMoreMessages: DebouncedFunc<(p: LoadMoreMessagesParams) => void>
     loadNextAttachment: (from: T.Chat.Ordinal, backInTime: boolean) => Promise<T.Chat.Ordinal>
-    markThreadAsRead: (unreadLineMessageID?: number, force?: boolean) => void
+    markThreadAsRead: (force?: boolean) => void
     markTeamAsRead: (teamID: T.Teams.TeamID) => void
     messageAttachmentNativeSave: (ordinal: T.Chat.Ordinal) => void
     messageAttachmentNativeShare: (ordinal: T.Chat.Ordinal) => void
@@ -1596,9 +1596,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
 
           // Force mark as read for user-initiated navigations (not auto-selection by service)
-          const isUserNavigation = reason !== 'findNewestConversation' && reason !== 'findNewestConversationFromLayout' && reason !== 'tab selected'
+          const isUserNavigation =
+            reason !== 'findNewestConversation' &&
+            reason !== 'findNewestConversationFromLayout' &&
+            reason !== 'tab selected'
           if (isUserNavigation) {
-            get().dispatch.markThreadAsRead(undefined, true)
+            get().dispatch.markThreadAsRead(true)
           }
         }
 
@@ -1749,7 +1752,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       C.ignorePromise(f())
     },
-    markThreadAsRead: (unreadLineMessageID, force) => {
+    markThreadAsRead: force => {
       const f = async () => {
         if (!C.useConfigState.getState().loggedIn) {
           logger.info('mark read bail on not logged in')
