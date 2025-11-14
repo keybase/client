@@ -1594,6 +1594,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               })
             }
           }
+
+          // Force mark as read for user-initiated navigations (not auto-selection by service)
+          const isUserNavigation = reason !== 'findNewestConversation' && reason !== 'findNewestConversationFromLayout' && reason !== 'tab selected'
+          if (isUserNavigation) {
+            get().dispatch.markThreadAsRead(undefined, true)
+          }
         }
 
         const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
