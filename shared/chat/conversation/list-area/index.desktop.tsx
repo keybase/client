@@ -224,6 +224,15 @@ const useScrolling = (p: {
 
   const [didFirstLoad, setDidFirstLoad] = React.useState(false)
 
+  // Ensure didFirstLoad is true whenever we're loaded (even if we skipped reload)
+  React.useEffect(() => {
+    if (loaded && !didFirstLoad) {
+      requestAnimationFrame(() => {
+        setDidFirstLoad(true)
+      })
+    }
+  }, [loaded, didFirstLoad])
+
   // Handle scrolling when loaded becomes true. Scroll to centered ordinal if present, else bottom
   const prevLoadedRef = React.useRef(loaded)
   React.useLayoutEffect(() => {
@@ -243,10 +252,6 @@ const useScrolling = (p: {
     } else {
       scrollToBottom()
     }
-
-    requestAnimationFrame(() => {
-      setDidFirstLoad(true)
-    })
   }, [
     loaded,
     centeredOrdinal,
