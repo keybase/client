@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Constants from '@/constants/crypto'
 import * as Common from '@/router-v2/common.desktop'
@@ -9,18 +10,35 @@ import {
   type NavigationContainerRef,
 } from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
-import decryptIO from './decrypt.inout.page'
-import encryptIO from './encrypt.inout.page'
-import signIO from './sign.inout.page'
-import verifyIO from './verify.inout.page'
 import {makeNavScreens} from '@/router-v2/shim'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
-  [Constants.decryptTab]: decryptIO,
-  [Constants.encryptTab]: encryptIO,
-  [Constants.signTab]: signIO,
-  [Constants.verifyTab]: verifyIO,
+  [Constants.decryptTab]: {
+    screen: React.lazy(async () => {
+      const {DecryptIO} = await import('../operations/decrypt')
+      return {default: DecryptIO}
+    }),
+  },
+  [Constants.encryptTab]: {
+    screen: React.lazy(async () => {
+      const {EncryptIO} = await import('../operations/encrypt')
+      return {default: EncryptIO}
+    }),
+  },
+  [Constants.signTab]: {
+    screen: React.lazy(async () => {
+      const {SignIO} = await import('../operations/sign')
+      return {default: SignIO}
+    }),
+  },
+
+  [Constants.verifyTab]: {
+    screen: React.lazy(async () => {
+      const {VerifyIO} = await import('../operations/verify')
+      return {default: VerifyIO}
+    }),
+  },
 }
 function LeftTabNavigator({
   initialRouteName,
