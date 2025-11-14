@@ -2086,6 +2086,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
 
       const loadMessages = () => {
+        // Skip reload if already loaded and not jumping to a specific message
+        const alreadyLoaded = get().loaded
+        if (alreadyLoaded && !highlightMessageID) {
+          return
+        }
+
         let reason: LoadMoreReason = _reason
         let forceContainsLatestCalc = false
         let messageIDControl: T.RPCChat.MessageIDControl | undefined
