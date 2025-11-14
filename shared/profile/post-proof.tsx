@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
 import openUrl from '@/util/open-url'
-import Modal from '../modal'
+import Modal from './modal'
 
 const Container = () => {
   const platform = C.useProfileState(s => s.platform)

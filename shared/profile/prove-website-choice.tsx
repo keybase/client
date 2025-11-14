@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import Modal from '../modal'
+import Modal from './modal'
 
 const ProveWebsiteChoice = () => {
   const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)

@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {SiteIcon} from '../shared'
+import {SiteIcon} from './shared'
 import {makeInsertMatcher} from '@/util/string'
 
 const Container = () => {
