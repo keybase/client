@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import TlfType from './rows/tlf-type-container'
-import Tlf from './rows/tlf-container'
+import Tlf from './rows/tlf'
 import SfmiBanner from '../banner/system-file-manager-integration-banner/container'
 import {WrapRow} from './rows/rows'
 
