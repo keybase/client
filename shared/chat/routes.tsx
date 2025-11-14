@@ -56,7 +56,7 @@ export const newModalRoutes = {
     {canBeNullConvoID: true}
   ),
   chatCreateChannel: C.Chat.makeChatScreen(
-    React.lazy(async () => import('./create-channel/container')),
+    React.lazy(async () => import('./create-channel')),
     {skipProvider: true}
   ),
   chatDeleteHistoryWarning: C.Chat.makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
