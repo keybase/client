@@ -186,9 +186,6 @@ module.exports = {
   get Markdown() {
     return require('./markdown').default
   },
-  get MaybePopup() {
-    return require('./maybe-popup').MaybePopup
-  },
   get Meta() {
     return require('./meta').default
   },

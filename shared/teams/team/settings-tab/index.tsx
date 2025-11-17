@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '@/teams/role-picker'
 import {pluralize} from '@/util/string'
 import RetentionPicker from './retention'
@@ -145,7 +144,7 @@ const OpenTeam = (props: {
                 presetRole={props.newOpenTeamRole}
                 plural={true}
               >
-                <InlineDropdown
+                <Kb.InlineDropdown
                   label={pluralize(props.newOpenTeamRole)}
                   onPress={props.newOpenTeam ? props.onOpenRolePicker : () => {}}
                   textWrapperType="BodySmall"

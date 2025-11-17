@@ -1,10 +1,9 @@
 import type * as T from '@/constants/types'
-import {Box2, Icon, Text, FloatingMenu, type MenuItems} from '@/common-adapters'
-import {platformStyles, globalColors} from '@/styles'
+import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 import useHooks from './hooks'
 
-const quantityTextStyle = platformStyles({
+const quantityTextStyle = Kb.Styles.platformStyles({
   common: {
     textAlign: 'right',
     // NOTE if times are added that have three digits, this will need to be increased.
@@ -27,26 +26,26 @@ const Item = (props: ItemProps) => {
   } else {
     content = (
       <>
-        <Text type="Body" style={quantityTextStyle}>
+        <Kb.Text type="Body" style={quantityTextStyle}>
           {words[0]}
-        </Text>
+        </Kb.Text>
         {' ' + words.slice(1).join(' ')}
       </>
     )
   }
   return (
-    <Box2 direction="horizontal" fullWidth={true}>
-      <Text type="Body" style={{flex: 1}}>
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Text type="Body" style={{flex: 1}}>
         {content}
-      </Text>
-      {props.selected && <Icon type="iconfont-check" color={globalColors.blue} />}
-    </Box2>
+      </Kb.Text>
+      {props.selected && <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.blue} />}
+    </Kb.Box2>
   )
 }
 
 const SetExplodePopup = (p: Props) => {
   const props = useHooks(p)
-  const listItems: MenuItems = props.items.map(it => ({
+  const listItems: Kb.MenuItems = props.items.map(it => ({
     disabled: false,
     onClick: () => props.onSelect(it.seconds),
     title: it.text,
@@ -56,10 +55,10 @@ const SetExplodePopup = (p: Props) => {
     disabled: true,
     onClick: undefined,
     title: 'Explode message after:',
-    view: <Text type="BodySmallSemibold">Explode messages after:</Text>,
+    view: <Kb.Text type="BodySmallSemibold">Explode messages after:</Kb.Text>,
   })
   return (
-    <FloatingMenu
+    <Kb.FloatingMenu
       attachTo={props.attachTo}
       position="top left"
       visible={props.visible}

@@ -3,20 +3,19 @@ import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
 import openURL from '@/util/open-url'
-import {Box2, Button, Icon, Text, Markdown} from '@/common-adapters'
 import * as T from '@/constants/types'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '@/styles'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <LoginContainer onBack={p.onBack}>
-    <Icon type="icon-illustration-zen-240-180" style={styles.icon} />
-    <Text type="Header" style={styles.header}>
+    <Kb.Icon type="icon-illustration-zen-240-180" style={styles.icon} />
+    <Kb.Text type="Header" style={styles.header}>
       Oops, something went wrong.
-    </Text>
-    <Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
+    </Kb.Text>
+    <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
       {p.children}
-    </Box2>
-    {Kb.Styles.isMobile && <Button label="Close" onClick={p.onBack} />}
+    </Kb.Box2>
+    {Kb.Styles.isMobile && <Kb.Button label="Close" onClick={p.onBack} />}
   </LoginContainer>
 )
 
@@ -52,9 +51,9 @@ const RenderError = () => {
   if (!error) {
     return (
       <Wrapper onBack={onBack}>
-        <Text center={true} type="Body">
+        <Kb.Text center={true} type="Body">
           Unknown error: Please report this to us.
-        </Text>
+        </Kb.Text>
       </Wrapper>
     )
   }
@@ -70,141 +69,133 @@ const RenderError = () => {
     case T.RPCGen.StatusCode.scapinetworkerror:
       return (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             The device authorization failed because this device went offline.
-          </Text>
-          <Text center={true} type="Body">
+          </Kb.Text>
+          <Kb.Text center={true} type="Body">
             Please check your network connection and try again.
-          </Text>
+          </Kb.Text>
         </Wrapper>
       )
     case T.RPCGen.StatusCode.scdevicenoprovision:
       return (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             {"You can't authorize by password, since you have established device or paper keys."}
-          </Text>
-          <Text center={true} type="Body">
+          </Kb.Text>
+          <Kb.Text center={true} type="Body">
             You can go back and pick a device or paper key, or{' '}
-            <Text type="BodyPrimaryLink" onClick={onAccountReset}>
+            <Kb.Text type="BodyPrimaryLink" onClick={onAccountReset}>
               reset your account entirely
-            </Text>
+            </Kb.Text>
             .
-          </Text>
+          </Kb.Text>
         </Wrapper>
       )
     case T.RPCGen.StatusCode.scdeviceprevprovisioned:
       return (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             You have already authorized this device.{' '}
-          </Text>
-          <Text center={true} type="Body">
+          </Kb.Text>
+          <Kb.Text center={true} type="Body">
             {"Please use 'keybase login [username]' to log in. "}
-          </Text>
+          </Kb.Text>
         </Wrapper>
       )
     case T.RPCGen.StatusCode.sckeynomatchinggpg:
       if (fields['has_active_device']) {
         return (
           <Wrapper onBack={onBack}>
-            <Text center={true} type="Body">
+            <Kb.Text center={true} type="Body">
               {"You can't authorize using solely a password, since you have active device keys."}
-            </Text>
-            <Text center={true} type="BodySemibold">
+            </Kb.Text>
+            <Kb.Text center={true} type="BodySemibold">
               You have options:
-            </Text>
+            </Kb.Text>
 
-            <Box2 direction="vertical" style={styles.list}>
-              <Text center={true} type="Body">
-                {' '}
-                - Go back and select a device or paper key
-              </Text>
-              <Text center={true} type="Body">
-                {' '}
-                - Install Keybase on a machine that has your PGP private key in it
-              </Text>
-              <Text center={true} type="Body">
-                {' '}
-                - Login to the website and host an encrypted copy of your PGP private key
-              </Text>
-              <Text center={true} type="Body">
-                {' '}
-                - or,{' '}
-                <Text type="BodyPrimaryLink" onClick={onAccountReset}>
+            <Kb.Box2 direction="vertical" style={styles.list}>
+              <Kb.Text center={true} type="Body">
+                {' - Go back and select a device or paper key'}
+              </Kb.Text>
+              <Kb.Text center={true} type="Body">
+                {' - Install Keybase on a machine that has your PGP private key in it'}
+              </Kb.Text>
+              <Kb.Text center={true} type="Body">
+                {' - Login to the website and host an encrypted copy of your PGP private key'}
+              </Kb.Text>
+              <Kb.Text center={true} type="Body">
+                {' - or, '}
+                <Kb.Text type="BodyPrimaryLink" onClick={onAccountReset}>
                   reset your account entirely
-                </Text>
-                .
-              </Text>
-            </Box2>
+                </Kb.Text>
+                {'.'}
+              </Kb.Text>
+            </Kb.Box2>
           </Wrapper>
         )
       } else {
         return (
           <Wrapper onBack={onBack}>
-            <Text center={true} type="Body">
+            <Kb.Text center={true} type="Body">
               {"You can't authorize using a password, since you've established a PGP key."}
-            </Text>
-            <Text center={true} type="BodySemibold" style={{textAlign: 'left'}}>
+            </Kb.Text>
+            <Kb.Text center={true} type="BodySemibold" style={{textAlign: 'left'}}>
               You have options:
-            </Text>
-            <Box2 direction="vertical" style={styles.list}>
-              <Text center={true} type="Body">
-                {' '}
-                - Use <Text type="TerminalInline">keybase login</Text> on the command line to log in
-              </Text>
+            </Kb.Text>
+            <Kb.Box2 direction="vertical" style={styles.list}>
+              <Kb.Text center={true} type="Body">
+                {' - Use '}
+                <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the command line to log in
+              </Kb.Text>
               {!isMobile && (
-                <Text center={true} type="Body">
-                  {' '}
-                  - Install GPG on this machine and import your PGP private key into it
-                </Text>
+                <Kb.Text center={true} type="Body">
+                  {' - Install GPG on this machine and import your PGP private key into it'}
+                </Kb.Text>
               )}
-              <Text center={true} type="Body">
-                {' '}
-                - Install Keybase on a different machine that has your PGP key
-              </Text>
-              <Text center={true} type="Body">
-                {' '}
-                - Login to the website and host an encrypted copy of your PGP private key
-              </Text>
-              <Text center={true} type="Body">
-                {' '}
-                - Or,{' '}
-                <Text type="BodyPrimaryLink" onClick={onAccountReset}>
+              <Kb.Text center={true} type="Body">
+                {' - Install Keybase on a different machine that has your PGP key'}
+              </Kb.Text>
+              <Kb.Text center={true} type="Body">
+                {' - Login to the website and host an encrypted copy of your PGP private key'}
+              </Kb.Text>
+              <Kb.Text center={true} type="Body">
+                {' - Or, '}
+                <Kb.Text type="BodyPrimaryLink" onClick={onAccountReset}>
                   reset your account entirely
-                </Text>
+                </Kb.Text>
                 .
-              </Text>
-            </Box2>
+              </Kb.Text>
+            </Kb.Box2>
           </Wrapper>
         )
       }
     case T.RPCGen.StatusCode.sckeynotfound:
       return error.desc ? (
         <Wrapper onBack={onBack}>
-          <Markdown>{error.desc}</Markdown>
+          <Kb.Markdown>{error.desc}</Kb.Markdown>
         </Wrapper>
       ) : (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             {
               "Your PGP keychain has multiple keys installed, and we're not sure which one to use to authorize your account."
             }
-          </Text>
-          <Text center={true} type="Body">
-            Please run <Text type="TerminalInline">keybase login</Text> on the command line to continue.
-          </Text>
+          </Kb.Text>
+          <Kb.Text center={true} type="Body">
+            Please run <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the command line to continue.
+          </Kb.Text>
         </Wrapper>
       )
     case T.RPCGen.StatusCode.scbadloginpassword:
       return (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             {"Looks like that's a bad password."}
-          </Text>
-          <Text center={true} type="BodyPrimaryLink" onClick={onPasswordReset}>
+          </Kb.Text>
+          <Kb.Text center={true} type="BodyPrimaryLink" onClick={onPasswordReset}>
             Reset your password?
-          </Text>
+          </Kb.Text>
         </Wrapper>
       )
     case T.RPCGen.StatusCode.sckeysyncedpgpnotfound:
@@ -212,86 +203,82 @@ const RenderError = () => {
     case T.RPCGen.StatusCode.sckeynosecret:
       return (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             {
               "Sorry, your account is already established with a PGP public key, but we can't access the corresponding private key."
             }
-          </Text>
-          <Text center={true} type="BodySemibold">
+          </Kb.Text>
+          <Kb.Text center={true} type="BodySemibold">
             You have options:
-          </Text>
-          <Box2 direction="vertical" style={styles.list}>
-            <Text center={true} type="Body">
-              {' '}
-              - Run <Text type="TerminalInline">keybase login</Text> on the device with the corresponding PGP
+          </Kb.Text>
+          <Kb.Box2 direction="vertical" style={styles.list}>
+            <Kb.Text center={true} type="Body">
+              {' - Run '}
+              <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the device with the corresponding PGP
               private key
-            </Text>
+            </Kb.Text>
             {!isMobile && (
-              <Text center={true} type="Body">
-                {' '}
-                - Install GPG, put your PGP private key on this machine and try again
-              </Text>
+              <Kb.Text center={true} type="Body">
+                {' - Install GPG, put your PGP private key on this machine and try again'}
+              </Kb.Text>
             )}
-            <Text center={true} type="Body">
-              {' '}
-              - Go back and authorize with another device or paper key
-            </Text>
-            <Text center={true} type="Body">
-              {' '}
-              - Or, if none of the above are possible,{' '}
-              <Text type="BodyPrimaryLink" onClick={onAccountReset}>
+            <Kb.Text center={true} type="Body">
+              {' - Go back and authorize with another device or paper key'}
+            </Kb.Text>
+            <Kb.Text center={true} type="Body">
+              {' - Or, if none of the above are possible, '}
+              <Kb.Text type="BodyPrimaryLink" onClick={onAccountReset}>
                 reset your account and start fresh
-              </Text>
-            </Text>
-          </Box2>
+              </Kb.Text>
+            </Kb.Text>
+          </Kb.Box2>
         </Wrapper>
       )
     case T.RPCGen.StatusCode.scinputcanceled:
       return (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             Login cancelled.
-          </Text>
+          </Kb.Text>
         </Wrapper>
       )
     case T.RPCGen.StatusCode.sckeycorrupted:
       return (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             {error.message}
-          </Text>
-          <Text center={true} type="Body">
+          </Kb.Text>
+          <Kb.Text center={true} type="Body">
             We were able to generate a PGP signature but it was rejected by the server.
-          </Text>
-          <Text type="Body">This often means that this PGP key is expired or unusable.</Text>
-          <Text center={true} type="Body">
+          </Kb.Text>
+          <Kb.Text type="Body">This often means that this PGP key is expired or unusable.</Kb.Text>
+          <Kb.Text center={true} type="Body">
             You can update your key on{' '}
-            <Text type="BodyPrimaryLink" onClick={onKBHome}>
+            <Kb.Text type="BodyPrimaryLink" onClick={onKBHome}>
               keybase.io
-            </Text>
+            </Kb.Text>
             .
-          </Text>
+          </Kb.Text>
         </Wrapper>
       )
     case T.RPCGen.StatusCode.scdeleted:
       return (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             This user has been deleted.
-          </Text>
+          </Kb.Text>
         </Wrapper>
       )
     default:
       return (
         <Wrapper onBack={onBack}>
           <Kb.Box2 direction="vertical">
-            <Text center={true} type="Body" selectable={true}>
+            <Kb.Text center={true} type="Body" selectable={true}>
               {rewriteErrorDesc(error.desc)}
-            </Text>
-            <Text center={true} type="BodySmall" selectable={true}>
-              {' '}
-              {error.details}
-            </Text>
+            </Kb.Text>
+            <Kb.Text center={true} type="BodySmall" selectable={true}>
+              {' ' + error.details}
+            </Kb.Text>
           </Kb.Box2>
         </Wrapper>
       )
@@ -301,9 +288,7 @@ const RenderError = () => {
 const styles = styleSheetCreate(
   () =>
     ({
-      container: {
-        maxWidth: 550,
-      },
+      container: {maxWidth: 550},
       header: {
         alignSelf: 'center',
         marginBottom: 20,

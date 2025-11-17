@@ -59,7 +59,6 @@ export {
   smallHeight as smallListItem2Height,
 } from './list-item2'
 export {default as Markdown} from './markdown'
-export {MaybePopup} from './maybe-popup'
 
 export {default as Meta} from './meta'
 export {default as MobilePopup} from './mobile-popup'
