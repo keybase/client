@@ -258,9 +258,6 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
 
   const isAdhoc = (isSmallTeam && !conversationIDKey) || !!(teamType === 'adhoc')
   const onArchive = () => {
-    if (!C.featureFlags.archive) {
-      return
-    }
     if (isAdhoc && conversationIDKey) {
       _navigateAppend({
         props: {conversationIDKey, type: 'chatID'} as const,
@@ -292,8 +289,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       onClick: onBlockConv,
       title: 'Block',
     } as const)
-    C.featureFlags.archive &&
-      conversationIDKey &&
+    conversationIDKey &&
       items.push({
         icon: 'iconfont-folder-downloads',
         iconIsVisible: false,
@@ -356,13 +352,12 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       onClick: onLeaveTeam,
       title: 'Leave team',
     } as const)
-    C.featureFlags.archive &&
-      items.push({
-        icon: 'iconfont-folder-downloads',
-        iconIsVisible: false,
-        onClick: onArchive,
-        title: 'Backup conversation',
-      } as const)
+    items.push({
+      icon: 'iconfont-folder-downloads',
+      iconIsVisible: false,
+      onClick: onArchive,
+      title: 'Backup conversation',
+    } as const)
   }
 
   const header = hasHeader ? (

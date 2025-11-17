@@ -27,7 +27,7 @@ export const sharedNewRoutes = {
   },
   [Constants.settingsArchiveTab]: {
     getOptions: C.isMobile ? {title: 'Backup'} : undefined,
-    screen: C.featureFlags.archive ? React.lazy(async () => import('./archive')) : () => <></>,
+    screen: React.lazy(async () => import('./archive')),
   },
   [Constants.settingsChatTab]: {
     getOptions: {title: 'Chat'},

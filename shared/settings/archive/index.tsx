@@ -298,107 +298,105 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
   )
 })
 
-const Archive = C.featureFlags.archive
-  ? () => {
-      const load = C.useArchiveState(s => s.dispatch.load)
-      const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+const Archive = () => {
+  const load = C.useArchiveState(s => s.dispatch.load)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-      C.Router2.useSafeFocusEffect(
-        React.useCallback(() => {
-          load()
-        }, [load])
-      )
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      load()
+    }, [load])
+  )
 
-      const archiveChat = React.useCallback(() => {
-        navigateAppend({props: {type: 'chatAll'}, selected: 'archiveModal'})
-      }, [navigateAppend])
-      const archiveFS = React.useCallback(() => {
-        navigateAppend({props: {type: 'fsAll'}, selected: 'archiveModal'})
-      }, [navigateAppend])
-      const archiveGit = React.useCallback(() => {
-        navigateAppend({props: {type: 'gitAll'}, selected: 'archiveModal'})
-      }, [navigateAppend])
-      const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompleted)
+  const archiveChat = React.useCallback(() => {
+    navigateAppend({props: {type: 'chatAll'}, selected: 'archiveModal'})
+  }, [navigateAppend])
+  const archiveFS = React.useCallback(() => {
+    navigateAppend({props: {type: 'fsAll'}, selected: 'archiveModal'})
+  }, [navigateAppend])
+  const archiveGit = React.useCallback(() => {
+    navigateAppend({props: {type: 'gitAll'}, selected: 'archiveModal'})
+  }, [navigateAppend])
+  const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompleted)
 
-      const chatJobMap = C.useArchiveState(s => s.chatJobs)
-      const kbfsJobMap = C.useArchiveState(s => s.kbfsJobs)
-      const chatJobs = [...chatJobMap.keys()]
-      const kbfsJobs = [...kbfsJobMap.keys()]
+  const chatJobMap = C.useArchiveState(s => s.chatJobs)
+  const kbfsJobMap = C.useArchiveState(s => s.kbfsJobs)
+  const chatJobs = [...chatJobMap.keys()]
+  const kbfsJobs = [...kbfsJobMap.keys()]
 
-      const showClear = C.useArchiveState(s => {
-        for (const job of s.chatJobs.values()) {
-          if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
-            return true
-          }
-        }
-        for (const job of s.kbfsJobs.values()) {
-          if (job.phase === 'Done') {
-            return true
-          }
-        }
-        return false
-      })
-
-      return (
-        <Kb.ScrollView style={styles.scroll}>
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-              {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
-              <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true} alignItems="center">
-                <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
-                  {
-                    "Easily backup your Keybase data by choosing 'backup' in chat and files or click to backup all."
-                  }
-                </Kb.Text>
-              </Kb.Box2>
-              {C.isMobile ? (
-                <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="xtiny">
-                  <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
-                    <Kb.Button small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
-                    <Kb.Button small={C.isMobile} label="Backup all files" onClick={archiveFS} />
-                  </Kb.Box2>
-                  <Kb.Box2 direction="horizontal" alignSelf="center">
-                    <Kb.Button small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
-                  </Kb.Box2>
-                </Kb.Box2>
-              ) : (
-                <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
-                  <Kb.Button small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
-                  <Kb.Button small={C.isMobile} label="Backup all files" onClick={archiveFS} />
-                  <Kb.Button small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
-                </Kb.Box2>
-              )}
-            </Kb.Box2>
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-              <Kb.Text type="Header">Active backup jobs</Kb.Text>
-              {chatJobs.length + kbfsJobs.length ? (
-                <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
-                  {chatJobs.map((id, idx) => (
-                    <ChatJob id={id} key={id} index={idx} />
-                  ))}
-                  {kbfsJobs.map((id, idx) => (
-                    <KBFSJob id={id} key={id} index={idx + chatJobs.length} />
-                  ))}
-                  {showClear ? (
-                    <Kb.Button
-                      mode="Secondary"
-                      label="Clear completed"
-                      onClick={clearCompleted}
-                      style={styles.clear}
-                    />
-                  ) : null}
-                </Kb.Box2>
-              ) : (
-                <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
-                  <Kb.Text type="Body">• No active backup jobs</Kb.Text>
-                </Kb.Box2>
-              )}
-            </Kb.Box2>
-          </Kb.Box2>
-        </Kb.ScrollView>
-      )
+  const showClear = C.useArchiveState(s => {
+    for (const job of s.chatJobs.values()) {
+      if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
+        return true
+      }
     }
-  : () => null
+    for (const job of s.kbfsJobs.values()) {
+      if (job.phase === 'Done') {
+        return true
+      }
+    }
+    return false
+  })
+
+  return (
+    <Kb.ScrollView style={styles.scroll}>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
+          <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true} alignItems="center">
+            <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
+              {
+                "Easily backup your Keybase data by choosing 'backup' in chat and files or click to backup all."
+              }
+            </Kb.Text>
+          </Kb.Box2>
+          {C.isMobile ? (
+            <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="xtiny">
+              <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
+                <Kb.Button small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
+                <Kb.Button small={C.isMobile} label="Backup all files" onClick={archiveFS} />
+              </Kb.Box2>
+              <Kb.Box2 direction="horizontal" alignSelf="center">
+                <Kb.Button small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
+              </Kb.Box2>
+            </Kb.Box2>
+          ) : (
+            <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
+              <Kb.Button small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
+              <Kb.Button small={C.isMobile} label="Backup all files" onClick={archiveFS} />
+              <Kb.Button small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
+            </Kb.Box2>
+          )}
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Text type="Header">Active backup jobs</Kb.Text>
+          {chatJobs.length + kbfsJobs.length ? (
+            <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
+              {chatJobs.map((id, idx) => (
+                <ChatJob id={id} key={id} index={idx} />
+              ))}
+              {kbfsJobs.map((id, idx) => (
+                <KBFSJob id={id} key={id} index={idx + chatJobs.length} />
+              ))}
+              {showClear ? (
+                <Kb.Button
+                  mode="Secondary"
+                  label="Clear completed"
+                  onClick={clearCompleted}
+                  style={styles.clear}
+                />
+              ) : null}
+            </Kb.Box2>
+          ) : (
+            <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
+              <Kb.Text type="Body">• No active backup jobs</Kb.Text>
+            </Kb.Box2>
+          )}
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.ScrollView>
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   action: {flexShrink: 0},
