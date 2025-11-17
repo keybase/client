@@ -25,10 +25,10 @@ export const newRoutes = {
 
 // Some screens in signup show up after we've actually signed up
 export const newModalRoutes = {
-  signupEnterEmail: {screen: React.lazy(async () => import('./email/container'))},
-  signupEnterPhoneNumber: {screen: React.lazy(async () => import('./phone-number/container'))},
+  signupEnterEmail: {screen: React.lazy(async () => import('./email'))},
+  signupEnterPhoneNumber: {screen: React.lazy(async () => import('./phone-number'))},
   signupSendFeedbackLoggedIn: {screen: React.lazy(async () => import('./feedback'))},
-  signupVerifyPhoneNumber: {screen: React.lazy(async () => import('./phone-number/verify-container'))},
+  signupVerifyPhoneNumber: {screen: React.lazy(async () => import('./phone-number/verify'))},
 }
 
 export type RootParamListSignup = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>
