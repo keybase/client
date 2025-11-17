@@ -1,62 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import type {NotificationsSettingsState} from '@/constants/settings-notifications'
-import type {Props} from './index'
+import useNotifications from './hooks'
+import Group from '../group'
 
-type GroupProps = {
-  allowEdit: boolean
-  groupName: string
-  label?: string
-  onToggle: (groupName: string, name: string) => void
-  onToggleUnsubscribeAll?: () => void
-  settings?: ReadonlyArray<NotificationsSettingsState>
-  title?: string
-  unsub?: string
-  unsubscribedFromAll: boolean
-}
+type Props = ReturnType<typeof useNotifications>
 
-export const Group = (props: GroupProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
-    {!!props.title && <Kb.Text type="Header">{props.title}</Kb.Text>}
-    {!!props.label && (
-      <Kb.Text type="BodySmall" style={styles.label}>
-        {props.label}
-      </Kb.Text>
-    )}
-    <Kb.Box2
-      direction="vertical"
-      gap="xtiny"
-      gapStart={true}
-      gapEnd={true}
-      alignSelf="flex-start"
-      fullWidth={true}
-    >
-      {!!props.settings &&
-        props.settings.map(s => (
-          <Kb.Checkbox
-            key={props.groupName + s.name}
-            disabled={!props.allowEdit}
-            onCheck={() => props.onToggle(props.groupName, s.name)}
-            checked={s.subscribed}
-            label={s.description}
-          />
-        ))}
-    </Kb.Box2>
-    {!!props.unsub && (
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" fullWidth={true}>
-        <Kb.Text type="BodySmall">Or</Kb.Text>
-        <Kb.Checkbox
-          style={{marginTop: Kb.Styles.globalMargins.xtiny}}
-          onCheck={props.onToggleUnsubscribeAll}
-          disabled={!props.allowEdit}
-          checked={!!props.unsubscribedFromAll}
-          label={`Unsubscribe from all ${props.unsub} notifications`}
-        />
-      </Kb.Box2>
-    )}
-  </Kb.Box2>
-)
-const EmailSection = (props: Props) => (
+const EmailSection = (props: Pick<Props, 'allowEdit' | 'onToggle' | 'onToggleUnsubscribeAll' | 'groups'>) => (
   <Group
     allowEdit={props.allowEdit}
     groupName="email"
@@ -82,7 +31,8 @@ const PhoneSection = (props: Props) => (
     unsubscribedFromAll={props.groups.get('app_push')!.unsub}
   />
 )
-const Notifications = (props: Props) => {
+const Notifications = () => {
+  const props = useNotifications()
   const mobileHasPermissions = C.usePushState(s => s.hasPermissions)
   return !props.groups.get('email')?.settings ? (
     <Kb.Box2 direction="vertical" style={styles.loading}>
@@ -123,7 +73,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: -Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
       },
-      label: {marginBottom: Kb.Styles.globalMargins.xtiny, marginTop: Kb.Styles.globalMargins.xtiny},
       loading: {alignItems: 'center', flex: 1, justifyContent: 'center'},
       main: Kb.Styles.platformStyles({
         common: {flex: 1, padding: Kb.Styles.globalMargins.small, paddingRight: 0, width: '100%'},
