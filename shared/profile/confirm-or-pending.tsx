@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {globalColors} from '@/styles'
 import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
-import Modal from '../modal'
+import Modal from './modal'
 
 const ConfirmOrPending = () => {
   const proofFound = C.useProfileState(s => s.proofFound)

@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import openURL from '@/util/open-url'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SiteIcon} from '../shared'
+import {SiteIcon} from './shared'
 import type * as T from '@/constants/types'
 
 const ConnectedEnterUsername = () => {

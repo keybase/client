@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {SiteIcon} from '../shared'
+import {SiteIcon} from './shared'
 
 const GenericResult = () => {
   const errorText = C.useProfileState(s =>

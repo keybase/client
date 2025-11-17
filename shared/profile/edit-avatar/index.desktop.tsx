@@ -6,6 +6,7 @@ import type {Props} from '.'
 import {ModalTitle} from '@/teams/common'
 import KB2 from '@/util/electron.desktop'
 import './edit-avatar.css'
+import useHooks from './hooks'
 const {isDirectory, getPathForFile} = KB2.functions
 
 const AVATAR_CONTAINER_SIZE = 300
@@ -57,7 +58,8 @@ const getCropCoordinates = (c: Crop) => {
 }
 
 type Loading = undefined | 'loading' | 'loaded'
-const EditAvatar = (p: Props) => {
+const EditAvatar = (_p: Props) => {
+  const p = useHooks(_p)
   const {onClose, wizard, showBack, onBack, onSkip, type, error, teamID, createdTeam, teamname} = p
   const [serror, setSerror] = React.useState(false)
   const [dropping, setDropping] = React.useState(false)
