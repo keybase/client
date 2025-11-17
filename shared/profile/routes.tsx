@@ -14,7 +14,7 @@ const styles = Kb.Styles.styleSheetCreate(
 
 export const newRoutes = {
   profile: C.makeScreen(
-    React.lazy(async () => import('./user/container')),
+    React.lazy(async () => import('./user')),
     {
       getOptions: {
         headerLeft: p => {
