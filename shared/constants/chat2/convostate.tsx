@@ -1633,9 +1633,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 enableDeletePlaceholders: true,
                 markAsRead: false,
                 messageIDControl,
-                messageTypes: Common.loadThreadMessageTypes,
+                messageTypes: loadThreadMessageTypes,
               },
-              reason: Common.reasonToRPCReason(reason),
+              reason: reasonToRPCReason(reason),
             },
             waitingKey: loadingKey,
           })
@@ -1978,7 +1978,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
 
-        const text = Common.formatTextForQuoting(message.text.stringValue())
+        const text = formatTextForQuoting(message.text.stringValue())
         getConvoState_(newThreadCID).dispatch.injectIntoInput(text)
         C.useChatState.getState().dispatch.metasReceived([meta])
         getConvoState_(newThreadCID).dispatch.navigateToThread('createdMessagePrivately')
@@ -2759,9 +2759,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     enableDeletePlaceholders: true,
                     markAsRead: false,
                     messageIDControl: null,
-                    messageTypes: Common.loadThreadMessageTypes,
+                    messageTypes: loadThreadMessageTypes,
                   },
-                  reason: Common.reasonToRPCReason(''),
+                  reason: reasonToRPCReason(''),
                 },
               })
                 .then(() => {})
@@ -3305,3 +3305,47 @@ export const useChatNavigateAppend = () => {
     [cid, navigateAppend]
   )
 }
+
+const formatTextForQuoting = (text: string) =>
+  text
+    .split('\n')
+    .map(line => `> ${line}\n`)
+    .join('')
+
+const reasonToRPCReason = (reason: string): T.RPCChat.GetThreadReason => {
+  switch (reason) {
+    case 'extension':
+    case 'push':
+      return T.RPCChat.GetThreadReason.push
+    case 'foregrounding':
+      return T.RPCChat.GetThreadReason.foreground
+    default:
+      return T.RPCChat.GetThreadReason.general
+  }
+}
+
+const loadThreadMessageTypes = C.enumKeys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
+  (arr, key) => {
+    switch (key) {
+      case 'none':
+      case 'edit': // daemon filters this out for us so we can ignore
+      case 'delete':
+      case 'attachmentuploaded':
+      case 'reaction':
+      case 'unfurl':
+      case 'tlfname':
+        break
+      default:
+        {
+          const val = T.RPCChat.MessageType[key]
+          if (typeof val === 'number') {
+            arr.push(val)
+          }
+        }
+        break
+    }
+
+    return arr
+  },
+  []
+)

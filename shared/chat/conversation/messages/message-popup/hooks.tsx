@@ -25,6 +25,20 @@ const messageAuthorIsBot = (
       : false // if we don't have team information, don't show bot icon
 }
 
+const getConversationLabel = (
+  participantInfo: T.Chat.ParticipantInfo,
+  conv: T.Chat.ConversationMeta,
+  alwaysIncludeChannelName: boolean
+): string => {
+  if (conv.teamType === 'big') {
+    return conv.teamname + '#' + conv.channelname
+  }
+  if (conv.teamType === 'small') {
+    return alwaysIncludeChannelName ? conv.teamname + '#' + conv.channelname : conv.teamname
+  }
+  return C.Chat.getRowParticipants(participantInfo, '').join(',')
+}
+
 export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const message = C.useChatContext(s => {
     return s.messageMap.get(ordinal) ?? emptyText
@@ -83,7 +97,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
       ] as const)
     : []
 
-  const convLabel = C.Chat.getConversationLabel(participantInfo, meta, true)
+  const convLabel = getConversationLabel(participantInfo, meta, true)
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyLink = React.useCallback(() => {
     copyToClipboard(C.DeepLinks.linkFromConvAndMessage(convLabel, id))
