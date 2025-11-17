@@ -1,14 +1,28 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import Notifications from './render'
-import type {Props} from '.'
+import {Reloadable} from '@/common-adapters'
 
-const MobileNotifications = (props: Props) => {
+const MobileNotifications = () => {
+  const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
+  const refresh = C.useSettingsNotifState(s => s.dispatch.refresh)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onRefresh = () => {
+    loadSettings()
+    refresh()
+  }
   return (
-    <Kb.ScrollView style={{...Kb.Styles.globalStyles.flexBoxColumn, flex: 1}}>
-      <TurnOnNotifications />
-      <Notifications {...props} />
-    </Kb.ScrollView>
+    <Reloadable
+      onBack={navigateUp}
+      waitingKeys={[C.refreshNotificationsWaitingKey, C.Settings.loadSettingsWaitingKey]}
+      onReload={onRefresh}
+      reloadOnMount={true}
+    >
+      <Kb.ScrollView style={{...Kb.Styles.globalStyles.flexBoxColumn, flex: 1}}>
+        <TurnOnNotifications />
+        <Notifications />
+      </Kb.ScrollView>
+    </Reloadable>
   )
 }
 

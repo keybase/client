@@ -30,8 +30,7 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
   const {canDelete, devicename, lastEditTime, lastEditUser, name} = git
 
   const onArchiveGitRepo = React.useCallback(() => {
-    C.featureFlags.archive &&
-      gitURL &&
+    gitURL &&
       navigateAppend({
         props: {gitURL, type: 'git'} as const,
         selected: 'archiveModal',

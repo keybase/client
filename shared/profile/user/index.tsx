@@ -12,6 +12,7 @@ import type {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import {SiteIcon} from '../generic/shared'
 import useResizeObserver from '@/util/use-resize-observer'
+import useUserData from './hooks'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -299,14 +300,9 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
 
 type Tab = 'followers' | 'following'
 
-const UserWrap = (p: Props) => {
-  const insets = Kb.useSafeAreaInsets()
-  return <User {...p} insetTop={insets.top} />
-}
-
-type Props2 = Props & {insetTop: number}
-
-const User = (p: Props2) => {
+const User = (props: {username: string}) => {
+  const p = useUserData(props.username)
+  const insetTop = Kb.useSafeAreaInsets().top
   const {username, onReload} = p
   const [selectedTab, setSelectedTab] = React.useState<Tab>(
     usernameSelectedTab.get(p.username) ?? 'followers'
@@ -364,7 +360,7 @@ const User = (p: Props2) => {
   }
 
   const containerStyle = {
-    paddingTop: (Kb.Styles.isAndroid ? 56 : Kb.Styles.isTablet ? 80 : Kb.Styles.isIOS ? 46 : 80) + p.insetTop,
+    paddingTop: (Kb.Styles.isAndroid ? 56 : Kb.Styles.isTablet ? 80 : Kb.Styles.isIOS ? 46 : 80) + insetTop,
   }
 
   const renderSectionHeader = ({section}: {section: Section}) => {
@@ -605,4 +601,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   typedBackgroundRed: {backgroundColor: Kb.Styles.globalColors.red},
 }))
 
-export default UserWrap
+export default User

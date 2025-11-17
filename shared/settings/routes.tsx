@@ -27,7 +27,7 @@ export const sharedNewRoutes = {
   },
   [Constants.settingsArchiveTab]: {
     getOptions: C.isMobile ? {title: 'Backup'} : undefined,
-    screen: C.featureFlags.archive ? React.lazy(async () => import('./archive')) : () => <></>,
+    screen: React.lazy(async () => import('./archive')),
   },
   [Constants.settingsChatTab]: {
     getOptions: {title: 'Chat'},
@@ -45,13 +45,13 @@ export const sharedNewRoutes = {
   [Constants.settingsFeedbackTab]: feedback,
   [Constants.settingsFsTab]: {
     getOptions: C.isMobile ? {title: 'Files'} : undefined,
-    screen: React.lazy(async () => import('./files/container')),
+    screen: React.lazy(async () => import('./files')),
   },
   [Constants.settingsGitTab]: gitRoutes.gitRoot,
-  [Constants.settingsInvitationsTab]: {screen: React.lazy(async () => import('./invites/container'))},
+  [Constants.settingsInvitationsTab]: {screen: React.lazy(async () => import('./invites'))},
   [Constants.settingsNotificationsTab]: {
     getOptions: {title: 'Notifications'},
-    screen: React.lazy(async () => import('./notifications/container')),
+    screen: React.lazy(async () => import('./notifications')),
   },
   [Constants.settingsScreenprotectorTab]: {
     getOptions: {header: undefined, title: 'Screen Protector'},
@@ -62,8 +62,8 @@ export const sharedNewRoutes = {
     getOptions: C.isMobile ? {title: 'Keybase FM 87.7'} : undefined,
     screen: React.lazy(async () => import('../whats-new/container')),
   },
-  dbNukeConfirm: {screen: React.lazy(async () => import('./db-nuke-confirm/container'))},
-  inviteSent: C.makeScreen(React.lazy(async () => import('./invite-generated/container'))),
+  dbNukeConfirm: {screen: React.lazy(async () => import('./db-nuke.confirm'))},
+  inviteSent: C.makeScreen(React.lazy(async () => import('./invite-generated'))),
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
   removeDevice: devicesRoutes.deviceRevoke,

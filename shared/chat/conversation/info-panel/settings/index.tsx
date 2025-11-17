@@ -66,11 +66,10 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }, [leaveConversation])
 
   const onArchive = () => {
-    C.featureFlags.archive &&
-      navigateAppend(conversationIDKey => ({
-        props: {conversationIDKey, type: 'chatID'} as const,
-        selected: 'archiveModal',
-      }))
+    navigateAppend(conversationIDKey => ({
+      props: {conversationIDKey, type: 'chatID'} as const,
+      selected: 'archiveModal',
+    }))
   }
 
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
@@ -105,18 +104,16 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           />
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
-        {C.featureFlags.archive ? (
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-            <Kb.Button
-              type="Default"
-              mode="Secondary"
-              label="Backup channel"
-              onClick={onArchive}
-              icon="iconfont-folder-downloads"
-              iconColor={Kb.Styles.globalColors.black}
-            />
-          </Kb.Box2>
-        ) : null}
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Button
+            type="Default"
+            mode="Secondary"
+            label="Backup channel"
+            onClick={onArchive}
+            icon="iconfont-folder-downloads"
+            iconColor={Kb.Styles.globalColors.black}
+          />
+        </Kb.Box2>
         {entityType !== 'channel' &&
           (ignored ? (
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">

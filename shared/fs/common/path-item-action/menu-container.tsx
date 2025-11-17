@@ -238,7 +238,7 @@ const Container = (op: OwnProps) => {
     : []
 
   const onArchive =
-    C.featureFlags.archive && path && layout.archive && pathItem.type === T.FS.PathType.Folder
+    path && layout.archive && pathItem.type === T.FS.PathType.Folder
       ? () => {
           navigateAppend({
             props: {path, type: 'fsPath'} as const,

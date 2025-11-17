@@ -2,9 +2,7 @@ import * as C from '@/constants'
 import * as Constants from '@/constants/tracker2'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import Profile2, {type BackgroundColorType} from '.'
-
-export type OwnProps = {username: string}
+import {type BackgroundColorType} from '.'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -26,8 +24,7 @@ const headerBackgroundColorType = (
 //     webOfTrustEntries ? webOfTrustEntries.filter(Constants.showableWotEntry) : []
 // )
 
-const Connected = (ownProps: OwnProps) => {
-  const {username} = ownProps
+const useUserData = (username: string) => {
   const d = C.useTrackerState(s => Constants.getDetails(s, username))
   const myName = C.useCurrentUserState(s => s.username)
   const notAUser = d.state === 'notAUserYet'
@@ -166,7 +163,7 @@ const Connected = (ownProps: OwnProps) => {
     assertionKeys = []
   }
 
-  const props = {
+  return {
     assertionKeys,
     backgroundColorType: stateProps.backgroundColorType,
     blocked: stateProps.blocked,
@@ -202,7 +199,6 @@ const Connected = (ownProps: OwnProps) => {
     // vouchShowButton: stateProps.vouchShowButton,
     // webOfTrustEntries: stateProps.webOfTrustEntries,
   }
-  return <Profile2 {...props} />
 }
 
-export default Connected
+export default useUserData

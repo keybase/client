@@ -1,14 +1,18 @@
 import * as Kb from '@/common-adapters'
 import QRLines from './lines'
-import type {Props} from '.'
+import useQR from './hooks'
+
 // Basically only used for storybook
 
-const QRScan = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container}>
-    <QRLines canScan={true} />
-    {props.waiting && <Kb.ProgressIndicator style={styles.waiting} type="Large" white={true} />}
-  </Kb.Box2>
-)
+const QRScan = () => {
+  const {waiting} = useQR()
+  return (
+    <Kb.Box2 direction="vertical" style={styles.container}>
+      <QRLines canScan={true} />
+      {waiting && <Kb.ProgressIndicator style={styles.waiting} type="Large" white={true} />}
+    </Kb.Box2>
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

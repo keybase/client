@@ -3,20 +3,33 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
-import type {Props} from '.'
+import useFiles from './hooks'
+type Props = ReturnType<typeof useFiles>
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
 export const defaultNotificationThreshold = 100 * 1024 ** 2
 
-const ThresholdDropdown = (props: Props) => {
+const ThresholdDropdown = (p: Pick<Props, 'spaceAvailableNotificationThreshold'>) => {
+  const allowedThresholds = allowedNotificationThresholds.map(
+    i => ({label: Constants.humanizeBytes(i, 0), value: i}) as const
+  )
+  const setSpaceAvailableNotificationThreshold = C.useFSState(
+    s => s.dispatch.setSpaceAvailableNotificationThreshold
+  )
+  const {spaceAvailableNotificationThreshold} = p
   const [notificationThreshold, setNotificationThreshold] = React.useState(
-    props.spaceAvailableNotificationThreshold
+    spaceAvailableNotificationThreshold
   )
   const [visible, setVisible] = React.useState(false)
 
+  const humanizedNotificationThreshold = Constants.humanizeBytes(
+    spaceAvailableNotificationThreshold || defaultNotificationThreshold,
+    0
+  )
+
   const hide = () => setVisible(false)
   const done = () => {
-    props.onSetSyncNotificationThreshold(notificationThreshold)
+    setSpaceAvailableNotificationThreshold(notificationThreshold)
     setVisible(false)
   }
   const select = (selectedVal?: number) => selectedVal && setNotificationThreshold(selectedVal)
@@ -25,16 +38,16 @@ const ThresholdDropdown = (props: Props) => {
   return (
     <>
       <Kb.DropdownButton
-        disabled={!props.spaceAvailableNotificationThreshold}
+        disabled={!spaceAvailableNotificationThreshold}
         selected={
           <Kb.Text type="Body" style={styles.selectedText}>
-            {props.humanizedNotificationThreshold}
+            {humanizedNotificationThreshold}
           </Kb.Text>
         }
         toggleOpen={toggleShowingMenu}
       />
       <Kb.FloatingPicker
-        items={props.allowedThresholds}
+        items={allowedThresholds}
         visible={visible}
         selectedValue={notificationThreshold}
         promptString="Pick a threshold"
@@ -52,7 +65,10 @@ const ThresholdDropdown = (props: Props) => {
   )
 }
 
-const Files = (props: Props) => {
+const Files = () => {
+  const props = useFiles()
+  const {spaceAvailableNotificationThreshold, onEnableSyncNotifications, onDisableSyncNotifications} = props
+  const {areSettingsLoading} = props
   const syncOnCellular = C.useFSState(s => s.settings.syncOnCellular)
   const toggleSyncOnCellular = () => {
     T.RPCGen.SimpleFSSimpleFSSetSyncOnCellularRpcPromise(
@@ -74,20 +90,20 @@ const Files = (props: Props) => {
         <Kb.Text type="Header">Sync</Kb.Text>
         <Kb.Switch
           onClick={
-            props.spaceAvailableNotificationThreshold === 0
-              ? props.onEnableSyncNotifications
-              : props.onDisableSyncNotifications
+            spaceAvailableNotificationThreshold === 0 ? onEnableSyncNotifications : onDisableSyncNotifications
           }
           label="Warn when low on storage space"
-          on={props.spaceAvailableNotificationThreshold !== 0}
-          disabled={props.areSettingsLoading}
+          on={spaceAvailableNotificationThreshold !== 0}
+          disabled={areSettingsLoading}
           gapSize={Kb.Styles.globalMargins.small}
           style={styles.switch}
         />
-        {!!props.spaceAvailableNotificationThreshold && (
-          <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>
+        {!!spaceAvailableNotificationThreshold && <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>}
+        {!!spaceAvailableNotificationThreshold && (
+          <ThresholdDropdown
+            spaceAvailableNotificationThreshold={props.spaceAvailableNotificationThreshold}
+          />
         )}
-        {!!props.spaceAvailableNotificationThreshold && <ThresholdDropdown {...props} />}
         <Kb.Switch
           on={syncOnCellular}
           onClick={toggleSyncOnCellular}

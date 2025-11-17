@@ -74,14 +74,12 @@ const LeftNav = (props: Props) => {
           selected={props.selected === C.Settings.settingsAdvancedTab}
           onClick={props.onClick}
         />
-        {C.featureFlags.archive ? (
-          <SettingsItem
-            text="Backup"
-            type={C.Settings.settingsArchiveTab}
-            selected={props.selected === C.Settings.settingsArchiveTab}
-            onClick={props.onClick}
-          />
-        ) : null}
+        <SettingsItem
+          text="Backup"
+          type={C.Settings.settingsArchiveTab}
+          selected={props.selected === C.Settings.settingsArchiveTab}
+          onClick={props.onClick}
+        />
         <SettingsItem
           text="Chat"
           type={C.Settings.settingsChatTab}

@@ -2,8 +2,9 @@ import * as Kb from '@/common-adapters'
 import type {AcceptedInvite, PendingInvite} from '@/constants/settings-invites'
 import * as React from 'react'
 import SubHeading from '../subheading'
-import type {Props} from '.'
 import * as dateFns from 'date-fns'
+import * as C from '@/constants'
+import * as Constants from '@/constants/settings'
 
 // Like intersperse but takes a function to define the separator
 function intersperseFn<A, B>(
@@ -23,11 +24,29 @@ function intersperseFn<A, B>(
   return toReturn
 }
 
-const Invites = (props: Props) => {
-  const {onRefresh, error, onClearError} = props
-  const [inviteEmail, setInviteEmail] = React.useState(props.inviteEmail)
-  const [inviteMessage, setInviteMessage] = React.useState(props.inviteMessage)
-  const [showMessageField, setShowMessageField] = React.useState(props.showMessageField)
+const Invites = () => {
+  const acceptedInvites = C.useSettingsInvitesState(s => s.acceptedInvites)
+  const error = C.useSettingsInvitesState(s => s.error)
+  const pendingInvites = C.useSettingsInvitesState(s => s.pendingInvites)
+  const waitingForResponse = C.Waiting.useAnyWaiting(Constants.settingsWaitingKey)
+
+  const resetError = C.useSettingsInvitesState(s => s.dispatch.resetError)
+  const sendInvite = C.useSettingsInvitesState(s => s.dispatch.sendInvite)
+  const reclaimInvite = C.useSettingsInvitesState(s => s.dispatch.reclaimInvite)
+  const loadInvites = C.useSettingsInvitesState(s => s.dispatch.loadInvites)
+  const onClearError = resetError
+  const onGenerateInvitation = sendInvite
+  const onReclaimInvitation = reclaimInvite
+  const onRefresh = loadInvites
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onSelectPendingInvite = (invite: PendingInvite) => {
+    navigateAppend({props: {email: invite.email, link: invite.url}, selected: 'inviteSent'})
+  }
+  const onSelectUser = C.useProfileState(s => s.dispatch.showUserProfile)
+
+  const [inviteEmail, setInviteEmail] = React.useState('')
+  const [inviteMessage, setInviteMessage] = React.useState('')
+  const [showMessageField, setShowMessageField] = React.useState(false)
 
   React.useEffect(() => {
     onRefresh()
@@ -42,18 +61,18 @@ const Invites = (props: Props) => {
   const handleChangeEmail = (email: string) => {
     setInviteEmail(email)
     setShowMessageField(showMessageField || email.length > 0)
-    if (props.error) props.onClearError()
+    if (error) onClearError()
   }
 
   const invite = () => {
-    props.onGenerateInvitation(inviteEmail, inviteMessage)
+    onGenerateInvitation(inviteEmail, inviteMessage)
   }
 
   return (
     <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, flex: 1}}>
-      {!!props.error && (
+      {!!error && (
         <Kb.Banner color="red">
-          <Kb.BannerParagraph bannerColor="red" content={props.error} />
+          <Kb.BannerParagraph bannerColor="red" content={error} />
         </Kb.Banner>
       )}
       <Kb.Box
@@ -84,33 +103,33 @@ const Invites = (props: Props) => {
           <Kb.Button
             label="Generate invitation"
             onClick={invite}
-            waiting={props.waitingForResponse}
+            waiting={waitingForResponse}
             style={{alignSelf: 'center', marginTop: Kb.Styles.globalMargins.medium}}
           />
         </Kb.Box2>
-        {props.pendingInvites.length > 0 && (
+        {pendingInvites.length > 0 && (
           <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, flexShrink: 0, marginBottom: 16}}>
-            <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
+            <SubHeading>Pending invites ({pendingInvites.length})</SubHeading>
             {intersperseDividers(
-              props.pendingInvites.map(invite => (
+              pendingInvites.map(invite => (
                 <PendingInviteItem
                   invite={invite}
                   key={invite.id}
-                  onReclaimInvitation={id => props.onReclaimInvitation(id)}
-                  onSelectPendingInvite={invite => props.onSelectPendingInvite(invite)}
+                  onReclaimInvitation={id => onReclaimInvitation(id)}
+                  onSelectPendingInvite={invite => onSelectPendingInvite(invite)}
                 />
               ))
             )}
           </Kb.Box>
         )}
         <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, flexShrink: 0}}>
-          <SubHeading>Accepted invites ({props.acceptedInvites.length})</SubHeading>
+          <SubHeading>Accepted invites ({acceptedInvites.length})</SubHeading>
           {intersperseDividers(
-            props.acceptedInvites.map(invite => (
+            acceptedInvites.map(invite => (
               <AcceptedInviteItem
                 key={invite.id}
                 invite={invite}
-                onClick={() => props.onSelectUser(invite.username)}
+                onClick={() => onSelectUser(invite.username)}
               />
             ))
           )}

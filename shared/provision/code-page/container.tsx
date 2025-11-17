@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as DevicesConstants from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import QRImage from './qr-image'
-import QRScan from './qr-scan/container'
+import QRScan from './qr-scan'
 import Troubleshooting from '../troubleshooting'
 import type * as T from '@/constants/types'
 

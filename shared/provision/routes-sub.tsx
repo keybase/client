@@ -20,9 +20,9 @@ export const newRoutes = {
   password: {
     screen: React.lazy(async () => import('./password')),
   },
-  selectOtherDevice: {screen: React.lazy(async () => import('./select-other-device'))},
+  selectOtherDevice: {screen: React.lazy(async () => import('./select-other-device-connected'))},
   setPublicName: {screen: React.lazy(async () => import('./set-public-name'))},
-  username: C.makeScreen(React.lazy(async () => import('./username-or-email/container'))),
+  username: C.makeScreen(React.lazy(async () => import('./username-or-email'))),
 }
 
 // No modal routes while not logged in. More plumbing would be necessary to add them, so there is not

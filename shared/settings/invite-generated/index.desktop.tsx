@@ -1,7 +1,10 @@
 import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import type {Props} from '.'
 
-const InviteGeneratedRender = (p: Props) => {
+const InviteGeneratedRender = (props: Props) => {
+  const {link, email} = props
+  const onClose = C.useRouterState(s => s.dispatch.navigateUp)
   return (
     <Kb.Box
       style={{
@@ -12,12 +15,12 @@ const InviteGeneratedRender = (p: Props) => {
         position: 'relative',
       }}
     >
-      <Kb.Icon type="iconfont-close" style={styles.icon} onClick={p.onClose} />
+      <Kb.Icon type="iconfont-close" style={styles.icon} onClick={onClose} />
       <Kb.Icon type="icon-invite-link-48" />
-      {p.email ? (
+      {email ? (
         <Kb.Text center={true} type="Body" style={styles.text}>
-          Yay! We emailed <Kb.Text type="BodySemibold">{p.email}</Kb.Text>, but you can also give them the
-          below link:
+          Yay! We emailed <Kb.Text type="BodySemibold">{email}</Kb.Text>, but you can also give them the below
+          link:
         </Kb.Text>
       ) : (
         <Kb.Text center={true} type="Body" style={styles.text}>
@@ -31,10 +34,10 @@ const InviteGeneratedRender = (p: Props) => {
           color={Kb.Styles.globalColors.black_10}
         />
         <Kb.Text type="BodySemibold" selectable={true} style={{color: Kb.Styles.globalColors.greenDark}}>
-          {p.link}
+          {link}
         </Kb.Text>
       </Kb.Box>
-      <Kb.Button style={{marginTop: Kb.Styles.globalMargins.medium}} label="Close" onClick={p.onClose} />
+      <Kb.Button style={{marginTop: Kb.Styles.globalMargins.medium}} label="Close" onClick={onClose} />
     </Kb.Box>
   )
 }
