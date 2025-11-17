@@ -3,53 +3,9 @@ import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
 import openURL from '@/util/open-url'
-import type {RPCError} from '@/util/errors'
 import {Box2, Button, Icon, Text, Markdown} from '@/common-adapters'
 import * as T from '@/constants/types'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '@/styles'
-
-const ConnectedRenderError = () => {
-  const _username = C.useAutoResetState(s => s.username)
-  const error = C.useProvisionState(s => s.finalError)
-  const startAccountReset = C.useAutoResetState(s => s.dispatch.startAccountReset)
-  const _onAccountReset = (username: string) => {
-    startAccountReset(false, username)
-  }
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => {
-    navigateUp()
-  }
-  const onKBHome = () => {
-    openURL('https://keybase.io/')
-  }
-  const onPasswordReset = () => {
-    openURL('https://keybase.io/#password-reset')
-  }
-  const props = {
-    error,
-    onAccountReset: () => _onAccountReset(_username),
-    onBack,
-    onKBHome,
-    onPasswordReset,
-  }
-  return <RenderError {...props} />
-}
-
-export default ConnectedRenderError
-
-type Props = {
-  error?: RPCError
-  onAccountReset: () => void
-  onBack: () => void
-  onKBHome: () => void
-  onPasswordReset: () => void
-}
-
-const List = (p: {children: React.ReactNode}) => (
-  <Box2 direction="vertical" style={styles.list}>
-    {p.children}
-  </Box2>
-)
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <LoginContainer onBack={p.onBack}>
@@ -74,7 +30,25 @@ const rewriteErrorDesc = (s: string) => {
 }
 
 // Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
-const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Props) => {
+const RenderError = () => {
+  const _username = C.useAutoResetState(s => s.username)
+  const error = C.useProvisionState(s => s.finalError)
+  const startAccountReset = C.useAutoResetState(s => s.dispatch.startAccountReset)
+  const _onAccountReset = (username: string) => {
+    startAccountReset(false, username)
+  }
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => {
+    navigateUp()
+  }
+  const onKBHome = () => {
+    openURL('https://keybase.io/')
+  }
+  const onPasswordReset = () => {
+    openURL('https://keybase.io/#password-reset')
+  }
+  const onAccountReset = () => _onAccountReset(_username)
+
   if (!error) {
     return (
       <Wrapper onBack={onBack}>
@@ -140,7 +114,8 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
             <Text center={true} type="BodySemibold">
               You have options:
             </Text>
-            <List>
+
+            <Box2 direction="vertical" style={styles.list}>
               <Text center={true} type="Body">
                 {' '}
                 - Go back and select a device or paper key
@@ -161,7 +136,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
                 </Text>
                 .
               </Text>
-            </List>
+            </Box2>
           </Wrapper>
         )
       } else {
@@ -173,7 +148,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
             <Text center={true} type="BodySemibold" style={{textAlign: 'left'}}>
               You have options:
             </Text>
-            <List>
+            <Box2 direction="vertical" style={styles.list}>
               <Text center={true} type="Body">
                 {' '}
                 - Use <Text type="TerminalInline">keybase login</Text> on the command line to log in
@@ -200,7 +175,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
                 </Text>
                 .
               </Text>
-            </List>
+            </Box2>
           </Wrapper>
         )
       }
@@ -245,7 +220,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
           <Text center={true} type="BodySemibold">
             You have options:
           </Text>
-          <List>
+          <Box2 direction="vertical" style={styles.list}>
             <Text center={true} type="Body">
               {' '}
               - Run <Text type="TerminalInline">keybase login</Text> on the device with the corresponding PGP
@@ -268,7 +243,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
                 reset your account and start fresh
               </Text>
             </Text>
-          </List>
+          </Box2>
         </Wrapper>
       )
     case T.RPCGen.StatusCode.scinputcanceled:
@@ -347,3 +322,5 @@ const styles = styleSheetCreate(
       },
     }) as const
 )
+
+export default RenderError

@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {SelectOtherDevice} from '@/provision/select-other-device'
+import SelectOtherDevice from '@/provision/select-other-device'
 
 const RecoverPasswordDeviceSelector = () => {
   const devices = C.useRecoverState(s => s.devices)
