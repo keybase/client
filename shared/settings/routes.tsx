@@ -63,7 +63,7 @@ export const sharedNewRoutes = {
     screen: React.lazy(async () => import('../whats-new/container')),
   },
   dbNukeConfirm: {screen: React.lazy(async () => import('./db-nuke.confirm'))},
-  inviteSent: C.makeScreen(React.lazy(async () => import('./invite-generated/container'))),
+  inviteSent: C.makeScreen(React.lazy(async () => import('./invite-generated'))),
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
   removeDevice: devicesRoutes.deviceRevoke,
