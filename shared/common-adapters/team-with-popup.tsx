@@ -29,7 +29,7 @@ export type Props = {
   underline?: boolean
 }
 
-export const TeamWithPopup = (props: Props) => {
+const TeamWithPopup = (props: Props) => {
   const {onJoinTeam, onViewTeam} = props
   const {description, isMember, isOpen, memberCount} = props
   const {prefix, teamName, type, inline} = props

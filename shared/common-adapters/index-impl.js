@@ -13,9 +13,6 @@ module.exports = {
   get BackButton() {
     return require('./back-button').default
   },
-  get BackgroundRepeatBox() {
-    return require('./background-repeat-box').default
-  },
   get Badge() {
     return require('./badge').default
   },
@@ -119,9 +116,6 @@ module.exports = {
   },
   get Emoji() {
     return require('./emoji').default
-  },
-  get EmojiIfExists() {
-    return require('./markdown').EmojiIfExists
   },
   get ErrorBoundary() {
     return require('./error-boundary').default

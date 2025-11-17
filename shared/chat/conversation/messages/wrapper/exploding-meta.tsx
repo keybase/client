@@ -4,7 +4,7 @@ import {HighlightedContext, OrdinalContext} from '../ids-context'
 import * as Kb from '@/common-adapters'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import {formatDurationShort} from '@/util/timestamp'
-import SharedTimer, {type SharedTimerID} from '@/util/shared-timers'
+import SharedTimer, {type SharedTimerID} from './shared-timers'
 import {animationDuration} from './exploding-height-retainer'
 
 export type OwnProps = {onClick?: () => void}
