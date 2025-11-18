@@ -189,7 +189,7 @@ const PlainInput = React.memo(
           if (isIOS) {
             delete textStyle.lineHeight
           }
-          return Styles.collapseStyles([styles.common, textStyle as any])
+          return Styles.collapseStyles([styles.common, textStyle as Styles.StylesCrossPlatform])
         }
 
         const _getMultilineStyle = () => {

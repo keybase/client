@@ -23,7 +23,7 @@ export type Props = {
   style?: StylesCrossPlatform
   onScroll?: (event: ScrollEvent) => void
   className?: string
-  ref?: React.Ref<any>
+  ref?: React.Ref<ScrollViewRef>
   showsVerticalScrollIndicator?: boolean
   showsHorizontalScrollIndicator?: boolean
   // mobile only
@@ -33,7 +33,7 @@ export type Props = {
   zoomScale?: number
   minimumZoomScale?: number
   maximumZoomScale?: number
-  onLayout?: (...a: Array<any>) => void
+  onLayout?: (...a: Array<unknown>) => void
   scrollEventThrottle?: number
   scrollsToTop?: boolean
   indicatorStyle?: string

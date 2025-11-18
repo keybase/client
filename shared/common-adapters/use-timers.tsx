@@ -36,7 +36,7 @@ export const useTimeout = (func: () => void, timing: number): (() => void) => {
 }
 
 // https://overreacted.io/making-setinterval-declarative-with-react-hooks/
-export const useInterval = (func: () => any, interval?: number) => {
+export const useInterval = (func: () => unknown, interval?: number) => {
   const cb = React.useRef(func)
   React.useEffect(() => {
     cb.current = func

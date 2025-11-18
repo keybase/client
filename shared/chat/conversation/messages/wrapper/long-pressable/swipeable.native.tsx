@@ -45,7 +45,7 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
         pan.flattenOffset()
         // only swipe if its actually still over
         // _value does exist, TODO maybe use addlistener instead or similar
-        const px = pan.x as any as {_value: number}
+        const px = pan.x as unknown as {_value: number}
         const val = -px._value
         if (val > threshold) {
           onSwiped()
@@ -59,7 +59,7 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
         // eslint-disable-next-line
         running = false
         // _value does exist, TODO maybe use addlistener instead or similar
-        const px = pan.x as any as {_value: number}
+        const px = pan.x as unknown as {_value: number}
         const val = -px._value
         if (val > threshold) {
           onSwiped()

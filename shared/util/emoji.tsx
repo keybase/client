@@ -51,7 +51,7 @@ export const categoryIcons = {
 
 export const categories = categoryOrder.map(category => ({
   category,
-  emojis: sorted[category] as any as Array<EmojiData>,
+  emojis: sorted[category] as unknown as Array<EmojiData>,
 }))
 
 export const emojiSearch = (filter: string, maxResults: number) => {

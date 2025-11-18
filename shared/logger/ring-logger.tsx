@@ -16,7 +16,7 @@ class RingLogger {
   private currentWriteIdx: number = 0
   private ringBuffer: Array<Types.LogLine | undefined> = []
   private logLevel: Types.LogLevel
-  private consoleLog: (...s: Array<any>) => void
+  private consoleLog: (...s: Array<unknown>) => void
 
   constructor(logLevel: Types.LogLevel, ringSize: number) {
     this.logLevel = logLevel

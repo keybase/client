@@ -2,7 +2,7 @@ import type * as C from '@/constants'
 import * as T from '@/constants/types'
 import {produce} from 'immer'
 
-const emptySet = new Set<any>()
+const emptySet = new Set<string>()
 
 export type RemoteTlfUpdates = {
   timestamp: number

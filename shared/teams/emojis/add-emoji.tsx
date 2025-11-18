@@ -300,7 +300,7 @@ type EmojiToAddOrAddRow =
     }
   | {
       type: 'add'
-      add: () => any
+      add: () => void
       height: number
       key: string
       offset: number

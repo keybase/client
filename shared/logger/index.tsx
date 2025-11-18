@@ -11,7 +11,7 @@ export type LogLevel = 'Error' | 'Warn' | 'Info' | 'Action' | 'Debug'
 export type LogLine = [Timestamp, string]
 export type LogLineWithLevel = [LogLevel, Timestamp, string]
 export type LogLineWithLevelISOTimestamp = [LogLevel, ISOTimestamp, string]
-export type LogFn = (...s: Array<any>) => void
+export type LogFn = (...s: Array<unknown>) => void
 
 export type Loggers = {
   error: Logger

@@ -28,7 +28,7 @@ const FilteredTopLine = (props: Props) => {
         style={Kb.Styles.collapseStyles([
           props.showBold && styles.boldOverride,
           styles.usernames,
-          {color: props.usernameColor} as any,
+          {color: props.usernameColor} as Kb.Styles.StylesCrossPlatform,
         ])}
       >
         {props.participants.join(', ')}

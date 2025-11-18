@@ -164,7 +164,7 @@ const renderSectionHeader = ({
   section,
 }: {
   section: {
-    data: Array<any>
+    data: Array<ListItem>
     ordinal: T.Chat.Ordinal
     title: string
   }

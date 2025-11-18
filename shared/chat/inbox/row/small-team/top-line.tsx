@@ -115,7 +115,7 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
       Kb.Styles.collapseStyles([
         showBold && styles.bold,
         styles.timestamp,
-        tssubColor !== false && ({color: tssubColor} as any),
+        tssubColor !== false && ({color: tssubColor} as Kb.Styles.StylesCrossPlatform),
       ]),
     [showBold, tssubColor]
   )

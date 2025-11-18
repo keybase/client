@@ -96,7 +96,7 @@ const EB = (p: Props) => {
   }, [])
 
   const fallbackRender = React.useCallback(
-    (fp: {error: Error; resetErrorBoundary: (...args: any[]) => void}) => {
+    (fp: {error: Error; resetErrorBoundary: (...args: unknown[]) => void}) => {
       const allInfo: AllErrorInfo = {
         componentStack,
         message: fp.error.message,

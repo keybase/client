@@ -177,7 +177,7 @@ const Icon = React.memo<Props>(
 )
 Icon.displayName = 'Icon'
 
-export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): any {
+export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): unknown {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
   const idealMults = [2, 3, 1] as const
   for (const mult of idealMults) {
@@ -199,12 +199,12 @@ export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize:
   // }))
 }
 
-export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
+export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): unknown {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
   const keys = Object.keys(multsMap)
   const imgSet = keys
     .map(mult => {
-      const size = multsMap[mult as any as keyof typeof multsMap]
+      const size = multsMap[mult as unknown as keyof typeof multsMap]
       const uri = size ? imgMap[size] : null
       if (!uri) {
         return null

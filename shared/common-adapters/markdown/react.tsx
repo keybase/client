@@ -346,7 +346,7 @@ const reactComponentsForMarkdownType = {
   serviceDecoration: {
     react: (node: Node, _output: SM.ReactOutput, state: State) => (
       <ServiceDecoration
-        json={node['content'] as any as string}
+        json={node['content'] as unknown as string}
         key={state.key}
         allowFontScaling={state.allowFontScaling}
         messageType={state.messageType}
@@ -479,7 +479,7 @@ export const previewOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFo
     serviceDecoration: {
       react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <ServiceDecoration
-          json={node['content'] as any as string}
+          json={node['content'] as unknown as string}
           key={state.key}
           allowFontScaling={state.allowFontScaling}
           styleOverride={state.styleOverride}
@@ -514,7 +514,7 @@ export const serviceOnlyOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outp
     serviceDecoration: {
       react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <ServiceDecoration
-          json={node['content'] as any as string}
+          json={node['content'] as unknown as string}
           key={state.key}
           allowFontScaling={state.allowFontScaling}
           styleOverride={state.styleOverride}
@@ -564,7 +564,7 @@ export const serviceOnlyNoWrapOutput: SM.Output<React.ReactNode> = SimpleMarkdow
     serviceDecoration: {
       react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <ServiceDecoration
-          json={node['content'] as any as string}
+          json={node['content'] as unknown as string}
           key={state.key}
           allowFontScaling={state.allowFontScaling}
           styleOverride={state.styleOverride}

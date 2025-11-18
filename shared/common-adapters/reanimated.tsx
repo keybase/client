@@ -4,7 +4,7 @@ import type * as R from 'react-native-reanimated'
 
 let useSharedValue: typeof R.useSharedValue
 let withRepeat: typeof R.withRepeat
-let useAnimatedStyle: <T extends () => Record<string, any>>(arg: T) => ReturnType<T>
+let useAnimatedStyle: <T extends () => Record<string, unknown>>(arg: T) => ReturnType<T>
 let withTiming: typeof R.withTiming
 let withDelay: typeof R.withDelay
 let useAnimatedScrollHandler: typeof R.useAnimatedScrollHandler
