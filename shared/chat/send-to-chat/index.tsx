@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import * as Constants from '@/constants/fs'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
@@ -35,7 +34,7 @@ const MobileSendToChatRoutable = (props: Props) => {
             Cancel
           </Kb.Text>
         ),
-        title: Constants.getSharePathArrayDescription(sendPaths || []),
+        title: C.FS.getSharePathArrayDescription(sendPaths || []),
       }}
     >
       <MobileSendToChat

@@ -1,11 +1,10 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {Input, InputActionsBar, DragAndDrop, OperationBanner} from '../input'
 import {OperationOutput, SignedSender, OutputActionsBar} from '../output'
 
-const operation = Constants.Operations.Verify
+const operation = C.Crypto.Operations.Verify
 
 export const VerifyInput = () => {
   const resetOperation = C.useCryptoState(s => s.dispatch.resetOperation)
@@ -28,7 +27,7 @@ export const VerifyInput = () => {
   return C.isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.inputDesktopMaxHeight}>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={C.Crypto.inputDesktopMaxHeight}>
       {content}
     </Kb.Box2>
   )
@@ -47,7 +46,7 @@ export const VerifyOutput = () => {
   return C.isMobile ? (
     content
   ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.outputDesktopMaxHeight}>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={C.Crypto.outputDesktopMaxHeight}>
       {content}
     </Kb.Box2>
   )

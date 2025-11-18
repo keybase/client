@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -121,7 +120,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const deviceID = device?.deviceID
   const deviceName = device?.name ?? ''
   const type = device?.type ?? 'desktop'
-  const iconNumber = Constants.useDeviceIconNumber(selectedDeviceID)
+  const iconNumber = C.Devices.useDeviceIconNumber(selectedDeviceID)
   const waiting = C.Waiting.useAnyWaiting(C.Devices.waitingKey)
   const onSubmit = useRevoke(deviceID)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

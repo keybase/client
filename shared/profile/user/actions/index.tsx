@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/tracker2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -10,7 +9,7 @@ type OwnProps = {username: string}
 
 const Container = (ownProps: OwnProps) => {
   const username = ownProps.username
-  const d = C.useTrackerState(s => Constants.getDetails(s, username))
+  const d = C.useTrackerState(s => C.Tracker.getDetails(s, username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const isBot = C.useBotsState(s => s.featuredBotsMap.has(username))
@@ -106,7 +105,7 @@ const Container = (ownProps: OwnProps) => {
           key="Unfollow"
           following={true}
           onUnfollow={onUnfollow}
-          waitingKey={Constants.waitingKey}
+          waitingKey={C.Tracker.waitingKey}
         />,
         chatButton,
         dropdown,
@@ -118,19 +117,19 @@ const Container = (ownProps: OwnProps) => {
           key="Accept"
           type="Success"
           label="Accept"
-          waitingKey={Constants.waitingKey}
+          waitingKey={C.Tracker.waitingKey}
           onClick={onAccept}
         />,
         dropdown,
       ]
     } else {
       buttons = [
-        <Kb.WaitingButton key="Reload" label="Reload" waitingKey={Constants.waitingKey} onClick={onReload} />,
+        <Kb.WaitingButton key="Reload" label="Reload" waitingKey={C.Tracker.waitingKey} onClick={onReload} />,
         <Kb.WaitingButton
           key="Accept"
           type="Success"
           label="Accept"
-          waitingKey={Constants.waitingKey}
+          waitingKey={C.Tracker.waitingKey}
           onClick={onAccept}
         />,
         dropdown,
@@ -139,7 +138,7 @@ const Container = (ownProps: OwnProps) => {
   } else {
     if (state === 'error') {
       buttons = [
-        <Kb.WaitingButton key="Reload" label="Reload" waitingKey={Constants.waitingKey} onClick={onReload} />,
+        <Kb.WaitingButton key="Reload" label="Reload" waitingKey={C.Tracker.waitingKey} onClick={onReload} />,
         chatButton,
         dropdown,
       ]
@@ -150,7 +149,7 @@ const Container = (ownProps: OwnProps) => {
           following={false}
           followsYou={followsYou}
           onFollow={onFollow}
-          waitingKey={Constants.waitingKey}
+          waitingKey={C.Tracker.waitingKey}
         />,
         chatButton,
         dropdown,

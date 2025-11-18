@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {isMobile} from '@/constants/platform'
 
 const Container = () => {
   const error = C.useProvisionState(s => s.error)
@@ -52,7 +51,7 @@ export const PaperKey = (props: Props) => {
       ]}
       noBackground={true}
       onBack={props.onBack}
-      title={isMobile ? 'Enter paper key' : 'Enter your paper key'}
+      title={C.isMobile ? 'Enter paper key' : 'Enter your paper key'}
     >
       <Kb.Box2
         direction="vertical"

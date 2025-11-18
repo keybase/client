@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import * as React from 'react'
@@ -17,10 +16,10 @@ type OwnProps = {path: T.FS.Path}
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
-  const _pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
-  const resetBannerType = C.useFSState(s => Constants.resetBannerType(s, path))
+  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
+  const resetBannerType = C.useFSState(s => C.FS.resetBannerType(s, path))
   const props = {
-    offlineUnsynced: Constants.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
+    offlineUnsynced: C.FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
     path,
     resetBannerType,
     writable: _pathItem.writable,
@@ -80,7 +79,7 @@ const DragAndDrop = React.memo(function DragAndDrop(p: {
 })
 
 const BrowserContent = React.memo(function BrowserContent(props: Props) {
-  const parsedPath = Constants.parsePath(props.path)
+  const parsedPath = C.FS.parsePath(props.path)
   if (parsedPath.kind === T.FS.PathKind.Root) {
     return (
       <DragAndDrop path={props.path} rejectReason="You can only drop files inside a folder.">

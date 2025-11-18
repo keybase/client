@@ -1,5 +1,4 @@
 import * as C from '..'
-import * as Constants from '@/constants/fs'
 import * as T from '../types'
 import logger from '@/logger'
 import nativeInit from './common.native'
@@ -38,11 +37,11 @@ export default function initPlatformSpecific() {
 
           const {downloads} = C.useFSState.getState()
 
-          const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
-          const downloadInfo = downloads.info.get(downloadID) || Constants.emptyDownloadInfo
+          const downloadState = downloads.state.get(downloadID) || C.FS.emptyDownloadState
+          const downloadInfo = downloads.info.get(downloadID) || C.FS.emptyDownloadInfo
           if (
-            downloadState === Constants.emptyDownloadState ||
-            downloadInfo === Constants.emptyDownloadInfo
+            downloadState === C.FS.emptyDownloadState ||
+            downloadInfo === C.FS.emptyDownloadInfo
           ) {
             logger.warn('missing download', downloadID)
             return

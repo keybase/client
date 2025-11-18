@@ -1,8 +1,6 @@
 import * as C from '@/constants'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Platform from '@/constants/platform'
-import {encryptTab} from '@/constants/crypto'
 import {keybaseFM} from '@/constants/whats-new'
 import NewFeatureRow from './new-feature-row'
 
@@ -83,13 +81,13 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
       </NewFeatureRow>
       <NewFeatureRow image="release-5.3.0-open-teams" seen={seen}>
         You can now search for open teams using chat search
-        {Platform.isElectron ? (Platform.isDarwin ? ` (⌘K)` : ` (ctrl-K)`) : null} in Chat.
+        {C.isElectron ? (C.isDarwin ? ` (⌘K)` : ` (ctrl-K)`) : null} in Chat.
       </NewFeatureRow>
       <NewFeatureRow
         image="release-5.2.0-crypto"
         noSeparator={true}
         onPrimaryButtonClick={() => {
-          onNavigate(Platform.isMobile ? C.Settings.settingsCryptoTab : encryptTab)
+          onNavigate(C.isMobile ? C.Settings.settingsCryptoTab : C.Crypto.encryptTab)
         }}
         primaryButtonText="Try it"
         seen={seen}

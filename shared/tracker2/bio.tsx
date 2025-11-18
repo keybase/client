@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/tracker2'
 import * as Kb from '@/common-adapters'
 
 type OwnProps = {
@@ -11,7 +10,7 @@ const Container = (ownProps: OwnProps) => {
   const {inTracker, username} = ownProps
   const stateProps = C.useTrackerState(
     C.useShallow(s => {
-      const d = Constants.getDetails(s, username)
+      const d = C.Tracker.getDetails(s, username)
       const common = {
         blocked: d.blocked,
         followThem: undefined,
@@ -24,7 +23,7 @@ const Container = (ownProps: OwnProps) => {
       }
 
       if (d.state === 'notAUserYet') {
-        const nonUser = Constants.getNonUserDetails(s, username)
+        const nonUser = C.Tracker.getNonUserDetails(s, username)
         return {
           ...common,
           bio: nonUser.bio,

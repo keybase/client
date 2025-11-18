@@ -1,12 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import openURL from '@/util/open-url'
 import {Input, DragAndDrop, OperationBanner, InputActionsBar} from '../input'
 import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
 
-const operation = Constants.Operations.Sign
+const operation = C.Crypto.Operations.Sign
 
 const SignOutputBanner = () => {
   const outputType = C.useCryptoState(s => s.sign.outputType)
@@ -17,7 +16,7 @@ const SignOutputBanner = () => {
         <Kb.Text
           type="BodySecondaryLink"
           underline={true}
-          onClick={() => openURL(Constants.saltpackDocumentation)}
+          onClick={() => openURL(C.Crypto.saltpackDocumentation)}
         >
           Saltpack
         </Kb.Text>
@@ -53,7 +52,7 @@ export const SignInput = () => {
   return C.isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.inputDesktopMaxHeight}>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={C.Crypto.inputDesktopMaxHeight}>
       {content}
     </Kb.Box2>
   )
@@ -72,7 +71,7 @@ export const SignOutput = () => {
   return C.isMobile ? (
     content
   ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.outputDesktopMaxHeight}>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={C.Crypto.outputDesktopMaxHeight}>
       {content}
     </Kb.Box2>
   )

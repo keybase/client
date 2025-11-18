@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Constants from '@/constants/tracker2'
 import type * as T from '@/constants/types'
 import openUrl from '@/util/open-url'
 import * as Kb from '@/common-adapters'
@@ -37,19 +36,19 @@ const Container = (ownProps: OwnProps) => {
   const isYours = C.useCurrentUserState(s => ownProps.username === s.username)
   const data = C.useTrackerState(
     C.useShallow(s => {
-      let val = Constants.noAssertion
+      let val = C.Tracker.noAssertion
       let stellarHidden = false
       let notAUser = false as boolean
       if (ownProps.isSuggestion) {
-        val = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || Constants.noAssertion
+        val = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || C.Tracker.noAssertion
       } else {
-        const d = Constants.getDetails(s, ownProps.username)
+        const d = C.Tracker.getDetails(s, ownProps.username)
         if (isYours && d.stellarHidden) {
           stellarHidden = true
         }
         notAUser = d.state === 'notAUserYet'
         if (notAUser) {
-          const nonUserDetails = Constants.getNonUserDetails(s, ownProps.username)
+          const nonUserDetails = C.Tracker.getNonUserDetails(s, ownProps.username)
           val = {
             ...notAUserAssertion,
             siteIcon: nonUserDetails.siteIcon,
@@ -61,7 +60,7 @@ const Container = (ownProps: OwnProps) => {
             value: nonUserDetails.assertionValue,
           }
         } else if (d.assertions) {
-          val = d.assertions.get(ownProps.assertionKey) || Constants.noAssertion
+          val = d.assertions.get(ownProps.assertionKey) || C.Tracker.noAssertion
         }
       }
       return {...val, notAUser, stellarHidden}

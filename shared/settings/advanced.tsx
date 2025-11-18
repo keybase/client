@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/settings'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -72,11 +71,11 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
 let disableSpellCheckInitialValue: boolean | undefined
 
 const Advanced = () => {
-  const settingLockdownMode = C.Waiting.useAnyWaiting(Constants.setLockdownModeWaitingKey)
+  const settingLockdownMode = C.Waiting.useAnyWaiting(C.Settings.setLockdownModeWaitingKey)
   const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
   const openAtLogin = C.useConfigState(s => s.openAtLogin)
   const rememberPassword = C.useSettingsPasswordState(s => s.rememberPassword)
-  const setLockdownModeError = C.Waiting.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
+  const setLockdownModeError = C.Waiting.useAnyErrors(C.Settings.setLockdownModeWaitingKey)?.message || ''
   const setRememberPassword = C.useSettingsPasswordState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
   const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
@@ -216,12 +215,12 @@ const Developer = () => {
     })
 
   const showPprofControls = clickCount >= clickThreshold
-  const traceInProgress = C.Waiting.useAnyWaiting(Constants.traceInProgressKey)
+  const traceInProgress = C.Waiting.useAnyWaiting(C.Settings.traceInProgressKey)
 
   const trace = C.useSettingsState(s => s.dispatch.trace)
   const processorProfile = C.useSettingsState(s => s.dispatch.processorProfile)
   const onTrace = trace
-  const processorProfileInProgress = C.Waiting.useAnyWaiting(Constants.processorProfileInProgressKey)
+  const processorProfileInProgress = C.Waiting.useAnyWaiting(C.Settings.processorProfileInProgressKey)
   const onProcessorProfile = processorProfile
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDBNuke = () => navigateAppend('dbNukeConfirm')

@@ -1,5 +1,4 @@
 import * as C from '..'
-import * as Constants from '@/constants/fs'
 import logger from '@/logger'
 import * as T from '../types'
 import * as Styles from '@/styles'
@@ -18,7 +17,7 @@ export default function initNative() {
               C.useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(r.uri))
             )
           } catch (e) {
-            Constants.errorToActionOrThrow(e)
+            C.FS.errorToActionOrThrow(e)
           }
         }
         C.ignorePromise(f())
@@ -29,8 +28,8 @@ export default function initNative() {
       (downloadID: string, downloadIntent: T.FS.DownloadIntent, mimeType: string) => {
         const f = async () => {
           const {downloads, dispatch} = C.useFSState.getState()
-          const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
-          if (downloadState === Constants.emptyDownloadState) {
+          const downloadState = downloads.state.get(downloadID) || C.FS.emptyDownloadState
+          if (downloadState === C.FS.emptyDownloadState) {
             logger.warn('missing download', downloadID)
             return
           }
@@ -57,7 +56,7 @@ export default function initNative() {
                 return
             }
           } catch (err) {
-            Constants.errorToActionOrThrow(err)
+            C.FS.errorToActionOrThrow(err)
           }
         }
         C.ignorePromise(f())

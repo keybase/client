@@ -1,4 +1,4 @@
-import {isMobile} from '@/constants/platform'
+import * as C from '@/constants'
 import libphonenumber from 'google-libphonenumber'
 
 const PNF = libphonenumber.PhoneNumberFormat
@@ -57,7 +57,7 @@ const load = () => {
         example: phoneUtil.format(phoneUtil.getExampleNumber(curr.alpha2), PNF.NATIONAL),
         name: curr.name,
         pickerText:
-          (isMobile ? `${curr.emoji} ` : '') +
+          (C.isMobile ? `${curr.emoji} ` : '') +
           `${curr.name} ${curr.countryCallingCodes[0]?.replace(' ', '\xa0') ?? ''}`,
       }
 

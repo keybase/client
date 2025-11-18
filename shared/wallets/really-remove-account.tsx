@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/wallets'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -9,7 +8,7 @@ type OwnProps = {accountID: string}
 
 const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const {accountID} = props
-  const waiting = C.Waiting.useAnyWaiting(Constants.loadAccountsWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Wallets.loadAccountsWaitingKey)
   const name = C.useWalletsState(s => s.accountMap.get(accountID)?.name) ?? ''
   const [showingToast, setShowToast] = React.useState(false)
   const attachmentRef = React.useRef<Kb.MeasureRef | null>(null)
@@ -142,5 +141,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default ReallyRemoveAccountPopup
+
 
 

@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {isMobile} from '@/constants/platform'
 
 const addSpacer = (into: string, add: string) => {
   return into + (into.length ? ' • ' : '') + add
@@ -125,7 +124,7 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
 
   let subtitle = ''
 
-  if (isMobile && hasRecentVerifyEmail && !verified) {
+  if (C.isMobile && hasRecentVerifyEmail && !verified) {
     subtitle = 'Check your inbox'
   } else {
     if (hasRecentVerifyEmail && !verified) {

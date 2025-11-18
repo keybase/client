@@ -3,7 +3,6 @@ import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Data from '@/util/emoji'
 import * as Kb from '@/common-adapters'
-import {isMobile} from '@/constants/platform'
 import chunk from 'lodash/chunk'
 import {
   emojiDataToRenderableEmoji,
@@ -69,7 +68,7 @@ const getFrequentSection = (
   }
 }
 
-const singleEmojiWidth = isMobile ? 32 : 26
+const singleEmojiWidth = C.isMobile ? 32 : 26
 const emojiPadding = 5
 const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
 const maxEmojiSearchResults = 50

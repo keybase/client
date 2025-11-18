@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import * as SignupConstants from '@/constants/signup'
 import type {RPCError} from '@/util/errors'
 import * as Kb from '@/common-adapters'
 import UserCard from '@/login/user-card'
@@ -22,7 +21,7 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
         inlineSignUpLink = true
         break
       case T.RPCGen.StatusCode.scbadusername:
-        inlineError = SignupConstants.usernameHint
+        inlineError = C.Signup.usernameHint
         inlineSignUpLink = false
         break
       default:

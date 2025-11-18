@@ -3,12 +3,10 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 import {globalColors} from '@/styles'
-import {isPathSaltpack} from '@/constants/crypto'
 import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {getEditStyle, ShowToastAfterSaving} from './shared'
-import * as CryptoConstants from '@/constants/crypto'
 
 type OwnProps = {showPopup: () => void}
 
@@ -106,16 +104,16 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
 
   const errorMsg = transferErrMsg || ''
   const fileName = _fileName ?? ''
-  const isSaltpackFile = !!fileName && isPathSaltpack(fileName)
+  const isSaltpackFile = !!fileName && C.Crypto.isPathSaltpack(fileName)
   const onShowInFinder = !C.isMobile && downloadPath ? _onShowInFinder : undefined
   const showMessageMenu = p.showPopup
 
   const progressLabel = C.Chat.messageAttachmentTransferStateToProgressLabel(transferState)
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
-  const operation = CryptoConstants.isPathSaltpackEncrypted(fileName)
-    ? CryptoConstants.Operations.Decrypt
-    : CryptoConstants.isPathSaltpackSigned(fileName)
-      ? CryptoConstants.Operations.Verify
+  const operation = C.Crypto.isPathSaltpackEncrypted(fileName)
+    ? C.Crypto.Operations.Decrypt
+    : C.Crypto.isPathSaltpackSigned(fileName)
+      ? C.Crypto.Operations.Verify
       : undefined
   const operationTitle = captialize(operation)
 

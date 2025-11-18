@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/tracker2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -11,7 +10,7 @@ type OwnProps = {username: string}
 const noTeams = new Array<T.Tracker.TeamShowcase>()
 
 const Container = (ownProps: OwnProps) => {
-  const d = C.useTrackerState(s => Constants.getDetails(s, ownProps.username))
+  const d = C.useTrackerState(s => C.Tracker.getDetails(s, ownProps.username))
   const _isYou = C.useCurrentUserState(s => s.username === ownProps.username)
   const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
   const _teamNameToID = C.useTeamsState(s => s.teamNameToID)

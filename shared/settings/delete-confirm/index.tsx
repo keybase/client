@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {androidIsTestDevice} from '@/constants/platform'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 type CheckboxesProps = {
@@ -44,7 +43,7 @@ const DeleteConfirm = () => {
   const onCancel = () => nav.safeNavigateUp()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteForever = () => {
-    if (androidIsTestDevice) {
+    if (C.androidIsTestDevice) {
       // dont do this in a preflight test
       return
     }

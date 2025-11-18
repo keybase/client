@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -12,7 +11,7 @@ type Props = {
 
 const FsNavHeaderRightActions = (props: Props) => {
   const softErrors = C.useFSState(s => s.softErrors)
-  const hasSoftError = !!Constants.getSoftError(softErrors, props.path)
+  const hasSoftError = !!C.FS.getSoftError(softErrors, props.path)
   const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
   React.useEffect(() => {
     !Kb.Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx

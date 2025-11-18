@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {useSafeSubmit} from '@/util/safe-submit'
-import * as Constants from '@/constants/settings'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {UpdatePassword} from './password'
@@ -10,7 +9,7 @@ const LogoutContainer = () => {
   const resetCheckPassword = C.useSettingsState(s => s.dispatch.resetCheckPassword)
   const checkPassword = C.useSettingsState(s => s.dispatch.checkPassword)
   const hasRandomPW = C.useSettingsPasswordState(s => s.randomPW)
-  const waitingForResponse = C.Waiting.useAnyWaiting(Constants.settingsWaitingKey)
+  const waitingForResponse = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
 
   const loadHasRandomPw = C.useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
 
@@ -97,7 +96,7 @@ const LogoutContainer = () => {
           <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
               fullWidth={true}
-              waitingKey={Constants.checkPasswordWaitingKey}
+              waitingKey={C.Settings.checkPasswordWaitingKey}
               disabled={!password || loggingOut}
               label="Test password"
               onClick={() => onCheckPassword(password)}

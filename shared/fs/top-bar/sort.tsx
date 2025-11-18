@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -34,9 +33,9 @@ const Container = (ownProps: OwnProps) => {
   const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
 
   const setSorting = C.useFSState(s => s.dispatch.setSorting)
-  const _sortSetting = C.useFSState(s => Constants.getPathUserSetting(s.pathUserSettings, path).sort)
+  const _sortSetting = C.useFSState(s => C.FS.getPathUserSetting(s.pathUserSettings, path).sort)
 
-  const sortSetting = Constants.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined
+  const sortSetting = C.FS.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p

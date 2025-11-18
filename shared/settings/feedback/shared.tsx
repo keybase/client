@@ -1,6 +1,5 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Constants from '@/constants/settings'
 import * as React from 'react'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
@@ -33,7 +32,7 @@ export const useSendFeedback = () => {
             sendMaxBytes,
             statusJSON: JSON.stringify(extra),
           },
-          Constants.sendFeedbackWaitingKey
+          C.Settings.sendFeedbackWaitingKey
         )
         logger.info('logSendId is', logSendId)
       } catch (error) {

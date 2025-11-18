@@ -1,13 +1,10 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as Path from '@/util/path'
-import * as Platforms from '@/constants/platform'
 import * as React from 'react'
 import capitalize from 'lodash/capitalize'
 import type * as T from '@/constants/types'
 import {getStyle} from '@/common-adapters/text'
-import {humanizeBytes} from '@/constants/fs'
 import {pickFiles} from '@/util/pick-files'
 import type HiddenString from '@/util/hidden-string'
 
@@ -27,7 +24,7 @@ const largeOutputLimit = 120
 
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
-  const waiting = C.Waiting.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Crypto.waitingKey)
 
   const {
     outputSigned: signed,
@@ -42,7 +39,7 @@ export const SignedSender = (props: SignedSenderProps) => {
     })
   )
 
-  const isSelfSigned = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
+  const isSelfSigned = operation === C.Crypto.Operations.Encrypt || operation === C.Crypto.Operations.Sign
   const avatarSize = isSelfSigned ? 16 : Kb.Styles.isMobile ? 32 : 48
   const usernameType = isSelfSigned ? 'BodySmallBold' : 'BodyBold'
 
@@ -136,7 +133,7 @@ const OutputProgress = (props: OutputProgressProps) => {
   return inProgress ? (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
       <Kb.ProgressBar ratio={ratio} style={styles.progressBar} />
-      <Kb.Text type="Body">{`${humanizeBytes(bytesComplete, 1)} / ${humanizeBytes(bytesTotal, 1)}`}</Kb.Text>
+      <Kb.Text type="Body">{`${C.FS.humanizeBytes(bytesComplete, 1)} / ${C.FS.humanizeBytes(bytesTotal, 1)}`}</Kb.Text>
     </Kb.Box2>
   ) : null
 }
@@ -159,11 +156,11 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
 
 export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const {operation} = props
-  const canSaveAsText = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
+  const canSaveAsText = operation === C.Crypto.Operations.Encrypt || operation === C.Crypto.Operations.Sign
   const canReplyInChat =
-    operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
+    operation === C.Crypto.Operations.Decrypt || operation === C.Crypto.Operations.Verify
 
-  const waiting = C.Waiting.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Crypto.waitingKey)
 
   const {
     output,
@@ -205,12 +202,12 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const downloadEncryptedText = C.useCryptoState(s => s.dispatch.downloadEncryptedText)
 
   const onSaveAsText = () => {
-    if (operation === Constants.Operations.Sign) {
+    if (operation === C.Crypto.Operations.Sign) {
       downloadSignedText()
       return
     }
 
-    if (operation === Constants.Operations.Encrypt) {
+    if (operation === C.Crypto.Operations.Encrypt) {
       downloadEncryptedText()
       return
     }
@@ -316,7 +313,7 @@ const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
         allowDirectories: true,
         allowFiles: false,
         buttonLabel: 'Select',
-        ...(Platforms.isDarwin ? {defaultPath} : {}),
+        ...(C.isDarwin ? {defaultPath} : {}),
       })
       if (!filePaths.length) return
       const path = filePaths[0]!
@@ -378,11 +375,11 @@ export const OperationOutput = (props: OutputProps) => {
     openLocalPathInSystemFileManagerDesktop?.(output)
   }
 
-  const waiting = C.Waiting.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Crypto.waitingKey)
 
   // Output text can be 24 px when output is less that 120 characters
   const outputTextIsLarge =
-    operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
+    operation === C.Crypto.Operations.Decrypt || operation === C.Crypto.Operations.Verify
   const {fontSize, lineHeight} = getStyle('HeaderBig')
   const outputLargeStyle = outputTextIsLarge &&
     output &&

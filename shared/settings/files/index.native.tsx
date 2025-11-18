@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import useFiles from './hooks'
 type Props = ReturnType<typeof useFiles>
@@ -11,7 +10,7 @@ export const defaultNotificationThreshold = 100 * 1024 ** 2
 
 const ThresholdDropdown = (p: Pick<Props, 'spaceAvailableNotificationThreshold'>) => {
   const allowedThresholds = allowedNotificationThresholds.map(
-    i => ({label: Constants.humanizeBytes(i, 0), value: i}) as const
+    i => ({label: C.FS.humanizeBytes(i, 0), value: i}) as const
   )
   const setSpaceAvailableNotificationThreshold = C.useFSState(
     s => s.dispatch.setSpaceAvailableNotificationThreshold
@@ -22,7 +21,7 @@ const ThresholdDropdown = (p: Pick<Props, 'spaceAvailableNotificationThreshold'>
   )
   const [visible, setVisible] = React.useState(false)
 
-  const humanizedNotificationThreshold = Constants.humanizeBytes(
+  const humanizedNotificationThreshold = C.FS.humanizeBytes(
     spaceAvailableNotificationThreshold || defaultNotificationThreshold,
     0
   )
@@ -73,12 +72,12 @@ const Files = () => {
   const toggleSyncOnCellular = () => {
     T.RPCGen.SimpleFSSimpleFSSetSyncOnCellularRpcPromise(
       {syncOnCellular: !syncOnCellular},
-      Constants.setSyncOnCellularWaitingKey
+      C.FS.setSyncOnCellularWaitingKey
     )
       .then(() => {})
       .catch(() => {})
   }
-  const waitingToggleSyncOnCellular = C.Waiting.useAnyWaiting(Constants.setSyncOnCellularWaitingKey)
+  const waitingToggleSyncOnCellular = C.Waiting.useAnyWaiting(C.FS.setSyncOnCellularWaitingKey)
   return (
     <Kb.Box2
       direction="vertical"

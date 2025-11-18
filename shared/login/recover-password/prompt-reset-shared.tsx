@@ -5,7 +5,6 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {SignupScreen} from '@/signup/common'
 import type {ButtonType} from '@/common-adapters/button'
-import {androidIsTestDevice} from '@/constants/platform'
 
 export type Props = {
   resetPassword?: boolean
@@ -24,7 +23,7 @@ const PromptReset = (props: Props) => {
 
   const onContinue = React.useCallback(() => {
     // dont do this in preflight
-    if (androidIsTestDevice) {
+    if (C.androidIsTestDevice) {
       nav.safeNavigateUp()
       return
     }

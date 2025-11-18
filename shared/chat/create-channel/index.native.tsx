@@ -1,5 +1,5 @@
-import * as Constants from '@/constants/teams'
 import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import type {Props} from './index'
 import useHook from './hooks'
 
@@ -37,7 +37,7 @@ const CreateChannel = (p: Props) => {
           </Kb.Box2>
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
-              waitingKey={Constants.createChannelWaitingKey(props.teamID)}
+              waitingKey={C.Teams.createChannelWaitingKey(props.teamID)}
               onClick={props.onSubmit}
               label="Save"
             />

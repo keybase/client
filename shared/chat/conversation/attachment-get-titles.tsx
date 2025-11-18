@@ -3,7 +3,6 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
-import {isPathHEIC} from '@/constants/chat2'
 
 type OwnProps = {
   pathAndOutboxIDs: Array<T.Chat.PathAndOutboxID>
@@ -146,7 +145,7 @@ const Container = (ownProps: OwnProps) => {
       preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
       break
     default: {
-      if (C.isIOS && path && isPathHEIC(path)) {
+      if (C.isIOS && path && C.Chat.isPathHEIC(path)) {
         preview = <Kb.ZoomableImage src={path} style={styles.image} boxCacheKey="getTitlesHeicImg" />
       } else {
         preview = (

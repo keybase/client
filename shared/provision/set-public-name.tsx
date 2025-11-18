@@ -1,9 +1,6 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/provision'
 import {useSafeSubmit} from '@/util/safe-submit'
-import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
-import * as Platform from '@/constants/platform'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
@@ -22,39 +19,39 @@ const SetPublicName = () => {
     [waiting, psetDeviceName]
   )
   const deviceNumbers = devices
-    .filter(d => d.type === (Platform.isMobile ? 'mobile' : 'desktop'))
+    .filter(d => d.type === (C.isMobile ? 'mobile' : 'desktop'))
     .map(d => d.deviceNumberOfType)
   const maxDeviceNumber = deviceNumbers.length > 0 ? Math.max(...deviceNumbers) : -1
-  const deviceIconNumber = ((maxDeviceNumber + 1) % Devices.numBackgrounds) + 1
+  const deviceIconNumber = ((maxDeviceNumber + 1) % C.Devices.numBackgrounds) + 1
 
   const [deviceName, setDeviceName] = React.useState(C.Signup.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const debouncedSetReadyToShowError = debounce((ready: boolean) => setReadyToShowError(ready), 1000)
-  const cleanDeviceName = Constants.cleanDeviceName(deviceName)
-  const normalized = cleanDeviceName.replace(Constants.normalizeDeviceRE, '')
+  const cleanDeviceName = C.Provision.cleanDeviceName(deviceName)
+  const normalized = cleanDeviceName.replace(C.Provision.normalizeDeviceRE, '')
   const disabled =
     normalized.length < 3 ||
     normalized.length > 64 ||
-    !Constants.goodDeviceRE.test(cleanDeviceName) ||
-    Constants.badDeviceRE.test(cleanDeviceName)
+    !C.Provision.goodDeviceRE.test(cleanDeviceName) ||
+    C.Provision.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const onSubmit = React.useCallback(() => {
-    ponSubmit(Constants.cleanDeviceName(cleanDeviceName))
+    ponSubmit(C.Provision.cleanDeviceName(cleanDeviceName))
   }, [cleanDeviceName, ponSubmit])
   const _setDeviceName = (deviceName: string) => {
     setReadyToShowError(false)
-    setDeviceName(deviceName.replace(Constants.badDeviceChars, ''))
+    setDeviceName(deviceName.replace(C.Provision.badDeviceChars, ''))
     debouncedSetReadyToShowError(true)
   }
 
   const maybeIcon = Kb.Styles.isMobile
-    ? Platform.isLargeScreen
+    ? C.isLargeScreen
       ? `icon-phone-background-${deviceIconNumber}-96`
       : `icon-phone-background-${deviceIconNumber}-64`
     : `icon-computer-background-${deviceIconNumber}-96`
 
   const defaultIcon = Kb.Styles.isMobile
-    ? Platform.isLargeScreen
+    ? C.isLargeScreen
       ? `icon-phone-96`
       : `icon-phone-64`
     : `icon-computer-96`
@@ -89,7 +86,7 @@ const SetPublicName = () => {
           />
           {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>
-              {Constants.deviceNameInstructions}
+              {C.Provision.deviceNameInstructions}
             </Kb.Text>
           ) : (
             <Kb.Text type="BodySmall">

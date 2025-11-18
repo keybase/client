@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Constants from '@/constants/tracker2'
 import * as Styles from '@/styles'
+import * as C from '@/constants'
 import OpenMeta from './openmeta'
 import FloatingMenu from '@/common-adapters/floating-menu'
 import ConnectedUsernames from '@/common-adapters/usernames'
@@ -92,7 +92,7 @@ const TeamInfo = (props: Props) => {
           </Kb.Text>
           {props.onChat && (
             <Kb.WaitingButton
-              waitingKey={Constants.waitingKey}
+              waitingKey={C.Tracker.waitingKey}
               label="Chat"
               onClick={_onChat}
               mode="Secondary"
@@ -100,14 +100,14 @@ const TeamInfo = (props: Props) => {
           )}
           {/* With teamsRedesign we have external team page, always show view team button */}
           <Kb.WaitingButton
-            waitingKey={Constants.waitingKey}
+            waitingKey={C.Tracker.waitingKey}
             label="View team"
             onClick={_onViewTeam}
             mode="Secondary"
           />
           {!props.inTeam && (
             <Kb.WaitingButton
-              waitingKey={Constants.waitingKey}
+              waitingKey={C.Tracker.waitingKey}
               label={requested ? 'Requested!' : props.isOpen ? 'Join team' : 'Request to join'}
               onClick={requested ? undefined : _onJoinTeam}
               type={props.isOpen ? 'Success' : 'Default'}

@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as Constants from '@/constants/fs'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import * as Kbfs from '@/fs/common'
@@ -27,7 +26,7 @@ const SyncNotificationSetting = (
       <Kb.Dropdown
         items={allowedNotificationThresholds.map(i => (
           <Kb.Text type="Body" key={i}>
-            {Constants.humanizeBytes(i, 0)}
+            {C.FS.humanizeBytes(i, 0)}
           </Kb.Text>
         ))}
         onChangedIdx={onChangedSyncNotifications}
@@ -38,7 +37,7 @@ const SyncNotificationSetting = (
             key={spaceAvailableNotificationThreshold || defaultNotificationThreshold}
           >
             <Kb.Text type="Body">
-              {Constants.humanizeBytes(
+              {C.FS.humanizeBytes(
                 spaceAvailableNotificationThreshold || defaultNotificationThreshold,
                 0
               )}

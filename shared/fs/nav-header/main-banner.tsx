@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 
@@ -63,7 +62,7 @@ const ConnectedBanner = () => {
   }
 
   const props = {
-    bannerType: Constants.getMainBannerType(_kbfsDaemonStatus, _overallSyncStatus),
+    bannerType: C.FS.getMainBannerType(_kbfsDaemonStatus, _overallSyncStatus),
     onRetry,
   }
   return <Banner {...props} />

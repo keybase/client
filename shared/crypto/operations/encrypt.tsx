@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Recipients from '../recipients'
@@ -7,7 +6,7 @@ import openURL from '@/util/open-url'
 import {DragAndDrop, Input, InputActionsBar, OperationBanner} from '../input'
 import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
 
-const operation = Constants.Operations.Encrypt
+const operation = C.Crypto.Operations.Encrypt
 
 const EncryptOptions = React.memo(function EncryptOptions() {
   const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = C.useCryptoState(
@@ -82,7 +81,7 @@ const EncryptOutputBanner = () => {
       content={[
         `This is your encrypted ${outputType === 'file' ? 'file' : 'message'}, using `,
         {
-          onClick: () => openURL(Constants.saltpackDocumentation),
+          onClick: () => openURL(C.Crypto.saltpackDocumentation),
           text: 'Saltpack',
         },
         '.',
@@ -158,7 +157,7 @@ export const EncryptInput = () => {
   return C.isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.inputDesktopMaxHeight}>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={C.Crypto.inputDesktopMaxHeight}>
       {content}
     </Kb.Box2>
   )
@@ -168,7 +167,7 @@ export const EncryptOutput = () => (
   <Kb.Box2
     direction="vertical"
     fullHeight={true}
-    style={C.isMobile ? undefined : Constants.outputDesktopMaxHeight}
+    style={C.isMobile ? undefined : C.Crypto.outputDesktopMaxHeight}
   >
     <EncryptOutputBanner />
     <SignedSender operation={operation} />

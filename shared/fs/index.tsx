@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import Browser from './browser'
 import {NormalPreview} from './filepreview'
@@ -17,7 +16,7 @@ type ChooseComponentProps = {
 const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview} = props
 
-  const fileContext = C.useFSState(s => s.fileContext.get(props.path) || Constants.emptyFileContext)
+  const fileContext = C.useFSState(s => s.fileContext.get(props.path) || C.FS.emptyFileContext)
   const bare = C.isMobile && fileContext.viewType === T.RPCGen.GUIViewType.image
   React.useEffect(() => {
     bare && emitBarePreview()
@@ -43,7 +42,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     case T.FS.PathType.Unknown:
       return <SimpleScreens.Loading />
     default:
-      if (fileContext === Constants.emptyFileContext) {
+      if (fileContext === C.FS.emptyFileContext) {
         // We don't have it yet, so don't render.
         return <SimpleScreens.Loading />
       }
@@ -68,7 +67,7 @@ const Connected = (ownProps: OwnProps) => {
     navigateUp()
     navigateAppend({props: {path}, selected: 'barePreview'})
   }
-  const isDefinitelyFolder = T.FS.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
+  const isDefinitelyFolder = T.FS.getPathElements(path).length <= 3 && !C.FS.hasSpecialFileElement(path)
   const props = {
     emitBarePreview: emitBarePreview,
     kbfsDaemonStatus: kbfsDaemonStatus,

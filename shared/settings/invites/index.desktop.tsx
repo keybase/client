@@ -4,7 +4,6 @@ import * as React from 'react'
 import SubHeading from '../subheading'
 import * as dateFns from 'date-fns'
 import * as C from '@/constants'
-import * as Constants from '@/constants/settings'
 
 // Like intersperse but takes a function to define the separator
 function intersperseFn<A, B>(
@@ -28,7 +27,7 @@ const Invites = () => {
   const acceptedInvites = C.useSettingsInvitesState(s => s.acceptedInvites)
   const error = C.useSettingsInvitesState(s => s.error)
   const pendingInvites = C.useSettingsInvitesState(s => s.pendingInvites)
-  const waitingForResponse = C.Waiting.useAnyWaiting(Constants.settingsWaitingKey)
+  const waitingForResponse = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
 
   const resetError = C.useSettingsInvitesState(s => s.dispatch.resetError)
   const sendInvite = C.useSettingsInvitesState(s => s.dispatch.sendInvite)

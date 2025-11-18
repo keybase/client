@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Platforms from '@/constants/platform'
 
 const HeaderNewChatButton = () => {
   const hide = C.useChatState(
@@ -21,7 +20,7 @@ const HeaderNewChatButton = () => {
       <Kb.Box2
         direction="vertical"
         style={styles.rainbowButtonContainer}
-        tooltip={`(${Platforms.shortcutSymbol}N)`}
+        tooltip={`(${C.shortcutSymbol}N)`}
         className="tooltip-right"
       >
         <Kb.Box2 direction="vertical" style={styles.gradientContainer} pointerEvents="none">

@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {isMobile} from '@/constants/platform'
 
 const Password = () => {
   const error = C.useProvisionState(s => s.error)
@@ -58,7 +57,7 @@ const Password = () => {
         },
       ]}
       onBack={onBack}
-      title={isMobile ? 'Enter password' : 'Enter your password'}
+      title={C.isMobile ? 'Enter password' : 'Enter your password'}
       contentContainerStyle={styles.contentContainer}
     >
       <Kb.ScrollView
