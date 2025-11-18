@@ -11,7 +11,7 @@ import {rimrafSync} from 'rimraf'
 const [, , command, ...rest] = process.argv
 
 type Command = {
-  code?: (info: Command, exec: (...a: Array<unknown>) => void) => void
+  code?: (info: Command, exec: (...a: Array<any>) => void) => void
   help?: string
   env?: object
   shell?: string

@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export function useSafeSubmit<F extends (...a: Array<unknown>) => void>(f: F, shouldReset: boolean) {
+export function useSafeSubmit<F extends (...a: Array<any>) => void>(f: F, shouldReset: boolean) {
   const safeToCallRef = React.useRef(true)
 
   React.useEffect(() => {

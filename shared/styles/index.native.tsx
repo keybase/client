@@ -54,7 +54,7 @@ export const globalStyles = {
 
 export const hairlineWidth = StyleSheet.hairlineWidth
 export const styleSheetCreate = (f: () => MapToStyles): unknown =>
-  styleSheetCreateProxy(f, o => StyleSheet.create(o as MapToStyles) as MapToStyles)
+  styleSheetCreateProxy(f, o => StyleSheet.create(o as any) as MapToStyles)
 // used to find specific styles to help debug perf
 export {isDarkMode}
 
