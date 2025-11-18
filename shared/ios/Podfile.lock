@@ -7,7 +7,7 @@ PODS:
   - EXImageLoader (6.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (54.0.24):
+  - Expo (54.0.25):
     - ExpoModulesCore
     - hermes-engine
     - RCTRequired
@@ -42,7 +42,7 @@ PODS:
     - ExpoModulesCore
   - ExpoContacts (15.0.10):
     - ExpoModulesCore
-  - ExpoFileSystem (19.0.18):
+  - ExpoFileSystem (19.0.19):
     - ExpoModulesCore
   - ExpoFont (14.0.9):
     - ExpoModulesCore
@@ -2537,12 +2537,12 @@ SPEC CHECKSUMS:
   EXAV: e3fefaca88f14624bca01d9a128562a5f8e738f8
   EXConstants: fd688cef4e401dcf798a021cfb5d87c890c30ba3
   EXImageLoader: 189e3476581efe3ad4d1d3fb4735b7179eb26f05
-  Expo: af2d1bb2d8692f0743a0f45a677014739f0809ba
+  Expo: c347cdb69706ea3de83da97ce956042aafd8e62a
   ExpoAsset: d839c8eae8124470332408427327e8f88beb2dfd
   ExpoCamera: 2a87c210f8955350ea5c70f1d539520b2fc5d940
   ExpoClipboard: af650d14765f19c60ce2a1eaf9dfe6445eff7365
   ExpoContacts: e3e99e2a1740395cb0c48b8d11e15d6ae10f671b
-  ExpoFileSystem: a67324b609244372efac5abb599f7f555b6584f0
+  ExpoFileSystem: 77157a101e03150a4ea4f854b4dd44883c93ae0a
   ExpoFont: cf9d90ec1d3b97c4f513211905724c8171f82961
   ExpoHaptics: 807476b0c39e9d82b7270349d6487928ce32df84
   ExpoImage: 9c3428921c536ab29e5c6721d001ad5c1f469566
