@@ -353,7 +353,7 @@ const styles = Kb.Styles.styleSheetCreate(
           fontSize: 15,
           lineHeight: 19,
         },
-      } as Kb.Styles.StylesCrossPlatform),
+      }),
       right: Kb.Styles.platformStyles({
         common: {
           flex: 1,

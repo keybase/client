@@ -658,10 +658,16 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
   })
   return (
     <>
-      <Kb.Box2Animated direction="vertical" style={[styles.lockHintStyle, arrowStyle as Kb.Styles.StylesCrossPlatform]}>
+      <Kb.Box2Animated
+        direction="vertical"
+        style={[styles.lockHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}
+      >
         <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
       </Kb.Box2Animated>
-      <Kb.Box2Animated direction="vertical" style={[styles.lockHintStyle, lockStyle as Kb.Styles.StylesCrossPlatform]}>
+      <Kb.Box2Animated
+        direction="vertical"
+        style={[styles.lockHintStyle, lockStyle as Kb.Styles._StylesCrossPlatform]}
+      >
         <Kb.Icon type="iconfont-lock" />
       </Kb.Box2Animated>
     </>

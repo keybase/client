@@ -190,7 +190,7 @@ class Engine {
   _rpcOutgoing(p: {
     method: string
     params: object
-    callback: (...args: Array<unknown>) => void
+    callback: (...args: Array<any>) => void
     incomingCallMap?: IncomingCallMapType
     customResponseIncomingCallMap?: CustomResponseIncomingCallMapType
     waitingKey?: WaitingKey

@@ -32,7 +32,7 @@ const styles = Styles.styleSheetCreate(() =>
 // Init common styles for perf
 
 const Text = React.memo(
-  React.forwardRef<RNText, Props>(function Text(p, ref) {
+  React.forwardRef<NativeText, Props>(function Text(p, ref) {
     const _urlClick = () => {
       p.onClickURL && openURL(p.onClickURL)
     }

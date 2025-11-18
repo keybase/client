@@ -28,7 +28,7 @@ function List2<T>(props: Props<T>) {
     const {itemHeight} = p
     return (
       <List
-        listRef={props.desktopRef as React.Ref<List>}
+        listRef={props.desktopRef as any}
         style={
           {
             height: '100%',

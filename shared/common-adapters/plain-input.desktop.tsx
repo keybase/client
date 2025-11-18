@@ -324,7 +324,7 @@ const PlainInput = React.memo(
           return null
         },
         isFocused: () => {
-          return !!inputRef.current && document.activeElement === (inputRef.current as Element)
+          return !!inputRef.current && document.activeElement === (inputRef.current as unknown)
         },
         setSelection,
         transformText,
@@ -338,7 +338,10 @@ const PlainInput = React.memo(
     return (
       <>
         {multiline ? (
-          <textarea {...restInputProps} ref={inputPropsRef as unknown as React.RefObject<HTMLTextAreaElement>} />
+          <textarea
+            {...restInputProps}
+            ref={inputPropsRef as unknown as React.RefObject<HTMLTextAreaElement>}
+          />
         ) : (
           <input {...restInputProps} ref={inputPropsRef as unknown as React.RefObject<HTMLInputElement>} />
         )}

@@ -54,8 +54,14 @@ const space = Styles.isMobile ? ` ` : <>&nbsp;</>
 
 // common-adapters/profile-card.tsx already imports this, so have it assign
 // this here instead of importing directly to avoid an import cycle.
-let WithProfileCardPopup: React.ComponentType<unknown> | null
-export const _setWithProfileCardPopup = (Comp: React.ComponentType<unknown>) => (WithProfileCardPopup = Comp)
+type WithProfileCardPopupProps = {
+  username: string
+  children: (onLongPress?: () => void) => React.ReactElement<typeof Text>
+  ellipsisStyle?: Styles.StylesCrossPlatform
+}
+let WithProfileCardPopup: React.ComponentType<WithProfileCardPopupProps> | null
+export const _setWithProfileCardPopup = (Comp: React.ComponentType<WithProfileCardPopupProps>) =>
+  (WithProfileCardPopup = Comp)
 
 type UsernameProps = {
   backgroundMode?: Background
