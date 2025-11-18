@@ -447,11 +447,14 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
       recordStartRef.current = Date.now()
       recordEndRef.current = recordStartRef.current
     }
+
     impl()
       .then(() => {})
       .catch(() => {
         onReset()
+          // eslint-disable-next-line
           .then(() => {})
+          // eslint-disable-next-line
           .catch(() => {})
       })
     return
