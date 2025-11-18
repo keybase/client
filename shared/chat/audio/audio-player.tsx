@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import * as Styles from '@/styles'
 import AudioVideo from './audio-video'
 import {formatAudioRecordDuration} from '@/util/timestamp'
@@ -40,7 +41,7 @@ const AudioVis = (props: VisProps) => {
       />
     )
   })
-  return Styles.C.isMobile ? (
+  return C.isMobile ? (
     <Kb.ScrollView
       horizontal={true}
       style={{height: maxHeight, maxWidth: maxWidth}}

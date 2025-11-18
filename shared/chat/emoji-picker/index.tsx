@@ -290,7 +290,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
         })}
       </Kb.Box2>
     )
-    return Kb.Styles.C.isMobile ? (
+    return Kb.Styles.isMobile ? (
       <Kb.ScrollView key="bookmark" horizontal={true} style={styles.bookmarkScrollView}>
         {content}
       </Kb.ScrollView>

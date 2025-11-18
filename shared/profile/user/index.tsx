@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import * as React from 'react'
 import Actions from './actions'
 import Assertion from '@/tracker2/assertion'

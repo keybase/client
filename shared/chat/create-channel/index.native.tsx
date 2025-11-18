@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import type {Props} from './index'
 import useHook from './hooks'
 

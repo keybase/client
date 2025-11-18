@@ -1,11 +1,12 @@
+import {pathSep} from '@/constants/platform'
 // simple versions we use in the renderer, definitely doesn't handle edge cases but likely ok as-is
 
 export const join = (...args: Array<string>) => {
-  return [...args].join(C.pathSep).replace(new RegExp(`${C.pathSep}+`, 'g'), C.pathSep)
+  return [...args].join(pathSep).replace(new RegExp(`${pathSep}+`, 'g'), pathSep)
 }
 
 export const extname = (path: string) => {
-  const parts = path.split(C.pathSep)
+  const parts = path.split(pathSep)
   const last = parts.at(-1)
   const idx = last?.lastIndexOf('.') ?? -1
   if (idx === -1) {
@@ -16,7 +17,7 @@ export const extname = (path: string) => {
 }
 
 export const basename = (path: string, extname: string) => {
-  const parts = path.split(C.pathSep)
+  const parts = path.split(pathSep)
   const last = parts.at(-1)
   if (last?.endsWith(extname)) {
     return last.substring(0, last.length - extname.length)
@@ -26,7 +27,7 @@ export const basename = (path: string, extname: string) => {
 }
 
 export const dirname = (path: string) => {
-  const parts = path.split(C.pathSep)
+  const parts = path.split(pathSep)
   parts.pop()
-  return parts.join(C.pathSep)
+  return parts.join(pathSep)
 }

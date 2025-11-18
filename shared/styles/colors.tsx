@@ -1,5 +1,6 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
 import {useState_ as useDarkModeState} from '@/constants/darkmode'
+import {isIOS, isAndroid} from '@/constants/platform'
 import type {DynamicColorIOS as DynamicColorIOSType} from 'react-native'
 import type {Opaque} from '@/constants/types/ts'
 
@@ -47,7 +48,7 @@ const colorDefs = {
   brown: {dark: 'rgb(71, 31, 17)', light: 'rgb(71, 31, 17)'},
   brown_75: {dark: 'rgba(71, 31, 17, 0.75)', light: 'rgba(71, 31, 17, 0.75)'},
   brown_75_on_white: {dark: 'rgb(117,87,78)', light: 'rgb(117,87,78)'},
-  fastBlank: {dark: C.isIOS ? '#191919' : undefined, light: C.isIOS ? '#FFFFFF' : undefined},
+  fastBlank: {dark: isIOS ? '#191919' : undefined, light: isIOS ? '#FFFFFF' : undefined},
   green: {dark: '#37BD99', light: '#37BD99'},
   greenDark: {dark: '#189E7A', light: '#189E7A'},
   greenDarker: {dark: '#12785D', light: '#12785D'},
@@ -189,7 +190,7 @@ type Names = keyof Color
 
 const names = Object.keys(colors) as Array<Names>
 let iosDynamicColors: Color
-if (C.isIOS) {
+if (isIOS) {
   const {DynamicColorIOS} = require('react-native') as {
     DynamicColorIOS: typeof DynamicColorIOSType
   }
@@ -203,7 +204,7 @@ if (C.isIOS) {
 
 export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.reduce<Color>((obj, name) => {
   const {isDarkMode} = useDarkModeState.getState()
-  if (C.isIOS) {
+  if (isIOS) {
     // ios actually handles this nicely natively
     return Object.defineProperty(obj, name, {
       configurable: false,
@@ -212,7 +213,7 @@ export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.re
         return iosDynamicColors[name]
       },
     })
-  } else if (C.isAndroid) {
+  } else if (isAndroid) {
     return Object.defineProperty(obj, name, {
       configurable: false,
       enumerable: true,

@@ -1,3 +1,4 @@
+import {isDebuggingInChrome, isMobile} from '@/constants/platform'
 import skipAnimations from './skip-animations'
 import type * as R from 'react-native-reanimated'
 
@@ -14,7 +15,7 @@ let Extrapolation: typeof R.Extrapolation
 let withSpring: typeof R.withSpring
 let useReducedMotion: typeof R.useReducedMotion
 
-if (C.isMobile && !skipAnimations) {
+if (isMobile && !skipAnimations) {
   const rnr = require('react-native-reanimated') as typeof R
   Animated = rnr.default
   createAnimatedComponent = rnr.default.createAnimatedComponent
@@ -28,11 +29,11 @@ if (C.isMobile && !skipAnimations) {
   Extrapolation = rnr.Extrapolation
   withSpring = rnr.withSpring
   useReducedMotion = rnr.useReducedMotion
-  if (C.isDebuggingInChrome) {
+  if (isDebuggingInChrome) {
     console.log('DEBUG: Real ReAnimated enabled, yet in chrome. Might not work!')
   }
 } else {
-  if (C.isMobile) {
+  if (isMobile) {
     console.log('\n\n\nDEBUG: mock ReAnimated enabled')
   }
   Animated = {View: ({children}: {children: unknown}) => children} as unknown as typeof Animated
@@ -62,7 +63,7 @@ if (C.isMobile && !skipAnimations) {
   }
   Extrapolation = _Extrapolation as unknown as typeof Extrapolation
   withSpring = ((a: unknown) => a) as typeof withSpring
-  if (!C.isDebuggingInChrome) {
+  if (!isDebuggingInChrome) {
     console.log('DEBUG: Mock ReAnimated enabled, yet not in chrome. Some animations will be missing')
   }
 }

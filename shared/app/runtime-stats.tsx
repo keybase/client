@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
-// import * as T from '@/constants/types'
-const C.isIPhoneX = false as boolean
+import * as T from '@/constants/types'
+const isIPhoneX = false as boolean
 // import lagRadar from 'lag-radar'
 
 type Props = {
@@ -423,9 +423,9 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
         isMobile: {
-          bottom: C.isIPhoneX ? 15 : 0,
+          bottom: isIPhoneX ? 15 : 0,
           position: 'absolute',
-          right: C.isIPhoneX ? 10 : 0,
+          right: isIPhoneX ? 10 : 0,
         },
       }),
       logStat: Styles.platformStyles({

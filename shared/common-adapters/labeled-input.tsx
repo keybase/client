@@ -3,6 +3,7 @@ import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input
 import {Box2} from './box'
 import Text, {getStyle as getTextStyle} from './text'
 import * as Styles from '@/styles'
+import {isMobile} from '@/constants/platform'
 import './input.css'
 
 export type _Props = {
@@ -51,7 +52,7 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
   // We're using fontSize to derive heights
   const textStyle = getTextStyle(props.textType || 'BodySemibold')
   const computedContainerSize =
-    textStyle.fontSize + (C.isMobile ? 48 : 38) + (multiline ? textStyle.fontSize : 0)
+    textStyle.fontSize + (isMobile ? 48 : 38) + (multiline ? textStyle.fontSize : 0)
 
   return (
     <Box2
@@ -65,7 +66,7 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
       ])}
     >
       <Text
-        type={collapsed ? 'BodyTinySemibold' : C.isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
+        type={collapsed ? 'BodyTinySemibold' : isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
         style={Styles.collapseStyles([
           styles.label,
           props.placeholderColor && {color: props.placeholderColor},
@@ -142,7 +143,7 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       inputMultiline: Styles.platformStyles({
-        C.isMobile: {
+        isMobile: {
           textAlignVertical: 'top',
         } as const,
       }), // not sure why this fails

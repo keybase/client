@@ -1,29 +1,30 @@
 import * as Kb from '@/common-adapters'
+import * as Tabs from '@/constants/tabs'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import {View} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
-const settingsTabChildren = [C.Tabs.gitTab, C.Tabs.devicesTab, C.Tabs.settingsTab] as const
-const tabs = C.isTablet ? C.Tabs.tabletTabs : C.Tabs.phoneTabs
-const tabToData = new Map<C.C.Tabs.Tab, {icon: Kb.IconType; label: string}>([
-  [C.Tabs.chatTab, {icon: 'iconfont-nav-2-chat', label: 'Chat'}],
-  [C.Tabs.fsTab, {icon: 'iconfont-nav-2-files', label: 'Files'}],
-  [C.Tabs.teamsTab, {icon: 'iconfont-nav-2-teams', label: 'Teams'}],
-  [C.Tabs.peopleTab, {icon: 'iconfont-nav-2-people', label: 'People'}],
-  [C.Tabs.settingsTab, {icon: 'iconfont-nav-2-hamburger', label: 'More'}],
+const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
+const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+const tabToData = new Map<C.Tabs.Tab, {icon: Kb.IconType; label: string}>([
+  [Tabs.chatTab, {icon: 'iconfont-nav-2-chat', label: 'Chat'}],
+  [Tabs.fsTab, {icon: 'iconfont-nav-2-files', label: 'Files'}],
+  [Tabs.teamsTab, {icon: 'iconfont-nav-2-teams', label: 'Teams'}],
+  [Tabs.peopleTab, {icon: 'iconfont-nav-2-people', label: 'People'}],
+  [Tabs.settingsTab, {icon: 'iconfont-nav-2-hamburger', label: 'More'}],
 ] as const)
 
 export const TabBarIcon = React.memo(function TabBarIconImpl(props: {
   isFocused: boolean
-  routeName: C.Tabs.Tab
+  routeName: Tabs.Tab
 }) {
   const {isFocused, routeName} = props
   const navBadges = C.useNotifState(s => s.navBadges)
   const hasPermissions = C.usePushState(s => s.hasPermissions)
-  const onSettings = routeName === C.Tabs.settingsTab
-  const tabsToCount: ReadonlyArray<C.Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
+  const onSettings = routeName === Tabs.settingsTab
+  const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
   const badgeNumber = tabsToCount.reduce(
     (res, tab) => res + (navBadges.get(tab) || 0),
     // notifications gets badged on native if there's no push, special case
@@ -45,12 +46,12 @@ export const TabBarIcon = React.memo(function TabBarIconImpl(props: {
         color={isFocused ? Kb.Styles.globalColors.whiteOrWhite : Kb.Styles.globalColors.blueDarkerOrBlack}
       />
       {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
-      {routeName === C.Tabs.fsTab && <Shared.FilesTabBadge />}
+      {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
     </View>
   ) : null
 })
 
-type TabIconProps = {routeName: C.Tabs.Tab; focused: boolean}
+type TabIconProps = {routeName: Tabs.Tab; focused: boolean}
 export const TabBarIconWrapper = React.memo(function TabBarIconWrapper(p: TabIconProps) {
   return <TabBarIcon isFocused={p.focused} routeName={p.routeName} />
 })

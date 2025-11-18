@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
+import * as C from '@/constants'
 import OpenMeta from './openmeta'
 import FloatingMenu from '@/common-adapters/floating-menu'
 import ConnectedUsernames from '@/common-adapters/usernames'

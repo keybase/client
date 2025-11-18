@@ -1,4 +1,5 @@
 import {themed as globalColors} from './colors'
+import {isMobile, isIOS, isAndroid, isTablet, isPhone, isElectron} from '@/constants/platform'
 import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 import type {Background} from '@/common-adapters/text'
 
@@ -53,7 +54,7 @@ export const backgroundModeToTextColor = (backgroundMode: Background) => {
   }
 }
 
-const flexCommon = C.isMobile ? {} : ({display: 'flex'} as const)
+const flexCommon = isMobile ? {} : ({display: 'flex'} as const)
 export const util = {
   fillAbsolute: {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0},
   flexBoxCenter: {...flexCommon, alignItems: 'center', justifyContent: 'center'},
@@ -77,7 +78,7 @@ type Unified<T> = {
 }
 function unifyStyles<T extends {[key: string]: unknown}>(s: T): Unified<T> {
   // only mutate this if we need to
-  if (!C.isMobile && Object.hasOwn(s, 'lineHeight') && typeof s['lineHeight'] === 'number') {
+  if (!isMobile && Object.hasOwn(s, 'lineHeight') && typeof s['lineHeight'] === 'number') {
     return {
       ...s,
       lineHeight: s['lineHeight'] === 0 ? '0' : `${s['lineHeight']}px`,
@@ -101,20 +102,20 @@ function unifyStyles<T extends {[key: string]: unknown}>(s: T): Unified<T> {
 // export function platformStyles<
 //   T extends {
 //     common: any
-//     C.isMobile?: any
-//     C.isPhone?: any
-//     C.isTablet?: any
-//     C.isIOS?: any
-//     C.isAndroid?: any
-//     C.isElectron?: any
+//     isMobile?: any
+//     isPhone?: any
+//     isTablet?: any
+//     isIOS?: any
+//     isAndroid?: any
+//     isElectron?: any
 //   },
 //   C = T extends {common: infer J} ? J : never,
-//   M = T extends {C.isMobile: infer J} ? J : never,
-//   P = T extends {C.isPhone: infer J} ? J : never,
-//   Tab = T extends {C.isTablet: infer J} ? J : never,
-//   A = T extends {C.isAndroid: infer J} ? J : never,
-//   I = T extends {C.isIOS: infer J} ? J : never,
-//   E = T extends {C.isElectron: infer J} ? J : never,
+//   M = T extends {isMobile: infer J} ? J : never,
+//   P = T extends {isPhone: infer J} ? J : never,
+//   Tab = T extends {isTablet: infer J} ? J : never,
+//   A = T extends {isAndroid: infer J} ? J : never,
+//   I = T extends {isIOS: infer J} ? J : never,
+//   E = T extends {isElectron: infer J} ? J : never,
 //   Elec = Util.Assign<AsObj<C>, AsObj<E>>,
 //   Mob = Util.Assign<
 //     Util.Assign<Util.Assign<Util.Assign<Util.Assign<AsObj<C>, AsObj<I>>, AsObj<M>>, AsObj<P>>, AsObj<Tab>>,
@@ -124,12 +125,12 @@ function unifyStyles<T extends {[key: string]: unknown}>(s: T): Unified<T> {
 // >(o: T): OUT {
 //   return {
 //     ...(o.common ? unifyStyles(o.common) : {}),
-//     ...(C.isMobile && o.C.isMobile ? o.C.isMobile : {}),
-//     ...(C.isIOS && o.C.isIOS ? o.C.isIOS : {}),
-//     ...(C.isAndroid && o.C.isAndroid ? o.C.isAndroid : {}),
-//     ...(C.isPhone && o.C.isPhone ? o.C.isPhone : {}),
-//     ...(C.isTablet && o.C.isTablet ? o.C.isTablet : {}),
-//     ...(C.isElectron && o.C.isElectron ? unifyStyles(o.C.isElectron) : {}),
+//     ...(isMobile && o.isMobile ? o.isMobile : {}),
+//     ...(isIOS && o.isIOS ? o.isIOS : {}),
+//     ...(isAndroid && o.isAndroid ? o.isAndroid : {}),
+//     ...(isPhone && o.isPhone ? o.isPhone : {}),
+//     ...(isTablet && o.isTablet ? o.isTablet : {}),
+//     ...(isElectron && o.isElectron ? unifyStyles(o.isElectron) : {}),
 //   } as OUT
 // }
 
@@ -137,23 +138,23 @@ const nostyle = {} as const
 export function platformStyles<
   T extends {
     common?: _StylesCrossPlatform
-    C.isMobile?: _StylesMobile
-    C.isPhone?: _StylesMobile
-    C.isTablet?: _StylesMobile
-    C.isIOS?: _StylesMobile
-    C.isAndroid?: _StylesMobile
-    C.isElectron?: _StylesDesktop
+    isMobile?: _StylesMobile
+    isPhone?: _StylesMobile
+    isTablet?: _StylesMobile
+    isIOS?: _StylesMobile
+    isAndroid?: _StylesMobile
+    isElectron?: _StylesDesktop
   },
   OUT = _StylesCrossPlatform,
 >(o: T): OUT {
   const ss = [
     ...(o.common ? [unifyStyles(o.common)] : []),
-    ...(C.isMobile && o.C.isMobile ? [o.C.isMobile] : []),
-    ...(C.isIOS && o.C.isIOS ? [o.C.isIOS] : []),
-    ...(C.isAndroid && o.C.isAndroid ? [o.C.isAndroid] : []),
-    ...(C.isPhone && o.C.isPhone ? [o.C.isPhone] : []),
-    ...(C.isTablet && o.C.isTablet ? [o.C.isTablet] : []),
-    ...(C.isElectron && o.C.isElectron ? [unifyStyles(o.C.isElectron)] : []),
+    ...(isMobile && o.isMobile ? [o.isMobile] : []),
+    ...(isIOS && o.isIOS ? [o.isIOS] : []),
+    ...(isAndroid && o.isAndroid ? [o.isAndroid] : []),
+    ...(isPhone && o.isPhone ? [o.isPhone] : []),
+    ...(isTablet && o.isTablet ? [o.isTablet] : []),
+    ...(isElectron && o.isElectron ? [unifyStyles(o.isElectron)] : []),
   ]
   const fss = ss.filter(Boolean)
   if (fss.length === 0) {

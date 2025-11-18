@@ -11,6 +11,8 @@ import {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} fr
 import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
 import {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
+import {isMobile} from '@/constants/platform'
+import * as Tabs from '@/constants/tabs'
 import type {RouteMap} from '@/constants/types/router2'
 
 // We have normal routes, modal routes, and logged out routes.
@@ -18,19 +20,19 @@ import type {RouteMap} from '@/constants/types/router2'
 // of whether we're on a loggedIn route: loggedOut routes have no selected tab.
 export const routes: RouteMap = {}
 
-type RoutePlusTab = {route: RouteMap; tab: C.Tabs.Tab}
+type RoutePlusTab = {route: RouteMap; tab: Tabs.Tab}
 
 // Need all these as clauses as TS will ignore everything if it sees a single any
 const _newRoutes: ReadonlyArray<RoutePlusTab> = [
-  {route: deviceNewRoutes, tab: C.isMobile ? C.Tabs.settingsTab : C.Tabs.devicesTab} as RoutePlusTab,
-  {route: chatNewRoutes, tab: C.Tabs.chatTab} as RoutePlusTab,
-  {route: cryptoNewRoutes, tab: C.Tabs.cryptoTab} as RoutePlusTab,
-  {route: peopleNewRoutes, tab: C.Tabs.peopleTab} as RoutePlusTab,
-  {route: profileNewRoutes, tab: C.Tabs.peopleTab} as RoutePlusTab,
-  {route: fsNewRoutes, tab: C.Tabs.fsTab} as RoutePlusTab,
-  {route: settingsNewRoutes, tab: C.Tabs.settingsTab} as RoutePlusTab,
-  {route: teamsNewRoutes, tab: C.Tabs.teamsTab} as RoutePlusTab,
-  {route: gitNewRoutes, tab: C.Tabs.gitTab} as RoutePlusTab,
+  {route: deviceNewRoutes, tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab} as RoutePlusTab,
+  {route: chatNewRoutes, tab: Tabs.chatTab} as RoutePlusTab,
+  {route: cryptoNewRoutes, tab: Tabs.cryptoTab} as RoutePlusTab,
+  {route: peopleNewRoutes, tab: Tabs.peopleTab} as RoutePlusTab,
+  {route: profileNewRoutes, tab: Tabs.peopleTab} as RoutePlusTab,
+  {route: fsNewRoutes, tab: Tabs.fsTab} as RoutePlusTab,
+  {route: settingsNewRoutes, tab: Tabs.settingsTab} as RoutePlusTab,
+  {route: teamsNewRoutes, tab: Tabs.teamsTab} as RoutePlusTab,
+  {route: gitNewRoutes, tab: Tabs.gitTab} as RoutePlusTab,
 ]
 
 const seenNames = new Set()
@@ -46,17 +48,17 @@ _newRoutes.forEach(({route}) => {
 })
 
 export const tabRoots = {
-  [C.Tabs.peopleTab]: 'peopleRoot',
-  [C.Tabs.chatTab]: 'chatRoot',
-  [C.Tabs.cryptoTab]: 'cryptoRoot',
-  [C.Tabs.fsTab]: 'fsRoot',
-  [C.Tabs.teamsTab]: 'teamsRoot',
-  [C.Tabs.gitTab]: 'gitRoot',
-  [C.Tabs.devicesTab]: 'devicesRoot',
-  [C.Tabs.settingsTab]: 'settingsRoot',
+  [Tabs.peopleTab]: 'peopleRoot',
+  [Tabs.chatTab]: 'chatRoot',
+  [Tabs.cryptoTab]: 'cryptoRoot',
+  [Tabs.fsTab]: 'fsRoot',
+  [Tabs.teamsTab]: 'teamsRoot',
+  [Tabs.gitTab]: 'gitRoot',
+  [Tabs.devicesTab]: 'devicesRoot',
+  [Tabs.settingsTab]: 'settingsRoot',
 
-  [C.Tabs.loginTab]: '',
-  [C.Tabs.searchTab]: '',
+  [Tabs.loginTab]: '',
+  [Tabs.searchTab]: '',
 } as const
 
 const _modalRoutes = [

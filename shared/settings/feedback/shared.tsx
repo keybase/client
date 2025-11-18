@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
+import {androidIsTestDevice, version} from '@/constants/platform'
 
 export const getExtraChatLogsForLogSend = () => {
   return {}
@@ -13,7 +14,7 @@ export const useSendFeedback = () => {
   const sendFeedback = React.useCallback((feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
     const f = async () => {
       // We don't want test devices (pre-launch reports) to send us log sends.
-      if (C.androidIsTestDevice) {
+      if (androidIsTestDevice) {
         return
       }
       try {
@@ -21,7 +22,7 @@ export const useSendFeedback = () => {
         if (sendLogs) {
           await logger.dump()
         }
-        const status = {C.version}
+        const status = {version}
         logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
         const extra = sendLogs ? {...status, ...getExtraChatLogsForLogSend()} : status
         const logSendId = await T.RPCGen.configLogSendRpcPromise(

@@ -1,8 +1,9 @@
 import * as dateFns from 'date-fns'
 import {enUS} from 'date-fns/locale'
+import {uses24HourClock} from '@/constants/platform'
 
-const hourMinuteString = C.uses24HourClock ? 'HH:mm' : 'h:mm a'
-const hourMinuteSecondString = C.uses24HourClock ? 'HH:mm:ss' : 'h:mm:ss a'
+const hourMinuteString = uses24HourClock ? 'HH:mm' : 'h:mm a'
+const hourMinuteSecondString = uses24HourClock ? 'HH:mm:ss' : 'h:mm:ss a'
 
 // getting this time is very slow on android so we cache it, it never grows large
 const chatTimeCache = new Map<number, string>()

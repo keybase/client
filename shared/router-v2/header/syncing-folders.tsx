@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import PieSlice from '@/fs/common/pie-slice'
@@ -35,7 +36,7 @@ const SyncFolders = (op: OwnProps) => {
   }
 
   const progress = syncingFoldersProgress.bytesFetched / syncingFoldersProgress.bytesTotal
-  const tooltip = C.FS.humanizeBytesOfTotal(
+  const tooltip = Constants.humanizeBytesOfTotal(
     syncingFoldersProgress.bytesFetched,
     syncingFoldersProgress.bytesTotal
   )

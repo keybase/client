@@ -7,6 +7,7 @@ import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
 import type {SessionID, SessionIDKey, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
+import {isMobile} from '@/constants/platform'
 import {printOutstandingRPCs} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
@@ -36,12 +37,12 @@ class Engine {
   _customResponseAction: {[K in MethodKey]: true} = {
     'keybase.1.rekeyUI.delegateRekeyUI': true,
     'keybase.1.secretUi.getPassphrase': true,
-    ...(C.isMobile ? {'chat.1.chatUi.chatWatchPosition': true} : {'keybase.1.logsend.prepareLogsend': true}),
+    ...(isMobile ? {'chat.1.chatUi.chatWatchPosition': true} : {'keybase.1.logsend.prepareLogsend': true}),
   }
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
-  _hasConnected: boolean = C.isMobile // mobile is always connected
+  _hasConnected: boolean = isMobile // mobile is always connected
   // App tells us when the listeners are done loading so we can start emitting events
   _listenersAreReady: boolean = false
 
@@ -266,7 +267,7 @@ class Engine {
 
   // Reset the engine
   reset() {
-    if (C.isMobile) {
+    if (isMobile) {
       return
     }
     resetClient(this._rpcClient)

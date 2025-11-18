@@ -57,7 +57,7 @@ export const PaperKey = (props: Props) => {
         direction="vertical"
         style={styles.contents}
         centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
-        gap={Kb.Styles.C.isMobile ? 'tiny' : 'medium'}
+        gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
       >
         <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
           <Kb.Icon type="icon-paper-key-64" />
@@ -89,7 +89,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginLeft: Kb.Styles.globalMargins.medium,
           marginTop: Kb.Styles.globalMargins.medium,
         },
-        C.isMobile: {
+        isMobile: {
           marginLeft: 0,
           marginTop: 0,
         },
@@ -100,7 +100,7 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
         isElectron: {maxWidth: 460},
-        C.isMobile: {maxWidth: 300},
+        isMobile: {maxWidth: 300},
         isTablet: {maxWidth: 460},
       }),
       input: {

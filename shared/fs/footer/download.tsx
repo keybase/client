@@ -93,7 +93,7 @@ const styles = Kb.Styles.styleSheetCreate(
           height: 32,
           width: 140,
         },
-        C.isMobile: {
+        isMobile: {
           height: 40,
           width: 160,
         },

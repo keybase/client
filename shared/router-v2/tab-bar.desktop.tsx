@@ -4,7 +4,9 @@ import * as Kbfs from '@/fs/common'
 import * as Platforms from '@/constants/platform'
 import * as T from '@/constants/types'
 import * as React from 'react'
+import * as Tabs from '@/constants/tabs'
 import * as Common from './common.desktop'
+import * as TrackerConstants from '@/constants/tracker2'
 import AccountSwitcher from './account-switcher'
 import RuntimeStats from '../app/runtime-stats'
 import openURL from '@/util/open-url'
@@ -26,7 +28,7 @@ const FilesTabBadge = () => {
 
 const Header = () => {
   const username = C.useCurrentUserState(s => s.username)
-  const fullname = C.useTrackerState(s => C.Tracker.getDetails(s, username).fullname || '')
+  const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, username).fullname || '')
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
 
   const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
@@ -52,7 +54,7 @@ const Header = () => {
   }, [dumpLogs, stop])
 
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onSettings = React.useCallback(() => switchTab(C.Tabs.settingsTab), [switchTab])
+  const onSettings = React.useCallback(() => switchTab(Tabs.settingsTab), [switchTab])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSignOut = React.useCallback(() => navigateAppend(C.Settings.settingsLogOutTab), [navigateAppend])
 
@@ -149,7 +151,7 @@ const Header = () => {
   )
 }
 
-const keysMap = C.Tabs.desktopTabs.reduce<{[key: string]: (typeof C.Tabs.desktopTabs)[number]}>(
+const keysMap = Tabs.desktopTabs.reduce<{[key: string]: (typeof Tabs.desktopTabs)[number]}>(
   (map, tab, index) => {
     map[`mod+${index + 1}`] = tab
     return map
@@ -163,7 +165,7 @@ const TabBar = React.memo(function TabBar(props: Props) {
   const username = C.useCurrentUserState(s => s.username)
   const onHotKey = React.useCallback(
     (cmd: string) => {
-      navigation.navigate(keysMap[cmd] as C.Tabs.Tab)
+      navigation.navigate(keysMap[cmd] as Tabs.Tab)
     },
     [navigation]
   )
@@ -186,7 +188,7 @@ const TabBar = React.memo(function TabBar(props: Props) {
       {state?.routes?.map((route: {key?: string; name?: string}, index: number) => (
         <Tab
           key={route.key}
-          tab={route.name as C.Tabs.AppTab}
+          tab={route.name as Tabs.AppTab}
           index={index}
           isSelected={index === state.index}
           onSelectTab={onSelectTab}
@@ -198,24 +200,24 @@ const TabBar = React.memo(function TabBar(props: Props) {
 })
 
 type TabProps = {
-  tab: C.Tabs.AppTab
+  tab: Tabs.AppTab
   index: number
   isSelected: boolean
-  onSelectTab: (t: C.Tabs.AppTab) => void
+  onSelectTab: (t: Tabs.AppTab) => void
 }
 
-const TabBadge = (p: {name: C.Tabs.Tab}) => {
+const TabBadge = (p: {name: Tabs.Tab}) => {
   const {name} = p
   const badgeNumbers = C.useNotifState(s => s.navBadges)
   const fsCriticalUpdate = C.useFSState(s => s.criticalUpdate)
-  const badge = (badgeNumbers.get(name) ?? 0) + (name === C.Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
+  const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
 }
 
 const Tab = React.memo(function Tab(props: TabProps) {
   const {tab, index, isSelected, onSelectTab} = props
   const isPeopleTab = index === 0
-  const {label} = C.Tabs.desktopTabMeta[tab]
+  const {label} = Tabs.desktopTabMeta[tab]
   const current = C.useCurrentUserState(s => s.username)
   const setUserSwitching = C.useConfigState(s => s.dispatch.setUserSwitching)
   const login = C.useConfigState(s => s.dispatch.login)
@@ -297,11 +299,11 @@ const Tab = React.memo(function Tab(props: TabProps) {
         <Kb.Box2 style={styles.iconBox} direction="horizontal">
           <Kb.Icon
             className="tab-icon"
-            type={C.Tabs.desktopTabMeta[tab].icon}
+            type={Tabs.desktopTabMeta[tab].icon}
             sizeType="Big"
             skipColor={true}
           />
-          {tab === C.Tabs.fsTab && <FilesTabBadge />}
+          {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>
         <Kb.Text className="tab-label" type="BodySmallSemibold">
           {label}

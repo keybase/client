@@ -11,6 +11,7 @@ import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
 import {usePopup2, type Popup2Parms} from './use-popup'
+import {isIOS, isMobile} from '@/constants/platform'
 import {
   countryData,
   codeToCountry,
@@ -210,14 +211,14 @@ const CountrySelector = React.forwardRef<CountrySelectorRef, CountrySelectorProp
     const mobileItems = React.useMemo(() => pickerItems(countryData()), [])
 
     const onSelectFirst = () => {
-      if (Styles.C.isMobile && mobileItems[0]) {
+      if (Styles.isMobile && mobileItems[0]) {
         onSelectMenu(mobileItems[0].value)
       } else if (desktopItems[0]) {
         onSelectMenu(desktopItems[0].alpha2)
       }
       onHidden()
     }
-    if (!C.isMobile) {
+    if (!isMobile) {
       return (
         <Kb.FloatingMenu
           closeOnSelect={true}
@@ -415,7 +416,7 @@ const PhoneInput = (p: Props) => {
     }
   }, [country, defaultCountry])
 
-  const isSmall = small ?? !Styles.C.isMobile
+  const isSmall = small ?? !Styles.isMobile
 
   // If country is falsey, the input is loading
   if (country === undefined) {
@@ -536,7 +537,7 @@ const PhoneInput = (p: Props) => {
   }
 
   const renderCountrySelector = () => {
-    const isSmall = small ?? !Styles.C.isMobile
+    const isSmall = small ?? !Styles.isMobile
     if (!isSmall) {
       return (
         <Kb.Text
@@ -613,7 +614,7 @@ const PhoneInput = (p: Props) => {
             <Kb.PlainInput
               style={Styles.collapseStyles([styles.plainInputBig, styles.prefixInput])}
               flexable={true}
-              keyboardType={C.isIOS ? 'number-pad' : 'numeric'}
+              keyboardType={isIOS ? 'number-pad' : 'numeric'}
               onChangeText={_newText => {
                 let newText = filterNumeric(_newText)
                 const matchedCountry = codeToCountry()[newText]
@@ -652,7 +653,7 @@ const PhoneInput = (p: Props) => {
             autoFocus={autoFocus}
             style={isSmall ? styles.plainInputSmall : styles.plainInputBig}
             flexable={true}
-            keyboardType={C.isIOS ? 'number-pad' : 'numeric'}
+            keyboardType={isIOS ? 'number-pad' : 'numeric'}
             placeholder={getPlaceholder(country)}
             onChangeText={x => reformatPhoneNumberNoSkipCountry(x)}
             onEnterKeyDown={onEnterKeyDown}

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
+import * as C from '@/constants'
 import {ServiceTabBar} from './service-tab-bar'
 
 export const FilteredServiceTabBar = (

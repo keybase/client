@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as Tabs from '@/constants/tabs'
 import * as React from 'react'
 import {Linking} from 'react-native'
 
@@ -122,8 +123,8 @@ export const useInitialState = (loggedInLoaded: boolean) => {
                 name: 'loggedIn',
                 state: {
                   index: 0,
-                  routeNames: [C.Tabs.peopleTab],
-                  routes: [{name: C.Tabs.peopleTab, ...initialTabState}],
+                  routeNames: [Tabs.peopleTab],
+                  routes: [{name: Tabs.peopleTab, ...initialTabState}],
                 },
               },
             ],
@@ -131,7 +132,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
         }
       } else if (startupTab || startupConversation) {
         try {
-          const tab = startupConversation ? C.Tabs.chatTab : startupTab
+          const tab = startupConversation ? Tabs.chatTab : startupTab
           C.Chat.useState_.getState().dispatch.unboxRows([startupConversation])
           C.Chat.getConvoState_(startupConversation).dispatch.loadMoreMessages({
             reason: 'savedLastState',

@@ -1,5 +1,6 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import NavRow from './nav-row'
 
 type Row = (typeof C.Crypto.Tabs)[number] & {

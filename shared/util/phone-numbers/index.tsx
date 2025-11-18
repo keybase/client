@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import libphonenumber from 'google-libphonenumber'
 
 const PNF = libphonenumber.PhoneNumberFormat

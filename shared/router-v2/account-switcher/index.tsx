@@ -1,5 +1,8 @@
 import * as C from '@/constants'
+import * as ConfigConstants from '@/constants/config'
+import * as TrackerConstants from '@/constants/tracker2'
 import './account-switcher.css'
+import * as Constants from '@/constants/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -13,8 +16,8 @@ const Container = () => {
   const _fullnames = C.useUsersState(s => s.infoMap)
   const _accountRows = C.useConfigState(s => s.configuredAccounts)
   const you = C.useCurrentUserState(s => s.username)
-  const fullname = C.useTrackerState(s => C.Tracker.getDetails(s, you).fullname || '')
-  const waiting = C.Waiting.useAnyWaiting(C.Config.loginWaitingKey)
+  const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, you).fullname || '')
+  const waiting = C.Waiting.useAnyWaiting(ConfigConstants.loginWaitingKey)
   const _onProfileClick = C.useProfileState(s => s.dispatch.showUserProfile)
   const onLoginAsAnotherUser = C.useProvisionState(s => s.dispatch.startProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -127,7 +130,7 @@ const MobileHeader = (props: Props) => (
         label="Log in as another user"
         mode="Primary"
         fullWidth={true}
-        waitingKey={C.Config.loginAsOtherUserWaitingKey}
+        waitingKey={Constants.loginAsOtherUserWaitingKey}
       />
     </Kb.Box2>
   </>
@@ -220,4 +223,3 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default Container
-

@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
+import * as Tabs from '@/constants/tabs'
 import {makeNavScreens} from './shim'
 import logger from '@/logger'
 import Header from './header/index.desktop'
@@ -17,7 +18,7 @@ import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import './router.css'
 
 const Tab = createLeftTabNavigator()
-type DesktopTabs = (typeof C.Tabs.desktopTabs)[number]
+type DesktopTabs = (typeof Tabs.desktopTabs)[number]
 
 const appTabsInnerOptions = {
   ...Common.defaultNavigationOptions,
@@ -47,7 +48,7 @@ const TabStack = React.memo(function TabStack(p: {route: {name: string}}) {
 const AppTabsInner = React.memo(function AppTabsInner() {
   return (
     <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
-      {C.Tabs.desktopTabs.map(tab => (
+      {Tabs.desktopTabs.map(tab => (
         <Tab.Screen key={tab} name={tab} component={TabStack} />
       ))}
     </Tab.Navigator>
@@ -75,7 +76,7 @@ const RootStack = createNativeStackNavigator<RootParamList>()
 const documentTitle = {
   formatter: () => {
     const t = C.Router2.getTab()
-    const m = t ? C.C.Tabs.desktopTabMeta[t] : undefined
+    const m = t ? C.Tabs.desktopTabMeta[t] : undefined
     const tabLabel: string = m?.label ?? ''
     return `Keybase: ${tabLabel}`
   },

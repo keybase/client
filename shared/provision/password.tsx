@@ -99,14 +99,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       alignItems: 'stretch',
       backgroundColor: Kb.Styles.globalColors.transparent,
     },
-    C.isMobile: {
+    isMobile: {
       paddingLeft: 0,
       paddingRight: 0,
     },
   }),
-  contentContainer: Kb.Styles.platformStyles({C.isMobile: {...Kb.Styles.padding(0)}}),
+  contentContainer: Kb.Styles.platformStyles({isMobile: {...Kb.Styles.padding(0)}}),
   fill: Kb.Styles.platformStyles({
-    C.isMobile: {height: '100%', width: '100%'},
+    isMobile: {height: '100%', width: '100%'},
     isTablet: {width: 410},
   }),
   forgotPassword: {
@@ -123,13 +123,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {
       margin: 'auto',
     },
-    C.isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
+    isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
   }),
   wrapper: Kb.Styles.platformStyles({
     isElectron: {
       width: 400,
     },
-    C.isMobile: {
+    isMobile: {
       width: '100%',
     },
   }),
