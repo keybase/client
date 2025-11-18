@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {OrdinalContext} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
+import {Keyboard} from 'react-native'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
@@ -272,6 +273,7 @@ export const useAttachmentState = () => {
   const ordinal = React.useContext(OrdinalContext)
   const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const openFullscreen = React.useCallback(() => {
+    Keyboard.dismiss()
     attachmentPreviewSelect(ordinal)
   }, [attachmentPreviewSelect, ordinal])
 
