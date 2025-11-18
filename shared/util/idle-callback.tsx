@@ -23,7 +23,7 @@ function timeoutFallback(cb: (info: TimeoutInfo) => void): number {
         return 0
       },
     })
-  }, 20) as any as number
+  }, 20) as unknown as number
 }
 
 const useFallback =

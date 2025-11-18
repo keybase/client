@@ -124,7 +124,7 @@ const Icon = React.memo<Props>(
 
       const mergedStyle = Styles.collapseStyles([
         fontSizeHint,
-        onClick && (Styles.desktopStyles.clickable as any),
+        onClick && (Styles.desktopStyles.clickable as Styles.StylesCrossPlatform),
         inheritStyle,
         colorOverride && {color: colorOverride},
         style,

@@ -16,7 +16,7 @@ export type ScreenProps<RouteName extends keyof KBRootParamList = keyof KBRootPa
 }
 
 export type ScreenComponentProps = {
-  route: {params: any}
+  route: {params: unknown}
   navigation: NativeStackNavigationProp<KBRootParamList>
 }
 export type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'
@@ -45,7 +45,7 @@ export type GetOptionsRet =
     }
   | undefined
 
-export type GetOptions = GetOptionsRet | ((p: any) => GetOptionsRet)
+export type GetOptions = GetOptionsRet | ((p: GetOptionsParams) => GetOptionsRet)
 export type RouteDef = {
   getOptions?: GetOptions
   screen: React.ComponentType<ScreenComponentProps>

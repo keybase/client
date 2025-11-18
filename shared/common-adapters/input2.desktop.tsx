@@ -145,7 +145,7 @@ export const Input2 = React.memo(
         ])
       } else {
         return Styles.collapseStyles([
-          textStyle as any,
+          textStyle as Styles.StylesCrossPlatform,
           styles.noChrome, // noChrome comes after to unset lineHeight in singleline
           // this.props.flexable && styles.flexable,
           _style,

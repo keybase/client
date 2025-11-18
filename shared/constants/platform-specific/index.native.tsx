@@ -181,7 +181,7 @@ const loadStartupDetails = async () => {
         }
         const _rn = item.routeName || undefined
         if (typeof _rn === 'string') {
-          tab = _rn as any as typeof tab
+          tab = _rn as unknown as typeof tab
         }
       }
     } catch {
@@ -331,7 +331,7 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
 export const initPlatformListener = () => {
   let _lastPersist = ''
   C.useConfigState.setState(s => {
-    s.dispatch.dynamic.persistRoute = C.wrapErrors((path?: ReadonlyArray<any>) => {
+    s.dispatch.dynamic.persistRoute = C.wrapErrors((path?: ReadonlyArray<unknown>) => {
       const f = async () => {
         let param = {}
         let routeName = Tabs.peopleTab

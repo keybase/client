@@ -5,8 +5,8 @@ import type {createNativeStackNavigator} from '@react-navigation/native-stack'
 import type * as React from 'react'
 
 export type AnyNavigator = {
-  Screen: React.ComponentType<any>
-  Navigator: React.ComponentType<any>
+  Screen: React.ComponentType<unknown>
+  Navigator: React.ComponentType<unknown>
 }
 
 export type NavigatorScreen<ParamList extends Record<string, object | undefined>> = ReturnType<
@@ -24,7 +24,7 @@ export type TypedStackNavigator<ParamList extends Record<string, object | undefi
 export type NavScreensResult = Array<
   React.ReactElement<{
     name: keyof KBRootParamList
-    getComponent?: () => React.ComponentType<any>
+    getComponent?: () => React.ComponentType<unknown>
   }>
 >
 

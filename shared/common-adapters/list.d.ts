@@ -15,7 +15,7 @@ export type Props<Item> = {
   keyboardShouldPersistTaps?: 'never' | 'always' | 'handled' // mobile only
   windowSize?: number // Mobile only, has a non-RN default
   onEndReached?: () => void
-  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement
+  ListHeaderComponent?: React.ComponentType<unknown> | React.ReactElement
   onEndReachedThreshold?: number // mobile only
   onScroll?: (e: unknown) => void // mobile only
   reAnimated?: boolean // mobile only, make list animated

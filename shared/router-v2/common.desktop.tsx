@@ -13,7 +13,7 @@ export const tabBarStyle = {
 }
 const actionWidth = 64
 export const defaultNavigationOptions = {
-  header: (p: object) => <Header {...(p as any)} />,
+  header: (p: object) => <Header {...(p as Record<string, unknown>)} />,
   headerBackTitle: 'temp',
   headerBackVisible: true,
   headerLeft: (p: object) => <HeaderLeftArrow {...p} />,

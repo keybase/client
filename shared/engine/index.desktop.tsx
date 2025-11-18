@@ -4,5 +4,5 @@ const getEngine = Impl.getEngine
 const makeEngine = Impl.makeEngine
 const Engine = Impl.Engine
 
-export default Impl.default as any
+export default Impl.default as typeof getEngine
 export {getEngine, makeEngine, Engine}

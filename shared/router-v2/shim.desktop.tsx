@@ -16,7 +16,7 @@ const makeOptions = (val: RouteDef) => {
 const makeNavScreen = (
   name: keyof KBRootParamList,
   rd: RouteDef,
-  Screen: React.ComponentType<any>,
+  Screen: React.ComponentType<unknown>,
   isModal: boolean,
   isLoggedOut: boolean
 ) => {
@@ -31,7 +31,7 @@ const makeNavScreen = (
   )
 }
 
-export const makeNavScreens = <T extends {Screen: React.ComponentType<any>}>(
+export const makeNavScreens = <T extends {Screen: React.ComponentType<unknown>}>(
   rs: RouteMap,
   Screen: T['Screen'],
   isModal: boolean,

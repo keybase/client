@@ -6,7 +6,7 @@ declare function useIntersectionObserver<T extends HTMLElement = HTMLElement>(
 export type UseIntersectionObserverCallback = (
   entry: IntersectionObserverEntry,
   observer: IntersectionObserver
-) => any
+) => unknown
 
 export interface IntersectionObserverOptions {
   root?: HTMLElement | null

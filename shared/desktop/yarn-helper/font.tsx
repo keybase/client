@@ -122,7 +122,7 @@ function updateIconFont(web: boolean) {
     }
   }
 
-  let webfontsGenerator: (...a: Array<any>) => void
+  let webfontsGenerator: (...a: Array<unknown>) => void
   try {
     webfontsGenerator = require('webfonts-generator') as typeof webfontsGenerator
   } catch (e) {

@@ -5,14 +5,14 @@ export type SessionID = number
 export type SessionIDKey = string // used in our maps, really converted to a string key
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => object
 export type ResponseType = {
-  result: (...args: Array<any>) => void
-  error: (...args: Array<any>) => void
+  result: (...args: Array<unknown>) => void
+  error: (...args: Array<unknown>) => void
   seqid?: number
 }
 export type RPCErrorHandler = (e: Framed.ErrorType) => void
 export type CommonResponseHandler = {
   error: RPCErrorHandler
-  result: (...rest: Array<any>) => void
+  result: (...rest: Array<unknown>) => void
 }
 export type Bool = boolean
 export type Boolean = boolean

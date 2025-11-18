@@ -89,7 +89,7 @@ export const initListeners = () => {
 // extracts the payload from pages used in routing
 export type PagesToParams<T> = {
   [K in keyof T]: T[K] extends {screen: infer U}
-    ? U extends (args: infer V) => any
+    ? U extends (args: infer V) => unknown
       ? V extends {route: {params: infer W}}
         ? W
         : undefined
@@ -105,12 +105,12 @@ export type ViewPropsToPageProps<T> =
         ? {route: {params?: undefined}}
         : {route: {params: P}}
       : {route: {params?: undefined}}
-    : T extends (p: infer P) => any
+    : T extends (p: infer P) => unknown
       ? P extends undefined | never
         ? {route: {params?: undefined}}
         : {route: {params: P}}
       : {route: {params?: undefined}}
-export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
+export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => unknown
   ? {route: {params: P | undefined}}
   : never
 

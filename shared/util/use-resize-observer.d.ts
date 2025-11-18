@@ -1,4 +1,4 @@
-export type UseResizeObserverCallback = (entry: ResizeObserverEntry, observer: ResizeObserver) => any
+export type UseResizeObserverCallback = (entry: ResizeObserverEntry, observer: ResizeObserver) => unknown
 
 declare function useResizeObserver<T extends Element>(
   target: React.RefObject<T> | React.ForwardedRef<T> | T | null,

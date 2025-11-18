@@ -82,7 +82,7 @@ export const Input2 = React.memo(
       if (isIOS) {
         delete textStyle.lineHeight
       }
-      const commonStyle = Styles.collapseStyles([styles.common, textStyle as any])
+      const commonStyle = Styles.collapseStyles([styles.common, textStyle as Styles.StylesCrossPlatform])
 
       const lineHeight = textStyle.lineHeight
       let lineStyle = new Array<Styles.StylesCrossPlatform>()
