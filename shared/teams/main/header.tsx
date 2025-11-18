@@ -18,7 +18,7 @@ const HeaderRightActions = (props: Props) => (
     alignItems="center"
     style={Kb.Styles.platformStyles({
       common: {marginBottom: Kb.Styles.globalMargins.xtiny, paddingRight: Kb.Styles.globalMargins.small},
-      isElectron: {...Styles.desktopStyles.windowDraggingClickable},
+      isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
     })}
   >
     <Kb.Button label="Create a team" onClick={props.onCreateTeam} small={true} />

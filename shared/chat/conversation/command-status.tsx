@@ -114,9 +114,9 @@ const styles = Kb.Styles.styleSheetCreate(
       contentContainer: {flex: 1},
       outerContainer: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.boxShadow,
+          ...Kb.Styles.desktopStyles.boxShadow,
           border: `1px solid ${Kb.Styles.globalColors.black_20}`,
-          borderRadius: Styles.borderRadius,
+          borderRadius: Kb.Styles.borderRadius,
           marginBottom: Kb.Styles.globalMargins.xtiny,
           marginLeft: Kb.Styles.globalMargins.small,
           marginRight: Kb.Styles.globalMargins.small,

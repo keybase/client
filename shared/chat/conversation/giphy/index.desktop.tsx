@@ -136,9 +136,9 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       scrollContainer: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.boxShadow,
+          ...Kb.Styles.desktopStyles.boxShadow,
           border: `1px solid ${Kb.Styles.globalColors.black_20}`,
-          borderRadius: Styles.borderRadius,
+          borderRadius: Kb.Styles.borderRadius,
           maxHeight: 300,
           paddingBottom: Kb.Styles.globalMargins.tiny,
           paddingLeft: Kb.Styles.globalMargins.tiny,

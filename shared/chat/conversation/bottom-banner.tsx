@@ -153,7 +153,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       bannerStyle: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.red,
           flexWrap: 'wrap',

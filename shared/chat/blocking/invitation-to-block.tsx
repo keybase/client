@@ -41,8 +41,8 @@ const BlockButtons = () => {
 
   const buttonRow = (
     <Kb.ButtonBar
-      fullWidth={Styles.isMobile}
-      direction={Styles.isMobile ? 'column' : 'row'}
+      fullWidth={Kb.Styles.isMobile}
+      direction={Kb.Styles.isMobile ? 'column' : 'row'}
       style={styles.button}
     >
       <Kb.WaveButton
@@ -79,7 +79,7 @@ const BlockButtons = () => {
       />
     </Kb.ButtonBar>
   )
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.Box2
       direction="vertical"
       centerChildren={true}
@@ -118,7 +118,7 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '',
         },
         isMobile: {
-          ...Styles.padding(0, Kb.Styles.globalMargins.small),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
         },
       }),
       buttonContainer: {maxWidth: 322},

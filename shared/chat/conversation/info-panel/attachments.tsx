@@ -238,11 +238,11 @@ const DocViewRow = (props: DocViewRowProps) => {
       {item.onShowInFinder && (
         <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true}>
           <Kb.Text type="BodySmallPrimaryLink" onClick={item.onShowInFinder}>
-            Show in {Styles.fileUIName}
+            Show in {Kb.Styles.fileUIName}
           </Kb.Text>
         </Kb.Box2>
       )}
-      {Styles.isMobile && item.message && popup}
+      {Kb.Styles.isMobile && item.message && popup}
     </Kb.Box2>
   )
 }
@@ -381,8 +381,8 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       selectorItemContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          ...Styles.globalStyles.flexBoxCenter,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxCenter,
           borderBottomWidth: 1,
           borderColor: Kb.Styles.globalColors.blue,
           borderStyle: 'solid',
@@ -394,16 +394,16 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       selectorLinkContainer: {
         borderBottomLeftRadius: 0,
-        borderBottomRightRadius: Styles.borderRadius,
+        borderBottomRightRadius: Kb.Styles.borderRadius,
         borderRightWidth: 1,
         borderTopLeftRadius: 0,
-        borderTopRightRadius: Styles.borderRadius,
+        borderTopRightRadius: Kb.Styles.borderRadius,
       },
       selectorMediaContainer: {
-        borderBottomLeftRadius: Styles.borderRadius,
+        borderBottomLeftRadius: Kb.Styles.borderRadius,
         borderBottomRightRadius: 0,
         borderLeftWidth: 1,
-        borderTopLeftRadius: Styles.borderRadius,
+        borderTopLeftRadius: Kb.Styles.borderRadius,
         borderTopRightRadius: 0,
       },
       thumbContainer: {
@@ -489,7 +489,7 @@ export const useAttachmentSections = (
   const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
-    if (Styles.isMobile) {
+    if (Kb.Styles.isMobile) {
       messageAttachmentNativeShare(message.ordinal)
     } else if (!message.downloadPath) {
       attachmentDownload(message.ordinal)

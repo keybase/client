@@ -162,7 +162,7 @@ const ChannelHeader = () => {
       return {channelname, smallTeam, teamID, teamname}
     })
   )
-  const textType = smallTeam ? 'BodyBig' : Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
+  const textType = smallTeam ? 'BodyBig' : Kb.Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = React.useCallback(() => {
     navigateAppend({props: {teamID}, selected: 'team'})

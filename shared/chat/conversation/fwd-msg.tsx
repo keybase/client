@@ -190,7 +190,7 @@ const TeamPicker = (props: Props) => {
           />
         </Kb.Box2>
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
-          {Styles.isMobile ? null : (
+          {Kb.Styles.isMobile ? null : (
             <Kb.Button fullWidth={true} type="Dim" onClick={onClose} label="Cancel" />
           )}
           <Kb.Button fullWidth={true} onClick={onSubmit} label="Send" />
@@ -203,7 +203,7 @@ const TeamPicker = (props: Props) => {
       noScrollView={true}
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
           </Kb.Text>
@@ -248,7 +248,7 @@ const styles = Kb.Styles.styleSheetCreate(
       input: Kb.Styles.platformStyles({
         common: {
           borderColor: Kb.Styles.globalColors.blue,
-          borderRadius: Styles.borderRadius,
+          borderRadius: Kb.Styles.borderRadius,
           borderWidth: 1,
           marginBottom: Kb.Styles.globalMargins.tiny,
           minHeight: 40,

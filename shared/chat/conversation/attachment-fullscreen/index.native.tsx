@@ -196,7 +196,7 @@ const styles = Kb.Styles.styleSheetCreate(
         top: 0,
       },
       assetWrapper: {
-        ...Styles.globalStyles.flexBoxCenter,
+        ...Kb.Styles.globalStyles.flexBoxCenter,
         flex: 1,
       },
       close: {
@@ -204,11 +204,11 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.small,
       },
       fastImage: {
-        height: Styles.dimensionHeight,
-        width: Styles.dimensionWidth,
+        height: Kb.Styles.dimensionHeight,
+        width: Kb.Styles.dimensionWidth,
       },
       headerFooter: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.blackOrBlack,
         bottom: Kb.Styles.globalMargins.small,
@@ -223,8 +223,8 @@ const styles = Kb.Styles.styleSheetCreate(
       progressIndicator: {width: 48},
       progressWrapper: {position: 'absolute'},
       safeAreaTop: {
-        ...Styles.globalStyles.flexBoxColumn,
-        ...Styles.globalStyles.fillAbsolute,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.fillAbsolute,
         backgroundColor: Kb.Styles.globalColors.blackOrBlack,
       },
       videoWrapper: {

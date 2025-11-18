@@ -34,8 +34,8 @@ const AudioVis = (props: VisProps) => {
         style={{
           backgroundColor: index < threshold ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black,
           height,
-          marginRight: C.isMobile ? 4 * Styles.hairlineWidth : 2,
-          width: C.isMobile ? 3 * Styles.hairlineWidth : 1,
+          marginRight: C.isMobile ? 4 * Kb.Styles.hairlineWidth : 2,
+          width: C.isMobile ? 3 * Kb.Styles.hairlineWidth : 1,
         }}
       />
     )
@@ -123,10 +123,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     width: 30,
   },
   container: {
-    ...Styles.padding(Kb.Styles.globalMargins.xxtiny, Kb.Styles.globalMargins.tiny),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, Kb.Styles.globalMargins.tiny),
     backgroundColor: Kb.Styles.globalColors.white,
     borderColor: Kb.Styles.globalColors.grey,
-    borderRadius: Styles.borderRadius,
+    borderRadius: Kb.Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
   },

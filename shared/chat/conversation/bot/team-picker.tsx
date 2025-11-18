@@ -72,7 +72,7 @@ const BotTeamPicker = (props: Props) => {
     <Kb.Modal
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
           </Kb.Text>

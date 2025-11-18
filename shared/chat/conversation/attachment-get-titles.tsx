@@ -165,7 +165,7 @@ const Container = (ownProps: OwnProps) => {
       <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
         <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
-          {pathAndInfos.length > 0 && !Styles.isMobile && (
+          {pathAndInfos.length > 0 && !Kb.Styles.isMobile && (
             <Kb.Box2 direction="vertical" style={styles.filename}>
               <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
               <Kb.Text type="BodySmall" center={true}>
@@ -176,7 +176,7 @@ const Container = (ownProps: OwnProps) => {
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
             <Kb.PlainInput
               style={styles.input}
-              autoFocus={!Styles.isMobile}
+              autoFocus={!Kb.Styles.isMobile}
               autoCorrect={true}
               placeholder={titleHint}
               multiline={true}
@@ -198,7 +198,7 @@ const Container = (ownProps: OwnProps) => {
           </Kb.Box2>
         </Kb.Box2>
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
-          {!Styles.isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
+          {!Kb.Styles.isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
             <Kb.WaitingButton fullWidth={!multiUpload} onClick={onSubmit} label="Send" />
           ) : (
@@ -227,7 +227,7 @@ const styles = Kb.Styles.styleSheetCreate(
           flexShrink: 0,
           padding: Kb.Styles.globalMargins.small,
         },
-        isMobile: Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small, 0),
+        isMobile: Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small, 0),
       }),
       cancelButton: {marginRight: Kb.Styles.globalMargins.tiny},
       container: {
@@ -271,7 +271,7 @@ const styles = Kb.Styles.styleSheetCreate(
       input: Kb.Styles.platformStyles({
         common: {
           borderColor: Kb.Styles.globalColors.blue,
-          borderRadius: Styles.borderRadius,
+          borderRadius: Kb.Styles.borderRadius,
           borderWidth: 1,
           marginBottom: Kb.Styles.globalMargins.tiny,
           maxHeight: 42,
@@ -299,7 +299,7 @@ const styles = Kb.Styles.styleSheetCreate(
           height: '100%',
           width: '100%',
         },
-        isElectron: {borderRadius: Styles.borderRadius},
+        isElectron: {borderRadius: Kb.Styles.borderRadius},
       }),
     }) as const
 )

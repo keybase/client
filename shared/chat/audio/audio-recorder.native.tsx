@@ -550,7 +550,7 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
 const BigBackground = (props: {fadeSV: SVN}) => {
   'use no memo'
   const {fadeSV} = props
-  const backgroundColor = Styles.undynamicColor(Kb.Styles.globalColors.white)
+  const backgroundColor = Kb.Styles.undynamicColor(Kb.Styles.globalColors.white)
   const animatedStyle = useAnimatedStyle(() => ({
     backgroundColor,
     opacity: fadeSV.value * 0.9,
@@ -753,7 +753,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
 const SendRecordingButton = (props: {fadeSV: SVN; lockedSV: SVN; sendRecording: () => void}) => {
   'use no memo'
   const {fadeSV, lockedSV, sendRecording} = props
-  const backgroundColor = Styles.undynamicColor(Kb.Styles.globalColors.blue)
+  const backgroundColor = Kb.Styles.undynamicColor(Kb.Styles.globalColors.blue)
   const buttonStyle = useAnimatedStyle(() => ({
     backgroundColor,
     opacity: lockedSV.value ? fadeSV.value : withTiming(0),
@@ -810,14 +810,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     position: 'absolute',
   },
   bigBackgroundStyle: {
-    ...circleAroundIcon(Styles.isTablet ? 2000 : 750),
+    ...circleAroundIcon(Kb.Styles.isTablet ? 2000 : 750),
   },
   cancelHintIcon: {
     left: 0,
     position: 'absolute',
   },
   cancelHintStyle: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     bottom: micCenterBottom - 10,
     paddingLeft: 20,
@@ -826,7 +826,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     width: 140,
   },
   container: {
-    ...Styles.globalStyles.fillAbsolute,
+    ...Kb.Styles.globalStyles.fillAbsolute,
     justifyContent: 'flex-start',
   },
   iconStyle: {padding: Kb.Styles.globalMargins.tiny},
@@ -845,7 +845,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   tooltipContainer: {
     backgroundColor: Kb.Styles.globalColors.black,
-    borderRadius: Styles.borderRadius,
+    borderRadius: Kb.Styles.borderRadius,
     bottom: 45,
     padding: Kb.Styles.globalMargins.tiny,
     position: 'absolute',

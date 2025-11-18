@@ -75,7 +75,7 @@ const SearchBotPopup = (props: Props) => {
     renderItem: ({index, item}: {index: number; item: Item}) => {
       return item.type === 'dummy' && item.value === resultEmptyPlaceholder ? (
         <Kb.Text
-          style={{...Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)}}
+          style={{...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)}}
           type="BodySmall"
         >
           No results were found
@@ -105,7 +105,7 @@ const SearchBotPopup = (props: Props) => {
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
-          style={{...Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)}}
+          style={{...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)}}
         >
           {item.type === 'dummy' && item.value === userEmptyPlaceholder ? (
             <Kb.Text type="BodySmall">Enter a bot username above</Kb.Text>
@@ -130,7 +130,7 @@ const SearchBotPopup = (props: Props) => {
       onClose={onClose}
       noScrollView={true}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
           </Kb.Text>

@@ -149,7 +149,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
           )}
           {onShowInFinder && (
             <Kb.Text type="BodySmall" style={styles.link} onClick={onShowInFinder}>
-              Show in {Styles.fileUIName}
+              Show in {Kb.Styles.fileUIName}
             </Kb.Text>
           )}
         </Kb.Box>
@@ -169,7 +169,7 @@ const styles = Kb.Styles.styleSheetCreate(
       arrowRight: {left: 1},
       circle: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
           alignSelf: 'center',
           borderRadius: 36,
@@ -181,16 +181,16 @@ const styles = Kb.Styles.styleSheetCreate(
           width: 36,
         },
       }),
-      container: {...Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
+      container: {...Kb.Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
       contentsFit: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         flex: 1,
         height: '100%',
         width: '100%',
       },
       error: {color: Kb.Styles.globalColors.redDark},
       headerFooter: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         height: 32,
         paddingLeft: Kb.Styles.globalMargins.tiny,
@@ -212,7 +212,9 @@ const styles = Kb.Styles.styleSheetCreate(
           transformOrigin: 'top left',
         },
       }),
-      link: Kb.Styles.platformStyles({isElectron: {color: Kb.Styles.globalColors.black_50, cursor: 'pointer'}}),
+      link: Kb.Styles.platformStyles({
+        isElectron: {color: Kb.Styles.globalColors.black_50, cursor: 'pointer'},
+      }),
       retry: {
         color: Kb.Styles.globalColors.redDark,
         textDecorationLine: 'underline',

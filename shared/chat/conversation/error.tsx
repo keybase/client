@@ -21,12 +21,12 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       body: {marginTop: Kb.Styles.globalMargins.small},
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         padding: Kb.Styles.globalMargins.medium,
         width: '100%',
       },
       errorBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         marginTop: Kb.Styles.globalMargins.small,
       },
       errorText: {flexGrow: 1},

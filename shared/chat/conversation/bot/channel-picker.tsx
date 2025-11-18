@@ -162,7 +162,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       rowsContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.padding(0, Kb.Styles.globalMargins.small),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
         },
         isElectron: {
           minHeight: 370,

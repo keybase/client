@@ -102,7 +102,7 @@ const InstallBotPopup = (props: Props) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const addBotMember = C.useChatContext(s => s.dispatch.addBotMember)
   const onClose = () => {
-    Styles.isMobile ? navigateUp() : clearModals()
+    Kb.Styles.isMobile ? navigateUp() : clearModals()
   }
   const onLearn = () => {
     openURL('https://book.keybase.io/docs/chat/restricted-bots')
@@ -423,17 +423,17 @@ const InstallBotPopup = (props: Props) => {
       type="Default"
     />
   )
-  const backButton = Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />
+  const backButton = Kb.Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />
   const enabled = !!conversationIDKey
   return (
     <Kb.Modal
-      onClose={!Styles.isMobile ? onClose : undefined}
+      onClose={!Kb.Styles.isMobile ? onClose : undefined}
       header={{
         leftButton: channelPickerScreen ? (
           <Kb.Text type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
             Back
           </Kb.Text>
-        ) : Styles.isMobile || installScreen ? (
+        ) : Kb.Styles.isMobile || installScreen ? (
           <Kb.Text type="BodyBigLink" onClick={onLeftAction}>
             {installScreen ? backButton : inTeam || readOnly ? 'Close' : 'Cancel'}
           </Kb.Text>
@@ -588,7 +588,7 @@ const PermsList = (props: PermsListProps) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
   },
   dropdown: {
     width: '100%',

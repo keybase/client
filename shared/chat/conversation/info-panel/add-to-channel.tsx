@@ -59,13 +59,13 @@ const AddToChannel = (props: Props) => {
   return (
     <Kb.Modal
       header={{
-        hideBorder: Styles.isMobile,
-        leftButton: Styles.isMobile ? (
+        hideBorder: Kb.Styles.isMobile,
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             Cancel
           </Kb.Text>
         ) : undefined,
-        rightButton: Styles.isMobile && toAdd.size && (
+        rightButton: Kb.Styles.isMobile && toAdd.size && (
           <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : onAdd}>
             Add
           </Kb.Text>
@@ -73,7 +73,7 @@ const AddToChannel = (props: Props) => {
         title: title({channelname, teamID}),
       }}
       footer={
-        Styles.isMobile
+        Kb.Styles.isMobile
           ? undefined
           : {
               content: (
@@ -129,7 +129,7 @@ const AddToChannel = (props: Props) => {
             }
             return (
               <Kb.ListItem2
-                firstItem={!Styles.isMobile || idx === 0}
+                firstItem={!Kb.Styles.isMobile || idx === 0}
                 icon={<Kb.Avatar size={32} username={item.username} />}
                 type="Small"
                 onClick={alreadyIn ? undefined : onCheck}
@@ -169,10 +169,16 @@ const AddToChannel = (props: Props) => {
 }
 
 const title = ({channelname, teamID}: {channelname: string; teamID: T.Teams.TeamID}) =>
-  Styles.isMobile ? `Add to #${channelname}` : <ModalTitle teamID={teamID} title={`Add to #${channelname}`} />
+  Kb.Styles.isMobile ? (
+    `Add to #${channelname}`
+  ) : (
+    <ModalTitle teamID={teamID} title={`Add to #${channelname}`} />
+  )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  checkCircle: {paddingRight: Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny},
+  checkCircle: {
+    paddingRight: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny,
+  },
   filterInput: Kb.Styles.platformStyles({
     isElectron: {
       marginBottom: Kb.Styles.globalMargins.tiny,

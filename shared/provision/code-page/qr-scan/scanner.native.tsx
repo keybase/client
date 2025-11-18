@@ -5,7 +5,7 @@ import {CameraView, useCameraPermissions} from 'expo-camera'
 type Props = {
   onBarCodeRead: (code: string) => void
   notAuthorizedView: React.ReactElement | null
-  style: Styles.StylesCrossPlatform
+  style: Kb.Styles.StylesCrossPlatform
 }
 
 const QRScanner = (p: Props): React.ReactElement | null => {
