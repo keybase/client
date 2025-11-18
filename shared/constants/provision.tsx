@@ -30,7 +30,7 @@ const decodeForgotUsernameError = (error: RPCError) => {
 // Do NOT change this. These values are used by the daemon also so this way we can ignore it when they do it / when we do
 const errorCausedByUsCanceling = (e?: RPCError) =>
   (e ? e.desc : undefined) === 'Input canceled' || (e ? e.desc : undefined) === 'kex canceled by caller'
-const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
+const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
   response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 

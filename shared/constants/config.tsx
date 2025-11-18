@@ -672,7 +672,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
     },
     login: (username, passphrase) => {
       const cancelDesc = 'Canceling RPC'
-      const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
+      const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
         response.error({code: T.RPCGen.StatusCode.scgeneric, desc: cancelDesc})
       }
       const ignoreCallback = () => {}
