@@ -1,11 +1,10 @@
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 
 const long = 22
 const small = 4
 const padding = 5
 
-const QRScanLines = ({canScan, color}: {canScan: boolean; color?: Styles.Color}) => {
+const QRScanLines = ({canScan, color}: {canScan: boolean; color?: Kb.Styles.Color}) => {
   const s = [styles.common, {backgroundColor: color}]
   return canScan ? (
     <>
@@ -28,10 +27,16 @@ const QRScanLines = ({canScan, color}: {canScan: boolean; color?: Styles.Color})
         style={Kb.Styles.collapseStyles([...s, {bottom: padding, height: small, left: padding, width: long}])}
       />
       <Kb.Box
-        style={Kb.Styles.collapseStyles([...s, {bottom: padding, height: long, right: padding, width: small}])}
+        style={Kb.Styles.collapseStyles([
+          ...s,
+          {bottom: padding, height: long, right: padding, width: small},
+        ])}
       />
       <Kb.Box
-        style={Kb.Styles.collapseStyles([...s, {bottom: padding, height: small, right: padding, width: long}])}
+        style={Kb.Styles.collapseStyles([
+          ...s,
+          {bottom: padding, height: small, right: padding, width: long},
+        ])}
       />
     </>
   ) : null
