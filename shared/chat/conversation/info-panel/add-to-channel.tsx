@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
@@ -60,13 +59,13 @@ const AddToChannel = (props: Props) => {
   return (
     <Kb.Modal
       header={{
-        hideBorder: Styles.isMobile,
-        leftButton: Styles.isMobile ? (
+        hideBorder: Kb.Styles.isMobile,
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             Cancel
           </Kb.Text>
         ) : undefined,
-        rightButton: Styles.isMobile && toAdd.size && (
+        rightButton: Kb.Styles.isMobile && toAdd.size && (
           <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : onAdd}>
             Add
           </Kb.Text>
@@ -74,7 +73,7 @@ const AddToChannel = (props: Props) => {
         title: title({channelname, teamID}),
       }}
       footer={
-        Styles.isMobile
+        Kb.Styles.isMobile
           ? undefined
           : {
               content: (
@@ -83,13 +82,13 @@ const AddToChannel = (props: Props) => {
                     type="Dim"
                     label="Cancel"
                     onClick={onClose}
-                    style={Styles.globalStyles.flexOne}
+                    style={Kb.Styles.globalStyles.flexOne}
                   />
                   <Kb.Button
                     label={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
                     onClick={onAdd}
                     disabled={!toAdd.size}
-                    style={Styles.globalStyles.flexOne}
+                    style={Kb.Styles.globalStyles.flexOne}
                     waiting={waiting}
                   />
                 </Kb.Box2>
@@ -130,7 +129,7 @@ const AddToChannel = (props: Props) => {
             }
             return (
               <Kb.ListItem2
-                firstItem={!Styles.isMobile || idx === 0}
+                firstItem={!Kb.Styles.isMobile || idx === 0}
                 icon={<Kb.Avatar size={32} username={item.username} />}
                 type="Small"
                 onClick={alreadyIn ? undefined : onCheck}
@@ -152,7 +151,7 @@ const AddToChannel = (props: Props) => {
                     disabled={alreadyIn}
                     disabledColor={
                       alreadyIn || toAdd.has(item.username)
-                        ? Styles.globalColors.black_20OrWhite_20
+                        ? Kb.Styles.globalColors.black_20OrWhite_20
                         : undefined
                     }
                     style={styles.checkCircle}
@@ -170,20 +169,26 @@ const AddToChannel = (props: Props) => {
 }
 
 const title = ({channelname, teamID}: {channelname: string; teamID: T.Teams.TeamID}) =>
-  Styles.isMobile ? `Add to #${channelname}` : <ModalTitle teamID={teamID} title={`Add to #${channelname}`} />
+  Kb.Styles.isMobile ? (
+    `Add to #${channelname}`
+  ) : (
+    <ModalTitle teamID={teamID} title={`Add to #${channelname}`} />
+  )
 
-const styles = Styles.styleSheetCreate(() => ({
-  checkCircle: {paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.tiny},
-  filterInput: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  checkCircle: {
+    paddingRight: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny,
+  },
+  filterInput: Kb.Styles.platformStyles({
     isElectron: {
-      marginBottom: Styles.globalMargins.tiny,
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.tiny,
+      marginBottom: Kb.Styles.globalMargins.tiny,
+      marginLeft: Kb.Styles.globalMargins.small,
+      marginRight: Kb.Styles.globalMargins.small,
+      marginTop: Kb.Styles.globalMargins.tiny,
     },
   }),
-  list: Styles.platformStyles({isMobile: {height: '100%'}}),
-  listContainer: Styles.platformStyles({isElectron: {height: 370}}), // shortcut to get the list to expand the modal.
+  list: Kb.Styles.platformStyles({isMobile: {height: '100%'}}),
+  listContainer: Kb.Styles.platformStyles({isElectron: {height: 370}}), // shortcut to get the list to expand the modal.
 }))
 
 export default AddToChannel

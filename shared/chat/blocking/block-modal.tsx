@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 import * as C from '@/constants'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the
@@ -44,7 +43,7 @@ const CheckboxRow = (props: CheckboxRowProps) => (
       allowLabelClick={!props.disabled}
       color="red"
       disabled={props.disabled}
-      gapSize={Styles.globalMargins.tiny}
+      gapSize={Kb.Styles.globalMargins.tiny}
       label={props.text}
       on={props.checked}
       onClick={() => props.onCheck(!props.checked)}
@@ -55,7 +54,7 @@ const CheckboxRow = (props: CheckboxRowProps) => (
       <Kb.WithTooltip
         tooltip={props.info}
         showOnPressMobile={true}
-        position={Styles.isMobile ? 'bottom center' : 'top center'}
+        position={Kb.Styles.isMobile ? 'bottom center' : 'top center'}
         multiline={true}
       >
         <Kb.Icon type="iconfont-question-mark" color="grey" />
@@ -93,7 +92,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
         />
       ))}
       <Kb.Box
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.feedback,
           !showIncludeTranscript && styles.feedbackPaddingBottom,
         ])}
@@ -410,12 +409,12 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
   )
 
   const header = {
-    leftButton: Styles.isMobile ? (
+    leftButton: Kb.Styles.isMobile ? (
       <Kb.Text onClick={onClose} type="BodyPrimaryLink">
         Cancel
       </Kb.Text>
     ) : undefined,
-    title: <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Styles.globalColors.red} />,
+    title: <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />,
   }
 
   if (loadingWaiting) {
@@ -464,7 +463,7 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
       footer={{
         content: (
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            {!Styles.isMobile && <Kb.Button fullWidth={true} label="Cancel" onClick={onClose} type="Dim" />}
+            {!Kb.Styles.isMobile && <Kb.Button fullWidth={true} label="Cancel" onClick={onClose} type="Dim" />}
             <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
           </Kb.ButtonBar>
         ),
@@ -481,7 +480,7 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
         }
         indexAsKey={true}
         style={
-          Styles.isMobile
+          Kb.Styles.isMobile
             ? styles.grow
             : getListHeightStyle(
                 otherUsernames?.length ?? 0,
@@ -509,20 +508,20 @@ const getListHeightStyle = (numOthers: number, expanded: boolean) => ({
       : 0),
 })
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBar: {minHeight: undefined},
-  checkBoxRow: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-  feedback: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small, 0),
-  feedbackPaddingBottom: {paddingBottom: Styles.globalMargins.small},
+  checkBoxRow: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+  feedback: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small, 0),
+  feedbackPaddingBottom: {paddingBottom: Kb.Styles.globalMargins.small},
   greyBox: {
-    backgroundColor: Styles.globalColors.blueGrey,
-    color: Styles.globalColors.black_50,
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    color: Kb.Styles.globalColors.black_50,
     width: '100%',
-    ...Styles.padding(Styles.globalMargins.xsmall),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall),
   },
   grow: {flexGrow: 1},
-  iconBox: {flex: 1, paddingLeft: Styles.globalMargins.tiny},
-  loadingAnimation: Styles.platformStyles({
+  iconBox: {flex: 1, paddingLeft: Kb.Styles.globalMargins.tiny},
+  loadingAnimation: Kb.Styles.platformStyles({
     isElectron: {
       height: 32,
       width: 32,
@@ -534,11 +533,11 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   loadingAnimationBox: {
     alignSelf: 'center',
-    padding: Styles.globalMargins.medium,
+    padding: Kb.Styles.globalMargins.medium,
   },
 
   popupStyleContainer: {height: 450},
-  radioButton: {marginLeft: Styles.globalMargins.large},
-  scroll: Styles.platformStyles({isMobile: {height: '100%'}}),
+  radioButton: {marginLeft: Kb.Styles.globalMargins.large},
+  scroll: Kb.Styles.platformStyles({isMobile: {height: '100%'}}),
   shrink: {flexShrink: 1},
 }))

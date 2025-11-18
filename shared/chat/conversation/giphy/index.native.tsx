@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import {colors, darkColors} from '@/styles/colors'
-import * as Styles from '@/styles'
 import {WebView} from 'react-native-webview'
 import noop from 'lodash/noop'
 import {useHooks} from './hooks'
@@ -41,7 +40,7 @@ const GiphySearch = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {height: 80},

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {PortalHost, Portal} from '@/common-adapters/portal.native'
-import * as Styles from '@/styles'
 import AudioPlayer from './audio-player'
 import type {AmpTracker} from './amptracker'
 
@@ -53,27 +52,27 @@ const AudioSend = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     alignItems: 'center',
     borderStyle: 'solid',
-    borderTopColor: Styles.globalColors.black_10,
+    borderTopColor: Kb.Styles.globalColors.black_10,
     borderTopWidth: 1,
     justifyContent: 'space-between',
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
   },
   icon: {
     alignItems: 'center',
     height: 32,
     justifyContent: 'center',
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
     width: 32,
   },
   send: {
     alignSelf: 'flex-end',
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
   },
 }))
 

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 import {useMessagePopup} from '../messages/message-popup'
 import {Video, ResizeMode} from 'expo-av'
 import logger from '@/logger'
@@ -158,7 +157,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   return (
     <Kb.Box2
       direction="vertical"
-      style={{backgroundColor: Styles.globalColors.blackOrBlack, position: 'relative'}}
+      style={{backgroundColor: Kb.Styles.globalColors.blackOrBlack, position: 'relative'}}
       fullWidth={true}
       fullHeight={true}
     >
@@ -181,13 +180,13 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       allMedia: {
-        color: Styles.globalColors.blueDark,
+        color: Kb.Styles.globalColors.blueDark,
         marginLeft: 'auto',
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       animated: {
         height: 50,
@@ -197,36 +196,36 @@ const styles = Styles.styleSheetCreate(
         top: 0,
       },
       assetWrapper: {
-        ...Styles.globalStyles.flexBoxCenter,
+        ...Kb.Styles.globalStyles.flexBoxCenter,
         flex: 1,
       },
       close: {
-        color: Styles.globalColors.blueDark,
-        padding: Styles.globalMargins.small,
+        color: Kb.Styles.globalColors.blueDark,
+        padding: Kb.Styles.globalMargins.small,
       },
       fastImage: {
-        height: Styles.dimensionHeight,
-        width: Styles.dimensionWidth,
+        height: Kb.Styles.dimensionHeight,
+        width: Kb.Styles.dimensionWidth,
       },
       headerFooter: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.blackOrBlack,
-        bottom: Styles.globalMargins.small,
+        backgroundColor: Kb.Styles.globalColors.blackOrBlack,
+        bottom: Kb.Styles.globalMargins.small,
         flexShrink: 0,
         height: 34,
-        left: Styles.globalMargins.small,
+        left: Kb.Styles.globalMargins.small,
         position: 'absolute',
         width: 34,
         zIndex: 3,
       },
-      headerWrapper: {backgroundColor: Styles.globalColors.blackOrBlack},
+      headerWrapper: {backgroundColor: Kb.Styles.globalColors.blackOrBlack},
       progressIndicator: {width: 48},
       progressWrapper: {position: 'absolute'},
       safeAreaTop: {
-        ...Styles.globalStyles.flexBoxColumn,
-        ...Styles.globalStyles.fillAbsolute,
-        backgroundColor: Styles.globalColors.blackOrBlack,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.fillAbsolute,
+        backgroundColor: Kb.Styles.globalColors.blackOrBlack,
       },
       videoWrapper: {
         alignItems: 'center',
@@ -236,7 +235,7 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       zoomableBox: {
-        backgroundColor: Styles.globalColors.blackOrBlack,
+        backgroundColor: Kb.Styles.globalColors.blackOrBlack,
         height: '100%',
         position: 'relative',
         width: '100%',

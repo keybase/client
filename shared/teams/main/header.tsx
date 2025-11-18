@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 
 export type HeaderButtonProps = {
   iconType: Kb.IconType
@@ -17,9 +16,9 @@ const HeaderRightActions = (props: Props) => (
     gap="tiny"
     direction="horizontal"
     alignItems="center"
-    style={Styles.platformStyles({
-      common: {marginBottom: Styles.globalMargins.xtiny, paddingRight: Styles.globalMargins.small},
-      isElectron: {...Styles.desktopStyles.windowDraggingClickable},
+    style={Kb.Styles.platformStyles({
+      common: {marginBottom: Kb.Styles.globalMargins.xtiny, paddingRight: Kb.Styles.globalMargins.small},
+      isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
     })}
   >
     <Kb.Button label="Create a team" onClick={props.onCreateTeam} small={true} />

@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '@/styles'
 import debounce from 'lodash/debounce'
 import type * as T from '@/constants/types'
 import {Bot} from '../info-panel/bot'
@@ -76,7 +75,7 @@ const SearchBotPopup = (props: Props) => {
     renderItem: ({index, item}: {index: number; item: Item}) => {
       return item.type === 'dummy' && item.value === resultEmptyPlaceholder ? (
         <Kb.Text
-          style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
+          style={{...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)}}
           type="BodySmall"
         >
           No results were found
@@ -106,7 +105,7 @@ const SearchBotPopup = (props: Props) => {
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
-          style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
+          style={{...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)}}
         >
           {item.type === 'dummy' && item.value === userEmptyPlaceholder ? (
             <Kb.Text type="BodySmall">Enter a bot username above</Kb.Text>
@@ -131,7 +130,7 @@ const SearchBotPopup = (props: Props) => {
       onClose={onClose}
       noScrollView={true}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
           </Kb.Text>
@@ -160,11 +159,11 @@ const SearchBotPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  inputContainer: Styles.platformStyles({
-    isElectron: {padding: Styles.globalMargins.tiny},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  inputContainer: Kb.Styles.platformStyles({
+    isElectron: {padding: Kb.Styles.globalMargins.tiny},
   }),
-  modal: Styles.platformStyles({
+  modal: Kb.Styles.platformStyles({
     isElectron: {height: 500},
   }),
 }))

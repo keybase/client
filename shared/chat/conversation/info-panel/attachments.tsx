@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import * as Styles from '@/styles'
 import chunk from 'lodash/chunk'
 import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp'
 import {infoPanelWidth} from './common'
@@ -184,7 +183,7 @@ const MediaThumb = (props: MediaThumbProps) => {
               <Kb.Icon
                 type="iconfont-mic"
                 style={{marginLeft: 2}}
-                color={Styles.globalColors.whiteOrWhite}
+                color={Kb.Styles.globalColors.whiteOrWhite}
                 sizeType="Big"
               />
             </Kb.Box2>
@@ -239,11 +238,11 @@ const DocViewRow = (props: DocViewRowProps) => {
       {item.onShowInFinder && (
         <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true}>
           <Kb.Text type="BodySmallPrimaryLink" onClick={item.onShowInFinder}>
-            Show in {Styles.fileUIName}
+            Show in {Kb.Styles.fileUIName}
           </Kb.Text>
         </Kb.Box2>
       )}
-      {Styles.isMobile && item.message && popup}
+      {Kb.Styles.isMobile && item.message && popup}
     </Kb.Box2>
   )
 }
@@ -254,15 +253,15 @@ type SelectorProps = {
 }
 
 const getBkgColor = (selected: boolean) =>
-  selected ? {backgroundColor: Styles.globalColors.blue} : {backgroundColor: undefined}
+  selected ? {backgroundColor: Kb.Styles.globalColors.blue} : {backgroundColor: undefined}
 const getColor = (selected: boolean) =>
-  selected ? {color: Styles.globalColors.white} : {color: Styles.globalColors.blueDark}
+  selected ? {color: Kb.Styles.globalColors.white} : {color: Kb.Styles.globalColors.blueDark}
 
 const AttachmentTypeSelector = (props: SelectorProps) => (
   <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
     <Kb.ClickableBox
       onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.media)}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.selectorItemContainer,
         styles.selectorMediaContainer,
         getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.media),
@@ -274,7 +273,7 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
     </Kb.ClickableBox>
     <Kb.ClickableBox
       onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.doc)}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.selectorDocContainer,
         styles.selectorItemContainer,
         getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc),
@@ -286,7 +285,7 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
     </Kb.ClickableBox>
     <Kb.ClickableBox
       onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.link)}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.selectorItemContainer,
         styles.selectorLinkContainer,
         getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.link),
@@ -299,13 +298,13 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      audioBackground: Styles.platformStyles({
+      audioBackground: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blue,
-          padding: Styles.globalMargins.tiny,
+          backgroundColor: Kb.Styles.globalColors.blue,
+          padding: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
           borderRadius: '50%',
@@ -314,16 +313,16 @@ const styles = Styles.styleSheetCreate(
           borderRadius: 32,
         },
       }),
-      avatar: {marginRight: Styles.globalMargins.tiny},
+      avatar: {marginRight: Kb.Styles.globalMargins.tiny},
       container: {
         flex: 1,
         height: '100%',
       },
-      docBottom: {padding: Styles.globalMargins.tiny},
+      docBottom: {padding: Kb.Styles.globalMargins.tiny},
       docIcon: {height: 32},
       docProgress: {alignSelf: 'center'},
-      docRowContainer: {padding: Styles.globalMargins.tiny},
-      docRowTitle: Styles.platformStyles({
+      docRowContainer: {padding: Kb.Styles.globalMargins.tiny},
+      docRowTitle: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
           whiteSpace: 'pre-wrap',
@@ -332,18 +331,18 @@ const styles = Styles.styleSheetCreate(
       }),
       durationContainer: {
         alignSelf: 'flex-start',
-        bottom: Styles.globalMargins.xtiny,
+        bottom: Kb.Styles.globalMargins.xtiny,
         position: 'absolute',
-        right: Styles.globalMargins.xtiny,
+        right: Kb.Styles.globalMargins.xtiny,
       },
       filmIcon: {
         height: 16,
         width: 16,
       },
       flexWrap: {flexWrap: 'wrap'},
-      linkContainer: {padding: Styles.globalMargins.tiny},
-      linkStyle: Styles.platformStyles({
-        common: {color: Styles.globalColors.black_50},
+      linkContainer: {padding: Kb.Styles.globalMargins.tiny},
+      linkStyle: Kb.Styles.platformStyles({
+        common: {color: Kb.Styles.globalColors.black_50},
         isElectron: {
           fontSize: 13,
           lineHeight: 17,
@@ -353,10 +352,10 @@ const styles = Styles.styleSheetCreate(
         isMobile: {fontSize: 15},
       }),
       linkTime: {alignSelf: 'center'},
-      loadMore: {margin: Styles.globalMargins.tiny},
+      loadMore: {margin: Kb.Styles.globalMargins.tiny},
       loadMoreProgress: {
         alignSelf: 'center',
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       loading: {
         bottom: '50%',
@@ -372,39 +371,39 @@ const styles = Styles.styleSheetCreate(
       },
       selectorContainer: {
         maxWidth: 460,
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       selectorDocContainer: {
-        borderColor: Styles.globalColors.blue,
+        borderColor: Kb.Styles.globalColors.blue,
         borderLeftWidth: 1,
         borderRadius: 0,
         borderRightWidth: 1,
       },
-      selectorItemContainer: Styles.platformStyles({
+      selectorItemContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          ...Styles.globalStyles.flexBoxCenter,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxCenter,
           borderBottomWidth: 1,
-          borderColor: Styles.globalColors.blue,
+          borderColor: Kb.Styles.globalColors.blue,
           borderStyle: 'solid',
           borderTopWidth: 1,
           flex: 1,
           height: 32,
         },
-        isMobile: {paddingTop: Styles.globalMargins.xxtiny},
+        isMobile: {paddingTop: Kb.Styles.globalMargins.xxtiny},
       }),
       selectorLinkContainer: {
         borderBottomLeftRadius: 0,
-        borderBottomRightRadius: Styles.borderRadius,
+        borderBottomRightRadius: Kb.Styles.borderRadius,
         borderRightWidth: 1,
         borderTopLeftRadius: 0,
-        borderTopRightRadius: Styles.borderRadius,
+        borderTopRightRadius: Kb.Styles.borderRadius,
       },
       selectorMediaContainer: {
-        borderBottomLeftRadius: Styles.borderRadius,
+        borderBottomLeftRadius: Kb.Styles.borderRadius,
         borderBottomRightRadius: 0,
         borderLeftWidth: 1,
-        borderTopLeftRadius: Styles.borderRadius,
+        borderTopLeftRadius: Kb.Styles.borderRadius,
         borderTopRightRadius: 0,
       },
       thumbContainer: {
@@ -415,9 +414,9 @@ const styles = Styles.styleSheetCreate(
 )
 
 const linkStyleOverride = {
-  link: Styles.collapseStyles([
+  link: Kb.Styles.collapseStyles([
     styles.linkStyle,
-    {color: Styles.globalColors.blueDark},
+    {color: Kb.Styles.globalColors.blueDark},
   ]) as StylesTextCrossPlatform,
 }
 
@@ -490,7 +489,7 @@ export const useAttachmentSections = (
   const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
-    if (Styles.isMobile) {
+    if (Kb.Styles.isMobile) {
       messageAttachmentNativeShare(message.ordinal)
     } else if (!message.downloadPath) {
       attachmentDownload(message.ordinal)
@@ -723,9 +722,9 @@ export const useAttachmentSections = (
                       <Kb.Text
                         type="BodySmallPrimaryLink"
                         onClickURL={item.url}
-                        style={Styles.collapseStyles([
+                        style={Kb.Styles.collapseStyles([
                           styles.linkStyle,
-                          {color: Styles.globalColors.blueDark},
+                          {color: Kb.Styles.globalColors.blueDark},
                         ])}
                       >
                         {item.title}

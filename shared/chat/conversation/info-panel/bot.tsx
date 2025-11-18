@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
 
 type AddToChannelProps = {
@@ -93,7 +92,7 @@ export const Bot = (props: BotProps) => {
   const usernameDisplay = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
       <Kb.Text type="BodySmall" lineClamp={1}>
-        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black}}>
+        <Kb.Text type="BodySmallSemibold" style={{color: Kb.Styles.globalColors.black}}>
           {botAlias || botUsername}
         </Kb.Text>
         <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
@@ -117,9 +116,9 @@ export const Bot = (props: BotProps) => {
       onClick={() => onClick(botUsername)}
       type="Large"
       firstItem={!!firstItem}
-      icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={botUsername} />}
+      icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={botUsername} />}
       hideHover={!!props.hideHover}
-      style={{backgroundColor: Styles.globalColors.white}}
+      style={{backgroundColor: Kb.Styles.globalColors.white}}
       action={
         showTeamAdd ? (
           <Kb.Button type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
@@ -137,50 +136,50 @@ export const Bot = (props: BotProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addBot: {
         alignSelf: undefined,
-        marginBottom: Styles.globalMargins.xtiny,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
-      addButton: {marginLeft: Styles.globalMargins.tiny},
+      addButton: {marginLeft: Kb.Styles.globalMargins.tiny},
       botHeaders: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.tiny,
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
-          marginRight: Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
         },
         isMobile: {
-          marginRight: Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
         },
       }),
-      divider: Styles.platformStyles({
-        common: {marginTop: Styles.globalMargins.tiny},
+      divider: Kb.Styles.platformStyles({
+        common: {marginTop: Kb.Styles.globalMargins.tiny},
         isElectron: {marginLeft: 56},
         isMobile: {marginLeft: 81},
       }),
-      listItemContainer: {paddingRight: Styles.globalMargins.tiny},
+      listItemContainer: {paddingRight: Kb.Styles.globalMargins.tiny},
       row: {
         alignItems: 'center',
         flex: 1,
-        marginRight: Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
-      rowContainer: Styles.platformStyles({
+      rowContainer: Kb.Styles.platformStyles({
         common: {
           minHeight: 48,
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
         isElectron: {
-          ...Styles.desktopStyles.clickable,
+          ...Kb.Styles.desktopStyles.clickable,
         },
       }),
     }) as const

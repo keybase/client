@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 import * as T from '@/constants/types'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
@@ -160,7 +159,7 @@ const TeamPicker = (props: Props) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           {error.length > 0 ? (
-            <Kb.Text type="Body" style={{alignSelf: 'center', color: Styles.globalColors.redDark}}>
+            <Kb.Text type="Body" style={{alignSelf: 'center', color: Kb.Styles.globalColors.redDark}}>
               {error}
             </Kb.Text>
           ) : (
@@ -191,7 +190,7 @@ const TeamPicker = (props: Props) => {
           />
         </Kb.Box2>
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
-          {Styles.isMobile ? null : (
+          {Kb.Styles.isMobile ? null : (
             <Kb.Button fullWidth={true} type="Dim" onClick={onClose} label="Cancel" />
           )}
           <Kb.Button fullWidth={true} onClick={onSubmit} label="Send" />
@@ -204,7 +203,7 @@ const TeamPicker = (props: Props) => {
       noScrollView={true}
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
           </Kb.Text>
@@ -217,28 +216,28 @@ const TeamPicker = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       boxGrow: {
         flexGrow: 1,
-        margin: Styles.globalMargins.small,
+        margin: Kb.Styles.globalMargins.small,
       },
-      buttonContainer: Styles.platformStyles({
+      buttonContainer: Kb.Styles.platformStyles({
         isElectron: {
           alignSelf: 'flex-end',
           borderStyle: 'solid',
-          borderTopColor: Styles.globalColors.black_10,
+          borderTopColor: Kb.Styles.globalColors.black_10,
           borderTopWidth: 1,
           flexShrink: 0,
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
           width: '100%',
         },
         isMobile: {width: '100%'},
       }),
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {height: 450},
-        isMobile: {padding: Styles.globalMargins.small},
+        isMobile: {padding: Kb.Styles.globalMargins.small},
       }),
       image: {
         height: '100%',
@@ -246,14 +245,14 @@ const styles = Styles.styleSheetCreate(
         maxWidth: '100%',
         width: '100%',
       },
-      input: Styles.platformStyles({
+      input: Kb.Styles.platformStyles({
         common: {
-          borderColor: Styles.globalColors.blue,
-          borderRadius: Styles.borderRadius,
+          borderColor: Kb.Styles.globalColors.blue,
+          borderRadius: Kb.Styles.borderRadius,
           borderWidth: 1,
-          marginBottom: Styles.globalMargins.tiny,
+          marginBottom: Kb.Styles.globalMargins.tiny,
           minHeight: 40,
-          padding: Styles.globalMargins.xtiny,
+          padding: Kb.Styles.globalMargins.xtiny,
           width: '100%',
         },
         isElectron: {maxHeight: 100},
@@ -262,27 +261,27 @@ const styles = Styles.styleSheetCreate(
           maxWidth: 460,
         },
       }),
-      inputContainer: Styles.platformStyles({
+      inputContainer: Kb.Styles.platformStyles({
         isElectron: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
       }),
-      results: Styles.platformStyles({
+      results: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
         },
-        isMobile: {paddingBottom: Styles.globalMargins.tiny},
+        isMobile: {paddingBottom: Kb.Styles.globalMargins.tiny},
       }),
-      searchFilter: Styles.platformStyles({
+      searchFilter: Kb.Styles.platformStyles({
         common: {
-          marginBottom: Styles.globalMargins.xsmall,
-          marginTop: Styles.globalMargins.tiny,
+          marginBottom: Kb.Styles.globalMargins.xsmall,
+          marginTop: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
         },
       }),
     }) as const

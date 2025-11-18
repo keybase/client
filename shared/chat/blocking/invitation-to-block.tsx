@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 const BlockButtons = () => {
@@ -42,8 +41,8 @@ const BlockButtons = () => {
 
   const buttonRow = (
     <Kb.ButtonBar
-      fullWidth={Styles.isMobile}
-      direction={Styles.isMobile ? 'column' : 'row'}
+      fullWidth={Kb.Styles.isMobile}
+      direction={Kb.Styles.isMobile ? 'column' : 'row'}
       style={styles.button}
     >
       <Kb.WaveButton
@@ -80,7 +79,7 @@ const BlockButtons = () => {
       />
     </Kb.ButtonBar>
   )
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.Box2
       direction="vertical"
       centerChildren={true}
@@ -111,15 +110,15 @@ const BlockButtons = () => {
 
 export default BlockButtons
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      button: Styles.platformStyles({
+      button: Kb.Styles.platformStyles({
         isElectron: {
           width: '',
         },
         isMobile: {
-          ...Styles.padding(0, Styles.globalMargins.small),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
         },
       }),
       buttonContainer: {maxWidth: 322},
@@ -129,17 +128,17 @@ const styles = Styles.styleSheetCreate(
         marginLeft: 57,
       },
       dismissContainer: {
-        backgroundColor: Styles.globalColors.blueGrey,
-        paddingBottom: Styles.globalMargins.xsmall,
-        paddingTop: Styles.globalMargins.xsmall,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        paddingBottom: Kb.Styles.globalMargins.xsmall,
+        paddingTop: Kb.Styles.globalMargins.xsmall,
         position: 'relative',
       },
       dismissIcon: {
         position: 'absolute',
-        right: Styles.globalMargins.small,
+        right: Kb.Styles.globalMargins.small,
         top: -1,
       },
-      waveButton: Styles.platformStyles({
+      waveButton: Kb.Styles.platformStyles({
         isElectron: {
           width: '',
         },

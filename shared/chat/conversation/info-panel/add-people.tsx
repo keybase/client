@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 
 type Props = {
   isAdmin: boolean
@@ -72,14 +71,14 @@ const AddPeople = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addButtonContainer: {
         alignSelf: undefined,
-        marginBottom: Styles.globalMargins.small,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
       },
     }) as const
 )

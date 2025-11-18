@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {styleSheetCreate, isMobile, globalMargins, globalColors} from '@/styles'
 
 type Props = {
   children: React.ReactNode
@@ -16,7 +15,7 @@ export const Wrapper = (props: Props) => (
       fullHeight={true}
       centerChildren={true}
       style={styles.wrapper}
-      gap={isMobile ? 'xtiny' : 'small'}
+      gap={Kb.Styles.isMobile ? 'xtiny' : 'small'}
     >
       {props.children}
     </Kb.Box2>
@@ -43,13 +42,13 @@ export const ContinueButton = ({
   </Kb.ButtonBar>
 )
 
-const styles = styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      avatar: {marginBottom: isMobile ? globalMargins.xtiny : 0},
-      buttonBar: {maxWidth: 460, padding: 0, paddingTop: globalMargins.medium},
+      avatar: {marginBottom: Kb.Styles.isMobile ? Kb.Styles.globalMargins.xtiny : 0},
+      buttonBar: {maxWidth: 460, padding: 0, paddingTop: Kb.Styles.globalMargins.medium},
       header: {
-        backgroundColor: globalColors.transparent,
+        backgroundColor: Kb.Styles.globalColors.transparent,
         borderBottomWidth: 0,
         left: 0,
         position: 'absolute',
@@ -60,6 +59,6 @@ const styles = styleSheetCreate(
       inputContainer: {alignItems: 'center', alignSelf: 'stretch'},
       inputErrorStyle: {minHeight: 0},
       inputInnerStyle: {width: '100%'},
-      wrapper: {paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium},
+      wrapper: {paddingLeft: Kb.Styles.globalMargins.medium, paddingRight: Kb.Styles.globalMargins.medium},
     }) as const
 )

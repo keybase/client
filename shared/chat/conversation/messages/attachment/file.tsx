@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
-import {globalColors} from '@/styles'
 import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
@@ -95,9 +94,9 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const arrowColor = C.isMobile
     ? ''
     : downloadPath
-      ? globalColors.green
+      ? Kb.Styles.globalColors.green
       : transferState === 'downloading'
-        ? globalColors.blue
+        ? Kb.Styles.globalColors.blue
         : ''
   const hasProgress =
     !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'

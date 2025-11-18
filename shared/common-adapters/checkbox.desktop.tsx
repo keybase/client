@@ -73,7 +73,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   checkboxInactive: {borderColor: Kb.Styles.globalColors.black_10},
   clickable: Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.desktopStyles.clickable,
+      ...Kb.Styles.desktopStyles.clickable,
     },
   }),
   container: {

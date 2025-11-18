@@ -1,12 +1,11 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 import {CameraView, useCameraPermissions} from 'expo-camera'
 
 type Props = {
   onBarCodeRead: (code: string) => void
   notAuthorizedView: React.ReactElement | null
-  style: Styles.StylesCrossPlatform
+  style: Kb.Styles.StylesCrossPlatform
 }
 
 const QRScanner = (p: Props): React.ReactElement | null => {
@@ -23,7 +22,7 @@ const QRScanner = (p: Props): React.ReactElement | null => {
 
   if (!permission) {
     return (
-      <Kb.Box2 direction="vertical" style={Styles.collapseStyles([p.style, styles.gettingPermissions])} />
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([p.style, styles.gettingPermissions])} />
     )
   }
   if (!permission.granted) {
@@ -43,9 +42,9 @@ const QRScanner = (p: Props): React.ReactElement | null => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   gettingPermissions: {
-    backgroundColor: Styles.globalColors.greyLight,
+    backgroundColor: Kb.Styles.globalColors.greyLight,
   },
 }))
 

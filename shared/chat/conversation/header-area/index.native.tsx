@@ -5,7 +5,6 @@ import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import {Keyboard} from 'react-native'
 // import {DebugChatDumpContext} from '@/constants/chat2/debug'
-import * as Styles from '@/styles'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
@@ -127,7 +126,7 @@ export const useBackBadge = () => {
   return badgeNumber
 }
 
-const shhIconColor = Styles.globalColors.black_20
+const shhIconColor = Kb.Styles.globalColors.black_20
 const shhIconFontSize = 24
 
 const ShhIcon = React.memo(function ShhIcon() {
@@ -163,7 +162,7 @@ const ChannelHeader = () => {
       return {channelname, smallTeam, teamID, teamname}
     })
   )
-  const textType = smallTeam ? 'BodyBig' : Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
+  const textType = smallTeam ? 'BodyBig' : Kb.Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = React.useCallback(() => {
     navigateAppend({props: {teamID}, selected: 'team'})
@@ -182,7 +181,7 @@ const ChannelHeader = () => {
           lineClamp={1}
           ellipsizeMode="middle"
           onClick={onClick}
-          style={Styles.collapseStyles([styles.channelName, !smallTeam && styles.channelNameLight])}
+          style={Kb.Styles.collapseStyles([styles.channelName, !smallTeam && styles.channelNameLight])}
         >
           &nbsp;
           {teamname}
@@ -232,7 +231,7 @@ const UsernameHeader = () => {
   return (
     <Kb.Box2
       direction={theirFullname ? 'vertical' : 'horizontal'}
-      style={Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
+      style={Kb.Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
     >
       {!!theirFullname && (
         <Kb.Text lineClamp={1} type="BodyBig" fixOverdraw={true}>
@@ -244,7 +243,7 @@ const UsernameHeader = () => {
           colorFollowing={true}
           inline={false}
           lineClamp={participants.length > 2 ? 2 : 1}
-          commaColor={Styles.globalColors.black_50}
+          commaColor={Kb.Styles.globalColors.black_50}
           type={participants.length > 2 || !!theirFullname ? 'BodyTinyBold' : 'BodyBig'}
           usernames={participants}
           containerStyle={styles.center}
@@ -268,7 +267,7 @@ const PhoneOrEmailHeader = () => {
   return (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
+      style={Kb.Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
     >
       <Kb.Box2 direction="horizontal" style={styles.lessMargins}>
         <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
@@ -281,22 +280,22 @@ const PhoneOrEmailHeader = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       center: {
-        backgroundColor: Styles.globalColors.fastBlank,
+        backgroundColor: Kb.Styles.globalColors.fastBlank,
         justifyContent: 'center',
         textAlign: 'center',
       },
       channelHeaderContainer: {
         alignItems: 'center',
         alignSelf: 'center',
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
       },
-      channelName: {color: Styles.globalColors.black},
-      channelNameLight: {color: Styles.globalColors.black_50},
+      channelName: {color: Kb.Styles.globalColors.black},
+      channelNameLight: {color: Kb.Styles.globalColors.black_50},
       headerRight: {
         flexShrink: 0,
         height: 22,
@@ -307,7 +306,7 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         justifyContent: 'center',
       },
-      shhIcon: {marginLeft: Styles.globalMargins.xtiny},
+      shhIcon: {marginLeft: Kb.Styles.globalMargins.xtiny},
       usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
     }) as const
 )
