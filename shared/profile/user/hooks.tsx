@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/tracker2'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {type BackgroundColorType} from '.'
@@ -21,11 +20,11 @@ const headerBackgroundColorType = (
 //   (
 //     webOfTrustEntries: ReadonlyArray<T.Tracker.WebOfTrustEntry> | undefined
 //   ): Array<T.Tracker.WebOfTrustEntry> =>
-//     webOfTrustEntries ? webOfTrustEntries.filter(Constants.showableWotEntry) : []
+//     webOfTrustEntries ? webOfTrustEntries.filter(C.Tracker.showableWotEntry) : []
 // )
 
 const useUserData = (username: string) => {
-  const d = C.useTrackerState(s => Constants.getDetails(s, username))
+  const d = C.useTrackerState(s => C.Tracker.getDetails(s, username))
   const myName = C.useCurrentUserState(s => s.username)
   const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === myName
@@ -55,7 +54,7 @@ const useUserData = (username: string) => {
   // const followsYou = C.useFollowerState(s => s.followers.has(username))
   // const mutualFollow = followThem && followsYou
   const _suggestionKeys = C.useTrackerState(s => (userIsYou ? s.proofSuggestions : undefined))
-  const nonUserDetails = C.useTrackerState(s => Constants.getNonUserDetails(s, username))
+  const nonUserDetails = C.useTrackerState(s => C.Tracker.getNonUserDetails(s, username))
   const stateProps = (() => {
     if (!notAUser) {
       // Keybase user

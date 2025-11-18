@@ -2,7 +2,6 @@ import * as T from '@/constants/types'
 import Logger from './ring-logger'
 import noop from 'lodash/noop'
 import type {hasEngine as HasEngineType} from '../engine/require'
-import {isMobile} from '@/constants/platform'
 import {requestIdleCallback} from '@/util/idle-callback'
 
 export type Timestamp = number
@@ -21,7 +20,7 @@ export type Loggers = {
   debug: Logger
 }
 
-const localLog = isMobile ? (__DEV__ ? console.log.bind(console) : noop) : console.log.bind(console)
+const localLog = C.isMobile ? (__DEV__ ? console.log.bind(console) : noop) : console.log.bind(console)
 const localWarn = console.warn.bind(console)
 const localError = console.error.bind(console)
 
@@ -108,7 +107,7 @@ class AggregateLoggerImpl {
   }
 
   sendLogsToService = async (lines: Array<LogLineWithLevelISOTimestamp>) => {
-    if (!isMobile) {
+    if (!C.isMobile) {
       // don't want main node thread making these calls
       try {
         const {hasEngine} = require('../engine/require') as {hasEngine: typeof HasEngineType}

@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {isMobile} from '@/constants/platform'
 
 const addSpacer = (into: string, add: string) => {
   return into + (into.length ? ' • ' : '') + add
@@ -51,7 +50,7 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
         onClick: onToggleSearchable,
         subTitle: searchable
           ? `Don't let friends find you by this ${copyType}.`
-          : `${Kb.Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
+          : `${Kb.Styles.C.isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
         title: searchable ? 'Make unsearchable' : 'Make searchable',
       })
     }
@@ -102,7 +101,7 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
           closeText="Cancel"
           visible={true}
           position="bottom right"
-          header={Kb.Styles.isMobile ? header : undefined}
+          header={Kb.Styles.C.isMobile ? header : undefined}
           onHidden={hidePopup}
           items={menuItems}
           closeOnSelect={true}
@@ -125,7 +124,7 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
 
   let subtitle = ''
 
-  if (isMobile && hasRecentVerifyEmail && !verified) {
+  if (C.isMobile && hasRecentVerifyEmail && !verified) {
     subtitle = 'Check your inbox'
   } else {
     if (hasRecentVerifyEmail && !verified) {
@@ -181,9 +180,9 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       badge: {
-        borderRadius: Kb.Styles.isMobile ? 5 : 4,
-        height: Kb.Styles.isMobile ? 10 : 8,
-        width: Kb.Styles.isMobile ? 10 : 8,
+        borderRadius: Kb.Styles.C.isMobile ? 5 : 4,
+        height: Kb.Styles.C.isMobile ? 10 : 8,
+        width: Kb.Styles.C.isMobile ? 10 : 8,
       },
       badgeGearIcon: {
         position: 'absolute',
@@ -195,7 +194,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: 'auto',
       },
       container: {
-        height: Kb.Styles.isMobile ? 48 : 40,
+        height: Kb.Styles.C.isMobile ? 48 : 40,
       },
       gearIcon: Kb.Styles.platformStyles({
         isElectron: {...Kb.Styles.desktopStyles.clickable},

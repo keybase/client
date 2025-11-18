@@ -1,9 +1,7 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/router2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
-import * as Tabs from '@/constants/tabs'
 import * as Common from './common.native'
 import {makeNavScreens} from './shim'
 import logger from '@/logger'
@@ -23,7 +21,7 @@ if (module.hot) {
 }
 
 // just to get badge rollups
-const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+const tabs = C.isTablet ? C.Tabs.tabletTabs : C.Tabs.phoneTabs
 
 const Tab = createBottomTabNavigator()
 const tabRoutes = routes
@@ -37,7 +35,7 @@ const tabStackOptions = {
 } as const
 
 const tabScreens = makeNavScreens(tabRoutes, TabStackNavigator.Screen, false, false)
-const TabStack = React.memo(function TabStack(p: {route: {name: Tabs.Tab}}) {
+const TabStack = React.memo(function TabStack(p: {route: {name: C.Tabs.Tab}}) {
   return (
     <TabStackNavigator.Navigator
       initialRouteName={tabRoots[p.route.name] || undefined}
@@ -85,11 +83,11 @@ const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
     ),
     tabBarHideOnKeyboard: true,
     tabBarIcon: ({focused}: {focused: boolean}) => (
-      <TabBar.TabBarIconWrapper routeName={route.name as Tabs.Tab} focused={focused} />
+      <TabBar.TabBarIconWrapper routeName={route.name as C.Tabs.Tab} focused={focused} />
     ),
     tabBarInactiveBackgroundColor: Kb.Styles.globalColors.transparent,
     tabBarLabel: ({focused}: {focused: boolean}) => (
-      <TabBar.TabBarLabelWrapper routeName={route.name as Tabs.Tab} focused={focused} />
+      <TabBar.TabBarLabelWrapper routeName={route.name as C.Tabs.Tab} focused={focused} />
     ),
     tabBarShowLabel: Kb.Styles.isTablet,
     tabBarStyle: Common.tabBarStyle,
@@ -153,9 +151,9 @@ const RNApp = React.memo(function RNApp() {
     logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
   }, [])
 
-  const navRef = React.useCallback((ref: typeof Constants.navigationRef.current) => {
+  const navRef = React.useCallback((ref: typeof C.Router2.navigationRef.current) => {
     if (ref) {
-      Constants.navigationRef.current = ref
+      C.Router2.navigationRef.current = ref
     }
   }, [])
 

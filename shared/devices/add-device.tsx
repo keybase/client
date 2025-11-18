@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 
 type OwnProps = {
@@ -10,7 +9,7 @@ const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
 
 export default function AddDevice(ownProps: OwnProps) {
   const highlight = ownProps.highlight ?? noHighlight
-  const iconNumbers = Constants.useNextDeviceIconNumber()
+  const iconNumbers = C.Devices.useNextDeviceIconNumber()
   const addNewDevice = C.useProvisionState(s => s.dispatch.addNewDevice)
 
   const onAddComputer = React.useCallback(() => {

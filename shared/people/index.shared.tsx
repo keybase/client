@@ -5,7 +5,6 @@ import type * as T from '@/constants/types'
 import Announcement from './announcement'
 import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
-import {noEmail} from '@/constants/signup'
 import type {Props} from '.'
 import Todo from './todo'
 // import WotTask from './wot-task'
@@ -75,7 +74,7 @@ const EmailVerificationBanner = React.memo(function EmailVerificationBanner() {
     return null
   }
 
-  if (signupEmail === noEmail) {
+  if (signupEmail === C.Signup.noEmail) {
     return <Kb.Banner color="green">Welcome to Keybase!</Kb.Banner>
   }
   return (

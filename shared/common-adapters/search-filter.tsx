@@ -9,7 +9,6 @@ import Text, {type AllowedColors} from './text'
 import ProgressIndicator from './progress-indicator'
 import Icon, {type IconType} from './icon'
 import * as Styles from '@/styles'
-import * as Platforms from '@/constants/platform'
 import type {NativeSyntheticEvent} from 'react-native'
 import type {MeasureRef} from './measure-ref'
 
@@ -189,7 +188,7 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
   const input = () => {
     const hotkeyText =
       props.hotkey && !props.onClick && !focused && !Styles.isMobile
-        ? ` (${Platforms.shortcutSymbol}${props.hotkey.toUpperCase()})`
+        ? ` (${C.shortcutSymbol}${props.hotkey.toUpperCase()})`
         : ''
     return (
       <Kb.NewInput

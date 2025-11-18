@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {keybaseFM} from '@/constants/whats-new'
-import {isAndroid} from '@/constants/platform'
 import SettingsItem from './sub-nav/settings-item'
 import WhatsNewIcon from '../whats-new/icon'
 import noop from 'lodash/noop'
@@ -170,7 +169,7 @@ function SettingsNav() {
           },
           text: 'Notifications',
         },
-        ...(isAndroid
+        ...(C.isAndroid
           ? [
               {
                 onClick: () => {

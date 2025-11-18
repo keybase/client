@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
 import AudioVideo from './audio-video'
 import {formatAudioRecordDuration} from '@/util/timestamp'
-import {isMobile} from '@/constants/platform'
 
 type VisProps = {
   amps: undefined | ReadonlyArray<number>
@@ -35,13 +34,13 @@ const AudioVis = (props: VisProps) => {
         style={{
           backgroundColor: index < threshold ? Styles.globalColors.blue : Styles.globalColors.black,
           height,
-          marginRight: isMobile ? 4 * Styles.hairlineWidth : 2,
-          width: isMobile ? 3 * Styles.hairlineWidth : 1,
+          marginRight: C.isMobile ? 4 * Styles.hairlineWidth : 2,
+          width: C.isMobile ? 3 * Styles.hairlineWidth : 1,
         }}
       />
     )
   })
-  return Styles.isMobile ? (
+  return Styles.C.isMobile ? (
     <Kb.ScrollView
       horizontal={true}
       style={{height: maxHeight, maxWidth: maxWidth}}

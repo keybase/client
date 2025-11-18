@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -98,7 +97,7 @@ const Breadcrumb = (props: Props) => {
 }
 
 const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  Constants.hasPublicTag(path) ? (
+  C.FS.hasPublicTag(path) ? (
     <Kb.Box2 direction="horizontal">
       <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} />
     </Kb.Box2>

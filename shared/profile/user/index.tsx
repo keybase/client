@@ -1,4 +1,3 @@
-import * as Constants from '@/constants/tracker2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Actions from './actions'
@@ -426,7 +425,7 @@ const User = (props: {username: string}) => {
     <Kb.Reloadable
       reloadOnMount={true}
       onReload={p.onReload}
-      waitingKeys={[Constants.profileLoadWaitingKey]}
+      waitingKeys={[C.Tracker.profileLoadWaitingKey]}
       errorFilter={errorFilter}
       style={styles.reloadable}
     >

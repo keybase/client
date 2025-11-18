@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConfigConstants from '@/constants/config'
 import * as Kb from '@/common-adapters'
 import NativeScrollView from '@/common-adapters/scroll-view.native'
 import * as React from 'react'
@@ -57,7 +56,7 @@ const LoginRender = (props: Props) => {
             )}
             <Kb.WaitingButton
               disabled={props.needPassword && !props.password}
-              waitingKey={ConfigConstants.loginWaitingKey}
+              waitingKey={C.Config.loginWaitingKey}
               style={{
                 marginTop: props.needPassword ? 0 : Kb.Styles.globalMargins.small,
                 width: '100%',

@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/provision'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
@@ -33,8 +32,8 @@ type Props = {
 }
 
 const makeCleanDeviceName = (d: string) => {
-  let good = d.replace(Constants.badDeviceChars, '')
-  good = Constants.cleanDeviceName(good)
+  let good = d.replace(C.Provision.badDeviceChars, '')
+  good = C.Provision.cleanDeviceName(good)
   return good
 }
 
@@ -45,12 +44,12 @@ const EnterDevicename = (props: Props) => {
     setReadyToShowError(ready)
   }, 200)
   const cleanDeviceName = makeCleanDeviceName(deviceName)
-  const normalized = cleanDeviceName.replace(Constants.normalizeDeviceRE, '')
+  const normalized = cleanDeviceName.replace(C.Provision.normalizeDeviceRE, '')
   const disabled =
     normalized.length < 3 ||
     normalized.length > 64 ||
-    !Constants.goodDeviceRE.test(cleanDeviceName) ||
-    Constants.badDeviceRE.test(cleanDeviceName)
+    !C.Provision.goodDeviceRE.test(cleanDeviceName) ||
+    C.Provision.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const _setDeviceName = (deviceName: string) => {
     setDeviceName(deviceName)
@@ -124,7 +123,7 @@ const EnterDevicename = (props: Props) => {
           />
           {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>
-              {Constants.deviceNameInstructions}
+              {C.Provision.deviceNameInstructions}
             </Kb.Text>
           ) : (
             <Kb.Text type="BodySmall">

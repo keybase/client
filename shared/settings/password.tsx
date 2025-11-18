@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import * as Constants from '@/constants/settings'
 
 type Props = {
   error: string
@@ -218,7 +217,7 @@ const Container = () => {
   const newPasswordConfirmError = C.useSettingsPasswordState(s => s.newPasswordConfirmError)
   const newPasswordError = C.useSettingsPasswordState(s => s.newPasswordError)
   const saveLabel = C.useSettingsPasswordState(s => (s.randomPW ? 'Create password' : 'Save'))
-  const waitingForResponse = C.Waiting.useAnyWaiting(Constants.settingsWaitingKey)
+  const waitingForResponse = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
@@ -252,4 +251,5 @@ const Container = () => {
 }
 
 export default Container
+
 

@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
-import * as Constants from '@/constants/users'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the
 // modal from specific places from the app.
@@ -130,15 +129,15 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
   const waitingForLeave = C.Waiting.useAnyWaiting(
     teamname ? C.Teams.leaveTeamWaitingKey(teamname) : undefined
   )
-  const waitingForBlocking = C.Waiting.useAnyWaiting(Constants.setUserBlocksWaitingKey)
-  const waitingForReport = C.Waiting.useAnyWaiting(Constants.reportUserWaitingKey)
+  const waitingForBlocking = C.Waiting.useAnyWaiting(C.Users.setUserBlocksWaitingKey)
+  const waitingForReport = C.Waiting.useAnyWaiting(C.Users.reportUserWaitingKey)
   if (others?.length === 1 && !adderUsername) {
     adderUsername = others[0]
     others = undefined
   }
 
   const _allKnownBlocks = C.useUsersState(s => s.blockMap)
-  const loadingWaiting = C.Waiting.useAnyWaiting(Constants.getUserBlocksWaitingKey)
+  const loadingWaiting = C.Waiting.useAnyWaiting(C.Users.getUserBlocksWaitingKey)
 
   const onClose = C.useRouterState(s => s.dispatch.navigateUp)
   const leaveTeam = C.useTeamsState(s => s.dispatch.leaveTeam)

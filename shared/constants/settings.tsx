@@ -6,7 +6,6 @@ import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import * as Tabs from './tabs'
 import logger from '@/logger'
-import {androidIsTestDevice, pprofDir} from '@/constants/platform'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -140,7 +139,7 @@ export const useState_ = Z.createZustand<State>(set => {
           throw new Error('Unable to delete account: no username set')
         }
 
-        if (androidIsTestDevice) {
+        if (C.androidIsTestDevice) {
           return
         }
 
@@ -240,7 +239,7 @@ export const useState_ = Z.createZustand<State>(set => {
     processorProfile: profileDurationSeconds => {
       const f = async () => {
         await T.RPCGen.pprofLogProcessorProfileRpcPromise({
-          logDirForMobile: pprofDir,
+          logDirForMobile: C.pprofDir,
           profileDurationSeconds,
         })
         const {decrement, increment} = C.useWaitingState.getState().dispatch
@@ -298,7 +297,7 @@ export const useState_ = Z.createZustand<State>(set => {
     trace: durationSeconds => {
       const f = async () => {
         await T.RPCGen.pprofLogTraceRpcPromise({
-          logDirForMobile: pprofDir,
+          logDirForMobile: C.pprofDir,
           traceDurationSeconds: durationSeconds,
         })
         const {decrement, increment} = C.useWaitingState.getState().dispatch

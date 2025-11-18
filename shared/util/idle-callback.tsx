@@ -1,5 +1,4 @@
 import {forceImmediateLogging} from '@/local-debug'
-import {isMobile, isDebuggingInChrome} from '@/constants/platform'
 
 type TimeoutInfo = {
   didTimeout: boolean
@@ -31,8 +30,8 @@ const useFallback =
   // eslint-disable-next-line
   !window.requestIdleCallback ||
   // Timers in RN in chrome are super problematic. https://github.com/facebook/react-native/issues/4470
-  (isMobile && isDebuggingInChrome) ||
-  isMobile // AND.. idle timers are entirely broken on ios on device https://github.com/facebook/react-native/pull/29895
+  (C.isMobile && C.isDebuggingInChrome) ||
+  C.isMobile // AND.. idle timers are entirely broken on ios on device https://github.com/facebook/react-native/pull/29895
 
 type CBType = (cb: (info: TimeoutInfo) => void, opt?: Options) => number
 export const requestIdleCallback: CBType = forceImmediateLogging

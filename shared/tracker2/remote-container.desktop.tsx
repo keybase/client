@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
-import * as Constants from '@/constants/tracker2'
 import type * as T from '@/constants/types'
 import Tracker from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
@@ -95,7 +94,7 @@ const RemoteContainer = (d: DeserializeProps) => {
             assertion: trackerUsername,
             forceDisplay: true,
             fromDaemon: false,
-            guiID: Constants.generateGUIID(),
+            guiID: C.Tracker.generateGUIID(),
             ignoreCache: true,
             inTracker: true,
             reason: '',

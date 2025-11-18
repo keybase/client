@@ -1,13 +1,12 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Constants from '@/constants/crypto'
 import NavRow from './nav-row'
 
 const CryptoSubNav = () => {
   const {navigate} = C.useNav()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="tiny" style={styles.container}>
-      {Constants.Tabs.map(t => (
+      {C.Crypto.Tabs.map(t => (
         <NavRow
           key={t.tab}
           tab={t.tab}

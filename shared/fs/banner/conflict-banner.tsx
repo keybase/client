@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -20,7 +19,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   }, [finishManualConflictResolution, path])
   const onGoToSamePathInDifferentTlf = React.useCallback(
     (tlfPath: T.FS.Path) => {
-      navigateAppend({props: {path: Constants.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
+      navigateAppend({props: {path: C.FS.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
     },
     [navigateAppend, path]
   )

@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as TabConstants from '@/constants/tabs'
 import WhatsNewIcon from '@/whats-new/icon'
 import SettingsItem from './settings-item'
 import {keybaseFM} from '@/constants/whats-new'
@@ -32,7 +31,7 @@ const LeftNav = (props: Props) => {
               type={C.Settings.settingsCryptoTab}
               selected={props.selected === C.Settings.settingsCryptoTab}
               onClick={props.onClick}
-              badgeNumber={badgeNumbers.get(TabConstants.cryptoTab)}
+              badgeNumber={badgeNumbers.get(C.Tabs.cryptoTab)}
             />
             <SettingsItem
               icon="iconfont-nav-2-git"
@@ -40,7 +39,7 @@ const LeftNav = (props: Props) => {
               type={C.Settings.settingsGitTab}
               selected={props.selected === C.Settings.settingsGitTab}
               onClick={props.onClick}
-              badgeNumber={badgeNumbers.get(TabConstants.gitTab)}
+              badgeNumber={badgeNumbers.get(C.Tabs.gitTab)}
             />
             <SettingsItem
               text="Devices"
@@ -48,7 +47,7 @@ const LeftNav = (props: Props) => {
               type={C.Settings.settingsDevicesTab}
               selected={props.selected === C.Settings.settingsDevicesTab}
               onClick={props.onClick}
-              badgeNumber={badgeNumbers.get(TabConstants.devicesTab)}
+              badgeNumber={badgeNumbers.get(C.Tabs.devicesTab)}
             />
 
             <SettingsItem
@@ -66,7 +65,7 @@ const LeftNav = (props: Props) => {
           selected={props.selected === C.Settings.settingsAccountTab}
           type={C.Settings.settingsAccountTab}
           onClick={props.onClick}
-          badgeNumber={badgeNumbers.get(TabConstants.settingsTab)}
+          badgeNumber={badgeNumbers.get(C.Tabs.settingsTab)}
         />
         <SettingsItem
           text="Advanced"

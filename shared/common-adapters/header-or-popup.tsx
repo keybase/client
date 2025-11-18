@@ -1,10 +1,9 @@
 import type * as React from 'react'
-import {isMobile} from '@/constants/platform'
 import {HeaderHocWrapper, type Props as HeaderHocProps} from './header-hoc'
 import PopupDialog, {type Props as PopupDialogProps} from './popup-dialog'
 
 export const PopupWrapper = (props: PopupDialogProps & HeaderHocProps & {children: React.ReactNode}) => {
-  if (isMobile) {
+  if (C.isMobile) {
     const {children, ...rest} = props
     return <HeaderHocWrapper {...rest}>{children}</HeaderHocWrapper>
   } else {

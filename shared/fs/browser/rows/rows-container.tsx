@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import * as RowTypes from './types'
 import {sortRowItems, type SortableRowItem} from './sort'
@@ -104,7 +103,7 @@ const getTlfRowsFromTlfs = (
   [...tlfs]
     .filter(([_, {isIgnored}]) => !isIgnored)
     .map(([name, {isNew, tlfMtime}]) => ({
-      disabled: Constants.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex),
+      disabled: C.FS.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex),
       isNew,
       key: `tlf:${name}`,
       name,
@@ -134,7 +133,7 @@ const getTlfItemsFromStateProps = (
     return folderPlaceholderRows
   }
 
-  const {tlfList, tlfType} = Constants.getTlfListAndTypeFromPath(stateProps._tlfs, path)
+  const {tlfList, tlfType} = C.FS.getTlfListAndTypeFromPath(stateProps._tlfs, path)
 
   return sortRowItems(
     getTlfRowsFromTlfs(tlfList, tlfType, stateProps._username, destinationPickerIndex),
@@ -172,7 +171,7 @@ const Container = (o: OwnProps) => {
   const _edits = C.useFSState(s => s.edits)
   const _filter = C.useFSState(s => s.folderViewFilter)
   const _pathItems = C.useFSState(s => s.pathItems)
-  const _sortSetting = C.useFSState(s => Constants.getPathUserSetting(s.pathUserSettings, o.path).sort)
+  const _sortSetting = C.useFSState(s => C.FS.getPathUserSetting(s.pathUserSettings, o.path).sort)
   const _tlfs = C.useFSState(s => s.tlfs)
   const _username = C.useCurrentUserState(s => s.username)
 

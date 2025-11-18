@@ -2,11 +2,9 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import _openSMS from '@/util/sms'
-import {showShareActionSheet} from '@/constants/platform-specific'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import type {Props as TextProps} from '@/common-adapters/text'
 import * as Styles from '@/styles'
-import {isMobile} from '@/constants/platform'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
@@ -16,7 +14,7 @@ const Invite = () => {
   const users = participantInfoAll.filter(p => p.includes('@'))
 
   const openShareSheet = () => {
-    showShareActionSheet({
+    C.PlatformSpecific.showShareActionSheet({
       message: installMessage,
       mimeType: 'text/plain',
     })
@@ -44,7 +42,7 @@ const Invite = () => {
       : openShareSheet
   const caption = `Last step: summon ${theirName}!`
 
-  if (isMobile) {
+  if (C.isMobile) {
     return (
       <BannerBox color={Styles.globalColors.blue} gap="xtiny">
         <BannerText>{caption}</BannerText>

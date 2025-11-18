@@ -1,7 +1,5 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '@/constants/crypto'
-import * as FsConstants from '@/constants/fs'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
@@ -39,10 +37,10 @@ type RunOperationProps = CommonProps & {
 // placeholder text is visible and pushes the "browse" button far enough to the
 // right to be exactly one empty character with from the end of the placeholder text
 const operationToEmptyInputWidth = {
-  [Constants.Operations.Encrypt]: 207,
-  [Constants.Operations.Decrypt]: 320,
-  [Constants.Operations.Sign]: 207,
-  [Constants.Operations.Verify]: 342,
+  [C.Crypto.Operations.Encrypt]: 207,
+  [C.Crypto.Operations.Decrypt]: 320,
+  [C.Crypto.Operations.Sign]: 207,
+  [C.Crypto.Operations.Verify]: 342,
 }
 
 const inputTextType = new Map([
@@ -180,7 +178,7 @@ const inputFileIcon = new Map([
 const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = inputFileIcon.get(operation) as IconType
-  const waiting = C.Waiting.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Crypto.waitingKey)
 
   return (
     <Kb.Box2
@@ -196,7 +194,7 @@ const FileInput = (props: FileProps) => {
           <Kb.Box2 direction="vertical">
             <Kb.Text type="BodySemibold">{path}</Kb.Text>
             {size ? (
-              <Kb.Text type="BodySmallSemibold">{FsConstants.humanReadableFileSize(size)}</Kb.Text>
+              <Kb.Text type="BodySmallSemibold">{C.FS.humanReadableFileSize(size)}</Kb.Text>
             ) : null}
           </Kb.Box2>
         </Kb.Box2>
@@ -302,7 +300,7 @@ export const DragAndDrop = (props: DragAndDropProps) => {
 
 export const OperationBanner = (props: CommonProps) => {
   const {operation} = props
-  const infoMessage = Constants.infoMessage[operation]
+  const infoMessage = C.Crypto.infoMessage[operation]
 
   const {errorMessage: _errorMessage, warningMessage: _warningMessage} = C.useCryptoState(
     C.useShallow(s => {
@@ -340,7 +338,7 @@ export const OperationBanner = (props: CommonProps) => {
 // Mobile only
 export const InputActionsBar = (props: RunOperationProps) => {
   const {operation, children, blurCBRef} = props
-  const waitingKey = Constants.waitingKey
+  const waitingKey = C.Crypto.waitingKey
   const operationTitle = capitalize(operation)
   const runTextOperation = C.useCryptoState(s => s.dispatch.runTextOperation)
   const onRunOperation = () => {

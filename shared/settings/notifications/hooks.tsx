@@ -1,12 +1,11 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/settings'
 
 const useNotifications = () => {
   const _groups = C.useSettingsNotifState(s => s.groups)
   const allowEdit = C.useSettingsNotifState(s => s.allowEdit)
   const toggle = C.useSettingsNotifState(s => s.dispatch.toggle)
   const showEmailSection = C.useSettingsEmailState(s => s.emails.size > 0)
-  const waitingForResponse = C.Waiting.useAnyWaiting(Constants.settingsWaitingKey)
+  const waitingForResponse = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()

@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common/hooks'
 import * as React from 'react'
@@ -22,11 +21,11 @@ const Container = (op: OwnProps) => {
   const {path, mode, floatingMenuProps} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   Kbfs.useFsFileContext(path)
-  const pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
+  const pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
   const pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
   const {downloadID, downloadIntent, view} = pathItemActionMenu
   const username = C.useCurrentUserState(s => s.username)
-  const fileContext = C.useFSState(s => s.fileContext.get(path) || Constants.emptyFileContext)
+  const fileContext = C.useFSState(s => s.fileContext.get(path) || C.FS.emptyFileContext)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
   const cancelDownload = C.useFSState(s => s.dispatch.cancelDownload)
@@ -186,8 +185,8 @@ const Container = (op: OwnProps) => {
     : []
 
   const ignoreNeedsToWait = C.Waiting.useAnyWaiting([
-    Constants.folderListWaitingKey,
-    Constants.statWaitingKey,
+    C.FS.folderListWaitingKey,
+    C.FS.statWaitingKey,
   ])
   const favoriteIgnore = C.useFSState(s => s.dispatch.favoriteIgnore)
   const ignoreTlf = layout.ignoreTlf

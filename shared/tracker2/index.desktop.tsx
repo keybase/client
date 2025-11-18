@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '@/constants/tracker2'
 import * as Kb from '@/common-adapters'
 import Assertion from './assertion'
 import Bio from './bio'
@@ -35,7 +34,7 @@ const getButtons = (props: Props) => {
       type="Dim"
       key="Close"
       label="Close"
-      waitingKey={Constants.waitingKey}
+      waitingKey={C.Tracker.waitingKey}
       onClick={props.onClose}
     />
   )
@@ -44,12 +43,12 @@ const getButtons = (props: Props) => {
       type="Success"
       key="Accept"
       label="Accept"
-      waitingKey={Constants.waitingKey}
+      waitingKey={C.Tracker.waitingKey}
       onClick={props.onAccept}
     />
   )
   const buttonChat = (
-    <Kb.WaitingButton key="Chat" label="Chat" waitingKey={Constants.waitingKey} onClick={props.onChat}>
+    <Kb.WaitingButton key="Chat" label="Chat" waitingKey={C.Tracker.waitingKey} onClick={props.onChat}>
       <Kb.Icon type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
@@ -72,7 +71,7 @@ const getButtons = (props: Props) => {
               type="Success"
               key="Follow"
               label="Follow"
-              waitingKey={Constants.waitingKey}
+              waitingKey={C.Tracker.waitingKey}
               onClick={props.onFollow}
             />,
           ]
@@ -82,7 +81,7 @@ const getButtons = (props: Props) => {
           type="Dim"
           key="Ignore for 24 hours"
           label="Ignore for 24 hours"
-          waitingKey={Constants.waitingKey}
+          waitingKey={C.Tracker.waitingKey}
           onClick={props.onIgnoreFor24Hours}
         />,
         buttonAccept,
@@ -94,7 +93,7 @@ const getButtons = (props: Props) => {
         <Kb.WaitingButton
           key="Reload"
           label="Reload"
-          waitingKey={Constants.waitingKey}
+          waitingKey={C.Tracker.waitingKey}
           onClick={props.onReload}
         />,
       ]
@@ -125,7 +124,7 @@ const Tracker = (props: Props) => {
   let assertions: React.ReactNode
   if (props.assertionKeys) {
     const unsorted = [...props.assertionKeys]
-    const sorted = unsorted.sort(Constants.sortAssertionKeys)
+    const sorted = unsorted.sort(C.Tracker.sortAssertionKeys)
     assertions = sorted.map(a => <Assertion username={props.trackerUsername} key={a} assertionKey={a} />)
   } else {
     // TODO could do a loading thing before we know about the list at all?

@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
@@ -38,7 +37,7 @@ const StillContainer = (p: OwnProps) => {
   const dismissUploadError = writingToJournalUploadState?.error
     ? () => dismissUpload(writingToJournalUploadState.uploadID)
     : undefined
-  const intentIfDownloading = Constants.getDownloadIntent(path, _downloads, _pathItemActionMenu)
+  const intentIfDownloading = C.FS.getDownloadIntent(path, _downloads, _pathItemActionMenu)
   const isEmpty =
     _pathItem.type === T.FS.PathType.Folder &&
     _pathItem.progress === T.FS.ProgressType.Loaded &&

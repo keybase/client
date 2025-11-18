@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
@@ -22,10 +21,10 @@ const FsPathMetadataLoader = ({path}: {path: T.FS.Path}) => {
 
 const TLFContainer = (p: OwnProps) => {
   const {tlfType, name, mixedMode, destinationPickerIndex, disabled} = p
-  const tlf = C.useFSState(s => Constants.getTlfFromTlfs(s.tlfs, tlfType, name))
+  const tlf = C.useFSState(s => C.FS.getTlfFromTlfs(s.tlfs, tlfType, name))
   const username = C.useCurrentUserState(s => s.username)
-  const path = Constants.tlfTypeAndNameToPath(tlfType, name)
-  const _usernames = Constants.getUsernamesFromTlfName(name).filter(name => name !== username)
+  const path = C.FS.tlfTypeAndNameToPath(tlfType, name)
+  const _usernames = C.FS.getUsernamesFromTlfName(name).filter(name => name !== username)
   const onOpen = useOpen({destinationPickerIndex, path})
   const loadPathMetadata = tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled
   // Only include the user if they're the only one

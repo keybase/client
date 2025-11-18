@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import {useFsPathInfo} from './hooks'
 import * as Kb from '@/common-adapters'
@@ -22,7 +21,7 @@ const useMountPointPath = (platformAfterMountPath: string) => {
 // name it different because of a bug in eslint that warns above in Props:
 //   11:25  error  'PathInfo' was used before it was defined  no-use-before-define
 const PathInfo_ = (props: PathInfoProps) => {
-  const pathInfo = useFsPathInfo(props.path, props.knownPathInfo || Constants.emptyPathInfo)
+  const pathInfo = useFsPathInfo(props.path, props.knownPathInfo || C.FS.emptyPathInfo)
   const mountPointPath = useMountPointPath(pathInfo.platformAfterMountPath)
   return (
     <Kb.Box2 direction="vertical" style={props.containerStyle} fullWidth={true}>

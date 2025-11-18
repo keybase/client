@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {isMobile} from '@/constants/platform'
 
 const Container = () => {
   const error = C.useProvisionState(s => s.error)
@@ -52,13 +51,13 @@ export const PaperKey = (props: Props) => {
       ]}
       noBackground={true}
       onBack={props.onBack}
-      title={isMobile ? 'Enter paper key' : 'Enter your paper key'}
+      title={C.isMobile ? 'Enter paper key' : 'Enter your paper key'}
     >
       <Kb.Box2
         direction="vertical"
         style={styles.contents}
         centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
-        gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
+        gap={Kb.Styles.C.isMobile ? 'tiny' : 'medium'}
       >
         <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
           <Kb.Icon type="icon-paper-key-64" />
@@ -90,7 +89,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginLeft: Kb.Styles.globalMargins.medium,
           marginTop: Kb.Styles.globalMargins.medium,
         },
-        isMobile: {
+        C.isMobile: {
           marginLeft: 0,
           marginTop: 0,
         },
@@ -101,7 +100,7 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
         isElectron: {maxWidth: 460},
-        isMobile: {maxWidth: 300},
+        C.isMobile: {maxWidth: 300},
         isTablet: {maxWidth: 460},
       }),
       input: {

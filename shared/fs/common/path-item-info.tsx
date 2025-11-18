@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import LastModifiedLine from './last-modified-line'
@@ -24,7 +23,7 @@ const getNumberOfFilesAndFolders = (
         ({folders, files, loaded}, p) => {
           const item = C.FS.getPathItem(pathItems, T.FS.pathConcat(path, p))
           const isFolder = item.type === T.FS.PathType.Folder
-          const isFile = item.type !== T.FS.PathType.Folder && item !== Constants.unknownPathItem
+          const isFile = item.type !== T.FS.PathType.Folder && item !== C.FS.unknownPathItem
           return {
             files: files + (isFile ? 1 : 0),
             folders: folders + (isFolder ? 1 : 0),
@@ -97,7 +96,7 @@ const PathItemInfo = (props: Props) => {
         {pathItem.type === T.FS.PathType.File && (
           <Kb.Text type="BodySmall">{C.FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
-        {Constants.isInTlf(props.path) && C.FS.isFolder(props.path, pathItem) && (
+        {C.FS.isInTlf(props.path) && C.FS.isFolder(props.path, pathItem) && (
           <FilesAndFoldersCount {...props} />
         )}
         {getTlfInfoLineOrLastModifiedLine(props.path)}

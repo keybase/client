@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import LocationMap from '@/chat/location-map'
-import {watchPositionForMap} from '@/constants/platform-specific'
 
 const LocationPopup = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
@@ -27,7 +26,7 @@ const LocationPopup = () => {
 
   React.useEffect(() => {
     let unwatch: undefined | (() => void)
-    watchPositionForMap(conversationIDKey)
+    C.PlatformSpecific.watchPositionForMap(conversationIDKey)
       .then(unsub => {
         unwatch = unsub
       })
@@ -137,3 +136,4 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export default LocationPopup
+

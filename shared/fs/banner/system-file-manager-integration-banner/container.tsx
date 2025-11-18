@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
@@ -21,7 +20,7 @@ const SFMIContainer = (op: OwnProps) => {
   const onEnable = driverEnable
   const alwaysShow = op.alwaysShow
 
-  if (!Constants.sfmiInfoLoaded(settings, driverStatus)) {
+  if (!C.FS.sfmiInfoLoaded(settings, driverStatus)) {
     return alwaysShow ? (
       <Banner
         background={Background.Blue}

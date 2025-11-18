@@ -1,6 +1,5 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import PathStatusIcon from './path-status-icon'
 
 type OwnPropsPathItem = {
@@ -16,7 +15,7 @@ const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
   const props = {
     isFolder: _pathItem.type === T.FS.PathType.Folder,
     showTooltipOnPressMobile: ownProps.showTooltipOnPressMobile,
-    statusIcon: Constants.getPathStatusIconInMergeProps(
+    statusIcon: C.FS.getPathStatusIconInMergeProps(
       _kbfsDaemonStatus,
       _tlf,
       _pathItem,
@@ -34,7 +33,7 @@ type OwnPropsTlfType = {
 const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
   const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
   const _tlfList = C.useFSState(s =>
-    ownProps.tlfType ? Constants.getTlfListFromType(s.tlfs, ownProps.tlfType) : new Map()
+    ownProps.tlfType ? C.FS.getTlfListFromType(s.tlfs, ownProps.tlfType) : new Map()
   )
   const _uploads = C.useFSState(s => s.uploads)
   const props = {
@@ -42,7 +41,7 @@ const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
     isTlfType: true,
     statusIcon:
       ownProps.tlfType &&
-      Constants.getUploadIconForTlfType(_kbfsDaemonStatus, _uploads, _tlfList, ownProps.tlfType),
+      C.FS.getUploadIconForTlfType(_kbfsDaemonStatus, _uploads, _tlfList, ownProps.tlfType),
   }
   return <PathStatusIcon {...props} />
 }

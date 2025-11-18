@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -18,7 +17,7 @@ const Editing = React.memo(function Editing({editID}: Props) {
   const onSubmit = () => {
     commitEdit(editID)
   }
-  const edit = C.useFSState(s => s.edits.get(editID) || Constants.emptyNewFolder)
+  const edit = C.useFSState(s => s.edits.get(editID) || C.FS.emptyNewFolder)
   const [filename, setFilename] = React.useState(edit.name)
   const setEditName = C.useFSState(s => s.dispatch.setEditName)
   React.useEffect(() => {
@@ -67,7 +66,7 @@ const Editing = React.memo(function Editing({editID}: Props) {
             style={styles.button}
             small={true}
             label={edit.error ? 'Retry' : edit.type === T.FS.EditType.NewFolder ? 'Create' : 'Save'}
-            waitingKey={Constants.commitEditWaitingKey}
+            waitingKey={C.FS.commitEditWaitingKey}
             onClick={onSubmit}
           />
           <Kb.Icon

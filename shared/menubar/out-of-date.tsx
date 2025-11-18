@@ -1,13 +1,12 @@
 import * as Kb from '@/common-adapters'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
-import {isWindows, isDarwin} from '@/constants/platform'
 import type * as T from '@/constants/types'
 
 type Props = {outOfDate: T.Config.OutOfDate}
 
 const OutOfDate = ({outOfDate}: Props) => {
-  const updateNow = isWindows || isDarwin ? () => R.remoteDispatch(RemoteGen.createUpdateNow()) : undefined
+  const updateNow = C.isWindows || C.isDarwin ? () => R.remoteDispatch(RemoteGen.createUpdateNow()) : undefined
 
   if (!outOfDate.outOfDate) return null
   const bannerColor = outOfDate.critical ? 'red' : 'yellow'

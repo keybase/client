@@ -1,5 +1,4 @@
 import * as C from '.'
-import * as Platform from '@/constants/platform'
 import * as Z from '@/util/zustand'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
@@ -24,12 +23,12 @@ export const verifyOutput = 'verifyOutput'
 
 // Update me once Saltpack works with files on mobile.
 export const infoMessage = {
-  decrypt: Platform.isMobile
+  decrypt: C.isMobile
     ? 'Decrypt messages encrypted with Saltpack.'
     : 'Decrypt any ciphertext or .encrypted.saltpack file.',
   encrypt: "Encrypt to anyone, even if they're not on Keybase yet.",
   sign: 'Add your cryptographic signature to a message or file.',
-  verify: Platform.isMobile ? 'Verify a signed message.' : 'Verify any signed text or .signed.saltpack file.',
+  verify: C.isMobile ? 'Verify a signed message.' : 'Verify any signed text or .signed.saltpack file.',
 }
 
 export const Tabs = [
@@ -644,7 +643,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           verify()
           break
       }
-      if (Platform.isMobile) {
+      if (C.isMobile) {
         C.useRouterState.getState().dispatch.navigateAppend(route)
       }
     },
@@ -697,7 +696,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         }
       })
       // mobile doesn't run anything automatically
-      if (type === 'text' && !Platform.isMobile) {
+      if (type === 'text' && !C.isMobile) {
         get().dispatch.runTextOperation(op)
       }
     },
@@ -722,7 +721,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         o.recipients = T.castDraft(recipients)
       })
       // mobile doesn't run anything automatically
-      if (get().encrypt.inputType === 'text' && !Platform.isMobile) {
+      if (get().encrypt.inputType === 'text' && !C.isMobile) {
         get().dispatch.runTextOperation('encrypt')
       }
     },

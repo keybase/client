@@ -1,6 +1,5 @@
-import {isMobile} from '@/constants/platform'
 export const debugWarning = (s: string, ...w: Array<unknown>) => {
-  if (isMobile) {
+  if (C.isMobile) {
     for (let i = 0; i < 10; ++i) {
       console.log('[aaa debugWarning]', s, ...w)
     }

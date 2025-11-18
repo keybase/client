@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {isMobile} from '@/constants/platform'
 
 const Password = () => {
   const error = C.useProvisionState(s => s.error)
@@ -58,7 +57,7 @@ const Password = () => {
         },
       ]}
       onBack={onBack}
-      title={isMobile ? 'Enter password' : 'Enter your password'}
+      title={C.isMobile ? 'Enter password' : 'Enter your password'}
       contentContainerStyle={styles.contentContainer}
     >
       <Kb.ScrollView
@@ -100,14 +99,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       alignItems: 'stretch',
       backgroundColor: Kb.Styles.globalColors.transparent,
     },
-    isMobile: {
+    C.isMobile: {
       paddingLeft: 0,
       paddingRight: 0,
     },
   }),
-  contentContainer: Kb.Styles.platformStyles({isMobile: {...Kb.Styles.padding(0)}}),
+  contentContainer: Kb.Styles.platformStyles({C.isMobile: {...Kb.Styles.padding(0)}}),
   fill: Kb.Styles.platformStyles({
-    isMobile: {height: '100%', width: '100%'},
+    C.isMobile: {height: '100%', width: '100%'},
     isTablet: {width: 410},
   }),
   forgotPassword: {
@@ -124,13 +123,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {
       margin: 'auto',
     },
-    isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
+    C.isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
   }),
   wrapper: Kb.Styles.platformStyles({
     isElectron: {
       width: 400,
     },
-    isMobile: {
+    C.isMobile: {
       width: '100%',
     },
   }),

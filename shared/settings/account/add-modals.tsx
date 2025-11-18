@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Platform from '@/constants/platform'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {EnterEmailBody} from '@/signup/email'
 import {EnterPhoneNumberBody} from '@/signup/phone-number'
@@ -102,7 +101,7 @@ export const Email = () => {
           onContinue={onContinue}
           iconType={
             Kb.Styles.isMobile
-              ? Platform.isLargeScreen
+              ? C.isLargeScreen
                 ? 'icon-email-add-96'
                 : 'icon-email-add-64'
               : 'icon-email-add-64'
@@ -212,7 +211,7 @@ export const Phone = () => {
           onChangeSearchable={onChangeSearchable}
           iconType={
             Kb.Styles.isMobile
-              ? Platform.isLargeScreen
+              ? C.isLargeScreen
                 ? 'icon-phone-number-add-96'
                 : 'icon-phone-number-add-64'
               : 'icon-phone-number-add-64'

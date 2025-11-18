@@ -2,9 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Constants from '@/constants/wallets'
 
-const Row = (p: {account: Constants.Account}) => {
+const Row = (p: {account: C.Wallets.Account}) => {
   const {account} = p
   const {name, accountID, deviceReadOnly, balanceDescription, isDefault} = account
   const [sk, setSK] = React.useState('')
@@ -119,7 +118,7 @@ const Container = () => {
     React.useCallback(() => {
       load()
       checkDisclaimer(
-        [undefined, Constants.loadAccountsWaitingKey],
+        [undefined, C.Wallets.loadAccountsWaitingKey],
         r => {
           setAcceptedDisclaimer(r)
         },
@@ -140,7 +139,7 @@ const Container = () => {
     })
   }, [accountMap])
 
-  const loading = C.Waiting.useAnyWaiting(Constants.loadAccountsWaitingKey)
+  const loading = C.Waiting.useAnyWaiting(C.Wallets.loadAccountsWaitingKey)
 
   const rows = accounts.map((a, idx) => <Row account={a} key={String(idx)} />)
 

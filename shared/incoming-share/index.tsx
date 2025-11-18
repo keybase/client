@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as FsConstants from '@/constants/fs'
 import * as FsCommon from '@/fs/common'
 import {MobileSendToChat} from '../chat/send-to-chat'
 
@@ -68,12 +67,12 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
               icon: useOriginalValue ? 'iconfont-check' : undefined,
               onClick: () => setUseOriginalFromUI(true),
               rightTitle: isLarge ? 'Large file' : undefined,
-              title: `Keep full size (${FsConstants.humanizeBytes(originalTotalSize, 1)})`,
+              title: `Keep full size (${C.FS.humanizeBytes(originalTotalSize, 1)})`,
             },
             {
               icon: useOriginalValue ? undefined : 'iconfont-check',
               onClick: () => setUseOriginalFromUI(false),
-              title: `Compress (${FsConstants.humanizeBytes(scaledTotalSize, 1)})`,
+              title: `Compress (${C.FS.humanizeBytes(scaledTotalSize, 1)})`,
             },
           ]}
         />

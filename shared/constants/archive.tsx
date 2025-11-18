@@ -3,7 +3,6 @@ import * as Z from '@/util/zustand'
 import * as C from '.'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {formatTimeForPopup} from '@/util/timestamp'
-import * as FS from '@/constants/fs'
 import {uint8ArrayToHex} from 'uint8array-extras'
 
 type ChatJob = {
@@ -277,7 +276,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
         archiveJobStartPath: {
           archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.kbfs,
-          kbfs: FS.pathToRPCPath(path).kbfs,
+          kbfs: C.FS.pathToRPCPath(path).kbfs,
         },
         outputPath: outPath,
         overwriteZip: true,

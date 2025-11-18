@@ -1,8 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '@/constants/signup'
 import * as Kb from '@/common-adapters'
-import * as Platform from '@/constants/platform'
 import {SignupScreen, errorBanner} from './common'
 
 const ConnectedEnterEmail = () => {
@@ -19,7 +17,7 @@ const ConnectedEnterEmail = () => {
 
   const setJustSignedUpEmail = C.useSignupState(s => s.dispatch.setJustSignedUpEmail)
   const _onSkip = () => {
-    setJustSignedUpEmail(Constants.noEmail)
+    setJustSignedUpEmail(C.Signup.noEmail)
   }
   const _onSuccess = setJustSignedUpEmail
 
@@ -76,7 +74,7 @@ const ConnectedEnterEmail = () => {
         showSearchable={true}
         searchable={searchable}
         onChangeSearchable={onChangeSearchable}
-        iconType={Platform.isLargeScreen ? 'icon-email-add-96' : 'icon-email-add-64'}
+        iconType={C.isLargeScreen ? 'icon-email-add-96' : 'icon-email-add-64'}
       />
     </SignupScreen>
   )

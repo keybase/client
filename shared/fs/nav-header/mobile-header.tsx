@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
@@ -20,7 +19,7 @@ type Props = {
 }
 
 const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  Constants.hasPublicTag(path) ? (
+  C.FS.hasPublicTag(path) ? (
     <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} />
   ) : null
 
@@ -43,7 +42,7 @@ const NavMobileHeader = (props: Props) => {
     filterDone()
   }, [filterDone, props.path])
 
-  return props.path === Constants.defaultPath ? (
+  return props.path === C.FS.defaultPath ? (
     <Kb.SafeAreaViewTop>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer} centerChildren={true}>
         <Kb.Text type="BodyBig">Files</Kb.Text>

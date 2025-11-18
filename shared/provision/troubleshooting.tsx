@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as DevicesConstants from '@/constants/devices'
 import type * as T from '@/constants/types'
 type Props = {
   mode: 'QR' | 'text'
@@ -56,7 +55,7 @@ const Troubleshooting = (props: Props) => {
   }, [navUpToScreen])
 
   const device = C.useProvisionState(s => s.codePageOtherDevice)
-  const deviceIconNo = (device.deviceNumberOfType % DevicesConstants.numBackgrounds) + 1
+  const deviceIconNo = (device.deviceNumberOfType % C.Devices.numBackgrounds) + 1
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.
   const otherDeviceIcon = `icon-${props.otherDeviceType === 'mobile' ? 'phone' : 'computer'}-background-${
