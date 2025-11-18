@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
 
@@ -54,7 +53,7 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => (
     type="Small"
     firstItem={false}
     body={
-      <Kb.Box2 direction="vertical" style={Styles.collapseStyles([{flex: 1}, disabled && {opacity: 0.4}])}>
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([{flex: 1}, disabled && {opacity: 0.4}])}>
         <Kb.Box2 direction="horizontal" alignSelf="flex-start">
           <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
             #
@@ -64,7 +63,7 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => (
           </Kb.Text>
         </Kb.Box2>
         {!!description && (
-          <Kb.Text type="Body" lineClamp={1} style={{color: Styles.globalColors.black_50}}>
+          <Kb.Text type="Body" lineClamp={1} style={{color: Kb.Styles.globalColors.black_50}}>
             {description}
           </Kb.Text>
         )}
@@ -76,7 +75,7 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => (
         checked={selected}
         onCheck={disabled ? undefined : onToggle}
         disabled={disabled}
-        disabledColor={selected ? Styles.globalColors.black_20OrWhite_20 : undefined}
+        disabledColor={selected ? Kb.Styles.globalColors.black_20OrWhite_20 : undefined}
       />
     }
   />
@@ -128,7 +127,7 @@ const ChannelPicker = (props: Props) => {
         />
       </Kb.Box2>
       <Kb.ScrollView style={styles.rowsContainer}>
-        <Kb.Box2 direction="horizontal" style={{backgroundColor: Styles.globalColors.blueGrey}}>
+        <Kb.Box2 direction="horizontal" style={{backgroundColor: Kb.Styles.globalColors.blueGrey}}>
           <Kb.ListItem2
             type="Small"
             firstItem={true}
@@ -143,40 +142,40 @@ const ChannelPicker = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       channelCheckbox: {
-        marginRight: Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
         paddingTop: 0,
       },
       channelHash: {
         alignSelf: 'center',
-        color: Styles.globalColors.black_50,
+        color: Kb.Styles.globalColors.black_50,
         flexShrink: 0,
-        marginRight: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
       },
-      channelText: Styles.platformStyles({
+      channelText: Kb.Styles.platformStyles({
         isElectron: {
           wordBreak: 'break-all',
         },
       }),
-      rowsContainer: Styles.platformStyles({
+      rowsContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.padding(0, Styles.globalMargins.small),
+          ...Styles.padding(0, Kb.Styles.globalMargins.small),
         },
         isElectron: {
           minHeight: 370,
         },
       }),
-      searchFilter: Styles.platformStyles({
+      searchFilter: Kb.Styles.platformStyles({
         common: {
-          marginBottom: Styles.globalMargins.xsmall,
-          marginTop: Styles.globalMargins.tiny,
+          marginBottom: Kb.Styles.globalMargins.xsmall,
+          marginTop: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
         },
       }),
     }) as const

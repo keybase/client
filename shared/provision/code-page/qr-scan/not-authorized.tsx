@@ -1,4 +1,3 @@
-import * as Styles from '@/styles'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 
@@ -6,7 +5,7 @@ const QRScanNotAuthorized = () => {
   const onOpenSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   return (
     <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
-      <Kb.Icon type="iconfont-camera" color={Styles.globalColors.white_40} />
+      <Kb.Icon type="iconfont-camera" color={Kb.Styles.globalColors.white_40} />
       <Kb.Text center={true} type="BodyTiny" style={styles.text}>
         You need to allow access to the camera.
       </Kb.Text>
@@ -17,16 +16,16 @@ const QRScanNotAuthorized = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.black,
+        backgroundColor: Kb.Styles.globalColors.black,
         flexGrow: 1,
         justifyContent: 'center',
       },
-      text: {color: Styles.globalColors.white_40},
+      text: {color: Kb.Styles.globalColors.white_40},
     }) as const
 )
 

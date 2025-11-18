@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
@@ -83,13 +82,13 @@ const AddToChannel = (props: Props) => {
                     type="Dim"
                     label="Cancel"
                     onClick={onClose}
-                    style={Styles.globalStyles.flexOne}
+                    style={Kb.Styles.globalStyles.flexOne}
                   />
                   <Kb.Button
                     label={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
                     onClick={onAdd}
                     disabled={!toAdd.size}
-                    style={Styles.globalStyles.flexOne}
+                    style={Kb.Styles.globalStyles.flexOne}
                     waiting={waiting}
                   />
                 </Kb.Box2>
@@ -152,7 +151,7 @@ const AddToChannel = (props: Props) => {
                     disabled={alreadyIn}
                     disabledColor={
                       alreadyIn || toAdd.has(item.username)
-                        ? Styles.globalColors.black_20OrWhite_20
+                        ? Kb.Styles.globalColors.black_20OrWhite_20
                         : undefined
                     }
                     style={styles.checkCircle}
@@ -172,18 +171,18 @@ const AddToChannel = (props: Props) => {
 const title = ({channelname, teamID}: {channelname: string; teamID: T.Teams.TeamID}) =>
   Styles.isMobile ? `Add to #${channelname}` : <ModalTitle teamID={teamID} title={`Add to #${channelname}`} />
 
-const styles = Styles.styleSheetCreate(() => ({
-  checkCircle: {paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.tiny},
-  filterInput: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  checkCircle: {paddingRight: Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny},
+  filterInput: Kb.Styles.platformStyles({
     isElectron: {
-      marginBottom: Styles.globalMargins.tiny,
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.tiny,
+      marginBottom: Kb.Styles.globalMargins.tiny,
+      marginLeft: Kb.Styles.globalMargins.small,
+      marginRight: Kb.Styles.globalMargins.small,
+      marginTop: Kb.Styles.globalMargins.tiny,
     },
   }),
-  list: Styles.platformStyles({isMobile: {height: '100%'}}),
-  listContainer: Styles.platformStyles({isElectron: {height: 370}}), // shortcut to get the list to expand the modal.
+  list: Kb.Styles.platformStyles({isMobile: {height: '100%'}}),
+  listContainer: Kb.Styles.platformStyles({isElectron: {height: 370}}), // shortcut to get the list to expand the modal.
 }))
 
 export default AddToChannel

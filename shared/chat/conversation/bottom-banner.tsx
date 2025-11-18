@@ -4,7 +4,6 @@ import * as React from 'react'
 import _openSMS from '@/util/sms'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import type {Props as TextProps} from '@/common-adapters/text'
-import * as Styles from '@/styles'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
@@ -44,7 +43,7 @@ const Invite = () => {
 
   if (C.isMobile) {
     return (
-      <BannerBox color={Styles.globalColors.blue} gap="xtiny">
+      <BannerBox color={Kb.Styles.globalColors.blue} gap="xtiny">
         <BannerText>{caption}</BannerText>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
           <Kb.Button
@@ -66,7 +65,7 @@ const Invite = () => {
   }
 
   return (
-    <BannerBox color={Styles.globalColors.blue}>
+    <BannerBox color={Kb.Styles.globalColors.blue}>
       <BannerText>{caption}</BannerText>
       <BannerText>
         Send them this link:
@@ -75,7 +74,7 @@ const Invite = () => {
           underline={true}
           type="BodySmallPrimaryLink"
           selectable={true}
-          style={{marginLeft: Styles.globalMargins.xtiny}}
+          style={{marginLeft: Kb.Styles.globalMargins.xtiny}}
         >
           https://keybase.io/app
         </BannerText>
@@ -132,12 +131,12 @@ export default BannerContainer
 const BannerBox = (props: {
   children: React.ReactNode
   color: string
-  gap?: keyof typeof Styles.globalMargins
+  gap?: keyof typeof Kb.Styles.globalMargins
 }) => (
   <Kb.Box2
     direction="vertical"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.bannerStyle, {backgroundColor: props.color}])}
+    style={Kb.Styles.collapseStyles([styles.bannerStyle, {backgroundColor: props.color}])}
     gap={props.gap}
     alignItems="center"
   >
@@ -149,14 +148,14 @@ const BannerText = (props: Partial<TextProps>) => (
   <Kb.Text center={true} type="BodySmallSemibold" negative={true} {...props} />
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      bannerStyle: Styles.platformStyles({
+      bannerStyle: Kb.Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
-          backgroundColor: Styles.globalColors.red,
+          backgroundColor: Kb.Styles.globalColors.red,
           flexWrap: 'wrap',
           justifyContent: 'center',
           paddingBottom: 8,
@@ -165,7 +164,7 @@ const styles = Styles.styleSheetCreate(
           paddingTop: 8,
         },
         isElectron: {
-          marginBottom: Styles.globalMargins.tiny,
+          marginBottom: Kb.Styles.globalMargins.tiny,
         },
       }),
     }) as const

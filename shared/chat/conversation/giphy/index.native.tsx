@@ -41,7 +41,7 @@ const GiphySearch = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {height: 80},

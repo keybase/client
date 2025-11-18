@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {AvatarSize} from '@/common-adapters/avatar'
-import * as Styles from '@/styles'
 import './chat.css'
 
 const OverlayIcon = React.memo(function OverlayIcon(p: {
@@ -12,7 +11,7 @@ const OverlayIcon = React.memo(function OverlayIcon(p: {
 }) {
   const {isHovered, isMuted, isSelected, isLocked} = p
 
-  if (Styles.isMobile) {
+  if (Kb.Styles.isMobile) {
     const type = isMuted
       ? isSelected
         ? 'icon-shh-active-26-21'
@@ -31,7 +30,7 @@ const OverlayIcon = React.memo(function OverlayIcon(p: {
   return (
     <Kb.Box style={styles.mutedIcon}>
       <Kb.Icon
-        className={Styles.classNames('overlay-icon', 'stroked', {
+        className={Kb.Styles.classNames('overlay-icon', 'stroked', {
           hovered: isHovered,
           locked: isLocked,
           muted: isMuted,
@@ -41,7 +40,7 @@ const OverlayIcon = React.memo(function OverlayIcon(p: {
         fontSize={18}
       />
       <Kb.Icon
-        className={Styles.classNames('overlay-icon', {
+        className={Kb.Styles.classNames('overlay-icon', {
           hovered: isHovered,
           locked: isLocked,
           muted: isMuted,
@@ -77,9 +76,9 @@ const Avatars = React.memo(function Avatars(p: Props) {
   const leftProps = React.useMemo(
     () =>
       ({
-        loadingColor: Styles.globalColors.greyLight,
+        loadingColor: Kb.Styles.globalColors.greyLight,
         size: 32,
-        skipBackground: Styles.isMobile,
+        skipBackground: Kb.Styles.isMobile,
         style: {left: 0, position: 'absolute', top: 0},
         username: participantTwo,
       }) as const,
@@ -90,16 +89,16 @@ const Avatars = React.memo(function Avatars(p: Props) {
     () =>
       ({
         borderColor: backgroundColor,
-        loadingColor: Styles.globalColors.greyLight,
+        loadingColor: Kb.Styles.globalColors.greyLight,
         size: 32,
-        skipBackground: Styles.isMobile,
+        skipBackground: Kb.Styles.isMobile,
         style: {bottom: 0, position: 'absolute', right: 0},
         username: participantOne,
       }) as const,
     [participantOne, backgroundColor]
   )
 
-  const containerStyle = Styles.collapseStyles([styles.container, {height: singleSize, width: singleSize}])
+  const containerStyle = Kb.Styles.collapseStyles([styles.container, {height: singleSize, width: singleSize}])
 
   if (!participantTwo) {
     return (
@@ -121,14 +120,14 @@ const Avatars = React.memo(function Avatars(p: Props) {
   )
 })
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     flexShrink: 0,
     justifyContent: 'flex-start',
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
     position: 'relative',
   },
-  mutedIcon: Styles.platformStyles({
+  mutedIcon: Kb.Styles.platformStyles({
     common: {position: 'absolute'},
     isElectron: {bottom: -3, right: -1},
     isMobile: {bottom: -1, right: -1},

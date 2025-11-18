@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import * as Styles from '@/styles'
 import AudioVideo from './audio-video'
 import {formatAudioRecordDuration} from '@/util/timestamp'
 
@@ -33,7 +32,7 @@ const AudioVis = (props: VisProps) => {
         direction="vertical"
         key={index}
         style={{
-          backgroundColor: index < threshold ? Styles.globalColors.blue : Styles.globalColors.black,
+          backgroundColor: index < threshold ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black,
           height,
           marginRight: C.isMobile ? 4 * Styles.hairlineWidth : 2,
           width: C.isMobile ? 3 * Styles.hairlineWidth : 1,
@@ -52,7 +51,7 @@ const AudioVis = (props: VisProps) => {
   ) : (
     <Kb.Box2
       direction="horizontal"
-      style={{height: maxHeight, marginTop: Styles.globalMargins.xtiny, maxWidth: maxWidth}}
+      style={{height: maxHeight, marginTop: Kb.Styles.globalMargins.xtiny, maxWidth: maxWidth}}
     >
       {content}
     </Kb.Box2>
@@ -95,14 +94,14 @@ const AudioPlayer = (props: Props) => {
   return (
     <Kb.Box2
       direction="horizontal"
-      style={Styles.collapseStyles([styles.container, {height: big ? 56 : 40}])}
+      style={Kb.Styles.collapseStyles([styles.container, {height: big ? 56 : 40}])}
       gap="tiny"
     >
       <Kb.ClickableBox onClick={url ? onClick : undefined} style={{justifyContent: 'center'}}>
         <Kb.Icon
           type={!paused ? 'iconfont-pause' : 'iconfont-play'}
           fontSize={32}
-          color={url ? Styles.globalColors.blue : Styles.globalColors.grey}
+          color={url ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.grey}
         />
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true}>
@@ -116,7 +115,7 @@ const AudioPlayer = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   button: {
     borderRadius: 15,
     height: 30,
@@ -124,9 +123,9 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 30,
   },
   container: {
-    ...Styles.padding(Styles.globalMargins.xxtiny, Styles.globalMargins.tiny),
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.grey,
+    ...Styles.padding(Kb.Styles.globalMargins.xxtiny, Kb.Styles.globalMargins.tiny),
+    backgroundColor: Kb.Styles.globalColors.white,
+    borderColor: Kb.Styles.globalColors.grey,
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,

@@ -4,7 +4,6 @@ import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
 import openURL from '@/util/open-url'
 import * as T from '@/constants/types'
-import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '@/styles'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <LoginContainer onBack={p.onBack}>
@@ -148,7 +147,7 @@ const RenderError = () => {
                 {' - Use '}
                 <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the command line to log in
               </Kb.Text>
-              {!isMobile && (
+              {!Kb.Styles.isMobile && (
                 <Kb.Text center={true} type="Body">
                   {' - Install GPG on this machine and import your PGP private key into it'}
                 </Kb.Text>
@@ -212,16 +211,16 @@ const RenderError = () => {
             You have options:
           </Kb.Text>
           <Kb.Box2 direction="vertical" style={styles.list}>
-            <Kb.Text center={true} type="Body">
-              {' - Run '}
-              <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the device with the corresponding PGP
-              private key
-            </Kb.Text>
-            {!isMobile && (
               <Kb.Text center={true} type="Body">
-                {' - Install GPG, put your PGP private key on this machine and try again'}
+                {' - Run '}
+                <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the device with the corresponding PGP
+                private key
               </Kb.Text>
-            )}
+              {!Kb.Styles.isMobile && (
+                <Kb.Text center={true} type="Body">
+                  {' - Install GPG, put your PGP private key on this machine and try again'}
+                </Kb.Text>
+              )}
             <Kb.Text center={true} type="Body">
               {' - Go back and authorize with another device or paper key'}
             </Kb.Text>
@@ -285,7 +284,7 @@ const RenderError = () => {
   }
 }
 
-const styles = styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {maxWidth: 550},
@@ -301,8 +300,8 @@ const styles = styleSheetCreate(
       },
       list: {
         marginBottom: 10,
-        marginLeft: globalMargins.tiny,
-        ...globalStyles.flexBoxColumn,
+        marginLeft: Kb.Styles.globalMargins.tiny,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         maxWidth: 460,
       },
     }) as const

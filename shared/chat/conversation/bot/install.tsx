@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '@/styles'
 import ChannelPicker from './channel-picker'
 import openURL from '@/util/open-url'
 import * as T from '@/constants/types'
@@ -190,7 +189,7 @@ const InstallBotPopup = (props: Props) => {
   const featuredContent = !!featured && (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([styles.container, {flex: 1}])}
+      style={Kb.Styles.collapseStyles([styles.container, {flex: 1}])}
       fullWidth={true}
       gap="small"
     >
@@ -275,7 +274,7 @@ const InstallBotPopup = (props: Props) => {
                     <Kb.Avatar
                       size={16}
                       teamname={teamname}
-                      style={{marginRight: Styles.globalMargins.tiny}}
+                      style={{marginRight: Kb.Styles.globalMargins.tiny}}
                     />
                     <Kb.Text type="BodySemibold">
                       {teamname}{' '}
@@ -455,11 +454,11 @@ const InstallBotPopup = (props: Props) => {
                     {removeButton}
                   </Kb.ButtonBar>
                   {!!error && (
-                    <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
+                    <Kb.Text type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
                       {'Something went wrong! Please try again, or send '}
                       <Kb.Text
                         type="Body"
-                        style={{color: Styles.globalColors.redDark}}
+                        style={{color: Kb.Styles.globalColors.redDark}}
                         underline={true}
                         onClick={onFeedback}
                       >
@@ -475,7 +474,7 @@ const InstallBotPopup = (props: Props) => {
     >
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([styles.outerContainer, {height: getHeight()}])}
+        style={Kb.Styles.collapseStyles([styles.outerContainer, {height: getHeight()}])}
         fullWidth={true}
       >
         {enabled ? (
@@ -503,7 +502,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
     inner = <Kb.ProgressIndicator />
   } else if (props.commands.loadError) {
     inner = (
-      <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.redDark}}>
+      <Kb.Text type="BodySemibold" style={{color: Kb.Styles.globalColors.redDark}}>
         Error loading bot public commands.
       </Kb.Text>
     )
@@ -587,22 +586,22 @@ const PermsList = (props: PermsListProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.small),
+    ...Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
   },
   dropdown: {
     width: '100%',
   },
   dropdownButton: {
-    padding: Styles.globalMargins.tiny,
+    padding: Kb.Styles.globalMargins.tiny,
   },
-  outerContainer: Styles.platformStyles({
+  outerContainer: Kb.Styles.platformStyles({
     isElectron: {
       height: 560,
     },
   }),
-  reviewButton: {marginTop: -Styles.globalMargins.tiny},
+  reviewButton: {marginTop: -Kb.Styles.globalMargins.tiny},
 }))
 
 export default InstallBotPopupLoader

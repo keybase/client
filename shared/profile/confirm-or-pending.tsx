@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {globalColors} from '@/styles'
 import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
 import Modal from './modal'
@@ -20,7 +19,7 @@ const ConfirmOrPending = () => {
     throw new Error('No platform passed to confirm or pending container')
   }
 
-  const platformIconOverlayColor = isGood ? globalColors.green : globalColors.greyDark
+  const platformIconOverlayColor = isGood ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.greyDark
   const onCancel = backToProfile
 
   const message =

@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 
 const ConversationError = () => {
   const text = C.useChatContext(s => s.meta.snippet ?? '')
@@ -17,18 +16,18 @@ const ConversationError = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      body: {marginTop: Styles.globalMargins.small},
+      body: {marginTop: Kb.Styles.globalMargins.small},
       container: {
         ...Styles.globalStyles.flexBoxColumn,
-        padding: Styles.globalMargins.medium,
+        padding: Kb.Styles.globalMargins.medium,
         width: '100%',
       },
       errorBox: {
         ...Styles.globalStyles.flexBoxRow,
-        marginTop: Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
       errorText: {flexGrow: 1},
     }) as const

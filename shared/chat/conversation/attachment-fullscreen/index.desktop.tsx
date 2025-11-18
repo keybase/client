@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useMessagePopup} from '../messages/message-popup'
-import * as Styles from '@/styles'
 import type {Props} from '.'
 import {useData, usePreviewFallback} from './hooks'
 import type {StyleOverride} from '@/common-adapters/markdown'
@@ -24,8 +23,8 @@ const Arrow = (props: ArrowProps) => {
     >
       <Kb.Icon
         type={left ? 'iconfont-arrow-left' : 'iconfont-arrow-right'}
-        color={Styles.globalColors.white}
-        style={Styles.collapseStyles([styles.arrow, left && styles.arrowLeft, !left && styles.arrowRight])}
+        color={Kb.Styles.globalColors.white}
+        style={Kb.Styles.collapseStyles([styles.arrow, left && styles.arrowLeft, !left && styles.arrowRight])}
       />
     </Kb.Box>
   )
@@ -69,7 +68,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const titleOverride = React.useMemo(
     () =>
       ({
-        paragraph: Styles.platformStyles({
+        paragraph: Kb.Styles.platformStyles({
           isElectron: {whiteSpace: 'nowrap'},
         }),
       }) as StyleOverride,
@@ -81,17 +80,17 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
       <Kb.Box style={styles.container}>
         <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKey} />
         <Kb.Box style={styles.headerFooter}>
-          <Kb.Markdown lineClamp={2} style={Styles.globalStyles.flexOne} styleOverride={titleOverride}>
+          <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
             {title}
           </Kb.Markdown>
           <Kb.Icon
             ref={popupAnchor}
             type="iconfont-ellipsis"
-            style={Styles.platformStyles({
-              common: {marginLeft: Styles.globalMargins.tiny},
+            style={Kb.Styles.platformStyles({
+              common: {marginLeft: Kb.Styles.globalMargins.tiny},
               isElectron: {cursor: 'pointer'},
             })}
-            color={Styles.globalColors.black_50}
+            color={Kb.Styles.globalColors.black_50}
             onClick={showPopup}
           />
           {popup}
@@ -104,7 +103,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
                 direction="vertical"
                 fullWidth={true}
                 fullHeight={true}
-                style={Styles.globalStyles.flexGrow}
+                style={Kb.Styles.globalStyles.flexGrow}
                 key={path}
               >
                 {isVideo ? (
@@ -129,7 +128,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
           {!!progressLabel && (
             <Kb.Text
               type="BodySmall"
-              style={{color: Styles.globalColors.black_50, marginRight: Styles.globalMargins.tiny}}
+              style={{color: Kb.Styles.globalColors.black_50, marginRight: Kb.Styles.globalMargins.tiny}}
             >
               {progressLabel}
             </Kb.Text>
@@ -159,7 +158,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       arrow: {
@@ -168,7 +167,7 @@ const styles = Styles.styleSheetCreate(
       },
       arrowLeft: {right: 1},
       arrowRight: {left: 1},
-      circle: Styles.platformStyles({
+      circle: Kb.Styles.platformStyles({
         isElectron: {
           ...Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
@@ -178,7 +177,7 @@ const styles = Styles.styleSheetCreate(
           flexShrink: 0,
           height: 36,
           justifyContent: 'center',
-          margin: Styles.globalMargins.small,
+          margin: Kb.Styles.globalMargins.small,
           width: 36,
         },
       }),
@@ -189,16 +188,16 @@ const styles = Styles.styleSheetCreate(
         height: '100%',
         width: '100%',
       },
-      error: {color: Styles.globalColors.redDark},
+      error: {color: Kb.Styles.globalColors.redDark},
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         height: 32,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
         width: '100%',
       },
-      imgOrig: Styles.platformStyles({
+      imgOrig: Kb.Styles.platformStyles({
         isElectron: {
           display: 'flex',
           margin: 'auto',
@@ -207,18 +206,18 @@ const styles = Styles.styleSheetCreate(
           transform: '',
         },
       }),
-      imgZoomed: Styles.platformStyles({
+      imgZoomed: Kb.Styles.platformStyles({
         isElectron: {
           position: 'absolute',
           transformOrigin: 'top left',
         },
       }),
-      link: Styles.platformStyles({isElectron: {color: Styles.globalColors.black_50, cursor: 'pointer'}}),
+      link: Kb.Styles.platformStyles({isElectron: {color: Kb.Styles.globalColors.black_50, cursor: 'pointer'}}),
       retry: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
         textDecorationLine: 'underline',
       },
-      scrollAttachOrig: Styles.platformStyles({
+      scrollAttachOrig: Kb.Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
           cursor: 'zoom-in',
@@ -230,7 +229,7 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      scrollAttachZoomed: Styles.platformStyles({
+      scrollAttachZoomed: Kb.Styles.platformStyles({
         isElectron: {
           cursor: 'zoom-out',
           height: '100%',
@@ -239,7 +238,7 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      videoFit: Styles.platformStyles({
+      videoFit: Kb.Styles.platformStyles({
         isElectron: {
           cursor: 'normal',
           display: 'block',

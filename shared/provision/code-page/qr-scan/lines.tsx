@@ -10,34 +10,34 @@ const QRScanLines = ({canScan, color}: {canScan: boolean; color?: Styles.Color})
   return canScan ? (
     <>
       <Kb.Box
-        style={Styles.collapseStyles([...s, {height: long, left: padding, top: padding, width: small}])}
+        style={Kb.Styles.collapseStyles([...s, {height: long, left: padding, top: padding, width: small}])}
       />
       <Kb.Box
-        style={Styles.collapseStyles([...s, {height: small, left: padding, top: padding, width: long}])}
+        style={Kb.Styles.collapseStyles([...s, {height: small, left: padding, top: padding, width: long}])}
       />
       <Kb.Box
-        style={Styles.collapseStyles([...s, {height: long, right: padding, top: padding, width: small}])}
+        style={Kb.Styles.collapseStyles([...s, {height: long, right: padding, top: padding, width: small}])}
       />
       <Kb.Box
-        style={Styles.collapseStyles([...s, {height: small, right: padding, top: padding, width: long}])}
+        style={Kb.Styles.collapseStyles([...s, {height: small, right: padding, top: padding, width: long}])}
       />
       <Kb.Box
-        style={Styles.collapseStyles([...s, {bottom: padding, height: long, left: padding, width: small}])}
+        style={Kb.Styles.collapseStyles([...s, {bottom: padding, height: long, left: padding, width: small}])}
       />
       <Kb.Box
-        style={Styles.collapseStyles([...s, {bottom: padding, height: small, left: padding, width: long}])}
+        style={Kb.Styles.collapseStyles([...s, {bottom: padding, height: small, left: padding, width: long}])}
       />
       <Kb.Box
-        style={Styles.collapseStyles([...s, {bottom: padding, height: long, right: padding, width: small}])}
+        style={Kb.Styles.collapseStyles([...s, {bottom: padding, height: long, right: padding, width: small}])}
       />
       <Kb.Box
-        style={Styles.collapseStyles([...s, {bottom: padding, height: small, right: padding, width: long}])}
+        style={Kb.Styles.collapseStyles([...s, {bottom: padding, height: small, right: padding, width: long}])}
       />
     </>
   ) : null
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   common: {position: 'absolute'},
 }))
 

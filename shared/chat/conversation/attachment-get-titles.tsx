@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '@/styles'
 
 type OwnProps = {
   pathAndOutboxIDs: Array<T.Chat.PathAndOutboxID>
@@ -212,41 +211,41 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       boxGrow: {
-        margin: Styles.globalMargins.small,
+        margin: Kb.Styles.globalMargins.small,
         width: '100%',
       },
-      buttonContainer: Styles.platformStyles({
+      buttonContainer: Kb.Styles.platformStyles({
         isElectron: {
           alignSelf: 'flex-end',
           borderStyle: 'solid',
-          borderTopColor: Styles.globalColors.black_10,
+          borderTopColor: Kb.Styles.globalColors.black_10,
           borderTopWidth: 1,
           flexShrink: 0,
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
-        isMobile: Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small, 0),
+        isMobile: Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small, 0),
       }),
-      cancelButton: {marginRight: Styles.globalMargins.tiny},
+      cancelButton: {marginRight: Kb.Styles.globalMargins.tiny},
       container: {
         flexGrow: 1,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
-      containerOuter: Styles.platformStyles({
+      containerOuter: Kb.Styles.platformStyles({
         isElectron: {
           height: 560,
           width: 400,
         },
         isMobile: {flexGrow: 1},
       }),
-      filename: Styles.platformStyles({
+      filename: Kb.Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
-          marginBottom: Styles.globalMargins.small,
+          marginBottom: Kb.Styles.globalMargins.small,
         },
       }),
       image: {
@@ -255,13 +254,13 @@ const styles = Styles.styleSheetCreate(
         maxWidth: '100%',
         width: '100%',
       },
-      imageContainer: Styles.platformStyles({
+      imageContainer: Kb.Styles.platformStyles({
         common: {justifyContent: 'center'},
         isElectron: {
           flex: 1,
           height: 325,
-          paddingBottom: Styles.globalMargins.medium,
-          paddingTop: Styles.globalMargins.medium,
+          paddingBottom: Kb.Styles.globalMargins.medium,
+          paddingTop: Kb.Styles.globalMargins.medium,
           width: 325,
         },
         isMobile: {
@@ -269,12 +268,12 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      input: Styles.platformStyles({
+      input: Kb.Styles.platformStyles({
         common: {
-          borderColor: Styles.globalColors.blue,
+          borderColor: Kb.Styles.globalColors.blue,
           borderRadius: Styles.borderRadius,
           borderWidth: 1,
-          marginBottom: Styles.globalMargins.tiny,
+          marginBottom: Kb.Styles.globalMargins.tiny,
           maxHeight: 42,
           minHeight: 42,
           width: '100%',
@@ -284,19 +283,19 @@ const styles = Styles.styleSheetCreate(
           maxWidth: 460,
         },
       }),
-      inputContainer: Styles.platformStyles({
+      inputContainer: Kb.Styles.platformStyles({
         isElectron: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
       }),
       nonImage: {
         alignSelf: 'center',
         justifyContentSelf: 'center',
       },
-      scrollView: Styles.platformStyles({
+      scrollView: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
           height: '100%',
           width: '100%',
         },
