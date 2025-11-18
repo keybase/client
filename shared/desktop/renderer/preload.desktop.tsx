@@ -12,6 +12,10 @@ import type {Action} from '../app/ipctypes'
 const isRenderer = process.type === 'renderer'
 const isDarwin = process.platform === 'darwin'
 
+const ignorePromise = (f: Promise<unknown>) => {
+  f.then(() => {}).catch(() => {})
+}
+
 async function invoke<F>(action: Action) {
   return Electron.ipcRenderer.invoke('KBkeybase', action) as Promise<F>
 }
@@ -22,43 +26,29 @@ if (isRenderer) {
     .then((kb2consts: KB2['constants']) => {
       const functions: Required<KB2['functions']> = {
         DEVwriteMenuIcons: () => {
-          invoke({type: 'DEVwriteMenuIcons'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'DEVwriteMenuIcons'}))
         },
         activeChanged: (changedAtMs: number, isUserActive: boolean) => {
-          invoke({payload: {changedAtMs, isUserActive}, type: 'activeChanged'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({payload: {changedAtMs, isUserActive}, type: 'activeChanged'}))
         },
         appStartedUp: () => {
-          invoke({type: 'appStartedUp'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'appStartedUp'}))
         },
         clipboardAvailableFormats: async () => {
           return invoke({type: 'clipboardAvailableFormats'})
         },
         closeRenderer: (options: {windowComponent?: string; windowParam?: string}) => {
           const {windowComponent, windowParam} = options
-          invoke({payload: {windowComponent, windowParam}, type: 'closeRenderer'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({payload: {windowComponent, windowParam}, type: 'closeRenderer'}))
         },
         closeWindow: () => {
-          invoke({type: 'closeWindow'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'closeWindow'}))
         },
         copyToClipboard: (text: string) => {
-          invoke({payload: {text}, type: 'copyToClipboard'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({payload: {text}, type: 'copyToClipboard'}))
         },
         ctlQuit: () => {
-          invoke({type: 'ctlQuit'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'ctlQuit'}))
         },
         darwinCopyToChatTempUploadFile: async (dst: string, originalFilePath: string) => {
           if (!isDarwin) {
@@ -68,9 +58,7 @@ if (isRenderer) {
             payload: {dst, originalFilePath},
             type: 'darwinCopyToChatTempUploadFile',
           })
-          if (res) {
-            return
-          } else {
+          if (!res) {
             throw new Error("Couldn't save")
           }
         },
@@ -87,14 +75,10 @@ if (isRenderer) {
           })
         },
         engineSend: (buf: Uint8Array) => {
-          invoke({payload: {buf}, type: 'engineSend'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({payload: {buf}, type: 'engineSend'}))
         },
         exitApp: (code: number) => {
-          invoke({payload: {code}, type: 'exitApp'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({payload: {code}, type: 'exitApp'}))
         },
         getPathForFile: (file: File) => {
           return Electron.webUtils.getPathForFile(file)
@@ -106,9 +90,7 @@ if (isRenderer) {
           })
         },
         hideWindow: () => {
-          invoke({type: 'hideWindow'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'hideWindow'}))
         },
         installCachedDokan: async () => {
           try {
@@ -125,16 +107,10 @@ if (isRenderer) {
           return invoke({payload: {path}, type: 'isDirectory'})
         },
         mainWindowDispatch: (action: Actions) => {
-          Electron.ipcRenderer
-            .invoke('KBdispatchAction', action)
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(Electron.ipcRenderer.invoke('KBdispatchAction', action))
         },
         mainWindowDispatchEngineIncoming: (data: Uint8Array) => {
-          Electron.ipcRenderer
-            .invoke('engineIncoming', data)
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(Electron.ipcRenderer.invoke('engineIncoming', data))
         },
         makeRenderer: (options: {
           windowComponent: string
@@ -148,22 +124,20 @@ if (isRenderer) {
           windowPositionBottomRight?: boolean
         }) => {
           const {windowComponent, windowOpts, windowParam, windowPositionBottomRight} = options
-          invoke({
-            payload: {
-              windowComponent,
-              windowOpts,
-              windowParam,
-              windowPositionBottomRight,
-            },
-            type: 'makeRenderer',
-          })
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(
+            invoke({
+              payload: {
+                windowComponent,
+                windowOpts,
+                windowParam,
+                windowPositionBottomRight,
+              },
+              type: 'makeRenderer',
+            })
+          )
         },
         minimizeWindow: () => {
-          invoke({type: 'minimizeWindow'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'minimizeWindow'}))
         },
         openPathInFinder: async (path: string, isFolder: boolean) => {
           const res = await invoke({
@@ -184,31 +158,25 @@ if (isRenderer) {
           }
         },
         quitApp: () => {
-          invoke({type: 'quitApp'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'quitApp'}))
         },
         readImageFromClipboard: async () => {
           return invoke({type: 'readImageFromClipboard'})
         },
         relaunchApp: () => {
-          invoke({type: 'relaunchApp'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'relaunchApp'}))
         },
         rendererNewProps: (options: {propsStr: string; windowComponent: string; windowParam: string}) => {
           const {propsStr, windowComponent, windowParam} = options
-          invoke({
-            payload: {propsStr, windowComponent, windowParam},
-            type: 'rendererNewProps',
-          })
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(
+            invoke({
+              payload: {propsStr, windowComponent, windowParam},
+              type: 'rendererNewProps',
+            })
+          )
         },
         requestWindowsStartService: () => {
-          invoke({type: 'requestWindowsStartService'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'requestWindowsStartService'}))
         },
         selectFilesToUploadDialog: async (type: 'file' | 'directory' | 'both', parent?: string) => {
           return invoke({
@@ -220,19 +188,13 @@ if (isRenderer) {
           return invoke({payload: {enabled}, type: 'setOpenAtLogin'})
         },
         showContextMenu: (url: string) => {
-          invoke({payload: {url}, type: 'showContextMenu'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({payload: {url}, type: 'showContextMenu'}))
         },
         showInactive: () => {
-          invoke({type: 'showInactive'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'showInactive'}))
         },
         showMainWindow: () => {
-          invoke({type: 'showMainWindow'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'showMainWindow'}))
         },
         showOpenDialog: async (options: OpenDialogOptions) => {
           return await invoke({
@@ -247,18 +209,15 @@ if (isRenderer) {
           })
         },
         showTray: (desktopAppBadgeCount: number, badgeType: 'regular' | 'update' | 'error' | 'uploading') => {
-          Electron.ipcRenderer
-            .invoke('KBmenu', {
+          ignorePromise(
+            Electron.ipcRenderer.invoke('KBmenu', {
               payload: {badgeType, desktopAppBadgeCount},
               type: 'showTray',
             })
-            .then(() => {})
-            .catch(() => {})
+          )
         },
         toggleMaximizeWindow: () => {
-          invoke({type: 'toggleMaximizeWindow'})
-            .then(() => {})
-            .catch(() => {})
+          ignorePromise(invoke({type: 'toggleMaximizeWindow'}))
         },
         uninstallDokan: async (execPath: string) => {
           return invoke({payload: {execPath}, type: 'uninstallDokan'})
