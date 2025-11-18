@@ -112,6 +112,7 @@ const rules = {
   'promise/no-return-wrap': 'error',
   'promise/param-names': 'error',
   'promise/valid-params': 'error',
+  'promise/no-nesting': 'error',
   'react-hooks/exhaustive-deps': 'error',
   'react-hooks/preserve-manual-memoization': 'warn',
   'react-hooks/rules-of-hooks': 'error',
