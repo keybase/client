@@ -7,7 +7,6 @@ import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import chunk from 'lodash/chunk'
-import {ErrorBoundary} from '@/common-adapters'
 import {findLast} from '@/util/arrays'
 import {getMessageRender} from '../messages/wrapper'
 import {globalMargins} from '@/styles/shared'
@@ -238,7 +237,7 @@ const useScrolling = (p: {
   React.useLayoutEffect(() => {
     const justLoaded = loaded && !prevLoadedRef.current
     prevLoadedRef.current = loaded
-    
+
     if (!justLoaded) return
 
     if (!markedInitiallyLoaded) {
@@ -252,13 +251,7 @@ const useScrolling = (p: {
     } else {
       scrollToBottom()
     }
-  }, [
-    loaded,
-    centeredOrdinal,
-    markInitiallyLoadedThreadAsRead,
-    scrollToBottom,
-    scrollToCentered,
-  ])
+  }, [loaded, centeredOrdinal, markInitiallyLoadedThreadAsRead, scrollToBottom, scrollToCentered])
 
   const firstOrdinal = messageOrdinals[0]
   const prevFirstOrdinalRef = React.useRef(firstOrdinal)
@@ -304,11 +297,11 @@ const useScrolling = (p: {
     const changed = prevCenteredOrdinal.current !== centeredOrdinal
     prevCenteredOrdinal.current = centeredOrdinal
     wasLoadedRef.current = loaded
-    
+
     // Only scroll if we were already loaded and ordinal changed
     // (the load effect handles scrolling when loaded transitions to true)
     if (!wasLoaded || !loaded || !changed) return
-    
+
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
       scrollToCentered()
@@ -563,7 +556,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   })
 
   return (
-    <ErrorBoundary>
+    <Kb.ErrorBoundary>
       <div
         style={Kb.Styles.castStyleDesktop(styles.container)}
         onClick={handleListClick}
@@ -583,7 +576,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
         </div>
         {jumpToRecent}
       </div>
-    </ErrorBoundary>
+    </Kb.ErrorBoundary>
   )
 })
 

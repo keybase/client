@@ -48,7 +48,8 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
     maxWidth,
     maxHeight
   )
-  const isVideo = C.Chat.isVideoAttachment(message)
+
+  const isVideo = message.fileType.startsWith('video')
   const showPreview = !fileType.includes('png')
   const onAllMedia = () => showInfoPanel(true, 'attachments')
   const onClose = () => navigateUp()

@@ -1,6 +1,6 @@
 import type * as React from 'react'
-import Box from './box'
-import PopupDialog from './popup-dialog'
+import Box from '../common-adapters/box'
+import PopupDialog from '../common-adapters/popup-dialog'
 import * as Styles from '@/styles'
 
 type Props = {
@@ -39,4 +39,4 @@ const _styleContainer = {
   height: '100%',
 } as const
 
-export {MaybePopup}
+export default MaybePopup

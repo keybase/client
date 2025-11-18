@@ -739,10 +739,8 @@ const uiMessageToSystemMessage = (
   }
 }
 
-export const isVideoAttachment = (message: T.Chat.MessageAttachment) => message.fileType.startsWith('video')
-
 export const maxAmpsLength = 60
-export const previewSpecs = (preview?: T.RPCChat.AssetMetadata, full?: T.RPCChat.AssetMetadata) => {
+const previewSpecs = (preview?: T.RPCChat.AssetMetadata, full?: T.RPCChat.AssetMetadata) => {
   const res: T.Chat.PreviewSpec = {
     attachmentType: 'file' as T.Chat.AttachmentType,
     audioAmps: [],
@@ -1195,42 +1193,12 @@ export const uiMessageToMessage = (
   }
 }
 
-export function nextFractionalOrdinal(ord: T.Chat.Ordinal) {
+function nextFractionalOrdinal(ord: T.Chat.Ordinal) {
   // Mimic what the service does with outbox items
   return T.Chat.numberToOrdinal(T.Chat.ordinalToNumber(ord) + 0.001)
 }
 
-export const makePendingTextMessage = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  currentUsername: string,
-  getLastOrdinal: () => T.Chat.Ordinal,
-  text: HiddenString,
-  outboxID: T.Chat.OutboxID,
-  explodeTime?: number
-) => {
-  // we could read the exploding mode for the convo from state here, but that
-  // would cause the timer to count down while the message is still pending
-  // and probably reset when we get the real message back.
-
-  const ordinal = nextFractionalOrdinal(getLastOrdinal())
-  const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
-
-  return makeMessageText({
-    ...explodeInfo,
-    author: currentUsername,
-    conversationIDKey,
-    deviceName: '',
-    deviceType: C.isMobile ? 'mobile' : 'desktop',
-    id: T.Chat.numberToMessageID(0),
-    ordinal,
-    outboxID,
-    submitState: 'pending',
-    text,
-    timestamp: Date.now(),
-  })
-}
-
-export const makePendingAttachmentMessage = (
+const makePendingAttachmentMessage = (
   conversationIDKey: T.Chat.ConversationIDKey,
   currentUsername: string,
   getLastOrdinal: () => T.Chat.Ordinal,
@@ -1273,20 +1241,7 @@ export const makePendingAttachmentMessage = (
   })
 }
 
-const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
-const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
-export const pathToAttachmentType = (path: string) => {
-  if (imageFileNameRegex.test(path)) {
-    return 'image'
-  }
-  if (videoFileNameRegex.test(path)) {
-    return 'video'
-  }
-  return 'file'
-}
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
-
-export const specialMentions = ['here', 'channel', 'everyone']
 
 export const upgradeMessage = (
   old: T.Immutable<T.Chat.Message>,
@@ -1384,17 +1339,6 @@ export const shouldShowPopup = (
   }
 }
 
-export const messageExplodeDescriptions: T.Chat.MessageExplodeDescription[] = [
-  {seconds: 30, text: '30 seconds'},
-  {seconds: 300, text: '5 minutes'},
-  {seconds: 3600, text: '60 minutes'},
-  {seconds: 3600 * 6, text: '6 hours'},
-  {seconds: 86400, text: '24 hours'},
-  {seconds: 86400 * 3, text: '3 days'},
-  {seconds: 86400 * 7, text: '7 days'},
-  {seconds: 0, text: 'Never explode (turn off)'},
-].reverse()
-
 export const messageAttachmentTransferStateToProgressLabel = (
   transferState: T.Chat.MessageAttachmentTransferState
 ): string => {
@@ -1410,12 +1354,4 @@ export const messageAttachmentTransferStateToProgressLabel = (
     default:
       return ''
   }
-}
-
-export const messageAttachmentHasProgress = (message: T.Chat.MessageAttachment) => {
-  return (
-    !!message.transferState &&
-    message.transferState !== 'remoteUploading' &&
-    message.transferState !== 'mobileSaving'
-  )
 }

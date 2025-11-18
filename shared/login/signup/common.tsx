@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import type * as React from 'react'
-import {Box2, WaitingButton, ButtonBar} from '@/common-adapters'
+import * as Kb from '@/common-adapters'
 import {styleSheetCreate, isMobile, globalMargins, globalColors} from '@/styles'
 
 type Props = {
@@ -9,8 +9,8 @@ type Props = {
 }
 
 export const Wrapper = (props: Props) => (
-  <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-    <Box2
+  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+    <Kb.Box2
       direction="vertical"
       fullWidth={true}
       fullHeight={true}
@@ -19,8 +19,8 @@ export const Wrapper = (props: Props) => (
       gap={isMobile ? 'xtiny' : 'small'}
     >
       {props.children}
-    </Box2>
-  </Box2>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
 export const ContinueButton = ({
@@ -32,15 +32,15 @@ export const ContinueButton = ({
   label?: string
   onClick: () => void
 }) => (
-  <ButtonBar fullWidth={true} style={styles.buttonBar}>
-    <WaitingButton
+  <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+    <Kb.WaitingButton
       waitingKey={C.Signup.waitingKey}
       label={label || 'Continue'}
       disabled={disabled}
       fullWidth={true}
       onClick={onClick}
     />
-  </ButtonBar>
+  </Kb.ButtonBar>
 )
 
 const styles = styleSheetCreate(

@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import MaybePopup from './maybe-popup'
 
 const DeleteHistoryWarning = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -14,40 +15,40 @@ const DeleteHistoryWarning = () => {
   }
 
   return (
-  <Kb.MaybePopup onClose={onCancel}>
-    {Kb.Styles.isMobile && <Kb.HeaderHocHeader onCancel={onCancel} />}
-    <Kb.Box
-      style={Kb.Styles.collapseStyles([
-        Kb.Styles.globalStyles.flexBoxColumn,
-        styles.padding,
-        styles.box,
-      ] as const)}
-    >
-      <Kb.Icon type={Kb.Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
-      <Kb.Text style={{padding: Kb.Styles.globalMargins.small}} type="Header">
-        Delete conversation history?
-      </Kb.Text>
-      <Kb.Text center={Kb.Styles.isMobile} style={styles.text} type="Body">
-        You are about to delete all the messages in this conversation. For everyone.
-      </Kb.Text>
-      <Kb.Box style={styles.buttonBox}>
-        <Kb.Button
-          type="Dim"
-          style={styles.button}
-          onClick={onCancel}
-          label="Cancel"
-          fullWidth={Kb.Styles.isMobile}
-        />
-        <Kb.Button
-          type="Danger"
-          style={styles.button}
-          onClick={onDeleteHistory}
-          label="Yes, clear for everyone"
-          fullWidth={Kb.Styles.isMobile}
-        />
+    <MaybePopup onClose={onCancel}>
+      {Kb.Styles.isMobile && <Kb.HeaderHocHeader onCancel={onCancel} />}
+      <Kb.Box
+        style={Kb.Styles.collapseStyles([
+          Kb.Styles.globalStyles.flexBoxColumn,
+          styles.padding,
+          styles.box,
+        ] as const)}
+      >
+        <Kb.Icon type={Kb.Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
+        <Kb.Text style={{padding: Kb.Styles.globalMargins.small}} type="Header">
+          Delete conversation history?
+        </Kb.Text>
+        <Kb.Text center={Kb.Styles.isMobile} style={styles.text} type="Body">
+          You are about to delete all the messages in this conversation. For everyone.
+        </Kb.Text>
+        <Kb.Box style={styles.buttonBox}>
+          <Kb.Button
+            type="Dim"
+            style={styles.button}
+            onClick={onCancel}
+            label="Cancel"
+            fullWidth={Kb.Styles.isMobile}
+          />
+          <Kb.Button
+            type="Danger"
+            style={styles.button}
+            onClick={onDeleteHistory}
+            label="Yes, clear for everyone"
+            fullWidth={Kb.Styles.isMobile}
+          />
+        </Kb.Box>
       </Kb.Box>
-    </Kb.Box>
-  </Kb.MaybePopup>
+    </MaybePopup>
   )
 }
 

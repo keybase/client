@@ -1,4 +1,6 @@
 import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import type {AllowedColors} from '@/common-adapters/text'
 import SelectableSmallTeam from './selectable-small-team'
 
 type OwnProps = {
@@ -11,6 +13,28 @@ type OwnProps = {
   onSelectConversation: () => void
 }
 
+const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
+  const backgroundColor = isSelected
+    ? Kb.Styles.globalColors.blue
+    : Kb.Styles.isPhone
+      ? Kb.Styles.globalColors.fastBlank
+      : Kb.Styles.globalColors.blueGrey
+  const showBold = !isSelected && hasUnread
+  const subColor: AllowedColors = isSelected
+    ? Kb.Styles.globalColors.white
+    : hasUnread
+      ? Kb.Styles.globalColors.black
+      : Kb.Styles.globalColors.black_50
+  const usernameColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black
+
+  return {
+    backgroundColor,
+    showBold,
+    subColor,
+    usernameColor,
+  }
+}
+
 const Container = (ownProps: OwnProps) => {
   const _hasBadge = C.useChatContext(s => s.badge > 0)
   const _hasUnread = C.useChatContext(s => s.unread > 0)
@@ -19,7 +43,7 @@ const Container = (ownProps: OwnProps) => {
   const _username = C.useCurrentUserState(s => s.username)
   const isMuted = C.useChatContext(s => s.meta.isMuted)
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
-  const styles = C.Chat.getRowStyles(isSelected, _hasUnread)
+  const styles = getRowStyles(isSelected, _hasUnread)
   const participantNeedToRekey = _meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && _meta.rekeyers.has(_username)
   const isLocked = participantNeedToRekey || youNeedToRekey

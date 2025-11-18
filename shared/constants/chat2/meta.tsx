@@ -2,10 +2,6 @@
 import * as C from '..'
 import * as T from '../types'
 import * as Message from './message'
-import {formatTimeForConversationList} from '@/util/timestamp'
-import {globalColors} from '@/styles'
-import {isPhone} from '../platform'
-import type {AllowedColors} from '@/common-adapters/text'
 import {base64ToUint8Array, uint8ArrayToHex} from 'uint8array-extras'
 
 const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {
@@ -372,49 +368,10 @@ export const makeConversationMeta = (): T.Chat.ConversationMeta => ({
   wasFinalizedBy: '',
 })
 
-export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
-  const backgroundColor = isSelected
-    ? globalColors.blue
-    : isPhone
-      ? globalColors.fastBlank
-      : globalColors.blueGrey
-  const showBold = !isSelected && hasUnread
-  const subColor: AllowedColors = isSelected
-    ? globalColors.white
-    : hasUnread
-      ? globalColors.black
-      : globalColors.black_50
-  const usernameColor = isSelected ? globalColors.white : globalColors.black
-
-  return {
-    backgroundColor,
-    showBold,
-    subColor,
-    usernameColor,
-  }
-}
-
 export const getRowParticipants = (participants: T.Immutable<T.Chat.ParticipantInfo>, username: string) =>
   participants.name
     // Filter out ourselves unless it's our 1:1 conversation
     .filter((participant, _, list) => (list.length === 1 ? true : participant !== username))
-
-export const getConversationLabel = (
-  participantInfo: T.Chat.ParticipantInfo,
-  conv: T.Chat.ConversationMeta,
-  alwaysIncludeChannelName: boolean
-): string => {
-  if (conv.teamType === 'big') {
-    return conv.teamname + '#' + conv.channelname
-  }
-  if (conv.teamType === 'small') {
-    return alwaysIncludeChannelName ? conv.teamname + '#' + conv.channelname : conv.teamname
-  }
-  return getRowParticipants(participantInfo, '').join(',')
-}
-
-export const timestampToString = (meta: T.Chat.ConversationMeta) =>
-  formatTimeForConversationList(meta.timestamp)
 
 export const getTeams = (metaMap: T.Chat.MetaMap) =>
   [...metaMap.values()].reduce<Array<string>>((l, meta) => {

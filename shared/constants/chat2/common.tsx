@@ -34,44 +34,6 @@ export const waitingKeyMutualTeams = (conversationIDKey: T.Chat.ConversationIDKe
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 
-export const loadThreadMessageTypes = C.enumKeys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
-  (arr, key) => {
-    switch (key) {
-      case 'none':
-      case 'edit': // daemon filters this out for us so we can ignore
-      case 'delete':
-      case 'attachmentuploaded':
-      case 'reaction':
-      case 'unfurl':
-      case 'tlfname':
-        break
-      default:
-        {
-          const val = T.RPCChat.MessageType[key]
-          if (typeof val === 'number') {
-            arr.push(val)
-          }
-        }
-        break
-    }
-
-    return arr
-  },
-  []
-)
-
-export const reasonToRPCReason = (reason: string): T.RPCChat.GetThreadReason => {
-  switch (reason) {
-    case 'extension':
-    case 'push':
-      return T.RPCChat.GetThreadReason.push
-    case 'foregrounding':
-      return T.RPCChat.GetThreadReason.foreground
-    default:
-      return T.RPCChat.GetThreadReason.general
-  }
-}
-
 export const getSelectedConversation = (allowUnderModal: boolean = false): T.Chat.ConversationIDKey => {
   const maybeVisibleScreen = Router2.getVisibleScreen(undefined, allowUnderModal)
   if (maybeVisibleScreen?.name === threadRouteName) {
@@ -133,9 +95,3 @@ export const allMessageTypes: Set<T.Chat.MessageType> = new Set([
 
 export const generateOutboxID = () =>
   Uint8Array.from([...Array<number>(8)], () => Math.floor(Math.random() * 256))
-
-export const formatTextForQuoting = (text: string) =>
-  text
-    .split('\n')
-    .map(line => `> ${line}\n`)
-    .join('')

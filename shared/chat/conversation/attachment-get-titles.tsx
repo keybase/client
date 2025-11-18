@@ -24,6 +24,18 @@ type Info = {
   url?: string
 }
 
+const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
+const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
+const pathToAttachmentType = (path: string) => {
+  if (imageFileNameRegex.test(path)) {
+    return 'image'
+  }
+  if (videoFileNameRegex.test(path)) {
+    return 'video'
+  }
+  return 'file'
+}
+
 const Container = (ownProps: OwnProps) => {
   const {titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
@@ -73,7 +85,7 @@ const Container = (ownProps: OwnProps) => {
       filename,
       outboxID: outboxID,
       title: '',
-      type: C.Chat.pathToAttachmentType(path),
+      type: pathToAttachmentType(path),
       url,
     }
     return {info, path}

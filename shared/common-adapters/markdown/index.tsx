@@ -4,8 +4,7 @@ import * as SM from '@khanacademy/simple-markdown'
 import Text from '@/common-adapters/text'
 import logger from '@/logger'
 import type {Props as MarkdownProps} from '.'
-import Emoji, {type Props as EmojiProps} from '../emoji'
-import {emojiIndexByName, emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
+import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
 import {
   reactOutput,
   previewOutput,
@@ -523,30 +522,5 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {whiteSpace: 'pre'},
   }),
 }))
-
-// TODO kill this when we remove the old markdown parser. This check is done at the parsing level.
-export const EmojiIfExists = React.memo(function EmojiIfExists(
-  props: EmojiProps & {
-    paragraphTextClassName?: string
-    style?: Styles.StylesCrossPlatform
-    allowFontScaling?: boolean
-    lineClamp?: LineClampType
-  }
-) {
-  const emojiNameLower = props.emojiName.toLowerCase()
-  const exists = !!emojiIndexByName[emojiNameLower]
-  return exists ? (
-    <Emoji emojiName={emojiNameLower} size={props.size} allowFontScaling={props.allowFontScaling} />
-  ) : (
-    <SimpleMarkdownComponent
-      paragraphTextClassName={props.paragraphTextClassName}
-      style={props.style}
-      lineClamp={props.lineClamp}
-      allowFontScaling={props.allowFontScaling}
-    >
-      {props.emojiName}
-    </SimpleMarkdownComponent>
-  )
-})
 
 export default SimpleMarkdownComponent

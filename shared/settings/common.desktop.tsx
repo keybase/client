@@ -1,14 +1,13 @@
-import {Box, Icon} from '@/common-adapters'
+import * as Kb from '@/common-adapters'
 import range from 'lodash/range'
-import {globalStyles, globalColors} from '@/styles'
 
 function Stars({count}: {count: number}) {
   return (
-    <Box style={globalStyles.flexBoxRow}>
+    <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
       {range(count).map(i => (
-        <Icon key={i} color={globalColors.green} type="iconfont-star" />
+        <Kb.Icon key={i} color={Kb.Styles.globalColors.green} type="iconfont-star" />
       ))}
-    </Box>
+    </Kb.Box>
   )
 }
 

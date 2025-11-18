@@ -15,7 +15,7 @@ import * as Common from './common'
 import {uint8ArrayToString} from 'uint8array-extras'
 import isEqual from 'lodash/isEqual'
 
-export const defaultTopReacjis = [
+const defaultTopReacjis = [
   {name: ':+1:'},
   {name: ':-1:'},
   {name: ':tada:'},
@@ -23,12 +23,12 @@ export const defaultTopReacjis = [
   {name: ':sunglasses:'},
 ]
 const defaultSkinTone = 1
-export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
+const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
 
 // while we're debugging chat issues
 export const DEBUG_CHAT_DUMP = true
 
-export const blockButtonsGregorPrefix = 'blockButtons.'
+const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const inboxSearchMaxTextMessages = 25
 export const inboxSearchMaxTextResults = 50
@@ -85,12 +85,6 @@ const getInboxSearchSelected = (
     }
   }
   return
-}
-
-export const isTextOrAttachment = (
-  message: T.Chat.Message
-): message is T.Chat.Message | T.Chat.MessageAttachment => {
-  return message.type === 'text' || message.type === 'attachment'
 }
 
 export const getMessageKey = (message: T.Chat.Message) =>
@@ -151,32 +145,6 @@ export const getTeamMentionName = (name: string, channel: string) => {
   return name + (channel ? `#${channel}` : '')
 }
 
-// When user clicks wallets icon in chat input, set seenT.WalletssGregorKey with
-// body of 'true'
-export const seenWalletsGregorKey = 'chat.seenWallets'
-
-export const makeInboxQuery = (
-  convIDKeys: Array<T.Chat.ConversationIDKey>,
-  allStatuses?: boolean
-): T.RPCChat.GetInboxLocalQuery => {
-  const memerStatusKeys = ['active', 'removed', 'left', 'preview', 'reset', 'neverJoined'] as const
-  const statusKeys = ['unfiled', 'favorite', 'ignored', 'blocked', 'muted', 'reported'] as const
-  return {
-    computeActiveList: true,
-    convIDs: convIDKeys.map(T.Chat.keyToConversationID),
-    memberStatus: memerStatusKeys
-      .filter(k => !!allStatuses || !['neverJoined', 'left', 'removed'].includes(k))
-      .map(k => T.RPCChat.ConversationMemberStatus[k]),
-    readOnly: false,
-    status: statusKeys
-      .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
-      .map(k => T.RPCChat.ConversationStatus[k]),
-    tlfVisibility: T.RPCGen.TLFVisibility.private,
-    topicType: T.RPCChat.TopicType.chat,
-    unreadOnly: false,
-  }
-}
-
 export const isAssertion = (username: string) => username.includes('@')
 
 export const clampImageSize = (width: number, height: number, maxWidth: number, maxHeight: number) => {
@@ -201,27 +169,6 @@ export const clampImageSize = (width: number, height: number, maxWidth: number, 
   }
 }
 
-export const scalePreviewToFullDimensions = (
-  previewWidth: number,
-  previewHeight: number,
-  fullWidth: number,
-  fullHeight: number
-) => {
-  const previewAspectRatio = previewWidth / previewHeight
-  const fullAspectRatio = fullWidth / fullHeight
-
-  let scaleFactor: number
-  if (previewAspectRatio > fullAspectRatio) {
-    scaleFactor = fullHeight / previewHeight
-  } else {
-    scaleFactor = fullWidth / previewWidth
-  }
-
-  return previewAspectRatio > 1
-    ? {width: Math.ceil(previewWidth * scaleFactor)}
-    : {height: Math.ceil(previewHeight * scaleFactor)}
-}
-
 export const zoomImage = (width: number, height: number, maxThumbSize: number) => {
   const dims =
     height > width
@@ -240,7 +187,7 @@ export const zoomImage = (width: number, height: number, maxThumbSize: number) =
   }
 }
 
-export const uiParticipantsToParticipantInfo = (
+const uiParticipantsToParticipantInfo = (
   uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
 ): T.Chat.ParticipantInfo => {
   const participantInfo = {all: new Array<string>(), contactName: new Map(), name: new Array<string>()}
