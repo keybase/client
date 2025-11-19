@@ -245,7 +245,6 @@ html {
 body {
   height: 100%;
   width: 100%;
-  overflow: hidden;
 }
 
 :root {
@@ -314,10 +313,12 @@ input {
 }
 
 #root {
-  position: relative;
+  position: absolute;
   display: flex;
-  height: 100%;
-  width: 100%;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 #modal-root {
@@ -450,7 +451,8 @@ input {
 }
 
 .emoji-native {
-  font-family: 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'Apple Color Emoji', 'Twemoji Mozilla',
+  font-family:
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'Apple Color Emoji', 'Twemoji Mozilla',
     'Noto Color Emoji', 'Android Emoji';
 }
 
