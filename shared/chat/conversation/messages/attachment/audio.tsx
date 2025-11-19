@@ -1,8 +1,7 @@
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {OrdinalContext} from '../ids-context'
+import {useOrdinal} from '../ids-context'
 import AudioPlayer from '@/chat/audio/audio-player'
 
 const missingMessage = C.Chat.makeMessageAttachment()
@@ -15,7 +14,7 @@ const messageAttachmentHasProgress = (message: T.Chat.MessageAttachment) => {
   )
 }
 const AudioAttachment = () => {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
 
   // TODO not message
   const message = C.useChatContext(s => {

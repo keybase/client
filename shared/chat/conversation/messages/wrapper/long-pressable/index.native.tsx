@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
-import {OrdinalContext} from '../../ids-context'
+import {useOrdinal} from '../../ids-context'
 // Perf issues w/ old arch so using old impl now
 //import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {SwipeTrigger as OldSwipeTrigger} from './swipeable.native'
@@ -57,7 +57,7 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
 
   const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const {focusInput} = React.useContext(FocusContext)
   const onSwipeLeft = React.useCallback(() => {
     setReplyTo(ordinal)

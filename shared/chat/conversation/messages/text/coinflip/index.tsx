@@ -5,11 +5,11 @@ import * as T from '@/constants/types'
 import CoinFlipError from './errors'
 import CoinFlipParticipants from './participants'
 import CoinFlipResult from './results'
-import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
+import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {pluralize} from '@/util/string'
 
 const CoinFlipContainer = React.memo(function CoinFlipContainer() {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const {isSendError, text, flipGameID, sendMessage} = C.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)

@@ -570,7 +570,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
           )}
           ref={setListRef}
         >
-          <div style={styles.listContents} ref={setListContents}>
+          <div style={Kb.Styles.castStyleDesktop(styles.listContents)} ref={setListContents}>
             {items}
           </div>
         </div>
@@ -705,7 +705,7 @@ const Dummy = React.memo(
   React.forwardRef<HTMLDivElement, DummyType>(function Dummy(p, ref) {
     const {id, height} = p
     // Apply data-key to the dom node so we can search for editing messages
-    return <div data-key={id} style={{height}} ref={ref} />
+    return <div data-key={id} style={{contentVisibility: 'auto', height}} ref={ref} />
   })
 )
 
@@ -716,7 +716,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           ...Kb.Styles.globalStyles.flexBoxColumn,
           // containment hints so we can scroll faster
-          contain: 'strict',
+          contain: 'layout style',
           flex: 1,
           position: 'relative',
         },
@@ -727,12 +727,18 @@ const styles = Kb.Styles.styleSheetCreate(
           outline: 'none',
           overflowX: 'hidden',
           overflowY: 'auto',
+          overscrollBehavior: 'contain',
           paddingBottom: globalMargins.small,
           // get our own layer so we can scroll faster
           willChange: 'transform',
         },
       }),
-      listContents: {width: '100%'},
+      listContents: Kb.Styles.platformStyles({
+        isElectron: {
+          contain: 'layout style',
+          width: '100%',
+        },
+      }),
     }) as const
 )
 

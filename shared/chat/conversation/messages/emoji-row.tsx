@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {OrdinalContext} from './ids-context'
+import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
@@ -14,7 +14,7 @@ type OwnProps = {
 
 const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const {className, onShowingEmojiPicker, style} = p
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
 
   const {hasUnfurls, setReplyTo, toggleMessageReaction, type} = C.useChatContext(
     C.useShallow(s => {

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type {StylesCrossPlatform} from '@/styles'
-import {OrdinalContext} from './ids-context'
+import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {colors, darkColors} from '@/styles/colors'
@@ -15,7 +15,7 @@ export type OwnProps = {
 }
 
 const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProps) {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const {onLongPress, style, emoji, className} = p
   const me = C.useCurrentUserState(s => s.username)
   const isDarkMode = C.useDarkModeState(s => s.isDarkMode)

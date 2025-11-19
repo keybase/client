@@ -55,6 +55,7 @@
   flex-direction: column;
   position: relative;
   width: 100%;
+  contain: style;
   .WrapperMessage-buttons {
     display: none;
     flex-direction: row;

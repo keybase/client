@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {OrdinalContext, HighlightedContext} from '../ids-context'
+import {useOrdinal, useIsHighlighted} from '../ids-context'
 import type * as T from '@/constants/types'
 
 export const useReply = (ordinal: T.Chat.Ordinal) => {
@@ -18,7 +18,7 @@ const ReplyToContext = React.createContext<T.Chat.MessageReplyTo>(emptyMessage)
 
 const AvatarHolder = () => {
   const {author} = React.useContext(ReplyToContext)
-  const showCenteredHighlight = React.useContext(HighlightedContext)
+  const showCenteredHighlight = useIsHighlighted()
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
       <Kb.Avatar username={author} size={16} />
@@ -56,7 +56,7 @@ const ReplyImage = () => {
 
 const ReplyText = () => {
   const replyTo = React.useContext(ReplyToContext)
-  const showCenteredHighlight = React.useContext(HighlightedContext)
+  const showCenteredHighlight = useIsHighlighted()
 
   const text =
     replyTo.type === 'attachment'
@@ -124,7 +124,7 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
 })
 
 const Reply = React.memo(function Reply() {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const replyTo = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'text' ? m.replyTo : undefined

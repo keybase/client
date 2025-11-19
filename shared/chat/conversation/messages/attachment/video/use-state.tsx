@@ -1,10 +1,9 @@
 import * as C from '@/constants'
-import * as React from 'react'
-import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
+import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {missingMessage, maxWidth, maxHeight} from '../shared'
 
 export const useState = () => {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   return C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)

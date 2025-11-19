@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {OrdinalContext, HighlightedContext} from '../ids-context'
+import {MessageContext, useOrdinal} from '../ids-context'
 import EmojiRow from '../emoji-row'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta'
@@ -44,18 +44,115 @@ const messageShowsPopup = (type?: T.Chat.Message['type']) =>
 // If there is no matching message treat it like a deleted
 const missingMessage = C.Chat.makeMessageDeleted({})
 
-export const useCommon = (ordinal: T.Chat.Ordinal) => {
-  const showCenteredHighlight = useHighlightMode(ordinal)
+// Pure helper functions - moved outside hooks to avoid recreating them per message
+const getReactionsPopupPosition = (
+  ordinal: T.Chat.Ordinal,
+  ordinals: ReadonlyArray<T.Chat.Ordinal>,
+  hasReactions: boolean,
+  message: T.Chat.Message
+) => {
+  if (C.isMobile) return 'none' as const
+  if (hasReactions) return 'none' as const
+  const validMessage = C.Chat.isMessageWithReactions(message)
+  if (!validMessage) return 'none' as const
+  return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
+}
 
-  const {type, shouldShowPopup} = C.useChatContext(
+const getEcrType = (message: T.Chat.Message, you: string) => {
+  const {errorReason, type, submitState} = message
+  if (!errorReason) return EditCancelRetryType.NONE
+  if (!you) return errorReason ? EditCancelRetryType.NOACTION : EditCancelRetryType.NONE
+  if (message.type === 'text' && message.flipGameID) return EditCancelRetryType.NONE
+  if ((type !== 'text' && type !== 'attachment') || (submitState !== 'pending' && submitState !== 'failed')) {
+    return EditCancelRetryType.NOACTION
+  }
+  const {outboxID, errorTyp} = message
+  if (!!outboxID && errorTyp === T.RPCChat.OutboxErrorType.toolong) return EditCancelRetryType.EDIT_CANCEL
+  if (outboxID) {
+    switch (errorTyp) {
+      case T.RPCChat.OutboxErrorType.minwriter:
+      case T.RPCChat.OutboxErrorType.restrictedbot:
+        return EditCancelRetryType.CANCEL
+      default:
+    }
+  }
+  return EditCancelRetryType.RETRY_CANCEL
+}
+
+// Combined selector hook that fetches all message data in a single subscription
+export const useMessageData = (ordinal: T.Chat.Ordinal) => {
+  const you = C.useCurrentUserState(s => s.username)
+
+  return C.useChatContext(
     C.useShallow(s => {
       const accountsInfoMap = s.accountsInfoMap
-      const m = s.messageMap.get(ordinal)
-      const type = m?.type
-      const shouldShowPopup = C.Chat.shouldShowPopup(accountsInfoMap, m ?? undefined)
-      return {shouldShowPopup, type}
+      const m = s.messageMap.get(ordinal) ?? missingMessage
+      const isEditing = s.editing === ordinal
+      const ordinals = s.messageOrdinals
+      const {exploded, submitState, author, id, botUsername} = m
+      const type = m.type
+      const idMatchesOrdinal = T.Chat.ordinalToNumber(m.ordinal) === T.Chat.messageIDToNumber(id)
+      const youSent = m.author === you && !idMatchesOrdinal
+      const exploding = !!m.exploding
+      const decorate = !exploded && !m.errorReason
+      const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
+      const showSendIndicator =
+        !!submitState && !exploded && you === author && !idMatchesOrdinal && !isShowingUploadProgressBar
+      const showRevoked = !!m.deviceRevokedAt
+      const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
+      const paymentStatusMap = C.useChatState.getState().paymentStatusMap
+      const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
+      const hasReactions = (m.reactions?.size ?? 0) > 0
+      const botname = botUsername === author ? '' : (botUsername ?? '')
+      const reactionsPopupPosition = getReactionsPopupPosition(ordinal, ordinals ?? [], hasReactions, m)
+      const ecrType = getEcrType(m, you)
+      const shouldShowPopup = C.Chat.shouldShowPopup(accountsInfoMap, m)
+      // Inline highlight mode check to avoid separate selector
+      const centeredOrdinalType = s.messageCenterOrdinal
+      const showCenteredHighlight =
+        centeredOrdinalType?.ordinal === ordinal && centeredOrdinalType.highlightMode !== 'none'
+
+      return {
+        botname,
+        decorate,
+        ecrType,
+        exploding,
+        hasReactions,
+        isEditing,
+        reactionsPopupPosition,
+        shouldShowPopup,
+        showCenteredHighlight,
+        showCoinsIcon,
+        showExplodingCountdown,
+        showRevoked,
+        showSendIndicator,
+        type,
+        you,
+        youSent,
+      }
     })
   )
+}
+
+// Version that accepts pre-fetched data to avoid duplicate selector calls
+export const useCommonWithData = (ordinal: T.Chat.Ordinal, data: ReturnType<typeof useMessageData>) => {
+  const {type, shouldShowPopup, showCenteredHighlight} = data
+
+  const shouldShow = React.useCallback(() => {
+    return messageShowsPopup(type) && shouldShowPopup
+  }, [shouldShowPopup, type])
+  const {showPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
+    ordinal,
+    shouldShow,
+    style: styles.messagePopupContainer,
+  })
+  return {popup, popupAnchor, showCenteredHighlight, showPopup, showingPopup, type}
+}
+
+// Legacy version for backward compatibility with other wrappers
+export const useCommon = (ordinal: T.Chat.Ordinal) => {
+  const data = useMessageData(ordinal)
+  const {type, shouldShowPopup, showCenteredHighlight} = data
 
   const shouldShow = React.useCallback(() => {
     return messageShowsPopup(type) && shouldShowPopup
@@ -76,6 +173,8 @@ type WMProps = {
   showingPopup: boolean
   popup: React.ReactNode
   popupAnchor: React.RefObject<Kb.MeasureRef | null>
+  // Optional: if provided, avoids calling useMessageData again
+  messageData?: ReturnType<typeof useMessageData>
 } & Props
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
@@ -91,106 +190,6 @@ const hasSuccessfulInlinePayments = (
     message.inlinePaymentIDs.some(id => {
       const s = paymentStatusMap.get(id)
       return !!s && successfulInlinePaymentStatuses.includes(s.status)
-    })
-  )
-}
-
-const useState = (ordinal: T.Chat.Ordinal) => {
-  const getReactionsPopupPosition = (
-    ordinals: ReadonlyArray<T.Chat.Ordinal>,
-    hasReactions: boolean,
-    message: T.Chat.Message
-  ) => {
-    if (C.isMobile) return 'none' as const
-    if (hasReactions) {
-      return 'none' as const
-    }
-    const validMessage = C.Chat.isMessageWithReactions(message)
-    if (!validMessage) return 'none' as const
-
-    return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
-  }
-
-  const getEcrType = (message: T.Chat.Message, you: string) => {
-    const {errorReason, type, submitState} = message
-    if (!errorReason) {
-      return EditCancelRetryType.NONE
-    }
-    if (!you) {
-      return errorReason ? EditCancelRetryType.NOACTION : EditCancelRetryType.NONE
-    }
-
-    // custom renderer
-    if (message.type === 'text' && message.flipGameID) {
-      return EditCancelRetryType.NONE
-    }
-
-    if (
-      (type !== 'text' && type !== 'attachment') ||
-      (submitState !== 'pending' && submitState !== 'failed')
-    ) {
-      return EditCancelRetryType.NOACTION
-    }
-
-    const {outboxID, errorTyp} = message
-    if (!!outboxID && errorTyp === T.RPCChat.OutboxErrorType.toolong) {
-      return EditCancelRetryType.EDIT_CANCEL
-    }
-    if (outboxID) {
-      switch (errorTyp) {
-        case T.RPCChat.OutboxErrorType.minwriter:
-        case T.RPCChat.OutboxErrorType.restrictedbot:
-          return EditCancelRetryType.CANCEL
-        default:
-      }
-    }
-    return EditCancelRetryType.RETRY_CANCEL
-  }
-
-  const you = C.useCurrentUserState(s => s.username)
-  return C.useChatContext(
-    C.useShallow(s => {
-      const m = s.messageMap.get(ordinal) ?? missingMessage
-      const isEditing = s.editing === ordinal
-      const ordinals = s.messageOrdinals
-      const {exploded, submitState, author, id, botUsername} = m
-      const idMatchesOrdinal = T.Chat.ordinalToNumber(m.ordinal) === T.Chat.messageIDToNumber(id)
-      const youSent = m.author === you && !idMatchesOrdinal
-      const exploding = !!m.exploding
-      const decorate = !exploded && !m.errorReason
-      const type = m.type
-      const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
-      const showSendIndicator =
-        !!submitState && !exploded && you === author && !idMatchesOrdinal && !isShowingUploadProgressBar
-      const showRevoked = !!m.deviceRevokedAt
-      const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
-      const paymentStatusMap = C.useChatState.getState().paymentStatusMap
-      const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
-      const hasReactions = (m.reactions?.size ?? 0) > 0
-      // hide if the bot is writing to itself
-      const botname = botUsername === author ? '' : (botUsername ?? '')
-      const reactionsPopupPosition = getReactionsPopupPosition(ordinals ?? [], hasReactions, m)
-      const ecrType = getEcrType(m, you)
-
-      const shouldShowPopup = C.Chat.shouldShowPopup(undefined, m)
-
-      return {
-        botname,
-        decorate,
-        ecrType,
-        exploding,
-        hasReactions,
-        isEditing,
-        reactionsPopupPosition,
-        shouldShowPopup,
-        showCoinsIcon,
-        showExplodingCountdown,
-        showRevoked,
-        showSendIndicator,
-        type,
-        you,
-        youSent,
-      }
     })
   )
 }
@@ -306,15 +305,6 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   )
 })
 
-const useHighlightMode = (ordinal: T.Chat.Ordinal) => {
-  const centeredOrdinalType = C.useChatContext(s => {
-    const i = s.messageCenterOrdinal
-    return i?.ordinal === ordinal ? i.highlightMode : undefined
-  })
-
-  return centeredOrdinalType !== undefined && centeredOrdinalType !== 'none'
-}
-
 // Author
 enum EditCancelRetryType {
   NONE,
@@ -325,7 +315,7 @@ enum EditCancelRetryType {
 }
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const {failureDescription, outboxID, exploding, messageDelete, messageRetry, setEditing} = C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)
@@ -525,11 +515,13 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 })
 
 export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
-  const {ordinal, bottomChildren, children} = p
+  const {ordinal, bottomChildren, children, messageData: mdataProp} = p
   const {showCenteredHighlight, showPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const mdata = useState(ordinal)
+  // Use provided messageData if available, otherwise fetch it
+  const mdataFetched = useMessageData(ordinal)
+  const mdata = mdataProp ?? mdataFetched
 
   const {decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
@@ -562,15 +554,18 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     you,
   }
 
+  const messageContext = React.useMemo(
+    () => ({canFixOverdraw, isHighlighted: showCenteredHighlight, ordinal}),
+    [ordinal, showCenteredHighlight, canFixOverdraw]
+  )
+
   return (
-    <OrdinalContext.Provider value={ordinal}>
-      <HighlightedContext.Provider value={showCenteredHighlight}>
-        <Kb.Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
-          <TextAndSiblings {...tsprops} />
-          {popup}
-        </Kb.Styles.CanFixOverdrawContext.Provider>
-      </HighlightedContext.Provider>
-    </OrdinalContext.Provider>
+    <MessageContext.Provider value={messageContext}>
+      <Kb.Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
+        <TextAndSiblings {...tsprops} />
+        {popup}
+      </Kb.Styles.CanFixOverdrawContext.Provider>
+    </MessageContext.Provider>
   )
 })
 
