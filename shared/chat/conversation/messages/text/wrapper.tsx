@@ -8,24 +8,30 @@ import {SetRecycleTypeContext} from '../../recycle-type-context'
 import {WrapperMessage, useCommonWithData, useMessageData, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
+import isEqual from 'lodash/isEqual'
 
-// Pre-computed style objects to avoid recreating them
-const styleHighlighted = Kb.Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
-const styleSent = Kb.Styles.collapseStyles([sharedStyles.sent, {backgroundColor: Kb.Styles.globalColors.fastBlank}])
-const stylePendingFail = Kb.Styles.collapseStyles([
-  sharedStyles.pendingFail,
-  {backgroundColor: Kb.Styles.globalColors.fastBlank},
-])
-
+// Encoding all 4 states as static objects so we don't re-render
 const getStyle = (
   type: 'error' | 'sent' | 'pending',
   isEditing: boolean,
   isHighlighted?: boolean
 ): Kb.Styles.StylesCrossPlatform => {
-  if (isHighlighted) return styleHighlighted
-  if (type === 'sent') return isEditing ? sharedStyles.sentEditing : styleSent
-  return isEditing ? sharedStyles.pendingFailEditing : stylePendingFail
+  if (isHighlighted) {
+    return Kb.Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
+  } else if (type === 'sent') {
+    return isEditing
+      ? sharedStyles.sentEditing
+      : Kb.Styles.collapseStyles([sharedStyles.sent, {backgroundColor: Kb.Styles.globalColors.fastBlank}])
+  } else {
+    return isEditing
+      ? sharedStyles.pendingFailEditing
+      : Kb.Styles.collapseStyles([
+          sharedStyles.pendingFail,
+          {backgroundColor: Kb.Styles.globalColors.fastBlank},
+        ])
+  }
 }
+
 const MessageMarkdown = React.memo(function MessageMarkdown(p: {style: Kb.Styles.StylesCrossPlatform}) {
   const {style} = p
   const ordinal = useOrdinal()
@@ -71,7 +77,7 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   })
 
   const setRecycleType = React.useContext(SetRecycleTypeContext)
-  
+
   React.useEffect(() => {
     let subType = ''
     if (reply) {
@@ -102,11 +108,14 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   //   DEBUGOldTypeRef.current = subType
   // }, [ordinal, subType])
 
-  // Get style directly - getStyle returns static objects so no need for state/useEffect
-  const style = React.useMemo(
-    () => getStyle(textType, isEditing, showCenteredHighlight),
-    [textType, isEditing, showCenteredHighlight]
+  const [style, setStyle] = React.useState<Kb.Styles.StylesCrossPlatform>(
+    getStyle(textType, isEditing, showCenteredHighlight)
   )
+
+  React.useEffect(() => {
+    const s = getStyle(textType, isEditing, showCenteredHighlight)
+    setStyle(old => (isEqual(s, old) ? old : s))
+  }, [textType, isEditing, showCenteredHighlight])
 
   const children = React.useMemo(() => {
     return (
