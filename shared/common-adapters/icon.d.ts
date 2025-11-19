@@ -48,4 +48,6 @@ export default Icon
 
 export declare function iconTypeToImgSet(imgMap: {[K in string]: IconType}, targetSize: number): string
 export declare function urlsToImgSet(imgMap: {[K in string]: string}, size: number): string | null
+export declare function urlsToSrcSet(_imgMap: {[key: number]: string}, _targetSize: number): string | null
+export declare function urlsToBaseSrc(_imgMap: {[key: number]: string}, _targetSize: number): string | null
 export type {IconType} from './icon.constants-gen'
