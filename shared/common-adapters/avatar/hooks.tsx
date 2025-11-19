@@ -1,7 +1,7 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as C from '@/constants'
 import * as React from 'react'
-import {iconTypeToImgSet, urlsToImgSet, type IconType, type IconStyle} from '../icon'
+import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType, type IconStyle} from '../icon'
 import * as Styles from '@/styles'
 import * as AvatarZus from './store'
 import './avatar.css'
@@ -104,6 +104,32 @@ export default (ownProps: Props) => {
             ),
     [address, name, imageOverrideUrl, lighterPlaceholders, size, urlMap, isTeam]
   )
+  
+  // For <img> tags (desktop only): extract src and srcset
+  const src = React.useMemo(
+    () =>
+      Styles.isMobile
+        ? null
+        : imageOverrideUrl
+          ? imageOverrideUrl
+          : address && name
+            ? urlsToBaseSrc(urlMap, size)
+            : null,
+    [address, name, imageOverrideUrl, size, urlMap]
+  )
+  
+  const srcset = React.useMemo(
+    () =>
+      Styles.isMobile
+        ? undefined
+        : imageOverrideUrl
+          ? undefined
+          : address && name
+            ? urlsToSrcSet(urlMap, size)
+            : undefined,
+    [address, name, imageOverrideUrl, size, urlMap]
+  )
+  
   const iconInfo = React.useMemo(
     () => followIconHelper(size, followsYou, following),
     [size, followsYou, following]
@@ -126,6 +152,8 @@ export default (ownProps: Props) => {
     opacity: ownProps.opacity,
     size: size,
     skipBackground: ownProps.skipBackground,
+    src: src,
+    srcset: srcset,
     style: ownProps.style,
     url: url,
   }

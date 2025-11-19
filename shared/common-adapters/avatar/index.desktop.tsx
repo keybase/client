@@ -1,3 +1,4 @@
+import * as React from 'react'
 import Icon, {type IconType} from '../icon'
 import * as Styles from '@/styles'
 import type {Props, AvatarSize} from '.'
@@ -24,18 +25,32 @@ const Avatar = (p: Props) => {
 
   const scaledAvatarRatio = props.size / AVATAR_SIZE
   const avatarScaledWidth = props.crop?.scaledWidth ? props.crop.scaledWidth * scaledAvatarRatio : null
+  
+  // Stable style object to prevent img re-render
+  const imgOpacity = props.opacity === undefined || props.opacity === 1
+    ? props.blocked
+      ? 0.1
+      : 1
+    : props.opacity
+  const imgStyle = React.useMemo(
+    () => (imgOpacity !== 1 ? {opacity: imgOpacity} : undefined),
+    [imgOpacity]
+  )
+  
   return (
     <div
       className={Styles.classNames('avatar', avatarSizeClasName)}
       onClick={props.onClick}
       style={Styles.collapseStyles([props.style, props.onClick && styles.clickable]) as React.CSSProperties}
     >
-      {!props.skipBackground && (
-        <div className={Styles.classNames('avatar-background', avatarSizeClasName)} />
-      )}
+      {/* Inner wrapper clips avatar image content, outer container allows follow icons to extend */}
+      <div className={Styles.classNames('avatar-inner', avatarSizeClasName)}>
+        {!props.skipBackground && (
+          <div className="avatar-background" />
+        )}
       {!!props.blocked && !!avatarSizeToPoopIconType(props.size) && (
         <div
-          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          className="avatar-user-image"
           style={styles.poopContainer}
         >
           {/* ts messes up here without the || 'icon-poop-32' even though it
@@ -43,9 +58,21 @@ const Avatar = (p: Props) => {
           <Icon type={avatarSizeToPoopIconType(props.size) || 'icon-poop-32'} />
         </div>
       )}
-      {!!props.url && props.crop === undefined && (
+      {!!props.src && props.crop === undefined && (
+        <img
+          key={props.src}
+          src={props.src}
+          srcSet={props.size <= 32 ? undefined : props.srcset || undefined}
+          decoding="async"
+          className="avatar-user-image"
+          style={imgStyle as React.CSSProperties}
+          alt=""
+          draggable={false}
+        />
+      )}
+      {!!props.url && !props.src && props.crop === undefined && (
         <div
-          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          className="avatar-user-image"
           style={{
             backgroundImage: props.url,
             opacity:
@@ -58,9 +85,8 @@ const Avatar = (p: Props) => {
         />
       )}
       {!!props.url && props.crop?.offsetLeft !== undefined && props.crop.offsetTop !== undefined && (
-        <img
-          loading="lazy"
-          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+        <div
+          className="avatar-user-image"
           style={{
             backgroundImage: props.url,
             backgroundPositionX: props.crop.offsetLeft * scaledAvatarRatio,
@@ -95,6 +121,7 @@ const Avatar = (p: Props) => {
           )}
         />
       )}
+      </div>
       {props.followIconType && <Icon type={props.followIconType} style={props.followIconStyle} />}
       {props.editable && <Icon type="iconfont-edit" style={props.isTeam ? styles.editTeam : styles.edit} />}
       {props.children}

@@ -1,4 +1,6 @@
 /* Used by avatar on desktop to speed up perf */
+/* Outer container allows follow icons to extend beyond bounds */
+/* Inner wrapper has overflow:hidden + border-radius to clip images without re-rasterizing */
 
 .avatar {
   user-select: none;
@@ -6,78 +8,124 @@
   position: relative;
 }
 
-.avatar-team-size-128 {
+.avatar-inner {
+  overflow: hidden;
+  position: relative;
+  /* Help browser optimize repaints/compositing */
+  contain: layout style paint;
+}
+
+/* Outer container sizes - no border-radius so follow icons aren't clipped */
+.avatar.avatar-team-size-128,
+.avatar.avatar-user-size-128 {
+  width: 128px;
+  height: 128px;
+}
+.avatar.avatar-team-size-16,
+.avatar.avatar-user-size-16 {
+  width: 16px;
+  height: 16px;
+}
+.avatar.avatar-team-size-24,
+.avatar.avatar-user-size-24 {
+  width: 24px;
+  height: 24px;
+}
+.avatar.avatar-team-size-32,
+.avatar.avatar-user-size-32 {
+  width: 32px;
+  height: 32px;
+}
+.avatar.avatar-team-size-48,
+.avatar.avatar-user-size-48 {
+  width: 48px;
+  height: 48px;
+}
+.avatar.avatar-team-size-64,
+.avatar.avatar-user-size-64 {
+  width: 64px;
+  height: 64px;
+}
+.avatar.avatar-team-size-96,
+.avatar.avatar-user-size-96 {
+  width: 96px;
+  height: 96px;
+}
+
+/* Inner wrapper sizes with border-radius for clipping */
+.avatar-inner.avatar-team-size-128 {
   border-radius: 16px;
   width: 128px;
   height: 128px;
 }
-.avatar-team-size-16 {
+.avatar-inner.avatar-team-size-16 {
   border-radius: 4px;
   width: 16px;
   height: 16px;
 }
-.avatar-team-size-24 {
+.avatar-inner.avatar-team-size-24 {
   border-radius: 6px;
   width: 24px;
   height: 24px;
 }
-.avatar-team-size-32 {
+.avatar-inner.avatar-team-size-32 {
   border-radius: 6px;
   width: 32px;
   height: 32px;
 }
-.avatar-team-size-48 {
+.avatar-inner.avatar-team-size-48 {
   border-radius: 8px;
   width: 48px;
   height: 48px;
 }
-.avatar-team-size-64 {
+.avatar-inner.avatar-team-size-64 {
   border-radius: 10px;
   width: 64px;
   height: 64px;
 }
-.avatar-team-size-96 {
+.avatar-inner.avatar-team-size-96 {
   border-radius: 12px;
   width: 96px;
   height: 96px;
 }
 
-.avatar-user-size-128 {
+.avatar-inner.avatar-user-size-128 {
   border-radius: 50%;
   width: 128px;
   height: 128px;
 }
-.avatar-user-size-16 {
+.avatar-inner.avatar-user-size-16 {
   border-radius: 50%;
   width: 16px;
   height: 16px;
 }
-.avatar-user-size-24 {
+.avatar-inner.avatar-user-size-24 {
   border-radius: 50%;
   width: 24px;
   height: 24px;
 }
-.avatar-user-size-32 {
+.avatar-inner.avatar-user-size-32 {
   border-radius: 50%;
   width: 32px;
   height: 32px;
 }
-.avatar-user-size-48 {
+.avatar-inner.avatar-user-size-48 {
   border-radius: 50%;
   width: 48px;
   height: 48px;
 }
-.avatar-user-size-64 {
+.avatar-inner.avatar-user-size-64 {
   border-radius: 50%;
   width: 64px;
   height: 64px;
 }
-.avatar-user-size-96 {
+.avatar-inner.avatar-user-size-96 {
   border-radius: 50%;
   width: 96px;
   height: 96px;
 }
 
+/* Background layer - no border-radius needed, parent clips via overflow */
 .avatar-background {
   background-color: var(--color-greyLight);
   bottom: 0;
@@ -90,6 +138,7 @@
   }
 }
 
+/* Image layer - no border-radius needed, parent clips via overflow */
 .avatar-user-image {
   flex-shrink: 0;
   background-size: cover;
@@ -98,6 +147,23 @@
   position: absolute;
   right: 0;
   top: 0;
+}
+
+/* For img tag avatars - better caching and performance */
+/* CRITICAL: NO border-radius on img - parent container clips via overflow */
+/* This allows Chrome to share the decoded bitmap across all instances */
+img.avatar-user-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0 !important;
+  /* Prevent dragging which can trigger decode */
+  user-drag: none;
+  -webkit-user-drag: none;
+  /* Optimize for static images */
+  image-rendering: auto;
+  /* Content is static, help Chrome cache decoded bitmap */
+  content-visibility: auto;
 }
 
 .avatar-border-team {
