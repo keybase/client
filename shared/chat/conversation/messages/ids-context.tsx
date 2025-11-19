@@ -2,15 +2,15 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 
 export type MessageContextValue = {
-  ordinal: T.Chat.Ordinal
-  isHighlighted: boolean
   canFixOverdraw: boolean
+  isHighlighted: boolean
+  ordinal: T.Chat.Ordinal
 }
 
 const defaultValue: MessageContextValue = {
-  ordinal: T.Chat.numberToOrdinal(0),
-  isHighlighted: false,
   canFixOverdraw: true,
+  isHighlighted: false,
+  ordinal: T.Chat.numberToOrdinal(0),
 }
 
 export const MessageContext = React.createContext<MessageContextValue>(defaultValue)

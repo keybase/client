@@ -570,7 +570,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
           )}
           ref={setListRef}
         >
-          <div style={styles.listContents} ref={setListContents}>
+          <div style={Kb.Styles.castStyleDesktop(styles.listContents)} ref={setListContents}>
             {items}
           </div>
         </div>
@@ -733,10 +733,12 @@ const styles = Kb.Styles.styleSheetCreate(
           willChange: 'transform',
         },
       }),
-      listContents: {
-        contain: 'layout style paint',
-        width: '100%',
-      },
+      listContents: Kb.Styles.platformStyles({
+        isElectron: {
+          contain: 'layout style paint',
+          width: '100%',
+        },
+      }),
     }) as const
 )
 

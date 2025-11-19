@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import ReactButton from './react-button'
 import type * as T from '@/constants/types'
-import {useOrdinal} from './ids-context'
+import {MessageContext} from './ids-context'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 
@@ -77,6 +77,10 @@ const ReactionTooltip = (p: OwnProps) => {
   }
   const insets = Kb.useSafeAreaInsets()
   const conversationIDKey = C.useChatContext(s => s.id)
+  const messageContext = React.useMemo(
+    () => ({canFixOverdraw: false, isHighlighted: false, ordinal}),
+    [ordinal]
+  )
   if (!visible) {
     return null
   }
@@ -87,6 +91,7 @@ const ReactionTooltip = (p: OwnProps) => {
     ordinal: ordinal,
     title: r.emoji,
   }))
+
   return (
     <Kb.Overlay
       attachTo={attachmentRef}
@@ -98,7 +103,7 @@ const ReactionTooltip = (p: OwnProps) => {
     >
       {/* need context since this uses a portal... */}
       <C.ChatProvider id={conversationIDKey}>
-        <OrdinalContext.Provider value={ordinal}>
+        <MessageContext.Provider value={messageContext}>
           <Kb.Box2
             onMouseLeave={onMouseLeave}
             onMouseOver={onMouseOver}
@@ -135,7 +140,7 @@ const ReactionTooltip = (p: OwnProps) => {
               </Kb.ButtonBar>
             )}
           </Kb.Box2>
-        </OrdinalContext.Provider>
+        </MessageContext.Provider>
       </C.ChatProvider>
     </Kb.Overlay>
   )

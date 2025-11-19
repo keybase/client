@@ -100,14 +100,13 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
         !!submitState && !exploded && you === author && !idMatchesOrdinal && !isShowingUploadProgressBar
       const showRevoked = !!m.deviceRevokedAt
       const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
-      // Access paymentStatusMap from within selector to track dependency properly
-      const paymentStatusMap = s.paymentStatusMap
+      const paymentStatusMap = C.useChatState.getState().paymentStatusMap
       const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
       const hasReactions = (m.reactions?.size ?? 0) > 0
       const botname = botUsername === author ? '' : (botUsername ?? '')
       const reactionsPopupPosition = getReactionsPopupPosition(ordinal, ordinals ?? [], hasReactions, m)
       const ecrType = getEcrType(m, you)
-      const shouldShowPopup = C.Chat.shouldShowPopup(accountsInfoMap, m ?? undefined)
+      const shouldShowPopup = C.Chat.shouldShowPopup(accountsInfoMap, m)
       // Inline highlight mode check to avoid separate selector
       const centeredOrdinalType = s.messageCenterOrdinal
       const showCenteredHighlight =
@@ -136,13 +135,8 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
 }
 
 // Version that accepts pre-fetched data to avoid duplicate selector calls
-export const useCommonWithData = (
-  ordinal: T.Chat.Ordinal,
-  data: ReturnType<typeof useMessageData>
-) => {
+export const useCommonWithData = (ordinal: T.Chat.Ordinal, data: ReturnType<typeof useMessageData>) => {
   const {type, shouldShowPopup, showCenteredHighlight} = data
-  // Get conversationIDKey once at this level to avoid per-message selector in useMessagePopup
-  const conversationIDKey = C.useChatContext(s => s.id)
 
   const shouldShow = React.useCallback(() => {
     return messageShowsPopup(type) && shouldShowPopup
@@ -151,7 +145,6 @@ export const useCommonWithData = (
     ordinal,
     shouldShow,
     style: styles.messagePopupContainer,
-    conversationIDKey,
   })
   return {popup, popupAnchor, showCenteredHighlight, showPopup, showingPopup, type}
 }
@@ -159,7 +152,6 @@ export const useCommonWithData = (
 // Legacy version for backward compatibility with other wrappers
 export const useCommon = (ordinal: T.Chat.Ordinal) => {
   const data = useMessageData(ordinal)
-  const conversationIDKey = C.useChatContext(s => s.id)
   const {type, shouldShowPopup, showCenteredHighlight} = data
 
   const shouldShow = React.useCallback(() => {
@@ -169,7 +161,6 @@ export const useCommon = (ordinal: T.Chat.Ordinal) => {
     ordinal,
     shouldShow,
     style: styles.messagePopupContainer,
-    conversationIDKey,
   })
   return {popup, popupAnchor, showCenteredHighlight, showPopup, showingPopup, type}
 }
@@ -313,15 +304,6 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
     </LongPressable>
   )
 })
-
-const useHighlightMode = (ordinal: T.Chat.Ordinal) => {
-  const centeredOrdinalType = C.useChatContext(s => {
-    const i = s.messageCenterOrdinal
-    return i?.ordinal === ordinal ? i.highlightMode : undefined
-  })
-
-  return centeredOrdinalType !== undefined && centeredOrdinalType !== 'none'
-}
 
 // Author
 enum EditCancelRetryType {
@@ -573,7 +555,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   }
 
   const messageContext = React.useMemo(
-    () => ({ordinal, isHighlighted: showCenteredHighlight, canFixOverdraw}),
+    () => ({canFixOverdraw, isHighlighted: showCenteredHighlight, ordinal}),
     [ordinal, showCenteredHighlight, canFixOverdraw]
   )
 

@@ -42,6 +42,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
       ? {height: data.fullHeight, width: data.fullWidth}
       : {height: data.previewWidth, width: data.previewHeight}
   }, [data.fullHeight, data.fullWidth, data.previewHeight, data.previewWidth, imgSrc, path])
+
   const {showPopup, popup} = useMessagePopup({ordinal})
 
   const onSwipe = React.useCallback(

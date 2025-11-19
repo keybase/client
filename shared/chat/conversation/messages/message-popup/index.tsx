@@ -116,9 +116,9 @@ export const useMessagePopup = (p: {
   ordinal: T.Chat.Ordinal
   shouldShow?: () => boolean
   style?: Kb.Styles.StylesCrossPlatform
-  conversationIDKey: T.Chat.ConversationIDKey
 }) => {
-  const {ordinal, shouldShow, style, conversationIDKey} = p
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const {ordinal, shouldShow, style} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
