@@ -1,3 +1,4 @@
+import * as React from 'react'
 import Icon, {type IconType} from '../icon'
 import * as Styles from '@/styles'
 import type {Props, AvatarSize} from '.'
@@ -24,6 +25,18 @@ const Avatar = (p: Props) => {
 
   const scaledAvatarRatio = props.size / AVATAR_SIZE
   const avatarScaledWidth = props.crop?.scaledWidth ? props.crop.scaledWidth * scaledAvatarRatio : null
+  
+  // Stable style object to prevent img re-render
+  const imgOpacity = props.opacity === undefined || props.opacity === 1
+    ? props.blocked
+      ? 0.1
+      : 1
+    : props.opacity
+  const imgStyle = React.useMemo(
+    () => (imgOpacity !== 1 ? {opacity: imgOpacity} : undefined),
+    [imgOpacity]
+  )
+  
   return (
     <div
       className={Styles.classNames('avatar', avatarSizeClasName)}
@@ -47,19 +60,14 @@ const Avatar = (p: Props) => {
       )}
       {!!props.src && props.crop === undefined && (
         <img
+          key={props.src}
           src={props.src}
-          srcSet={props.srcset || undefined}
-          loading="lazy"
+          srcSet={props.size <= 32 ? undefined : props.srcset || undefined}
+          decoding="async"
           className="avatar-user-image"
-          style={{
-            opacity:
-              props.opacity === undefined || props.opacity === 1
-                ? props.blocked
-                  ? 1
-                  : undefined
-                : props.opacity,
-          }}
+          style={imgStyle as React.CSSProperties}
           alt=""
+          draggable={false}
         />
       )}
       {!!props.url && !props.src && props.crop === undefined && (

@@ -155,6 +155,11 @@ img.avatar-user-image {
   height: 100%;
   object-fit: cover;
   border-radius: 0 !important;
+  /* Prevent dragging which can trigger decode */
+  user-drag: none;
+  -webkit-user-drag: none;
+  /* Let browser handle compositing naturally for better decode caching */
+  backface-visibility: hidden;
 }
 
 .avatar-border-team {
