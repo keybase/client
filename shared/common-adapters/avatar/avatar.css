@@ -11,6 +11,8 @@
 .avatar-inner {
   overflow: hidden;
   position: relative;
+  /* Help browser optimize repaints/compositing */
+  contain: layout style paint;
 }
 
 /* Outer container sizes - no border-radius so follow icons aren't clipped */
@@ -158,8 +160,10 @@ img.avatar-user-image {
   /* Prevent dragging which can trigger decode */
   user-drag: none;
   -webkit-user-drag: none;
-  /* Let browser handle compositing naturally for better decode caching */
-  backface-visibility: hidden;
+  /* Optimize for static images */
+  image-rendering: auto;
+  /* Content is static, help Chrome cache decoded bitmap */
+  content-visibility: auto;
 }
 
 .avatar-border-team {
