@@ -5,7 +5,7 @@ import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {useOrdinal} from '../ids-context'
 import {SetRecycleTypeContext} from '../../recycle-type-context'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useCommonWithData, useMessageData, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
 import isEqual from 'lodash/isEqual'
@@ -60,26 +60,21 @@ const MessageMarkdown = React.memo(function MessageMarkdown(p: {style: Kb.Styles
 
 const WrapperText = React.memo(function WrapperText(p: Props) {
   const {ordinal} = p
-  const common = useCommon(ordinal)
+  // Fetch message data once and share with both useCommon and WrapperMessage
+  const messageData = useMessageData(ordinal)
+  const common = useCommonWithData(ordinal, messageData)
   const {type, showCenteredHighlight} = common
+  const {isEditing, hasReactions} = messageData
 
   const bottomChildren = useBottom(ordinal)
   const reply = useReply(ordinal)
 
-  const {isEditing, textType, hasReactions} = C.useChatContext(
-    C.useShallow(s => {
-      const isEditing = s.editing === ordinal
-      const m = s.messageMap.get(ordinal)
-      const errorReason = m?.errorReason
-      const textType = errorReason
-        ? ('error' as const)
-        : !m?.submitState
-          ? ('sent' as const)
-          : ('pending' as const)
-      const hasReactions = (m?.reactions?.size ?? 0) > 0
-      return {hasReactions, isEditing, textType}
-    })
-  )
+  // Get text-specific styling info
+  const textType = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
+    const errorReason = m?.errorReason
+    return errorReason ? ('error' as const) : !m?.submitState ? ('sent' as const) : ('pending' as const)
+  })
 
   const setRecycleType = React.useContext(SetRecycleTypeContext)
   
@@ -138,7 +133,7 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   }
 
   return (
-    <WrapperMessage {...p} {...common} bottomChildren={bottomChildren}>
+    <WrapperMessage {...p} {...common} bottomChildren={bottomChildren} messageData={messageData}>
       {children}
     </WrapperMessage>
   )
