@@ -44,42 +44,44 @@ const messageShowsPopup = (type?: T.Chat.Message['type']) =>
 // If there is no matching message treat it like a deleted
 const missingMessage = C.Chat.makeMessageDeleted({})
 
+// Pure helper functions - moved outside hooks to avoid recreating them per message
+const getReactionsPopupPosition = (
+  ordinal: T.Chat.Ordinal,
+  ordinals: ReadonlyArray<T.Chat.Ordinal>,
+  hasReactions: boolean,
+  message: T.Chat.Message
+) => {
+  if (C.isMobile) return 'none' as const
+  if (hasReactions) return 'none' as const
+  const validMessage = C.Chat.isMessageWithReactions(message)
+  if (!validMessage) return 'none' as const
+  return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
+}
+
+const getEcrType = (message: T.Chat.Message, you: string) => {
+  const {errorReason, type, submitState} = message
+  if (!errorReason) return EditCancelRetryType.NONE
+  if (!you) return errorReason ? EditCancelRetryType.NOACTION : EditCancelRetryType.NONE
+  if (message.type === 'text' && message.flipGameID) return EditCancelRetryType.NONE
+  if ((type !== 'text' && type !== 'attachment') || (submitState !== 'pending' && submitState !== 'failed')) {
+    return EditCancelRetryType.NOACTION
+  }
+  const {outboxID, errorTyp} = message
+  if (!!outboxID && errorTyp === T.RPCChat.OutboxErrorType.toolong) return EditCancelRetryType.EDIT_CANCEL
+  if (outboxID) {
+    switch (errorTyp) {
+      case T.RPCChat.OutboxErrorType.minwriter:
+      case T.RPCChat.OutboxErrorType.restrictedbot:
+        return EditCancelRetryType.CANCEL
+      default:
+    }
+  }
+  return EditCancelRetryType.RETRY_CANCEL
+}
+
 // Combined selector hook that fetches all message data in a single subscription
 export const useMessageData = (ordinal: T.Chat.Ordinal) => {
   const you = C.useCurrentUserState(s => s.username)
-  const showCenteredHighlight = useHighlightMode(ordinal)
-
-  const getReactionsPopupPosition = React.useCallback(
-    (ordinals: ReadonlyArray<T.Chat.Ordinal>, hasReactions: boolean, message: T.Chat.Message) => {
-      if (C.isMobile) return 'none' as const
-      if (hasReactions) return 'none' as const
-      const validMessage = C.Chat.isMessageWithReactions(message)
-      if (!validMessage) return 'none' as const
-      return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
-    },
-    [ordinal]
-  )
-
-  const getEcrType = React.useCallback((message: T.Chat.Message, you: string) => {
-    const {errorReason, type, submitState} = message
-    if (!errorReason) return EditCancelRetryType.NONE
-    if (!you) return errorReason ? EditCancelRetryType.NOACTION : EditCancelRetryType.NONE
-    if (message.type === 'text' && message.flipGameID) return EditCancelRetryType.NONE
-    if ((type !== 'text' && type !== 'attachment') || (submitState !== 'pending' && submitState !== 'failed')) {
-      return EditCancelRetryType.NOACTION
-    }
-    const {outboxID, errorTyp} = message
-    if (!!outboxID && errorTyp === T.RPCChat.OutboxErrorType.toolong) return EditCancelRetryType.EDIT_CANCEL
-    if (outboxID) {
-      switch (errorTyp) {
-        case T.RPCChat.OutboxErrorType.minwriter:
-        case T.RPCChat.OutboxErrorType.restrictedbot:
-          return EditCancelRetryType.CANCEL
-        default:
-      }
-    }
-    return EditCancelRetryType.RETRY_CANCEL
-  }, [])
 
   return C.useChatContext(
     C.useShallow(s => {
@@ -98,13 +100,18 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
         !!submitState && !exploded && you === author && !idMatchesOrdinal && !isShowingUploadProgressBar
       const showRevoked = !!m.deviceRevokedAt
       const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
-      const paymentStatusMap = C.useChatState.getState().paymentStatusMap
+      // Access paymentStatusMap from within selector to track dependency properly
+      const paymentStatusMap = s.paymentStatusMap
       const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
       const hasReactions = (m.reactions?.size ?? 0) > 0
       const botname = botUsername === author ? '' : (botUsername ?? '')
-      const reactionsPopupPosition = getReactionsPopupPosition(ordinals ?? [], hasReactions, m)
+      const reactionsPopupPosition = getReactionsPopupPosition(ordinal, ordinals ?? [], hasReactions, m)
       const ecrType = getEcrType(m, you)
       const shouldShowPopup = C.Chat.shouldShowPopup(accountsInfoMap, m ?? undefined)
+      // Inline highlight mode check to avoid separate selector
+      const centeredOrdinalType = s.messageCenterOrdinal
+      const showCenteredHighlight =
+        centeredOrdinalType?.ordinal === ordinal && centeredOrdinalType.highlightMode !== 'none'
 
       return {
         botname,
@@ -134,6 +141,8 @@ export const useCommonWithData = (
   data: ReturnType<typeof useMessageData>
 ) => {
   const {type, shouldShowPopup, showCenteredHighlight} = data
+  // Get conversationIDKey once at this level to avoid per-message selector in useMessagePopup
+  const conversationIDKey = C.useChatContext(s => s.id)
 
   const shouldShow = React.useCallback(() => {
     return messageShowsPopup(type) && shouldShowPopup
@@ -142,6 +151,7 @@ export const useCommonWithData = (
     ordinal,
     shouldShow,
     style: styles.messagePopupContainer,
+    conversationIDKey,
   })
   return {popup, popupAnchor, showCenteredHighlight, showPopup, showingPopup, type}
 }
@@ -149,7 +159,19 @@ export const useCommonWithData = (
 // Legacy version for backward compatibility with other wrappers
 export const useCommon = (ordinal: T.Chat.Ordinal) => {
   const data = useMessageData(ordinal)
-  return useCommonWithData(ordinal, data)
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const {type, shouldShowPopup, showCenteredHighlight} = data
+
+  const shouldShow = React.useCallback(() => {
+    return messageShowsPopup(type) && shouldShowPopup
+  }, [shouldShowPopup, type])
+  const {showPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
+    ordinal,
+    shouldShow,
+    style: styles.messagePopupContainer,
+    conversationIDKey,
+  })
+  return {popup, popupAnchor, showCenteredHighlight, showPopup, showingPopup, type}
 }
 
 type WMProps = {
