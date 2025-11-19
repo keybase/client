@@ -30,9 +30,11 @@ const Avatar = (p: Props) => {
       onClick={props.onClick}
       style={Styles.collapseStyles([props.style, props.onClick && styles.clickable]) as React.CSSProperties}
     >
-      {!props.skipBackground && (
-        <div className="avatar-background" />
-      )}
+      {/* Inner wrapper clips avatar image content, outer container allows follow icons to extend */}
+      <div className={Styles.classNames('avatar-inner', avatarSizeClasName)}>
+        {!props.skipBackground && (
+          <div className="avatar-background" />
+        )}
       {!!props.blocked && !!avatarSizeToPoopIconType(props.size) && (
         <div
           className="avatar-user-image"
@@ -111,6 +113,7 @@ const Avatar = (p: Props) => {
           )}
         />
       )}
+      </div>
       {props.followIconType && <Icon type={props.followIconType} style={props.followIconStyle} />}
       {props.editable && <Icon type="iconfont-edit" style={props.isTeam ? styles.editTeam : styles.edit} />}
       {props.children}
