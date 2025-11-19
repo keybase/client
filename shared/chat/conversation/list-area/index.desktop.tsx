@@ -716,7 +716,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           ...Kb.Styles.globalStyles.flexBoxColumn,
           // containment hints so we can scroll faster
-          contain: 'strict',
+          contain: 'layout style',
           flex: 1,
           position: 'relative',
         },
@@ -735,7 +735,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       listContents: Kb.Styles.platformStyles({
         isElectron: {
-          contain: 'layout style paint',
+          contain: 'layout style',
           width: '100%',
         },
       }),
