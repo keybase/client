@@ -219,6 +219,15 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
   return imgSet.length ? imgSet : null
 }
 
+// Desktop-only functions - not used on native but needed for import compatibility
+export function urlsToSrcSet(_imgMap: {[key: number]: string}, _targetSize: number): null {
+  return null
+}
+
+export function urlsToBaseSrc(_imgMap: {[key: number]: string}, _targetSize: number): null {
+  return null
+}
+
 const styles = Styles.styleSheetCreate(() => ({
   fixOverdraw: {
     backgroundColor: Styles.globalColors.fastBlank,

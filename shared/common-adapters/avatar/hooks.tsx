@@ -105,24 +105,28 @@ export default (ownProps: Props) => {
     [address, name, imageOverrideUrl, lighterPlaceholders, size, urlMap, isTeam]
   )
   
-  // For <img> tags: extract src and srcset
+  // For <img> tags (desktop only): extract src and srcset
   const src = React.useMemo(
     () =>
-      imageOverrideUrl
-        ? imageOverrideUrl
-        : address && name
-          ? urlsToBaseSrc(urlMap, size)
-          : null,
+      Styles.isMobile
+        ? null
+        : imageOverrideUrl
+          ? imageOverrideUrl
+          : address && name
+            ? urlsToBaseSrc(urlMap, size)
+            : null,
     [address, name, imageOverrideUrl, size, urlMap]
   )
   
   const srcset = React.useMemo(
     () =>
-      imageOverrideUrl
+      Styles.isMobile
         ? undefined
-        : address && name
-          ? urlsToSrcSet(urlMap, size)
-          : undefined,
+        : imageOverrideUrl
+          ? undefined
+          : address && name
+            ? urlsToSrcSet(urlMap, size)
+            : undefined,
     [address, name, imageOverrideUrl, size, urlMap]
   )
   
