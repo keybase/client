@@ -30,4 +30,6 @@
 
 .scroll-ignore-pointer {
   pointer-events: none;
+  /* Keep on same layer to avoid repaint cost */
+  will-change: auto;
 }
