@@ -1,5 +1,21 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
-// use this if you need ordinal injected into and rerender
-export const OrdinalContext = React.createContext<T.Chat.Ordinal>(T.Chat.numberToOrdinal(0))
-export const HighlightedContext = React.createContext(false)
+
+export type MessageContextValue = {
+  ordinal: T.Chat.Ordinal
+  isHighlighted: boolean
+  canFixOverdraw: boolean
+}
+
+const defaultValue: MessageContextValue = {
+  ordinal: T.Chat.numberToOrdinal(0),
+  isHighlighted: false,
+  canFixOverdraw: true,
+}
+
+export const MessageContext = React.createContext<MessageContextValue>(defaultValue)
+
+// Convenience hooks for accessing individual values
+export const useOrdinal = () => React.useContext(MessageContext).ordinal
+export const useIsHighlighted = () => React.useContext(MessageContext).isHighlighted
+export const useCanFixOverdraw = () => React.useContext(MessageContext).canFixOverdraw

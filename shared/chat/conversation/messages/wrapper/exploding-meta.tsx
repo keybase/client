@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {HighlightedContext, OrdinalContext} from '../ids-context'
+import {useIsHighlighted, useOrdinal} from '../ids-context'
 import * as Kb from '@/common-adapters'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import {formatDurationShort} from '@/util/timestamp'
@@ -11,7 +11,7 @@ export type OwnProps = {onClick?: () => void}
 
 const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: OwnProps) {
   const {onClick} = p
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const [now, setNow] = React.useState(() => Date.now())
 
   const {exploding, exploded, submitState, explodesAt, messageKey} = C.useChatContext(
@@ -51,7 +51,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
 
   const sharedTimerIDRef = React.useRef<SharedTimerID>(0)
   const sharedTimerKeyRef = React.useRef('')
-  const isParentHighlighted = React.useContext(HighlightedContext)
+  const isParentHighlighted = useIsHighlighted()
 
   const _secondLoop = React.useCallback(() => {
     const n = Date.now()

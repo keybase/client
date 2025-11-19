@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {OrdinalContext} from '../ids-context'
+import {useOrdinal} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
 import {Keyboard} from 'react-native'
 
@@ -64,7 +64,7 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
 
 export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   const {style} = p
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const state = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     if (m?.type !== 'attachment') {
@@ -178,7 +178,7 @@ export const getEditStyle = (isEditing: boolean) => {
 }
 
 export const Title = () => {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const title = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? (m.decoratedText?.stringValue() ?? m.title) : ''
@@ -207,7 +207,7 @@ export const Title = () => {
 }
 
 const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const isCollapsed = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const message = m?.type === 'attachment' ? m : missingMessage
@@ -242,7 +242,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const useCollapseAction = () => {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const toggleMessageCollapse = C.useChatContext(s => s.dispatch.toggleMessageCollapse)
   const onCollapse = React.useCallback(() => {
     toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
@@ -270,7 +270,7 @@ const useCollapseIconMobile = (_isWhite: boolean) => null
 export const useCollapseIcon = C.isMobile ? useCollapseIconMobile : useCollapseIconDesktop
 
 export const useAttachmentState = () => {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const openFullscreen = React.useCallback(() => {
     Keyboard.dismiss()

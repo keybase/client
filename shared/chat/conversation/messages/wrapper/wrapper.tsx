@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {OrdinalContext, HighlightedContext} from '../ids-context'
+import {MessageContext, useOrdinal} from '../ids-context'
 import EmojiRow from '../emoji-row'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta'
@@ -325,7 +325,7 @@ enum EditCancelRetryType {
 }
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const {failureDescription, outboxID, exploding, messageDelete, messageRetry, setEditing} = C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)
@@ -562,15 +562,18 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     you,
   }
 
+  const messageContext = React.useMemo(
+    () => ({ordinal, isHighlighted: showCenteredHighlight, canFixOverdraw}),
+    [ordinal, showCenteredHighlight, canFixOverdraw]
+  )
+
   return (
-    <OrdinalContext.Provider value={ordinal}>
-      <HighlightedContext.Provider value={showCenteredHighlight}>
-        <Kb.Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
-          <TextAndSiblings {...tsprops} />
-          {popup}
-        </Kb.Styles.CanFixOverdrawContext.Provider>
-      </HighlightedContext.Provider>
-    </OrdinalContext.Provider>
+    <MessageContext.Provider value={messageContext}>
+      <Kb.Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
+        <TextAndSiblings {...tsprops} />
+        {popup}
+      </Kb.Styles.CanFixOverdrawContext.Provider>
+    </MessageContext.Provider>
   )
 })
 

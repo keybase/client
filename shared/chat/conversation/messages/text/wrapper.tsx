@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
-import {OrdinalContext} from '../ids-context'
+import {useOrdinal} from '../ids-context'
 import {SetRecycleTypeContext} from '../../recycle-type-context'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
@@ -34,7 +34,7 @@ const getStyle = (
 }
 const MessageMarkdown = React.memo(function MessageMarkdown(p: {style: Kb.Styles.StylesCrossPlatform}) {
   const {style} = p
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const text = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     if (m?.type !== 'text') return ''
@@ -82,16 +82,19 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   )
 
   const setRecycleType = React.useContext(SetRecycleTypeContext)
-  let subType = ''
-  if (reply) {
-    subType += ':reply'
-  }
-  if (hasReactions) {
-    subType += ':reactions'
-  }
-  if (subType.length) {
-    setRecycleType(ordinal, 'text' + subType)
-  }
+  
+  React.useEffect(() => {
+    let subType = ''
+    if (reply) {
+      subType += ':reply'
+    }
+    if (hasReactions) {
+      subType += ':reactions'
+    }
+    if (subType.length) {
+      setRecycleType(ordinal, 'text' + subType)
+    }
+  }, [ordinal, reply, hasReactions, setRecycleType])
 
   // Uncomment to test effective recycling
   // const DEBUGOldOrdinalRef = React.useRef(0)

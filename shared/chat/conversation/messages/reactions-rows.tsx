@@ -5,7 +5,7 @@ import EmojiRow from './emoji-row'
 import ReactButton from './react-button'
 import ReactionTooltip from './reaction-tooltip'
 import type * as T from '@/constants/types'
-import {OrdinalContext} from './ids-context'
+import {useOrdinal} from './ids-context'
 import {Keyboard} from 'react-native'
 
 // Get array of emoji names in the order of their earliest reaction
@@ -29,7 +29,7 @@ const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
 }
 
 const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const reactions = C.useChatContext(
     C.useDeep(s => {
       const message = s.messageMap.get(ordinal)
@@ -73,7 +73,7 @@ type IProps = {
   emoji: string
 }
 const RowItem = React.memo(function RowItem(p: IProps) {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
   const {emoji} = p
 
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)

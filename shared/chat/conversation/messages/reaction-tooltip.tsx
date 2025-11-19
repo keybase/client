@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import ReactButton from './react-button'
 import type * as T from '@/constants/types'
-import {OrdinalContext} from './ids-context'
+import {useOrdinal} from './ids-context'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 

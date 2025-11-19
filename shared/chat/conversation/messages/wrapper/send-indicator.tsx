@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {OrdinalContext} from '../ids-context'
+import {useOrdinal} from '../ids-context'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
@@ -47,7 +47,7 @@ const statusToIconDarkExploding = {
 const shownEncryptingSet = new Set()
 
 const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
-  const ordinal = React.useContext(OrdinalContext)
+  const ordinal = useOrdinal()
 
   const {isExploding, sent, failed, id} = C.useChatContext(
     C.useShallow(s => {
