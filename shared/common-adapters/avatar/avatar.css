@@ -4,6 +4,7 @@
   user-select: none;
   flex-shrink: 0;
   position: relative;
+  overflow: hidden;
 }
 
 .avatar-team-size-128 {
@@ -98,6 +99,13 @@
   position: absolute;
   right: 0;
   top: 0;
+}
+
+/* For img tag avatars - better caching and performance */
+img.avatar-user-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .avatar-border-team {

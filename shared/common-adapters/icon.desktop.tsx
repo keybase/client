@@ -228,6 +228,32 @@ export function urlsToImgSet(imgMap: {[key: number]: string}, targetSize: number
   return sets ? `-webkit-image-set(${sets})` : null
 }
 
+// Generate srcset attribute for <img> tags (no url() wrapper)
+export function urlsToSrcSet(imgMap: {[key: number]: string}, targetSize: number) {
+  const multsMap = Shared.getMultsMap(imgMap, targetSize)
+  const keys = Object.keys(multsMap) as unknown as Array<keyof typeof multsMap>
+  const srcset = keys
+    .map(mult => {
+      const m = multsMap[mult]
+      if (!m) return null
+      const url = imgMap[m]
+      if (!url) {
+        return null
+      }
+      return `${url} ${mult}x`
+    })
+    .filter(Boolean)
+    .join(', ')
+  return srcset || null
+}
+
+// Get base URL for img src attribute (1x version)
+export function urlsToBaseSrc(imgMap: {[key: number]: string}, targetSize: number) {
+  const multsMap = Shared.getMultsMap(imgMap, targetSize)
+  const baseSize = multsMap[1]
+  return baseSize ? imgMap[baseSize] : null
+}
+
 const styles = Styles.styleSheetCreate(() => ({
   // Needed because otherwise the containing box doesn't calculate the size of
   // the inner span (incl padding) properly

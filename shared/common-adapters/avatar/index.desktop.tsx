@@ -43,7 +43,24 @@ const Avatar = (p: Props) => {
           <Icon type={avatarSizeToPoopIconType(props.size) || 'icon-poop-32'} />
         </div>
       )}
-      {!!props.url && props.crop === undefined && (
+      {!!props.src && props.crop === undefined && (
+        <img
+          src={props.src}
+          srcSet={props.srcset || undefined}
+          loading="lazy"
+          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          style={{
+            opacity:
+              props.opacity === undefined || props.opacity === 1
+                ? props.blocked
+                  ? 1
+                  : undefined
+                : props.opacity,
+          }}
+          alt=""
+        />
+      )}
+      {!!props.url && !props.src && props.crop === undefined && (
         <div
           className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
           style={{
@@ -58,8 +75,7 @@ const Avatar = (p: Props) => {
         />
       )}
       {!!props.url && props.crop?.offsetLeft !== undefined && props.crop.offsetTop !== undefined && (
-        <img
-          loading="lazy"
+        <div
           className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
           style={{
             backgroundImage: props.url,
