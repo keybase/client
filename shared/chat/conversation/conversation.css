@@ -55,8 +55,7 @@
   flex-direction: column;
   position: relative;
   width: 100%;
-  /* Isolate paint/layout for better scroll performance */
-  contain: layout style paint;
+  contain: style;
   .WrapperMessage-buttons {
     display: none;
     flex-direction: row;
