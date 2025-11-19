@@ -5,6 +5,7 @@ const CustomEmoji = (props: Props) => {
   const {size, src} = props
   const dimensions = {
     height: size,
+    transform: [{translateY: 6}],
     width: size,
     ...props.style,
   }
