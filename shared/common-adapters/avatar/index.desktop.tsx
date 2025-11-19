@@ -31,11 +31,11 @@ const Avatar = (p: Props) => {
       style={Styles.collapseStyles([props.style, props.onClick && styles.clickable]) as React.CSSProperties}
     >
       {!props.skipBackground && (
-        <div className={Styles.classNames('avatar-background', avatarSizeClasName)} />
+        <div className="avatar-background" />
       )}
       {!!props.blocked && !!avatarSizeToPoopIconType(props.size) && (
         <div
-          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          className="avatar-user-image"
           style={styles.poopContainer}
         >
           {/* ts messes up here without the || 'icon-poop-32' even though it
@@ -48,7 +48,7 @@ const Avatar = (p: Props) => {
           src={props.src}
           srcSet={props.srcset || undefined}
           loading="lazy"
-          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          className="avatar-user-image"
           style={{
             opacity:
               props.opacity === undefined || props.opacity === 1
@@ -62,7 +62,7 @@ const Avatar = (p: Props) => {
       )}
       {!!props.url && !props.src && props.crop === undefined && (
         <div
-          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          className="avatar-user-image"
           style={{
             backgroundImage: props.url,
             opacity:
@@ -76,7 +76,7 @@ const Avatar = (p: Props) => {
       )}
       {!!props.url && props.crop?.offsetLeft !== undefined && props.crop.offsetTop !== undefined && (
         <div
-          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          className="avatar-user-image"
           style={{
             backgroundImage: props.url,
             backgroundPositionX: props.crop.offsetLeft * scaledAvatarRatio,

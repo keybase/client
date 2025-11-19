@@ -1,4 +1,5 @@
 /* Used by avatar on desktop to speed up perf */
+/* Container has overflow:hidden + border-radius to clip children without re-rasterizing images */
 
 .avatar {
   user-select: none;
@@ -7,6 +8,7 @@
   overflow: hidden;
 }
 
+/* Team avatar sizes with square-ish border-radius */
 .avatar-team-size-128 {
   border-radius: 16px;
   width: 128px;
@@ -43,6 +45,7 @@
   height: 96px;
 }
 
+/* User avatar sizes with circular border-radius */
 .avatar-user-size-128 {
   border-radius: 50%;
   width: 128px;
@@ -79,6 +82,7 @@
   height: 96px;
 }
 
+/* Background layer - no border-radius needed, parent clips via overflow */
 .avatar-background {
   background-color: var(--color-greyLight);
   bottom: 0;
@@ -91,6 +95,7 @@
   }
 }
 
+/* Image layer - no border-radius needed, parent clips via overflow */
 .avatar-user-image {
   flex-shrink: 0;
   background-size: cover;
@@ -102,10 +107,13 @@
 }
 
 /* For img tag avatars - better caching and performance */
+/* CRITICAL: NO border-radius on img - parent container clips via overflow */
+/* This allows Chrome to share the decoded bitmap across all instances */
 img.avatar-user-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 0 !important;
 }
 
 .avatar-border-team {
