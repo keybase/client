@@ -114,9 +114,6 @@ module.exports = {
   get DropdownButton() {
     return require('./dropdown').DropdownButton
   },
-  get Emoji() {
-    return require('./emoji').default
-  },
   get ErrorBoundary() {
     return require('./error-boundary').default
   },
@@ -203,6 +200,9 @@ module.exports = {
   },
   get NameWithIcon() {
     return require('./name-with-icon').default
+  },
+  get NativeEmoji() {
+    return require('./native-emoji').default
   },
   get NewInput() {
     return require('./new-input').default

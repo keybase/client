@@ -1,4 +1,4 @@
-import Emoji from '@/common-adapters/emoji'
+import NativeEmoji from '@/common-adapters/native-emoji'
 import emojidata from 'emoji-datasource-apple'
 import groupBy from 'lodash/groupBy'
 import type * as Styles from '@/styles'
@@ -110,16 +110,15 @@ export const renderEmoji = (opts: {
   emoji: RenderableEmoji
   size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
   showTooltip: boolean
-  customEmojiSize?: number
   virtualText?: boolean
   customStyle?: Styles.StylesCrossPlatform
   style?: Styles.StylesCrossPlatform
 }) => {
-  const {emoji, size, showTooltip, customEmojiSize, virtualText, customStyle, style} = opts
+  const {emoji, size, showTooltip, virtualText, customStyle, style} = opts
   if (emoji.renderUrl) {
     return (
       <CustomEmoji
-        size={customEmojiSize ?? size}
+        size={size}
         src={emoji.renderUrl}
         alias={showTooltip ? emoji.aliasForCustom : undefined}
         style={customStyle}
@@ -128,7 +127,9 @@ export const renderEmoji = (opts: {
   }
 
   if (emoji.renderStock) {
-    return <Emoji size={size} emojiName={emoji.renderStock} disableSelecting={virtualText} style={style} />
+    return (
+      <NativeEmoji size={size} emojiName={emoji.renderStock} disableSelecting={virtualText} style={style} />
+    )
   }
 
   return null

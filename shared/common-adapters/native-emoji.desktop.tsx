@@ -1,4 +1,4 @@
-import type {Props} from './emoji'
+import type {Props} from './native-emoji'
 import {type EmojiData, emojiNameMap, skinTones} from '@/util/emoji-shared'
 import {spriteSheetWidth, spriteSheetHeight} from './markdown/emoji-gen'
 import * as Styles from '@/styles'

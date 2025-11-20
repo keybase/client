@@ -4,7 +4,7 @@ import {isAndroid} from '@/constants/platform'
 import {emojiIndexByName} from './markdown/emoji-gen'
 import Text from './text'
 
-import type {Props} from './emoji'
+import type {Props} from './native-emoji'
 
 const familyOverride = isAndroid ? {fontFamily: ''} : {}
 
