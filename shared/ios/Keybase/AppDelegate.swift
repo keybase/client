@@ -51,8 +51,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   ) -> Bool {
     self.didLaunchSetupBefore()
     
-    setupGo()
-    
     NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] notification in
       NSLog("Memory warning received - deferring GC during React Native initialization")
       // see if this helps avoid this crash
@@ -84,6 +82,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       self.addDrop(rootView)
       self.didLaunchSetupAfter(application: application, rootView: rootView)
     }
+    
+    setupGo()
     
     return true
   }
