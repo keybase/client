@@ -1,9 +1,8 @@
 import * as T from '@/constants/types'
 import NativeEmoji from './native-emoji'
+import type * as ED from './data'
 import type * as Styles from '@/styles'
 import CustomEmoji from './custom-emoji'
-import {type EmojiData} from './data'
-export {type EmojiData} from './data'
 
 const Kb = {
   NativeEmoji,
@@ -26,7 +25,7 @@ export const RPCUserReacjiToRenderableEmoji = (
 })
 
 export const emojiDataToRenderableEmoji = (
-  emoji: EmojiData,
+  emoji: ED.EmojiData,
   skinToneModifier?: string,
   skinToneKey?: T.Chat.EmojiSkinTone
 ): RenderableEmoji => ({
@@ -45,7 +44,7 @@ export const emojiDataToRenderableEmoji = (
     ),
 })
 
-export const getEmojiStr = (emoji: EmojiData, skinToneModifier?: string) => {
+export const getEmojiStr = (emoji: ED.EmojiData, skinToneModifier?: string) => {
   if (emoji.userEmojiRenderUrl || emoji.userEmojiRenderStock) {
     return `:${emoji.short_name}:`
   }
@@ -53,7 +52,7 @@ export const getEmojiStr = (emoji: EmojiData, skinToneModifier?: string) => {
   return `:${emoji.short_name}:${skinToneModifier ?? ''}`
 }
 
-export function RPCToEmojiData(emoji: T.RPCChat.Emoji, noAnim: boolean, category?: string): EmojiData {
+export function RPCToEmojiData(emoji: T.RPCChat.Emoji, noAnim: boolean, category?: string): ED.EmojiData {
   return {
     category: category ?? '',
     name: undefined,
@@ -85,7 +84,7 @@ type CommonProps = {
 }
 type EmojiProps =
   | ({
-      emojiData: EmojiData
+      emojiData: ED.EmojiData
       skinToneModifier?: string
       skinToneKey?: T.Chat.EmojiSkinTone
     } & CommonProps)
@@ -100,7 +99,6 @@ type EmojiProps =
 const Emoji = (props: EmojiProps) => {
   const {size, showTooltip, virtualText, customStyle, style} = props
 
-  // Convert to RenderableEmoji based on input type
   let emoji: RenderableEmoji
   if ('emojiData' in props) {
     emoji = emojiDataToRenderableEmoji(props.emojiData, props.skinToneModifier, props.skinToneKey)
@@ -135,9 +133,6 @@ const Emoji = (props: EmojiProps) => {
   return null
 }
 
-export default Emoji
-import type * as ED from './data'
-
 export const emojiData = {
   get categories() {
     const ed = require('./data') as typeof ED
@@ -164,3 +159,6 @@ export const emojiData = {
     return ed.skinTones
   },
 }
+
+export default Emoji
+export {type EmojiData} from './data'
