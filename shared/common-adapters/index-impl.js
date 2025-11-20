@@ -114,6 +114,9 @@ module.exports = {
   get DropdownButton() {
     return require('./dropdown').DropdownButton
   },
+  get Emoji() {
+    return require('./emoji').default
+  },
   get ErrorBoundary() {
     return require('./error-boundary').default
   },
