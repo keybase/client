@@ -2,8 +2,8 @@ import * as T from '@/constants/types'
 import NativeEmoji from './native-emoji'
 import type * as Styles from '@/styles'
 import CustomEmoji from './custom-emoji'
-import {type EmojiData} from '@/util/emoji-shared'
-export {type EmojiData} from '@/util/emoji-shared'
+import {type EmojiData} from './emoji-data'
+export {type EmojiData} from './emoji-data'
 
 const Kb = {
   NativeEmoji,
@@ -144,25 +144,31 @@ const Emoji = (props: EmojiProps) => {
 }
 
 export default Emoji
+import type * as ED from './emoji-data'
 
 export const emojiData = {
-  get emojiSearch() {
-    return require('@/common-adapters/emoji-data').emojiData.emojiSearch
-  },
   get categories() {
-    return require('@/common-adapters/emoji-data').emojiData.categories
+    const ed = require('./emoji-data') as typeof ED
+    return ed.categories
   },
   get categoryIcons() {
-    return require('@/common-adapters/emoji-data').emojiData.categoryIcons
-  },
-  get skinTones() {
-    return require('@/common-adapters/emoji-data').emojiData.skinTones
-  },
-  get emojiNameMap() {
-    return require('@/common-adapters/emoji-data').emojiData.emojiNameMap
+    const ed = require('./emoji-data') as typeof ED
+    return ed.categoryIcons
   },
   get defaultHoverEmoji() {
-    return require('@/common-adapters/emoji-data').emojiData.defaultHoverEmoji
+    const ed = require('./emoji-data') as typeof ED
+    return ed.defaultHoverEmoji
+  },
+  get emojiNameMap() {
+    const ed = require('./emoji-data') as typeof ED
+    return ed.emojiNameMap
+  },
+  get emojiSearch() {
+    const ed = require('./emoji-data') as typeof ED
+    return ed.emojiSearch
+  },
+  get skinTones() {
+    const ed = require('./emoji-data') as typeof ED
+    return ed.skinTones
   },
 }
-

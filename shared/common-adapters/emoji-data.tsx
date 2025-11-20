@@ -1,7 +1,15 @@
-import emojidata from 'emoji-datasource-apple'
+console.log('aaaaa EMOJIDADDA LOAD >>>>>>>>>>>>>>>>>>>')
+import emojidata, {type EmojiData} from 'emoji-datasource-apple'
 import groupBy from 'lodash/groupBy'
-import {type EmojiData, emojiNameMap, skinTones} from '@/util/emoji-shared'
 import type * as Kb from '@/common-adapters'
+
+export const skinTones = ['1F3FA', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF'] as const
+export const emojiNameMap = Object.values(emojidata).reduce<{[K in string]: EmojiData}>((res, emoji) => {
+  res[emoji.short_name] = emoji
+  return res
+}, {})
+
+export type {EmojiData} from 'emoji-datasource-apple'
 
 const categorized = groupBy(emojidata, 'category')
 categorized['Smileys & People'] = [
@@ -34,7 +42,7 @@ if (__DEV__ && Object.keys(categorized).sort().join(',') !== [...categoryOrder].
   console.log('[EMOJI] categories incorrect!', categorized)
 }
 
-const categoryIcons: Record<string, Kb.IconType> = {
+export const categoryIcons: Record<string, Kb.IconType> = {
   Activities: 'iconfont-basketball',
   'Animals & Nature': 'iconfont-pawprint',
   Flags: 'iconfont-flag',
@@ -45,12 +53,12 @@ const categoryIcons: Record<string, Kb.IconType> = {
   'Travel & Places': 'iconfont-airplane',
 }
 
-const categories = categoryOrder.map(category => ({
+export const categories = categoryOrder.map(category => ({
   category,
   emojis: sorted[category] as unknown as Array<EmojiData>,
 }))
 
-const _emojiSearch = (filter: string, maxResults: number) => {
+export const emojiSearch = (filter: string, maxResults: number) => {
   const parts = filter.toLowerCase().split(/[\s|,|\-|_]+/)
   const vals: Array<EmojiData> = Object.values(emojidata)
   type ResType = Array<{emoji: EmojiData; score: number}>
@@ -85,26 +93,4 @@ const _emojiSearch = (filter: string, maxResults: number) => {
   return res.map(r => r.emoji)
 }
 
-const defaultHoverEmoji = (emojiNameMap['potato'] || emojidata[0]) as EmojiData
-
-export const emojiData = {
-  get emojiSearch() {
-    return _emojiSearch
-  },
-  get categories() {
-    return categories
-  },
-  get categoryIcons() {
-    return categoryIcons
-  },
-  get skinTones() {
-    return skinTones
-  },
-  get emojiNameMap() {
-    return emojiNameMap
-  },
-  get defaultHoverEmoji() {
-    return defaultHoverEmoji
-  },
-}
-
+export const defaultHoverEmoji = (emojiNameMap['potato'] || emojidata[0]) as EmojiData

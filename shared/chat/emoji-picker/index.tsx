@@ -12,18 +12,6 @@ import {
   emojiData,
 } from '@/common-adapters/emoji'
 
-// defer loading this until we need to, very expensive
-// const _getData = () => {
-//   const utilEmoji = require('@/util/emoji') as {
-//     categories: typeof Data.categories
-//     emojiSearch: typeof Data.emojiSearch
-//     emojiNameMap: typeof Data.emojiNameMap
-//     skinTones: typeof Data.skinTones
-//   }
-//   const {categories, emojiSearch, emojiNameMap, skinTones: emojiSkinTones} = utilEmoji
-//   return {categories, emojiNameMap, emojiSearch, emojiSkinTones}
-// }
-
 const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row> =>
   chunk(emojis, emojisPerLine).map((c, idx) => ({
     emojis: c,
@@ -147,7 +135,10 @@ const emptyCustomEmojiIndex = {filter: () => [], get: () => undefined}
 const getResultFilter = (emojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
   const customEmojiIndex = emojiGroups ? getCustomEmojiIndex(emojiGroups) : emptyCustomEmojiIndex
   return (filter: string): Array<EmojiData> => {
-    return [...customEmojiIndex.filter(filter), ...removeObsolete(emojiData.emojiSearch(filter, maxEmojiSearchResults))]
+    return [
+      ...customEmojiIndex.filter(filter),
+      ...removeObsolete(emojiData.emojiSearch(filter, maxEmojiSearchResults)),
+    ]
   }
 }
 
