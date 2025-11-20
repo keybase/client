@@ -5,10 +5,9 @@ import * as React from 'react'
 import {
   emojiSearch,
   emojiDataToRenderableEmoji,
-  renderEmoji,
   type EmojiData,
   RPCToEmojiData,
-} from '@/util/emoji'
+} from '@/common-adapters/emoji'
 
 export const transformer = (
   emoji: EmojiData,
@@ -33,7 +32,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
       ])}
       gap="small"
     >
-      {renderEmoji({emoji: emojiDataToRenderableEmoji(item), showTooltip: false, size: 24})}
+      <Kb.Emoji emoji={emojiDataToRenderableEmoji(item)} showTooltip={false} size={24} />
       <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
     </Kb.Box2>
   )

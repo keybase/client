@@ -2,14 +2,17 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Data from '@/util/emoji'
 import type {LayoutEvent} from '@/common-adapters/box'
 import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
-import {emojiDataToRenderableEmoji, renderEmoji, type EmojiData, type RenderableEmoji} from '@/util/emoji'
+import {emojiDataToRenderableEmoji, type EmojiData, type RenderableEmoji} from '@/common-adapters/emoji'
 import {usePickerState, type PickKey} from './use-picker'
 import {Keyboard} from 'react-native'
+import emojidata from 'emoji-datasource-apple'
+import {emojiNameMap} from '@/util/emoji-shared'
+
+const defaultHoverEmoji = (emojiNameMap['potato'] || emojidata[0]) as EmojiData
 
 type Props = {
   disableCustomEmoji?: boolean
@@ -180,7 +183,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {onDidPick} = props
   const {filter, onChoose, setFilter: _setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
-  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
+  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const canManageEmoji = useCanManageEmoji()
   const navigateAppend = C.Chat.useChatNavigateAppend()
@@ -240,15 +243,15 @@ export const EmojiPickerDesktop = (props: Props) => {
           style={styles.footerContainer}
           gap="small"
         >
-          {renderEmoji({
-            emoji: emojiDataToRenderableEmoji(
+          <Kb.Emoji
+            emoji={emojiDataToRenderableEmoji(
               hoveredEmoji,
               getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone),
               currentSkinTone
-            ),
-            showTooltip: false,
-            size: 36,
-          })}
+            )}
+            showTooltip={false}
+            size={36}
+          />
           {hoveredEmoji.teamname ? (
             <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
               <Kb.Text type="BodyBig" lineClamp={1}>

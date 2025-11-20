@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Kb from './../../common-adapters'
-import * as T from './../../constants/types'
-import {skinTones} from './../../util/emoji'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import {skinTones} from '@/common-adapters/emoji'
 
 const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
   return (
