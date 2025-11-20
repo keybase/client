@@ -2,10 +2,8 @@ import * as T from '@/constants/types'
 import NativeEmoji from './native-emoji'
 import type * as Styles from '@/styles'
 import CustomEmoji from './custom-emoji'
-import emojidata from 'emoji-datasource-apple'
-import groupBy from 'lodash/groupBy'
 import {type EmojiData} from '@/util/emoji-shared'
-export {type EmojiData, emojiNameMap, skinTones} from '@/util/emoji-shared'
+export {type EmojiData} from '@/util/emoji-shared'
 
 const Kb = {
   NativeEmoji,
@@ -147,84 +145,24 @@ const Emoji = (props: EmojiProps) => {
 
 export default Emoji
 
-const categorized = groupBy(emojidata, 'category')
-// merge these groups
-categorized['Smileys & People'] = [
-  ...(categorized['Smileys & Emotion'] ?? []),
-  ...(categorized['People & Body'] ?? []),
-]
-delete categorized['Smileys & Emotion']
-delete categorized['People & Body']
-delete categorized['Component']
-
-const sorted: typeof categorized = {}
-for (const cat in categorized) {
-  if (cat && cat !== 'undefined') {
-    sorted[cat] = categorized[cat]!.sort((a, b) => a.sort_order - b.sort_order)
-  }
-}
-export const categoryOrder = [
-  'Smileys & People',
-  'Animals & Nature',
-  'Food & Drink',
-  'Activities',
-  'Travel & Places',
-  'Objects',
-  'Symbols',
-  'Flags',
-]
-
-if (__DEV__ && Object.keys(categorized).sort().join(',') !== [...categoryOrder].sort().join(',')) {
-  console.log('[EMOJI] categories incorrect!', categorized)
+export const emojiData = {
+  get emojiSearch() {
+    return require('@/common-adapters/emoji-data').emojiData.emojiSearch
+  },
+  get categories() {
+    return require('@/common-adapters/emoji-data').emojiData.categories
+  },
+  get categoryIcons() {
+    return require('@/common-adapters/emoji-data').emojiData.categoryIcons
+  },
+  get skinTones() {
+    return require('@/common-adapters/emoji-data').emojiData.skinTones
+  },
+  get emojiNameMap() {
+    return require('@/common-adapters/emoji-data').emojiData.emojiNameMap
+  },
+  get defaultHoverEmoji() {
+    return require('@/common-adapters/emoji-data').emojiData.defaultHoverEmoji
+  },
 }
 
-export const categoryIcons = {
-  Activities: 'iconfont-basketball',
-  'Animals & Nature': 'iconfont-pawprint',
-  Flags: 'iconfont-flag',
-  'Food & Drink': 'iconfont-apple',
-  Objects: 'iconfont-music',
-  'Smileys & People': 'iconfont-emoji',
-  Symbols: 'iconfont-checkbox',
-  'Travel & Places': 'iconfont-airplane',
-}
-
-export const categories = categoryOrder.map(category => ({
-  category,
-  emojis: sorted[category] as unknown as Array<EmojiData>,
-}))
-
-export const emojiSearch = (filter: string, maxResults: number) => {
-  const parts = filter.toLowerCase().split(/[\s|,|\-|_]+/)
-  const vals: Array<EmojiData> = Object.values(emojidata)
-  type ResType = Array<{emoji: EmojiData; score: number}>
-  const res = vals.reduce<ResType>((arr, emoji: EmojiData) => {
-    let score = 0
-
-    const looking = [...new Set([emoji.name, emoji.category, emoji.short_name, ...emoji.short_names])].map(
-      l => (l ? l.toLowerCase() : '')
-    )
-
-    looking.forEach(look => {
-      parts.forEach(part => {
-        if (!look || !part) return
-        const idx = look.indexOf(part)
-        if (idx === -1) return
-        if (idx === 0) {
-          score += 3
-        } else {
-          score += 1
-        }
-      })
-    })
-
-    if (score) {
-      arr.push({emoji, score})
-    }
-    return arr
-  }, [])
-
-  res.sort((a, b) => b.score - a.score)
-  res.length = Math.min(res.length, maxResults)
-  return res.map(r => r.emoji)
-}

@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {emojiSearch, type EmojiData, RPCToEmojiData} from '@/common-adapters/emoji'
+import {type EmojiData, RPCToEmojiData, emojiData} from '@/common-adapters/emoji'
 
 export const transformer = (
   emoji: EmojiData,
@@ -55,17 +55,17 @@ const useDataSource = (filter: string) => {
   }
 
   // prefill data with stock emoji
-  let emojiData: Array<EmojiData> = emojiSearch(filter, 50)
+  let results: Array<EmojiData> = emojiData.emojiSearch(filter, 50)
 
   if (userEmojis) {
     const userEmoji = userEmojis
       .filter(emoji => emoji.alias.toLowerCase().includes(filter))
       .map(emoji => RPCToEmojiData(emoji, false))
-    emojiData = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(emojiData)
+    results = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(results)
   }
 
   return {
-    items: emojiData,
+    items: results,
     loading: userEmojisLoading,
   }
 }

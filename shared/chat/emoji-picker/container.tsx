@@ -6,13 +6,9 @@ import type {LayoutEvent} from '@/common-adapters/box'
 import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
-import {type EmojiData, type RenderableEmoji} from '@/common-adapters/emoji'
+import {type EmojiData, type RenderableEmoji, emojiData} from '@/common-adapters/emoji'
 import {usePickerState, type PickKey} from './use-picker'
 import {Keyboard} from 'react-native'
-import emojidata from 'emoji-datasource-apple'
-import {emojiNameMap} from '@/util/emoji-shared'
-
-const defaultHoverEmoji = (emojiNameMap['potato'] || emojidata[0]) as EmojiData
 
 type Props = {
   disableCustomEmoji?: boolean
@@ -183,7 +179,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {onDidPick} = props
   const {filter, onChoose, setFilter: _setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
-  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(defaultHoverEmoji)
+  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(emojiData.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const canManageEmoji = useCanManageEmoji()
   const navigateAppend = C.Chat.useChatNavigateAppend()
