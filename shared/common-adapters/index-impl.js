@@ -205,7 +205,7 @@ module.exports = {
     return require('./name-with-icon').default
   },
   get NativeEmoji() {
-    return require('./native-emoji').default
+    return require('./emoji/native-emoji').default
   },
   get NewInput() {
     return require('./new-input').default

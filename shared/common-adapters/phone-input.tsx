@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import NativeEmoji from './native-emoji'
+import NativeEmoji from './emoji/native-emoji'
 import Text from './text'
 import {Box2, Box2Measure} from './box'
 import FloatingMenu from './floating-menu'
