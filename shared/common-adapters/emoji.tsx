@@ -76,34 +76,26 @@ export function RPCToEmojiData(emoji: T.RPCChat.Emoji, noAnim: boolean, category
   }
 }
 
+type CommonProps = {
+  size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
+  showTooltip: boolean
+  virtualText?: boolean
+  customStyle?: Styles.StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
+}
 type EmojiProps =
-  | {
+  | ({
       emojiData: EmojiData
       skinToneModifier?: string
       skinToneKey?: T.Chat.EmojiSkinTone
-      size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
-      showTooltip: boolean
-      virtualText?: boolean
-      customStyle?: Styles.StylesCrossPlatform
-      style?: Styles.StylesCrossPlatform
-    }
-  | {
+    } & CommonProps)
+  | ({
       userReacji: T.RPCGen.UserReacji
       noAnim: boolean
-      size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
-      showTooltip: boolean
-      virtualText?: boolean
-      customStyle?: Styles.StylesCrossPlatform
-      style?: Styles.StylesCrossPlatform
-    }
-  | {
+    } & CommonProps)
+  | ({
       emoji: RenderableEmoji
-      size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
-      showTooltip: boolean
-      virtualText?: boolean
-      customStyle?: Styles.StylesCrossPlatform
-      style?: Styles.StylesCrossPlatform
-    }
+    } & CommonProps)
 
 const Emoji = (props: EmojiProps) => {
   const {size, showTooltip, virtualText, customStyle, style} = props
