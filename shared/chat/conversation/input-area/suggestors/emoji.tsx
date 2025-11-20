@@ -2,12 +2,7 @@ import * as C from '@/constants'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {
-  emojiSearch,
-  emojiDataToRenderableEmoji,
-  type EmojiData,
-  RPCToEmojiData,
-} from '@/common-adapters/emoji'
+import {emojiSearch, type EmojiData, RPCToEmojiData} from '@/common-adapters/emoji'
 
 export const transformer = (
   emoji: EmojiData,
@@ -32,7 +27,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
       ])}
       gap="small"
     >
-      <Kb.Emoji emoji={emojiDataToRenderableEmoji(item)} showTooltip={false} size={24} />
+      <Kb.Emoji emojiData={item} showTooltip={false} size={24} />
       <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
     </Kb.Box2>
   )

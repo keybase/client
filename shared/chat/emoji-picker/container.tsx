@@ -6,7 +6,7 @@ import type {LayoutEvent} from '@/common-adapters/box'
 import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
-import {emojiDataToRenderableEmoji, type EmojiData, type RenderableEmoji} from '@/common-adapters/emoji'
+import {type EmojiData, type RenderableEmoji} from '@/common-adapters/emoji'
 import {usePickerState, type PickKey} from './use-picker'
 import {Keyboard} from 'react-native'
 import emojidata from 'emoji-datasource-apple'
@@ -244,11 +244,9 @@ export const EmojiPickerDesktop = (props: Props) => {
           gap="small"
         >
           <Kb.Emoji
-            emoji={emojiDataToRenderableEmoji(
-              hoveredEmoji,
-              getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone),
-              currentSkinTone
-            )}
+            emojiData={hoveredEmoji}
+            skinToneModifier={getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)}
+            skinToneKey={currentSkinTone}
             showTooltip={false}
             size={36}
           />

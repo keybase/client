@@ -18,7 +18,6 @@ export type RenderableEmoji = {
   renderUrl?: string
 }
 
-// TODO remove exporting this
 export const RPCUserReacjiToRenderableEmoji = (
   userReacji: T.RPCGen.UserReacji,
   noAnim: boolean
@@ -28,7 +27,6 @@ export const RPCUserReacjiToRenderableEmoji = (
   renderUrl: noAnim ? userReacji.customAddrNoAnim || undefined : userReacji.customAddr || undefined,
 })
 
-// TODO remove exporting this
 export const emojiDataToRenderableEmoji = (
   emoji: EmojiData,
   skinToneModifier?: string,
@@ -80,15 +78,48 @@ export function RPCToEmojiData(emoji: T.RPCChat.Emoji, noAnim: boolean, category
   }
 }
 
-const Emoji = (props: {
-  emoji: RenderableEmoji
-  size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
-  showTooltip: boolean
-  virtualText?: boolean
-  customStyle?: Styles.StylesCrossPlatform
-  style?: Styles.StylesCrossPlatform
-}) => {
-  const {emoji, size, showTooltip, virtualText, customStyle, style} = props
+type EmojiProps =
+  | {
+      emojiData: EmojiData
+      skinToneModifier?: string
+      skinToneKey?: T.Chat.EmojiSkinTone
+      size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
+      showTooltip: boolean
+      virtualText?: boolean
+      customStyle?: Styles.StylesCrossPlatform
+      style?: Styles.StylesCrossPlatform
+    }
+  | {
+      userReacji: T.RPCGen.UserReacji
+      noAnim: boolean
+      size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
+      showTooltip: boolean
+      virtualText?: boolean
+      customStyle?: Styles.StylesCrossPlatform
+      style?: Styles.StylesCrossPlatform
+    }
+  | {
+      emoji: RenderableEmoji
+      size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
+      showTooltip: boolean
+      virtualText?: boolean
+      customStyle?: Styles.StylesCrossPlatform
+      style?: Styles.StylesCrossPlatform
+    }
+
+const Emoji = (props: EmojiProps) => {
+  const {size, showTooltip, virtualText, customStyle, style} = props
+
+  // Convert to RenderableEmoji based on input type
+  let emoji: RenderableEmoji
+  if ('emojiData' in props) {
+    emoji = emojiDataToRenderableEmoji(props.emojiData, props.skinToneModifier, props.skinToneKey)
+  } else if ('userReacji' in props) {
+    emoji = RPCUserReacjiToRenderableEmoji(props.userReacji, props.noAnim)
+  } else {
+    emoji = props.emoji
+  }
+
   if (emoji.renderUrl) {
     return (
       <CustomEmoji

@@ -4,7 +4,6 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import chunk from 'lodash/chunk'
 import {
-  emojiDataToRenderableEmoji,
   getEmojiStr,
   emojiSearch,
   skinTones,
@@ -235,16 +234,38 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
   const [activeSectionKey, setActiveSectionKey] = React.useState('')
   const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
-    const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
     return (
       <Kb.ClickableBox2
         className="emoji-picker-emoji-box"
-        onClick={() => props.onChoose(getEmojiStr(emoji, skinToneModifier), renderable)}
+        onClick={() => {
+          const renderable = {
+            aliasForCustom: emoji.short_name,
+            renderStock: emoji.userEmojiRenderStock ?? `:${emoji.short_name}:${skinToneModifier ?? ''}`,
+            renderUrl: emoji.userEmojiRenderUrl,
+            unicodeStock:
+              emoji.unified &&
+              String.fromCodePoint(
+                ...(skinToneModifier && skinTone
+                  ? (emoji.skin_variations?.[skinTone]?.unified ?? '')
+                  : emoji.unified
+                )
+                  .split('-')
+                  .map((str: string) => Number.parseInt(str, 16))
+              ),
+          }
+          props.onChoose(getEmojiStr(emoji, skinToneModifier), renderable)
+        }}
         onMouseOver={props.onHover && (() => props.onHover?.(emoji))}
         style={styles.emoji}
         key={emoji.short_name}
       >
-        <Kb.Emoji emoji={renderable} showTooltip={false} size={singleEmojiWidth} />
+        <Kb.Emoji
+          emojiData={emoji}
+          skinToneModifier={skinToneModifier}
+          skinToneKey={skinTone}
+          showTooltip={false}
+          size={singleEmojiWidth}
+        />
       </Kb.ClickableBox2>
     )
   }

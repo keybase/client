@@ -10,7 +10,7 @@ import PaymentStatus from '../../chat/payments/status'
 import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
 import WithTooltip from '../with-tooltip'
 import type {StyleOverride} from '.'
-import {emojiDataToRenderableEmoji, RPCToEmojiData, default as Emoji} from '@/common-adapters/emoji'
+import {RPCToEmojiData, default as Emoji} from '@/common-adapters/emoji'
 import {base64ToUint8Array, uint8ArrayToString} from 'uint8array-extras'
 
 const prefix = 'keybase://'
@@ -229,7 +229,7 @@ const ServiceDecoration = (p: Props) => {
     return (
       <Emoji
         customStyle={styleOverride?.customEmoji}
-        emoji={emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji, disableEmojiAnimation))}
+        emojiData={RPCToEmojiData(parsed.emoji, disableEmojiAnimation)}
         showTooltip={!parsed.emoji.isReacji}
         size={
           parsed.emoji.isBig && !disableBigEmojis ? 32 : parsed.emoji.isReacji && !Styles.isMobile ? 18 : 16

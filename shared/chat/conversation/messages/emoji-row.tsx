@@ -4,7 +4,6 @@ import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
-import {RPCUserReacjiToRenderableEmoji} from '@/common-adapters/emoji'
 
 type OwnProps = {
   className?: string
@@ -122,7 +121,8 @@ const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) =>
       style={styles.emojiBox}
     >
       <Kb.Emoji
-        emoji={RPCUserReacjiToRenderableEmoji(props.emoji, !hovering)}
+        userReacji={props.emoji}
+        noAnim={!hovering}
         showTooltip={false}
         size={hovering ? 22 : 18}
         style={styles.hoverEmoji}

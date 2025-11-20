@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as dateFns from 'date-fns'
-import {emojiDataToRenderableEmoji, RPCToEmojiData} from '@/common-adapters/emoji'
+import {RPCToEmojiData} from '@/common-adapters/emoji'
 import EmojiMenu from './emoji-menu'
 import {useEmojiState} from '@/teams/emojis/use-emoji'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -84,7 +84,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
             gap="small"
           >
             <Kb.Emoji
-              emoji={emojiDataToRenderableEmoji(RPCToEmojiData(emoji, false))}
+              emojiData={RPCToEmojiData(emoji, false)}
               showTooltip={false}
               size={Kb.Styles.isMobile ? 32 : 26}
             />
