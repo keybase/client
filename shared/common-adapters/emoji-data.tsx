@@ -1,4 +1,4 @@
-console.log('aaaaa EMOJIDADDA LOAD >>>>>>>>>>>>>>>>>>>')
+// this file is loaded by emoji.tsx in a deferred way since its expensive to parse
 import emojidata, {type EmojiData} from 'emoji-datasource-apple'
 import groupBy from 'lodash/groupBy'
 import type * as Kb from '@/common-adapters'
