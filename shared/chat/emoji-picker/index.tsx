@@ -13,6 +13,7 @@ import {
   type RenderableEmoji,
   RPCToEmojiData,
   categories,
+  emojiDataToRenderableEmoji,
 } from '@/common-adapters/emoji'
 
 // defer loading this until we need to, very expensive
@@ -238,22 +239,10 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
       <Kb.ClickableBox2
         className="emoji-picker-emoji-box"
         onClick={() => {
-          const renderable = {
-            aliasForCustom: emoji.short_name,
-            renderStock: emoji.userEmojiRenderStock ?? `:${emoji.short_name}:${skinToneModifier ?? ''}`,
-            renderUrl: emoji.userEmojiRenderUrl,
-            unicodeStock:
-              emoji.unified &&
-              String.fromCodePoint(
-                ...(skinToneModifier && skinTone
-                  ? (emoji.skin_variations?.[skinTone]?.unified ?? '')
-                  : emoji.unified
-                )
-                  .split('-')
-                  .map((str: string) => Number.parseInt(str, 16))
-              ),
-          }
-          props.onChoose(getEmojiStr(emoji, skinToneModifier), renderable)
+          props.onChoose(
+            getEmojiStr(emoji, skinToneModifier),
+            emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
+          )
         }}
         onMouseOver={props.onHover && (() => props.onHover?.(emoji))}
         style={styles.emoji}
