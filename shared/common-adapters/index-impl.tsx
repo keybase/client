@@ -353,26 +353,26 @@ export = {
   AvatarLine: typeof import('./avatar/avatar-line').default
   BackButton: typeof import('./back-button').default
   Badge: typeof import('./badge').default
-  Banner: typeof import('./banner')['Banner']
-  BannerParagraph: typeof import('./banner')['BannerParagraph']
-  BottomSheetBackdrop: typeof import('./bottom-sheet')['BottomSheetBackdrop']
-  BottomSheetModal: typeof import('./bottom-sheet')['BottomSheetModal']
-  BottomSheetScrollView: typeof import('./bottom-sheet')['BottomSheetScrollView']
+  Banner: (typeof import('./banner'))['Banner']
+  BannerParagraph: (typeof import('./banner'))['BannerParagraph']
+  BottomSheetBackdrop: (typeof import('./bottom-sheet'))['BottomSheetBackdrop']
+  BottomSheetModal: (typeof import('./bottom-sheet'))['BottomSheetModal']
+  BottomSheetScrollView: (typeof import('./bottom-sheet'))['BottomSheetScrollView']
   Box: typeof import('./box').default
-  Box2: typeof import('./box')['Box2']
-  Box2Animated: typeof import('./box')['Box2Animated']
-  Box2Div: typeof import('./box')['Box2Div']
-  Box2Measure: typeof import('./box')['Box2Measure']
-  Box2View: typeof import('./box')['Box2View']
+  Box2: (typeof import('./box'))['Box2']
+  Box2Animated: (typeof import('./box'))['Box2Animated']
+  Box2Div: (typeof import('./box'))['Box2Div']
+  Box2Measure: (typeof import('./box'))['Box2Measure']
+  Box2View: (typeof import('./box'))['Box2View']
   BoxGrow: typeof import('./box-grow').default
-  BoxGrow2: typeof import('./box-grow')['BoxGrow2']
+  BoxGrow2: (typeof import('./box-grow'))['BoxGrow2']
   Button: typeof import('./button').default
   ButtonBar: typeof import('./button-bar').default
   CheckCircle: typeof import('./check-circle').default
   Checkbox: typeof import('./checkbox').default
   ChoiceList: typeof import('./choice-list').default
   ClickableBox: typeof import('./clickable-box').default
-  ClickableBox2: typeof import('./clickable-box')['ClickableBox2']
+  ClickableBox2: (typeof import('./clickable-box'))['ClickableBox2']
   ConfirmModal: typeof import('./confirm-modal').default
   ConnectedNameWithIcon: typeof import('./name-with-icon').default
   ConnectedUsernames: typeof import('./usernames').default
@@ -382,24 +382,24 @@ export = {
   Divider: typeof import('./divider').default
   DragAndDrop: typeof import('./drag-and-drop').default
   Dropdown: typeof import('./dropdown').default
-  DropdownButton: typeof import('./dropdown')['DropdownButton']
+  DropdownButton: (typeof import('./dropdown'))['DropdownButton']
   Emoji: typeof import('./emoji').default
   ErrorBoundary: typeof import('./error-boundary').default
   FloatingBox: typeof import('./floating-box').default
   FloatingMenu: typeof import('./floating-menu').default
-  FloatingModalContext: typeof import('./floating-menu/context')['FloatingModalContext']
+  FloatingModalContext: (typeof import('./floating-menu/context'))['FloatingModalContext']
   FloatingPicker: typeof import('./floating-picker').default
-  HeaderHocHeader: typeof import('./header-hoc')['HeaderHocHeader']
-  HeaderHocWrapper: typeof import('./header-hoc')['HeaderHocWrapper']
-  HeaderLeftBlank: typeof import('./header-hoc')['HeaderLeftBlank']
-  HeaderLeftCancel: typeof import('./header-hoc')['HeaderLeftCancel']
-  HotKey: typeof import('./hot-key')['HotKey']
+  HeaderHocHeader: (typeof import('./header-hoc'))['HeaderHocHeader']
+  HeaderHocWrapper: (typeof import('./header-hoc'))['HeaderHocWrapper']
+  HeaderLeftBlank: (typeof import('./header-hoc'))['HeaderLeftBlank']
+  HeaderLeftCancel: (typeof import('./header-hoc'))['HeaderLeftCancel']
+  HotKey: (typeof import('./hot-key'))['HotKey']
   Icon: typeof import('./icon').default
   Image2: typeof import('./image2').default
   InfoNote: typeof import('./info-note').default
-  InlineDropdown: typeof import('./dropdown')['InlineDropdown']
-  Input2: typeof import('./input2')['Input2']
-  KeyboardAvoidingView2: typeof import('./keyboard-avoiding-view')['KeyboardAvoidingView2']
+  InlineDropdown: (typeof import('./dropdown'))['InlineDropdown']
+  Input2: (typeof import('./input2'))['Input2']
+  KeyboardAvoidingView2: (typeof import('./keyboard-avoiding-view'))['KeyboardAvoidingView2']
   LabeledInput: typeof import('./labeled-input').default
   List: typeof import('./list').default
   List2: typeof import('./list2').default
@@ -411,8 +411,9 @@ export = {
   MobilePopup: typeof import('./mobile-popup').default
   Modal: typeof import('./modal').default
   Modal2: typeof import('./modal2').default
-  ModalHeader: typeof import('./modal')['Header']
+  ModalHeader: (typeof import('./modal'))['Header']
   NameWithIcon: typeof import('./name-with-icon').default
+  NativeEmoji: typeof import('./emoji/native-emoji').default
   NewInput: typeof import('./new-input').default
   Overlay: typeof import('./overlay').default
   PhoneInput: typeof import('./phone-input').default
@@ -421,7 +422,7 @@ export = {
   PlatformIcon: typeof import('./platform-icon').default
   PopupDialog: typeof import('./popup-dialog').default
   PopupHeaderText: typeof import('./popup-header-text').default
-  PopupWrapper: typeof import('./header-or-popup')['PopupWrapper']
+  PopupWrapper: (typeof import('./header-or-popup'))['PopupWrapper']
   ProfileCard: typeof import('./profile-card').default
   ProgressBar: typeof import('./progress-bar').default
   ProgressIndicator: typeof import('./progress-indicator').default
@@ -431,7 +432,7 @@ export = {
   RichButton: typeof import('./rich-button').default
   RoundedBox: typeof import('./rounded-box').default
   SafeAreaView: typeof import('./safe-area-view').default
-  SafeAreaViewTop: typeof import('./safe-area-view')['SafeAreaViewTop']
+  SafeAreaViewTop: (typeof import('./safe-area-view'))['SafeAreaViewTop']
   SaveIndicator: typeof import('./save-indicator').default
   ScrollView: typeof import('./scroll-view').default
   SearchFilter: typeof import('./search-filter').default
@@ -443,7 +444,7 @@ export = {
   Tabs: typeof import('./tabs').default
   TeamWithPopup: typeof import('./team-with-popup').default
   Text: typeof import('./text').default
-  Text2: typeof import('./text2')['Text2']
+  Text2: (typeof import('./text2'))['Text2']
   TimelineMarker: typeof import('./timeline-marker').default
   Toast: typeof import('./toast').default
   Video: typeof import('./video').default
@@ -452,15 +453,14 @@ export = {
   WebView: typeof import('./web-view').default
   WithTooltip: typeof import('./with-tooltip').default
   ZoomableImage: typeof import('./zoomable-image').default
-  isValidIconType: typeof import('./icon.shared')['isValidIconType']
-  largeListItem2Height: typeof import('./list-item2')['largeHeight']
-  smallListItem2Height: typeof import('./list-item2')['smallHeight']
-  urlsToImgSet: typeof import('./icon')['urlsToImgSet']
-  useHotKey: typeof import('./hot-key')['useHotKey']
-  useInterval: typeof import('./use-timers')['useInterval']
-  useModalHeaderTitleAndCancel: typeof import('./modal')['useModalHeaderTitleAndCancel']
-  usePopup2: typeof import('./use-popup')['usePopup2']
-  useSafeAreaInsets: typeof import('./safe-area-view')['useSafeAreaInsets']
-  useTimeout: typeof import('./use-timers')['useTimeout']
+  isValidIconType: (typeof import('./icon.shared'))['isValidIconType']
+  largeListItem2Height: (typeof import('./list-item2'))['largeHeight']
+  smallListItem2Height: (typeof import('./list-item2'))['smallHeight']
+  urlsToImgSet: (typeof import('./icon'))['urlsToImgSet']
+  useHotKey: (typeof import('./hot-key'))['useHotKey']
+  useInterval: (typeof import('./use-timers'))['useInterval']
+  useModalHeaderTitleAndCancel: (typeof import('./modal'))['useModalHeaderTitleAndCancel']
+  usePopup2: (typeof import('./use-popup'))['usePopup2']
+  useSafeAreaInsets: (typeof import('./safe-area-view'))['useSafeAreaInsets']
+  useTimeout: (typeof import('./use-timers'))['useTimeout']
 }
-
