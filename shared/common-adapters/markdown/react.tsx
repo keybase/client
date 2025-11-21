@@ -5,7 +5,7 @@ import * as Styles from '@/styles'
 import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
 import Box from '@/common-adapters/box'
 import Spoiler from './spoiler'
-import NativeEmoji from '../emoji/native-emoji'
+import NativeEmoji from '@/common-adapters/emoji/native-emoji'
 import type {StyleOverride} from '.'
 import type {default as ServiceDecorationType} from './service-decoration'
 const SimpleMarkdown = SM.default

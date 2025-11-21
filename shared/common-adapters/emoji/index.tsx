@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import NativeEmoji from './native-emoji'
-import type * as ED from './data'
+import type * as ED from './slow-data'
 import type * as Styles from '@/styles'
 import CustomEmoji from './custom-emoji'
 
@@ -133,32 +133,6 @@ const Emoji = (props: EmojiProps) => {
   return null
 }
 
-export const emojiData = {
-  get categories() {
-    const ed = require('./data') as typeof ED
-    return ed.categories
-  },
-  get categoryIcons() {
-    const ed = require('./data') as typeof ED
-    return ed.categoryIcons
-  },
-  get defaultHoverEmoji() {
-    const ed = require('./data') as typeof ED
-    return ed.defaultHoverEmoji
-  },
-  get emojiNameMap() {
-    const ed = require('./data') as typeof ED
-    return ed.emojiNameMap
-  },
-  get emojiSearch() {
-    const ed = require('./data') as typeof ED
-    return ed.emojiSearch
-  },
-  get skinTones() {
-    const ed = require('./data') as typeof ED
-    return ed.skinTones
-  },
-}
-
 export default Emoji
-export {type EmojiData} from './data'
+export {emojiData} from './data'
+export {type EmojiData} from './slow-data'

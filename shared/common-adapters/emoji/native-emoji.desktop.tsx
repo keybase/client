@@ -1,5 +1,6 @@
 import type {Props} from './native-emoji'
-import {type EmojiData, emojiData} from '.'
+import {type EmojiData} from '.'
+import {emojiData} from './data'
 import {spriteSheetWidth, spriteSheetHeight} from '../markdown/emoji-gen'
 import * as Styles from '@/styles'
 
