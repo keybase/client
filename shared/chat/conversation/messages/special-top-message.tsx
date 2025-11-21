@@ -206,7 +206,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       {allowDigging && loadMoreType === 'moreToLoad' && pendingState === 'done' && (
         <Kb.Box style={styles.more}>
           <Kb.Text type="BodyBig">
-            <Kb.NativeEmoji size={16} emojiName=":moyai:" />
+            <Kb.Emoji size={16} emojiName=":moyai:" />
           </Kb.Text>
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
         </Kb.Box>

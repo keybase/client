@@ -1,16 +1,29 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
+import * as Data from '@/util/emoji'
 import * as Kb from '@/common-adapters'
 import chunk from 'lodash/chunk'
 import {
+  emojiDataToRenderableEmoji,
   getEmojiStr,
+  renderEmoji,
   type EmojiData,
   type RenderableEmoji,
   RPCToEmojiData,
-  emojiDataToRenderableEmoji,
-  emojiData,
-} from '@/common-adapters/emoji'
+} from './../../util/emoji'
+
+// defer loading this until we need to, very expensive
+const _getData = () => {
+  const utilEmoji = require('@/util/emoji') as {
+    categories: typeof Data.categories
+    emojiSearch: typeof Data.emojiSearch
+    emojiNameMap: typeof Data.emojiNameMap
+    skinTones: typeof Data.skinTones
+  }
+  const {categories, emojiSearch, emojiNameMap, skinTones: emojiSkinTones} = utilEmoji
+  return {categories, emojiNameMap, emojiSearch, emojiSkinTones}
+}
 
 const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row> =>
   chunk(emojis, emojisPerLine).map((c, idx) => ({
@@ -24,7 +37,7 @@ const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row
 const removeObsolete = (emojis: Array<EmojiData>) => emojis.filter(e => !e.obsoleted_by)
 
 const getEmojiSections = (emojisPerLine: number): Array<Section> =>
-  emojiData.categories.map(
+  _getData().categories.map(
     c =>
       ({
         data: chunkEmojis(removeObsolete(c.emojis), emojisPerLine),
@@ -38,10 +51,11 @@ const getFrequentSection = (
   customEmojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>,
   emojisPerLine: number
 ): Section => {
+  const {emojiNameMap} = _getData()
   const customEmojiIndex = getCustomEmojiIndex(customEmojiGroups)
   const emojis = topReacjis.reduce<Array<EmojiData>>((arr, top) => {
     const shortNameNoColons = top.name.replace(/:/g, '')
-    const emoji = emojiData.emojiNameMap[shortNameNoColons] || customEmojiIndex.get(shortNameNoColons)
+    const emoji = emojiNameMap[shortNameNoColons] || customEmojiIndex.get(shortNameNoColons)
     if (emoji) {
       arr.push(emoji)
     }
@@ -133,12 +147,10 @@ const getCustomEmojiIndex = (emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>) =
 const emptyCustomEmojiIndex = {filter: () => [], get: () => undefined}
 
 const getResultFilter = (emojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
+  const {emojiSearch} = _getData()
   const customEmojiIndex = emojiGroups ? getCustomEmojiIndex(emojiGroups) : emptyCustomEmojiIndex
   return (filter: string): Array<EmojiData> => {
-    return [
-      ...customEmojiIndex.filter(filter),
-      ...removeObsolete(emojiData.emojiSearch(filter, maxEmojiSearchResults)),
-    ]
+    return [...customEmojiIndex.filter(filter), ...removeObsolete(emojiSearch(filter, maxEmojiSearchResults))]
   }
 }
 
@@ -169,7 +181,8 @@ const getSectionsAndBookmarks = (
   }
 
   getEmojiSections(emojisPerLine).forEach(section => {
-    const categoryIcon = emojiData.categoryIcons[section.title] as Kb.IconType | undefined
+    const cat = Data.categoryIcons as {[key: string]: Kb.IconType}
+    const categoryIcon = cat[section.title]
     categoryIcon &&
       bookmarks.push({
         coveredSectionKeys: new Set([section.key]),
@@ -221,26 +234,16 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
   const [activeSectionKey, setActiveSectionKey] = React.useState('')
   const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
+    const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
     return (
       <Kb.ClickableBox2
         className="emoji-picker-emoji-box"
-        onClick={() => {
-          props.onChoose(
-            getEmojiStr(emoji, skinToneModifier),
-            emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
-          )
-        }}
+        onClick={() => props.onChoose(getEmojiStr(emoji, skinToneModifier), renderable)}
         onMouseOver={props.onHover && (() => props.onHover?.(emoji))}
         style={styles.emoji}
         key={emoji.short_name}
       >
-        <Kb.Emoji
-          emojiData={emoji}
-          skinToneModifier={skinToneModifier}
-          skinToneKey={skinTone}
-          showTooltip={false}
-          size={singleEmojiWidth}
-        />
+        {renderEmoji({emoji: renderable, showTooltip: false, size: singleEmojiWidth})}
       </Kb.ClickableBox2>
     )
   }
@@ -406,7 +409,8 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
 
 export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
   if (skinTone && emoji.skin_variations?.[skinTone]) {
-    const idx = emojiData.skinTones.indexOf(skinTone)
+    const {emojiSkinTones} = _getData()
+    const idx = emojiSkinTones.indexOf(skinTone)
     return `:skin-tone-${idx + 1}:`
   }
   return undefined

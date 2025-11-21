@@ -2,11 +2,12 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as Data from '@/util/emoji'
 import type {LayoutEvent} from '@/common-adapters/box'
 import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
-import {type EmojiData, type RenderableEmoji, emojiData} from '@/common-adapters/emoji'
+import {emojiDataToRenderableEmoji, renderEmoji, type EmojiData, type RenderableEmoji} from '@/util/emoji'
 import {usePickerState, type PickKey} from './use-picker'
 import {Keyboard} from 'react-native'
 
@@ -179,7 +180,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {onDidPick} = props
   const {filter, onChoose, setFilter: _setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
-  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(emojiData.defaultHoverEmoji)
+  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const canManageEmoji = useCanManageEmoji()
   const navigateAppend = C.Chat.useChatNavigateAppend()
@@ -239,13 +240,15 @@ export const EmojiPickerDesktop = (props: Props) => {
           style={styles.footerContainer}
           gap="small"
         >
-          <Kb.Emoji
-            emojiData={hoveredEmoji}
-            skinToneModifier={getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)}
-            skinToneKey={currentSkinTone}
-            showTooltip={false}
-            size={36}
-          />
+          {renderEmoji({
+            emoji: emojiDataToRenderableEmoji(
+              hoveredEmoji,
+              getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone),
+              currentSkinTone
+            ),
+            showTooltip: false,
+            size: 36,
+          })}
           {hoveredEmoji.teamname ? (
             <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
               <Kb.Text type="BodyBig" lineClamp={1}>

@@ -1,6 +1,6 @@
 import * as Z from '@/util/zustand'
 import type * as T from '@/constants/types'
-import type {RenderableEmoji} from '@/common-adapters/emoji'
+import type {RenderableEmoji} from '@/util/emoji'
 
 export type PickKey = 'addAlias' | 'chatInput' | 'reaction'
 type PickerValue = {
