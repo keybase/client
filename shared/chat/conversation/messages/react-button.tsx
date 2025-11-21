@@ -107,11 +107,11 @@ const markdownOverride: StyleOverride = Kb.Styles.isMobile
   ? {
       customEmoji: {
         height: 24,
-        transform: [{translateY: 3.5}],
+        transform: [{translateY: C.isAndroid ? 0 : 3.5}],
         width: 24,
       },
       emoji: {
-        lineHeight: 28.5,
+        lineHeight: C.isAndroid ? 26 : 28.5,
       },
       emojiSize: {size: 24},
     }
