@@ -5,7 +5,7 @@ import * as Styles from '@/styles'
 import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
 import Box from '@/common-adapters/box'
 import Spoiler from './spoiler'
-import NativeEmoji from '../emoji/native-emoji'
+import Emoji from '../emoji'
 import type {StyleOverride} from '.'
 import type {default as ServiceDecorationType} from './service-decoration'
 const SimpleMarkdown = SM.default
@@ -275,7 +275,7 @@ const reactComponentsForMarkdownType = {
   },
   emoji: {
     react: (node: Node, _output: SM.ReactOutput, state: State) => (
-      <NativeEmoji
+      <Emoji
         emojiName={
           //eslint-disable-next-line
           String(node['content']).toLowerCase()
@@ -417,7 +417,7 @@ export const bigEmojiOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputF
     ...reactComponentsForMarkdownType,
     emoji: {
       react: (node: Node, _output: SM.ReactOutput, state: State) => (
-        <NativeEmoji
+        <Emoji
           style={state.styleOverride?.paragraph}
           emojiName={
             //eslint-disable-next-line

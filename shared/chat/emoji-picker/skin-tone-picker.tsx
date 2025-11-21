@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
-import {emojiData} from '@/common-adapters/emoji'
+import * as Kb from './../../common-adapters'
+import * as T from './../../constants/types'
+import {skinTones} from './../../util/emoji'
 
 const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
   return (
@@ -25,10 +25,10 @@ type Props = {
 }
 
 const reorderedSkinTones = (currentSkinTone: Props['currentSkinTone']) => {
-  if (Kb.Styles.isMobile || !currentSkinTone) return emojiData.skinTones
-  const idx = emojiData.skinTones.indexOf(currentSkinTone)
-  if (idx === -1) return emojiData.skinTones
-  const rest = [...emojiData.skinTones]
+  if (Kb.Styles.isMobile || !currentSkinTone) return skinTones
+  const idx = skinTones.indexOf(currentSkinTone)
+  if (idx === -1) return skinTones
+  const rest = [...skinTones]
   rest.splice(idx, 1)
   return [currentSkinTone, ...rest]
 }

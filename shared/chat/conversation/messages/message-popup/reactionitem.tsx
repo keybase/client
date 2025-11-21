@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '@/util/emoji'
 
 type Props = {
   onHidden: () => void
@@ -25,7 +26,7 @@ const ReactionItem = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
       {topReacjis.map((r, idx) => (
         <Kb.ClickableBox key={r.name || idx} onClick={() => onReact(r.name)} style={styles.clickableBox}>
-          <Kb.Emoji userReacji={r} noAnim={true} showTooltip={false} size={28} />
+          {renderEmoji({emoji: RPCUserReacjiToRenderableEmoji(r, true), showTooltip: false, size: 28})}
         </Kb.ClickableBox>
       ))}
       <Kb.ClickableBox onClick={showPicker} style={styles.clickableBox}>
