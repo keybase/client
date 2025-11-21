@@ -1,6 +1,7 @@
 // Deferred loading with type safety - type assertions inside each getter
 import {LayoutAnimation} from 'react-native'
 
+/* eslint-disable @typescript-eslint/no-unsafe-member-access*/
 const components = {
   get Animation() {
     return require('./animation').default as typeof import('./animation').default
@@ -24,13 +25,15 @@ const components = {
     return require('./banner').BannerParagraph as (typeof import('./banner'))['BannerParagraph']
   },
   get BottomSheetBackdrop() {
-    return require('./bottom-sheet').BottomSheetBackdrop as (typeof import('./bottom-sheet'))['BottomSheetBackdrop']
+    return require('./bottom-sheet')
+      .BottomSheetBackdrop as (typeof import('./bottom-sheet'))['BottomSheetBackdrop']
   },
   get BottomSheetModal() {
     return require('./bottom-sheet').BottomSheetModal as (typeof import('./bottom-sheet'))['BottomSheetModal']
   },
   get BottomSheetScrollView() {
-    return require('./bottom-sheet').BottomSheetScrollView as (typeof import('./bottom-sheet'))['BottomSheetScrollView']
+    return require('./bottom-sheet')
+      .BottomSheetScrollView as (typeof import('./bottom-sheet'))['BottomSheetScrollView']
   },
   get Box() {
     return require('./box').default as typeof import('./box').default
@@ -122,7 +125,8 @@ const components = {
     return require('./floating-menu').default as typeof import('./floating-menu').default
   },
   get FloatingModalContext() {
-    return require('./floating-menu/context').FloatingModalContext as (typeof import('./floating-menu/context'))['FloatingModalContext']
+    return require('./floating-menu/context')
+      .FloatingModalContext as (typeof import('./floating-menu/context'))['FloatingModalContext']
   },
   get FloatingPicker() {
     return require('./floating-picker').default as typeof import('./floating-picker').default
@@ -158,7 +162,8 @@ const components = {
     return require('./input2').Input2 as (typeof import('./input2'))['Input2']
   },
   get KeyboardAvoidingView2() {
-    return require('./keyboard-avoiding-view').KeyboardAvoidingView2 as (typeof import('./keyboard-avoiding-view'))['KeyboardAvoidingView2']
+    return require('./keyboard-avoiding-view')
+      .KeyboardAvoidingView2 as (typeof import('./keyboard-avoiding-view'))['KeyboardAvoidingView2']
   },
   get LabeledInput() {
     return require('./labeled-input').default as typeof import('./labeled-input').default
@@ -257,7 +262,8 @@ const components = {
     return require('./safe-area-view').default as typeof import('./safe-area-view').default
   },
   get SafeAreaViewTop() {
-    return require('./safe-area-view').SafeAreaViewTop as (typeof import('./safe-area-view'))['SafeAreaViewTop']
+    return require('./safe-area-view')
+      .SafeAreaViewTop as (typeof import('./safe-area-view'))['SafeAreaViewTop']
   },
   get SaveIndicator() {
     return require('./save-indicator').default as typeof import('./save-indicator').default
@@ -278,7 +284,7 @@ const components = {
     return require('./simple-toast').default as typeof import('./simple-toast').default
   },
   get Styles() {
-    return require('@/styles') as typeof import('@/styles')
+    return require('../styles') as typeof import('../styles')
   },
   get Switch() {
     return require('./switch').default as typeof import('./switch').default
@@ -338,13 +344,15 @@ const components = {
     return require('./use-timers').useInterval as (typeof import('./use-timers'))['useInterval']
   },
   get useModalHeaderTitleAndCancel() {
-    return require('./modal').useModalHeaderTitleAndCancel as (typeof import('./modal'))['useModalHeaderTitleAndCancel']
+    return require('./modal')
+      .useModalHeaderTitleAndCancel as (typeof import('./modal'))['useModalHeaderTitleAndCancel']
   },
   get usePopup2() {
     return require('./use-popup').usePopup2 as (typeof import('./use-popup'))['usePopup2']
   },
   get useSafeAreaInsets() {
-    return require('./safe-area-view').useSafeAreaInsets as (typeof import('./safe-area-view'))['useSafeAreaInsets']
+    return require('./safe-area-view')
+      .useSafeAreaInsets as (typeof import('./safe-area-view'))['useSafeAreaInsets']
   },
   get useTimeout() {
     return require('./use-timers').useTimeout as (typeof import('./use-timers'))['useTimeout']
@@ -471,7 +479,6 @@ export const {
 
 export {LayoutAnimation}
 
-// Type re-exports
 export type {MenuItem, MenuItems} from './floating-menu/menu-layout'
 export type {IconType} from './icon.constants-gen'
 export type {WebViewProps, WebViewInjections} from './web-view'
