@@ -1,6 +1,6 @@
-import type {Props} from './emoji'
-import {type EmojiData, emojiNameMap, skinTones} from '@/util/emoji-shared'
-import {spriteSheetWidth, spriteSheetHeight} from './markdown/emoji-gen'
+import type {Props} from './native-emoji'
+import {type EmojiData, emojiData} from '.'
+import {spriteSheetWidth, spriteSheetHeight} from '../markdown/emoji-gen'
 import * as Styles from '@/styles'
 
 // Just the single set we use
@@ -42,11 +42,11 @@ const EmojiWrapper = (props: Props) => {
   const name = match[1] ?? ''
   const skin = match[2]
 
-  let emoji: EmojiData | undefined = emojiNameMap[name]
+  let emoji: EmojiData | undefined = emojiData.emojiNameMap[name]
   if (skin) {
     const skinNum = parseInt(skin)
     if (!isNaN(skinNum)) {
-      const tone = skinTones[skinNum - 1] ?? ''
+      const tone = emojiData.skinTones[skinNum - 1] ?? ''
       if (tone) {
         emoji = emoji?.skin_variations?.[tone] as typeof emoji
       }
