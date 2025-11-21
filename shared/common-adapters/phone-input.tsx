@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Emoji from './emoji'
+import NativeEmoji from './emoji/native-emoji'
 import Text from './text'
 import {Box2, Box2Measure} from './box'
 import FloatingMenu from './floating-menu'
@@ -26,10 +26,10 @@ const Kb = {
   Box2,
   Box2Measure,
   ClickableBox,
-  Emoji,
   FloatingMenu,
   FloatingPicker,
   Icon,
+  NativeEmoji,
   PlainInput,
   ProgressIndicator,
   SearchFilter,
@@ -42,7 +42,7 @@ const normalizeCountryCode = (countryCode: string) =>
 const getCallingCode = (countryCode: string) =>
   countryCode !== '' ? (countryData()[normalizeCountryCode(countryCode)]?.callingCode ?? '') : ''
 const getCountryEmoji = (countryCode: string) => (
-  <Kb.Emoji size={16} emojiName={countryData()[normalizeCountryCode(countryCode)]?.emojiText ?? ''} />
+  <Kb.NativeEmoji size={16} emojiName={countryData()[normalizeCountryCode(countryCode)]?.emojiText ?? ''} />
 )
 const getPlaceholder = (countryCode: string) =>
   countryCode !== '' ? 'Ex: ' + (countryData()[normalizeCountryCode(countryCode)]?.example ?? 'N/A') : 'N/A'
@@ -147,7 +147,7 @@ const menuItems = (
 const MenuItem = (props: {emoji: string; text: string}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem} gap="xtiny" alignItems="center">
     <Kb.Text type="Body" center={true}>
-      <Kb.Emoji size={18} emojiName={props.emoji} />
+      <Kb.NativeEmoji size={18} emojiName={props.emoji} />
     </Kb.Text>
     <Kb.Text type="BodySemibold">{props.text}</Kb.Text>
   </Kb.Box2>

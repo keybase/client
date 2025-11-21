@@ -2,13 +2,7 @@ import * as C from '@/constants'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {
-  emojiSearch,
-  emojiDataToRenderableEmoji,
-  renderEmoji,
-  type EmojiData,
-  RPCToEmojiData,
-} from '@/util/emoji'
+import {type EmojiData, RPCToEmojiData, emojiData} from '@/common-adapters/emoji'
 
 export const transformer = (
   emoji: EmojiData,
@@ -33,7 +27,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
       ])}
       gap="small"
     >
-      {renderEmoji({emoji: emojiDataToRenderableEmoji(item), showTooltip: false, size: 24})}
+      <Kb.Emoji emojiData={item} showTooltip={false} size={24} />
       <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
     </Kb.Box2>
   )
@@ -61,17 +55,17 @@ const useDataSource = (filter: string) => {
   }
 
   // prefill data with stock emoji
-  let emojiData: Array<EmojiData> = emojiSearch(filter, 50)
+  let results: Array<EmojiData> = emojiData.emojiSearch(filter, 50)
 
   if (userEmojis) {
     const userEmoji = userEmojis
       .filter(emoji => emoji.alias.toLowerCase().includes(filter))
       .map(emoji => RPCToEmojiData(emoji, false))
-    emojiData = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(emojiData)
+    results = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(results)
   }
 
   return {
-    items: emojiData,
+    items: results,
     loading: userEmojisLoading,
   }
 }

@@ -10,11 +10,7 @@ import PaymentStatus from '../../chat/payments/status'
 import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
 import WithTooltip from '../with-tooltip'
 import type {StyleOverride} from '.'
-import type {
-  emojiDataToRenderableEmoji as emojiDataToRenderableEmojiType,
-  renderEmoji as renderEmojiType,
-  RPCToEmojiData as RPCToEmojiDataType,
-} from '@/util/emoji'
+import {RPCToEmojiData, default as Emoji} from '@/common-adapters/emoji'
 import {base64ToUint8Array, uint8ArrayToString} from 'uint8array-extras'
 
 const prefix = 'keybase://'
@@ -230,19 +226,17 @@ const ServiceDecoration = (p: Props) => {
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.emoji) {
-    const {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} = require('@/util/emoji') as {
-      emojiDataToRenderableEmoji: typeof emojiDataToRenderableEmojiType
-      renderEmoji: typeof renderEmojiType
-      RPCToEmojiData: typeof RPCToEmojiDataType
-    }
-    return renderEmoji({
-      customStyle: styleOverride?.customEmoji,
-      emoji: emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji, disableEmojiAnimation)),
-      showTooltip: !parsed.emoji.isReacji,
-      size:
-        parsed.emoji.isBig && !disableBigEmojis ? 32 : parsed.emoji.isReacji && !Styles.isMobile ? 18 : 16,
-      style: styleOverride?.emoji,
-    })
+    return (
+      <Emoji
+        customStyle={styleOverride?.customEmoji}
+        emojiData={RPCToEmojiData(parsed.emoji, disableEmojiAnimation)}
+        showTooltip={!parsed.emoji.isReacji}
+        size={
+          parsed.emoji.isBig && !disableBigEmojis ? 32 : parsed.emoji.isReacji && !Styles.isMobile ? 18 : 16
+        }
+        style={styleOverride?.emoji}
+      />
+    )
   }
   return null
 }

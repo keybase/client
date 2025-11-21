@@ -4,12 +4,11 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 import {
-  type EmojiData,
   type RenderableEmoji,
   emojiDataToRenderableEmoji,
   getEmojiStr,
-  renderEmoji,
-} from '@/util/emoji'
+  type EmojiData,
+} from '@/common-adapters/emoji'
 import {AliasInput, Modal, type AliasRef} from './common'
 import {useEmojiState} from './use-emoji'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
@@ -200,7 +199,7 @@ const SelectedEmoji = (props: SelectedEmojiProps) => {
   return (
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.emoji}>
       {props.chosen ? (
-        renderEmoji({emoji: props.chosen.renderableEmoji, showTooltip: false, size: singleEmojiWidth})
+        <Kb.Emoji emoji={props.chosen.renderableEmoji} showTooltip={false} size={singleEmojiWidth} />
       ) : (
         <Kb.Icon type="iconfont-emoji" fontSize={Kb.Styles.isMobile ? 20 : 16} />
       )}
