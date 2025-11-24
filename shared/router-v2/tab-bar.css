@@ -59,32 +59,27 @@
   .tab-container {
     background-color: var(--color-redLighter);
   }
-  
+
   .tab-container .tab .tab-label {
     color: rgba(255, 255, 255, 0.5);
   }
-  
+
   .tab-container .tab-selected {
     background-color: #1f1f1f;
   }
-  
+
   .tab-container :is(.tab:hover, .tab-selected) .tab-icon {
     color: rgba(255, 255, 255, 0.85);
   }
-  
+
   .tab-container :is(.tab:hover, .tab-selected) .tab-label {
     color: rgba(255, 255, 255, 0.85);
   }
-  
+
   .tab-container .tab-highlight .tab-highlight {
     background-color: var(--color-blueDark);
   }
 }
-
-
-
-
-
 
 @media all and (max-width: 900px) and (min-width: 0px) {
   .tab-container {

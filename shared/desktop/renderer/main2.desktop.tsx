@@ -103,6 +103,9 @@ const render = (Component = Main) => {
     throw new Error('No root element?')
   }
 
+  // Wrap Root here if you want the app to be strict, it currently doesn't work with react-native-web
+  // until 0.19.1+ lands. I tried this when it just did but there's other issues so we have to keep it off
+  // else all nav stuff is broken
   ReactDOM.createRoot(root).render(
     <WRAP>
       <Root>
