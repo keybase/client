@@ -3,6 +3,7 @@ import * as React from 'react'
 import openURL from '@/util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import type {Props, TextType, _StylesTextCrossPlatform} from './text'
+import './text.css'
 import KB2 from '@/util/electron.desktop'
 const {showContextMenu} = KB2.functions
 
