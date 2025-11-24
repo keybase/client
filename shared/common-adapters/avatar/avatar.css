@@ -133,7 +133,10 @@
   position: absolute;
   right: 0;
   top: 0;
-  .darkMode & {
+}
+
+@media (prefers-color-scheme: dark) {
+  .avatar-background {
     background-color: #0f0f0f;
   }
 }
@@ -174,14 +177,20 @@ img.avatar-user-image {
   position: absolute;
   right: 0;
   top: 0;
-  .darkMode & {
+}
+
+@media (prefers-color-scheme: dark) {
+  .avatar-border-team {
     background: rgba(255, 255, 255, 0);
   }
 }
 
 .avatar-border {
   background: rgba(0, 0, 0, 0);
-  .darkMode & {
+}
+
+@media (prefers-color-scheme: dark) {
+  .avatar-border {
     background: rgba(255, 255, 255, 0);
   }
 }

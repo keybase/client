@@ -48,7 +48,7 @@
   font-family: Keybase;
 }
 
-.darkMode {
+@media (prefers-color-scheme: dark) {
   .text_HeaderBig,
   .text_HeaderBigExtrabold,
   .text_Header,
@@ -176,7 +176,11 @@
 }
 
 .text_HeaderLink {
-  .darkMode & {
+  /* dark mode handled by media query below */
+}
+
+@media (prefers-color-scheme: dark) {
+  .text_HeaderLink {
     color: var(--color-blueDarker2_75);
   }
 }
@@ -249,7 +253,10 @@
 
 .text_Terminal {
   color: #a8ccff;
-  .darkMode & {
+}
+
+@media (prefers-color-scheme: dark) {
+  .text_Terminal {
     color: #4c8eff;
   }
 }
@@ -271,7 +278,10 @@
   height: 17px;
   padding: 2px;
   word-wrap: break-word;
-  .darkMode & {
+}
+
+@media (prefers-color-scheme: dark) {
+  .text_TerminalInline {
     color: #f00;
   }
 }

@@ -1,6 +1,6 @@
-input,
-textarea {
-  .darkMode & {
+@media (prefers-color-scheme: dark) {
+  input,
+  textarea {
     background-color: var(--color-white);
   }
 }
