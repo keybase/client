@@ -1,5 +1,4 @@
 import * as React from 'react'
-import {useState_ as useDarkModeState} from '@/constants/darkmode'
 
 // Individual components can then call Styles.isDarkMode() to get the value. Problem is they need to know that
 // that value has changed.
@@ -21,6 +20,7 @@ import {useState_ as useDarkModeState} from '@/constants/darkmode'
 
 export const isDarkMode = () => {
   // Check actual system preference for CSS-based dark mode
+  // eslint-disable-next-line
   if (typeof window !== 'undefined' && window.matchMedia) {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   }

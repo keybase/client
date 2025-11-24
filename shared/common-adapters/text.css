@@ -175,10 +175,6 @@
   line-height: 22px;
 }
 
-.text_HeaderLink {
-  /* dark mode handled by media query below */
-}
-
 @media (prefers-color-scheme: dark) {
   .text_HeaderLink {
     color: var(--color-blueDarker2_75);
