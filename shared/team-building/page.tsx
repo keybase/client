@@ -14,7 +14,7 @@ const getOptions = ({route}: OwnProps) => {
   } as const
 
   return namespace === 'people'
-    ? {
+    ? ({
         ...common,
         modal2AvoidTabs: true,
         modal2ClearCover: true,
@@ -23,9 +23,9 @@ const getOptions = ({route}: OwnProps) => {
           paddingLeft: Kb.Styles.globalMargins.xsmall,
           paddingRight: Kb.Styles.globalMargins.xsmall,
           paddingTop: Kb.Styles.globalMargins.mediumLarge,
-        },
+        } as const,
         modal2Type: 'DefaultFullWidth',
-      }
+      } as const)
     : common
 }
 

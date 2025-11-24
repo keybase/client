@@ -86,6 +86,6 @@ export const modalRoutes = _modalRoutes.reduce((obj, modal) => {
     obj[name] = modalMap[name]
   }
   return obj
-}, {}) satisfies RouteMap
+}, {} as RouteMap) satisfies RouteMap
 
 export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes}
