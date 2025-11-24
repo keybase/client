@@ -70,7 +70,7 @@ const Avatar = (p: Props) => {
           draggable={false}
         />
       )}
-      {!!props.url && !props.src && props.crop === undefined && !props.placeholderClassName && (
+      {!!props.url && !props.src && props.crop === undefined && (
         <div
           className="avatar-user-image"
           style={{
@@ -99,12 +99,6 @@ const Avatar = (p: Props) => {
                   : undefined
                 : props.opacity,
           }}
-        />
-      )}
-      {!!props.placeholderClassName && (
-        <div
-          className={Styles.classNames('avatar-user-image', props.placeholderClassName)}
-          style={imgStyle as React.CSSProperties}
         />
       )}
       {(!!props.borderColor || props.isTeam) && (
