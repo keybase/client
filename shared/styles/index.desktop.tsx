@@ -248,5 +248,6 @@ export const normalizePath = (p: string) => p
 export const unnormalizePath = (p: string) => p
 
 export const useIsDarkMode = () => {
-  return isDarkMode()
+  // For CSS-only dark mode, just return false - CSS media queries handle it
+  return false
 }

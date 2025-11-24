@@ -77,19 +77,17 @@ export default (ownProps: Props) => {
 
   const {address, token} = httpSrv
 
-  const isDarkMode = Styles.useIsDarkMode()
-
+  // Server avatars - let server decide mode or always use light mode
+  // Dark mode styling handled by CSS filters if needed
   const urlMap = React.useMemo(
     () =>
       sizes.reduce<{[key: number]: string}>((m, size) => {
         m[size] = `http://${address}/av?typ=${
           isTeam ? 'team' : 'user'
-        }&name=${name}&format=square_${size}&mode=${isDarkMode ? 'dark' : 'light'}&token=${
-          token
-        }&count=${counter}`
+        }&name=${name}&format=square_${size}&token=${token}&count=${counter}`
         return m
       }, {}),
-    [counter, address, token, isTeam, name, isDarkMode]
+    [counter, address, token, isTeam, name]
   )
   // For placeholders, use CSS classes instead of inline styles
   const getPlaceholderSize = (targetSize: number) => {
