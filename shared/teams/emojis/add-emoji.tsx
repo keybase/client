@@ -95,7 +95,7 @@ const useStuff = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => 
           return {deduplicated, set}
         },
         {
-          deduplicated: [] satisfies Array<string>,
+          deduplicated: [] as Array<string>,
           set: new Set<string>(filePaths),
         }
       ).deduplicated

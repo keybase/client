@@ -9,9 +9,9 @@ const getOptions = ({route}: OwnProps) => {
     modal2: true,
     modal2AvoidTabs: false,
     modal2ClearCover: false,
-    modal2Style: {alignSelf: 'center'},
+    modal2Style: {alignSelf: 'center'} as const,
     modal2Type: 'DefaultFullHeight',
-  }
+  } as const
 
   return namespace === 'people'
     ? {

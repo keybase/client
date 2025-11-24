@@ -36,13 +36,14 @@ const _newRoutes = [
 
 const seenNames = new Set()
 _newRoutes.forEach(({route}) => {
-  Object.keys(route).forEach(name => {
+  const routeMap = route as RouteMap
+  Object.keys(routeMap).forEach(name => {
     // Just sanity check dupes
     if (seenNames.has(name)) {
       throw new Error('New route with dupe name, disallowed! ' + name)
     }
     seenNames.add(name)
-    routes[name] = route[name]
+    routes[name] = routeMap[name]
   })
 })
 
@@ -77,13 +78,14 @@ const _modalRoutes = [
 ] satisfies ReadonlyArray<RouteMap>
 
 export const modalRoutes = _modalRoutes.reduce((obj, modal) => {
-  for (const name of Object.keys(modal)) {
+  const modalMap = modal as RouteMap
+  for (const name of Object.keys(modalMap)) {
     if (obj[name]) {
       throw new Error('New modal route with dupe name, disallowed! ' + name)
     }
-    obj[name] = modal[name]
+    obj[name] = modalMap[name]
   }
   return obj
-}, {} as RouteMap) satisfies RouteMap
+}, {}) satisfies RouteMap
 
 export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes}
