@@ -5,7 +5,6 @@ import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
 import {getAssetPath} from '@/constants/platform.desktop'
 import * as Path from '@/util/path'
-import * as React from 'react'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -211,20 +210,3 @@ export const undynamicColor = (col: string) => col
 // nothing on desktop, it all works
 export const normalizePath = (p: string) => p
 export const unnormalizePath = (p: string) => p
-
-export const useIsDarkMode = () => {
-  const [isDark, setIsDark] = React.useState(() => {
-    if (typeof window === 'undefined') return false
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-  })
-
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches)
-    mediaQuery.addEventListener('change', handler)
-    return () => mediaQuery.removeEventListener('change', handler)
-  }, [])
-
-  return isDark
-}

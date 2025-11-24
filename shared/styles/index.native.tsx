@@ -4,7 +4,6 @@ import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
 import {isDarkMode} from './dark-mode'
 import {isIOS, isTablet} from '@/constants/platform'
-import {useColorScheme} from 'react-native'
 
 const font = isIOS
   ? {
@@ -120,16 +119,4 @@ export const unnormalizePath = (p: string) => {
     return p.slice('file://'.length)
   }
   return p
-}
-
-export const useIsDarkMode = () => {
-  const s = useColorScheme()
-  switch (s) {
-    case 'light':
-      return false
-    case 'dark':
-      return true
-    default:
-      return false // TODO check this
-  }
 }
