@@ -146,10 +146,12 @@ export const initDesktopStyles = () => {
             .join(' ')} }
 `
   const helpers = colorNames.reduce((s, name) => {
+    // For _important variants, use the light color (unthemed) so negative text is always visible
+    const importantColor = String(colors[name])
     return (
       s +
       `.color_${name} {color: var(--color-${name});}\n` +
-      `.color_${name}_important {color: var(--color-${name}) !important;}\n` +
+      `.color_${name}_important {color: ${importantColor} !important;}\n` +
       `.hover_color_${name}:hover:not(.spoiler .hover_color_${name}) {color: var(--color-${name});}\n` +
       `.hover_container:hover .hover_contained_color_${name}:not(.spoiler .hover_contained_color_${name}) {color: var(--color-${name}) !important;}\n` +
       `.background_color_${name} {background-color: var(--color-${name});}\n` +
@@ -158,6 +160,7 @@ export const initDesktopStyles = () => {
   }, '')
   const css = colorVars + helpers
   style.appendChild(document.createTextNode(css))
+  // Append at the end so it has higher cascade priority than static CSS files
   head.appendChild(style)
   fixScrollbars()
 }
