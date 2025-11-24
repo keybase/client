@@ -1,7 +1,7 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as C from '@/constants'
 import * as React from 'react'
-import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType} from '../icon'
+import {urlsToImgSet, urlsToSrcSet, urlsToBaseSrc} from '../icon'
 import * as Styles from '@/styles'
 import * as AvatarZus from './store'
 import './avatar.css'
@@ -10,22 +10,22 @@ import type {Props} from '.'
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = (typeof avatarSizes)[number]
 
-const avatarPlaceHolders: {[key: string]: IconType} = {
-  '192': 'icon-placeholder-avatar-192',
-  '256': 'icon-placeholder-avatar-256',
-  '960': 'icon-placeholder-avatar-960',
+const avatarPlaceHolders: {[key: string]: string} = {
+  '192': 'avatar-placeholder-192',
+  '256': 'avatar-placeholder-256',
+  '960': 'avatar-placeholder-960',
 }
 
-const avatarLighterPlaceHolders: {[key: string]: IconType} = {
-  '192': 'icon-placeholder-avatar-lighter-192',
-  '256': 'icon-placeholder-avatar-lighter-256',
-  '960': 'icon-placeholder-avatar-lighter-960',
+const avatarLighterPlaceHolders: {[key: string]: string} = {
+  '192': 'avatar-placeholder-lighter-192',
+  '256': 'avatar-placeholder-lighter-256',
+  '960': 'avatar-placeholder-lighter-960',
 }
 
-const teamPlaceHolders: {[key: string]: IconType} = {
-  '192': 'icon-team-placeholder-avatar-192',
-  '256': 'icon-team-placeholder-avatar-256',
-  '960': 'icon-team-placeholder-avatar-960',
+const teamPlaceHolders: {[key: string]: string} = {
+  '192': 'avatar-team-placeholder-192',
+  '256': 'avatar-team-placeholder-256',
+  '960': 'avatar-team-placeholder-960',
 }
 
 const followSizeToStyle = new Map([
@@ -91,21 +91,28 @@ export default (ownProps: Props) => {
       }, {}),
     [counter, address, token, isTeam, name, isDarkMode]
   )
+  // For placeholders, use CSS classes instead of inline styles
+  const getPlaceholderSize = (targetSize: number) => {
+    if (targetSize >= 960) return '960'
+    if (targetSize >= 256) return '256'
+    return '192'
+  }
+
+  const placeholderClassName = React.useMemo(() => {
+    if (imageOverrideUrl || (address && name)) return undefined
+    const placeholderSize = getPlaceholderSize(size)
+    const placeholders = isTeam ? teamPlaceHolders : lighterPlaceholders ? avatarLighterPlaceHolders : avatarPlaceHolders
+    return placeholders[placeholderSize]
+  }, [address, name, imageOverrideUrl, lighterPlaceholders, size, isTeam])
+
   const url = React.useMemo(
     () =>
       imageOverrideUrl
         ? `url("${encodeURI(imageOverrideUrl)}")`
         : address && name
           ? urlsToImgSet(urlMap, size)
-          : iconTypeToImgSet(
-              isTeam
-                ? teamPlaceHolders
-                : lighterPlaceholders
-                  ? avatarLighterPlaceHolders
-                  : avatarPlaceHolders,
-              size
-            ),
-    [address, name, imageOverrideUrl, lighterPlaceholders, size, urlMap, isTeam, isDarkMode]
+          : null,
+    [address, name, imageOverrideUrl, size, urlMap]
   )
 
   // For <img> tags (desktop only): extract src and srcset
@@ -153,6 +160,7 @@ export default (ownProps: Props) => {
     onClick: onClick,
     onEditAvatarClick: ownProps.onEditAvatarClick,
     opacity: ownProps.opacity,
+    placeholderClassName: placeholderClassName,
     size: size,
     skipBackground: ownProps.skipBackground,
     src: src,

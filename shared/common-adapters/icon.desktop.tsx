@@ -201,8 +201,7 @@ export function iconTypeToImgSet(imgMap: {[key: string]: IconType}, targetSize: 
       if (!m) return null
       const img: string = imgMap[m] as string
       if (!img) return null
-      const iconName = Styles.isDarkMode() ? img.replace('icon-', 'icon-dark-') : img
-      const url = getAssetPath('images', 'icons', iconName)
+      const url = getAssetPath('images', 'icons', img)
       return `url('${url}.png') ${mult}x`
     })
     .filter(Boolean)

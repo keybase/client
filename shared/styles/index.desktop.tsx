@@ -126,6 +126,15 @@ const fixScrollbars = () => {
   document.body.removeChild(parent)
 }
 
+const makeImageSet = (iconName: string) => {
+  return `-webkit-image-set(${[1, 2, 3]
+    .map(mult => {
+      const path = getAssetPath('images', 'icons', iconName)
+      return `url('${path}${mult === 1 ? '' : `@${mult}x`}.png') ${mult}x`
+    })
+    .join(', ')})`
+}
+
 export const initDesktopStyles = () => {
   const head = document.head
   const style = document.createElement('style')
@@ -157,7 +166,34 @@ export const initDesktopStyles = () => {
       `.hover_background_color_${name}:hover:not(.spoiler .hover_background_color_${name}) {background-color: var(--color-${name});}\n`
     )
   }, '')
-  const css = colorVars + helpers
+
+  // Generate avatar placeholder CSS
+  const avatarSizes = ['192', '256', '960']
+  const avatarPlaceholders = avatarSizes.reduce((acc, size) => {
+    // Regular avatar placeholders
+    acc += `.avatar-placeholder-${size} { background-image: ${makeImageSet(`icon-placeholder-avatar-${size}`)}; }\n`
+    // Lighter avatar placeholders
+    acc += `.avatar-placeholder-lighter-${size} { background-image: ${makeImageSet(`icon-placeholder-avatar-lighter-${size}`)}; }\n`
+    // Team placeholders
+    acc += `.avatar-team-placeholder-${size} { background-image: ${makeImageSet(`icon-team-placeholder-avatar-${size}`)}; }\n`
+    return acc
+  }, '')
+
+  const avatarPlaceholdersDark = `
+    @media (prefers-color-scheme: dark) {
+      ${avatarSizes
+        .map(size => {
+          return (
+            `.avatar-placeholder-${size} { background-image: ${makeImageSet(`icon-dark-placeholder-avatar-${size}`)}; }\n` +
+            `.avatar-placeholder-lighter-${size} { background-image: ${makeImageSet(`icon-dark-placeholder-avatar-lighter-${size}`)}; }\n` +
+            `.avatar-team-placeholder-${size} { background-image: ${makeImageSet(`icon-dark-team-placeholder-avatar-${size}`)}; }\n`
+          )
+        })
+        .join('')}
+    }
+  `
+
+  const css = colorVars + helpers + avatarPlaceholders + avatarPlaceholdersDark
   style.appendChild(document.createTextNode(css))
   head.appendChild(style)
   fixScrollbars()
