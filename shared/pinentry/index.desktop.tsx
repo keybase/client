@@ -48,8 +48,6 @@ const Pinentry = (props: Props) => {
   return (
     <Kb.Box
       style={styles.container}
-      className={props.darkMode ? 'darkMode' : 'lightMode'}
-      key={props.darkMode ? 'darkMode' : 'light'}
     >
       <DragHeader icon={false} title="" onClose={props.onCancel} windowDragging={true} />
       <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>

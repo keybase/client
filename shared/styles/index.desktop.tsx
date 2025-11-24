@@ -137,12 +137,14 @@ export const initDesktopStyles = () => {
             return s
           }, new Array<string>())
           .join(' ')} }
-        .darkMode { ${colorNames
-          .reduce((s, name) => {
-            s.push(`--color-${name}: ${darkColors[name]};`)
-            return s
-          }, new Array<string>())
-          .join(' ')} }
+        @media (prefers-color-scheme: dark) {
+          :root { ${colorNames
+            .reduce((s, name) => {
+              s.push(`--color-${name}: ${darkColors[name]};`)
+              return s
+            }, new Array<string>())
+            .join(' ')} }
+        }
 `
   const helpers = colorNames.reduce((s, name) => {
     return (

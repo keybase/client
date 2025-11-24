@@ -346,7 +346,7 @@ const MenubarRender = (p: Props) => {
   return (
     <Kb.Styles.DarkModeContext.Provider value={darkMode}>
       <DarkCSSInjector />
-      <Kb.Box2 direction="vertical" style={styles.widgetContainer} key={darkMode ? 'darkMode' : 'light'}>
+      <Kb.Box2 direction="vertical" style={styles.widgetContainer}>
         {isDarwin && <ArrowTick />}
         <IconBar {...p} showBadges={loggedIn} />
         {content}

@@ -92,22 +92,8 @@ const FontLoader = () => (
   </div>
 )
 
-const DarkCSSInjector = () => {
-  const isDark = C.useDarkModeState(s => s.isDarkMode())
-  const [lastIsDark, setLastIsDark] = React.useState<boolean | undefined>()
-  if (lastIsDark !== isDark) {
-    setLastIsDark(isDark)
-    // inject it in body so modals get darkMode also
-    if (isDark) {
-      document.body.classList.add('darkMode')
-      document.body.classList.remove('lightMode')
-    } else {
-      document.body.classList.remove('darkMode')
-      document.body.classList.add('lightMode')
-    }
-  }
-  return null
-}
+// Dark mode now handled automatically via CSS @media (prefers-color-scheme: dark)
+const DarkCSSInjector = () => null
 
 const UseStrict = true as boolean
 const WRAP = UseStrict
