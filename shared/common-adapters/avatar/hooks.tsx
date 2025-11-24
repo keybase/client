@@ -1,7 +1,7 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as C from '@/constants'
 import * as React from 'react'
-import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType, type IconStyle} from '../icon'
+import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType} from '../icon'
 import * as Styles from '@/styles'
 import * as AvatarZus from './store'
 import './avatar.css'
@@ -28,12 +28,15 @@ const teamPlaceHolders: {[key: string]: IconType} = {
   '960': 'icon-team-placeholder-avatar-960',
 }
 
-const followSizeToStyle = new Map<AvatarSize, IconStyle>([
+const followSizeToStyle = new Map([
   [128, {bottom: 0, left: 88, position: 'absolute'}],
   [48, {bottom: 0, left: 30, position: 'absolute'}],
   [64, {bottom: 0, left: 44, position: 'absolute'}],
   [96, {bottom: 0, left: 65, position: 'absolute'}],
-])
+  [32, undefined],
+  [24, undefined],
+  [16, undefined],
+] as const)
 
 const followIconHelper = (size: AvatarSize, followsYou: boolean, following: boolean) => {
   const iconSize = size === 128 ? (28 as const) : (21 as const)
@@ -104,7 +107,7 @@ export default (ownProps: Props) => {
             ),
     [address, name, imageOverrideUrl, lighterPlaceholders, size, urlMap, isTeam]
   )
-  
+
   // For <img> tags (desktop only): extract src and srcset
   const src = React.useMemo(
     () =>
@@ -117,7 +120,7 @@ export default (ownProps: Props) => {
             : null,
     [address, name, imageOverrideUrl, size, urlMap]
   )
-  
+
   const srcset = React.useMemo(
     () =>
       Styles.isMobile
@@ -129,7 +132,7 @@ export default (ownProps: Props) => {
             : undefined,
     [address, name, imageOverrideUrl, size, urlMap]
   )
-  
+
   const iconInfo = React.useMemo(
     () => followIconHelper(size, followsYou, following),
     [size, followsYou, following]

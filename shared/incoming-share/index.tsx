@@ -208,7 +208,7 @@ const IncomingShare = (props: IncomingShareProps) => {
       }
       return {sendPaths, text}
     },
-    {sendPaths: [] as Array<string>, text: undefined as string | undefined}
+    {sendPaths: new Array<string>(), text: undefined as string | undefined}
   )
   return (
     <Kb.Modal

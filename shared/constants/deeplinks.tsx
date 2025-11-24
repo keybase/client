@@ -109,7 +109,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     const queryString = url.query as unknown as string
     // URLSearchParams is not available in react-native. See if any of recognized
     // query parameters is passed using regular expressions.
-    const action = (['add_or_invite', 'manage_settings'] as const).find(
+    const action = (['add_or_invite', 'manage_settings'] satisfies readonly TeamPageAction[]).find(
       x => queryString.search(`[?&]applink=${x}([?&].+)?$`) !== -1
     )
     return {action, teamName}

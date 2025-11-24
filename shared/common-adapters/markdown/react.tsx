@@ -57,7 +57,7 @@ const _markdownStyles = Styles.styleSheetCreate(
           fontSize: 32,
           lineHeight: 39.5, // matches 40 px height
         },
-      } as const),
+      }),
       boldStyle: Styles.platformStyles({
         common: {...Styles.globalStyles.fontBold},
         isElectron: {color: 'inherit', ...electronWrapStyle},
@@ -144,7 +144,7 @@ const _markdownStyles = Styles.styleSheetCreate(
           color: 'inherit',
           fontWeight: 'inherit',
           textDecoration: 'line-through',
-        } as const,
+        },
         isMobile: {
           fontWeight: undefined,
           textDecorationLine: 'line-through',
@@ -153,7 +153,7 @@ const _markdownStyles = Styles.styleSheetCreate(
       textBlockStyle: Styles.platformStyles({
         isAndroid: {lineHeight: undefined},
         isElectron: {color: 'inherit', display: 'block', fontWeight: 'inherit', ...electronWrapStyle},
-      } as const),
+      }),
       wrapStyle: Styles.platformStyles({isElectron: electronWrapStyle}),
     }) as const
 )

@@ -59,13 +59,13 @@ const ModalWrapper = (p: ModalWrapperProps) => {
 
   const [backgroundRef, onMouseUp, onMouseDown] = useMouseClick(navigation, modal2NoClose)
 
-  const modalModeToStyle = new Map<ModalType, Kb.Styles.StylesCrossPlatform>([
+  const modalModeToStyle = new Map([
     ['Default', styles.modalModeDefault],
     ['DefaultFullHeight', styles.modalModeDefaultFullHeight],
     ['DefaultFullWidth', styles.modalModeDefaultFullWidth],
     ['Wide', styles.modalModeWide],
     ['SuperWide', styles.modalModeSuperWide],
-  ] as const)
+  ] as const) satisfies Map<ModalType, Kb.Styles.StylesCrossPlatform>
 
   const [topMostModal, setTopMostModal] = React.useState(true)
 

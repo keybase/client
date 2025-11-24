@@ -22,28 +22,28 @@ export const routes: RouteMap = {}
 
 type RoutePlusTab = {route: RouteMap; tab: Tabs.Tab}
 
-// Need all these as clauses as TS will ignore everything if it sees a single any
-const _newRoutes: ReadonlyArray<RoutePlusTab> = [
-  {route: deviceNewRoutes, tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab} as RoutePlusTab,
-  {route: chatNewRoutes, tab: Tabs.chatTab} as RoutePlusTab,
-  {route: cryptoNewRoutes, tab: Tabs.cryptoTab} as RoutePlusTab,
-  {route: peopleNewRoutes, tab: Tabs.peopleTab} as RoutePlusTab,
-  {route: profileNewRoutes, tab: Tabs.peopleTab} as RoutePlusTab,
-  {route: fsNewRoutes, tab: Tabs.fsTab} as RoutePlusTab,
-  {route: settingsNewRoutes, tab: Tabs.settingsTab} as RoutePlusTab,
-  {route: teamsNewRoutes, tab: Tabs.teamsTab} as RoutePlusTab,
-  {route: gitNewRoutes, tab: Tabs.gitTab} as RoutePlusTab,
-]
+const _newRoutes = [
+  {route: deviceNewRoutes, tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab},
+  {route: chatNewRoutes, tab: Tabs.chatTab},
+  {route: cryptoNewRoutes, tab: Tabs.cryptoTab},
+  {route: peopleNewRoutes, tab: Tabs.peopleTab},
+  {route: profileNewRoutes, tab: Tabs.peopleTab},
+  {route: fsNewRoutes, tab: Tabs.fsTab},
+  {route: settingsNewRoutes, tab: Tabs.settingsTab},
+  {route: teamsNewRoutes, tab: Tabs.teamsTab},
+  {route: gitNewRoutes, tab: Tabs.gitTab},
+] satisfies ReadonlyArray<RoutePlusTab>
 
 const seenNames = new Set()
 _newRoutes.forEach(({route}) => {
-  Object.keys(route).forEach(name => {
+  const routeMap = route as RouteMap
+  Object.keys(routeMap).forEach(name => {
     // Just sanity check dupes
     if (seenNames.has(name)) {
       throw new Error('New route with dupe name, disallowed! ' + name)
     }
     seenNames.add(name)
-    routes[name] = route[name]
+    routes[name] = routeMap[name]
   })
 })
 
@@ -62,27 +62,28 @@ export const tabRoots = {
 } as const
 
 const _modalRoutes = [
-  chatNewModalRoutes as RouteMap,
-  cryptoNewModalRoutes as RouteMap,
-  deviceNewModalRoutes as RouteMap,
-  fsNewModalRoutes as RouteMap,
-  gitNewModalRoutes as RouteMap,
-  loginNewModalRoutes as RouteMap,
-  peopleNewModalRoutes as RouteMap,
-  profileNewModalRoutes as RouteMap,
-  settingsNewModalRoutes as RouteMap,
-  signupNewModalRoutes as RouteMap,
-  teamsNewModalRoutes as RouteMap,
-  walletsNewModalRoutes as RouteMap,
-  incomingShareNewModalRoutes as RouteMap,
-]
+  chatNewModalRoutes,
+  cryptoNewModalRoutes,
+  deviceNewModalRoutes,
+  fsNewModalRoutes,
+  gitNewModalRoutes,
+  loginNewModalRoutes,
+  peopleNewModalRoutes,
+  profileNewModalRoutes,
+  settingsNewModalRoutes,
+  signupNewModalRoutes,
+  teamsNewModalRoutes,
+  walletsNewModalRoutes,
+  incomingShareNewModalRoutes,
+] satisfies ReadonlyArray<RouteMap>
 
-export const modalRoutes: RouteMap = _modalRoutes.reduce<RouteMap>((obj, modal) => {
-  for (const name of Object.keys(modal)) {
+export const modalRoutes = _modalRoutes.reduce<RouteMap>((obj, modal) => {
+  const modalMap = modal as RouteMap
+  for (const name of Object.keys(modalMap)) {
     if (obj[name]) {
       throw new Error('New modal route with dupe name, disallowed! ' + name)
     }
-    obj[name] = modal[name]
+    obj[name] = modalMap[name]
   }
   return obj
 }, {})
