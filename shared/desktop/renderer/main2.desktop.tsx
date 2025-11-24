@@ -92,6 +92,22 @@ const FontLoader = () => (
   </div>
 )
 
+const DarkCSSInjector = () => {
+  const isDark = C.useDarkModeState(s => s.isDarkMode())
+  const [lastIsDark, setLastIsDark] = React.useState<boolean | undefined>()
+  if (lastIsDark !== isDark) {
+    setLastIsDark(isDark)
+    if (isDark) {
+      document.body.classList.add('darkMode')
+      document.body.classList.remove('lightMode')
+    } else {
+      document.body.classList.remove('darkMode')
+      document.body.classList.add('lightMode')
+    }
+  }
+  return null
+}
+
 const UseStrict = true as boolean
 const WRAP = UseStrict
   ? ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
@@ -103,12 +119,10 @@ const render = (Component = Main) => {
     throw new Error('No root element?')
   }
 
-  // Wrap Root here if you want the app to be strict, it currently doesn't work with react-native-web
-  // until 0.19.1+ lands. I tried this when it just did but there's other issues so we have to keep it off
-  // else all nav stuff is broken
   ReactDOM.createRoot(root).render(
     <WRAP>
       <Root>
+        <DarkCSSInjector />
         <FontLoader />
         <div style={{display: 'flex', flex: 1}}>
           <Component />

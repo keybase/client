@@ -265,6 +265,12 @@ body {
   }
 }
 
+.darkMode {
+  --scrollbar-color: rgba(255, 255, 255, 0.2);
+  --scrollbar-color-hover: rgba(255, 255, 255, 0.3);
+  --scrollbar-color-active: rgb(255, 255, 255, 0.5);
+}
+
 /* Used to customize scrollbars and enable testing the auto hide behavior on os x */
 body {
   scrollbar-color: var(--scrollbar-color) var(--scrollbar-track-color);
@@ -307,6 +313,10 @@ body {
   }
 }
 
+.darkMode input {
+  background-color: #191919;
+}
+
 #root {
   position: absolute;
   display: flex;
@@ -339,6 +349,10 @@ body {
   .emoji-picker-emoji-box:hover {
     background-color: rgba(255, 255, 255, 0.15);
   }
+}
+
+.darkMode .emoji-picker-emoji-box:hover {
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 .hover-underline {
@@ -500,6 +514,13 @@ body {
   }
 }
 
+.darkMode {
+  background-color: #191919;
+  &.isWidget {
+    background-color: transparent;
+  }
+}
+
 .addInviteAndLinkBox {
   transition: box-shadow 0.35s;
 }
@@ -514,6 +535,12 @@ body {
     .addInviteAndLinkBox {
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
     }
+  }
+}
+
+.darkMode .headerTitle:hover {
+  .addInviteAndLinkBox {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
   }
 }
 

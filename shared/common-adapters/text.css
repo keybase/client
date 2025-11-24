@@ -66,6 +66,22 @@
   }
 }
 
+.darkMode .text_HeaderBig,
+.darkMode .text_HeaderBigExtrabold,
+.darkMode .text_Header,
+.darkMode .text_HeaderItalic,
+.darkMode .text_HeaderExtrabold,
+.darkMode .text_BodyBig,
+.darkMode .text_BodyBigExtrabold,
+.darkMode .text_BodyExtrabold,
+.darkMode .text_BodySemiboldItalic,
+.darkMode .text_BodyBold,
+.darkMode .text_BodySemibold,
+.darkMode .text_BodyItalic,
+.darkMode .text_Body {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .text_BodySecondaryLink,
 .text_BodySmall,
 .text_BodySmallBold,
@@ -181,6 +197,10 @@
   }
 }
 
+.darkMode .text_HeaderLink {
+  color: var(--color-blueDarker2_75);
+}
+
 :is(.text_BodyBig, .text_BodyBigExtrabold, .text_BodyBigLink) {
   font-size: 15px;
   line-height: 19px;
@@ -257,6 +277,10 @@
   }
 }
 
+.darkMode .text_Terminal {
+  color: #4c8eff;
+}
+
 .text_TerminalComment {
   color: var(--color-blueLighter_40);
 }
@@ -280,6 +304,10 @@
   .text_TerminalInline {
     color: #f00;
   }
+}
+
+.darkMode .text_TerminalInline {
+  color: #f00;
 }
 
 .text_center {

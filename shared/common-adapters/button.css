@@ -52,6 +52,10 @@
     background-color: rgba(255, 255, 255, 0.05);
   }
 }
+
+.darkMode .button__underlay_black:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
 .button__underlay_yellow:hover {
   background-color: rgba(255, 248, 90, 0.05);
 }
