@@ -7,24 +7,6 @@
       animation: highlightAnimation 0.3s ease-in forwards running;
     }
   }
-
-  &.highlighted {
-    .separator-text {
-      /* Handled by media query below */
-    }
-    &:hover {
-      .explodingTimeContainer {
-        /* Handled by media query below */
-      }
-      .explodingTimeText {
-        /* Handled by media query below */
-      }
-
-      .explodingTimeIcon {
-        /* Handled by media query below */
-      }
-    }
-  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -32,15 +14,15 @@
   .WrapperMessage.highlighted .separator-text span {
     color: rgba(0, 0, 0, 0.85) !important;
   }
-  
+
   .WrapperMessage.highlighted:hover .explodingTimeContainer {
     background-color: rgba(255, 255, 255, 0.85) !important;
   }
-  
+
   .WrapperMessage.highlighted:hover .explodingTimeText {
     color: rgba(0, 0, 0, 0.85) !important;
   }
-  
+
   .WrapperMessage.highlighted:hover .explodingTimeIcon {
     color: rgba(255, 255, 255, 0.85) !important;
   }
@@ -117,7 +99,7 @@
   .WrapperMessage-hoverColor:hover {
     background-color: var(--color-blueLighter3);
   }
-  
+
   .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
     box-shadow: none;
   }
@@ -162,7 +144,7 @@
   .ReplyBox:hover {
     background-color: var(--color-blackOrBlack);
   }
-  
+
   .ReplyBox:hover .text_BodySmall {
     color: var(--color-whiteOrWhite) !important;
   }
