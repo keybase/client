@@ -212,9 +212,6 @@ export const undynamicColor = (col: string) => col
 export const normalizePath = (p: string) => p
 export const unnormalizePath = (p: string) => p
 
-// Global hook for tracking system dark mode preference
-// Use this anywhere you need JS dark mode detection (images, animations, conditional logic)
-// For colors/styling, prefer CSS variables which update automatically
 export const useIsDarkMode = () => {
   const [isDark, setIsDark] = React.useState(() => {
     if (typeof window === 'undefined') return false
