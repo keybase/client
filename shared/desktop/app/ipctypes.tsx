@@ -65,7 +65,6 @@ export type Action =
   | {type: 'uninstallDokanDialog'}
   | {type: 'selectFilesToUploadDialog'; payload: {parent?: string; type: 'file' | 'directory' | 'both'}}
   | {type: 'ctlQuit'}
-  | {type: 'setDarkModePreference'; payload: {preference: 'system' | 'alwaysDark' | 'alwaysLight'}}
   | {
       type: 'windowsCheckMountFromOtherDokanInstall'
       payload: {
