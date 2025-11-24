@@ -134,7 +134,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
             offset: headerHeight + (index > 0 ? index - 1 : index) * rowHeight,
           }
     }
-    return {getItemLayout, type: 'variable'} as const
+    return {getItemLayout, type: 'variable' as const}
   }, [rowHeight, filtering])
 
   const renderItem = (_: unknown, item: T.Unpacked<typeof items>) => {

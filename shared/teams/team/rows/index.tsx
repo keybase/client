@@ -131,7 +131,7 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
   const resetMembers = [...details.members.values()].filter(m => m.status === 'reset')
 
   if (details.requests.size || resetMembers.length) {
-    const requestsSection: Section = {
+    const requestsSection = {
       data: [
         ...[...details.requests].map(
           req =>
@@ -160,7 +160,7 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
           <RequestRow {...item} teamID={teamID} firstItem={index === 0} />
         ) : null,
       title: Kb.Styles.isMobile ? `Requests (${details.requests.size})` : undefined,
-    }
+    } satisfies Section
     sections.push(requestsSection)
   }
   if (details.invites.size) {

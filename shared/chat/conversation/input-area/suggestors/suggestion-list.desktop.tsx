@@ -24,7 +24,7 @@ const SuggestionList = <I,>(props: Props<I>) => {
 
   const rowHeight = useDynamicRowHeight({defaultRowHeight: 24})
   const itemHeight = React.useMemo(() => {
-    return {rowHeight, type: 'trueVariable'} as const
+    return {rowHeight, type: 'trueVariable' as const}
   }, [rowHeight])
 
   if (
