@@ -77,7 +77,6 @@ export default (ownProps: Props) => {
 
   const {address, token} = httpSrv
 
-  // Track system dark mode for server avatar URLs
   const isDarkMode = Styles.useIsDarkMode()
 
   const urlMap = React.useMemo(
@@ -106,7 +105,7 @@ export default (ownProps: Props) => {
                   : avatarPlaceHolders,
               size
             ),
-    [address, name, imageOverrideUrl, lighterPlaceholders, size, urlMap, isTeam, isDarkMode]
+    [address, name, imageOverrideUrl, lighterPlaceholders, size, urlMap, isTeam]
   )
 
   // For <img> tags (desktop only): extract src and srcset
