@@ -180,14 +180,21 @@ export const padding = (top: number, right?: number, bottom?: number, left?: num
 })
 /* eslint-enable sort-keys */
 
+// Hook for tracking dark mode - respects user preference override and system
+// Works on both native and desktop via react-native-web's useColorScheme
 export const useIsDarkMode = () => {
-  const s = useColorScheme()
-  switch (s) {
-    case 'light':
-      return false
-    case 'dark':
+  const darkModePreference = require('@/constants/darkmode').useState_.getState().darkModePreference
+  const systemColorScheme = useColorScheme()
+  
+  // Respect user's manual override
+  switch (darkModePreference) {
+    case 'alwaysDark':
       return true
+    case 'alwaysLight':
+      return false
+    case 'system':
     default:
-      return false // TODO check this
+      // Use react-native(-web)'s useColorScheme for system preference
+      return systemColorScheme === 'dark'
   }
 }
