@@ -147,7 +147,6 @@ export const initDesktopStyles = () => {
         }
 `
   const helpers = colorNames.reduce((s, name) => {
-    // For _important variants, use the light color (unthemed) so negative text is always visible
     const importantColor = String(colors[name])
     return (
       s +
@@ -161,7 +160,6 @@ export const initDesktopStyles = () => {
   }, '')
   const css = colorVars + helpers
   style.appendChild(document.createTextNode(css))
-  // Append at the end so it has higher cascade priority than static CSS files
   head.appendChild(style)
   fixScrollbars()
 }
