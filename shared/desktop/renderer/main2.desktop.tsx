@@ -92,9 +92,6 @@ const FontLoader = () => (
   </div>
 )
 
-// Dark mode now handled automatically via CSS @media (prefers-color-scheme: dark)
-const DarkCSSInjector = () => null
-
 const UseStrict = true as boolean
 const WRAP = UseStrict
   ? ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
@@ -112,7 +109,6 @@ const render = (Component = Main) => {
   ReactDOM.createRoot(root).render(
     <WRAP>
       <Root>
-        <DarkCSSInjector />
         <FontLoader />
         <div style={{display: 'flex', flex: 1}}>
           <Component />

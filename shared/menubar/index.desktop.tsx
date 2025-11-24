@@ -15,7 +15,6 @@ import {isLinux, isDarwin} from '@/constants/platform'
 import {type _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout'
 import {useUploadCountdown} from '@/fs/footer/use-upload-countdown'
 import type {DeserializeProps} from './remote-serializer.desktop'
-import {DarkCSSInjector} from '@/desktop/renderer/dark-injector.desktop'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -345,7 +344,6 @@ const MenubarRender = (p: Props) => {
 
   return (
     <Kb.Styles.DarkModeContext.Provider value={darkMode}>
-      <DarkCSSInjector />
       <Kb.Box2 direction="vertical" style={styles.widgetContainer}>
         {isDarwin && <ArrowTick />}
         <IconBar {...p} showBadges={loggedIn} />
