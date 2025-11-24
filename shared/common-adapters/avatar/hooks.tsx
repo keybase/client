@@ -105,7 +105,7 @@ export default (ownProps: Props) => {
                   : avatarPlaceHolders,
               size
             ),
-    [address, name, imageOverrideUrl, lighterPlaceholders, size, urlMap, isTeam]
+    [address, name, imageOverrideUrl, lighterPlaceholders, size, urlMap, isTeam, isDarkMode]
   )
 
   // For <img> tags (desktop only): extract src and srcset
