@@ -80,16 +80,16 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         // update Electron's nativeTheme
         const f = async () => {
           try {
-            const {KB2} = await import('@/util/electron.desktop')
+            const {default: KB2} = await import('@/util/electron.desktop')
             switch (p) {
               case 'system':
-                await KB2.functions.setNativeTheme('system')
+                await KB2.functions.setNativeTheme?.('system')
                 break
               case 'alwaysDark':
-                await KB2.functions.setNativeTheme('dark')
+                await KB2.functions.setNativeTheme?.('dark')
                 break
               case 'alwaysLight':
-                await KB2.functions.setNativeTheme('light')
+                await KB2.functions.setNativeTheme?.('light')
                 break
             }
           } catch {}
