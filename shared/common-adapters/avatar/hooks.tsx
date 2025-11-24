@@ -10,6 +10,24 @@ import type {Props} from '.'
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = (typeof avatarSizes)[number]
 
+// Local hook for avatars - tracks system dark mode preference for server URLs
+const useAvatarDarkMode = () => {
+  const [isDark, setIsDark] = React.useState(() => {
+    if (typeof window === 'undefined') return false
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  })
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches)
+    mediaQuery.addEventListener('change', handler)
+    return () => mediaQuery.removeEventListener('change', handler)
+  }, [])
+
+  return isDark
+}
+
 const avatarPlaceHolders: {[key: string]: string} = {
   '192': 'avatar-placeholder-192',
   '256': 'avatar-placeholder-256',
@@ -77,17 +95,20 @@ export default (ownProps: Props) => {
 
   const {address, token} = httpSrv
 
-  // Server avatars - let server decide mode or always use light mode
-  // Dark mode styling handled by CSS filters if needed
+  // Track system dark mode for server avatar URLs
+  const isDarkMode = useAvatarDarkMode()
+
   const urlMap = React.useMemo(
     () =>
       sizes.reduce<{[key: number]: string}>((m, size) => {
         m[size] = `http://${address}/av?typ=${
           isTeam ? 'team' : 'user'
-        }&name=${name}&format=square_${size}&token=${token}&count=${counter}`
+        }&name=${name}&format=square_${size}&mode=${isDarkMode ? 'dark' : 'light'}&token=${
+          token
+        }&count=${counter}`
         return m
       }, {}),
-    [counter, address, token, isTeam, name]
+    [counter, address, token, isTeam, name, isDarkMode]
   )
   // For placeholders, use CSS classes instead of inline styles
   const getPlaceholderSize = (targetSize: number) => {
