@@ -536,6 +536,21 @@ const plumbEvents = () => {
         ctlQuit()
         return
       }
+      case 'setDarkModePreference': {
+        const {preference} = action.payload
+        switch (preference) {
+          case 'system':
+            Electron.nativeTheme.themeSource = 'system'
+            break
+          case 'alwaysDark':
+            Electron.nativeTheme.themeSource = 'dark'
+            break
+          case 'alwaysLight':
+            Electron.nativeTheme.themeSource = 'light'
+            break
+        }
+        return
+      }
       case 'selectFilesToUploadDialog': {
         const w = Electron.BrowserWindow.getFocusedWindow()
         if (!w) return []

@@ -130,12 +130,6 @@ export const initDesktopStyles = () => {
   const head = document.head
   const style = document.createElement('style')
   const colorNames = Object.keys(colors) as Array<keyof typeof colors>
-  const darkVars = colorNames
-    .reduce((s, name) => {
-      s.push(`--color-${name}: ${darkColors[name]};`)
-      return s
-    }, new Array<string>())
-    .join(' ')
   const colorVars = `
         :root { ${colorNames
           .reduce((s, name) => {
@@ -144,9 +138,12 @@ export const initDesktopStyles = () => {
           }, new Array<string>())
           .join(' ')} }
         @media (prefers-color-scheme: dark) {
-          :root { ${darkVars} }
-        }
-        .darkMode { ${darkVars} }
+          :root { ${colorNames
+            .reduce((s, name) => {
+              s.push(`--color-${name}: ${darkColors[name]};`)
+              return s
+            }, new Array<string>())
+            .join(' ')} }
 `
   const helpers = colorNames.reduce((s, name) => {
     return (

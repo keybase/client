@@ -28,22 +28,9 @@
   }
 }
 
-.darkMode .WrapperMessage.highlighted .separator-text,
-.darkMode .WrapperMessage.highlighted .separator-text span {
-  color: rgba(0, 0, 0, 0.85) !important;
-}
 
-.darkMode .WrapperMessage.highlighted:hover .explodingTimeContainer {
-  background-color: rgba(255, 255, 255, 0.85) !important;
-}
 
-.darkMode .WrapperMessage.highlighted:hover .explodingTimeText {
-  color: rgba(0, 0, 0, 0.85) !important;
-}
 
-.darkMode .WrapperMessage.highlighted:hover .explodingTimeIcon {
-  color: rgba(255, 255, 255, 0.85) !important;
-}
 
 @keyframes highlightAnimation {
   from {
@@ -122,13 +109,7 @@
   }
 }
 
-.darkMode .WrapperMessage-hoverColor:hover {
-  background-color: var(--color-blueLighter3);
-}
 
-.darkMode .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
-  box-shadow: none;
-}
 
 .TextAndSiblings {
   &.noOverflow {
@@ -152,9 +133,6 @@
   }
 }
 
-.darkMode .WrapperMessage-decorated.active {
-  background-color: var(--color-blueLighter3);
-}
 .WrapperMessage-author {
   padding-left: 0;
   padding-top: 8px;
@@ -179,13 +157,7 @@
   }
 }
 
-.darkMode .ReplyBox:hover {
-  background-color: var(--color-blackOrBlack);
-}
 
-.darkMode .ReplyBox:hover .text_BodySmall {
-  color: var(--color-whiteOrWhite) !important;
-}
 
 .react-button {
   &.border {

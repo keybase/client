@@ -141,9 +141,6 @@
   }
 }
 
-.darkMode .avatar-background {
-  background-color: #0f0f0f;
-}
 
 /* Image layer - no border-radius needed, parent clips via overflow */
 .avatar-user-image {
@@ -189,9 +186,6 @@ img.avatar-user-image {
   }
 }
 
-.darkMode .avatar-border-team {
-  background: rgba(255, 255, 255, 0);
-}
 
 .avatar-border {
   background: rgba(0, 0, 0, 0);
@@ -203,6 +197,3 @@ img.avatar-user-image {
   }
 }
 
-.darkMode .avatar-border {
-  background: rgba(255, 255, 255, 0);
-}

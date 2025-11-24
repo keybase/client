@@ -76,6 +76,15 @@ export const useState_ = Z.createZustand<State>((set, get) => {
             Appearance.setColorScheme('light')
             break
         }
+      } else {
+        // update Electron's nativeTheme
+        const f = async () => {
+          try {
+            const {KB2} = await import('@/util/electron.desktop')
+            await KB2.functions.kbfsActionWOMP('setDarkModePreference', {preference: p})
+          } catch {}
+        }
+        ignorePromise(f())
       }
 
       set(s => {

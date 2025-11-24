@@ -156,20 +156,24 @@ const loadWindowState = () => {
           case 'system':
             darkModePreference = darkMode
             isDarkMode = KB2.constants.startDarkMode
+            Electron.nativeTheme.themeSource = 'system'
             break
           case 'alwaysDark':
             darkModePreference = darkMode
             isDarkMode = true
+            Electron.nativeTheme.themeSource = 'dark'
             break
           case 'alwaysLight':
             darkModePreference = darkMode
             isDarkMode = false
+            Electron.nativeTheme.themeSource = 'light'
             break
         }
       }
     } else {
       darkModePreference = 'system'
       isDarkMode = KB2.constants.startDarkMode
+      Electron.nativeTheme.themeSource = 'system'
     }
 
     const obj = JSON.parse(typeof guiConfig?.windowState === 'string' ? guiConfig.windowState : '') as
