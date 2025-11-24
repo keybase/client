@@ -129,7 +129,7 @@ function formMonths<I extends {ctime: number; key: string}>(
   const dateInfo = getDateInfo(items[0]!)
   let curMonth = {
     ...dateInfo,
-    data: [] satisfies Array<I>,
+    data: new Array<I>(),
     key: `month-${dateInfo.year}-${dateInfo.month}`,
   }
   const months = items.reduce<Array<typeof curMonth>>((l, item, index) => {
