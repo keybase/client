@@ -536,6 +536,17 @@ const plumbEvents = () => {
         ctlQuit()
         return
       }
+      case 'setNativeTheme': {
+        const {theme} = action.payload
+        switch (theme) {
+          case 'system':
+          case 'light':
+          case 'dark':
+            Electron.nativeTheme.themeSource = theme
+            break
+        }
+        return
+      }
       case 'setDarkModePreference': {
         const {preference} = action.payload
         switch (preference) {

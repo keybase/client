@@ -28,10 +28,6 @@
   }
 }
 
-
-
-
-
 @keyframes highlightAnimation {
   from {
     background-color: var(--color-transparent);
@@ -109,8 +105,6 @@
   }
 }
 
-
-
 .TextAndSiblings {
   &.noOverflow {
     overflow: hidden;
@@ -156,8 +150,6 @@
     color: var(--color-whiteOrWhite) !important;
   }
 }
-
-
 
 .react-button {
   &.border {

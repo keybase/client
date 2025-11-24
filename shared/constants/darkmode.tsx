@@ -81,7 +81,17 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         const f = async () => {
           try {
             const {KB2} = await import('@/util/electron.desktop')
-            await KB2.functions.kbfsActionWOMP('setDarkModePreference', {preference: p})
+            switch (p) {
+              case 'system':
+                await KB2.functions.setNativeTheme('system')
+                break
+              case 'alwaysDark':
+                await KB2.functions.setNativeTheme('dark')
+                break
+              case 'alwaysLight':
+                await KB2.functions.setNativeTheme('light')
+                break
+            }
           } catch {}
         }
         ignorePromise(f())

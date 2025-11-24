@@ -100,6 +100,7 @@ export type KB2 = {
     closeRenderer?: (options: {windowComponent?: string; windowParam?: string}) => void
     readImageFromClipboard?: () => Promise<Uint8Array | undefined>
     setOpenAtLogin?: (enabled: boolean) => Promise<void>
+    setNativeTheme?: (theme: 'dark' | 'light' | 'system') => Promise<void>
     showOpenDialog?: (options: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options: SaveDialogOptions) => Promise<string>
     showTray?: (desktopAppBadgeCount: number, badgeType: 'regular' | 'update' | 'error' | 'uploading') => void

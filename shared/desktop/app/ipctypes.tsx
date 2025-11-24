@@ -59,6 +59,7 @@ export type Action =
   | {type: 'quitApp'}
   | {type: 'exitApp'; payload: {code: number}}
   | {type: 'setOpenAtLogin'; payload: {enabled: boolean}}
+  | {type: 'setNativeTheme'; payload: {theme: 'system' | 'dark' | 'light'}}
   | {type: 'relaunchApp'}
   | {type: 'uninstallKBFSDialog'}
   | {type: 'uninstallDokanDialog'}
