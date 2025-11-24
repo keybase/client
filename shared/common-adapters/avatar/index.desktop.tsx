@@ -134,11 +134,11 @@ const styles = Styles.styleSheetCreate(
     ({
       border: Styles.platformStyles({
         isElectron: {boxShadow: `0px 0px 0px 2px ${Styles.globalColors.black_10}}`},
-      } as const),
+      }),
       borderTeam: Styles.platformStyles({
         isElectron: {boxShadow: `0px 0px 0px 1px ${Styles.globalColors.black_10} inset`},
-      } as const),
-      clickable: Styles.platformStyles({isElectron: {...Styles.desktopStyles.clickable}} as const),
+      }),
+      clickable: Styles.platformStyles({isElectron: {...Styles.desktopStyles.clickable}}),
       edit: {
         bottom: 0,
         position: 'absolute',

@@ -240,7 +240,7 @@ const Container = (op: OwnProps) => {
     path && layout.archive && pathItem.type === T.FS.PathType.Folder
       ? () => {
           navigateAppend({
-            props: {path, type: 'fsPath'} as const,
+            props: {path, type: 'fsPath' as const},
             selected: 'archiveModal',
           })
         }

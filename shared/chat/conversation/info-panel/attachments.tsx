@@ -129,7 +129,7 @@ function formMonths<I extends {ctime: number; key: string}>(
   const dateInfo = getDateInfo(items[0]!)
   let curMonth = {
     ...dateInfo,
-    data: [] as Array<I>,
+    data: new Array<I>(),
     key: `month-${dateInfo.year}-${dateInfo.month}`,
   }
   const months = items.reduce<Array<typeof curMonth>>((l, item, index) => {
@@ -502,17 +502,17 @@ export const useAttachmentSections = (
   const onShowInFinder = (message: T.Chat.MessageAttachment) =>
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
 
-  const avSection: Section = {
-    data: [{type: 'avselector'}],
+  const avSection = {
+    data: [{type: 'avselector'}] as const,
     renderItem: () => (
       <AttachmentTypeSelector selectedView={selectedAttachmentView} onSelectView={onAttachmentViewChange} />
     ),
-  } as const
+  } satisfies Section
 
   const commonSections: Array<Section> = [...(p.commonSections as Array<Section>), avSection]
 
-  const loadMoreSection: Section = {
-    data: [{type: 'load-more'}],
+  const loadMoreSection = {
+    data: [{type: 'load-more'}] as const,
     renderItem: () => {
       const status = attachmentInfo?.status
       if (onLoadMore && status !== 'loading') {
@@ -540,18 +540,18 @@ export const useAttachmentSections = (
       }
       return null
     },
-  } as const
+  } satisfies Section
 
   let sections: Array<Section>
   if (!attachmentInfo?.messages.length && attachmentInfo?.status !== 'loading') {
-    const noAttachmentsSection: Section = {
-      data: [{type: 'no-attachments'}],
+    const noAttachmentsSection = {
+      data: [{type: 'no-attachments'}] as const,
       renderItem: () => (
         <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
           <Kb.Text type="BodySmall">No attachments</Kb.Text>
         </Kb.Box2>
       ),
-    } as const
+    } satisfies Section
     sections = [...commonSections, noAttachmentsSection, loadMoreSection]
   } else {
     switch (selectedAttachmentView) {

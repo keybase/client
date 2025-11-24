@@ -67,7 +67,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 
   const onArchive = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, type: 'chatID'} as const,
+      props: {conversationIDKey, type: 'chatID' as const},
       selected: 'archiveModal',
     }))
   }
@@ -208,9 +208,9 @@ type Props = {
 
 const SettingsTab = (p: Props) => {
   const section = {
-    data: [{type: 'settings-panel'}],
+    data: [{type: 'settings-panel'}] as const,
     renderItem: () => <SettingsPanel isPreview={p.isPreview} />,
-  } as const
+  } satisfies Section
   const sections: Array<Section> = [...p.commonSections, section]
   return (
     <Kb.SectionList

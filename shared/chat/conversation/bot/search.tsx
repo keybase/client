@@ -70,7 +70,7 @@ const SearchBotPopup = (props: Props) => {
   if (!botData.length && !waiting) {
     botData.push({type: 'dummy', value: resultEmptyPlaceholder})
   }
-  const botSection: Section = {
+  const botSection = {
     data: botData,
     renderItem: ({index, item}: {index: number; item: Item}) => {
       return item.type === 'dummy' && item.value === resultEmptyPlaceholder ? (
@@ -85,7 +85,7 @@ const SearchBotPopup = (props: Props) => {
       ) : null
     },
     title: 'Featured bots',
-  }
+  } satisfies Section
   const userData: Array<Item> = !lastQuery.length
     ? [{type: 'dummy', value: userEmptyPlaceholder} as const]
     : (
@@ -98,7 +98,7 @@ const SearchBotPopup = (props: Props) => {
   if (!userData.length && !waiting) {
     userData.push({type: 'dummy', value: resultEmptyPlaceholder} as const)
   }
-  const usersSection: Section = {
+  const usersSection = {
     data: userData,
     renderItem: ({item}: {item: Item}) => {
       return (
@@ -124,7 +124,7 @@ const SearchBotPopup = (props: Props) => {
       )
     },
     title: 'Users',
-  }
+  } satisfies Section
   return (
     <Kb.Modal
       onClose={onClose}

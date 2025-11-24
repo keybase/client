@@ -131,7 +131,7 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
   const resetMembers = [...details.members.values()].filter(m => m.status === 'reset')
 
   if (details.requests.size || resetMembers.length) {
-    const requestsSection: Section = {
+    const requestsSection = {
       data: [
         ...[...details.requests].map(
           req =>
@@ -160,7 +160,7 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
           <RequestRow {...item} teamID={teamID} firstItem={index === 0} />
         ) : null,
       title: Kb.Styles.isMobile ? `Requests (${details.requests.size})` : undefined,
-    }
+    } satisfies Section
     sections.push(requestsSection)
   }
   if (details.invites.size) {
@@ -225,14 +225,14 @@ export const useChannelsSections = (
     },
     channels.size < 5 && yourOperations.createChannel
       ? ({
-          data: [{type: 'channel-few'}],
+          data: [{type: 'channel-few'}] as const,
           renderItem: ({item}: {item: Item}) =>
             item.type === 'channel-few' ? <EmptyRow type="channelsFew" teamID={teamID} /> : null,
-        } as const)
+        } satisfies Section)
       : ({
-          data: [{type: 'channel-info'}],
+          data: [{type: 'channel-info'}] as const,
           renderItem: ({item}: {item: Item}) => (item.type === 'channel-info' ? <ChannelFooterRow /> : null),
-        } as const),
+        } satisfies Section),
   ] as Array<Section>
 }
 

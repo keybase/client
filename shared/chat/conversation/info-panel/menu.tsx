@@ -260,12 +260,12 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const onArchive = () => {
     if (isAdhoc && conversationIDKey) {
       _navigateAppend({
-        props: {conversationIDKey, type: 'chatID'} as const,
+        props: {conversationIDKey, type: 'chatID' as const},
         selected: 'archiveModal',
       })
     } else if (teamname) {
       _navigateAppend({
-        props: {teamname, type: 'chatTeam'} as const,
+        props: {teamname, type: 'chatTeam' as const},
         selected: 'archiveModal',
       })
     }
