@@ -67,7 +67,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 
   const onArchive = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, type: 'chatID'} as const,
+      props: {conversationIDKey, type: 'chatID' as const},
       selected: 'archiveModal',
     }))
   }

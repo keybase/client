@@ -15,9 +15,9 @@ type OwnProps = {
 const notAUserAssertion = {
   assertionKey: '',
   belowFold: false,
-  color: 'gray' as const,
+  color: 'gray',
   kid: '',
-  metas: [{color: 'gray' as const, label: 'PENDING'}],
+  metas: [{color: 'gray', label: 'PENDING'}],
   pickerSubtext: '',
   pickerText: '',
   priority: 0,
@@ -28,9 +28,9 @@ const notAUserAssertion = {
   siteIconFull: null,
   siteIconFullDarkmode: null,
   siteURL: '',
-  state: 'checking' as const,
+  state: 'checking',
   timestamp: 0,
-}
+} satisfies Omit<T.Tracker.Assertion, 'type' | 'value' | 'wotProof'>
 
 const Container = (ownProps: OwnProps) => {
   const isYours = C.useCurrentUserState(s => ownProps.username === s.username)
