@@ -17,6 +17,9 @@ const Icon = React.memo<Props>(
     const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
     const {className, hint, colorOverride, padding, boxStyle, allowLazy = true} = props
     const iconType = type
+    // Only subscribe to dark mode if this icon has a dark variant
+    const hasDarkVariant = !!iconMeta[iconType].nameDark
+    const isDarkMode = Styles.useIsDarkMode() && hasDarkVariant
 
     if (!Shared.isValidIconType(iconType)) {
       logger.warn('Unknown icontype passed', iconType)
@@ -91,7 +94,7 @@ const Icon = React.memo<Props>(
           title={hint}
           style={imgStyle}
           onClick={onClick || undefined}
-          srcSet={iconTypeToSrcSet(iconType)}
+          srcSet={iconTypeToSrcSet(iconType, isDarkMode)}
         />
       )
     }
@@ -185,9 +188,9 @@ const imgName = (
     postfix || ''
   } ${mult}x`
 
-function iconTypeToSrcSet(type: IconType) {
+function iconTypeToSrcSet(type: IconType, isDarkMode: boolean) {
   const ext = Shared.typeExtension(type)
-  const name: string = (Styles.isDarkMode() && iconMeta[type].nameDark) || type
+  const name: string = (isDarkMode && iconMeta[type].nameDark) || type
   const imagesDir = Shared.getImagesDir(type)
   return [1, 2, 3].map(mult => imgName(name, ext, imagesDir, mult)).join(', ')
 }

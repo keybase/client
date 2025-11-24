@@ -19,5 +19,11 @@ import {useState_ as useDarkModeState} from '@/constants/darkmode'
 // the explicit colors/darkColors and not this magic wrapper
 //
 
-export const isDarkMode = () => useDarkModeState.getState().isDarkMode()
+export const isDarkMode = () => {
+  // Check actual system preference for CSS-based dark mode
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
+  return false
+}
 export const DarkModeContext = React.createContext(isDarkMode())

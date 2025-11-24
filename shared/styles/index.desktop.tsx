@@ -5,6 +5,7 @@ import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
 import {getAssetPath} from '@/constants/platform.desktop'
 import * as Path from '@/util/path'
+import * as React from 'react'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -247,7 +248,22 @@ export const undynamicColor = (col: string) => col
 export const normalizePath = (p: string) => p
 export const unnormalizePath = (p: string) => p
 
+// Global hook for tracking system dark mode preference
+// Use this anywhere you need JS dark mode detection (images, animations, conditional logic)
+// For colors/styling, prefer CSS variables which update automatically
 export const useIsDarkMode = () => {
-  // For CSS-only dark mode, just return false - CSS media queries handle it
-  return false
+  const [isDark, setIsDark] = React.useState(() => {
+    if (typeof window === 'undefined') return false
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  })
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches)
+    mediaQuery.addEventListener('change', handler)
+    return () => mediaQuery.removeEventListener('change', handler)
+  }, [])
+
+  return isDark
 }

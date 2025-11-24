@@ -10,24 +10,6 @@ import type {Props} from '.'
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = (typeof avatarSizes)[number]
 
-// Local hook for avatars - tracks system dark mode preference for server URLs
-const useAvatarDarkMode = () => {
-  const [isDark, setIsDark] = React.useState(() => {
-    if (typeof window === 'undefined') return false
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
-  })
-
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches)
-    mediaQuery.addEventListener('change', handler)
-    return () => mediaQuery.removeEventListener('change', handler)
-  }, [])
-
-  return isDark
-}
-
 const avatarPlaceHolders: {[key: string]: string} = {
   '192': 'avatar-placeholder-192',
   '256': 'avatar-placeholder-256',
@@ -96,7 +78,7 @@ export default (ownProps: Props) => {
   const {address, token} = httpSrv
 
   // Track system dark mode for server avatar URLs
-  const isDarkMode = useAvatarDarkMode()
+  const isDarkMode = Styles.useIsDarkMode()
 
   const urlMap = React.useMemo(
     () =>
