@@ -77,7 +77,7 @@ const _modalRoutes = [
   incomingShareNewModalRoutes,
 ] satisfies ReadonlyArray<RouteMap>
 
-export const modalRoutes = _modalRoutes.reduce((obj, modal) => {
+export const modalRoutes = _modalRoutes.reduce<RouteMap>((obj, modal) => {
   const modalMap = modal as RouteMap
   for (const name of Object.keys(modalMap)) {
     if (obj[name]) {
@@ -86,6 +86,6 @@ export const modalRoutes = _modalRoutes.reduce((obj, modal) => {
     obj[name] = modalMap[name]
   }
   return obj
-}, {} as RouteMap) satisfies RouteMap
+}, {})
 
 export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes}
