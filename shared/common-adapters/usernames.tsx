@@ -367,8 +367,8 @@ const styles = Styles.styleSheetCreate(() => ({
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
     },
-  } as const),
-  joinerStyle: Styles.platformStyles({isElectron: {textDecoration: 'none'}} as const),
+  }),
+  joinerStyle: Styles.platformStyles({isElectron: {textDecoration: 'none'}}),
   kerning: {letterSpacing: 0.2},
   noLineHeight: {lineHeight: undefined},
   nonInlineStyle: Styles.platformStyles({
@@ -377,7 +377,7 @@ const styles = Styles.styleSheetCreate(() => ({
       flexWrap: 'wrap',
     },
     isElectron: {textDecoration: 'inherit'},
-  } as const),
+  }),
 }))
 
 export default Usernames

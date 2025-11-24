@@ -150,7 +150,7 @@ const AnimatedExpand = (() => {
       const {expandInput, expanded} = p
       const offset = useSharedValue(expanded ? 1 : 0)
       const topStyle = useAnimatedStyle(() => ({
-        transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.6}] as const,
+        transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.6}],
       }))
       const bottomStyle = useAnimatedStyle(() => ({
         transform: [

@@ -76,7 +76,7 @@ const _modalRoutes = [
   incomingShareNewModalRoutes,
 ] satisfies ReadonlyArray<RouteMap>
 
-export const modalRoutes: RouteMap = _modalRoutes.reduce<RouteMap>((obj, modal) => {
+export const modalRoutes = _modalRoutes.reduce((obj, modal) => {
   for (const name of Object.keys(modal)) {
     if (obj[name]) {
       throw new Error('New modal route with dupe name, disallowed! ' + name)
@@ -84,6 +84,6 @@ export const modalRoutes: RouteMap = _modalRoutes.reduce<RouteMap>((obj, modal) 
     obj[name] = modal[name]
   }
   return obj
-}, {})
+}, {} as RouteMap) satisfies RouteMap
 
 export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes}

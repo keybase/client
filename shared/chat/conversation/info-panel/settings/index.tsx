@@ -208,9 +208,9 @@ type Props = {
 
 const SettingsTab = (p: Props) => {
   const section = {
-    data: [{type: 'settings-panel'}],
+    data: [{type: 'settings-panel'}] as const,
     renderItem: () => <SettingsPanel isPreview={p.isPreview} />,
-  } as const
+  } satisfies Section
   const sections: Array<Section> = [...p.commonSections, section]
   return (
     <Kb.SectionList

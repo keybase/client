@@ -225,14 +225,14 @@ export const useChannelsSections = (
     },
     channels.size < 5 && yourOperations.createChannel
       ? ({
-          data: [{type: 'channel-few'}],
+          data: [{type: 'channel-few'}] as const,
           renderItem: ({item}: {item: Item}) =>
             item.type === 'channel-few' ? <EmptyRow type="channelsFew" teamID={teamID} /> : null,
-        } as const)
+        } satisfies Section)
       : ({
-          data: [{type: 'channel-info'}],
+          data: [{type: 'channel-info'}] as const,
           renderItem: ({item}: {item: Item}) => (item.type === 'channel-info' ? <ChannelFooterRow /> : null),
-        } as const),
+        } satisfies Section),
   ] as Array<Section>
 }
 
