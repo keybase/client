@@ -49,19 +49,19 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .text_HeaderBig,
-  .text_HeaderBigExtrabold,
-  .text_Header,
-  .text_HeaderItalic,
-  .text_HeaderExtrabold,
-  .text_BodyBig,
-  .text_BodyBigExtrabold,
-  .text_BodyExtrabold,
-  .text_BodySemiboldItalic,
-  .text_BodyBold,
-  .text_BodySemibold,
-  .text_BodyItalic,
-  .text_Body {
+  .text_HeaderBig:not([class*='color_']):not([style*='color']),
+  .text_HeaderBigExtrabold:not([class*='color_']):not([style*='color']),
+  .text_Header:not([class*='color_']):not([style*='color']),
+  .text_HeaderItalic:not([class*='color_']):not([style*='color']),
+  .text_HeaderExtrabold:not([class*='color_']):not([style*='color']),
+  .text_BodyBig:not([class*='color_']):not([style*='color']),
+  .text_BodyBigExtrabold:not([class*='color_']):not([style*='color']),
+  .text_BodyExtrabold:not([class*='color_']):not([style*='color']),
+  .text_BodySemiboldItalic:not([class*='color_']):not([style*='color']),
+  .text_BodyBold:not([class*='color_']):not([style*='color']),
+  .text_BodySemibold:not([class*='color_']):not([style*='color']),
+  .text_BodyItalic:not([class*='color_']):not([style*='color']),
+  .text_Body:not([class*='color_']):not([style*='color']) {
     color: rgba(255, 255, 255, 0.85);
   }
 }
