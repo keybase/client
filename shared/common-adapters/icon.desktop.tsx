@@ -17,7 +17,6 @@ const Icon = React.memo<Props>(
     const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
     const {className, hint, colorOverride, padding, boxStyle, allowLazy = true} = props
     const iconType = type
-    // Only subscribe to dark mode if this icon has a dark variant
     const hasDarkVariant = !!iconMeta[iconType].nameDark
     const isDarkMode = Styles.useIsDarkMode() && hasDarkVariant
 
