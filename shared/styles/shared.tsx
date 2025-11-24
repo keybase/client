@@ -179,9 +179,9 @@ export const padding = (top: number, right?: number, bottom?: number, left?: num
   paddingLeft: left !== undefined ? left : right !== undefined ? right : top,
 })
 /* eslint-enable sort-keys */
-
+import {useState_ as useDarkState} from '@/constants/darkmode'
 export const useIsDarkMode = () => {
-  const darkModePreference = require('@/constants/darkmode').useState_.getState().darkModePreference
+  const darkModePreference = useDarkState(s => s.darkModePreference)
   const systemColorScheme = useColorScheme()
 
   // Respect user's manual override
