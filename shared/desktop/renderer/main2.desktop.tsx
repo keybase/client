@@ -1,5 +1,4 @@
 // Entry point to the chrome part of the app
-import './style.css'
 import Main from '@/app/main.desktop'
 // order of the above must NOT change. needed for patching / hot loading to be correct
 import * as C from '@/constants'
