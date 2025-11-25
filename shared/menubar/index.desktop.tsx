@@ -38,7 +38,17 @@ export type Props = Pick<DeserializeProps, 'remoteTlfUpdates' | 'conversationsTo
   totalSyncingBytes: number
 }
 
-const ArrowTick = () => <Kb.Box style={styles.arrowTick} />
+const ArrowTick = () => {
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  return (
+    <Kb.Box
+      style={Kb.Styles.collapseStyles([
+        styles.arrowTick,
+        {borderBottomColor: isDarkMode ? '#2d2d2d' : Kb.Styles.globalColors.blueDark},
+      ])}
+    />
+  )
+}
 type UWCDProps = {
   endEstimate?: number
   files: number
@@ -194,6 +204,8 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
 
   const badgeCountInMenu = badgesInMenu.reduce((acc, val) => navBadges.get(val) ?? 0 + acc, 0)
 
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+
   return (
     <Kb.Box style={styles.topRow}>
       <Kb.Box style={styles.headerBadgesContainer}>
@@ -213,11 +225,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
         })}
       >
         <Kb.Icon
-          color={
-            Kb.Styles.isDarkMode()
-              ? Kb.Styles.globalColors.black_50OrBlack_60
-              : Kb.Styles.globalColors.blueDarker
-          }
+          color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
           hoverColor={Kb.Styles.globalColors.whiteOrWhite}
           onClick={showPopup}
           type="iconfont-nav-2-hamburger"
@@ -330,7 +338,7 @@ const MenubarRender = (p: Props) => {
     }
   }, [_darkMode, lastDM, setDarkModePreference])
 
-  const darkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   let content: React.ReactNode
   if (daemonHandshakeState === 'done' && loggedIn) {
     content = <LoggedIn {...p} />
@@ -343,7 +351,7 @@ const MenubarRender = (p: Props) => {
   }, [])
 
   return (
-    <Kb.Styles.DarkModeContext.Provider value={darkMode}>
+    <Kb.Styles.DarkModeContext.Provider value={isDarkMode}>
       <Kb.Box2 direction="vertical" style={styles.widgetContainer}>
         {isDarwin && <ArrowTick />}
         <IconBar {...p} showBadges={loggedIn} />
@@ -384,6 +392,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp
   const {tab, countMap, openApp} = p
   const count = countMap.get(tab)
   const iconType = iconMap[tab]
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
 
   if ((tab === C.Tabs.devicesTab && !count) || !iconType) {
     return null
@@ -396,11 +405,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp
       })}
     >
       <Kb.Icon
-        color={
-          Kb.Styles.isDarkMode()
-            ? Kb.Styles.globalColors.black_50OrBlack_60
-            : Kb.Styles.globalColors.blueDarker
-        }
+        color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
         hoverColor={Kb.Styles.globalColors.whiteOrWhite}
         onClick={() => openApp(tab)}
         sizeType="Big"
@@ -414,7 +419,6 @@ const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   arrowTick: {
-    borderBottomColor: Kb.Styles.isDarkMode() ? '#2d2d2d' : Kb.Styles.globalColors.blueDark,
     borderBottomWidth: 6,
     borderLeftColor: 'transparent',
     borderLeftWidth: 6,
