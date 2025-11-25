@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Kb from '@/common-adapters'
 import * as Tabs from '@/constants/tabs'
 import * as React from 'react'
 import {Linking} from 'react-native'
@@ -192,7 +191,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
 // on android we rerender everything on dark mode changes
 export const useRootKey = () => {
   const [rootKey, setRootKey] = React.useState('')
-  const isDarkMode = Kb.Styles.useIsDarkMode()
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   React.useEffect(() => {
     if (!C.isAndroid) return
     setRootKey(isDarkMode ? 'android-dark' : 'android-light')

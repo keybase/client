@@ -77,7 +77,7 @@ export default (ownProps: Props) => {
 
   const {address, token} = httpSrv
 
-  const isDarkMode = Styles.useIsDarkMode()
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
 
   const urlMap = React.useMemo(
     () =>

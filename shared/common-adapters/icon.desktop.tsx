@@ -6,6 +6,7 @@ import logger from '@/logger'
 import {iconMeta} from './icon.constants-gen'
 import invert from 'lodash/invert'
 import {getAssetPath} from '@/constants/platform.desktop'
+import {useState_ as useDarkModeState} from '@/constants/darkmode'
 import type {Props, IconType} from './icon'
 import type {MeasureRef} from './measure-ref'
 
@@ -18,7 +19,7 @@ const Icon = React.memo<Props>(
     const {className, hint, colorOverride, padding, boxStyle, allowLazy = true} = props
     const iconType = type
     const hasDarkVariant = !!iconMeta[iconType].nameDark
-    const isDarkMode = Styles.useIsDarkMode() && hasDarkVariant
+    const isDarkMode = useDarkModeState(s => s.isDarkMode()) && hasDarkVariant
 
     if (!Shared.isValidIconType(iconType)) {
       logger.warn('Unknown icontype passed', iconType)

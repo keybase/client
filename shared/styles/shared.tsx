@@ -2,7 +2,6 @@ import {themed as globalColors} from './colors'
 import {isMobile, isIOS, isAndroid, isTablet, isPhone, isElectron} from '@/constants/platform'
 import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 import type {Background} from '@/common-adapters/text'
-import {useColorScheme} from 'react-native'
 
 /* eslint-disable sort-keys */
 export const globalMargins = {
@@ -178,20 +177,3 @@ export const padding = (top: number, right?: number, bottom?: number, left?: num
   paddingBottom: bottom !== undefined ? bottom : top,
   paddingLeft: left !== undefined ? left : right !== undefined ? right : top,
 })
-/* eslint-enable sort-keys */
-import {useState_ as useDarkState} from '@/constants/darkmode'
-export const useIsDarkMode = () => {
-  const darkModePreference = useDarkState(s => s.darkModePreference)
-  const systemColorScheme = useColorScheme()
-
-  // Respect user's manual override
-  switch (darkModePreference) {
-    case 'alwaysDark':
-      return true
-    case 'alwaysLight':
-      return false
-    case 'system':
-    default:
-      return systemColorScheme === 'dark'
-  }
-}

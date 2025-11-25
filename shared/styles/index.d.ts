@@ -152,4 +152,3 @@ export declare const normalizePath: (p: string) => string
 export declare const unnormalizePath: (p: string) => string
 // fixup file:// with spaces etc
 export declare const urlEscapeFilePath: (path: string) => string
-export declare const useIsDarkMode: () => boolean
