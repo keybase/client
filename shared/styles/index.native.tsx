@@ -2,7 +2,7 @@ import * as Shared from './shared'
 import {colors as lightColors} from './colors'
 import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
-import {isDarkMode} from './dark-mode'
+import {useState_ as useDarkModeState} from '@/constants/darkmode'
 import {isIOS, isTablet} from '@/constants/platform'
 
 const font = isIOS
@@ -54,8 +54,6 @@ export const globalStyles = {
 export const hairlineWidth = StyleSheet.hairlineWidth
 export const styleSheetCreate = (f: () => MapToStyles): unknown =>
   styleSheetCreateProxy(f, o => StyleSheet.create(o as any) as MapToStyles)
-// used to find specific styles to help debug perf
-export {isDarkMode}
 
 export const collapseStyles = (
   styles: ReadonlyArray<unknown>
@@ -99,10 +97,11 @@ export const dimensionHeight = Dimensions.get('window').height
 export const headerExtraHeight = isTablet ? 16 : 0
 
 export const undynamicColor = (_col: string) => {
+  const isDarkMode = useDarkModeState.getState().isDarkMode()
   const col = _col as string | {dynamic?: {dark: string; light: string}}
   // try and unwrap, some things (toggle?) don't seems to like mixed dynamic colors
   if (typeof col !== 'string' && col.dynamic) {
-    return col.dynamic[isDarkMode() ? 'dark' : 'light']
+    return col.dynamic[isDarkMode ? 'dark' : 'light']
   }
   return col
 }

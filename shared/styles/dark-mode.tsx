@@ -20,5 +20,5 @@ import {useState_ as useDarkModeState} from '@/constants/darkmode'
 //
 
 // TODO remove
-export const isDarkMode = () => useDarkModeState.getState().isDarkMode()
+const isDarkMode = () => useDarkModeState.getState().isDarkMode()
 export const DarkModeContext = React.createContext(isDarkMode())

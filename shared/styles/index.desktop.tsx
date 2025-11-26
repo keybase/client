@@ -1,10 +1,10 @@
 import * as Shared from './shared'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import type * as CSS from './css'
-import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
 import {getAssetPath} from '@/constants/platform.desktop'
 import * as Path from '@/util/path'
+import {useState_ as useDarkModeState} from '@/constants/darkmode'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -96,9 +96,11 @@ export const transitionColor = () => ({
 })
 
 export const backgroundURL = (url: string) => {
+  // TODO not ideal
+  const isDarkMode = useDarkModeState.getState().isDarkMode()
   const ext = Path.extname(url)
   const goodPath = Path.basename(url, ext) ?? ''
-  const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
+  const guiModePath = `${isDarkMode ? 'dark-' : ''}${goodPath}`
   const images = [1, 2, 3].map(
     mult => `url('${getAssetPath('images', guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
   )
@@ -205,7 +207,7 @@ export {default as classNames} from 'classnames'
 export type StylesCrossPlatform = CSS.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
-export {isDarkMode, DarkModeContext} from './dark-mode'
+export {DarkModeContext} from './dark-mode'
 export const headerExtraHeight = 0
 export const undynamicColor = (col: string) => col
 // nothing on desktop, it all works

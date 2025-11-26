@@ -8,7 +8,6 @@ import {useTimeout} from './use-timers'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import type {Props} from './toast'
 import {colors, darkColors} from '@/styles/colors'
-import {isDarkMode} from '@/styles/dark-mode'
 import noop from 'lodash/noop'
 
 const Kb = {
@@ -69,6 +68,8 @@ const Toast = (props: Props) => {
     }, [])
   )
 
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+
   return shouldRender ? (
     <Kb.FloatingBox>
       <Kb.KeyboardAvoidingView2>
@@ -76,6 +77,11 @@ const Toast = (props: Props) => {
           <NativeAnimated.View
             style={Styles.collapseStyles([
               styles.container,
+              {
+                // RN bugs with animated dynamicColors so have to use the raw ones
+                // known bug this won't work if the dark mode changes dynamic on ios currently
+                backgroundColor: isDarkMode ? darkColors.black : colors.black,
+              },
               props.containerStyle,
               {opacity: (opacity as number | undefined) ?? 0},
             ])}
@@ -92,9 +98,6 @@ const styles = Styles.styleSheetCreate(() => {
   return {
     container: {
       alignItems: 'center',
-      // RN bugs with animated dynamicColors so have to use the raw ones
-      // known bug this won't work if the dark mode changes dynamic on ios currently
-      backgroundColor: isDarkMode() ? darkColors.black : colors.black,
       borderRadius: 140,
       borderWidth: 0,
       display: 'flex',
