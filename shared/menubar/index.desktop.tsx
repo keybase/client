@@ -332,7 +332,6 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
 
 const MenubarRender = (p: Props) => {
   const {loggedIn, daemonHandshakeState} = p
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   let content: React.ReactNode
   if (daemonHandshakeState === 'done' && loggedIn) {
     content = <LoggedIn {...p} />
@@ -345,13 +344,11 @@ const MenubarRender = (p: Props) => {
   }, [])
 
   return (
-    <Kb.Styles.DarkModeContext.Provider value={isDarkMode}>
-      <Kb.Box2 direction="vertical" style={styles.widgetContainer}>
-        {isDarwin && <ArrowTick />}
-        <IconBar {...p} showBadges={loggedIn} />
-        {content}
-      </Kb.Box2>
-    </Kb.Styles.DarkModeContext.Provider>
+    <Kb.Box2 direction="vertical" style={styles.widgetContainer}>
+      {isDarwin && <ArrowTick />}
+      <IconBar {...p} showBadges={loggedIn} />
+      {content}
+    </Kb.Box2>
   )
 }
 

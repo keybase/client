@@ -537,7 +537,7 @@ type SIProps = {
 const AssertionSiteIcon = (p: SIProps) => {
   const {full, siteIconFullDarkmode, siteIconFull, siteIconDarkmode, siteIcon} = p
   const {onCreateProof, onShowProof, isSuggestion} = p
-  const isDarkMode = React.useContext(Kb.Styles.DarkModeContext)
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   const set = full
     ? isDarkMode
       ? siteIconFullDarkmode

@@ -90,7 +90,6 @@ export * from './shared'
 export * from './styles-base'
 export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'
-export {DarkModeContext} from './dark-mode'
 export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width
 export const dimensionHeight = Dimensions.get('window').height

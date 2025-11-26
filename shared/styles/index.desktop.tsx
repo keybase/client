@@ -207,7 +207,6 @@ export {default as classNames} from 'classnames'
 export type StylesCrossPlatform = CSS.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
-export {DarkModeContext} from './dark-mode'
 export const headerExtraHeight = 0
 export const undynamicColor = (col: string) => col
 // nothing on desktop, it all works
