@@ -6,7 +6,7 @@ import type {IconType, Props, SizeType} from './icon'
 import {Pressable, Image as RNImage, Text as RNText} from 'react-native'
 import {iconMeta} from './icon.constants-gen'
 import type {MeasureRef} from './measure-ref'
-import {useState_ as useDarkModeState} from '@/constants/darkMode'
+import {useState_ as useDarkModeState} from '@/constants/darkmode'
 
 type TextProps = {
   children: React.ReactNode
