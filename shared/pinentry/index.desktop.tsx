@@ -1,11 +1,9 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import DragHeader from '../desktop/remote/drag-header.desktop'
 
 export type Props = {
-  darkMode: boolean
   onSubmit: (password: string) => void
   onCancel: () => void
   showTyping?: T.RPCGen.Feature
@@ -19,10 +17,6 @@ const Pinentry = (props: Props) => {
   const {showTyping: _showTyping, onSubmit} = props
   const [password, setPassword] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(_showTyping?.defaultValue ?? false)
-
-  React.useEffect(() => {
-    C.useDarkModeState.getState().dispatch.setSystemDarkMode(props.darkMode)
-  }, [props.darkMode])
 
   const lastShowTyping = React.useRef(_showTyping)
   React.useEffect(() => {
