@@ -3,8 +3,19 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {UploadProps} from './upload'
 import capitalize from 'lodash/capitalize'
-import {backgroundURL} from '@/styles/index.desktop'
+import {getAssetPath} from '@/constants/platform.desktop'
+import * as Path from '@/util/path'
 import './upload.css'
+
+const backgroundURL = (url: string, isDarkMode: boolean) => {
+  const ext = Path.extname(url)
+  const goodPath = Path.basename(url, ext) ?? ''
+  const guiModePath = `${isDarkMode ? 'dark-' : ''}${goodPath}`
+  const images = [1, 2, 3].map(
+    mult => `url('${getAssetPath('images', guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
+  )
+  return `-webkit-image-set(${images.join(', ')})`
+}
 
 type DrawState = 'showing' | 'hiding' | 'hidden'
 const Upload = React.memo(function Upload(props: UploadProps) {
@@ -31,6 +42,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
   // this is due to the fact that the parent container has a marginTop of -13 on darwin
   const offset = smallMode && C.isDarwin ? 13 : 0
 
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   return (
     <>
       {!!debugToggleShow && (
@@ -48,6 +60,11 @@ const Upload = React.memo(function Upload(props: UploadProps) {
           fullWidth={true}
           style={Kb.Styles.collapseStyles([
             styles.stylesBox,
+            Kb.Styles.platformStyles({
+              isElectron: {
+                backgroundImage: backgroundURL('upload-pattern-80.png', isDarkMode),
+              },
+            }),
             {bottom: showing ? offset : offset - height, height, maxHeight: height},
           ])}
         >
@@ -58,8 +75,8 @@ const Upload = React.memo(function Upload(props: UploadProps) {
                   ? `Encrypting ${fileName}.`
                   : `Encrypting ${files} items.`
                 : totalSyncingBytes
-                ? 'Encrypting items.'
-                : 'Done!'}
+                  ? 'Encrypting items.'
+                  : 'Done!'}
               {timeLeft ? ` ${capitalize(timeLeft)} left` : ''}
             </Kb.Text>
           ) : (
@@ -70,8 +87,8 @@ const Upload = React.memo(function Upload(props: UploadProps) {
                     ? `Encrypting and updating ${fileName}...`
                     : `Encrypting and updating ${files} items...`
                   : totalSyncingBytes
-                  ? 'Encrypting and updating items...'
-                  : 'Done!'}
+                    ? 'Encrypting and updating items...'
+                    : 'Done!'}
               </Kb.Text>
               {!!timeLeft.length && (
                 <Kb.Text key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text>
@@ -89,7 +106,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       stylesBox: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundImage: backgroundURL('upload-pattern-80.png'),
           flexShrink: 0, // need this to be whole in menubar
           paddingLeft: Kb.Styles.globalMargins.medium,
           paddingRight: Kb.Styles.globalMargins.medium,

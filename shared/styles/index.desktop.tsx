@@ -2,9 +2,6 @@ import * as Shared from './shared'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import type * as CSS from './css'
 import {themed, colors, darkColors} from './colors'
-import {getAssetPath} from '@/constants/platform.desktop'
-import * as Path from '@/util/path'
-import {useState_ as useDarkModeState} from '@/constants/darkmode'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -94,18 +91,6 @@ export const transition = (...properties: Array<string>) => ({
 export const transitionColor = () => ({
   transition: 'background 0.2s linear',
 })
-
-export const backgroundURL = (url: string) => {
-  // TODO not ideal
-  const isDarkMode = useDarkModeState.getState().isDarkMode()
-  const ext = Path.extname(url)
-  const goodPath = Path.basename(url, ext) ?? ''
-  const guiModePath = `${isDarkMode ? 'dark-' : ''}${goodPath}`
-  const images = [1, 2, 3].map(
-    mult => `url('${getAssetPath('images', guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
-  )
-  return `-webkit-image-set(${images.join(', ')})`
-}
 
 const fixScrollbars = () => {
   // https://www.filamentgroup.com/lab/scrollbars/
