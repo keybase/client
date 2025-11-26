@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import type * as React from 'react'
 import Assertion from './assertion'
 import Bio from './bio'
 import type * as T from '@/constants/types'
@@ -8,7 +8,6 @@ import type * as T from '@/constants/types'
 type Props = {
   assertionKeys?: ReadonlyArray<string>
   bio?: string
-  darkMode: boolean
   followThem?: boolean
   followersCount?: number
   followingCount?: number
@@ -111,16 +110,6 @@ const TeamShowcase = ({name}: {name: string}) => (
 )
 
 const Tracker = (props: Props) => {
-  const {darkMode} = props
-  const [lastDM, setLastDM] = React.useState(props.darkMode)
-  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
-  React.useEffect(() => {
-    if (darkMode !== lastDM) {
-      setLastDM(darkMode)
-      setSystemDarkMode(darkMode)
-    }
-  }, [darkMode, lastDM, setSystemDarkMode])
-
   let assertions: React.ReactNode
   if (props.assertionKeys) {
     const unsorted = [...props.assertionKeys]

@@ -35,42 +35,75 @@ const RemoteContainer = (d: DeserializeProps) => {
   const replaceCurrent = C.useCurrentUserState(s => s.dispatch.replaceUsername)
   const replaceHTTP = C.useConfigState(s => s.dispatch.setHTTPSrvInfo)
   const replaceTracker = C.useTrackerState(s => s.dispatch.replace)
+  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
+      setSystemDarkMode(darkMode)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [setSystemDarkMode, darkMode])
 
   React.useEffect(() => {
     const id = setTimeout(() => {
       replaceAvatar(avatarRefreshCounter)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [replaceAvatar, avatarRefreshCounter])
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
       replaceFollower(followers, following)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [replaceFollower, followers, following])
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
       replaceUsers(infoMap, blockMap)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [replaceUsers, infoMap, blockMap])
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
       replaceCurrent(username)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [replaceCurrent, username])
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
       replaceHTTP(httpSrvAddress, httpSrvToken)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [replaceHTTP, httpSrvAddress, httpSrvToken])
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
       replaceTracker(tracker2.usernameToDetails)
     }, 1)
     return () => {
       clearTimeout(id)
     }
-  }, [
-    avatarRefreshCounter,
-    blockMap,
-    followers,
-    following,
-    httpSrvAddress,
-    httpSrvToken,
-    infoMap,
-    replaceAvatar,
-    replaceCurrent,
-    replaceFollower,
-    replaceHTTP,
-    replaceTracker,
-    replaceUsers,
-    tracker2.usernameToDetails,
-    username,
-  ])
+  }, [replaceTracker, tracker2.usernameToDetails])
 
   return (
     <Tracker
       assertionKeys={assertions ? [...assertions.keys()] : undefined}
       bio={bio}
-      darkMode={darkMode}
       followersCount={followersCount}
       followingCount={followingCount}
       guiID={guiID}
