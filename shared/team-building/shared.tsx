@@ -68,9 +68,7 @@ const services: {
   },
 }
 
-export const serviceIdToAccentColor = (service: T.TB.ServiceIdWithContact): string => {
-  // not ideal
-  const isDarkMode = C.useDarkModeState.getState().isDarkMode()
+export const serviceIdToAccentColor = (service: T.TB.ServiceIdWithContact, isDarkMode: boolean): string => {
   switch (service) {
     case 'email':
       return isDarkMode ? '#3663ea' : '#3663ea'

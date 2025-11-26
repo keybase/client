@@ -1,6 +1,7 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as C from '@/constants'
 import capitalize from 'lodash/capitalize'
 import {
   serviceIdToIconFont,
@@ -147,6 +148,7 @@ const Avatar = ({
   resultForService: T.TB.ServiceIdWithContact
   pictureUrl?: string
 }) => {
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   if (keybaseUsername) {
     return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
   } else if (pictureUrl) {
@@ -159,7 +161,7 @@ const Avatar = ({
     <Kb.Icon
       fontSize={avatarSize}
       type={serviceIdToAvatarIcon(resultForService)}
-      colorOverride={serviceIdToAccentColor(resultForService)}
+      colorOverride={serviceIdToAccentColor(resultForService, isDarkMode)}
     />
   )
 }

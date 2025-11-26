@@ -16,6 +16,7 @@ import {useRoute} from '@react-navigation/native'
 
 const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) => {
   const {namespace, selectedService} = props
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   return (
     <Kb.Box2
       alignSelf="center"
@@ -29,7 +30,9 @@ const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) 
         <Kb.Icon
           fontSize={48}
           type={Shared.serviceIdToIconFont(selectedService)}
-          style={Kb.Styles.collapseStyles([{color: Shared.serviceIdToAccentColor(selectedService)}])}
+          style={Kb.Styles.collapseStyles([
+            {color: Shared.serviceIdToAccentColor(selectedService, isDarkMode)},
+          ])}
         />
       )}
       {namespace === 'people' ? (
