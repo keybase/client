@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import type {UploadProps} from './upload'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 
@@ -105,6 +106,7 @@ const Upload = (props: UploadProps) => {
     }
   }, [enter, exit, _showing])
 
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   return (
     <>
       {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}
@@ -113,7 +115,7 @@ const Upload = (props: UploadProps) => {
           <Kb.Box style={styles.backgroundBox}>
             <NativeAnimated.Image
               resizeMode="repeat"
-              source={Kb.Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
+              source={isDarkMode ? darkPatternImage : lightPatternImage}
               style={{...styles.backgroundImage, marginTop: backgroundTop}}
             />
           </Kb.Box>

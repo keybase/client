@@ -126,22 +126,6 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      containerFiltering: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
-          position: 'relative',
-        },
-        isElectron: {
-          ...Kb.Styles.desktopStyles.windowDraggingClickable,
-          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
-          height: 39,
-        },
-        isMobile: {
-          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small, 0, Kb.Styles.globalMargins.xsmall),
-          height: 48,
-        },
-        isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
-      }),
       containerNotFiltering: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,
@@ -158,79 +142,12 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isPhone: {backgroundColor: Kb.Styles.globalColors.white},
       }),
-      filterContainer: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
-          backgroundColor: Kb.Styles.globalColors.black_10,
-          borderRadius: Kb.Styles.borderRadius,
-          flexGrow: 1,
-          justifyContent: 'flex-start',
-        },
-        isElectron: {
-          ...Kb.Styles.desktopStyles.editable,
-          height: 28,
-          paddingLeft: 8,
-        },
-        isMobile: {
-          height: 32,
-          paddingLeft: 10,
-        },
-      }),
-      flexOne: {flex: 1},
-      icon: Kb.Styles.platformStyles({
-        common: {position: 'relative'},
-        isElectron: {top: 1},
-        isMobile: {top: 0},
-      }),
-      input: {
-        color: Kb.Styles.globalColors.black_50,
-        position: 'relative',
-        top: 1,
-      },
-      newChatButtonText: {
-        color: Kb.Styles.globalColors.white,
-        marginRight: Kb.Styles.globalMargins.xtiny,
-      },
-      newIcon: {
-        position: 'relative',
-        top: 1,
-      },
-      rainbowBorder: Kb.Styles.platformStyles({
-        common: {padding: 2},
-        isElectron: {
-          background: Kb.Styles.isDarkMode()
-            ? 'linear-gradient(rgba(255, 93, 93, 0.75), rgba(255, 247, 90, 0.75) 50%, rgba(58, 255, 172, 0.75))'
-            : 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
-          borderRadius: 6,
-        },
-        isMobile: {borderRadius: 8},
-      }),
       searchBox: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
         // hacky, redo the layout of this component later
         isTablet: {maxWidth: 270 - 16 * 2},
       }),
-      text: Kb.Styles.platformStyles({
-        common: {
-          color: Kb.Styles.globalColors.black_50,
-          marginRight: Kb.Styles.globalMargins.xtiny,
-          position: 'relative',
-        },
-        isElectron: {
-          marginLeft: Kb.Styles.globalMargins.xtiny,
-          top: 0,
-        },
-        isMobile: {
-          marginLeft: Kb.Styles.globalMargins.tiny,
-          top: 1,
-        },
-      }),
-      textFaint: {
-        color: Kb.Styles.globalColors.black_35,
-        position: 'relative',
-      },
       whiteBg: {backgroundColor: Kb.Styles.globalColors.white},
     }) as const
 )

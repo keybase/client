@@ -111,7 +111,7 @@ const Icon = React.memo<Props>(
           hoverColor: 'inherit',
         }
       } else {
-        const invertedColors = Styles.isDarkMode() ? invertedDark : invertedLight
+        const invertedColors = isDarkMode ? invertedDark : invertedLight
         const hoverColorName = onClick ? invertedColors[hoverColor] : null
         hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
         const colorName = invertedColors[color]

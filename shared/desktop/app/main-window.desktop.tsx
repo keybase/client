@@ -110,7 +110,6 @@ export const hideDockIcon = () => changeDock(false)
 
 let useNativeFrame = defaultUseNativeFrame
 let isDarkMode = false
-let darkModePreference: undefined | 'system' | 'alwaysDark' | 'alwaysLight'
 let disableSpellCheck = false
 let disableScreenshot = false
 
@@ -144,36 +143,31 @@ const loadWindowState = () => {
 
     if (guiConfig?.ui) {
       const {
-        darkMode,
+        darkMode: _darkMode,
         disableSpellCheck: _disableSpellCheck,
         disableScreenshot: _disableScreenshot,
       } = guiConfig.ui
       disableSpellCheck = typeof _disableSpellCheck === 'boolean' ? _disableSpellCheck : disableSpellCheck
       disableScreenshot = typeof _disableScreenshot === 'boolean' ? _disableScreenshot : disableScreenshot
 
-      if (typeof darkMode === 'string') {
-        switch (darkMode) {
+      if (typeof _darkMode === 'string') {
+        switch (_darkMode) {
           case 'system':
-            darkModePreference = darkMode
             isDarkMode = KB2.constants.startDarkMode
             Electron.nativeTheme.themeSource = 'system'
             break
           case 'alwaysDark':
-            darkModePreference = darkMode
             isDarkMode = true
             Electron.nativeTheme.themeSource = 'dark'
             break
           case 'alwaysLight':
-            darkModePreference = darkMode
             isDarkMode = false
             Electron.nativeTheme.themeSource = 'light'
             break
         }
       }
     } else {
-      darkModePreference = 'system'
       isDarkMode = KB2.constants.startDarkMode
-      Electron.nativeTheme.themeSource = 'system'
     }
 
     const obj = JSON.parse(typeof guiConfig?.windowState === 'string' ? guiConfig.windowState : '') as
@@ -314,7 +308,7 @@ const MainWindow = () => {
   loadWindowState()
 
   // pass to main window
-  htmlFile = htmlFile + `?darkModePreference=${darkModePreference || ''}`
+  htmlFile = htmlFile + `?darkMode=${isDarkMode || ''}`
   const win = new Electron.BrowserWindow({
     backgroundColor: isDarkMode ? '#191919' : '#ffffff',
     frame: useNativeFrame,

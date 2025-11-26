@@ -79,6 +79,8 @@ const AnimatedAshTower = (p: AshTowerProps) => {
     return undefined
   }, [exploded, widthAV])
 
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+
   if (!exploded) {
     return null
   }
@@ -86,8 +88,11 @@ const AnimatedAshTower = (p: AshTowerProps) => {
     inputRange: [0, 100],
     outputRange: ['0%', '100%'],
   })
+
   return (
-    <NativeAnimated.View style={[{width}, styles.slider]}>
+    <NativeAnimated.View
+      style={[{width}, styles.slider, {backgroundColor: isDarkMode ? darkColors.white : colors.white}]}
+    >
       <AshTower showExploded={showExploded} explodedBy={explodedBy} numImages={numImages} />
       <EmojiTower animatedValue={widthAV} numImages={numImages} />
     </NativeAnimated.View>
@@ -156,12 +161,13 @@ const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value})
 
 const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
   const {numImages, showExploded, explodedBy} = p
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < numImages; i++) {
     children.push(
       <Kb.Image2
         key={i}
-        src={Kb.Styles.isDarkMode() ? explodedIllustrationDarkURL : explodedIllustrationURL}
+        src={isDarkMode ? explodedIllustrationDarkURL : explodedIllustrationURL}
         style={styles.ashes}
       />
     )
@@ -223,7 +229,6 @@ const styles = Kb.Styles.styleSheetCreate(
         overflow: 'hidden',
       },
       slider: {
-        backgroundColor: Kb.Styles.isDarkMode() ? darkColors.white : colors.white,
         bottom: 0,
         height: '100%',
         left: 0,

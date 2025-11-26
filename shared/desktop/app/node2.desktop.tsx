@@ -349,10 +349,6 @@ const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string
 }
 
 const plumbEvents = () => {
-  Electron.nativeTheme.on('updated', () => {
-    R.remoteDispatch(RemoteGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
-  })
-
   // this crashes on newer electron, unclear why
   if (!isLinux) {
     Electron.powerMonitor.on('suspend', () => {

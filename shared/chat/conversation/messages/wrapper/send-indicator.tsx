@@ -113,15 +113,17 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
     }
   }, [failed, sent])
 
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+
   if (!visible || (isExploding && status === 'sent')) {
     return null
   }
 
   const animationType: Kb.AnimationType | undefined = isExploding
-    ? Kb.Styles.isDarkMode()
+    ? isDarkMode
       ? statusToIconDarkExploding[status]
       : statusToIconExploding[status]
-    : Kb.Styles.isDarkMode()
+    : isDarkMode
       ? statusToIconDark[status]
       : statusToIcon[status]
 

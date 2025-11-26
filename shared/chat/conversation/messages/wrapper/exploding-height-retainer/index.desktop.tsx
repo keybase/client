@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import {urlsToImgSet} from '@/common-adapters/icon.desktop'
 import type {Props} from '.'
 import {getAssetPath} from '@/constants/platform.desktop'
@@ -58,6 +59,7 @@ const ExplodingHeightRetainer = (p: Props) => {
 
 const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: string; height: number}) => {
   const {doneExploding, explodedBy, exploded, height} = props
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   let explodedTag: React.ReactNode = null
   if (doneExploding) {
     explodedTag = explodedBy ? (
@@ -86,7 +88,25 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
   return (
     <div
       className={Kb.Styles.classNames('ashbox', {'full-width': exploded})}
-      style={Kb.Styles.castStyleDesktop(styles.ashBox)}
+      style={Kb.Styles.castStyleDesktop(
+        Kb.Styles.collapseStyles([
+          styles.ashBox,
+          Kb.Styles.platformStyles({
+            isElectron: {
+              backgroundImage:
+                (isDarkMode
+                  ? urlsToImgSet(
+                      {'68': getAssetPath('images', 'icons', 'dark-pattern-ashes-desktop-400-68.png')},
+                      68
+                    )
+                  : urlsToImgSet(
+                      {'68': getAssetPath('images', 'icons', 'pattern-ashes-desktop-400-68.png')},
+                      68
+                    )) ?? '',
+            },
+          }),
+        ])
+      )}
     >
       {exploded && explodedTag}
       <FlameFront height={height} stop={doneExploding} />
@@ -95,6 +115,7 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
 }
 
 const FlameFront = React.memo(function FlameFront(props: {height: number; stop: boolean}) {
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   if (props.stop) {
     return null
   }
@@ -103,11 +124,7 @@ const FlameFront = React.memo(function FlameFront(props: {height: number; stop: 
   for (let i = 0; i < numBoxes; i++) {
     children.push(
       <Kb.Box key={String(i)} style={styles.flame}>
-        <Kb.Animation
-          animationType={Kb.Styles.isDarkMode() ? 'darkExploding' : 'exploding'}
-          width={64}
-          height={64}
-        />
+        <Kb.Animation animationType={isDarkMode ? 'darkExploding' : 'exploding'} width={64} height={64} />
       </Kb.Box>
     )
   }
@@ -118,18 +135,12 @@ const FlameFront = React.memo(function FlameFront(props: {height: number; stop: 
   )
 })
 
-const explodedIllustrationUrl = () =>
-  Kb.Styles.isDarkMode()
-    ? urlsToImgSet({'68': getAssetPath('images', 'icons', 'dark-pattern-ashes-desktop-400-68.png')}, 68)
-    : urlsToImgSet({'68': getAssetPath('images', 'icons', 'pattern-ashes-desktop-400-68.png')}, 68)
-
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       ashBox: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
-          backgroundImage: explodedIllustrationUrl() ?? undefined,
           backgroundRepeat: 'repeat',
           backgroundSize: '400px 68px',
           bottom: 0,

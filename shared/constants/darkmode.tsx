@@ -112,6 +112,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       }
     },
     setSystemDarkMode: dark => {
+      console.log('aaaa const setSystemDarkMode', dark)
       set(s => {
         s.systemDarkMode = dark
       })

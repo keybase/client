@@ -57,11 +57,12 @@ export const TabBarIconWrapper = React.memo(function TabBarIconWrapper(p: TabIco
 })
 export const TabBarLabelWrapper = React.memo(function TabBarLabelWrapper(p: TabIconProps) {
   const data = tabToData.get(p.routeName)
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   return (
     <Kb.Text
       style={Kb.Styles.collapseStyles([
         styles.label,
-        Kb.Styles.isDarkMode()
+        isDarkMode
           ? p.focused
             ? styles.labelDarkModeFocused
             : styles.labelDarkMode

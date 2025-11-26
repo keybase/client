@@ -184,7 +184,7 @@ if (isRenderer) {
             type: 'selectFilesToUploadDialog',
           })
         },
-        setNativeTheme: async theme => {
+        setNativeTheme: async (theme: 'light' | 'dark' | 'system') => {
           return invoke({payload: {theme}, type: 'setNativeTheme'})
         },
         setOpenAtLogin: async (enabled: boolean) => {

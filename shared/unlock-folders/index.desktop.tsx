@@ -23,7 +23,7 @@ export type Props = {
 const UnlockFolders = (props: Props) => {
   const {darkMode} = props
   React.useEffect(() => {
-    C.useDarkModeState.getState().dispatch.setDarkModePreference(darkMode ? 'alwaysDark' : 'alwaysLight')
+    C.useDarkModeState.getState().dispatch.setSystemDarkMode(darkMode)
   }, [darkMode])
 
   let innerComponent: React.ReactNode
@@ -49,9 +49,7 @@ const UnlockFolders = (props: Props) => {
   }
 
   return (
-    <div
-      style={styles.container}
-    >
+    <div style={styles.container}>
       <div style={styles.header}>
         <DragHeader icon={true} type="Default" title="" onClose={props.onClose} />
       </div>

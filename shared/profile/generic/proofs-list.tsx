@@ -15,9 +15,11 @@ const Container = () => {
   const providerClicked = (key: string) => {
     addProof(key, 'profile')
   }
+
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   const providers = _proofSuggestions.map(s => ({
     desc: s.pickerSubtext,
-    icon: Kb.Styles.isDarkMode() ? s.siteIconFullDarkmode : s.siteIconFull,
+    icon: isDarkMode ? s.siteIconFullDarkmode : s.siteIconFull,
     key: s.assertionKey,
     name: s.pickerText,
     new: s.metas.some(({label}) => label === 'new'),

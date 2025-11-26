@@ -207,7 +207,12 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
 
   return (
-    <Kb.Box style={styles.topRow}>
+    <Kb.Box
+      style={Kb.Styles.collapseStyles([
+        styles.topRow,
+        {backgroundColor: isDarkMode ? '#2d2d2d' : Kb.Styles.globalColors.blueDark},
+      ])}
+    >
       <Kb.Box style={styles.headerBadgesContainer}>
         {showBadges
           ? badgeTypesInHeader.map(tab => (
@@ -330,13 +335,13 @@ const MenubarRender = (p: Props) => {
   const {loggedIn, daemonHandshakeState, darkMode: _darkMode} = p
   const [lastDM, setLastDM] = React.useState(p.darkMode)
 
-  const setDarkModePreference = C.useDarkModeState(s => s.dispatch.setDarkModePreference)
+  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
   React.useEffect(() => {
     if (_darkMode !== lastDM) {
       setLastDM(_darkMode)
-      setDarkModePreference(_darkMode ? 'alwaysDark' : 'alwaysLight')
+      setSystemDarkMode(_darkMode)
     }
-  }, [_darkMode, lastDM, setDarkModePreference])
+  }, [_darkMode, lastDM, setSystemDarkMode])
 
   const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   let content: React.ReactNode
@@ -459,7 +464,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   topRow: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: Kb.Styles.isDarkMode() ? '#2d2d2d' : Kb.Styles.globalColors.blueDark,
     borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
     borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
     flex: 1,

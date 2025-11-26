@@ -126,7 +126,6 @@ export declare const isIOS: boolean
 export declare const isMobile: boolean
 export declare const isPhone: boolean
 export declare const isTablet: boolean
-export declare const isDarkMode: () => boolean
 export declare const dimensionWidth: number
 export declare const dimensionHeight: number
 export declare const headerExtraHeight: number

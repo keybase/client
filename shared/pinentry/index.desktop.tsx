@@ -21,9 +21,7 @@ const Pinentry = (props: Props) => {
   const [showTyping, setShowTyping] = React.useState(_showTyping?.defaultValue ?? false)
 
   React.useEffect(() => {
-    C.useDarkModeState
-      .getState()
-      .dispatch.setDarkModePreference(props.darkMode ? 'alwaysDark' : 'alwaysLight')
+    C.useDarkModeState.getState().dispatch.setSystemDarkMode(props.darkMode)
   }, [props.darkMode])
 
   const lastShowTyping = React.useRef(_showTyping)
@@ -46,9 +44,7 @@ const Pinentry = (props: Props) => {
   const isPaperKey = props.type === T.RPCGen.PassphraseType.paperKey
 
   return (
-    <Kb.Box
-      style={styles.container}
-    >
+    <Kb.Box style={styles.container}>
       <DragHeader icon={false} title="" onClose={props.onCancel} windowDragging={true} />
       <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
         <Kb.Text type="Body" center={true}>

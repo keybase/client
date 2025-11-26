@@ -23,16 +23,17 @@ setServiceDecoration(ServiceDecoration)
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
 
 // node side plumbs through initial pref so we avoid flashes
-const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)
-const {setDarkModePreference} = C.useDarkModeState.getState().dispatch
+const darkModeFromNode = window.location.search.match(/darkMode=(light|dark)/)
+const setSystemDarkMode = C.useDarkModeState.getState().dispatch.setSystemDarkMode
 
 if (darkModeFromNode) {
   const dm = darkModeFromNode[1]
   switch (dm) {
-    case 'alwaysLight':
-    case 'alwaysDark':
-    case 'system':
-      setDarkModePreference(dm, false)
+    case 'light':
+      setSystemDarkMode(false)
+      break
+    case 'dark':
+      setSystemDarkMode(true)
       break
     default:
   }

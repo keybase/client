@@ -113,13 +113,13 @@ const TeamShowcase = ({name}: {name: string}) => (
 const Tracker = (props: Props) => {
   const {darkMode} = props
   const [lastDM, setLastDM] = React.useState(props.darkMode)
-  const setDarkModePreference = C.useDarkModeState(s => s.dispatch.setDarkModePreference)
+  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
   React.useEffect(() => {
     if (darkMode !== lastDM) {
       setLastDM(darkMode)
-      setDarkModePreference(darkMode ? 'alwaysDark' : 'alwaysLight')
+      setSystemDarkMode(darkMode)
     }
-  }, [darkMode, lastDM, setDarkModePreference])
+  }, [darkMode, lastDM, setSystemDarkMode])
 
   let assertions: React.ReactNode
   if (props.assertionKeys) {

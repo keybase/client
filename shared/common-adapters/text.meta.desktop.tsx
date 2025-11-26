@@ -1,5 +1,6 @@
 import * as Styles from '@/styles'
 import type {MetaType, TextType} from './text'
+import {useState_ as useDarkModeState} from '@/constants/darkmode'
 
 export const lineClamp = (lines: number) => ({
   WebkitBoxOrient: 'vertical',
@@ -318,7 +319,9 @@ let _darkMetaData: {[K in TextType]: MetaType} | undefined
 let _lightMetaData: {[K in TextType]: MetaType} | undefined
 
 export const metaData = (): {[K in TextType]: MetaType} => {
-  if (Styles.isDarkMode()) {
+  // not ideal
+  const isDarkMode = useDarkModeState.getState().isDarkMode()
+  if (isDarkMode) {
     _darkMetaData = _darkMetaData || _metaData()
     return _darkMetaData
   } else {
