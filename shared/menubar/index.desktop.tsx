@@ -20,7 +20,6 @@ const {hideWindow, ctlQuit} = KB2.functions
 
 export type Props = Pick<DeserializeProps, 'remoteTlfUpdates' | 'conversationsToSend'> & {
   daemonHandshakeState: T.Config.DaemonHandshakeState
-  darkMode: boolean
   diskSpaceStatus: T.FS.DiskSpaceStatus
   loggedIn: boolean
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
@@ -332,17 +331,7 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
 }
 
 const MenubarRender = (p: Props) => {
-  const {loggedIn, daemonHandshakeState, darkMode: _darkMode} = p
-  const [lastDM, setLastDM] = React.useState(p.darkMode)
-
-  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
-  React.useEffect(() => {
-    if (_darkMode !== lastDM) {
-      setLastDM(_darkMode)
-      setSystemDarkMode(_darkMode)
-    }
-  }, [_darkMode, lastDM, setSystemDarkMode])
-
+  const {loggedIn, daemonHandshakeState} = p
   const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   let content: React.ReactNode
   if (daemonHandshakeState === 'done' && loggedIn) {
