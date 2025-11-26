@@ -9,6 +9,7 @@ import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import type {Props} from './toast'
 import {colors, darkColors} from '@/styles/colors'
 import noop from 'lodash/noop'
+import {useColorScheme} from 'react-native'
 
 const Kb = {
   Box,
@@ -68,7 +69,7 @@ const Toast = (props: Props) => {
     }, [])
   )
 
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
 
   return shouldRender ? (
     <Kb.FloatingBox>

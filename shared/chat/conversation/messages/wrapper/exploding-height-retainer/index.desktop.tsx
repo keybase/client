@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import {urlsToImgSet} from '@/common-adapters/icon.desktop'
 import type {Props} from '.'
 import {getAssetPath} from '@/constants/platform.desktop'
+import {useColorScheme} from 'react-native'
 
 export const animationDuration = 2000
 
@@ -59,7 +59,7 @@ const ExplodingHeightRetainer = (p: Props) => {
 
 const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: string; height: number}) => {
   const {doneExploding, explodedBy, exploded, height} = props
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   let explodedTag: React.ReactNode = null
   if (doneExploding) {
     explodedTag = explodedBy ? (
@@ -115,7 +115,7 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
 }
 
 const FlameFront = React.memo(function FlameFront(props: {height: number; stop: boolean}) {
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   if (props.stop) {
     return null
   }

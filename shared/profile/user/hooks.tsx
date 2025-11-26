@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {type BackgroundColorType} from '.'
+import {useColorScheme} from 'react-native'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -55,7 +56,7 @@ const useUserData = (username: string) => {
   const _suggestionKeys = C.useTrackerState(s => (userIsYou ? s.proofSuggestions : undefined))
   const nonUserDetails = C.useTrackerState(s => C.Tracker.getNonUserDetails(s, username))
 
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   const stateProps = (() => {
     if (!notAUser) {
       // Keybase user

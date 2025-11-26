@@ -18,6 +18,7 @@ const initialStore: Store = {
 }
 
 interface State extends Store {
+  // Not to be used by regular components, useColorScheme instead
   isDarkMode: () => boolean
   dispatch: {
     loadDarkPrefs: () => void

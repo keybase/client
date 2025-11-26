@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input2'
 import {getTextStyle} from './text'
-import {useState_ as useDarkModeState} from '@/constants/darkmode'
+import {useColorScheme} from 'react-native'
 
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
@@ -13,7 +13,7 @@ export const Input2 = React.memo(
     const {textType = 'Body', rowsMax, rowsMin, padding, placeholder, onKeyUp: _onKeyUp} = p
     const {allowKeyboardEvents, className, disabled, autoFocus, onKeyDown: _onKeyDown, onEnterKeyDown} = p
 
-    const isDarkMode = useDarkModeState(s => s.isDarkMode())
+    const isDarkMode = useColorScheme() === 'dark'
 
     const [value, setValue] = React.useState('')
     // this isn't a value react can set on the input, so we need to drive it manually

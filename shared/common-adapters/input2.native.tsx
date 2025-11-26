@@ -4,7 +4,7 @@ import type {Props, TextInfo, RefType} from './input2'
 import {isIOS} from '@/constants/platform'
 import {getTextStyle} from './text'
 import {TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
-import {useState_ as useDarkModeState} from '@/constants/darkmode'
+import {useColorScheme} from 'react-native'
 
 export const Input2 = React.memo(
   React.forwardRef<RefType, Props>(function Input2(p, ref) {
@@ -19,7 +19,7 @@ export const Input2 = React.memo(
       onSelectionChange: _onSelectionChange,
     } = p
 
-    const isDarkMode = useDarkModeState(s => s.isDarkMode())
+    const isDarkMode = useColorScheme() === 'dark'
     const [autoFocus, setAutoFocus] = React.useState(_autoFocus)
     const [value, setValue] = React.useState('')
     const [selection, setSelection] = React.useState<{start: number; end?: number | undefined} | undefined>(

@@ -5,6 +5,7 @@ import openUrl from '@/util/open-url'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from '@/profile/generic/shared'
 import {formatTimeForAssertionPopup} from '@/util/timestamp'
+import {useColorScheme} from 'react-native'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -537,7 +538,7 @@ type SIProps = {
 const AssertionSiteIcon = (p: SIProps) => {
   const {full, siteIconFullDarkmode, siteIconFull, siteIconDarkmode, siteIcon} = p
   const {onCreateProof, onShowProof, isSuggestion} = p
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   const set = full
     ? isDarkMode
       ? siteIconFullDarkmode

@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import {useOrdinal} from '../ids-context'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {useColorScheme} from 'react-native'
 
 type AnimationStatus =
   | 'encrypting'
@@ -113,7 +114,7 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
     }
   }, [failed, sent])
 
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
 
   if (!visible || (isExploding && status === 'sent')) {
     return null

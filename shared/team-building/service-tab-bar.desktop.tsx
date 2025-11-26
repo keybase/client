@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
-import * as C from '@/constants'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import difference from 'lodash/difference'
 import type * as T from '@/constants/types'
 import type {Props, IconProps} from './service-tab-bar'
+import {useColorScheme} from 'react-native'
 
 const ServiceIcon = (props: IconProps) => {
   const [hover, setHover] = React.useState(false)
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   const color =
     props.isActive || hover ? serviceIdToAccentColor(props.service, isDarkMode) : Kb.Styles.globalColors.black
   return (
@@ -118,7 +118,7 @@ const MoreNetworksButton = (props: {
 }
 
 const MoreNetworkItem = (props: {service: T.TB.ServiceIdWithContact}) => {
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
       <Kb.Icon

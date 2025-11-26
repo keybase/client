@@ -4,6 +4,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import {SiteIcon} from './shared'
 import {makeInsertMatcher} from '@/util/string'
+import {useColorScheme} from 'react-native'
 
 const Container = () => {
   const _proofSuggestions = C.useTrackerState(s => s.proofSuggestions)
@@ -16,7 +17,7 @@ const Container = () => {
     addProof(key, 'profile')
   }
 
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   const providers = _proofSuggestions.map(s => ({
     desc: s.pickerSubtext,
     icon: isDarkMode ? s.siteIconFullDarkmode : s.siteIconFull,

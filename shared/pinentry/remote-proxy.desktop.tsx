@@ -5,6 +5,7 @@ import * as React from 'react'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize, type ProxyProps} from './remote-serializer.desktop'
+import {useColorScheme} from 'react-native'
 
 const windowOpts = {height: 230, width: 440}
 
@@ -41,7 +42,7 @@ const PinentryProxy = () => {
     })
   )
   const show = type !== T.RPCGen.PassphraseType.none && !!showTyping
-  const darkMode = C.useDarkModeState(s => s.isDarkMode())
+  const darkMode = useColorScheme() === 'dark'
   if (show) {
     return (
       <PinentryMemo

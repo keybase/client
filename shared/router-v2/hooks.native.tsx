@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Tabs from '@/constants/tabs'
 import * as React from 'react'
 import {Linking} from 'react-native'
+import {useColorScheme} from 'react-native'
 
 type InitialStateState = 'init' | 'loading' | 'loaded'
 
@@ -191,7 +192,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
 // on android we rerender everything on dark mode changes
 export const useRootKey = () => {
   const [rootKey, setRootKey] = React.useState('')
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   React.useEffect(() => {
     if (!C.isAndroid) return
     setRootKey(isDarkMode ? 'android-dark' : 'android-light')

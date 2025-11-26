@@ -14,7 +14,7 @@ import {checkTextInfo} from './input.shared'
 import {getTextStyle} from './text'
 import {isIOS} from '@/constants/platform'
 import {stringToUint8Array} from 'uint8array-extras'
-import {useState_ as useDarkModeState} from '@/constants/darkmode'
+import {useColorScheme} from 'react-native'
 
 type PlainInputRef = {
   blur: () => void
@@ -175,7 +175,7 @@ const PlainInput = React.memo(
       onEnterKeyDown?.()
     }, [onEnterKeyDown])
 
-    const isDarkMode = useDarkModeState(s => s.isDarkMode())
+    const isDarkMode = useColorScheme() === 'dark'
 
     // Update lastNativeTextRef when value changes (controlled mode)
     React.useEffect(() => {

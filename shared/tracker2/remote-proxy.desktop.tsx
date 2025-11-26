@@ -7,6 +7,7 @@ import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import {serialize, type ProxyProps} from './remote-serializer.desktop'
 import {intersect} from '@/util/set'
 import {mapFilterByKey} from '@/util/map'
+import {useColorScheme} from 'react-native'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
@@ -35,7 +36,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
     return new Map([[trackerUsername, avatarCount]])
   }, [trackerUsername, avatarCount])
 
-  const darkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
 
   const p: ProxyProps = {
     assertions,
@@ -44,7 +45,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
     blockMap: mapFilterByKey(blockMap, trackerUsernames),
     blocked,
     counts,
-    darkMode,
+    darkMode: isDarkMode,
     errors,
     followers: intersect(followers, trackerUsernames),
     followersCount,

@@ -1,7 +1,6 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as C from '@/constants'
 import capitalize from 'lodash/capitalize'
 import {
   serviceIdToIconFont,
@@ -9,6 +8,7 @@ import {
   serviceMapToArray,
   serviceIdToAvatarIcon,
 } from '../shared'
+import {useColorScheme} from 'react-native'
 
 export type ResultProps = {
   bottomRow?: React.ReactNode
@@ -148,7 +148,7 @@ const Avatar = ({
   resultForService: T.TB.ServiceIdWithContact
   pictureUrl?: string
 }) => {
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   if (keybaseUsername) {
     return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
   } else if (pictureUrl) {

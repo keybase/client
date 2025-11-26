@@ -4,7 +4,7 @@ import {Box2} from './box'
 import Text, {getTextStyle} from './text'
 import * as Styles from '@/styles'
 import {isMobile} from '@/constants/platform'
-import {useState_ as useDarkModeState} from '@/constants/darkmode'
+import {useColorScheme} from 'react-native'
 import './input.css'
 
 export type _Props = {
@@ -21,7 +21,7 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
   const {containerStyle, error, placeholder, ...plainInputProps} = props
   const [focused, setFocused] = React.useState(false)
   const {onBlur, onFocus} = props
-  const isDarkMode = useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   const _onFocus = React.useCallback(() => {
     if (props.disabled) {
       return

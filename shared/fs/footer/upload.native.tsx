@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import type {UploadProps} from './upload'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
+import {useColorScheme} from 'react-native'
 
 const lightPatternImage = require('../../images/upload-pattern-80.png') as number
 const darkPatternImage = require('../../images/dark-upload-pattern-80.png') as number
@@ -106,7 +106,7 @@ const Upload = (props: UploadProps) => {
     }
   }, [enter, exit, _showing])
 
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   return (
     <>
       {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}

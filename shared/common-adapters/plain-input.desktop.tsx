@@ -5,7 +5,7 @@ import logger from '@/logger'
 import {checkTextInfo} from './input.shared'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
 import {stringToUint8Array} from 'uint8array-extras'
-import {useState_ as useDarkModeState} from '@/constants/darkmode'
+import {useColorScheme} from 'react-native'
 
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
@@ -45,7 +45,7 @@ const PlainInput = React.memo(
     const isComposingIMERef = React.useRef(false)
     const mountedRef = React.useRef(true)
     const autoResizeLastRef = React.useRef('')
-    const isDarkMode = useDarkModeState(s => s.isDarkMode())
+    const isDarkMode = useColorScheme() === 'dark'
 
     const focus = React.useCallback(() => {
       inputRef.current?.focus()

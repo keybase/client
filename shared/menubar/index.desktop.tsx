@@ -15,6 +15,7 @@ import {isLinux, isDarwin} from '@/constants/platform'
 import {type _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout'
 import {useUploadCountdown} from '@/fs/footer/use-upload-countdown'
 import type {DeserializeProps} from './remote-serializer.desktop'
+import {useColorScheme} from 'react-native'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -38,7 +39,7 @@ export type Props = Pick<DeserializeProps, 'remoteTlfUpdates' | 'conversationsTo
 }
 
 const ArrowTick = () => {
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Box
       style={Kb.Styles.collapseStyles([
@@ -202,9 +203,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const badgeCountInMenu = badgesInMenu.reduce((acc, val) => navBadges.get(val) ?? 0 + acc, 0)
-
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
-
+  const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Box
       style={Kb.Styles.collapseStyles([
@@ -383,7 +382,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp
   const {tab, countMap, openApp} = p
   const count = countMap.get(tab)
   const iconType = iconMap[tab]
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
 
   if ((tab === C.Tabs.devicesTab && !count) || !iconType) {
     return null

@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import type * as T from '@/constants/types'
 import {ScrollView} from 'react-native'
 import type {Props, IconProps} from './service-tab-bar'
+import {useColorScheme} from 'react-native'
 import {
   useSharedValue,
   useAnimatedStyle,
@@ -80,7 +80,7 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
   'use no memo'
   const {offset, isActive, service, label, onClick} = props
 
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   const color = isActive ? serviceIdToAccentColor(service, isDarkMode) : Kb.Styles.globalColors.black
 
   const animatedWidth = useAnimatedStyle(() => {

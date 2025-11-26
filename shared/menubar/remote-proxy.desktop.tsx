@@ -9,6 +9,7 @@ import {mapFilterByKey} from '@/util/map'
 import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import type * as NotifConstants from '@/constants/notifications'
+import {useColorScheme} from 'react-native'
 
 const {showTray} = KB2.functions
 
@@ -104,7 +105,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
   )
   const infoMap = C.useUsersState(s => s.infoMap)
   const widgetList = C.useChatState(s => s.inboxLayout?.widgetList)
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
 

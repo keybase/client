@@ -6,6 +6,7 @@ import capitalize from 'lodash/capitalize'
 import {getAssetPath} from '@/constants/platform.desktop'
 import * as Path from '@/util/path'
 import './upload.css'
+import {useColorScheme} from 'react-native'
 
 const backgroundURL = (url: string, isDarkMode: boolean) => {
   const ext = Path.extname(url)
@@ -42,7 +43,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
   // this is due to the fact that the parent container has a marginTop of -13 on darwin
   const offset = smallMode && C.isDarwin ? 13 : 0
 
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   return (
     <>
       {!!debugToggleShow && (

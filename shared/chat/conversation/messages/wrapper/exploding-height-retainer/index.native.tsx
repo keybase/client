@@ -5,6 +5,7 @@ import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 // ios must animated plain colors not the dynamic ones
 import colors, {darkColors} from '@/styles/colors'
 import type {Props} from '.'
+import {useColorScheme} from 'react-native'
 
 // If this image changes, some hard coded dimensions
 // in this file also need to change.
@@ -79,7 +80,7 @@ const AnimatedAshTower = (p: AshTowerProps) => {
     return undefined
   }, [exploded, widthAV])
 
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
 
   if (!exploded) {
     return null
@@ -161,7 +162,7 @@ const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value})
 
 const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
   const {numImages, showExploded, explodedBy} = p
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = useColorScheme() === 'dark'
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < numImages; i++) {
     children.push(
