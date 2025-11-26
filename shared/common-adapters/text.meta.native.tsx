@@ -1,6 +1,5 @@
 import * as Styles from '@/styles'
 import type {MetaType, TextType} from './text'
-import {useState_ as useDarkModeState} from '@/constants/darkmode'
 
 // need to be `undefined` instead of `null` since `null` doesn't ellipsize at
 // all.
@@ -362,9 +361,7 @@ const _metaData = (): {[K in TextType]: MetaType} => {
 let _darkMetaData: {[K in TextType]: MetaType} | undefined
 let _lightMetaData: {[K in TextType]: MetaType} | undefined
 
-export const metaData = (): {[K in TextType]: MetaType} => {
-  // not ideal
-  const isDarkMode = useDarkModeState.getState().isDarkMode()
+export const metaData = (isDarkMode: boolean): {[K in TextType]: MetaType} => {
   if (isDarkMode) {
     _darkMetaData = _darkMetaData || _metaData()
     return _darkMetaData

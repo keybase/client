@@ -77,13 +77,13 @@ type Props = {
 }
 
 type MetaType = {
-  fontSize: number
+  fontSize: 12 | 13 | 14 | 15 | 18 | 24 | 16 | 17 | 20 | 28
   colorForBackground: {
     positive: string
     negative: string
   }
   isLink?: true
-  styleOverride?: object
+  styleOverride?: CSS.StylesCrossPlatform
   isTerminal?: true
 }
 
@@ -95,27 +95,14 @@ export type TextMeasureRef = {
 // export declare const Text: ReturnType<typeof React.forwardRef<TextMeasureRef | MeasureRef, Props>>
 export declare const Text: (p: Props) => React.ReactNode
 
-type TextStyle = {
+export type TextStyle = Omit<CSS.StylesCrossPlatform> & {
   fontSize: number
+  lineHeight: number
   color: string
   cursor: string
-  lineClamp?: number
-  clickable?: CSS._StylesDesktop
-  userSelect?: string
-  textDecoration?: string
-  colorForBackground?: string
-  styleOverride?: StylesTextCrossPlatform
-  lineHeight?: number
 }
 
-declare function getStyle(
-  type: TextType,
-  backgroundMode?: Background,
-  lineClamp?: number,
-  clickable?: boolean,
-  selectable?: boolean
-): TextStyle
+export declare function getTextStyle(type: TextType, isDarkMode: boolean): TextStyle
 
-export {getStyle}
 export type {Background, MetaType, Props, TextType, TextTypeBold}
 export default Text

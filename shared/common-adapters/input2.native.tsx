@@ -2,8 +2,9 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input2'
 import {isIOS} from '@/constants/platform'
-import {getStyle as getTextStyle} from './text'
+import {getTextStyle} from './text'
 import {TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
+import {useState_ as useDarkModeState} from '@/constants/darkmode'
 
 export const Input2 = React.memo(
   React.forwardRef<RefType, Props>(function Input2(p, ref) {
@@ -18,6 +19,7 @@ export const Input2 = React.memo(
       onSelectionChange: _onSelectionChange,
     } = p
 
+    const isDarkMode = useDarkModeState(s => s.isDarkMode())
     const [autoFocus, setAutoFocus] = React.useState(_autoFocus)
     const [value, setValue] = React.useState('')
     const [selection, setSelection] = React.useState<{start: number; end?: number | undefined} | undefined>(
@@ -77,12 +79,13 @@ export const Input2 = React.memo(
     }, [onChangeText, selection, value])
 
     const style = React.useMemo(() => {
-      const textStyle = getTextStyle(textType)
+      let textStyle = getTextStyle(textType, isDarkMode)
       // RN TextInput plays better without this
       if (isIOS) {
-        delete textStyle.lineHeight
+        const {lineHeight, ...rest} = textStyle
+        textStyle = rest
       }
-      const commonStyle = Styles.collapseStyles([styles.common, textStyle as Styles.StylesCrossPlatform])
+      const commonStyle = Styles.collapseStyles([styles.common, textStyle])
 
       const lineHeight = textStyle.lineHeight
       let lineStyle = new Array<Styles.StylesCrossPlatform>()
@@ -102,7 +105,7 @@ export const Input2 = React.memo(
       }
 
       return Styles.collapseStyles([commonStyle, ...lineStyle, _style])
-    }, [_style, multiline, textType, padding, rowsMax, rowsMin])
+    }, [_style, multiline, textType, padding, rowsMax, rowsMin, isDarkMode])
 
     // const onPasteImageImpl = React.useCallback(
     //   (error: string | null | undefined, files: Array<PastedFile>) => {

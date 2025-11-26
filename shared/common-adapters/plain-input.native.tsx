@@ -11,9 +11,10 @@ import {
 } from 'react-native'
 import {Box2} from './box'
 import {checkTextInfo} from './input.shared'
-import {getStyle as getTextStyle} from './text'
+import {getTextStyle} from './text'
 import {isIOS} from '@/constants/platform'
 import {stringToUint8Array} from 'uint8array-extras'
+import {useState_ as useDarkModeState} from '@/constants/darkmode'
 
 type PlainInputRef = {
   blur: () => void
@@ -174,6 +175,8 @@ const PlainInput = React.memo(
       onEnterKeyDown?.()
     }, [onEnterKeyDown])
 
+    const isDarkMode = useDarkModeState(s => s.isDarkMode())
+
     // Update lastNativeTextRef when value changes (controlled mode)
     React.useEffect(() => {
       if (typeof value === 'string') {
@@ -184,17 +187,18 @@ const PlainInput = React.memo(
     const _getProps = () => {
       const _getStyle = () => {
         const _getCommonStyle = () => {
-          const textStyle = getTextStyle(p.textType ?? 'Body')
+          let textStyle = getTextStyle(p.textType ?? 'Body', isDarkMode)
           // RN TextInput plays better without this
           if (isIOS) {
-            delete textStyle.lineHeight
+            const {lineHeight, ...rest} = textStyle
+            textStyle = rest
           }
-          return Styles.collapseStyles([styles.common, textStyle as Styles.StylesCrossPlatform])
+          return Styles.collapseStyles([styles.common, textStyle])
         }
 
         const _getMultilineStyle = () => {
           const defaultRowsToShow = Math.min(2, p.rowsMax || 2)
-          const lineHeight = getTextStyle(p.textType ?? 'Body').lineHeight
+          const lineHeight = getTextStyle(p.textType ?? 'Body', true).lineHeight
           const paddingStyles = p.padding ? Styles.padding(Styles.globalMargins[p.padding]) : {}
           return Styles.collapseStyles([
             styles.multiline,
@@ -207,7 +211,7 @@ const PlainInput = React.memo(
         }
 
         const _getSinglelineStyle = () => {
-          const lineHeight = getTextStyle(p.textType ?? 'Body').lineHeight
+          const lineHeight = getTextStyle(p.textType ?? 'Body', true).lineHeight
           return Styles.collapseStyles([styles.singleline, {maxHeight: lineHeight, minHeight: lineHeight}])
         }
 

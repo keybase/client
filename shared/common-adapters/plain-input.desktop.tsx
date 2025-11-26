@@ -1,10 +1,11 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {getStyle as getTextStyle} from './text.desktop'
+import {getTextStyle} from './text.desktop'
 import logger from '@/logger'
 import {checkTextInfo} from './input.shared'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
 import {stringToUint8Array} from 'uint8array-extras'
+import {useState_ as useDarkModeState} from '@/constants/darkmode'
 
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
@@ -44,6 +45,7 @@ const PlainInput = React.memo(
     const isComposingIMERef = React.useRef(false)
     const mountedRef = React.useRef(true)
     const autoResizeLastRef = React.useRef('')
+    const isDarkMode = useDarkModeState(s => s.isDarkMode())
 
     const focus = React.useCallback(() => {
       inputRef.current?.focus()
@@ -223,7 +225,7 @@ const PlainInput = React.memo(
 
     const getMultilineProps = () => {
       const rows = rowsMin || Math.min(2, rowsMax || 2)
-      const textStyle = getTextStyle(textType ?? 'Body')
+      const textStyle = getTextStyle(textType ?? 'Body', isDarkMode)
       const heightStyles: {minHeight: number; maxHeight?: number; overflowY?: 'hidden'} = {
         minHeight:
           rows * (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20) +
@@ -254,7 +256,7 @@ const PlainInput = React.memo(
     }
 
     const getSinglelineProps = () => {
-      const textStyle = getTextStyle(textType ?? 'Body')
+      const textStyle = getTextStyle(textType ?? 'Body', isDarkMode)
       return {
         ...getCommonProps(),
         style: Styles.collapseStyles([

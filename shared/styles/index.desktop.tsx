@@ -130,8 +130,7 @@ const fixScrollbars = () => {
 
 export const initDesktopStyles = () => {
   const head = document.head
-  const style = document.createElement('style')
-  const colorNames = Object.keys(colors) as Array<keyof typeof colors>
+  const colorNames = Object.keys(colors).sort() as Array<keyof typeof colors>
   const colorVars = `
         :root { ${colorNames
           .reduce((s, name) => {
@@ -149,20 +148,23 @@ export const initDesktopStyles = () => {
         }
 `
   const helpers = colorNames.reduce((s, name) => {
-    const importantColor = String(colors[name])
     return (
       s +
       `.color_${name} {color: var(--color-${name});}\n` +
-      `.color_${name}_important {color: ${importantColor} !important;}\n` +
+      `.color_${name}_important {color: var(--color-${name}); !important;}\n` +
       `.hover_color_${name}:hover:not(.spoiler .hover_color_${name}) {color: var(--color-${name});}\n` +
       `.hover_container:hover .hover_contained_color_${name}:not(.spoiler .hover_contained_color_${name}) {color: var(--color-${name}) !important;}\n` +
       `.background_color_${name} {background-color: var(--color-${name});}\n` +
       `.hover_background_color_${name}:hover:not(.spoiler .hover_background_color_${name}) {background-color: var(--color-${name});}\n`
     )
   }, '')
-  const css = colorVars + helpers
-  style.appendChild(document.createTextNode(css))
-  head.appendChild(style)
+  const colorStyle = document.createElement('style')
+  colorStyle.appendChild(document.createTextNode(colorVars))
+  head.appendChild(colorStyle)
+
+  const helperStyle = document.createElement('style')
+  helperStyle.appendChild(document.createTextNode(helpers))
+  head.appendChild(helperStyle)
   fixScrollbars()
 }
 

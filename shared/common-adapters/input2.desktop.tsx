@@ -1,7 +1,8 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input2'
-import {getStyle as getTextStyle} from './text'
+import {getTextStyle} from './text'
+import {useState_ as useDarkModeState} from '@/constants/darkmode'
 
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
@@ -11,6 +12,8 @@ export const Input2 = React.memo(
     const {style: _style, onChangeText: _onChangeText, multiline} = p
     const {textType = 'Body', rowsMax, rowsMin, padding, placeholder, onKeyUp: _onKeyUp} = p
     const {allowKeyboardEvents, className, disabled, autoFocus, onKeyDown: _onKeyDown, onEnterKeyDown} = p
+
+    const isDarkMode = useDarkModeState(s => s.isDarkMode())
 
     const [value, setValue] = React.useState('')
     // this isn't a value react can set on the input, so we need to drive it manually
@@ -115,7 +118,7 @@ export const Input2 = React.memo(
 
     const rows = multiline ? rowsMin || Math.min(2, rowsMax || 2) : 0
     const style = React.useMemo(() => {
-      const textStyle = getTextStyle(textType)
+      const textStyle = getTextStyle(textType, isDarkMode)
       if (multiline) {
         const heightStyles: {minHeight: number; maxHeight?: number; overflowY?: 'hidden'} = {
           minHeight:
@@ -145,13 +148,13 @@ export const Input2 = React.memo(
         ])
       } else {
         return Styles.collapseStyles([
-          textStyle as Styles.StylesCrossPlatform,
+          textStyle,
           styles.noChrome, // noChrome comes after to unset lineHeight in singleline
           // this.props.flexable && styles.flexable,
           _style,
         ])
       }
-    }, [_style, multiline, textType, padding, rowsMax, rows])
+    }, [_style, multiline, textType, padding, rowsMax, rows, isDarkMode])
 
     const isComposingIMERef = React.useRef(false)
 
