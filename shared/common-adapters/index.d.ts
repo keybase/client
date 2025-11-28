@@ -1,4 +1,4 @@
-// Any additions to this file should also be added to ./index-impl.tsx
+// Any additions to this file should also be added to ./index-impl.js
 
 export type {MenuItem, MenuItems} from './floating-menu/menu-layout'
 export type {IconType} from './icon.constants-gen'

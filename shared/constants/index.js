@@ -1,78 +1,6 @@
-// Type-only exports (no runtime cost)
 export * from './platform'
 export {wrapErrors} from '@/util/debug'
-export type {useState_ as useDarkModeState} from './darkmode'
-export type {useState_ as useRouterState, makeScreen} from './router2'
-export type * as Router2 from './router2'
-export type {useState_ as useDeepLinksState} from './deeplinks'
-export type {useState_ as useDaemonState, maxHandshakeTries} from './daemon'
-export type {useState_ as useEngineState} from './engine'
-export type {useState_ as useWaitingState} from './waiting'
-export type {useConfigState_ as useConfigState, type Store as ConfigStore} from './config'
-export type * as DeepLinks from './deeplinks'
-export type {TBProvider_ as TBProvider, stores_ as TBstores, useContext_ as useTBContext} from './team-building'
-export type * as TeamBuilding from './team-building'
-export type {useState_ as useGitState} from './git'
-export type * as Git from './git'
-export type {useState_ as useProvisionState} from './provision'
-export type * as Provision from './provision'
-export type {useState_ as useActiveState} from './active'
-export type {useState_ as useAutoResetState} from './autoreset'
-export type * as AutoReset from './autoreset'
-export type {useState_ as useBotsState} from './bots'
-export type * as Bots from './bots'
-export type {useState_ as useCryptoState} from './crypto'
-export type * as Crypto from './crypto'
-export type {useState_ as useCurrentUserState} from './current-user'
-export type {useState_ as useDevicesState} from './devices'
-export type * as Devices from './devices'
-export type {useState_ as useFollowerState} from './followers'
-export type * as Gregor from './gregor'
-export type {useState_ as useLogoutState} from './logout'
-export type {useState_ as useNotifState} from './notifications'
-export type {useState_ as usePeopleState} from './people'
-export type * as People from './people'
-export type {useState_ as usePinentryState} from './pinentry'
-export type {useState_ as useProfileState} from './profile'
-export type * as Profile from './profile'
-export type {useState_ as usePushState} from './push'
-export type * as Push from './push'
-export type {useState_ as useRecoverState} from './recover-password'
-export type * as RecoverPwd from './recover-password'
-export type * as Settings from './settings'
-export type {useState_ as useSettingsState} from './settings'
-export type {useState_ as useFSState} from './fs'
-export type * as FS from './fs'
-export type * as Tabs from './tabs'
-export type {useState_ as useSettingsChatState} from './settings-chat'
-export type * as SettingsChat from './settings-chat'
-export type * as SettingsPhone from './settings-phone'
-export type {useState_ as useSettingsPhoneState} from './settings-phone'
-export type {useState_ as useSettingsEmailState, addEmailWaitingKey} from './settings-email'
-export type {useState_ as useSettingsPasswordState} from './settings-password'
-export type {useState_ as useSettingsInvitesState} from './settings-invites'
-export type {useState_ as useSettingsNotifState, refreshNotificationsWaitingKey} from './settings-notifications'
-export type {useState_ as useSettingsContactsState, importContactsWaitingKey} from './settings-contacts'
-export type {useState_ as useSignupState} from './signup'
-export type * as Signup from './signup'
-export type {useState_ as useTeamsState} from './teams'
-export type * as Teams from './teams'
-export type {useState_ as useTrackerState} from './tracker2'
-export type * as Tracker from './tracker2'
-export type {useState_ as useUFState} from './unlock-folders'
-export type {useState_ as useUsersState} from './users'
-export type * as Users from './users'
-export type * as Wallets from './wallets'
-export type {useState_ as useWalletsState} from './wallets'
-export type {useState_ as useWNState} from './whats-new'
-export type {useState_ as useChatState} from './chat2'
-export type * as Chat from './chat2'
-export type {useConvoState_ as useConvoState, stores_ as chatStores, ChatProvider_ as ChatProvider} from './chat2'
-export type {getConvoState_ as getConvoState, useContext_ as useChatContext} from './chat2'
-export type * as Config from './config'
-export type {useState_ as useArchiveState} from './archive'
 
-// Lazy runtime exports (defer require until accessed)
 Object.defineProperty(exports, 'useDarkModeState', {get: () => require('./darkmode').useState_})
 Object.defineProperty(exports, 'useRouterState', {get: () => require('./router2').useState_})
 Object.defineProperty(exports, 'makeScreen', {get: () => require('./router2').makeScreen})
@@ -198,19 +126,18 @@ import logger from '@/logger'
 export {default as logger} from '@/logger'
 export {debugWarning} from '@/util/debug-warning'
 
-export const ignorePromise = (f: Promise<void> | Promise<PromiseSettledResult<void>[]>) => {
-  f.then(() => {}).catch((e: unknown) => {
-    // likely remove this after some time
+export const ignorePromise = (f) => {
+  f.then(() => {}).catch((e) => {
     logger.error('ignorePromise error', e)
   })
 }
 
-export const timeoutPromise = async (timeMs: number) =>
-  new Promise<void>(resolve => {
+export const timeoutPromise = async (timeMs) =>
+  new Promise((resolve) => {
     setTimeout(() => resolve(), timeMs)
   })
 
-export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
+export async function neverThrowPromiseFunc(f) {
   try {
     return await f()
   } catch {
@@ -218,19 +145,18 @@ export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
   }
 }
 
-export function enumKeys<T extends Record<string, string | number>>(enumeration: T): (keyof T)[] {
-  return Object.keys(enumeration).filter(key => typeof enumeration[key] === 'number') as (keyof T)[]
+export function enumKeys(enumeration) {
+  return Object.keys(enumeration).filter(key => typeof enumeration[key] === 'number')
 }
 
-export const assertNever = (_: never) => undefined
+export const assertNever = (_) => undefined
 
 import {useNavigation} from '@react-navigation/core'
-import {type RouteKeys} from '@/router-v2/route-params'
 export const useNav = () => {
   const na = useNavigation()
   const {canGoBack} = na
-  const pop: undefined | (() => void) = canGoBack() ? na.goBack : undefined
-  const navigate: (n: RouteKeys) => void = na.navigate
+  const pop = canGoBack() ? na.goBack : undefined
+  const navigate = na.navigate
   return {
     canGoBack,
     navigate,
@@ -239,7 +165,7 @@ export const useNav = () => {
 }
 
 export {useIsMounted, useOnMountOnce, useOnUnMountOnce, useEvent, useLogMount} from './react'
-export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
+export {useDebouncedCallback, useThrottledCallback} from 'use-debounce'
 export {useShallow, useDeep} from '@/util/zustand'
 export {isNetworkErr, RPCError} from '@/util/errors'
 export {default as useRPC} from '@/util/use-rpc'
@@ -247,3 +173,4 @@ export {fixCrop} from '@/util/crop'
 export {produce} from 'immer'
 export * from './immer'
 export {default as featureFlags} from '../util/feature-flags'
+

@@ -1,51 +1,46 @@
-import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
-import {newRoutes as cryptoNewRoutes, newModalRoutes as cryptoNewModalRoutes} from '../crypto/routes'
-import {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '../devices/routes'
-import {newRoutes as fsNewRoutes, newModalRoutes as fsNewModalRoutes} from '@/fs/routes'
-import {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} from '../git/routes'
-import {newRoutes as _loggedOutRoutes, newModalRoutes as loginNewModalRoutes} from '../login/routes'
-import {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
-import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
-import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
-import {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} from '../signup/routes'
-import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
-import {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
-import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
 import {isMobile} from '@/constants/platform'
 import * as Tabs from '@/constants/tabs'
 import type {RouteMap} from '@/constants/types/router2'
 
-// We have normal routes, modal routes, and logged out routes.
-// We also end up using existence of a nameToTab value for a route as a test
-// of whether we're on a loggedIn route: loggedOut routes have no selected tab.
-export const routes: RouteMap = {}
+// Lazy load route definitions
+const getRouteModule = (path: string) => {
+  switch (path) {
+    case 'chat': return require('../chat/routes')
+    case 'crypto': return require('../crypto/routes')
+    case 'devices': return require('../devices/routes')
+    case 'fs': return require('@/fs/routes')
+    case 'git': return require('../git/routes')
+    case 'login': return require('../login/routes')
+    case 'people': return require('../people/routes')
+    case 'profile': return require('../profile/routes')
+    case 'settings': return require('../settings/routes')
+    case 'signup': return require('../signup/routes')
+    case 'teams': return require('../teams/routes')
+    case 'wallets': return require('../wallets/routes')
+    case 'incomingShare': return require('../incoming-share/routes')
+    default: throw new Error('Unknown route module: ' + path)
+  }
+}
 
-type RoutePlusTab = {route: RouteMap; tab: Tabs.Tab}
+type RoutePlusTab = {module: string; tab: Tabs.Tab; includeModal?: boolean}
 
-const _newRoutes = [
-  {route: deviceNewRoutes, tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab},
-  {route: chatNewRoutes, tab: Tabs.chatTab},
-  {route: cryptoNewRoutes, tab: Tabs.cryptoTab},
-  {route: peopleNewRoutes, tab: Tabs.peopleTab},
-  {route: profileNewRoutes, tab: Tabs.peopleTab},
-  {route: fsNewRoutes, tab: Tabs.fsTab},
-  {route: settingsNewRoutes, tab: Tabs.settingsTab},
-  {route: teamsNewRoutes, tab: Tabs.teamsTab},
-  {route: gitNewRoutes, tab: Tabs.gitTab},
-] satisfies ReadonlyArray<RoutePlusTab>
+const routeConfigs: ReadonlyArray<RoutePlusTab> = [
+  {module: 'devices', tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab},
+  {module: 'chat', tab: Tabs.chatTab, includeModal: true},
+  {module: 'crypto', tab: Tabs.cryptoTab, includeModal: true},
+  {module: 'people', tab: Tabs.peopleTab, includeModal: true},
+  {module: 'profile', tab: Tabs.peopleTab, includeModal: true},
+  {module: 'fs', tab: Tabs.fsTab, includeModal: true},
+  {module: 'settings', tab: Tabs.settingsTab, includeModal: true},
+  {module: 'teams', tab: Tabs.teamsTab, includeModal: true},
+  {module: 'git', tab: Tabs.gitTab, includeModal: true},
+]
 
-const seenNames = new Set()
-_newRoutes.forEach(({route}) => {
-  const routeMap = route as RouteMap
-  Object.keys(routeMap).forEach(name => {
-    // Just sanity check dupes
-    if (seenNames.has(name)) {
-      throw new Error('New route with dupe name, disallowed! ' + name)
-    }
-    seenNames.add(name)
-    routes[name] = routeMap[name]
-  })
-})
+const modalOnlyConfigs = ['login', 'signup', 'wallets', 'incomingShare'] as const
+
+let _routes: RouteMap | undefined
+let _modalRoutes: RouteMap | undefined
+let _loggedOutRoutes: RouteMap | undefined
 
 export const tabRoots = {
   [Tabs.peopleTab]: 'peopleRoot',
@@ -61,31 +56,63 @@ export const tabRoots = {
   [Tabs.searchTab]: '',
 } as const
 
-const _modalRoutes = [
-  chatNewModalRoutes,
-  cryptoNewModalRoutes,
-  deviceNewModalRoutes,
-  fsNewModalRoutes,
-  gitNewModalRoutes,
-  loginNewModalRoutes,
-  peopleNewModalRoutes,
-  profileNewModalRoutes,
-  settingsNewModalRoutes,
-  signupNewModalRoutes,
-  teamsNewModalRoutes,
-  walletsNewModalRoutes,
-  incomingShareNewModalRoutes,
-] satisfies ReadonlyArray<RouteMap>
-
-export const modalRoutes = _modalRoutes.reduce<RouteMap>((obj, modal) => {
-  const modalMap = modal as RouteMap
-  for (const name of Object.keys(modalMap)) {
-    if (obj[name]) {
-      throw new Error('New modal route with dupe name, disallowed! ' + name)
-    }
-    obj[name] = modalMap[name]
+Object.defineProperty(exports, 'routes', {
+  get: () => {
+    if (_routes) return _routes
+    _routes = {}
+    const seenNames = new Set<string>()
+    
+    routeConfigs.forEach(({module}) => {
+      const {newRoutes} = getRouteModule(module)
+      Object.keys(newRoutes).forEach(name => {
+        if (seenNames.has(name)) {
+          throw new Error('New route with dupe name, disallowed! ' + name)
+        }
+        seenNames.add(name)
+        _routes![name] = newRoutes[name]
+      })
+    })
+    
+    return _routes
   }
-  return obj
-}, {})
+})
 
-export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes}
+Object.defineProperty(exports, 'modalRoutes', {
+  get: () => {
+    if (_modalRoutes) return _modalRoutes
+    _modalRoutes = {}
+    
+    routeConfigs.forEach(({module, includeModal}) => {
+      if (!includeModal) return
+      const {newModalRoutes} = getRouteModule(module)
+      Object.keys(newModalRoutes).forEach(name => {
+        if (_modalRoutes![name]) {
+          throw new Error('New modal route with dupe name, disallowed! ' + name)
+        }
+        _modalRoutes![name] = newModalRoutes[name]
+      })
+    })
+    
+    modalOnlyConfigs.forEach(module => {
+      const {newModalRoutes} = getRouteModule(module)
+      Object.keys(newModalRoutes).forEach(name => {
+        if (_modalRoutes![name]) {
+          throw new Error('New modal route with dupe name, disallowed! ' + name)
+        }
+        _modalRoutes![name] = newModalRoutes[name]
+      })
+    })
+    
+    return _modalRoutes
+  }
+})
+
+Object.defineProperty(exports, 'loggedOutRoutes', {
+  get: () => {
+    if (_loggedOutRoutes) return _loggedOutRoutes
+    const {newRoutes: _loggedOutR} = getRouteModule('login')
+    const {newRoutes: signupNewRoutes} = getRouteModule('signup')
+    _loggedOutRoutes = {..._loggedOutR, ...signupNewRoutes}
+    return _loggedOutRoutes
+  }
+})
