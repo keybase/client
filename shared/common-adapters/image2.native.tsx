@@ -19,7 +19,10 @@ const Image2 = (p: Props) => {
   const _onLoad = React.useCallback(
     (e: ImageLoadEventData) => {
       setLoading(false)
-      console.log('[Image2] Load success:', typeof src === 'string' ? src.substring(0, 100) : 'non-string')
+      console.error('[Image2] Load SUCCESS:', {
+        src: typeof src === 'string' ? src.substring(0, 80) + '...' : 'non-string',
+        timestamp: new Date().toISOString()
+      })
       onLoad?.(e)
     },
     [onLoad, src]
@@ -28,13 +31,21 @@ const Image2 = (p: Props) => {
   if (lastSrc !== src) {
     setLastSrc(src)
     setLoading(true)
-    console.log('[Image2] Src changed, reloading:', typeof src === 'string' ? src.substring(0, 100) : 'non-string')
+    console.error('[Image2] Src changed, reloading:', {
+      oldSrc: typeof lastSrc === 'string' ? lastSrc.substring(0, 80) + '...' : 'non-string',
+      newSrc: typeof src === 'string' ? src.substring(0, 80) + '...' : 'non-string',
+      timestamp: new Date().toISOString()
+    })
   }
 
   const _onError = React.useCallback(
     (e: ImageErrorEventData) => {
       setLoading(false)
-      console.log('[Image2] Load error:', e.error, 'src:', typeof src === 'string' ? src.substring(0, 100) : 'non-string')
+      console.error('[Image2] Load ERROR:', {
+        error: e.error,
+        src: typeof src === 'string' ? src.substring(0, 80) + '...' : 'non-string',
+        timestamp: new Date().toISOString()
+      })
       onError?.()
     },
     [setLoading, onError, src]

@@ -80,11 +80,19 @@ export default (ownProps: Props) => {
   const isDarkMode = Styles.useIsDarkMode()
 
   React.useEffect(() => {
-    console.log('[Avatar] httpSrv updated:', {address, token: token.substring(0, 10) + '...', name, counter})
+    console.error('[Avatar] httpSrv or counter changed:', {address, token: token.substring(0, 10) + '...', name, counter, timestamp: new Date().toISOString()})
   }, [address, token, name, counter])
+  
+  React.useEffect(() => {
+    console.error('[Avatar] Component mounted/name changed:', {name, address: address || 'NO ADDRESS', hasToken: !!token, timestamp: new Date().toISOString()})
+  }, [name])
 
   const urlMap = React.useMemo(
     () => {
+      if (!address || !token) {
+        console.error('[Avatar] urlMap: SKIPPED - missing address or token:', {name, address: address || 'MISSING', hasToken: !!token})
+        return {}
+      }
       const map = sizes.reduce<{[key: number]: string}>((m, size) => {
         m[size] = `http://${address}/av?typ=${
           isTeam ? 'team' : 'user'
@@ -93,7 +101,7 @@ export default (ownProps: Props) => {
         }&count=${counter}`
         return m
       }, {})
-      console.log('[Avatar] urlMap regenerated for:', name, 'address:', address, 'counter:', counter)
+      console.error('[Avatar] urlMap regenerated:', {name, address, token: token.substring(0, 10) + '...', counter, sampleUrl: map[192]?.substring(0, 80) + '...', timestamp: new Date().toISOString()})
       return map
     },
     [counter, address, token, isTeam, name, isDarkMode]

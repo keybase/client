@@ -106,10 +106,12 @@ func (r *Srv) startHTTPSrv() {
 	}
 	r.token = newToken
 	r.debug(ctx, "startHTTPSrv: addr: %s new token: %s... (previous token valid until: %v)", addr, r.token[:8], r.tokenExpiry)
+	r.debug(ctx, "startHTTPSrv: sending HTTPSrvInfoUpdate notification to clients")
 	r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{
 		Address: addr,
 		Token:   r.token,
 	})
+	r.debug(ctx, "startHTTPSrv: HTTPSrvInfoUpdate notification sent")
 }
 
 func (r *Srv) monitorAppState() {
