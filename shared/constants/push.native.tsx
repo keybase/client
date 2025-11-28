@@ -146,6 +146,40 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         try {
           logger.info('[Push]: ' + notification.type || 'unknown')
 
+          const switchToRecipientIfNeeded = async (recipientUsername?: string): Promise<boolean> => {
+            if (!recipientUsername) {
+              return true
+            }
+            const currentUsername = C.useCurrentUserState.getState().username
+            if (recipientUsername === currentUsername) {
+              return true
+            }
+
+            logger.info(`[Push] notification is for different user: ${recipientUsername} vs ${currentUsername}`)
+            
+            const configuredAccounts = C.useConfigState.getState().configuredAccounts
+            const targetAccount = configuredAccounts.find(acc => acc.username === recipientUsername)
+            
+            if (!targetAccount) {
+              logger.info(`[Push] recipient account not found in configured accounts`)
+              return false
+            }
+            
+            if (!targetAccount.hasStoredSecret) {
+              logger.info(`[Push] recipient account has no stored secrets, cannot auto-login`)
+              return false
+            }
+
+            logger.info(`[Push] auto-switching to account ${targetAccount.username}`)
+            const setUserSwitching = C.useConfigState.getState().dispatch.setUserSwitching
+            const login = C.useConfigState.getState().dispatch.login
+            setUserSwitching(true)
+            login(targetAccount.username, '')
+            await C.timeoutPromise(1500)
+            
+            return true
+          }
+
           switch (notification.type) {
             case 'chat.readmessage':
               logger.info('[Push] read message')
@@ -157,7 +191,9 @@ export const useState_ = Z.createZustand<State>((set, get) => {
               // entirely handled by go on ios and in onNotification on Android
               break
             case 'chat.newmessage':
-              await handleLoudMessage(notification)
+              if (await switchToRecipientIfNeeded(notification.recipientUsername)) {
+                await handleLoudMessage(notification)
+              }
               break
             case 'follow':
               // We only care if the user clicked while in session
@@ -169,8 +205,10 @@ export const useState_ = Z.createZustand<State>((set, get) => {
               break
             case 'chat.extension':
               {
-                const {conversationIDKey} = notification
-                C.getConvoState(conversationIDKey).dispatch.navigateToThread('extension')
+                const {conversationIDKey, recipientUsername} = notification
+                if (await switchToRecipientIfNeeded(recipientUsername)) {
+                  C.getConvoState(conversationIDKey).dispatch.navigateToThread('extension')
+                }
               }
               break
             case 'settings.contacts':
