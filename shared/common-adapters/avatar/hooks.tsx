@@ -79,16 +79,23 @@ export default (ownProps: Props) => {
 
   const isDarkMode = Styles.useIsDarkMode()
 
+  React.useEffect(() => {
+    console.log('[Avatar] httpSrv updated:', {address, token: token.substring(0, 10) + '...', name, counter})
+  }, [address, token, name, counter])
+
   const urlMap = React.useMemo(
-    () =>
-      sizes.reduce<{[key: number]: string}>((m, size) => {
+    () => {
+      const map = sizes.reduce<{[key: number]: string}>((m, size) => {
         m[size] = `http://${address}/av?typ=${
           isTeam ? 'team' : 'user'
         }&name=${name}&format=square_${size}&mode=${isDarkMode ? 'dark' : 'light'}&token=${
           token
         }&count=${counter}`
         return m
-      }, {}),
+      }, {})
+      console.log('[Avatar] urlMap regenerated for:', name, 'address:', address, 'counter:', counter)
+      return map
+    },
     [counter, address, token, isTeam, name, isDarkMode]
   )
   const url = React.useMemo(

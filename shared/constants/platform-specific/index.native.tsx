@@ -394,7 +394,8 @@ export const initPlatformListener = () => {
         logState = T.RPCGen.MobileAppState.foreground
     }
 
-    logger.info(`setting app state on service to: ${logState}`)
+    const httpSrv = C.useConfigState.getState().httpSrv
+    logger.info(`[AppState] ${old.mobileAppState} -> ${s.mobileAppState}, setting service to: ${logState}, httpSrv: ${httpSrv.address}`)
     C.useConfigState.getState().dispatch.changedFocus(appFocused)
   })
 

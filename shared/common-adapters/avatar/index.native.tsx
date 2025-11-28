@@ -32,6 +32,13 @@ const Avatar = React.memo(function Avatar(p: Props) {
   const props = useHook(p)
   const {size} = props
   const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
+
+  React.useEffect(() => {
+    if (props.url) {
+      console.log('[Avatar] Rendered:', props.name, 'hasUrl:', !!props.url, 'urlStart:', typeof props.url === 'string' ? props.url.substring(0, 60) : 'non-string')
+    }
+  }, [props.url, props.name])
+
   const containerStyle = Styles.collapseStyles([boxStyles[size], props.style])
 
   return (

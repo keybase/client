@@ -19,23 +19,25 @@ const Image2 = (p: Props) => {
   const _onLoad = React.useCallback(
     (e: ImageLoadEventData) => {
       setLoading(false)
+      console.log('[Image2] Load success:', typeof src === 'string' ? src.substring(0, 100) : 'non-string')
       onLoad?.(e)
     },
-    [onLoad]
+    [onLoad, src]
   )
 
   if (lastSrc !== src) {
     setLastSrc(src)
     setLoading(true)
+    console.log('[Image2] Src changed, reloading:', typeof src === 'string' ? src.substring(0, 100) : 'non-string')
   }
 
   const _onError = React.useCallback(
     (e: ImageErrorEventData) => {
       setLoading(false)
-      console.log('Image2 load error', e.error)
+      console.log('[Image2] Load error:', e.error, 'src:', typeof src === 'string' ? src.substring(0, 100) : 'non-string')
       onError?.()
     },
-    [setLoading, onError]
+    [setLoading, onError, src]
   )
 
   return (

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"runtime"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
@@ -28,10 +29,12 @@ type srvEndpoint struct {
 type Srv struct {
 	libkb.Contextified
 
-	httpSrv   *kbhttp.Srv
-	endpoints map[string]srvEndpoint
-	token     string
-	startMu   sync.Mutex
+	httpSrv       *kbhttp.Srv
+	endpoints     map[string]srvEndpoint
+	token         string
+	previousToken string
+	tokenExpiry   time.Time
+	startMu       sync.Mutex
 }
 
 func NewSrv(g *libkb.GlobalContext) *Srv {
@@ -62,7 +65,14 @@ func (r *Srv) startHTTPSrv() {
 	r.startMu.Lock()
 	defer r.startMu.Unlock()
 	ctx := context.Background()
-	token, _ := libkb.RandHexString("", 32)
+	newToken, _ := libkb.RandHexString("", 32)
+	
+	if r.token != "" {
+		r.previousToken = r.token
+		r.tokenExpiry = time.Now().Add(10 * time.Second)
+		r.debug(ctx, "startHTTPSrv: rotating token, old token valid for 10s grace period")
+	}
+	
 	maxTries := 2
 	success := false
 	for i := 0; i < maxTries; i++ {
@@ -94,8 +104,8 @@ func (r *Srv) startHTTPSrv() {
 	} else {
 		r.debug(ctx, "startHTTPSrv: start success: addr: %s", addr)
 	}
-	r.token = token
-	r.debug(ctx, "startHTTPSrv: addr: %s token: %s", addr, r.token)
+	r.token = newToken
+	r.debug(ctx, "startHTTPSrv: addr: %s new token: %s... (previous token valid until: %v)", addr, r.token[:8], r.tokenExpiry)
 	r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{
 		Address: addr,
 		Token:   r.token,
@@ -112,10 +122,14 @@ func (r *Srv) monitorAppState() {
 	}
 	for {
 		state = <-r.G().MobileAppState.NextUpdate(&state)
+		r.debug(ctx, "monitorAppState: received state update: %v", state)
 		switch state {
 		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
+			r.debug(ctx, "monitorAppState: transitioning to active state, starting HTTP server")
 			r.startHTTPSrv()
+			r.debug(ctx, "monitorAppState: HTTP server start completed, active=%v", r.httpSrv.Active())
 		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
+			r.debug(ctx, "monitorAppState: transitioning to inactive state, stopping HTTP server")
 			r.httpSrv.Stop()
 		}
 	}
@@ -126,9 +140,24 @@ func (r *Srv) HandleFunc(endpoint string, tokenMode SrvTokenMode,
 	r.httpSrv.HandleFunc("/"+endpoint, func(w http.ResponseWriter, req *http.Request) {
 		switch tokenMode {
 		case SrvTokenModeDefault:
-			if !hmac.Equal([]byte(req.URL.Query().Get("token")), []byte(r.token)) {
-				r.debug(context.Background(), "HandleFunc: token failed: %s != %s",
-					req.URL.Query().Get("token"), r.token)
+			requestToken := req.URL.Query().Get("token")
+			r.startMu.Lock()
+			currentToken := r.token
+			previousToken := r.previousToken
+			expiry := r.tokenExpiry
+			r.startMu.Unlock()
+			
+			validToken := hmac.Equal([]byte(requestToken), []byte(currentToken))
+			
+			if !validToken && previousToken != "" && time.Now().Before(expiry) {
+				validToken = hmac.Equal([]byte(requestToken), []byte(previousToken))
+				if validToken {
+					r.debug(context.Background(), "HandleFunc: request using previous token (grace period), endpoint: %s", endpoint)
+				}
+			}
+			
+			if !validToken {
+				r.debug(context.Background(), "HandleFunc: token failed for endpoint %s: %s...", endpoint, requestToken[:min(len(requestToken), 8)])
 				w.WriteHeader(http.StatusForbidden)
 				return
 			}
@@ -143,6 +172,13 @@ func (r *Srv) HandleFunc(endpoint string, tokenMode SrvTokenMode,
 	}
 }
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func (r *Srv) Active() bool {
 	return r.httpSrv.Active()
 }
@@ -150,7 +186,11 @@ func (r *Srv) Active() bool {
 func (r *Srv) Addr() (string, error) {
 	r.startMu.Lock()
 	defer r.startMu.Unlock()
-	return r.httpSrv.Addr()
+	addr, err := r.httpSrv.Addr()
+	if err != nil {
+		r.debug(context.Background(), "Addr: failed to get address: %v, active=%v", err, r.httpSrv.Active())
+	}
+	return addr, err
 }
 
 func (r *Srv) Token() string {

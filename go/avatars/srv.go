@@ -45,23 +45,30 @@ func NewSrv(g *libkb.GlobalContext, httpSrv *manager.Srv, source libkb.AvatarLoa
 		httpSrv:      httpSrv,
 		source:       source,
 	}
+	s.debug("NewSrv: registering 'av' endpoint")
 	s.httpSrv.HandleFunc("av", manager.SrvTokenModeDefault, s.serve)
+	s.debug("NewSrv: avatar server initialized")
 	return s
 }
 
 func (s *Srv) GetUserAvatar(username string) (string, error) {
+	s.debug("GetUserAvatar: requesting avatar URL for user: %s", username)
 	if s.httpSrv == nil {
+		s.debug("GetUserAvatar: ERROR - HttpSrv is nil for user: %s", username)
 		return "", fmt.Errorf("HttpSrv is not ready")
 	}
 
 	addr, err := s.httpSrv.Addr()
 	if err != nil {
+		s.debug("GetUserAvatar: ERROR - failed to get addr for user %s: %v", username, err)
 		return "", err
 	}
 
 	token := s.httpSrv.Token()
+	url := fmt.Sprintf("http://%v/av?typ=user&name=%v&format=square_192&token=%v", addr, username, token)
+	s.debug("GetUserAvatar: generated URL for user %s: %s (token: %s...)", username, addr, token[:8])
 
-	return fmt.Sprintf("http://%v/av?typ=user&name=%v&format=square_192&token=%v", addr, username, token), nil
+	return url, nil
 }
 
 func (s *Srv) debug(msg string, args ...interface{}) {
@@ -118,6 +125,8 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 	mode := req.URL.Query().Get("mode")
 	mctx := libkb.NewMetaContextBackground(s.G())
 
+	s.debug("serve: received request - typ=%s name=%s format=%s mode=%s", typ, name, format, mode)
+
 	var loadFn func(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
 	var placeholderMap map[keybase1.AvatarFormat]string
 	switch typ {
@@ -137,6 +146,7 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		s.makeError(w, http.StatusBadRequest, "unknown avatar type: %s", typ)
 		return
 	}
+	s.debug("serve: loading avatar for %s %s", typ, name)
 	res, err := loadFn(mctx, []string{name}, []keybase1.AvatarFormat{format})
 	if err != nil {
 		s.makeError(w, http.StatusInternalServerError, "failed to load: %s", err)
@@ -150,6 +160,7 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 	var reader io.ReadCloser
 	url, ok := nameRes[format]
 	if !ok || len(url.String()) == 0 {
+		s.debug("serve: no URL found for %s, using placeholder", name)
 		placeholder, err := s.loadPlaceholder(format, placeholderMap)
 		if err != nil {
 			s.makeError(w, http.StatusInternalServerError, "failed to load placeholder: %s", err)
@@ -157,6 +168,7 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		}
 		reader = io.NopCloser(bytes.NewReader(placeholder))
 	} else {
+		s.debug("serve: loading from URL for %s: %s", name, url.String())
 		if reader, err = s.loadFromURL(url.String()); err != nil {
 			s.makeError(w, http.StatusInternalServerError, "failed to get URL reader: %s", err)
 			return
@@ -167,4 +179,5 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		s.makeError(w, http.StatusInternalServerError, "failed to write response: %s", err)
 		return
 	}
+	s.debug("serve: successfully served avatar for %s %s", typ, name)
 }

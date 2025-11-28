@@ -801,7 +801,9 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           break
         }
         case EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate: {
-          get().dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
+          const {address, token} = action.payload.params.info
+          logger.info(`[HTTPSrvUpdate] Received from Go: ${address} token: ${token.substring(0, 10)}...`)
+          get().dispatch.setHTTPSrvInfo(address, token)
           break
         }
         case EngineGen.keybase1NotifySessionLoggedIn: {
@@ -1052,6 +1054,12 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       }
     },
     setHTTPSrvInfo: (address, token) => {
+      const old = get().httpSrv
+      console.log('[HTTPSrv] Update:', {
+        old: {address: old.address, token: old.token.substring(0, 10) + '...'},
+        new: {address, token: token.substring(0, 10) + '...'},
+        changed: old.address !== address || old.token !== token
+      })
       set(s => {
         s.httpSrv.address = address
         s.httpSrv.token = token
