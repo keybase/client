@@ -280,14 +280,12 @@ func (log *Standard) Configure(style string, debug bool, filename string) {
 	globalLock.Unlock()
 
 	// TODO: how should setting the log file after a Configure be handled?
-	if isTerm {
-		if debug {
-			logfmt = fancyFormat
-		} else {
-			logfmt = defaultFormat
-		}
-	} else {
+	if len(filename) > 0 || !isTerm {
 		logfmt = fileFormat
+	} else if debug {
+		logfmt = fancyFormat
+	} else {
+		logfmt = defaultFormat
 	}
 
 	// Override the format above if an explicit style was specified.
