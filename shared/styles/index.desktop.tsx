@@ -1,10 +1,7 @@
 import * as Shared from './shared'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import type * as CSS from './css'
-import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
-import {getAssetPath} from '@/constants/platform.desktop'
-import * as Path from '@/util/path'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -95,16 +92,6 @@ export const transitionColor = () => ({
   transition: 'background 0.2s linear',
 })
 
-export const backgroundURL = (url: string) => {
-  const ext = Path.extname(url)
-  const goodPath = Path.basename(url, ext) ?? ''
-  const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
-  const images = [1, 2, 3].map(
-    mult => `url('${getAssetPath('images', guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
-  )
-  return `-webkit-image-set(${images.join(', ')})`
-}
-
 const fixScrollbars = () => {
   // https://www.filamentgroup.com/lab/scrollbars/
   const parent = document.createElement('div')
@@ -128,8 +115,7 @@ const fixScrollbars = () => {
 
 export const initDesktopStyles = () => {
   const head = document.head
-  const style = document.createElement('style')
-  const colorNames = Object.keys(colors) as Array<keyof typeof colors>
+  const colorNames = Object.keys(colors).sort() as Array<keyof typeof colors>
   const colorVars = `
         :root { ${colorNames
           .reduce((s, name) => {
@@ -137,12 +123,14 @@ export const initDesktopStyles = () => {
             return s
           }, new Array<string>())
           .join(' ')} }
-        .darkMode { ${colorNames
-          .reduce((s, name) => {
-            s.push(`--color-${name}: ${darkColors[name]};`)
-            return s
-          }, new Array<string>())
-          .join(' ')} }
+        @media (prefers-color-scheme: dark) {
+          :root { ${colorNames
+            .reduce((s, name) => {
+              s.push(`--color-${name}: ${darkColors[name]};`)
+              return s
+            }, new Array<string>())
+            .join(' ')} }
+        }
 `
   const helpers = colorNames.reduce((s, name) => {
     return (
@@ -155,9 +143,13 @@ export const initDesktopStyles = () => {
       `.hover_background_color_${name}:hover:not(.spoiler .hover_background_color_${name}) {background-color: var(--color-${name});}\n`
     )
   }, '')
-  const css = colorVars + helpers
-  style.appendChild(document.createTextNode(css))
-  head.appendChild(style)
+  const colorStyle = document.createElement('style')
+  colorStyle.appendChild(document.createTextNode(colorVars))
+  head.appendChild(colorStyle)
+
+  const helperStyle = document.createElement('style')
+  helperStyle.appendChild(document.createTextNode(helpers))
+  head.appendChild(helperStyle)
   fixScrollbars()
 }
 
@@ -202,13 +194,8 @@ export {default as classNames} from 'classnames'
 export type StylesCrossPlatform = CSS.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
-export {isDarkMode, DarkModeContext} from './dark-mode'
 export const headerExtraHeight = 0
 export const undynamicColor = (col: string) => col
 // nothing on desktop, it all works
 export const normalizePath = (p: string) => p
 export const unnormalizePath = (p: string) => p
-
-export const useIsDarkMode = () => {
-  return isDarkMode()
-}

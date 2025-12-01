@@ -2,7 +2,7 @@ import * as React from 'react'
 import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
 import Box, {Box2} from './box'
 import Icon, {type IconType} from './icon'
-import Text, {getStyle as getTextStyle} from './text'
+import Text, {getTextStyle} from './text'
 import * as Styles from '@/styles'
 import './input.css'
 
@@ -34,7 +34,7 @@ const NewInput = React.forwardRef<PlainInputRef, Props>(function NewInputInner(p
     _onBlur?.()
   }, [_onBlur])
 
-  const textStyle = getTextStyle(textType)
+  const fontSize = getTextStyle(textType, true).fontSize
   const {containerStyle, decoration, error, hideBorder, icon, prefix, ...plainInputProps} = props
   const plainInputStyle = prefix
     ? Styles.collapseStyles([styles.prefixInput, plainInputProps.style])
@@ -56,7 +56,7 @@ const NewInput = React.forwardRef<PlainInputRef, Props>(function NewInputInner(p
           <Icon
             color={Styles.globalColors.black_20} // not sure how to make this dynamic
             type={props.icon}
-            fontSize={textStyle.fontSize}
+            fontSize={fontSize}
             style={styles.displayFlex}
           />
         </Box>

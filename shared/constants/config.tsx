@@ -515,9 +515,6 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           })
           break
         }
-        case RemoteGen.setSystemDarkMode:
-          C.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
-          break
         case RemoteGen.previewConversation:
           C.useChatState
             .getState()

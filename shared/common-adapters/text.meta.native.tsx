@@ -361,8 +361,8 @@ const _metaData = (): {[K in TextType]: MetaType} => {
 let _darkMetaData: {[K in TextType]: MetaType} | undefined
 let _lightMetaData: {[K in TextType]: MetaType} | undefined
 
-export const metaData = (): {[K in TextType]: MetaType} => {
-  if (Styles.isDarkMode()) {
+export const metaData = (isDarkMode: boolean): {[K in TextType]: MetaType} => {
+  if (isDarkMode) {
     _darkMetaData = _darkMetaData || _metaData()
     return _darkMetaData
   } else {

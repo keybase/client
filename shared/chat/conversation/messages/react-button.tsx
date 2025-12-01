@@ -5,6 +5,7 @@ import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {colors, darkColors} from '@/styles/colors'
+import {useColorScheme} from 'react-native'
 
 export type OwnProps = {
   className?: string
@@ -18,7 +19,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const ordinal = useOrdinal()
   const {onLongPress, style, emoji, className} = p
   const me = C.useCurrentUserState(s => s.username)
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode)
+  const isDarkMode = useColorScheme() === 'dark'
   const {active, count, decorated} = C.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
@@ -52,7 +53,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       onClick={onClick}
       style={Kb.Styles.collapseStyles([
         styles.borderBase,
-        {borderColor: isDarkMode() ? darkColors.black_10 : colors.black_10},
+        {borderColor: isDarkMode ? darkColors.black_10 : colors.black_10},
         styles.buttonBox,
         active && styles.active,
         style,
@@ -85,7 +86,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       onClick={onOpenEmojiPicker}
       style={Kb.Styles.collapseStyles([
         styles.borderBase,
-        {borderColor: isDarkMode() ? darkColors.black_10 : colors.black_10},
+        {borderColor: isDarkMode ? darkColors.black_10 : colors.black_10},
         styles.newReactionButtonBox,
         styles.buttonBox,
         style,

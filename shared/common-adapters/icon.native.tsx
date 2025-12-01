@@ -6,6 +6,7 @@ import type {IconType, Props, SizeType} from './icon'
 import {Pressable, Image as RNImage, Text as RNText} from 'react-native'
 import {iconMeta} from './icon.constants-gen'
 import type {MeasureRef} from './measure-ref'
+import {useColorScheme} from 'react-native'
 
 type TextProps = {
   children: React.ReactNode
@@ -117,7 +118,7 @@ const Icon = React.memo<Props>(
     // Only apply props.style to icon if there is no onClick
     const hasContainer = p.onClick && p.style
     const iconType = p.type
-    const isDarkMode = React.useContext(Styles.DarkModeContext)
+    const isDarkMode = useColorScheme() === 'dark'
 
     React.useImperativeHandle(ref, () => {
       return {

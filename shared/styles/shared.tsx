@@ -177,4 +177,3 @@ export const padding = (top: number, right?: number, bottom?: number, left?: num
   paddingBottom: bottom !== undefined ? bottom : top,
   paddingLeft: left !== undefined ? left : right !== undefined ? right : top,
 })
-/* eslint-enable sort-keys */

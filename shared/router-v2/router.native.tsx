@@ -17,6 +17,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import * as Hooks from './hooks.native'
 import * as TabBar from './tab-bar.native'
 import type {RootParamList} from '@/router-v2/route-params'
+import {useColorScheme} from 'react-native'
 
 if (module.hot) {
   module.hot.accept('', () => {})
@@ -169,8 +170,10 @@ const RNApp = React.memo(function RNApp() {
       onStateChange,
     })
   }
+
+  const isDarkMode = useColorScheme() === 'dark'
   const barStyle = C.useDarkModeState(s => {
-    return s.darkModePreference === 'system' ? 'default' : s.isDarkMode() ? 'light-content' : 'dark-content'
+    return s.darkModePreference === 'system' ? 'default' : isDarkMode ? 'light-content' : 'dark-content'
   })
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
   const rootKey = Hooks.useRootKey()

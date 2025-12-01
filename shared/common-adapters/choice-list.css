@@ -2,14 +2,18 @@
   background-color: transparent;
   &:hover {
     background-color: var(--color-blueLighter2);
-    .darkMode & {
-      background-color: #140d03;
-    }
     .cl-icon-container {
       background: transparent;
     }
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .cl-entry:hover {
+    background-color: #140d03;
+  }
+}
+
 
 .cl-icon {
   transform-origin: center center;

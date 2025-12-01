@@ -126,7 +126,6 @@ export declare const isIOS: boolean
 export declare const isMobile: boolean
 export declare const isPhone: boolean
 export declare const isTablet: boolean
-export declare const isDarkMode: () => boolean
 export declare const dimensionWidth: number
 export declare const dimensionHeight: number
 export declare const headerExtraHeight: number
@@ -144,7 +143,6 @@ export type {
 } from './css'
 export {default as classNames} from 'classnames'
 export declare const CanFixOverdrawContext: React.Context<boolean>
-export declare const DarkModeContext: React.Context<boolean>
 export declare const undynamicColor: (col: string) => string
 // add file:// if its a pure path
 export declare const normalizePath: (p: string) => string
@@ -152,4 +150,3 @@ export declare const normalizePath: (p: string) => string
 export declare const unnormalizePath: (p: string) => string
 // fixup file:// with spaces etc
 export declare const urlEscapeFilePath: (path: string) => string
-export declare const useIsDarkMode: () => boolean

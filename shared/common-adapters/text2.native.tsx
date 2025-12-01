@@ -20,9 +20,10 @@ if (TEMP_MARK_V2 || TEMP_SWITCH) {
 //   return React.createElement('RCTText', p)
 // }
 
+// TODO we're passing in hardcoded metadata calls here which doesn't make sense
 const styles = Styles.styleSheetCreate(() =>
-  Object.keys(metaData()).reduce<{[key: string]: Styles._StylesCrossPlatform}>((map, type) => {
-    const meta = metaData()[type as TextType]
+  Object.keys(metaData(true)).reduce<{[key: string]: Styles._StylesCrossPlatform}>((map, type) => {
+    const meta = metaData(true)[type as TextType]
     map[type] = {
       ...fontSizeToSizeStyle(meta.fontSize),
       color: meta.colorForBackground['positive'] || Styles.globalColors.black,

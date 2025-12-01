@@ -15,13 +15,12 @@ import {isLinux, isDarwin} from '@/constants/platform'
 import {type _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout'
 import {useUploadCountdown} from '@/fs/footer/use-upload-countdown'
 import type {DeserializeProps} from './remote-serializer.desktop'
-import {DarkCSSInjector} from '@/desktop/renderer/dark-injector.desktop'
+import {useColorScheme} from 'react-native'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
 export type Props = Pick<DeserializeProps, 'remoteTlfUpdates' | 'conversationsToSend'> & {
   daemonHandshakeState: T.Config.DaemonHandshakeState
-  darkMode: boolean
   diskSpaceStatus: T.FS.DiskSpaceStatus
   loggedIn: boolean
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
@@ -39,7 +38,17 @@ export type Props = Pick<DeserializeProps, 'remoteTlfUpdates' | 'conversationsTo
   totalSyncingBytes: number
 }
 
-const ArrowTick = () => <Kb.Box style={styles.arrowTick} />
+const ArrowTick = () => {
+  const isDarkMode = useColorScheme() === 'dark'
+  return (
+    <Kb.Box
+      style={Kb.Styles.collapseStyles([
+        styles.arrowTick,
+        {borderBottomColor: isDarkMode ? '#2d2d2d' : Kb.Styles.globalColors.blueDark},
+      ])}
+    />
+  )
+}
 type UWCDProps = {
   endEstimate?: number
   files: number
@@ -194,9 +203,14 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const badgeCountInMenu = badgesInMenu.reduce((acc, val) => navBadges.get(val) ?? 0 + acc, 0)
-
+  const isDarkMode = useColorScheme() === 'dark'
   return (
-    <Kb.Box style={styles.topRow}>
+    <Kb.Box
+      style={Kb.Styles.collapseStyles([
+        styles.topRow,
+        {backgroundColor: isDarkMode ? '#2d2d2d' : Kb.Styles.globalColors.blueDark},
+      ])}
+    >
       <Kb.Box style={styles.headerBadgesContainer}>
         {showBadges
           ? badgeTypesInHeader.map(tab => (
@@ -214,11 +228,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
         })}
       >
         <Kb.Icon
-          color={
-            Kb.Styles.isDarkMode()
-              ? Kb.Styles.globalColors.black_50OrBlack_60
-              : Kb.Styles.globalColors.blueDarker
-          }
+          color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
           hoverColor={Kb.Styles.globalColors.whiteOrWhite}
           onClick={showPopup}
           type="iconfont-nav-2-hamburger"
@@ -320,18 +330,7 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
 }
 
 const MenubarRender = (p: Props) => {
-  const {loggedIn, daemonHandshakeState, darkMode: _darkMode} = p
-  const [lastDM, setLastDM] = React.useState(p.darkMode)
-
-  const setDarkModePreference = C.useDarkModeState(s => s.dispatch.setDarkModePreference)
-  React.useEffect(() => {
-    if (_darkMode !== lastDM) {
-      setLastDM(_darkMode)
-      setDarkModePreference(_darkMode ? 'alwaysDark' : 'alwaysLight')
-    }
-  }, [_darkMode, lastDM, setDarkModePreference])
-
-  const darkMode = C.useDarkModeState(s => s.isDarkMode())
+  const {loggedIn, daemonHandshakeState} = p
   let content: React.ReactNode
   if (daemonHandshakeState === 'done' && loggedIn) {
     content = <LoggedIn {...p} />
@@ -344,14 +343,11 @@ const MenubarRender = (p: Props) => {
   }, [])
 
   return (
-    <Kb.Styles.DarkModeContext.Provider value={darkMode}>
-      <DarkCSSInjector />
-      <Kb.Box2 direction="vertical" style={styles.widgetContainer} key={darkMode ? 'darkMode' : 'light'}>
-        {isDarwin && <ArrowTick />}
-        <IconBar {...p} showBadges={loggedIn} />
-        {content}
-      </Kb.Box2>
-    </Kb.Styles.DarkModeContext.Provider>
+    <Kb.Box2 direction="vertical" style={styles.widgetContainer}>
+      {isDarwin && <ArrowTick />}
+      <IconBar {...p} showBadges={loggedIn} />
+      {content}
+    </Kb.Box2>
   )
 }
 
@@ -386,6 +382,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp
   const {tab, countMap, openApp} = p
   const count = countMap.get(tab)
   const iconType = iconMap[tab]
+  const isDarkMode = useColorScheme() === 'dark'
 
   if ((tab === C.Tabs.devicesTab && !count) || !iconType) {
     return null
@@ -398,11 +395,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp
       })}
     >
       <Kb.Icon
-        color={
-          Kb.Styles.isDarkMode()
-            ? Kb.Styles.globalColors.black_50OrBlack_60
-            : Kb.Styles.globalColors.blueDarker
-        }
+        color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
         hoverColor={Kb.Styles.globalColors.whiteOrWhite}
         onClick={() => openApp(tab)}
         sizeType="Big"
@@ -416,7 +409,6 @@ const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   arrowTick: {
-    borderBottomColor: Kb.Styles.isDarkMode() ? '#2d2d2d' : Kb.Styles.globalColors.blueDark,
     borderBottomWidth: 6,
     borderLeftColor: 'transparent',
     borderLeftWidth: 6,
@@ -457,7 +449,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   topRow: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: Kb.Styles.isDarkMode() ? '#2d2d2d' : Kb.Styles.globalColors.blueDark,
     borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
     borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
     flex: 1,

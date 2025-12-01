@@ -1,7 +1,7 @@
 import * as React from 'react'
 import openURL from '@/util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
-import type {Props, TextType} from './text'
+import type {Props, TextType, TextStyle} from './text'
 import * as Styles from '@/styles'
 import {Text as NativeText, Alert} from 'react-native'
 import * as Clipboard from 'expo-clipboard'
@@ -15,9 +15,10 @@ const styles2 = Styles.styleSheetCreate(
       fixOverdraw: {backgroundColor: Styles.globalColors.fastBlank},
     }) as const
 )
+// TEMP
 const styles = Styles.styleSheetCreate(() =>
-  Object.keys(metaData()).reduce<{[key: string]: Styles._StylesCrossPlatform}>((map, type) => {
-    const meta = metaData()[type as TextType]
+  Object.keys(metaData(true)).reduce<{[key: string]: Styles._StylesCrossPlatform}>((map, type) => {
+    const meta = metaData(true)[type as TextType]
     modes.forEach(mode => {
       map[`${type}:${mode}`] = {
         ...fontSizeToSizeStyle(meta.fontSize),
@@ -96,12 +97,12 @@ const Text = React.memo(
 )
 
 // external things call this so leave the original alone
-function _getStyle(type: TextType, negative?: boolean, forceUnderline?: boolean) {
+function _getStyle(type: TextType, isDarkMode: boolean, negative?: boolean, forceUnderline?: boolean) {
   if (!negative) {
     return forceUnderline ? ({textDecorationLine: 'underline'} as const) : {}
   }
   // negative === true
-  const meta = metaData()[type]
+  const meta = metaData(isDarkMode)[type]
   const colorStyle = {color: meta.colorForBackground.negative}
   const textDecoration = meta.isLink ? ({textDecorationLine: 'underline'} as const) : {}
 
@@ -110,19 +111,16 @@ function _getStyle(type: TextType, negative?: boolean, forceUnderline?: boolean)
     ...textDecoration,
   }
 }
-function getStyle(type: TextType, negative?: boolean) {
-  const meta = metaData()[type]
+export function getTextStyle(type: TextType, isDarkMode: boolean): TextStyle {
+  const meta = metaData(isDarkMode)[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
-  const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}
-  const textDecoration = meta.isLink && negative ? {textDecorationLine: 'underline'} : {}
+  const colorStyle = {color: meta.colorForBackground['positive']}
 
   return {
     ...sizeStyle,
     ...colorStyle,
-    ...textDecoration,
     ...meta.styleOverride,
   }
 }
 
 export default Text
-export {getStyle}
