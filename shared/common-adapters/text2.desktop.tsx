@@ -16,7 +16,7 @@ export const Text2 = /*TEMP_SWITCH
   ? require('./text').default
   : */ React.memo(function Text2(p: Props) {
   const {selectable, title, type = 'BodySmall', style, children: _children, lineClamp, virtualText} = p
-  const meta = metaData()[type]
+  const isLink = metaData(true)[type].isLink
   const className = Styles.classNames(`text_${type}`, p.className, {
     lineClamp1: lineClamp === 1,
     lineClamp2: lineClamp === 2,
@@ -26,7 +26,7 @@ export const Text2 = /*TEMP_SWITCH
     selectable,
     virtualText,
     // eslint-disable-next-line sort-keys
-    'hover-underline': meta.isLink,
+    'hover-underline': isLink,
   })
 
   let children = virtualText ? null : _children

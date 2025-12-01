@@ -4,6 +4,7 @@ import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, servi
 import type * as T from '@/constants/types'
 import {ScrollView} from 'react-native'
 import type {Props, IconProps} from './service-tab-bar'
+import {useColorScheme} from 'react-native'
 import {
   useSharedValue,
   useAnimatedStyle,
@@ -78,7 +79,9 @@ const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtens
 const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
   'use no memo'
   const {offset, isActive, service, label, onClick} = props
-  const color = isActive ? serviceIdToAccentColor(service) : Kb.Styles.globalColors.black
+
+  const isDarkMode = useColorScheme() === 'dark'
+  const color = isActive ? serviceIdToAccentColor(service, isDarkMode) : Kb.Styles.globalColors.black
 
   const animatedWidth = useAnimatedStyle(() => {
     const width = offset
@@ -144,7 +147,7 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
         style={Kb.Styles.collapseStyles([
           {borderColor: Kb.Styles.undynamicColor(Kb.Styles.globalColors.black_10)},
           isActive ? styles.activeTabBar : styles.inactiveTabBar,
-          isActive && {backgroundColor: serviceIdToAccentColor(service)},
+          isActive && {backgroundColor: serviceIdToAccentColor(service, isDarkMode)},
           Kb.Styles.platformStyles({isMobile: animatedTransform}),
         ])}
       />

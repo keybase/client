@@ -23,16 +23,17 @@ setServiceDecoration(ServiceDecoration)
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
 
 // node side plumbs through initial pref so we avoid flashes
-const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)
-const {setDarkModePreference} = C.useDarkModeState.getState().dispatch
+const darkModeFromNode = window.location.search.match(/darkMode=(light|dark)/)
+const setSystemDarkMode = C.useDarkModeState.getState().dispatch.setSystemDarkMode
 
 if (darkModeFromNode) {
   const dm = darkModeFromNode[1]
   switch (dm) {
-    case 'alwaysLight':
-    case 'alwaysDark':
-    case 'system':
-      setDarkModePreference(dm, false)
+    case 'light':
+      setSystemDarkMode(false)
+      break
+    case 'dark':
+      setSystemDarkMode(true)
       break
     default:
   }
@@ -92,23 +93,6 @@ const FontLoader = () => (
   </div>
 )
 
-const DarkCSSInjector = () => {
-  const isDark = C.useDarkModeState(s => s.isDarkMode())
-  const [lastIsDark, setLastIsDark] = React.useState<boolean | undefined>()
-  if (lastIsDark !== isDark) {
-    setLastIsDark(isDark)
-    // inject it in body so modals get darkMode also
-    if (isDark) {
-      document.body.classList.add('darkMode')
-      document.body.classList.remove('lightMode')
-    } else {
-      document.body.classList.remove('darkMode')
-      document.body.classList.add('lightMode')
-    }
-  }
-  return null
-}
-
 const UseStrict = true as boolean
 const WRAP = UseStrict
   ? ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
@@ -126,7 +110,6 @@ const render = (Component = Main) => {
   ReactDOM.createRoot(root).render(
     <WRAP>
       <Root>
-        <DarkCSSInjector />
         <FontLoader />
         <div style={{display: 'flex', flex: 1}}>
           <Component />

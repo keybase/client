@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as Shared from './router.shared'
 import {View} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
+import {useColorScheme} from 'react-native'
 
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
@@ -57,11 +58,12 @@ export const TabBarIconWrapper = React.memo(function TabBarIconWrapper(p: TabIco
 })
 export const TabBarLabelWrapper = React.memo(function TabBarLabelWrapper(p: TabIconProps) {
   const data = tabToData.get(p.routeName)
+  const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Text
       style={Kb.Styles.collapseStyles([
         styles.label,
-        Kb.Styles.isDarkMode()
+        isDarkMode
           ? p.focused
             ? styles.labelDarkModeFocused
             : styles.labelDarkMode

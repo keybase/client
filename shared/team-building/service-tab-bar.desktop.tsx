@@ -4,10 +4,13 @@ import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, servi
 import difference from 'lodash/difference'
 import type * as T from '@/constants/types'
 import type {Props, IconProps} from './service-tab-bar'
+import {useColorScheme} from 'react-native'
 
 const ServiceIcon = (props: IconProps) => {
   const [hover, setHover] = React.useState(false)
-  const color = props.isActive || hover ? serviceIdToAccentColor(props.service) : Kb.Styles.globalColors.black
+  const isDarkMode = useColorScheme() === 'dark'
+  const color =
+    props.isActive || hover ? serviceIdToAccentColor(props.service, isDarkMode) : Kb.Styles.globalColors.black
   return (
     <Kb.ClickableBox
       onClick={() => props.onClick(props.service)}
@@ -55,7 +58,7 @@ const ServiceIcon = (props: IconProps) => {
           props.isActive
             ? styles.activeTabBar
             : {...styles.inactiveTabBar, ...(props.minimalBorder ? {borderBottomWidth: 0} : undefined)},
-          props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
+          props.isActive && {backgroundColor: serviceIdToAccentColor(props.service, isDarkMode)},
         ])}
       />
     </Kb.ClickableBox>
@@ -114,16 +117,19 @@ const MoreNetworksButton = (props: {
   )
 }
 
-const MoreNetworkItem = (props: {service: T.TB.ServiceIdWithContact}) => (
-  <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
-    <Kb.Icon
-      style={styles.moreNetworkItemIcon}
-      color={serviceIdToAccentColor(props.service)}
-      type={serviceIdToIconFont(props.service)}
-    />
-    <Kb.Text type="Body">{serviceIdToLongLabel(props.service).join(' ')}</Kb.Text>
-  </Kb.Box2>
-)
+const MoreNetworkItem = (props: {service: T.TB.ServiceIdWithContact}) => {
+  const isDarkMode = useColorScheme() === 'dark'
+  return (
+    <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
+      <Kb.Icon
+        style={styles.moreNetworkItemIcon}
+        color={serviceIdToAccentColor(props.service, isDarkMode)}
+        type={serviceIdToIconFont(props.service)}
+      />
+      <Kb.Text type="Body">{serviceIdToLongLabel(props.service).join(' ')}</Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 export const ServiceTabBar = (props: Props) => {
   const [lastSelectedUnlockedService, setLastSelectedUnlockedService] = React.useState<

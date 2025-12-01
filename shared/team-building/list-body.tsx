@@ -13,9 +13,11 @@ import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
 import {formatAnyPhoneNumbers} from '@/util/phone-numbers'
 import {useRoute} from '@react-navigation/native'
 // import {useAnimatedScrollHandler} from '@/common-adapters/reanimated'
+import {useColorScheme} from 'react-native'
 
 const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) => {
   const {namespace, selectedService} = props
+  const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Box2
       alignSelf="center"
@@ -29,7 +31,9 @@ const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) 
         <Kb.Icon
           fontSize={48}
           type={Shared.serviceIdToIconFont(selectedService)}
-          style={Kb.Styles.collapseStyles([{color: Shared.serviceIdToAccentColor(selectedService)}])}
+          style={Kb.Styles.collapseStyles([
+            {color: Shared.serviceIdToAccentColor(selectedService, isDarkMode)},
+          ])}
         />
       )}
       {namespace === 'people' ? (
