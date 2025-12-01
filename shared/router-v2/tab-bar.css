@@ -3,10 +3,6 @@
   flex-shrink: 0;
   width: 160px;
 
-  .darkMode & {
-    background-color: var(--color-redLighter);
-  }
-
   .tab {
     flex-shrink: 0;
     height: 40px;
@@ -18,10 +14,6 @@
     .tab-label {
       color: var(--color-blueLighter);
       flex-grow: 1;
-
-      .darkMode & {
-        color: rgba(255, 255, 255, 0.5);
-      }
     }
     .tab-highlight {
       width: 3px;
@@ -35,28 +27,16 @@
     height: var(--size-large);
     transition-duration: 0.4s;
     transition-property: background-color;
-
-    .darkMode & {
-      background-color: #1f1f1f;
-    }
   }
 
   :is(.tab:hover, .tab-selected) .tab-icon {
     color: var(--color-white);
     margin-left: var(--size-medium);
     margin-right: var(--size-xsmall);
-
-    .darkMode & {
-      color: rgba(255, 255, 255, 0.85);
-    }
   }
   :is(.tab:hover, .tab-selected) .tab-label {
     color: var(--color-white);
     flex-grow: 1;
-
-    .darkMode & {
-      color: rgba(255, 255, 255, 0.85);
-    }
   }
 
   .tab-highlight {
@@ -67,9 +47,6 @@
       background-color: var(--color-white);
       width: 3px;
       border-radius: 2px;
-      .darkMode & {
-        background-color: var(--color-blueDark);
-      }
     }
   }
 
@@ -77,6 +54,33 @@
     display: none;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .tab-container {
+    background-color: var(--color-redLighter);
+  }
+
+  .tab-container .tab .tab-label {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .tab-container .tab-selected {
+    background-color: #1f1f1f;
+  }
+
+  .tab-container :is(.tab:hover, .tab-selected) .tab-icon {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .tab-container :is(.tab:hover, .tab-selected) .tab-label {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .tab-container .tab-highlight .tab-highlight {
+    background-color: var(--color-blueDark);
+  }
+}
+
 @media all and (max-width: 900px) and (min-width: 0px) {
   .tab-container {
     width: 80px;

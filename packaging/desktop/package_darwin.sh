@@ -32,7 +32,7 @@ echo "Cleaning up packaging dir from previous runs"
 rm -rf "$dir/node_modules"
 
 # Ensure we have packaging tools
-yarn install --pure-lockfile --ignore-engines
+yarn install --pure-lockfile --ignore-engines --ignore-scripts
 node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase

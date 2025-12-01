@@ -17,14 +17,56 @@ const RemoteContainer = (d: DeserializeProps) => {
   const setHTTPSrvInfo = C.useConfigState(s => s.dispatch.setHTTPSrvInfo)
   const setOutOfDate = C.useConfigState(s => s.dispatch.setOutOfDate)
   const setLoggedIn = C.useConfigState(s => s.dispatch.setLoggedIn)
+  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
 
   // defer this so we don't update while rendering
   React.useEffect(() => {
     const id = setTimeout(() => {
+      setSystemDarkMode(darkMode)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [setSystemDarkMode, darkMode])
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
       replaceUsername(username)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [replaceUsername, username])
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
       setHTTPSrvInfo(httpSrvAddress, httpSrvToken)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [setHTTPSrvInfo, httpSrvAddress, httpSrvToken])
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
       setOutOfDate(outOfDate)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [setOutOfDate, outOfDate])
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
       setLoggedIn(loggedIn, false, true)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [setLoggedIn, loggedIn])
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
       for (const [id, unread] of unreadMap) {
         C.getConvoState(id).dispatch.unreadUpdated(unread)
       }
@@ -38,27 +80,13 @@ const RemoteContainer = (d: DeserializeProps) => {
     return () => {
       clearTimeout(id)
     }
-  }, [
-    unreadMap,
-    badgeMap,
-    metaMap,
-    username,
-    replaceUsername,
-    setLoggedIn,
-    loggedIn,
-    setHTTPSrvInfo,
-    httpSrvAddress,
-    httpSrvToken,
-    setOutOfDate,
-    outOfDate,
-  ])
+  }, [unreadMap, badgeMap, metaMap])
 
   return (
     <Menubar
       conversationsToSend={conversationsToSend}
       remoteTlfUpdates={remoteTlfUpdates}
       daemonHandshakeState={daemonHandshakeState}
-      darkMode={darkMode}
       diskSpaceStatus={diskSpaceStatus}
       endEstimate={endEstimate}
       fileName={fileName}

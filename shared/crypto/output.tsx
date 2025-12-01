@@ -4,7 +4,6 @@ import * as Path from '@/util/path'
 import * as React from 'react'
 import capitalize from 'lodash/capitalize'
 import type * as T from '@/constants/types'
-import {getStyle} from '@/common-adapters/text'
 import {pickFiles} from '@/util/pick-files'
 import type HiddenString from '@/util/hidden-string'
 
@@ -19,8 +18,6 @@ type OutputInfoProps = {
     | React.ReactElement<typeof Kb.BannerParagraph>
     | Array<React.ReactElement<typeof Kb.BannerParagraph>>
 }
-
-const largeOutputLimit = 120
 
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
@@ -157,8 +154,7 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
 export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const {operation} = props
   const canSaveAsText = operation === C.Crypto.Operations.Encrypt || operation === C.Crypto.Operations.Sign
-  const canReplyInChat =
-    operation === C.Crypto.Operations.Decrypt || operation === C.Crypto.Operations.Verify
+  const canReplyInChat = operation === C.Crypto.Operations.Decrypt || operation === C.Crypto.Operations.Verify
 
   const waiting = C.Waiting.useAnyWaiting(C.Crypto.waitingKey)
 
@@ -377,14 +373,6 @@ export const OperationOutput = (props: OutputProps) => {
 
   const waiting = C.Waiting.useAnyWaiting(C.Crypto.waitingKey)
 
-  // Output text can be 24 px when output is less that 120 characters
-  const outputTextIsLarge =
-    operation === C.Crypto.Operations.Decrypt || operation === C.Crypto.Operations.Verify
-  const {fontSize, lineHeight} = getStyle('HeaderBig')
-  const outputLargeStyle = outputTextIsLarge &&
-    output &&
-    output.length <= largeOutputLimit && {fontSize, lineHeight}
-
   const fileOutputTextColor =
     textType === 'cipher' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black
   const fileIcon = outputFileIcon.get(operation)
@@ -440,7 +428,7 @@ export const OperationOutput = (props: OutputProps) => {
         <Kb.Text
           type={textType === 'cipher' ? 'Terminal' : 'Body'}
           selectable={!actionsDisabled}
-          style={Kb.Styles.collapseStyles([styles.output, outputLargeStyle])}
+          style={styles.output}
         >
           {output}
         </Kb.Text>

@@ -2,9 +2,8 @@ import * as Shared from './shared'
 import {colors as lightColors} from './colors'
 import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
-import {isDarkMode} from './dark-mode'
+import {useState_ as useDarkModeState} from '@/constants/darkmode'
 import {isIOS, isTablet} from '@/constants/platform'
-import {useColorScheme} from 'react-native'
 
 const font = isIOS
   ? {
@@ -55,8 +54,6 @@ export const globalStyles = {
 export const hairlineWidth = StyleSheet.hairlineWidth
 export const styleSheetCreate = (f: () => MapToStyles): unknown =>
   styleSheetCreateProxy(f, o => StyleSheet.create(o as any) as MapToStyles)
-// used to find specific styles to help debug perf
-export {isDarkMode}
 
 export const collapseStyles = (
   styles: ReadonlyArray<unknown>
@@ -93,17 +90,17 @@ export * from './shared'
 export * from './styles-base'
 export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'
-export {DarkModeContext} from './dark-mode'
 export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width
 export const dimensionHeight = Dimensions.get('window').height
 export const headerExtraHeight = isTablet ? 16 : 0
 
 export const undynamicColor = (_col: string) => {
+  const isDarkMode = useDarkModeState.getState().isDarkMode()
   const col = _col as string | {dynamic?: {dark: string; light: string}}
   // try and unwrap, some things (toggle?) don't seems to like mixed dynamic colors
   if (typeof col !== 'string' && col.dynamic) {
-    return col.dynamic[isDarkMode() ? 'dark' : 'light']
+    return col.dynamic[isDarkMode ? 'dark' : 'light']
   }
   return col
 }
@@ -120,16 +117,4 @@ export const unnormalizePath = (p: string) => {
     return p.slice('file://'.length)
   }
   return p
-}
-
-export const useIsDarkMode = () => {
-  const s = useColorScheme()
-  switch (s) {
-    case 'light':
-      return false
-    case 'dark':
-      return true
-    default:
-      return false // TODO check this
-  }
 }

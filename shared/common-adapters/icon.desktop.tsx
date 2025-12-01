@@ -8,6 +8,7 @@ import invert from 'lodash/invert'
 import {getAssetPath} from '@/constants/platform.desktop'
 import type {Props, IconType} from './icon'
 import type {MeasureRef} from './measure-ref'
+import {useColorScheme} from 'react-native'
 
 const invertedLight = invert(colors)
 const invertedDark = invert(darkColors)
@@ -17,6 +18,9 @@ const Icon = React.memo<Props>(
     const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
     const {className, hint, colorOverride, padding, boxStyle, allowLazy = true} = props
     const iconType = type
+    const hasDarkVariant = !!iconMeta[iconType].nameDark
+    const scheme = useColorScheme()
+    const isDarkMode = scheme === 'dark' && hasDarkVariant
 
     if (!Shared.isValidIconType(iconType)) {
       logger.warn('Unknown icontype passed', iconType)
@@ -91,7 +95,7 @@ const Icon = React.memo<Props>(
           title={hint}
           style={imgStyle}
           onClick={onClick || undefined}
-          srcSet={iconTypeToSrcSet(iconType)}
+          srcSet={iconTypeToSrcSet(iconType, isDarkMode)}
         />
       )
     }
@@ -108,7 +112,7 @@ const Icon = React.memo<Props>(
           hoverColor: 'inherit',
         }
       } else {
-        const invertedColors = Styles.isDarkMode() ? invertedDark : invertedLight
+        const invertedColors = isDarkMode ? invertedDark : invertedLight
         const hoverColorName = onClick ? invertedColors[hoverColor] : null
         hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
         const colorName = invertedColors[color]
@@ -185,9 +189,9 @@ const imgName = (
     postfix || ''
   } ${mult}x`
 
-function iconTypeToSrcSet(type: IconType) {
+function iconTypeToSrcSet(type: IconType, isDarkMode: boolean) {
   const ext = Shared.typeExtension(type)
-  const name: string = (Styles.isDarkMode() && iconMeta[type].nameDark) || type
+  const name: string = (isDarkMode && iconMeta[type].nameDark) || type
   const imagesDir = Shared.getImagesDir(type)
   return [1, 2, 3].map(mult => imgName(name, ext, imagesDir, mult)).join(', ')
 }
@@ -202,7 +206,6 @@ export function iconTypeToImgSet(imgMap: {[key: string]: IconType}, targetSize: 
       const img: string = imgMap[m] as string
       if (!img) return null
       const url = getAssetPath('images', 'icons', img)
-      if (Styles.isDarkMode()) url.replace('icon-', 'icon-dark-')
       return `url('${url}.png') ${mult}x`
     })
     .filter(Boolean)

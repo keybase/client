@@ -1,9 +1,10 @@
 import * as React from 'react'
 import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
 import {Box2} from './box'
-import Text, {getStyle as getTextStyle} from './text'
+import Text, {getTextStyle} from './text'
 import * as Styles from '@/styles'
 import {isMobile} from '@/constants/platform'
+import {useColorScheme} from 'react-native'
 import './input.css'
 
 export type _Props = {
@@ -20,6 +21,7 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
   const {containerStyle, error, placeholder, ...plainInputProps} = props
   const [focused, setFocused] = React.useState(false)
   const {onBlur, onFocus} = props
+  const isDarkMode = useColorScheme() === 'dark'
   const _onFocus = React.useCallback(() => {
     if (props.disabled) {
       return
@@ -50,9 +52,8 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
   const collapsed = focused || populated || multiline
 
   // We're using fontSize to derive heights
-  const textStyle = getTextStyle(props.textType || 'BodySemibold')
-  const computedContainerSize =
-    textStyle.fontSize + (isMobile ? 48 : 38) + (multiline ? textStyle.fontSize : 0)
+  const fontSize = getTextStyle(props.textType || 'BodySemibold', isDarkMode).fontSize
+  const computedContainerSize = fontSize + (isMobile ? 48 : 38) + (multiline ? fontSize : 0)
 
   return (
     <Box2

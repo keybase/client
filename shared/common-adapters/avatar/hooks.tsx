@@ -6,6 +6,7 @@ import * as Styles from '@/styles'
 import * as AvatarZus from './store'
 import './avatar.css'
 import type {Props} from '.'
+import {useColorScheme} from 'react-native'
 
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = (typeof avatarSizes)[number]
@@ -77,7 +78,7 @@ export default (ownProps: Props) => {
 
   const {address, token} = httpSrv
 
-  const isDarkMode = Styles.useIsDarkMode()
+  const isDarkMode = useColorScheme() === 'dark'
 
   const urlMap = React.useMemo(
     () =>

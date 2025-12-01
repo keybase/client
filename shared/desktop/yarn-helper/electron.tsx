@@ -4,6 +4,7 @@ import path from 'path'
 import {spawn} from 'child_process'
 
 const isLinux = process.platform === 'linux'
+const debugInNode = (false as boolean) ? '--inspect-brk' : ''
 
 const commands = {
   'inject-code-prod': {
@@ -26,7 +27,7 @@ const commands = {
   'start-cold': {
     help: 'Start electron with no hot reloading',
     nodeEnv: 'development',
-    shell: `electron ${path.resolve(__dirname, '../dist/node.dev.bundle.js')}`,
+    shell: `electron ${debugInNode} ${path.resolve(__dirname, '../dist/node.dev.bundle.js')}`,
   },
   'start-hot': {
     code: startHot,

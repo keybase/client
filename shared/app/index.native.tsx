@@ -98,7 +98,7 @@ const useKeyboardHookup = () => {
   }, [])
 }
 
-const StoreHelper = (p: {children: React.ReactNode}) => {
+const StoreHelper = (p: {children: React.ReactNode}): React.ReactNode => {
   const {children} = p
   useDarkHookup()
   useKeyboardHookup()
@@ -113,8 +113,7 @@ const StoreHelper = (p: {children: React.ReactNode}) => {
     }
   }, [handleAppLink])
 
-  const darkMode = C.useDarkModeState(s => s.isDarkMode())
-  return <Kb.Styles.DarkModeContext.Provider value={darkMode}>{children}</Kb.Styles.DarkModeContext.Provider>
+  return children
 }
 
 // dont' remake engine/store on reload

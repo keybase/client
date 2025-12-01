@@ -22,7 +22,6 @@ export const previewConversation = 'remote:previewConversation'
 export const remoteWindowWantsProps = 'remote:remoteWindowWantsProps'
 export const saltpackFileOpen = 'remote:saltpackFileOpen'
 export const setCriticalUpdate = 'remote:setCriticalUpdate'
-export const setSystemDarkMode = 'remote:setSystemDarkMode'
 export const showMain = 'remote:showMain'
 export const stop = 'remote:stop'
 export const switchTab = 'remote:switchTab'
@@ -86,8 +85,6 @@ export const createSaltpackFileOpen = (payload: {readonly path: string | HiddenS
   ({payload, type: saltpackFileOpen}) as const
 export const createSetCriticalUpdate = (payload: {readonly critical: boolean}) =>
   ({payload, type: setCriticalUpdate}) as const
-export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) =>
-  ({payload, type: setSystemDarkMode}) as const
 export const createShowMain = (payload?: undefined) => ({payload, type: showMain}) as const
 export const createStop = (payload: {readonly exitCode: RPCTypes.ExitCode}) =>
   ({payload, type: stop}) as const
@@ -133,7 +130,6 @@ export type PreviewConversationPayload = ReturnType<typeof createPreviewConversa
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
-export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type StopPayload = ReturnType<typeof createStop>
 export type SwitchTabPayload = ReturnType<typeof createSwitchTab>
@@ -167,7 +163,6 @@ export type Actions =
   | RemoteWindowWantsPropsPayload
   | SaltpackFileOpenPayload
   | SetCriticalUpdatePayload
-  | SetSystemDarkModePayload
   | ShowMainPayload
   | StopPayload
   | SwitchTabPayload

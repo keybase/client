@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import type * as React from 'react'
 import Assertion from './assertion'
 import Bio from './bio'
 import type * as T from '@/constants/types'
@@ -8,7 +8,6 @@ import type * as T from '@/constants/types'
 type Props = {
   assertionKeys?: ReadonlyArray<string>
   bio?: string
-  darkMode: boolean
   followThem?: boolean
   followersCount?: number
   followingCount?: number
@@ -111,16 +110,6 @@ const TeamShowcase = ({name}: {name: string}) => (
 )
 
 const Tracker = (props: Props) => {
-  const {darkMode} = props
-  const [lastDM, setLastDM] = React.useState(props.darkMode)
-  const setDarkModePreference = C.useDarkModeState(s => s.dispatch.setDarkModePreference)
-  React.useEffect(() => {
-    if (darkMode !== lastDM) {
-      setLastDM(darkMode)
-      setDarkModePreference(darkMode ? 'alwaysDark' : 'alwaysLight')
-    }
-  }, [darkMode, lastDM, setDarkModePreference])
-
   let assertions: React.ReactNode
   if (props.assertionKeys) {
     const unsorted = [...props.assertionKeys]
@@ -143,14 +132,7 @@ const Tracker = (props: Props) => {
   // In order to keep the 'effect' of the card sliding up on top of the text the text is below the scroll area. We still need the spacing so we draw the text inside the scroll but invisible
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      fullHeight={true}
-      style={styles.container}
-      className={props.darkMode ? 'darkMode' : 'lightMode'}
-      key={props.darkMode ? 'darkMode' : 'light'}
-    >
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.Text type="BodySmallSemibold" style={Kb.Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
       </Kb.Text>
