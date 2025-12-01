@@ -10,20 +10,25 @@ export const lineClamp = (lines: number) => ({
   wordBreak: 'break-word',
 })
 
-export function fontSizeToSizeStyle(fontSize: number): object {
-  const height = {
-    '12': 16,
-    '13': 17,
-    '14': 18,
-    '15': 19,
-    '18': 22,
-    '24': 28,
-  }[String(fontSize)]
+export function fontSizeToSizeStyle(fontSize: 12 | 13 | 14 | 15 | 16 | 17 | 18 | 20 | 24 | 28) {
+  const hm = {
+    [12]: 16,
+    [13]: 17,
+    [14]: 18,
+    [15]: 19,
+    [16]: 20,
+    [17]: 21,
+    [18]: 22,
+    [20]: 24,
+    [24]: 28,
+    [28]: 32,
+  } as const
 
-  const _lineHeight = height ? `${height}px` : null
+  const height = hm[fontSize]
+  const lineHeight = `${height}px` as const
   return {
     fontSize,
-    lineHeight: _lineHeight,
+    lineHeight,
   }
 }
 
@@ -269,10 +274,12 @@ const _metaData = (): {[K in TextType]: MetaType} => {
         positive: Styles.globalColors.blueLighter,
       },
       fontSize: 13,
-      styleOverride: {
-        ...Styles.globalStyles.fontTerminal,
-        lineHeight: '20px',
-      },
+      styleOverride: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.fontTerminal,
+          lineHeight: '20px',
+        },
+      }),
     },
     TerminalComment: {
       colorForBackground: {
@@ -280,10 +287,12 @@ const _metaData = (): {[K in TextType]: MetaType} => {
         positive: Styles.globalColors.blueLighter_40,
       },
       fontSize: 13,
-      styleOverride: {
-        ...Styles.globalStyles.fontTerminal,
-        lineHeight: '20px',
-      },
+      styleOverride: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.fontTerminal,
+          lineHeight: '20px',
+        },
+      }),
     },
     TerminalEmpty: {
       colorForBackground: {
@@ -291,34 +300,39 @@ const _metaData = (): {[K in TextType]: MetaType} => {
         positive: Styles.globalColors.blueLighter_40,
       },
       fontSize: 13,
-      styleOverride: {
-        ...Styles.globalStyles.fontTerminal,
-        height: 20,
-        lineHeight: '20px',
-      },
+      styleOverride: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.fontTerminal,
+          height: 20,
+          lineHeight: '20px',
+        },
+      }),
     },
     TerminalInline: {
       colorForBackground: {...whiteNegative, positive: Styles.globalColors.blueDarker},
       fontSize: 13,
-      styleOverride: {
-        ...Styles.globalStyles.fontTerminal,
-        backgroundColor: Styles.globalColors.blueLighter2,
-        borderRadius: 2,
-        display: 'inline-block',
-        height: 17,
-        lineHeight: '16px',
-        padding: 2,
-        wordWrap: 'break-word',
-      },
+      styleOverride: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.fontTerminal,
+          backgroundColor: Styles.globalColors.blueLighter2,
+          borderRadius: 2,
+          display: 'inline-block',
+          height: 17,
+          lineHeight: '16px',
+          padding: 2,
+          wordWrap: 'break-word',
+        },
+      }),
     },
   }
 }
 
+// TODO unclear we need this caching and passsing in dark mode
 let _darkMetaData: {[K in TextType]: MetaType} | undefined
 let _lightMetaData: {[K in TextType]: MetaType} | undefined
 
-export const metaData = (): {[K in TextType]: MetaType} => {
-  if (Styles.isDarkMode()) {
+export const metaData = (isDarkMode: boolean): {[K in TextType]: MetaType} => {
+  if (isDarkMode) {
     _darkMetaData = _darkMetaData || _metaData()
     return _darkMetaData
   } else {

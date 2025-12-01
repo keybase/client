@@ -3,33 +3,6 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 
-const serviceColors: {[K in T.TB.ServiceIdWithContact]: string} = {
-  get email() {
-    return Kb.Styles.isDarkMode() ? '#3663ea' : '#3663ea'
-  },
-  get facebook() {
-    return Kb.Styles.isDarkMode() ? '#3B5998' : '#3B5998'
-  },
-  get github() {
-    return Kb.Styles.isDarkMode() ? '#E7E8E8' : '#333'
-  },
-  get hackernews() {
-    return Kb.Styles.isDarkMode() ? '#FF6600' : '#FF6600'
-  },
-  get keybase() {
-    return Kb.Styles.isDarkMode() ? '#3663ea' : '#3663ea'
-  },
-  get phone() {
-    return Kb.Styles.isDarkMode() ? '#3663ea' : '#3663ea'
-  },
-  get reddit() {
-    return Kb.Styles.isDarkMode() ? '#ff4500' : '#ff4500'
-  },
-  get twitter() {
-    return Kb.Styles.isDarkMode() ? '#1DA1F2' : '#1DA1F2'
-  },
-}
-
 const services: {
   [K in T.TB.ServiceIdWithContact]: {
     avatarIcon?: IconType // icon to show as avatar for results, if different than `icon`
@@ -95,7 +68,26 @@ const services: {
   },
 }
 
-export const serviceIdToAccentColor = (service: T.TB.ServiceIdWithContact): string => serviceColors[service]
+export const serviceIdToAccentColor = (service: T.TB.ServiceIdWithContact, isDarkMode: boolean): string => {
+  switch (service) {
+    case 'email':
+      return isDarkMode ? '#3663ea' : '#3663ea'
+    case 'facebook':
+      return isDarkMode ? '#3B5998' : '#3B5998'
+    case 'github':
+      return isDarkMode ? '#E7E8E8' : '#333'
+    case 'hackernews':
+      return isDarkMode ? '#FF6600' : '#FF6600'
+    case 'keybase':
+      return isDarkMode ? '#3663ea' : '#3663ea'
+    case 'phone':
+      return isDarkMode ? '#3663ea' : '#3663ea'
+    case 'reddit':
+      return isDarkMode ? '#ff4500' : '#ff4500'
+    case 'twitter':
+      return isDarkMode ? '#1DA1F2' : '#1DA1F2'
+  }
+}
 export const serviceIdToIconFont = (service: T.TB.ServiceIdWithContact): IconType => services[service].icon
 export const serviceIdToAvatarIcon = (service: T.TB.ServiceIdWithContact): IconType =>
   services[service].avatarIcon || services[service].icon

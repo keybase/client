@@ -24,7 +24,6 @@
     "dumpLogs": {"reason": ["'quitting through menu'"]},
     "showMain": {},
     "updateNow": {},
-    "setSystemDarkMode": {"dark": "boolean"},
     "remoteWindowWantsProps": {
       "_description": "remote electron window wants props sent",
       "component": "string",

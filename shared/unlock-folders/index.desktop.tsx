@@ -1,6 +1,6 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as C from '@/constants'
+import type * as React from 'react'
 import DeviceList from './device-list.desktop'
 import DragHeader from '../desktop/remote/drag-header.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
@@ -8,7 +8,6 @@ import Success from './success.desktop'
 import type * as Constants from '@/constants/unlock-folders'
 
 export type Props = {
-  darkMode: boolean
   phase: Constants.State['phase']
   devices: C.ConfigStore['unlockFoldersDevices']
   onClose: () => void
@@ -21,11 +20,6 @@ export type Props = {
 }
 
 const UnlockFolders = (props: Props) => {
-  const {darkMode} = props
-  React.useEffect(() => {
-    C.useDarkModeState.getState().dispatch.setDarkModePreference(darkMode ? 'alwaysDark' : 'alwaysLight')
-  }, [darkMode])
-
   let innerComponent: React.ReactNode
 
   switch (props.phase) {
@@ -49,11 +43,7 @@ const UnlockFolders = (props: Props) => {
   }
 
   return (
-    <div
-      style={styles.container}
-      className={props.darkMode ? 'darkMode' : 'lightMode'}
-      key={props.darkMode ? 'darkMode' : 'light'}
-    >
+    <div style={styles.container}>
       <div style={styles.header}>
         <DragHeader icon={true} type="Default" title="" onClose={props.onClose} />
       </div>

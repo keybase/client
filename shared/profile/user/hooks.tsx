@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {type BackgroundColorType} from '.'
+import {useColorScheme} from 'react-native'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -55,6 +55,8 @@ const useUserData = (username: string) => {
   // const mutualFollow = followThem && followsYou
   const _suggestionKeys = C.useTrackerState(s => (userIsYou ? s.proofSuggestions : undefined))
   const nonUserDetails = C.useTrackerState(s => C.Tracker.getNonUserDetails(s, username))
+
+  const isDarkMode = useColorScheme() === 'dark'
   const stateProps = (() => {
     if (!notAUser) {
       // Keybase user
@@ -100,9 +102,7 @@ const useUserData = (username: string) => {
         name,
         sbsAvatarUrl: nonUserDetails.pictureUrl || undefined,
         service,
-        serviceIcon: Kb.Styles.isDarkMode()
-          ? nonUserDetails.siteIconFullDarkmode
-          : nonUserDetails.siteIconFull,
+        serviceIcon: isDarkMode ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
         title,
         vouchDisableButton: true,
         vouchShowButton: false,

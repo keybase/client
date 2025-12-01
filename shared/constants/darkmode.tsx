@@ -18,6 +18,7 @@ const initialStore: Store = {
 }
 
 interface State extends Store {
+  // Not to be used by regular components, useColorScheme instead
   isDarkMode: () => boolean
   dispatch: {
     loadDarkPrefs: () => void
@@ -76,6 +77,25 @@ export const useState_ = Z.createZustand<State>((set, get) => {
             Appearance.setColorScheme('light')
             break
         }
+      } else {
+        // update Electron's nativeTheme
+        const f = async () => {
+          try {
+            const {default: KB2} = await import('@/util/electron.desktop')
+            switch (p) {
+              case 'system':
+                await KB2.functions.setNativeTheme?.('system')
+                break
+              case 'alwaysDark':
+                await KB2.functions.setNativeTheme?.('dark')
+                break
+              case 'alwaysLight':
+                await KB2.functions.setNativeTheme?.('light')
+                break
+            }
+          } catch {}
+        }
+        ignorePromise(f())
       }
 
       set(s => {

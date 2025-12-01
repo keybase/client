@@ -8,6 +8,7 @@ import {
   serviceMapToArray,
   serviceIdToAvatarIcon,
 } from '../shared'
+import {useColorScheme} from 'react-native'
 
 export type ResultProps = {
   bottomRow?: React.ReactNode
@@ -147,6 +148,7 @@ const Avatar = ({
   resultForService: T.TB.ServiceIdWithContact
   pictureUrl?: string
 }) => {
+  const isDarkMode = useColorScheme() === 'dark'
   if (keybaseUsername) {
     return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
   } else if (pictureUrl) {
@@ -159,7 +161,7 @@ const Avatar = ({
     <Kb.Icon
       fontSize={avatarSize}
       type={serviceIdToAvatarIcon(resultForService)}
-      colorOverride={serviceIdToAccentColor(resultForService)}
+      colorOverride={serviceIdToAccentColor(resultForService, isDarkMode)}
     />
   )
 }

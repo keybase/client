@@ -11,6 +11,7 @@ const RemoteContainer = (d: DeserializeProps) => {
   const phase = C.useUFState(s => s.phase)
   const toPaperKeyInput = C.useUFState(s => s.dispatch.toPaperKeyInput)
   const onBackFromPaperKey = C.useUFState(s => s.dispatch.onBackFromPaperKey)
+  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
 
   const [paperKeyError, setPaperKeyError] = React.useState(_error)
   const lastError = React.useRef(_error)
@@ -37,9 +38,17 @@ const RemoteContainer = (d: DeserializeProps) => {
     R.remoteDispatch(RemoteGen.createUnlockFoldersSubmitPaperKey({paperKey}))
   }
 
+  React.useEffect(() => {
+    const id = setTimeout(() => {
+      setSystemDarkMode(darkMode)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [setSystemDarkMode, darkMode])
+
   return (
     <UnlockFolders
-      darkMode={darkMode}
       devices={devices}
       waiting={waiting}
       phase={phase}
