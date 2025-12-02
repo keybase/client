@@ -1,5 +1,4 @@
 import * as C from '..'
-import * as ConfigConstants from '../config'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '../types'
 import InputMonitor from './input-monitor.desktop'
@@ -210,7 +209,7 @@ export const initPlatformListener = () => {
         return
       } else {
         await T.RPCGen.configGuiSetValueRpcPromise({
-          path: ConfigConstants.openAtLoginKey,
+          path: C.Config.openAtLoginKey,
           value: {b: openAtLogin, isNull: false},
         })
       }
@@ -276,7 +275,7 @@ export const initPlatformListener = () => {
   C.useDaemonState.setState(s => {
     s.dispatch.onRestartHandshakeNative = () => {
       const {handshakeFailedReason} = C.useDaemonState.getState()
-      if (isWindows && handshakeFailedReason === ConfigConstants.noKBFSFailReason) {
+      if (isWindows && handshakeFailedReason === C.Config.noKBFSFailReason) {
         requestWindowsStartService?.()
       }
     }
