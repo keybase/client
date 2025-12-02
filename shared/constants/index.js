@@ -1,5 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access */
-
+Object.defineProperty(exports, 'isMobile', {get: () => require('./platform').isMobile})
+Object.defineProperty(exports, 'isDarwin', {get: () => require('./platform').isDarwin})
+Object.defineProperty(exports, 'isElectron', {get: () => require('./platform').isElectron})
+Object.defineProperty(exports, 'isAndroid', {get: () => require('./platform').isAndroid})
 Object.defineProperty(exports, 'useActiveState', {get: () => require('./active').useState_})
 Object.defineProperty(exports, 'useArchiveState', {get: () => require('./archive').useState_})
 Object.defineProperty(exports, 'useAutoResetState', {get: () => require('./autoreset').useState_})
@@ -52,14 +54,28 @@ Object.defineProperty(exports, 'Settings', {get: () => require('./settings')})
 Object.defineProperty(exports, 'useSettingsState', {get: () => require('./settings').useState_})
 Object.defineProperty(exports, 'useSettingsChatState', {get: () => require('./settings-chat').useState_})
 Object.defineProperty(exports, 'SettingsChat', {get: () => require('./settings-chat')})
-Object.defineProperty(exports, 'useSettingsContactsState', {get: () => require('./settings-contacts').useState_})
-Object.defineProperty(exports, 'importContactsWaitingKey', {get: () => require('./settings-contacts').importContactsWaitingKey})
+Object.defineProperty(exports, 'useSettingsContactsState', {
+  get: () => require('./settings-contacts').useState_,
+})
+Object.defineProperty(exports, 'importContactsWaitingKey', {
+  get: () => require('./settings-contacts').importContactsWaitingKey,
+})
 Object.defineProperty(exports, 'useSettingsEmailState', {get: () => require('./settings-email').useState_})
-Object.defineProperty(exports, 'addEmailWaitingKey', {get: () => require('./settings-email').addEmailWaitingKey})
-Object.defineProperty(exports, 'useSettingsInvitesState', {get: () => require('./settings-invites').useState_})
-Object.defineProperty(exports, 'useSettingsNotifState', {get: () => require('./settings-notifications').useState_})
-Object.defineProperty(exports, 'refreshNotificationsWaitingKey', {get: () => require('./settings-notifications').refreshNotificationsWaitingKey})
-Object.defineProperty(exports, 'useSettingsPasswordState', {get: () => require('./settings-password').useState_})
+Object.defineProperty(exports, 'addEmailWaitingKey', {
+  get: () => require('./settings-email').addEmailWaitingKey,
+})
+Object.defineProperty(exports, 'useSettingsInvitesState', {
+  get: () => require('./settings-invites').useState_,
+})
+Object.defineProperty(exports, 'useSettingsNotifState', {
+  get: () => require('./settings-notifications').useState_,
+})
+Object.defineProperty(exports, 'refreshNotificationsWaitingKey', {
+  get: () => require('./settings-notifications').refreshNotificationsWaitingKey,
+})
+Object.defineProperty(exports, 'useSettingsPasswordState', {
+  get: () => require('./settings-password').useState_,
+})
 Object.defineProperty(exports, 'SettingsPhone', {get: () => require('./settings-phone')})
 Object.defineProperty(exports, 'useSettingsPhoneState', {get: () => require('./settings-phone').useState_})
 Object.defineProperty(exports, 'useSignupState', {get: () => require('./signup').useState_})
@@ -84,6 +100,9 @@ Object.defineProperty(exports, 'useWNState', {get: () => require('./whats-new').
 
 const logger = require('@/logger').default
 
+Object.defineProperty(exports, 'shallowequal', {get: () => require('shallowequal').default})
+Object.defineProperty(exports, 'useRPC', {get: () => require('@/util/use-rpc').default})
+
 exports.initListeners = () => {
   const f = async () => {
     await require('./fs').useState_.getState().dispatch.setupSubscriptions()
@@ -92,18 +111,20 @@ exports.initListeners = () => {
   exports.ignorePromise(f())
 }
 
-exports.ignorePromise = (f) => {
-  f.then(() => {}).catch(e => {
+exports.ignorePromise = f => {
+  f.then(() => {
+    return undefined
+  }).catch(e => {
     logger.error('ignorePromise error', e)
   })
 }
 
-exports.timeoutPromise = async (timeMs) =>
+exports.timeoutPromise = async timeMs =>
   new Promise(resolve => {
     setTimeout(() => resolve(undefined), timeMs)
   })
 
-exports.neverThrowPromiseFunc = async function(f) {
+exports.neverThrowPromiseFunc = async function (f) {
   try {
     return await f()
   } catch {
@@ -111,14 +132,14 @@ exports.neverThrowPromiseFunc = async function(f) {
   }
 }
 
-exports.enumKeys = function(enumeration) {
+exports.enumKeys = function (enumeration) {
   return Object.keys(enumeration).filter(key => typeof enumeration[key] === 'number')
 }
 
-exports.assertNever = (_) => undefined
+exports.assertNever = _ => undefined
 
 const {useNavigation} = require('@react-navigation/core')
-exports.useNav = () => {
+exports.useNav = function useNav() {
   const na = useNavigation()
   const {canGoBack} = na
   const pop = canGoBack() ? na.goBack : undefined
@@ -129,4 +150,3 @@ exports.useNav = () => {
     pop,
   }
 }
-
