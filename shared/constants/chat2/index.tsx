@@ -5,7 +5,6 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import type * as ConfigConstants from '../config'
 import * as Message from './message'
 import * as Router2 from '../router2'
-import * as TeamConstants from '../teams'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import * as Meta from './meta'
@@ -105,8 +104,8 @@ export const getBotsAndParticipants = (
     bots = [...teamMembers.values()]
       .filter(
         p =>
-          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'restrictedbot') ||
-          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'bot')
+          C.Teams.userIsRoleInTeamWithInfo(teamMembers, p.username, 'restrictedbot') ||
+          C.Teams.userIsRoleInTeamWithInfo(teamMembers, p.username, 'bot')
       )
       .map(p => p.username)
       .sort((l, r) => l.localeCompare(r))
@@ -122,8 +121,8 @@ export const getBotsAndParticipants = (
   participants = sort
     ? participants
         .map(p => ({
-          isAdmin: !isAdhocTeam ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
-          isOwner: !isAdhocTeam ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
+          isAdmin: !isAdhocTeam ? C.Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
+          isOwner: !isAdhocTeam ? C.Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
           username: p,
         }))
         .sort((l, r) => {

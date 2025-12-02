@@ -1,4 +1,4 @@
-export {isMobile, isElectron, isDarwin, isAndroid} from './platform'
+export * from './platform'
 export {wrapErrors} from '@/util/debug'
 export {useState_ as useDarkModeState} from './darkmode'
 export {useState_ as useRouterState, makeScreen} from './router2'
@@ -166,4 +166,3 @@ export {fixCrop} from '@/util/crop'
 export {produce} from 'immer'
 export * from './immer'
 export {default as featureFlags} from '../util/feature-flags'
-

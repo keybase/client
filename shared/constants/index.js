@@ -1,7 +1,8 @@
-Object.defineProperty(exports, 'isMobile', {get: () => require('./platform').isMobile})
-Object.defineProperty(exports, 'isDarwin', {get: () => require('./platform').isDarwin})
-Object.defineProperty(exports, 'isElectron', {get: () => require('./platform').isElectron})
-Object.defineProperty(exports, 'isAndroid', {get: () => require('./platform').isAndroid})
+const platform = require('./platform')
+for (const k in platform) {
+  if (k === 'default') continue
+  module.exports[k] = platform[k]
+}
 Object.defineProperty(exports, 'useActiveState', {get: () => require('./active').useState_})
 Object.defineProperty(exports, 'useArchiveState', {get: () => require('./archive').useState_})
 Object.defineProperty(exports, 'useAutoResetState', {get: () => require('./autoreset').useState_})
@@ -100,7 +101,7 @@ Object.defineProperty(exports, 'useWNState', {get: () => require('./whats-new').
 
 const logger = require('@/logger').default
 
-Object.defineProperty(exports, 'shallowEqual', {get: () => require('shallowequal').default})
+Object.defineProperty(exports, 'shallowEqual', {get: () => require('shallowequal')})
 Object.defineProperty(exports, 'useRPC', {get: () => require('@/util/use-rpc').default})
 Object.defineProperty(exports, 'wrapErrors', {get: () => require('@/util/debug').wrapErrors})
 Object.defineProperty(exports, 'logger', {get: () => require('@/logger').default})
@@ -110,14 +111,24 @@ Object.defineProperty(exports, 'useOnMountOnce', {get: () => require('./react').
 Object.defineProperty(exports, 'useOnUnMountOnce', {get: () => require('./react').useOnUnMountOnce})
 Object.defineProperty(exports, 'useEvent', {get: () => require('./react').useEvent})
 Object.defineProperty(exports, 'useLogMount', {get: () => require('./react').useLogMount})
-Object.defineProperty(exports, 'useDebouncedCallback', {get: () => require('use-debounce').useDebouncedCallback})
-Object.defineProperty(exports, 'useThrottledCallback', {get: () => require('use-debounce').useThrottledCallback})
+Object.defineProperty(exports, 'useDebouncedCallback', {
+  get: () => require('use-debounce').useDebouncedCallback,
+})
+Object.defineProperty(exports, 'useThrottledCallback', {
+  get: () => require('use-debounce').useThrottledCallback,
+})
 Object.defineProperty(exports, 'useShallow', {get: () => require('@/util/zustand').useShallow})
 Object.defineProperty(exports, 'useDeep', {get: () => require('@/util/zustand').useDeep})
 Object.defineProperty(exports, 'isNetworkErr', {get: () => require('@/util/errors').isNetworkErr})
 Object.defineProperty(exports, 'RPCError', {get: () => require('@/util/errors').RPCError})
 Object.defineProperty(exports, 'fixCrop', {get: () => require('@/util/crop').fixCrop})
-Object.defineProperty(exports, 'produce', {get: () => require('immer').produce})
+
+const immer = require('./immer')
+for (const k in immer) {
+  if (k === 'default') continue
+  module.exports[k] = immer[k]
+}
+
 Object.defineProperty(exports, 'featureFlags', {get: () => require('../util/feature-flags').default})
 Object.defineProperty(exports, 'PlatformSpecific', {get: () => require('./platform-specific')})
 
@@ -168,4 +179,3 @@ exports.useNav = function useNav() {
     pop,
   }
 }
-
