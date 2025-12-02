@@ -1,4 +1,4 @@
-// Type exports are in index.d.ts
+/* eslint-disable @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access */
 
 export type {default as Animation} from './animation'
 Object.defineProperty(exports, 'Animation', {get: () => require('./animation').default})
