@@ -141,7 +141,6 @@
   }
 }
 
-
 /* Image layer - no border-radius needed, parent clips via overflow */
 .avatar-user-image {
   flex-shrink: 0;
@@ -171,6 +170,7 @@ img.avatar-user-image {
 }
 
 .avatar-border-team {
+  border-radius: 8px;
   background: rgba(0, 0, 0, 0);
   bottom: 0;
   flex-shrink: 0;
@@ -186,7 +186,6 @@ img.avatar-user-image {
   }
 }
 
-
 .avatar-border {
   background: rgba(0, 0, 0, 0);
 }
@@ -196,4 +195,3 @@ img.avatar-user-image {
     background: rgba(255, 255, 255, 0);
   }
 }
-
