@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"runtime"
 	"sync"
-	"time"
 
 	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
@@ -29,12 +28,10 @@ type srvEndpoint struct {
 type Srv struct {
 	libkb.Contextified
 
-	httpSrv       *kbhttp.Srv
-	endpoints     map[string]srvEndpoint
-	token         string
-	previousToken string
-	tokenExpiry   time.Time
-	startMu       sync.Mutex
+	httpSrv   *kbhttp.Srv
+	endpoints map[string]srvEndpoint
+	token     string
+	startMu   sync.Mutex
 }
 
 func NewSrv(g *libkb.GlobalContext) *Srv {
@@ -65,14 +62,7 @@ func (r *Srv) startHTTPSrv() {
 	r.startMu.Lock()
 	defer r.startMu.Unlock()
 	ctx := context.Background()
-	newToken, _ := libkb.RandHexString("", 32)
-	
-	if r.token != "" {
-		r.previousToken = r.token
-		r.tokenExpiry = time.Now().Add(10 * time.Second)
-		r.debug(ctx, "startHTTPSrv: rotating token, old token valid for 10s grace period")
-	}
-	
+	token, _ := libkb.RandHexString("", 32)
 	maxTries := 2
 	success := false
 	for i := 0; i < maxTries; i++ {
@@ -104,8 +94,8 @@ func (r *Srv) startHTTPSrv() {
 	} else {
 		r.debug(ctx, "startHTTPSrv: start success: addr: %s", addr)
 	}
-	r.token = newToken
-	r.debug(ctx, "startHTTPSrv: addr: %s new token: %s... (previous token valid until: %v)", addr, r.token[:8], r.tokenExpiry)
+	r.token = token
+	r.debug(ctx, "startHTTPSrv: addr: %s token: %s", addr, r.token)
 	r.debug(ctx, "startHTTPSrv: sending HTTPSrvInfoUpdate notification to clients")
 	r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{
 		Address: addr,
@@ -142,24 +132,9 @@ func (r *Srv) HandleFunc(endpoint string, tokenMode SrvTokenMode,
 	r.httpSrv.HandleFunc("/"+endpoint, func(w http.ResponseWriter, req *http.Request) {
 		switch tokenMode {
 		case SrvTokenModeDefault:
-			requestToken := req.URL.Query().Get("token")
-			r.startMu.Lock()
-			currentToken := r.token
-			previousToken := r.previousToken
-			expiry := r.tokenExpiry
-			r.startMu.Unlock()
-			
-			validToken := hmac.Equal([]byte(requestToken), []byte(currentToken))
-			
-			if !validToken && previousToken != "" && time.Now().Before(expiry) {
-				validToken = hmac.Equal([]byte(requestToken), []byte(previousToken))
-				if validToken {
-					r.debug(context.Background(), "HandleFunc: request using previous token (grace period), endpoint: %s", endpoint)
-				}
-			}
-			
-			if !validToken {
-				r.debug(context.Background(), "HandleFunc: token failed for endpoint %s: %s...", endpoint, requestToken[:min(len(requestToken), 8)])
+			if !hmac.Equal([]byte(req.URL.Query().Get("token")), []byte(r.token)) {
+				r.debug(context.Background(), "HandleFunc: token failed: %s != %s",
+					req.URL.Query().Get("token"), r.token)
 				w.WriteHeader(http.StatusForbidden)
 				return
 			}
@@ -172,13 +147,6 @@ func (r *Srv) HandleFunc(endpoint string, tokenMode SrvTokenMode,
 		tokenMode: tokenMode,
 		serve:     serve,
 	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 func (r *Srv) Active() bool {
