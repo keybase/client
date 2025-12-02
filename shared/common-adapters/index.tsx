@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access */
 
 import type * as AnimationT from './animation'
+export type {AnimationType} from './animation'
 export declare const Animation: typeof AnimationT.default
 Object.defineProperty(exports, 'Animation', {get: () => require('./animation').default})
 
@@ -173,6 +174,7 @@ export declare const HotKey: typeof HotKeyT.HotKey
 Object.defineProperty(exports, 'HotKey', {get: () => require('./hot-key').HotKey})
 
 import type * as IconT from './icon'
+export type {IconType} from './icon.constants-gen'
 export declare const Icon: typeof IconT.default
 Object.defineProperty(exports, 'Icon', {get: () => require('./icon').default})
 
@@ -267,6 +269,7 @@ export declare const Placeholder: typeof PlaceholderT.default
 Object.defineProperty(exports, 'Placeholder', {get: () => require('./placeholder').default})
 
 import type * as PlainInputT from './plain-input'
+export type {PlainInputRef} from './plain-input'
 export declare const PlainInput: typeof PlainInputT.default
 Object.defineProperty(exports, 'PlainInput', {get: () => require('./plain-input').default})
 
@@ -333,6 +336,7 @@ export declare const ScrollView: typeof ScrollViewT.default
 Object.defineProperty(exports, 'ScrollView', {get: () => require('./scroll-view').default})
 
 import type * as SearchFilterT from './search-filter'
+export type {SearchFilterRef} from './search-filter'
 export declare const SearchFilter: typeof SearchFilterT.default
 Object.defineProperty(exports, 'SearchFilter', {get: () => require('./search-filter').default})
 
@@ -341,6 +345,7 @@ export declare const SectionDivider: typeof SectionDividerT.default
 Object.defineProperty(exports, 'SectionDivider', {get: () => require('./section-divider').default})
 
 import type * as SectionListT from './section-list'
+export type {SectionType, SectionListRef} from './section-list'
 export declare const SectionList: typeof SectionListT.default
 Object.defineProperty(exports, 'SectionList', {get: () => require('./section-list').default})
 
@@ -352,6 +357,8 @@ import type * as StylesT from '@/styles'
 export type * as Styles from '@/styles'
 export declare const Styles: typeof StylesT
 Object.defineProperty(exports, 'Styles', {get: () => require('@/styles')})
+
+export type {MeasureRef} from './measure-ref'
 
 import type * as SwitchT from './switch'
 export declare const Switch: typeof SwitchT.default
