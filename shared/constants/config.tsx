@@ -1053,18 +1053,17 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
     setHTTPSrvInfo: (address, token) => {
       const old = get().httpSrv
       const changed = old.address !== address || old.token !== token
-      console.error('[HTTPSrv] setHTTPSrvInfo called:', {
+      logger.info('[HTTPSrv] setHTTPSrvInfo called:', {
         old: {address: old.address || 'EMPTY', token: old.token ? old.token.substring(0, 10) + '...' : 'EMPTY'},
         new: {address: address || 'EMPTY', token: token ? token.substring(0, 10) + '...' : 'EMPTY'},
         changed,
-        timestamp: new Date().toISOString()
       })
       set(s => {
         s.httpSrv.address = address
         s.httpSrv.token = token
       })
       if (changed) {
-        console.error('[HTTPSrv] State updated, this should trigger avatar URL regeneration')
+        logger.info('[HTTPSrv] State updated, this should trigger avatar URL regeneration')
       }
     },
     setIncomingShareUseOriginal: use => {

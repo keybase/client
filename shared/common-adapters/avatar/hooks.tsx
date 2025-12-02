@@ -1,6 +1,7 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as C from '@/constants'
 import * as React from 'react'
+import logger from '@/logger'
 import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType} from '../icon'
 import * as Styles from '@/styles'
 import * as AvatarZus from './store'
@@ -81,17 +82,17 @@ export default (ownProps: Props) => {
   const isDarkMode = useColorScheme() === 'dark'
 
   React.useEffect(() => {
-    console.error('[Avatar] httpSrv or counter changed:', {address, token: token.substring(0, 10) + '...', name, counter, timestamp: new Date().toISOString()})
+    logger.info('[Avatar] httpSrv or counter changed:', {address, token: token.substring(0, 10) + '...', name, counter})
   }, [address, token, name, counter])
   
   React.useEffect(() => {
-    console.error('[Avatar] Component mounted/name changed:', {name, address: address || 'NO ADDRESS', hasToken: !!token, timestamp: new Date().toISOString()})
+    logger.info('[Avatar] Component mounted/name changed:', {name, address: address || 'NO ADDRESS', hasToken: !!token})
   }, [name])
 
   const urlMap = React.useMemo(
     () => {
       if (!address || !token) {
-        console.error('[Avatar] urlMap: SKIPPED - missing address or token:', {name, address: address || 'MISSING', hasToken: !!token})
+        logger.info('[Avatar] urlMap: SKIPPED - missing address or token:', {name, address: address || 'MISSING', hasToken: !!token})
         return {}
       }
       const map = sizes.reduce<{[key: number]: string}>((m, size) => {
@@ -102,7 +103,7 @@ export default (ownProps: Props) => {
         }&count=${counter}`
         return m
       }, {})
-      console.error('[Avatar] urlMap regenerated:', {name, address, token: token.substring(0, 10) + '...', counter, sampleUrl: map[192]?.substring(0, 80) + '...', timestamp: new Date().toISOString()})
+      logger.info('[Avatar] urlMap regenerated:', {name, address, token: token.substring(0, 10) + '...', counter, sampleUrl: map[192]?.substring(0, 80) + '...'})
       return map
     },
     [counter, address, token, isTeam, name, isDarkMode]

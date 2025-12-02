@@ -1,6 +1,7 @@
 import Icon from '../icon'
 import * as React from 'react'
 import * as Styles from '@/styles'
+import logger from '@/logger'
 import ClickableBox from '../clickable-box'
 import Image2 from '../image2'
 import Box from '../box'
@@ -34,11 +35,10 @@ const Avatar = React.memo(function Avatar(p: Props) {
   const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
 
   React.useEffect(() => {
-    console.error('[Avatar] Rendering:', {
+    logger.info('[Avatar] Rendering:', {
       name: props.name, 
       hasUrl: !!props.url, 
       urlPreview: typeof props.url === 'string' ? props.url.substring(0, 80) + '...' : `non-string type: ${typeof props.url}`,
-      timestamp: new Date().toISOString()
     })
   }, [props.url, props.name])
 

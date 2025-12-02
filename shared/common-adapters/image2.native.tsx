@@ -2,6 +2,7 @@ import * as React from 'react'
 import LoadingStateView from './loading-state-view'
 import type {Props} from './image2'
 import {Image, type ImageLoadEventData, type ImageErrorEventData} from 'expo-image'
+import logger from '@/logger'
 
 const Image2 = (p: Props) => {
   const {
@@ -19,9 +20,8 @@ const Image2 = (p: Props) => {
   const _onLoad = React.useCallback(
     (e: ImageLoadEventData) => {
       setLoading(false)
-      console.error('[Image2] Load SUCCESS:', {
+      logger.info('[Image2] Load SUCCESS:', {
         src: typeof src === 'string' ? src.substring(0, 80) + '...' : 'non-string',
-        timestamp: new Date().toISOString()
       })
       onLoad?.(e)
     },
@@ -31,20 +31,18 @@ const Image2 = (p: Props) => {
   if (lastSrc !== src) {
     setLastSrc(src)
     setLoading(true)
-    console.error('[Image2] Src changed, reloading:', {
+    logger.info('[Image2] Src changed, reloading:', {
       oldSrc: typeof lastSrc === 'string' ? lastSrc.substring(0, 80) + '...' : 'non-string',
       newSrc: typeof src === 'string' ? src.substring(0, 80) + '...' : 'non-string',
-      timestamp: new Date().toISOString()
     })
   }
 
   const _onError = React.useCallback(
     (e: ImageErrorEventData) => {
       setLoading(false)
-      console.error('[Image2] Load ERROR:', {
+      logger.info('[Image2] Load ERROR:', {
         error: e.error,
         src: typeof src === 'string' ? src.substring(0, 80) + '...' : 'non-string',
-        timestamp: new Date().toISOString()
       })
       onError?.()
     },
