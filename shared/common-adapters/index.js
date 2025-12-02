@@ -60,6 +60,8 @@ Object.defineProperty(exports, 'HeaderHocWrapper', {get: () => require('./header
 Object.defineProperty(exports, 'HeaderLeftBlank', {get: () => require('./header-hoc').HeaderLeftBlank})
 Object.defineProperty(exports, 'HeaderLeftCancel', {get: () => require('./header-hoc').HeaderLeftCancel})
 Object.defineProperty(exports, 'HotKey', {get: () => require('./hot-key').HotKey})
+Object.defineProperty(exports, 'useHotKey', {get: () => require('./hot-key').useHotKey})
+Object.defineProperty(exports, 'LayoutAnimation', {get: () => require('react-native').LayoutAnimation})
 Object.defineProperty(exports, 'Icon', {get: () => require('./icon').default})
 Object.defineProperty(exports, 'Image2', {get: () => require('./image2').default})
 Object.defineProperty(exports, 'InfoNote', {get: () => require('./info-note').default})
@@ -134,3 +136,4 @@ Object.defineProperty(exports, 'useSafeAreaInsets', {
   get: () => require('./safe-area-view').useSafeAreaInsets,
 })
 Object.defineProperty(exports, 'useTimeout', {get: () => require('./use-timers').useTimeout})
+
