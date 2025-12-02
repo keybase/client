@@ -349,6 +349,7 @@ export declare const SimpleToast: typeof SimpleToastT.default
 Object.defineProperty(exports, 'SimpleToast', {get: () => require('./simple-toast').default})
 
 import type * as StylesT from '@/styles'
+export type * as Styles from '@/styles'
 export declare const Styles: typeof StylesT
 Object.defineProperty(exports, 'Styles', {get: () => require('@/styles')})
 
