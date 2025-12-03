@@ -83,8 +83,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       self.didLaunchSetupAfter(application: application, rootView: rootView)
     }
     
-    setupGo()
-    
     return true
   }
   
@@ -146,6 +144,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
   
   func didLaunchSetupBefore() {
+    setupGo()
     try? AVAudioSession.sharedInstance().setCategory(.ambient)
     UNUserNotificationCenter.current().delegate = self
   }
