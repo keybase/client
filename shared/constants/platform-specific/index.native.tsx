@@ -408,7 +408,6 @@ export const initPlatformListener = () => {
 
   const configureAndroidCacheDir = () => {
     if (isAndroid && fsCacheDir && fsDownloadDir) {
-      logger.info(`[Android cache override] Setting cacheDir: ${fsCacheDir}, downloadDir: ${fsDownloadDir}`)
       C.ignorePromise(
         T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
@@ -416,15 +415,15 @@ export const initPlatformListener = () => {
           cacheDirOverride: fsCacheDir,
           downloadDirOverride: fsDownloadDir,
         })
-          .then(() => {
-            logger.info('[Android cache override] Successfully configured')
-          })
+          .then(() => {})
           .catch((e: unknown) => {
             logger.error(`[Android cache override] Failed to configure: ${String(e)}`)
           })
       )
     } else if (isAndroid) {
-      logger.warn(`[Android cache override] Missing dirs - cacheDir: ${fsCacheDir}, downloadDir: ${fsDownloadDir}`)
+      logger.warn(
+        `[Android cache override] Missing dirs - cacheDir: ${fsCacheDir}, downloadDir: ${fsDownloadDir}`
+      )
     }
   }
 
