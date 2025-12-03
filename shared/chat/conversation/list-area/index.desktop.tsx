@@ -36,6 +36,10 @@ const useScrolling = (p: {
 }) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const {listRef, setListRef: _setListRef, containsLatestMessage} = p
+  const containsLatestMessageRef = React.useRef(containsLatestMessage)
+  React.useEffect(() => {
+    containsLatestMessageRef.current = containsLatestMessage
+  }, [containsLatestMessage])
   const {messageOrdinals, centeredOrdinal, loaded} = p
   const numOrdinals = messageOrdinals.length
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
@@ -155,8 +159,8 @@ const useScrolling = (p: {
           }
 
           const list = listRef.current
-          // are we locked on the bottom?
-          if (list && !centeredOrdinal) {
+          // are we locked on the bottom? only lock if we have latest messages
+          if (list && !centeredOrdinal && containsLatestMessageRef.current) {
             lockedToBottomRef.current =
               list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlopBottom
           }
