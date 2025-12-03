@@ -270,6 +270,9 @@ const useScrolling = (p: {
       lockedToBottomRef.current = false
       return
     }
+
+    // detect if older messages were added (first ordinal changed = content added at top)
+    const olderMessagesAdded = prevFirstOrdinalRef.current !== firstOrdinal
     prevFirstOrdinalRef.current = firstOrdinal
 
     // didn't scroll up
@@ -277,8 +280,10 @@ const useScrolling = (p: {
       return
     }
     prevOrdinalLengthRef.current = ordinalsLength
-    // maintain scroll position if we got new content
+    // maintain scroll position only when older messages added at top
+    // when newer messages added at bottom, browser naturally keeps position
     if (
+      olderMessagesAdded &&
       list &&
       !centeredOrdinal && // ignore this if we're scrolling and we're doing a search
       !isLockedToBottom() &&
