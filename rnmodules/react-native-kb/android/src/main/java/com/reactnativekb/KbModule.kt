@@ -285,7 +285,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             startSharing(intent, promise)
         } catch (ex: Exception) {
-            promise.reject(Exception("Error sharing file"))
+            promise.reject(Error("Error sharing file " + ex.getLocalizedMessage()))
         }
     }
 

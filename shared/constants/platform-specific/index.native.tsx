@@ -118,16 +118,16 @@ export const showShareActionSheet = async (options: {
       try {
         await androidShareText(options.message, options.mimeType)
         return {completed: true, method: ''}
-      } catch {
-        return {completed: false, method: ''}
+      } catch (e) {
+        throw new Error('Failed to share: ' + String(e))
       }
     }
 
     try {
       await androidShare(options.filePath ?? '', options.mimeType)
       return {completed: true, method: ''}
-    } catch {
-      return {completed: false, method: ''}
+    } catch (e) {
+      throw new Error('Failed to share: ' + String(e))
     }
   }
 }

@@ -1871,8 +1871,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         try {
           await C.PlatformSpecific.showShareActionSheet({filePath, mimeType: message.fileType})
-        } catch (e) {
-          logger.error('Failed to share attachment: ' + JSON.stringify(e))
+        } catch (_e: unknown) {
+          const e = _e as undefined | {message: string}
+          logger.error('Failed to share attachment: ' + JSON.stringify(e?.message))
         }
       }
       C.ignorePromise(f())
