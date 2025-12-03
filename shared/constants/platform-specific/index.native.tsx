@@ -118,16 +118,16 @@ export const showShareActionSheet = async (options: {
       try {
         await androidShareText(options.message, options.mimeType)
         return {completed: true, method: ''}
-      } catch {
-        return {completed: false, method: ''}
+      } catch (e) {
+        throw new Error('Failed to share: ' + String(e))
       }
     }
 
     try {
       await androidShare(options.filePath ?? '', options.mimeType)
       return {completed: true, method: ''}
-    } catch {
-      return {completed: false, method: ''}
+    } catch (e) {
+      throw new Error('Failed to share: ' + String(e))
     }
   }
 }
@@ -406,10 +406,8 @@ export const initPlatformListener = () => {
     })
   })
 
-  C.useDaemonState.subscribe((s, old) => {
-    if (s.handshakeVersion === old.handshakeVersion) return
-
-    if (isAndroid) {
+  const configureAndroidCacheDir = () => {
+    if (isAndroid && fsCacheDir && fsDownloadDir) {
       C.ignorePromise(
         T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
@@ -417,7 +415,25 @@ export const initPlatformListener = () => {
           cacheDirOverride: fsCacheDir,
           downloadDirOverride: fsDownloadDir,
         })
+          .then(() => {})
+          .catch((e: unknown) => {
+            logger.error(`[Android cache override] Failed to configure: ${String(e)}`)
+          })
       )
+    } else if (isAndroid) {
+      logger.warn(
+        `[Android cache override] Missing dirs - cacheDir: ${fsCacheDir}, downloadDir: ${fsDownloadDir}`
+      )
+    }
+  }
+
+  C.useDaemonState.subscribe((s, old) => {
+    const versionChanged = s.handshakeVersion !== old.handshakeVersion
+    const stateChanged = s.handshakeState !== old.handshakeState
+    const justBecameReady = stateChanged && s.handshakeState === 'done' && old.handshakeState !== 'done'
+
+    if (versionChanged || justBecameReady) {
+      configureAndroidCacheDir()
     }
   })
 
@@ -543,6 +559,13 @@ export const initPlatformListener = () => {
     C.ignorePromise(setupAudioMode(false))
   }
   initAudioModes()
+
+  if (isAndroid) {
+    const daemonState = C.useDaemonState.getState()
+    if (daemonState.handshakeState === 'done' || daemonState.handshakeVersion > 0) {
+      configureAndroidCacheDir()
+    }
+  }
 
   C.useConfigState.setState(s => {
     s.dispatch.dynamic.openAppSettings = C.wrapErrors(() => {

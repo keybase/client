@@ -284,35 +284,23 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             intent.putExtra(Intent.EXTRA_STREAM, fileUri)
             startSharing(intent, promise)
         } catch (ex: Exception) {
-            promise.reject(Exception("Error sharing file"))
+            promise.reject(Error("Error sharing file " + ex.getLocalizedMessage()))
         }
     }
 
     private fun startSharing(intent: Intent, promise: Promise) {
-        if (intent.resolveActivity(reactContext.getPackageManager()) != null) {
-            val chooser: Intent = Intent.createChooser(intent, "Send to")
-            // Android 5.1.1 fails `startActivity` below without this flag in the Intent.
-            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            reactContext.startActivity(chooser)
-            promise.resolve(true)
-        } else {
-            promise.reject(Exception("Invalid chooser"))
-        }
+        val chooser: Intent = Intent.createChooser(intent, "Send to")
+        // Android 5.1.1 fails `startActivity` below without this flag in the Intent.
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        reactContext.startActivity(chooser)
+        promise.resolve(true)
     }
 
     @ReactMethod
     override fun androidShareText(text: String, mimeType: String, promise: Promise) {
         val intent: Intent = Intent(Intent.ACTION_SEND).setType(mimeType)
         intent.putExtra(Intent.EXTRA_TEXT, text)
-        if (intent.resolveActivity(reactContext.getPackageManager()) != null) {
-            val chooser: Intent = Intent.createChooser(intent, "Send to")
-            // Android 5.1.1 fails `startActivity` below without this flag in the Intent.
-            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            reactContext.startActivity(chooser)
-            promise.resolve(true)
-        } else {
-            promise.reject(Exception("Invalid chooser"))
-        }
+        startSharing(intent, promise)
     }
 
     // Push
