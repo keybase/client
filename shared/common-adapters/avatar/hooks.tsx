@@ -1,6 +1,7 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as C from '@/constants'
 import * as React from 'react'
+import logger from '@/logger'
 import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType} from '../icon'
 import * as Styles from '@/styles'
 import * as AvatarZus from './store'
@@ -80,16 +81,31 @@ export default (ownProps: Props) => {
 
   const isDarkMode = useColorScheme() === 'dark'
 
+  React.useEffect(() => {
+    logger.info('[Avatar] httpSrv or counter changed:', {address, token: token.substring(0, 10) + '...', name, counter})
+  }, [address, token, name, counter])
+  
+  React.useEffect(() => {
+    logger.info('[Avatar] Component mounted/name changed:', {name, address: address || 'NO ADDRESS', hasToken: !!token})
+  }, [name])
+
   const urlMap = React.useMemo(
-    () =>
-      sizes.reduce<{[key: number]: string}>((m, size) => {
+    () => {
+      if (!address || !token) {
+        logger.info('[Avatar] urlMap: SKIPPED - missing address or token:', {name, address: address || 'MISSING', hasToken: !!token})
+        return {}
+      }
+      const map = sizes.reduce<{[key: number]: string}>((m, size) => {
         m[size] = `http://${address}/av?typ=${
           isTeam ? 'team' : 'user'
         }&name=${name}&format=square_${size}&mode=${isDarkMode ? 'dark' : 'light'}&token=${
           token
         }&count=${counter}`
         return m
-      }, {}),
+      }, {})
+      logger.info('[Avatar] urlMap regenerated:', {name, address, token: token.substring(0, 10) + '...', counter, sampleUrl: map[192]?.substring(0, 80) + '...'})
+      return map
+    },
     [counter, address, token, isTeam, name, isDarkMode]
   )
   const url = React.useMemo(

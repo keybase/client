@@ -96,10 +96,12 @@ func (r *Srv) startHTTPSrv() {
 	}
 	r.token = token
 	r.debug(ctx, "startHTTPSrv: addr: %s token: %s", addr, r.token)
+	r.debug(ctx, "startHTTPSrv: sending HTTPSrvInfoUpdate notification to clients")
 	r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{
 		Address: addr,
 		Token:   r.token,
 	})
+	r.debug(ctx, "startHTTPSrv: HTTPSrvInfoUpdate notification sent")
 }
 
 func (r *Srv) monitorAppState() {
@@ -112,10 +114,14 @@ func (r *Srv) monitorAppState() {
 	}
 	for {
 		state = <-r.G().MobileAppState.NextUpdate(&state)
+		r.debug(ctx, "monitorAppState: received state update: %v", state)
 		switch state {
 		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
+			r.debug(ctx, "monitorAppState: transitioning to active state, starting HTTP server")
 			r.startHTTPSrv()
+			r.debug(ctx, "monitorAppState: HTTP server start completed, active=%v", r.httpSrv.Active())
 		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
+			r.debug(ctx, "monitorAppState: transitioning to inactive state, stopping HTTP server")
 			r.httpSrv.Stop()
 		}
 	}
@@ -150,7 +156,11 @@ func (r *Srv) Active() bool {
 func (r *Srv) Addr() (string, error) {
 	r.startMu.Lock()
 	defer r.startMu.Unlock()
-	return r.httpSrv.Addr()
+	addr, err := r.httpSrv.Addr()
+	if err != nil {
+		r.debug(context.Background(), "Addr: failed to get address: %v, active=%v", err, r.httpSrv.Active())
+	}
+	return addr, err
 }
 
 func (r *Srv) Token() string {

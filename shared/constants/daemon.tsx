@@ -188,7 +188,8 @@ export const useState_ = Z.createZustand<State>((set, get) => {
 
         // set HTTP srv info
         if (s.httpSrvInfo) {
-          logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
+          const current = C.useConfigState.getState().httpSrv
+          logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token.substring(0, 10)}... (current: ${current.address})`)
           C.useConfigState.getState().dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
         } else {
           logger.info(`[Bootstrap] http server: no info given`)

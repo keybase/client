@@ -798,7 +798,9 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           break
         }
         case EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate: {
-          get().dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
+          const {address, token} = action.payload.params.info
+          logger.info(`[HTTPSrvUpdate] Received from Go: ${address} token: ${token.substring(0, 10)}...`)
+          get().dispatch.setHTTPSrvInfo(address, token)
           break
         }
         case EngineGen.keybase1NotifySessionLoggedIn: {
@@ -1049,10 +1051,20 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       }
     },
     setHTTPSrvInfo: (address, token) => {
+      const old = get().httpSrv
+      const changed = old.address !== address || old.token !== token
+      logger.info('[HTTPSrv] setHTTPSrvInfo called:', {
+        old: {address: old.address || 'EMPTY', token: old.token ? old.token.substring(0, 10) + '...' : 'EMPTY'},
+        new: {address: address || 'EMPTY', token: token ? token.substring(0, 10) + '...' : 'EMPTY'},
+        changed,
+      })
       set(s => {
         s.httpSrv.address = address
         s.httpSrv.token = token
       })
+      if (changed) {
+        logger.info('[HTTPSrv] State updated, this should trigger avatar URL regeneration')
+      }
     },
     setIncomingShareUseOriginal: use => {
       set(s => {

@@ -202,6 +202,7 @@ func (h *Srv) Addr() (string, error) {
 	if h.server != nil {
 		return h.server.Addr, nil
 	}
+	h.log.Debug("kbhttp.Srv: Addr() called but server is not running")
 	return "", errors.New("server not running")
 }
 
@@ -210,10 +211,12 @@ func (h *Srv) Stop() <-chan struct{} {
 	h.Lock()
 	defer h.Unlock()
 	if h.server != nil {
+		h.log.Debug("kbhttp.Srv: stopping server at: %s", h.server.Addr)
 		h.server.Close()
 		h.server = nil
 		return h.doneCh
 	}
+	h.log.Debug("kbhttp.Srv: Stop() called but server was already stopped")
 	doneCh := make(chan struct{})
 	close(doneCh)
 	return doneCh
