@@ -195,7 +195,8 @@ if (isIOS) {
     DynamicColorIOS: typeof DynamicColorIOSType
   }
   iosDynamicColors = names.reduce<{[key: string]: unknown}>((obj, name) => {
-    obj[name] = DynamicColorIOS({dark: darkColors[name], light: colors[name]})
+    obj[name] =
+      name === 'fastBlank' ? undefined : DynamicColorIOS({dark: darkColors[name], light: colors[name]})
     return obj
   }, {}) as Color
 } else {
