@@ -4,6 +4,7 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {pickSave} from '@/util/pick-files'
 import * as FsCommon from '@/fs/common'
+import {useState as useArchiveState} from '@/constants/archive'
 
 type Props =
   | {type: 'chatID'; conversationIDKey: T.Chat.ConversationIDKey}
@@ -16,7 +17,7 @@ type Props =
 
 const ArchiveModal = (p: Props) => {
   const {type} = p
-  const chatIDToDisplayname = C.useArchiveState(s => s.chatIDToDisplayname)
+  const chatIDToDisplayname = useArchiveState(s => s.chatIDToDisplayname)
   const displayname = React.useMemo(() => {
     return p.type === 'chatID' ? chatIDToDisplayname(p.conversationIDKey) : ''
   }, [p, chatIDToDisplayname])
@@ -51,10 +52,10 @@ const ArchiveModal = (p: Props) => {
 
   const [outpath, setOutpath] = React.useState(defaultPath)
   const [started, setStarted] = React.useState(false)
-  const start = C.useArchiveState(s => s.dispatch.start)
-  const resetWaiters = C.useArchiveState(s => s.dispatch.resetWaiters)
-  const archiveAllFilesResponseWaiter = C.useArchiveState(s => s.archiveAllFilesResponseWaiter)
-  const archiveAllGitResponseWaiter = C.useArchiveState(s => s.archiveAllGitResponseWaiter)
+  const start = useArchiveState(s => s.dispatch.start)
+  const resetWaiters = useArchiveState(s => s.dispatch.resetWaiters)
+  const archiveAllFilesResponseWaiter = useArchiveState(s => s.archiveAllFilesResponseWaiter)
+  const archiveAllGitResponseWaiter = useArchiveState(s => s.archiveAllGitResponseWaiter)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
 

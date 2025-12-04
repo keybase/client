@@ -1,6 +1,7 @@
 import * as Z from '@/util/zustand'
 import * as C from '.'
 import type * as EngineGen from '../actions/engine-gen-gen'
+import {useState as useArchiveState} from './archive'
 
 type Store = object
 const initialStore: Store = {}
@@ -39,7 +40,7 @@ export const useState_ = Z.createZustand<State>(set => {
         C.useConfigState.getState().dispatch.onEngineIncoming(action)
         C.useDeepLinksState.getState().dispatch.onEngineIncoming(action)
         C.useFSState.getState().dispatch.onEngineIncoming(action)
-        C.useArchiveState.getState().dispatch.onEngineIncoming(action)
+        useArchiveState.getState().dispatch.onEngineIncoming(action)
         C.useNotifState.getState().dispatch.onEngineIncoming(action)
         C.usePeopleState.getState().dispatch.onEngineIncoming(action)
         C.usePinentryState.getState().dispatch.onEngineIncoming(action)
