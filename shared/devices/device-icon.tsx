@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import type {IconStyle} from '@/common-adapters/icon'
@@ -17,7 +18,7 @@ const DeviceIcon = (props: Props) => {
   } as const
 
   const {type, deviceNumberOfType} = props.device
-  const iconNumber = ((deviceNumberOfType % C.Devices.numBackgrounds) + 1) as T.Devices.IconNumber
+  const iconNumber = ((deviceNumberOfType % Devices.numBackgrounds) + 1) as T.Devices.IconNumber
   const badge = props.current ? 'success-' : ''
 
   const maybeIcon = (

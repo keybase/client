@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import DeviceRow, {NewContext} from './row'
@@ -20,10 +21,10 @@ const splitAndSortDevices = (deviceMap: T.Immutable<Map<string, T.Devices.Device
 const itemHeight = {height: 48, type: 'fixed'} as const
 
 const ReloadableDevices = React.memo(function ReloadableDevices() {
-  const deviceMap = C.useDevicesState(s => s.deviceMap)
-  const waiting = C.Waiting.useAnyWaiting(C.Devices.waitingKey)
-  const {load: loadDevices, clearBadges} = C.useDevicesState(s => s.dispatch)
-  const storeSet = C.useDevicesState(s => s.isNew)
+  const deviceMap = Devices.useState(s => s.deviceMap)
+  const waiting = C.Waiting.useAnyWaiting(Devices.waitingKey)
+  const {load: loadDevices, clearBadges} = Devices.useState(s => s.dispatch)
+  const storeSet = Devices.useState(s => s.isNew)
   const {badged} = useLocalBadging(storeSet, clearBadges)
 
   const newlyChangedItemIds = badged
@@ -109,7 +110,7 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
   return (
     <Kb.Reloadable
       onBack={C.isMobile ? onBack : undefined}
-      waitingKeys={C.Devices.waitingKey}
+      waitingKeys={Devices.waitingKey}
       onReload={loadDevices}
       reloadOnMount={true}
       title=""

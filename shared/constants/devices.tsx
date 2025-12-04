@@ -18,7 +18,7 @@ interface State extends T.Devices.State {
   }
 }
 
-export const useState_ = Z.createZustand<State>(set => {
+export const useState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     clearBadges: () => {
       C.ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())

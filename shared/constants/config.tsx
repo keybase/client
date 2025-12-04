@@ -1,5 +1,6 @@
 import * as C from '.'
 import * as AutoReset from './autoreset'
+import * as Devices from './devices'
 import * as T from './types'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as RemoteGen from '../actions/remote-gen'
@@ -968,7 +969,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
 
       const updateDevices = () => {
         if (!b) return
-        const {setBadges} = C.useDevicesState.getState().dispatch
+        const {setBadges} = Devices.useState.getState().dispatch
         const {newDevices, revokedDevices} = b
         setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
       }

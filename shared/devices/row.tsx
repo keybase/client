@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import DeviceIcon from './device-icon'
@@ -14,7 +15,7 @@ export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
 const Container = React.memo(function Container(ownProps: OwnProps) {
   const {deviceID, firstItem} = ownProps
-  const device = C.useDevicesState(s => s.deviceMap.get(deviceID))
+  const device = Devices.useState(s => s.deviceMap.get(deviceID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showExistingDevicePage = React.useCallback(() => {
     navigateAppend({props: {deviceID}, selected: 'devicePage'})

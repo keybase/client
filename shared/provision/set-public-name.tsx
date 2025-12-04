@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Devices from '@/constants/devices'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -22,7 +23,7 @@ const SetPublicName = () => {
     .filter(d => d.type === (C.isMobile ? 'mobile' : 'desktop'))
     .map(d => d.deviceNumberOfType)
   const maxDeviceNumber = deviceNumbers.length > 0 ? Math.max(...deviceNumbers) : -1
-  const deviceIconNumber = ((maxDeviceNumber + 1) % C.Devices.numBackgrounds) + 1
+  const deviceIconNumber = ((maxDeviceNumber + 1) % Devices.numBackgrounds) + 1
 
   const [deviceName, setDeviceName] = React.useState(C.Signup.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)

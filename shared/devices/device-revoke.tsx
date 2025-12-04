@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -37,7 +38,7 @@ const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: ()
       fullWidth={Kb.Styles.isMobile}
       type="Danger"
       label="Yes, delete it"
-      waitingKey={C.Devices.waitingKey}
+      waitingKey={Devices.waitingKey}
       onClick={onSubmit}
     />
     <Kb.Button fullWidth={Kb.Styles.isMobile} type="Dim" onClick={onCancel} label="Cancel" />
@@ -71,7 +72,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
   try {
     const tlfs = await T.RPCGen.rekeyGetRevokeWarningRpcPromise(
       {actingDevice, targetDevice},
-      C.Devices.waitingKey
+      Devices.waitingKey
     )
     return tlfs.endangeredTLFs?.map(t => t.name) ?? []
   } catch (e) {
@@ -81,8 +82,8 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
 }
 
 const useRevoke = (deviceID = '') => {
-  const d = C.useDevicesState(s => s.deviceMap.get(deviceID))
-  const load = C.useDevicesState(s => s.dispatch.load)
+  const d = Devices.useState(s => s.deviceMap.get(deviceID))
+  const load = Devices.useState(s => s.dispatch.load)
   const username = C.useCurrentUserState(s => s.username)
   const wasCurrentDevice = d?.currentDevice ?? false
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
@@ -91,7 +92,7 @@ const useRevoke = (deviceID = '') => {
     const f = async () => {
       if (wasCurrentDevice) {
         try {
-          await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.Devices.waitingKey)
+          await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, Devices.waitingKey)
           load()
           C.useConfigState.getState().dispatch.revoke(deviceName)
         } catch {}
@@ -99,7 +100,7 @@ const useRevoke = (deviceID = '') => {
         try {
           await T.RPCGen.revokeRevokeDeviceRpcPromise(
             {deviceID, forceLast: false, forceSelf: false},
-            C.Devices.waitingKey
+            Devices.waitingKey
           )
           load()
           C.useConfigState.getState().dispatch.revoke(deviceName)
@@ -116,12 +117,12 @@ const useRevoke = (deviceID = '') => {
 const DeviceRevoke = (ownProps: OwnProps) => {
   const selectedDeviceID = ownProps.deviceID
   const [endangeredTLFs, setEndangeredTLFs] = React.useState(new Array<string>())
-  const device = C.useDevicesState(s => s.deviceMap.get(selectedDeviceID))
+  const device = Devices.useState(s => s.deviceMap.get(selectedDeviceID))
   const deviceID = device?.deviceID
   const deviceName = device?.name ?? ''
   const type = device?.type ?? 'desktop'
-  const iconNumber = C.Devices.useDeviceIconNumber(selectedDeviceID)
-  const waiting = C.Waiting.useAnyWaiting(C.Devices.waitingKey)
+  const iconNumber = Devices.useDeviceIconNumber(selectedDeviceID)
+  const waiting = C.Waiting.useAnyWaiting(Devices.waitingKey)
   const onSubmit = useRevoke(deviceID)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
