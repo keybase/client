@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {useState as useRecoverState} from '@/constants/recover-password'
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   padding: {
@@ -9,7 +10,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 const ConnectedErrorModal = () => {
   const loggedIn = C.useConfigState(s => s.loggedIn)
-  const error = C.useRecoverState(s => s.error)
+  const error = useRecoverState(s => s.error)
   const popStack = C.useRouterState(s => s.dispatch.popStack)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {

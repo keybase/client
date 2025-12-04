@@ -3,6 +3,7 @@ import openURL from '@/util/open-url'
 import {currentVersion} from '@/constants/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
+import {useState as useWNState} from '@/constants/whats-new'
 
 const WhatsNewContainer = () => {
   const _onNavigateExternal = (url: string) => {
@@ -17,8 +18,8 @@ const WhatsNewContainer = () => {
   const _onUpdateLastSeenVersion = (lastSeenVersion: string) => {
     updateGregorCategory('whatsNewLastSeenVersion', lastSeenVersion)
   }
-  const seenVersions = C.useWNState(s => s.seenVersions)
-  const newRelease = C.useWNState(s => s.anyVersionsUnseen())
+  const seenVersions = useWNState(s => s.seenVersions)
+  const newRelease = useWNState(s => s.anyVersionsUnseen())
   const onBack = () => {
     if (newRelease) {
       _onUpdateLastSeenVersion(currentVersion)

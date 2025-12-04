@@ -3,6 +3,7 @@ import * as Z from '@/util/zustand'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
+import {useState as useRecoverState} from './recover-password'
 
 export const enterPipelineWaitingKey = 'autoreset:EnterPipelineWaitingKey'
 export const actuallyResetWaitingKey = 'autoreset:ActuallyResetWaitingKey' // TODO not really set
@@ -157,7 +158,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     resetState: 'default',
     startAccountReset: (skipPassword, _username) => {
-      const username = _username || C.useRecoverState.getState().username
+      const username = _username || useRecoverState.getState().username
       set(s => {
         s.skipPassword = skipPassword
         s.error = ''

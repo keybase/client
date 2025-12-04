@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
+import {useState as useRecoverState} from '@/constants/recover-password'
 
 const needPasswordError = 'passphrase cannot be empty'
 
@@ -9,7 +10,7 @@ const ReloginContainer = () => {
   const _users = C.useConfigState(s => s.configuredAccounts)
   const perror = C.useConfigState(s => s.loginError)
   const pselectedUser = C.useConfigState(s => s.defaultUsername)
-  const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
+  const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
   const onForgotPassword = (username: string) => {
     startRecoverPassword({username})
   }

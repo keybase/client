@@ -46,7 +46,7 @@ export interface State extends Store {
   }
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     dynamic: {
       cancel: undefined,

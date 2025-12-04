@@ -1,13 +1,13 @@
-import * as C from '@/constants'
 import * as AutoReset from '@/constants/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useState as useRecoverState} from '@/constants/recover-password'
 
 const ConfirmReset = () => {
   const hasWallet = AutoReset.useState(s => s.hasWallet)
   const error = AutoReset.useState(s => s.error)
-  const submitResetPassword = C.useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
+  const submitResetPassword = useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
   const onContinue = React.useCallback(() => {
     submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
   }, [submitResetPassword])

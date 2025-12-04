@@ -16,6 +16,7 @@ import {defaultUseNativeFrame, runMode, isMobile} from './platform'
 import {type CommonResponseHandler} from '../engine/types'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {mapGetEnsureValue} from '@/util/map'
+import {useState as useWNState} from './whats-new'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -305,7 +306,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
     })
 
     const lastSeenItem = goodState.find(i => i.item.category === 'whatsNewLastSeenVersion')
-    C.useWNState.getState().dispatch.updateLastSeen(lastSeenItem)
+    useWNState.getState().dispatch.updateLastSeen(lastSeenItem)
     C.useTeamsState.getState().dispatch.onGregorPushState(goodState)
     C.useChatState.getState().dispatch.updatedGregor(goodState)
   }
