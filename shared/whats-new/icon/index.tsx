@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {IconStyle} from '@/common-adapters/icon'
@@ -187,5 +186,3 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export default IconContainer
-
-

@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as AutoReset from '@/constants/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'

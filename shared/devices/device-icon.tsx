@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import type * as C from '@/constants'
 import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'

@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import SelectOtherDevice from '@/provision/select-other-device'
 import {useState as useRecoverState} from '@/constants/recover-password'
 
