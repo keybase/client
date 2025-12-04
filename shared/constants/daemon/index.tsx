@@ -1,6 +1,6 @@
 import * as C from '..'
 import logger from '@/logger'
-import * as T from './types'
+import * as T from '../types'
 import * as Z from '@/util/zustand'
 
 export const maxHandshakeTries = 3

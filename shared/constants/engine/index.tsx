@@ -1,6 +1,6 @@
 import * as Z from '@/util/zustand'
 import * as C from '..'
-import type * as EngineGen from '../actions/engine-gen-gen'
+import type * as EngineGen from '@/actions/engine-gen-gen'
 import {useState as useArchiveState} from '../archive'
 import {useState as useUFState} from '../unlock-folders'
 

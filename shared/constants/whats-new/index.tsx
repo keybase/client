@@ -1,7 +1,7 @@
 import type * as T from '../types'
 import * as Z from '@/util/zustand'
 import {uint8ArrayToString} from 'uint8array-extras'
-import {currentVersion, lastVersion, lastLastVersion, keybaseFM, noVersion, getSeenVersions} from './utils'
+import {noVersion, getSeenVersions} from './utils'
 
 export {currentVersion, lastVersion, lastLastVersion, keybaseFM} from './utils'
 

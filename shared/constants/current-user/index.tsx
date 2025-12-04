@@ -1,4 +1,4 @@
-import type * as T from './types'
+import type * as T from '../types'
 import * as Z from '@/util/zustand'
 
 export type Store = T.Immutable<{

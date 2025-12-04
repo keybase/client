@@ -3,7 +3,7 @@ import * as T from '../types'
 import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '../platform'
-import {type CommonResponseHandler} from '../engine/types'
+import {type CommonResponseHandler} from '@/engine/types'
 import isEqual from 'lodash/isEqual'
 import {rpcDeviceToDevice} from '../rpc-utils'
 

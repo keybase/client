@@ -1,9 +1,9 @@
 import * as C from '..'
-import * as EngineGen from '../../actions/engine-gen-gen'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
-import {getEngine} from '../engine/require'
+import {getEngine} from '@/engine/require'
 
 type Store = T.Immutable<{
   devices: C.ConfigStore['unlockFoldersDevices']

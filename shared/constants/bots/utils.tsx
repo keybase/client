@@ -1,4 +1,4 @@
-import * as T from '../types'
+import type * as T from '../types'
 
 export const waitingKeyBotSearchFeatured = 'bots:search:featured'
 export const waitingKeyBotSearchUsers = 'bots:search:users'
@@ -17,4 +17,3 @@ export const getFeaturedSorted = (
   })
   return featured
 }
-

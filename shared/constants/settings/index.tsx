@@ -1,6 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
-import * as EngineGen from '../actions/engine-gen-gen'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import openURL from '@/util/open-url'
 import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'

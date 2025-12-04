@@ -11,8 +11,7 @@ import {serviceIdFromString} from '@/util/platforms'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
-import {allServices, selfToUser, searchWaitingKey} from './utils'
-
+import {searchWaitingKey} from './utils'
 export {allServices, selfToUser, searchWaitingKey} from './utils'
 
 export type Store = T.Immutable<{

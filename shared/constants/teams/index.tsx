@@ -1,6 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
-import * as EngineGen from '../../actions/engine-gen-gen'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import * as ProfileConstants from '../profile'
 import * as Router2Constants from '../router2'
 import * as Z from '@/util/zustand'

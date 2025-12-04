@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import type * as RecoverPassword from '../recover-password'
-import {enterPipelineWaitingKey, actuallyResetWaitingKey, cancelResetWaitingKey} from './utils'
+import {enterPipelineWaitingKey, cancelResetWaitingKey} from './utils'
 
 export {enterPipelineWaitingKey, actuallyResetWaitingKey, cancelResetWaitingKey} from './utils'
 

@@ -1,5 +1,5 @@
 import * as C from '..'
-import * as EngineGen from '../../actions/engine-gen-gen'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'

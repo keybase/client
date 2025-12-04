@@ -1,5 +1,5 @@
 import type {RPCError} from '@/util/errors'
-import type * as T from './types'
+import type * as T from '../types'
 import * as Z from '@/util/zustand'
 
 const initialStore: T.Waiting.State = {

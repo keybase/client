@@ -1,6 +1,6 @@
 import * as C from '..'
 import * as Platforms from '../platform'
-import * as EngineGen from '../actions/engine-gen-gen'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'

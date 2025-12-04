@@ -1,6 +1,6 @@
 import * as Z from '@/util/zustand'
 import * as C from '@/constants'
-import * as T from './types'
+import * as T from '../types'
 import {isValidEmail} from '@/util/simple-validators'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'

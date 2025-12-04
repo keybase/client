@@ -1,4 +1,4 @@
-import * as T from '../types'
+import type * as T from '../types'
 
 const searchServices: Array<T.TB.ServiceId> = ['keybase', 'twitter', 'github', 'reddit', 'hackernews']
 
@@ -18,4 +18,3 @@ export const selfToUser = (you: string): T.TB.User => ({
 })
 
 export const searchWaitingKey = 'teamBuilding:search'
-
