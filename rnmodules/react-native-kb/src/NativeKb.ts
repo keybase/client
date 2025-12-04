@@ -48,6 +48,7 @@ export interface Spec extends TurboModule {
   engineReset(): void
   notifyJSReady(): void
   shareListenersRegistered(): void
+  setEnablePasteImage(enabled: boolean): void
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Kb')

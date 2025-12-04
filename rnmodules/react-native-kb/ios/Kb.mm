@@ -13,6 +13,7 @@
 #import <cstring>
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
+#import <objc/runtime.h>
 #import "./KBJSScheduler.h"
 #import "RNKbSpec.h"
 
@@ -67,6 +68,9 @@ static const NSString *tagName = @"NativeLogger";
 static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
+static __weak Kb *kbSharedInstance = nil;
+static BOOL kbPasteImageEnabled = NO;
+
 @interface RCTBridge (JSIRuntime)
 - (void *)runtime;
 @end
@@ -102,18 +106,60 @@ RCT_EXPORT_MODULE()
 
 - (instancetype)init {
   self = [super init];
-  // Listen for hardware keyboard events from NotificationCenter
+  kbSharedInstance = self;
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(handleHardwareKeyPressed:)
                                                name:@"hardwareKeyPressed"
                                              object:nil];
+  [Kb swizzleUITextViewPaste];
   return self;
+}
+
++ (void)swizzleUITextViewPaste {
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    Class cls = [UITextView class];
+    
+    SEL originalPaste = @selector(paste:);
+    SEL swizzledPaste = @selector(kb_paste:);
+    Method originalPasteMethod = class_getInstanceMethod(cls, originalPaste);
+    Method swizzledPasteMethod = class_getInstanceMethod(cls, swizzledPaste);
+    method_exchangeImplementations(originalPasteMethod, swizzledPasteMethod);
+    
+    SEL originalCanPerform = @selector(canPerformAction:withSender:);
+    SEL swizzledCanPerform = @selector(kb_canPerformAction:withSender:);
+    Method originalCanPerformMethod = class_getInstanceMethod(cls, originalCanPerform);
+    Method swizzledCanPerformMethod = class_getInstanceMethod(cls, swizzledCanPerform);
+    method_exchangeImplementations(originalCanPerformMethod, swizzledCanPerformMethod);
+  });
+}
+
++ (void)handlePastedImages:(NSArray<UIImage *> *)images {
+  if (!kbSharedInstance || images.count == 0) return;
+  
+  NSMutableArray *uris = [NSMutableArray array];
+  for (UIImage *image in images) {
+    NSData *data = UIImagePNGRepresentation(image);
+    if (!data) continue;
+    
+    NSString *filename = [NSString stringWithFormat:@"paste_%@.png", [[NSUUID UUID] UUIDString]];
+    NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
+    
+    if ([data writeToFile:tempPath atomically:YES]) {
+      [uris addObject:tempPath];
+    }
+  }
+  
+  if (uris.count > 0) {
+    [kbSharedInstance sendEventWithName:@"onPasteImage" body:@{@"uris": uris}];
+  }
 }
 
 - (void)invalidate {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   currentRuntime = nil;
   _jsRuntime = nil;
+  kbPasteImageEnabled = NO;
   [super invalidate];
   Teardown();
   self.bridge = nil;
@@ -123,7 +169,11 @@ RCT_EXPORT_MODULE()
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-return @[ metaEventName, @"hardwareKeyPressed" ];
+return @[ metaEventName, @"hardwareKeyPressed", @"onPasteImage" ];
+}
+
+RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
+  kbPasteImageEnabled = enabled;
 }
 
 // Don't compile this code when we build for the old architecture.
@@ -407,5 +457,33 @@ RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
 - (void)androidShareText:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidUnlink:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidUnlink:(NSString *)path {}
+
+@end
+
+@implementation UITextView (KBPasteImage)
+
+- (BOOL)kb_canPerformAction:(SEL)action withSender:(id)sender {
+  if (action == @selector(paste:) && kbPasteImageEnabled) {
+    if ([UIPasteboard generalPasteboard].hasImages) {
+      return YES;
+    }
+  }
+  return [self kb_canPerformAction:action withSender:sender];
+}
+
+- (void)kb_paste:(id)sender {
+  if (kbPasteImageEnabled) {
+    UIPasteboard *pb = [UIPasteboard generalPasteboard];
+    if (pb.hasImages) {
+      NSArray<UIImage *> *images = pb.images;
+      if (images.count > 0) {
+        [Kb handlePastedImages:images];
+        return;
+      }
+    }
+  }
+  
+  [self kb_paste:sender];
+}
 
 @end

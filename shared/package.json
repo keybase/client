@@ -62,7 +62,8 @@
     "android-logs": "adb logcat | grep $(adb shell pidof io.keybase.ossifrage)",
     "android-log-clear": "adb logcat -b all -c",
     "clean-and-install": "rm -rf node_modules ; yarn pod-clean ; yarn modules ; yarn pod-install",
-    "coverage": "rm -rf coverage-ts; npx typescript-coverage-report"
+    "coverage": "rm -rf coverage-ts; npx typescript-coverage-report",
+    "sync-kb-modules": "rm -rf node_modules/react-native-kb ; yarn --check-files"
   },
   "keywords": [],
   "author": "",
