@@ -29,7 +29,6 @@ const initialStore: Store = {
 
 interface State extends Store {
   dispatch: {
-    onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     resetState: 'default'
     badgeApp: (key: NotificationKeys, on: boolean) => void
@@ -100,55 +99,6 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         keyState.set(key, on)
         updateWidgetBadge(s)
       })
-    },
-    onEngineConnected: () => {
-      const f = async () => {
-        try {
-          await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
-            channels: {
-              allowChatNotifySkips: true,
-              app: true,
-              audit: true,
-              badges: true,
-              chat: true,
-              chatarchive: true,
-              chatattachments: true,
-              chatdev: false,
-              chatemoji: false,
-              chatemojicross: false,
-              chatkbfsedits: false,
-              deviceclone: false,
-              ephemeral: false,
-              favorites: false,
-              featuredBots: true,
-              kbfs: true,
-              kbfsdesktop: !isMobile,
-              kbfslegacy: false,
-              kbfsrequest: false,
-              kbfssubscription: true,
-              keyfamily: false,
-              notifysimplefs: true,
-              paperkeys: false,
-              pgp: true,
-              reachability: true,
-              runtimestats: true,
-              saltpack: true,
-              service: true,
-              session: true,
-              team: true,
-              teambot: false,
-              tracking: true,
-              users: true,
-              wallet: false,
-            },
-          })
-        } catch (error) {
-          if (error) {
-            logger.warn('error in toggling notifications: ', error)
-          }
-        }
-      }
-      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {

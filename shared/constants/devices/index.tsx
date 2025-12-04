@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Z from '@/util/zustand'
 import * as C from '@/constants'
 import * as T from '../types'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import debounce from 'lodash/debounce'
 
 const initialStore: T.Devices.State = {
@@ -13,12 +14,13 @@ interface State extends T.Devices.State {
   dispatch: {
     load: () => void
     clearBadges: () => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     resetState: 'default'
     setBadges: (set: Set<string>) => void
   }
 }
 
-export const useState = Z.createZustand<State>(set => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearBadges: () => {
       C.ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
@@ -44,6 +46,17 @@ export const useState = Z.createZustand<State>(set => {
       1000,
       {leading: true, trailing: false}
     ),
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyBadgesBadgeState: {
+          const {badgeState} = action.payload.params
+          const {newDevices, revokedDevices} = badgeState
+          get().dispatch.setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
+          break
+        }
+        default:
+      }
+    },
     resetState: 'default',
     setBadges: b => {
       set(s => {

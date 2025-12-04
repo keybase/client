@@ -18,7 +18,6 @@ const initialStore: Store = {
 export interface State extends Store {
   dispatch: {
     onBackFromPaperKey: () => void
-    onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     toPaperKeyInput: () => void
     replace: (devices: Store['devices']) => void
@@ -33,18 +32,6 @@ export const useState = Z.createZustand<State>((set, _get) => {
       set(s => {
         s.phase = 'promptOtherDevice'
       })
-    },
-    onEngineConnected: () => {
-      const f = async () => {
-        try {
-          await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
-          logger.info('Registered rekey ui')
-        } catch (error) {
-          logger.warn('error in registering rekey ui: ')
-          logger.debug('error in registering rekey ui: ', error)
-        }
-      }
-      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {
