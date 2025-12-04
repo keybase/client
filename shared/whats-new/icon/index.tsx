@@ -5,6 +5,7 @@ import type {IconStyle} from '@/common-adapters/icon'
 import {keybaseFM} from '@/constants/whats-new'
 import Popup from './popup'
 import './icon.css'
+import {useState as useWNState} from '@/constants/whats-new'
 
 type OwnProps = {
   color?: string
@@ -19,14 +20,14 @@ type PopupOwnProps = OwnProps & {
 // Just Whats New Icon connected for badge state
 const IconContainer = (p: OwnProps) => {
   const {badgeColor, style, color} = p
-  const newRelease = C.useWNState(s => s.anyVersionsUnseen())
+  const newRelease = useWNState(s => s.anyVersionsUnseen())
   return <Icon badgeColor={badgeColor} color={color} newRelease={newRelease} style={style} />
 }
 
 // Whats New icon with popup which is connected to the badge state and marking release as seen.
 export const IconWithPopupDesktop = (p: PopupOwnProps) => {
   const {badgeColor, color} = p
-  const newRelease = C.useWNState(s => s.anyVersionsUnseen())
+  const newRelease = useWNState(s => s.anyVersionsUnseen())
 
   const baseColor = Kb.Styles.globalColors.black_50
   const iconColor = color ? color : baseColor

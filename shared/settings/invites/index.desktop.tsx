@@ -4,6 +4,7 @@ import * as React from 'react'
 import SubHeading from '../subheading'
 import * as dateFns from 'date-fns'
 import * as C from '@/constants'
+import {useState as useSettingsInvitesState} from '@/constants/settings-invites'
 
 // Like intersperse but takes a function to define the separator
 function intersperseFn<A, B>(
@@ -24,15 +25,15 @@ function intersperseFn<A, B>(
 }
 
 const Invites = () => {
-  const acceptedInvites = C.useSettingsInvitesState(s => s.acceptedInvites)
-  const error = C.useSettingsInvitesState(s => s.error)
-  const pendingInvites = C.useSettingsInvitesState(s => s.pendingInvites)
+  const acceptedInvites = useSettingsInvitesState(s => s.acceptedInvites)
+  const error = useSettingsInvitesState(s => s.error)
+  const pendingInvites = useSettingsInvitesState(s => s.pendingInvites)
   const waitingForResponse = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
 
-  const resetError = C.useSettingsInvitesState(s => s.dispatch.resetError)
-  const sendInvite = C.useSettingsInvitesState(s => s.dispatch.sendInvite)
-  const reclaimInvite = C.useSettingsInvitesState(s => s.dispatch.reclaimInvite)
-  const loadInvites = C.useSettingsInvitesState(s => s.dispatch.loadInvites)
+  const resetError = useSettingsInvitesState(s => s.dispatch.resetError)
+  const sendInvite = useSettingsInvitesState(s => s.dispatch.sendInvite)
+  const reclaimInvite = useSettingsInvitesState(s => s.dispatch.reclaimInvite)
+  const loadInvites = useSettingsInvitesState(s => s.dispatch.loadInvites)
   const onClearError = resetError
   const onGenerateInvitation = sendInvite
   const onReclaimInvitation = reclaimInvite

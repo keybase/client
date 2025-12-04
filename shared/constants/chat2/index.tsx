@@ -14,6 +14,7 @@ import * as Z from '@/util/zustand'
 import * as Common from './common'
 import {uint8ArrayToString} from 'uint8array-extras'
 import isEqual from 'lodash/isEqual'
+import * as Gregor from '../gregor'
 
 const defaultTopReacjis = [
   {name: ':+1:'},
@@ -1869,7 +1870,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
               try {
                 const teamID = i.item.category.substring(blockButtonsGregorPrefix.length)
                 if (!s.blockButtonsMap.get(teamID)) {
-                  const body = C.Gregor.bodyToJSON(i.item.body) as {adder: string}
+                  const body = Gregor.bodyToJSON(i.item.body) as {adder: string}
                   const adder = body.adder
                   s.blockButtonsMap.set(teamID, {adder})
                 } else {
