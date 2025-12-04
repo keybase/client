@@ -130,4 +130,5 @@ func (v *VDebugLog) Configure(s string) {
 			v.log.Warning("Ignoring Vdebug log directive: %q", s)
 		}
 	}
+	v.lev = VLog0
 }

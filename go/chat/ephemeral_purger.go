@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
@@ -151,12 +152,23 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 
 	b.started = true
 	b.uid = uid
-	b.initQueue(ctx)
-	// Immediately fire to queue any purges we picked up during initQueue
+
+	b.queueLock.Lock()
+	defer b.queueLock.Unlock()
+	b.pq = newPriorityQueue()
+	heap.Init(b.pq)
 	b.purgeTimer = time.NewTimer(0)
+
 	shutdownCh := make(chan struct{})
 	b.shutdownCh = shutdownCh
-	b.eg.Go(func() error { return b.loop(shutdownCh) })
+	b.eg.Go(func() error {
+		// Don't fire immediately on startup
+		time.Sleep(libkb.RandomJitter(5 * time.Second))
+		b.initQueue(ctx)
+		// Immediately fire to queue any purges we picked up during initQueue
+		b.purgeTimer = time.NewTimer(0)
+		return b.loop(shutdownCh)
+	})
 }
 
 func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) (ch chan struct{}) {
@@ -228,10 +240,6 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 func (b *BackgroundEphemeralPurger) initQueue(ctx context.Context) {
 	b.queueLock.Lock()
 	defer b.queueLock.Unlock()
-
-	// Create a new queue
-	b.pq = newPriorityQueue()
-	heap.Init(b.pq)
 
 	allPurgeInfo, err := b.G().EphemeralTracker.GetAllPurgeInfo(ctx, b.uid)
 	if err != nil {
