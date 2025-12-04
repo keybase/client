@@ -211,12 +211,12 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const Container = () => {
-  const error = C.useSettingsPasswordState(s => s.error)
-  const hasPGPKeyOnServer = C.useSettingsPasswordState(s => !!s.hasPGPKeyOnServer)
-  const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
-  const newPasswordConfirmError = C.useSettingsPasswordState(s => s.newPasswordConfirmError)
-  const newPasswordError = C.useSettingsPasswordState(s => s.newPasswordError)
-  const saveLabel = C.useSettingsPasswordState(s => (s.randomPW ? 'Create password' : 'Save'))
+  const error = useSettingsPasswordState(s => s.error)
+  const hasPGPKeyOnServer = useSettingsPasswordState(s => !!s.hasPGPKeyOnServer)
+  const hasRandomPW = useSettingsPasswordState(s => !!s.randomPW)
+  const newPasswordConfirmError = useSettingsPasswordState(s => s.newPasswordConfirmError)
+  const newPasswordError = useSettingsPasswordState(s => s.newPasswordError)
+  const saveLabel = useSettingsPasswordState(s => (s.randomPW ? 'Create password' : 'Save'))
   const waitingForResponse = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -224,9 +224,9 @@ const Container = () => {
     navigateUp()
   }
 
-  const setPassword = C.useSettingsPasswordState(s => s.dispatch.setPassword)
-  const setPasswordConfirm = C.useSettingsPasswordState(s => s.dispatch.setPasswordConfirm)
-  const submitNewPassword = C.useSettingsPasswordState(s => s.dispatch.submitNewPassword)
+  const setPassword = useSettingsPasswordState(s => s.dispatch.setPassword)
+  const setPasswordConfirm = useSettingsPasswordState(s => s.dispatch.setPasswordConfirm)
+  const submitNewPassword = useSettingsPasswordState(s => s.dispatch.submitNewPassword)
 
   const onSave = (password: string) => {
     setPassword(password)
@@ -234,7 +234,7 @@ const Container = () => {
     submitNewPassword(false)
   }
 
-  const onUpdatePGPSettings = C.useSettingsPasswordState(s => s.dispatch.loadPgpSettings)
+  const onUpdatePGPSettings = useSettingsPasswordState(s => s.dispatch.loadPgpSettings)
   const props = {
     error,
     hasPGPKeyOnServer,

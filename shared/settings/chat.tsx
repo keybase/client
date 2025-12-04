@@ -3,26 +3,28 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import Group from './group'
+import * as SettingsChat from '@/constants/settings-chat'
+import {useState as useSettingsChatState} from '@/constants/settings-chat'
 
 const emptyList = new Array<string>()
 
 const Security = () => {
   const groups = C.useSettingsNotifState(s => s.groups)
   const allowEdit = C.useSettingsNotifState(s => s.allowEdit)
-  const contactSettingsError = C.useSettingsChatState(s => s.contactSettings.error)
-  const contactSettingsSaved = C.useSettingsChatState(s => s.dispatch.contactSettingsSaved)
+  const contactSettingsError = useSettingsChatState(s => s.contactSettings.error)
+  const contactSettingsSaved = useSettingsChatState(s => s.dispatch.contactSettingsSaved)
   const onContactSettingsSave = contactSettingsSaved
   const onToggle = C.useSettingsNotifState(s => s.dispatch.toggle)
-  const _contactSettingsEnabled = C.useSettingsChatState(s => s.contactSettings.settings?.enabled)
+  const _contactSettingsEnabled = useSettingsChatState(s => s.contactSettings.settings?.enabled)
   const _teamMeta = C.useTeamsState(s => s.teamMeta)
   const teamMeta = C.Teams.sortTeamsByName(_teamMeta)
 
   const [contactSettingsEnabled, setContactSettingsEnabled] = React.useState(_contactSettingsEnabled)
-  const _contactSettingsIndirectFollowees = C.useSettingsChatState(
+  const _contactSettingsIndirectFollowees = useSettingsChatState(
     s => s.contactSettings.settings?.allowFolloweeDegrees === 2
   )
-  const _contactSettingsTeams = C.useSettingsChatState(s => s.contactSettings.settings?.teams)
-  const _contactSettingsTeamsEnabled = C.useSettingsChatState(s => s.contactSettings.settings?.allowGoodTeams)
+  const _contactSettingsTeams = useSettingsChatState(s => s.contactSettings.settings?.teams)
+  const _contactSettingsTeamsEnabled = useSettingsChatState(s => s.contactSettings.settings?.allowGoodTeams)
   const [contactSettingsIndirectFollowees, setContactSettingsIndirectFollowees] = React.useState(
     _contactSettingsIndirectFollowees
   )
@@ -92,7 +94,7 @@ const Security = () => {
     }
   }, [_contactSettingsSelectedTeams, contactSettingsSelectedTeams])
 
-  const contactSettingsRefresh = C.useSettingsChatState(s => s.dispatch.contactSettingsRefresh)
+  const contactSettingsRefresh = useSettingsChatState(s => s.dispatch.contactSettingsRefresh)
   const notifRefresh = C.useSettingsNotifState(s => s.dispatch.refresh)
   const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
   const onRefresh = React.useCallback(() => {
@@ -191,7 +193,7 @@ const Security = () => {
               label="Save"
               small={true}
               style={styles.save}
-              waitingKey={C.SettingsChat.contactSettingsSaveWaitingKey}
+              waitingKey={SettingsChat.contactSettingsSaveWaitingKey}
             />
             {!!contactSettingsError && (
               <Kb.Text type="BodySmall" style={styles.error}>
@@ -206,17 +208,17 @@ const Security = () => {
 }
 
 const Links = () => {
-  const whitelist = C.useSettingsChatState(s => s.unfurl.unfurlWhitelist ?? emptyList)
-  const mode = C.useSettingsChatState(s => s.unfurl.unfurlMode)
+  const whitelist = useSettingsChatState(s => s.unfurl.unfurlWhitelist ?? emptyList)
+  const mode = useSettingsChatState(s => s.unfurl.unfurlMode)
   const [selected, setSelected] = React.useState(mode)
   const [unfurlWhitelistRemoved, setUnfurlWhitelistRemoved] = React.useState<{[K in string]: boolean}>({})
-  const error = C.useSettingsChatState(s => s.unfurl.unfurlError)
+  const error = useSettingsChatState(s => s.unfurl.unfurlError)
   const getUnfurlWhitelist = (filtered: boolean) =>
     filtered ? whitelist.filter(w => !unfurlWhitelistRemoved[w]) : whitelist
   const allowSave = mode !== selected || Object.keys(unfurlWhitelistRemoved).length > 0
-  const unfurlSettingsRefresh = C.useSettingsChatState(s => s.dispatch.unfurlSettingsRefresh)
+  const unfurlSettingsRefresh = useSettingsChatState(s => s.dispatch.unfurlSettingsRefresh)
 
-  const onUnfurlSave = C.useSettingsChatState(s => s.dispatch.unfurlSettingsSaved)
+  const onUnfurlSave = useSettingsChatState(s => s.dispatch.unfurlSettingsSaved)
   const onSave = () => {
     const next = whitelist.filter(w => {
       return !unfurlWhitelistRemoved[w]
@@ -329,7 +331,7 @@ const Links = () => {
           small={true}
           style={styles.save}
           disabled={!allowSave}
-          waitingKey={C.SettingsChat.chatUnfurlWaitingKey}
+          waitingKey={SettingsChat.chatUnfurlWaitingKey}
         />
         {error ? (
           <Kb.Text type="BodySmall" style={styles.error}>

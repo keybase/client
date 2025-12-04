@@ -220,7 +220,7 @@ export const useState_ = Z.createZustand<State>(set => {
           break
         case EngineGen.keybase1NotifyUsersPasswordChanged: {
           const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
-          C.useSettingsPasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
+          useSettingsPasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
           break
         }
         case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {

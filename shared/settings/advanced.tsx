@@ -72,11 +72,11 @@ let disableSpellCheckInitialValue: boolean | undefined
 
 const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(C.Settings.setLockdownModeWaitingKey)
-  const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
+  const hasRandomPW = useSettingsPasswordState(s => !!s.randomPW)
   const openAtLogin = C.useConfigState(s => s.openAtLogin)
-  const rememberPassword = C.useSettingsPasswordState(s => s.rememberPassword)
+  const rememberPassword = useSettingsPasswordState(s => s.rememberPassword)
   const setLockdownModeError = C.Waiting.useAnyErrors(C.Settings.setLockdownModeWaitingKey)?.message || ''
-  const setRememberPassword = C.useSettingsPasswordState(s => s.dispatch.setRememberPassword)
+  const setRememberPassword = useSettingsPasswordState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
   const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
 
@@ -125,8 +125,8 @@ const Advanced = () => {
     )
   }
 
-  const loadHasRandomPw = C.useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
-  const loadRememberPassword = C.useSettingsPasswordState(s => s.dispatch.loadRememberPassword)
+  const loadHasRandomPw = useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
+  const loadRememberPassword = useSettingsPasswordState(s => s.dispatch.loadRememberPassword)
   const loadLockdownMode = C.useSettingsState(s => s.dispatch.loadLockdownMode)
 
   React.useEffect(() => {
