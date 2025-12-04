@@ -88,7 +88,7 @@ func (e *EKLib) Shutdown(mctx libkb.MetaContext) error {
 
 func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext, stopCh <-chan struct{}) {
 	// Don't fire immediately on startup
-	time.Sleep(libkb.RandomJitter(5 * time.Second))
+	time.Sleep(libkb.RandomJitter(time.Second))
 	mctx = mctx.WithLogTag("EKBKG")
 	mctx.Debug("backgroundKeygen: starting up")
 	keygenInterval := time.Hour
