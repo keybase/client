@@ -5,6 +5,12 @@ import {useState as useArchiveState} from '../archive'
 import {useState as useAutoResetState} from '../autoreset'
 import {useState as useDevicesState} from '../devices'
 import {useState as useUFState} from '../unlock-folders'
+import * as ChatUtil from '../chat2/util'
+import * as NotifUtil from '../notifications/util'
+import * as PeopleUtil from '../people/util'
+import * as PinentryUtil from '../pinentry/util'
+import * as TrackerUtil from '../tracker2/util'
+import * as UnlockFoldersUtil from '../unlock-folders/util'
 
 type Store = object
 const initialStore: Store = {}
@@ -22,13 +28,13 @@ export const useState_ = Z.createZustand<State>(set => {
   let incomingTimeout: NodeJS.Timeout
   const dispatch: State['dispatch'] = {
     onEngineConnected: () => {
-      C.useChatState.getState().dispatch.onEngineConnected()
+      ChatUtil.onEngineConnected()
       C.useConfigState.getState().dispatch.onEngineConnected()
-      C.useNotifState.getState().dispatch.onEngineConnected()
-      C.usePeopleState.getState().dispatch.onEngineConnected()
-      C.usePinentryState.getState().dispatch.onEngineConnected()
-      C.useTrackerState.getState().dispatch.onEngineConnected()
-      useUFState.getState().dispatch.onEngineConnected()
+      NotifUtil.onEngineConnected()
+      PeopleUtil.onEngineConnected()
+      PinentryUtil.onEngineConnected()
+      TrackerUtil.onEngineConnected()
+      UnlockFoldersUtil.onEngineConnected()
     },
     onEngineDisconnected: () => {
       C.useConfigState.getState().dispatch.onEngineDisonnected()

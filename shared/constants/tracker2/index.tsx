@@ -238,7 +238,6 @@ export interface State extends Store {
     notifyRow: (row: T.RPCGen.Identify3Row) => void
     notifySummary: (summary: T.RPCGen.Identify3Summary) => void
     notifyUserBlocked: (b: T.RPCGen.UserBlockedSummary) => void
-    onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     replace: (usernameToDetails: Map<string, T.Tracker.Details>) => void
     resetState: 'default'
@@ -539,17 +538,6 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         })
         d.followersCount = d.followers?.size
       })
-    },
-    onEngineConnected: () => {
-      const f = async () => {
-        try {
-          await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
-          logger.info('Registered identify ui')
-        } catch (error) {
-          logger.warn('error in registering identify ui: ', error)
-        }
-      }
-      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {

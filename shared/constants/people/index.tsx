@@ -361,7 +361,6 @@ interface State extends Store {
   dispatch: {
     dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
     loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
-    onEngineConnected: () => void
     setResentEmail: (email: string) => void
     skipTodo: (type: T.People.TodoType) => void
     markViewed: () => void
@@ -512,17 +511,6 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           } else {
             throw error
           }
-        }
-      }
-      C.ignorePromise(f())
-    },
-    onEngineConnected: () => {
-      const f = async () => {
-        try {
-          await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()
-          console.log('Registered home UI')
-        } catch (error) {
-          console.warn('Error in registering home UI:', error)
         }
       }
       C.ignorePromise(f())

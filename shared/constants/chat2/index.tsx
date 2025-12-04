@@ -315,7 +315,6 @@ export interface State extends Store {
     ) => void
     navigateToInbox: (allowSwitchTab?: boolean) => void
     onChatThreadStale: (action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => void
-    onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     onChatInboxSynced: (action: EngineGen.Chat1NotifyChatChatInboxSyncedPayload) => void
     onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => void
@@ -1028,18 +1027,6 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       if (loadMore) {
         C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
       }
-    },
-    onEngineConnected: () => {
-      const f = async () => {
-        try {
-          await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise()
-          await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise()
-          console.log('Registered Chat UI')
-        } catch (error) {
-          console.warn('Error in registering Chat UI:', error)
-        }
-      }
-      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {

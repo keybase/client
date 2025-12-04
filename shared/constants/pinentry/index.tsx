@@ -37,7 +37,6 @@ interface State extends Store {
       }
     ) => void
     onEngineIncoming: (action: EngineGen.Actions) => void
-    onEngineConnected: () => void
     resetState: () => void
   }
 }
@@ -47,17 +46,6 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     dynamic: {
       onCancel: undefined,
       onSubmit: undefined,
-    },
-    onEngineConnected: () => {
-      const f = async () => {
-        try {
-          await T.RPCGen.delegateUiCtlRegisterSecretUIRpcPromise()
-          logger.info('Registered secret ui')
-        } catch (error) {
-          logger.warn('error in registering secret ui: ', error)
-        }
-      }
-      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {
