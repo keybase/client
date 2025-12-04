@@ -109,9 +109,9 @@ export const Input2 = React.memo(
     }, [_style, multiline, textType, padding, rowsMax, rowsMin, isDarkMode])
 
     const onPasteImageImpl = React.useCallback(
-      (uri: string) => {
+      (uris: Array<string>) => {
         if (onPasteImage) {
-          onPasteImage([uri])
+          onPasteImage(uris)
         }
       },
       [onPasteImage]
@@ -121,7 +121,7 @@ export const Input2 = React.memo(
 
     React.useEffect(() => {
       if (!onPaste) return
-      const dereg = registerPasteImage(({uri}) => onPaste(uri))
+      const dereg = registerPasteImage(uris => onPaste(uris))
       return () => {
         dereg()
       }
