@@ -118,7 +118,7 @@ export const SignedSender = (props: SignedSenderProps) => {
 const OutputProgress = (props: OutputProgressProps) => {
   const {operation} = props
 
-  const {bytesComplete, bytesTotal, inProgress} = useCryptoState(
+  const {bytesComplete, bytesTotal, inProgress} = Crypto.useState(
     C.useShallow(s => {
       const o = s[operation]
       const {bytesComplete, bytesTotal, inProgress} = o
