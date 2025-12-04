@@ -3,16 +3,16 @@
 Install xcode
 
 ```
-brew install watchman cocoapods #(install the file watcher)
+brew install watchman cocoapods #install the file watcher
 ```
 
 # Quick Start
 
 ```
 yarn modules && yarn pod-install
-yarn rn-gobuild-ios # (build the go library)
-yarn rn-start2 # (start the packager)
-open ios/Keybase.xcworkspace # (Open workspace (not xcodeproj))
+yarn rn-gobuild-ios # build the go library
+open ios/Keybase.xcworkspace # Open workspace, not xcodeproj
+yarn rn-start2 # start the packager
 ```
 
 In xcode, select the target `Keybase` and run.
