@@ -305,8 +305,6 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
 
     const lastSeenItem = goodState.find(i => i.item.category === 'whatsNewLastSeenVersion')
     useWNState.getState().dispatch.updateLastSeen(lastSeenItem)
-    C.useTeamsState.getState().dispatch.onGregorPushState(goodState)
-    C.useChatState.getState().dispatch.updatedGregor(goodState)
   }
 
   const updateApp = () => {

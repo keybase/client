@@ -12,6 +12,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyTeamTeamDeleted:
     case EngineGen.keybase1NotifyTeamTeamExit:
     case EngineGen.keybase1NotifyBadgesBadgeState:
+    case EngineGen.keybase1GregorUIPushState:
       const {useState_} = require('./index')
       useState_.getState().dispatch.onEngineIncoming(action)
       break

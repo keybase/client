@@ -2455,6 +2455,22 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           }
           break
         }
+        case EngineGen.keybase1GregorUIPushState: {
+          const {state} = action.payload.params
+          const items = state.items || []
+          const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
+            (arr, {md, item}) => {
+              md && item && arr.push({item, md})
+              return arr
+            },
+            []
+          )
+          if (goodState.length !== items.length) {
+            logger.warn('Lost some messages in filtering out nonNull gregor items')
+          }
+          get().dispatch.onGregorPushState(goodState)
+          break
+        }
         default:
       }
     },

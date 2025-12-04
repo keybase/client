@@ -50,6 +50,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.chat1NotifyChatChatSetConvRetention:
     case EngineGen.chat1NotifyChatChatSetTeamRetention:
     case EngineGen.keybase1NotifyBadgesBadgeState:
+    case EngineGen.keybase1GregorUIPushState:
       const {useState_} = require('./index')
       useState_.getState().dispatch.onEngineIncoming(action)
       break
