@@ -5,6 +5,7 @@ import {RPCError} from '@/util/errors'
 import {isMobile} from './platform'
 import {type CommonResponseHandler} from '../engine/types'
 import isEqual from 'lodash/isEqual'
+import {rpcDeviceToDevice} from './rpc-utils'
 
 export type Device = {
   deviceNumberOfType: number
@@ -40,23 +41,6 @@ const makeDevice = (): Device => ({
   name: '',
   type: 'mobile',
 })
-
-export const rpcDeviceToDevice = (d: T.RPCGen.Device) => {
-  const type = d.type
-  switch (type) {
-    case 'mobile':
-    case 'desktop':
-    case 'backup':
-      return {
-        deviceNumberOfType: d.deviceNumberOfType,
-        id: T.Devices.stringToDeviceID(d.deviceID),
-        name: d.name,
-        type: type,
-      }
-    default:
-      throw new Error('Invalid device type detected: ' + type)
-  }
-}
 
 export const cleanDeviceName = (name: string) =>
   // map 'smart apostrophes' to ASCII (typewriter apostrophe)

@@ -1,11 +1,11 @@
 import * as C from '.'
 import * as AutoReset from './autoreset'
-import * as ProvisionConstants from './provision'
 import * as T from './types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {type Device} from './provision'
+import {rpcDeviceToDevice} from './rpc-utils'
 
 export const waitingKey = 'recover-password:waiting'
 
@@ -82,7 +82,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             customResponseIncomingCallMap: {
               'keybase.1.loginUi.chooseDeviceToRecoverWith': (params, response) => {
                 const replaceRoute = !!p.replaceRoute
-                const devices = (params.devices || []).map(d => ProvisionConstants.rpcDeviceToDevice(d))
+                const devices = (params.devices || []).map(d => rpcDeviceToDevice(d))
                 set(s => {
                   const clear = () => {
                     set(s => {

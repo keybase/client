@@ -14,6 +14,7 @@ import * as Z from '@/util/zustand'
 import * as Common from './common'
 import {uint8ArrayToString} from 'uint8array-extras'
 import isEqual from 'lodash/isEqual'
+import {bodyToJSON} from '../rpc-utils'
 
 const defaultTopReacjis = [
   {name: ':+1:'},
@@ -24,15 +25,6 @@ const defaultTopReacjis = [
 ]
 const defaultSkinTone = 1
 const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
-
-const bodyToJSON = (body?: Uint8Array): unknown => {
-  if (!body) return undefined
-  try {
-    return JSON.parse(uint8ArrayToString(body))
-  } catch {
-    return undefined
-  }
-}
 
 // while we're debugging chat issues
 export const DEBUG_CHAT_DUMP = true

@@ -10,21 +10,12 @@ import openSMS from '@/util/sms'
 import {RPCError, logError} from '@/util/errors'
 import {isMobile, isPhone} from './platform'
 import {mapGetEnsureValue} from '@/util/map'
-import {uint8ArrayToString} from 'uint8array-extras'
+import {bodyToJSON} from './rpc-utils'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
 export const rpcMemberStatusToStatus = invert(T.RPCGen.TeamMemberStatus) as unknown as {
   [K in keyof typeof T.RPCGen.TeamMemberStatus as (typeof T.RPCGen.TeamMemberStatus)[K]]: K
-}
-
-const bodyToJSON = (body?: Uint8Array): unknown => {
-  if (!body) return undefined
-  try {
-    return JSON.parse(uint8ArrayToString(body))
-  } catch {
-    return undefined
-  }
 }
 
 // Waiting keys
