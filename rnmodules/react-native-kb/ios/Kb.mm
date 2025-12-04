@@ -134,17 +134,24 @@ RCT_EXPORT_MODULE()
   });
 }
 
-+ (void)handlePastedImage:(UIImage *)image {
-  if (!kbSharedInstance) return;
++ (void)handlePastedImages:(NSArray<UIImage *> *)images {
+  if (!kbSharedInstance || images.count == 0) return;
   
-  NSData *data = UIImagePNGRepresentation(image);
-  if (!data) return;
+  NSMutableArray *uris = [NSMutableArray array];
+  for (UIImage *image in images) {
+    NSData *data = UIImagePNGRepresentation(image);
+    if (!data) continue;
+    
+    NSString *filename = [NSString stringWithFormat:@"paste_%@.png", [[NSUUID UUID] UUIDString]];
+    NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
+    
+    if ([data writeToFile:tempPath atomically:YES]) {
+      [uris addObject:tempPath];
+    }
+  }
   
-  NSString *filename = [NSString stringWithFormat:@"paste_%@.png", [[NSUUID UUID] UUIDString]];
-  NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
-  
-  if ([data writeToFile:tempPath atomically:YES]) {
-    [kbSharedInstance sendEventWithName:@"onPasteImage" body:@{@"uri": tempPath}];
+  if (uris.count > 0) {
+    [kbSharedInstance sendEventWithName:@"onPasteImage" body:@{@"uris": uris}];
   }
 }
 
@@ -468,9 +475,9 @@ RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
   if (kbPasteImageEnabled) {
     UIPasteboard *pb = [UIPasteboard generalPasteboard];
     if (pb.hasImages) {
-      UIImage *image = pb.image;
-      if (image) {
-        [Kb handlePastedImage:image];
+      NSArray<UIImage *> *images = pb.images;
+      if (images.count > 0) {
+        [Kb handlePastedImages:images];
         return;
       }
     }

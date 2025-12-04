@@ -148,10 +148,12 @@ export const removeOnHWKeyPressed = (): void => {
 // Paste image events (iOS)
 let pasteImageListenerCount = 0
 
-export const registerPasteImage = (callback: (event: {uri: string}) => void): (() => void) => {
+export const registerPasteImage = (callback: (uris: Array<string>) => void): (() => void) => {
   if (Platform.OS !== 'ios') return () => {}
   const emitter = getNativeEmitter()
-  const listener = emitter.addListener('onPasteImage', callback)
+  const listener = emitter.addListener('onPasteImage', (event: {uris: Array<string>}) => {
+    callback(event.uris)
+  })
   pasteImageListenerCount++
   Kb.setEnablePasteImage(true)
   return () => {
