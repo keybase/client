@@ -69,6 +69,7 @@ static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 static __weak Kb *kbSharedInstance = nil;
+static BOOL kbPasteImageEnabled = NO;
 
 @interface RCTBridge (JSIRuntime)
 - (void *)runtime;
@@ -151,6 +152,7 @@ RCT_EXPORT_MODULE()
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   currentRuntime = nil;
   _jsRuntime = nil;
+  kbPasteImageEnabled = NO;
   [super invalidate];
   Teardown();
   self.bridge = nil;
@@ -161,6 +163,10 @@ RCT_EXPORT_MODULE()
 
 - (NSArray<NSString *> *)supportedEvents {
 return @[ metaEventName, @"hardwareKeyPressed", @"onPasteImage" ];
+}
+
+RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
+  kbPasteImageEnabled = enabled;
 }
 
 // Don't compile this code when we build for the old architecture.
@@ -450,7 +456,7 @@ RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
 @implementation UITextView (KBPasteImage)
 
 - (BOOL)kb_canPerformAction:(SEL)action withSender:(id)sender {
-  if (action == @selector(paste:)) {
+  if (action == @selector(paste:) && kbPasteImageEnabled) {
     if ([UIPasteboard generalPasteboard].hasImages) {
       return YES;
     }
@@ -459,13 +465,14 @@ RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
 }
 
 - (void)kb_paste:(id)sender {
-  UIPasteboard *pb = [UIPasteboard generalPasteboard];
-  
-  if (pb.hasImages) {
-    UIImage *image = pb.image;
-    if (image) {
-      [Kb handlePastedImage:image];
-      return;
+  if (kbPasteImageEnabled) {
+    UIPasteboard *pb = [UIPasteboard generalPasteboard];
+    if (pb.hasImages) {
+      UIImage *image = pb.image;
+      if (image) {
+        [Kb handlePastedImage:image];
+        return;
+      }
     }
   }
   
