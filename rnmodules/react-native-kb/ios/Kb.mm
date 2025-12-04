@@ -13,6 +13,7 @@
 #import <cstring>
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
+#import <objc/runtime.h>
 #import "./KBJSScheduler.h"
 #import "RNKbSpec.h"
 
@@ -67,6 +68,8 @@ static const NSString *tagName = @"NativeLogger";
 static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
+static __weak Kb *kbSharedInstance = nil;
+
 @interface RCTBridge (JSIRuntime)
 - (void *)runtime;
 @end
@@ -102,12 +105,46 @@ RCT_EXPORT_MODULE()
 
 - (instancetype)init {
   self = [super init];
-  // Listen for hardware keyboard events from NotificationCenter
+  kbSharedInstance = self;
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(handleHardwareKeyPressed:)
                                                name:@"hardwareKeyPressed"
                                              object:nil];
+  [Kb swizzleUITextViewPaste];
   return self;
+}
+
++ (void)swizzleUITextViewPaste {
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    Class class = [UITextView class];
+    
+    SEL originalPaste = @selector(paste:);
+    SEL swizzledPaste = @selector(kb_paste:);
+    Method originalPasteMethod = class_getInstanceMethod(class, originalPaste);
+    Method swizzledPasteMethod = class_getInstanceMethod(class, swizzledPaste);
+    method_exchangeImplementations(originalPasteMethod, swizzledPasteMethod);
+    
+    SEL originalCanPerform = @selector(canPerformAction:withSender:);
+    SEL swizzledCanPerform = @selector(kb_canPerformAction:withSender:);
+    Method originalCanPerformMethod = class_getInstanceMethod(class, originalCanPerform);
+    Method swizzledCanPerformMethod = class_getInstanceMethod(class, swizzledCanPerform);
+    method_exchangeImplementations(originalCanPerformMethod, swizzledCanPerformMethod);
+  });
+}
+
++ (void)handlePastedImage:(UIImage *)image {
+  if (!kbSharedInstance) return;
+  
+  NSData *data = UIImagePNGRepresentation(image);
+  if (!data) return;
+  
+  NSString *filename = [NSString stringWithFormat:@"paste_%@.png", [[NSUUID UUID] UUIDString]];
+  NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
+  
+  if ([data writeToFile:tempPath atomically:YES]) {
+    [kbSharedInstance sendEventWithName:@"onPasteImage" body:@{@"uri": tempPath}];
+  }
 }
 
 - (void)invalidate {
@@ -123,7 +160,7 @@ RCT_EXPORT_MODULE()
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-return @[ metaEventName, @"hardwareKeyPressed" ];
+return @[ metaEventName, @"hardwareKeyPressed", @"onPasteImage" ];
 }
 
 // Don't compile this code when we build for the old architecture.
@@ -407,5 +444,32 @@ RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
 - (void)androidShareText:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidUnlink:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidUnlink:(NSString *)path {}
+
+@end
+
+@implementation UITextView (KBPasteImage)
+
+- (BOOL)kb_canPerformAction:(SEL)action withSender:(id)sender {
+  if (action == @selector(paste:)) {
+    if ([UIPasteboard generalPasteboard].hasImages) {
+      return YES;
+    }
+  }
+  return [self kb_canPerformAction:action withSender:sender];
+}
+
+- (void)kb_paste:(id)sender {
+  UIPasteboard *pb = [UIPasteboard generalPasteboard];
+  
+  if (pb.hasImages) {
+    UIImage *image = pb.image;
+    if (image) {
+      [Kb handlePastedImage:image];
+      return;
+    }
+  }
+  
+  [self kb_paste:sender];
+}
 
 @end
