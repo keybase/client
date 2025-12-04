@@ -7,9 +7,17 @@ import logger from '@/logger'
 import type * as MessageTypes from '../types/chat2/message'
 import type {ServiceId} from 'util/platforms'
 import {noConversationIDKey} from '../types/chat2/common'
-import * as Wallets from '../wallets'
+import invert from 'lodash/invert'
 
 const noString = new HiddenString('')
+
+const statusSimplifiedToString = invert(T.RPCStellar.PaymentStatus) as {
+  [K in T.RPCStellar.PaymentStatus]: keyof typeof T.RPCStellar.PaymentStatus
+}
+
+const balanceDeltaToString = invert(T.RPCStellar.BalanceDelta) as {
+  [K in T.RPCStellar.BalanceDelta]: keyof typeof T.RPCStellar.BalanceDelta
+}
 
 export const isPathHEIC = (path: string) => path.toLowerCase().endsWith('.heic')
 // real image or heic
@@ -270,6 +278,21 @@ export const makeMessageRequestPayment = (
   ...m,
 })
 
+const makeAssetDescription = (a?: Partial<T.Wallets.AssetDescription>): T.Wallets.AssetDescription => ({
+  code: '',
+  depositButtonText: '',
+  infoUrl: '',
+  infoUrlText: '',
+  issuerAccountID: T.Wallets.noAccountID,
+  issuerName: '',
+  issuerVerifiedDomain: '',
+  showDepositButton: false,
+  showWithdrawButton: false,
+  withdrawButtonText: '',
+  ...a,
+})
+const emptyAssetDescription = makeAssetDescription()
+
 export const makeChatPaymentInfo = (
   m?: Partial<MessageTypes.ChatPaymentInfo>
 ): MessageTypes.ChatPaymentInfo => ({
@@ -282,7 +305,7 @@ export const makeChatPaymentInfo = (
   paymentID: T.Wallets.noPaymentID,
   showCancel: false,
   sourceAmount: '',
-  sourceAsset: Wallets.emptyAssetDescription,
+  sourceAsset: emptyAssetDescription,
   status: 'none',
   statusDescription: '',
   statusDetail: '',
@@ -505,7 +528,7 @@ export const uiRequestInfoToChatRequestInfo = (
     return
   } else if (r.asset && r.asset.type !== 'native') {
     const assetResult = r.asset
-    asset = Wallets.makeAssetDescription({
+    asset = makeAssetDescription({
       code: assetResult.code,
       issuerAccountID: assetResult.issuer,
       issuerName: assetResult.issuerName,
@@ -534,18 +557,18 @@ export const uiPaymentInfoToChatPaymentInfo = (
   }
   const p = ps[0]
   if (!p) return undefined
-  const serviceStatus = Wallets.statusSimplifiedToString[p.status]
+  const serviceStatus = statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
     accountID: p.accountID ?? T.Wallets.noAccountID,
     amountDescription: p.amountDescription,
-    delta: Wallets.balanceDeltaToString[p.delta],
+    delta: balanceDeltaToString[p.delta],
     fromUsername: p.fromUsername,
     issuerDescription: p.issuerDescription,
     note: new HiddenString(p.note),
     paymentID: p.paymentID,
     showCancel: p.showCancel,
     sourceAmount: p.sourceAmount,
-    sourceAsset: Wallets.makeAssetDescription({
+    sourceAsset: makeAssetDescription({
       code: p.sourceAsset.code,
       issuerAccountID: p.sourceAsset.issuer,
       issuerName: p.sourceAsset.issuerName,

@@ -14,7 +14,7 @@ import * as Z from '@/util/zustand'
 import * as Common from './common'
 import {uint8ArrayToString} from 'uint8array-extras'
 import isEqual from 'lodash/isEqual'
-import * as Gregor from '../gregor'
+import type * as Gregor from '../gregor'
 
 const defaultTopReacjis = [
   {name: ':+1:'},
@@ -1863,6 +1863,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         const blockButtons = items.some(i => i.item.category.startsWith(blockButtonsGregorPrefix))
         if (blockButtons || s.blockButtonsMap.size > 0) {
           const shouldKeepExistingBlockButtons = new Map<string, boolean>()
+          const {bodyToJSON} = require('../gregor') as typeof Gregor
           s.blockButtonsMap.forEach((_, teamID: string) => shouldKeepExistingBlockButtons.set(teamID, false))
           items
             .filter(i => i.item.category.startsWith(blockButtonsGregorPrefix))
@@ -1870,7 +1871,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
               try {
                 const teamID = i.item.category.substring(blockButtonsGregorPrefix.length)
                 if (!s.blockButtonsMap.get(teamID)) {
-                  const body = Gregor.bodyToJSON(i.item.body) as {adder: string}
+                  const body = bodyToJSON(i.item.body) as {adder: string}
                   const adder = body.adder
                   s.blockButtonsMap.set(teamID, {adder})
                 } else {

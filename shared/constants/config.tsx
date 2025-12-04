@@ -968,47 +968,39 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         s.badgeState = T.castDraft(b)
       })
 
-      const updateDevices = () => {
-        if (!b) return
+      // TODO remove and split, invert this
+      if (b) {
+        // devices
         const {setBadges} = Devices.useState.getState().dispatch
         const {newDevices, revokedDevices} = b
         setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
-      }
-      updateDevices()
 
-      const updateAutoReset = () => {
-        if (!b) return
+        // autoReset
         const {resetState} = b
         AutoReset.useState.getState().dispatch.updateARState(resetState.active, resetState.endTime)
-      }
-      updateAutoReset()
 
-      const updateGit = () => {
-        const {setBadges} = C.useGitState.getState().dispatch
-        setBadges(new Set(b?.newGitRepoGlobalUniqueIDs))
-      }
-      updateGit()
-
-      const updateTeams = () => {
+        // teams
         const loggedIn = get().loggedIn
-        if (!loggedIn) {
-          // Don't make any calls we don't have permission to.
-          return
+        // Don't make any calls we don't have permission to.
+        if (loggedIn) {
+          const deletedTeams = b.deletedTeams || []
+          const newTeams = new Set<string>(b.newTeams || [])
+          const teamsWithResetUsers: ReadonlyArray<T.RPCGen.TeamMemberOutReset> = b.teamsWithResetUsers || []
+          const teamsWithResetUsersMap = new Map<T.Teams.TeamID, Set<string>>()
+          teamsWithResetUsers.forEach(entry => {
+            const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
+            existing.add(entry.username)
+          })
+          // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
+          C.useTeamsState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
         }
-        if (!b) return
-        const deletedTeams = b.deletedTeams || []
-        const newTeams = new Set<string>(b.newTeams || [])
-        const teamsWithResetUsers: ReadonlyArray<T.RPCGen.TeamMemberOutReset> = b.teamsWithResetUsers || []
-        const teamsWithResetUsersMap = new Map<T.Teams.TeamID, Set<string>>()
-        teamsWithResetUsers.forEach(entry => {
-          const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
-          existing.add(entry.username)
-        })
-        // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
-        C.useTeamsState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
       }
-      updateTeams()
 
+      // git
+      const {setBadges} = C.useGitState.getState().dispatch
+      setBadges(new Set(b?.newGitRepoGlobalUniqueIDs))
+
+      // chat
       C.useChatState.getState().dispatch.badgesUpdated(b)
     },
     setDefaultUsername: u => {
