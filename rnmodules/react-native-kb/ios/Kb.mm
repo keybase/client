@@ -118,18 +118,18 @@ RCT_EXPORT_MODULE()
 + (void)swizzleUITextViewPaste {
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
-    Class class = [UITextView class];
+    Class cls = [UITextView class];
     
     SEL originalPaste = @selector(paste:);
     SEL swizzledPaste = @selector(kb_paste:);
-    Method originalPasteMethod = class_getInstanceMethod(class, originalPaste);
-    Method swizzledPasteMethod = class_getInstanceMethod(class, swizzledPaste);
+    Method originalPasteMethod = class_getInstanceMethod(cls, originalPaste);
+    Method swizzledPasteMethod = class_getInstanceMethod(cls, swizzledPaste);
     method_exchangeImplementations(originalPasteMethod, swizzledPasteMethod);
     
     SEL originalCanPerform = @selector(canPerformAction:withSender:);
     SEL swizzledCanPerform = @selector(kb_canPerformAction:withSender:);
-    Method originalCanPerformMethod = class_getInstanceMethod(class, originalCanPerform);
-    Method swizzledCanPerformMethod = class_getInstanceMethod(class, swizzledCanPerform);
+    Method originalCanPerformMethod = class_getInstanceMethod(cls, originalCanPerform);
+    Method swizzledCanPerformMethod = class_getInstanceMethod(cls, swizzledCanPerform);
     method_exchangeImplementations(originalCanPerformMethod, swizzledCanPerformMethod);
   });
 }
