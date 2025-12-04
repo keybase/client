@@ -2438,6 +2438,23 @@ export const useState_ = Z.createZustand<State>((set, get) => {
             C.useRouterState.getState().dispatch.navUpToScreen('teamsRoot')
           }
           break
+        case EngineGen.keybase1NotifyBadgesBadgeState: {
+          const {badgeState} = action.payload.params
+          const loggedIn = C.useConfigState.getState().loggedIn
+          if (loggedIn && badgeState) {
+            const deletedTeams = badgeState.deletedTeams || []
+            const newTeams = new Set<string>(badgeState.newTeams || [])
+            const teamsWithResetUsers: ReadonlyArray<T.RPCGen.TeamMemberOutReset> =
+              badgeState.teamsWithResetUsers || []
+            const teamsWithResetUsersMap = new Map<T.Teams.TeamID, Set<string>>()
+            teamsWithResetUsers.forEach(entry => {
+              const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
+              existing.add(entry.username)
+            })
+            get().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
+          }
+          break
+        }
         default:
       }
     },

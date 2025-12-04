@@ -2,6 +2,8 @@ import * as Z from '@/util/zustand'
 import * as C from '..'
 import type * as EngineGen from '@/actions/engine-gen-gen'
 import {useState as useArchiveState} from '../archive'
+import {useState as useAutoResetState} from '../autoreset'
+import {useState as useDevicesState} from '../devices'
 import {useState as useUFState} from '../unlock-folders'
 
 type Store = object
@@ -34,14 +36,17 @@ export const useState_ = Z.createZustand<State>(set => {
     onEngineIncoming: action => {
       // defer a frame so its more like before
       incomingTimeout = setTimeout(() => {
+        useAutoResetState.getState().dispatch.onEngineIncoming(action)
         C.useBotsState.getState().dispatch.onEngineIncoming(action)
         C.useChatState.getState().dispatch.onEngineIncoming(action)
         C.useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
         C.useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
         C.useConfigState.getState().dispatch.onEngineIncoming(action)
         C.useDeepLinksState.getState().dispatch.onEngineIncoming(action)
+        useDevicesState.getState().dispatch.onEngineIncoming(action)
         C.useFSState.getState().dispatch.onEngineIncoming(action)
         useArchiveState.getState().dispatch.onEngineIncoming(action)
+        C.useGitState.getState().dispatch.onEngineIncoming(action)
         C.useNotifState.getState().dispatch.onEngineIncoming(action)
         C.usePeopleState.getState().dispatch.onEngineIncoming(action)
         C.usePinentryState.getState().dispatch.onEngineIncoming(action)

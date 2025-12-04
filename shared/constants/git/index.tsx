@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
 import debounce from 'lodash/debounce'
@@ -64,6 +65,7 @@ interface State extends T.Git.State {
     setError: (err?: Error) => void
     clearBadges: () => void
     load: () => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     setBadges: (set: Set<string>) => void
     resetState: 'default'
     createPersonalRepo: (name: string) => void
@@ -142,6 +144,16 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       })
     },
     load,
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyBadgesBadgeState: {
+          const {badgeState} = action.payload.params
+          get().dispatch.setBadges(new Set(badgeState?.newGitRepoGlobalUniqueIDs))
+          break
+        }
+        default:
+      }
+    },
     navigateToTeamRepo: (teamname, repoID) => {
       const f = async () => {
         await _load()

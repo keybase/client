@@ -1308,6 +1308,11 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           )
           break
         }
+        case EngineGen.keybase1NotifyBadgesBadgeState: {
+          const {badgeState} = action.payload.params
+          get().dispatch.badgesUpdated(badgeState)
+          break
+        }
         default:
       }
     },
