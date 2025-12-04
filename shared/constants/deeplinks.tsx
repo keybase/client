@@ -1,6 +1,7 @@
 import * as C from '.'
 import * as Crypto from './crypto'
 import * as Tabs from './tabs'
+import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import * as Z from '@/util/zustand'
 import * as EngineGen from '../actions/engine-gen-gen'
 import type HiddenString from '@/util/hidden-string'
@@ -292,9 +293,9 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         return
       }
       let operation: T.Crypto.Operations | undefined
-      if (Crypto.isPathSaltpackEncrypted(path)) {
+      if (isPathSaltpackEncrypted(path)) {
         operation = Crypto.Operations.Decrypt
-      } else if (Crypto.isPathSaltpackSigned(path)) {
+      } else if (isPathSaltpackSigned(path)) {
         operation = Crypto.Operations.Verify
       } else {
         logger.warn(

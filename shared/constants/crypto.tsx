@@ -108,10 +108,6 @@ export const Operations = {
   Verify: 'verify',
 } as const
 
-export const isPathSaltpackEncrypted = (path: string) => path.endsWith('.encrypted.saltpack')
-export const isPathSaltpackSigned = (path: string) => path.endsWith('.signed.saltpack')
-export const isPathSaltpack = (path: string) => isPathSaltpackEncrypted(path) || isPathSaltpackSigned(path)
-
 const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
 

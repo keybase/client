@@ -31,3 +31,7 @@ export const dirname = (path: string) => {
   parts.pop()
   return parts.join(pathSep)
 }
+
+export const isPathSaltpackEncrypted = (path: string) => path.endsWith('.encrypted.saltpack')
+export const isPathSaltpackSigned = (path: string) => path.endsWith('.signed.saltpack')
+export const isPathSaltpack = (path: string) => isPathSaltpackEncrypted(path) || isPathSaltpackSigned(path)
