@@ -1,5 +1,6 @@
 import * as T from '../types'
 import * as C from '..'
+import type * as EngineGen from '@/actions/engine-gen-gen'
 import {isMobile} from '../platform'
 import logger from '@/logger'
 
@@ -51,5 +52,17 @@ export const onEngineConnected = () => {
     }
   }
   C.ignorePromise(f())
+}
+
+export const onEngineIncoming = (action: EngineGen.Actions) => {
+  switch (action.type) {
+    case EngineGen.keybase1NotifyAuditRootAuditError:
+    case EngineGen.keybase1NotifyAuditBoxAuditError:
+    case EngineGen.keybase1NotifyBadgesBadgeState:
+      const {useState_} = require('./index')
+      useState_.getState().dispatch.onEngineIncoming(action)
+      break
+    default:
+  }
 }
 

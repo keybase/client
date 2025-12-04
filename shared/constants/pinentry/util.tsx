@@ -1,5 +1,6 @@
 import * as T from '../types'
 import * as C from '..'
+import type * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
 
 export const onEngineConnected = () => {
@@ -12,5 +13,15 @@ export const onEngineConnected = () => {
     }
   }
   C.ignorePromise(f())
+}
+
+export const onEngineIncoming = (action: EngineGen.Actions) => {
+  switch (action.type) {
+    case EngineGen.keybase1SecretUiGetPassphrase:
+      const {useState_} = require('./index')
+      useState_.getState().dispatch.onEngineIncoming(action)
+      break
+    default:
+  }
 }
 

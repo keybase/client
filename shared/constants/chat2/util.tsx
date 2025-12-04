@@ -1,5 +1,6 @@
 import * as T from '../types'
 import * as C from '..'
+import type * as EngineGen from '@/actions/engine-gen-gen'
 
 export const onEngineConnected = () => {
   const f = async () => {
@@ -12,5 +13,47 @@ export const onEngineConnected = () => {
     }
   }
   C.ignorePromise(f())
+}
+
+export const onEngineIncoming = (action: EngineGen.Actions) => {
+  switch (action.type) {
+    case EngineGen.chat1ChatUiChatInboxFailed:
+    case EngineGen.chat1NotifyChatChatSetConvSettings:
+    case EngineGen.chat1NotifyChatChatAttachmentUploadStart:
+    case EngineGen.chat1NotifyChatChatPromptUnfurl:
+    case EngineGen.chat1NotifyChatChatPaymentInfo:
+    case EngineGen.chat1NotifyChatChatRequestInfo:
+    case EngineGen.chat1NotifyChatChatAttachmentDownloadProgress:
+    case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete:
+    case EngineGen.chat1NotifyChatChatAttachmentUploadProgress:
+    case EngineGen.chat1ChatUiChatCommandMarkdown:
+    case EngineGen.chat1ChatUiChatGiphyToggleResultWindow:
+    case EngineGen.chat1ChatUiChatCommandStatus:
+    case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
+    case EngineGen.chat1ChatUiChatGiphySearchResults:
+    case EngineGen.chat1NotifyChatChatParticipantsInfo:
+    case EngineGen.chat1ChatUiChatMaybeMentionUpdate:
+    case EngineGen.chat1NotifyChatChatConvUpdate:
+    case EngineGen.chat1ChatUiChatCoinFlipStatus:
+    case EngineGen.chat1NotifyChatChatThreadsStale:
+    case EngineGen.chat1NotifyChatChatSubteamRename:
+    case EngineGen.chat1NotifyChatChatTLFFinalize:
+    case EngineGen.chat1NotifyChatChatIdentifyUpdate:
+    case EngineGen.chat1ChatUiChatInboxUnverified:
+    case EngineGen.chat1NotifyChatChatInboxSyncStarted:
+    case EngineGen.chat1NotifyChatChatInboxSynced:
+    case EngineGen.chat1ChatUiChatInboxLayout:
+    case EngineGen.chat1NotifyChatChatInboxStale:
+    case EngineGen.chat1ChatUiChatInboxConversation:
+    case EngineGen.chat1NotifyChatNewChatActivity:
+    case EngineGen.chat1NotifyChatChatTypingUpdate:
+    case EngineGen.chat1NotifyChatChatSetConvRetention:
+    case EngineGen.chat1NotifyChatChatSetTeamRetention:
+    case EngineGen.keybase1NotifyBadgesBadgeState:
+      const {useState_} = require('./index')
+      useState_.getState().dispatch.onEngineIncoming(action)
+      break
+    default:
+  }
 }
 
