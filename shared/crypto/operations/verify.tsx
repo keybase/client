@@ -1,13 +1,14 @@
 import * as C from '@/constants'
+import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {Input, InputActionsBar, DragAndDrop, OperationBanner} from '../input'
 import {OperationOutput, SignedSender, OutputActionsBar} from '../output'
 
-const operation = C.Crypto.Operations.Verify
+const operation = Crypto.Operations.Verify
 
 export const VerifyInput = () => {
-  const resetOperation = C.useCryptoState(s => s.dispatch.resetOperation)
+  const resetOperation = Crypto.useState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (C.isMobile) {
@@ -27,13 +28,13 @@ export const VerifyInput = () => {
   return C.isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={C.Crypto.inputDesktopMaxHeight}>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
       {content}
     </Kb.Box2>
   )
 }
 export const VerifyOutput = () => {
-  const errorMessage = C.useCryptoState(s => s[operation].errorMessage.stringValue())
+  const errorMessage = Crypto.useState(s => s[operation].errorMessage.stringValue())
   const content = (
     <>
       {C.isMobile && errorMessage ? <OperationBanner key="banner" operation={operation} /> : null}
@@ -46,7 +47,7 @@ export const VerifyOutput = () => {
   return C.isMobile ? (
     content
   ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={C.Crypto.outputDesktopMaxHeight}>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.outputDesktopMaxHeight}>
       {content}
     </Kb.Box2>
   )

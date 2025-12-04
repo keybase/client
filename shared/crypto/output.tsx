@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as Path from '@/util/path'
 import * as React from 'react'
@@ -21,14 +22,14 @@ type OutputInfoProps = {
 
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
-  const waiting = C.Waiting.useAnyWaiting(C.Crypto.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(Crypto.waitingKey)
 
   const {
     outputSigned: signed,
     outputSenderUsername: signedByUsername,
     outputSenderFullname: signedByFullname,
     outputStatus,
-  } = C.useCryptoState(
+  } = Crypto.useState(
     C.useShallow(s => {
       const o = s[operation]
       const {outputSigned, outputSenderUsername, outputSenderFullname, outputStatus} = o
@@ -36,7 +37,7 @@ export const SignedSender = (props: SignedSenderProps) => {
     })
   )
 
-  const isSelfSigned = operation === C.Crypto.Operations.Encrypt || operation === C.Crypto.Operations.Sign
+  const isSelfSigned = operation === Crypto.Operations.Encrypt || operation === Crypto.Operations.Sign
   const avatarSize = isSelfSigned ? 16 : Kb.Styles.isMobile ? 32 : 48
   const usernameType = isSelfSigned ? 'BodySmallBold' : 'BodyBold'
 
@@ -117,7 +118,7 @@ export const SignedSender = (props: SignedSenderProps) => {
 const OutputProgress = (props: OutputProgressProps) => {
   const {operation} = props
 
-  const {bytesComplete, bytesTotal, inProgress} = C.useCryptoState(
+  const {bytesComplete, bytesTotal, inProgress} = useCryptoState(
     C.useShallow(s => {
       const o = s[operation]
       const {bytesComplete, bytesTotal, inProgress} = o
@@ -138,7 +139,7 @@ const OutputProgress = (props: OutputProgressProps) => {
 export const OutputInfoBanner = (props: OutputInfoProps) => {
   const {operation} = props
 
-  const outputStatus = C.useCryptoState(s => s[operation].outputStatus)
+  const outputStatus = Crypto.useState(s => s[operation].outputStatus)
   return outputStatus === 'success' ? (
     <Kb.Banner
       color="grey"
@@ -153,10 +154,10 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
 
 export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const {operation} = props
-  const canSaveAsText = operation === C.Crypto.Operations.Encrypt || operation === C.Crypto.Operations.Sign
-  const canReplyInChat = operation === C.Crypto.Operations.Decrypt || operation === C.Crypto.Operations.Verify
+  const canSaveAsText = operation === Crypto.Operations.Encrypt || operation === Crypto.Operations.Sign
+  const canReplyInChat = operation === Crypto.Operations.Decrypt || operation === Crypto.Operations.Verify
 
-  const waiting = C.Waiting.useAnyWaiting(C.Crypto.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(Crypto.waitingKey)
 
   const {
     output,
@@ -165,7 +166,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     outputType,
     outputSigned: signed,
     outputSenderUsername: signedByUsername,
-  } = C.useCryptoState(
+  } = Crypto.useState(
     C.useShallow(s => {
       const o = s[operation]
       const {output, outputValid, outputStatus, outputType, outputSigned, outputSenderUsername} = o
@@ -194,16 +195,16 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     copyToClipboard(output.stringValue())
   }
 
-  const downloadSignedText = C.useCryptoState(s => s.dispatch.downloadSignedText)
-  const downloadEncryptedText = C.useCryptoState(s => s.dispatch.downloadEncryptedText)
+  const downloadSignedText = Crypto.useState(s => s.dispatch.downloadSignedText)
+  const downloadEncryptedText = Crypto.useState(s => s.dispatch.downloadEncryptedText)
 
   const onSaveAsText = () => {
-    if (operation === C.Crypto.Operations.Sign) {
+    if (operation === Crypto.Operations.Sign) {
       downloadSignedText()
       return
     }
 
-    if (operation === C.Crypto.Operations.Encrypt) {
+    if (operation === Crypto.Operations.Encrypt) {
       downloadEncryptedText()
       return
     }
@@ -299,8 +300,8 @@ const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
   const {operation} = props
   const operationTitle = capitalize(operation)
 
-  const input = C.useCryptoState(s => s[operation].input.stringValue())
-  const runFileOperation = C.useCryptoState(s => s.dispatch.runFileOperation)
+  const input = Crypto.useState(s => s[operation].input.stringValue())
+  const runFileOperation = Crypto.useState(s => s.dispatch.runFileOperation)
 
   const onOpenFile = () => {
     const f = async () => {
@@ -354,7 +355,7 @@ export const OperationOutput = (props: OutputProps) => {
     outputValid,
     outputStatus,
     outputType,
-  } = C.useCryptoState(
+  } = Crypto.useState(
     C.useShallow(s => {
       const o = s[operation]
       const {inProgress, inputType, output, outputValid, outputStatus, outputType} = o
@@ -371,7 +372,7 @@ export const OperationOutput = (props: OutputProps) => {
     openLocalPathInSystemFileManagerDesktop?.(output)
   }
 
-  const waiting = C.Waiting.useAnyWaiting(C.Crypto.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(Crypto.waitingKey)
 
   const fileOutputTextColor =
     textType === 'cipher' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black

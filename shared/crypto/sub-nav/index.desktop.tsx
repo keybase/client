@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import * as Crypto from '@/constants/crypto'
 import * as Common from '@/router-v2/common.desktop'
 import LeftNav from './left-nav.desktop'
 import {
@@ -14,26 +15,26 @@ import {makeNavScreens} from '@/router-v2/shim'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
-  [C.Crypto.decryptTab]: {
+  [Crypto.decryptTab]: {
     screen: React.lazy(async () => {
       const {DecryptIO} = await import('../operations/decrypt')
       return {default: DecryptIO}
     }),
   },
-  [C.Crypto.encryptTab]: {
+  [Crypto.encryptTab]: {
     screen: React.lazy(async () => {
       const {EncryptIO} = await import('../operations/encrypt')
       return {default: EncryptIO}
     }),
   },
-  [C.Crypto.signTab]: {
+  [Crypto.signTab]: {
     screen: React.lazy(async () => {
       const {SignIO} = await import('../operations/sign')
       return {default: SignIO}
     }),
   },
 
-  [C.Crypto.verifyTab]: {
+  [Crypto.verifyTab]: {
     screen: React.lazy(async () => {
       const {VerifyIO} = await import('../operations/verify')
       return {default: VerifyIO}
@@ -99,7 +100,7 @@ export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) a
 const TabNavigator = createLeftTabNavigator()
 const cryptoScreens = makeNavScreens(cryptoSubRoutes, TabNavigator.Screen, false, false)
 const CryptoSubNavigator = () => (
-  <TabNavigator.Navigator initialRouteName={C.Crypto.encryptTab} backBehavior="none">
+  <TabNavigator.Navigator initialRouteName={Crypto.encryptTab} backBehavior="none">
     {cryptoScreens}
   </TabNavigator.Navigator>
 )

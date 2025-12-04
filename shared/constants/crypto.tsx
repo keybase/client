@@ -228,7 +228,7 @@ type State = Store & {
   }
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const resetWarnings = (o: CommonStore) => {
     o.errorMessage = new HiddenString('')
     o.warningMessage = new HiddenString('')
