@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as AutoReset from '@/constants/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -12,9 +13,9 @@ export type Props = {
 
 const PromptReset = (props: Props) => {
   const nav = useSafeNavigation()
-  const skipPassword = C.useAutoResetState(s => s.skipPassword)
-  const error = C.useAutoResetState(s => s.error)
-  const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)
+  const skipPassword = AutoReset.useState(s => s.skipPassword)
+  const error = AutoReset.useState(s => s.error)
+  const resetAccount = AutoReset.useState(s => s.dispatch.resetAccount)
   const {resetPassword} = props
 
   const submitResetPassword = C.useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
@@ -52,7 +53,7 @@ const PromptReset = (props: Props) => {
           label: props.resetPassword ? 'Send a link' : 'Start account reset',
           onClick: onContinue,
           type: 'Default' as ButtonType,
-          waitingKey: C.AutoReset.enterPipelineWaitingKey,
+          waitingKey: AutoReset.enterPipelineWaitingKey,
         },
       ]}
       banners={

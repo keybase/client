@@ -1,4 +1,5 @@
 import * as C from '.'
+import * as AutoReset from './autoreset'
 import * as T from './types'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as RemoteGen from '../actions/remote-gen'
@@ -976,7 +977,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       const updateAutoReset = () => {
         if (!b) return
         const {resetState} = b
-        C.useAutoResetState.getState().dispatch.updateARState(resetState.active, resetState.endTime)
+        AutoReset.useState.getState().dispatch.updateARState(resetState.active, resetState.endTime)
       }
       updateAutoReset()
 
