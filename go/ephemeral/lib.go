@@ -87,6 +87,8 @@ func (e *EKLib) Shutdown(mctx libkb.MetaContext) error {
 }
 
 func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext, stopCh <-chan struct{}) {
+	// Don't fire immediately on startup
+	time.Sleep(libkb.RandomJitter(5 * time.Second))
 	mctx = mctx.WithLogTag("EKBKG")
 	mctx.Debug("backgroundKeygen: starting up")
 	keygenInterval := time.Hour
@@ -118,7 +120,7 @@ func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext, stopCh <-chan struct{})
 			runIfNeeded(false /* force */)
 		case state = <-mctx.G().MobileAppState.NextUpdate(&state):
 			if state == keybase1.MobileAppState_BACKGROUNDACTIVE {
-				// Before running  we pause briefly so we don't stampede for
+				// Before running we pause briefly so we don't stampede for
 				// resources with other background tasks. libkb.BgTicker
 				// handles this internally, so we only need to throttle on
 				// MobileAppState change.
