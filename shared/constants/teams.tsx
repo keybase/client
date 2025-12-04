@@ -10,12 +10,21 @@ import openSMS from '@/util/sms'
 import {RPCError, logError} from '@/util/errors'
 import {isMobile, isPhone} from './platform'
 import {mapGetEnsureValue} from '@/util/map'
-import * as Gregor from './gregor'
+import {uint8ArrayToString} from 'uint8array-extras'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
 export const rpcMemberStatusToStatus = invert(T.RPCGen.TeamMemberStatus) as unknown as {
   [K in keyof typeof T.RPCGen.TeamMemberStatus as (typeof T.RPCGen.TeamMemberStatus)[K]]: K
+}
+
+const bodyToJSON = (body?: Uint8Array): unknown => {
+  if (!body) return undefined
+  try {
+    return JSON.parse(uint8ArrayToString(body))
+  } catch {
+    return undefined
+  }
 }
 
 // Waiting keys
@@ -1299,7 +1308,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           if (item?.item?.body) {
             const body = item.item.body
             msgID = item.md?.msgID
-            teams = Gregor.bodyToJSON(body) as Array<string>
+            teams = bodyToJSON(body) as Array<string>
           } else {
             logger.info(
               `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
@@ -2457,7 +2466,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           chosenChannels = i
         }
         if (i.item.category.startsWith(newRequestsGregorPrefix)) {
-          const body = Gregor.bodyToJSON(i.item.body) as undefined | {id: T.Teams.TeamID; username: string}
+          const body = bodyToJSON(i.item.body) as undefined | {id: T.Teams.TeamID; username: string}
           if (body) {
             const request = body
             const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
@@ -2469,7 +2478,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       sawSubteamsBanner && get().dispatch.setTeamSawSubteamsBanner()
       get().dispatch.setNewTeamRequests(newTeamRequests)
       get().dispatch.setTeamsWithChosenChannels(
-        new Set<T.Teams.Teamname>(Gregor.bodyToJSON(chosenChannels?.item.body) as Array<string>)
+        new Set<T.Teams.Teamname>(bodyToJSON(chosenChannels?.item.body) as Array<string>)
       )
     },
     openInviteLink: (inviteID, inviteKey) => {
