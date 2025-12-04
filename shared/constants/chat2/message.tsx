@@ -7,6 +7,7 @@ import logger from '@/logger'
 import type * as MessageTypes from '../types/chat2/message'
 import type {ServiceId} from 'util/platforms'
 import {noConversationIDKey} from '../types/chat2/common'
+import * as Wallets from '../wallets'
 
 const noString = new HiddenString('')
 
@@ -281,7 +282,7 @@ export const makeChatPaymentInfo = (
   paymentID: T.Wallets.noPaymentID,
   showCancel: false,
   sourceAmount: '',
-  sourceAsset: C.Wallets.emptyAssetDescription,
+  sourceAsset: Wallets.emptyAssetDescription,
   status: 'none',
   statusDescription: '',
   statusDetail: '',
@@ -504,7 +505,7 @@ export const uiRequestInfoToChatRequestInfo = (
     return
   } else if (r.asset && r.asset.type !== 'native') {
     const assetResult = r.asset
-    asset = C.Wallets.makeAssetDescription({
+    asset = Wallets.makeAssetDescription({
       code: assetResult.code,
       issuerAccountID: assetResult.issuer,
       issuerName: assetResult.issuerName,
@@ -533,18 +534,18 @@ export const uiPaymentInfoToChatPaymentInfo = (
   }
   const p = ps[0]
   if (!p) return undefined
-  const serviceStatus = C.Wallets.statusSimplifiedToString[p.status]
+  const serviceStatus = Wallets.statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
     accountID: p.accountID ?? T.Wallets.noAccountID,
     amountDescription: p.amountDescription,
-    delta: C.Wallets.balanceDeltaToString[p.delta],
+    delta: Wallets.balanceDeltaToString[p.delta],
     fromUsername: p.fromUsername,
     issuerDescription: p.issuerDescription,
     note: new HiddenString(p.note),
     paymentID: p.paymentID,
     showCancel: p.showCancel,
     sourceAmount: p.sourceAmount,
-    sourceAsset: C.Wallets.makeAssetDescription({
+    sourceAsset: Wallets.makeAssetDescription({
       code: p.sourceAsset.code,
       issuerAccountID: p.sourceAsset.issuer,
       issuerName: p.sourceAsset.issuerName,

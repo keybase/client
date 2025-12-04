@@ -53,7 +53,7 @@ interface State extends Store {
 }
 
 export const loadAccountsWaitingKey = 'wallets:loadAccounts'
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     load: () => {
       const f = async () => {

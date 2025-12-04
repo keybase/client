@@ -1,12 +1,13 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import WalletPopup from './wallet-popup'
+import {useState as useWalletsState} from '@/constants/wallets'
 
 type OwnProps = {accountID: string}
 
 const Container = (ownProps: OwnProps) => {
   const {accountID} = ownProps
-  const account = C.useWalletsState(s => s.accountMap.get(accountID))
+  const account = useWalletsState(s => s.accountMap.get(accountID))
   const balance = account?.balanceDescription ?? 'Error loading account'
   const name = account?.name ?? ''
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
