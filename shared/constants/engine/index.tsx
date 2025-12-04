@@ -1,5 +1,5 @@
 import * as Z from '@/util/zustand'
-import * as C from '..'
+import {useState_ as useConfigState} from '../config'
 import type * as EngineGen from '@/actions/engine-gen-gen'
 import * as ArchiveUtil from '../archive/util'
 import * as AutoResetUtil from '../autoreset/util'
@@ -36,7 +36,7 @@ export const useState_ = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     onEngineConnected: () => {
       ChatUtil.onEngineConnected()
-      C.useConfigState.getState().dispatch.onEngineConnected()
+      useConfigState.getState().dispatch.onEngineConnected()
       NotifUtil.onEngineConnected()
       PeopleUtil.onEngineConnected()
       PinentryUtil.onEngineConnected()
@@ -44,7 +44,7 @@ export const useState_ = Z.createZustand<State>(set => {
       UnlockFoldersUtil.onEngineConnected()
     },
     onEngineDisconnected: () => {
-      C.useConfigState.getState().dispatch.onEngineDisonnected()
+      useConfigState.getState().dispatch.onEngineDisonnected()
     },
     onEngineIncoming: action => {
       // defer a frame so its more like before
@@ -53,9 +53,9 @@ export const useState_ = Z.createZustand<State>(set => {
         AutoResetUtil.onEngineIncoming(action)
         BotsUtil.onEngineIncoming(action)
         ChatUtil.onEngineIncoming(action)
-        C.useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
-        C.useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
-        C.useConfigState.getState().dispatch.onEngineIncoming(action)
+        useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
+        useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
+        useConfigState.getState().dispatch.onEngineIncoming(action)
         DeepLinksUtil.onEngineIncoming(action)
         DevicesUtil.onEngineIncoming(action)
         FSUtil.onEngineIncoming(action)
