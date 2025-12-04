@@ -2,8 +2,10 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as Wallets from '@/constants/wallets'
+import {useState as useWalletsState} from '@/constants/wallets'
 
-const Row = (p: {account: C.Wallets.Account}) => {
+const Row = (p: {account: Wallets.Account}) => {
   const {account} = p
   const {name, accountID, deviceReadOnly, balanceDescription, isDefault} = account
   const [sk, setSK] = React.useState('')
@@ -112,13 +114,13 @@ const Container = () => {
   const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
   const checkDisclaimer = C.useRPC(T.RPCStellar.localHasAcceptedDisclaimerLocalRpcPromise)
 
-  const load = C.useWalletsState(s => s.dispatch.load)
+  const load = useWalletsState(s => s.dispatch.load)
 
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       load()
       checkDisclaimer(
-        [undefined, C.Wallets.loadAccountsWaitingKey],
+        [undefined, Wallets.loadAccountsWaitingKey],
         r => {
           setAcceptedDisclaimer(r)
         },
@@ -130,7 +132,7 @@ const Container = () => {
     }, [load, checkDisclaimer])
   )
 
-  const accountMap = C.useWalletsState(s => s.accountMap)
+  const accountMap = useWalletsState(s => s.accountMap)
   const accounts = React.useMemo(() => {
     return [...accountMap.values()].sort((a, b) => {
       if (a.isDefault) return -1
@@ -139,7 +141,7 @@ const Container = () => {
     })
   }, [accountMap])
 
-  const loading = C.Waiting.useAnyWaiting(C.Wallets.loadAccountsWaitingKey)
+  const loading = C.Waiting.useAnyWaiting(Wallets.loadAccountsWaitingKey)
 
   const rows = accounts.map((a, idx) => <Row account={a} key={String(idx)} />)
 

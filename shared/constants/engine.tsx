@@ -1,6 +1,8 @@
 import * as Z from '@/util/zustand'
 import * as C from '.'
 import type * as EngineGen from '../actions/engine-gen-gen'
+import {useState as useArchiveState} from './archive'
+import {useState as useUFState} from './unlock-folders'
 
 type Store = object
 const initialStore: Store = {}
@@ -24,7 +26,7 @@ export const useState_ = Z.createZustand<State>(set => {
       C.usePeopleState.getState().dispatch.onEngineConnected()
       C.usePinentryState.getState().dispatch.onEngineConnected()
       C.useTrackerState.getState().dispatch.onEngineConnected()
-      C.useUFState.getState().dispatch.onEngineConnected()
+      useUFState.getState().dispatch.onEngineConnected()
     },
     onEngineDisconnected: () => {
       C.useConfigState.getState().dispatch.onEngineDisonnected()
@@ -39,7 +41,7 @@ export const useState_ = Z.createZustand<State>(set => {
         C.useConfigState.getState().dispatch.onEngineIncoming(action)
         C.useDeepLinksState.getState().dispatch.onEngineIncoming(action)
         C.useFSState.getState().dispatch.onEngineIncoming(action)
-        C.useArchiveState.getState().dispatch.onEngineIncoming(action)
+        useArchiveState.getState().dispatch.onEngineIncoming(action)
         C.useNotifState.getState().dispatch.onEngineIncoming(action)
         C.usePeopleState.getState().dispatch.onEngineIncoming(action)
         C.usePinentryState.getState().dispatch.onEngineIncoming(action)
@@ -47,7 +49,7 @@ export const useState_ = Z.createZustand<State>(set => {
         C.useSignupState.getState().dispatch.onEngineIncoming(action)
         C.useTeamsState.getState().dispatch.onEngineIncoming(action)
         C.useTrackerState.getState().dispatch.onEngineIncoming(action)
-        C.useUFState.getState().dispatch.onEngineIncoming(action)
+        useUFState.getState().dispatch.onEngineIncoming(action)
         C.useUsersState.getState().dispatch.onEngineIncoming(action)
       }, 0)
     },

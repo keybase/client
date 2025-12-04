@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as AutoReset from '@/constants/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
@@ -6,13 +7,13 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 
 const EnterPassword = () => {
   const [password, setPassword] = React.useState('')
-  const error = C.useAutoResetState(s => s.error)
-  const endTime = C.useAutoResetState(s => s.endTime)
-  const waiting = C.Waiting.useAnyWaiting(C.AutoReset.enterPipelineWaitingKey)
+  const error = AutoReset.useState(s => s.error)
+  const endTime = AutoReset.useState(s => s.endTime)
+  const waiting = C.Waiting.useAnyWaiting(AutoReset.enterPipelineWaitingKey)
   const nav = useSafeNavigation()
   const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
-  const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)
+  const resetAccount = AutoReset.useState(s => s.dispatch.resetAccount)
   const onContinue = React.useCallback(() => {
     resetAccount(password)
   }, [resetAccount, password])

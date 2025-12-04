@@ -1,10 +1,10 @@
-import * as C from '@/constants'
 import SelectOtherDevice from '@/provision/select-other-device'
+import {useState as useRecoverState} from '@/constants/recover-password'
 
 const RecoverPasswordDeviceSelector = () => {
-  const devices = C.useRecoverState(s => s.devices)
-  const submitDeviceSelect = C.useRecoverState(s => s.dispatch.dynamic.submitDeviceSelect)
-  const cancel = C.useRecoverState(s => s.dispatch.dynamic.cancel)
+  const devices = useRecoverState(s => s.devices)
+  const submitDeviceSelect = useRecoverState(s => s.dispatch.dynamic.submitDeviceSelect)
+  const cancel = useRecoverState(s => s.dispatch.dynamic.cancel)
   const onBack = () => {
     cancel?.()
   }

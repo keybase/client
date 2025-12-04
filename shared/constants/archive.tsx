@@ -89,7 +89,7 @@ interface State extends Store {
   chatIDToDisplayname: (id: string) => string
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const setKBFSJobStatus = (status: T.RPCGen.SimpleFSArchiveStatus) => {
     set(s => {
       s.kbfsJobs = new Map(

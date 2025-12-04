@@ -1,14 +1,15 @@
 import * as C from '@/constants'
+import * as Crypto from '@/constants/crypto'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import openURL from '@/util/open-url'
 import {Input, DragAndDrop, OperationBanner, InputActionsBar} from '../input'
 import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
 
-const operation = C.Crypto.Operations.Sign
+const operation = Crypto.Operations.Sign
 
 const SignOutputBanner = () => {
-  const outputType = C.useCryptoState(s => s.sign.outputType)
+  const outputType = Crypto.useState(s => s.sign.outputType)
   return (
     <OutputInfoBanner operation={operation}>
       <Kb.Text type="BodySmallSemibold" center={true}>
@@ -16,7 +17,7 @@ const SignOutputBanner = () => {
         <Kb.Text
           type="BodySecondaryLink"
           underline={true}
-          onClick={() => openURL(C.Crypto.saltpackDocumentation)}
+          onClick={() => openURL(Crypto.saltpackDocumentation)}
         >
           Saltpack
         </Kb.Text>
@@ -32,7 +33,7 @@ export const SignInput = () => {
     blurCBRef.current = cb
   }, [])
 
-  const resetOperation = C.useCryptoState(s => s.dispatch.resetOperation)
+  const resetOperation = Crypto.useState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (C.isMobile) {
@@ -52,7 +53,7 @@ export const SignInput = () => {
   return C.isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={C.Crypto.inputDesktopMaxHeight}>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
       {content}
     </Kb.Box2>
   )
@@ -71,7 +72,7 @@ export const SignOutput = () => {
   return C.isMobile ? (
     content
   ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={C.Crypto.outputDesktopMaxHeight}>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.outputDesktopMaxHeight}>
       {content}
     </Kb.Box2>
   )

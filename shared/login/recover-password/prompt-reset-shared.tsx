@@ -1,10 +1,12 @@
 import * as C from '@/constants'
+import * as AutoReset from '@/constants/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {SignupScreen} from '@/signup/common'
 import type {ButtonType} from '@/common-adapters/button'
+import {useState as useRecoverState} from '@/constants/recover-password'
 
 export type Props = {
   resetPassword?: boolean
@@ -12,14 +14,14 @@ export type Props = {
 
 const PromptReset = (props: Props) => {
   const nav = useSafeNavigation()
-  const skipPassword = C.useAutoResetState(s => s.skipPassword)
-  const error = C.useAutoResetState(s => s.error)
-  const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)
+  const skipPassword = AutoReset.useState(s => s.skipPassword)
+  const error = AutoReset.useState(s => s.error)
+  const resetAccount = AutoReset.useState(s => s.dispatch.resetAccount)
   const {resetPassword} = props
 
-  const submitResetPassword = C.useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
-  const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
-  const username = C.useRecoverState(s => s.username)
+  const submitResetPassword = useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
+  const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
+  const username = useRecoverState(s => s.username)
 
   const onContinue = React.useCallback(() => {
     // dont do this in preflight
@@ -52,7 +54,7 @@ const PromptReset = (props: Props) => {
           label: props.resetPassword ? 'Send a link' : 'Start account reset',
           onClick: onContinue,
           type: 'Default' as ButtonType,
-          waitingKey: C.AutoReset.enterPipelineWaitingKey,
+          waitingKey: AutoReset.enterPipelineWaitingKey,
         },
       ]}
       banners={

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as AutoReset from '@/constants/autoreset'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -31,7 +32,7 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
 }
 
 const UsernameOrEmailContainer = (op: OwnProps) => {
-  const _resetBannerUser = C.useAutoResetState(s => s.username)
+  const _resetBannerUser = AutoReset.useState(s => s.username)
   const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
   const _error = C.useProvisionState(s => s.error)
   const {inlineError, inlineSignUpLink} = C.useProvisionState(

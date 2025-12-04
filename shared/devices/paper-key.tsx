@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -21,7 +22,7 @@ const PaperKey = () => {
         },
       },
       params: undefined,
-      waitingKey: C.Devices.waitingKey,
+      waitingKey: Devices.waitingKey,
     })
       .then(() => {})
       .catch(() => {})
@@ -69,7 +70,7 @@ const PaperKey = () => {
           label="Done"
           onClick={clearModals}
           disabled={!wroteItDown}
-          waitingKey={C.Devices.waitingKey}
+          waitingKey={Devices.waitingKey}
         />
       </Kb.Box2>
     </Kb.Box2>

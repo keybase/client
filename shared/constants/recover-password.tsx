@@ -1,4 +1,5 @@
 import * as C from '.'
+import * as AutoReset from './autoreset'
 import * as ProvisionConstants from './provision'
 import * as T from './types'
 import * as Z from '@/util/zustand'
@@ -45,7 +46,7 @@ export interface State extends Store {
   }
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     dynamic: {
       cancel: undefined,
@@ -139,7 +140,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
                     })
                   })
                 } else {
-                  const {startAccountReset} = C.useAutoResetState.getState().dispatch
+                  const {startAccountReset} = AutoReset.useState.getState().dispatch
                   startAccountReset(true, '')
                   response.result(T.RPCGen.ResetPromptResponse.nothing)
                 }

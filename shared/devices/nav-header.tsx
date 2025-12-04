@@ -1,10 +1,11 @@
 import * as C from '@/constants'
+import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 
 export const HeaderTitle = () => {
-  const numActive = C.Devices.useActiveDeviceCounts()
-  const numRevoked = C.Devices.useRevokedDeviceCounts()
+  const numActive = Devices.useActiveDeviceCounts()
+  const numRevoked = Devices.useRevokedDeviceCounts()
   return (
     <Kb.Box2 direction="vertical" style={styles.headerTitle}>
       <Kb.Text type="Header">Devices</Kb.Text>

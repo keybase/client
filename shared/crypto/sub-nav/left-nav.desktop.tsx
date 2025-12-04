@@ -1,9 +1,9 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
+import * as Crypto from '@/constants/crypto'
 import NavRow from './nav-row'
 
-type Row = (typeof C.Crypto.Tabs)[number] & {
+type Row = (typeof Crypto.Tabs)[number] & {
   isSelected: boolean
   key: string
 }
@@ -16,7 +16,7 @@ type Props = {
 
 const SubNav = (props: Props) => {
   const getRows = () =>
-    C.Crypto.Tabs.map(t => ({
+    Crypto.Tabs.map(t => ({
       ...t,
       isSelected: props.selected === t.tab,
       key: t.tab,

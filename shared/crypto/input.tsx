@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Crypto from '@/constants/crypto'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -37,10 +38,10 @@ type RunOperationProps = CommonProps & {
 // placeholder text is visible and pushes the "browse" button far enough to the
 // right to be exactly one empty character with from the end of the placeholder text
 const operationToEmptyInputWidth = {
-  [C.Crypto.Operations.Encrypt]: 207,
-  [C.Crypto.Operations.Decrypt]: 320,
-  [C.Crypto.Operations.Sign]: 207,
-  [C.Crypto.Operations.Verify]: 342,
+  [Crypto.Operations.Encrypt]: 207,
+  [Crypto.Operations.Decrypt]: 320,
+  [Crypto.Operations.Sign]: 207,
+  [Crypto.Operations.Verify]: 342,
 }
 
 const inputTextType = new Map([
@@ -178,7 +179,7 @@ const inputFileIcon = new Map([
 const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = inputFileIcon.get(operation) as IconType
-  const waiting = C.Waiting.useAnyWaiting(C.Crypto.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(Crypto.waitingKey)
 
   return (
     <Kb.Box2
@@ -217,7 +218,7 @@ const FileInput = (props: FileProps) => {
 export const Input = (props: CommonProps & {setBlurCB?: (cb: () => void) => void}) => {
   const {operation, setBlurCB} = props
 
-  const {input: _input, inputType} = C.useCryptoState(
+  const {input: _input, inputType} = Crypto.useState(
     C.useShallow(s => {
       const o = s[operation]
       const {input, inputType} = o
@@ -228,8 +229,8 @@ export const Input = (props: CommonProps & {setBlurCB?: (cb: () => void) => void
 
   const [inputValue, setInputValue] = React.useState(input)
 
-  const setInput = C.useCryptoState(s => s.dispatch.setInput)
-  const clearInput = C.useCryptoState(s => s.dispatch.clearInput)
+  const setInput = Crypto.useState(s => s.dispatch.setInput)
+  const clearInput = Crypto.useState(s => s.dispatch.clearInput)
 
   const onSetInput = (type: T.Crypto.InputTypes, newValue: string) => {
     setInput(operation, type, newValue)
@@ -272,8 +273,8 @@ const allowInputFolders = new Map([
 
 export const DragAndDrop = (props: DragAndDropProps) => {
   const {prompt, children, operation} = props
-  const inProgress = C.useCryptoState(s => s[operation].inProgress)
-  const setInput = C.useCryptoState(s => s.dispatch.setInput)
+  const inProgress = Crypto.useState(s => s[operation].inProgress)
+  const setInput = Crypto.useState(s => s.dispatch.setInput)
 
   const onAttach = (localPaths: Array<string>) => {
     const path = localPaths[0]
@@ -300,9 +301,9 @@ export const DragAndDrop = (props: DragAndDropProps) => {
 
 export const OperationBanner = (props: CommonProps) => {
   const {operation} = props
-  const infoMessage = C.Crypto.infoMessage[operation]
+  const infoMessage = Crypto.infoMessage[operation]
 
-  const {errorMessage: _errorMessage, warningMessage: _warningMessage} = C.useCryptoState(
+  const {errorMessage: _errorMessage, warningMessage: _warningMessage} = Crypto.useState(
     C.useShallow(s => {
       const {errorMessage, warningMessage} = s[operation]
       return {errorMessage, warningMessage}
@@ -338,9 +339,9 @@ export const OperationBanner = (props: CommonProps) => {
 // Mobile only
 export const InputActionsBar = (props: RunOperationProps) => {
   const {operation, children, blurCBRef} = props
-  const waitingKey = C.Crypto.waitingKey
+  const waitingKey = Crypto.waitingKey
   const operationTitle = capitalize(operation)
-  const runTextOperation = C.useCryptoState(s => s.dispatch.runTextOperation)
+  const runTextOperation = Crypto.useState(s => s.dispatch.runTextOperation)
   const onRunOperation = () => {
     blurCBRef?.current()
     setTimeout(() => {

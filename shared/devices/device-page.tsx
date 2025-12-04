@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -92,9 +93,9 @@ const Timeline = (p: {device: T.Devices.Device}) => {
 
 const DevicePage = (ownProps: OwnProps) => {
   const id = ownProps.deviceID
-  const iconNumber = C.Devices.useDeviceIconNumber(id)
-  const device = C.useDevicesState(s => s.deviceMap.get(id))
-  const canRevoke = C.Devices.useActiveDeviceCounts() > 1
+  const iconNumber = Devices.useDeviceIconNumber(id)
+  const device = Devices.useState(s => s.deviceMap.get(id))
+  const canRevoke = Devices.useActiveDeviceCounts() > 1
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showRevokeDevicePage = React.useCallback(() => {
     navigateAppend({props: {deviceID: id}, selected: 'deviceRevoke'})

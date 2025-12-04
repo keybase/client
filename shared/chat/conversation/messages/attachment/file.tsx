@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Crypto from '@/constants/crypto'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
@@ -43,7 +44,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const {conversationIDKey, fileType, downloadPath, isEditing, progress, messageAttachmentNativeShare} = data
   const {attachmentDownload, title, transferState, transferErrMsg, fileName: _fileName} = data
 
-  const saltpackOpenFile = C.useCryptoState(s => s.dispatch.onSaltpackOpenFile)
+  const saltpackOpenFile = Crypto.useState(s => s.dispatch.onSaltpackOpenFile)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSaltpackFileOpen = React.useCallback(
     (path: string, operation: T.Crypto.Operations) => {
@@ -103,16 +104,16 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
 
   const errorMsg = transferErrMsg || ''
   const fileName = _fileName ?? ''
-  const isSaltpackFile = !!fileName && C.Crypto.isPathSaltpack(fileName)
+  const isSaltpackFile = !!fileName && Crypto.isPathSaltpack(fileName)
   const onShowInFinder = !C.isMobile && downloadPath ? _onShowInFinder : undefined
   const showMessageMenu = p.showPopup
 
   const progressLabel = C.Chat.messageAttachmentTransferStateToProgressLabel(transferState)
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
-  const operation = C.Crypto.isPathSaltpackEncrypted(fileName)
-    ? C.Crypto.Operations.Decrypt
-    : C.Crypto.isPathSaltpackSigned(fileName)
-      ? C.Crypto.Operations.Verify
+  const operation = Crypto.isPathSaltpackEncrypted(fileName)
+    ? Crypto.Operations.Decrypt
+    : Crypto.isPathSaltpackSigned(fileName)
+      ? Crypto.Operations.Verify
       : undefined
   const operationTitle = captialize(operation)
 

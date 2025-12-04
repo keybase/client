@@ -1,4 +1,5 @@
 import * as C from '.'
+import * as Crypto from './crypto'
 import * as Tabs from './tabs'
 import * as Z from '@/util/zustand'
 import * as EngineGen from '../actions/engine-gen-gen'
@@ -291,17 +292,17 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         return
       }
       let operation: T.Crypto.Operations | undefined
-      if (C.Crypto.isPathSaltpackEncrypted(path)) {
-        operation = C.Crypto.Operations.Decrypt
-      } else if (C.Crypto.isPathSaltpackSigned(path)) {
-        operation = C.Crypto.Operations.Verify
+      if (Crypto.isPathSaltpackEncrypted(path)) {
+        operation = Crypto.Operations.Decrypt
+      } else if (Crypto.isPathSaltpackSigned(path)) {
+        operation = Crypto.Operations.Verify
       } else {
         logger.warn(
           'Deeplink received saltpack file path not ending in ".encrypted.saltpack" or ".signed.saltpack"'
         )
         return
       }
-      const {onSaltpackOpenFile} = C.useCryptoState.getState().dispatch
+      const {onSaltpackOpenFile} = Crypto.useState.getState().dispatch
       onSaltpackOpenFile(operation, path)
       C.useRouterState.getState().dispatch.switchTab(Tabs.cryptoTab)
     },

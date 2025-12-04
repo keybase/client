@@ -3,13 +3,14 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
+import {useState as useArchiveState} from '@/constants/archive'
 
 const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
   const {id, index} = p
-  const job = C.useArchiveState(s => s.chatJobs.get(id))
-  const cancel = C.useArchiveState(s => s.dispatch.cancelChat)
-  const pause = C.useArchiveState(s => s.dispatch.pauseChat)
-  const resume = C.useArchiveState(s => s.dispatch.resumeChat)
+  const job = useArchiveState(s => s.chatJobs.get(id))
+  const cancel = useArchiveState(s => s.dispatch.cancelChat)
+  const pause = useArchiveState(s => s.dispatch.pauseChat)
+  const resume = useArchiveState(s => s.dispatch.resumeChat)
 
   const errorStr = job?.error ?? ''
 
@@ -130,11 +131,11 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
 
 const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
   const {id, index} = p
-  const job = C.useArchiveState(s => s.kbfsJobs.get(id))
-  const currentTLFRevision = C.useArchiveState(s => s.kbfsJobsFreshness.get(id)) || 0
-  const cancelOrDismiss = C.useArchiveState(s => s.dispatch.cancelOrDismissKBFS)
+  const job = useArchiveState(s => s.kbfsJobs.get(id))
+  const currentTLFRevision = useArchiveState(s => s.kbfsJobsFreshness.get(id)) || 0
+  const cancelOrDismiss = useArchiveState(s => s.dispatch.cancelOrDismissKBFS)
 
-  const loadKBFSJobFreshness = C.useArchiveState(s => s.dispatch.loadKBFSJobFreshness)
+  const loadKBFSJobFreshness = useArchiveState(s => s.dispatch.loadKBFSJobFreshness)
   C.useOnMountOnce(() => {
     loadKBFSJobFreshness(id)
   })
@@ -299,7 +300,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
 })
 
 const Archive = () => {
-  const load = C.useArchiveState(s => s.dispatch.load)
+  const load = useArchiveState(s => s.dispatch.load)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   C.Router2.useSafeFocusEffect(
@@ -317,14 +318,14 @@ const Archive = () => {
   const archiveGit = React.useCallback(() => {
     navigateAppend({props: {type: 'gitAll'}, selected: 'archiveModal'})
   }, [navigateAppend])
-  const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompleted)
+  const clearCompleted = useArchiveState(s => s.dispatch.clearCompleted)
 
-  const chatJobMap = C.useArchiveState(s => s.chatJobs)
-  const kbfsJobMap = C.useArchiveState(s => s.kbfsJobs)
+  const chatJobMap = useArchiveState(s => s.chatJobs)
+  const kbfsJobMap = useArchiveState(s => s.kbfsJobs)
   const chatJobs = [...chatJobMap.keys()]
   const kbfsJobs = [...kbfsJobMap.keys()]
 
-  const showClear = C.useArchiveState(s => {
+  const showClear = useArchiveState(s => {
     for (const job of s.chatJobs.values()) {
       if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
         return true

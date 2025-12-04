@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Devices from '@/constants/devices'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import QRImage from './qr-image'
@@ -13,11 +14,11 @@ const CodePageContainer = () => {
   const provisionDeviceName = C.useProvisionState(s => s.deviceName)
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
   const deviceID = C.useCurrentUserState(s => s.deviceID)
-  const currentDevice = C.useDevicesState(s => s.deviceMap.get(deviceID)) ?? C.Devices.emptyDevice
+  const currentDevice = Devices.useState(s => s.deviceMap.get(deviceID)) ?? Devices.emptyDevice
   const error = C.useProvisionState(s => s.error)
 
   const otherDevice = C.useProvisionState(s => s.codePageOtherDevice)
-  const iconNumber = C.Devices.useDeviceIconNumber(otherDevice.id)
+  const iconNumber = Devices.useDeviceIconNumber(otherDevice.id)
   const textCode = C.useProvisionState(s => s.codePageIncomingTextCode)
   const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
   const submitTextCode = C.useProvisionState(s => s.dispatch.dynamic.submitTextCode)

@@ -1,13 +1,14 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
+import * as RecoverPwd from '@/constants/recover-password'
+import {useState as useRecoverState} from '@/constants/recover-password'
 
 const PaperKey = () => {
-  const error = C.useRecoverState(s => s.paperKeyError)
-  const cancel = C.useRecoverState(s => s.dispatch.dynamic.cancel)
-  const submitPaperKey = C.useRecoverState(s => s.dispatch.dynamic.submitPaperKey)
+  const error = useRecoverState(s => s.paperKeyError)
+  const cancel = useRecoverState(s => s.dispatch.dynamic.cancel)
+  const submitPaperKey = useRecoverState(s => s.dispatch.dynamic.submitPaperKey)
   const onBack = () => {
     cancel?.()
   }
@@ -27,7 +28,7 @@ const PaperKey = () => {
           label: 'Continue',
           onClick: onSubmit,
           type: 'Default' as ButtonType,
-          waitingKey: C.RecoverPwd.waitingKey,
+          waitingKey: RecoverPwd.waitingKey,
         },
       ]}
       onBack={props.onBack}

@@ -1,5 +1,6 @@
 import * as C from '.'
 import * as T from './types'
+import * as Crypto from './crypto'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
@@ -374,7 +375,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const {finishedTeam, namespace} = get()
       switch (namespace) {
         case 'crypto': {
-          C.useCryptoState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
+          Crypto.useState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
           break
         }
         case 'chat2': {

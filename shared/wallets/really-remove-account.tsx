@@ -3,13 +3,15 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import WalletPopup from './wallet-popup'
+import * as Wallets from '@/constants/wallets'
+import {useState as useWalletsState} from '@/constants/wallets'
 
 type OwnProps = {accountID: string}
 
 const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const {accountID} = props
-  const waiting = C.Waiting.useAnyWaiting(C.Wallets.loadAccountsWaitingKey)
-  const name = C.useWalletsState(s => s.accountMap.get(accountID)?.name) ?? ''
+  const waiting = C.Waiting.useAnyWaiting(Wallets.loadAccountsWaitingKey)
+  const name = useWalletsState(s => s.accountMap.get(accountID)?.name) ?? ''
   const [showingToast, setShowToast] = React.useState(false)
   const attachmentRef = React.useRef<Kb.MeasureRef | null>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
@@ -23,7 +25,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const onCancel = () => {
     navigateUp()
   }
-  const removeAccount = C.useWalletsState(s => s.dispatch.removeAccount)
+  const removeAccount = useWalletsState(s => s.dispatch.removeAccount)
   const onFinish = () => {
     removeAccount(accountID)
     navigateUp()

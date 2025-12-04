@@ -3,13 +3,14 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
+import {useState as useRecoverState} from '@/constants/recover-password'
 
 const ConnectedExplainDevice = () => {
-  const ed = C.useRecoverState(s => s.explainedDevice)
+  const ed = useRecoverState(s => s.explainedDevice)
   const deviceName = ed ? ed.name : ''
   const deviceType = ed ? ed.type : undefined
-  const username = C.useRecoverState(s => s.username)
-  const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
+  const username = useRecoverState(s => s.username)
+  const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
   const onBack = () => {
     startRecoverPassword({
       replaceRoute: true,

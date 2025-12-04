@@ -1,32 +1,6 @@
 import * as C from '.'
 import * as T from './types'
 import * as Z from '@/util/zustand'
-import invert from 'lodash/invert'
-
-export const statusSimplifiedToString = invert(T.RPCStellar.PaymentStatus) as {
-  [K in T.RPCStellar.PaymentStatus]: keyof typeof T.RPCStellar.PaymentStatus
-}
-
-export const balanceDeltaToString = invert(T.RPCStellar.BalanceDelta) as {
-  [K in T.RPCStellar.BalanceDelta]: keyof typeof T.RPCStellar.BalanceDelta
-}
-
-export const makeAssetDescription = (
-  a?: Partial<T.Wallets.AssetDescription>
-): T.Wallets.AssetDescription => ({
-  code: '',
-  depositButtonText: '',
-  infoUrl: '',
-  infoUrlText: '',
-  issuerAccountID: T.Wallets.noAccountID,
-  issuerName: '',
-  issuerVerifiedDomain: '',
-  showDepositButton: false,
-  showWithdrawButton: false,
-  withdrawButtonText: '',
-  ...a,
-})
-export const emptyAssetDescription = makeAssetDescription()
 
 export type Account = {
   accountID: string
@@ -53,7 +27,7 @@ interface State extends Store {
 }
 
 export const loadAccountsWaitingKey = 'wallets:loadAccounts'
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     load: () => {
       const f = async () => {

@@ -3,14 +3,15 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
+import {useState as useRecoverState} from '@/constants/recover-password'
 
 const Password = () => {
   const error = C.useProvisionState(s => s.error)
-  const resetEmailSent = C.useRecoverState(s => s.resetEmailSent)
+  const resetEmailSent = useRecoverState(s => s.resetEmailSent)
   const username = C.useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
+  const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
   const _onForgotPassword = () => {
     startRecoverPassword({abortProvisioning: true, username})
   }
@@ -24,7 +25,7 @@ const Password = () => {
   )
   const [password, setPassword] = React.useState('')
   const _onSubmitClick = React.useCallback(() => onSubmit(password), [password, onSubmit])
-  const resetState = C.useRecoverState(s => s.dispatch.resetState)
+  const resetState = useRecoverState(s => s.dispatch.resetState)
   React.useEffect(
     () => () => {
       resetState()

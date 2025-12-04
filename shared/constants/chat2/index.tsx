@@ -25,6 +25,15 @@ const defaultTopReacjis = [
 const defaultSkinTone = 1
 const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
 
+const bodyToJSON = (body?: Uint8Array): unknown => {
+  if (!body) return undefined
+  try {
+    return JSON.parse(uint8ArrayToString(body))
+  } catch {
+    return undefined
+  }
+}
+
 // while we're debugging chat issues
 export const DEBUG_CHAT_DUMP = true
 
@@ -1869,7 +1878,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
               try {
                 const teamID = i.item.category.substring(blockButtonsGregorPrefix.length)
                 if (!s.blockButtonsMap.get(teamID)) {
-                  const body = C.Gregor.bodyToJSON(i.item.body) as {adder: string}
+                  const body = bodyToJSON(i.item.body) as {adder: string}
                   const adder = body.adder
                   s.blockButtonsMap.set(teamID, {adder})
                 } else {

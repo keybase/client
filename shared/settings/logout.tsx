@@ -3,15 +3,16 @@ import {useSafeSubmit} from '@/util/safe-submit'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {UpdatePassword} from './password'
+import {useState as useSettingsPasswordState} from '@/constants/settings-password'
 
 const LogoutContainer = () => {
   const checkPasswordIsCorrect = C.useSettingsState(s => s.checkPasswordIsCorrect)
   const resetCheckPassword = C.useSettingsState(s => s.dispatch.resetCheckPassword)
   const checkPassword = C.useSettingsState(s => s.dispatch.checkPassword)
-  const hasRandomPW = C.useSettingsPasswordState(s => s.randomPW)
+  const hasRandomPW = useSettingsPasswordState(s => s.randomPW)
   const waitingForResponse = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
 
-  const loadHasRandomPw = C.useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
+  const loadHasRandomPw = useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
 
   const onBootstrap = loadHasRandomPw
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -28,9 +29,9 @@ const LogoutContainer = () => {
     resetCheckPassword()
   }, [resetCheckPassword, requestLogout])
 
-  const submitNewPassword = C.useSettingsPasswordState(s => s.dispatch.submitNewPassword)
-  const _setPassword = C.useSettingsPasswordState(s => s.dispatch.setPassword)
-  const setPasswordConfirm = C.useSettingsPasswordState(s => s.dispatch.setPasswordConfirm)
+  const submitNewPassword = useSettingsPasswordState(s => s.dispatch.submitNewPassword)
+  const _setPassword = useSettingsPasswordState(s => s.dispatch.setPassword)
+  const setPasswordConfirm = useSettingsPasswordState(s => s.dispatch.setPasswordConfirm)
 
   const onSavePassword = React.useCallback(
     (password: string) => {
@@ -43,8 +44,8 @@ const LogoutContainer = () => {
 
   const onLogout = useSafeSubmit(_onLogout, false)
 
-  const onUpdatePGPSettings = C.useSettingsPasswordState(s => s.dispatch.loadPgpSettings)
-  const hasPGPKeyOnServer = C.useSettingsPasswordState(s => !!s.hasPGPKeyOnServer)
+  const onUpdatePGPSettings = useSettingsPasswordState(s => s.dispatch.loadPgpSettings)
+  const hasPGPKeyOnServer = useSettingsPasswordState(s => !!s.hasPGPKeyOnServer)
 
   const [loggingOut, setLoggingOut] = React.useState(false)
   const [password, setPassword] = React.useState('')

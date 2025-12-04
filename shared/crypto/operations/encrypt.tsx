@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Recipients from '../recipients'
@@ -6,10 +7,10 @@ import openURL from '@/util/open-url'
 import {DragAndDrop, Input, InputActionsBar, OperationBanner} from '../input'
 import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
 
-const operation = C.Crypto.Operations.Encrypt
+const operation = Crypto.Operations.Encrypt
 
 const EncryptOptions = React.memo(function EncryptOptions() {
-  const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = C.useCryptoState(
+  const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = Crypto.useState(
     C.useShallow(s => {
       const o = s[operation]
       const {inProgress} = o
@@ -19,7 +20,7 @@ const EncryptOptions = React.memo(function EncryptOptions() {
     })
   )
 
-  const setEncryptOptions = C.useCryptoState(s => s.dispatch.setEncryptOptions)
+  const setEncryptOptions = Crypto.useState(s => s.dispatch.setEncryptOptions)
 
   const onSetOptions = (opts: {newIncludeSelf: boolean; newSign: boolean}) => {
     const {newIncludeSelf, newSign} = opts
@@ -56,7 +57,7 @@ const EncryptOptions = React.memo(function EncryptOptions() {
 })
 
 const EncryptOutputBanner = () => {
-  const {hasRecipients, includeSelf, recipients, outputType} = C.useCryptoState(
+  const {hasRecipients, includeSelf, recipients, outputType} = Crypto.useState(
     C.useShallow(s => {
       const o = s[operation]
       const {recipients, outputType} = o
@@ -81,7 +82,7 @@ const EncryptOutputBanner = () => {
       content={[
         `This is your encrypted ${outputType === 'file' ? 'file' : 'message'}, using `,
         {
-          onClick: () => openURL(C.Crypto.saltpackDocumentation),
+          onClick: () => openURL(Crypto.saltpackDocumentation),
           text: 'Saltpack',
         },
         '.',
@@ -146,7 +147,7 @@ export const EncryptInput = () => {
     </>
   )
 
-  const resetOperation = C.useCryptoState(s => s.dispatch.resetOperation)
+  const resetOperation = Crypto.useState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (C.isMobile) {
@@ -157,7 +158,7 @@ export const EncryptInput = () => {
   return C.isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={C.Crypto.inputDesktopMaxHeight}>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
       {content}
     </Kb.Box2>
   )
@@ -167,7 +168,7 @@ export const EncryptOutput = () => (
   <Kb.Box2
     direction="vertical"
     fullHeight={true}
-    style={C.isMobile ? undefined : C.Crypto.outputDesktopMaxHeight}
+    style={C.isMobile ? undefined : Crypto.outputDesktopMaxHeight}
   >
     <EncryptOutputBanner />
     <SignedSender operation={operation} />
