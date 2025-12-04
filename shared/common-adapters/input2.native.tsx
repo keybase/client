@@ -5,7 +5,7 @@ import {isIOS} from '@/constants/platform'
 import {getTextStyle} from './text'
 import {TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
 import {useColorScheme} from 'react-native'
-import {onPasteImage as registerPasteImage} from 'react-native-kb'
+import {registerPasteImage} from 'react-native-kb'
 
 export const Input2 = React.memo(
   React.forwardRef<RefType, Props>(function Input2(p, ref) {
