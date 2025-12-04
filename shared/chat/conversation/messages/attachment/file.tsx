@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Crypto from '@/constants/crypto'
 import * as React from 'react'
+import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import type * as T from '@/constants/types'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import captialize from 'lodash/capitalize'
@@ -104,15 +105,15 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
 
   const errorMsg = transferErrMsg || ''
   const fileName = _fileName ?? ''
-  const isSaltpackFile = !!fileName && Crypto.isPathSaltpack(fileName)
+  const isSaltpackFile = !!fileName && isPathSaltpack(fileName)
   const onShowInFinder = !C.isMobile && downloadPath ? _onShowInFinder : undefined
   const showMessageMenu = p.showPopup
 
   const progressLabel = C.Chat.messageAttachmentTransferStateToProgressLabel(transferState)
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
-  const operation = Crypto.isPathSaltpackEncrypted(fileName)
+  const operation = isPathSaltpackEncrypted(fileName)
     ? Crypto.Operations.Decrypt
-    : Crypto.isPathSaltpackSigned(fileName)
+    : isPathSaltpackSigned(fileName)
       ? Crypto.Operations.Verify
       : undefined
   const operationTitle = captialize(operation)
