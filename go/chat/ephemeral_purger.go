@@ -163,7 +163,7 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 	b.shutdownCh = shutdownCh
 	b.eg.Go(func() error {
 		// Don't fire immediately on startup
-		time.Sleep(libkb.RandomJitter(5 * time.Second))
+		time.Sleep(libkb.RandomJitter(time.Second))
 		b.initQueue(ctx)
 		// Immediately fire to queue any purges we picked up during initQueue
 		b.purgeTimer = time.NewTimer(0)
