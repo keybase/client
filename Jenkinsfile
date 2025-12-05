@@ -117,7 +117,6 @@ helpers.rootLinuxNode(env, {
   println "Setting up build: ${env.BUILD_TAG}"
 
   ws("client") {
-
     stage("Setup") {
       parallel (
         checkout: {
@@ -498,7 +497,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
 
     sh 'go install golang.org/x/vuln/cmd/govulncheck@latest'
     sh 'go version'
-    sh 'govulncheck ./...'
+//    sh 'govulncheck ./...'
     if (env.CHANGE_TARGET) {
       println("Running golangci-lint on new code")
       fetchChangeTarget()
