@@ -7,6 +7,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.model.ReactModuleInfo
 import com.facebook.react.module.model.ReactModuleInfoProvider
 import com.facebook.react.TurboReactPackage
+import com.facebook.react.uimanager.ViewManager
 
 import java.util.HashMap
 import java.util.Map
@@ -19,6 +20,12 @@ class KbPackage : TurboReactPackage() {
         } else {
             null
         }
+    }
+
+    override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
+        return listOf(
+            PasteableTextInputViewManager(reactContext)
+        )
     }
 
     override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
