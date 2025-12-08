@@ -6,6 +6,7 @@ import {isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import isEqual from 'lodash/isEqual'
 import {rpcDeviceToDevice} from '../rpc-utils'
+import {invalidPasswordErrorString, loginAsOtherUserWaitingKey} from '@/constants/config/util'
 
 export type Device = {
   deviceNumberOfType: number
@@ -464,8 +465,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
                 setupCancel(response)
                 // Service asking us again due to an error?
                 set(s => {
-                  s.error =
-                    retryLabel === C.Config.invalidPasswordErrorString ? 'Incorrect password.' : retryLabel
+                  s.error = retryLabel === invalidPasswordErrorString ? 'Incorrect password.' : retryLabel
                   s.dispatch.dynamic.setPassphrase = C.wrapErrors((passphrase: string) => {
                     set(s => {
                       s.dispatch.dynamic.setPassphrase = _setPassphrase
@@ -554,10 +554,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
         if (C.useConfigState.getState().loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise(
-            {force: false, keepSecrets: true},
-            C.Config.loginAsOtherUserWaitingKey
-          )
+          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, loginAsOtherUserWaitingKey)
         }
         C.useRouterState.getState().dispatch.navigateAppend({props: {fromReset}, selected: 'username'})
       }

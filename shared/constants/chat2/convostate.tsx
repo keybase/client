@@ -25,6 +25,7 @@ import {hexToUint8Array} from 'uint8array-extras'
 import assign from 'lodash/assign'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {registerDebugClear} from '@/util/debug'
+import * as Config from '@/constants/config/util'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -2357,8 +2358,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const participantInfo = get().participants
       const path = T.FS.stringToPath(
         meta.teamType !== 'adhoc'
-          ? C.Config.teamFolder(meta.teamname)
-          : C.Config.privateFolderWithUsers(participantInfo.name)
+          ? Config.teamFolder(meta.teamname)
+          : Config.privateFolderWithUsers(participantInfo.name)
       )
       C.FS.makeActionForOpenPathInFilesTab(path)
     },

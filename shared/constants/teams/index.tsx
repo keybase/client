@@ -11,6 +11,7 @@ import {RPCError, logError} from '@/util/errors'
 import {isMobile, isPhone} from '../platform'
 import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '../rpc-utils'
+import {fixCrop} from '@/util/crop'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
@@ -3163,7 +3164,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await T.RPCGen.teamsUploadTeamAvatarRpcPromise(
-            {crop: C.fixCrop(crop), filename, sendChatNotification, teamname},
+            {crop: fixCrop(crop), filename, sendChatNotification, teamname},
             ProfileConstants.uploadAvatarWaitingKey
           )
           C.useRouterState.getState().dispatch.navigateUp()

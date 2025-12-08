@@ -7,6 +7,7 @@ import logger from '@/logger'
 import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
+import {createOtherAccountWaitingKey} from '@/constants/config/util'
 
 export const maxUsernameLength = 16
 export const usernameHint =
@@ -269,7 +270,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         if (C.useConfigState.getState().loggedIn) {
           await T.RPCGen.loginLogoutRpcPromise(
             {force: false, keepSecrets: true},
-            C.Config.createOtherAccountWaitingKey
+            createOtherAccountWaitingKey
           )
         }
         try {

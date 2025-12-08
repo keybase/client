@@ -6,6 +6,7 @@ import logger from '@/logger'
 import openURL from '@/util/open-url'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '../platform'
+import {fixCrop} from '@/util/crop'
 
 type ProveGenericParams = {
   logoBlack: T.Tracker.SiteIconSet
@@ -731,7 +732,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await T.RPCGen.userUploadUserAvatarRpcPromise(
-            {crop: C.fixCrop(crop), filename},
+            {crop: fixCrop(crop), filename},
             uploadAvatarWaitingKey
           )
           C.useRouterState.getState().dispatch.navigateUp()
