@@ -7,7 +7,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 
 const KnowPassword = () => {
   const error = AutoReset.useState(s => s.error)
-  const waiting = C.Waiting.useAnyWaiting(AutoReset.enterPipelineWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const nav = useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
   const onYes = React.useCallback(() => nav.safeNavigateAppend('resetEnterPassword'), [nav])

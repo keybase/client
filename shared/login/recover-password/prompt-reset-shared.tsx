@@ -54,7 +54,7 @@ const PromptReset = (props: Props) => {
           label: props.resetPassword ? 'Send a link' : 'Start account reset',
           onClick: onContinue,
           type: 'Default' as ButtonType,
-          waitingKey: AutoReset.enterPipelineWaitingKey,
+          waitingKey: C.waitingKeyAutoresetEnterPipeline,
         },
       ]}
       banners={

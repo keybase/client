@@ -1,9 +1,9 @@
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import UserCard from '../user-card'
 import {errorBanner, SignupScreen} from '@/signup/common'
 import type {Props} from '.'
-import {loginWaitingKey} from '@/constants/config/util'
 
 const other = 'Someone else...'
 
@@ -85,7 +85,7 @@ const Login = (props: Props) => {
             <Kb.WaitingButton
               disabled={props.needPassword && !props.password}
               fullWidth={true}
-              waitingKey={loginWaitingKey}
+              waitingKey={C.waitingKeyConfigLogin}
               style={styles.loginSubmitButton}
               label="Log in"
               onClick={props.onSubmit}

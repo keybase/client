@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as AutoReset from '@/constants/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -44,7 +45,7 @@ const ConfirmReset = () => {
               onClick={onContinue}
               type="Danger"
               fullWidth={true}
-              waitingKey={AutoReset.actuallyResetWaitingKey}
+              waitingKey={C.waitingKeyAutoresetActuallyReset}
             />
             <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
           </Kb.ButtonBar>

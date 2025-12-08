@@ -22,7 +22,7 @@ const itemHeight = {height: 48, type: 'fixed'} as const
 
 const ReloadableDevices = React.memo(function ReloadableDevices() {
   const deviceMap = Devices.useState(s => s.deviceMap)
-  const waiting = C.Waiting.useAnyWaiting(Devices.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const {load: loadDevices, clearBadges} = Devices.useState(s => s.dispatch)
   const storeSet = Devices.useState(s => s.isNew)
   const {badged} = useLocalBadging(storeSet, clearBadges)
@@ -110,7 +110,7 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
   return (
     <Kb.Reloadable
       onBack={C.isMobile ? onBack : undefined}
-      waitingKeys={Devices.waitingKey}
+      waitingKeys={C.waitingKeyDevices}
       onReload={loadDevices}
       reloadOnMount={true}
       title=""

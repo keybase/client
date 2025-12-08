@@ -234,7 +234,7 @@ export const VerifyPhone = () => {
   const verificationState = C.useSettingsPhoneState(s => s.verificationState)
   const resendWaiting = C.Waiting.useAnyWaiting([
     C.waitingKeySettingsPhoneAddPhoneNumber,
-    C.waitingKeySettingsPhoneResendVerificationForPhone,
+    C.waitingKeySettingsPhoneResendVerification,
   ])
   const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)
   const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)

@@ -125,9 +125,7 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
   const {context, conversationIDKey, blockUserByDefault = false, filterUserByDefault = false} = ownProps
   const {flagUserByDefault = false, reportsUserByDefault = false, team: teamname} = ownProps
   let {username: adderUsername, others} = ownProps
-  const waitingForLeave = C.Waiting.useAnyWaiting(
-    teamname ? C.Teams.leaveTeamWaitingKey(teamname) : undefined
-  )
+  const waitingForLeave = C.Waiting.useAnyWaiting(teamname ? C.waitingKeyTeamsLeaveTeam(teamname) : undefined)
   const waitingForBlocking = C.Waiting.useAnyWaiting(C.waitingKeyUsersSetUserBlocks)
   const waitingForReport = C.Waiting.useAnyWaiting(C.waitingKeyUsersReportUser)
   if (others?.length === 1 && !adderUsername) {
@@ -463,7 +461,9 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
       footer={{
         content: (
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            {!Kb.Styles.isMobile && <Kb.Button fullWidth={true} label="Cancel" onClick={onClose} type="Dim" />}
+            {!Kb.Styles.isMobile && (
+              <Kb.Button fullWidth={true} label="Cancel" onClick={onClose} type="Dim" />
+            )}
             <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
           </Kb.ButtonBar>
         ),

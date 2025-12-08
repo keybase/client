@@ -22,7 +22,7 @@ type OutputInfoProps = {
 
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
-  const waiting = C.Waiting.useAnyWaiting(Crypto.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
 
   const {
     outputSigned: signed,
@@ -157,7 +157,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const canSaveAsText = operation === Crypto.Operations.Encrypt || operation === Crypto.Operations.Sign
   const canReplyInChat = operation === Crypto.Operations.Decrypt || operation === Crypto.Operations.Verify
 
-  const waiting = C.Waiting.useAnyWaiting(Crypto.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
 
   const {
     output,
@@ -372,7 +372,7 @@ export const OperationOutput = (props: OutputProps) => {
     openLocalPathInSystemFileManagerDesktop?.(output)
   }
 
-  const waiting = C.Waiting.useAnyWaiting(Crypto.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
 
   const fileOutputTextColor =
     textType === 'cipher' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black

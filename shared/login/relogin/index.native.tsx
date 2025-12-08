@@ -6,7 +6,6 @@ import Dropdown from './dropdown.native'
 import UserCard from '../user-card'
 import type {Props as InputProps} from '@/common-adapters/labeled-input'
 import type {Props} from '.'
-import {loginWaitingKey} from '@/constants/config/util'
 
 const LoginRender = (props: Props) => {
   const [scrollViewHeight, setScrollViewHeight] = React.useState<number | undefined>(undefined)
@@ -57,7 +56,7 @@ const LoginRender = (props: Props) => {
             )}
             <Kb.WaitingButton
               disabled={props.needPassword && !props.password}
-              waitingKey={loginWaitingKey}
+              waitingKey={C.waitingKeyConfigLogin}
               style={{
                 marginTop: props.needPassword ? 0 : Kb.Styles.globalMargins.small,
                 width: '100%',

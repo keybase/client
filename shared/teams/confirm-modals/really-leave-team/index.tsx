@@ -34,7 +34,7 @@ const ReallyLeaveTeam = (props: Props) => {
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   React.useEffect(
     () => () => {
-      dispatchClearWaiting(C.Teams.leaveTeamWaitingKey(name))
+      dispatchClearWaiting(C.waitingKeyTeamsLeaveTeam(name))
     },
     [dispatchClearWaiting, name]
   )
@@ -65,7 +65,7 @@ const ReallyLeaveTeam = (props: Props) => {
           Leave {props.name}?
         </Kb.Text>
       }
-      waitingKey={C.Teams.leaveTeamWaitingKey(props.name)}
+      waitingKey={C.waitingKeyTeamsLeaveTeam(props.name)}
     />
   )
 }
@@ -125,8 +125,8 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const open = settings.open
   const lastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, teamID))
   const stillLoadingTeam = !members
-  const leaving = C.Waiting.useAnyWaiting(C.Teams.leaveTeamWaitingKey(teamname))
-  const error = C.Waiting.useAnyErrors(C.Teams.leaveTeamWaitingKey(teamname))
+  const leaving = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLeaveTeam(teamname))
+  const error = C.Waiting.useAnyErrors(C.waitingKeyTeamsLeaveTeam(teamname))
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteTeam = React.useCallback(() => {

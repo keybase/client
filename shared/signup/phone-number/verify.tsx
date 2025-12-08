@@ -9,7 +9,7 @@ const Container = () => {
   const error = C.useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))
   const phoneNumber = C.useSettingsPhoneState(s => s.pendingVerification)
   const resendWaiting = C.Waiting.useAnyWaiting([
-    C.waitingKeySettingsPhoneResendVerificationForPhone,
+    C.waitingKeySettingsPhoneResendVerification,
     C.waitingKeySettingsPhoneAddPhoneNumber,
   ])
   const verificationStatus = C.useSettingsPhoneState(s => s.verificationState)

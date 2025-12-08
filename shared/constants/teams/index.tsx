@@ -1,7 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as ProfileConstants from '../profile'
 import * as Router2Constants from '../router2'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
@@ -1320,7 +1319,10 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
                 role: T.RPCGen.TeamRole[role],
               })),
             },
-            [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsAddMember(teamID, ...users.map(({assertion}) => assertion))]
+            [
+              C.waitingKeyTeamsTeam(teamID),
+              C.waitingKeyTeamsAddMember(teamID, ...users.map(({assertion}) => assertion)),
+            ]
           )
           if (res.notAdded && res.notAdded.length > 0) {
             const usernames = res.notAdded.map(elem => elem.username)
@@ -1851,7 +1853,8 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
     getTeamProfileAddList: username => {
       const f = async () => {
         const res =
-          (await T.RPCGen.teamsTeamProfileAddListRpcPromise({username}, C.waitingKeyTeamsProfileAddList)) ?? []
+          (await T.RPCGen.teamsTeamProfileAddListRpcPromise({username}, C.waitingKeyTeamsProfileAddList)) ??
+          []
         const teamlist = res.map(team => ({
           disabledReason: team.disabledReason,
           open: team.open,
@@ -1940,7 +1943,10 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
     ignoreRequest: (teamID, teamname, username) => {
       const f = async () => {
         try {
-          await T.RPCGen.teamsTeamIgnoreRequestRpcPromise({name: teamname, username}, C.waitingKeyTeamsTeam(teamID))
+          await T.RPCGen.teamsTeamIgnoreRequestRpcPromise(
+            {name: teamname, username},
+            C.waitingKeyTeamsTeam(teamID)
+          )
         } catch {}
       }
       C.ignorePromise(f())
@@ -2127,7 +2133,10 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
         try {
-          await T.RPCGen.teamsTeamLeaveRpcPromise({name: teamname, permanent}, C.waitingKeyTeamsLeaveTeam(teamname))
+          await T.RPCGen.teamsTeamLeaveRpcPromise(
+            {name: teamname, permanent},
+            C.waitingKeyTeamsLeaveTeam(teamname)
+          )
           logger.info(`leaveTeam: left ${teamname} successfully`)
           C.useRouterState.getState().dispatch.clearModals()
           C.useRouterState.getState().dispatch.navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
