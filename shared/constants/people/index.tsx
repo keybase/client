@@ -361,16 +361,15 @@ interface State extends Store {
   dispatch: {
     dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
     loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
-    onEngineConnected: () => void
     setResentEmail: (email: string) => void
     skipTodo: (type: T.People.TodoType) => void
     markViewed: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
   }
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     dismissAnnouncement: id => {
       const f = async () => {
@@ -516,18 +515,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    onEngineConnected: () => {
-      const f = async () => {
-        try {
-          await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()
-          console.log('Registered home UI')
-        } catch (error) {
-          console.warn('Error in registering home UI:', error)
-        }
-      }
-      C.ignorePromise(f())
-    },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1HomeUIHomeUIRefresh:
           get().dispatch.loadPeople(false)

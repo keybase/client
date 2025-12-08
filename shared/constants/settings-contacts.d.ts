@@ -26,6 +26,4 @@ export interface State extends Store {
   }
 }
 
-declare const useState_: UseBoundStore<StoreApi<State>>
-
-declare const importContactsWaitingKey: string
+declare const useState: UseBoundStore<StoreApi<State>>

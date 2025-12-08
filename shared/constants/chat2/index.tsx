@@ -315,8 +315,7 @@ export interface State extends Store {
     ) => void
     navigateToInbox: (allowSwitchTab?: boolean) => void
     onChatThreadStale: (action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => void
-    onEngineConnected: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     onChatInboxSynced: (action: EngineGen.Chat1NotifyChatChatInboxSyncedPayload) => void
     onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => void
     onGetInboxUnverifiedConvs: (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => void
@@ -361,7 +360,7 @@ const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey
   ids.filter(id => C.getConvoState(id).meta.trustedState === 'untrusted')
 
 // generic chat store
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   // We keep a set of conversations to unbox
   let metaQueue = new Set<T.Chat.ConversationIDKey>()
 
@@ -1029,19 +1028,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
       }
     },
-    onEngineConnected: () => {
-      const f = async () => {
-        try {
-          await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise()
-          await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise()
-          console.log('Registered Chat UI')
-        } catch (error) {
-          console.warn('Error in registering Chat UI:', error)
-        }
-      }
-      C.ignorePromise(f())
-    },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.chat1ChatUiChatInboxFailed: // fallthrough
         case EngineGen.chat1NotifyChatChatSetConvSettings: // fallthrough
@@ -1308,6 +1295,27 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           )
           break
         }
+        case EngineGen.keybase1NotifyBadgesBadgeState: {
+          const {badgeState} = action.payload.params
+          get().dispatch.badgesUpdated(badgeState)
+          break
+        }
+        case EngineGen.keybase1GregorUIPushState: {
+          const {state} = action.payload.params
+          const items = state.items || []
+          const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
+            (arr, {md, item}) => {
+              md && item && arr.push({item, md})
+              return arr
+            },
+            []
+          )
+          if (goodState.length !== items.length) {
+            logger.warn('Lost some messages in filtering out nonNull gregor items')
+          }
+          get().dispatch.updatedGregor(goodState)
+          break
+        }
         default:
       }
     },
@@ -1553,7 +1561,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           })
           const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
-            useState_.getState().dispatch.metasReceived([meta])
+            useState.getState().dispatch.metasReceived([meta])
           }
 
           C.getConvoState(first.conversationIDKey).dispatch.navigateToThread(

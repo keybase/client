@@ -1,6 +1,7 @@
 import {Reloadable} from '@/common-adapters'
 import * as C from '@/constants'
 import Render from './render'
+import {refreshNotificationsWaitingKey} from '@/constants/settings/util'
 
 const Notifications = () => {
   const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
@@ -12,7 +13,7 @@ const Notifications = () => {
   return (
     <Reloadable
       onBack={undefined}
-      waitingKeys={[C.refreshNotificationsWaitingKey, C.Settings.loadSettingsWaitingKey]}
+      waitingKeys={[refreshNotificationsWaitingKey, C.Settings.loadSettingsWaitingKey]}
       onReload={onRefresh}
       reloadOnMount={true}
     >

@@ -49,13 +49,13 @@ interface State extends Store {
     handleAppLink: (link: string) => void
     handleKeybaseLink: (link: string) => void
     handleSaltPackOpen: (_path: string | HiddenString) => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'
     setLinkError: (e: string) => void
   }
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const handleShowUserProfileLink = (username: string) => {
     C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
     C.useProfileState.getState().dispatch.showUserProfile(username)
@@ -308,7 +308,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       C.useRouterState.getState().dispatch.switchTab(Tabs.cryptoTab)
     },
 
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyServiceHandleKeybaseLink: {
           const {link, deferred} = action.payload.params

@@ -1,12 +1,10 @@
 import * as C from '..'
-import * as AutoReset from '../autoreset'
-import * as Devices from '../devices'
 import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as RemoteGen from '@/actions/remote-gen'
 import * as Stats from '@/engine/stats'
 import * as Z from '@/util/zustand'
-import {noConversationIDKey} from '../chat2'
+import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import type {Tab} from '../tabs'
@@ -15,8 +13,8 @@ import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from 
 import {defaultUseNativeFrame, runMode, isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {useAvatarState} from '@/common-adapters/avatar/store'
-import {mapGetEnsureValue} from '@/util/map'
 import {useState as useWNState} from '../whats-new'
+import type * as Pinentry from '@/constants/pinentry'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -307,8 +305,6 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
 
     const lastSeenItem = goodState.find(i => i.item.category === 'whatsNewLastSeenVersion')
     useWNState.getState().dispatch.updateLastSeen(lastSeenItem)
-    C.useTeamsState.getState().dispatch.onGregorPushState(goodState)
-    C.useChatState.getState().dispatch.updatedGregor(goodState)
   }
 
   const updateApp = () => {
@@ -425,11 +421,13 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.pinentryOnCancel: {
-          C.usePinentryState.getState().dispatch.dynamic.onCancel?.()
+          const {usePinentryState} = require('@/constants/pinentry') as typeof Pinentry
+          usePinentryState.getState().dispatch.dynamic.onCancel?.()
           break
         }
         case RemoteGen.pinentryOnSubmit: {
-          C.usePinentryState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
+          const {usePinentryState} = require('@/constants/pinentry') as typeof Pinentry
+          usePinentryState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
           break
         }
         case RemoteGen.openPathInSystemFileManager: {
@@ -967,41 +965,6 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       set(s => {
         s.badgeState = T.castDraft(b)
       })
-
-      // TODO remove and split, invert this
-      if (b) {
-        // devices
-        const {setBadges} = Devices.useState.getState().dispatch
-        const {newDevices, revokedDevices} = b
-        setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
-
-        // autoReset
-        const {resetState} = b
-        AutoReset.useState.getState().dispatch.updateARState(resetState.active, resetState.endTime)
-
-        // teams
-        const loggedIn = get().loggedIn
-        // Don't make any calls we don't have permission to.
-        if (loggedIn) {
-          const deletedTeams = b.deletedTeams || []
-          const newTeams = new Set<string>(b.newTeams || [])
-          const teamsWithResetUsers: ReadonlyArray<T.RPCGen.TeamMemberOutReset> = b.teamsWithResetUsers || []
-          const teamsWithResetUsersMap = new Map<T.Teams.TeamID, Set<string>>()
-          teamsWithResetUsers.forEach(entry => {
-            const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
-            existing.add(entry.username)
-          })
-          // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
-          C.useTeamsState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
-        }
-      }
-
-      // git
-      const {setBadges} = C.useGitState.getState().dispatch
-      setBadges(new Set(b?.newGitRepoGlobalUniqueIDs))
-
-      // chat
-      C.useChatState.getState().dispatch.badgesUpdated(b)
     },
     setDefaultUsername: u => {
       set(s => {

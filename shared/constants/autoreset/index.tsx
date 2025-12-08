@@ -1,12 +1,11 @@
 import * as C from '..'
 import * as Z from '@/util/zustand'
 import * as T from '@/constants/types'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import type * as RecoverPassword from '../recover-password'
-import {enterPipelineWaitingKey, cancelResetWaitingKey} from './utils'
-
-export {enterPipelineWaitingKey, actuallyResetWaitingKey, cancelResetWaitingKey} from './utils'
+import {enterPipelineWaitingKey, cancelResetWaitingKey} from './util'
 
 type Store = T.Immutable<{
   active: boolean
@@ -33,6 +32,7 @@ const initialStore: Store = {
 interface State extends Store {
   dispatch: {
     cancelReset: () => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'
     resetAccount: (password?: string) => void
     startAccountReset: (skipPassword: boolean, username: string) => void
@@ -80,6 +80,17 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       C.ignorePromise(f())
+    },
+    onEngineIncomingImpl: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyBadgesBadgeState: {
+          const {badgeState} = action.payload.params
+          const {resetState} = badgeState
+          get().dispatch.updateARState(resetState.active, resetState.endTime)
+          break
+        }
+        default:
+      }
     },
     resetAccount: (password = '') => {
       set(s => {
@@ -178,3 +189,5 @@ export const useState = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
+
+export {enterPipelineWaitingKey, actuallyResetWaitingKey, cancelResetWaitingKey} from './util'

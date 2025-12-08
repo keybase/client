@@ -61,7 +61,7 @@ export interface State extends Store {
     checkUsername: (username: string) => void
     clearJustSignedUpEmail: () => void
     goBackAndClearErrors: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     requestAutoInvite: (username?: string) => void
     requestInvite: (email: string, name: string) => void
     resetState: () => void
@@ -70,7 +70,7 @@ export interface State extends Store {
   }
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const noErrors = () => {
     const {devicenameError, emailError} = get()
     const {nameError, usernameError, signupError, usernameTaken} = get()
@@ -250,7 +250,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       })
       C.useRouterState.getState().dispatch.navigateUp()
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
           get().dispatch.clearJustSignedUpEmail()

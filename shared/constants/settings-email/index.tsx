@@ -4,8 +4,7 @@ import * as T from '../types'
 import {isValidEmail} from '@/util/simple-validators'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
-
-export const addEmailWaitingKey = 'settings:addEmail'
+import {addEmailWaitingKey} from '@/constants/settings/util'
 
 const makeAddEmailError = (err: RPCError): string => {
   switch (err.code) {
@@ -67,7 +66,7 @@ export interface State extends Store {
   }
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     addEmail: (email, searchable) => {
       set(s => {

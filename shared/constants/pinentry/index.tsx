@@ -36,30 +36,18 @@ interface State extends Store {
         result: (param: T.RPCGen.GetPassphraseRes) => void
       }
     ) => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
-    onEngineConnected: () => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
   }
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const usePinentryState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     dynamic: {
       onCancel: undefined,
       onSubmit: undefined,
     },
-    onEngineConnected: () => {
-      const f = async () => {
-        try {
-          await T.RPCGen.delegateUiCtlRegisterSecretUIRpcPromise()
-          logger.info('Registered secret ui')
-        } catch (error) {
-          logger.warn('error in registering secret ui: ', error)
-        }
-      }
-      C.ignorePromise(f())
-    },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1SecretUiGetPassphrase: {
           const {response, params} = action.payload

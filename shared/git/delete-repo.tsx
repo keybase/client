@@ -1,20 +1,21 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as Git from '@/constants/git'
 
 type OwnProps = {id: string}
 
-const emptyGit = C.Git.makeGitInfo()
+const emptyGit = Git.makeGitInfo()
 const Container = (ownProps: OwnProps) => {
   const {id} = ownProps
-  const git = C.useGitState(s => s.idToInfo.get(id) || emptyGit)
-  const error = C.useGitState(s => s.error)
+  const git = Git.useGitState(s => s.idToInfo.get(id) || emptyGit)
+  const error = Git.useGitState(s => s.error)
   const _name = git.name || ''
   const teamname = git.teamname || ''
-  const waitingKey = C.Git.loadingWaitingKey
+  const waitingKey = Git.loadingWaitingKey
 
-  const deletePersonalRepo = C.useGitState(s => s.dispatch.deletePersonalRepo)
-  const deleteTeamRepo = C.useGitState(s => s.dispatch.deleteTeamRepo)
+  const deletePersonalRepo = Git.useGitState(s => s.dispatch.deletePersonalRepo)
+  const deleteTeamRepo = Git.useGitState(s => s.dispatch.deleteTeamRepo)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
 
   const _onDelete = (teamname: string | undefined, name: string, notifyTeam: boolean) => {

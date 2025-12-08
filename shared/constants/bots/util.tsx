@@ -1,4 +1,18 @@
+import * as EngineGen from '@/actions/engine-gen-gen'
 import type * as T from '../types'
+import type * as Index from '.'
+
+export const onEngineIncoming = (action: EngineGen.Actions) => {
+  switch (action.type) {
+    case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
+      {
+        const {useState} = require('./index') as typeof Index
+        useState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    default:
+  }
+}
 
 export const waitingKeyBotSearchFeatured = 'bots:search:featured'
 export const waitingKeyBotSearchUsers = 'bots:search:users'

@@ -238,8 +238,7 @@ export interface State extends Store {
     notifyRow: (row: T.RPCGen.Identify3Row) => void
     notifySummary: (summary: T.RPCGen.Identify3Summary) => void
     notifyUserBlocked: (b: T.RPCGen.UserBlockedSummary) => void
-    onEngineConnected: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     replace: (usernameToDetails: Map<string, T.Tracker.Details>) => void
     resetState: 'default'
     showUser: (username: string, asTracker: boolean, skipNav?: boolean) => void
@@ -259,7 +258,7 @@ const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType) => {
       return 'error'
   }
 }
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     changeFollow: (guiID, follow) => {
       const f = async () => {
@@ -540,18 +539,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         d.followersCount = d.followers?.size
       })
     },
-    onEngineConnected: () => {
-      const f = async () => {
-        try {
-          await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
-          logger.info('Registered identify ui')
-        } catch (error) {
-          logger.warn('error in registering identify ui: ', error)
-        }
-      }
-      C.ignorePromise(f())
-    },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyTrackingTrackingChanged: {
           // only refresh if we have tracked them before

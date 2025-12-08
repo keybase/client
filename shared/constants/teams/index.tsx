@@ -383,7 +383,7 @@ export const getDisabledReasonsForRolePicker = (
 ): T.Teams.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
   const teamMeta = getTeamMeta(state, teamID)
-  const teamDetails = useState_.getState().teamDetails.get(teamID)
+  const teamDetails = useState.getState().teamDetails.get(teamID)
   const members: ReadonlyMap<string, T.Teams.MemberInfo> =
     teamDetails?.members || state.teamIDToMembers.get(teamID) || new Map<string, T.Teams.MemberInfo>()
   const teamname = teamMeta.teamname
@@ -872,7 +872,7 @@ export const consumeTeamTreeMembershipValue = (
 // in the treeloader-powered map (which can go stale) as a backup. If it returns null, it means we
 // don't know the answer (yet). If it returns type='none', that means the user is not in the team.
 export const maybeGetSparseMemberInfo = (state: State, teamID: string, username: string) => {
-  const details = useState_.getState().teamDetails.get(teamID)
+  const details = useState.getState().teamDetails.get(teamID)
   if (details) {
     return details.members.get(username) ?? {type: 'none'}
   }
@@ -1091,7 +1091,7 @@ export interface State extends Store {
     notifyTreeMembershipsDone: (result: T.RPCChat.Keybase1.TeamTreeMembershipsDoneResult) => void
     notifyTreeMembershipsPartial: (membership: T.RPCChat.Keybase1.TeamTreeMembership) => void
     notifyTeamTeamRoleMapChanged: (newVersion: number) => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     openInviteLink: (inviteID: string, inviteKey: string) => void
     onGregorPushState: (gs: Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>) => void
     reAddToTeam: (teamID: T.Teams.TeamID, username: string) => void
@@ -1191,7 +1191,7 @@ export interface State extends Store {
   }
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {
@@ -2392,7 +2392,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.chat1ChatUiChatShowManageChannels: {
           const {teamname} = action.payload.params
@@ -2438,6 +2438,39 @@ export const useState_ = Z.createZustand<State>((set, get) => {
             C.useRouterState.getState().dispatch.navUpToScreen('teamsRoot')
           }
           break
+        case EngineGen.keybase1NotifyBadgesBadgeState: {
+          const {badgeState} = action.payload.params
+          const loggedIn = C.useConfigState.getState().loggedIn
+          if (loggedIn) {
+            const deletedTeams = badgeState.deletedTeams || []
+            const newTeams = new Set<string>(badgeState.newTeams || [])
+            const teamsWithResetUsers: ReadonlyArray<T.RPCGen.TeamMemberOutReset> =
+              badgeState.teamsWithResetUsers || []
+            const teamsWithResetUsersMap = new Map<T.Teams.TeamID, Set<string>>()
+            teamsWithResetUsers.forEach(entry => {
+              const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
+              existing.add(entry.username)
+            })
+            get().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
+          }
+          break
+        }
+        case EngineGen.keybase1GregorUIPushState: {
+          const {state} = action.payload.params
+          const items = state.items || []
+          const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
+            (arr, {md, item}) => {
+              md && item && arr.push({item, md})
+              return arr
+            },
+            []
+          )
+          if (goodState.length !== items.length) {
+            logger.warn('Lost some messages in filtering out nonNull gregor items')
+          }
+          get().dispatch.onGregorPushState(goodState)
+          break
+        }
         default:
       }
     },

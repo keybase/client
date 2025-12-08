@@ -3,9 +3,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
 import * as C from '..'
 import logger from '@/logger'
-import {waitingKeyBotSearchFeatured, waitingKeyBotSearchUsers} from './utils'
-
-export {waitingKeyBotSearchFeatured, waitingKeyBotSearchUsers, getFeaturedSorted} from './utils'
+import {waitingKeyBotSearchFeatured, waitingKeyBotSearchUsers} from './util'
 
 type BotSearchResults = {
   bots: ReadonlyArray<T.RPCGen.FeaturedBot>
@@ -30,7 +28,7 @@ interface State extends Store {
   dispatch: {
     getFeaturedBots: (limit?: number, page?: number) => void
     loadNextBotPage: (pageSize?: number) => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'
     searchFeaturedAndUsers: (query: string) => void
     searchFeaturedBots: (query: string, limit?: number, offset?: number) => void
@@ -42,7 +40,7 @@ interface State extends Store {
 }
 
 const pageSize = 100
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     getFeaturedBots: (limit, page) => {
       const f = async () => {
@@ -71,7 +69,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     loadNextBotPage: ps => {
       get().dispatch.getFeaturedBots(ps ?? pageSize, get().featuredBotsPage + 1)
     },
-    onEngineIncoming: (action: EngineGen.Actions) => {
+    onEngineIncomingImpl: (action: EngineGen.Actions) => {
       switch (action.type) {
         case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
           {
@@ -181,3 +179,5 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
+
+export {waitingKeyBotSearchFeatured, waitingKeyBotSearchUsers, getFeaturedSorted} from './util'

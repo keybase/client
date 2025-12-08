@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Git from '@/constants/git'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -20,7 +21,7 @@ const SelectChannel = (ownProps: OwnProps) => {
   const channelNames = [...channelMetas.values()].map(info => info.channelname)
   const [selected, setSelected] = React.useState(_selected)
   const nav = useSafeNavigation()
-  const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
+  const setTeamRepoSettings = Git.useGitState(s => s.dispatch.setTeamRepoSettings)
   const onSubmit = (channelName: string) => setTeamRepoSettings(channelName, teamname, repoID, false)
   const onCancel = () => nav.safeNavigateUp()
 

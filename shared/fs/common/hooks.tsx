@@ -159,9 +159,7 @@ export const useFsWatchDownloadForMobile = C.isMobile
       const dlInfo = useFsDownloadInfo(downloadID)
       useFsFileContext(dlInfo.path)
 
-      const mimeType = C.useFSState(
-        s => s.fileContext.get(dlInfo.path) || C.FS.emptyFileContext
-      ).contentType
+      const mimeType = C.useFSState(s => s.fileContext.get(dlInfo.path) || C.FS.emptyFileContext).contentType
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
 
