@@ -66,7 +66,7 @@ export interface State extends Store {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useSettingsEmailState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     addEmail: (email, searchable) => {
       set(s => {

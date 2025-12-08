@@ -53,8 +53,8 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyBadgesBadgeState:
     case EngineGen.keybase1GregorUIPushState:
       {
-        const {useState} = require('./index') as typeof Index
-        useState.getState().dispatch.onEngineIncomingImpl(action)
+        const {useChatState} = require('./index') as typeof Index
+        useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

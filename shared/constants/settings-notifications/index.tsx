@@ -59,7 +59,7 @@ export interface State extends Store {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useSettingsNotifState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     refresh: () => {
       const f = async () => {

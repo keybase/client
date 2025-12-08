@@ -6,8 +6,8 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyUsersIdentifyUpdate:
     case EngineGen.keybase1NotifyTrackingNotifyUserBlocked:
       {
-        const {useState} = require('.') as typeof Index
-        useState.getState().dispatch.onEngineIncomingImpl(action)
+        const {useUsersState} = require('.') as typeof Index
+        useUsersState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

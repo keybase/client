@@ -369,7 +369,7 @@ interface State extends Store {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const usePeopleState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     dismissAnnouncement: id => {
       const f = async () => {

@@ -11,7 +11,7 @@ const initialStore: Store = {
   waitingToShowJoinedModal: false,
 }
 
-export const useState = Z.createZustand<State>(() => {
+export const useSettingsContactsState = Z.createZustand<State>(() => {
   const dispatch: State['dispatch'] = {
     editContactImportEnabled: () => {},
     importContactsLater: () => {},

@@ -360,7 +360,7 @@ const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey
   ids.filter(id => C.getConvoState(id).meta.trustedState === 'untrusted')
 
 // generic chat store
-export const useState = Z.createZustand<State>((set, get) => {
+export const useChatState = Z.createZustand<State>((set, get) => {
   // We keep a set of conversations to unbox
   let metaQueue = new Set<T.Chat.ConversationIDKey>()
 
@@ -1561,7 +1561,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
           const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
-            useState.getState().dispatch.metasReceived([meta])
+            useChatState.getState().dispatch.metasReceived([meta])
           }
 
           C.getConvoState(first.conversationIDKey).dispatch.navigateToThread(

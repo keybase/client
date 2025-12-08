@@ -18,7 +18,7 @@ interface State extends Store {
     updateFollowers: (user: string, add: boolean) => void
   }
 }
-export const useState = Z.createZustand<State>(set => {
+export const useFollowerState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     replace: (followers, following) => {
       set(s => {

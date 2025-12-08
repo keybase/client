@@ -61,8 +61,8 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyAuditBoxAuditError:
     case EngineGen.keybase1NotifyBadgesBadgeState:
       {
-        const {useState} = require('.') as typeof Index
-        useState.getState().dispatch.onEngineIncomingImpl(action)
+        const {useNotifState} = require('.') as typeof Index
+        useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

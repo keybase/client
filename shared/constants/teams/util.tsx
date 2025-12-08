@@ -15,8 +15,8 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyBadgesBadgeState:
     case EngineGen.keybase1GregorUIPushState:
       {
-        const {useState} = require('.') as typeof Index
-        useState.getState().dispatch.onEngineIncomingImpl(action)
+        const {useTeamsState} = require('.') as typeof Index
+        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

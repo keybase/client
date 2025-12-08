@@ -25,7 +25,7 @@ const getKeys = (k?: string | ReadonlyArray<string>) => {
   return k
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useWaitingState = Z.createZustand<State>((set, get) => {
   const changeHelper = (keys: string | ReadonlyArray<string>, diff: 1 | -1, error?: RPCError) => {
     set(s => {
       getKeys(keys).forEach(k => {

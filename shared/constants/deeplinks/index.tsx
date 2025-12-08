@@ -55,7 +55,7 @@ interface State extends Store {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useDeepLinksState = Z.createZustand<State>((set, get) => {
   const handleShowUserProfileLink = (username: string) => {
     C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
     C.useProfileState.getState().dispatch.showUserProfile(username)

@@ -307,7 +307,7 @@ export interface State extends Store {
   appendPeopleBuilder: () => void
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useRouterState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
       DEBUG_NAV && console.log('[Nav] clearModals')

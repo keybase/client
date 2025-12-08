@@ -31,7 +31,7 @@ interface State extends Store {
   }
 }
 
-export const useState = Z.createZustand<State>(set => {
+export const useEngineState = Z.createZustand<State>(set => {
   let incomingTimeout: NodeJS.Timeout
   const dispatch: State['dispatch'] = {
     onEngineConnected: () => {
