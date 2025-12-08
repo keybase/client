@@ -575,7 +575,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
     },
     replace: usernameToDetails => {
       set(s => {
-        s.usernameToDetails = usernameToDetails
+        s.usernameToDetails = T.castDraft(usernameToDetails)
       })
     },
     resetState: 'default',
