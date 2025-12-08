@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Git from '@/constants/git'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
@@ -25,7 +26,7 @@ export const HeaderTitle = () => (
 )
 
 export const HeaderRightActions = () => {
-  const setError = C.useGitState(s => s.dispatch.setError)
+  const setError = Git.useGitState(s => s.dispatch.setError)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   const makePopup = React.useCallback(

@@ -1,17 +1,23 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {HeaderTitle, HeaderRightActions} from './nav-header'
+import type * as NavHeader from './nav-header'
 
 export const newRoutes = {
-  gitRoot: C.makeScreen(React.lazy(async () => import('.')), {
-    getOptions: C.isMobile
-      ? {title: 'Git'}
-      : {
-          headerRightActions: HeaderRightActions,
-          headerTitle: HeaderTitle,
-          title: 'Git',
-        },
-  }),
+  gitRoot: C.makeScreen(
+    React.lazy(async () => import('.')),
+    {
+      getOptions: C.isMobile
+        ? {title: 'Git'}
+        : () => {
+            const {HeaderTitle, HeaderRightActions} = require('./nav-header') as typeof NavHeader
+            return {
+              headerRightActions: HeaderRightActions,
+              headerTitle: HeaderTitle,
+              title: 'Git',
+            }
+          },
+    }
+  ),
 }
 
 export const newModalRoutes = {

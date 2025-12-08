@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Git from '@/constants/git'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Row, {NewContext} from './row'
@@ -19,8 +20,8 @@ const getRepos = (git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
   )
 
 const Container = (ownProps: OwnProps) => {
-  const loading = C.Waiting.useAnyWaiting(C.Git.loadingWaitingKey)
-  const {clearBadges, load, setError, error, idToInfo, isNew} = C.useGitState(
+  const loading = C.Waiting.useAnyWaiting(Git.loadingWaitingKey)
+  const {clearBadges, load, setError, error, idToInfo, isNew} = Git.useGitState(
     C.useShallow(s => {
       const {dispatch, error, idToInfo, isNew} = s
       const {clearBadges, load, setError} = dispatch
@@ -86,7 +87,7 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <Kb.Reloadable
-      waitingKeys={C.Git.loadingWaitingKey}
+      waitingKeys={Git.loadingWaitingKey}
       onBack={undefined}
       onReload={load}
       reloadOnMount={true}

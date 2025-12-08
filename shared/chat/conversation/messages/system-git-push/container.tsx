@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import {useGitState} from '@/constants/git'
 import UserNotice from '../user-notice'
 
 type OwnProps = {message: T.Chat.MessageSystemGitPush}
@@ -23,7 +24,7 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
     [message]
   )
   const you = C.useCurrentUserState(s => s.username)
-  const navigateToTeamRepo = C.useGitState(s => s.dispatch.navigateToTeamRepo)
+  const navigateToTeamRepo = useGitState(s => s.dispatch.navigateToTeamRepo)
   const onViewGitRepo = React.useCallback(
     (repoID: string, teamname: string) => {
       navigateToTeamRepo(teamname, repoID)

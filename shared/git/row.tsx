@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Git from '@/constants/git'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -15,14 +16,14 @@ type OwnProps = {
 
 const channelNameToString = (channelName?: string) => (channelName ? `#${channelName}` : '#general')
 
-const noGit = C.Git.makeGitInfo()
+const noGit = Git.makeGitInfo()
 const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
   const {id, expanded, onShowDelete: onShowDelete_, onToggleExpand: onToggleExpand_} = ownProps
-  const git = C.useGitState(s => s.idToInfo.get(id) || noGit)
+  const git = Git.useGitState(s => s.idToInfo.get(id) || noGit)
   const teamID = C.useTeamsState(s => (git.teamname ? C.Teams.getTeamID(s, git.teamname) : undefined))
   const isNew = React.useContext(NewContext).has(id)
   const you = C.useCurrentUserState(s => s.username)
-  const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
+  const setTeamRepoSettings = Git.useGitState(s => s.dispatch.setTeamRepoSettings)
   const _onBrowseGitRepo = C.FS.makeActionForOpenPathInFilesTab
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
