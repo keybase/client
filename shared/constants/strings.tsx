@@ -82,7 +82,8 @@ export const waitingKeyTeamsAddMember = (teamID: T.Teams.TeamID, ...usernames: R
   `teamAdd:${teamID};${usernames.join(',')}`
 export const waitingKeyTeamsAddInvite = (teamname: T.Teams.Teamname, value: string) =>
   `teamAddInvite:${teamname};${value}`
-export const waitingKeyTeamsRemoveMember = (teamID: T.Teams.TeamID, id: string) => `teamRemove:${teamID};${id}`
+export const waitingKeyTeamsRemoveMember = (teamID: T.Teams.TeamID, id: string) =>
+  `teamRemove:${teamID};${id}`
 export const waitingKeyTeamsProfileAddList = 'teamProfileAddList'
 export const waitingKeyTeamsDeleteChannel = (teamID: T.Teams.TeamID) => `channelDelete:${teamID}`
 export const waitingKeyTeamsDeleteTeam = (teamID: T.Teams.TeamID) => `teamDelete:${teamID}`
@@ -120,20 +121,12 @@ export const waitingKeySettingsChatContactSettingsSave = 'settings:contactSettin
 export const waitingKeySettingsChatUnfurl = 'settings:chatUnfurlWaitingKey'
 export const waitingKeySettingsChatContactSettingsLoad = 'settings:contactSettingsLoadWaitingKey'
 
-export const waitingKeyFS = {
-  syncToggle: 'fs:syncToggle',
-  folderList: 'fs:folderList',
-  stat: 'fs:stat',
-  acceptMacOSFuseExtClosedSource: 'fs:acceptMacOSFuseExtClosedSourceWaitingKey',
-  commitEdit: 'fs:commitEditWaitingKey',
-  setSyncOnCellular: 'fs:setSyncOnCellular',
-} as const
-export const waitingKeyFSSyncToggle = waitingKeyFS.syncToggle
-export const waitingKeyFSFolderList = waitingKeyFS.folderList
-export const waitingKeyFSStat = waitingKeyFS.stat
-export const waitingKeyFSAcceptMacOSFuseExtClosedSource = waitingKeyFS.acceptMacOSFuseExtClosedSource
-export const waitingKeyFSCommitEdit = waitingKeyFS.commitEdit
-export const waitingKeyFSSetSyncOnCellular = waitingKeyFS.setSyncOnCellular
+export const waitingKeyFSSyncToggle = 'fs:syncToggle'
+export const waitingKeyFSFolderList = 'fs:folderList'
+export const waitingKeyFSStat = 'fs:stat'
+export const waitingKeyFSAcceptMacOSFuseExtClosedSource = 'fs:acceptMacOSFuseExtClosedSourceWaitingKey'
+export const waitingKeyFSCommitEdit = 'fs:commitEditWaitingKey'
+export const waitingKeyFSSetSyncOnCellular = 'fs:setSyncOnCellular'
 
 export const waitingKeyGitLoading = 'git:loading'
 

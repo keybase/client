@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import Group from './group'
-import * as SettingsChat from '@/constants/settings-chat'
 import {useState as useSettingsChatState} from '@/constants/settings-chat'
 
 const emptyList = new Array<string>()
