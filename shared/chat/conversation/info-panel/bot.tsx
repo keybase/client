@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
+import {getFeaturedSorted} from '@/constants/bots'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -219,7 +220,7 @@ const BotTab = (props: Props) => {
   }
 
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
-  const featuredBots: Array<Item> = C.Bots.getFeaturedSorted(featuredBotsMap)
+  const featuredBots: Array<Item> = getFeaturedSorted(featuredBotsMap)
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
