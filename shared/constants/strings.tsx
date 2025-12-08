@@ -14,7 +14,6 @@ export const waitingKeySignup = 'signup:waiting'
 
 export const waitingKeyChatJoinConversation = 'chat:joinConversation'
 export const waitingKeyChatLeaveConversation = 'chat:leaveConversation'
-export const waitingKeyChatDeleteHistory = 'chat:deleteHistory'
 export const waitingKeyChatPost = 'chat:post'
 export const waitingKeyChatRetryPost = 'chat:retryPost'
 export const waitingKeyChatEditPost = 'chat:editPost'
@@ -26,15 +25,8 @@ export const waitingKeyChatInboxSyncStarted = 'chat:inboxSyncStarted'
 export const waitingKeyChatBotAdd = 'chat:botAdd'
 export const waitingKeyChatBotRemove = 'chat:botRemove'
 export const waitingKeyChatLoadingEmoji = 'chat:loadingEmoji'
-export const waitingKeyChatPushLoad = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyChatThreadLoad = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyChatAddUsersToChannel = 'chat:addUsersToConversation'
-export const waitingKeyChatAddUserToChannel = (
-  username: string,
-  conversationIDKey: T.Chat.ConversationIDKey
-) => `chat:addUserToConversation:${username}:${conversationIDKey}`
 export const waitingKeyChatConvStatusChange = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyChatUnpin = (conversationIDKey: T.Chat.ConversationIDKey) =>
@@ -52,7 +44,6 @@ export const waitingKeyProvisionForgotUsername = 'provision:forgotUsername'
 export const waitingKeyProfile = 'profile:waiting'
 export const waitingKeyProfileUploadAvatar = 'profile:uploadAvatar'
 export const waitingKeyProfileBlockUser = 'profile:blockUser'
-export const waitingKeyProfileWotAuthor = 'profile:wotAuthor'
 
 export const waitingKeyBotsSearchFeatured = 'bots:search:featured'
 export const waitingKeyBotsSearchUsers = 'bots:search:users'
@@ -68,11 +59,9 @@ export const waitingKeyTeamsAccessRequest = 'teams:accessRequests'
 export const waitingKeyTeamsJoinTeam = 'teams:joinTeam'
 export const waitingKeyTeamsTeam = (teamID: T.Teams.TeamID) => `team:${teamID}`
 export const waitingKeyTeamsSetMemberPublicity = (teamID: T.Teams.TeamID) => `teamMemberPub:${teamID}`
-export const waitingKeyTeamsTeamGet = (teamID: T.Teams.TeamID) => `teamGet:${teamID}`
 export const waitingKeyTeamsTeamTars = (teamID: T.Teams.TeamID) => `teamTars:${teamID}`
 export const waitingKeyTeamsCreation = 'teamCreate'
 export const waitingKeyTeamsAddUserToTeams = (username: string) => `addUserToTeams:${username}`
-export const waitingKeyTeamsAddPeopleToTeam = (teamname: T.Teams.Teamname) => `teamAddPeople:${teamname}`
 export const waitingKeyTeamsAddToTeamByEmail = (teamname: T.Teams.Teamname) => `teamAddByEmail:${teamname}`
 export const waitingKeyTeamsGetChannels = (teamID: T.Teams.TeamID) => `getChannels:${teamID}`
 export const waitingKeyTeamsCreateChannel = (teamID: T.Teams.TeamID) => `createChannel:${teamID}`
@@ -80,8 +69,6 @@ export const waitingKeyTeamsSettings = (teamID: T.Teams.TeamID) => `teamSettings
 export const waitingKeyTeamsRetention = (teamID: T.Teams.TeamID) => `teamRetention:${teamID}`
 export const waitingKeyTeamsAddMember = (teamID: T.Teams.TeamID, ...usernames: ReadonlyArray<string>) =>
   `teamAdd:${teamID};${usernames.join(',')}`
-export const waitingKeyTeamsAddInvite = (teamname: T.Teams.Teamname, value: string) =>
-  `teamAddInvite:${teamname};${value}`
 export const waitingKeyTeamsRemoveMember = (teamID: T.Teams.TeamID, id: string) =>
   `teamRemove:${teamID};${id}`
 export const waitingKeyTeamsProfileAddList = 'teamProfileAddList'
@@ -108,7 +95,6 @@ export const waitingKeyAutoresetCancel = 'autoreset:cancelWaitingKey'
 export const waitingKeySettingsSetLockdownMode = 'settings:setLockdownMode'
 export const waitingKeySettingsLoadLockdownMode = 'settings:loadLockdownMode'
 export const waitingKeySettingsCheckPassword = 'settings:checkPassword'
-export const waitingKeySettingsDontUse = 'settings:settingsPage'
 export const waitingKeySettingsSendFeedback = 'settings:sendFeedback'
 export const waitingKeySettingsLoadSettings = 'settings:loadSettings'
 export const waitingKeySettingsGeneric = 'settings:generic'
@@ -124,7 +110,6 @@ export const waitingKeySettingsChatContactSettingsLoad = 'settings:contactSettin
 export const waitingKeyFSSyncToggle = 'fs:syncToggle'
 export const waitingKeyFSFolderList = 'fs:folderList'
 export const waitingKeyFSStat = 'fs:stat'
-export const waitingKeyFSAcceptMacOSFuseExtClosedSource = 'fs:acceptMacOSFuseExtClosedSourceWaitingKey'
 export const waitingKeyFSCommitEdit = 'fs:commitEditWaitingKey'
 export const waitingKeyFSSetSyncOnCellular = 'fs:setSyncOnCellular'
 
@@ -135,9 +120,6 @@ export const waitingKeyUsersSetUserBlocks = 'users:setUserBlocks'
 export const waitingKeyUsersReportUser = 'users:reportUser'
 
 export const waitingKeyPushPermissionsRequesting = 'push:permissionsRequesting'
-
-export const waitingKeyTeamsEmailLookup = 'emailLookup'
-export const waitingKeyTeamsPhoneLookup = 'phoneLookup'
 
 export const defaultDevicename =
   (Platforms.isAndroid ? 'Android Device' : undefined) ||
