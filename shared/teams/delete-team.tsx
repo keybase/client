@@ -13,7 +13,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID
   const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
-  const deleteWaiting = C.Waiting.useAnyWaiting(C.Teams.deleteTeamWaitingKey(teamID))
+  const deleteWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsDeleteTeam(teamID))
   const teamMetas = C.useTeamsState(s => s.teamMeta)
   const subteamNames = teamDetails?.subteams.size
     ? [...teamDetails.subteams]
@@ -38,7 +38,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const {checkChats, checkFolder, checkNotify} = checks
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
   const disabled = !checkChats || !checkFolder || !checkNotify
-  const error = C.Waiting.useAnyErrors(C.Teams.deleteTeamWaitingKey(teamID))
+  const error = C.Waiting.useAnyErrors(C.waitingKeyTeamsDeleteTeam(teamID))
   const prevDeleteWaitingRef = React.useRef(deleteWaiting)
   React.useEffect(() => {
     if (!deleteWaiting && prevDeleteWaitingRef.current && !error) {
@@ -54,7 +54,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   React.useEffect(() => {
     return () => {
-      dispatchClearWaiting(C.Teams.deleteTeamWaitingKey(teamID))
+      dispatchClearWaiting(C.waitingKeyTeamsDeleteTeam(teamID))
     }
   }, [dispatchClearWaiting, teamID])
   useTeamDetailsSubscribe(teamID)
@@ -99,7 +99,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
       onCancel={onBack}
       onConfirm={disabled ? undefined : onDelete}
       prompt={`Delete ${teamname}?`}
-      waitingKey={C.Teams.deleteTeamWaitingKey(teamID)}
+      waitingKey={C.waitingKeyTeamsDeleteTeam(teamID)}
     />
   )
 }

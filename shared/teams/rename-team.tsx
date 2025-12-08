@@ -6,14 +6,14 @@ type OwnProps = {teamname: string}
 
 const Container = (ownProps: OwnProps) => {
   const teamname = ownProps.teamname
-  const _error = C.Waiting.useAnyErrors(C.Teams.teamRenameWaitingKey)
-  const waiting = C.Waiting.useAnyWaiting(C.Teams.teamRenameWaitingKey)
+  const _error = C.Waiting.useAnyErrors(C.waitingKeyTeamsRename)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRename)
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const renameTeam = C.useTeamsState(s => s.dispatch.renameTeam)
   const _onRename = renameTeam
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatchClearWaiting(C.Teams.teamRenameWaitingKey)
+    dispatchClearWaiting(C.waitingKeyTeamsRename)
     navigateUp()
   }
   const propError = (!_error ? undefined : _error.message) || ''

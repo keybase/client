@@ -9,7 +9,7 @@ import {SignupScreen, errorBanner} from '../signup/common'
 const SetPublicName = () => {
   const devices = C.useProvisionState(s => s.devices)
   const error = C.useProvisionState(s => s.error)
-  const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const ponBack = useSafeSubmit(navigateUp, !!error)
   const psetDeviceName = C.useProvisionState(s => s.dispatch.dynamic.setDeviceName)

@@ -6,7 +6,7 @@ import {SignupScreen, errorBanner} from '../signup/common'
 const Container = () => {
   const error = C.useProvisionState(s => s.error)
   const hint = C.useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
-  const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()

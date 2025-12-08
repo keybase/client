@@ -88,14 +88,14 @@ const Container = () => {
         <UsernameTips platform={platform} />
         <Kb.Box2 direction="horizontal" gap="small">
           <Kb.WaitingButton
-            waitingKey={C.Profile.waitingKey}
+            waitingKey={C.waitingKeyProfile}
             onlyDisable={true}
             type="Dim"
             onClick={onCancel}
             label="Cancel"
           />
           <Kb.WaitingButton
-            waitingKey={C.Profile.waitingKey}
+            waitingKey={C.waitingKeyProfile}
             disabled={!canSubmit}
             onClick={submit}
             label="Continue"

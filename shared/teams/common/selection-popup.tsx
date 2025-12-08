@@ -249,8 +249,8 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
 
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const waiting = C.Waiting.useAnyWaiting(C.Teams.editMembershipWaitingKey(teamID, ...members))
-  const teamWaiting = C.Waiting.useAnyWaiting(C.Teams.teamWaitingKey(teamID))
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsEditMembership(teamID, ...members))
+  const teamWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsTeam(teamID))
 
   // We wait for the teamLoaded
   React.useEffect(() => {

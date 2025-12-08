@@ -75,7 +75,7 @@ const DeleteChannel = (props: Props) => {
           Delete {deleteMsg}?
         </Kb.Text>
       }
-      waitingKey={C.Teams.deleteChannelWaitingKey(teamID)}
+      waitingKey={C.waitingKeyTeamsDeleteChannel(teamID)}
     />
   )
 }

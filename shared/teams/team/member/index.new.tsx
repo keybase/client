@@ -112,7 +112,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
 
 const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => {
   const nav = useSafeNavigation()
-  const waitingKey = C.Teams.removeMemberWaitingKey(teamID, username)
+  const waitingKey = C.waitingKeyTeamsRemoveMember(teamID, username)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
   const [leaving, setLeaving] = React.useState(false)
@@ -271,7 +271,7 @@ type NodeNotInRowProps = {
 const NodeNotInRow = (props: NodeNotInRowProps) => {
   useTeamDetailsSubscribe(props.node.teamID)
   const nav = useSafeNavigation()
-  const onAddWaitingKey = C.Teams.addMemberWaitingKey(props.node.teamID, props.username)
+  const onAddWaitingKey = C.waitingKeyTeamsAddMember(props.node.teamID, props.username)
   const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
   const onAdd = (role: T.Teams.TeamRoleType) => {
     addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
@@ -389,7 +389,7 @@ const NodeInRow = (props: NodeInRowProps) => {
       props: {teamID: props.node.teamID, usernames: [props.username]},
       selected: 'teamAddToChannels',
     })
-  const onKickOutWaitingKey = C.Teams.removeMemberWaitingKey(props.node.teamID, props.username)
+  const onKickOutWaitingKey = C.waitingKeyTeamsRemoveMember(props.node.teamID, props.username)
   const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
   const onKickOut = () => {
     removeMember(props.node.teamID, props.username)
@@ -422,10 +422,10 @@ const NodeInRow = (props: NodeInRowProps) => {
   const amLastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, props.node.teamID))
   const isMe = props.username === C.useCurrentUserState(s => s.username)
   const changingRole = C.Waiting.useAnyWaiting(
-    C.Teams.editMembershipWaitingKey(props.node.teamID, props.username)
+    C.waitingKeyTeamsEditMembership(props.node.teamID, props.username)
   )
   const loadingActivity = C.Waiting.useAnyWaiting(
-    C.Teams.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
+    C.waitingKeyTeamsLoadTeamTreeActivity(props.node.teamID, props.username)
   )
 
   const isSmallTeam = !C.useChatState(s => C.Chat.isBigTeam(s, props.node.teamID))

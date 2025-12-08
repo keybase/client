@@ -20,7 +20,7 @@ const CodePageContainer = () => {
   const otherDevice = C.useProvisionState(s => s.codePageOtherDevice)
   const iconNumber = Devices.useDeviceIconNumber(otherDevice.id)
   const textCode = C.useProvisionState(s => s.codePageIncomingTextCode)
-  const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const submitTextCode = C.useProvisionState(s => s.dispatch.dynamic.submitTextCode)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -187,7 +187,7 @@ const CodePageContainer = () => {
               onClick={onSubmitTextCode}
               disabled={!code || waiting}
               style={styles.enterTextButton}
-              waitingKey={C.Provision.waitingKey}
+              waitingKey={C.waitingKeyProvision}
             />
           )}
           {tab !== 'enterText' && inModal() && !Kb.Styles.isMobile && (
@@ -198,7 +198,7 @@ const CodePageContainer = () => {
               onClick={onBack}
               onlyDisable={true}
               style={styles.closeButton}
-              waitingKey={C.Provision.waitingKey}
+              waitingKey={C.waitingKeyProvision}
             />
           )}
           {showHeyWaitInFooter && heyWaitBanner()}

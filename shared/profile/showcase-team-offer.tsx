@@ -44,7 +44,7 @@ const Container = () => {
               membercount={teamMeta.memberCount}
               onPromote={promoted => onPromote(teamMeta.id, promoted)}
               showcased={teamMeta.showcasing}
-              waiting={!!waiting.get(C.Teams.teamWaitingKey(teamMeta.id))}
+              waiting={!!waiting.get(C.waitingKeyTeamsTeam(teamMeta.id))}
             />
           ))}
         </Kb.ScrollView>

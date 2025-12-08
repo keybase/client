@@ -57,12 +57,12 @@ const RevokeProof = (ownProps: OwnProps) => {
           You can add it again later, if you change your mind.
         </Kb.Text>
         <Kb.ButtonBar>
-          <Kb.WaitingButton type="Dim" onClick={onCancel} label="Cancel" waitingKey={C.Profile.waitingKey} />
+          <Kb.WaitingButton type="Dim" onClick={onCancel} label="Cancel" waitingKey={C.waitingKeyProfile} />
           <Kb.WaitingButton
             type="Danger"
             onClick={onRevoke}
             label={platform === 'pgp' ? 'Yes, drop it' : 'Yes, revoke it'}
-            waitingKey={C.Profile.waitingKey}
+            waitingKey={C.waitingKeyProfile}
           />
         </Kb.ButtonBar>
       </Kb.Box>

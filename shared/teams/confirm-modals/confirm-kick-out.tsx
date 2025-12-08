@@ -22,8 +22,8 @@ const ConfirmKickOut = (props: Props) => {
   )
   const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
   const waitingKeys = ([] as string[]).concat.apply(
-    members.map(member => C.Teams.removeMemberWaitingKey(teamID, member)),
-    members.map(member => subteamIDs.map(subteamID => C.Teams.removeMemberWaitingKey(subteamID, member)))
+    members.map(member => C.waitingKeyTeamsRemoveMember(teamID, member)),
+    members.map(member => subteamIDs.map(subteamID => C.waitingKeyTeamsRemoveMember(subteamID, member)))
   )
   const waiting = C.Waiting.useAnyWaiting(...waitingKeys)
   const nav = useSafeNavigation()

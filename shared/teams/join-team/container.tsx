@@ -46,7 +46,7 @@ const Container = (ownProps: OwnProps) => {
               label={success ? 'Close' : 'Continue'}
               onClick={success ? onBack : onSubmit}
               type={success ? 'Dim' : 'Default'}
-              waitingKey={C.Teams.joinTeamWaitingKey}
+              waitingKey={C.waitingKeyTeamsJoinTeam}
             />
           </Kb.ButtonBar>
         ),

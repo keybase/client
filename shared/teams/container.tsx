@@ -68,7 +68,7 @@ const Connected = () => {
   const {teamIDToResetUsers, teamListFilter: filter, teamListSort: sortOrder, teamMeta: _teams} = data
   const {getTeams, launchNewTeamWizardOrModal, manageChatChannels} = data
 
-  const loaded = !C.Waiting.useAnyWaiting(C.Teams.teamsLoadedWaitingKey)
+  const loaded = !C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoaded)
 
   const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
   const onHideChatBanner = () => {
@@ -102,7 +102,7 @@ const Connected = () => {
   const onViewTeam = (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
 
   return (
-    <Kb.Reloadable waitingKeys={C.Teams.teamsLoadedWaitingKey} onReload={loadTeams}>
+    <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={loadTeams}>
       <Teams
         onCreateTeam={onCreateTeam}
         onJoinTeam={onJoinTeam}

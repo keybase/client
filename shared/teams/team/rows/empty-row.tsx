@@ -93,7 +93,7 @@ const EmptyRow = (props: Props) => {
       addToTeam(teamID, [{assertion: you, role: 'admin'}], false)
     }
   }
-  const waiting = C.Waiting.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, you))
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, you))
 
   const teamOrChannel = props.conversationIDKey ? 'channel' : 'team'
   const teamOrChannelName = props.conversationIDKey ? 'This channel' : teamMeta.teamname

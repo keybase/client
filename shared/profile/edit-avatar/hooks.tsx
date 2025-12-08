@@ -44,20 +44,20 @@ export default (ownProps: Props): Ret => {
   const teamID = ownProps.teamID
   const createdTeam = ownProps.createdTeam ?? false
   const image = ownProps.image
-  const sperror = C.Waiting.useAnyErrors(C.Profile.uploadAvatarWaitingKey)
+  const sperror = C.Waiting.useAnyErrors(C.waitingKeyProfileUploadAvatar)
   const sendChatNotification = ownProps.sendChatNotification ?? false
-  const submitting = C.Waiting.useAnyWaiting(C.Profile.uploadAvatarWaitingKey)
+  const submitting = C.Waiting.useAnyWaiting(C.waitingKeyProfileUploadAvatar)
   const teamname = C.useTeamsState(s => (teamID ? C.Teams.getTeamNameFromID(s, teamID) : undefined) ?? '')
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatchClearWaiting(C.Profile.uploadAvatarWaitingKey)
+    dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
     navigateUp()
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatchClearWaiting(C.Profile.uploadAvatarWaitingKey)
+    dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
     clearModals()
   }
   const uploadTeamAvatar = C.useTeamsState(s => s.dispatch.uploadTeamAvatar)
@@ -103,7 +103,7 @@ export default (ownProps: Props): Ret => {
     onClose,
     sendChatNotification,
     submitting,
-    waitingKey: C.Profile.uploadAvatarWaitingKey,
+    waitingKey: C.waitingKeyProfileUploadAvatar,
   }
   return teamID
     ? {

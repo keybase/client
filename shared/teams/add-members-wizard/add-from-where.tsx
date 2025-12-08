@@ -7,7 +7,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 const Skip = () => {
   const finishNewTeamWizard = C.useTeamsState(s => s.dispatch.finishNewTeamWizard)
   const onSkip = () => finishNewTeamWizard()
-  const waiting = C.Waiting.useAnyWaiting(C.Teams.teamCreationWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsCreation)
 
   if (Kb.Styles.isMobile) {
     return waiting ? (

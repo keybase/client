@@ -115,7 +115,7 @@ const Container = () => {
               <Kb.WaitingButton
                 onClick={onSubmit}
                 label={onCompleteText || ''}
-                waitingKey={C.Profile.waitingKey}
+                waitingKey={C.waitingKeyProfile}
               />
             ) : (
               <Kb.Button
