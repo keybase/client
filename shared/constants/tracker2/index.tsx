@@ -232,7 +232,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             C.profileLoadWaitingKey
           )
           set(s => {
-            s.proofSuggestions = T.castDraft(suggestions?.map(rpcSuggestionToAssertion)) ?? []
+            s.proofSuggestions = suggestions?.map(rpcSuggestionToAssertion) ?? []
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -376,9 +376,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
               }
               set(s => {
                 const {assertion, ...rest} = p
-                const {usernameToNonUserDetails} = s
-                const old = usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
+                const old = s.usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
+                s.usernameToNonUserDetails.set(assertion, {...old, ...rest})
               })
               return
             } else {
@@ -392,9 +391,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
               const p = {...common, formattedName, fullName}
               set(s => {
                 const {assertion, ...rest} = p
-                const {usernameToNonUserDetails} = s
-                const old = usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
+                const old = s.usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
+                s.usernameToNonUserDetails.set(assertion, {...old, ...rest})
               })
             }
           }
@@ -423,15 +421,13 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         d.fullname = fullName
         d.location = location
         d.stellarHidden = stellarHidden
-        d.teamShowcase = T.castDraft(
-          teamShowcase?.map(t => ({
-            description: t.description,
-            isOpen: t.open,
-            membersCount: t.numMembers,
-            name: t.fqName,
-            publicAdmins: t.publicAdmins ?? [],
-          })) ?? []
-        )
+        d.teamShowcase = teamShowcase?.map(t => ({
+          description: t.description,
+          isOpen: t.open,
+          membersCount: t.numMembers,
+          name: t.fqName,
+          publicAdmins: t.publicAdmins ?? [],
+        })) ?? []
         d.hidFromFollowers = hidFromFollowers
       })
       username &&
@@ -577,7 +573,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
     },
     replace: usernameToDetails => {
       set(s => {
-        s.usernameToDetails = T.castDraft(usernameToDetails)
+        s.usernameToDetails = usernameToDetails
       })
     },
     resetState: 'default',
