@@ -160,9 +160,8 @@ export const deserialize = (
       s.blockMap = new Map(blockMapArr)
     }
 
-    const details = T.castDraft(
-      s.tracker2.usernameToDetails.get(trackerUsername) ?? ({} as T.Tracker.Details)
-    )
+    const details = s.tracker2.usernameToDetails.get(trackerUsername) ?? T.castDraft({} as T.Tracker.Details)
+
     details.username = trackerUsername
     details.resetBrokeTrack = false
     details.blocked = s.blockMap.get(trackerUsername)?.chatBlocked ?? details.blocked

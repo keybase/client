@@ -307,7 +307,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         try {
           const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise({assertion}, C.profileLoadWaitingKey)
           set(s => {
-            const d = T.castDraft(s.getDetails(assertion))
+            const d = s.usernameToDetails.get(assertion)
+            if (!d) return
             d.followers = new Set(fs.users?.map(f => f.username))
             d.followersCount = d.followers.size
           })
@@ -332,7 +333,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             C.profileLoadWaitingKey
           )
           set(s => {
-            const d = T.castDraft(s.getDetails(assertion))
+            const d = s.usernameToDetails.get(assertion)
+            if (!d) return
             d.following = new Set(fs.users?.map(f => f.username))
             d.followingCount = d.following.size
           })
@@ -410,7 +412,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         if (!username) return
         const {bio, blocked, fullName, hidFromFollowers, location, stellarHidden, teamShowcase} = card
         const {unverifiedNumFollowers, unverifiedNumFollowing} = card
-        const d = T.castDraft(s.getDetails(username))
+        const d = s.usernameToDetails.get(username)
+        if (!d) return
         d.bio = bio
         d.blocked = blocked
         // These will be overridden by a later updateFollows, if it happens (will
@@ -438,7 +441,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
       set(s => {
         const username = guiIDToUsername(s, guiID)
         if (!username) return
-        const d = T.castDraft(s.getDetails(username))
+        const d = s.usernameToDetails.get(username)
+        if (!d) return
         d.resetBrokeTrack = true
         d.reason = `${username} reset their account since you last followed them.`
       })
@@ -448,7 +452,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         const {guiID} = row
         const username = guiIDToUsername(s, guiID)
         if (!username) return
-        const d = T.castDraft(s.getDetails(username))
+        const d = s.usernameToDetails.get(username)
+        if (!d) return
         const assertions = d.assertions ?? new Map()
         d.assertions = assertions
         const assertion = rpcAssertionToAssertion(row)
@@ -460,29 +465,32 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         const {numProofsToCheck, guiID} = summary
         const username = guiIDToUsername(s, guiID)
         if (!username) return
-        const d = T.castDraft(s.getDetails(username))
+        const d = s.usernameToDetails.get(username)
+        if (!d) return
         d.numAssertionsExpected = numProofsToCheck
       })
     },
     notifyUserBlocked: b => {
       set(s => {
         const {blocker, blocks} = b
-        const d = T.castDraft(s.getDetails(blocker))
-        const toProcess = Object.entries(blocks ?? {}).map(
-          ([username, userBlocks]) =>
-            [username, T.castDraft(s.getDetails(username)), userBlocks || []] as const
-        )
-        toProcess.forEach(([username, det, userBlocks]) => {
-          userBlocks.forEach(blockState => {
+        const d = s.usernameToDetails.get(blocker)
+        Object.entries(blocks ?? {}).forEach(([username, userBlocks]) => {
+          const det = s.usernameToDetails.get(username)
+          if (!det) return
+          userBlocks?.forEach(blockState => {
             if (blockState.blockType === T.RPCGen.UserBlockType.chat) {
               det.blocked = blockState.blocked
             } else {
               det.hidFromFollowers = blockState.blocked
-              blockState.blocked && d.followers?.delete(username)
+              if (d && blockState.blocked) {
+                d.followers?.delete(username)
+              }
             }
           })
         })
-        d.followersCount = d.followers?.size
+        if (d) {
+          d.followersCount = d.followers?.size
+        }
       })
     },
     onEngineIncomingImpl: action => {
@@ -596,7 +604,9 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         const newReason =
           reason ||
           (result === 'broken' && `Some of ${username}'s proofs have changed since you last followed them.`)
-        const d = T.castDraft(get().getDetails(username))
+
+        const d = s.usernameToDetails.get(username)
+        if (!d) return
         // Don't overwrite the old reason if the user reset.
         if (!d.resetBrokeTrack || d.reason.length === 0) {
           d.reason = newReason || d.reason
@@ -611,7 +621,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
   return {
     ...initialStore,
     dispatch,
-    getDetails: (username: string): T.Tracker.Details => get().usernameToDetails.get(username) || noDetails,
+    getDetails: (username: string): T.Tracker.Details => get().usernameToDetails.get(username) ?? noDetails,
     getNonUserDetails: (username: string): T.Tracker.NonUserDetails =>
       get().usernameToNonUserDetails.get(username) || noNonUserDetails,
   }
