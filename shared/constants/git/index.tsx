@@ -144,16 +144,6 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       })
     },
     load,
-    onEngineIncoming: action => {
-      switch (action.type) {
-        case EngineGen.keybase1NotifyBadgesBadgeState: {
-          const {badgeState} = action.payload.params
-          get().dispatch.setBadges(new Set(badgeState?.newGitRepoGlobalUniqueIDs))
-          break
-        }
-        default:
-      }
-    },
     navigateToTeamRepo: (teamname, repoID) => {
       const f = async () => {
         await _load()
@@ -167,6 +157,16 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         }
       }
       C.ignorePromise(f())
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyBadgesBadgeState: {
+          const {badgeState} = action.payload.params
+          get().dispatch.setBadges(new Set(badgeState.newGitRepoGlobalUniqueIDs))
+          break
+        }
+        default:
+      }
     },
     resetState: 'default',
     setBadges: b => {

@@ -83,6 +83,17 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyBadgesBadgeState: {
+          const {badgeState} = action.payload.params
+          const {resetState} = badgeState
+          get().dispatch.updateARState(resetState.active, resetState.endTime)
+          break
+        }
+        default:
+      }
+    },
     resetAccount: (password = '') => {
       set(s => {
         s.error = ''
@@ -156,17 +167,6 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       C.ignorePromise(f())
-    },
-    onEngineIncoming: action => {
-      switch (action.type) {
-        case EngineGen.keybase1NotifyBadgesBadgeState: {
-          const {badgeState} = action.payload.params
-          const {resetState} = badgeState
-          get().dispatch.updateARState(resetState.active, resetState.endTime)
-          break
-        }
-        default:
-      }
     },
     resetState: 'default',
     startAccountReset: (skipPassword, _username) => {

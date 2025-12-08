@@ -2441,7 +2441,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         case EngineGen.keybase1NotifyBadgesBadgeState: {
           const {badgeState} = action.payload.params
           const loggedIn = C.useConfigState.getState().loggedIn
-          if (loggedIn && badgeState) {
+          if (loggedIn) {
             const deletedTeams = badgeState.deletedTeams || []
             const newTeams = new Set<string>(badgeState.newTeams || [])
             const teamsWithResetUsers: ReadonlyArray<T.RPCGen.TeamMemberOutReset> =

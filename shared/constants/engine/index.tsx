@@ -1,5 +1,5 @@
 import * as Z from '@/util/zustand'
-import {useState_ as useConfigState} from '../config'
+import {useConfigState_ as useConfigState} from '../config'
 import type * as EngineGen from '@/actions/engine-gen-gen'
 import * as ArchiveUtil from '../archive/util'
 import * as AutoResetUtil from '../autoreset/util'

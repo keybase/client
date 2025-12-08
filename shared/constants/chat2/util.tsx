@@ -1,6 +1,6 @@
 import * as T from '../types'
 import * as C from '..'
-import type * as EngineGen from '@/actions/engine-gen-gen'
+import * as EngineGen from '@/actions/engine-gen-gen'
 
 export const onEngineConnected = () => {
   const f = async () => {
@@ -51,10 +51,11 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.chat1NotifyChatChatSetTeamRetention:
     case EngineGen.keybase1NotifyBadgesBadgeState:
     case EngineGen.keybase1GregorUIPushState:
-      const {useState_} = require('./index')
-      useState_.getState().dispatch.onEngineIncoming(action)
+      {
+        const {useState_} = require('./index')
+        useState_.getState().dispatch.onEngineIncoming(action)
+      }
       break
     default:
   }
 }
-
