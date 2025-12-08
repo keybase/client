@@ -4,6 +4,7 @@ import type * as React from 'react'
 import EmailPhoneRow from './email-phone-row'
 import {usePWState} from '@/constants/settings-password'
 import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsEmailState} from '@/constants/settings-email'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -30,7 +31,7 @@ const AddButton = (props: AddButtonProps) => (
 
 const EmailPhone = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _emails = C.useSettingsEmailState(s => s.emails)
+  const _emails = useSettingsEmailState(s => s.emails)
   const _phones = useSettingsPhoneState(s => s.phones)
   const contactKeys = [..._emails.keys(), ...(_phones ? _phones.keys() : [])]
   const tooManyEmails = _emails.size >= 10 // If you change this, also change in keybase/config/prod/email.iced
@@ -157,7 +158,7 @@ const DeleteAccount = () => {
 }
 
 const AccountSettings = () => {
-  const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
+  const addedEmail = useSettingsEmailState(s => s.addedEmail)
   const addedPhone = useSettingsPhoneState(s => s.addedPhone)
   const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
   const clearAddedPhone = useSettingsPhoneState(s => s.dispatch.clearAddedPhone)
@@ -165,7 +166,7 @@ const AccountSettings = () => {
     editPhone(phone, true)
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const resetAddedEmail = C.useSettingsEmailState(s => s.dispatch.resetAddedEmail)
+  const resetAddedEmail = useSettingsEmailState(s => s.dispatch.resetAddedEmail)
   const onClearAddedEmail = resetAddedEmail
   const onClearAddedPhone = clearAddedPhone
   const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)

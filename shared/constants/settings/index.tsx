@@ -8,6 +8,7 @@ import * as Tabs from '../tabs'
 import logger from '@/logger'
 import {usePWState} from '../settings-password'
 import {useSettingsPhoneState} from '../settings-phone'
+import {useSettingsEmailState} from '../settings-email'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -190,7 +191,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
             undefined,
             C.waitingKeySettingsLoadSettings
           )
-          C.useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
+          useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
           useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
           maybeLoadAppLink()
         } catch (error) {
@@ -214,7 +215,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
       switch (action.type) {
         case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
           logger.info('email verified')
-          C.useSettingsEmailState.getState().dispatch.notifyEmailVerified(action.payload.params.emailAddress)
+          useSettingsEmailState.getState().dispatch.notifyEmailVerified(action.payload.params.emailAddress)
           break
         case EngineGen.keybase1NotifyUsersPasswordChanged: {
           const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
@@ -228,7 +229,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
         }
         case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
           const list = action.payload.params.list ?? []
-          C.useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
+          useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
           break
         }
         default:

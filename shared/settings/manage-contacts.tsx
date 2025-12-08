@@ -2,23 +2,24 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SettingsSection} from './account'
+import {useSettingsContactsState} from '@/constants/settings-contacts'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
 
 const ManageContacts = () => {
-  const status = C.useSettingsContactsState(s => s.permissionStatus)
-  const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
+  const status = useSettingsContactsState(s => s.permissionStatus)
+  const contactsImported = useSettingsContactsState(s => s.importEnabled)
   const waiting = C.Waiting.useAnyWaiting(C.importContactsWaitingKey)
 
-  const loadContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
+  const loadContactImportEnabled = useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
 
   if (contactsImported === undefined) {
     loadContactImportEnabled()
   }
 
-  const requestPermissions = C.useSettingsContactsState(s => s.dispatch.requestPermissions)
-  const editContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.editContactImportEnabled)
+  const requestPermissions = useSettingsContactsState(s => s.dispatch.requestPermissions)
+  const editContactImportEnabled = useSettingsContactsState(s => s.dispatch.editContactImportEnabled)
 
   const onToggle = React.useCallback(() => {
     if (status !== 'granted') {
@@ -57,10 +58,10 @@ const ManageContacts = () => {
 }
 
 const ManageContactsBanner = () => {
-  const status = C.useSettingsContactsState(s => s.permissionStatus)
-  const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
-  const importedCount = C.useSettingsContactsState(s => s.importedCount)
-  const error = C.useSettingsContactsState(s => s.importError)
+  const status = useSettingsContactsState(s => s.permissionStatus)
+  const contactsImported = useSettingsContactsState(s => s.importEnabled)
+  const importedCount = useSettingsContactsState(s => s.importedCount)
+  const error = useSettingsContactsState(s => s.importError)
   const onOpenAppSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)

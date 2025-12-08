@@ -7,6 +7,7 @@ import logger from '@/logger'
 import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
+import {useSettingsEmailState} from '../settings-email'
 
 type Store = T.Immutable<{
   devicename: string
@@ -118,7 +119,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         }
         // If the email was set to be visible during signup, we need to set that with a separate RPC.
         if (noErrors() && get().emailVisible) {
-          C.useSettingsEmailState.getState().dispatch.editEmail({email: get().email, makeSearchable: true})
+          useSettingsEmailState.getState().dispatch.editEmail({email: get().email, makeSearchable: true})
         }
       } catch (_error) {
         if (_error instanceof RPCError) {

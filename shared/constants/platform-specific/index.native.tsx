@@ -14,6 +14,7 @@ import {Alert, Linking, ActionSheetIOS} from 'react-native'
 import {isIOS, isAndroid} from '../platform'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
+import {useSettingsContactsState} from '../settings-contacts'
 import {
   androidOpenSettings,
   androidShare,
@@ -514,7 +515,7 @@ export const initPlatformListener = () => {
     if (s.mobileAppState === old.mobileAppState) return
     if (s.mobileAppState === 'active') {
       // only reload on foreground
-      C.useSettingsContactsState.getState().dispatch.loadContactPermissions()
+      useSettingsContactsState.getState().dispatch.loadContactPermissions()
     }
   })
 
@@ -588,7 +589,7 @@ export const initPlatformListener = () => {
     s.dispatch.dynamic.onEngineIncomingNative = C.wrapErrors((action: EngineGen.Actions) => {
       switch (action.type) {
         case EngineGen.chat1ChatUiTriggerContactSync:
-          C.useSettingsContactsState.getState().dispatch.manageContactsCache()
+          useSettingsContactsState.getState().dispatch.manageContactsCache()
           break
         case EngineGen.keybase1LogUiLog: {
           const {params} = action.payload

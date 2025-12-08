@@ -1,10 +1,11 @@
 import {Reloadable} from '@/common-adapters'
 import * as C from '@/constants'
 import Render from './render'
+import {useSettingsNotifState} from '@/constants/settings-notifications'
 
 const Notifications = () => {
   const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
-  const refresh = C.useSettingsNotifState(s => s.dispatch.refresh)
+  const refresh = useSettingsNotifState(s => s.dispatch.refresh)
   const onRefresh = () => {
     loadSettings()
     refresh()

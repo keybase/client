@@ -7,6 +7,7 @@ import {EnterPhoneNumberBody} from '@/signup/phone-number'
 import VerifyBody from '@/signup/phone-number/verify-body'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsEmailState} from '@/constants/settings-email'
 
 export const Email = () => {
   const nav = useSafeNavigation()
@@ -17,12 +18,12 @@ export const Email = () => {
   const emailTrimmed = email.trim()
   const disabled = !emailTrimmed
 
-  const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
-  const emailError = C.useSettingsEmailState(s => s.error)
+  const addedEmail = useSettingsEmailState(s => s.addedEmail)
+  const emailError = useSettingsEmailState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
 
-  const addEmail = C.useSettingsEmailState(s => s.dispatch.addEmail)
-  const resetAddingEmail = C.useSettingsEmailState(s => s.dispatch.resetAddingEmail)
+  const addEmail = useSettingsEmailState(s => s.dispatch.addEmail)
+  const resetAddingEmail = useSettingsEmailState(s => s.dispatch.resetAddingEmail)
 
   // clean on unmount
   React.useEffect(

@@ -5,13 +5,14 @@ import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
 import {useTeamDetailsSubscribe} from '../subscriber'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {getE164} from '@/constants/settings-phone'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.
 const extractPhoneNumber = (name: string, region: string): string => {
   const matches = /\((.*)\)/.exec(name)
   const maybeNumber = matches?.[1]?.replace(/[^0-9+]/g, '')
-  return (maybeNumber && C.SettingsPhone.getE164(maybeNumber, region)) ?? ''
+  return (maybeNumber && getE164(maybeNumber, region)) ?? ''
 }
 
 // Extract either emails or phone numbers from team invites, to match to

@@ -12,6 +12,7 @@ import type {RootRouteProps} from '@/router-v2/route-params'
 import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
 import {formatAnyPhoneNumbers} from '@/util/phone-numbers'
 import {useRoute} from '@react-navigation/native'
+import {useSettingsContactsState} from '@/constants/settings-contacts'
 // import {useAnimatedScrollHandler} from '@/common-adapters/reanimated'
 import {useColorScheme} from 'react-native'
 
@@ -227,8 +228,8 @@ export const ListBody = (
   const {onAdd, onRemove, teamSoFar, onSearchForMore, onChangeText} = props
   const {namespace, highlightedIndex, /*offset, */ enterInputCounter, onFinishTeamBuilding} = props
 
-  const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
-  const contactsPermissionStatus = C.useSettingsContactsState(s => s.permissionStatus)
+  const contactsImported = useSettingsContactsState(s => s.importEnabled)
+  const contactsPermissionStatus = useSettingsContactsState(s => s.permissionStatus)
 
   const username = C.useCurrentUserState(s => s.username)
   const following = C.useFollowerState(s => s.following)

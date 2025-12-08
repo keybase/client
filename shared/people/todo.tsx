@@ -6,6 +6,7 @@ import type {IconType} from '@/common-adapters/icon.constants-gen'
 import PeopleItem, {type TaskButton} from './item'
 import * as Kb from '@/common-adapters'
 import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsEmailState} from '@/constants/settings-email'
 
 type TodoOwnProps = {
   badged: boolean
@@ -197,9 +198,9 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
-  const addingEmail = C.useSettingsEmailState(s => s.addingEmail)
+  const addingEmail = useSettingsEmailState(s => s.addingEmail)
   const setResentEmail = C.usePeopleState(s => s.dispatch.setResentEmail)
-  const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
+  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
     editEmail({email, verify: true})
     setResentEmail(email)
@@ -272,7 +273,7 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
 }
 
 const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
-  const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
+  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (email: string) => {

@@ -6,6 +6,7 @@ import {keybaseFM} from '@/constants/whats-new'
 import SettingsItem from './sub-nav/settings-item'
 import WhatsNewIcon from '../whats-new/icon'
 import noop from 'lodash/noop'
+import {useSettingsContactsState} from '@/constants/settings-contacts'
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
@@ -62,7 +63,7 @@ function SettingsNav() {
   const badgeNotifications = C.usePushState(s => !s.hasPermissions)
   const statsShown = C.useConfigState(s => !!s.runtimeStats)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const contactsLabel = C.useSettingsContactsState(s =>
+  const contactsLabel = useSettingsContactsState(s =>
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'
   )
 

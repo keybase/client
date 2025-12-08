@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsEmailState} from '@/constants/settings-email'
 
 const addSpacer = (into: string, add: string) => {
   return into + (into.length ? ' • ' : '') + add
@@ -211,10 +212,10 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const useData = (contactKey: string) => {
-  const _emailRow = C.useSettingsEmailState(s => s.emails.get(contactKey) ?? null)
+  const _emailRow = useSettingsEmailState(s => s.emails.get(contactKey) ?? null)
   const _phoneRow = useSettingsPhoneState(s => s.phones?.get(contactKey) || null)
-  const moreThanOneEmail = C.useSettingsEmailState(s => s.emails.size > 1)
-  const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
+  const moreThanOneEmail = useSettingsEmailState(s => s.emails.size > 1)
+  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const _onMakeNotSearchable = () => {
     editEmail({email: contactKey, makeSearchable: false})
   }

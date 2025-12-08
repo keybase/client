@@ -4,6 +4,7 @@ import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
+import {useSettingsContactsState} from '@/constants/settings-contacts'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
 
@@ -75,7 +76,7 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
 }
 
 const ContactsJoinedModal = () => {
-  const people = C.useSettingsContactsState(s => s.alreadyOnKeybase)
+  const people = useSettingsContactsState(s => s.alreadyOnKeybase)
   const nav = useSafeNavigation()
   const onClose = () => nav.safeNavigateUp()
   return (

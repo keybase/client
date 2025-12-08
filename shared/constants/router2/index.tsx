@@ -16,6 +16,7 @@ import isEqual from 'lodash/isEqual'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet} from '../types/router2'
 import {registerDebugClear} from '@/util/debug'
+import {useSettingsEmailState} from '../settings-email'
 export type PathParam = NavigateAppendType
 export type Route = NavigationState<KBRootParamList>['routes'][0]
 // still a little paranoid about some things being missing in this type
@@ -480,13 +481,13 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       const updateSettings = () => {
         // Clear "check your inbox" in settings when you leave the settings tab
         if (
-          C.useSettingsEmailState.getState().addedEmail &&
+          useSettingsEmailState.getState().addedEmail &&
           prev &&
           getTab(prev) === Tabs.settingsTab &&
           next &&
           getTab(next) !== Tabs.settingsTab
         ) {
-          C.useSettingsEmailState.getState().dispatch.resetAddedEmail()
+          useSettingsEmailState.getState().dispatch.resetAddedEmail()
         }
       }
       updateSettings()
