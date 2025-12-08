@@ -572,9 +572,10 @@ func (b *Bucket) Del(ctx context.Context, path string) error {
 	b.addTokenHeader(headers)
 
 	req := &request{
-		method: "DELETE",
-		bucket: b.Name,
-		path:   path,
+		method:  "DELETE",
+		bucket:  b.Name,
+		path:    path,
+		headers: headers,
 	}
 	return b.S3.query(ctx, req, nil)
 }
