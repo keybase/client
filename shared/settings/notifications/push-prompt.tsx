@@ -38,7 +38,7 @@ const PushPrompt = () => {
             fullWidth={true}
             onClick={onRequestPermissions}
             label="Allow notifications"
-            waitingKey={C.Push.permissionsRequestingWaitingKey}
+            waitingKey={C.waitingKeyPushPermissionsRequesting}
             style={styles.button}
             type="Success"
           />

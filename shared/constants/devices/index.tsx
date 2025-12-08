@@ -28,7 +28,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     load: debounce(
       () => {
         const f = async () => {
-          const results = await T.RPCGen.deviceDeviceHistoryListRpcPromise(undefined, waitingKey)
+          const results = await T.RPCGen.deviceDeviceHistoryListRpcPromise(undefined, C.waitingKeyDevices)
           set(s => {
             C.updateImmerMap(
               s.deviceMap,
@@ -99,7 +99,6 @@ export const emptyDevice: T.Devices.Device = {
 const makeDevice = (d?: Partial<T.Devices.Device>): T.Devices.Device =>
   d ? {...emptyDevice, ...d} : emptyDevice
 
-export const waitingKey = 'devices:devicesPage'
 
 export const useActiveDeviceCounts = () => {
   const ds = useState(s => s.deviceMap)

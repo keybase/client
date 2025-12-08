@@ -66,7 +66,7 @@ const Editing = React.memo(function Editing({editID}: Props) {
             style={styles.button}
             small={true}
             label={edit.error ? 'Retry' : edit.type === T.FS.EditType.NewFolder ? 'Create' : 'Save'}
-            waitingKey={C.FS.commitEditWaitingKey}
+            waitingKey={C.waitingKeyFSCommitEdit}
             onClick={onSubmit}
           />
           <Kb.Icon

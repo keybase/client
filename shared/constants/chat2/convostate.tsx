@@ -988,22 +988,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     get().dispatch.setEditing('clear')
 
     const f = async () => {
-      await T.RPCChat.localPostEditNonblockRpcPromise(
-        {
-          body: text,
-          clientPrev: getClientPrev(),
-          conversationID: get().getConvID(),
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          outboxID: Common.generateOutboxID(),
-          target: {
-            messageID: m.id,
-            outboxID: m.outboxID ? T.Chat.outboxIDToRpcOutboxID(m.outboxID) : undefined,
-          },
-          tlfName: get().meta.tlfname,
-          tlfPublic: false,
+      await T.RPCChat.localPostEditNonblockRpcPromise({
+        body: text,
+        clientPrev: getClientPrev(),
+        conversationID: get().getConvID(),
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+        outboxID: Common.generateOutboxID(),
+        target: {
+          messageID: m.id,
+          outboxID: m.outboxID ? T.Chat.outboxIDToRpcOutboxID(m.outboxID) : undefined,
         },
-        C.waitingKeyChatEditPost
-      )
+        tlfName: get().meta.tlfname,
+        tlfPublic: false,
+      })
     }
     C.ignorePromise(f())
   }
@@ -1052,7 +1049,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             tlfName,
             tlfPublic: false,
           },
-          waitingKey: waitingKey || C.waitingKeyChatPost,
+          waitingKey,
         })
         logger.info('success')
       } catch {
@@ -1327,7 +1324,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     hideConversation: hide => {
-      const {id: conversationIDKey} = get()
       const f = async () => {
         if (hide) {
           // Nav to inbox but don't use findNewConversation since changeSelectedConversation
@@ -1337,14 +1333,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           get().dispatch.showInfoPanel(false, undefined)
         }
 
-        await T.RPCChat.localSetConversationStatusLocalRpcPromise(
-          {
-            conversationID: get().getConvID(),
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-            status: hide ? T.RPCChat.ConversationStatus.ignored : T.RPCChat.ConversationStatus.unfiled,
-          },
-          C.waitingKeyChatConvStatusChange(conversationIDKey)
-        )
+        await T.RPCChat.localSetConversationStatusLocalRpcPromise({
+          conversationID: get().getConvID(),
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          status: hide ? T.RPCChat.ConversationStatus.ignored : T.RPCChat.ConversationStatus.unfiled,
+        })
       }
       C.ignorePromise(f())
     },
@@ -1363,10 +1356,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     joinConversation: () => {
       const f = async () => {
-        await T.RPCChat.localJoinConversationByIDLocalRpcPromise(
-          {convID: get().getConvID()},
-          C.waitingKeyChatJoinConversation
-        )
+        await T.RPCChat.localJoinConversationByIDLocalRpcPromise({convID: get().getConvID()})
       }
       C.ignorePromise(f())
     },
@@ -1901,27 +1891,23 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         // We have to cancel pending messages
         if (!message.id) {
           if (message.outboxID) {
-            await T.RPCChat.localCancelPostRpcPromise(
-              {outboxID: T.Chat.outboxIDToRpcOutboxID(message.outboxID)},
-              C.waitingKeyChatCancelPost
-            )
+            await T.RPCChat.localCancelPostRpcPromise({
+              outboxID: T.Chat.outboxIDToRpcOutboxID(message.outboxID),
+            })
             get().dispatch.messagesWereDeleted({ordinals: [message.ordinal]})
           } else {
             logger.warn('Delete of no message id and no outboxid')
           }
         } else {
-          await T.RPCChat.localPostDeleteNonblockRpcPromise(
-            {
-              clientPrev: 0,
-              conversationID: get().getConvID(),
-              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-              outboxID: null,
-              supersedes: message.id,
-              tlfName: get().meta.tlfname,
-              tlfPublic: false,
-            },
-            C.waitingKeyChatDeletePost
-          )
+          await T.RPCChat.localPostDeleteNonblockRpcPromise({
+            clientPrev: 0,
+            conversationID: get().getConvID(),
+            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+            outboxID: null,
+            supersedes: message.id,
+            tlfName: get().meta.tlfname,
+            tlfPublic: false,
+          })
         }
       }
       C.ignorePromise(f())
@@ -2002,10 +1988,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       if (!good) return
 
       const f = async () => {
-        await T.RPCChat.localRetryPostRpcPromise(
-          {outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)},
-          C.waitingKeyChatRetryPost
-        )
+        await T.RPCChat.localRetryPostRpcPromise({outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)})
       }
       C.ignorePromise(f())
     },
@@ -3058,18 +3041,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.debug('unfurl remove no meta found, aborting!')
           return
         }
-        await T.RPCChat.localPostDeleteNonblockRpcPromise(
-          {
-            clientPrev: 0,
-            conversationID: get().getConvID(),
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-            outboxID: null,
-            supersedes: messageID,
-            tlfName: get().meta.tlfname,
-            tlfPublic: false,
-          },
-          C.waitingKeyChatDeletePost
-        )
+        await T.RPCChat.localPostDeleteNonblockRpcPromise({
+          clientPrev: 0,
+          conversationID: get().getConvID(),
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          outboxID: null,
+          supersedes: messageID,
+          tlfName: get().meta.tlfname,
+          tlfPublic: false,
+        })
       }
       C.ignorePromise(f())
     },

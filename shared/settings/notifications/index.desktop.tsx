@@ -12,7 +12,7 @@ const Notifications = () => {
   return (
     <Reloadable
       onBack={undefined}
-      waitingKeys={[C.refreshNotificationsWaitingKey, C.Settings.loadSettingsWaitingKey]}
+      waitingKeys={[C.refreshNotificationsWaitingKey, C.waitingKeySettingsLoadSettings]}
       onReload={onRefresh}
       reloadOnMount={true}
     >

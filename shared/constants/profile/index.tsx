@@ -36,11 +36,6 @@ export const toProveGenericParams = (p: T.RPCGen.ProveParameters): T.Immutable<P
   title: p.title,
 })
 
-export const waitingKey = 'profile:waiting'
-export const uploadAvatarWaitingKey = 'profile:uploadAvatar'
-export const blockUserWaitingKey = 'profile:blockUser'
-export const wotAuthorWaitingKey = 'profile:wotAuthor'
-
 type Store = T.Immutable<{
   blockUserModal?: 'waiting' | {error: string}
   errorCode?: number
@@ -200,7 +195,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       try {
         await T.RPCGen.cryptocurrencyRegisterAddressRpcPromise(
           {address: get().username, force: true, wantedFamily},
-          waitingKey
+          C.waitingKeyProfile
         )
         set(s => {
           s.proofFound = true
@@ -384,7 +379,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
               service: platform,
               username: '',
             },
-            waitingKey,
+            waitingKey: C.waitingKeyProfile,
           })
           set(s => {
             s.sigID = sigID
@@ -451,7 +446,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          const {found, status} = await T.RPCGen.proveCheckProofRpcPromise({sigID}, waitingKey)
+          const {found, status} = await T.RPCGen.proveCheckProofRpcPromise({sigID}, C.waitingKeyProfile)
           // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
           if (!found && status >= T.RPCGen.ProofStatus.baseHardError) {
             set(s => {
@@ -598,7 +593,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         s.errorText = ''
       })
       const f = async () => {
-        await T.RPCGen.proveCheckProofRpcPromise({sigID}, waitingKey)
+        await T.RPCGen.proveCheckProofRpcPromise({sigID}, C.waitingKeyProfile)
         C.useTrackerState.getState().dispatch.showUser(C.useCurrentUserState.getState().username, false)
       }
       C.ignorePromise(f())
@@ -625,7 +620,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         try {
-          await T.RPCGen.userBlockUserRpcPromise({username}, blockUserWaitingKey)
+          await T.RPCGen.userBlockUserRpcPromise({username})
           set(s => {
             s.blockUserModal = undefined
           })
@@ -657,7 +652,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
 
         if (proof.type === 'pgp') {
           try {
-            await T.RPCGen.revokeRevokeKeyRpcPromise({keyID: proof.kid}, waitingKey)
+            await T.RPCGen.revokeRevokeKeyRpcPromise({keyID: proof.kid}, C.waitingKeyProfile)
           } catch (e) {
             logger.info('error in dropping pgp key', e)
             set(s => {
@@ -666,7 +661,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           }
         } else {
           try {
-            await T.RPCGen.revokeRevokeSigsRpcPromise({sigIDQueries: [proofId]}, waitingKey)
+            await T.RPCGen.revokeRevokeSigsRpcPromise({sigIDQueries: [proofId]}, C.waitingKeyProfile)
             get().dispatch.finishRevoking()
           } catch (error) {
             logger.warn(`Error when revoking proof ${proofId}`, error)
@@ -681,7 +676,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     submitUnblockUser: (username, guiID) => {
       const f = async () => {
         try {
-          await T.RPCGen.userUnblockUserRpcPromise({username}, blockUserWaitingKey)
+          await T.RPCGen.userUnblockUserRpcPromise({username})
           C.useTrackerState.getState().dispatch.load({
             assertion: username,
             guiID: C.generateGUIID(),
@@ -730,7 +725,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.userUploadUserAvatarRpcPromise(
             {crop: fixCrop(crop), filename},
-            uploadAvatarWaitingKey
+            C.waitingKeyProfileUploadAvatar
           )
           C.useRouterState.getState().dispatch.navigateUp()
         } catch (error) {

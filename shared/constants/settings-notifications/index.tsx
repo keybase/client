@@ -7,7 +7,6 @@ import * as T from '../types'
 const securityGroup = 'security'
 const soundGroup = 'sound'
 const miscGroup = 'misc'
-const settingsWaitingKey = 'settings:generic'
 
 export type NotificationsSettingsState = {
   name:
@@ -244,11 +243,11 @@ export const useSettingsNotifState = Z.createZustand<State>((set, get) => {
             args: [],
             endpoint: 'account/subscribe',
           },
-          settingsWaitingKey
+          C.waitingKeySettingsGeneric
         )
         await T.RPCChat.localSetGlobalAppNotificationSettingsLocalRpcPromise(
           {settings: {...chatGlobalArg}},
-          settingsWaitingKey
+          C.waitingKeySettingsGeneric
         )
 
         if (

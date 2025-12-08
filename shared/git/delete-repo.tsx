@@ -12,7 +12,7 @@ const Container = (ownProps: OwnProps) => {
   const error = Git.useGitState(s => s.error)
   const _name = git.name || ''
   const teamname = git.teamname || ''
-  const waitingKey = Git.loadingWaitingKey
+  const waitingKey = C.waitingKeyGitLoading
 
   const deletePersonalRepo = Git.useGitState(s => s.dispatch.deletePersonalRepo)
   const deleteTeamRepo = Git.useGitState(s => s.dispatch.deleteTeamRepo)

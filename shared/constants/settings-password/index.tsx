@@ -4,7 +4,6 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import * as T from '../types'
 
-const settingsWaitingKey = 'settings:generic'
 type Store = T.Immutable<{
   error: string
   hasPGPKeyOnServer?: boolean
@@ -135,7 +134,7 @@ export const usePWState = Z.createZustand<State>((set, get) => {
               oldPassphrase: '',
               passphrase: newPassword,
             },
-            settingsWaitingKey
+            C.waitingKeySettingsGeneric
           )
 
           if (thenLogout) {

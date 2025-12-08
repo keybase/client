@@ -5,7 +5,7 @@ const useNotifications = () => {
   const allowEdit = C.useSettingsNotifState(s => s.allowEdit)
   const toggle = C.useSettingsNotifState(s => s.dispatch.toggle)
   const showEmailSection = C.useSettingsEmailState(s => s.emails.size > 0)
-  const waitingForResponse = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
+  const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()

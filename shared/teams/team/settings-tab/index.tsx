@@ -374,7 +374,7 @@ const Container = (ownProps: OwnProps) => {
   const openTeam = settings.open
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname
-  const waitingForWelcomeMessage = C.Waiting.useAnyWaiting(C.Teams.loadWelcomeMessageWaitingKey(teamID))
+  const waitingForWelcomeMessage = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoadWelcomeMessage(teamID))
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const _loadWelcomeMessage = C.useTeamsState(s => s.dispatch.loadWelcomeMessage)
   const resetErrorInSettings = C.useTeamsState(s => s.dispatch.resetErrorInSettings)

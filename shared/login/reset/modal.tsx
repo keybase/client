@@ -48,7 +48,7 @@ const ResetModalImpl = () => {
               type="Danger"
               fullWidth={true}
               onClick={onCancelReset}
-              waitingKey={AutoReset.cancelResetWaitingKey}
+              waitingKey={C.waitingKeyAutoresetCancel}
               label="Cancel account reset"
             />
           ),

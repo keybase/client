@@ -10,7 +10,7 @@ const LogoutContainer = () => {
   const resetCheckPassword = C.useSettingsState(s => s.dispatch.resetCheckPassword)
   const checkPassword = C.useSettingsState(s => s.dispatch.checkPassword)
   const hasRandomPW = usePWState(s => s.randomPW)
-  const waitingForResponse = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
+  const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
 
   const loadHasRandomPw = usePWState(s => s.dispatch.loadHasRandomPw)
 
@@ -97,7 +97,7 @@ const LogoutContainer = () => {
           <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
               fullWidth={true}
-              waitingKey={C.Settings.checkPasswordWaitingKey}
+              waitingKey={C.waitingKeySettingsCheckPassword}
               disabled={!password || loggingOut}
               label="Test password"
               onClick={() => onCheckPassword(password)}

@@ -1,8 +1,8 @@
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
-import * as RecoverPwd from '@/constants/recover-password'
 import {useState as useRecoverState} from '@/constants/recover-password'
 
 const PaperKey = () => {
@@ -28,7 +28,7 @@ const PaperKey = () => {
           label: 'Continue',
           onClick: onSubmit,
           type: 'Default' as ButtonType,
-          waitingKey: RecoverPwd.waitingKey,
+          waitingKey: C.waitingKeyRecoverPassword,
         },
       ]}
       onBack={props.onBack}

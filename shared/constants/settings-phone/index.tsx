@@ -18,10 +18,6 @@ export const makePhoneRow = (): PhoneRow => ({
   verified: false,
 })
 
-export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'
-export const addPhoneNumberWaitingKey = 'settings:addPhoneNumber'
-export const resendVerificationForPhoneWaitingKey = 'settings:resendVerificationForPhone'
-
 // Get phone number in e.164, or null if we can't parse it.
 export const getE164 = (phoneNumber: string, countryCode?: string) => {
   const {phoneUtil, ValidationResult, PhoneNumberFormat} = require('@/util/phone-numbers') as {
@@ -123,7 +119,7 @@ export const useSettingsPhoneState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.phoneNumbersAddPhoneNumberRpcPromise(
             {phoneNumber, visibility},
-            addPhoneNumberWaitingKey
+            C.waitingKeySettingsPhoneAddPhoneNumber
           )
           logger.info('success')
           set(s => {
@@ -210,7 +206,7 @@ export const useSettingsPhoneState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.phoneNumbersResendVerificationForPhoneNumberRpcPromise(
             {phoneNumber},
-            resendVerificationForPhoneWaitingKey
+            C.waitingKeySettingsPhoneResendVerification
           )
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -249,7 +245,7 @@ export const useSettingsPhoneState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.phoneNumbersVerifyPhoneNumberRpcPromise(
             {code, phoneNumber},
-            verifyPhoneNumberWaitingKey
+            C.waitingKeySettingsPhoneVerifyPhoneNumber
           )
           logger.info('success')
           set(s => {

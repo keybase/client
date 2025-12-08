@@ -38,7 +38,7 @@ const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: ()
       fullWidth={Kb.Styles.isMobile}
       type="Danger"
       label="Yes, delete it"
-      waitingKey={Devices.waitingKey}
+      waitingKey={C.waitingKeyDevices}
       onClick={onSubmit}
     />
     <Kb.Button fullWidth={Kb.Styles.isMobile} type="Dim" onClick={onCancel} label="Cancel" />
@@ -72,7 +72,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
   try {
     const tlfs = await T.RPCGen.rekeyGetRevokeWarningRpcPromise(
       {actingDevice, targetDevice},
-      Devices.waitingKey
+      C.waitingKeyDevices
     )
     return tlfs.endangeredTLFs?.map(t => t.name) ?? []
   } catch (e) {
@@ -92,7 +92,7 @@ const useRevoke = (deviceID = '') => {
     const f = async () => {
       if (wasCurrentDevice) {
         try {
-          await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, Devices.waitingKey)
+          await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.waitingKeyDevices)
           load()
           C.useConfigState.getState().dispatch.revoke(deviceName)
         } catch {}
@@ -100,7 +100,7 @@ const useRevoke = (deviceID = '') => {
         try {
           await T.RPCGen.revokeRevokeDeviceRpcPromise(
             {deviceID, forceLast: false, forceSelf: false},
-            Devices.waitingKey
+            C.waitingKeyDevices
           )
           load()
           C.useConfigState.getState().dispatch.revoke(deviceName)
@@ -122,7 +122,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const deviceName = device?.name ?? ''
   const type = device?.type ?? 'desktop'
   const iconNumber = Devices.useDeviceIconNumber(selectedDeviceID)
-  const waiting = C.Waiting.useAnyWaiting(Devices.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const onSubmit = useRevoke(deviceID)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp

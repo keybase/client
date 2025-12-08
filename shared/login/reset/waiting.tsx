@@ -27,7 +27,7 @@ const Waiting = (props: Props) => {
     setSendAgainSuccess(false)
     resetAccount()
   }, [resetAccount])
-  const _sendAgainWaiting = C.Waiting.useAnyWaiting(AutoReset.enterPipelineWaitingKey)
+  const _sendAgainWaiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const sendAgainWaiting = hasSentAgain && _sendAgainWaiting
   const prevSendAgainWaitingRef = React.useRef(sendAgainWaiting)
   React.useEffect(() => {

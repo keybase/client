@@ -268,7 +268,7 @@ const Container = (ownProps: OwnProps) => {
   const disabledReasonsForRolePicker = C.useTeamsState(s =>
     C.Teams.getDisabledReasonsForRolePicker(s, teamID, username)
   )
-  const waiting = C.Waiting.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, username))
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, username))
   const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
   const ignoreRequest = C.useTeamsState(s => s.dispatch.ignoreRequest)
 

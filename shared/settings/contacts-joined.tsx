@@ -33,7 +33,7 @@ export const FollowButton = (props: FollowProps) => {
   const onFollow = React.useCallback(() => changeFollow(guiID, true), [changeFollow, guiID])
   const onUnfollow = React.useCallback(() => changeFollow(guiID, false), [changeFollow, guiID])
 
-  const waitingKey = React.useMemo(() => [getFollowWaitingKey(username), C.profileLoadWaitingKey], [username])
+  const waitingKey = React.useMemo(() => [getFollowWaitingKey(username), C.waitingKeyTrackerProfileLoad], [username])
 
   return (
     <UnconnectedFollowButton

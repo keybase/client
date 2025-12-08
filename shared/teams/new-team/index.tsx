@@ -19,7 +19,7 @@ type Props = {
 export const CreateNewTeam = (props: Props) => {
   const [name, setName] = React.useState('')
   const [joinSubteam, setJoinSubteam] = React.useState(true)
-  const waiting = C.Waiting.useAnyWaiting(C.Teams.teamCreationWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsCreation)
 
   const {baseTeam, onSubmit} = props
   const isSubteam = !!baseTeam

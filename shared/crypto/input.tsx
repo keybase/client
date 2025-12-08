@@ -179,7 +179,7 @@ const inputFileIcon = new Map([
 const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = inputFileIcon.get(operation) as IconType
-  const waiting = C.Waiting.useAnyWaiting(Crypto.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
 
   return (
     <Kb.Box2
@@ -194,9 +194,7 @@ const FileInput = (props: FileProps) => {
           <Kb.Icon type={fileIcon} sizeType="Huge" />
           <Kb.Box2 direction="vertical">
             <Kb.Text type="BodySemibold">{path}</Kb.Text>
-            {size ? (
-              <Kb.Text type="BodySmallSemibold">{C.FS.humanReadableFileSize(size)}</Kb.Text>
-            ) : null}
+            {size ? <Kb.Text type="BodySmallSemibold">{C.FS.humanReadableFileSize(size)}</Kb.Text> : null}
           </Kb.Box2>
         </Kb.Box2>
         {path && !waiting && (
@@ -339,7 +337,6 @@ export const OperationBanner = (props: CommonProps) => {
 // Mobile only
 export const InputActionsBar = (props: RunOperationProps) => {
   const {operation, children, blurCBRef} = props
-  const waitingKey = Crypto.waitingKey
   const operationTitle = capitalize(operation)
   const runTextOperation = Crypto.useState(s => s.dispatch.runTextOperation)
   const onRunOperation = () => {
@@ -359,7 +356,7 @@ export const InputActionsBar = (props: RunOperationProps) => {
       {children}
       <Kb.WaitingButton
         mode="Primary"
-        waitingKey={waitingKey}
+        waitingKey={C.waitingKeyCrypto}
         label={operationTitle}
         fullWidth={true}
         onClick={onRunOperation}

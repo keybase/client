@@ -327,8 +327,8 @@ const Container = (ownProps: OwnProps) => {
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status
-  const waitingForAdd = C.Waiting.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, username))
-  const waitingForRemove = C.Waiting.useAnyWaiting(C.Teams.removeMemberWaitingKey(teamID, username))
+  const waitingForAdd = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, username))
+  const waitingForRemove = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRemoveMember(teamID, username))
   const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const onBlock = () => {
     username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])

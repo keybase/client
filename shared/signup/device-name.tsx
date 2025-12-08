@@ -6,7 +6,7 @@ import {SignupScreen, errorBanner} from './common'
 const ConnectedEnterDevicename = () => {
   const error = C.useSignupState(s => s.devicenameError)
   const initialDevicename = C.useSignupState(s => s.devicename)
-  const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const goBackAndClearErrors = C.useSignupState(s => s.dispatch.goBackAndClearErrors)
   const checkDeviceName = C.useSignupState(s => s.dispatch.checkDeviceName)
   const onBack = goBackAndClearErrors

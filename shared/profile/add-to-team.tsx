@@ -31,7 +31,7 @@ const Container = (ownProps: OwnProps) => {
   const clearAddUserToTeamsResults = C.useTeamsState(s => s.dispatch.clearAddUserToTeamsResults)
   const addUserToTeams = C.useTeamsState(s => s.dispatch.addUserToTeams)
   const teamProfileAddList = C.useTeamsState(s => s.teamProfileAddList)
-  const waiting = C.Waiting.useAnyWaiting(C.Teams.teamProfileAddListWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsProfileAddList)
   const _onAddToTeams = addUserToTeams
   const getTeamProfileAddList = C.useTeamsState(s => s.dispatch.getTeamProfileAddList)
   const resetTeamProfileAddList = C.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
@@ -141,7 +141,7 @@ const Container = (ownProps: OwnProps) => {
               style={styles.addButton}
               onClick={onSave}
               label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
-              waitingKey={C.Teams.addUserToTeamsWaitingKey(them)}
+              waitingKey={C.waitingKeyTeamsAddUserToTeams(them)}
             />
           </Kb.ButtonBar>
         ),

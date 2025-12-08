@@ -1,9 +1,5 @@
 import uniq from 'lodash/uniq'
 import {runMode} from '../platform'
-
-export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
-export const createOtherAccountWaitingKey = 'config:createOther'
-export const loginWaitingKey = 'login:waiting'
 // An ugly error message from the service that we'd like to rewrite ourselves.
 export const invalidPasswordErrorString = 'Bad password: Invalid password. Server rejected login attempt..'
 

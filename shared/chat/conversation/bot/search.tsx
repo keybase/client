@@ -27,8 +27,8 @@ const SearchBotPopup = (props: Props) => {
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
   const botSearchResults = C.useBotsState(s => s.botSearchResults)
   const waiting = C.Waiting.useAnyWaiting([
-    C.Bots.waitingKeyBotSearchUsers,
-    C.Bots.waitingKeyBotSearchFeatured,
+    C.waitingKeyBotsSearchUsers,
+    C.waitingKeyBotsSearchFeatured,
   ])
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {

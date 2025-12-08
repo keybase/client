@@ -11,12 +11,6 @@ import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
 
-export const syncToggleWaitingKey = 'fs:syncToggle'
-export const folderListWaitingKey = 'fs:folderList'
-export const statWaitingKey = 'fs:stat'
-export const acceptMacOSFuseExtClosedSourceWaitingKey = 'fs:acceptMacOSFuseExtClosedSourceWaitingKey'
-export const commitEditWaitingKey = 'fs:commitEditWaitingKey'
-export const setSyncOnCellularWaitingKey = 'fs:setSyncOnCellular'
 
 const subscriptionDeduplicateIntervalSecond = 1
 export const defaultPath = T.FS.stringToPath('/keybase')
@@ -1390,7 +1384,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
                   flags: T.RPCGen.OpenFlags.directory,
                   opID: makeUUID(),
                 },
-                commitEditWaitingKey
+                C.waitingKeyFSCommitEdit
               )
               get().dispatch.editSuccess(editID)
               return
@@ -1407,7 +1401,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
                 overwriteExistingFiles: false,
                 src: pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.originalName)),
               })
-              await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, commitEditWaitingKey)
+              await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, C.waitingKeyFSCommitEdit)
               get().dispatch.editSuccess(editID)
               return
             } catch (error) {
@@ -1681,7 +1675,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             })
           }
 
-          await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, folderListWaitingKey)
+          await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, C.waitingKeyFSFolderList)
 
           const result = await T.RPCGen.SimpleFSSimpleFSReadListRpcPromise({opID})
           const entries = result.entries || []
@@ -2068,7 +2062,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               path: pathToRPCPath(path),
               refreshSubscription: false,
             },
-            statWaitingKey
+            C.waitingKeyFSStat
           )
 
           const pathItem = makeEntry(dirent)
@@ -2524,7 +2518,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             config: {mode: enabled ? T.RPCGen.FolderSyncMode.enabled : T.RPCGen.FolderSyncMode.disabled},
             path: pathToRPCPath(tlfPath),
           },
-          syncToggleWaitingKey
+          C.waitingKeyFSSyncToggle
         )
         get().dispatch.loadTlfSyncConfig(tlfPath)
       }

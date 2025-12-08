@@ -14,7 +14,7 @@ const Container = (ownProps: OwnProps) => {
   const errorMessage = inviteError.message
   const _malformedEmails = inviteError.malformed
   const name = teamname
-  const waitingKey = C.Teams.addToTeamByEmailWaitingKey(teamname) || ''
+  const waitingKey = C.waitingKeyTeamsAddToTeamByEmail(teamname) || ''
   const inviteToTeamByEmail = C.useTeamsState(s => s.dispatch.inviteToTeamByEmail)
   const resetErrorInEmailInvite = C.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
   // should only be called on unmount

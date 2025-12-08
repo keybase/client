@@ -9,7 +9,7 @@ const EnterPassword = () => {
   const [password, setPassword] = React.useState('')
   const error = AutoReset.useState(s => s.error)
   const endTime = AutoReset.useState(s => s.endTime)
-  const waiting = C.Waiting.useAnyWaiting(AutoReset.enterPipelineWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const nav = useSafeNavigation()
   const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
 

@@ -3,7 +3,6 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
 import * as C from '..'
 import logger from '@/logger'
-import {waitingKeyBotSearchFeatured, waitingKeyBotSearchUsers} from './util'
 
 type BotSearchResults = {
   bots: ReadonlyArray<T.RPCGen.FeaturedBot>
@@ -90,7 +89,7 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
         let userRes: ReadonlyArray<T.RPCGen.APIUserSearchResult> | undefined
         try {
           const temp = await Promise.all([
-            T.RPCGen.featuredBotSearchRpcPromise({limit: 10, offset: 0, query}, waitingKeyBotSearchFeatured),
+            T.RPCGen.featuredBotSearchRpcPromise({limit: 10, offset: 0, query}, C.waitingKeyBotsSearchFeatured),
             T.RPCGen.userSearchUserSearchRpcPromise(
               {
                 includeContacts: false,
@@ -99,7 +98,7 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
                 query,
                 service: 'keybase',
               },
-              waitingKeyBotSearchUsers
+              C.waitingKeyBotsSearchUsers
             ),
           ])
           botRes = temp[0]
@@ -180,4 +179,4 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
   }
 })
 
-export {waitingKeyBotSearchFeatured, waitingKeyBotSearchUsers, getFeaturedSorted} from './util'
+export {getFeaturedSorted} from './util'

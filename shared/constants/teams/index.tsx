@@ -1,7 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as ProfileConstants from '../profile'
 import * as Router2Constants from '../router2'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
@@ -19,44 +18,7 @@ export const rpcMemberStatusToStatus = invert(T.RPCGen.TeamMemberStatus) as unkn
   [K in keyof typeof T.RPCGen.TeamMemberStatus as (typeof T.RPCGen.TeamMemberStatus)[K]]: K
 }
 
-// Waiting keys
-// Add granularity as necessary
-export const teamsLoadedWaitingKey = 'teams:loaded'
-export const teamsAccessRequestWaitingKey = 'teams:accessRequests'
-export const joinTeamWaitingKey = 'teams:joinTeam'
-export const teamWaitingKey = (teamID: T.Teams.TeamID) => `team:${teamID}`
-
-export const setMemberPublicityWaitingKey = (teamID: T.Teams.TeamID) => `teamMemberPub:${teamID}`
-export const teamGetWaitingKey = (teamID: T.Teams.TeamID) => `teamGet:${teamID}`
-export const teamTarsWaitingKey = (teamID: T.Teams.TeamID) => `teamTars:${teamID}`
-export const teamCreationWaitingKey = 'teamCreate'
-
-export const addUserToTeamsWaitingKey = (username: string) => `addUserToTeams:${username}`
-export const addPeopleToTeamWaitingKey = (teamname: T.Teams.Teamname) => `teamAddPeople:${teamname}`
-export const addToTeamByEmailWaitingKey = (teamname: T.Teams.Teamname) => `teamAddByEmail:${teamname}`
-export const getChannelsWaitingKey = (teamID: T.Teams.TeamID) => `getChannels:${teamID}`
-export const createChannelWaitingKey = (teamID: T.Teams.TeamID) => `createChannel:${teamID}`
-export const settingsWaitingKey = (teamID: T.Teams.TeamID) => `teamSettings:${teamID}`
-export const retentionWaitingKey = (teamID: T.Teams.TeamID) => `teamRetention:${teamID}`
-export const addMemberWaitingKey = (teamID: T.Teams.TeamID, ...usernames: ReadonlyArray<string>) =>
-  `teamAdd:${teamID};${usernames.join(',')}`
-export const addInviteWaitingKey = (teamname: T.Teams.Teamname, value: string) =>
-  `teamAddInvite:${teamname};${value}`
-// also for pending invites, hence id rather than username
-export const removeMemberWaitingKey = (teamID: T.Teams.TeamID, id: string) => `teamRemove:${teamID};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
-export const teamProfileAddListWaitingKey = 'teamProfileAddList'
-export const deleteChannelWaitingKey = (teamID: T.Teams.TeamID) => `channelDelete:${teamID}`
-export const deleteTeamWaitingKey = (teamID: T.Teams.TeamID) => `teamDelete:${teamID}`
-export const leaveTeamWaitingKey = (teamname: T.Teams.Teamname) => `teamLeave:${teamname}`
-export const teamRenameWaitingKey = 'teams:rename'
-export const loadWelcomeMessageWaitingKey = (teamID: T.Teams.TeamID) => `loadWelcomeMessage:${teamID}`
-export const setWelcomeMessageWaitingKey = (teamID: T.Teams.TeamID) => `setWelcomeMessage:${teamID}`
-export const loadTeamTreeActivityWaitingKey = (teamID: T.Teams.TeamID, username: string) =>
-  `loadTeamTreeActivity:${teamID};${username}`
-export const editMembershipWaitingKey = (teamID: T.Teams.TeamID, ...usernames: ReadonlyArray<string>) =>
-  `editMembership:${teamID};${usernames.join(',')}`
-export const updateChannelNameWaitingKey = (teamID: T.Teams.TeamID) => `updateChannelName:${teamID}`
 
 export const initialMemberInfo = Object.freeze<T.Teams.MemberInfo>({
   fullName: '',
@@ -1293,7 +1255,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         }
         const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
         try {
-          const pushState = await T.RPCGen.gregorGetStateRpcPromise(undefined, teamWaitingKey(teamID))
+          const pushState = await T.RPCGen.gregorGetStateRpcPromise(undefined, C.waitingKeyTeamsTeam(teamID))
           const item = pushState.items?.find(i => i.item?.category === chosenChannelsGregorKey)
           let teams: Array<string> = []
           let msgID: Uint8Array | undefined
@@ -1332,7 +1294,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               category: chosenChannelsGregorKey,
               dtime,
             },
-            teams.map(t => teamWaitingKey(getTeamID(get(), t)))
+            teams.map(t => C.waitingKeyTeamsTeam(getTeamID(get(), t)))
           )
         } catch (err) {
           // failure getting the push state, don't bother the user with an error
@@ -1357,7 +1319,10 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
                 role: T.RPCGen.TeamRole[role],
               })),
             },
-            [teamWaitingKey(teamID), addMemberWaitingKey(teamID, ...users.map(({assertion}) => assertion))]
+            [
+              C.waitingKeyTeamsTeam(teamID),
+              C.waitingKeyTeamsAddMember(teamID, ...users.map(({assertion}) => assertion)),
+            ]
           )
           if (res.notAdded && res.notAdded.length > 0) {
             const usernames = res.notAdded.map(elem => elem.username)
@@ -1426,7 +1391,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
                 teamID,
                 username: user,
               },
-              [teamWaitingKey(teamID), addUserToTeamsWaitingKey(user)]
+              [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsAddUserToTeams(user)]
             )
             teamsAddedTo.push(team)
           } catch {
@@ -1488,10 +1453,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
     checkRequestedAccess: _teamname => {
       // we never use teamname?
       const f = async () => {
-        const result = await T.RPCGen.teamsTeamListMyAccessRequestsRpcPromise(
-          {},
-          teamsAccessRequestWaitingKey
-        )
+        const result = await T.RPCGen.teamsTeamListMyAccessRequestsRpcPromise({})
         set(s => {
           s.teamAccessRequestsPending = new Set<T.Teams.Teamname>(
             result?.map(row => row.parts?.join('.') ?? '')
@@ -1535,7 +1497,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               topicName: channelname,
               topicType: T.RPCChat.TopicType.chat,
             },
-            createChannelWaitingKey(teamID)
+            C.waitingKeyTeamsCreateChannel(teamID)
           )
           // No error if we get here.
           const newConversationIDKey = T.Chat.conversationIDToKey(result.conv.info.id)
@@ -1554,7 +1516,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
                 tlfName: teamname,
                 tlfPublic: false,
               },
-              createChannelWaitingKey(teamID)
+              C.waitingKeyTeamsCreateChannel(teamID)
             )
           }
 
@@ -1627,7 +1589,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         try {
           const {teamID} = await T.RPCGen.teamsTeamCreateRpcPromise(
             {joinSubteam, name: teamname},
-            teamCreationWaitingKey
+            C.waitingKeyTeamsCreation
           )
           set(s => {
             s.teamNameToID.set(teamname, teamID)
@@ -1684,7 +1646,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
             confirmed: true,
             convID: T.Chat.keyToConversationID(conversationIDKey),
           },
-          teamWaitingKey(teamID)
+          C.waitingKeyTeamsTeam(teamID)
         )
         get().dispatch.loadTeamChannelList(teamID)
         C.useRouterState.getState().dispatch.clearModals()
@@ -1700,7 +1662,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               confirmed: true,
               convID: T.Chat.keyToConversationID(conversationIDKey),
             },
-            deleteChannelWaitingKey(teamID)
+            C.waitingKeyTeamsDeleteChannel(teamID)
           )
         }
         get().dispatch.loadTeamChannelList(teamID)
@@ -1718,7 +1680,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
             },
             incomingCallMap: {},
             params: {teamID},
-            waitingKey: deleteTeamWaitingKey(teamID),
+            waitingKey: C.waitingKeyTeamsDeleteTeam(teamID),
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -1749,7 +1711,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               teamID,
               users: usernames.map(assertion => ({assertion, role})),
             },
-            [teamWaitingKey(teamID), editMembershipWaitingKey(teamID, ...usernames)]
+            [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsEditMembership(teamID, ...usernames)]
           )
         } catch (error) {
           set(s => {
@@ -1772,7 +1734,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         try {
-          await T.RPCGen.teamsSetTeamShowcaseRpcPromise({description, teamID}, teamWaitingKey(teamID))
+          await T.RPCGen.teamsSetTeamShowcaseRpcPromise({description, teamID}, C.waitingKeyTeamsTeam(teamID))
         } catch (error) {
           set(s => {
             if (error instanceof RPCError) {
@@ -1805,7 +1767,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           })),
         }
         try {
-          const teamID = await T.RPCGen.teamsTeamCreateFancyRpcPromise({teamInfo}, teamCreationWaitingKey)
+          const teamID = await T.RPCGen.teamsTeamCreateFancyRpcPromise({teamInfo}, C.waitingKeyTeamsCreation)
           set(s => {
             s.newTeamWizard = T.castDraft(newTeamWizardEmptyState)
             s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, justFinished: true})
@@ -1888,7 +1850,8 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
     getTeamProfileAddList: username => {
       const f = async () => {
         const res =
-          (await T.RPCGen.teamsTeamProfileAddListRpcPromise({username}, teamProfileAddListWaitingKey)) ?? []
+          (await T.RPCGen.teamsTeamProfileAddListRpcPromise({username}, C.waitingKeyTeamsProfileAddList)) ??
+          []
         const teamlist = res.map(team => ({
           disabledReason: team.disabledReason,
           open: team.open,
@@ -1907,7 +1870,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         try {
           const policy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
             {teamID},
-            teamWaitingKey(teamID)
+            C.waitingKeyTeamsTeam(teamID)
           )
           try {
             retentionPolicy = serviceRetentionPolicyToRetentionPolicy(policy)
@@ -1947,7 +1910,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         try {
           const results = await T.RPCGen.teamsTeamListUnverifiedRpcPromise(
             {includeImplicitTeams: false, userAssertion: username},
-            teamsLoadedWaitingKey
+            C.waitingKeyTeamsLoaded
           )
           const teams: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo> = results.teams || []
           const teamnames: Array<string> = []
@@ -1977,7 +1940,10 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
     ignoreRequest: (teamID, teamname, username) => {
       const f = async () => {
         try {
-          await T.RPCGen.teamsTeamIgnoreRequestRpcPromise({name: teamname, username}, teamWaitingKey(teamID))
+          await T.RPCGen.teamsTeamIgnoreRequestRpcPromise(
+            {name: teamname, username},
+            C.waitingKeyTeamsTeam(teamID)
+          )
         } catch {}
       }
       C.ignorePromise(f())
@@ -1998,7 +1964,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               name: teamname,
               role: T.RPCGen.TeamRole[role],
             },
-            [teamWaitingKey(teamID), addToTeamByEmailWaitingKey(teamname)]
+            [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsAddToTeamByEmail(teamname)]
           )
           if (res.malformed && res.malformed.length > 0) {
             const malformed = res.malformed
@@ -2064,7 +2030,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               role: T.RPCGen.TeamRole[role],
               teamname,
             },
-            teamWaitingKey(teamID)
+            C.waitingKeyTeamsTeam(teamID)
           )
           /* Open SMS */
           const bodyText = generateSMSBody(teamname, seitan)
@@ -2118,7 +2084,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
             },
             incomingCallMap: {},
             params: {tokenOrName: teamname},
-            waitingKey: joinTeamWaitingKey,
+            waitingKey: C.waitingKeyTeamsJoinTeam,
           })
           set(s => {
             s.teamJoinSuccess = true
@@ -2164,7 +2130,10 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
         try {
-          await T.RPCGen.teamsTeamLeaveRpcPromise({name: teamname, permanent}, leaveTeamWaitingKey(teamname))
+          await T.RPCGen.teamsTeamLeaveRpcPromise(
+            {name: teamname, permanent},
+            C.waitingKeyTeamsLeaveTeam(teamname)
+          )
           logger.info(`leaveTeam: left ${teamname} successfully`)
           C.useRouterState.getState().dispatch.clearModals()
           C.useRouterState.getState().dispatch.navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
@@ -2277,7 +2246,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         try {
           const message = await T.RPCChat.localGetWelcomeMessageRpcPromise(
             {teamID},
-            loadWelcomeMessageWaitingKey(teamID)
+            C.waitingKeyTeamsLoadWelcomeMessage(teamID)
           )
           set(s => {
             s.teamIDToWelcomeMessage.set(teamID, message)
@@ -2368,7 +2337,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         }
         const teamID = membership.result.ok.teamID
         const username = membership.targetUsername
-        const waitingKey = loadTeamTreeActivityWaitingKey(teamID, username)
+        const waitingKey = C.waitingKeyTeamsLoadTeamTreeActivity(teamID, username)
         try {
           const _activityMap = await T.RPCChat.localGetLastActiveAtMultiLocalRpcPromise(
             {teamIDs: [teamID], username},
@@ -2519,7 +2488,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.teamsTeamReAddMemberAfterResetRpcPromise(
             {id: teamID, username},
-            addMemberWaitingKey(teamID, username)
+            C.waitingKeyTeamsAddMember(teamID, username)
           )
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2562,7 +2531,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               },
               teamID,
             },
-            [teamWaitingKey(teamID), removeMemberWaitingKey(teamID, username)]
+            [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsRemoveMember(teamID, username)]
           )
         } catch (err) {
           logger.error('Failed to remove member', err)
@@ -2579,7 +2548,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               member: {inviteid: {inviteID}, type: T.RPCGen.TeamMemberToRemoveType.inviteid},
               teamID,
             },
-            [teamWaitingKey(teamID), removeMemberWaitingKey(teamID, inviteID)]
+            [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsRemoveMember(teamID, inviteID)]
           )
         } catch (err) {
           logger.error('Failed to remove pending invite', err)
@@ -2592,7 +2561,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         const prevName = {parts: oldName.split('.')}
         const newName = {parts: _newName.split('.')}
         try {
-          await T.RPCGen.teamsTeamRenameRpcPromise({newName, prevName}, teamRenameWaitingKey)
+          await T.RPCGen.teamsTeamRenameRpcPromise({newName, prevName}, C.waitingKeyTeamsRename)
         } catch {
           // err displayed from waiting store in component
         }
@@ -2661,7 +2630,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
     },
     saveChannelMembership: (teamID, oldChannelState, newChannelState) => {
       const f = async () => {
-        const waitingKey = teamWaitingKey(teamID)
+        const waitingKey = C.waitingKeyTeamsTeam(teamID)
         for (const convIDKeyStr in newChannelState) {
           const conversationIDKey = T.Chat.stringToConversationIDKey(convIDKeyStr)
           if (oldChannelState[conversationIDKey] === newChannelState[conversationIDKey]) {
@@ -2734,8 +2703,8 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await T.RPCGen.teamsSetTeamMemberShowcaseRpcPromise({isShowcased: showcase, teamID}, [
-            teamWaitingKey(teamID),
-            setMemberPublicityWaitingKey(teamID),
+            C.waitingKeyTeamsTeam(teamID),
+            C.waitingKeyTeamsSetMemberPublicity(teamID),
           ])
           get().dispatch.getTeams(false)
         } catch (error) {
@@ -2776,7 +2745,6 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
     },
     setPublicity: (teamID, settings) => {
       const f = async () => {
-        const waitingKey = settingsWaitingKey(teamID)
         const teamMeta = getTeamMeta(get(), teamID)
         const teamSettings = (get().teamDetails.get(teamID) ?? emptyTeamDetails).settings
         const ignoreAccessRequests = teamSettings.tarsDisabled
@@ -2788,53 +2756,44 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
 
         if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
           try {
-            await T.RPCGen.teamsTeamSetSettingsRpcPromise(
-              {
-                settings: {joinAs: T.RPCGen.TeamRole[settings.openTeamRole], open: settings.openTeam},
-                teamID,
-              },
-              waitingKey
-            )
+            await T.RPCGen.teamsTeamSetSettingsRpcPromise({
+              settings: {joinAs: T.RPCGen.TeamRole[settings.openTeamRole], open: settings.openTeam},
+              teamID,
+            })
           } catch (payload) {
             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
           try {
-            await T.RPCGen.teamsSetTarsDisabledRpcPromise(
-              {disabled: settings.ignoreAccessRequests, teamID},
-              waitingKey
-            )
+            await T.RPCGen.teamsSetTarsDisabledRpcPromise({disabled: settings.ignoreAccessRequests, teamID})
           } catch (payload) {
             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityAnyMember !== settings.publicityAnyMember) {
           try {
-            await T.RPCGen.teamsSetTeamShowcaseRpcPromise(
-              {anyMemberShowcase: settings.publicityAnyMember, teamID},
-              waitingKey
-            )
+            await T.RPCGen.teamsSetTeamShowcaseRpcPromise({
+              anyMemberShowcase: settings.publicityAnyMember,
+              teamID,
+            })
           } catch (payload) {
             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityMember !== settings.publicityMember) {
           try {
-            await T.RPCGen.teamsSetTeamMemberShowcaseRpcPromise(
-              {isShowcased: settings.publicityMember, teamID},
-              waitingKey
-            )
+            await T.RPCGen.teamsSetTeamMemberShowcaseRpcPromise({
+              isShowcased: settings.publicityMember,
+              teamID,
+            })
           } catch (payload) {
             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityTeam !== settings.publicityTeam) {
           try {
-            await T.RPCGen.teamsSetTeamShowcaseRpcPromise(
-              {isShowcased: settings.publicityTeam, teamID},
-              waitingKey
-            )
+            await T.RPCGen.teamsSetTeamShowcaseRpcPromise({isShowcased: settings.publicityTeam, teamID})
           } catch (payload) {
             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
@@ -2872,8 +2831,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         try {
           const servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
           await T.RPCChat.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
-            teamWaitingKey(teamID),
-            retentionWaitingKey(teamID),
+            C.waitingKeyTeamsTeam(teamID),
           ])
         } catch (error) {
           set(s => {
@@ -2994,10 +2952,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         try {
-          await T.RPCChat.localSetWelcomeMessageRpcPromise(
-            {message, teamID},
-            setWelcomeMessageWaitingKey(teamID)
-          )
+          await T.RPCChat.localSetWelcomeMessageRpcPromise({message, teamID})
           get().dispatch.loadWelcomeMessage(teamID)
         } catch (error) {
           set(s => {
@@ -3130,7 +3085,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       }
 
       try {
-        await T.RPCChat.localPostMetadataRpcPromise(param, updateChannelNameWaitingKey(teamID))
+        await T.RPCChat.localPostMetadataRpcPromise(param, C.waitingKeyTeamsUpdateChannelName(teamID))
       } catch (error) {
         if (error instanceof RPCError) {
           get().dispatch.setChannelCreationError(error.desc)
@@ -3157,7 +3112,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         tlfPublic: false,
       }
       try {
-        await T.RPCChat.localPostHeadlineRpcPromise(param, updateChannelNameWaitingKey(teamID))
+        await T.RPCChat.localPostHeadlineRpcPromise(param, C.waitingKeyTeamsUpdateChannelName(teamID))
       } catch {}
     },
     uploadTeamAvatar: (teamname, filename, sendChatNotification, crop) => {
@@ -3165,7 +3120,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.teamsUploadTeamAvatarRpcPromise(
             {crop: fixCrop(crop), filename, sendChatNotification, teamname},
-            ProfileConstants.uploadAvatarWaitingKey
+            C.waitingKeyProfileUploadAvatar
           )
           C.useRouterState.getState().dispatch.navigateUp()
         } catch (error) {

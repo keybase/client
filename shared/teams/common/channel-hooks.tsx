@@ -47,7 +47,7 @@ export const useAllChannelMetas = (
               tlfName: teamname,
               topicType: T.RPCChat.TopicType.chat,
             },
-            C.Teams.getChannelsWaitingKey(teamID),
+            C.waitingKeyTeamsGetChannels(teamID),
           ],
           ({convs}) => {
             resolve()

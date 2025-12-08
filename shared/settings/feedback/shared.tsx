@@ -32,7 +32,7 @@ export const useSendFeedback = () => {
             sendMaxBytes,
             statusJSON: JSON.stringify(extra),
           },
-          C.Settings.sendFeedbackWaitingKey
+          C.waitingKeySettingsSendFeedback
         )
         logger.info('logSendId is', logSendId)
       } catch (error) {

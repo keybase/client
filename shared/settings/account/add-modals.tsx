@@ -127,7 +127,7 @@ export const Phone = () => {
   const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
   const error = C.useSettingsPhoneState(s => s.error)
   const pendingVerification = C.useSettingsPhoneState(s => s.pendingVerification)
-  const waiting = C.Waiting.useAnyWaiting(C.SettingsPhone.addPhoneNumberWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneAddPhoneNumber)
 
   const clearPhoneNumberErrors = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberErrors)
   const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
@@ -233,10 +233,10 @@ export const VerifyPhone = () => {
   const error = C.useSettingsPhoneState(s => s.error)
   const verificationState = C.useSettingsPhoneState(s => s.verificationState)
   const resendWaiting = C.Waiting.useAnyWaiting([
-    C.SettingsPhone.addPhoneNumberWaitingKey,
-    C.SettingsPhone.resendVerificationForPhoneWaitingKey,
+    C.waitingKeySettingsPhoneAddPhoneNumber,
+    C.waitingKeySettingsPhoneResendVerification,
   ])
-  const verifyWaiting = C.Waiting.useAnyWaiting(C.SettingsPhone.verifyPhoneNumberWaitingKey)
+  const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)
   const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
 
   // clean everything on unmount

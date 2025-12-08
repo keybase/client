@@ -106,8 +106,8 @@ const Container = (ownProps: OwnProps) => {
   const error = C.useTeamsState(s => s.errorInAddToTeam)
   const isBig = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
   const loading = C.Waiting.useAnyWaiting([
-    C.Teams.teamWaitingKey(teamID),
-    C.Teams.teamTarsWaitingKey(teamMeta.teamname),
+    C.waitingKeyTeamsTeam(teamID),
+    C.waitingKeyTeamsTeamTars(teamMeta.teamname),
   ])
   const newTeamRequests = C.useTeamsState(s => s.newTeamRequests)
   const numInvites = teamDetails?.invites.size ?? 0

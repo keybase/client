@@ -6,9 +6,6 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {type Device} from '../provision'
 import {rpcDeviceToDevice} from '../rpc-utils'
-import {waitingKey} from './utils'
-
-export {waitingKey} from './utils'
 
 type Store = T.Immutable<{
   devices: Array<Device>
@@ -206,7 +203,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               },
             },
             params: {username: p.username},
-            waitingKey,
+            waitingKey: C.waitingKeyRecoverPassword,
           })
           console.log('Recovered account')
         } catch (error) {

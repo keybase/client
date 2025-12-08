@@ -22,7 +22,7 @@ const CheckPassphraseMobile = () => {
     deleteAccountForever(password)
   }
 
-  const waitingKey = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
+  const waitingKey = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
   const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
 
@@ -47,7 +47,7 @@ const CheckPassphraseMobile = () => {
           <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
               fullWidth={true}
-              waitingKey={C.Settings.checkPasswordWaitingKey}
+              waitingKey={C.waitingKeySettingsCheckPassword}
               disabled={!!checkPasswordIsCorrect || !password}
               label="Authorize"
               onClick={() => onCheckPassword(password)}
