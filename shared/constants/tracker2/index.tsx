@@ -232,7 +232,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             C.profileLoadWaitingKey
           )
           set(s => {
-            s.proofSuggestions = suggestions?.map(rpcSuggestionToAssertion) ?? []
+            s.proofSuggestions = T.castDraft(suggestions?.map(rpcSuggestionToAssertion)) ?? []
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -421,13 +421,15 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         d.fullname = fullName
         d.location = location
         d.stellarHidden = stellarHidden
-        d.teamShowcase = teamShowcase?.map(t => ({
-          description: t.description,
-          isOpen: t.open,
-          membersCount: t.numMembers,
-          name: t.fqName,
-          publicAdmins: t.publicAdmins ?? [],
-        })) ?? []
+        d.teamShowcase = T.castDraft(
+          teamShowcase?.map(t => ({
+            description: t.description,
+            isOpen: t.open,
+            membersCount: t.numMembers,
+            name: t.fqName,
+            publicAdmins: t.publicAdmins ?? [],
+          })) ?? []
+        )
         d.hidFromFollowers = hidFromFollowers
       })
       username &&
