@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import EmailPhoneRow from './email-phone-row'
-import {useState as useSettingsPasswordState} from '@/constants/settings-password'
+import {usePWState} from '@/constants/settings-password'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -82,7 +82,7 @@ const Password = () => {
   const onSetPassword = () => {
     navigateAppend(C.Settings.settingsPasswordTab)
   }
-  const hasPassword = useSettingsPasswordState(s => !s.randomPW)
+  const hasPassword = usePWState(s => !s.randomPW)
   let passwordLabel: string
   if (hasPassword) {
     passwordLabel = Kb.Styles.isMobile ? 'Change' : 'Change password'
@@ -168,8 +168,8 @@ const AccountSettings = () => {
   const onClearAddedEmail = resetAddedEmail
   const onClearAddedPhone = clearAddedPhone
   const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
-  const loadRememberPassword = useSettingsPasswordState(s => s.dispatch.loadRememberPassword)
-  const loadHasRandomPw = useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
+  const loadRememberPassword = usePWState(s => s.dispatch.loadRememberPassword)
+  const loadHasRandomPw = usePWState(s => s.dispatch.loadHasRandomPw)
 
   const onReload = () => {
     loadSettings()

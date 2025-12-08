@@ -41,7 +41,7 @@ export interface State extends Store {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const usePWState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     loadHasRandomPw: () => {
       // Once loaded, do not issue this RPC again. This field can only go true ->

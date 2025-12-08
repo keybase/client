@@ -3,8 +3,8 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import {ProxySettings} from './proxy'
-import {useState as useSettingsState} from '@/constants/settings'
-import {useState as useSettingsPasswordState} from '@/constants/settings-password'
+import {useSettingsState} from '@/constants/settings'
+import {usePWState} from '@/constants/settings-password'
 
 let initialUseNativeFrame: boolean | undefined
 
@@ -74,11 +74,11 @@ let disableSpellCheckInitialValue: boolean | undefined
 
 const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(C.Settings.setLockdownModeWaitingKey)
-  const hasRandomPW = useSettingsPasswordState(s => !!s.randomPW)
+  const hasRandomPW = usePWState(s => !!s.randomPW)
   const openAtLogin = C.useConfigState(s => s.openAtLogin)
-  const rememberPassword = useSettingsPasswordState(s => s.rememberPassword)
+  const rememberPassword = usePWState(s => s.rememberPassword)
   const setLockdownModeError = C.Waiting.useAnyErrors(C.Settings.setLockdownModeWaitingKey)?.message || ''
-  const setRememberPassword = useSettingsPasswordState(s => s.dispatch.setRememberPassword)
+  const setRememberPassword = usePWState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
   const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
 
@@ -127,8 +127,8 @@ const Advanced = () => {
     )
   }
 
-  const loadHasRandomPw = useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
-  const loadRememberPassword = useSettingsPasswordState(s => s.dispatch.loadRememberPassword)
+  const loadHasRandomPw = usePWState(s => s.dispatch.loadHasRandomPw)
+  const loadRememberPassword = usePWState(s => s.dispatch.loadRememberPassword)
   const loadLockdownMode = useSettingsState(s => s.dispatch.loadLockdownMode)
 
   React.useEffect(() => {

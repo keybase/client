@@ -82,12 +82,12 @@ export const useWaitingState = Z.createZustand<State>((set, get) => {
 })
 
 export const useAnyWaiting = (k?: string | Array<string>) =>
-  useState(s => !!getKeys(k).some(k => (s.counts.get(k) ?? 0) > 0))
+  useWaitingState(s => !!getKeys(k).some(k => (s.counts.get(k) ?? 0) > 0))
 
 export const useAnyErrors = (k: string | Array<string>) =>
-  useState(s => {
+  useWaitingState(s => {
     const errorKey = getKeys(k).find(k => s.errors.get(k))
     return errorKey ? s.errors.get(errorKey) : undefined
   })
 
-export const useDispatchClearWaiting = () => useState(s => s.dispatch.clear)
+export const useDispatchClearWaiting = () => useWaitingState(s => s.dispatch.clear)

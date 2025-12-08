@@ -26,4 +26,4 @@ export interface State extends Store {
   }
 }
 
-declare const useState: UseBoundStore<StoreApi<State>>
+declare const useSettingsContactsState: UseBoundStore<StoreApi<State>>
