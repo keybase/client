@@ -39,7 +39,6 @@ export {useSignupState} from './signup'
 export {useTeamsState} from './teams'
 export * as Teams from './teams'
 export {useTrackerState} from './tracker2'
-export * as Tracker from './tracker2'
 export {useUsersState} from './users'
 export * as Users from './users'
 export {useWaitingState} from './waiting'
@@ -54,6 +53,8 @@ import {useConfigState_ as useConfigState} from './config'
 
 export {default as shallowEqual} from 'shallowequal'
 export * as PlatformSpecific from './platform-specific'
+
+export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
 export const initListeners = () => {
   const f = async () => {

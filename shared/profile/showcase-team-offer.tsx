@@ -13,7 +13,7 @@ const Container = () => {
     setTimeout(() => {
       C.useTrackerState.getState().dispatch.load({
         assertion: you,
-        guiID: C.Tracker.generateGUIID(),
+        guiID: C.generateGUIID(),
         ignoreCache: true,
         inTracker: false,
         reason: '',

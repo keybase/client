@@ -14,7 +14,7 @@ const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320
 
 const RemoteTracker = (props: {trackerUsername: string}) => {
   const {trackerUsername} = props
-  const details = C.useTrackerState(s => C.Tracker.getDetails(s, trackerUsername))
+  const details = C.useTrackerState(s => s.getDetails(trackerUsername))
   const infoMap = C.useUsersState(s => s.infoMap)
   const blockMap = C.useUsersState(s => s.blockMap)
   const followers = C.useFollowerState(s => s.followers)

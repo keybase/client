@@ -16,7 +16,7 @@ const getFollowWaitingKey = (username: string) => `settings:followButton:${usern
 // used by people/follow-notification
 export const FollowButton = (props: FollowProps) => {
   const {username} = props
-  const userDetails = C.useTrackerState(s => C.Tracker.getDetails(s, username))
+  const userDetails = C.useTrackerState(s => s.getDetails(username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const {guiID} = userDetails

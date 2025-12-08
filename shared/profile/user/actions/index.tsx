@@ -9,7 +9,7 @@ type OwnProps = {username: string}
 
 const Container = (ownProps: OwnProps) => {
   const username = ownProps.username
-  const d = C.useTrackerState(s => C.Tracker.getDetails(s, username))
+  const d = C.useTrackerState(s => s.getDetails(username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const isBot = C.useBotsState(s => s.featuredBotsMap.has(username))

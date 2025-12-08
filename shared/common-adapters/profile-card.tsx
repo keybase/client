@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import * as Platforms from '@/util/platforms'
+import * as Tracker from '@/constants/tracker2'
 import type * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import Box, {Box2, Box2Measure} from './box'
@@ -86,7 +87,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
       centerChildren={true}
     >
       {serviceIdsShowing.map(serviceId => {
-        const assertion = services.get(serviceId) || C.Tracker.noAssertion
+        const assertion = services.get(serviceId) || Tracker.noAssertion
         return (
           <Kb.WithTooltip
             key={serviceId}
@@ -132,7 +133,7 @@ const ProfileCard = ({
   username,
 }: Props) => {
   const {default: ChatButton} = require('../chat/chat-button') as {default: typeof ChatButtonType}
-  const userDetails = C.useTrackerState(s => C.Tracker.getDetails(s, username))
+  const userDetails = C.useTrackerState(s => s.getDetails(username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const isSelf = C.useCurrentUserState(s => s.username === username)

@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as TrackerConstants from '@/constants/tracker2'
 import './account-switcher.css'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -15,7 +14,7 @@ const Container = () => {
   const _fullnames = C.useUsersState(s => s.infoMap)
   const _accountRows = C.useConfigState(s => s.configuredAccounts)
   const you = C.useCurrentUserState(s => s.username)
-  const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, you).fullname || '')
+  const fullname = C.useTrackerState(s => s.getDetails(you).fullname ?? '')
   const waiting = C.Waiting.useAnyWaiting(loginWaitingKey)
   const _onProfileClick = C.useProfileState(s => s.dispatch.showUserProfile)
   const onLoginAsAnotherUser = C.useProvisionState(s => s.dispatch.startProvision)

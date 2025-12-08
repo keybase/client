@@ -4,7 +4,7 @@ import * as React from 'react'
 
 const Container = () => {
   const username = C.useCurrentUserState(s => s.username)
-  const d = C.useTrackerState(s => C.Tracker.getDetails(s, username))
+  const d = C.useTrackerState(s => s.getDetails(username))
   const _bio = d.bio || ''
   const _fullname = d.fullname || ''
   const _location = d.location || ''

@@ -269,7 +269,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         const loadAfter = () =>
           C.useTrackerState.getState().dispatch.load({
             assertion: C.useCurrentUserState.getState().username,
-            guiID: C.Tracker.generateGUIID(),
+            guiID: C.generateGUIID(),
             inTracker: false,
             reason: '',
           })
@@ -505,7 +505,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       get().dispatch.showUserProfile(username)
       C.useTrackerState.getState().dispatch.load({
         assertion: C.useCurrentUserState.getState().username,
-        guiID: C.Tracker.generateGUIID(),
+        guiID: C.generateGUIID(),
         inTracker: false,
         reason: '',
       })
@@ -631,7 +631,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           })
           C.useTrackerState.getState().dispatch.load({
             assertion: username,
-            guiID: C.Tracker.generateGUIID(),
+            guiID: C.generateGUIID(),
             inTracker: false,
             reason: '',
           })
@@ -650,10 +650,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     },
     submitRevokeProof: proofId => {
       const f = async () => {
-        const you = C.Tracker.getDetails(
-          C.useTrackerState.getState(),
-          C.useCurrentUserState.getState().username
-        )
+        const you = C.useTrackerState.getState().getDetails(C.useCurrentUserState.getState().username)
         if (!you.assertions) return
         const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
         if (!proof) return
@@ -687,7 +684,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.userUnblockUserRpcPromise({username}, blockUserWaitingKey)
           C.useTrackerState.getState().dispatch.load({
             assertion: username,
-            guiID: C.Tracker.generateGUIID(),
+            guiID: C.generateGUIID(),
             inTracker: false,
             reason: '',
           })

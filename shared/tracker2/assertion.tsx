@@ -6,6 +6,7 @@ import * as Kb from '@/common-adapters'
 import {SiteIcon} from '@/profile/generic/shared'
 import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
+import * as Tracker from '@/constants/tracker2'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -37,19 +38,19 @@ const Container = (ownProps: OwnProps) => {
   const isYours = C.useCurrentUserState(s => ownProps.username === s.username)
   const data = C.useTrackerState(
     C.useShallow(s => {
-      let val = C.Tracker.noAssertion
+      let val = Tracker.noAssertion
       let stellarHidden = false
       let notAUser = false as boolean
       if (ownProps.isSuggestion) {
-        val = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || C.Tracker.noAssertion
+        val = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || Tracker.noAssertion
       } else {
-        const d = C.Tracker.getDetails(s, ownProps.username)
+        const d = s.getDetails(ownProps.username)
         if (isYours && d.stellarHidden) {
           stellarHidden = true
         }
         notAUser = d.state === 'notAUserYet'
         if (notAUser) {
-          const nonUserDetails = C.Tracker.getNonUserDetails(s, ownProps.username)
+          const nonUserDetails = s.getNonUserDetails(ownProps.username)
           val = {
             ...notAUserAssertion,
             siteIcon: nonUserDetails.siteIcon,
@@ -61,7 +62,7 @@ const Container = (ownProps: OwnProps) => {
             value: nonUserDetails.assertionValue,
           }
         } else if (d.assertions) {
-          val = d.assertions.get(ownProps.assertionKey) || C.Tracker.noAssertion
+          val = d.assertions.get(ownProps.assertionKey) || Tracker.noAssertion
         }
       }
       return {...val, notAUser, stellarHidden}
