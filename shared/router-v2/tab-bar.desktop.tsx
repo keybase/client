@@ -12,6 +12,7 @@ import openURL from '@/util/open-url'
 import {isLinux} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
 import './tab-bar.css'
+import {useSettingsState} from '@/constants/settings'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -31,7 +32,7 @@ const Header = () => {
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
 
   const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
-  const stop = C.useSettingsState(s => s.dispatch.stop)
+  const stop = useSettingsState(s => s.dispatch.stop)
   const onAddAccount = React.useCallback(() => {
     startProvision()
   }, [startProvision])

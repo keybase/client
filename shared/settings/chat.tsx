@@ -5,6 +5,7 @@ import * as React from 'react'
 import Group from './group'
 import {useState as useSettingsChatState} from '@/constants/settings-chat'
 import {useSettingsNotifState} from '@/constants/settings-notifications'
+import {useSettingsState} from '@/constants/settings'
 
 const emptyList = new Array<string>()
 
@@ -96,7 +97,7 @@ const Security = () => {
 
   const contactSettingsRefresh = useSettingsChatState(s => s.dispatch.contactSettingsRefresh)
   const notifRefresh = useSettingsNotifState(s => s.dispatch.refresh)
-  const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
+  const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
   const onRefresh = React.useCallback(() => {
     loadSettings()
     notifRefresh()

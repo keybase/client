@@ -16,6 +16,7 @@ import {useState as useWNState} from '../whats-new'
 import type * as Pinentry from '@/constants/pinentry'
 import {invalidPasswordErrorString} from './util'
 import {useSettingsContactsState} from '../settings-contacts'
+import {useSettingsState} from '../settings'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -441,7 +442,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.stop: {
-          C.useSettingsState.getState().dispatch.stop(action.payload.exitCode)
+          useSettingsState.getState().dispatch.stop(action.payload.exitCode)
           break
         }
         case RemoteGen.trackerChangeFollow: {

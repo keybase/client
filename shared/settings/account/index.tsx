@@ -5,6 +5,7 @@ import EmailPhoneRow from './email-phone-row'
 import {usePWState} from '@/constants/settings-password'
 import {useSettingsPhoneState} from '@/constants/settings-phone'
 import {useSettingsEmailState} from '@/constants/settings-email'
+import {useSettingsState} from '@/constants/settings'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -112,7 +113,7 @@ const Password = () => {
 }
 
 const WebAuthTokenLogin = () => {
-  const loginBrowserViaWebAuthToken = C.useSettingsState(s => s.dispatch.loginBrowserViaWebAuthToken)
+  const loginBrowserViaWebAuthToken = useSettingsState(s => s.dispatch.loginBrowserViaWebAuthToken)
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -169,7 +170,7 @@ const AccountSettings = () => {
   const resetAddedEmail = useSettingsEmailState(s => s.dispatch.resetAddedEmail)
   const onClearAddedEmail = resetAddedEmail
   const onClearAddedPhone = clearAddedPhone
-  const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
+  const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
   const loadRememberPassword = usePWState(s => s.dispatch.loadRememberPassword)
   const loadHasRandomPw = usePWState(s => s.dispatch.loadHasRandomPw)
 

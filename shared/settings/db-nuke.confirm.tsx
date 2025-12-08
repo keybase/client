@@ -1,12 +1,13 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {useSettingsState} from '@/constants/settings'
 
 const DbNukeConfirm = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }
-  const dbNuke = C.useSettingsState(s => s.dispatch.dbNuke)
+  const dbNuke = useSettingsState(s => s.dispatch.dbNuke)
   const onDBNuke = () => {
     navigateUp()
     dbNuke()

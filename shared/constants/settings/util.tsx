@@ -9,6 +9,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyEmailAddressEmailsChanged:
       {
         const {useSettingsState} = require('.') as typeof Index
+        const {useSettingsState} = require('.') as typeof Index
         useSettingsState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
