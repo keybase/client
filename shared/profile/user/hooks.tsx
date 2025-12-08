@@ -24,7 +24,7 @@ const headerBackgroundColorType = (
 // )
 
 const useUserData = (username: string) => {
-  const d = C.useTrackerState(s => C.Tracker.getDetails(s, username))
+  const d = C.useTrackerState(s => s.getDetails(username))
   const myName = C.useCurrentUserState(s => s.username)
   const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === myName
@@ -54,7 +54,7 @@ const useUserData = (username: string) => {
   // const followsYou = C.useFollowerState(s => s.followers.has(username))
   // const mutualFollow = followThem && followsYou
   const _suggestionKeys = C.useTrackerState(s => (userIsYou ? s.proofSuggestions : undefined))
-  const nonUserDetails = C.useTrackerState(s => C.Tracker.getNonUserDetails(s, username))
+  const nonUserDetails = C.useTrackerState(s => s.getNonUserDetails(username))
 
   const isDarkMode = useColorScheme() === 'dark'
   const stateProps = (() => {

@@ -360,7 +360,7 @@ const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey
   ids.filter(id => C.getConvoState(id).meta.trustedState === 'untrusted')
 
 // generic chat store
-export const useState = Z.createZustand<State>((set, get) => {
+export const useChatState = Z.createZustand<State>((set, get) => {
   // We keep a set of conversations to unbox
   let metaQueue = new Set<T.Chat.ConversationIDKey>()
 
@@ -416,7 +416,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               tlfVisibility: T.RPCGen.TLFVisibility.private,
               topicType: T.RPCChat.TopicType.chat,
             },
-            Common.waitingKeyCreating
+            C.waitingKeyChatCreating
           )
           const {conv, uiConv} = result
           const conversationIDKey = T.Chat.conversationIDToKey(conv.info.id)
@@ -490,7 +490,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               onlyInTeam: onlyInTeam ?? false,
             },
           },
-          Common.waitingKeyLoadingEmoji
+          C.waitingKeyChatLoadingEmoji
         )
         get().dispatch.loadedUserEmoji(results)
       }
@@ -947,7 +947,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const {syncRes} = action.payload.params
       const {clear} = C.useWaitingState.getState().dispatch
       const {inboxRefresh} = get().dispatch
-      clear(Common.waitingKeyInboxSyncStarted)
+      clear(C.waitingKeyChatInboxSyncStarted)
 
       switch (syncRes.syncType) {
         // Just clear it all
@@ -1110,7 +1110,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.onGetInboxUnverifiedConvs(action)
           break
         case EngineGen.chat1NotifyChatChatInboxSyncStarted:
-          C.useWaitingState.getState().dispatch.increment(Common.waitingKeyInboxSyncStarted)
+          C.useWaitingState.getState().dispatch.increment(C.waitingKeyChatInboxSyncStarted)
           break
 
         case EngineGen.chat1NotifyChatChatInboxSynced:
@@ -1561,7 +1561,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
           const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
-            useState.getState().dispatch.metasReceived([meta])
+            useChatState.getState().dispatch.metasReceived([meta])
           }
 
           C.getConvoState(first.conversationIDKey).dispatch.navigateToThread(

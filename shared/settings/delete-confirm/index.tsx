@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useState as useSettingsPasswordState} from '@/constants/settings-password'
+import {usePWState} from '@/constants/settings-password'
 
 type CheckboxesProps = {
   checkData: boolean
@@ -34,7 +34,7 @@ const Checkboxes = (props: CheckboxesProps) => (
 )
 
 const DeleteConfirm = () => {
-  const hasPassword = useSettingsPasswordState(s => !s.randomPW)
+  const hasPassword = usePWState(s => !s.randomPW)
   const deleteAccountForever = C.useSettingsState(s => s.dispatch.deleteAccountForever)
   const username = C.useCurrentUserState(s => s.username)
   const [checkData, setCheckData] = React.useState(false)

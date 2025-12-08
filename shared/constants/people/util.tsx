@@ -20,8 +20,8 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1HomeUIHomeUIRefresh:
     case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
       {
-        const {useState} = require('.') as typeof Index
-        useState.getState().dispatch.onEngineIncomingImpl(action)
+        const {usePeopleState} = require('.') as typeof Index
+        usePeopleState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

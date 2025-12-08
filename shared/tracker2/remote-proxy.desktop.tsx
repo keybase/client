@@ -14,7 +14,7 @@ const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320
 
 const RemoteTracker = (props: {trackerUsername: string}) => {
   const {trackerUsername} = props
-  const details = C.useTrackerState(s => C.Tracker.getDetails(s, trackerUsername))
+  const details = C.useTrackerState(s => s.getDetails(trackerUsername))
   const infoMap = C.useUsersState(s => s.infoMap)
   const blockMap = C.useUsersState(s => s.blockMap)
   const followers = C.useFollowerState(s => s.followers)
@@ -24,9 +24,9 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const counts = new Map([
-    [C.Tracker.waitingKey, C.useWaitingState(s => s.counts.get(C.Tracker.waitingKey) ?? 0)],
+    [C.waitingKeyTracker, C.useWaitingState(s => s.counts.get(C.waitingKeyTracker) ?? 0)],
   ])
-  const errors = new Map([[C.Tracker.waitingKey, C.useWaitingState(s => s.errors.get(C.Tracker.waitingKey))]])
+  const errors = new Map([[C.waitingKeyTracker, C.useWaitingState(s => s.errors.get(C.waitingKeyTracker))]])
   const trackerUsernames = new Set([trackerUsername])
   const blocked = blockMap.get(trackerUsername)?.chatBlocked || false
 

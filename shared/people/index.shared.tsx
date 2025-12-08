@@ -74,7 +74,7 @@ const EmailVerificationBanner = React.memo(function EmailVerificationBanner() {
     return null
   }
 
-  if (signupEmail === C.Signup.noEmail) {
+  if (signupEmail === C.noEmail) {
     return <Kb.Banner color="green">Welcome to Keybase!</Kb.Banner>
   }
   return (

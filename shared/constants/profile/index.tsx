@@ -6,6 +6,7 @@ import logger from '@/logger'
 import openURL from '@/util/open-url'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '../platform'
+import {fixCrop} from '@/util/crop'
 
 type ProveGenericParams = {
   logoBlack: T.Tracker.SiteIconSet
@@ -134,7 +135,7 @@ interface State extends Store {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useProfileState = Z.createZustand<State>((set, get) => {
   const clearErrors = (s: Z.WritableDraft<Store>) => {
     s.errorCode = undefined
     s.errorText = ''
@@ -268,7 +269,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         const loadAfter = () =>
           C.useTrackerState.getState().dispatch.load({
             assertion: C.useCurrentUserState.getState().username,
-            guiID: C.Tracker.generateGUIID(),
+            guiID: C.generateGUIID(),
             inTracker: false,
             reason: '',
           })
@@ -494,7 +495,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     editProfile: (bio, fullName, location) => {
       const f = async () => {
-        await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, C.Tracker.waitingKey)
+        await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, C.waitingKeyTracker)
         get().dispatch.showUserProfile(C.useCurrentUserState.getState().username)
       }
       C.ignorePromise(f())
@@ -504,7 +505,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       get().dispatch.showUserProfile(username)
       C.useTrackerState.getState().dispatch.load({
         assertion: C.useCurrentUserState.getState().username,
-        guiID: C.Tracker.generateGUIID(),
+        guiID: C.generateGUIID(),
         inTracker: false,
         reason: '',
       })
@@ -583,7 +584,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               args: [{key: 'hidden', value: hidden ? '1' : '0'}],
               endpoint: 'stellar/hidden',
             },
-            C.Tracker.waitingKey
+            C.waitingKeyTracker
           )
         } catch (e) {
           logger.warn('Error setting Stellar hidden:', e)
@@ -630,7 +631,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
           C.useTrackerState.getState().dispatch.load({
             assertion: username,
-            guiID: C.Tracker.generateGUIID(),
+            guiID: C.generateGUIID(),
             inTracker: false,
             reason: '',
           })
@@ -649,10 +650,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     submitRevokeProof: proofId => {
       const f = async () => {
-        const you = C.Tracker.getDetails(
-          C.useTrackerState.getState(),
-          C.useCurrentUserState.getState().username
-        )
+        const you = C.useTrackerState.getState().getDetails(C.useCurrentUserState.getState().username)
         if (!you.assertions) return
         const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
         if (!proof) return
@@ -686,7 +684,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.userUnblockUserRpcPromise({username}, blockUserWaitingKey)
           C.useTrackerState.getState().dispatch.load({
             assertion: username,
-            guiID: C.Tracker.generateGUIID(),
+            guiID: C.generateGUIID(),
             inTracker: false,
             reason: '',
           })
@@ -731,7 +729,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await T.RPCGen.userUploadUserAvatarRpcPromise(
-            {crop: C.fixCrop(crop), filename},
+            {crop: fixCrop(crop), filename},
             uploadAvatarWaitingKey
           )
           C.useRouterState.getState().dispatch.navigateUp()

@@ -10,7 +10,7 @@ const Container = (ownProps: OwnProps) => {
   const {inTracker, username} = ownProps
   const stateProps = C.useTrackerState(
     C.useShallow(s => {
-      const d = C.Tracker.getDetails(s, username)
+      const d = s.getDetails(username)
       const common = {
         blocked: d.blocked,
         followThem: undefined,
@@ -23,7 +23,7 @@ const Container = (ownProps: OwnProps) => {
       }
 
       if (d.state === 'notAUserYet') {
-        const nonUser = C.Tracker.getNonUserDetails(s, username)
+        const nonUser = s.getNonUserDetails(username)
         return {
           ...common,
           bio: nonUser.bio,

@@ -83,7 +83,7 @@ const useDataSource = (filter: string) => {
 
   const suggestChannelsLoading = C.Waiting.useAnyWaiting([
     C.Teams.getChannelsWaitingKey(teamID),
-    C.Chat.waitingKeyMutualTeams(conversationIDKey),
+    C.waitingKeyChatMutualTeams(conversationIDKey),
   ])
   const teamMeta = C.useTeamsState(s => s.teamMeta)
   return C.useChatContext(

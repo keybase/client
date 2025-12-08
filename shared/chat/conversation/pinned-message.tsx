@@ -15,7 +15,7 @@ const PinnedMessage = React.memo(function PinnedMessage() {
   )
   const you = C.useCurrentUserState(s => s.username)
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname))
-  const unpinning = C.Waiting.useAnyWaiting(C.Chat.waitingKeyUnpin(conversationIDKey))
+  const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
   const {message, pinnerUsername} = pinnedMsg ?? {}
   const {id: messageID, author, type} = message ?? {}
   const canAdminDelete = !!yourOperations.deleteOtherMessages

@@ -25,7 +25,7 @@ const SetPublicName = () => {
   const maxDeviceNumber = deviceNumbers.length > 0 ? Math.max(...deviceNumbers) : -1
   const deviceIconNumber = ((maxDeviceNumber + 1) % Devices.numBackgrounds) + 1
 
-  const [deviceName, setDeviceName] = React.useState(C.Signup.defaultDevicename)
+  const [deviceName, setDeviceName] = React.useState(C.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const debouncedSetReadyToShowError = debounce((ready: boolean) => setReadyToShowError(ready), 1000)
   const cleanDeviceName = C.Provision.cleanDeviceName(deviceName)

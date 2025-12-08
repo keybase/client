@@ -16,7 +16,7 @@ const getFollowWaitingKey = (username: string) => `settings:followButton:${usern
 // used by people/follow-notification
 export const FollowButton = (props: FollowProps) => {
   const {username} = props
-  const userDetails = C.useTrackerState(s => C.Tracker.getDetails(s, username))
+  const userDetails = C.useTrackerState(s => s.getDetails(username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const {guiID} = userDetails
@@ -33,10 +33,7 @@ export const FollowButton = (props: FollowProps) => {
   const onFollow = React.useCallback(() => changeFollow(guiID, true), [changeFollow, guiID])
   const onUnfollow = React.useCallback(() => changeFollow(guiID, false), [changeFollow, guiID])
 
-  const waitingKey = React.useMemo(
-    () => [getFollowWaitingKey(username), C.Tracker.profileLoadWaitingKey],
-    [username]
-  )
+  const waitingKey = React.useMemo(() => [getFollowWaitingKey(username), C.profileLoadWaitingKey], [username])
 
   return (
     <UnconnectedFollowButton

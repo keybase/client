@@ -35,8 +35,6 @@ export const noNonUserDetails: T.Tracker.NonUserDetails = {
   siteURL: '',
 }
 
-export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
-
 export const noAssertion = Object.freeze<T.Tracker.Assertion>({
   assertionKey: '',
   belowFold: false,
@@ -114,7 +112,7 @@ export const rpcAssertionToAssertion = (row: T.RPCGen.Identify3Row): T.Tracker.A
   wotProof: row.wotProof ?? undefined,
 })
 
-export const rpcSuggestionToAssertion = (s: T.RPCGen.ProofSuggestion): T.Tracker.Assertion => {
+const rpcSuggestionToAssertion = (s: T.RPCGen.ProofSuggestion): T.Tracker.Assertion => {
   const ourKey = s.key === 'web' ? 'dnsOrGenericWebSite' : s.key
   return {
     ...noAssertion,
@@ -137,64 +135,7 @@ export const rpcSuggestionToAssertion = (s: T.RPCGen.ProofSuggestion): T.Tracker
   }
 }
 
-const _scoreAssertionKey = (a: string) => {
-  switch (a) {
-    case 'pgp':
-      return 110
-    case 'twitter':
-      return 100
-    case 'facebook':
-      return 90
-    case 'github':
-      return 80
-    case 'reddit':
-      return 75
-    case 'hackernews':
-      return 70
-    case 'https':
-      return 60
-    case 'http':
-      return 50
-    case 'dns':
-      return 40
-    case 'stellar':
-      return 30
-    case 'btc':
-      return 20
-    case 'zcash':
-      return 10
-    default:
-      return 1
-  }
-}
-export const sortAssertionKeys = (a: string, b: string) => {
-  const pa = a.split(':')
-  const pb = b.split(':')
-
-  const typeA = pa[0]
-  const typeB = pb[0]
-
-  if (typeA === typeB) {
-    return pa[1]?.localeCompare(pb[1] ?? '') ?? 0
-  }
-
-  if (!typeA || !typeB) return 0
-
-  const scoreA = _scoreAssertionKey(typeB)
-  const scoreB = _scoreAssertionKey(typeA)
-  return scoreA - scoreB
-}
-
-export const waitingKey = 'tracker2:waitingKey'
-export const profileLoadWaitingKey = 'tracker2:profileLoad'
-export const nonUserProfileLoadWaitingKey = 'tracker2:nonUserProfileLoad'
-
-export const getDetails = (state: State, username: string): T.Tracker.Details =>
-  state.usernameToDetails.get(username) || noDetails
-export const getNonUserDetails = (state: State, username: string): T.Tracker.NonUserDetails =>
-  state.usernameToNonUserDetails.get(username) || noNonUserDetails
-
-export const guiIDToUsername = (state: State, guiID: string) => {
+const guiIDToUsername = (state: State, guiID: string) => {
   const det = [...state.usernameToDetails.values()].find(d => d.guiID === guiID)
   return det ? det.username : null
 }
@@ -244,6 +185,8 @@ export interface State extends Store {
     showUser: (username: string, asTracker: boolean, skipNav?: boolean) => void
     updateResult: (guiID: string, result: T.Tracker.DetailsState, reason?: string) => void
   }
+  getDetails: (username: string) => T.Tracker.Details
+  getNonUserDetails: (username: string) => T.Tracker.NonUserDetails
 }
 
 const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType) => {
@@ -258,12 +201,12 @@ const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType) => {
       return 'error'
   }
 }
-export const useState = Z.createZustand<State>((set, get) => {
+export const useTrackerState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     changeFollow: (guiID, follow) => {
       const f = async () => {
         try {
-          await T.RPCGen.identify3Identify3FollowUserRpcPromise({follow, guiID}, waitingKey)
+          await T.RPCGen.identify3Identify3FollowUserRpcPromise({follow, guiID}, C.waitingKeyTracker)
           get().dispatch.updateResult(guiID, 'valid', `Successfully ${follow ? 'followed' : 'unfollowed'}!`)
         } catch {
           get().dispatch.updateResult(guiID, 'error', `Failed to ${follow ? 'follow' : 'unfollow'}`)
@@ -286,7 +229,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         try {
           const {suggestions} = await T.RPCGen.userProofSuggestionsRpcPromise(
             undefined,
-            profileLoadWaitingKey
+            C.profileLoadWaitingKey
           )
           set(s => {
             s.proofSuggestions = T.castDraft(suggestions?.map(rpcSuggestionToAssertion)) ?? []
@@ -302,7 +245,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     ignore: guiID => {
       const f = async () => {
         try {
-          await T.RPCGen.identify3Identify3IgnoreUserRpcPromise({guiID}, waitingKey)
+          await T.RPCGen.identify3Identify3IgnoreUserRpcPromise({guiID}, C.waitingKeyTracker)
           get().dispatch.updateResult(guiID, 'valid', `Successfully ignored`)
         } catch {
           get().dispatch.updateResult(guiID, 'error', `Failed to ignore`)
@@ -318,7 +261,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           logger.info(`Showing tracker for assertion: ${assertion}`)
           s.showTrackerSet.add(username)
         }
-        const d = mapGetEnsureValue(s.usernameToDetails, username, T.castDraft({...noDetails}))
+        const d = mapGetEnsureValue(s.usernameToDetails, username, {...noDetails})
         d.assertions = new Map() // just remove for now, maybe keep them
         d.guiID = guiID
         d.reason = reason
@@ -327,7 +270,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         if (p.fromDaemon) return
-        const d = getDetails(get(), assertion)
+        const d = get().getDetails(assertion)
         if (!d.guiID) {
           throw new Error('No guid on profile 2 load? ' + assertion || '')
         }
@@ -335,7 +278,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.identify3Identify3RpcListener({
             incomingCallMap: {},
             params: {assertion, guiID, ignoreCache},
-            waitingKey: profileLoadWaitingKey,
+            waitingKey: C.profileLoadWaitingKey,
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -362,9 +305,10 @@ export const useState = Z.createZustand<State>((set, get) => {
       const loadFollowers = async () => {
         if (inTracker) return
         try {
-          const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise({assertion}, profileLoadWaitingKey)
+          const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise({assertion}, C.profileLoadWaitingKey)
           set(s => {
-            const d = T.castDraft(getDetails(s, assertion))
+            const d = s.usernameToDetails.get(assertion)
+            if (!d) return
             d.followers = new Set(fs.users?.map(f => f.username))
             d.followersCount = d.followers.size
           })
@@ -384,9 +328,13 @@ export const useState = Z.createZustand<State>((set, get) => {
       const loadFollowing = async () => {
         if (inTracker) return
         try {
-          const fs = await T.RPCGen.userListTrackingRpcPromise({assertion, filter: ''}, profileLoadWaitingKey)
+          const fs = await T.RPCGen.userListTrackingRpcPromise(
+            {assertion, filter: ''},
+            C.profileLoadWaitingKey
+          )
           set(s => {
-            const d = T.castDraft(getDetails(s, assertion))
+            const d = s.usernameToDetails.get(assertion)
+            if (!d) return
             d.following = new Set(fs.users?.map(f => f.username))
             d.followingCount = d.following.size
           })
@@ -408,7 +356,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         try {
           const res = await T.RPCGen.userSearchGetNonUserDetailsRpcPromise(
             {assertion},
-            nonUserProfileLoadWaitingKey
+            C.nonUserProfileLoadWaitingKey
           )
           if (res.isNonUser) {
             const common = {
@@ -428,9 +376,8 @@ export const useState = Z.createZustand<State>((set, get) => {
               }
               set(s => {
                 const {assertion, ...rest} = p
-                const {usernameToNonUserDetails} = s
-                const old = usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
+                const old = s.usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
+                s.usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
               })
               return
             } else {
@@ -444,9 +391,8 @@ export const useState = Z.createZustand<State>((set, get) => {
               const p = {...common, formattedName, fullName}
               set(s => {
                 const {assertion, ...rest} = p
-                const {usernameToNonUserDetails} = s
-                const old = usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
+                const old = s.usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
+                s.usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
               })
             }
           }
@@ -464,7 +410,8 @@ export const useState = Z.createZustand<State>((set, get) => {
         if (!username) return
         const {bio, blocked, fullName, hidFromFollowers, location, stellarHidden, teamShowcase} = card
         const {unverifiedNumFollowers, unverifiedNumFollowing} = card
-        const d = T.castDraft(getDetails(s, username))
+        const d = s.usernameToDetails.get(username)
+        if (!d) return
         d.bio = bio
         d.blocked = blocked
         // These will be overridden by a later updateFollows, if it happens (will
@@ -492,7 +439,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         const username = guiIDToUsername(s, guiID)
         if (!username) return
-        const d = T.castDraft(getDetails(s, username))
+        const d = s.usernameToDetails.get(username)
+        if (!d) return
         d.resetBrokeTrack = true
         d.reason = `${username} reset their account since you last followed them.`
       })
@@ -502,7 +450,8 @@ export const useState = Z.createZustand<State>((set, get) => {
         const {guiID} = row
         const username = guiIDToUsername(s, guiID)
         if (!username) return
-        const d = T.castDraft(getDetails(s, username))
+        const d = s.usernameToDetails.get(username)
+        if (!d) return
         const assertions = d.assertions ?? new Map()
         d.assertions = assertions
         const assertion = rpcAssertionToAssertion(row)
@@ -514,29 +463,32 @@ export const useState = Z.createZustand<State>((set, get) => {
         const {numProofsToCheck, guiID} = summary
         const username = guiIDToUsername(s, guiID)
         if (!username) return
-        const d = T.castDraft(getDetails(s, username))
+        const d = s.usernameToDetails.get(username)
+        if (!d) return
         d.numAssertionsExpected = numProofsToCheck
       })
     },
     notifyUserBlocked: b => {
       set(s => {
         const {blocker, blocks} = b
-        const d = T.castDraft(getDetails(s, blocker))
-        const toProcess = Object.entries(blocks ?? {}).map(
-          ([username, userBlocks]) =>
-            [username, T.castDraft(getDetails(s, username)), userBlocks || []] as const
-        )
-        toProcess.forEach(([username, det, userBlocks]) => {
-          userBlocks.forEach(blockState => {
+        const d = s.usernameToDetails.get(blocker)
+        Object.entries(blocks ?? {}).forEach(([username, userBlocks]) => {
+          const det = s.usernameToDetails.get(username)
+          if (!det) return
+          userBlocks?.forEach(blockState => {
             if (blockState.blockType === T.RPCGen.UserBlockType.chat) {
               det.blocked = blockState.blocked
             } else {
               det.hidFromFollowers = blockState.blocked
-              blockState.blocked && d.followers?.delete(username)
+              if (d && blockState.blocked) {
+                d.followers?.delete(username)
+              }
             }
           })
         })
-        d.followersCount = d.followers?.size
+        if (d) {
+          d.followersCount = d.followers?.size
+        }
       })
     },
     onEngineIncomingImpl: action => {
@@ -548,7 +500,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             get().dispatch.load({
               assertion: username,
               fromDaemon: false,
-              guiID: generateGUIID(),
+              guiID: C.generateGUIID(),
               ignoreCache: true,
               inTracker: false,
               reason: '',
@@ -583,7 +535,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             assertion: C.useCurrentUserState.getState().username,
             forceDisplay: false,
             fromDaemon: false,
-            guiID: generateGUIID(),
+            guiID: C.generateGUIID(),
             ignoreCache: false,
             inTracker: false,
             reason: '',
@@ -633,7 +585,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         // with new nav we never show trackers from inside the app
         forceDisplay: false,
         fromDaemon: false,
-        guiID: generateGUIID(),
+        guiID: C.generateGUIID(),
         ignoreCache: true,
         inTracker: asTracker,
         reason: '',
@@ -650,7 +602,9 @@ export const useState = Z.createZustand<State>((set, get) => {
         const newReason =
           reason ||
           (result === 'broken' && `Some of ${username}'s proofs have changed since you last followed them.`)
-        const d = T.castDraft(getDetails(s, username))
+
+        const d = s.usernameToDetails.get(username)
+        if (!d) return
         // Don't overwrite the old reason if the user reset.
         if (!d.resetBrokeTrack || d.reason.length === 0) {
           d.reason = newReason || d.reason
@@ -665,5 +619,8 @@ export const useState = Z.createZustand<State>((set, get) => {
   return {
     ...initialStore,
     dispatch,
+    getDetails: (username: string): T.Tracker.Details => get().usernameToDetails.get(username) ?? noDetails,
+    getNonUserDetails: (username: string): T.Tracker.NonUserDetails =>
+      get().usernameToNonUserDetails.get(username) || noNonUserDetails,
   }
 })

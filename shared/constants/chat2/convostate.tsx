@@ -25,6 +25,7 @@ import {hexToUint8Array} from 'uint8array-extras'
 import assign from 'lodash/assign'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {registerDebugClear} from '@/util/debug'
+import * as Config from '@/constants/config/util'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -642,7 +643,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const otherParticipants = Meta.getRowParticipants(get().participants, username || '')
       const results = await T.RPCChat.localGetMutualTeamsLocalRpcPromise(
         {usernames: otherParticipants},
-        Common.waitingKeyMutualTeams(conversationIDKey)
+        C.waitingKeyChatMutualTeams(conversationIDKey)
       )
       set(s => {
         s.mutualTeams = T.castDraft(results.teamIDs) ?? []
@@ -1001,7 +1002,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           tlfName: get().meta.tlfname,
           tlfPublic: false,
         },
-        Common.waitingKeyEditPost
+        C.waitingKeyChatEditPost
       )
     }
     C.ignorePromise(f())
@@ -1051,7 +1052,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             tlfName,
             tlfPublic: false,
           },
-          waitingKey: waitingKey || Common.waitingKeyPost,
+          waitingKey: waitingKey || C.waitingKeyChatPost,
         })
         logger.info('success')
       } catch {
@@ -1082,7 +1083,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               role: restricted ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
               username,
             },
-            Common.waitingKeyBotAdd
+            C.waitingKeyChatBotAdd
           )
         } catch (error) {
           if (error instanceof RPCError) {
@@ -1300,7 +1301,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               convID: get().getConvID(),
               username,
             },
-            Common.waitingKeyBotAdd
+            C.waitingKeyChatBotAdd
           )
         } catch (error) {
           if (error instanceof RPCError) {
@@ -1342,7 +1343,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             status: hide ? T.RPCChat.ConversationStatus.ignored : T.RPCChat.ConversationStatus.unfiled,
           },
-          Common.waitingKeyConvStatusChange(conversationIDKey)
+          C.waitingKeyChatConvStatusChange(conversationIDKey)
         )
       }
       C.ignorePromise(f())
@@ -1364,7 +1365,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         await T.RPCChat.localJoinConversationByIDLocalRpcPromise(
           {convID: get().getConvID()},
-          Common.waitingKeyJoinConversation
+          C.waitingKeyChatJoinConversation
         )
       }
       C.ignorePromise(f())
@@ -1378,7 +1379,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         await T.RPCChat.localLeaveConversationLocalRpcPromise(
           {convID: get().getConvID()},
-          Common.waitingKeyLeaveConversation
+          C.waitingKeyChatLeaveConversation
         )
       }
       C.ignorePromise(f())
@@ -1549,7 +1550,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           `loadMoreMessages: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
         )
 
-        const loadingKey = Common.waitingKeyThreadLoad(conversationIDKey)
+        const loadingKey = C.waitingKeyChatThreadLoad(conversationIDKey)
         const onGotThread = (thread: string, why: string) => {
           if (!thread) {
             return
@@ -1902,7 +1903,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           if (message.outboxID) {
             await T.RPCChat.localCancelPostRpcPromise(
               {outboxID: T.Chat.outboxIDToRpcOutboxID(message.outboxID)},
-              Common.waitingKeyCancelPost
+              C.waitingKeyChatCancelPost
             )
             get().dispatch.messagesWereDeleted({ordinals: [message.ordinal]})
           } else {
@@ -1919,7 +1920,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               tlfName: get().meta.tlfname,
               tlfPublic: false,
             },
-            Common.waitingKeyDeletePost
+            C.waitingKeyChatDeletePost
           )
         }
       }
@@ -1962,7 +1963,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             tlfVisibility: T.RPCGen.TLFVisibility.private,
             topicType: T.RPCChat.TopicType.chat,
           },
-          Common.waitingKeyCreating
+          C.waitingKeyChatCreating
         )
         // switch to new thread
         const newThreadCID = T.Chat.conversationIDToKey(result.conv.info.id)
@@ -2003,7 +2004,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         await T.RPCChat.localRetryPostRpcPromise(
           {outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)},
-          Common.waitingKeyRetryPost
+          C.waitingKeyChatRetryPost
         )
       }
       C.ignorePromise(f())
@@ -2357,8 +2358,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const participantInfo = get().participants
       const path = T.FS.stringToPath(
         meta.teamType !== 'adhoc'
-          ? C.Config.teamFolder(meta.teamname)
-          : C.Config.privateFolderWithUsers(participantInfo.name)
+          ? Config.teamFolder(meta.teamname)
+          : Config.privateFolderWithUsers(participantInfo.name)
       )
       C.FS.makeActionForOpenPathInFilesTab(path)
     },
@@ -2374,7 +2375,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           if (msgID) {
             await T.RPCChat.localPinMessageRpcPromise({convID, msgID})
           } else {
-            await T.RPCChat.localUnpinMessageRpcPromise({convID}, Common.waitingKeyUnpin(get().id))
+            await T.RPCChat.localUnpinMessageRpcPromise({convID}, C.waitingKeyChatUnpin(get().id))
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2437,7 +2438,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const convID = get().getConvID()
         try {
-          await T.RPCChat.localRemoveBotMemberRpcPromise({convID, username}, Common.waitingKeyBotRemove)
+          await T.RPCChat.localRemoveBotMemberRpcPromise({convID, username}, C.waitingKeyChatBotRemove)
           closeBotModal()
         } catch (error) {
           if (error instanceof RPCError) {
@@ -3067,7 +3068,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             tlfName: get().meta.tlfname,
             tlfPublic: false,
           },
-          Common.waitingKeyDeletePost
+          C.waitingKeyChatDeletePost
         )
       }
       C.ignorePromise(f())

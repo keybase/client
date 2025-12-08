@@ -44,7 +44,7 @@ const useDataSource = (filter: string) => {
     fetchUserEmoji(conversationIDKey)
   }, [conversationIDKey, fetchUserEmoji])
 
-  const userEmojisLoading = C.Waiting.useAnyWaiting(C.Chat.waitingKeyLoadingEmoji)
+  const userEmojisLoading = C.Waiting.useAnyWaiting(C.waitingKeyChatLoadingEmoji)
   const userEmojis = C.useChatState(s => s.userEmojisForAutocomplete)
 
   if (!emojiPrepass.test(filter)) {

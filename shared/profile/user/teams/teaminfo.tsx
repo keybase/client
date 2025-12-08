@@ -92,7 +92,7 @@ const TeamInfo = (props: Props) => {
           </Kb.Text>
           {props.onChat && (
             <Kb.WaitingButton
-              waitingKey={C.Tracker.waitingKey}
+              waitingKey={C.waitingKeyTracker}
               label="Chat"
               onClick={_onChat}
               mode="Secondary"
@@ -100,14 +100,14 @@ const TeamInfo = (props: Props) => {
           )}
           {/* With teamsRedesign we have external team page, always show view team button */}
           <Kb.WaitingButton
-            waitingKey={C.Tracker.waitingKey}
+            waitingKey={C.waitingKeyTracker}
             label="View team"
             onClick={_onViewTeam}
             mode="Secondary"
           />
           {!props.inTeam && (
             <Kb.WaitingButton
-              waitingKey={C.Tracker.waitingKey}
+              waitingKey={C.waitingKeyTracker}
               label={requested ? 'Requested!' : props.isOpen ? 'Join team' : 'Request to join'}
               onClick={requested ? undefined : _onJoinTeam}
               type={props.isOpen ? 'Success' : 'Default'}

@@ -8,13 +8,13 @@ import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import type {Tab} from '../tabs'
-import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '@/util/errors'
-import {defaultUseNativeFrame, runMode, isMobile} from '../platform'
+import {defaultUseNativeFrame, isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useState as useWNState} from '../whats-new'
 import type * as Pinentry from '@/constants/pinentry'
+import {invalidPasswordErrorString, loginWaitingKey} from './util'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -24,24 +24,6 @@ const timeoutPromise = async (timeMs: number) =>
   new Promise<void>(resolve => {
     setTimeout(() => resolve(), timeMs)
   })
-
-export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
-export const createOtherAccountWaitingKey = 'config:createOther'
-export const loginWaitingKey = 'login:waiting'
-// An ugly error message from the service that we'd like to rewrite ourselves.
-export const invalidPasswordErrorString = 'Bad password: Invalid password. Server rejected login attempt..'
-
-export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
-export const defaultPrivatePrefix = '/private/'
-export const defaultPublicPrefix = '/public/'
-export const noKBFSFailReason = "Can't connect to KBFS"
-const defaultTeamPrefix = '/team/'
-
-export const privateFolderWithUsers = (users: ReadonlyArray<string>) =>
-  `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
-export const publicFolderWithUsers = (users: ReadonlyArray<string>) =>
-  `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
-export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export type Store = T.Immutable<{
   forceSmallNav: boolean

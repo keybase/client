@@ -6,7 +6,7 @@ import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import * as Tabs from '../tabs'
 import logger from '@/logger'
-import {useState as usePWState} from '../settings-password'
+import {usePWState} from '../settings-password'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -98,7 +98,7 @@ export interface State extends Store {
 }
 
 let maybeLoadAppLinkOnce = false
-export const useState = Z.createZustand<State>(set => {
+export const useSettingsState = Z.createZustand<State>(set => {
   const maybeLoadAppLink = () => {
     const phones = C.useSettingsPhoneState.getState().phones
     if (!phones || phones.size > 0) {

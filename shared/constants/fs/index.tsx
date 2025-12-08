@@ -882,7 +882,7 @@ export const getPathStatusIconInMergeProps = (
 }
 
 export const makeActionsForDestinationPickerOpen = (index: number, path: T.FS.Path) => {
-  useState.getState().dispatch.setDestinationPickerParentPath(index, path)
+  useFSState.getState().dispatch.setDestinationPickerParentPath(index, path)
   C.useRouterState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
 }
 
@@ -1007,7 +1007,7 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
   if (!isObject(error)) return
   const code = (error as {code?: T.RPCGen.StatusCode}).code
   if (code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
-    useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+    useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
     return
   }
   if (code === T.RPCGen.StatusCode.scidentifiesfailed) {
@@ -1024,19 +1024,19 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
     return undefined
   }
   if (path && code === T.RPCGen.StatusCode.scsimplefsnotexist) {
-    useState.getState().dispatch.setPathSoftError(path, T.FS.SoftError.Nonexistent)
+    useFSState.getState().dispatch.setPathSoftError(path, T.FS.SoftError.Nonexistent)
     return
   }
   if (path && code && noAccessErrorCodes.includes(code)) {
     const tlfPath = getTlfPath(path)
     if (tlfPath) {
-      useState.getState().dispatch.setTlfSoftError(tlfPath, T.FS.SoftError.NoAccess)
+      useFSState.getState().dispatch.setTlfSoftError(tlfPath, T.FS.SoftError.NoAccess)
       return
     }
   }
   if (code === T.RPCGen.StatusCode.scdeleted) {
     // The user is deleted. Let user know and move on.
-    useState.getState().dispatch.redbar('A user in this shared folder has deleted their account.')
+    useFSState.getState().dispatch.redbar('A user in this shared folder has deleted their account.')
     return
   }
   throw error
@@ -1303,7 +1303,7 @@ const updatePathItem = (
   return newPathItemFromAction
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useFSState = Z.createZustand<State>((set, get) => {
   // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
   // reducer and happens before this.
   let waitForKbfsDaemonInProgress = false
@@ -2305,7 +2305,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         return
       }
 
-      const {folderListLoad} = useState.getState().dispatch
+      const {folderListLoad} = useFSState.getState().dispatch
       topics.forEach(topic => {
         switch (topic) {
           case T.RPCGen.PathSubscriptionTopic.children:

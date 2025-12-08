@@ -33,7 +33,7 @@ const getButtons = (props: Props) => {
       type="Dim"
       key="Close"
       label="Close"
-      waitingKey={C.Tracker.waitingKey}
+      waitingKey={C.waitingKeyTracker}
       onClick={props.onClose}
     />
   )
@@ -42,12 +42,12 @@ const getButtons = (props: Props) => {
       type="Success"
       key="Accept"
       label="Accept"
-      waitingKey={C.Tracker.waitingKey}
+      waitingKey={C.waitingKeyTracker}
       onClick={props.onAccept}
     />
   )
   const buttonChat = (
-    <Kb.WaitingButton key="Chat" label="Chat" waitingKey={C.Tracker.waitingKey} onClick={props.onChat}>
+    <Kb.WaitingButton key="Chat" label="Chat" waitingKey={C.waitingKeyTracker} onClick={props.onChat}>
       <Kb.Icon type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
@@ -70,7 +70,7 @@ const getButtons = (props: Props) => {
               type="Success"
               key="Follow"
               label="Follow"
-              waitingKey={C.Tracker.waitingKey}
+              waitingKey={C.waitingKeyTracker}
               onClick={props.onFollow}
             />,
           ]
@@ -80,7 +80,7 @@ const getButtons = (props: Props) => {
           type="Dim"
           key="Ignore for 24 hours"
           label="Ignore for 24 hours"
-          waitingKey={C.Tracker.waitingKey}
+          waitingKey={C.waitingKeyTracker}
           onClick={props.onIgnoreFor24Hours}
         />,
         buttonAccept,
@@ -92,7 +92,7 @@ const getButtons = (props: Props) => {
         <Kb.WaitingButton
           key="Reload"
           label="Reload"
-          waitingKey={C.Tracker.waitingKey}
+          waitingKey={C.waitingKeyTracker}
           onClick={props.onReload}
         />,
       ]
@@ -109,11 +109,60 @@ const TeamShowcase = ({name}: {name: string}) => (
   </Kb.Box2>
 )
 
+const _scoreAssertionKey = (a: string) => {
+  switch (a) {
+    case 'pgp':
+      return 110
+    case 'twitter':
+      return 100
+    case 'facebook':
+      return 90
+    case 'github':
+      return 80
+    case 'reddit':
+      return 75
+    case 'hackernews':
+      return 70
+    case 'https':
+      return 60
+    case 'http':
+      return 50
+    case 'dns':
+      return 40
+    case 'stellar':
+      return 30
+    case 'btc':
+      return 20
+    case 'zcash':
+      return 10
+    default:
+      return 1
+  }
+}
+
+const sortAssertionKeys = (a: string, b: string) => {
+  const pa = a.split(':')
+  const pb = b.split(':')
+
+  const typeA = pa[0]
+  const typeB = pb[0]
+
+  if (typeA === typeB) {
+    return pa[1]?.localeCompare(pb[1] ?? '') ?? 0
+  }
+
+  if (!typeA || !typeB) return 0
+
+  const scoreA = _scoreAssertionKey(typeB)
+  const scoreB = _scoreAssertionKey(typeA)
+  return scoreA - scoreB
+}
+
 const Tracker = (props: Props) => {
   let assertions: React.ReactNode
   if (props.assertionKeys) {
     const unsorted = [...props.assertionKeys]
-    const sorted = unsorted.sort(C.Tracker.sortAssertionKeys)
+    const sorted = unsorted.sort(sortAssertionKeys)
     assertions = sorted.map(a => <Assertion username={props.trackerUsername} key={a} assertionKey={a} />)
   } else {
     // TODO could do a loading thing before we know about the list at all?

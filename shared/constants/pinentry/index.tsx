@@ -3,6 +3,7 @@ import * as Z from '@/util/zustand'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '../types'
 import logger from '@/logger'
+import {invalidPasswordErrorString} from '@/constants/config/util'
 
 export type Store = T.Immutable<{
   cancelLabel?: string
@@ -65,7 +66,7 @@ export const usePinentryState = Z.createZustand<State>((set, get) => {
       const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
       const showTyping = features.showTyping
       let {retryLabel} = pinentry
-      if (retryLabel === C.Config.invalidPasswordErrorString) {
+      if (retryLabel === invalidPasswordErrorString) {
         retryLabel = 'Incorrect password.'
       }
       logger.info('Asked for password')

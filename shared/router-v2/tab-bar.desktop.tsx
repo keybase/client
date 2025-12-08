@@ -6,7 +6,6 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Tabs from '@/constants/tabs'
 import * as Common from './common.desktop'
-import * as TrackerConstants from '@/constants/tracker2'
 import AccountSwitcher from './account-switcher'
 import RuntimeStats from '../app/runtime-stats'
 import openURL from '@/util/open-url'
@@ -28,7 +27,7 @@ const FilesTabBadge = () => {
 
 const Header = () => {
   const username = C.useCurrentUserState(s => s.username)
-  const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, username).fullname || '')
+  const fullname = C.useTrackerState(s => s.getDetails(username).fullname ?? '')
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
 
   const startProvision = C.useProvisionState(s => s.dispatch.startProvision)

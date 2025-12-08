@@ -8,14 +8,10 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
     case EngineGen.keybase1NotifyEmailAddressEmailsChanged:
       {
-        const {useState} = require('.') as typeof Index
-        useState.getState().dispatch.onEngineIncomingImpl(action)
+        const {useSettingsState} = require('.') as typeof Index
+        useSettingsState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:
   }
 }
-
-export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
-export const addEmailWaitingKey = 'settings:addEmail'
-export const importContactsWaitingKey = 'settings:importContacts'

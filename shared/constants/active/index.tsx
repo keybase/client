@@ -11,7 +11,7 @@ interface State extends Store {
     setActive: (a: boolean) => void
   }
 }
-export const useState = Z.createZustand<State>(set => {
+export const useActiveState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     resetState: 'default',
     setActive: a => {

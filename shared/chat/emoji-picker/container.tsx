@@ -73,7 +73,7 @@ const useSkinTone = () => {
 const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const customEmojiGroups = C.useChatState(s => s.userEmojis)
-  const waiting = C.Waiting.useAnyWaiting(C.Chat.waitingKeyLoadingEmoji)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyChatLoadingEmoji)
   const [lastOnlyInTeam, setLastOnlyInTeam] = React.useState(onlyInTeam)
   const [lastDisabled, setLastDisabled] = React.useState(disabled)
   const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)

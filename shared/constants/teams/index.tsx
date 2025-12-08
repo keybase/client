@@ -11,6 +11,7 @@ import {RPCError, logError} from '@/util/errors'
 import {isMobile, isPhone} from '../platform'
 import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '../rpc-utils'
+import {fixCrop} from '@/util/crop'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
@@ -383,7 +384,7 @@ export const getDisabledReasonsForRolePicker = (
 ): T.Teams.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
   const teamMeta = getTeamMeta(state, teamID)
-  const teamDetails = useState.getState().teamDetails.get(teamID)
+  const teamDetails = useTeamsState.getState().teamDetails.get(teamID)
   const members: ReadonlyMap<string, T.Teams.MemberInfo> =
     teamDetails?.members || state.teamIDToMembers.get(teamID) || new Map<string, T.Teams.MemberInfo>()
   const teamname = teamMeta.teamname
@@ -872,7 +873,7 @@ export const consumeTeamTreeMembershipValue = (
 // in the treeloader-powered map (which can go stale) as a backup. If it returns null, it means we
 // don't know the answer (yet). If it returns type='none', that means the user is not in the team.
 export const maybeGetSparseMemberInfo = (state: State, teamID: string, username: string) => {
-  const details = useState.getState().teamDetails.get(teamID)
+  const details = useTeamsState.getState().teamDetails.get(teamID)
   if (details) {
     return details.members.get(username) ?? {type: 'none'}
   }
@@ -1191,7 +1192,7 @@ export interface State extends Store {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useTeamsState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {
@@ -3163,7 +3164,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await T.RPCGen.teamsUploadTeamAvatarRpcPromise(
-            {crop: C.fixCrop(crop), filename, sendChatNotification, teamname},
+            {crop: fixCrop(crop), filename, sendChatNotification, teamname},
             ProfileConstants.uploadAvatarWaitingKey
           )
           C.useRouterState.getState().dispatch.navigateUp()

@@ -426,7 +426,7 @@ const User = (props: {username: string}) => {
     <Kb.Reloadable
       reloadOnMount={true}
       onReload={p.onReload}
-      waitingKeys={[C.Tracker.profileLoadWaitingKey]}
+      waitingKeys={[C.profileLoadWaitingKey]}
       errorFilter={errorFilter}
       style={styles.reloadable}
     >

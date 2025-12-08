@@ -96,7 +96,7 @@ const InstallBotPopup = (props: Props) => {
   }
 
   const {channelMetas} = useAllChannelMetas(teamID)
-  const error = C.Waiting.useAnyErrors([C.Chat.waitingKeyBotAdd, C.Chat.waitingKeyBotRemove])
+  const error = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   // dispatch
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -158,7 +158,7 @@ const InstallBotPopup = (props: Props) => {
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const refreshBotPublicCommands = C.useChatState(s => s.dispatch.refreshBotPublicCommands)
   React.useEffect(() => {
-    dispatchClearWaiting([C.Chat.waitingKeyBotAdd, C.Chat.waitingKeyBotRemove])
+    dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     if (noCommands) {
       refreshBotPublicCommands(botUsername)
     }
@@ -349,7 +349,7 @@ const InstallBotPopup = (props: Props) => {
       onClick={onInstall}
       mode="Primary"
       type="Default"
-      waitingKey={C.Chat.waitingKeyBotAdd}
+      waitingKey={C.waitingKeyChatBotAdd}
     />
   )
   const reviewButton = showReviewButton && (
@@ -372,7 +372,7 @@ const InstallBotPopup = (props: Props) => {
         onClick={() => setInstallScreen(true)}
         mode="Primary"
         type="Default"
-        waitingKey={C.Chat.waitingKeyBotAdd}
+        waitingKey={C.waitingKeyChatBotAdd}
         disabled={readOnly}
       />
     </Kb.Box2>
@@ -384,7 +384,7 @@ const InstallBotPopup = (props: Props) => {
       onClick={onRemove}
       mode="Secondary"
       type="Danger"
-      waitingKey={C.Chat.waitingKeyBotRemove}
+      waitingKey={C.waitingKeyChatBotRemove}
     />
   )
   const editButton = showEditButton && (
@@ -410,7 +410,7 @@ const InstallBotPopup = (props: Props) => {
       onClick={onEdit}
       mode="Primary"
       type="Default"
-      waitingKey={C.Chat.waitingKeyBotAdd}
+      waitingKey={C.waitingKeyChatBotAdd}
     />
   )
   const doneButton = showDoneButton && (

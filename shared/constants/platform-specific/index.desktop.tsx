@@ -11,6 +11,7 @@ import {isLinux, isWindows} from '../platform.desktop'
 import {kbfsNotification} from './kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import NotifyPopup from '@/util/notify-popup'
+import {noKBFSFailReason} from '@/constants/config/util'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions
@@ -276,7 +277,7 @@ export const initPlatformListener = () => {
   C.useDaemonState.setState(s => {
     s.dispatch.onRestartHandshakeNative = () => {
       const {handshakeFailedReason} = C.useDaemonState.getState()
-      if (isWindows && handshakeFailedReason === ConfigConstants.noKBFSFailReason) {
+      if (isWindows && handshakeFailedReason === noKBFSFailReason) {
         requestWindowsStartService?.()
       }
     }

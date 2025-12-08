@@ -127,7 +127,7 @@ const RemoteContainer = (d: DeserializeProps) => {
             assertion: trackerUsername,
             forceDisplay: true,
             fromDaemon: false,
-            guiID: C.Tracker.generateGUIID(),
+            guiID: C.generateGUIID(),
             ignoreCache: true,
             inTracker: true,
             reason: '',

@@ -22,7 +22,7 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
         inlineSignUpLink = true
         break
       case T.RPCGen.StatusCode.scbadusername:
-        inlineError = C.Signup.usernameHint
+        inlineError = C.usernameHint
         inlineSignUpLink = false
         break
       default:
@@ -126,7 +126,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
             <Kb.LabeledInput
               autoFocus={true}
               placeholder="Username"
-              maxLength={C.Signup.maxUsernameLength}
+              maxLength={C.maxUsernameLength}
               onEnterKeyDown={onSubmit}
               onChangeText={setUsername}
               value={username}

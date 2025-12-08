@@ -3,7 +3,6 @@ import * as C from '@/constants'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import * as T from '../types'
-import {refreshNotificationsWaitingKey} from '@/constants/settings/util'
 
 const securityGroup = 'security'
 const soundGroup = 'sound'
@@ -59,7 +58,7 @@ export interface State extends Store {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useSettingsNotifState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     refresh: () => {
       const f = async () => {
@@ -82,11 +81,11 @@ export const useState = Z.createZustand<State>((set, get) => {
         try {
           const json = await T.RPCGen.apiserverGetWithSessionRpcPromise(
             {args: [], endpoint: 'account/subscriptions'},
-            refreshNotificationsWaitingKey
+            C.refreshNotificationsWaitingKey
           )
           chatGlobalSettings = await T.RPCChat.localGetGlobalAppNotificationSettingsLocalRpcPromise(
             undefined,
-            refreshNotificationsWaitingKey
+            C.refreshNotificationsWaitingKey
           )
           body = json.body
         } catch (error) {

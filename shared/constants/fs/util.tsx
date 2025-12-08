@@ -7,8 +7,8 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath:
     case EngineGen.keybase1NotifyFSFSSubscriptionNotify:
       {
-        const {useState} = require('./index') as typeof Index
-        useState.getState().dispatch.onEngineIncomingImpl(action)
+        const {useFSState} = require('./index') as typeof Index
+        useFSState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

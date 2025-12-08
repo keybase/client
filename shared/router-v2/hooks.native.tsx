@@ -133,7 +133,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
       } else if (startupTab || startupConversation) {
         try {
           const tab = startupConversation ? Tabs.chatTab : startupTab
-          C.Chat.useState.getState().dispatch.unboxRows([startupConversation])
+          C.Chat.useChatState.getState().dispatch.unboxRows([startupConversation])
           C.Chat.getConvoState_(startupConversation).dispatch.loadMoreMessages({
             reason: 'savedLastState',
           })
