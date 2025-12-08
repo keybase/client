@@ -36,7 +36,6 @@ export const toProveGenericParams = (p: T.RPCGen.ProveParameters): T.Immutable<P
   title: p.title,
 })
 
-
 type Store = T.Immutable<{
   blockUserModal?: 'waiting' | {error: string}
   errorCode?: number
@@ -621,7 +620,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         try {
-          await T.RPCGen.userBlockUserRpcPromise({username}, C.waitingKeyProfileBlockUser)
+          await T.RPCGen.userBlockUserRpcPromise({username})
           set(s => {
             s.blockUserModal = undefined
           })
@@ -677,7 +676,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     submitUnblockUser: (username, guiID) => {
       const f = async () => {
         try {
-          await T.RPCGen.userUnblockUserRpcPromise({username}, C.waitingKeyProfileBlockUser)
+          await T.RPCGen.userUnblockUserRpcPromise({username})
           C.useTrackerState.getState().dispatch.load({
             assertion: username,
             guiID: C.generateGUIID(),

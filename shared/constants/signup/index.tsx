@@ -253,10 +253,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
         if (C.useConfigState.getState().loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise(
-            {force: false, keepSecrets: true},
-            C.waitingKeyConfigCreateOther
-          )
+          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true})
         }
         try {
           const inviteCode = await T.RPCGen.signupGetInvitationCodeRpcPromise(undefined, C.waitingKeySignup)

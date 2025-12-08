@@ -2,7 +2,6 @@ import * as C from '..'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 
-
 export type ChatUnfurlState = {
   unfurlMode?: T.RPCChat.UnfurlMode
   unfurlWhitelist?: ReadonlyArray<string>
@@ -52,10 +51,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          const settings = await T.RPCGen.accountUserGetContactSettingsRpcPromise(
-            undefined,
-            C.waitingKeySettingsChatContactSettingsLoad
-          )
+          const settings = await T.RPCGen.accountUserGetContactSettingsRpcPromise(undefined)
           set(s => {
             s.contactSettings = T.castDraft({error: '', settings})
           })
@@ -86,7 +82,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           teams,
         }
         try {
-          await T.RPCGen.accountUserSetContactSettingsRpcPromise({settings}, C.waitingKeySettingsChatContactSettingsSave)
+          await T.RPCGen.accountUserSetContactSettingsRpcPromise(
+            {settings},
+            C.waitingKeySettingsChatContactSettingsSave
+          )
           get().dispatch.contactSettingsRefresh()
         } catch {
           set(s => {
@@ -103,7 +102,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          const result = await T.RPCChat.localGetUnfurlSettingsRpcPromise(undefined, C.waitingKeySettingsChatUnfurl)
+          const result = await T.RPCChat.localGetUnfurlSettingsRpcPromise(
+            undefined,
+            C.waitingKeySettingsChatUnfurl
+          )
           set(s => {
             s.unfurl = {
               unfurlError: undefined,

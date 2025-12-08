@@ -112,7 +112,10 @@ export const useSettingsState = Z.createZustand<State>(set => {
         s.checkPasswordIsCorrect = undefined
       })
       const f = async () => {
-        const res = await T.RPCGen.accountPassphraseCheckRpcPromise({passphrase}, C.waitingKeySettingsCheckPassword)
+        const res = await T.RPCGen.accountPassphraseCheckRpcPromise(
+          {passphrase},
+          C.waitingKeySettingsCheckPassword
+        )
         set(s => {
           s.checkPasswordIsCorrect = res
         })
@@ -150,10 +153,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
           return
         }
         try {
-          const result = await T.RPCGen.accountGetLockdownModeRpcPromise(
-            undefined,
-            C.waitingKeySettingsLoadLockdownMode
-          )
+          const result = await T.RPCGen.accountGetLockdownModeRpcPromise(undefined)
           set(s => {
             s.lockdownModeEnabled = result.status
           })
@@ -185,7 +185,10 @@ export const useSettingsState = Z.createZustand<State>(set => {
           return
         }
         try {
-          const settings = await T.RPCGen.userLoadMySettingsRpcPromise(undefined, C.waitingKeySettingsLoadSettings)
+          const settings = await T.RPCGen.userLoadMySettingsRpcPromise(
+            undefined,
+            C.waitingKeySettingsLoadSettings
+          )
           C.useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
           C.useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
           maybeLoadAppLink()

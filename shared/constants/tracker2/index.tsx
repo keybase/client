@@ -305,7 +305,10 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
       const loadFollowers = async () => {
         if (inTracker) return
         try {
-          const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise({assertion}, C.waitingKeyTrackerProfileLoad)
+          const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise(
+            {assertion},
+            C.waitingKeyTrackerProfileLoad
+          )
           set(s => {
             const d = s.usernameToDetails.get(assertion)
             if (!d) return
@@ -354,10 +357,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
     loadNonUserProfile: assertion => {
       const f = async () => {
         try {
-          const res = await T.RPCGen.userSearchGetNonUserDetailsRpcPromise(
-            {assertion},
-            C.waitingKeyTrackerNonUserProfileLoad
-          )
+          const res = await T.RPCGen.userSearchGetNonUserDetailsRpcPromise({assertion})
           if (res.isNonUser) {
             const common = {
               assertion,

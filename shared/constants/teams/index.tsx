@@ -1453,10 +1453,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
     checkRequestedAccess: _teamname => {
       // we never use teamname?
       const f = async () => {
-        const result = await T.RPCGen.teamsTeamListMyAccessRequestsRpcPromise(
-          {},
-          C.waitingKeyTeamsAccessRequest
-        )
+        const result = await T.RPCGen.teamsTeamListMyAccessRequestsRpcPromise({})
         set(s => {
           s.teamAccessRequestsPending = new Set<T.Teams.Teamname>(
             result?.map(row => row.parts?.join('.') ?? '')
@@ -2748,7 +2745,6 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
     },
     setPublicity: (teamID, settings) => {
       const f = async () => {
-        const waitingKey = C.waitingKeyTeamsSettings(teamID)
         const teamMeta = getTeamMeta(get(), teamID)
         const teamSettings = (get().teamDetails.get(teamID) ?? emptyTeamDetails).settings
         const ignoreAccessRequests = teamSettings.tarsDisabled
@@ -2760,53 +2756,44 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
 
         if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
           try {
-            await T.RPCGen.teamsTeamSetSettingsRpcPromise(
-              {
-                settings: {joinAs: T.RPCGen.TeamRole[settings.openTeamRole], open: settings.openTeam},
-                teamID,
-              },
-              waitingKey
-            )
+            await T.RPCGen.teamsTeamSetSettingsRpcPromise({
+              settings: {joinAs: T.RPCGen.TeamRole[settings.openTeamRole], open: settings.openTeam},
+              teamID,
+            })
           } catch (payload) {
             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
           try {
-            await T.RPCGen.teamsSetTarsDisabledRpcPromise(
-              {disabled: settings.ignoreAccessRequests, teamID},
-              waitingKey
-            )
+            await T.RPCGen.teamsSetTarsDisabledRpcPromise({disabled: settings.ignoreAccessRequests, teamID})
           } catch (payload) {
             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityAnyMember !== settings.publicityAnyMember) {
           try {
-            await T.RPCGen.teamsSetTeamShowcaseRpcPromise(
-              {anyMemberShowcase: settings.publicityAnyMember, teamID},
-              waitingKey
-            )
+            await T.RPCGen.teamsSetTeamShowcaseRpcPromise({
+              anyMemberShowcase: settings.publicityAnyMember,
+              teamID,
+            })
           } catch (payload) {
             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityMember !== settings.publicityMember) {
           try {
-            await T.RPCGen.teamsSetTeamMemberShowcaseRpcPromise(
-              {isShowcased: settings.publicityMember, teamID},
-              waitingKey
-            )
+            await T.RPCGen.teamsSetTeamMemberShowcaseRpcPromise({
+              isShowcased: settings.publicityMember,
+              teamID,
+            })
           } catch (payload) {
             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityTeam !== settings.publicityTeam) {
           try {
-            await T.RPCGen.teamsSetTeamShowcaseRpcPromise(
-              {isShowcased: settings.publicityTeam, teamID},
-              waitingKey
-            )
+            await T.RPCGen.teamsSetTeamShowcaseRpcPromise({isShowcased: settings.publicityTeam, teamID})
           } catch (payload) {
             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
@@ -2845,7 +2832,6 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           const servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
           await T.RPCChat.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
             C.waitingKeyTeamsTeam(teamID),
-            C.waitingKeyTeamsRetention(teamID),
           ])
         } catch (error) {
           set(s => {
@@ -2966,10 +2952,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         try {
-          await T.RPCChat.localSetWelcomeMessageRpcPromise(
-            {message, teamID},
-            C.waitingKeyTeamsSetWelcomeMessage(teamID)
-          )
+          await T.RPCChat.localSetWelcomeMessageRpcPromise({message, teamID})
           get().dispatch.loadWelcomeMessage(teamID)
         } catch (error) {
           set(s => {
