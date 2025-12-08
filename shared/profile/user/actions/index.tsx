@@ -105,7 +105,7 @@ const Container = (ownProps: OwnProps) => {
           key="Unfollow"
           following={true}
           onUnfollow={onUnfollow}
-          waitingKey={C.Tracker.waitingKey}
+          waitingKey={C.waitingKeyTracker}
         />,
         chatButton,
         dropdown,
@@ -117,19 +117,19 @@ const Container = (ownProps: OwnProps) => {
           key="Accept"
           type="Success"
           label="Accept"
-          waitingKey={C.Tracker.waitingKey}
+          waitingKey={C.waitingKeyTracker}
           onClick={onAccept}
         />,
         dropdown,
       ]
     } else {
       buttons = [
-        <Kb.WaitingButton key="Reload" label="Reload" waitingKey={C.Tracker.waitingKey} onClick={onReload} />,
+        <Kb.WaitingButton key="Reload" label="Reload" waitingKey={C.waitingKeyTracker} onClick={onReload} />,
         <Kb.WaitingButton
           key="Accept"
           type="Success"
           label="Accept"
-          waitingKey={C.Tracker.waitingKey}
+          waitingKey={C.waitingKeyTracker}
           onClick={onAccept}
         />,
         dropdown,
@@ -138,7 +138,7 @@ const Container = (ownProps: OwnProps) => {
   } else {
     if (state === 'error') {
       buttons = [
-        <Kb.WaitingButton key="Reload" label="Reload" waitingKey={C.Tracker.waitingKey} onClick={onReload} />,
+        <Kb.WaitingButton key="Reload" label="Reload" waitingKey={C.waitingKeyTracker} onClick={onReload} />,
         chatButton,
         dropdown,
       ]
@@ -149,7 +149,7 @@ const Container = (ownProps: OwnProps) => {
           following={false}
           followsYou={followsYou}
           onFollow={onFollow}
-          waitingKey={C.Tracker.waitingKey}
+          waitingKey={C.waitingKeyTracker}
         />,
         chatButton,
         dropdown,

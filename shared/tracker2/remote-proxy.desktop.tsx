@@ -24,9 +24,9 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const counts = new Map([
-    [C.Tracker.waitingKey, C.useWaitingState(s => s.counts.get(C.Tracker.waitingKey) ?? 0)],
+    [C.waitingKeyTracker, C.useWaitingState(s => s.counts.get(C.waitingKeyTracker) ?? 0)],
   ])
-  const errors = new Map([[C.Tracker.waitingKey, C.useWaitingState(s => s.errors.get(C.Tracker.waitingKey))]])
+  const errors = new Map([[C.waitingKeyTracker, C.useWaitingState(s => s.errors.get(C.waitingKeyTracker))]])
   const trackerUsernames = new Set([trackerUsername])
   const blocked = blockMap.get(trackerUsername)?.chatBlocked || false
 

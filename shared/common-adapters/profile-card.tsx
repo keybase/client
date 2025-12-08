@@ -223,7 +223,7 @@ const ProfileCard = ({
             key="unfollow"
             following={true}
             onUnfollow={() => _changeFollow(false)}
-            waitingKey={C.Tracker.waitingKey}
+            waitingKey={C.waitingKeyTracker}
             small={true}
             style={styles.button}
           />
@@ -233,7 +233,7 @@ const ProfileCard = ({
             following={false}
             followsYou={followsYou}
             onFollow={() => _changeFollow(true)}
-            waitingKey={C.Tracker.waitingKey}
+            waitingKey={C.waitingKeyTracker}
             small={true}
             style={styles.button}
           />

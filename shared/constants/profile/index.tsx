@@ -495,7 +495,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     },
     editProfile: (bio, fullName, location) => {
       const f = async () => {
-        await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, C.Tracker.waitingKey)
+        await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, C.waitingKeyTracker)
         get().dispatch.showUserProfile(C.useCurrentUserState.getState().username)
       }
       C.ignorePromise(f())
@@ -584,7 +584,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
               args: [{key: 'hidden', value: hidden ? '1' : '0'}],
               endpoint: 'stellar/hidden',
             },
-            C.Tracker.waitingKey
+            C.waitingKeyTracker
           )
         } catch (e) {
           logger.warn('Error setting Stellar hidden:', e)

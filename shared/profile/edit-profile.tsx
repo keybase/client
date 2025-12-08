@@ -74,7 +74,7 @@ const Container = () => {
           </Kb.RoundedBox>
           <Kb.Box2 direction="vertical" style={styles.gap} />
           <Kb.WaitingButton
-            waitingKey={C.Tracker.waitingKey}
+            waitingKey={C.waitingKeyTracker}
             label="Save"
             disabled={disabled()}
             onClick={submit}

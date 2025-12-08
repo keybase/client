@@ -33,7 +33,7 @@ const getButtons = (props: Props) => {
       type="Dim"
       key="Close"
       label="Close"
-      waitingKey={C.Tracker.waitingKey}
+      waitingKey={C.waitingKeyTracker}
       onClick={props.onClose}
     />
   )
@@ -42,12 +42,12 @@ const getButtons = (props: Props) => {
       type="Success"
       key="Accept"
       label="Accept"
-      waitingKey={C.Tracker.waitingKey}
+      waitingKey={C.waitingKeyTracker}
       onClick={props.onAccept}
     />
   )
   const buttonChat = (
-    <Kb.WaitingButton key="Chat" label="Chat" waitingKey={C.Tracker.waitingKey} onClick={props.onChat}>
+    <Kb.WaitingButton key="Chat" label="Chat" waitingKey={C.waitingKeyTracker} onClick={props.onChat}>
       <Kb.Icon type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
@@ -70,7 +70,7 @@ const getButtons = (props: Props) => {
               type="Success"
               key="Follow"
               label="Follow"
-              waitingKey={C.Tracker.waitingKey}
+              waitingKey={C.waitingKeyTracker}
               onClick={props.onFollow}
             />,
           ]
@@ -80,7 +80,7 @@ const getButtons = (props: Props) => {
           type="Dim"
           key="Ignore for 24 hours"
           label="Ignore for 24 hours"
-          waitingKey={C.Tracker.waitingKey}
+          waitingKey={C.waitingKeyTracker}
           onClick={props.onIgnoreFor24Hours}
         />,
         buttonAccept,
@@ -92,7 +92,7 @@ const getButtons = (props: Props) => {
         <Kb.WaitingButton
           key="Reload"
           label="Reload"
-          waitingKey={C.Tracker.waitingKey}
+          waitingKey={C.waitingKeyTracker}
           onClick={props.onReload}
         />,
       ]

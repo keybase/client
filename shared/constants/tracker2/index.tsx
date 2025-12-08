@@ -185,10 +185,6 @@ export const sortAssertionKeys = (a: string, b: string) => {
   return scoreA - scoreB
 }
 
-export const waitingKey = 'tracker2:waitingKey'
-export const profileLoadWaitingKey = 'tracker2:profileLoad'
-export const nonUserProfileLoadWaitingKey = 'tracker2:nonUserProfileLoad'
-
 export const getDetails = (state: State, username: string): T.Tracker.Details =>
   state.usernameToDetails.get(username) || noDetails
 export const getNonUserDetails = (state: State, username: string): T.Tracker.NonUserDetails =>
@@ -263,7 +259,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
     changeFollow: (guiID, follow) => {
       const f = async () => {
         try {
-          await T.RPCGen.identify3Identify3FollowUserRpcPromise({follow, guiID}, waitingKey)
+          await T.RPCGen.identify3Identify3FollowUserRpcPromise({follow, guiID}, C.waitingKeyTracker)
           get().dispatch.updateResult(guiID, 'valid', `Successfully ${follow ? 'followed' : 'unfollowed'}!`)
         } catch {
           get().dispatch.updateResult(guiID, 'error', `Failed to ${follow ? 'follow' : 'unfollow'}`)
@@ -286,7 +282,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         try {
           const {suggestions} = await T.RPCGen.userProofSuggestionsRpcPromise(
             undefined,
-            profileLoadWaitingKey
+            C.profileLoadWaitingKey
           )
           set(s => {
             s.proofSuggestions = T.castDraft(suggestions?.map(rpcSuggestionToAssertion)) ?? []
@@ -302,7 +298,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
     ignore: guiID => {
       const f = async () => {
         try {
-          await T.RPCGen.identify3Identify3IgnoreUserRpcPromise({guiID}, waitingKey)
+          await T.RPCGen.identify3Identify3IgnoreUserRpcPromise({guiID}, C.waitingKeyTracker)
           get().dispatch.updateResult(guiID, 'valid', `Successfully ignored`)
         } catch {
           get().dispatch.updateResult(guiID, 'error', `Failed to ignore`)
@@ -335,7 +331,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.identify3Identify3RpcListener({
             incomingCallMap: {},
             params: {assertion, guiID, ignoreCache},
-            waitingKey: profileLoadWaitingKey,
+            waitingKey: C.profileLoadWaitingKey,
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -362,7 +358,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
       const loadFollowers = async () => {
         if (inTracker) return
         try {
-          const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise({assertion}, profileLoadWaitingKey)
+          const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise({assertion}, C.profileLoadWaitingKey)
           set(s => {
             const d = T.castDraft(getDetails(s, assertion))
             d.followers = new Set(fs.users?.map(f => f.username))
@@ -384,7 +380,10 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
       const loadFollowing = async () => {
         if (inTracker) return
         try {
-          const fs = await T.RPCGen.userListTrackingRpcPromise({assertion, filter: ''}, profileLoadWaitingKey)
+          const fs = await T.RPCGen.userListTrackingRpcPromise(
+            {assertion, filter: ''},
+            C.profileLoadWaitingKey
+          )
           set(s => {
             const d = T.castDraft(getDetails(s, assertion))
             d.following = new Set(fs.users?.map(f => f.username))
@@ -408,7 +407,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         try {
           const res = await T.RPCGen.userSearchGetNonUserDetailsRpcPromise(
             {assertion},
-            nonUserProfileLoadWaitingKey
+            C.nonUserProfileLoadWaitingKey
           )
           if (res.isNonUser) {
             const common = {

@@ -41,6 +41,10 @@ export const waitingKeyChatUnpin = (conversationIDKey: T.Chat.ConversationIDKey)
 export const waitingKeyChatMutualTeams = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
 
+export const waitingKeyTracker = 'tracker2:waitingKey'
+export const profileLoadWaitingKey = 'tracker2:profileLoad'
+export const nonUserProfileLoadWaitingKey = 'tracker2:nonUserProfileLoad'
+
 export const defaultDevicename =
   (Platforms.isAndroid ? 'Android Device' : undefined) ||
   (Platforms.isIOS ? 'iOS Device' : undefined) ||
