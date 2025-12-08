@@ -14,7 +14,7 @@ interface State extends T.Devices.State {
   dispatch: {
     load: () => void
     clearBadges: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'
     setBadges: (set: Set<string>) => void
   }
@@ -46,7 +46,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       1000,
       {leading: true, trailing: false}
     ),
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyBadgesBadgeState: {
           const {badgeState} = action.payload.params

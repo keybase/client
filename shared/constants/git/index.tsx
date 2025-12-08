@@ -65,7 +65,7 @@ interface State extends T.Git.State {
     setError: (err?: Error) => void
     clearBadges: () => void
     load: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     setBadges: (set: Set<string>) => void
     resetState: 'default'
     createPersonalRepo: (name: string) => void
@@ -158,7 +158,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyBadgesBadgeState: {
           const {badgeState} = action.payload.params

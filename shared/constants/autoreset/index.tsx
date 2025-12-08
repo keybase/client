@@ -32,7 +32,7 @@ const initialStore: Store = {
 interface State extends Store {
   dispatch: {
     cancelReset: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'
     resetAccount: (password?: string) => void
     startAccountReset: (skipPassword: boolean, username: string) => void
@@ -81,7 +81,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyBadgesBadgeState: {
           const {badgeState} = action.payload.params

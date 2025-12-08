@@ -21,7 +21,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
       {
         const {useState} = require('.') as typeof Index
-        useState.getState().dispatch.onEngineIncoming(action)
+        useState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

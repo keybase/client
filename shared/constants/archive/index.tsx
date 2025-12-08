@@ -83,7 +83,7 @@ interface State extends Store {
     load: () => void
     loadKBFSJobFreshness: (jobID: string) => void
     cancelOrDismissKBFS: (jobID: string) => Promise<void>
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'
   }
   chatIDToDisplayname: (id: string) => string
@@ -380,7 +380,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifySimpleFSSimpleFSArchiveStatusChanged:
           setKBFSJobStatus(action.payload.params.status)

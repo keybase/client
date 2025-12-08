@@ -85,7 +85,7 @@ export interface State extends Store {
     loadProxyData: () => void
     loadSettings: () => void
     loginBrowserViaWebAuthToken: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     processorProfile: (durationSeconds: number) => void
     resetCheckPassword: () => void
     resetState: 'default'
@@ -213,7 +213,7 @@ export const useState = Z.createZustand<State>(set => {
       }
       C.ignorePromise(f())
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
           logger.info('email verified')

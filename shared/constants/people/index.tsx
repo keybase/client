@@ -364,7 +364,7 @@ interface State extends Store {
     setResentEmail: (email: string) => void
     skipTodo: (type: T.People.TodoType) => void
     markViewed: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
   }
 }
@@ -515,7 +515,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1HomeUIHomeUIRefresh:
           get().dispatch.loadPeople(false)

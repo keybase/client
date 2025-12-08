@@ -7,7 +7,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
       {
         const {useState} = require('./index') as typeof Index
-        useState.getState().dispatch.onEngineIncoming(action)
+        useState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

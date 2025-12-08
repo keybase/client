@@ -18,7 +18,7 @@ const initialStore: Store = {
 export interface State extends Store {
   dispatch: {
     onBackFromPaperKey: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     toPaperKeyInput: () => void
     replace: (devices: Store['devices']) => void
     resetState: 'default'
@@ -33,7 +33,7 @@ export const useState = Z.createZustand<State>((set, _get) => {
         s.phase = 'promptOtherDevice'
       })
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1RekeyUIRefresh: {
           const {problemSetDevices} = action.payload.params

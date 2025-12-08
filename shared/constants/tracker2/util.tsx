@@ -29,7 +29,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1Identify3UiIdentify3Summary:
       {
         const {useState} = require('.') as typeof Index
-        useState.getState().dispatch.onEngineIncoming(action)
+        useState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

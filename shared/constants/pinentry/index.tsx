@@ -36,7 +36,7 @@ interface State extends Store {
         result: (param: T.RPCGen.GetPassphraseRes) => void
       }
     ) => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
   }
 }
@@ -47,7 +47,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       onCancel: undefined,
       onSubmit: undefined,
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1SecretUiGetPassphrase: {
           const {response, params} = action.payload

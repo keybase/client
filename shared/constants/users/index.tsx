@@ -23,7 +23,7 @@ export interface State extends Store {
   dispatch: {
     getBio: (username: string) => void
     getBlockState: (usernames: ReadonlyArray<string>) => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     reportUser: (p: {
       username: string
       reason: string
@@ -74,7 +74,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyUsersIdentifyUpdate: {
           const {brokenUsernames, okUsernames} = action.payload.params

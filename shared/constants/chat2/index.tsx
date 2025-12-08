@@ -315,7 +315,7 @@ export interface State extends Store {
     ) => void
     navigateToInbox: (allowSwitchTab?: boolean) => void
     onChatThreadStale: (action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     onChatInboxSynced: (action: EngineGen.Chat1NotifyChatChatInboxSyncedPayload) => void
     onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => void
     onGetInboxUnverifiedConvs: (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => void
@@ -1028,7 +1028,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
       }
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.chat1ChatUiChatInboxFailed: // fallthrough
         case EngineGen.chat1NotifyChatChatSetConvSettings: // fallthrough

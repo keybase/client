@@ -28,7 +28,7 @@ const initialStore: Store = {
 
 interface State extends Store {
   dispatch: {
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'
     badgeApp: (key: NotificationKeys, on: boolean) => void
     setBadgeCounts: (counts: Map<Tabs.Tab, number>) => void
@@ -99,7 +99,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         updateWidgetBadge(s)
       })
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyAuditRootAuditError:
           C.useConfigState

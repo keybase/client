@@ -1091,7 +1091,7 @@ export interface State extends Store {
     notifyTreeMembershipsDone: (result: T.RPCChat.Keybase1.TeamTreeMembershipsDoneResult) => void
     notifyTreeMembershipsPartial: (membership: T.RPCChat.Keybase1.TeamTreeMembership) => void
     notifyTeamTeamRoleMapChanged: (newVersion: number) => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     openInviteLink: (inviteID: string, inviteKey: string) => void
     onGregorPushState: (gs: Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>) => void
     reAddToTeam: (teamID: T.Teams.TeamID, username: string) => void
@@ -2392,7 +2392,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.chat1ChatUiChatShowManageChannels: {
           const {teamname} = action.payload.params

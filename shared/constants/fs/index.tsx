@@ -1178,7 +1178,7 @@ interface State extends Store {
     newFolderRow: (parentPath: T.FS.Path) => void
     moveOrCopy: (destinationParentPath: T.FS.Path, type: 'move' | 'copy') => void
     onChangedFocus: (appFocused: boolean) => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
+    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     onPathChange: (
       clientID: string,
       path: string,
@@ -2282,7 +2282,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         get().dispatch.driverEnable(true)
       }
     },
-    onEngineIncoming: action => {
+    onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged:
           get().dispatch.syncStatusChanged(action.payload.params.status)
