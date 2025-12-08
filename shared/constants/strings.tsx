@@ -12,13 +12,7 @@ export const noEmail = 'NOEMAIL'
 
 export const waitingKeySignup = 'signup:waiting'
 
-export const waitingKeyChatJoinConversation = 'chat:joinConversation'
 export const waitingKeyChatLeaveConversation = 'chat:leaveConversation'
-export const waitingKeyChatPost = 'chat:post'
-export const waitingKeyChatRetryPost = 'chat:retryPost'
-export const waitingKeyChatEditPost = 'chat:editPost'
-export const waitingKeyChatDeletePost = 'chat:deletePost'
-export const waitingKeyChatCancelPost = 'chat:cancelPost'
 export const waitingKeyChatInboxRefresh = 'chat:inboxRefresh'
 export const waitingKeyChatCreating = 'chat:creatingConvo'
 export const waitingKeyChatInboxSyncStarted = 'chat:inboxSyncStarted'
@@ -27,8 +21,6 @@ export const waitingKeyChatBotRemove = 'chat:botRemove'
 export const waitingKeyChatLoadingEmoji = 'chat:loadingEmoji'
 export const waitingKeyChatThreadLoad = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyChatConvStatusChange = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyChatUnpin = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyChatMutualTeams = (conversationIDKey: T.Chat.ConversationIDKey) =>
@@ -36,14 +28,12 @@ export const waitingKeyChatMutualTeams = (conversationIDKey: T.Chat.Conversation
 
 export const waitingKeyTracker = 'tracker2:waitingKey'
 export const waitingKeyTrackerProfileLoad = 'tracker2:profileLoad'
-export const waitingKeyTrackerNonUserProfileLoad = 'tracker2:nonUserProfileLoad'
 
 export const waitingKeyProvision = 'provision:waiting'
 export const waitingKeyProvisionForgotUsername = 'provision:forgotUsername'
 
 export const waitingKeyProfile = 'profile:waiting'
 export const waitingKeyProfileUploadAvatar = 'profile:uploadAvatar'
-export const waitingKeyProfileBlockUser = 'profile:blockUser'
 
 export const waitingKeyBotsSearchFeatured = 'bots:search:featured'
 export const waitingKeyBotsSearchUsers = 'bots:search:users'
@@ -55,7 +45,6 @@ export const waitingKeyRecoverPassword = 'recover-password:waiting'
 export const waitingKeyCrypto = 'cryptoWaiting'
 
 export const waitingKeyTeamsLoaded = 'teams:loaded'
-export const waitingKeyTeamsAccessRequest = 'teams:accessRequests'
 export const waitingKeyTeamsJoinTeam = 'teams:joinTeam'
 export const waitingKeyTeamsTeam = (teamID: T.Teams.TeamID) => `team:${teamID}`
 export const waitingKeyTeamsSetMemberPublicity = (teamID: T.Teams.TeamID) => `teamMemberPub:${teamID}`
@@ -65,8 +54,6 @@ export const waitingKeyTeamsAddUserToTeams = (username: string) => `addUserToTea
 export const waitingKeyTeamsAddToTeamByEmail = (teamname: T.Teams.Teamname) => `teamAddByEmail:${teamname}`
 export const waitingKeyTeamsGetChannels = (teamID: T.Teams.TeamID) => `getChannels:${teamID}`
 export const waitingKeyTeamsCreateChannel = (teamID: T.Teams.TeamID) => `createChannel:${teamID}`
-export const waitingKeyTeamsSettings = (teamID: T.Teams.TeamID) => `teamSettings:${teamID}`
-export const waitingKeyTeamsRetention = (teamID: T.Teams.TeamID) => `teamRetention:${teamID}`
 export const waitingKeyTeamsAddMember = (teamID: T.Teams.TeamID, ...usernames: ReadonlyArray<string>) =>
   `teamAdd:${teamID};${usernames.join(',')}`
 export const waitingKeyTeamsRemoveMember = (teamID: T.Teams.TeamID, id: string) =>
@@ -77,7 +64,6 @@ export const waitingKeyTeamsDeleteTeam = (teamID: T.Teams.TeamID) => `teamDelete
 export const waitingKeyTeamsLeaveTeam = (teamname: T.Teams.Teamname) => `teamLeave:${teamname}`
 export const waitingKeyTeamsRename = 'teams:rename'
 export const waitingKeyTeamsLoadWelcomeMessage = (teamID: T.Teams.TeamID) => `loadWelcomeMessage:${teamID}`
-export const waitingKeyTeamsSetWelcomeMessage = (teamID: T.Teams.TeamID) => `setWelcomeMessage:${teamID}`
 export const waitingKeyTeamsLoadTeamTreeActivity = (teamID: T.Teams.TeamID, username: string) =>
   `loadTeamTreeActivity:${teamID};${username}`
 export const waitingKeyTeamsEditMembership = (teamID: T.Teams.TeamID, ...usernames: ReadonlyArray<string>) =>
@@ -85,7 +71,6 @@ export const waitingKeyTeamsEditMembership = (teamID: T.Teams.TeamID, ...usernam
 export const waitingKeyTeamsUpdateChannelName = (teamID: T.Teams.TeamID) => `updateChannelName:${teamID}`
 
 export const waitingKeyConfigLoginAsOther = 'config:loginAsOther'
-export const waitingKeyConfigCreateOther = 'config:createOther'
 export const waitingKeyConfigLogin = 'login:waiting'
 
 export const waitingKeyAutoresetEnterPipeline = 'autoreset:EnterPipelineWaitingKey'
@@ -93,7 +78,6 @@ export const waitingKeyAutoresetActuallyReset = 'autoreset:ActuallyResetWaitingK
 export const waitingKeyAutoresetCancel = 'autoreset:cancelWaitingKey'
 
 export const waitingKeySettingsSetLockdownMode = 'settings:setLockdownMode'
-export const waitingKeySettingsLoadLockdownMode = 'settings:loadLockdownMode'
 export const waitingKeySettingsCheckPassword = 'settings:checkPassword'
 export const waitingKeySettingsSendFeedback = 'settings:sendFeedback'
 export const waitingKeySettingsLoadSettings = 'settings:loadSettings'
@@ -105,7 +89,6 @@ export const waitingKeySettingsPhoneResendVerification = 'settings:resendVerific
 
 export const waitingKeySettingsChatContactSettingsSave = 'settings:contactSettingsSaveWaitingKey'
 export const waitingKeySettingsChatUnfurl = 'settings:chatUnfurlWaitingKey'
-export const waitingKeySettingsChatContactSettingsLoad = 'settings:contactSettingsLoadWaitingKey'
 
 export const waitingKeyFSSyncToggle = 'fs:syncToggle'
 export const waitingKeyFSFolderList = 'fs:folderList'
