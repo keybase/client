@@ -72,12 +72,12 @@ const Files = () => {
   const toggleSyncOnCellular = () => {
     T.RPCGen.SimpleFSSimpleFSSetSyncOnCellularRpcPromise(
       {syncOnCellular: !syncOnCellular},
-      C.FS.setSyncOnCellularWaitingKey
+      C.waitingKeyFSSetSyncOnCellular
     )
       .then(() => {})
       .catch(() => {})
   }
-  const waitingToggleSyncOnCellular = C.Waiting.useAnyWaiting(C.FS.setSyncOnCellularWaitingKey)
+  const waitingToggleSyncOnCellular = C.Waiting.useAnyWaiting(C.waitingKeyFSSetSyncOnCellular)
   return (
     <Kb.Box2
       direction="vertical"

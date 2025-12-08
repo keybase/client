@@ -34,7 +34,7 @@ const EmailPhone = () => {
   const contactKeys = [..._emails.keys(), ...(_phones ? _phones.keys() : [])]
   const tooManyEmails = _emails.size >= 10 // If you change this, also change in keybase/config/prod/email.iced
   const tooManyPhones = !!_phones && _phones.size >= 10 // If you change this, also change in keybase/config/prod/phone_numbers.iced
-  const waiting = C.Waiting.useAnyWaiting(C.Settings.loadSettingsWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsLoadSettings)
   const onAddEmail = () => {
     navigateAppend('settingsAddEmail')
   }
@@ -192,7 +192,7 @@ const AccountSettings = () => {
   }
 
   return (
-    <Kb.Reloadable onReload={onReload} reloadOnMount={true} waitingKeys={[C.Settings.loadSettingsWaitingKey]}>
+    <Kb.Reloadable onReload={onReload} reloadOnMount={true} waitingKeys={[C.waitingKeySettingsLoadSettings]}>
       <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth}>
         {addedEmail && (
           <Kb.Banner key="clearAdded" color="yellow" onClose={onClearAddedEmail}>

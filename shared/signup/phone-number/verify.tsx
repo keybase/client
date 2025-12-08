@@ -9,11 +9,11 @@ const Container = () => {
   const error = C.useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))
   const phoneNumber = C.useSettingsPhoneState(s => s.pendingVerification)
   const resendWaiting = C.Waiting.useAnyWaiting([
-    C.SettingsPhone.resendVerificationForPhoneWaitingKey,
-    C.SettingsPhone.addPhoneNumberWaitingKey,
+    C.waitingKeySettingsPhoneResendVerificationForPhone,
+    C.waitingKeySettingsPhoneAddPhoneNumber,
   ])
   const verificationStatus = C.useSettingsPhoneState(s => s.verificationState)
-  const verifyWaiting = C.Waiting.useAnyWaiting(C.SettingsPhone.verifyPhoneNumberWaitingKey)
+  const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)
 
   const verifyPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.verifyPhoneNumber)
   const resendVerificationForPhone = C.useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)

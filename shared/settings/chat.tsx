@@ -193,7 +193,7 @@ const Security = () => {
               label="Save"
               small={true}
               style={styles.save}
-              waitingKey={SettingsChat.contactSettingsSaveWaitingKey}
+              waitingKey={C.waitingKeySettingsChatContactSettingsSave}
             />
             {!!contactSettingsError && (
               <Kb.Text type="BodySmall" style={styles.error}>
@@ -331,7 +331,7 @@ const Links = () => {
           small={true}
           style={styles.save}
           disabled={!allowSave}
-          waitingKey={SettingsChat.chatUnfurlWaitingKey}
+          waitingKey={C.waitingKeySettingsChatUnfurl}
         />
         {error ? (
           <Kb.Text type="BodySmall" style={styles.error}>

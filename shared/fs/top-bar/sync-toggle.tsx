@@ -11,7 +11,7 @@ const Container = (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
   const _tlfPathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, ownProps.tlfPath))
   const _tlfs = C.useFSState(s => s.tlfs)
-  const waiting = C.Waiting.useAnyWaiting(C.FS.syncToggleWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyFSSyncToggle)
 
   const setTlfSyncConfig = C.useFSState(s => s.dispatch.setTlfSyncConfig)
 

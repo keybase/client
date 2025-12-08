@@ -128,15 +128,15 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
   const waitingForLeave = C.Waiting.useAnyWaiting(
     teamname ? C.Teams.leaveTeamWaitingKey(teamname) : undefined
   )
-  const waitingForBlocking = C.Waiting.useAnyWaiting(C.Users.setUserBlocksWaitingKey)
-  const waitingForReport = C.Waiting.useAnyWaiting(C.Users.reportUserWaitingKey)
+  const waitingForBlocking = C.Waiting.useAnyWaiting(C.waitingKeyUsersSetUserBlocks)
+  const waitingForReport = C.Waiting.useAnyWaiting(C.waitingKeyUsersReportUser)
   if (others?.length === 1 && !adderUsername) {
     adderUsername = others[0]
     others = undefined
   }
 
   const _allKnownBlocks = C.useUsersState(s => s.blockMap)
-  const loadingWaiting = C.Waiting.useAnyWaiting(C.Users.getUserBlocksWaitingKey)
+  const loadingWaiting = C.Waiting.useAnyWaiting(C.waitingKeyUsersGetUserBlocks)
 
   const onClose = C.useRouterState(s => s.dispatch.navigateUp)
   const leaveTeam = C.useTeamsState(s => s.dispatch.leaveTeam)

@@ -14,7 +14,7 @@ const MobileNotifications = () => {
   return (
     <Reloadable
       onBack={navigateUp}
-      waitingKeys={[C.refreshNotificationsWaitingKey, C.Settings.loadSettingsWaitingKey]}
+      waitingKeys={[C.refreshNotificationsWaitingKey, C.waitingKeySettingsLoadSettings]}
       onReload={onRefresh}
       reloadOnMount={true}
     >

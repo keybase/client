@@ -73,7 +73,7 @@ const ConnectedEnterPhoneNumber = () => {
   const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
   const error = C.useSettingsPhoneState(s => s.error)
   const pendingVerification = C.useSettingsPhoneState(s => s.pendingVerification)
-  const waiting = C.Waiting.useAnyWaiting(C.SettingsPhone.addPhoneNumberWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneAddPhoneNumber)
   const clearPhoneNumberErrors = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberErrors)
   const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
   const onClear = clearPhoneNumberErrors

@@ -28,7 +28,7 @@ const Invites = () => {
   const acceptedInvites = useSettingsInvitesState(s => s.acceptedInvites)
   const error = useSettingsInvitesState(s => s.error)
   const pendingInvites = useSettingsInvitesState(s => s.pendingInvites)
-  const waitingForResponse = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
+  const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
 
   const resetError = useSettingsInvitesState(s => s.dispatch.resetError)
   const sendInvite = useSettingsInvitesState(s => s.dispatch.sendInvite)

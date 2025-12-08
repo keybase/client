@@ -218,7 +218,7 @@ const Container = () => {
   const newPasswordConfirmError = usePWState(s => s.newPasswordConfirmError)
   const newPasswordError = usePWState(s => s.newPasswordError)
   const saveLabel = usePWState(s => (s.randomPW ? 'Create password' : 'Save'))
-  const waitingForResponse = C.Waiting.useAnyWaiting(C.Settings.settingsWaitingKey)
+  const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {

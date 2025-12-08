@@ -185,8 +185,8 @@ const Container = (op: OwnProps) => {
     : []
 
   const ignoreNeedsToWait = C.Waiting.useAnyWaiting([
-    C.FS.folderListWaitingKey,
-    C.FS.statWaitingKey,
+    C.waitingKeyFSFolderList,
+    C.waitingKeyFSStat,
   ])
   const favoriteIgnore = C.useFSState(s => s.dispatch.favoriteIgnore)
   const ignoreTlf = layout.ignoreTlf

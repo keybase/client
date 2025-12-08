@@ -20,7 +20,7 @@ const getRepos = (git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
   )
 
 const Container = (ownProps: OwnProps) => {
-  const loading = C.Waiting.useAnyWaiting(Git.loadingWaitingKey)
+  const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
   const {clearBadges, load, setError, error, idToInfo, isNew} = Git.useGitState(
     C.useShallow(s => {
       const {dispatch, error, idToInfo, isNew} = s
@@ -87,7 +87,7 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <Kb.Reloadable
-      waitingKeys={Git.loadingWaitingKey}
+      waitingKeys={C.waitingKeyGitLoading}
       onBack={undefined}
       onReload={load}
       reloadOnMount={true}

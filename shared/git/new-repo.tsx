@@ -11,7 +11,7 @@ const Container = (ownProps: OwnProps) => {
   const error = Git.useGitState(s => s.error)
   const teamnames = C.useTeamsState(s => s.teamnames)
   const teams = [...teamnames].sort(C.Teams.sortTeamnames)
-  const waitingKey = Git.loadingWaitingKey
+  const waitingKey = C.waitingKeyGitLoading
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
   const loadTeams = getTeams

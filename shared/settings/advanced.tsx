@@ -73,11 +73,11 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
 let disableSpellCheckInitialValue: boolean | undefined
 
 const Advanced = () => {
-  const settingLockdownMode = C.Waiting.useAnyWaiting(C.Settings.setLockdownModeWaitingKey)
+  const settingLockdownMode = C.Waiting.useAnyWaiting(C.waitingKeySettingsSetLockdownMode)
   const hasRandomPW = usePWState(s => !!s.randomPW)
   const openAtLogin = C.useConfigState(s => s.openAtLogin)
   const rememberPassword = usePWState(s => s.rememberPassword)
-  const setLockdownModeError = C.Waiting.useAnyErrors(C.Settings.setLockdownModeWaitingKey)?.message || ''
+  const setLockdownModeError = C.Waiting.useAnyErrors(C.waitingKeySettingsSetLockdownMode)?.message || ''
   const setRememberPassword = usePWState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
   const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
