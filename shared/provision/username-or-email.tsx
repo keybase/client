@@ -7,7 +7,6 @@ import type {RPCError} from '@/util/errors'
 import * as Kb from '@/common-adapters'
 import UserCard from '@/login/user-card'
 import {SignupScreen, errorBanner} from '@/signup/common'
-import {usernameHint, maxUsernameLength} from '@/constants/signup/util'
 
 type OwnProps = {fromReset?: boolean}
 
@@ -23,7 +22,7 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
         inlineSignUpLink = true
         break
       case T.RPCGen.StatusCode.scbadusername:
-        inlineError = usernameHint
+        inlineError = C.usernameHint
         inlineSignUpLink = false
         break
       default:
@@ -127,7 +126,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
             <Kb.LabeledInput
               autoFocus={true}
               placeholder="Username"
-              maxLength={maxUsernameLength}
+              maxLength={C.maxUsernameLength}
               onEnterKeyDown={onSubmit}
               onChangeText={setUsername}
               value={username}

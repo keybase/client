@@ -7,7 +7,6 @@ import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import type {Props} from '.'
 import Todo from './todo'
-import {noEmail} from '@/constants/signup/util'
 // import WotTask from './wot-task'
 
 const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Props) => React.ReactNode = (
@@ -75,7 +74,7 @@ const EmailVerificationBanner = React.memo(function EmailVerificationBanner() {
     return null
   }
 
-  if (signupEmail === noEmail) {
+  if (signupEmail === C.noEmail) {
     return <Kb.Banner color="green">Welcome to Keybase!</Kb.Banner>
   }
   return (
