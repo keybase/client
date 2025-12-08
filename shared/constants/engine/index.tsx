@@ -49,6 +49,7 @@ export const useState = Z.createZustand<State>(set => {
     onEngineIncoming: action => {
       // defer a frame so its more like before
       incomingTimeout = setTimeout(() => {
+        // we delegate to these utils so we don't need to load stores that we don't need yet
         ArchiveUtil.onEngineIncoming(action)
         AutoResetUtil.onEngineIncoming(action)
         BotsUtil.onEngineIncoming(action)
