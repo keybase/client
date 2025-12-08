@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/router-v2/common'
 import {makeNavScreens} from '@/router-v2/shim'

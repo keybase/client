@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Contacts from 'expo-contacts'
 import * as React from 'react'
 import {e164ToDisplay} from '@/util/phone-numbers'
