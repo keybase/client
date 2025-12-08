@@ -14,6 +14,7 @@ import {defaultUseNativeFrame, runMode, isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useState as useWNState} from '../whats-new'
+import type * as Pinentry from '@/constants/pinentry'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -420,11 +421,13 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.pinentryOnCancel: {
-          C.usePinentryState.getState().dispatch.dynamic.onCancel?.()
+          const {usePinentryState} = require('@/constants/pinentry') as typeof Pinentry
+          usePinentryState.getState().dispatch.dynamic.onCancel?.()
           break
         }
         case RemoteGen.pinentryOnSubmit: {
-          C.usePinentryState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
+          const {usePinentryState} = require('@/constants/pinentry') as typeof Pinentry
+          usePinentryState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
           break
         }
         case RemoteGen.openPathInSystemFileManager: {

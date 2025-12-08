@@ -20,8 +20,8 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
   switch (action.type) {
     case EngineGen.keybase1SecretUiGetPassphrase:
       {
-        const {useState} = require('.') as typeof Index
-        useState.getState().dispatch.onEngineIncomingImpl(action)
+        const {usePinentryState} = require('.') as typeof Index
+        usePinentryState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:
