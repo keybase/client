@@ -261,7 +261,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
           logger.info(`Showing tracker for assertion: ${assertion}`)
           s.showTrackerSet.add(username)
         }
-        const d = mapGetEnsureValue(s.usernameToDetails, username, T.castDraft({...noDetails}))
+        const d = mapGetEnsureValue(s.usernameToDetails, username, {...noDetails})
         d.assertions = new Map() // just remove for now, maybe keep them
         d.guiID = guiID
         d.reason = reason
