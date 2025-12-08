@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as PhoneUtil from '@/util/phone-numbers'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useSettingsPhoneState} from '@/constants/settings-phone'
 
 type OwnProps = {
   address: string
@@ -19,7 +20,7 @@ const DeleteModal = (props: OwnProps) => {
   const lastEmail = props.lastEmail ?? false
 
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
-  const editPhone = C.useSettingsPhoneState(s => s.dispatch.editPhone)
+  const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
   const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = React.useCallback(() => {
     if (itemType === 'phone') {

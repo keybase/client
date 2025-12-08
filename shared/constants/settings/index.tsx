@@ -7,6 +7,7 @@ import {RPCError} from '@/util/errors'
 import * as Tabs from '../tabs'
 import logger from '@/logger'
 import {usePWState} from '../settings-password'
+import {useSettingsPhoneState} from '../settings-phone'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -93,7 +94,7 @@ export interface State extends Store {
 let maybeLoadAppLinkOnce = false
 export const useSettingsState = Z.createZustand<State>(set => {
   const maybeLoadAppLink = () => {
-    const phones = C.useSettingsPhoneState.getState().phones
+    const phones = useSettingsPhoneState.getState().phones
     if (!phones || phones.size > 0) {
       return
     }
@@ -190,7 +191,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
             C.waitingKeySettingsLoadSettings
           )
           C.useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
-          C.useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
+          useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
           maybeLoadAppLink()
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -222,7 +223,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
         }
         case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
           const {list} = action.payload.params
-          C.useSettingsPhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+          useSettingsPhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
           break
         }
         case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {

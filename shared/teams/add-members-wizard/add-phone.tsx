@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {ModalTitle, usePhoneNumberList} from '../common'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useSettingsPhoneState} from '@/constants/settings-phone'
 
 const waitingKey = 'phoneLookup'
 
@@ -17,8 +18,8 @@ const AddPhone = () => {
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
 
-  const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
-  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
+  const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)
+  const loadDefaultPhoneCountry = useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
 
   React.useEffect(() => {
     if (!defaultCountry) {

@@ -8,6 +8,7 @@ import type HiddenString from '@/util/hidden-string'
 import URL from 'url-parse'
 import logger from '@/logger'
 import * as T from '@/constants/types'
+import {useSettingsPhoneState} from '../settings-phone'
 
 const prefix = 'keybase://'
 type Store = T.Immutable<{
@@ -138,7 +139,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
         const url = new URL(link)
         const username = urlToUsername(url)
         if (username === 'phone-app') {
-          const phones = C.useSettingsPhoneState.getState().phones
+          const phones = useSettingsPhoneState.getState().phones
           if (!phones || phones.size > 0) {
             return
           }

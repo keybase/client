@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useSettingsPhoneState} from '@/constants/settings-phone'
 
 const addSpacer = (into: string, add: string) => {
   return into + (into.length ? ' • ' : '') + add
@@ -211,7 +212,7 @@ const styles = Kb.Styles.styleSheetCreate(
 
 const useData = (contactKey: string) => {
   const _emailRow = C.useSettingsEmailState(s => s.emails.get(contactKey) ?? null)
-  const _phoneRow = C.useSettingsPhoneState(s => s.phones?.get(contactKey) || null)
+  const _phoneRow = useSettingsPhoneState(s => s.phones?.get(contactKey) || null)
   const moreThanOneEmail = C.useSettingsEmailState(s => s.emails.size > 1)
   const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
   const _onMakeNotSearchable = () => {
@@ -221,8 +222,8 @@ const useData = (contactKey: string) => {
     editEmail({email: contactKey, makeSearchable: true})
   }
 
-  const editPhone = C.useSettingsPhoneState(s => s.dispatch.editPhone)
-  const resendVerificationForPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
+  const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
+  const resendVerificationForPhoneNumber = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   const dispatchProps = {

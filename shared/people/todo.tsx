@@ -5,6 +5,7 @@ import type * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import PeopleItem, {type TaskButton} from './item'
 import * as Kb from '@/common-adapters'
+import {useSettingsPhoneState} from '@/constants/settings-phone'
 
 type TodoOwnProps = {
   badged: boolean
@@ -237,7 +238,7 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
-  const resendVerificationForPhone = C.useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
+  const resendVerificationForPhone = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (phoneNumber: string) => {
     resendVerificationForPhone(phoneNumber)
