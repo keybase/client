@@ -25,7 +25,7 @@ const getKeys = (k?: string | ReadonlyArray<string>) => {
   return k
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const changeHelper = (keys: string | ReadonlyArray<string>, diff: 1 | -1, error?: RPCError) => {
     set(s => {
       getKeys(keys).forEach(k => {
@@ -82,12 +82,12 @@ export const useState_ = Z.createZustand<State>((set, get) => {
 })
 
 export const useAnyWaiting = (k?: string | Array<string>) =>
-  useState_(s => !!getKeys(k).some(k => (s.counts.get(k) ?? 0) > 0))
+  useState(s => !!getKeys(k).some(k => (s.counts.get(k) ?? 0) > 0))
 
 export const useAnyErrors = (k: string | Array<string>) =>
-  useState_(s => {
+  useState(s => {
     const errorKey = getKeys(k).find(k => s.errors.get(k))
     return errorKey ? s.errors.get(errorKey) : undefined
   })
 
-export const useDispatchClearWaiting = () => useState_(s => s.dispatch.clear)
+export const useDispatchClearWaiting = () => useState(s => s.dispatch.clear)

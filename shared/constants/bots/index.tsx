@@ -3,9 +3,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
 import * as C from '..'
 import logger from '@/logger'
-import {waitingKeyBotSearchFeatured, waitingKeyBotSearchUsers} from './utils'
-
-export {waitingKeyBotSearchFeatured, waitingKeyBotSearchUsers, getFeaturedSorted} from './utils'
+import {waitingKeyBotSearchFeatured, waitingKeyBotSearchUsers} from './util'
 
 type BotSearchResults = {
   bots: ReadonlyArray<T.RPCGen.FeaturedBot>
@@ -42,7 +40,7 @@ interface State extends Store {
 }
 
 const pageSize = 100
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     getFeaturedBots: (limit, page) => {
       const f = async () => {
@@ -181,3 +179,5 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
+
+export {waitingKeyBotSearchFeatured, waitingKeyBotSearchUsers, getFeaturedSorted} from './util'

@@ -54,7 +54,7 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
   const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
   const wotUpdates = /*bs.wotUpdates ?? */ new Map<string, T.RPCGen.WotUpdate>()
 
-  if (useState_.getState().badgeVersion >= inboxVers) {
+  if (useState.getState().badgeVersion >= inboxVers) {
     return undefined
   }
 
@@ -79,7 +79,7 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
 
   return counts
 }
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const updateWidgetBadge = (s: Z.WritableDraft<State>) => {
     let widgetBadge: BadgeType = 'regular'
     const {keyState} = s

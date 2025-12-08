@@ -2,7 +2,7 @@ import * as Shared from './shared'
 import {colors as lightColors} from './colors'
 import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
-import {useState_ as useDarkModeState} from '@/constants/darkmode'
+import {useState as useDarkModeState} from '@/constants/darkmode'
 import {isIOS, isTablet} from '@/constants/platform'
 
 const font = isIOS

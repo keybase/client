@@ -12,7 +12,7 @@ import {printOutstandingRPCs} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '../actions/engine-gen-gen'
-import type {useState_ as UseStateType} from '@/constants/engine'
+import type {useState as UseStateType} from '@/constants/engine'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
@@ -69,8 +69,8 @@ class Engine {
     // the node engine doesn't do this and we don't want to pull in any reqs
     if (allowIncomingCalls) {
       this._engineConstantsIncomingCall = (
-        require('@/constants/engine') as {useState_: typeof UseStateType}
-      ).useState_.getState().dispatch.onEngineIncoming
+        require('@/constants/engine') as {useState: typeof UseStateType}
+      ).useState.getState().dispatch.onEngineIncoming
     }
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(

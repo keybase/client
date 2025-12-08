@@ -82,7 +82,7 @@ interface State extends T.Git.State {
   }
 }
 
-export const useState_ = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const callAndHandleError = (f: () => Promise<void>, loadAfter = true) => {
     const wrapper = async () => {
       try {

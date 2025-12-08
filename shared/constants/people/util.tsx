@@ -1,6 +1,7 @@
 import * as T from '../types'
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
+import type * as Index from '.'
 
 export const onEngineConnected = () => {
   const f = async () => {
@@ -19,8 +20,8 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1HomeUIHomeUIRefresh:
     case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
       {
-        const {useState_} = require('./index')
-        useState_.getState().dispatch.onEngineIncoming(action)
+        const {useState} = require('.') as typeof Index
+        useState.getState().dispatch.onEngineIncoming(action)
       }
       break
     default:

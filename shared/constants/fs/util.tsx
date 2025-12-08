@@ -1,4 +1,5 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
+import type * as Index from '.'
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
   switch (action.type) {
@@ -6,8 +7,8 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath:
     case EngineGen.keybase1NotifyFSFSSubscriptionNotify:
       {
-        const {useState_} = require('./index')
-        useState_.getState().dispatch.onEngineIncoming(action)
+        const {useState} = require('./index') as typeof Index
+        useState.getState().dispatch.onEngineIncoming(action)
       }
       break
     default:

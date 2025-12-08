@@ -1,6 +1,7 @@
 import * as T from '../types'
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
+import type * as Index from '.'
 import logger from '@/logger'
 
 export const onEngineConnected = () => {
@@ -27,8 +28,8 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1Identify3UiIdentify3UpdateUserCard:
     case EngineGen.keybase1Identify3UiIdentify3Summary:
       {
-        const {useState_} = require('./index')
-        useState_.getState().dispatch.onEngineIncoming(action)
+        const {useState} = require('.') as typeof Index
+        useState.getState().dispatch.onEngineIncoming(action)
       }
       break
     default:

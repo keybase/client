@@ -5,9 +5,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import type * as RecoverPassword from '../recover-password'
-import {enterPipelineWaitingKey, cancelResetWaitingKey} from './utils'
-
-export {enterPipelineWaitingKey, actuallyResetWaitingKey, cancelResetWaitingKey} from './utils'
+import {enterPipelineWaitingKey, cancelResetWaitingKey} from './util'
 
 type Store = T.Immutable<{
   active: boolean
@@ -191,3 +189,5 @@ export const useState = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
+
+export {enterPipelineWaitingKey, actuallyResetWaitingKey, cancelResetWaitingKey} from './util'
