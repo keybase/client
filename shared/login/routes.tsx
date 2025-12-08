@@ -5,6 +5,7 @@ import {InfoIcon} from '@/signup/common'
 import {newRoutes as provisionRoutes} from '../provision/routes-sub'
 import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
 import {newRoutes as signupRoutes} from './signup/routes'
+import {settingsFeedbackTab} from '@/constants/settings'
 
 const recoverPasswordStyles = Kb.Styles.styleSheetCreate(() => ({
   questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
@@ -23,7 +24,7 @@ const recoverPasswordGetOptions = {
 }
 
 export const newRoutes = {
-  feedback: settingsRoutes[C.Settings.settingsFeedbackTab],
+  feedback: settingsRoutes[settingsFeedbackTab],
   login: {screen: React.lazy(async () => import('.'))},
   recoverPasswordDeviceSelector: {
     screen: React.lazy(async () => import('./recover-password/device-selector')),

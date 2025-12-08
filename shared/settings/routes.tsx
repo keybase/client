@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
+import * as Settings from '@/constants/settings'
 
 const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet'))
 
@@ -12,52 +13,52 @@ const feedback = C.makeScreen(
 )
 
 export const sharedNewRoutes = {
-  [C.Settings.settingsAboutTab]: {
+  [Settings.settingsAboutTab]: {
     getOptions: {title: 'About'},
     screen: React.lazy(async () => import('./about')),
   },
-  [C.Settings.settingsAccountTab]: {
+  [Settings.settingsAccountTab]: {
     getOptions: {title: 'Your account'},
     screen: React.lazy(async () => import('./account')),
   },
-  [C.Settings.settingsAdvancedTab]: {
+  [Settings.settingsAdvancedTab]: {
     getOptions: C.isMobile ? {title: 'Advanced'} : undefined,
     screen: React.lazy(async () => import('./advanced')),
   },
-  [C.Settings.settingsArchiveTab]: {
+  [Settings.settingsArchiveTab]: {
     getOptions: C.isMobile ? {title: 'Backup'} : undefined,
     screen: React.lazy(async () => import('./archive')),
   },
-  [C.Settings.settingsChatTab]: {
+  [Settings.settingsChatTab]: {
     getOptions: {title: 'Chat'},
     screen: React.lazy(async () => import('./chat')),
   },
-  [C.Settings.settingsCryptoTab]: {
+  [Settings.settingsCryptoTab]: {
     getOptions: C.isMobile ? {title: 'Crypto'} : {title: 'Crypto tools'},
     screen: React.lazy(async () => import('../crypto/sub-nav')),
   },
-  [C.Settings.settingsDevicesTab]: devicesRoutes.devicesRoot,
-  [C.Settings.settingsDisplayTab]: {
+  [Settings.settingsDevicesTab]: devicesRoutes.devicesRoot,
+  [Settings.settingsDisplayTab]: {
     getOptions: {title: 'Display'},
     screen: React.lazy(async () => import('./display')),
   },
-  [C.Settings.settingsFeedbackTab]: feedback,
-  [C.Settings.settingsFsTab]: {
+  [Settings.settingsFeedbackTab]: feedback,
+  [Settings.settingsFsTab]: {
     getOptions: C.isMobile ? {title: 'Files'} : undefined,
     screen: React.lazy(async () => import('./files')),
   },
-  [C.Settings.settingsGitTab]: gitRoutes.gitRoot,
-  [C.Settings.settingsInvitationsTab]: {screen: React.lazy(async () => import('./invites'))},
-  [C.Settings.settingsNotificationsTab]: {
+  [Settings.settingsGitTab]: gitRoutes.gitRoot,
+  [Settings.settingsInvitationsTab]: {screen: React.lazy(async () => import('./invites'))},
+  [Settings.settingsNotificationsTab]: {
     getOptions: {title: 'Notifications'},
     screen: React.lazy(async () => import('./notifications')),
   },
-  [C.Settings.settingsScreenprotectorTab]: {
+  [Settings.settingsScreenprotectorTab]: {
     getOptions: {header: undefined, title: 'Screen Protector'},
     screen: React.lazy(async () => import('./screenprotector')),
   },
-  [C.Settings.settingsWalletsTab]: {...walletsRoutes.walletsRoot},
-  [C.Settings.settingsWhatsNewTab]: {
+  [Settings.settingsWalletsTab]: {...walletsRoutes.walletsRoot},
+  [Settings.settingsWhatsNewTab]: {
     getOptions: C.isMobile ? {title: 'Keybase FM 87.7'} : undefined,
     screen: React.lazy(async () => import('../whats-new/container')),
   },
@@ -69,8 +70,8 @@ export const sharedNewRoutes = {
 }
 
 const sharedNewModalRoutes = {
-  [C.Settings.settingsLogOutTab]: {screen: React.lazy(async () => import('./logout'))},
-  [C.Settings.settingsPasswordTab]: {screen: React.lazy(async () => import('./password'))},
+  [Settings.settingsLogOutTab]: {screen: React.lazy(async () => import('./logout'))},
+  [Settings.settingsPasswordTab]: {screen: React.lazy(async () => import('./password'))},
   archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal'))),
   deleteConfirm: {screen: React.lazy(async () => import('./delete-confirm'))},
   disableCertPinningModal: {screen: React.lazy(async () => import('./disable-cert-pinning-modal'))},
@@ -105,7 +106,7 @@ export const newRoutes = {
       : {getOptions: {title: 'Settings'}, screen: SettingsRootDesktop}
     : {getOptions: {title: 'Settings'}, screen: SettingsRootDesktop},
   ...sharedNewRoutes,
-  [C.Settings.settingsContactsTab]: {
+  [Settings.settingsContactsTab]: {
     getOptions: {header: undefined, title: 'Contacts'},
     screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : () => <></>,
   },

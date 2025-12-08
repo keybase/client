@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type {RPCError} from '@/util/errors'
+import * as Settings from '@/constants/settings'
 
 export type Size = 'Closed' | 'Small' | 'Big'
 
@@ -18,7 +19,7 @@ const useData = () => {
     setGlobalError()
     if (loggedIn) {
       clearModals()
-      navigateAppend(C.Settings.settingsFeedbackTab)
+      navigateAppend(Settings.settingsFeedbackTab)
     } else {
       navigateAppend('feedback')
     }

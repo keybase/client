@@ -3,6 +3,7 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 // normally util.container but it re-exports from us so break the cycle
 import * as Z from '@/util/zustand'
+import {settingsPasswordTab} from '../settings'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -41,10 +42,10 @@ export const useLogoutState = Z.createZustand<State>((set, get) => {
           return
         } else {
           if (C.isMobile) {
-            C.useRouterState.getState().dispatch.navigateAppend(C.Settings.settingsPasswordTab)
+            C.useRouterState.getState().dispatch.navigateAppend(settingsPasswordTab)
           } else {
             C.useRouterState.getState().dispatch.navigateAppend(C.Tabs.settingsTab)
-            C.useRouterState.getState().dispatch.navigateAppend(C.Settings.settingsPasswordTab)
+            C.useRouterState.getState().dispatch.navigateAppend(settingsPasswordTab)
           }
         }
       }

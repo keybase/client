@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SettingsSection} from './account'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
+import {settingsFeedbackTab} from '@/constants/settings'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
@@ -73,7 +74,7 @@ const ManageContactsBanner = () => {
   const onSendFeedback = React.useCallback(() => {
     navigateAppend({
       props: {feedback: `Contact import failed\n${error}\n\n`},
-      selected: C.Settings.settingsFeedbackTab,
+      selected: settingsFeedbackTab,
     })
   }, [navigateAppend, error])
 

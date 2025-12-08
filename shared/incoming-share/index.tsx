@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FsCommon from '@/fs/common'
 import {MobileSendToChat} from '../chat/send-to-chat'
+import {settingsFeedbackTab} from '@/constants/settings'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
@@ -232,7 +233,7 @@ const IncomingShareError = () => {
     clearModals()
     navigateAppend({
       props: {feedback: `iOS share failure`},
-      selected: C.Settings.settingsFeedbackTab,
+      selected: settingsFeedbackTab,
     })
   }
   const onCancel = () => clearModals()

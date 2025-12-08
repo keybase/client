@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import {useSettingsEmailState} from '@/constants/settings-email'
 import {useSettingsNotifState} from '@/constants/settings-notifications'
-import {useSettingsState} from '@/constants/settings'
+import {useSettingsState, settingsAccountTab} from '@/constants/settings'
 
 const useNotifications = () => {
   const _groups = useSettingsNotifState(s => s.groups)
@@ -15,7 +15,7 @@ const useNotifications = () => {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClickYourAccount = () => {
-    navigateAppend(C.Settings.settingsAccountTab)
+    navigateAppend(settingsAccountTab)
   }
   const onToggle = toggle
   const onToggleUnsubscribeAll = toggle

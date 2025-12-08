@@ -5,7 +5,7 @@ import EmailPhoneRow from './email-phone-row'
 import {usePWState} from '@/constants/settings-password'
 import {useSettingsPhoneState} from '@/constants/settings-phone'
 import {useSettingsEmailState} from '@/constants/settings-email'
-import {useSettingsState} from '@/constants/settings'
+import {useSettingsState, settingsPasswordTab} from '@/constants/settings'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -83,7 +83,7 @@ const EmailPhone = () => {
 const Password = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSetPassword = () => {
-    navigateAppend(C.Settings.settingsPasswordTab)
+    navigateAppend(settingsPasswordTab)
   }
   const hasPassword = usePWState(s => !s.randomPW)
   let passwordLabel: string

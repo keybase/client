@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import {ProxySettings} from './proxy'
-import {useSettingsState} from '@/constants/settings'
+import {useSettingsState, traceInProgressKey, processorProfileInProgressKey} from '@/constants/settings'
 import {usePWState} from '@/constants/settings-password'
 
 let initialUseNativeFrame: boolean | undefined
@@ -217,12 +217,12 @@ const Developer = () => {
     })
 
   const showPprofControls = clickCount >= clickThreshold
-  const traceInProgress = C.Waiting.useAnyWaiting(C.Settings.traceInProgressKey)
+  const traceInProgress = C.Waiting.useAnyWaiting(traceInProgressKey)
 
   const trace = useSettingsState(s => s.dispatch.trace)
   const processorProfile = useSettingsState(s => s.dispatch.processorProfile)
   const onTrace = trace
-  const processorProfileInProgress = C.Waiting.useAnyWaiting(C.Settings.processorProfileInProgressKey)
+  const processorProfileInProgress = C.Waiting.useAnyWaiting(processorProfileInProgressKey)
   const onProcessorProfile = processorProfile
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDBNuke = () => navigateAppend('dbNukeConfirm')

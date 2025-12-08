@@ -7,6 +7,7 @@ import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
 import {sharedNewRoutes} from './routes'
+import {settingsAccountTab} from '@/constants/settings'
 
 const settingsSubRoutes = {
   ...sharedNewRoutes,
@@ -86,7 +87,7 @@ const settingsScreens = makeNavScreens(settingsSubRoutes, TabNavigator.Screen, f
 // a push from the parent stack. If we care just make a generic left nav / right stack
 // that the global app / etc could use and put it here also. not worth it now
 const SettingsSubNavigator = () => (
-  <TabNavigator.Navigator initialRouteName={C.Settings.settingsAccountTab} backBehavior="none">
+  <TabNavigator.Navigator initialRouteName={settingsAccountTab} backBehavior="none">
     {settingsScreens}
   </TabNavigator.Navigator>
 )

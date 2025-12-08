@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import WhatsNewIcon from '@/whats-new/icon'
 import SettingsItem from './settings-item'
 import {keybaseFM} from '@/constants/whats-new'
+import * as Settings from '@/constants/settings'
 
 type Props = {
   onClick: (s: string) => void
@@ -18,7 +19,7 @@ const LeftNav = (props: Props) => {
   const badgeNotifications = C.usePushState(s => (C.isElectron ? 0 : !s.hasPermissions ? 1 : 0))
 
   const onSignout = React.useCallback(() => {
-    navigate(C.Settings.settingsLogOutTab)
+    navigate(Settings.settingsLogOutTab)
   }, [navigate])
   return (
     <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
@@ -28,24 +29,24 @@ const LeftNav = (props: Props) => {
             <SettingsItem
               icon="iconfont-nav-2-crypto"
               text="Crypto"
-              type={C.Settings.settingsCryptoTab}
-              selected={props.selected === C.Settings.settingsCryptoTab}
+              type={Settings.settingsCryptoTab}
+              selected={props.selected === Settings.settingsCryptoTab}
               onClick={props.onClick}
               badgeNumber={badgeNumbers.get(C.Tabs.cryptoTab)}
             />
             <SettingsItem
               icon="iconfont-nav-2-git"
               text="Git"
-              type={C.Settings.settingsGitTab}
-              selected={props.selected === C.Settings.settingsGitTab}
+              type={Settings.settingsGitTab}
+              selected={props.selected === Settings.settingsGitTab}
               onClick={props.onClick}
               badgeNumber={badgeNumbers.get(C.Tabs.gitTab)}
             />
             <SettingsItem
               text="Devices"
               icon="iconfont-nav-2-devices"
-              type={C.Settings.settingsDevicesTab}
-              selected={props.selected === C.Settings.settingsDevicesTab}
+              type={Settings.settingsDevicesTab}
+              selected={props.selected === Settings.settingsDevicesTab}
               onClick={props.onClick}
               badgeNumber={badgeNumbers.get(C.Tabs.devicesTab)}
             />
@@ -53,8 +54,8 @@ const LeftNav = (props: Props) => {
             <SettingsItem
               text={keybaseFM}
               iconComponent={WhatsNewIcon}
-              type={C.Settings.settingsWhatsNewTab}
-              selected={props.selected === C.Settings.settingsWhatsNewTab}
+              type={Settings.settingsWhatsNewTab}
+              selected={props.selected === Settings.settingsWhatsNewTab}
               onClick={props.onClick}
             />
             <Kb.SectionDivider label="Settings" />
@@ -62,90 +63,90 @@ const LeftNav = (props: Props) => {
         )}
         <SettingsItem
           text="Account"
-          selected={props.selected === C.Settings.settingsAccountTab}
-          type={C.Settings.settingsAccountTab}
+          selected={props.selected === Settings.settingsAccountTab}
+          type={Settings.settingsAccountTab}
           onClick={props.onClick}
           badgeNumber={badgeNumbers.get(C.Tabs.settingsTab)}
         />
         <SettingsItem
           text="Advanced"
-          type={C.Settings.settingsAdvancedTab}
-          selected={props.selected === C.Settings.settingsAdvancedTab}
+          type={Settings.settingsAdvancedTab}
+          selected={props.selected === Settings.settingsAdvancedTab}
           onClick={props.onClick}
         />
         <SettingsItem
           text="Backup"
-          type={C.Settings.settingsArchiveTab}
-          selected={props.selected === C.Settings.settingsArchiveTab}
+          type={Settings.settingsArchiveTab}
+          selected={props.selected === Settings.settingsArchiveTab}
           onClick={props.onClick}
         />
         <SettingsItem
           text="Chat"
-          type={C.Settings.settingsChatTab}
-          selected={props.selected === C.Settings.settingsChatTab}
+          type={Settings.settingsChatTab}
+          selected={props.selected === Settings.settingsChatTab}
           onClick={props.onClick}
         />
         {Kb.Styles.isTablet && props.contactsLabel && (
           <SettingsItem
             text={props.contactsLabel}
-            type={C.Settings.settingsContactsTab}
-            selected={props.selected === C.Settings.settingsContactsTab}
+            type={Settings.settingsContactsTab}
+            selected={props.selected === Settings.settingsContactsTab}
             onClick={props.onClick}
           />
         )}
         <SettingsItem
           text="Display"
-          type={C.Settings.settingsDisplayTab}
-          selected={props.selected === C.Settings.settingsDisplayTab}
+          type={Settings.settingsDisplayTab}
+          selected={props.selected === Settings.settingsDisplayTab}
           onClick={props.onClick}
         />
         <SettingsItem
           text="Feedback"
-          type={C.Settings.settingsFeedbackTab}
-          selected={props.selected === C.Settings.settingsFeedbackTab}
+          type={Settings.settingsFeedbackTab}
+          selected={props.selected === Settings.settingsFeedbackTab}
           onClick={props.onClick}
         />
         <SettingsItem
           text="Files"
-          type={C.Settings.settingsFsTab}
-          selected={props.selected === C.Settings.settingsFsTab}
+          type={Settings.settingsFsTab}
+          selected={props.selected === Settings.settingsFsTab}
           onClick={props.onClick}
         />
         {!Kb.Styles.isTablet && (
           <SettingsItem
             text="Invitations"
-            type={C.Settings.settingsInvitationsTab}
-            selected={props.selected === C.Settings.settingsInvitationsTab}
+            type={Settings.settingsInvitationsTab}
+            selected={props.selected === Settings.settingsInvitationsTab}
             onClick={props.onClick}
           />
         )}
         <SettingsItem
           badgeNumber={badgeNotifications}
           text="Notifications"
-          type={C.Settings.settingsNotificationsTab}
-          selected={props.selected === C.Settings.settingsNotificationsTab}
+          type={Settings.settingsNotificationsTab}
+          selected={props.selected === Settings.settingsNotificationsTab}
           onClick={props.onClick}
         />
 
         {!Kb.Styles.isTablet && (
           <SettingsItem
             text="Screen protector"
-            type={C.Settings.settingsScreenprotectorTab}
-            selected={props.selected === C.Settings.settingsScreenprotectorTab}
+            type={Settings.settingsScreenprotectorTab}
+            selected={props.selected === Settings.settingsScreenprotectorTab}
             onClick={props.onClick}
           />
         )}
         <SettingsItem
           text="Wallet"
-          type={C.Settings.settingsWalletsTab}
-          selected={props.selected === C.Settings.settingsWalletsTab}
+          type={Settings.settingsWalletsTab}
+          selected={props.selected === Settings.settingsWalletsTab}
           onClick={props.onClick}
         />
         <Kb.Divider />
         <SettingsItem
           text="About"
-          type={C.Settings.settingsAboutTab}
-          selected={props.selected === C.Settings.settingsAboutTab}
+          type={Settings.settingsAboutTab}
+          selected={props.selected === Settings.settingsAboutTab}
           onClick={props.onClick}
         />
         {/* TODO: Do something with logoutInProgress once Offline is

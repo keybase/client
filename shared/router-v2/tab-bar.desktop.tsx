@@ -12,7 +12,7 @@ import openURL from '@/util/open-url'
 import {isLinux} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
 import './tab-bar.css'
-import {useSettingsState} from '@/constants/settings'
+import {useSettingsState, settingsLogOutTab} from '@/constants/settings'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -56,7 +56,7 @@ const Header = () => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSettings = React.useCallback(() => switchTab(Tabs.settingsTab), [switchTab])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onSignOut = React.useCallback(() => navigateAppend(C.Settings.settingsLogOutTab), [navigateAppend])
+  const onSignOut = React.useCallback(() => navigateAppend(settingsLogOutTab), [navigateAppend])
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {

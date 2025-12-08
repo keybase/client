@@ -3,6 +3,7 @@ import './account-switcher.css'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
+import {settingsLogOutTab} from '@/constants/settings'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: ReadonlyArray<T>,
@@ -31,7 +32,7 @@ const Container = () => {
   const onSelectAccountLoggedOut = C.useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSignOut = React.useCallback(() => {
-    navigateAppend(C.Settings.settingsLogOutTab)
+    navigateAppend(settingsLogOutTab)
   }, [navigateAppend])
 
   const accountRows = prepareAccountRows(_accountRows, you)
