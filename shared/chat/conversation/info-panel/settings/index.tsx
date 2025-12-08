@@ -18,7 +18,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const ignored = status === T.RPCChat.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
 
-  const spinnerForLeave = C.Waiting.useAnyWaiting(C.Chat.waitingKeyLeaveConversation)
+  const spinnerForLeave = C.Waiting.useAnyWaiting(C.waitingKeyChatLeaveConversation)
 
   const canDeleteHistory =
     teamname && yourOperations ? yourOperations.deleteChatHistory && !meta.cannotWrite : true

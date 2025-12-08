@@ -2,35 +2,6 @@ import * as C from '..'
 import * as T from '../types'
 import {isMobile, isTablet} from '../platform'
 import * as Router2 from '../router2'
-import {conversationIDKeyToString} from '../types/chat2/common'
-
-export const waitingKeyJoinConversation = 'chat:joinConversation'
-export const waitingKeyLeaveConversation = 'chat:leaveConversation'
-export const waitingKeyDeleteHistory = 'chat:deleteHistory'
-export const waitingKeyPost = 'chat:post'
-export const waitingKeyRetryPost = 'chat:retryPost'
-export const waitingKeyEditPost = 'chat:editPost'
-export const waitingKeyDeletePost = 'chat:deletePost'
-export const waitingKeyCancelPost = 'chat:cancelPost'
-export const waitingKeyInboxRefresh = 'chat:inboxRefresh'
-export const waitingKeyCreating = 'chat:creatingConvo'
-export const waitingKeyInboxSyncStarted = 'chat:inboxSyncStarted'
-export const waitingKeyBotAdd = 'chat:botAdd'
-export const waitingKeyBotRemove = 'chat:botRemove'
-export const waitingKeyLoadingEmoji = 'chat:loadingEmoji'
-export const waitingKeyPushLoad = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyThreadLoad = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
-export const waitingKeyAddUserToChannel = (username: string, conversationIDKey: T.Chat.ConversationIDKey) =>
-  `chat:addUserToConversation:${username}:${conversationIDKey}`
-export const waitingKeyConvStatusChange = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyUnpin = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyMutualTeams = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 

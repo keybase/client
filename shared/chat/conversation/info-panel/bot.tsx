@@ -52,7 +52,7 @@ const AddToChannel = (props: AddToChannelProps) => {
           )
         }
       }}
-      waitingKey={C.Chat.waitingKeyBotAdd}
+      waitingKey={C.waitingKeyChatBotAdd}
     />
   )
 }

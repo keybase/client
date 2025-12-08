@@ -384,8 +384,8 @@ const NoRowsBuildTeam = () => {
 
 const LoadingLine = () => {
   const isLoading = C.Waiting.useAnyWaiting([
-    C.Chat.waitingKeyInboxRefresh,
-    C.Chat.waitingKeyInboxSyncStarted,
+    C.waitingKeyChatInboxRefresh,
+    C.waitingKeyChatInboxSyncStarted,
   ])
   return isLoading ? (
     <Kb.Box style={styles.loadingContainer}>

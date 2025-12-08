@@ -71,7 +71,7 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
       key="Chat"
       label="Chat"
       small={true}
-      waitingKey={C.Chat.waitingKeyCreating}
+      waitingKey={C.waitingKeyChatCreating}
       onClick={e => {
         e.stopPropagation() // instead of using onAdd, use onChat logic
         onChat()

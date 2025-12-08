@@ -28,7 +28,7 @@ const ChatButton = ({small, style, username, afterClick}: Props) => {
     <Kb.WaitingButton
       key="Chat"
       label="Chat"
-      waitingKey={C.Chat.waitingKeyCreating}
+      waitingKey={C.waitingKeyChatCreating}
       onClick={chat}
       small={small}
       style={style}
