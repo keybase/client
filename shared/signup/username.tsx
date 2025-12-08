@@ -2,13 +2,14 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
+import {waitingKey, maxUsernameLength} from '@/constants/signup/util'
 
 const ConnectedEnterUsername = () => {
   const error = C.useSignupState(s => s.usernameError)
   const initialUsername = C.useSignupState(s => s.username)
   const usernameTaken = C.useSignupState(s => s.usernameTaken)
   const checkUsername = C.useSignupState(s => s.dispatch.checkUsername)
-  const waiting = C.Waiting.useAnyWaiting(C.Signup.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const restartSignup = C.useSignupState(s => s.dispatch.restartSignup)
   const onBack = () => {
@@ -103,7 +104,7 @@ const EnterUsername = (props: Props) => {
               autoFocus={true}
               containerStyle={styles.input}
               placeholder="Pick a username"
-              maxLength={C.Signup.maxUsernameLength}
+              maxLength={maxUsernameLength}
               onChangeText={onChangeUsername}
               onEnterKeyDown={onContinue}
             />

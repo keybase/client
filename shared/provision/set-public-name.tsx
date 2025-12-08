@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
+import {defaultDevicename} from '@/constants/signup/util'
 
 const SetPublicName = () => {
   const devices = C.useProvisionState(s => s.devices)
@@ -25,7 +26,7 @@ const SetPublicName = () => {
   const maxDeviceNumber = deviceNumbers.length > 0 ? Math.max(...deviceNumbers) : -1
   const deviceIconNumber = ((maxDeviceNumber + 1) % Devices.numBackgrounds) + 1
 
-  const [deviceName, setDeviceName] = React.useState(C.Signup.defaultDevicename)
+  const [deviceName, setDeviceName] = React.useState(defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const debouncedSetReadyToShowError = debounce((ready: boolean) => setReadyToShowError(ready), 1000)
   const cleanDeviceName = C.Provision.cleanDeviceName(deviceName)

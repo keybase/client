@@ -1,6 +1,6 @@
-import * as C from '@/constants'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {waitingKey} from '@/constants/signup/util'
 
 type Props = {
   children: React.ReactNode
@@ -33,7 +33,7 @@ export const ContinueButton = ({
 }) => (
   <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
     <Kb.WaitingButton
-      waitingKey={C.Signup.waitingKey}
+      waitingKey={waitingKey}
       label={label || 'Continue'}
       disabled={disabled}
       fullWidth={true}

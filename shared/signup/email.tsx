@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from './common'
 import {addEmailWaitingKey} from '@/constants/settings/util'
+import {noEmail} from '@/constants/signup/util'
 
 const ConnectedEnterEmail = () => {
   const _showPushPrompt = C.usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
@@ -18,7 +19,7 @@ const ConnectedEnterEmail = () => {
 
   const setJustSignedUpEmail = C.useSignupState(s => s.dispatch.setJustSignedUpEmail)
   const _onSkip = () => {
-    setJustSignedUpEmail(C.Signup.noEmail)
+    setJustSignedUpEmail(noEmail)
   }
   const _onSuccess = setJustSignedUpEmail
 
