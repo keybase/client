@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SettingsSection} from './account'
+import {importContactsWaitingKey} from '@/constants/settings/util'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
@@ -9,7 +10,7 @@ const disabledDescription = 'Import your phone contacts and start encrypted chat
 const ManageContacts = () => {
   const status = C.useSettingsContactsState(s => s.permissionStatus)
   const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
-  const waiting = C.Waiting.useAnyWaiting(C.importContactsWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(importContactsWaitingKey)
 
   const loadContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
 

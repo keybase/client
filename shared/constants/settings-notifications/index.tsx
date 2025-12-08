@@ -3,12 +3,12 @@ import * as C from '@/constants'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import * as T from '../types'
+import {refreshNotificationsWaitingKey} from '@/constants/settings/util'
 
 const securityGroup = 'security'
 const soundGroup = 'sound'
 const miscGroup = 'misc'
 const settingsWaitingKey = 'settings:generic'
-export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 
 export type NotificationsSettingsState = {
   name:

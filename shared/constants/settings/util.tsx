@@ -15,3 +15,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     default:
   }
 }
+
+export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
+export const addEmailWaitingKey = 'settings:addEmail'
+export const importContactsWaitingKey = 'settings:importContacts'

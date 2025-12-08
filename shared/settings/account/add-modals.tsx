@@ -6,6 +6,7 @@ import {EnterEmailBody} from '@/signup/email'
 import {EnterPhoneNumberBody} from '@/signup/phone-number'
 import VerifyBody from '@/signup/phone-number/verify-body'
 import {e164ToDisplay} from '@/util/phone-numbers'
+import {addEmailWaitingKey} from '@/constants/settings/util'
 
 export const Email = () => {
   const nav = useSafeNavigation()
@@ -18,7 +19,7 @@ export const Email = () => {
 
   const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
   const emailError = C.useSettingsEmailState(s => s.error)
-  const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(addEmailWaitingKey)
 
   const addEmail = C.useSettingsEmailState(s => s.dispatch.addEmail)
   const resetAddingEmail = C.useSettingsEmailState(s => s.dispatch.resetAddingEmail)

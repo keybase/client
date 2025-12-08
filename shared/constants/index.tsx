@@ -32,9 +32,9 @@ export * as FS from './fs'
 export * as Tabs from './tabs'
 export * as SettingsPhone from './settings-phone'
 export {useState as useSettingsPhoneState} from './settings-phone'
-export {useState as useSettingsEmailState, addEmailWaitingKey} from './settings-email'
-export {useState as useSettingsNotifState, refreshNotificationsWaitingKey} from './settings-notifications'
-export {useState as useSettingsContactsState, importContactsWaitingKey} from './settings-contacts'
+export {useState as useSettingsEmailState} from './settings-email'
+export {useState as useSettingsNotifState} from './settings-notifications'
+export {useState as useSettingsContactsState} from './settings-contacts'
 export {useState as useSignupState} from './signup'
 export * as Signup from './signup'
 export {useState as useTeamsState} from './teams'
@@ -94,7 +94,6 @@ export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
   : never
 
 import logger from '@/logger'
-export {default as logger} from '@/logger'
 export {debugWarning} from '@/util/debug-warning'
 
 export const ignorePromise = (f: Promise<void> | Promise<PromiseSettledResult<void>[]>) => {

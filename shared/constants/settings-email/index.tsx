@@ -4,8 +4,7 @@ import * as T from '../types'
 import {isValidEmail} from '@/util/simple-validators'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
-
-export const addEmailWaitingKey = 'settings:addEmail'
+import {addEmailWaitingKey} from '@/constants/settings/util'
 
 const makeAddEmailError = (err: RPCError): string => {
   switch (err.code) {
