@@ -5,7 +5,6 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import type * as RecoverPassword from '../recover-password'
-import {enterPipelineWaitingKey, cancelResetWaitingKey} from './util'
 
 type Store = T.Immutable<{
   active: boolean
@@ -49,7 +48,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         logger.info('Cancelled autoreset from logged-in user')
         try {
-          await T.RPCGen.accountCancelResetRpcPromise(undefined, cancelResetWaitingKey)
+          await T.RPCGen.accountCancelResetRpcPromise(undefined, C.waitingKeyAutoresetCancel)
           set(s => {
             s.active = false
           })
@@ -152,7 +151,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               passphrase: password,
               usernameOrEmail: get().username,
             },
-            waitingKey: enterPipelineWaitingKey,
+            waitingKey: C.waitingKeyAutoresetEnterPipeline,
           })
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -190,4 +189,3 @@ export const useState = Z.createZustand<State>((set, get) => {
   }
 })
 
-export {enterPipelineWaitingKey, actuallyResetWaitingKey, cancelResetWaitingKey} from './util'

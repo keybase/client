@@ -14,7 +14,7 @@ import {type CommonResponseHandler} from '@/engine/types'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useState as useWNState} from '../whats-new'
 import type * as Pinentry from '@/constants/pinentry'
-import {invalidPasswordErrorString, loginWaitingKey} from './util'
+import {invalidPasswordErrorString} from './util'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -703,7 +703,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
               paperKey: '',
               username,
             },
-            waitingKey: loginWaitingKey,
+            waitingKey: C.waitingKeyConfigLogin,
           })
           logger.info('login call succeeded')
           get().dispatch.setLoggedIn(true, false)
@@ -726,7 +726,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
     logoutAndTryToLogInAs: username => {
       const f = async () => {
         if (get().loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, loginWaitingKey)
+          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, C.waitingKeyConfigLogin)
         }
         get().dispatch.setDefaultUsername(username)
       }

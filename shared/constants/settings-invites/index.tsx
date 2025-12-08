@@ -5,7 +5,6 @@ import logger from '@/logger'
 import trim from 'lodash/trim'
 import * as T from '../types'
 
-const settingsWaitingKey = 'settings:generic'
 
 type InviteBase = {
   id: string
@@ -62,7 +61,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             args: [],
             endpoint: 'invitations_sent',
           },
-          settingsWaitingKey
+          C.waitingKeySettingsGeneric
         )
         const results = JSON.parse(json.body) as
           | {
@@ -121,7 +120,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               args: [{key: 'invitation_id', value: inviteId}],
               endpoint: 'cancel_invitation',
             },
-            settingsWaitingKey
+            C.waitingKeySettingsGeneric
           )
         } catch (e) {
           logger.warn('Error reclaiming an invite:', e)
@@ -146,7 +145,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
           const response = await T.RPCGen.apiserverPostRpcPromise(
             {args, endpoint: 'send_invitation'},
-            settingsWaitingKey
+            C.waitingKeySettingsGeneric
           )
           const parsedBody = JSON.parse(response.body) as undefined | Partial<{invitation_id: string}>
           const invitationId = parsedBody?.invitation_id?.slice(0, 10) ?? ''

@@ -14,8 +14,6 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
   }
 }
 
-export const waitingKeyBotSearchFeatured = 'bots:search:featured'
-export const waitingKeyBotSearchUsers = 'bots:search:users'
 
 export const getFeaturedSorted = (
   featuredBotsMap: ReadonlyMap<string, T.RPCGen.FeaturedBot>

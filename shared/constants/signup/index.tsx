@@ -7,7 +7,6 @@ import logger from '@/logger'
 import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
-import {createOtherAccountWaitingKey} from '@/constants/config/util'
 
 type Store = T.Immutable<{
   devicename: string
@@ -256,7 +255,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         if (C.useConfigState.getState().loggedIn) {
           await T.RPCGen.loginLogoutRpcPromise(
             {force: false, keepSecrets: true},
-            createOtherAccountWaitingKey
+            C.waitingKeyConfigCreateOther
           )
         }
         try {

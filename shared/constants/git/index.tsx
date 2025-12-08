@@ -101,7 +101,7 @@ export const useGitState = Z.createZustand<State>((set, get) => {
 
   const _load = debounce(
     async () => {
-      const results = await T.RPCGen.gitGetAllGitMetadataRpcPromise(undefined, loadingWaitingKey)
+      const results = await T.RPCGen.gitGetAllGitMetadataRpcPromise(undefined, C.waitingKeyGitLoading)
       const {errors, repos} = parseRepos(results || [])
       const {setGlobalError} = C.useConfigState.getState().dispatch
       errors.forEach(e => setGlobalError(e))
@@ -123,24 +123,24 @@ export const useGitState = Z.createZustand<State>((set, get) => {
     },
     createPersonalRepo: repoName => {
       callAndHandleError(async () => {
-        await T.RPCGen.gitCreatePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
+        await T.RPCGen.gitCreatePersonalRepoRpcPromise({repoName}, C.waitingKeyGitLoading)
       })
     },
     createTeamRepo: (repoName, teamname, notifyTeam) => {
       callAndHandleError(async () => {
         const teamName = {parts: teamname.split('.')}
-        await T.RPCGen.gitCreateTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
+        await T.RPCGen.gitCreateTeamRepoRpcPromise({notifyTeam, repoName, teamName}, C.waitingKeyGitLoading)
       })
     },
     deletePersonalRepo: repoName => {
       callAndHandleError(async () => {
-        await T.RPCGen.gitDeletePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
+        await T.RPCGen.gitDeletePersonalRepoRpcPromise({repoName}, C.waitingKeyGitLoading)
       })
     },
     deleteTeamRepo: (repoName, teamname, notifyTeam) => {
       callAndHandleError(async () => {
         const teamName = {parts: teamname.split('.')}
-        await T.RPCGen.gitDeleteTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
+        await T.RPCGen.gitDeleteTeamRepoRpcPromise({notifyTeam, repoName, teamName}, C.waitingKeyGitLoading)
       })
     },
     load,
@@ -214,4 +214,3 @@ const emptyInfo = {
 export const makeGitInfo = (i?: Partial<T.Git.GitInfo>): T.Git.GitInfo =>
   i ? {...emptyInfo, ...i} : emptyInfo
 
-export const loadingWaitingKey = 'git:loading'

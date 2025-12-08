@@ -5,9 +5,6 @@ import * as T from '../types'
 import * as C from '..'
 import {mapGetEnsureValue} from '@/util/map'
 
-export const getUserBlocksWaitingKey = 'users:getUserBlocks'
-export const setUserBlocksWaitingKey = 'users:setUserBlocks'
-export const reportUserWaitingKey = 'users:reportUser'
 
 export type Store = T.Immutable<{
   blockMap: Map<string, T.Users.BlockState>
@@ -65,7 +62,7 @@ export const useUsersState = Z.createZustand<State>((set, get) => {
     },
     getBlockState: usernames => {
       const f = async () => {
-        const blocks = await T.RPCGen.userGetUserBlocksRpcPromise({usernames}, getUserBlocksWaitingKey)
+        const blocks = await T.RPCGen.userGetUserBlocksRpcPromise({usernames}, C.waitingKeyUsersGetUserBlocks)
         set(s => {
           blocks?.forEach(({username, chatBlocked, followBlocked}) => {
             s.blockMap.set(username.toLowerCase(), {chatBlocked, followBlocked})
@@ -119,7 +116,7 @@ export const useUsersState = Z.createZustand<State>((set, get) => {
             reason,
             username,
           },
-          reportUserWaitingKey
+          C.waitingKeyUsersReportUser
         )
       }
       C.ignorePromise(f())
@@ -128,7 +125,7 @@ export const useUsersState = Z.createZustand<State>((set, get) => {
     setUserBlocks: blocks => {
       const f = async () => {
         if (blocks.length) {
-          await T.RPCGen.userSetUserBlocksRpcPromise({blocks}, setUserBlocksWaitingKey)
+          await T.RPCGen.userSetUserBlocksRpcPromise({blocks}, C.waitingKeyUsersSetUserBlocks)
         }
       }
       C.ignorePromise(f())

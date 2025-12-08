@@ -2,9 +2,6 @@ import * as C from '..'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 
-export const contactSettingsSaveWaitingKey = 'settings:contactSettingsSaveWaitingKey'
-export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
-export const contactSettingsLoadWaitingKey = 'settings:contactSettingsLoadWaitingKey'
 
 export type ChatUnfurlState = {
   unfurlMode?: T.RPCChat.UnfurlMode
@@ -57,7 +54,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         try {
           const settings = await T.RPCGen.accountUserGetContactSettingsRpcPromise(
             undefined,
-            contactSettingsLoadWaitingKey
+            C.waitingKeySettingsChatContactSettingsLoad
           )
           set(s => {
             s.contactSettings = T.castDraft({error: '', settings})
@@ -89,7 +86,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           teams,
         }
         try {
-          await T.RPCGen.accountUserSetContactSettingsRpcPromise({settings}, contactSettingsSaveWaitingKey)
+          await T.RPCGen.accountUserSetContactSettingsRpcPromise({settings}, C.waitingKeySettingsChatContactSettingsSave)
           get().dispatch.contactSettingsRefresh()
         } catch {
           set(s => {
@@ -106,7 +103,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          const result = await T.RPCChat.localGetUnfurlSettingsRpcPromise(undefined, chatUnfurlWaitingKey)
+          const result = await T.RPCChat.localGetUnfurlSettingsRpcPromise(undefined, C.waitingKeySettingsChatUnfurl)
           set(s => {
             s.unfurl = {
               unfurlError: undefined,
@@ -133,7 +130,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCChat.localSaveUnfurlSettingsRpcPromise(
             {mode: unfurlMode, whitelist: unfurlWhitelist},
-            chatUnfurlWaitingKey
+            C.waitingKeySettingsChatUnfurl
           )
           get().dispatch.unfurlSettingsRefresh()
         } catch {

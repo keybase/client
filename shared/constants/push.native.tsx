@@ -13,7 +13,6 @@ import {
 } from 'react-native-kb'
 import {type Store, type State} from './push'
 
-export const permissionsRequestingWaitingKey = 'push:permissionsRequesting'
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 
 const initialStore: Store = {
@@ -241,7 +240,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         try {
           C.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
           const {increment} = C.useWaitingState.getState().dispatch
-          increment(permissionsRequestingWaitingKey)
+          increment(C.waitingKeyPushPermissionsRequesting)
           logger.info('[PushRequesting] asking native')
           await requestPermissionsFromNative()
           const permissions = await checkPermissionsFromNative()
@@ -259,7 +258,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           }
         } finally {
           const {decrement} = C.useWaitingState.getState().dispatch
-          decrement(permissionsRequestingWaitingKey)
+          decrement(C.waitingKeyPushPermissionsRequesting)
           get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
         }
       }

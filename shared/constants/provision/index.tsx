@@ -6,7 +6,7 @@ import {isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import isEqual from 'lodash/isEqual'
 import {rpcDeviceToDevice} from '../rpc-utils'
-import {invalidPasswordErrorString, loginAsOtherUserWaitingKey} from '@/constants/config/util'
+import {invalidPasswordErrorString} from '@/constants/config/util'
 
 export type Device = {
   deviceNumberOfType: number
@@ -15,8 +15,6 @@ export type Device = {
   type: T.Devices.DeviceType
 }
 
-export const waitingKey = 'provision:waiting'
-export const forgotUsernameWaitingKey = 'provision:forgotUsername'
 
 const decodeForgotUsernameError = (error: RPCError) => {
   switch (error.code) {
@@ -122,7 +120,7 @@ interface State extends Store {
 
 export const useProvisionState = Z.createZustand<State>((set, get) => {
   const _cancel = C.wrapErrors((ignoreWarning?: boolean) => {
-    C.useWaitingState.getState().dispatch.clear(waitingKey)
+    C.useWaitingState.getState().dispatch.clear(C.waitingKeyProvision)
     if (!ignoreWarning) {
       console.log('Provision: cancel called while not overloaded')
     }
@@ -259,13 +257,13 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
             },
             incomingCallMap: {
               'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-                C.useWaitingState.getState().dispatch.increment(waitingKey)
+                C.useWaitingState.getState().dispatch.increment(C.waitingKeyProvision)
               },
               'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
               'keybase.1.provisionUi.ProvisionerSuccess': () => {},
             },
             params: undefined,
-            waitingKey,
+            waitingKey: C.waitingKeyProvision,
           })
         } catch {
         } finally {
@@ -294,7 +292,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         if (email) {
           try {
-            await T.RPCGen.accountRecoverUsernameWithEmailRpcPromise({email}, forgotUsernameWaitingKey)
+            await T.RPCGen.accountRecoverUsernameWithEmailRpcPromise({email}, C.waitingKeyProvisionForgotUsername)
             set(s => {
               s.forgotUsernameResult = 'success'
             })
@@ -309,7 +307,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
         }
         if (phone) {
           try {
-            await T.RPCGen.accountRecoverUsernameWithPhoneRpcPromise({phone}, forgotUsernameWaitingKey)
+            await T.RPCGen.accountRecoverUsernameWithPhoneRpcPromise({phone}, C.waitingKeyProvisionForgotUsername)
             set(s => {
               s.forgotUsernameResult = 'success'
             })
@@ -496,7 +494,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
             incomingCallMap: {
               'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
               'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-                C.useWaitingState.getState().dispatch.increment(waitingKey)
+                C.useWaitingState.getState().dispatch.increment(C.waitingKeyProvision)
               },
               'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
               'keybase.1.provisionUi.ProvisionerSuccess': () => {},
@@ -509,7 +507,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
               paperKey: '',
               username,
             },
-            waitingKey,
+            waitingKey: C.waitingKeyProvision,
           })
           get().dispatch.resetState()
         } catch (_finalError) {
@@ -554,7 +552,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
         if (C.useConfigState.getState().loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, loginAsOtherUserWaitingKey)
+          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, C.waitingKeyConfigLoginAsOther)
         }
         C.useRouterState.getState().dispatch.navigateAppend({props: {fromReset}, selected: 'username'})
       }

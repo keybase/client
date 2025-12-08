@@ -8,7 +8,6 @@ import {RPCError} from '@/util/errors'
 export const saltpackDocumentation = 'https://saltpack.org'
 export const inputDesktopMaxHeight = {maxHeight: '30%'} as const
 export const outputDesktopMaxHeight = {maxHeight: '70%'} as const
-export const waitingKey = 'cryptoWaiting'
 
 export const encryptTab = 'encryptTab'
 export const decryptTab = 'decryptTab'
@@ -287,7 +286,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             usedUnresolvedSBS,
             unresolvedSBSAssertion,
             ciphertext: output,
-          } = await T.RPCGen.saltpackSaltpackEncryptStringRpcPromise({opts, plaintext: input}, waitingKey)
+          } = await T.RPCGen.saltpackSaltpackEncryptStringRpcPromise({opts, plaintext: input}, C.waitingKeyCrypto)
           return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
         }
         const callFile = async () => {
@@ -297,7 +296,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             filename: output,
           } = await T.RPCGen.saltpackSaltpackEncryptFileRpcPromise(
             {destinationDir, filename: input, opts},
-            waitingKey
+            C.waitingKeyCrypto
           )
           return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
         }
@@ -338,7 +337,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const input = start.input.stringValue()
       try {
         const callText = async () => {
-          const res = await T.RPCGen.saltpackSaltpackDecryptStringRpcPromise({ciphertext: input}, waitingKey)
+          const res = await T.RPCGen.saltpackSaltpackDecryptStringRpcPromise({ciphertext: input}, C.waitingKeyCrypto)
           const {plaintext: output, info, signed} = res
           const {sender} = info
           const {username, fullname} = sender
@@ -348,7 +347,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         const callFile = async () => {
           const result = await T.RPCGen.saltpackSaltpackDecryptFileRpcPromise(
             {destinationDir, encryptedFilename: input},
-            waitingKey
+            C.waitingKeyCrypto
           )
           const {decryptedFilename: output, info, signed} = result
           const {sender} = info
@@ -391,10 +390,10 @@ export const useState = Z.createZustand<State>((set, get) => {
       const input = start.input.stringValue()
       try {
         const callText = async () =>
-          await T.RPCGen.saltpackSaltpackSignStringRpcPromise({plaintext: input}, waitingKey)
+          await T.RPCGen.saltpackSaltpackSignStringRpcPromise({plaintext: input}, C.waitingKeyCrypto)
 
         const callFile = async () =>
-          await T.RPCGen.saltpackSaltpackSignFileRpcPromise({destinationDir, filename: input}, waitingKey)
+          await T.RPCGen.saltpackSaltpackSignFileRpcPromise({destinationDir, filename: input}, C.waitingKeyCrypto)
 
         const output = await (inputType === 'text' ? callText() : callFile())
 
@@ -424,7 +423,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const input = start.input.stringValue()
       try {
         const callText = async () => {
-          const res = await T.RPCGen.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input}, waitingKey)
+          const res = await T.RPCGen.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input}, C.waitingKeyCrypto)
           const {plaintext: output, sender, verified: signed} = res
           const {username, fullname} = sender
           return {fullname, output, signed, username}
@@ -432,7 +431,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         const callFile = async () => {
           const res = await T.RPCGen.saltpackSaltpackVerifyFileRpcPromise(
             {destinationDir, signedFilename: input},
-            waitingKey
+            C.waitingKeyCrypto
           )
           const {verifiedFilename: output, sender, verified: signed} = res
           const {username, fullname} = sender

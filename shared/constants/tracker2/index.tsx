@@ -229,7 +229,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         try {
           const {suggestions} = await T.RPCGen.userProofSuggestionsRpcPromise(
             undefined,
-            C.profileLoadWaitingKey
+            C.waitingKeyTrackerProfileLoad
           )
           set(s => {
             s.proofSuggestions = T.castDraft(suggestions?.map(rpcSuggestionToAssertion)) ?? []
@@ -278,7 +278,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.identify3Identify3RpcListener({
             incomingCallMap: {},
             params: {assertion, guiID, ignoreCache},
-            waitingKey: C.profileLoadWaitingKey,
+            waitingKey: C.waitingKeyTrackerProfileLoad,
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -305,7 +305,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
       const loadFollowers = async () => {
         if (inTracker) return
         try {
-          const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise({assertion}, C.profileLoadWaitingKey)
+          const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise({assertion}, C.waitingKeyTrackerProfileLoad)
           set(s => {
             const d = s.usernameToDetails.get(assertion)
             if (!d) return
@@ -330,7 +330,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         try {
           const fs = await T.RPCGen.userListTrackingRpcPromise(
             {assertion, filter: ''},
-            C.profileLoadWaitingKey
+            C.waitingKeyTrackerProfileLoad
           )
           set(s => {
             const d = s.usernameToDetails.get(assertion)
@@ -356,7 +356,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         try {
           const res = await T.RPCGen.userSearchGetNonUserDetailsRpcPromise(
             {assertion},
-            C.nonUserProfileLoadWaitingKey
+            C.waitingKeyTrackerNonUserProfileLoad
           )
           if (res.isNonUser) {
             const common = {
