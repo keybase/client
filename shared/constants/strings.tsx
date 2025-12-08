@@ -1,5 +1,5 @@
 import * as Platforms from './platform'
-import * as T from './types'
+import type * as T from './types'
 import {conversationIDKeyToString} from './types/chat2/common'
 
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
@@ -30,8 +30,10 @@ export const waitingKeyChatPushLoad = (conversationIDKey: T.Chat.ConversationIDK
 export const waitingKeyChatThreadLoad = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyChatAddUsersToChannel = 'chat:addUsersToConversation'
-export const waitingKeyChatAddUserToChannel = (username: string, conversationIDKey: T.Chat.ConversationIDKey) =>
-  `chat:addUserToConversation:${username}:${conversationIDKey}`
+export const waitingKeyChatAddUserToChannel = (
+  username: string,
+  conversationIDKey: T.Chat.ConversationIDKey
+) => `chat:addUserToConversation:${username}:${conversationIDKey}`
 export const waitingKeyChatConvStatusChange = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyChatUnpin = (conversationIDKey: T.Chat.ConversationIDKey) =>
