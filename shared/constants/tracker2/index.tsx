@@ -377,7 +377,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
               set(s => {
                 const {assertion, ...rest} = p
                 const old = s.usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                s.usernameToNonUserDetails.set(assertion, {...old, ...rest})
+                s.usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
               })
               return
             } else {
@@ -392,7 +392,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
               set(s => {
                 const {assertion, ...rest} = p
                 const old = s.usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                s.usernameToNonUserDetails.set(assertion, {...old, ...rest})
+                s.usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
               })
             }
           }
