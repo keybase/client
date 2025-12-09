@@ -62,7 +62,10 @@ export const sharedNewRoutes = {
     getOptions: C.isMobile ? {title: 'Keybase FM 87.7'} : undefined,
     screen: React.lazy(async () => import('../whats-new/container')),
   },
-  dbNukeConfirm: {screen: React.lazy(async () => import('./db-nuke.confirm'))},
+  dbNukeConfirm: {
+    getOptions: {title: 'Confirm'},
+    screen: React.lazy(async () => import('./db-nuke.confirm')),
+  },
   inviteSent: C.makeScreen(React.lazy(async () => import('./invite-generated'))),
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
