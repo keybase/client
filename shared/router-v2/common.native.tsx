@@ -7,7 +7,7 @@ import type {NavState} from '@/constants/router2'
 
 export const headerDefaultStyle = {
   get backgroundColor() {
-    return Kb.Styles.isIOS ? Kb.Styles.globalColors.fastBlank : Kb.Styles.globalColors.white
+    return Kb.Styles.isIOS ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.white
   },
   borderBottomColor: Kb.Styles.globalColors.black_10,
   borderBottomWidth: Kb.Styles.hairlineWidth,
