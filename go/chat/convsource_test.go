@@ -3,6 +3,7 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"runtime"
 	"testing"
 	"time"
 
@@ -536,7 +537,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
-	<-tc.ChatG.ConvLoader.Stop(context.Background())
+	waitConvLoaderStop(t, context.Background(), tc)
 
 	conv, remoteConv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	convID := conv.GetConvID()
@@ -608,6 +609,24 @@ type acquireRes struct {
 	err     error
 }
 
+func waitConvLoaderStop(t *testing.T, ctx context.Context, tc *kbtest.ChatTestContext) {
+	t.Helper()
+	done := make(chan struct{})
+	go func() {
+		<-tc.Context().ConvLoader.Stop(ctx)
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Logf("ConvLoader.Stop still blocked; dumping goroutines")
+		buf := make([]byte, 1<<20)
+		n := runtime.Stack(buf, true)
+		t.Logf("goroutines:\n%s", buf[:n])
+		t.FailNow()
+	}
+}
+
 func timedAcquire(ctx context.Context, t *testing.T, hcs *HybridConversationSource, uid gregor1.UID, convID chat1.ConversationID) (ret bool, err error) {
 	cb := make(chan struct{})
 	go func() {
@@ -632,7 +651,7 @@ func TestConversationLocking(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
-	<-tc.Context().ConvLoader.Stop(context.TODO())
+	waitConvLoaderStop(t, context.TODO(), tc)
 	hcs := tc.Context().ConvSource.(*HybridConversationSource)
 	if hcs == nil {
 		t.Skip()
@@ -712,7 +731,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
-	<-tc.Context().ConvLoader.Stop(context.TODO())
+	waitConvLoaderStop(t, context.TODO(), tc)
 	hcs := tc.Context().ConvSource.(*HybridConversationSource)
 	if hcs == nil {
 		t.Skip()

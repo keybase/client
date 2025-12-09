@@ -227,6 +227,7 @@ func (r *runner) runTestOnce(test string, isRerun bool, canRerun bool) (outcome 
 
 	cmd := exec.Command(r.testerName(), "-test.run", "^"+test+"$", "-test.timeout", r.opts.Timeout)
 	if isRerun {
+		cmd.Args = append(cmd.Args, "-test.v")
 		cmd.Env = append(os.Environ(), "CITOGO_FLAKE_RERUN=1")
 	}
 	var combined bytes.Buffer
