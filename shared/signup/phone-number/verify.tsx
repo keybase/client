@@ -4,21 +4,22 @@ import * as Kb from '@/common-adapters'
 import {SignupScreen} from '../common'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import VerifyBody from './verify-body'
+import {useSettingsPhoneState} from '@/constants/settings-phone'
 
 const Container = () => {
-  const error = C.useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))
-  const phoneNumber = C.useSettingsPhoneState(s => s.pendingVerification)
+  const error = useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))
+  const phoneNumber = useSettingsPhoneState(s => s.pendingVerification)
   const resendWaiting = C.Waiting.useAnyWaiting([
     C.waitingKeySettingsPhoneResendVerification,
     C.waitingKeySettingsPhoneAddPhoneNumber,
   ])
-  const verificationStatus = C.useSettingsPhoneState(s => s.verificationState)
+  const verificationStatus = useSettingsPhoneState(s => s.verificationState)
   const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)
 
-  const verifyPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.verifyPhoneNumber)
-  const resendVerificationForPhone = C.useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
+  const verifyPhoneNumber = useSettingsPhoneState(s => s.dispatch.verifyPhoneNumber)
+  const resendVerificationForPhone = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
 
-  const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
+  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
 
   const _onContinue = (phoneNumber: string, code: string) => {
     verifyPhoneNumber(phoneNumber, code)

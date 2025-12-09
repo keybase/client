@@ -9,6 +9,7 @@ import Text from './text'
 import Button from './button'
 import Icon from './icon'
 import type {RPCError} from '@/util/errors'
+import * as Settings from '@/constants/settings'
 
 const Kb = {
   Box2,
@@ -168,7 +169,7 @@ const ReloadContainer = (ownProps: OwnProps) => {
   const _onFeedback = (loggedIn: boolean) => {
     if (loggedIn) {
       navigateAppend(C.Tabs.settingsTab)
-      navigateAppend(C.Settings.settingsFeedbackTab)
+      navigateAppend(Settings.settingsFeedbackTab)
     } else {
       navigateAppend('feedback')
     }

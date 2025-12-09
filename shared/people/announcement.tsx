@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import openURL from '@/util/open-url'
 import * as Kb from '@/common-adapters'
 import PeopleItem from './item'
+import * as Settings from '@/constants/settings'
 
 type OwnProps = {
   appLink?: T.RPCGen.AppLinkType
@@ -36,25 +37,25 @@ const Container = (ownProps: OwnProps) => {
       case T.RPCGen.AppLinkType.files:
         switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.fsTab)
         if (C.isMobile) {
-          navigateAppend(C.Settings.settingsFsTab)
+          navigateAppend(Settings.settingsFsTab)
         }
         break
       case T.RPCGen.AppLinkType.wallet:
         switchTab(C.Tabs.settingsTab)
         if (C.isMobile) {
-          navigateAppend(C.Settings.settingsWalletsTab)
+          navigateAppend(Settings.settingsWalletsTab)
         }
         break
       case T.RPCGen.AppLinkType.git:
         switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.gitTab)
         if (C.isMobile) {
-          navigateAppend(C.Settings.settingsGitTab)
+          navigateAppend(Settings.settingsGitTab)
         }
         break
       case T.RPCGen.AppLinkType.devices:
         switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.devicesTab)
         if (C.isMobile) {
-          navigateAppend(C.Settings.settingsDevicesTab)
+          navigateAppend(Settings.settingsDevicesTab)
         }
         break
       case T.RPCGen.AppLinkType.settings:

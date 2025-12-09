@@ -5,6 +5,9 @@ import type * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import PeopleItem, {type TaskButton} from './item'
 import * as Kb from '@/common-adapters'
+import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsEmailState} from '@/constants/settings-email'
+import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 
 type TodoOwnProps = {
   badged: boolean
@@ -50,7 +53,7 @@ const AddEmailConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
     switchTab(C.Tabs.settingsTab)
-    navigateAppend(C.Settings.settingsAccountTab)
+    navigateAppend(settingsAccountTab)
     navigateAppend('settingsAddEmail')
   }
   const onDismiss = useOnSkipTodo('addEmail')
@@ -63,7 +66,7 @@ const AddPhoneNumberConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
     switchTab(C.Tabs.settingsTab)
-    navigateAppend(C.Settings.settingsAccountTab)
+    navigateAppend(settingsAccountTab)
     navigateAppend('settingsAddPhone')
   }
   const onDismiss = useOnSkipTodo('addPhoneNumber')
@@ -162,7 +165,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (isTeam: boolean) => {
     if (C.isMobile) {
-      navigateAppend(C.Settings.settingsGitTab)
+      navigateAppend(settingsGitTab)
     } else {
       switchTab(C.Tabs.gitTab)
     }
@@ -196,9 +199,9 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
-  const addingEmail = C.useSettingsEmailState(s => s.addingEmail)
+  const addingEmail = useSettingsEmailState(s => s.addingEmail)
   const setResentEmail = C.usePeopleState(s => s.dispatch.setResentEmail)
-  const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
+  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
     editEmail({email, verify: true})
     setResentEmail(email)
@@ -207,7 +210,7 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onManage = () => {
     switchTab(C.Tabs.settingsTab)
-    navigateAppend(C.Settings.settingsAccountTab)
+    navigateAppend(settingsAccountTab)
   }
 
   const meta = props.metadata?.type === 'email' ? props.metadata : undefined
@@ -237,7 +240,7 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
-  const resendVerificationForPhone = C.useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
+  const resendVerificationForPhone = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (phoneNumber: string) => {
     resendVerificationForPhone(phoneNumber)
@@ -246,7 +249,7 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onManage = () => {
     switchTab(C.Tabs.settingsTab)
-    navigateAppend(C.Settings.settingsAccountTab)
+    navigateAppend(settingsAccountTab)
   }
   const buttons: Array<TaskButton> = [
     ...(props.metadata
@@ -271,12 +274,12 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
 }
 
 const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
-  const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
+  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (email: string) => {
     switchTab(C.Tabs.settingsTab)
-    navigateAppend(C.Settings.settingsAccountTab)
+    navigateAppend(settingsAccountTab)
     editEmail({email, makeSearchable: true})
   }
   const onDismiss = useOnSkipTodo('legacyEmailVisibility')

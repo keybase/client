@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from '../common'
+import {useSettingsPhoneState} from '@/constants/settings-phone'
 
 type BodyProps = {
   autoFocus?: boolean
@@ -70,14 +71,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const ConnectedEnterPhoneNumber = () => {
-  const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
-  const error = C.useSettingsPhoneState(s => s.error)
-  const pendingVerification = C.useSettingsPhoneState(s => s.pendingVerification)
+  const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)
+  const error = useSettingsPhoneState(s => s.error)
+  const pendingVerification = useSettingsPhoneState(s => s.pendingVerification)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneAddPhoneNumber)
-  const clearPhoneNumberErrors = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberErrors)
-  const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
+  const clearPhoneNumberErrors = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberErrors)
+  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
   const onClear = clearPhoneNumberErrors
-  const addPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.addPhoneNumber)
+  const addPhoneNumber = useSettingsPhoneState(s => s.dispatch.addPhoneNumber)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onGoToVerify = React.useCallback(() => {
     navigateAppend('signupVerifyPhoneNumber')
@@ -102,7 +103,7 @@ const ConnectedEnterPhoneNumber = () => {
   }, [pendingVerification, error, onGoToVerify])
 
   // trigger a default phone number country rpc if it's not already loaded
-  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
+  const loadDefaultPhoneCountry = useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   React.useEffect(() => {
     !defaultCountry && loadDefaultPhoneCountry()
   }, [defaultCountry, loadDefaultPhoneCountry])

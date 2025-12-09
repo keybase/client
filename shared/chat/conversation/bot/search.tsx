@@ -4,6 +4,7 @@ import * as React from 'react'
 import debounce from 'lodash/debounce'
 import type * as T from '@/constants/types'
 import {Bot} from '../info-panel/bot'
+import {getFeaturedSorted} from '@/constants/bots'
 
 type Props = {teamID?: T.Teams.TeamID}
 
@@ -66,7 +67,7 @@ const SearchBotPopup = (props: Props) => {
           .get(lastQuery)
           ?.bots.slice()
           .map(bot => ({bot, type: 'bot'}) as const) ?? [])
-      : C.Bots.getFeaturedSorted(featuredBotsMap).map(bot => ({bot, type: 'bot'}))
+      : getFeaturedSorted(featuredBotsMap).map(bot => ({bot, type: 'bot'}))
   if (!botData.length && !waiting) {
     botData.push({type: 'dummy', value: resultEmptyPlaceholder})
   }

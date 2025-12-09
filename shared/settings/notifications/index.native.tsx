@@ -2,10 +2,12 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import Notifications from './render'
 import {Reloadable} from '@/common-adapters'
+import {useSettingsNotifState} from '@/constants/settings-notifications'
+import {useSettingsState} from '@/constants/settings'
 
 const MobileNotifications = () => {
-  const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
-  const refresh = C.useSettingsNotifState(s => s.dispatch.refresh)
+  const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
+  const refresh = useSettingsNotifState(s => s.dispatch.refresh)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onRefresh = () => {
     loadSettings()

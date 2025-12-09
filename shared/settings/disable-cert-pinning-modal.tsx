@@ -1,12 +1,13 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {useSettingsState} from '@/constants/settings'
 
 const DisableCertPinningModal = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }
-  const setDidToggleCertificatePinning = C.useSettingsState(s => s.dispatch.setDidToggleCertificatePinning)
+  const setDidToggleCertificatePinning = useSettingsState(s => s.dispatch.setDidToggleCertificatePinning)
   const onConfirm = () => {
     setDidToggleCertificatePinning(true)
     navigateUp()

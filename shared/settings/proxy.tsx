@@ -2,13 +2,14 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useSettingsState} from '@/constants/settings'
 
 const useConnect = () => {
-  const allowTlsMitmToggle = C.useSettingsState(s => s.didToggleCertificatePinning)
-  const setDidToggleCertificatePinning = C.useSettingsState(s => s.dispatch.setDidToggleCertificatePinning)
-  const proxyData = C.useSettingsState(s => s.proxyData)
-  const saveProxyData = C.useSettingsState(s => s.dispatch.setProxyData)
-  const loadProxyData = C.useSettingsState(s => s.dispatch.loadProxyData)
+  const allowTlsMitmToggle = useSettingsState(s => s.didToggleCertificatePinning)
+  const setDidToggleCertificatePinning = useSettingsState(s => s.dispatch.setDidToggleCertificatePinning)
+  const proxyData = useSettingsState(s => s.proxyData)
+  const saveProxyData = useSettingsState(s => s.dispatch.setProxyData)
+  const loadProxyData = useSettingsState(s => s.dispatch.loadProxyData)
   const resetCertPinningToggle = () => {
     setDidToggleCertificatePinning()
   }

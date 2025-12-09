@@ -2,17 +2,18 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import {useSettingsContactsState} from '@/constants/settings-contacts'
 
 const useContactsProps = () => {
-  const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
-  const contactsPermissionStatus = C.useSettingsContactsState(s => s.permissionStatus)
-  const isImportPromptDismissed = C.useSettingsContactsState(s => s.importPromptDismissed)
-  const numContactsImported = C.useSettingsContactsState(s => s.importedCount || 0)
+  const contactsImported = useSettingsContactsState(s => s.importEnabled)
+  const contactsPermissionStatus = useSettingsContactsState(s => s.permissionStatus)
+  const isImportPromptDismissed = useSettingsContactsState(s => s.importPromptDismissed)
+  const numContactsImported = useSettingsContactsState(s => s.importedCount || 0)
 
-  const importContactsLater = C.useSettingsContactsState(s => s.dispatch.importContactsLater)
-  const loadContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
-  const editContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.editContactImportEnabled)
-  const requestPermissions = C.useSettingsContactsState(s => s.dispatch.requestPermissions)
+  const importContactsLater = useSettingsContactsState(s => s.dispatch.importContactsLater)
+  const loadContactImportEnabled = useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
+  const editContactImportEnabled = useSettingsContactsState(s => s.dispatch.editContactImportEnabled)
+  const requestPermissions = useSettingsContactsState(s => s.dispatch.requestPermissions)
 
   const onAskForContactsLater = importContactsLater
   const onLoadContactsSetting = loadContactImportEnabled

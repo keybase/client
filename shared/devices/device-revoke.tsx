@@ -3,6 +3,7 @@ import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import {settingsDevicesTab} from '@/constants/settings'
 
 type OwnProps = {deviceID: string}
 
@@ -105,7 +106,7 @@ const useRevoke = (deviceID = '') => {
           load()
           C.useConfigState.getState().dispatch.revoke(deviceName)
           navUpToScreen(
-            C.isMobile ? (C.isTablet ? C.Tabs.settingsTab : C.Settings.settingsDevicesTab) : C.Tabs.devicesTab
+            C.isMobile ? (C.isTablet ? C.Tabs.settingsTab : settingsDevicesTab) : C.Tabs.devicesTab
           )
         } catch {}
       }

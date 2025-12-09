@@ -4,11 +4,12 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {UpdatePassword} from './password'
 import {usePWState} from '@/constants/settings-password'
+import {useSettingsState} from '@/constants/settings'
 
 const LogoutContainer = () => {
-  const checkPasswordIsCorrect = C.useSettingsState(s => s.checkPasswordIsCorrect)
-  const resetCheckPassword = C.useSettingsState(s => s.dispatch.resetCheckPassword)
-  const checkPassword = C.useSettingsState(s => s.dispatch.checkPassword)
+  const checkPasswordIsCorrect = useSettingsState(s => s.checkPasswordIsCorrect)
+  const resetCheckPassword = useSettingsState(s => s.dispatch.resetCheckPassword)
+  const checkPassword = useSettingsState(s => s.dispatch.checkPassword)
   const hasRandomPW = usePWState(s => s.randomPW)
   const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
 

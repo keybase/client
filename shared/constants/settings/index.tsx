@@ -7,6 +7,8 @@ import {RPCError} from '@/util/errors'
 import * as Tabs from '../tabs'
 import logger from '@/logger'
 import {usePWState} from '../settings-password'
+import {useSettingsPhoneState} from '../settings-phone'
+import {useSettingsEmailState} from '../settings-email'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -93,7 +95,7 @@ export interface State extends Store {
 let maybeLoadAppLinkOnce = false
 export const useSettingsState = Z.createZustand<State>(set => {
   const maybeLoadAppLink = () => {
-    const phones = C.useSettingsPhoneState.getState().phones
+    const phones = useSettingsPhoneState.getState().phones
     if (!phones || phones.size > 0) {
       return
     }
@@ -189,8 +191,8 @@ export const useSettingsState = Z.createZustand<State>(set => {
             undefined,
             C.waitingKeySettingsLoadSettings
           )
-          C.useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
-          C.useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
+          useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
+          useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
           maybeLoadAppLink()
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -213,7 +215,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
       switch (action.type) {
         case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
           logger.info('email verified')
-          C.useSettingsEmailState.getState().dispatch.notifyEmailVerified(action.payload.params.emailAddress)
+          useSettingsEmailState.getState().dispatch.notifyEmailVerified(action.payload.params.emailAddress)
           break
         case EngineGen.keybase1NotifyUsersPasswordChanged: {
           const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
@@ -222,12 +224,12 @@ export const useSettingsState = Z.createZustand<State>(set => {
         }
         case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
           const {list} = action.payload.params
-          C.useSettingsPhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+          useSettingsPhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
           break
         }
         case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
           const list = action.payload.params.list ?? []
-          C.useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
+          useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
           break
         }
         default:

@@ -4,16 +4,18 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import Group from './group'
 import {useState as useSettingsChatState} from '@/constants/settings-chat'
+import {useSettingsNotifState} from '@/constants/settings-notifications'
+import {useSettingsState} from '@/constants/settings'
 
 const emptyList = new Array<string>()
 
 const Security = () => {
-  const groups = C.useSettingsNotifState(s => s.groups)
-  const allowEdit = C.useSettingsNotifState(s => s.allowEdit)
+  const groups = useSettingsNotifState(s => s.groups)
+  const allowEdit = useSettingsNotifState(s => s.allowEdit)
   const contactSettingsError = useSettingsChatState(s => s.contactSettings.error)
   const contactSettingsSaved = useSettingsChatState(s => s.dispatch.contactSettingsSaved)
   const onContactSettingsSave = contactSettingsSaved
-  const onToggle = C.useSettingsNotifState(s => s.dispatch.toggle)
+  const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
   const _contactSettingsEnabled = useSettingsChatState(s => s.contactSettings.settings?.enabled)
   const _teamMeta = C.useTeamsState(s => s.teamMeta)
   const teamMeta = C.Teams.sortTeamsByName(_teamMeta)
@@ -94,8 +96,8 @@ const Security = () => {
   }, [_contactSettingsSelectedTeams, contactSettingsSelectedTeams])
 
   const contactSettingsRefresh = useSettingsChatState(s => s.dispatch.contactSettingsRefresh)
-  const notifRefresh = C.useSettingsNotifState(s => s.dispatch.refresh)
-  const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
+  const notifRefresh = useSettingsNotifState(s => s.dispatch.refresh)
+  const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
   const onRefresh = React.useCallback(() => {
     loadSettings()
     notifRefresh()
@@ -345,10 +347,10 @@ const Links = () => {
 const Sound = () => {
   const onToggleSound = C.useConfigState(s => s.dispatch.setNotifySound)
   const sound = C.useConfigState(s => s.notifySound) // desktop
-  const allowEdit = C.useSettingsNotifState(s => s.allowEdit)
+  const allowEdit = useSettingsNotifState(s => s.allowEdit)
   const showDesktopSound = !C.isMobile && !C.isLinux
-  const onToggle = C.useSettingsNotifState(s => s.dispatch.toggle)
-  const groups = C.useSettingsNotifState(s => s.groups)
+  const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
+  const groups = useSettingsNotifState(s => s.groups)
   const showMobileSound = !!groups.get('sound')?.settings.length
   if (!showDesktopSound && !showMobileSound) return null
   return (
@@ -376,10 +378,10 @@ const Sound = () => {
 }
 
 const Misc = () => {
-  const allowEdit = C.useSettingsNotifState(s => s.allowEdit)
-  const onToggle = C.useSettingsNotifState(s => s.dispatch.toggle)
+  const allowEdit = useSettingsNotifState(s => s.allowEdit)
+  const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
   const showMisc = C.isMac || C.isIOS
-  const groups = C.useSettingsNotifState(s => s.groups)
+  const groups = useSettingsNotifState(s => s.groups)
   if (!showMisc) return null
   return (
     <>

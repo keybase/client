@@ -4,6 +4,7 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {keybaseFM} from '@/constants/whats-new'
 import NewFeatureRow from './new-feature-row'
+import {settingsCryptoTab, settingsDisplayTab} from '@/constants/settings'
 
 export type VersionProps = {
   seen: boolean
@@ -92,7 +93,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-5.2.0-crypto"
         noSeparator={true}
         onPrimaryButtonClick={() => {
-          onNavigate(C.isMobile ? C.Settings.settingsCryptoTab : Crypto.encryptTab)
+          onNavigate(C.isMobile ? settingsCryptoTab : Crypto.encryptTab)
         }}
         primaryButtonText="Try it"
         seen={seen}
@@ -134,7 +135,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-4.7.0-dark-mode"
         primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
-          onNavigate(C.Settings.settingsDisplayTab)
+          onNavigate(settingsDisplayTab)
         }}
       >
         Dark mode is here! You can access theme settings under the Display section in Settings.

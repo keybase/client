@@ -3,6 +3,9 @@ import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import EmailPhoneRow from './email-phone-row'
 import {usePWState} from '@/constants/settings-password'
+import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsEmailState} from '@/constants/settings-email'
+import {useSettingsState, settingsPasswordTab} from '@/constants/settings'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -29,8 +32,8 @@ const AddButton = (props: AddButtonProps) => (
 
 const EmailPhone = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _emails = C.useSettingsEmailState(s => s.emails)
-  const _phones = C.useSettingsPhoneState(s => s.phones)
+  const _emails = useSettingsEmailState(s => s.emails)
+  const _phones = useSettingsPhoneState(s => s.phones)
   const contactKeys = [..._emails.keys(), ...(_phones ? _phones.keys() : [])]
   const tooManyEmails = _emails.size >= 10 // If you change this, also change in keybase/config/prod/email.iced
   const tooManyPhones = !!_phones && _phones.size >= 10 // If you change this, also change in keybase/config/prod/phone_numbers.iced
@@ -80,7 +83,7 @@ const EmailPhone = () => {
 const Password = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSetPassword = () => {
-    navigateAppend(C.Settings.settingsPasswordTab)
+    navigateAppend(settingsPasswordTab)
   }
   const hasPassword = usePWState(s => !s.randomPW)
   let passwordLabel: string
@@ -110,7 +113,7 @@ const Password = () => {
 }
 
 const WebAuthTokenLogin = () => {
-  const loginBrowserViaWebAuthToken = C.useSettingsState(s => s.dispatch.loginBrowserViaWebAuthToken)
+  const loginBrowserViaWebAuthToken = useSettingsState(s => s.dispatch.loginBrowserViaWebAuthToken)
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -156,18 +159,18 @@ const DeleteAccount = () => {
 }
 
 const AccountSettings = () => {
-  const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
-  const addedPhone = C.useSettingsPhoneState(s => s.addedPhone)
-  const editPhone = C.useSettingsPhoneState(s => s.dispatch.editPhone)
-  const clearAddedPhone = C.useSettingsPhoneState(s => s.dispatch.clearAddedPhone)
+  const addedEmail = useSettingsEmailState(s => s.addedEmail)
+  const addedPhone = useSettingsPhoneState(s => s.addedPhone)
+  const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
+  const clearAddedPhone = useSettingsPhoneState(s => s.dispatch.clearAddedPhone)
   const _onClearSupersededPhoneNumber = (phone: string) => {
     editPhone(phone, true)
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const resetAddedEmail = C.useSettingsEmailState(s => s.dispatch.resetAddedEmail)
+  const resetAddedEmail = useSettingsEmailState(s => s.dispatch.resetAddedEmail)
   const onClearAddedEmail = resetAddedEmail
   const onClearAddedPhone = clearAddedPhone
-  const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
+  const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
   const loadRememberPassword = usePWState(s => s.dispatch.loadRememberPassword)
   const loadHasRandomPw = usePWState(s => s.dispatch.loadHasRandomPw)
 
@@ -182,7 +185,7 @@ const AccountSettings = () => {
     navigateAppend({props: {namespace: 'chat2'}, selected: 'chatNewChat'})
     clearAddedPhone()
   }
-  const _phones = C.useSettingsPhoneState(s => s.phones)
+  const _phones = useSettingsPhoneState(s => s.phones)
   const _supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)
   const supersededKey = _supersededPhoneNumber?.e164
   const onClearSupersededPhoneNumber = () => supersededKey && _onClearSupersededPhoneNumber(supersededKey)

@@ -10,6 +10,7 @@ import {isLinux, isMobile} from '../platform'
 import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
+import {settingsFsTab} from '../settings'
 
 
 const subscriptionDeduplicateIntervalSecond = 1
@@ -880,7 +881,7 @@ export const makeActionsForDestinationPickerOpen = (index: number, path: T.FS.Pa
   C.useRouterState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
 }
 
-export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, C.Settings.settingsFsTab] : [Tabs.fsTab]
+export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, settingsFsTab] : [Tabs.fsTab]
 
 export const makeActionForOpenPathInFilesTab = (
   // TODO: remove the second arg when we are done with migrating to nav2

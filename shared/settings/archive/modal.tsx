@@ -5,6 +5,7 @@ import type * as T from '@/constants/types'
 import {pickSave} from '@/util/pick-files'
 import * as FsCommon from '@/fs/common'
 import {useState as useArchiveState} from '@/constants/archive'
+import {settingsArchiveTab} from '@/constants/settings'
 
 type Props =
   | {type: 'chatID'; conversationIDKey: T.Chat.ConversationIDKey}
@@ -99,7 +100,7 @@ const ArchiveModal = (p: Props) => {
     setTimeout(() => {
       switchTab(C.Tabs.settingsTab)
       setTimeout(() => {
-        navigateAppend(C.Settings.settingsArchiveTab)
+        navigateAppend(settingsArchiveTab)
       }, 200)
     }, 200)
   }, [navigateUp, resetWaiters, switchTab, navigateAppend])

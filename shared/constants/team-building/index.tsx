@@ -12,6 +12,7 @@ import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from './utils'
+import {useSettingsContactsState} from '../settings-contacts'
 export {allServices, selfToUser, searchWaitingKey} from './utils'
 
 export type Store = T.Immutable<{
@@ -310,7 +311,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           const contactRes = _contactRes || []
           const contacts = contactRes.map(contactToUser)
           let suggestions = suggestionRes.map(interestingPersonToUser)
-          const expectingContacts = C.useSettingsContactsState.getState().importEnabled && includeContacts
+          const expectingContacts = useSettingsContactsState.getState().importEnabled && includeContacts
           if (expectingContacts) {
             suggestions = suggestions.slice(0, 10)
           }
@@ -412,7 +413,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         let users: typeof _users
         if (selectedService === 'keybase') {
           // If we are on Keybase tab, do additional search if query is phone/email.
-          const userRegion = C.useSettingsContactsState.getState().userCountryCode
+          const userRegion = useSettingsContactsState.getState().userCountryCode
           users = await specialContactSearch(_users, searchQuery, userRegion)
         } else {
           users = _users

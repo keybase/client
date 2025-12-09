@@ -6,6 +6,8 @@ import {keybaseFM} from '@/constants/whats-new'
 import SettingsItem from './sub-nav/settings-item'
 import WhatsNewIcon from '../whats-new/icon'
 import noop from 'lodash/noop'
+import {useSettingsContactsState} from '@/constants/settings-contacts'
+import * as Settings from '@/constants/settings'
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
@@ -62,7 +64,7 @@ function SettingsNav() {
   const badgeNotifications = C.usePushState(s => !s.hasPermissions)
   const statsShown = C.useConfigState(s => !!s.runtimeStats)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const contactsLabel = C.useSettingsContactsState(s =>
+  const contactsLabel = useSettingsContactsState(s =>
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'
   )
 
@@ -73,7 +75,7 @@ function SettingsNav() {
         {
           icon: 'iconfont-nav-2-crypto',
           onClick: () => {
-            navigateAppend(C.Settings.settingsCryptoTab)
+            navigateAppend(Settings.settingsCryptoTab)
           },
           text: 'Crypto',
         },
@@ -81,7 +83,7 @@ function SettingsNav() {
           badgeNumber: badgeNumbers.get(C.Tabs.devicesTab),
           icon: 'iconfont-nav-2-devices',
           onClick: () => {
-            navigateAppend(C.Settings.settingsDevicesTab)
+            navigateAppend(Settings.settingsDevicesTab)
           },
           text: 'Devices',
         },
@@ -89,21 +91,21 @@ function SettingsNav() {
           badgeNumber: badgeNumbers.get(C.Tabs.gitTab),
           icon: 'iconfont-nav-2-git',
           onClick: () => {
-            navigateAppend(C.Settings.settingsGitTab)
+            navigateAppend(Settings.settingsGitTab)
           },
           text: 'Git',
         },
         {
           icon: 'iconfont-nav-2-wallets',
           onClick: () => {
-            navigateAppend(C.Settings.settingsWalletsTab)
+            navigateAppend(Settings.settingsWalletsTab)
           },
           text: 'Wallet',
         },
         {
           iconComponent: WhatsNewIcon,
           onClick: () => {
-            navigateAppend(C.Settings.settingsWhatsNewTab)
+            navigateAppend(Settings.settingsWhatsNewTab)
           },
           subText: `What's new?`,
           text: keybaseFM,
@@ -116,56 +118,56 @@ function SettingsNav() {
         {
           badgeNumber: badgeNumbers.get(C.Tabs.settingsTab),
           onClick: () => {
-            navigateAppend(C.Settings.settingsAccountTab)
+            navigateAppend(Settings.settingsAccountTab)
           },
           text: 'Account',
         },
         {
           onClick: () => {
-            navigateAppend(C.Settings.settingsAdvancedTab)
+            navigateAppend(Settings.settingsAdvancedTab)
           },
           text: 'Advanced',
         },
         {
           onClick: () => {
-            navigateAppend(C.Settings.settingsArchiveTab)
+            navigateAppend(Settings.settingsArchiveTab)
           },
           text: 'Backup',
         },
         {
           onClick: () => {
-            navigateAppend(C.Settings.settingsChatTab)
+            navigateAppend(Settings.settingsChatTab)
           },
           text: 'Chat',
         },
         {
           onClick: () => {
-            navigateAppend(C.Settings.settingsDisplayTab)
+            navigateAppend(Settings.settingsDisplayTab)
           },
           text: 'Display',
         },
         {
           onClick: () => {
-            navigateAppend(C.Settings.settingsFeedbackTab)
+            navigateAppend(Settings.settingsFeedbackTab)
           },
           text: 'Feedback',
         },
         {
           onClick: () => {
-            navigateAppend(C.Settings.settingsFsTab)
+            navigateAppend(Settings.settingsFsTab)
           },
           text: 'Files',
         },
         {
           onClick: () => {
-            navigateAppend(C.Settings.settingsContactsTab)
+            navigateAppend(Settings.settingsContactsTab)
           },
           text: contactsLabel,
         },
         {
           badgeNumber: badgeNotifications ? 1 : 0,
           onClick: () => {
-            navigateAppend(C.Settings.settingsNotificationsTab)
+            navigateAppend(Settings.settingsNotificationsTab)
           },
           text: 'Notifications',
         },
@@ -173,7 +175,7 @@ function SettingsNav() {
           ? [
               {
                 onClick: () => {
-                  navigateAppend(C.Settings.settingsScreenprotectorTab)
+                  navigateAppend(Settings.settingsScreenprotectorTab)
                 },
                 text: 'Screen protector',
               } as const,
@@ -186,13 +188,13 @@ function SettingsNav() {
       data: [
         {
           onClick: () => {
-            navigateAppend(C.Settings.settingsAboutTab)
+            navigateAppend(Settings.settingsAboutTab)
           },
           text: 'About',
         },
         {
           onClick: () => {
-            navigateAppend(C.Settings.settingsLogOutTab)
+            navigateAppend(Settings.settingsLogOutTab)
           },
           text: 'Sign out',
           textColor: Kb.Styles.globalColors.red,
