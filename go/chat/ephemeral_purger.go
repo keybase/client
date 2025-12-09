@@ -153,20 +153,12 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 	b.started = true
 	b.uid = uid
 
-	b.queueLock.Lock()
-	defer b.queueLock.Unlock()
-	b.pq = newPriorityQueue()
-	heap.Init(b.pq)
-	b.purgeTimer = time.NewTimer(0)
-
 	shutdownCh := make(chan struct{})
 	b.shutdownCh = shutdownCh
 	b.eg.Go(func() error {
 		// Don't fire immediately on startup
 		time.Sleep(libkb.RandomJitter(time.Second))
 		b.initQueue(ctx)
-		// Immediately fire to queue any purges we picked up during initQueue
-		b.purgeTimer = time.NewTimer(0)
 		return b.loop(shutdownCh)
 	})
 }
@@ -193,12 +185,16 @@ func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) (ch chan struct{})
 }
 
 func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
-	b.queueLock.Lock()
-	defer b.queueLock.Unlock()
-
-	if b.pq == nil {
+	b.lock.Lock()
+	if !b.started {
+		b.lock.Unlock()
 		return fmt.Errorf("Must call Start() before adding to the Queue")
 	}
+	b.lock.Unlock()
+
+	b.queueLock.Lock()
+	defer b.queueLock.Unlock()
+	b.initQueueLocked(ctx)
 
 	// skip duplicate items
 	item, ok := b.pq.itemMap[purgeInfo.ConvID.ConvIDStr()]
@@ -240,6 +236,16 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 func (b *BackgroundEphemeralPurger) initQueue(ctx context.Context) {
 	b.queueLock.Lock()
 	defer b.queueLock.Unlock()
+	b.initQueueLocked(ctx)
+}
+
+func (b *BackgroundEphemeralPurger) initQueueLocked(ctx context.Context) {
+	if b.pq != nil {
+		return
+	}
+
+	b.pq = newPriorityQueue()
+	heap.Init(b.pq)
 
 	allPurgeInfo, err := b.G().EphemeralTracker.GetAllPurgeInfo(ctx, b.uid)
 	if err != nil {
@@ -250,6 +256,8 @@ func (b *BackgroundEphemeralPurger) initQueue(ctx context.Context) {
 			b.updateQueue(purgeInfo)
 		}
 	}
+	// Immediately fire to queue any purges we picked up
+	b.purgeTimer = time.NewTimer(0)
 }
 
 func (b *BackgroundEphemeralPurger) updateQueue(purgeInfo chat1.EphemeralPurgeInfo) {
