@@ -609,6 +609,7 @@ type acquireRes struct {
 	err     error
 }
 
+// nolint
 func waitConvLoaderStop(t *testing.T, ctx context.Context, tc *kbtest.ChatTestContext) {
 	t.Helper()
 	done := make(chan struct{})
