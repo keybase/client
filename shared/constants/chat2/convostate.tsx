@@ -506,7 +506,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     logger.info('[CHATDEBUG] adding', messages.length, why, messages.at(0)?.id, messages.at(-1)?.id)
 
     // we can't allow gaps in the ordinals so if we get an incoming message and we're in a search ignore it
-    if (incomingMessage && get().isCaughtUp()) {
+    if (incomingMessage && !get().isCaughtUp()) {
       return
     }
 
