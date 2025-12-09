@@ -3,7 +3,6 @@ package chat
 import (
 	"container/heap"
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -185,13 +184,6 @@ func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) (ch chan struct{})
 }
 
 func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
-	b.lock.Lock()
-	if !b.started {
-		b.lock.Unlock()
-		return fmt.Errorf("Must call Start() before adding to the Queue")
-	}
-	b.lock.Unlock()
-
 	b.queueLock.Lock()
 	defer b.queueLock.Unlock()
 	b.initQueueLocked(ctx)
@@ -338,6 +330,7 @@ func (b *BackgroundEphemeralPurger) Len() int {
 	defer b.Trace(context.TODO(), nil, "Len")()
 	b.queueLock.Lock()
 	defer b.queueLock.Unlock()
+	b.initQueueLocked(context.TODO())
 	return b.pq.Len()
 }
 
