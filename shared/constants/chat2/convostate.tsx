@@ -107,6 +107,7 @@ type ConvoStore = T.Immutable<{
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message> // messages in a thread,
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadBack: boolean
+  moreToLoadForward: boolean
   mutualTeams: ReadonlyArray<T.Teams.TeamID>
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
@@ -145,6 +146,7 @@ const initialConvoStore: ConvoStore = {
   messageTypeMap: new Map(),
   meta: Meta.makeConversationMeta(),
   moreToLoadBack: false,
+  moreToLoadForward: false,
   mutualTeams: [],
   participants: noParticipantInfo,
   pendingOutboxToOrdinal: new Map(),
@@ -504,7 +506,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     logger.info('[CHATDEBUG] adding', messages.length, why, messages.at(0)?.id, messages.at(-1)?.id)
 
     // we can't allow gaps in the ordinals so if we get an incoming message and we're in a search ignore it
-    if (incomingMessage && get().messageCenterOrdinal) {
+    if (incomingMessage && !get().isCaughtUp()) {
       return
     }
 
@@ -1567,11 +1569,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
           // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
 
-          const moreToLoadBack = uiMessages.pagination ? !uiMessages.pagination.last : true
+          const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
           set(s => {
-            // moreToLoadBack is only about going back so ignore updating this if we're not going in that direction
-            if (sd !== 'forward') {
-              s.moreToLoadBack = moreToLoadBack
+            switch (sd) {
+              case 'forward':
+                s.moreToLoadForward = moreToLoad
+                break
+              case 'back':
+                s.moreToLoadBack = moreToLoad
+                break
+              case 'none':
+                s.moreToLoadBack = moreToLoad
+                s.moreToLoadForward = !!centeredMessageID
+                break
             }
           })
 
@@ -1579,10 +1589,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             messagesAdd(messages, {why: `load more ongotthread: ${why}`})
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
-              setMessageCenterOrdinal({
-                highlightMode: centeredMessageID.highlightMode,
-                ordinal,
-              })
+              setMessageCenterOrdinal({highlightMode: centeredMessageID.highlightMode, ordinal})
             }
           }
 
@@ -3177,7 +3184,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       return cid
     },
     isCaughtUp: () => {
-      return get().maxMsgIDSeen === -1 || get().maxMsgIDSeen >= get().meta.maxVisibleMsgID
+      return !get().moreToLoadForward
     },
     isMetaGood: () => {
       // fake meta doesn't have our actual id in it
