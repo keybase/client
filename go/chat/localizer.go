@@ -338,7 +338,8 @@ func (s *localizerPipeline) start(ctx context.Context) {
 	}
 	s.clearQueue()
 	s.started = true
-	go s.localizeLoop()
+	stopCh := s.stopCh
+	go s.localizeLoop(stopCh)
 }
 
 func (s *localizerPipeline) stop(ctx context.Context) chan struct{} {
@@ -469,12 +470,9 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 	s.Debug(job.ctx, "localizeJobPulled: job pass complete")
 }
 
-func (s *localizerPipeline) localizeLoop() {
+func (s *localizerPipeline) localizeLoop(stopCh chan struct{}) {
 	ctx := context.Background()
 	s.Debug(ctx, "localizeLoop: starting up")
-	s.Lock()
-	stopCh := s.stopCh
-	s.Unlock()
 	for {
 		select {
 		case job := <-s.jobQueue:
