@@ -1,12 +1,16 @@
 import {defaultNotificationThreshold} from '.'
+import * as C from '@/constants'
 import {useFSState} from '@/constants/fs'
 
 const useFiles = () => {
-  const areSettingsLoading = useFSState(s => s.settings.isLoading)
-  const setSpaceAvailableNotificationThreshold = useFSState(
-    s => s.dispatch.setSpaceAvailableNotificationThreshold
-  )
-  const spaceAvailableNotificationThreshold = useFSState(s => s.settings.spaceAvailableNotificationThreshold)
+  const {areSettingsLoading, setSpaceAvailableNotificationThreshold, spaceAvailableNotificationThreshold} =
+    useFSState(
+      C.useShallow(s => ({
+        areSettingsLoading: s.settings.isLoading,
+        setSpaceAvailableNotificationThreshold: s.dispatch.setSpaceAvailableNotificationThreshold,
+        spaceAvailableNotificationThreshold: s.settings.spaceAvailableNotificationThreshold,
+      }))
+    )
   const onDisableSyncNotifications = () => {
     setSpaceAvailableNotificationThreshold(0)
   }

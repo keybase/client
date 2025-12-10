@@ -11,9 +11,13 @@ type Props = {
 }
 
 const FsNavHeaderRightActions = (props: Props) => {
-  const softErrors = useFSState(s => s.softErrors)
+  const {softErrors, setFolderViewFilter} = useFSState(
+    C.useShallow(s => ({
+      softErrors: s.softErrors,
+      setFolderViewFilter: s.dispatch.setFolderViewFilter,
+    }))
+  )
   const hasSoftError = !!C.FS.getSoftError(softErrors, props.path)
-  const setFolderViewFilter = useFSState(s => s.dispatch.setFolderViewFilter)
   React.useEffect(() => {
     !Kb.Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
   }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount

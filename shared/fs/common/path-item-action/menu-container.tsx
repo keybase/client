@@ -22,25 +22,49 @@ const Container = (op: OwnProps) => {
   const {path, mode, floatingMenuProps} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   Kbfs.useFsFileContext(path)
-  const {pathItem, pathItemActionMenu, fileContext, cancelDownload, setPathItemActionMenuView, download} =
-    useFSState(
-      C.useShallow(s => {
-        const pathItem = C.FS.getPathItem(s.pathItems, path)
-        const pathItemActionMenu = s.pathItemActionMenu
-        const fileContext = s.fileContext.get(path) || C.FS.emptyFileContext
-        const cancelDownload = s.dispatch.cancelDownload
-        const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
-        const download = s.dispatch.download
-        return {
-          cancelDownload,
-          download,
-          fileContext,
-          pathItem,
-          pathItemActionMenu,
-          setPathItemActionMenuView,
-        }
-      })
-    )
+  const {
+    pathItem,
+    pathItemActionMenu,
+    fileContext,
+    cancelDownload,
+    setPathItemActionMenuView,
+    download,
+    newFolderRow,
+    openPathInSystemFileManagerDesktop,
+    sfmiEnabled,
+    favoriteIgnore,
+    startRename,
+    dismissDownload,
+  } = useFSState(
+    C.useShallow(s => {
+      const pathItem = C.FS.getPathItem(s.pathItems, path)
+      const pathItemActionMenu = s.pathItemActionMenu
+      const fileContext = s.fileContext.get(path) || C.FS.emptyFileContext
+      const cancelDownload = s.dispatch.cancelDownload
+      const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
+      const download = s.dispatch.download
+      const newFolderRow = s.dispatch.newFolderRow
+      const openPathInSystemFileManagerDesktop = s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+      const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
+      const favoriteIgnore = s.dispatch.favoriteIgnore
+      const startRename = s.dispatch.startRename
+      const dismissDownload = s.dispatch.dismissDownload
+      return {
+        cancelDownload,
+        dismissDownload,
+        download,
+        favoriteIgnore,
+        fileContext,
+        newFolderRow,
+        openPathInSystemFileManagerDesktop,
+        pathItem,
+        pathItemActionMenu,
+        setPathItemActionMenuView,
+        sfmiEnabled,
+        startRename,
+      }
+    })
+  )
   const {downloadID, downloadIntent, view} = pathItemActionMenu
   const username = C.useCurrentUserState(s => s.username)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
@@ -61,32 +85,6 @@ const Container = (op: OwnProps) => {
     cancel()
   }
   const hideAndCancelAfter = (f: () => void) => hideAfter(cancelAfter(f))
-
-  const {
-    newFolderRow,
-    openPathInSystemFileManagerDesktop,
-    sfmiEnabled,
-    favoriteIgnore,
-    startRename,
-    dismissDownload,
-  } = useFSState(
-    C.useShallow(s => {
-      const newFolderRow = s.dispatch.newFolderRow
-      const openPathInSystemFileManagerDesktop = s.dispatch.dynamic.openPathInSystemFileManagerDesktop
-      const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
-      const favoriteIgnore = s.dispatch.favoriteIgnore
-      const startRename = s.dispatch.startRename
-      const dismissDownload = s.dispatch.dismissDownload
-      return {
-        dismissDownload,
-        favoriteIgnore,
-        newFolderRow,
-        openPathInSystemFileManagerDesktop,
-        sfmiEnabled,
-        startRename,
-      }
-    })
-  )
   const itemNewFolder = layout.newFolder
     ? ([
         {

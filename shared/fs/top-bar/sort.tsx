@@ -30,11 +30,14 @@ const makeSortOptionItem = (sortSetting: T.FS.SortSetting, onClick?: () => void)
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
-  const _pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, path))
-
-  const setSorting = useFSState(s => s.dispatch.setSorting)
-  const _sortSetting = useFSState(s => C.FS.getPathUserSetting(s.pathUserSettings, path).sort)
+  const {_kbfsDaemonStatus, _pathItem, setSorting, _sortSetting} = useFSState(
+    C.useShallow(s => ({
+      _kbfsDaemonStatus: s.kbfsDaemonStatus,
+      _pathItem: C.FS.getPathItem(s.pathItems, path),
+      setSorting: s.dispatch.setSorting,
+      _sortSetting: C.FS.getPathUserSetting(s.pathUserSettings, path).sort,
+    }))
+  )
 
   const sortSetting = C.FS.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined
   const makePopup = React.useCallback(
