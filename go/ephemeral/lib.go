@@ -65,7 +65,7 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 		stopCh:                 stopCh,
 	}
 	if !mctx.G().GetEnv().GetDisableEKBackgroundKeygen() {
-		go ekLib.backgroundKeygen(mctx, stopCh)
+		go ekLib.backgroundKeygen(mctx.BackgroundWithLogTags(), stopCh)
 	}
 	return ekLib
 }
@@ -147,6 +147,7 @@ func (e *EKLib) setBackgroundDeleteTestCh(ch chan bool) {
 }
 
 func (e *EKLib) KeygenIfNeeded(mctx libkb.MetaContext) (err error) {
+	defer mctx.Trace("KeygenIfNeeded", &err)()
 	e.Lock()
 	defer e.Unlock()
 	var merkleRoot libkb.MerkleRoot
@@ -199,6 +200,7 @@ func (e *EKLib) keygenIfNeeded(mctx libkb.MetaContext, merkleRoot libkb.MerkleRo
 }
 
 func (e *EKLib) keygenIfNeededLocked(mctx libkb.MetaContext, merkleRoot libkb.MerkleRoot, shouldCleanup bool) (err error) {
+	defer mctx.Trace("keygenIfNeededLocked", &err)()
 	defer func() {
 		if shouldCleanup {
 			e.cleanupStaleUserAndDeviceEKsInBackground(mctx, merkleRoot)
@@ -266,6 +268,7 @@ func (e *EKLib) cleanupStaleUserAndDeviceEKs(mctx libkb.MetaContext, merkleRoot 
 
 func (e *EKLib) cleanupStaleUserAndDeviceEKsInBackground(mctx libkb.MetaContext, merkleRoot libkb.MerkleRoot) {
 	go func() {
+		mctx = mctx.BackgroundWithLogTags()
 		if err := e.cleanupStaleUserAndDeviceEKs(mctx, merkleRoot); err != nil {
 			mctx.Debug("Unable to cleanupStaleUserAndDeviceEKsInBackground: %v", err)
 		}
@@ -596,6 +599,7 @@ func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID key
 		// unfortunate to block message sending while we otherwise have access
 		// to a working teamEK.
 		go func() {
+			mctx = mctx.BackgroundWithLogTags()
 			if e.backgroundCreationTestCh != nil {
 				<-e.backgroundCreationTestCh
 			}
@@ -1205,7 +1209,7 @@ func (e *EKLib) purgeDeviceEKsIfOneshot(mctx libkb.MetaContext) {
 }
 
 func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
-	keygen := func() {
+	keygen := func(mctx libkb.MetaContext) {
 		if err := e.KeygenIfNeeded(mctx); err != nil {
 			mctx.Debug("OnLogin error: %v", err)
 		}
@@ -1213,9 +1217,9 @@ func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
 	if mctx.G().Standalone {
 		// If we are in standalone run this synchronously to avoid racing if we
 		// are attempting logout.
-		keygen()
+		keygen(mctx)
 	} else {
-		go keygen()
+		go keygen(mctx.BackgroundWithLogTags())
 	}
 	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.SetLogPrefix(mctx)
