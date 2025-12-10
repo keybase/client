@@ -9,6 +9,7 @@ import type {DeserializeProps} from './remote-serializer.desktop'
 import KB2 from '@/util/electron.desktop'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useTrackerState} from '@/constants/tracker2'
+import {useUsersState} from '@/constants/users'
 
 const {closeWindow} = KB2.functions
 
@@ -32,7 +33,7 @@ const RemoteContainer = (d: DeserializeProps) => {
 
   const replaceAvatar = useAvatarState(s => s.dispatch.replace)
   const replaceFollower = C.useFollowerState(s => s.dispatch.replace)
-  const replaceUsers = C.useUsersState(s => s.dispatch.replace)
+  const replaceUsers = useUsersState(s => s.dispatch.replace)
   const replaceCurrent = C.useCurrentUserState(s => s.dispatch.replaceUsername)
   const replaceHTTP = C.useConfigState(s => s.dispatch.setHTTPSrvInfo)
   const replaceTracker = useTrackerState(s => s.dispatch.replace)

@@ -6,6 +6,7 @@ import * as T from '../types'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
 import {useProfileState} from '@/constants/profile'
+import {useUsersState} from '../users'
 
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),
@@ -317,7 +318,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followersCount = d.followers.size
           })
           if (fs.users) {
-            C.useUsersState
+            useUsersState
               .getState()
               .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
@@ -343,7 +344,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followingCount = d.following.size
           })
           if (fs.users) {
-            C.useUsersState
+            useUsersState
               .getState()
               .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
@@ -434,7 +435,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         d.hidFromFollowers = hidFromFollowers
       })
       username &&
-        C.useUsersState.getState().dispatch.updates([{info: {fullname: card.fullName}, name: username}])
+        useUsersState.getState().dispatch.updates([{info: {fullname: card.fullName}, name: username}])
     },
     notifyReset: guiID => {
       set(s => {

@@ -4,6 +4,7 @@ import type * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import MenuHeader from '../team/rows/menu-header.new'
+import {useUsersState} from '@/constants/users'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -30,7 +31,7 @@ const crownIcon = (roleType: T.Teams.TeamRoleType) => {
 
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
-  const infoMap = C.useUsersState(s => s.infoMap)
+  const infoMap = useUsersState(s => s.infoMap)
   const participantInfo = C.useConvoState(conversationIDKey, s => s.participants)
   const teamMemberInfo = C.useTeamsState(
     s => s.teamDetails.get(teamID)?.members.get(username) ?? C.Teams.initialMemberInfo
@@ -117,7 +118,7 @@ const ChannelMemberRow = (props: Props) => {
   )
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
+  const setUserBlocks = useUsersState(s => s.dispatch.setUserBlocks)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p

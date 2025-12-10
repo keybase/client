@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import Menubar from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {useAvatarState} from '@/common-adapters/avatar/store'
+import {useUsersState} from '@/constants/users'
 
 const RemoteContainer = (d: DeserializeProps) => {
   const {avatarRefreshCounter, badgeMap, daemonHandshakeState, darkMode, diskSpaceStatus, endEstimate} = d
@@ -12,7 +13,7 @@ const RemoteContainer = (d: DeserializeProps) => {
   useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
   C.useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
   C.useFollowerState(s => s.dispatch.replace)(followers, following)
-  C.useUsersState(s => s.dispatch.replace)(infoMap)
+  useUsersState(s => s.dispatch.replace)(infoMap)
   const replaceUsername = C.useCurrentUserState(s => s.dispatch.replaceUsername)
   const setHTTPSrvInfo = C.useConfigState(s => s.dispatch.setHTTPSrvInfo)
   const setOutOfDate = C.useConfigState(s => s.dispatch.setOutOfDate)

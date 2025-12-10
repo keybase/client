@@ -2,6 +2,7 @@ import * as C from '..'
 import logger from '@/logger'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
+import {useUsersState} from '../users'
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
 // normally this wouldn't be worth it but this is startup
@@ -229,7 +230,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         setDefaultUsername(currentName)
       }
       setAccounts(nextConfiguredAccounts)
-      C.useUsersState.getState().dispatch.updates(
+      useUsersState.getState().dispatch.updates(
         Object.keys(usernameToFullname).map(name => ({
           info: {fullname: usernameToFullname[name]},
           name,

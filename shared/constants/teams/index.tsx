@@ -8,6 +8,7 @@ import invert from 'lodash/invert'
 import logger from '@/logger'
 import openSMS from '@/util/sms'
 import {RPCError, logError} from '@/util/errors'
+import {useUsersState} from '../users'
 import {isMobile, isPhone} from '../platform'
 import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '../rpc-utils'
@@ -1833,7 +1834,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.teamIDToMembers.set(teamID, members)
           })
-          C.useUsersState.getState().dispatch.updates(
+          useUsersState.getState().dispatch.updates(
             [...members.values()].map(m => ({
               info: {fullname: m.fullName},
               name: m.username,

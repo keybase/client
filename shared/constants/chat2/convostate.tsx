@@ -13,6 +13,7 @@ import HiddenString from '@/util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
+import {useUsersState} from '../users'
 import type {DebouncedFunc} from 'lodash'
 import {RPCError} from '@/util/errors'
 import {findLast} from '@/util/arrays'
@@ -2493,7 +2494,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             return
           }
 
-          C.useUsersState.getState().dispatch.getBio(username)
+          useUsersState.getState().dispatch.getBio(username)
         }
       }
 

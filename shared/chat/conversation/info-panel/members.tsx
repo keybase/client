@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import Participant from './participant'
+import {useUsersState} from '@/constants/users'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -28,7 +29,7 @@ type Section = Kb.SectionType<Item>
 
 const MembersTab = (props: Props) => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const infoMap = C.useUsersState(s => s.infoMap)
+  const infoMap = useUsersState(s => s.infoMap)
   const {channelname, teamID, teamname} = C.useChatContext(
     C.useShallow(s => {
       const {meta} = s

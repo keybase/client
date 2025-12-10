@@ -12,6 +12,7 @@ import type * as NotifConstants from '@/constants/notifications'
 import {useColorScheme} from 'react-native'
 import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
+import {useUsersState} from '@/constants/users'
 
 const {showTray} = KB2.functions
 
@@ -105,7 +106,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
       return {desktopAppBadgeCount, navBadges, widgetBadge}
     })
   )
-  const infoMap = C.useUsersState(s => s.infoMap)
+  const infoMap = useUsersState(s => s.infoMap)
   const widgetList = C.useChatState(s => s.inboxLayout?.widgetList)
   const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus

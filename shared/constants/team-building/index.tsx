@@ -8,6 +8,7 @@ import logger from '@/logger'
 import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
+import {useUsersState} from '../users'
 import {serviceIdFromString} from '@/util/platforms'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
@@ -431,7 +432,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<{info: {fullname: string}; name: string}>())
-        C.useUsersState.getState().dispatch.updates(updates)
+        useUsersState.getState().dispatch.updates(updates)
         const blocks = users.reduce((arr, {serviceMap}) => {
           const {keybase} = serviceMap
           if (keybase) {
@@ -439,7 +440,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<string>())
-        blocks.length && C.useUsersState.getState().dispatch.getBlockState(blocks)
+        blocks.length && useUsersState.getState().dispatch.getBlockState(blocks)
       }
       C.ignorePromise(f())
     },

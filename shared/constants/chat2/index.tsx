@@ -13,6 +13,7 @@ import {isMobile, isPhone} from '../platform'
 import * as Z from '@/util/zustand'
 import * as Common from './common'
 import {uint8ArrayToString} from 'uint8array-extras'
+import {useUsersState} from '../users'
 import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '../rpc-utils'
 
@@ -1103,7 +1104,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           const usernames = update.CanonicalName.split(',')
           const broken = (update.breaks.breaks || []).map(b => b.user.username)
           const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
-          C.useUsersState.getState().dispatch.updates(updates)
+          useUsersState.getState().dispatch.updates(updates)
           break
         }
         case EngineGen.chat1ChatUiChatInboxUnverified:
@@ -1166,7 +1167,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                   const match = error.message.match(/"(.*)"/)
                   const tempForceRedBox = match?.[1]
                   if (tempForceRedBox) {
-                    C.useUsersState
+                    useUsersState
                       .getState()
                       .dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
                   }
@@ -1321,7 +1322,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
       // TODO not reactive
-      const {infoMap} = C.useUsersState.getState()
+      const {infoMap} = useUsersState.getState()
       const {convs} = action.payload.params
       const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
       const metas: Array<T.Chat.ConversationMeta> = []
@@ -1349,7 +1350,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         })
       })
       if (added) {
-        C.useUsersState
+        useUsersState
           .getState()
           .dispatch.updates(
             Object.keys(usernameToFullname).map(name => ({info: {fullname: usernameToFullname[name]}, name}))
@@ -1383,7 +1384,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         return map
       }, {})
 
-      C.useUsersState.getState().dispatch.updates(
+      useUsersState.getState().dispatch.updates(
         Object.keys(usernameToFullname).map(name => ({
           info: {fullname: usernameToFullname[name]},
           name,

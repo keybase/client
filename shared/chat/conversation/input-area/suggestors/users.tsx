@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {useUsersState} from '@/constants/users'
 
 export const transformer = (
   input: {
@@ -137,7 +138,7 @@ const getTeams = (layout?: T.RPCChat.UIInboxLayout) => {
 }
 
 const useDataUsers = () => {
-  const infoMap = C.useUsersState(s => s.infoMap)
+  const infoMap = useUsersState(s => s.infoMap)
   const participantInfo = C.useChatContext(s => s.participants)
   return C.useChatContext(
     C.useDeep(s => {

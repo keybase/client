@@ -8,6 +8,7 @@ import {useProfileState} from '@/constants/profile'
 import './avatar.css'
 import type {Props} from '.'
 import {useColorScheme} from 'react-native'
+import {useUsersState} from '@/constants/users'
 
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = (typeof avatarSizes)[number]
@@ -66,7 +67,7 @@ export default (ownProps: Props) => {
     showFollowingStatus && username ? s.followers.has(username) : false
   )
   const httpSrv = C.useConfigState(s => s.httpSrv)
-  const blocked = C.useUsersState(s => s.blockMap.get(username || teamname || '')?.chatBlocked)
+  const blocked = useUsersState(s => s.blockMap.get(username || teamname || '')?.chatBlocked)
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const goToProfile = React.useCallback(
     () => username && showUserProfile(username),
