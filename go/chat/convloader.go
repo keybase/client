@@ -215,8 +215,9 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	b.newQueue()
 	b.started = true
 	b.uid = uid
-	b.eg.Go(func() error { return b.loop(uid, b.stopCh) })
-	b.eg.Go(func() error { return b.loadLoop(uid, b.stopCh) })
+	stopCh := b.stopCh
+	b.eg.Go(func() error { return b.loop(uid, stopCh) })
+	b.eg.Go(func() error { return b.loadLoop(uid, stopCh) })
 }
 
 func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
