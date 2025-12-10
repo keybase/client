@@ -68,8 +68,8 @@ export const useFsTlf = (path: T.FS.Path) => {
   const tlfPath = C.FS.getTlfPath(path)
   const {tlfs, loadAdditionalTlf} = useFSState(
     C.useShallow(s => ({
-      tlfs: s.tlfs,
       loadAdditionalTlf: s.dispatch.loadAdditionalTlf,
+      tlfs: s.tlfs,
     }))
   )
   const active =
@@ -147,8 +147,8 @@ export const useFsDownloadStatus = () => {
 export const useFsFileContext = (path: T.FS.Path) => {
   const {pathItem, loadFileContext} = useFSState(
     C.useShallow(s => ({
-      pathItem: C.FS.getPathItem(s.pathItems, path),
       loadFileContext: s.dispatch.loadFileContext,
+      pathItem: C.FS.getPathItem(s.pathItems, path),
     }))
   )
   const [urlError, setUrlError] = React.useState<string>('')
