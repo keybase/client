@@ -31,7 +31,14 @@ const Container = (op: OwnProps) => {
         const cancelDownload = s.dispatch.cancelDownload
         const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
         const download = s.dispatch.download
-        return {pathItem, pathItemActionMenu, fileContext, cancelDownload, setPathItemActionMenuView, download}
+        return {
+          cancelDownload,
+          download,
+          fileContext,
+          pathItem,
+          pathItemActionMenu,
+          setPathItemActionMenuView,
+        }
       })
     )
   const {downloadID, downloadIntent, view} = pathItemActionMenu
@@ -55,25 +62,31 @@ const Container = (op: OwnProps) => {
   }
   const hideAndCancelAfter = (f: () => void) => hideAfter(cancelAfter(f))
 
-  const {newFolderRow, openPathInSystemFileManagerDesktop, sfmiEnabled, favoriteIgnore, startRename, dismissDownload} =
-    useFSState(
-      C.useShallow(s => {
-        const newFolderRow = s.dispatch.newFolderRow
-        const openPathInSystemFileManagerDesktop = s.dispatch.dynamic.openPathInSystemFileManagerDesktop
-        const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
-        const favoriteIgnore = s.dispatch.favoriteIgnore
-        const startRename = s.dispatch.startRename
-        const dismissDownload = s.dispatch.dismissDownload
-        return {
-          newFolderRow,
-          openPathInSystemFileManagerDesktop,
-          sfmiEnabled,
-          favoriteIgnore,
-          startRename,
-          dismissDownload,
-        }
-      })
-    )
+  const {
+    newFolderRow,
+    openPathInSystemFileManagerDesktop,
+    sfmiEnabled,
+    favoriteIgnore,
+    startRename,
+    dismissDownload,
+  } = useFSState(
+    C.useShallow(s => {
+      const newFolderRow = s.dispatch.newFolderRow
+      const openPathInSystemFileManagerDesktop = s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+      const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
+      const favoriteIgnore = s.dispatch.favoriteIgnore
+      const startRename = s.dispatch.startRename
+      const dismissDownload = s.dispatch.dismissDownload
+      return {
+        dismissDownload,
+        favoriteIgnore,
+        newFolderRow,
+        openPathInSystemFileManagerDesktop,
+        sfmiEnabled,
+        startRename,
+      }
+    })
+  )
   const itemNewFolder = layout.newFolder
     ? ([
         {
@@ -205,10 +218,7 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const ignoreNeedsToWait = C.Waiting.useAnyWaiting([
-    C.waitingKeyFSFolderList,
-    C.waitingKeyFSStat,
-  ])
+  const ignoreNeedsToWait = C.Waiting.useAnyWaiting([C.waitingKeyFSFolderList, C.waitingKeyFSStat])
   const ignoreTlf = layout.ignoreTlf
     ? ignoreNeedsToWait
       ? ('disabled' as const)

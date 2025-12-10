@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as C from '@/constants'
 import {useFSState} from '@/constants/fs'
 
 const RefreshDriverStatusOnMount = () => {

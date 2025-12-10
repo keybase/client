@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import Errs from './errs'
 import {useFSState} from '@/constants/fs'
 

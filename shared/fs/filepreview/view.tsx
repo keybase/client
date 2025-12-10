@@ -6,6 +6,7 @@ import TextView from './text-view'
 import AVView from './av-view'
 import PdfView from './pdf-view'
 import * as Kb from '@/common-adapters'
+import {useFSState} from '@/constants/fs'
 
 type Props = {
   path: T.FS.Path

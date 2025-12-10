@@ -18,7 +18,7 @@ const Container = (ownProps: OwnProps) => {
       const size = C.FS.getPathItem(s.pathItems, path).size
       const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
       const download = s.dispatch.download
-      return {_pathItemActionMenu, size, setPathItemActionMenuView, download}
+      return {_pathItemActionMenu, download, setPathItemActionMenuView, size}
     })
   )
   const _confirm = React.useCallback(

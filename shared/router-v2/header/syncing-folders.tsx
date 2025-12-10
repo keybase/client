@@ -32,7 +32,7 @@ const SyncFolders = (op: OwnProps) => {
     C.useShallow(s => {
       const syncingFoldersProgress = s.overallSyncStatus.syncingFoldersProgress
       const online = s.kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline
-      return {syncingFoldersProgress, online}
+      return {online, syncingFoldersProgress}
     })
   )
   const {negative} = op

@@ -179,6 +179,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const onShowInFinder = () => {
     openLocalPathInSystemFileManagerDesktop?.(output.stringValue())
   }
@@ -366,6 +367,7 @@ export const OperationOutput = (props: OutputProps) => {
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const onShowInFinder = () => {
     if (!output) return
     openLocalPathInSystemFileManagerDesktop?.(output)
