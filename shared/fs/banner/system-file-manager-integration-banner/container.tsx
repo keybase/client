@@ -214,13 +214,12 @@ const DokanOutdated = (props: {driverStatus: T.FS.DriverStatus; onDisable: () =>
 
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
-  const {preferredMountDirs, openLocalPathInSystemFileManagerDesktop} = useFSState(
+  const {displayingMountDir, openLocalPathInSystemFileManagerDesktop} = useFSState(
     C.useShallow(s => ({
+      displayingMountDir: s.sfmi.preferredMountDirs[0] ?? '',
       openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
-      preferredMountDirs: s.sfmi.preferredMountDirs,
     }))
   )
-  const displayingMountDir = preferredMountDirs[0] || ''
   const open = displayingMountDir
     ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
     : undefined
