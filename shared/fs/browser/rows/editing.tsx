@@ -12,8 +12,8 @@ type Props = {
 const Editing = React.memo(function Editing({editID}: Props) {
   const {discardEdit, commitEdit, edit, setEditName} = useFSState(
     C.useShallow(s => ({
-      discardEdit: s.dispatch.discardEdit,
       commitEdit: s.dispatch.commitEdit,
+      discardEdit: s.dispatch.discardEdit,
       edit: s.edits.get(editID) || C.FS.emptyNewFolder,
       setEditName: s.dispatch.setEditName,
     }))

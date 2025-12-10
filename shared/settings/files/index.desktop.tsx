@@ -38,10 +38,7 @@ const SyncNotificationSetting = (
             key={spaceAvailableNotificationThreshold || defaultNotificationThreshold}
           >
             <Kb.Text type="Body">
-              {C.FS.humanizeBytes(
-                spaceAvailableNotificationThreshold || defaultNotificationThreshold,
-                0
-              )}
+              {C.FS.humanizeBytes(spaceAvailableNotificationThreshold || defaultNotificationThreshold, 0)}
             </Kb.Text>
           </Kb.Box2>
         }
@@ -55,14 +52,15 @@ const SyncNotificationSetting = (
 }
 
 const FinderIntegration = () => {
-  const {driverStatus, preferredMountDirs, driverDisable, openLocalPathInSystemFileManagerDesktop} = useFSState(
-    C.useShallow(s => ({
-      driverStatus: s.sfmi.driverStatus,
-      preferredMountDirs: s.sfmi.preferredMountDirs,
-      driverDisable: s.dispatch.driverDisable,
-      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
-    }))
-  )
+  const {driverStatus, preferredMountDirs, driverDisable, openLocalPathInSystemFileManagerDesktop} =
+    useFSState(
+      C.useShallow(s => ({
+        driverDisable: s.dispatch.driverDisable,
+        driverStatus: s.sfmi.driverStatus,
+        openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+        preferredMountDirs: s.sfmi.preferredMountDirs,
+      }))
+    )
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowKextPermissionPopup = () => {
     navigateAppend('kextPermission')

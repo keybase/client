@@ -51,9 +51,9 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const {destPicker, pathItems, newFolderRow, moveOrCopy} = useFSState(
     C.useShallow(s => ({
       destPicker: s.destinationPicker,
-      pathItems: s.pathItems,
-      newFolderRow: s.dispatch.newFolderRow,
       moveOrCopy: s.dispatch.moveOrCopy,
+      newFolderRow: s.dispatch.newFolderRow,
+      pathItems: s.pathItems,
     }))
   )
   const isShare = destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare
@@ -296,5 +296,3 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export default ConnectedDestinationPicker
-
-

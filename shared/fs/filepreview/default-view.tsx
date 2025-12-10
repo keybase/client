@@ -16,11 +16,11 @@ const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const {pathItem, sfmiEnabled, _download, openPathInSystemFileManagerDesktop, fileContext} = useFSState(
     C.useShallow(s => ({
+      _download: s.dispatch.download,
+      fileContext: s.fileContext.get(path) || C.FS.emptyFileContext,
+      openPathInSystemFileManagerDesktop: s.dispatch.dynamic.openPathInSystemFileManagerDesktop,
       pathItem: C.FS.getPathItem(s.pathItems, path),
       sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
-      _download: s.dispatch.download,
-      openPathInSystemFileManagerDesktop: s.dispatch.dynamic.openPathInSystemFileManagerDesktop,
-      fileContext: s.fileContext.get(path) || C.FS.emptyFileContext,
     }))
   )
   const download = () => {

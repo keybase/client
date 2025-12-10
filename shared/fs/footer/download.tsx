@@ -33,10 +33,10 @@ const Download = (props: Props) => {
   const dlInfo = Kbfs.useFsDownloadInfo(props.downloadID)
   const {dlState, openLocalPathInSystemFileManagerDesktop, dismissDownload, cancelDownload} = useFSState(
     C.useShallow(s => ({
+      cancelDownload: s.dispatch.cancelDownload,
+      dismissDownload: s.dispatch.dismissDownload,
       dlState: s.downloads.state.get(props.downloadID) || C.FS.emptyDownloadState,
       openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
-      dismissDownload: s.dispatch.dismissDownload,
-      cancelDownload: s.dispatch.cancelDownload,
     }))
   )
   const open = dlState.localPath
