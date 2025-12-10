@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {formatTimeForFS} from '@/util/timestamp'
@@ -26,8 +25,7 @@ const Username = ({mode, lastWriter}: {mode: OwnProps['mode']; lastWriter: strin
 const Container = (ownProps: OwnProps) => {
   const {path, mode} = ownProps
   const _pathItem = useFSState(s => FS.getPathItem(s.pathItems, path))
-  const lastModifiedTimestamp =
-    _pathItem === FS.unknownPathItem ? undefined : _pathItem.lastModifiedTimestamp
+  const lastModifiedTimestamp = _pathItem === FS.unknownPathItem ? undefined : _pathItem.lastModifiedTimestamp
   const lastWriter = _pathItem === FS.unknownPathItem ? undefined : _pathItem.lastWriter
 
   const time =

@@ -1,7 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import TopBar from '../top-bar'
-import * as C from '@/constants'
 import {useFSState} from '@/constants/fs'
 import * as FS from '@/constants/fs'
 

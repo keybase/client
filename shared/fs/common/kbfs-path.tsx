@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import * as C from '@/constants'
+import * as FS from '@/constants/fs'
 import PathInfo from './path-info'
 import PathItemInfo from './path-item-info'
 

@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
+import * as FS from '@/constants/fs'
 import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'

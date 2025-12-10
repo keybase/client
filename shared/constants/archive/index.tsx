@@ -2,6 +2,7 @@ import * as T from '../types'
 import * as Z from '@/util/zustand'
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
+import * as FS from '@/constants/fs'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {uint8ArrayToHex} from 'uint8array-extras'
 

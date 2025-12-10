@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import LastModifiedLine from './last-modified-line'
@@ -98,9 +97,7 @@ const PathItemInfo = (props: Props) => {
         {pathItem.type === T.FS.PathType.File && (
           <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
-        {FS.isInTlf(props.path) && FS.isFolder(props.path, pathItem) && (
-          <FilesAndFoldersCount {...props} />
-        )}
+        {FS.isInTlf(props.path) && FS.isFolder(props.path, pathItem) && <FilesAndFoldersCount {...props} />}
         {getTlfInfoLineOrLastModifiedLine(props.path)}
       </Kb.Box2>
     </>

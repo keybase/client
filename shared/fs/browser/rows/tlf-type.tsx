@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
-import * as C from '@/constants'
+import * as FS from '@/constants/fs'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 

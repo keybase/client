@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
+import * as FS from '@/constants/fs'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 
 const FsRoot = React.lazy(async () => import('.'))
@@ -30,9 +31,7 @@ export const newModalRoutes = {
       return {default: BarePreview}
     })
   ),
-  confirmDelete: C.makeScreen(
-    React.lazy(async () => import('./common/path-item-action/confirm-delete'))
-  ),
+  confirmDelete: C.makeScreen(React.lazy(async () => import('./common/path-item-action/confirm-delete'))),
   destinationPicker: C.makeScreen(React.lazy(async () => import('./browser/destination-picker'))),
   kextPermission: {
     screen: React.lazy(

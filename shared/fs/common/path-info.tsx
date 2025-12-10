@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useFsPathInfo} from './hooks'
 import * as Kb from '@/common-adapters'
