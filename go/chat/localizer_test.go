@@ -2,7 +2,6 @@ package chat
 
 import (
 	"fmt"
-	"runtime"
 	"testing"
 	"time"
 
@@ -24,21 +23,7 @@ func TestLocalizerPipeline(t *testing.T) {
 	u2 := world.GetUsers()[2]
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
-	// Stop the conv loader with a watchdog so we can dump goroutines if it wedges.
-	done := make(chan struct{})
-	go func() {
-		<-tc.Context().ConvLoader.Stop(ctx)
-		close(done)
-	}()
-	select {
-	case <-done:
-	case <-time.After(5 * time.Second):
-		t.Logf("ConvLoader.Stop still blocked; dumping goroutines")
-		buf := make([]byte, 1<<20)
-		n := runtime.Stack(buf, true)
-		t.Logf("goroutines:\n%s", buf[:n])
-		t.FailNow()
-	}
+	<-tc.Context().ConvLoader.Stop(ctx)
 
 	var convs []chat1.Conversation
 	_, conv := newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username)

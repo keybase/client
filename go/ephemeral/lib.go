@@ -1219,7 +1219,10 @@ func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
 		// are attempting logout.
 		keygen(mctx)
 	} else {
-		go keygen(mctx.BackgroundWithLogTags())
+		go func() {
+			time.Sleep(libkb.RandomJitter(time.Second))
+			keygen(mctx.BackgroundWithLogTags())
+		}()
 	}
 	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.SetLogPrefix(mctx)
