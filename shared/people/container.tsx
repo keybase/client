@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import People from '.'
 import {useSignupState} from '@/constants/signup'
+import {useProfileState} from '@/constants/profile'
 
 const waitToRefresh = 1000 * 60 * 5
 
@@ -29,7 +30,7 @@ const PeopleReloadable = () => {
     [loadPeople]
   )
 
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
 
   const onClickUser = React.useCallback((username: string) => showUserProfile(username), [showUserProfile])
 

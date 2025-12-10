@@ -6,6 +6,7 @@ import {SiteIcon} from './shared'
 import {makeInsertMatcher} from '@/util/string'
 import {useColorScheme} from 'react-native'
 import {useTrackerState} from '@/constants/tracker2'
+import {useProfileState} from '@/constants/profile'
 
 const Container = () => {
   const _proofSuggestions = useTrackerState(s => s.proofSuggestions)
@@ -13,7 +14,7 @@ const Container = () => {
   const onCancel = () => {
     navigateUp()
   }
-  const addProof = C.useProfileState(s => s.dispatch.addProof)
+  const addProof = useProfileState(s => s.dispatch.addProof)
   const providerClicked = (key: string) => {
     addProof(key, 'profile')
   }

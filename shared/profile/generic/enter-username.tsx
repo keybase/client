@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import openURL from '@/util/open-url'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -6,13 +7,13 @@ import {SiteIcon} from './shared'
 import type * as T from '@/constants/types'
 
 const ConnectedEnterUsername = () => {
-  const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = C.useProfileState(
+  const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = useProfileState(
     C.useShallow(s => {
       const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = s
       return {platformGenericChecking, platformGenericParams, platformGenericURL, username}
     })
   )
-  const errorText = C.useProfileState(s => s.errorText)
+  const errorText = useProfileState(s => s.errorText)
   const _platformURL = platformGenericURL
   const error = errorText
   const serviceIcon = platformGenericParams?.logoBlack ?? []
@@ -24,9 +25,9 @@ const ConnectedEnterUsername = () => {
   const unreachable = !!platformGenericURL
   const waiting = platformGenericChecking
 
-  const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
-  const updateUsername = C.useProfileState(s => s.dispatch.updateUsername)
-  const submitUsername = C.useProfileState(s => s.dispatch.dynamic.submitUsername)
+  const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)
+  const updateUsername = useProfileState(s => s.dispatch.updateUsername)
+  const submitUsername = useProfileState(s => s.dispatch.dynamic.submitUsername)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onBack = () => {

@@ -1,4 +1,5 @@
 import * as C from '..'
+import {useProfileState} from '../profile'
 import * as Crypto from '../crypto'
 import * as Tabs from '../tabs'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
@@ -59,7 +60,7 @@ interface State extends Store {
 export const useDeepLinksState = Z.createZustand<State>((set, get) => {
   const handleShowUserProfileLink = (username: string) => {
     C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
-    C.useProfileState.getState().dispatch.showUserProfile(username)
+    useProfileState.getState().dispatch.showUserProfile(username)
   }
 
   const isKeybaseIoUrl = (url: URL) => {
@@ -165,8 +166,8 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
       switch (parts[0]) {
         case 'profile':
           if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
-            parts.length === 4 && parts[3] && C.useProfileState.getState().dispatch.showUserProfile(parts[3])
-            C.useProfileState.getState().dispatch.addProof(parts[2]!, 'appLink')
+            parts.length === 4 && parts[3] && useProfileState.getState().dispatch.showUserProfile(parts[3])
+            useProfileState.getState().dispatch.addProof(parts[2]!, 'appLink')
             return
           } else if (parts[1] === 'show' && parts.length === 3) {
             // Username is basically a team name part, we can use the same logic to

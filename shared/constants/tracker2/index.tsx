@@ -592,7 +592,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
       })
       if (!skipNav) {
         // go to profile page
-        C.useProfileState.getState().dispatch.showUserProfile(username)
+        useProfileState.getState().dispatch.showUserProfile(username)
       }
     },
     updateResult: (guiID, result, reason) => {

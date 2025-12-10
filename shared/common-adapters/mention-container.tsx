@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import Mention, {type OwnProps} from './mention'
 import {useTrackerState} from '@/constants/tracker2'
+import {useProfileState} from '@/constants/profile'
 
 const Container = (ownProps: OwnProps) => {
   let {username} = ownProps
@@ -20,7 +21,7 @@ const Container = (ownProps: OwnProps) => {
     }
   })()
 
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const _onClick = () => {
     if (C.isMobile) {

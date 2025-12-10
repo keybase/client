@@ -1,11 +1,12 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import Modal from '@/profile/modal'
 
 const Info = () => {
-  const updatePgpInfo = C.useProfileState(s => s.dispatch.updatePgpInfo)
-  const generatePgp = C.useProfileState(s => s.dispatch.generatePgp)
-  const data = C.useProfileState(
+  const updatePgpInfo = useProfileState(s => s.dispatch.updatePgpInfo)
+  const generatePgp = useProfileState(s => s.dispatch.generatePgp)
+  const data = useProfileState(
     C.useShallow(s => {
       const {pgpEmail1, pgpEmail2, pgpEmail3, pgpErrorText, pgpFullName} = s
       const {pgpErrorEmail1, pgpErrorEmail2, pgpErrorEmail3} = s

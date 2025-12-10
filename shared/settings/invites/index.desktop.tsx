@@ -4,6 +4,7 @@ import * as React from 'react'
 import SubHeading from '../subheading'
 import * as dateFns from 'date-fns'
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import {useState as useSettingsInvitesState} from '@/constants/settings-invites'
 
 // Like intersperse but takes a function to define the separator
@@ -42,7 +43,7 @@ const Invites = () => {
   const onSelectPendingInvite = (invite: PendingInvite) => {
     navigateAppend({props: {email: invite.email, link: invite.url}, selected: 'inviteSent'})
   }
-  const onSelectUser = C.useProfileState(s => s.dispatch.showUserProfile)
+  const onSelectUser = useProfileState(s => s.dispatch.showUserProfile)
 
   const [inviteEmail, setInviteEmail] = React.useState('')
   const [inviteMessage, setInviteMessage] = React.useState('')

@@ -5,6 +5,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import {settingsLogOutTab} from '@/constants/settings'
 import {useTrackerState} from '@/constants/tracker2'
+import {useProfileState} from '@/constants/profile'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: ReadonlyArray<T>,
@@ -17,7 +18,7 @@ const Container = () => {
   const you = C.useCurrentUserState(s => s.username)
   const fullname = useTrackerState(s => s.getDetails(you).fullname ?? '')
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
-  const _onProfileClick = C.useProfileState(s => s.dispatch.showUserProfile)
+  const _onProfileClick = useProfileState(s => s.dispatch.showUserProfile)
   const onLoginAsAnotherUser = C.useProvisionState(s => s.dispatch.startProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {

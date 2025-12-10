@@ -1,17 +1,18 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import Modal from './modal'
 import type * as T from '@/constants/types'
 
 const Container = () => {
-  const platform = C.useProfileState(s => s.platform)
-  const _errorText = C.useProfileState(s => s.errorText)
-  const updateUsername = C.useProfileState(s => s.dispatch.updateUsername)
-  const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
-  const submitBTCAddress = C.useProfileState(s => s.dispatch.submitBTCAddress)
-  const submitZcashAddress = C.useProfileState(s => s.dispatch.submitZcashAddress)
-  const submitUsername = C.useProfileState(s => s.dispatch.dynamic.submitUsername)
+  const platform = useProfileState(s => s.platform)
+  const _errorText = useProfileState(s => s.errorText)
+  const updateUsername = useProfileState(s => s.dispatch.updateUsername)
+  const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)
+  const submitBTCAddress = useProfileState(s => s.dispatch.submitBTCAddress)
+  const submitZcashAddress = useProfileState(s => s.dispatch.submitZcashAddress)
+  const submitUsername = useProfileState(s => s.dispatch.dynamic.submitUsername)
 
   if (!platform) {
     throw new Error('No platform passed to prove enter username')

@@ -13,6 +13,7 @@ import Text, {
 } from './text'
 import ConnectedUsernames from './usernames'
 import {useTrackerState} from '@/constants/tracker2'
+import {useProfileState} from '@/constants/profile'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 
@@ -376,7 +377,7 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
   const onOpenTracker = React.useCallback(() => {
     username && showUser(username, true)
   }, [showUser, username])
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onOpenUserProfile = React.useCallback(() => {
     username && showUserProfile(username)
   }, [username, showUserProfile])

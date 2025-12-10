@@ -5,6 +5,7 @@ import type * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTrackerState} from '@/constants/tracker2'
+import {useProfileState} from '@/constants/profile'
 
 export type Props = {
   firstItem: boolean
@@ -342,7 +343,7 @@ const Container = (ownProps: OwnProps) => {
   const onClick = () => {
     navigateAppend({props: {teamID, username}, selected: 'teamMember'})
   }
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {
     username && showUserProfile(username)
   }

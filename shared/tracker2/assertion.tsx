@@ -8,6 +8,7 @@ import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
 import * as Tracker from '@/constants/tracker2'
 import {useTrackerState} from '@/constants/tracker2'
+import {useProfileState} from '@/constants/profile'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -71,9 +72,9 @@ const Container = (ownProps: OwnProps) => {
   )
   const {color, metas: _metas, proofURL, sigID, siteIcon, stellarHidden, notAUser} = data
   const {siteIconDarkmode, siteIconFull, siteIconFullDarkmode, siteURL, state, timestamp, type, value} = data
-  const addProof = C.useProfileState(s => s.dispatch.addProof)
-  const hideStellar = C.useProfileState(s => s.dispatch.hideStellar)
-  const recheckProof = C.useProfileState(s => s.dispatch.recheckProof)
+  const addProof = useProfileState(s => s.dispatch.addProof)
+  const hideStellar = useProfileState(s => s.dispatch.hideStellar)
+  const recheckProof = useProfileState(s => s.dispatch.recheckProof)
   const _onCreateProof = React.useCallback(() => {
     addProof(type, 'profile')
   }, [addProof, type])

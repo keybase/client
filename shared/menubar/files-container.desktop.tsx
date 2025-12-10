@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as R from '@/constants/remote'
 import * as T from '@/constants/types'
 import * as RemoteGen from '../actions/remote-gen'
@@ -10,7 +11,7 @@ import type {DeserializeProps} from './remote-serializer.desktop'
 const FilesContainer = (p: Pick<DeserializeProps, 'remoteTlfUpdates'>) => {
   const {remoteTlfUpdates} = p
   const username = C.useCurrentUserState(s => s.username)
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   return (
     <FilesPreview
       userTlfUpdates={remoteTlfUpdates.map(c => {

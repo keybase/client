@@ -7,6 +7,7 @@ import * as RowTypes from '@/fs/browser/rows/types'
 import {useTrackerState} from '@/constants/tracker2'
 import {useFSState} from '@/constants/fs'
 import * as FS from '@/constants/fs'
+import {useProfileState} from '@/constants/profile'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -30,7 +31,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     },
     [letResetUserBackIn]
   )
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
 
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const onViewProfile = React.useCallback(

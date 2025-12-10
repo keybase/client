@@ -1,4 +1,5 @@
 import * as C from '..'
+import {useProfileState} from '../profile'
 import * as T from '../types'
 import * as Crypto from '../crypto'
 import * as React from 'react'
@@ -270,7 +271,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
               // we want the first item
               for (const user of teamSoFar) {
                 const username = user.serviceMap.keybase || user.id
-                C.useProfileState.getState().dispatch.showUserProfile(username)
+                useProfileState.getState().dispatch.showUserProfile(username)
                 break
               }
             }, 100)
