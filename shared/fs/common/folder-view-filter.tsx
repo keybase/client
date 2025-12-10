@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
+import {useFSState} from '@/constants/fs'
 
 type Props = {
   onCancel?: () => void
@@ -11,8 +12,13 @@ type Props = {
 }
 
 const FolderViewFilter = (props: Props) => {
-  const pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, props.path))
-  const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
+  const {pathItem, setFolderViewFilter} = useFSState(
+    C.useShallow(s => {
+      const pathItem = C.FS.getPathItem(s.pathItems, props.path)
+      const setFolderViewFilter = s.dispatch.setFolderViewFilter
+      return {pathItem, setFolderViewFilter}
+    })
+  )
   const onUpdate = React.useMemo(
     () =>
       debounce((newFilter: string) => {

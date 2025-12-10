@@ -8,13 +8,14 @@ import {serialize, type ProxyProps} from './remote-serializer.desktop'
 import {intersect} from '@/util/set'
 import {mapFilterByKey} from '@/util/map'
 import {useColorScheme} from 'react-native'
+import {useTrackerState} from '@/constants/tracker2'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
 
 const RemoteTracker = (props: {trackerUsername: string}) => {
   const {trackerUsername} = props
-  const details = C.useTrackerState(s => s.getDetails(trackerUsername))
+  const details = useTrackerState(s => s.getDetails(trackerUsername))
   const infoMap = C.useUsersState(s => s.infoMap)
   const blockMap = C.useUsersState(s => s.blockMap)
   const followers = C.useFollowerState(s => s.followers)
@@ -82,7 +83,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
 }
 
 const RemoteTrackers = () => {
-  const showTrackerSet = C.useTrackerState(s => s.showTrackerSet)
+  const showTrackerSet = useTrackerState(s => s.showTrackerSet)
   return (
     <>
       {[...showTrackerSet].reduce<Array<React.ReactNode>>((arr, username) => {

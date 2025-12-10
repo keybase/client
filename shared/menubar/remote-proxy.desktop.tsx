@@ -10,6 +10,7 @@ import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serial
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import type * as NotifConstants from '@/constants/notifications'
 import {useColorScheme} from 'react-native'
+import {useFSState} from '@/constants/fs'
 
 const {showTray} = KB2.functions
 
@@ -90,7 +91,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
     })
   )
   const {httpSrv, loggedIn, outOfDate, windowShownCount} = configState
-  const fsState = C.useFSState(
+  const fsState = useFSState(
     C.useShallow(s => {
       const {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads} = s
       return {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads}

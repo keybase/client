@@ -7,6 +7,7 @@ import capitalize from 'lodash/capitalize'
 import type * as T from '@/constants/types'
 import {pickFiles} from '@/util/pick-files'
 import type HiddenString from '@/util/hidden-string'
+import {useFSState} from '@/constants/fs'
 
 type OutputProps = {operation: T.Crypto.Operations}
 type OutputActionsBarProps = {operation: T.Crypto.Operations}
@@ -176,7 +177,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const actionsDisabled = waiting || !outputValid
 
-  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+  const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
@@ -364,7 +365,7 @@ export const OperationOutput = (props: OutputProps) => {
   )
   const output = _output.stringValue()
 
-  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+  const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {

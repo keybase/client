@@ -3,6 +3,7 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useOrdinal} from '../ids-context'
 import AudioPlayer from '@/chat/audio/audio-player'
+import {useFSState} from '@/constants/fs'
 
 const missingMessage = C.Chat.makeMessageAttachment()
 
@@ -23,7 +24,7 @@ const AudioAttachment = () => {
   })
   const progressLabel = C.Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message)
-  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+  const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {

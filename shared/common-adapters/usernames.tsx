@@ -12,6 +12,7 @@ import Text, {
 import {backgroundModeIsNegative} from './text.shared'
 import isArray from 'lodash/isArray'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
+import {useTrackerState} from '@/constants/tracker2'
 
 export type User = {
   username: string
@@ -102,7 +103,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
     },
     [showUserProfile, username]
   )
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(
     (evt?: React.BaseSyntheticEvent) => {
       evt?.stopPropagation()

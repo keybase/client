@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {useTrackerState} from '@/constants/tracker2'
 
 type OwnProps = {
   inTracker: boolean
@@ -8,7 +9,7 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {inTracker, username} = ownProps
-  const stateProps = C.useTrackerState(
+  const stateProps = useTrackerState(
     C.useShallow(s => {
       const d = s.getDetails(username)
       const common = {

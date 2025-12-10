@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {settingsLogOutTab} from '@/constants/settings'
+import {useTrackerState} from '@/constants/tracker2'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: ReadonlyArray<T>,
@@ -14,7 +15,7 @@ const Container = () => {
   const _fullnames = C.useUsersState(s => s.infoMap)
   const _accountRows = C.useConfigState(s => s.configuredAccounts)
   const you = C.useCurrentUserState(s => s.username)
-  const fullname = C.useTrackerState(s => s.getDetails(you).fullname ?? '')
+  const fullname = useTrackerState(s => s.getDetails(you).fullname ?? '')
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
   const _onProfileClick = C.useProfileState(s => s.dispatch.showUserProfile)
   const onLoginAsAnotherUser = C.useProvisionState(s => s.dispatch.startProvision)

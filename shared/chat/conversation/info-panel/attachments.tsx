@@ -7,6 +7,7 @@ import chunk from 'lodash/chunk'
 import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp'
 import {infoPanelWidth} from './common'
 import {useMessagePopup} from '../messages/message-popup'
+import {useFSState} from '@/constants/fs'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -496,7 +497,7 @@ export const useAttachmentSections = (
     }
   }
 
-  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+  const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = (message: T.Chat.MessageAttachment) =>

@@ -6,6 +6,7 @@ import TlfType from './rows/tlf-type'
 import Tlf from './rows/tlf'
 import SfmiBanner from '../banner/system-file-manager-integration-banner/container'
 import {WrapRow} from './rows/rows'
+import {useFSState} from '@/constants/fs'
 
 type Props = {
   destinationPickerIndex?: number
@@ -78,7 +79,7 @@ const useTopNTlfs = (
   )
 
 const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<SectionListItem> => {
-  const tlfs = C.useFSState(s => s.tlfs)
+  const tlfs = useFSState(s => s.tlfs)
   const username = C.useCurrentUserState(s => s.username)
   const privateTopN = useTopNTlfs(T.FS.TlfType.Private, tlfs.private, n)
   const publicTopN = useTopNTlfs(T.FS.TlfType.Public, tlfs.public, n)

@@ -4,6 +4,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import ChooseView from './choose-view'
 import type {SizeType} from '@/common-adapters/icon'
+import {useFSState} from '@/constants/fs'
 
 export type ClickableProps = {
   onClick: () => void
@@ -56,8 +57,13 @@ const IconClickable = React.memo(function IconClickable(props: ICProps) {
 
 const PathItemAction = (props: Props) => {
   const {initView, path, mode} = props
-  const setPathItemActionMenuDownload = C.useFSState(s => s.dispatch.setPathItemActionMenuDownload)
-  const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
+  const {setPathItemActionMenuDownload, setPathItemActionMenuView} = useFSState(
+    C.useShallow(s => {
+      const setPathItemActionMenuDownload = s.dispatch.setPathItemActionMenuDownload
+      const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
+      return {setPathItemActionMenuDownload, setPathItemActionMenuView}
+    })
+  )
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {

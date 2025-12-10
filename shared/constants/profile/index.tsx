@@ -7,6 +7,7 @@ import openURL from '@/util/open-url'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '../platform'
 import {fixCrop} from '@/util/crop'
+import {useTrackerState} from '../tracker2'
 
 type ProveGenericParams = {
   logoBlack: T.Tracker.SiteIconSet
@@ -262,7 +263,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         let canceled = false
 
         const loadAfter = () =>
-          C.useTrackerState.getState().dispatch.load({
+          useTrackerState.getState().dispatch.load({
             assertion: C.useCurrentUserState.getState().username,
             guiID: C.generateGUIID(),
             inTracker: false,
@@ -498,7 +499,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     finishRevoking: () => {
       const username = C.useCurrentUserState.getState().username
       get().dispatch.showUserProfile(username)
-      C.useTrackerState.getState().dispatch.load({
+      useTrackerState.getState().dispatch.load({
         assertion: C.useCurrentUserState.getState().username,
         guiID: C.generateGUIID(),
         inTracker: false,
@@ -594,7 +595,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         await T.RPCGen.proveCheckProofRpcPromise({sigID}, C.waitingKeyProfile)
-        C.useTrackerState.getState().dispatch.showUser(C.useCurrentUserState.getState().username, false)
+        useTrackerState.getState().dispatch.showUser(C.useCurrentUserState.getState().username, false)
       }
       C.ignorePromise(f())
     },
@@ -624,7 +625,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.blockUserModal = undefined
           })
-          C.useTrackerState.getState().dispatch.load({
+          useTrackerState.getState().dispatch.load({
             assertion: username,
             guiID: C.generateGUIID(),
             inTracker: false,
@@ -645,7 +646,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     },
     submitRevokeProof: proofId => {
       const f = async () => {
-        const you = C.useTrackerState.getState().getDetails(C.useCurrentUserState.getState().username)
+        const you = useTrackerState.getState().getDetails(C.useCurrentUserState.getState().username)
         if (!you.assertions) return
         const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
         if (!proof) return
@@ -677,7 +678,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await T.RPCGen.userUnblockUserRpcPromise({username})
-          C.useTrackerState.getState().dispatch.load({
+          useTrackerState.getState().dispatch.load({
             assertion: username,
             guiID: C.generateGUIID(),
             inTracker: false,
@@ -689,7 +690,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           }
           const error = _error
           logger.warn(`Error unblocking user ${username}`, error)
-          C.useTrackerState
+          useTrackerState
             .getState()
             .dispatch.updateResult(guiID, 'error', `Failed to unblock ${username}: ${error.desc}`)
         }

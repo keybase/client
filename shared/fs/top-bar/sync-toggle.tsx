@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
   tlfPath: T.FS.Path
@@ -9,11 +10,14 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
-  const _tlfPathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, ownProps.tlfPath))
-  const _tlfs = C.useFSState(s => s.tlfs)
+  const {_tlfPathItem, _tlfs, setTlfSyncConfig} = useFSState(
+    C.useShallow(s => ({
+      _tlfPathItem: C.FS.getPathItem(s.pathItems, ownProps.tlfPath),
+      _tlfs: s.tlfs,
+      setTlfSyncConfig: s.dispatch.setTlfSyncConfig,
+    }))
+  )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyFSSyncToggle)
-
-  const setTlfSyncConfig = C.useFSState(s => s.dispatch.setTlfSyncConfig)
 
   const enableSync = () => {
     setTlfSyncConfig(tlfPath, true)

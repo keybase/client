@@ -5,6 +5,7 @@ import Browser from './browser'
 import {NormalPreview} from './filepreview'
 import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
+import {useFSState} from '@/constants/fs'
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
@@ -16,7 +17,7 @@ type ChooseComponentProps = {
 const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview} = props
 
-  const fileContext = C.useFSState(s => s.fileContext.get(props.path) || C.FS.emptyFileContext)
+  const fileContext = useFSState(s => s.fileContext.get(props.path) || C.FS.emptyFileContext)
   const bare = C.isMobile && fileContext.viewType === T.RPCGen.GUIViewType.image
   React.useEffect(() => {
     bare && emitBarePreview()
@@ -59,8 +60,13 @@ type OwnProps = {path?: T.FS.Path}
 
 const Connected = (ownProps: OwnProps) => {
   const path = ownProps.path ?? C.FS.defaultPath
-  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
-  const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const {_pathItem, kbfsDaemonStatus} = useFSState(
+    C.useShallow(s => {
+      const _pathItem = C.FS.getPathItem(s.pathItems, path)
+      const kbfsDaemonStatus = s.kbfsDaemonStatus
+      return {_pathItem, kbfsDaemonStatus}
+    })
+  )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const emitBarePreview = () => {

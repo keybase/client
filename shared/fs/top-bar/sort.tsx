@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
   path: T.FS.Path
@@ -29,11 +30,14 @@ const makeSortOptionItem = (sortSetting: T.FS.SortSetting, onClick?: () => void)
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
-  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
-
-  const setSorting = C.useFSState(s => s.dispatch.setSorting)
-  const _sortSetting = C.useFSState(s => C.FS.getPathUserSetting(s.pathUserSettings, path).sort)
+  const {_kbfsDaemonStatus, _pathItem, setSorting, _sortSetting} = useFSState(
+    C.useShallow(s => ({
+      _kbfsDaemonStatus: s.kbfsDaemonStatus,
+      _pathItem: C.FS.getPathItem(s.pathItems, path),
+      _sortSetting: C.FS.getPathUserSetting(s.pathUserSettings, path).sort,
+      setSorting: s.dispatch.setSorting,
+    }))
+  )
 
   const sortSetting = C.FS.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined
   const makePopup = React.useCallback(

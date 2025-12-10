@@ -8,6 +8,7 @@ import * as Kb from '@/common-adapters'
 import {useSettingsPhoneState} from '@/constants/settings-phone'
 import {useSettingsEmailState} from '@/constants/settings-email'
 import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
+import {useTrackerState} from '@/constants/tracker2'
 
 type TodoOwnProps = {
   badged: boolean
@@ -90,7 +91,7 @@ const AvatarUserConnector = (props: TodoOwnProps) => {
 
 const BioConnector = (props: TodoOwnProps) => {
   const myUsername = C.useCurrentUserState(s => s.username)
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
   const onConfirm = (username: string) => {
     // make sure we have tracker state & profile is up to date
     showUser(username, false)

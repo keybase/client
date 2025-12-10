@@ -5,6 +5,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
+import {useTrackerState} from '@/constants/tracker2'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
 
@@ -17,13 +18,13 @@ const getFollowWaitingKey = (username: string) => `settings:followButton:${usern
 // used by people/follow-notification
 export const FollowButton = (props: FollowProps) => {
   const {username} = props
-  const userDetails = C.useTrackerState(s => s.getDetails(username))
+  const userDetails = useTrackerState(s => s.getDetails(username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const {guiID} = userDetails
 
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
-  const changeFollow = C.useTrackerState(s => s.dispatch.changeFollow)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
 
   React.useEffect(() => {
     if (!guiID) {

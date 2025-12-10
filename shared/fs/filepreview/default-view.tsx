@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {PathItemAction, LastModifiedLine, ItemIcon, type ClickableProps} from '../common'
 import {hasShare} from '../common/path-item-action/layout'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -13,21 +14,21 @@ const Share = (p: ClickableProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
-  const sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
-
-  const _download = C.useFSState(s => s.dispatch.download)
+  const {pathItem, sfmiEnabled, _download, openPathInSystemFileManagerDesktop, fileContext} = useFSState(
+    C.useShallow(s => ({
+      _download: s.dispatch.download,
+      fileContext: s.fileContext.get(path) || C.FS.emptyFileContext,
+      openPathInSystemFileManagerDesktop: s.dispatch.dynamic.openPathInSystemFileManagerDesktop,
+      pathItem: C.FS.getPathItem(s.pathItems, path),
+      sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
+    }))
+  )
   const download = () => {
     _download(path, 'download')
   }
-  const openPathInSystemFileManagerDesktop = C.useFSState(
-    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
-  )
   const showInSystemFileManager = () => {
     openPathInSystemFileManagerDesktop?.(path)
   }
-
-  const fileContext = C.useFSState(s => s.fileContext.get(path) || C.FS.emptyFileContext)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.Box2

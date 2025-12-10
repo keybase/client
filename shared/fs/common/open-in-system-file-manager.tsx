@@ -3,11 +3,12 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import SystemFileManagerIntegrationPopup from './sfmi-popup'
+import {useFSState} from '@/constants/fs'
 
 type Props = {path: T.FS.Path}
 
 const OpenInSystemFileManager = React.memo(function OpenInSystemFileManager({path}: Props) {
-  const openPathInSystemFileManagerDesktop = C.useFSState(
+  const openPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
   )
   const openInSystemFileManager = React.useCallback(
@@ -28,12 +29,15 @@ const OpenInSystemFileManager = React.memo(function OpenInSystemFileManager({pat
 })
 
 const OpenInSFM = (props: Props) => {
-  const sfmiBannerDismissed = C.useFSState(s => s.settings.sfmiBannerDismissed)
-  const shouldHideFileManagerIcon = C.useFSState(
-    s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Disabled && sfmiBannerDismissed
-  )
-  const showOpenInSystemFileManager = C.useFSState(
-    s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
+  const {shouldHideFileManagerIcon, showOpenInSystemFileManager} = useFSState(
+    C.useShallow(s => {
+      const sfmiBannerDismissed = s.settings.sfmiBannerDismissed
+      const driverStatusType = s.sfmi.driverStatus.type
+      return {
+        shouldHideFileManagerIcon: driverStatusType === T.FS.DriverStatusType.Disabled && sfmiBannerDismissed,
+        showOpenInSystemFileManager: driverStatusType === T.FS.DriverStatusType.Enabled,
+      }
+    })
   )
 
   if (shouldHideFileManagerIcon) return null

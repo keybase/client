@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
+import {useFSState} from '@/constants/fs'
 
 const blankMessage = C.Chat.makeMessageAttachment({})
 export const useData = (initialOrdinal: T.Chat.Ordinal) => {
@@ -34,7 +35,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
     onSwitchAttachment(true)
   }, [onSwitchAttachment])
 
-  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+  const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

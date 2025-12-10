@@ -6,6 +6,7 @@ import TextView from './text-view'
 import AVView from './av-view'
 import PdfView from './pdf-view'
 import * as Kb from '@/common-adapters'
+import {useFSState} from '@/constants/fs'
 
 type Props = {
   path: T.FS.Path
@@ -23,14 +24,17 @@ const FilePreviewView = (p: Props) => {
 }
 
 const FilePreviewViewContent = ({path, onUrlError}: Props) => {
-  const pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
+  const {pathItem, fileContext} = useFSState(
+    C.useShallow(s => ({
+      fileContext: s.fileContext.get(path) || C.FS.emptyFileContext,
+      pathItem: C.FS.getPathItem(s.pathItems, path),
+    }))
+  )
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
     pathItem.lastModifiedTimestamp
   )
   const reload = () => setLoadedLastModifiedTimestamp(pathItem.lastModifiedTimestamp)
   const tooLargeForText = pathItem.type === T.FS.PathType.File && pathItem.size > textViewUpperLimit
-
-  const fileContext = C.useFSState(s => s.fileContext.get(path) || C.FS.emptyFileContext)
 
   if (pathItem.type === T.FS.PathType.Symlink) {
     return <DefaultView path={path} />

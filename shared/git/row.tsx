@@ -4,6 +4,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import openURL from '@/util/open-url'
+import {useTrackerState} from '@/constants/tracker2'
 
 export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
@@ -50,7 +51,7 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
     teamname && setTeamRepoSettings('', teamname, repoID, !chatDisabled)
   }, [teamname, chatDisabled, repoID, setTeamRepoSettings])
 
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
   const openUserTracker = React.useCallback(
     (username: string) => {
       showUser(username, true)

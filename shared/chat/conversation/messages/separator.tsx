@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
 import logger from '@/logger'
+import {useTrackerState} from '@/constants/tracker2'
 // import {useChatDebugDump} from '@/constants/chat2/debug'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
@@ -81,7 +82,7 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
 const LeftSide = React.memo(function LeftSide(p: {username?: string}) {
   const {username} = p
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
   const onAuthorClick = React.useCallback(() => {
     if (!username) return
     if (C.isMobile) {
@@ -107,7 +108,7 @@ const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUse
   const mdata = useState(ordinal)
   const {botAlias, authorIsOwner, authorIsAdmin, authorIsBot, timestamp, teamType} = mdata
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
   const onAuthorClick = React.useCallback(() => {
     if (C.isMobile) {
       showUsername && showUserProfile(showUsername)

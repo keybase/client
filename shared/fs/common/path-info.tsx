@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useFsPathInfo} from './hooks'
 import * as Kb from '@/common-adapters'
+import {useFSState} from '@/constants/fs'
 
 type PathInfoProps = {
   containerStyle?: Kb.Styles.StylesCrossPlatform
@@ -10,7 +11,7 @@ type PathInfoProps = {
 }
 
 const useMountPointPath = (platformAfterMountPath: string) => {
-  const sfmi = C.useFSState(s => s.sfmi)
+  const sfmi = useFSState(s => s.sfmi)
   const mount =
     sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
       ? sfmi.preferredMountDirs[0] || sfmi.directMountDir

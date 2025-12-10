@@ -3,15 +3,20 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {alwaysShow?: boolean}
 
 const SFMIContainer = (op: OwnProps) => {
-  const driverStatus = C.useFSState(s => s.sfmi.driverStatus)
-  const driverEnable = C.useFSState(s => s.dispatch.driverEnable)
-  const driverDisable = C.useFSState(s => s.dispatch.driverDisable)
-  const setSfmiBannerDismissedDesktop = C.useFSState(s => s.dispatch.dynamic.setSfmiBannerDismissedDesktop)
-  const settings = C.useFSState(s => s.settings)
+  const {driverStatus, driverEnable, driverDisable, setSfmiBannerDismissedDesktop, settings} = useFSState(
+    C.useShallow(s => ({
+      driverDisable: s.dispatch.driverDisable,
+      driverEnable: s.dispatch.driverEnable,
+      driverStatus: s.sfmi.driverStatus,
+      setSfmiBannerDismissedDesktop: s.dispatch.dynamic.setSfmiBannerDismissedDesktop,
+      settings: s.settings,
+    }))
+  )
   const onDisable = React.useCallback(() => driverDisable(), [driverDisable])
   const onDismiss = React.useCallback(
     () => setSfmiBannerDismissedDesktop?.(true),
@@ -209,10 +214,11 @@ const DokanOutdated = (props: {driverStatus: T.FS.DriverStatus; onDisable: () =>
 
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
-  const preferredMountDirs = C.useFSState(s => s.sfmi.preferredMountDirs)
-  const displayingMountDir = preferredMountDirs[0] || ''
-  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  const {displayingMountDir, openLocalPathInSystemFileManagerDesktop} = useFSState(
+    C.useShallow(s => ({
+      displayingMountDir: s.sfmi.preferredMountDirs[0] ?? '',
+      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+    }))
   )
   const open = displayingMountDir
     ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)

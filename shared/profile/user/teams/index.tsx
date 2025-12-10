@@ -4,13 +4,14 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import OpenMeta from './openmeta'
 import {default as TeamInfo, type Props as TIProps} from './teaminfo'
+import {useTrackerState} from '@/constants/tracker2'
 
 type OwnProps = {username: string}
 
 const noTeams = new Array<T.Tracker.TeamShowcase>()
 
 const Container = (ownProps: OwnProps) => {
-  const d = C.useTrackerState(s => s.getDetails(ownProps.username))
+  const d = useTrackerState(s => s.getDetails(ownProps.username))
   const _isYou = C.useCurrentUserState(s => s.username === ownProps.username)
   const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
   const _teamNameToID = C.useTeamsState(s => s.teamNameToID)

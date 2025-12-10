@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {type BackgroundColorType} from '.'
 import {useColorScheme} from 'react-native'
+import {useTrackerState} from '@/constants/tracker2'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -24,7 +25,7 @@ const headerBackgroundColorType = (
 // )
 
 const useUserData = (username: string) => {
-  const d = C.useTrackerState(s => s.getDetails(username))
+  const d = useTrackerState(s => s.getDetails(username))
   const myName = C.useCurrentUserState(s => s.username)
   const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === myName
@@ -53,8 +54,8 @@ const useUserData = (username: string) => {
   const followThem = C.useFollowerState(s => s.following.has(username))
   // const followsYou = C.useFollowerState(s => s.followers.has(username))
   // const mutualFollow = followThem && followsYou
-  const _suggestionKeys = C.useTrackerState(s => (userIsYou ? s.proofSuggestions : undefined))
-  const nonUserDetails = C.useTrackerState(s => s.getNonUserDetails(username))
+  const _suggestionKeys = useTrackerState(s => (userIsYou ? s.proofSuggestions : undefined))
+  const nonUserDetails = useTrackerState(s => s.getNonUserDetails(username))
 
   const isDarkMode = useColorScheme() === 'dark'
   const stateProps = (() => {
@@ -118,9 +119,9 @@ const useUserData = (username: string) => {
   //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
   //   )
   // }
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
-  const getProofSuggestions = C.useTrackerState(s => s.dispatch.getProofSuggestions)
-  const loadNonUserProfile = C.useTrackerState(s => s.dispatch.loadNonUserProfile)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const getProofSuggestions = useTrackerState(s => s.dispatch.getProofSuggestions)
+  const loadNonUserProfile = useTrackerState(s => s.dispatch.loadNonUserProfile)
   const _onReload = (username: string, isYou: boolean, state: T.Tracker.DetailsState) => {
     if (state !== 'valid' && !isYou) {
       // Might be a Keybase user or not, launch non-user profile fetch.

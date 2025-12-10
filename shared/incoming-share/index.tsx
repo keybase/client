@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import * as FsCommon from '@/fs/common'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
+import {useFSState} from '@/constants/fs'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
@@ -166,7 +167,7 @@ const useHeader = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
 }
 
 const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
-  const setIncomingShareSource = C.useFSState(s => s.dispatch.setIncomingShareSource)
+  const setIncomingShareSource = useFSState(s => s.dispatch.setIncomingShareSource)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const saveInFiles = () => {
     setIncomingShareSource(incomingShareItems)

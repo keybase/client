@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useTeamsSubscribe} from '@/teams/subscriber'
+import {useTrackerState} from '@/constants/tracker2'
 
 const Container = () => {
   const waiting = C.useWaitingState(s => s.counts)
@@ -11,7 +12,7 @@ const Container = () => {
   const onCancel = () => {
     // sadly a little racy, doing this for now
     setTimeout(() => {
-      C.useTrackerState.getState().dispatch.load({
+      useTrackerState.getState().dispatch.load({
         assertion: you,
         guiID: C.generateGUIID(),
         ignoreCache: true,

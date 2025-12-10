@@ -5,9 +5,10 @@ import type * as T from '@/constants/types'
 import {SiteIcon} from './shared'
 import {makeInsertMatcher} from '@/util/string'
 import {useColorScheme} from 'react-native'
+import {useTrackerState} from '@/constants/tracker2'
 
 const Container = () => {
-  const _proofSuggestions = C.useTrackerState(s => s.proofSuggestions)
+  const _proofSuggestions = useTrackerState(s => s.proofSuggestions)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()

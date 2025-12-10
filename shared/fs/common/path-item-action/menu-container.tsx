@@ -7,6 +7,7 @@ import * as Util from '@/util/kbfs'
 import Header from './header'
 import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -21,20 +22,44 @@ const Container = (op: OwnProps) => {
   const {path, mode, floatingMenuProps} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   Kbfs.useFsFileContext(path)
-  const pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
-  const pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
+  const data = useFSState(
+    C.useShallow(s => {
+      const pathItem = C.FS.getPathItem(s.pathItems, path)
+      const pathItemActionMenu = s.pathItemActionMenu
+      const fileContext = s.fileContext.get(path) || C.FS.emptyFileContext
+      const {cancelDownload, setPathItemActionMenuView, download, newFolderRow} = s.dispatch
+      const {favoriteIgnore, startRename, dismissDownload} = s.dispatch
+      const {openPathInSystemFileManagerDesktop} = s.dispatch.dynamic
+      const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
+      return {
+        cancelDownload,
+        dismissDownload,
+        download,
+        favoriteIgnore,
+        fileContext,
+        newFolderRow,
+        openPathInSystemFileManagerDesktop,
+        pathItem,
+        pathItemActionMenu,
+        setPathItemActionMenuView,
+        sfmiEnabled,
+        startRename,
+      }
+    })
+  )
+
+  const {pathItem, pathItemActionMenu, fileContext, cancelDownload} = data
+  const {setPathItemActionMenuView, download, newFolderRow, openPathInSystemFileManagerDesktop} = data
+  const {sfmiEnabled, favoriteIgnore, startRename, dismissDownload} = data
+
   const {downloadID, downloadIntent, view} = pathItemActionMenu
   const username = C.useCurrentUserState(s => s.username)
-  const fileContext = C.useFSState(s => s.fileContext.get(path) || C.FS.emptyFileContext)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
-  const cancelDownload = C.useFSState(s => s.dispatch.cancelDownload)
   const cancel = () => {
     C.isMobile && downloadID && cancelDownload(downloadID)
   }
-  const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const download = C.useFSState(s => s.dispatch.download)
   const saving = downloadID && downloadIntent === T.FS.DownloadIntent.CameraRoll
   const sharing = downloadID && downloadIntent === T.FS.DownloadIntent.Share
 
@@ -47,8 +72,6 @@ const Container = (op: OwnProps) => {
     cancel()
   }
   const hideAndCancelAfter = (f: () => void) => hideAfter(cancelAfter(f))
-
-  const newFolderRow = C.useFSState(s => s.dispatch.newFolderRow)
   const itemNewFolder = layout.newFolder
     ? ([
         {
@@ -77,10 +100,6 @@ const Container = (op: OwnProps) => {
     ? ([{icon: 'iconfont-chat', onClick: hideAfter(openChat), title: 'Chat with them'}] as const)
     : []
 
-  const openPathInSystemFileManagerDesktop = C.useFSState(
-    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
-  )
-  const sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
   const itemFinder =
     layout.showInSystemFileManager && sfmiEnabled
       ? ([
@@ -184,11 +203,7 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const ignoreNeedsToWait = C.Waiting.useAnyWaiting([
-    C.waitingKeyFSFolderList,
-    C.waitingKeyFSStat,
-  ])
-  const favoriteIgnore = C.useFSState(s => s.dispatch.favoriteIgnore)
+  const ignoreNeedsToWait = C.Waiting.useAnyWaiting([C.waitingKeyFSFolderList, C.waitingKeyFSStat])
   const ignoreTlf = layout.ignoreTlf
     ? ignoreNeedsToWait
       ? ('disabled' as const)
@@ -210,7 +225,6 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const startRename = C.useFSState(s => s.dispatch.startRename)
   const itemRename = layout.rename
     ? ([
         {
@@ -276,7 +290,6 @@ const Container = (op: OwnProps) => {
     justDoneWithIntent && hide()
   }, [justDoneWithIntent, hide])
 
-  const dismissDownload = C.useFSState(s => s.dispatch.dismissDownload)
   const userInitiatedHide = React.useCallback(() => {
     hide()
     downloadID && dismissDownload(downloadID)

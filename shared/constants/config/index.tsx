@@ -17,6 +17,8 @@ import type * as Pinentry from '@/constants/pinentry'
 import {invalidPasswordErrorString} from './util'
 import {useSettingsContactsState} from '../settings-contacts'
 import {useSettingsState} from '../settings'
+import {useTrackerState} from '../tracker2'
+import {useFSState} from '../fs'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -389,15 +391,15 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.setCriticalUpdate: {
-          C.useFSState.getState().dispatch.setCriticalUpdate(action.payload.critical)
+          useFSState.getState().dispatch.setCriticalUpdate(action.payload.critical)
           break
         }
         case RemoteGen.userFileEditsLoad: {
-          C.useFSState.getState().dispatch.userFileEditsLoad()
+          useFSState.getState().dispatch.userFileEditsLoad()
           break
         }
         case RemoteGen.openFilesFromWidget: {
-          C.useFSState.getState().dispatch.dynamic.openFilesFromWidgetDesktop?.(action.payload.path)
+          useFSState.getState().dispatch.dynamic.openFilesFromWidgetDesktop?.(action.payload.path)
           break
         }
         case RemoteGen.saltpackFileOpen: {
@@ -415,7 +417,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.openPathInSystemFileManager: {
-          C.useFSState.getState().dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
+          useFSState.getState().dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
           break
         }
         case RemoteGen.unlockFoldersSubmitPaperKey: {
@@ -446,19 +448,19 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.trackerChangeFollow: {
-          C.useTrackerState.getState().dispatch.changeFollow(action.payload.guiID, action.payload.follow)
+          useTrackerState.getState().dispatch.changeFollow(action.payload.guiID, action.payload.follow)
           break
         }
         case RemoteGen.trackerIgnore: {
-          C.useTrackerState.getState().dispatch.ignore(action.payload.guiID)
+          useTrackerState.getState().dispatch.ignore(action.payload.guiID)
           break
         }
         case RemoteGen.trackerCloseTracker: {
-          C.useTrackerState.getState().dispatch.closeTracker(action.payload.guiID)
+          useTrackerState.getState().dispatch.closeTracker(action.payload.guiID)
           break
         }
         case RemoteGen.trackerLoad: {
-          C.useTrackerState.getState().dispatch.load(action.payload)
+          useTrackerState.getState().dispatch.load(action.payload)
           break
         }
         case RemoteGen.link:
@@ -578,7 +580,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         s.installerRanCount++
       })
 
-      C.useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
+      useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
     },
     loadIsOnline: () => {
       const f = async () => {
@@ -1039,7 +1041,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       }
 
       if (loggedIn) {
-        C.useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
+        useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
       }
 
       if (!causedByStartup) {

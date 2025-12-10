@@ -8,6 +8,7 @@ import Tracker from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import KB2 from '@/util/electron.desktop'
 import {useAvatarState} from '@/common-adapters/avatar/store'
+import {useTrackerState} from '@/constants/tracker2'
 
 const {closeWindow} = KB2.functions
 
@@ -34,7 +35,7 @@ const RemoteContainer = (d: DeserializeProps) => {
   const replaceUsers = C.useUsersState(s => s.dispatch.replace)
   const replaceCurrent = C.useCurrentUserState(s => s.dispatch.replaceUsername)
   const replaceHTTP = C.useConfigState(s => s.dispatch.setHTTPSrvInfo)
-  const replaceTracker = C.useTrackerState(s => s.dispatch.replace)
+  const replaceTracker = useTrackerState(s => s.dispatch.replace)
   const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
 
   React.useEffect(() => {

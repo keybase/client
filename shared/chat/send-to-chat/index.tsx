@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
+import {useFSState} from '@/constants/fs'
 
 type Props = {
   canBack?: boolean
@@ -50,7 +51,7 @@ const MobileSendToChatRoutable = (props: Props) => {
 export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const fileContext = C.useFSState(s => s.fileContext)
+  const fileContext = useFSState(s => s.fileContext)
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
     const {dispatch} = C.getConvoState(conversationIDKey)
     text && dispatch.injectIntoInput(text)

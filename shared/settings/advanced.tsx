@@ -5,6 +5,7 @@ import * as React from 'react'
 import {ProxySettings} from './proxy'
 import {useSettingsState, traceInProgressKey, processorProfileInProgressKey} from '@/constants/settings'
 import {usePWState} from '@/constants/settings-password'
+import {useFSState} from '@/constants/fs'
 
 let initialUseNativeFrame: boolean | undefined
 
@@ -202,7 +203,7 @@ const processorProfileDurationSeconds = 30
 const Developer = () => {
   const [clickCount, setClickCount] = React.useState(0)
 
-  const setDebugLevel = C.useFSState(s => s.dispatch.setDebugLevel)
+  const setDebugLevel = useFSState(s => s.dispatch.setDebugLevel)
   const onExtraKBFSLogging = () => setDebugLevel('vlog2')
   const onToggleRuntimeStats = C.useConfigState(s => s.dispatch.toggleRuntimeStats)
   const onLabelClick = () =>

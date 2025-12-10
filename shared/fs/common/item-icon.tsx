@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon'
+import {useFSState} from '@/constants/fs'
 
 export type Size = 96 | 48 | 32 | 16
 type SizeString = '96' | '48' | '32' | '16'
@@ -73,7 +74,7 @@ const getTlfTypeIcon = (size: Size, tlfType: T.FS.TlfType) => {
 }
 
 const TlfTypeIcon = (props: TlfTypeIconProps) => {
-  const tlfList = C.useFSState(s => C.FS.getTlfListFromType(s.tlfs, props.tlfType))
+  const tlfList = useFSState(s => C.FS.getTlfListFromType(s.tlfs, props.tlfType))
   const badgeCount = C.FS.computeBadgeNumberForTlfList(tlfList)
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   return (
@@ -131,10 +132,10 @@ type InTlfItemIconProps = {
 }
 
 const InTlfIcon = (props: InTlfItemIconProps) => {
-  const downloads = C.useFSState(s => s.downloads)
-  const pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
+  const downloads = useFSState(s => s.downloads)
+  const pathItemActionMenu = useFSState(s => s.pathItemActionMenu)
   const downloadIntent = C.FS.getDownloadIntent(props.path, downloads, pathItemActionMenu)
-  const pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, props.path))
+  const pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, props.path))
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading')
   return (

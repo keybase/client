@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import openUrl from '@/util/open-url'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
   path: T.FS.Path
@@ -10,9 +11,9 @@ type OwnProps = {
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = C.useFSState(s => C.FS.getTlfFromPath(s.tlfs, path))
-  const finishManualConflictResolution = C.useFSState(s => s.dispatch.finishManualConflictResolution)
-  const startManualConflictResolution = C.useFSState(s => s.dispatch.startManualConflictResolution)
+  const _tlf = useFSState(s => C.FS.getTlfFromPath(s.tlfs, path))
+  const finishManualConflictResolution = useFSState(s => s.dispatch.finishManualConflictResolution)
+  const startManualConflictResolution = useFSState(s => s.dispatch.startManualConflictResolution)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onFinishResolving = React.useCallback(() => {
     finishManualConflictResolution(path)
@@ -30,7 +31,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     startManualConflictResolution(path)
   }, [startManualConflictResolution, path])
 
-  const openPathInSystemFileManagerDesktop = C.useFSState(
+  const openPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
   )
 

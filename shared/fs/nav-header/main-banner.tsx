@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useFSState} from '@/constants/fs'
 
 type Props = {
   onRetry: () => void
@@ -51,11 +52,15 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const ConnectedBanner = () => {
-  const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const {_kbfsDaemonStatus, _overallSyncStatus, loadPathMetadata} = useFSState(
+    C.useShallow(s => {
+      const _kbfsDaemonStatus = s.kbfsDaemonStatus
+      const _overallSyncStatus = s.overallSyncStatus
+      const loadPathMetadata = s.dispatch.loadPathMetadata
+      return {_kbfsDaemonStatus, _overallSyncStatus, loadPathMetadata}
+    })
+  )
   const _name = C.useCurrentUserState(s => s.username)
-  const _overallSyncStatus = C.useFSState(s => s.overallSyncStatus)
-
-  const loadPathMetadata = C.useFSState(s => s.dispatch.loadPathMetadata)
   // This LoadPathMetadata triggers a sync retry.
   const onRetry = () => {
     loadPathMetadata(T.FS.stringToPath('/keybase/private' + _name))
