@@ -13,6 +13,7 @@ import {
   androidCheckPushPermissions,
 } from 'react-native-kb'
 import {type Store, type State} from './push'
+import {useLogoutState} from './logout'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 
@@ -117,7 +118,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     deleteToken: version => {
       const f = async () => {
         const waitKey = 'push:deleteToken'
-        C.useLogoutState.getState().dispatch.wait(waitKey, version, true)
+        useLogoutState.getState().dispatch.wait(waitKey, version, true)
         try {
           const deviceID = C.useCurrentUserState.getState().deviceID
           if (!deviceID) {
@@ -135,7 +136,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         } catch (e) {
           logger.error('[PushToken] delete failed', e)
         } finally {
-          C.useLogoutState.getState().dispatch.wait(waitKey, version, false)
+          useLogoutState.getState().dispatch.wait(waitKey, version, false)
         }
       }
       C.ignorePromise(f())

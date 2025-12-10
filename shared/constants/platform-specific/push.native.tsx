@@ -9,6 +9,7 @@ import {
   getNativeEmitter,
 } from 'react-native-kb'
 import {usePushState} from '../push'
+import {useLogoutState} from '../logout'
 
 const setApplicationIconBadgeNumber = (n: number) => {
   if (isIOS) {
@@ -245,7 +246,7 @@ export const initPushListener = () => {
   })
 
   // Token handling
-  C.useLogoutState.subscribe((s, old) => {
+  useLogoutState.subscribe((s, old) => {
     if (s.version === old.version) return
     usePushState.getState().dispatch.deleteToken(s.version)
   })
