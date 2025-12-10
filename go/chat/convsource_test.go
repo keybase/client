@@ -536,7 +536,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
-	<-tc.Context().ConvLoader.Stop(ctx)
+	<-tc.ChatG.ConvLoader.Stop(context.Background())
 
 	conv, remoteConv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	convID := conv.GetConvID()
@@ -632,7 +632,7 @@ func TestConversationLocking(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
-	<-tc.Context().ConvLoader.Stop(ctx)
+	<-tc.Context().ConvLoader.Stop(context.TODO())
 	hcs := tc.Context().ConvSource.(*HybridConversationSource)
 	if hcs == nil {
 		t.Skip()
@@ -712,7 +712,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
-	<-tc.Context().ConvLoader.Stop(ctx)
+	<-tc.Context().ConvLoader.Stop(context.TODO())
 	hcs := tc.Context().ConvSource.(*HybridConversationSource)
 	if hcs == nil {
 		t.Skip()
