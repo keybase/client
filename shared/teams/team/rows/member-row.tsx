@@ -4,6 +4,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useTrackerState} from '@/constants/tracker2'
 
 export type Props = {
   firstItem: boolean
@@ -351,7 +352,7 @@ const Container = (ownProps: OwnProps) => {
   const onRemoveFromTeam = () => {
     removeMember(teamID, username)
   }
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
   const onShowTracker = () => {
     if (C.isMobile) {
       showUserProfile(username)

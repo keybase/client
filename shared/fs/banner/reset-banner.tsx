@@ -4,6 +4,7 @@ import * as T from '@/constants/types'
 import {folderNameWithoutUsers} from '@/util/kbfs'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from '@/fs/browser/rows/types'
+import {useTrackerState} from '@/constants/tracker2'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -29,7 +30,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   )
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
 
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
   const onViewProfile = React.useCallback(
     (username: string) => () => {
       C.isMobile ? showUserProfile(username) : showUser(username, true)

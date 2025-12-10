@@ -1,10 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {useTrackerState} from '@/constants/tracker2'
 
 const Container = () => {
   const username = C.useCurrentUserState(s => s.username)
-  const d = C.useTrackerState(s => s.getDetails(username))
+  const d = useTrackerState(s => s.getDetails(username))
   const _bio = d.bio || ''
   const _fullname = d.fullname || ''
   const _location = d.location || ''

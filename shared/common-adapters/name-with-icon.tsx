@@ -12,6 +12,7 @@ import Text, {
   type TextTypeBold,
 } from './text'
 import ConnectedUsernames from './usernames'
+import {useTrackerState} from '@/constants/tracker2'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 
@@ -371,7 +372,7 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
       navigateAppend({props: {teamID}, selected: 'team'})
     }
   }, [clearModals, navigateAppend, teamID])
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(() => {
     username && showUser(username, true)
   }, [showUser, username])

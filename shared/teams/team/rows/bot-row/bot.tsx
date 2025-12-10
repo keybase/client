@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
+import {useTrackerState} from '@/constants/tracker2'
 
 export type Props = {
   botAlias: string
@@ -203,7 +204,7 @@ const Container = (ownProps: OwnProps) => {
   const status = info.status
   const username = info.username
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
   const _onShowTracker = (username: string) => {
     if (C.isMobile) {
       showUserProfile(username)

@@ -4,12 +4,13 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import FollowButton from './follow-button'
 import ChatButton from '@/chat/chat-button'
+import {useTrackerState} from '@/constants/tracker2'
 
 type OwnProps = {username: string}
 
 const Container = (ownProps: OwnProps) => {
   const username = ownProps.username
-  const d = C.useTrackerState(s => s.getDetails(username))
+  const d = useTrackerState(s => s.getDetails(username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const isBot = C.useBotsState(s => s.featuredBotsMap.has(username))
@@ -26,7 +27,7 @@ const Container = (ownProps: OwnProps) => {
     C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/public/${username}`))
   const _onEditProfile = () => navigateAppend('profileEdit')
 
-  const changeFollow = C.useTrackerState(s => s.dispatch.changeFollow)
+  const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
   const _onFollow = changeFollow
   const _onInstallBot = (username: string) => {
     navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
@@ -35,7 +36,7 @@ const Container = (ownProps: OwnProps) => {
     navigateAppend({props: {username}, selected: 'chatBlockingModal'})
   const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
     C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
   const _onReload = (username: string) => {
     showUser(username, false)
   }

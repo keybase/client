@@ -17,6 +17,7 @@ import type * as Pinentry from '@/constants/pinentry'
 import {invalidPasswordErrorString} from './util'
 import {useSettingsContactsState} from '../settings-contacts'
 import {useSettingsState} from '../settings'
+import {useTrackerState} from '../tracker2'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -446,19 +447,19 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.trackerChangeFollow: {
-          C.useTrackerState.getState().dispatch.changeFollow(action.payload.guiID, action.payload.follow)
+          useTrackerState.getState().dispatch.changeFollow(action.payload.guiID, action.payload.follow)
           break
         }
         case RemoteGen.trackerIgnore: {
-          C.useTrackerState.getState().dispatch.ignore(action.payload.guiID)
+          useTrackerState.getState().dispatch.ignore(action.payload.guiID)
           break
         }
         case RemoteGen.trackerCloseTracker: {
-          C.useTrackerState.getState().dispatch.closeTracker(action.payload.guiID)
+          useTrackerState.getState().dispatch.closeTracker(action.payload.guiID)
           break
         }
         case RemoteGen.trackerLoad: {
-          C.useTrackerState.getState().dispatch.load(action.payload)
+          useTrackerState.getState().dispatch.load(action.payload)
           break
         }
         case RemoteGen.link:

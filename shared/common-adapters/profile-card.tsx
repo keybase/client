@@ -18,6 +18,7 @@ import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
 import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
 import type ChatButtonType from '../chat/chat-button'
+import {useTrackerState} from '@/constants/tracker2'
 import type {MeasureRef} from './measure-ref'
 
 const positionFallbacks = ['top center', 'bottom center'] as const
@@ -133,7 +134,7 @@ const ProfileCard = ({
   username,
 }: Props) => {
   const {default: ChatButton} = require('../chat/chat-button') as {default: typeof ChatButtonType}
-  const userDetails = C.useTrackerState(s => s.getDetails(username))
+  const userDetails = useTrackerState(s => s.getDetails(username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const isSelf = C.useCurrentUserState(s => s.username === username)
@@ -157,7 +158,7 @@ const ProfileCard = ({
     bio: userDetailsBio,
     fullname: userDetailsFullname,
   } = userDetails
-  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
   React.useEffect(() => {
     userDetailsState === 'unknown' && showUser(username, false, true)
   }, [showUser, username, userDetailsState])
@@ -173,7 +174,7 @@ const ProfileCard = ({
     showFollowButton,
   ])
 
-  const changeFollow = C.useTrackerState(s => s.dispatch.changeFollow)
+  const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
   const _changeFollow = React.useCallback(
     (follow: boolean) => changeFollow(userDetails.guiID, follow),
     [changeFollow, userDetails]

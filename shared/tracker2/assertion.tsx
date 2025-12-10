@@ -7,6 +7,7 @@ import {SiteIcon} from '@/profile/generic/shared'
 import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
 import * as Tracker from '@/constants/tracker2'
+import {useTrackerState} from '@/constants/tracker2'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -36,7 +37,7 @@ const notAUserAssertion = {
 
 const Container = (ownProps: OwnProps) => {
   const isYours = C.useCurrentUserState(s => ownProps.username === s.username)
-  const data = C.useTrackerState(
+  const data = useTrackerState(
     C.useShallow(s => {
       let val = Tracker.noAssertion
       let stellarHidden = false
