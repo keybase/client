@@ -3,6 +3,7 @@ package chat
 import (
 	"container/heap"
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -155,6 +156,7 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 	shutdownCh := make(chan struct{})
 	b.shutdownCh = shutdownCh
 	b.eg.Go(func() error {
+		ctx = libkb.CopyTagsToBackground(ctx)
 		// Don't fire immediately on startup
 		time.Sleep(libkb.RandomJitter(time.Second))
 		b.initQueue(ctx)
@@ -184,6 +186,13 @@ func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) (ch chan struct{})
 }
 
 func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
+	b.lock.Lock()
+	if b.uid.IsNil() {
+		b.lock.Unlock()
+		return fmt.Errorf("Must call Start() before adding to the Queue")
+	}
+	b.lock.Unlock()
+
 	b.queueLock.Lock()
 	defer b.queueLock.Unlock()
 	b.initQueueLocked(ctx)
