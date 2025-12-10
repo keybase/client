@@ -388,44 +388,24 @@ func TestConvLoaderStartStopRace(t *testing.T) {
 
 	// Get the existing loader and stop it first
 	loader := tc.Context().ConvLoader.(*BackgroundConvLoader)
-	stopCh := loader.Stop(ctx)
 	select {
-	case <-stopCh:
+	case <-loader.Stop(ctx):
 		t.Logf("Initial Stop() completed")
 	case <-time.After(5 * time.Second):
 		t.Fatal("Initial Stop() timed out")
 	}
 
 	// Now test the race: Start multiple times rapidly
-	loader.Start(ctx, uid)
-	require.True(t, loader.isRunning())
-
-	// Call Start() again while already running - this triggers the bug
-	// Without the fix, this would create new goroutines with a new stopCh
-	// while the old goroutines still reference the old stopCh
-	loader.Start(ctx, uid)
-	require.True(t, loader.isRunning())
-
-	// Call Start() one more time to make the race more likely
-	loader.Start(ctx, uid)
-	require.True(t, loader.isRunning())
-
-	// Now try to stop - this should complete within a reasonable time
-	// Without the fix, this would hang because Stop() waits for an errgroup
-	// that contains goroutines listening on different stopCh instances
-	done := make(chan struct{})
-	go func() {
-		<-loader.Stop(ctx)
-		close(done)
-	}()
-
-	select {
-	case <-done:
-		// Success - Stop completed
-		t.Logf("Stop() completed successfully after multiple Start() calls")
-	case <-time.After(3 * time.Second):
-		t.Fatal("Stop() hung - the race condition bug is present")
+	for i := 0; i < 5; i++ {
+		loader.Start(ctx, uid)
+		require.True(t, loader.isRunning())
 	}
 
+	select {
+	case <-loader.Stop(ctx):
+		t.Logf("Final Stop() completed")
+	case <-time.After(5 * time.Second):
+		t.Fatal("Final Stop() timed out")
+	}
 	require.False(t, loader.isRunning())
 }
