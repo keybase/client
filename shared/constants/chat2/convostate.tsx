@@ -989,18 +989,21 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     })
     get().dispatch.setEditing('clear')
 
+    const conversationID = get().getConvID()
+    const tlfName = get().meta.tlfname
+    const clientPrev = getClientPrev()
     const f = async () => {
       await T.RPCChat.localPostEditNonblockRpcPromise({
         body: text,
-        clientPrev: getClientPrev(),
-        conversationID: get().getConvID(),
+        clientPrev,
+        conversationID,
         identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
         outboxID: Common.generateOutboxID(),
         target: {
           messageID: m.id,
           outboxID: m.outboxID ? T.Chat.outboxIDToRpcOutboxID(m.outboxID) : undefined,
         },
-        tlfName: get().meta.tlfname,
+        tlfName,
         tlfPublic: false,
       })
     }
@@ -1073,12 +1076,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
+      const convID = get().getConvID()
       const f = async () => {
         try {
           await T.RPCChat.localAddBotMemberRpcPromise(
             {
               botSettings: restricted ? {cmds: allowCommands, convs, mentions: allowMentions} : null,
-              convID: get().getConvID(),
+              convID,
               role: restricted ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
               username,
             },
@@ -1147,6 +1151,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     attachmentPasted: data => {
+      const conversationIDKey = get().id
       const f = async () => {
         const outboxID = Common.generateOutboxID()
         const path = await T.RPCChat.localMakeUploadTempFileRpcPromise({
@@ -1157,7 +1162,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         const pathAndOutboxIDs = [{outboxID, path}]
         C.useRouterState.getState().dispatch.navigateAppend({
-          props: {conversationIDKey: get().id, noDragDrop: true, pathAndOutboxIDs},
+          props: {conversationIDKey, noDragDrop: true, pathAndOutboxIDs},
           selected: 'chatAttachmentGetTitles',
         })
       }
@@ -1316,16 +1321,18 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.giphyWindow = false
       })
+      const replyToOrdinal = get().replyTo
+      const replyTo = get().messageMap.get(replyToOrdinal)?.id
       const f = async () => {
         try {
           await T.RPCChat.localTrackGiphySelectRpcPromise({result})
         } catch {}
-        const replyTo = get().messageMap.get(get().replyTo)?.id
         _messageSend(result.targetUrl, replyTo)
       }
       C.ignorePromise(f())
     },
     hideConversation: hide => {
+      const conversationID = get().getConvID()
       const f = async () => {
         if (hide) {
           // Nav to inbox but don't use findNewConversation since changeSelectedConversation
@@ -1336,7 +1343,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
-          conversationID: get().getConvID(),
+          conversationID,
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
           status: hide ? T.RPCChat.ConversationStatus.ignored : T.RPCChat.ConversationStatus.unfiled,
         })
@@ -1357,8 +1364,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     joinConversation: () => {
+      const convID = get().getConvID()
       const f = async () => {
-        await T.RPCChat.localJoinConversationByIDLocalRpcPromise({convID: get().getConvID()})
+        await T.RPCChat.localJoinConversationByIDLocalRpcPromise({convID})
       }
       C.ignorePromise(f())
     },
@@ -1525,16 +1533,17 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // Load new messages on a thread. We call this when you select a conversation,
       // we get a thread-is-stale notification, or when you scroll up and want more
       // messages
+      const {id: conversationIDKey} = get()
+      const meta = get().meta
+      const membershipType = meta.membershipType
+      const rekeyersSize = meta.rekeyers.size
       const f = async () => {
-        // Get the conversationIDKey
-        const {id: conversationIDKey} = get()
-
         if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
           logger.info('loadMoreMessages: bail: no conversationIDKey')
           return
         }
 
-        if (get().meta.membershipType === 'youAreReset' || get().meta.rekeyers.size > 0) {
+        if (membershipType === 'youAreReset' || rekeyersSize > 0) {
           logger.info('loadMoreMessages: bail: we are reset')
           return
         }
@@ -1885,34 +1894,37 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
 
       // Delete a message. We cancel pending messages
+      const message = get().messageMap.get(ordinal)
+      if (!message) {
+        logger.warn('Deleting invalid message')
+        return
+      }
+      if (!get().isMetaGood()) {
+        logger.warn('Deleting message w/ no meta')
+        return
+      }
+      const {id, outboxID, ordinal: messageOrdinal} = message
+      const conversationID = get().getConvID()
+      const tlfName = get().meta.tlfname
       const f = async () => {
-        const message = get().messageMap.get(ordinal)
-        if (!message) {
-          logger.warn('Deleting invalid message')
-          return
-        }
-        if (!get().isMetaGood()) {
-          logger.warn('Deleting message w/ no meta')
-          return
-        }
         // We have to cancel pending messages
-        if (!message.id) {
-          if (message.outboxID) {
+        if (!id) {
+          if (outboxID) {
             await T.RPCChat.localCancelPostRpcPromise({
-              outboxID: T.Chat.outboxIDToRpcOutboxID(message.outboxID),
+              outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID),
             })
-            get().dispatch.messagesWereDeleted({ordinals: [message.ordinal]})
+            get().dispatch.messagesWereDeleted({ordinals: [messageOrdinal]})
           } else {
             logger.warn('Delete of no message id and no outboxid')
           }
         } else {
           await T.RPCChat.localPostDeleteNonblockRpcPromise({
             clientPrev: 0,
-            conversationID: get().getConvID(),
+            conversationID,
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             outboxID: null,
-            supersedes: message.id,
-            tlfName: get().meta.tlfname,
+            supersedes: id,
+            tlfName,
             tlfPublic: false,
           })
         }
@@ -2359,13 +2371,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     pinMessage: msgID => {
+      const convID = get().getConvID()
+      const id = get().id
       const f = async () => {
-        const convID = get().getConvID()
         try {
           if (msgID) {
             await T.RPCChat.localPinMessageRpcPromise({convID, msgID})
           } else {
-            await T.RPCChat.localUnpinMessageRpcPromise({convID}, C.waitingKeyChatUnpin(get().id))
+            await T.RPCChat.localUnpinMessageRpcPromise({convID}, C.waitingKeyChatUnpin(id))
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2795,10 +2808,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
     },
     setMinWriterRole: role => {
+      const id = get().id
+      const convID = get().getConvID()
       const f = async () => {
-        logger.info(`Setting minWriterRole to ${role} for convID ${get().id}`)
+        logger.info(`Setting minWriterRole to ${role} for convID ${id}`)
         await T.RPCChat.localSetConvMinWriterRoleLocalRpcPromise({
-          convID: get().getConvID(),
+          convID,
           role: T.RPCGen.TeamRole[role],
         })
       }
