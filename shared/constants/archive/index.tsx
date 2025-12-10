@@ -194,9 +194,13 @@ export const useState = Z.createZustand<State>((set, get) => {
   }
 
   const clearCompletedChat = () => {
+    const jobs = [...get().chatJobs.values()].map(job => ({
+      id: job.id,
+      status: job.status,
+    }))
     C.ignorePromise(
       Promise.allSettled(
-        [...get().chatJobs.values()].map(async job => {
+        jobs.map(async job => {
           if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
             await T.RPCChat.localArchiveChatDeleteRpcPromise({
               deleteOutputPath: C.isMobile,
@@ -211,9 +215,13 @@ export const useState = Z.createZustand<State>((set, get) => {
   }
 
   const clearCompletedKBFS = () => {
+    const jobs = [...get().kbfsJobs.values()].map(job => ({
+      id: job.id,
+      phase: job.phase,
+    }))
     C.ignorePromise(
       Promise.allSettled(
-        [...get().kbfsJobs.values()].map(async job => {
+        jobs.map(async job => {
           if (job.phase === 'Done') {
             return get().dispatch.cancelOrDismissKBFS(job.id)
           }
