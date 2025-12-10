@@ -22,20 +22,7 @@ const Container = (op: OwnProps) => {
   const {path, mode, floatingMenuProps} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   Kbfs.useFsFileContext(path)
-  const {
-    pathItem,
-    pathItemActionMenu,
-    fileContext,
-    cancelDownload,
-    setPathItemActionMenuView,
-    download,
-    newFolderRow,
-    openPathInSystemFileManagerDesktop,
-    sfmiEnabled,
-    favoriteIgnore,
-    startRename,
-    dismissDownload,
-  } = useFSState(
+  const data = useFSState(
     C.useShallow(s => {
       const pathItem = C.FS.getPathItem(s.pathItems, path)
       const pathItemActionMenu = s.pathItemActionMenu
@@ -65,6 +52,11 @@ const Container = (op: OwnProps) => {
       }
     })
   )
+
+  const {pathItem, pathItemActionMenu, fileContext, cancelDownload} = data
+  const {setPathItemActionMenuView, download, newFolderRow, openPathInSystemFileManagerDesktop} = data
+  const {sfmiEnabled, favoriteIgnore, startRename, dismissDownload} = data
+
   const {downloadID, downloadIntent, view} = pathItemActionMenu
   const username = C.useCurrentUserState(s => s.username)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
