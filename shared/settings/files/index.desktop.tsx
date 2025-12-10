@@ -55,17 +55,19 @@ const SyncNotificationSetting = (
 }
 
 const FinderIntegration = () => {
-  const driverStatus = useFSState(s => s.sfmi.driverStatus)
+  const {driverStatus, preferredMountDirs, driverDisable, openLocalPathInSystemFileManagerDesktop} = useFSState(
+    C.useShallow(s => ({
+      driverStatus: s.sfmi.driverStatus,
+      preferredMountDirs: s.sfmi.preferredMountDirs,
+      driverDisable: s.dispatch.driverDisable,
+      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+    }))
+  )
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowKextPermissionPopup = () => {
     navigateAppend('kextPermission')
   }
-  const preferredMountDirs = useFSState(s => s.sfmi.preferredMountDirs)
-  const driverDisable = useFSState(s => s.dispatch.driverDisable)
   const displayingMountDir = preferredMountDirs[0] || ''
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
-  )
   const openMount = displayingMountDir
     ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
     : undefined

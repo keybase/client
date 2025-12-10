@@ -14,21 +14,21 @@ const Share = (p: ClickableProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, path))
-  const sfmiEnabled = useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
-
-  const _download = useFSState(s => s.dispatch.download)
+  const {pathItem, sfmiEnabled, _download, openPathInSystemFileManagerDesktop, fileContext} = useFSState(
+    C.useShallow(s => ({
+      pathItem: C.FS.getPathItem(s.pathItems, path),
+      sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
+      _download: s.dispatch.download,
+      openPathInSystemFileManagerDesktop: s.dispatch.dynamic.openPathInSystemFileManagerDesktop,
+      fileContext: s.fileContext.get(path) || C.FS.emptyFileContext,
+    }))
+  )
   const download = () => {
     _download(path, 'download')
   }
-  const openPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
-  )
   const showInSystemFileManager = () => {
     openPathInSystemFileManagerDesktop?.(path)
   }
-
-  const fileContext = useFSState(s => s.fileContext.get(path) || C.FS.emptyFileContext)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.Box2

@@ -48,18 +48,21 @@ const canBackUp = C.isMobile
   : () => false
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
-  const destPicker = useFSState(s => s.destinationPicker)
+  const {destPicker, pathItems, newFolderRow, moveOrCopy} = useFSState(
+    C.useShallow(s => ({
+      destPicker: s.destinationPicker,
+      pathItems: s.pathItems,
+      newFolderRow: s.dispatch.newFolderRow,
+      moveOrCopy: s.dispatch.moveOrCopy,
+    }))
+  )
   const isShare = destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare
-  const pathItems = useFSState(s => s.pathItems)
   const headerRightButton =
     destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare ? (
       <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />
     ) : undefined
 
   const nav = useSafeNavigation()
-
-  const newFolderRow = useFSState(s => s.dispatch.newFolderRow)
-  const moveOrCopy = useFSState(s => s.dispatch.moveOrCopy)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const dispatchProps = {

@@ -29,12 +29,17 @@ const OpenInSystemFileManager = React.memo(function OpenInSystemFileManager({pat
 })
 
 const OpenInSFM = (props: Props) => {
-  const sfmiBannerDismissed = useFSState(s => s.settings.sfmiBannerDismissed)
-  const shouldHideFileManagerIcon = useFSState(
-    s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Disabled && sfmiBannerDismissed
-  )
-  const showOpenInSystemFileManager = useFSState(
-    s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
+  const {sfmiBannerDismissed, shouldHideFileManagerIcon, showOpenInSystemFileManager} = useFSState(
+    C.useShallow(s => {
+      const sfmiBannerDismissed = s.settings.sfmiBannerDismissed
+      const driverStatusType = s.sfmi.driverStatus.type
+      return {
+        sfmiBannerDismissed,
+        shouldHideFileManagerIcon:
+          driverStatusType === T.FS.DriverStatusType.Disabled && sfmiBannerDismissed,
+        showOpenInSystemFileManager: driverStatusType === T.FS.DriverStatusType.Enabled,
+      }
+    })
   )
 
   if (shouldHideFileManagerIcon) return null

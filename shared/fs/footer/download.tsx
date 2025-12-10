@@ -31,16 +31,18 @@ const getProgress = (dlState: T.FS.DownloadState) => (
 
 const Download = (props: Props) => {
   const dlInfo = Kbfs.useFsDownloadInfo(props.downloadID)
-  const dlState = useFSState(s => s.downloads.state.get(props.downloadID) || C.FS.emptyDownloadState)
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  const {dlState, openLocalPathInSystemFileManagerDesktop, dismissDownload, cancelDownload} = useFSState(
+    C.useShallow(s => ({
+      dlState: s.downloads.state.get(props.downloadID) || C.FS.emptyDownloadState,
+      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+      dismissDownload: s.dispatch.dismissDownload,
+      cancelDownload: s.dispatch.cancelDownload,
+    }))
   )
   const open = dlState.localPath
     ? () => openLocalPathInSystemFileManagerDesktop?.(dlState.localPath)
     : () => {}
-  const dismissDownload = useFSState(s => s.dispatch.dismissDownload)
   const dismiss = () => dismissDownload(props.downloadID)
-  const cancelDownload = useFSState(s => s.dispatch.cancelDownload)
   const cancel = () => cancelDownload(props.downloadID)
   Kbfs.useFsWatchDownloadForMobile(props.downloadID, T.FS.DownloadIntent.None)
   return (

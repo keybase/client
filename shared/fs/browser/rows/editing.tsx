@@ -10,17 +10,21 @@ type Props = {
 }
 
 const Editing = React.memo(function Editing({editID}: Props) {
-  const discardEdit = useFSState(s => s.dispatch.discardEdit)
+  const {discardEdit, commitEdit, edit, setEditName} = useFSState(
+    C.useShallow(s => ({
+      discardEdit: s.dispatch.discardEdit,
+      commitEdit: s.dispatch.commitEdit,
+      edit: s.edits.get(editID) || C.FS.emptyNewFolder,
+      setEditName: s.dispatch.setEditName,
+    }))
+  )
+  const [filename, setFilename] = React.useState(edit.name)
   const onCancel = () => {
     discardEdit(editID)
   }
-  const commitEdit = useFSState(s => s.dispatch.commitEdit)
   const onSubmit = () => {
     commitEdit(editID)
   }
-  const edit = useFSState(s => s.edits.get(editID) || C.FS.emptyNewFolder)
-  const [filename, setFilename] = React.useState(edit.name)
-  const setEditName = useFSState(s => s.dispatch.setEditName)
   React.useEffect(() => {
     setEditName(editID, filename)
   }, [editID, filename, setEditName])

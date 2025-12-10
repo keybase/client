@@ -30,9 +30,11 @@ const Mobile = () => {
 
 const Desktop = () => {
   Kbfs.useFsDownloadStatus()
-  const downloadIDs = useFSState(s => s.downloads.regularDownloads)
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  const {downloadIDs, openLocalPathInSystemFileManagerDesktop} = useFSState(
+    C.useShallow(s => ({
+      downloadIDs: s.downloads.regularDownloads,
+      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+    }))
   )
   const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
   return downloadIDs.length ? (

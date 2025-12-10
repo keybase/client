@@ -16,9 +16,13 @@ type OwnProps = {path: T.FS.Path}
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
-  const _pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, path))
-  const resetBannerType = useFSState(s => C.FS.resetBannerType(s, path))
+  const {_kbfsDaemonStatus, _pathItem, resetBannerType} = useFSState(
+    C.useShallow(s => ({
+      _kbfsDaemonStatus: s.kbfsDaemonStatus,
+      _pathItem: C.FS.getPathItem(s.pathItems, path),
+      resetBannerType: C.FS.resetBannerType(s, path),
+    }))
+  )
   const props = {
     offlineUnsynced: C.FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
     path,
