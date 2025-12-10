@@ -29,12 +29,14 @@ type DataNewMessage = DataCommon & {
   convID?: string
   t: string | number
   m: string
+  username?: string
 }
 type DataNewMessageSilent2 = DataCommon & {
   type: 'chat.newmessageSilent_2'
   t: string | number
   c?: string
   m: string
+  username?: string
 }
 type DataFollow = DataCommon & {
   type: 'follow'
@@ -43,6 +45,7 @@ type DataFollow = DataCommon & {
 type DataChatExtension = DataCommon & {
   type: 'chat.extension'
   convID?: string
+  username?: string
 }
 type Data = DataReadMessage | DataNewMessage | DataNewMessageSilent2 | DataFollow | DataChatExtension
 
@@ -94,6 +97,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
           ? {
               conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
               membersType: anyToConversationMembersType(data.t),
+              recipientUsername: data.username,
               type: 'chat.newmessage',
               unboxPayload: data.m || '',
               userInteraction,
@@ -106,6 +110,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
             return {
               conversationIDKey: T.Chat.stringToConversationIDKey(data.c),
               membersType,
+              recipientUsername: data.username,
               type: 'chat.newmessageSilent_2',
               unboxPayload: data.m || '',
             }
@@ -124,6 +129,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
         return data.convID
           ? {
               conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
+              recipientUsername: data.username,
               type: 'chat.extension',
             }
           : undefined

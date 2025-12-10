@@ -11,12 +11,14 @@ export type PushNotification =
   | {
       conversationIDKey: ChatTypes.ConversationIDKey
       membersType: RPCChatTypes.ConversationMembersType
+      recipientUsername?: string
       type: 'chat.newmessageSilent_2'
       unboxPayload: string
     }
   | {
       conversationIDKey: ChatTypes.ConversationIDKey
       membersType?: RPCChatTypes.ConversationMembersType
+      recipientUsername?: string
       type: 'chat.newmessage'
       unboxPayload: string
       userInteraction: boolean
@@ -27,8 +29,9 @@ export type PushNotification =
       username: string
     }
   | {
-      type: 'chat.extension'
       conversationIDKey: ChatTypes.ConversationIDKey
+      recipientUsername?: string
+      type: 'chat.extension'
     }
   | {
       type: 'settings.contacts'
