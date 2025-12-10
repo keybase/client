@@ -6,6 +6,7 @@ import SettingsItem from './settings-item'
 import {keybaseFM} from '@/constants/whats-new'
 import * as Settings from '@/constants/settings'
 import {usePushState} from '@/constants/push'
+import {useNotifState} from '@/constants/notifications'
 
 type Props = {
   onClick: (s: string) => void
@@ -16,7 +17,7 @@ type Props = {
 
 const LeftNav = (props: Props) => {
   const {navigate} = props
-  const badgeNumbers = C.useNotifState(s => s.navBadges)
+  const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => (C.isElectron ? 0 : !s.hasPermissions ? 1 : 0))
 
   const onSignout = React.useCallback(() => {

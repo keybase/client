@@ -16,6 +16,7 @@ import {useSettingsState, settingsLogOutTab} from '@/constants/settings'
 import {useTrackerState} from '@/constants/tracker2'
 import {useFSState} from '@/constants/fs'
 import {useProfileState} from '@/constants/profile'
+import {useNotifState} from '@/constants/notifications'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -211,7 +212,7 @@ type TabProps = {
 
 const TabBadge = (p: {name: Tabs.Tab}) => {
   const {name} = p
-  const badgeNumbers = C.useNotifState(s => s.navBadges)
+  const badgeNumbers = useNotifState(s => s.navBadges)
   const fsCriticalUpdate = useFSState(s => s.criticalUpdate)
   const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
