@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import {useOrdinal} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
 import {Keyboard} from 'react-native'
+import {useFSState} from '@/constants/fs'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
@@ -101,7 +102,7 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     download(ordinal)
   }, [ordinal, download])
 
-  const openFinder = C.useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
+  const openFinder = useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
   const onFinder = React.useCallback(() => {
     downloadPath && openFinder?.(downloadPath)
   }, [openFinder, downloadPath])

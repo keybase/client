@@ -23,14 +23,14 @@ const FilePreviewView = (p: Props) => {
 }
 
 const FilePreviewViewContent = ({path, onUrlError}: Props) => {
-  const pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
+  const pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, path))
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
     pathItem.lastModifiedTimestamp
   )
   const reload = () => setLoadedLastModifiedTimestamp(pathItem.lastModifiedTimestamp)
   const tooLargeForText = pathItem.type === T.FS.PathType.File && pathItem.size > textViewUpperLimit
 
-  const fileContext = C.useFSState(s => s.fileContext.get(path) || C.FS.emptyFileContext)
+  const fileContext = useFSState(s => s.fileContext.get(path) || C.FS.emptyFileContext)
 
   if (pathItem.type === T.FS.PathType.Symlink) {
     return <DefaultView path={path} />

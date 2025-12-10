@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
+import {useFSState} from '@/constants/fs'
 
 export type Props = {
   onBack: () => void
@@ -29,7 +30,7 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {path, mode} = ownProps
-  const deleteFile = C.useFSState(s => s.dispatch.deleteFile)
+  const deleteFile = useFSState(s => s.dispatch.deleteFile)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
   const onDelete = React.useCallback(() => {

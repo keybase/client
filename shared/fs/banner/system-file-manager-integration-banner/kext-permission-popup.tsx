@@ -2,10 +2,11 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import {useFSState} from '@/constants/fs'
 
 const InstallSecurityPrefs = () => {
-  const driverStatus = C.useFSState(s => s.sfmi.driverStatus)
-  const openSecurityPreferencesDesktop = C.useFSState(s => s.dispatch.dynamic.openSecurityPreferencesDesktop)
+  const driverStatus = useFSState(s => s.sfmi.driverStatus)
+  const openSecurityPreferencesDesktop = useFSState(s => s.dispatch.dynamic.openSecurityPreferencesDesktop)
   const onCancel = C.useRouterState(s => s.dispatch.navigateUp)
   const openSecurityPrefs = React.useCallback(
     () => openSecurityPreferencesDesktop?.(),

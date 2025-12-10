@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 
 const RefreshSettings = () => {
-  const refresh = C.useFSState(s => s.dispatch.loadSettings)
+  const refresh = useFSState(s => s.dispatch.loadSettings)
 
   React.useEffect(() => {
     refresh()

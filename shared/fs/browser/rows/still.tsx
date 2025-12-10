@@ -4,6 +4,7 @@ import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 import {LastModifiedLine, Filename} from '@/fs/common'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
   destinationPickerIndex?: number
@@ -25,12 +26,12 @@ const getDownloadingText = (intent: T.FS.DownloadIntent) => {
 
 const StillContainer = (p: OwnProps) => {
   const {destinationPickerIndex, path} = p
-  const _downloads = C.useFSState(s => s.downloads)
-  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
-  const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
-  const _uploads = C.useFSState(s => s.uploads)
+  const _downloads = useFSState(s => s.downloads)
+  const _pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, path))
+  const _pathItemActionMenu = useFSState(s => s.pathItemActionMenu)
+  const _uploads = useFSState(s => s.uploads)
 
-  const dismissUpload = C.useFSState(s => s.dispatch.dismissUpload)
+  const dismissUpload = useFSState(s => s.dispatch.dismissUpload)
   const writingToJournalUploadState = _uploads.writingToJournal.get(path)
   const onOpen = useOpen({destinationPickerIndex, path})
 

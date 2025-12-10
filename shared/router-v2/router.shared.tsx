@@ -5,6 +5,7 @@ import * as React from 'react'
 import {Splash} from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {colors, darkColors, themed} from '@/styles/colors'
+import {useFSState} from '@/constants/fs'
 
 export const SimpleLoading = React.memo(function SimpleLoading() {
   return (
@@ -20,7 +21,7 @@ export const SimpleLoading = React.memo(function SimpleLoading() {
 })
 
 export const FilesTabBadge = () => {
-  const uploadIcon = C.useFSState(s => s.getUploadIconForFilesTab())
+  const uploadIcon = useFSState(s => s.getUploadIconForFilesTab())
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
 }
 

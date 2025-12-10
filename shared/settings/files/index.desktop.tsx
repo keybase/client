@@ -6,6 +6,7 @@ import * as Kbfs from '@/fs/common'
 import RefreshDriverStatusOnMount from '@/fs/common/refresh-driver-status-on-mount'
 import RefreshSettings from './refresh-settings'
 import useFiles from './hooks'
+import {useFSState} from '@/constants/fs'
 type Props = ReturnType<typeof useFiles>
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
@@ -14,7 +15,7 @@ export const defaultNotificationThreshold = 100 * 1024 ** 2
 const SyncNotificationSetting = (
   p: Pick<Props, 'spaceAvailableNotificationThreshold' | 'areSettingsLoading'>
 ) => {
-  const setSpaceAvailableNotificationThreshold = C.useFSState(
+  const setSpaceAvailableNotificationThreshold = useFSState(
     s => s.dispatch.setSpaceAvailableNotificationThreshold
   )
   const onChangedSyncNotifications = (selectedIdx: number) =>
@@ -54,15 +55,15 @@ const SyncNotificationSetting = (
 }
 
 const FinderIntegration = () => {
-  const driverStatus = C.useFSState(s => s.sfmi.driverStatus)
+  const driverStatus = useFSState(s => s.sfmi.driverStatus)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowKextPermissionPopup = () => {
     navigateAppend('kextPermission')
   }
-  const preferredMountDirs = C.useFSState(s => s.sfmi.preferredMountDirs)
-  const driverDisable = C.useFSState(s => s.dispatch.driverDisable)
+  const preferredMountDirs = useFSState(s => s.sfmi.preferredMountDirs)
+  const driverDisable = useFSState(s => s.dispatch.driverDisable)
   const displayingMountDir = preferredMountDirs[0] || ''
-  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+  const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const openMount = displayingMountDir

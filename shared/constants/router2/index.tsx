@@ -17,6 +17,7 @@ import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} fr
 import type {GetOptionsRet} from '../types/router2'
 import {registerDebugClear} from '@/util/debug'
 import {useSettingsEmailState} from '../settings-email'
+import {useFSState} from '../fs'
 export type PathParam = NavigateAppendType
 export type Route = NavigationState<KBRootParamList>['routes'][0]
 // still a little paranoid about some things being missing in this type
@@ -432,7 +433,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       updateTeamBuilding()
 
       const updateFS = () => {
-        const {criticalUpdate, dispatch} = C.useFSState.getState()
+        const {criticalUpdate, dispatch} = useFSState.getState()
         // Clear critical update when we nav away from tab
         if (criticalUpdate && prev && getTab(prev) === Tabs.fsTab && next && getTab(next) !== Tabs.fsTab) {
           dispatch.setCriticalUpdate(false)

@@ -5,6 +5,7 @@ import type * as T from '../types'
 import {isMobile} from '../platform'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '../tabs'
+import {useFSState} from '../fs'
 
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
 export type NotificationKeys = 'kbfsUploading' | 'outOfSpace'
@@ -124,7 +125,7 @@ export const useNotifState = Z.createZustand<State>((set, get) => {
 
           const counts = badgeStateToBadgeCounts(badgeState)
           if (!isMobile && shouldTriggerTlfLoad(badgeState)) {
-            C.useFSState.getState().dispatch.favoritesLoad()
+            useFSState.getState().dispatch.favoritesLoad()
           }
           if (counts) {
             get().dispatch.setBadgeCounts(counts)

@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import useFiles from './hooks'
+import {useFSState} from '@/constants/fs'
 type Props = ReturnType<typeof useFiles>
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
@@ -12,7 +13,7 @@ const ThresholdDropdown = (p: Pick<Props, 'spaceAvailableNotificationThreshold'>
   const allowedThresholds = allowedNotificationThresholds.map(
     i => ({label: C.FS.humanizeBytes(i, 0), value: i}) as const
   )
-  const setSpaceAvailableNotificationThreshold = C.useFSState(
+  const setSpaceAvailableNotificationThreshold = useFSState(
     s => s.dispatch.setSpaceAvailableNotificationThreshold
   )
   const {spaceAvailableNotificationThreshold} = p
@@ -68,7 +69,7 @@ const Files = () => {
   const props = useFiles()
   const {spaceAvailableNotificationThreshold, onEnableSyncNotifications, onDisableSyncNotifications} = props
   const {areSettingsLoading} = props
-  const syncOnCellular = C.useFSState(s => s.settings.syncOnCellular)
+  const syncOnCellular = useFSState(s => s.settings.syncOnCellular)
   const toggleSyncOnCellular = () => {
     T.RPCGen.SimpleFSSimpleFSSetSyncOnCellularRpcPromise(
       {syncOnCellular: !syncOnCellular},

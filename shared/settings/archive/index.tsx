@@ -4,6 +4,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 import {useState as useArchiveState} from '@/constants/archive'
+import {useFSState} from '@/constants/fs'
 
 const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
   const {id, index} = p
@@ -22,7 +23,7 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
     resume(id)
   }, [resume, id])
 
-  const openFinder = C.useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
+  const openFinder = useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
   const onShowFinder = React.useCallback(() => {
     if (!job) return
     openFinder?.(job.outPath)
@@ -140,7 +141,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
     loadKBFSJobFreshness(id)
   })
 
-  const openFinder = C.useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
+  const openFinder = useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
   const onShowFinder = React.useCallback(() => {
     if (Kb.Styles.isMobile || !job) {
       return

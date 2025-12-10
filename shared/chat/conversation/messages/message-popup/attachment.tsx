@@ -4,6 +4,7 @@ import type * as T from '@/constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '@/styles'
 import {useItems, useHeader} from './hooks'
 import * as Kb from '@/common-adapters'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -81,7 +82,7 @@ const PopAttach = (ownProps: OwnProps) => {
   }, [messageAttachmentNativeShare, ordinal])
   const onShareAttachment = C.isMobile ? _onShareAttachment : undefined
 
-  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+  const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const _onShowInFinder = React.useCallback(() => {

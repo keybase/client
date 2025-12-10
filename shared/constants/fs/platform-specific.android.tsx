@@ -2,6 +2,7 @@ import * as C from '..'
 import * as T from '../types'
 import logger from '@/logger'
 import nativeInit from './common.native'
+import {useFSState} from '.'
 import {androidAddCompleteDownload, fsCacheDir, fsDownloadDir} from 'react-native-kb'
 
 const finishedRegularDownloadIDs = new Set<string>()
@@ -9,7 +10,7 @@ const finishedRegularDownloadIDs = new Set<string>()
 export default function initPlatformSpecific() {
   nativeInit()
 
-  C.useFSState.setState(s => {
+  useFSState.setState(s => {
     s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = C.wrapErrors(() => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSConfigureDownloadRpcPromise({
@@ -35,7 +36,7 @@ export default function initPlatformSpecific() {
           }
           finishedRegularDownloadIDs.add(downloadID)
 
-          const {downloads} = C.useFSState.getState()
+          const {downloads} = useFSState.getState()
 
           const downloadState = downloads.state.get(downloadID) || C.FS.emptyDownloadState
           const downloadInfo = downloads.info.get(downloadID) || C.FS.emptyDownloadInfo

@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useFSState} from '@/constants/fs'
 
 type Props = {
   path: T.FS.Path
@@ -8,8 +9,8 @@ type Props = {
 }
 
 export const useOpen = (props: Props) => {
-  const destPicker = C.useFSState(s => s.destinationPicker)
-  const pathItems = C.useFSState(s => s.pathItems)
+  const destPicker = useFSState(s => s.destinationPicker)
+  const pathItems = useFSState(s => s.pathItems)
   const nav = useSafeNavigation()
 
   if (typeof props.destinationPickerIndex !== 'number') {

@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useFSState} from '@/constants/fs'
 
 type Props = {
   path: T.FS.Path
@@ -15,9 +16,9 @@ const getTlfName = (parsedPath: T.FS.ParsedPath): string => {
 }
 
 const PublicBanner = ({path}: Props) => {
-  const isWritable = C.useFSState(s => C.FS.getPathItem(s.pathItems, path).writable)
-  const lastPublicBannerClosedTlf = C.useFSState(s => s.lastPublicBannerClosedTlf)
-  const setLastPublicBannerClosedTlf = C.useFSState(s => s.dispatch.setLastPublicBannerClosedTlf)
+  const isWritable = useFSState(s => C.FS.getPathItem(s.pathItems, path).writable)
+  const lastPublicBannerClosedTlf = useFSState(s => s.lastPublicBannerClosedTlf)
+  const setLastPublicBannerClosedTlf = useFSState(s => s.dispatch.setLastPublicBannerClosedTlf)
 
   const setLastClosed = () => setLastPublicBannerClosedTlf(tlfName)
 

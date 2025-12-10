@@ -5,13 +5,14 @@ import {folderNameWithoutUsers} from '@/util/kbfs'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from '@/fs/browser/rows/types'
 import {useTrackerState} from '@/constants/tracker2'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {path: T.FS.Path}
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = C.useFSState(s => C.FS.getTlfFromPath(s.tlfs, path))
-  const letResetUserBackIn = C.useFSState(s => s.dispatch.letResetUserBackIn)
+  const _tlf = useFSState(s => C.FS.getTlfFromPath(s.tlfs, path))
+  const letResetUserBackIn = useFSState(s => s.dispatch.letResetUserBackIn)
   const _onOpenWithoutResetUsers = React.useCallback(
     (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
       const pathElems = T.FS.getPathElements(currPath)

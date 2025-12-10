@@ -10,7 +10,7 @@ type PathInfoProps = {
 }
 
 const useMountPointPath = (platformAfterMountPath: string) => {
-  const sfmi = C.useFSState(s => s.sfmi)
+  const sfmi = useFSState(s => s.sfmi)
   const mount =
     sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
       ? sfmi.preferredMountDirs[0] || sfmi.directMountDir

@@ -8,6 +8,7 @@ import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {getEditStyle, ShowToastAfterSaving} from './shared'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {showPopup: () => void}
 
@@ -54,7 +55,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     },
     [switchTab, saltpackOpenFile]
   )
-  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+  const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const _onShowInFinder = React.useCallback(() => {

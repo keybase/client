@@ -2,6 +2,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as Styles from '@/styles'
+import {useFSState} from '@/constants/fs'
 
 type Props = {
   onClick: () => void
@@ -19,7 +20,7 @@ type OwnProps = Omit<Props, 'pathItem'>
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
+  const pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, path))
   const props = {
     ...ownProps,
     pathItem,

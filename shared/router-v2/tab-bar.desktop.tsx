@@ -14,6 +14,7 @@ import KB2 from '@/util/electron.desktop'
 import './tab-bar.css'
 import {useSettingsState, settingsLogOutTab} from '@/constants/settings'
 import {useTrackerState} from '@/constants/tracker2'
+import {useFSState} from '@/constants/fs'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -23,7 +24,7 @@ export type Props = {
 }
 
 const FilesTabBadge = () => {
-  const uploadIcon = C.useFSState(s => s.getUploadIconForFilesTab())
+  const uploadIcon = useFSState(s => s.getUploadIconForFilesTab())
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.badgeIconUpload} /> : null
 }
 
@@ -210,7 +211,7 @@ type TabProps = {
 const TabBadge = (p: {name: Tabs.Tab}) => {
   const {name} = p
   const badgeNumbers = C.useNotifState(s => s.navBadges)
-  const fsCriticalUpdate = C.useFSState(s => s.criticalUpdate)
+  const fsCriticalUpdate = useFSState(s => s.criticalUpdate)
   const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
 }

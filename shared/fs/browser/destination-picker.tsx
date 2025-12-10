@@ -8,6 +8,7 @@ import NavHeaderTitle from '@/fs/nav-header/title'
 import Root from './root'
 import Rows from './rows/rows-container'
 import {OriginalOrCompressedButton} from '@/incoming-share'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {index: number}
 
@@ -47,9 +48,9 @@ const canBackUp = C.isMobile
   : () => false
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
-  const destPicker = C.useFSState(s => s.destinationPicker)
+  const destPicker = useFSState(s => s.destinationPicker)
   const isShare = destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare
-  const pathItems = C.useFSState(s => s.pathItems)
+  const pathItems = useFSState(s => s.pathItems)
   const headerRightButton =
     destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare ? (
       <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />
@@ -57,8 +58,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
 
   const nav = useSafeNavigation()
 
-  const newFolderRow = C.useFSState(s => s.dispatch.newFolderRow)
-  const moveOrCopy = C.useFSState(s => s.dispatch.moveOrCopy)
+  const newFolderRow = useFSState(s => s.dispatch.newFolderRow)
+  const moveOrCopy = useFSState(s => s.dispatch.moveOrCopy)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const dispatchProps = {

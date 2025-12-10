@@ -5,6 +5,7 @@ import * as Kbfs from '../common'
 import type * as T from '@/constants/types'
 import Actions from './actions'
 import MainBanner from './main-banner'
+import {useFSState} from '@/constants/fs'
 
 /*
  *
@@ -24,9 +25,9 @@ const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
   ) : null
 
 const NavMobileHeader = (props: Props) => {
-  const expanded = C.useFSState(s => s.folderViewFilter !== undefined)
+  const expanded = useFSState(s => s.folderViewFilter !== undefined)
   const {pop} = C.useNav()
-  const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
+  const setFolderViewFilter = useFSState(s => s.dispatch.setFolderViewFilter)
 
   const filterDone = setFolderViewFilter
   const triggerFilterMobile = () => setFolderViewFilter('')

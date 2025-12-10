@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import type {FloatingMenuProps} from './types'
 import Menu from './menu-container'
 import Confirm from './confirm'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -24,7 +25,7 @@ const ChooseView = (props: Props) => {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const view = C.useFSState(s => s.pathItemActionMenu.view)
+  const view = useFSState(s => s.pathItemActionMenu.view)
   const props = {
     ...ownProps,
     view,

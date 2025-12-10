@@ -4,9 +4,10 @@ import * as T from '../types'
 import * as Styles from '@/styles'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
+import {useFSState} from '.'
 
 export default function initNative() {
-  C.useFSState.setState(s => {
+  useFSState.setState(s => {
     s.dispatch.dynamic.pickAndUploadMobile = C.wrapErrors(
       (type: T.FS.MobilePickType, parentPath: T.FS.Path) => {
         const f = async () => {
@@ -14,7 +15,7 @@ export default function initNative() {
             const result = await launchImageLibraryAsync(type, true, true)
             if (result.canceled) return
             result.assets.map(r =>
-              C.useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(r.uri))
+              useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(r.uri))
             )
           } catch (e) {
             C.FS.errorToActionOrThrow(e)
@@ -27,7 +28,7 @@ export default function initNative() {
     s.dispatch.dynamic.finishedDownloadWithIntentMobile = C.wrapErrors(
       (downloadID: string, downloadIntent: T.FS.DownloadIntent, mimeType: string) => {
         const f = async () => {
-          const {downloads, dispatch} = C.useFSState.getState()
+          const {downloads, dispatch} = useFSState.getState()
           const downloadState = downloads.state.get(downloadID) || C.FS.emptyDownloadState
           if (downloadState === C.FS.emptyDownloadState) {
             logger.warn('missing download', downloadID)

@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import type {FloatingMenuProps} from './types'
 import * as Kb from '@/common-adapters'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -11,11 +12,11 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {path, floatingMenuProps} = ownProps
-  const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
-  const size = C.useFSState(s => C.FS.getPathItem(s.pathItems, path).size)
+  const _pathItemActionMenu = useFSState(s => s.pathItemActionMenu)
+  const size = useFSState(s => C.FS.getPathItem(s.pathItems, path).size)
 
-  const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
-  const download = C.useFSState(s => s.dispatch.download)
+  const setPathItemActionMenuView = useFSState(s => s.dispatch.setPathItemActionMenuView)
+  const download = useFSState(s => s.dispatch.download)
   const _confirm = React.useCallback(
     ({view, previousView}: typeof _pathItemActionMenu) => {
       download(path, view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share')

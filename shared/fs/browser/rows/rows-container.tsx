@@ -4,6 +4,7 @@ import * as RowTypes from './types'
 import {sortRowItems, type SortableRowItem} from './sort'
 import Rows, {type Props} from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
+import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
   path: T.FS.Path // path to the parent folder containering the rows,
@@ -168,11 +169,11 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
     : rows
 
 const Container = (o: OwnProps) => {
-  const _edits = C.useFSState(s => s.edits)
-  const _filter = C.useFSState(s => s.folderViewFilter)
-  const _pathItems = C.useFSState(s => s.pathItems)
-  const _sortSetting = C.useFSState(s => C.FS.getPathUserSetting(s.pathUserSettings, o.path).sort)
-  const _tlfs = C.useFSState(s => s.tlfs)
+  const _edits = useFSState(s => s.edits)
+  const _filter = useFSState(s => s.folderViewFilter)
+  const _pathItems = useFSState(s => s.pathItems)
+  const _sortSetting = useFSState(s => C.FS.getPathUserSetting(s.pathUserSettings, o.path).sort)
+  const _tlfs = useFSState(s => s.tlfs)
   const _username = C.useCurrentUserState(s => s.username)
 
   const s = {
