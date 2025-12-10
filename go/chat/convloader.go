@@ -154,7 +154,8 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	}
 	b.identNotifier.ResetOnGUIConnect()
 	b.newQueue()
-	go func() { _ = b.monitorAppState() }()
+	stopCh := b.stopCh
+	go func() { _ = b.monitorAppState(stopCh) }()
 
 	return b
 }
@@ -169,32 +170,37 @@ func (b *BackgroundConvLoader) removeActiveLoadLocked(key string) {
 	delete(b.activeLoads, key)
 }
 
-func (b *BackgroundConvLoader) monitorAppState() error {
+func (b *BackgroundConvLoader) monitorAppState(stopCh chan struct{}) error {
 	ctx := context.Background()
 	b.Debug(ctx, "monitorAppState: starting up")
 
 	suspended := false
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-b.G().MobileAppState.NextUpdate(&state)
-		switch state {
-		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
-			b.Debug(ctx, "monitorAppState: active state: %v", state)
-			// Only resume if we had suspended earlier (frontend can spam us with these)
-			if suspended {
-				b.Debug(ctx, "monitorAppState: resuming load thread")
-				b.Resume(ctx)
-				suspended = false
+		select {
+		case state = <-b.G().MobileAppState.NextUpdate(&state):
+			switch state {
+			case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
+				b.Debug(ctx, "monitorAppState: active state: %v", state)
+				// Only resume if we had suspended earlier (frontend can spam us with these)
+				if suspended {
+					b.Debug(ctx, "monitorAppState: resuming load thread")
+					b.Resume(ctx)
+					suspended = false
+				}
+			case keybase1.MobileAppState_BACKGROUND:
+				b.Debug(ctx, "monitorAppState: backgrounded, suspending load thread")
+				if !suspended {
+					b.Suspend(ctx)
+					suspended = true
+				}
 			}
-		case keybase1.MobileAppState_BACKGROUND:
-			b.Debug(ctx, "monitorAppState: backgrounded, suspending load thread")
-			if !suspended {
-				b.Suspend(ctx)
-				suspended = true
+			if b.appStateCh != nil {
+				b.appStateCh <- struct{}{}
 			}
-		}
-		if b.appStateCh != nil {
-			b.appStateCh <- struct{}{}
+		case <-stopCh:
+			b.Debug(ctx, "monitorAppState: shutting down")
+			return nil
 		}
 	}
 }

@@ -280,7 +280,7 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 			select {
 			case <-ch:
 				time.Sleep(libkb.RandomJitter(idx.resumeWait))
-			case <-idx.stopCh:
+			case <-stopCh:
 				stopSync(ctx)
 				return nil
 			}

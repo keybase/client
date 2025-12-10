@@ -159,10 +159,10 @@ func (r *ChatArchiveRegistry) flushLoop(stopCh chan struct{}) error {
 	}
 }
 
-func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context) (err error) {
+func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context, stopCh chan struct{}) (err error) {
 	defer r.Trace(ctx, &err, "resumeAllBgJobs")()
 	select {
-	case <-r.stopCh:
+	case <-stopCh:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
@@ -188,12 +188,12 @@ func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context) (err error) {
 	return nil
 }
 
-func (r *ChatArchiveRegistry) monitorAppState() error {
+func (r *ChatArchiveRegistry) monitorAppState(stopCh chan struct{}) error {
 	appState := keybase1.MobileAppState_FOREGROUND
 	ctx, cancel := context.WithCancel(context.Background())
 	for {
 		select {
-		case <-r.stopCh:
+		case <-stopCh:
 			cancel()
 			return nil
 		case appState = <-r.G().MobileAppState.NextUpdate(&appState):
@@ -201,7 +201,7 @@ func (r *ChatArchiveRegistry) monitorAppState() error {
 			switch appState {
 			case keybase1.MobileAppState_FOREGROUND:
 				go func() {
-					ierr := r.resumeAllBgJobs(ctx)
+					ierr := r.resumeAllBgJobs(ctx, stopCh)
 					if ierr != nil {
 						r.Debug(ctx, ierr.Error())
 					}
@@ -233,13 +233,16 @@ func (r *ChatArchiveRegistry) Start(ctx context.Context, uid gregor1.UID) {
 	r.uid = uid
 	r.started = true
 	r.stopCh = make(chan struct{})
+	stopCh := r.stopCh
 	r.eg.Go(func() error {
-		return r.flushLoop(r.stopCh)
+		return r.flushLoop(stopCh)
 	})
 	r.eg.Go(func() error {
-		return r.resumeAllBgJobs(context.Background())
+		return r.resumeAllBgJobs(context.Background(), stopCh)
 	})
-	r.eg.Go(r.monitorAppState)
+	r.eg.Go(func() error {
+		return r.monitorAppState(stopCh)
+	})
 }
 
 func (r *ChatArchiveRegistry) bgPauseAllJobsLocked(ctx context.Context) (err error) {
