@@ -5,6 +5,7 @@ import logger from '@/logger'
 import * as T from '../types'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
+import {useProfileState} from '@/constants/profile'
 
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),

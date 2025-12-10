@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '@/util/timestamp'

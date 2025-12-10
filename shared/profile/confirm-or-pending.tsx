@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
