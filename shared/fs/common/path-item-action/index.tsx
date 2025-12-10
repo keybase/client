@@ -57,8 +57,13 @@ const IconClickable = React.memo(function IconClickable(props: ICProps) {
 
 const PathItemAction = (props: Props) => {
   const {initView, path, mode} = props
-  const setPathItemActionMenuDownload = useFSState(s => s.dispatch.setPathItemActionMenuDownload)
-  const setPathItemActionMenuView = useFSState(s => s.dispatch.setPathItemActionMenuView)
+  const {setPathItemActionMenuDownload, setPathItemActionMenuView} = useFSState(
+    C.useShallow(s => {
+      const setPathItemActionMenuDownload = s.dispatch.setPathItemActionMenuDownload
+      const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
+      return {setPathItemActionMenuDownload, setPathItemActionMenuView}
+    })
+  )
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {

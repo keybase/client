@@ -52,11 +52,15 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const ConnectedBanner = () => {
-  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const {_kbfsDaemonStatus, _overallSyncStatus, loadPathMetadata} = useFSState(
+    C.useShallow(s => {
+      const _kbfsDaemonStatus = s.kbfsDaemonStatus
+      const _overallSyncStatus = s.overallSyncStatus
+      const loadPathMetadata = s.dispatch.loadPathMetadata
+      return {_kbfsDaemonStatus, _overallSyncStatus, loadPathMetadata}
+    })
+  )
   const _name = C.useCurrentUserState(s => s.username)
-  const _overallSyncStatus = useFSState(s => s.overallSyncStatus)
-
-  const loadPathMetadata = useFSState(s => s.dispatch.loadPathMetadata)
   // This LoadPathMetadata triggers a sync retry.
   const onRetry = () => {
     loadPathMetadata(T.FS.stringToPath('/keybase/private' + _name))

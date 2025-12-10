@@ -21,8 +21,13 @@ const styles = Kb.Styles.styleSheetCreate(
 
 const Loading = (op: OwnProps) => {
   const {path} = op
-  const _pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, path))
-  const _tlfsLoaded = useFSState(s => !!s.tlfs.private.size)
+  const {_pathItem, _tlfsLoaded} = useFSState(
+    C.useShallow(s => {
+      const _pathItem = C.FS.getPathItem(s.pathItems, path)
+      const _tlfsLoaded = !!s.tlfs.private.size
+      return {_pathItem, _tlfsLoaded}
+    })
+  )
   const parsedPath = C.FS.parsePath(path)
   let show = false
 

@@ -28,8 +28,13 @@ const SyncingFolders = (props: Props) =>
   ) : null
 
 const SyncFolders = (op: OwnProps) => {
-  const syncingFoldersProgress = useFSState(s => s.overallSyncStatus.syncingFoldersProgress)
-  const online = useFSState(s => s.kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline)
+  const {syncingFoldersProgress, online} = useFSState(
+    C.useShallow(s => {
+      const syncingFoldersProgress = s.overallSyncStatus.syncingFoldersProgress
+      const online = s.kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline
+      return {syncingFoldersProgress, online}
+    })
+  )
   const {negative} = op
 
   if (syncingFoldersProgress.bytesTotal === 0) {

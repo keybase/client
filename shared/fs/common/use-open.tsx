@@ -9,8 +9,12 @@ type Props = {
 }
 
 export const useOpen = (props: Props) => {
-  const destPicker = useFSState(s => s.destinationPicker)
-  const pathItems = useFSState(s => s.pathItems)
+  const {destPicker, pathItems} = useFSState(
+    C.useShallow(s => {
+      const {destinationPicker, pathItems} = s
+      return {destPicker: destinationPicker, pathItems}
+    })
+  )
   const nav = useSafeNavigation()
 
   if (typeof props.destinationPickerIndex !== 'number') {

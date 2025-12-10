@@ -60,8 +60,13 @@ type OwnProps = {path?: T.FS.Path}
 
 const Connected = (ownProps: OwnProps) => {
   const path = ownProps.path ?? C.FS.defaultPath
-  const _pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, path))
-  const kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const {_pathItem, kbfsDaemonStatus} = useFSState(
+    C.useShallow(s => {
+      const _pathItem = C.FS.getPathItem(s.pathItems, path)
+      const kbfsDaemonStatus = s.kbfsDaemonStatus
+      return {_pathItem, kbfsDaemonStatus}
+    })
+  )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const emitBarePreview = () => {

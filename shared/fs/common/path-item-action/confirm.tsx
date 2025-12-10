@@ -12,11 +12,15 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {path, floatingMenuProps} = ownProps
-  const _pathItemActionMenu = useFSState(s => s.pathItemActionMenu)
-  const size = useFSState(s => C.FS.getPathItem(s.pathItems, path).size)
-
-  const setPathItemActionMenuView = useFSState(s => s.dispatch.setPathItemActionMenuView)
-  const download = useFSState(s => s.dispatch.download)
+  const {_pathItemActionMenu, size, setPathItemActionMenuView, download} = useFSState(
+    C.useShallow(s => {
+      const _pathItemActionMenu = s.pathItemActionMenu
+      const size = C.FS.getPathItem(s.pathItems, path).size
+      const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
+      const download = s.dispatch.download
+      return {_pathItemActionMenu, size, setPathItemActionMenuView, download}
+    })
+  )
   const _confirm = React.useCallback(
     ({view, previousView}: typeof _pathItemActionMenu) => {
       download(path, view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share')

@@ -9,10 +9,15 @@ type OwnPropsPathItem = {
 }
 
 const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
-  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
-  const _pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, ownProps.path))
-  const _tlf = useFSState(s => C.FS.getTlfFromPath(s.tlfs, ownProps.path))
-  const _uploads = useFSState(s => s.uploads.syncingPaths)
+  const {_kbfsDaemonStatus, _pathItem, _tlf, _uploads} = useFSState(
+    C.useShallow(s => {
+      const _kbfsDaemonStatus = s.kbfsDaemonStatus
+      const _pathItem = C.FS.getPathItem(s.pathItems, ownProps.path)
+      const _tlf = C.FS.getTlfFromPath(s.tlfs, ownProps.path)
+      const _uploads = s.uploads.syncingPaths
+      return {_kbfsDaemonStatus, _pathItem, _tlf, _uploads}
+    })
+  )
   const props = {
     isFolder: _pathItem.type === T.FS.PathType.Folder,
     showTooltipOnPressMobile: ownProps.showTooltipOnPressMobile,
@@ -32,11 +37,14 @@ type OwnPropsTlfType = {
 }
 
 const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
-  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
-  const _tlfList = useFSState(s =>
-    ownProps.tlfType ? C.FS.getTlfListFromType(s.tlfs, ownProps.tlfType) : new Map()
+  const {_kbfsDaemonStatus, _tlfList, _uploads} = useFSState(
+    C.useShallow(s => {
+      const _kbfsDaemonStatus = s.kbfsDaemonStatus
+      const _tlfList = ownProps.tlfType ? C.FS.getTlfListFromType(s.tlfs, ownProps.tlfType) : new Map()
+      const _uploads = s.uploads
+      return {_kbfsDaemonStatus, _tlfList, _uploads}
+    })
   )
-  const _uploads = useFSState(s => s.uploads)
   const props = {
     isFolder: true,
     isTlfType: true,

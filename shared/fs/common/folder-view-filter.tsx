@@ -12,8 +12,13 @@ type Props = {
 }
 
 const FolderViewFilter = (props: Props) => {
-  const pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, props.path))
-  const setFolderViewFilter = useFSState(s => s.dispatch.setFolderViewFilter)
+  const {pathItem, setFolderViewFilter} = useFSState(
+    C.useShallow(s => {
+      const pathItem = C.FS.getPathItem(s.pathItems, props.path)
+      const setFolderViewFilter = s.dispatch.setFolderViewFilter
+      return {pathItem, setFolderViewFilter}
+    })
+  )
   const onUpdate = React.useMemo(
     () =>
       debounce((newFilter: string) => {

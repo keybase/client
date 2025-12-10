@@ -22,20 +22,26 @@ const Container = (op: OwnProps) => {
   const {path, mode, floatingMenuProps} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   Kbfs.useFsFileContext(path)
-  const pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, path))
-  const pathItemActionMenu = useFSState(s => s.pathItemActionMenu)
+  const {pathItem, pathItemActionMenu, fileContext, cancelDownload, setPathItemActionMenuView, download} =
+    useFSState(
+      C.useShallow(s => {
+        const pathItem = C.FS.getPathItem(s.pathItems, path)
+        const pathItemActionMenu = s.pathItemActionMenu
+        const fileContext = s.fileContext.get(path) || C.FS.emptyFileContext
+        const cancelDownload = s.dispatch.cancelDownload
+        const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
+        const download = s.dispatch.download
+        return {pathItem, pathItemActionMenu, fileContext, cancelDownload, setPathItemActionMenuView, download}
+      })
+    )
   const {downloadID, downloadIntent, view} = pathItemActionMenu
   const username = C.useCurrentUserState(s => s.username)
-  const fileContext = useFSState(s => s.fileContext.get(path) || C.FS.emptyFileContext)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
-  const cancelDownload = useFSState(s => s.dispatch.cancelDownload)
   const cancel = () => {
     C.isMobile && downloadID && cancelDownload(downloadID)
   }
-  const setPathItemActionMenuView = useFSState(s => s.dispatch.setPathItemActionMenuView)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const download = useFSState(s => s.dispatch.download)
   const saving = downloadID && downloadIntent === T.FS.DownloadIntent.CameraRoll
   const sharing = downloadID && downloadIntent === T.FS.DownloadIntent.Share
 
@@ -49,7 +55,25 @@ const Container = (op: OwnProps) => {
   }
   const hideAndCancelAfter = (f: () => void) => hideAfter(cancelAfter(f))
 
-  const newFolderRow = useFSState(s => s.dispatch.newFolderRow)
+  const {newFolderRow, openPathInSystemFileManagerDesktop, sfmiEnabled, favoriteIgnore, startRename, dismissDownload} =
+    useFSState(
+      C.useShallow(s => {
+        const newFolderRow = s.dispatch.newFolderRow
+        const openPathInSystemFileManagerDesktop = s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+        const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
+        const favoriteIgnore = s.dispatch.favoriteIgnore
+        const startRename = s.dispatch.startRename
+        const dismissDownload = s.dispatch.dismissDownload
+        return {
+          newFolderRow,
+          openPathInSystemFileManagerDesktop,
+          sfmiEnabled,
+          favoriteIgnore,
+          startRename,
+          dismissDownload,
+        }
+      })
+    )
   const itemNewFolder = layout.newFolder
     ? ([
         {
@@ -78,10 +102,6 @@ const Container = (op: OwnProps) => {
     ? ([{icon: 'iconfont-chat', onClick: hideAfter(openChat), title: 'Chat with them'}] as const)
     : []
 
-  const openPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
-  )
-  const sfmiEnabled = useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
   const itemFinder =
     layout.showInSystemFileManager && sfmiEnabled
       ? ([
@@ -189,7 +209,6 @@ const Container = (op: OwnProps) => {
     C.waitingKeyFSFolderList,
     C.waitingKeyFSStat,
   ])
-  const favoriteIgnore = useFSState(s => s.dispatch.favoriteIgnore)
   const ignoreTlf = layout.ignoreTlf
     ? ignoreNeedsToWait
       ? ('disabled' as const)
@@ -211,7 +230,6 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const startRename = useFSState(s => s.dispatch.startRename)
   const itemRename = layout.rename
     ? ([
         {
@@ -277,7 +295,6 @@ const Container = (op: OwnProps) => {
     justDoneWithIntent && hide()
   }, [justDoneWithIntent, hide])
 
-  const dismissDownload = useFSState(s => s.dispatch.dismissDownload)
   const userInitiatedHide = React.useCallback(() => {
     hide()
     downloadID && dismissDownload(downloadID)

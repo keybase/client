@@ -25,9 +25,12 @@ const getDebugToggleShow = () => {
 }
 
 const UpoadContainer = () => {
-  const kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
-  const pathItems = useFSState(s => s.pathItems)
-  const uploads = useFSState(s => s.uploads)
+  const {kbfsDaemonStatus, pathItems, uploads} = useFSState(
+    C.useShallow(s => {
+      const {kbfsDaemonStatus, pathItems, uploads} = s
+      return {kbfsDaemonStatus, pathItems, uploads}
+    })
+  )
   const debugToggleShow = getDebugToggleShow()
 
   // We just use syncingPaths rather than merging with writingToJournal here
