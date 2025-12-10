@@ -373,3 +373,59 @@ func TestConvLoaderJobQueue(t *testing.T) {
 	_, err = j.Push(newTask(convID1, types.ConvLoaderPriorityLow, types.ConvLoaderUnique))
 	require.Error(t, err)
 }
+
+// TestConvLoaderStartStopRace tests the race condition where Start() is called
+// multiple times and then Stop() is called. Without the fix in Start() that
+// waits for existing goroutines before starting new ones, Stop() can hang
+// because the errgroup accumulates goroutines from multiple Start() calls.
+func TestConvLoaderStartStopRace(t *testing.T) {
+	// Use existing test setup which properly initializes everything
+	ctx, tc, world, _, _, _, _ := setupLoaderTest(t)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+
+	// Get the existing loader and stop it first
+	loader := tc.Context().ConvLoader.(*BackgroundConvLoader)
+	stopCh := loader.Stop(ctx)
+	select {
+	case <-stopCh:
+		t.Logf("Initial Stop() completed")
+	case <-time.After(5 * time.Second):
+		t.Fatal("Initial Stop() timed out")
+	}
+
+	// Now test the race: Start multiple times rapidly
+	loader.Start(ctx, uid)
+	require.True(t, loader.isRunning())
+
+	// Call Start() again while already running - this triggers the bug
+	// Without the fix, this would create new goroutines with a new stopCh
+	// while the old goroutines still reference the old stopCh
+	loader.Start(ctx, uid)
+	require.True(t, loader.isRunning())
+
+	// Call Start() one more time to make the race more likely
+	loader.Start(ctx, uid)
+	require.True(t, loader.isRunning())
+
+	// Now try to stop - this should complete within a reasonable time
+	// Without the fix, this would hang because Stop() waits for an errgroup
+	// that contains goroutines listening on different stopCh instances
+	done := make(chan struct{})
+	go func() {
+		<-loader.Stop(ctx)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		// Success - Stop completed
+		t.Logf("Stop() completed successfully after multiple Start() calls")
+	case <-time.After(3 * time.Second):
+		t.Fatal("Stop() hung - the race condition bug is present")
+	}
+
+	require.False(t, loader.isRunning())
+}
