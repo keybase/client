@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
@@ -288,7 +289,7 @@ const Container = (ownProps: OwnProps) => {
   const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamInvite'})
   }
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {
     showUserProfile(username)
   }

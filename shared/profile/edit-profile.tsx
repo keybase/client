@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useTrackerState} from '@/constants/tracker2'
+import {useProfileState} from '@/constants/profile'
 
 const Container = () => {
   const username = C.useCurrentUserState(s => s.username)
@@ -15,7 +16,7 @@ const Container = () => {
     navigateUp()
   }
 
-  const editProfile = C.useProfileState(s => s.dispatch.editProfile)
+  const editProfile = useProfileState(s => s.dispatch.editProfile)
   const onSubmit = (bio: string, fullname: string, location: string) => {
     editProfile(bio, fullname, location)
     navigateUp()

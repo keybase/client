@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {PathItemAction, LastModifiedLine, ItemIcon, type ClickableProps} from '../common'
 import {hasShare} from '../common/path-item-action/layout'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
 type OwnProps = {path: T.FS.Path}
@@ -17,9 +18,9 @@ const Container = (ownProps: OwnProps) => {
   const {pathItem, sfmiEnabled, _download, openPathInSystemFileManagerDesktop, fileContext} = useFSState(
     C.useShallow(s => ({
       _download: s.dispatch.download,
-      fileContext: s.fileContext.get(path) || C.FS.emptyFileContext,
+      fileContext: s.fileContext.get(path) || FS.emptyFileContext,
       openPathInSystemFileManagerDesktop: s.dispatch.dynamic.openPathInSystemFileManagerDesktop,
-      pathItem: C.FS.getPathItem(s.pathItems, path),
+      pathItem: FS.getPathItem(s.pathItems, path),
       sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
     }))
   )
@@ -42,7 +43,7 @@ const Container = (ownProps: OwnProps) => {
         <Kb.Text type="BodyBig" style={styles.filename}>
           {pathItem.name}
         </Kb.Text>
-        <Kb.Text type="BodySmall">{C.FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
+        <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
         {C.isMobile && <LastModifiedLine path={path} mode="default" />}
         {pathItem.type === T.FS.PathType.Symlink && (
           <Kb.Text type="BodySmall" style={styles.symlink}>

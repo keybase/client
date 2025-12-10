@@ -6,6 +6,7 @@ import TextView from './text-view'
 import AVView from './av-view'
 import PdfView from './pdf-view'
 import * as Kb from '@/common-adapters'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
 type Props = {
@@ -26,8 +27,8 @@ const FilePreviewView = (p: Props) => {
 const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   const {pathItem, fileContext} = useFSState(
     C.useShallow(s => ({
-      fileContext: s.fileContext.get(path) || C.FS.emptyFileContext,
-      pathItem: C.FS.getPathItem(s.pathItems, path),
+      fileContext: s.fileContext.get(path) || FS.emptyFileContext,
+      pathItem: FS.getPathItem(s.pathItems, path),
     }))
   )
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
@@ -44,7 +45,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
     return <Kb.Text type="BodySmallError">{`This shouldn't happen type=${pathItem.type}`}</Kb.Text>
   }
 
-  if (fileContext === C.FS.emptyFileContext) {
+  if (fileContext === FS.emptyFileContext) {
     // We are still loading fileContext which is needed to determine which
     // component to use.
     return (

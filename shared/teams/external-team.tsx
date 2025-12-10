@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -174,7 +175,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({participants: [member.username], reason: 'teamMember'})
   const roleString = C.Teams.teamRoleByEnum[member.role]
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   return (
     <Kb.ListItem2
       firstItem={firstItem}

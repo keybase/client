@@ -1,4 +1,5 @@
 import * as C from '..'
+import {useProfileState} from '../profile'
 import * as ConfigConstants from '../config'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '../types'
@@ -252,7 +253,7 @@ export const initPlatformListener = () => {
   C.useConfigState.getState().dispatch.initOpenAtLogin()
   C.useConfigState.getState().dispatch.initAppUpdateLoop()
 
-  C.useProfileState.setState(s => {
+  useProfileState.setState(s => {
     s.dispatch.editAvatar = () => {
       C.useRouterState
         .getState()

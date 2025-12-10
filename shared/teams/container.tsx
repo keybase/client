@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as FS from '@/constants/fs'
 import Teams from './main'
 import openURL from '@/util/open-url'
 import {useTeamsSubscribe} from './subscriber'
@@ -75,7 +76,7 @@ const Connected = () => {
     updateGregorCategory('sawChatBanner', 'true')
   }
   const onOpenFolder = (teamname: T.Teams.Teamname) => {
-    C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
+    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
   }
   const onReadMore = () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')

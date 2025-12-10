@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type Props = {
   onCancel?: () => void
@@ -14,7 +15,7 @@ type Props = {
 const FolderViewFilter = (props: Props) => {
   const {pathItem, setFolderViewFilter} = useFSState(
     C.useShallow(s => {
-      const pathItem = C.FS.getPathItem(s.pathItems, props.path)
+      const pathItem = FS.getPathItem(s.pathItems, props.path)
       const setFolderViewFilter = s.dispatch.setFolderViewFilter
       return {pathItem, setFolderViewFilter}
     })
@@ -27,7 +28,7 @@ const FolderViewFilter = (props: Props) => {
     [setFolderViewFilter]
   )
 
-  return C.FS.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
+  return FS.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.SearchFilter
       size="small"
       placeholderCentered={true}

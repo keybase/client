@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as T from '@/constants/types'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
@@ -20,7 +21,7 @@ const Container = () => {
     )
   }
 
-  const onShowProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const onShowProfile = useProfileState(s => s.dispatch.showUserProfile)
 
   return rekeyers.has(_you) ? (
     <YouRekey onEnterPaperkey={onEnterPaperkey} onBack={onBack} onRekey={onRekey} />

@@ -9,6 +9,7 @@ import NewChatCard from './cards/new-chat'
 import ProfileResetNotice from './system-profile-reset-notice'
 import RetentionNotice from './retention-notice'
 import {usingFlashList} from '../list-area/flashlist-config'
+import * as FS from '@/constants/fs'
 
 const ErrorMessage = () => {
   const createConversationError = C.useChatState(s => s.createConversationError)
@@ -175,7 +176,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   }, [])
 
   const openPrivateFolder = React.useCallback(() => {
-    C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
+    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
   }, [username])
 
   return (

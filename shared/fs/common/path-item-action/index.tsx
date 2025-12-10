@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import ChooseView from './choose-view'
 import type {SizeType} from '@/common-adapters/icon'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 export type ClickableProps = {
   onClick: () => void
@@ -96,7 +97,7 @@ const PathItemAction = (props: Props) => {
     showPopup()
   }, [initView, setPathItemActionMenuView, showPopup])
 
-  if (props.path === C.FS.defaultPath) {
+  if (props.path === FS.defaultPath) {
     return null
   }
 

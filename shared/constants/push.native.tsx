@@ -6,6 +6,7 @@ import logger from '@/logger'
 import * as T from './types'
 import {isDevApplePushToken} from '@/local-debug'
 import {isIOS} from './platform'
+import {useProfileState} from './profile'
 import {
   iosGetHasShownPushPrompt,
   androidRequestPushPermissions,
@@ -163,7 +164,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               if (notification.userInteraction) {
                 const {username} = notification
                 logger.info('[Push] follower: ', username)
-                C.useProfileState.getState().dispatch.showUserProfile(username)
+                useProfileState.getState().dispatch.showUserProfile(username)
               }
               break
             case 'chat.extension':

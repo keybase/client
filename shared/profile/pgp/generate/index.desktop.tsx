@@ -1,9 +1,10 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import Modal from '@/profile/modal'
 
 export default function Generate() {
-  const cancelPgpGen = C.useProfileState(s => s.dispatch.dynamic.cancelPgpGen)
+  const cancelPgpGen = useProfileState(s => s.dispatch.dynamic.cancelPgpGen)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     cancelPgpGen?.()

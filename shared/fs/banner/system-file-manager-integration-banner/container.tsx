@@ -4,6 +4,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {alwaysShow?: boolean}
 
@@ -25,7 +26,7 @@ const SFMIContainer = (op: OwnProps) => {
   const onEnable = driverEnable
   const alwaysShow = op.alwaysShow
 
-  if (!C.FS.sfmiInfoLoaded(settings, driverStatus)) {
+  if (!FS.sfmiInfoLoaded(settings, driverStatus)) {
     return alwaysShow ? (
       <Banner
         background={Background.Blue}

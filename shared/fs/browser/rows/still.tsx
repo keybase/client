@@ -5,6 +5,7 @@ import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 import {LastModifiedLine, Filename} from '@/fs/common'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {
   destinationPickerIndex?: number
@@ -29,7 +30,7 @@ const StillContainer = (p: OwnProps) => {
   const {_downloads, _pathItem, _pathItemActionMenu, _uploads, dismissUpload} = useFSState(
     C.useShallow(s => ({
       _downloads: s.downloads,
-      _pathItem: C.FS.getPathItem(s.pathItems, path),
+      _pathItem: FS.getPathItem(s.pathItems, path),
       _pathItemActionMenu: s.pathItemActionMenu,
       _uploads: s.uploads,
       dismissUpload: s.dispatch.dismissUpload,
@@ -41,7 +42,7 @@ const StillContainer = (p: OwnProps) => {
   const dismissUploadError = writingToJournalUploadState?.error
     ? () => dismissUpload(writingToJournalUploadState.uploadID)
     : undefined
-  const intentIfDownloading = C.FS.getDownloadIntent(path, _downloads, _pathItemActionMenu)
+  const intentIfDownloading = FS.getDownloadIntent(path, _downloads, _pathItemActionMenu)
   const isEmpty =
     _pathItem.type === T.FS.PathType.Folder &&
     _pathItem.progress === T.FS.ProgressType.Loaded &&
@@ -58,7 +59,7 @@ const StillContainer = (p: OwnProps) => {
       uploadErrored={!!dismissUploadError}
       content={
         <>
-          <Filename path={path} type={C.FS.pathTypeToTextType(type)} style={rowStyles.rowText} />
+          <Filename path={path} type={FS.pathTypeToTextType(type)} style={rowStyles.rowText} />
           {isEmpty && (
             <Kb.Meta
               title="empty"

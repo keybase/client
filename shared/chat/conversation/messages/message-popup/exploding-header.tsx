@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '@/util/timestamp'
 import {addTicker, removeTicker} from '@/util/second-timer'
@@ -36,7 +36,7 @@ const ExplodingPopupHeader = (props: Props) => {
     }
   }, [explodesAt])
 
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onUsernameClicked = React.useCallback(
     (user: string) => {
       showUserProfile(user)

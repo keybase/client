@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
@@ -6,12 +7,12 @@ import openUrl from '@/util/open-url'
 import Modal from './modal'
 
 const Container = () => {
-  const platform = C.useProfileState(s => s.platform)
-  const errorText = C.useProfileState(s => s.errorText)
-  const username = C.useProfileState(s => s.username)
-  let proofText = C.useProfileState(s => s.proofText)
-  const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
-  const checkProof = C.useProfileState(s => s.dispatch.checkProof)
+  const platform = useProfileState(s => s.platform)
+  const errorText = useProfileState(s => s.errorText)
+  const username = useProfileState(s => s.username)
+  let proofText = useProfileState(s => s.proofText)
+  const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)
+  const checkProof = useProfileState(s => s.dispatch.checkProof)
   if (
     !platform ||
     platform === 'zcash' ||

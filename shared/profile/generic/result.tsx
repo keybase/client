@@ -1,15 +1,16 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from './shared'
 
 const GenericResult = () => {
-  const errorText = C.useProfileState(s =>
+  const errorText = useProfileState(s =>
     s.errorCode !== undefined ? s.errorText || 'Failed to verify proof' : ''
   )
-  const proofUsername = C.useProfileState(s => s.username + (s.platformGenericParams?.suffix ?? '@unknown'))
-  const serviceIcon = C.useProfileState(s => s.platformGenericParams?.logoFull ?? [])
-  const backToProfile = C.useProfileState(s => s.dispatch.backToProfile)
-  const clearPlatformGeneric = C.useProfileState(s => s.dispatch.clearPlatformGeneric)
+  const proofUsername = useProfileState(s => s.username + (s.platformGenericParams?.suffix ?? '@unknown'))
+  const serviceIcon = useProfileState(s => s.platformGenericParams?.logoFull ?? [])
+  const backToProfile = useProfileState(s => s.dispatch.backToProfile)
+  const clearPlatformGeneric = useProfileState(s => s.dispatch.clearPlatformGeneric)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()

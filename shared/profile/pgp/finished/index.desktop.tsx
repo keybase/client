@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import Modal from '@/profile/modal'
@@ -76,9 +77,9 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const Container = () => {
-  const pgpKeyString = C.useProfileState(s => s.pgpPublicKey || 'Error getting public key...')
-  const promptShouldStoreKeyOnServer = C.useProfileState(s => s.promptShouldStoreKeyOnServer)
-  const finishedWithKeyGen = C.useProfileState(s => s.dispatch.dynamic.finishedWithKeyGen)
+  const pgpKeyString = useProfileState(s => s.pgpPublicKey || 'Error getting public key...')
+  const promptShouldStoreKeyOnServer = useProfileState(s => s.promptShouldStoreKeyOnServer)
+  const finishedWithKeyGen = useProfileState(s => s.dispatch.dynamic.finishedWithKeyGen)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onDone = (shouldStoreKeyOnServer: boolean) => {

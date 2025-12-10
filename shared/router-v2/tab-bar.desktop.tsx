@@ -15,6 +15,7 @@ import './tab-bar.css'
 import {useSettingsState, settingsLogOutTab} from '@/constants/settings'
 import {useTrackerState} from '@/constants/tracker2'
 import {useFSState} from '@/constants/fs'
+import {useProfileState} from '@/constants/profile'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -31,7 +32,7 @@ const FilesTabBadge = () => {
 const Header = () => {
   const username = C.useCurrentUserState(s => s.username)
   const fullname = useTrackerState(s => s.getDetails(username).fullname ?? '')
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
 
   const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
   const stop = useSettingsState(s => s.dispatch.stop)

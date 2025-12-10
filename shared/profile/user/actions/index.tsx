@@ -5,6 +5,7 @@ import * as React from 'react'
 import FollowButton from './follow-button'
 import ChatButton from '@/chat/chat-button'
 import {useTrackerState} from '@/constants/tracker2'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {username: string}
 
@@ -24,7 +25,7 @@ const Container = (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAddToTeam = (username: string) => navigateAppend({props: {username}, selected: 'profileAddToTeam'})
   const _onBrowsePublicFolder = (username: string) =>
-    C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/public/${username}`))
+    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/public/${username}`))
   const _onEditProfile = () => navigateAppend('profileEdit')
 
   const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
@@ -35,7 +36,7 @@ const Container = (ownProps: OwnProps) => {
   const _onManageBlocking = (username: string) =>
     navigateAppend({props: {username}, selected: 'chatBlockingModal'})
   const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
-    C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
+    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const _onReload = (username: string) => {
     showUser(username, false)

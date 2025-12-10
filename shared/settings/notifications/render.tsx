@@ -1,7 +1,7 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import useNotifications from './hooks'
 import Group from '../group'
+import {usePushState} from '@/constants/push'
 
 type Props = ReturnType<typeof useNotifications>
 
@@ -33,7 +33,7 @@ const PhoneSection = (props: Props) => (
 )
 const Notifications = () => {
   const props = useNotifications()
-  const mobileHasPermissions = C.usePushState(s => s.hasPermissions)
+  const mobileHasPermissions = usePushState(s => s.hasPermissions)
   return !props.groups.get('email')?.settings ? (
     <Kb.Box2 direction="vertical" style={styles.loading}>
       <Kb.ProgressIndicator type="Small" style={{width: Kb.Styles.globalMargins.medium}} />

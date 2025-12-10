@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '@/util/platforms'
@@ -14,9 +15,9 @@ type OwnProps = {
 }
 const RevokeProof = (ownProps: OwnProps) => {
   const {platformHandle, platform, proofId, icon} = ownProps
-  const errorMessage = C.useProfileState(s => s.revokeError)
-  const finishRevoking = C.useProfileState(s => s.dispatch.finishRevoking)
-  const submitRevokeProof = C.useProfileState(s => s.dispatch.submitRevokeProof)
+  const errorMessage = useProfileState(s => s.revokeError)
+  const finishRevoking = useProfileState(s => s.dispatch.finishRevoking)
+  const submitRevokeProof = useProfileState(s => s.dispatch.submitRevokeProof)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     finishRevoking()

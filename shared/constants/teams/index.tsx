@@ -1,4 +1,5 @@
 import * as C from '..'
+import {useProfileState} from '../profile'
 import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Router2Constants from '../router2'
@@ -2495,7 +2496,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
             // identify error
             if (error.code === T.RPCGen.StatusCode.scidentifysummaryerror) {
               // show profile card
-              C.useProfileState.getState().dispatch.showUserProfile(username)
+              useProfileState.getState().dispatch.showUserProfile(username)
             }
           }
         }

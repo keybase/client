@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import type * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -115,7 +116,7 @@ const ChannelMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {

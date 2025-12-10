@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import * as FsCommon from '@/fs/common'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
@@ -69,12 +70,12 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
               icon: useOriginalValue ? 'iconfont-check' : undefined,
               onClick: () => setUseOriginalFromUI(true),
               rightTitle: isLarge ? 'Large file' : undefined,
-              title: `Keep full size (${C.FS.humanizeBytes(originalTotalSize, 1)})`,
+              title: `Keep full size (${FS.humanizeBytes(originalTotalSize, 1)})`,
             },
             {
               icon: useOriginalValue ? undefined : 'iconfont-check',
               onClick: () => setUseOriginalFromUI(false),
-              title: `Compress (${C.FS.humanizeBytes(scaledTotalSize, 1)})`,
+              title: `Compress (${FS.humanizeBytes(scaledTotalSize, 1)})`,
             },
           ]}
         />

@@ -6,6 +6,7 @@ import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type Props = {
   canBack?: boolean
@@ -35,7 +36,7 @@ const MobileSendToChatRoutable = (props: Props) => {
             Cancel
           </Kb.Text>
         ),
-        title: C.FS.getSharePathArrayDescription(sendPaths || []),
+        title: FS.getSharePathArrayDescription(sendPaths || []),
       }}
     >
       <MobileSendToChat

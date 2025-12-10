@@ -5,6 +5,7 @@ import logger from '@/logger'
 import * as T from '../types'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
+import {useProfileState} from '@/constants/profile'
 
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),
@@ -592,7 +593,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
       })
       if (!skipNav) {
         // go to profile page
-        C.useProfileState.getState().dispatch.showUserProfile(username)
+        useProfileState.getState().dispatch.showUserProfile(username)
       }
     },
     updateResult: (guiID, result, reason) => {

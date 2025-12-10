@@ -3,12 +3,14 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from './common'
 import {useSettingsEmailState} from '@/constants/settings-email'
+import {useSignupState} from '@/constants/signup'
+import {usePushState} from '@/constants/push'
 
 const ConnectedEnterEmail = () => {
-  const _showPushPrompt = C.usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
+  const _showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
   const addedEmail = useSettingsEmailState(s => s.addedEmail)
   const error = useSettingsEmailState(s => s.error)
-  const initialEmail = C.useSignupState(s => s.email)
+  const initialEmail = useSignupState(s => s.email)
   const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -16,7 +18,7 @@ const ConnectedEnterEmail = () => {
     navigateAppend('settingsPushPrompt', true)
   }, [navigateAppend])
 
-  const setJustSignedUpEmail = C.useSignupState(s => s.dispatch.setJustSignedUpEmail)
+  const setJustSignedUpEmail = useSignupState(s => s.dispatch.setJustSignedUpEmail)
   const _onSkip = () => {
     setJustSignedUpEmail(C.noEmail)
   }

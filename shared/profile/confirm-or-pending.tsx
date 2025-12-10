@@ -1,15 +1,15 @@
-import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
 import Modal from './modal'
 
 const ConfirmOrPending = () => {
-  const proofFound = C.useProfileState(s => s.proofFound)
-  const proofStatus = C.useProfileState(s => s.proofStatus)
-  const platform = C.useProfileState(s => s.platform)
-  const username = C.useProfileState(s => s.username)
-  const backToProfile = C.useProfileState(s => s.dispatch.backToProfile)
+  const proofFound = useProfileState(s => s.proofFound)
+  const proofStatus = useProfileState(s => s.proofStatus)
+  const platform = useProfileState(s => s.platform)
+  const username = useProfileState(s => s.username)
+  const backToProfile = useProfileState(s => s.dispatch.backToProfile)
 
   const isGood = proofFound && proofStatus === T.RPCGen.ProofStatus.ok
   const isPending =

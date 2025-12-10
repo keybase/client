@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
@@ -33,36 +34,36 @@ const Container = (ownProps: OwnProps) => {
   const {_kbfsDaemonStatus, _pathItem, setSorting, _sortSetting} = useFSState(
     C.useShallow(s => ({
       _kbfsDaemonStatus: s.kbfsDaemonStatus,
-      _pathItem: C.FS.getPathItem(s.pathItems, path),
-      _sortSetting: C.FS.getPathUserSetting(s.pathUserSettings, path).sort,
+      _pathItem: FS.getPathItem(s.pathItems, path),
+      _sortSetting: FS.getPathUserSetting(s.pathUserSettings, path).sort,
       setSorting: s.dispatch.setSorting,
     }))
   )
 
-  const sortSetting = C.FS.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined
+  const sortSetting = FS.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const sortByNameAsc =
-        path === C.FS.defaultPath
+        path === FS.defaultPath
           ? undefined
           : () => {
               setSorting(path, T.FS.SortSetting.NameAsc)
             }
       const sortByNameDesc =
-        path === C.FS.defaultPath
+        path === FS.defaultPath
           ? undefined
           : () => {
               setSorting(path, T.FS.SortSetting.NameDesc)
             }
       const sortByTimeAsc =
-        path === C.FS.defaultPath
+        path === FS.defaultPath
           ? undefined
           : () => {
               setSorting(path, T.FS.SortSetting.TimeAsc)
             }
       const sortByTimeDesc =
-        path === C.FS.defaultPath
+        path === FS.defaultPath
           ? undefined
           : () => {
               setSorting(path, T.FS.SortSetting.TimeDesc)

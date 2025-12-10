@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import useFiles from './hooks'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 type Props = ReturnType<typeof useFiles>
 
@@ -11,7 +12,7 @@ export const defaultNotificationThreshold = 100 * 1024 ** 2
 
 const ThresholdDropdown = (p: Pick<Props, 'spaceAvailableNotificationThreshold'>) => {
   const allowedThresholds = allowedNotificationThresholds.map(
-    i => ({label: C.FS.humanizeBytes(i, 0), value: i}) as const
+    i => ({label: FS.humanizeBytes(i, 0), value: i}) as const
   )
   const setSpaceAvailableNotificationThreshold = useFSState(
     s => s.dispatch.setSpaceAvailableNotificationThreshold
@@ -22,7 +23,7 @@ const ThresholdDropdown = (p: Pick<Props, 'spaceAvailableNotificationThreshold'>
   )
   const [visible, setVisible] = React.useState(false)
 
-  const humanizedNotificationThreshold = C.FS.humanizeBytes(
+  const humanizedNotificationThreshold = FS.humanizeBytes(
     spaceAvailableNotificationThreshold || defaultNotificationThreshold,
     0
   )

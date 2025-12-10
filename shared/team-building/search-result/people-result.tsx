@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as FS from '@/constants/fs'
 import CommonResult, {type ResultProps} from './common-result'
 
 /*
@@ -28,14 +29,14 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onOpenPrivateFolder = React.useCallback(() => {
     navigateUp()
-    C.FS.makeActionForOpenPathInFilesTab(
+    FS.makeActionForOpenPathInFilesTab(
       T.FS.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
     )
   }, [navigateUp, decoratedUsername, myUsername])
 
   const onBrowsePublicFolder = React.useCallback(() => {
     navigateUp()
-    C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/public/${decoratedUsername}`))
+    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/public/${decoratedUsername}`))
   }, [navigateUp, decoratedUsername])
 
   const onManageBlocking = React.useCallback(() => {

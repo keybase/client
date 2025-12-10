@@ -7,6 +7,7 @@ import Tlf from './rows/tlf'
 import SfmiBanner from '../banner/system-file-manager-integration-banner/container'
 import {WrapRow} from './rows/rows'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type Props = {
   destinationPickerIndex?: number
@@ -95,7 +96,7 @@ const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<Sectio
       typeof destinationPickerIndex === 'number'
         ? recent.filter(
             ({name, tlfType}) =>
-              !C.FS.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex)
+              !FS.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex)
           )
         : recent
     return afterFilter.slice(0, n)

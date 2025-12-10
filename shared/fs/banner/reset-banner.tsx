@@ -6,12 +6,14 @@ import * as Kb from '@/common-adapters'
 import * as RowTypes from '@/fs/browser/rows/types'
 import {useTrackerState} from '@/constants/tracker2'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
+import {useProfileState} from '@/constants/profile'
 
 type OwnProps = {path: T.FS.Path}
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = useFSState(s => C.FS.getTlfFromPath(s.tlfs, path))
+  const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
   const letResetUserBackIn = useFSState(s => s.dispatch.letResetUserBackIn)
   const _onOpenWithoutResetUsers = React.useCallback(
     (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
@@ -19,7 +21,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       if (pathElems.length < 3) return
       const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
       const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-      C.FS.makeActionForOpenPathInFilesTab(filteredPath)
+      FS.makeActionForOpenPathInFilesTab(filteredPath)
     },
     []
   )
@@ -29,7 +31,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     },
     [letResetUserBackIn]
   )
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
 
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const onViewProfile = React.useCallback(

@@ -1,9 +1,9 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import * as FS from '@/constants/fs'
 
 type Props = {
   path: T.FS.Path
@@ -11,21 +11,21 @@ type Props = {
 }
 
 const Breadcrumb = (props: Props) => {
-  const apath = props.path || C.FS.defaultPath
+  const apath = props.path || FS.defaultPath
   // /keybase/b/c => [/keybase, /keybase/b, /keybase/b/c]
   const ancestors = React.useMemo(() => {
-    return apath === C.FS.defaultPath
+    return apath === FS.defaultPath
       ? []
       : T.FS.getPathElements(apath)
           .slice(1, -1)
-          .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [C.FS.defaultPath])
+          .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [FS.defaultPath])
   }, [apath])
   const {inDestinationPicker} = props
   const nav = useSafeNavigation()
   const onOpenPath = React.useCallback(
     (path: T.FS.Path) => {
       inDestinationPicker
-        ? C.FS.makeActionsForDestinationPickerOpen(0, path)
+        ? FS.makeActionsForDestinationPickerOpen(0, path)
         : nav.safeNavigateAppend({props: {path}, selected: 'fsRoot'})
     },
     [nav, inDestinationPicker]
@@ -97,7 +97,7 @@ const Breadcrumb = (props: Props) => {
 }
 
 const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  C.FS.hasPublicTag(path) ? (
+  FS.hasPublicTag(path) ? (
     <Kb.Box2 direction="horizontal">
       <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} />
     </Kb.Box2>
@@ -112,7 +112,7 @@ const MainTitle = (props: Props) => (
 )
 
 const FsNavHeaderTitle = (props: Props) =>
-  props.path === C.FS.defaultPath ? (
+  props.path === FS.defaultPath ? (
     <Kb.Text type="Header" style={styles.rootTitle}>
       Files
     </Kb.Text>

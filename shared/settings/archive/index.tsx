@@ -4,6 +4,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 import {useState as useArchiveState} from '@/constants/archive'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
 const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
@@ -226,7 +227,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
               </Kb.Text>
               {C.isMobile ? null : <Kb.Box style={{flex: 1}} />}
               {C.isMobile ? null : job.bytesTotal ? (
-                <Kb.Text type="BodySmall">{C.FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
+                <Kb.Text type="BodySmall">{FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
               ) : null}
               <Kb.Text type="BodySmall" style={{flexShrink: 0}}>
                 {C.isMobile

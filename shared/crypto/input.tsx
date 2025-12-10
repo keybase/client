@@ -3,6 +3,7 @@ import * as Crypto from '@/constants/crypto'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import * as FS from '@/constants/fs'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import capitalize from 'lodash/capitalize'
 import {pickFiles} from '@/util/pick-files'
@@ -194,7 +195,7 @@ const FileInput = (props: FileProps) => {
           <Kb.Icon type={fileIcon} sizeType="Huge" />
           <Kb.Box2 direction="vertical">
             <Kb.Text type="BodySemibold">{path}</Kb.Text>
-            {size ? <Kb.Text type="BodySmallSemibold">{C.FS.humanReadableFileSize(size)}</Kb.Text> : null}
+            {size ? <Kb.Text type="BodySmallSemibold">{FS.humanReadableFileSize(size)}</Kb.Text> : null}
           </Kb.Box2>
         </Kb.Box2>
         {path && !waiting && (

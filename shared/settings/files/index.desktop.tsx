@@ -6,6 +6,7 @@ import * as Kbfs from '@/fs/common'
 import RefreshDriverStatusOnMount from '@/fs/common/refresh-driver-status-on-mount'
 import RefreshSettings from './refresh-settings'
 import useFiles from './hooks'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 type Props = ReturnType<typeof useFiles>
 
@@ -27,7 +28,7 @@ const SyncNotificationSetting = (
       <Kb.Dropdown
         items={allowedNotificationThresholds.map(i => (
           <Kb.Text type="Body" key={i}>
-            {C.FS.humanizeBytes(i, 0)}
+            {FS.humanizeBytes(i, 0)}
           </Kb.Text>
         ))}
         onChangedIdx={onChangedSyncNotifications}
@@ -38,7 +39,7 @@ const SyncNotificationSetting = (
             key={spaceAvailableNotificationThreshold || defaultNotificationThreshold}
           >
             <Kb.Text type="Body">
-              {C.FS.humanizeBytes(spaceAvailableNotificationThreshold || defaultNotificationThreshold, 0)}
+              {FS.humanizeBytes(spaceAvailableNotificationThreshold || defaultNotificationThreshold, 0)}
             </Kb.Text>
           </Kb.Box2>
         }

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 
 const ResetUser = () => {
@@ -8,7 +9,7 @@ const ResetUser = () => {
   const resetLetThemIn = C.useChatContext(s => s.dispatch.resetLetThemIn)
   const _participants = participantInfo.all
   const _resetParticipants = meta.resetParticipants
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const _viewProfile = showUserProfile
   const username = [..._resetParticipants][0] || ''
   const nonResetUsers = new Set(_participants)

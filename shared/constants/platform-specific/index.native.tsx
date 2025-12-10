@@ -1,4 +1,5 @@
 import * as C from '..'
+import {useProfileState} from '../profile'
 import * as T from '../types'
 import * as Clipboard from 'expo-clipboard'
 import * as EngineGen from '@/actions/engine-gen-gen'
@@ -451,7 +452,7 @@ export const initPlatformListener = () => {
     })
   })
 
-  C.useProfileState.setState(s => {
+  useProfileState.setState(s => {
     s.dispatch.editAvatar = () => {
       const f = async () => {
         try {

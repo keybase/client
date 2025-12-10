@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import * as FS from '@/constants/fs'
 import Footer from '../footer/footer'
 import View from './view'
 import * as Kbfs from '../common'
@@ -8,7 +9,7 @@ import * as Kbfs from '../common'
 type OwnProps = {path: T.FS.Path}
 
 const ConnectedBarePreview = (ownProps: OwnProps) => {
-  const path = ownProps.path ?? C.FS.defaultPath
+  const path = ownProps.path ?? FS.defaultPath
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
 

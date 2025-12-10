@@ -8,6 +8,7 @@ import Header from './header'
 import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -24,9 +25,9 @@ const Container = (op: OwnProps) => {
   Kbfs.useFsFileContext(path)
   const data = useFSState(
     C.useShallow(s => {
-      const pathItem = C.FS.getPathItem(s.pathItems, path)
+      const pathItem = FS.getPathItem(s.pathItems, path)
       const pathItemActionMenu = s.pathItemActionMenu
-      const fileContext = s.fileContext.get(path) || C.FS.emptyFileContext
+      const fileContext = s.fileContext.get(path) || FS.emptyFileContext
       const {cancelDownload, setPathItemActionMenuView, download, newFolderRow} = s.dispatch
       const {favoriteIgnore, startRename, dismissDownload} = s.dispatch
       const {openPathInSystemFileManagerDesktop} = s.dispatch.dynamic

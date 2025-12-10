@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Props} from '.'
@@ -71,7 +72,7 @@ export default (ownProps: Props): Ret => {
     uploadTeamAvatar(teamname, filename, sendChatNotification, crop)
   }
 
-  const uploadAvatar = C.useProfileState(s => s.dispatch.uploadAvatar)
+  const uploadAvatar = useProfileState(s => s.dispatch.uploadAvatar)
 
   const onSaveUserAvatar = (_filename: string, crop?: T.RPCGen.ImageCropRect) => {
     const filename = Kb.Styles.unnormalizePath(_filename)

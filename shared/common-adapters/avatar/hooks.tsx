@@ -4,6 +4,7 @@ import * as React from 'react'
 import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType} from '../icon'
 import * as Styles from '@/styles'
 import * as AvatarZus from './store'
+import {useProfileState} from '@/constants/profile'
 import './avatar.css'
 import type {Props} from '.'
 import {useColorScheme} from 'react-native'
@@ -66,7 +67,7 @@ export default (ownProps: Props) => {
   )
   const httpSrv = C.useConfigState(s => s.httpSrv)
   const blocked = C.useUsersState(s => s.blockMap.get(username || teamname || '')?.chatBlocked)
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const goToProfile = React.useCallback(
     () => username && showUserProfile(username),
     [showUserProfile, username]

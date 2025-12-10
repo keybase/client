@@ -11,6 +11,7 @@ import Root from './root'
 import Rows from './rows/rows-container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -19,12 +20,12 @@ const Container = (ownProps: OwnProps) => {
   const {_kbfsDaemonStatus, _pathItem, resetBannerType} = useFSState(
     C.useShallow(s => ({
       _kbfsDaemonStatus: s.kbfsDaemonStatus,
-      _pathItem: C.FS.getPathItem(s.pathItems, path),
-      resetBannerType: C.FS.resetBannerType(s, path),
+      _pathItem: FS.getPathItem(s.pathItems, path),
+      resetBannerType: FS.resetBannerType(s, path),
     }))
   )
   const props = {
-    offlineUnsynced: C.FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
+    offlineUnsynced: FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
     path,
     resetBannerType,
     writable: _pathItem.writable,
@@ -84,7 +85,7 @@ const DragAndDrop = React.memo(function DragAndDrop(p: {
 })
 
 const BrowserContent = React.memo(function BrowserContent(props: Props) {
-  const parsedPath = C.FS.parsePath(props.path)
+  const parsedPath = FS.parsePath(props.path)
   if (parsedPath.kind === T.FS.PathKind.Root) {
     return (
       <DragAndDrop path={props.path} rejectReason="You can only drop files inside a folder.">

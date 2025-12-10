@@ -8,6 +8,7 @@ import {
   androidSetApplicationIconBadgeNumber,
   getNativeEmitter,
 } from 'react-native-kb'
+import {usePushState} from '../push'
 
 const setApplicationIconBadgeNumber = (n: number) => {
   if (isIOS) {
@@ -152,13 +153,13 @@ const listenForNativeAndroidIntentNotifications = async () => {
   const pushToken = await androidGetRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
 
-  C.usePushState.getState().dispatch.setPushToken(pushToken)
+  usePushState.getState().dispatch.setPushToken(pushToken)
 
   const RNEmitter = getNativeEmitter()
   RNEmitter.addListener('initialIntentFromNotification', (evt?: object) => {
     const notification = evt && normalizePush(evt)
     if (notification) {
-      C.usePushState.getState().dispatch.handlePush(notification)
+      usePushState.getState().dispatch.handlePush(notification)
     }
   })
 
@@ -180,7 +181,7 @@ const listenForNativeAndroidIntentNotifications = async () => {
 const iosListenForPushNotificationsFromJS = () => {
   const onRegister = (token: string) => {
     logger.debug('[PushToken] received new token: ', token)
-    C.usePushState.getState().dispatch.setPushToken(token)
+    usePushState.getState().dispatch.setPushToken(token)
   }
 
   const onNotification = (n: object) => {
@@ -190,7 +191,7 @@ const iosListenForPushNotificationsFromJS = () => {
       return
     }
 
-    C.usePushState.getState().dispatch.handlePush(notification)
+    usePushState.getState().dispatch.handlePush(notification)
   }
 
   isIOS && PushNotificationIOS.addEventListener('notification', onNotification)
@@ -236,7 +237,7 @@ export const initPushListener = () => {
       return
     }
     logger.debug(`[PushCheck] checking on foreground`)
-    C.usePushState
+    usePushState
       .getState()
       .dispatch.checkPermissions()
       .then(() => {})
@@ -246,7 +247,7 @@ export const initPushListener = () => {
   // Token handling
   C.useLogoutState.subscribe((s, old) => {
     if (s.version === old.version) return
-    C.usePushState.getState().dispatch.deleteToken(s.version)
+    usePushState.getState().dispatch.deleteToken(s.version)
   })
 
   let lastCount = -1
@@ -262,7 +263,7 @@ export const initPushListener = () => {
     lastCount = count
   })
 
-  C.usePushState.getState().dispatch.initialPermissionsCheck()
+  usePushState.getState().dispatch.initialPermissionsCheck()
 
   const listenNative = async () => {
     if (isAndroid) {

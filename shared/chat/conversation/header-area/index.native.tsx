@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
@@ -218,7 +219,7 @@ const UsernameHeader = () => {
       return {participants, theirFullname}
     })
   )
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onShowProfile = React.useCallback(
     (username: string) => {
       showUserProfile(username)

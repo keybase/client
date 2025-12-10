@@ -8,6 +8,7 @@ import WhatsNewIcon from '../whats-new/icon'
 import noop from 'lodash/noop'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
 import * as Settings from '@/constants/settings'
+import {usePushState} from '@/constants/push'
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
@@ -61,7 +62,7 @@ type Section = Omit<Kb.SectionType<Item>, 'renderItem'>
 
 function SettingsNav() {
   const badgeNumbers = C.useNotifState(s => s.navBadges)
-  const badgeNotifications = C.usePushState(s => !s.hasPermissions)
+  const badgeNotifications = usePushState(s => !s.hasPermissions)
   const statsShown = C.useConfigState(s => !!s.runtimeStats)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const contactsLabel = useSettingsContactsState(s =>

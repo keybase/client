@@ -2,6 +2,7 @@ import * as T from '@/constants/types'
 import Upload from './upload'
 import {useUploadCountdown} from './use-upload-countdown'
 import * as C from '@/constants'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
 // NOTE flip this to show a button to debug the upload banner animations.
@@ -39,7 +40,7 @@ const UpoadContainer = () => {
 
   // Filter out folder paths.
   const filePaths = [...uploads.syncingPaths].filter(
-    path => C.FS.getPathItem(pathItems, path).type !== T.FS.PathType.Folder
+    path => FS.getPathItem(pathItems, path).type !== T.FS.PathType.Folder
   )
 
   const np = useUploadCountdown({

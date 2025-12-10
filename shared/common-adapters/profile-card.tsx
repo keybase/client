@@ -12,6 +12,7 @@ import {_setWithProfileCardPopup} from './usernames'
 import FloatingMenu from './floating-menu'
 import Icon from './icon'
 import Meta from './meta'
+import {useProfileState} from '@/constants/profile'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import WithTooltip from './with-tooltip'
@@ -180,7 +181,7 @@ const ProfileCard = ({
     [changeFollow, userDetails]
   )
 
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const openProfile = React.useCallback(() => {
     showUserProfile(username)
     onHide?.()

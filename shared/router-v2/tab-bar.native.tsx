@@ -6,6 +6,7 @@ import * as Shared from './router.shared'
 import {View} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {useColorScheme} from 'react-native'
+import {usePushState} from '@/constants/push'
 
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
@@ -23,7 +24,7 @@ export const TabBarIcon = React.memo(function TabBarIconImpl(props: {
 }) {
   const {isFocused, routeName} = props
   const navBadges = C.useNotifState(s => s.navBadges)
-  const hasPermissions = C.usePushState(s => s.hasPermissions)
+  const hasPermissions = usePushState(s => s.hasPermissions)
   const onSettings = routeName === Tabs.settingsTab
   const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
   const badgeNumber = tabsToCount.reduce(

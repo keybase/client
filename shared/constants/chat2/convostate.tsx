@@ -8,6 +8,7 @@ import * as Message from './message'
 import * as Meta from './meta'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
+import * as FS from '@/constants/fs'
 import HiddenString from '@/util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
@@ -2351,7 +2352,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           ? Config.teamFolder(meta.teamname)
           : Config.privateFolderWithUsers(participantInfo.name)
       )
-      C.FS.makeActionForOpenPathInFilesTab(path)
+      FS.makeActionForOpenPathInFilesTab(path)
     },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {

@@ -13,6 +13,7 @@ import {backgroundModeIsNegative} from './text.shared'
 import isArray from 'lodash/isArray'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import {useTrackerState} from '@/constants/tracker2'
+import {useProfileState} from '@/constants/profile'
 
 export type User = {
   username: string
@@ -95,7 +96,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
   const following = C.useFollowerState(s => colorFollowing && s.following.has(username))
   const broken = C.useUsersState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
 
-  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = React.useCallback(
     (evt?: React.BaseSyntheticEvent) => {
       evt?.stopPropagation()

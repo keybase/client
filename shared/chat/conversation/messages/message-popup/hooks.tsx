@@ -1,6 +1,7 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
+import {useProfileState} from '@/constants/profile'
 import ReactionItem from './reactionitem'
 import MessagePopupHeader from './header'
 import ExplodingPopupHeader from './exploding-header'
@@ -230,7 +231,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
       ] as const)
     : []
 
-  const _showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const _showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUserProfile = React.useCallback(() => {
     _showUserProfile(author)
   }, [_showUserProfile, author])
