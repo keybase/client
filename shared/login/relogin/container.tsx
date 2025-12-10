@@ -3,6 +3,7 @@ import * as React from 'react'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
 import {useState as useRecoverState} from '@/constants/recover-password'
+import {useSignupState} from '@/constants/signup'
 
 const needPasswordError = 'passphrase cannot be empty'
 
@@ -19,7 +20,7 @@ const ReloginContainer = () => {
     navigateAppend('signupSendFeedbackLoggedOut')
   }
   const onLogin = C.useConfigState(s => s.dispatch.login)
-  const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)
+  const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
   const onSignup = () => requestAutoInvite()
   const onSomeoneElse = C.useProvisionState(s => s.dispatch.startProvision)
   const error = perror?.desc || ''

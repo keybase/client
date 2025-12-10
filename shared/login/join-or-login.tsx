@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
+import {useSignupState} from '@/constants/signup'
 
 const Intro = () => {
   const justDeletedSelf = C.useConfigState(s => s.justDeletedSelf)
@@ -21,7 +22,7 @@ const Intro = () => {
   const onLogin = () => {
     startProvision()
   }
-  const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)
+  const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
   const onSignup = () => {
     requestAutoInvite()
   }

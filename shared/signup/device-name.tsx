@@ -2,13 +2,14 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
+import {useSignupState} from '@/constants/signup'
 
 const ConnectedEnterDevicename = () => {
-  const error = C.useSignupState(s => s.devicenameError)
-  const initialDevicename = C.useSignupState(s => s.devicename)
+  const error = useSignupState(s => s.devicenameError)
+  const initialDevicename = useSignupState(s => s.devicename)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const goBackAndClearErrors = C.useSignupState(s => s.dispatch.goBackAndClearErrors)
-  const checkDeviceName = C.useSignupState(s => s.dispatch.checkDeviceName)
+  const goBackAndClearErrors = useSignupState(s => s.dispatch.goBackAndClearErrors)
+  const checkDeviceName = useSignupState(s => s.dispatch.checkDeviceName)
   const onBack = goBackAndClearErrors
   const onContinue = checkDeviceName
   const props = {

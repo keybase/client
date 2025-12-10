@@ -7,6 +7,7 @@ import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import type {Props} from '.'
 import Todo from './todo'
+import {useSignupState} from '@/constants/signup'
 // import WotTask from './wot-task'
 
 const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Props) => React.ReactNode = (
@@ -59,8 +60,8 @@ const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Pro
 }
 
 const EmailVerificationBanner = React.memo(function EmailVerificationBanner() {
-  const clearJustSignedUpEmail = C.useSignupState(s => s.dispatch.clearJustSignedUpEmail)
-  const signupEmail = C.useSignupState(s => s.justSignedUpEmail)
+  const clearJustSignedUpEmail = useSignupState(s => s.dispatch.clearJustSignedUpEmail)
+  const signupEmail = useSignupState(s => s.justSignedUpEmail)
   React.useEffect(
     () =>
       // Only have a cleanup function

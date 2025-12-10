@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import People from '.'
+import {useSignupState} from '@/constants/signup'
 
 const waitToRefresh = 1000 * 60 * 5
 
@@ -10,7 +11,7 @@ const PeopleReloadable = () => {
   const username = C.useCurrentUserState(s => s.username)
   const newItems = C.usePeopleState(s => s.newItems)
   const oldItems = C.usePeopleState(s => s.oldItems)
-  const signupEmail = C.useSignupState(s => s.justSignedUpEmail)
+  const signupEmail = useSignupState(s => s.justSignedUpEmail)
   const waiting = C.Waiting.useAnyWaiting(C.People.getPeopleDataWaitingKey)
   const lastRefreshRef = React.useRef<number>(0)
 

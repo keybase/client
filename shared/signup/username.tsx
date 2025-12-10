@@ -2,15 +2,16 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
+import {useSignupState} from '@/constants/signup'
 
 const ConnectedEnterUsername = () => {
-  const error = C.useSignupState(s => s.usernameError)
-  const initialUsername = C.useSignupState(s => s.username)
-  const usernameTaken = C.useSignupState(s => s.usernameTaken)
-  const checkUsername = C.useSignupState(s => s.dispatch.checkUsername)
+  const error = useSignupState(s => s.usernameError)
+  const initialUsername = useSignupState(s => s.username)
+  const usernameTaken = useSignupState(s => s.usernameTaken)
+  const checkUsername = useSignupState(s => s.dispatch.checkUsername)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const restartSignup = C.useSignupState(s => s.dispatch.restartSignup)
+  const restartSignup = useSignupState(s => s.dispatch.restartSignup)
   const onBack = () => {
     restartSignup()
     navigateUp()

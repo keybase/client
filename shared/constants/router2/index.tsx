@@ -1,6 +1,7 @@
 import type * as React from 'react'
 import * as C from '..'
 import type * as T from '../types'
+import {useSignupState} from '../signup'
 import {
   createNavigationContainerRef,
   StackActions,
@@ -454,13 +455,13 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       const updateSignup = () => {
         // Clear "just signed up email" when you leave the people tab after signup
         if (
-          C.useSignupState.getState().justSignedUpEmail &&
+          useSignupState.getState().justSignedUpEmail &&
           prev &&
           getTab(prev) === Tabs.peopleTab &&
           next &&
           getTab(next) !== Tabs.peopleTab
         ) {
-          C.useSignupState.getState().dispatch.clearJustSignedUpEmail()
+          useSignupState.getState().dispatch.clearJustSignedUpEmail()
         }
       }
       updateSignup()
