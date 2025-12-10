@@ -10,14 +10,14 @@ export const newRoutes = {
     getOptions: (ownProps?: C.ViewPropsToPageProps<typeof FsRoot>) => {
       // strange edge case where the root can actually have no params
       // eslint-disable-next-line
-      const path = ownProps?.route.params?.path ?? C.FS.defaultPath
+      const path = ownProps?.route.params?.path ?? FS.defaultPath
       return C.isMobile
         ? {header: () => <MobileHeader path={path} />}
         : {
             headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
             headerTitle: () => <Title path={path} />,
             subHeader: MainBanner,
-            title: path === C.FS.defaultPath ? 'Files' : T.FS.getPathName(path),
+            title: path === FS.defaultPath ? 'Files' : T.FS.getPathName(path),
           }
     },
   }),

@@ -5,6 +5,7 @@ import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 import {useFsPathMetadata, TlfInfoLine, Filename} from '@/fs/common'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 export type OwnProps = {
   destinationPickerIndex?: number
@@ -22,10 +23,10 @@ const FsPathMetadataLoader = ({path}: {path: T.FS.Path}) => {
 
 const TLFContainer = (p: OwnProps) => {
   const {tlfType, name, mixedMode, destinationPickerIndex, disabled} = p
-  const tlf = useFSState(s => C.FS.getTlfFromTlfs(s.tlfs, tlfType, name))
+  const tlf = useFSState(s => FS.getTlfFromTlfs(s.tlfs, tlfType, name))
   const username = C.useCurrentUserState(s => s.username)
-  const path = C.FS.tlfTypeAndNameToPath(tlfType, name)
-  const _usernames = C.FS.getUsernamesFromTlfName(name).filter(name => name !== username)
+  const path = FS.tlfTypeAndNameToPath(tlfType, name)
+  const _usernames = FS.getUsernamesFromTlfName(name).filter(name => name !== username)
   const onOpen = useOpen({destinationPickerIndex, path})
   const loadPathMetadata = tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled
   // Only include the user if they're the only one
@@ -41,7 +42,7 @@ const TLFContainer = (p: OwnProps) => {
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.minWidth}>
           <Filename
-            type={C.FS.pathTypeToTextType(T.FS.PathType.Folder)}
+            type={FS.pathTypeToTextType(T.FS.PathType.Folder)}
             style={Kb.Styles.collapseStyles([rowStyles.rowText, styles.kerning])}
             path={path}
           />
@@ -53,7 +54,7 @@ const TLFContainer = (p: OwnProps) => {
 
   const avatar = (
     <Kb.Box style={styles.avatarBox}>
-      {C.FS.isTeamPath(path) ? (
+      {FS.isTeamPath(path) ? (
         <Kb.Avatar size={32} isTeam={true} teamname={usernames[0]} />
       ) : (
         <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={usernames} />

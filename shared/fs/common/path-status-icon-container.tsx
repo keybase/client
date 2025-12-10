@@ -2,6 +2,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import PathStatusIcon from './path-status-icon'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type OwnPropsPathItem = {
   path: T.FS.Path
@@ -12,8 +13,8 @@ const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
   const {_kbfsDaemonStatus, _pathItem, _tlf, _uploads} = useFSState(
     C.useShallow(s => {
       const _kbfsDaemonStatus = s.kbfsDaemonStatus
-      const _pathItem = C.FS.getPathItem(s.pathItems, ownProps.path)
-      const _tlf = C.FS.getTlfFromPath(s.tlfs, ownProps.path)
+      const _pathItem = FS.getPathItem(s.pathItems, ownProps.path)
+      const _tlf = FS.getTlfFromPath(s.tlfs, ownProps.path)
       const _uploads = s.uploads.syncingPaths
       return {_kbfsDaemonStatus, _pathItem, _tlf, _uploads}
     })
@@ -21,7 +22,7 @@ const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
   const props = {
     isFolder: _pathItem.type === T.FS.PathType.Folder,
     showTooltipOnPressMobile: ownProps.showTooltipOnPressMobile,
-    statusIcon: C.FS.getPathStatusIconInMergeProps(
+    statusIcon: FS.getPathStatusIconInMergeProps(
       _kbfsDaemonStatus,
       _tlf,
       _pathItem,
@@ -40,7 +41,7 @@ const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
   const {_kbfsDaemonStatus, _tlfList, _uploads} = useFSState(
     C.useShallow(s => {
       const _kbfsDaemonStatus = s.kbfsDaemonStatus
-      const _tlfList = ownProps.tlfType ? C.FS.getTlfListFromType(s.tlfs, ownProps.tlfType) : new Map()
+      const _tlfList = ownProps.tlfType ? FS.getTlfListFromType(s.tlfs, ownProps.tlfType) : new Map()
       const _uploads = s.uploads
       return {_kbfsDaemonStatus, _tlfList, _uploads}
     })
@@ -50,7 +51,7 @@ const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
     isTlfType: true,
     statusIcon:
       ownProps.tlfType &&
-      C.FS.getUploadIconForTlfType(_kbfsDaemonStatus, _uploads, _tlfList, ownProps.tlfType),
+      FS.getUploadIconForTlfType(_kbfsDaemonStatus, _uploads, _tlfList, ownProps.tlfType),
   }
   return <PathStatusIcon {...props} />
 }

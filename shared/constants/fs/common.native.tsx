@@ -18,7 +18,7 @@ export default function initNative() {
               useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(r.uri))
             )
           } catch (e) {
-            C.FS.errorToActionOrThrow(e)
+            FS.errorToActionOrThrow(e)
           }
         }
         C.ignorePromise(f())
@@ -29,8 +29,8 @@ export default function initNative() {
       (downloadID: string, downloadIntent: T.FS.DownloadIntent, mimeType: string) => {
         const f = async () => {
           const {downloads, dispatch} = useFSState.getState()
-          const downloadState = downloads.state.get(downloadID) || C.FS.emptyDownloadState
-          if (downloadState === C.FS.emptyDownloadState) {
+          const downloadState = downloads.state.get(downloadID) || FS.emptyDownloadState
+          if (downloadState === FS.emptyDownloadState) {
             logger.warn('missing download', downloadID)
             return
           }
@@ -57,7 +57,7 @@ export default function initNative() {
                 return
             }
           } catch (err) {
-            C.FS.errorToActionOrThrow(err)
+            FS.errorToActionOrThrow(err)
           }
         }
         C.ignorePromise(f())

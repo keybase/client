@@ -1,6 +1,7 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
 // The behavior is to only show spinner when user first time lands on a screen
@@ -23,12 +24,12 @@ const Loading = (op: OwnProps) => {
   const {path} = op
   const {_pathItem, _tlfsLoaded} = useFSState(
     C.useShallow(s => {
-      const _pathItem = C.FS.getPathItem(s.pathItems, path)
+      const _pathItem = FS.getPathItem(s.pathItems, path)
       const _tlfsLoaded = !!s.tlfs.private.size
       return {_pathItem, _tlfsLoaded}
     })
   )
-  const parsedPath = C.FS.parsePath(path)
+  const parsedPath = FS.parsePath(path)
   let show = false
 
   switch (parsedPath.kind) {

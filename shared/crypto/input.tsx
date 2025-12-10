@@ -194,7 +194,7 @@ const FileInput = (props: FileProps) => {
           <Kb.Icon type={fileIcon} sizeType="Huge" />
           <Kb.Box2 direction="vertical">
             <Kb.Text type="BodySemibold">{path}</Kb.Text>
-            {size ? <Kb.Text type="BodySmallSemibold">{C.FS.humanReadableFileSize(size)}</Kb.Text> : null}
+            {size ? <Kb.Text type="BodySmallSemibold">{FS.humanReadableFileSize(size)}</Kb.Text> : null}
           </Kb.Box2>
         </Kb.Box2>
         {path && !waiting && (

@@ -47,7 +47,7 @@ const getRawLayout = (
   fileContext: T.FS.FileContext,
   me: string
 ): Layout => {
-  const parsedPath = C.FS.parsePath(path)
+  const parsedPath = FS.parsePath(path)
   switch (parsedPath.kind) {
     case T.FS.PathKind.Root:
       // should never happen
@@ -90,7 +90,7 @@ const getRawLayout = (
         moveOrCopy: true,
         rename: pathItem.writable && mode === 'row',
         saveMedia:
-          C.isMobile && pathItem.type === T.FS.PathType.File && C.FS.canSaveMedia(pathItem, fileContext),
+          C.isMobile && pathItem.type === T.FS.PathType.File && FS.canSaveMedia(pathItem, fileContext),
         showInSystemFileManager: !C.isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys

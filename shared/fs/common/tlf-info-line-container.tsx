@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import TlfInfoLine from './tlf-info-line'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 export type OwnProps = {
   path: T.FS.Path
@@ -10,9 +11,9 @@ export type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const _tlf = useFSState(s => C.FS.getTlfFromPath(s.tlfs, ownProps.path))
+  const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, ownProps.path))
   const _username = C.useCurrentUserState(s => s.username)
-  const resetParticipants = _tlf === C.FS.unknownTlf ? undefined : _tlf.resetParticipants
+  const resetParticipants = _tlf === FS.unknownTlf ? undefined : _tlf.resetParticipants
   const props = {
     isNew: _tlf.isNew,
     mixedMode: ownProps.mixedMode,

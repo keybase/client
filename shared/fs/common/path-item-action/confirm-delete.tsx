@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 export type Props = {
   onBack: () => void
@@ -34,7 +35,7 @@ const Container = (ownProps: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
   const onDelete = React.useCallback(() => {
-    if (path !== C.FS.defaultPath) {
+    if (path !== FS.defaultPath) {
       deleteFile(path)
     }
     // If this is a screen menu, then we're deleting the folder we're in,

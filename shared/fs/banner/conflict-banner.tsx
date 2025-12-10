@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import openUrl from '@/util/open-url'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {
   path: T.FS.Path
@@ -11,7 +12,7 @@ type OwnProps = {
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = useFSState(s => C.FS.getTlfFromPath(s.tlfs, path))
+  const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
   const finishManualConflictResolution = useFSState(s => s.dispatch.finishManualConflictResolution)
   const startManualConflictResolution = useFSState(s => s.dispatch.startManualConflictResolution)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -20,7 +21,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   }, [finishManualConflictResolution, path])
   const onGoToSamePathInDifferentTlf = React.useCallback(
     (tlfPath: T.FS.Path) => {
-      navigateAppend({props: {path: C.FS.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
+      navigateAppend({props: {path: FS.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
     },
     [navigateAppend, path]
   )

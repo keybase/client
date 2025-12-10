@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type Props = {
   path: T.FS.Path
@@ -16,13 +17,13 @@ const getTlfName = (parsedPath: T.FS.ParsedPath): string => {
 }
 
 const PublicBanner = ({path}: Props) => {
-  const isWritable = useFSState(s => C.FS.getPathItem(s.pathItems, path).writable)
+  const isWritable = useFSState(s => FS.getPathItem(s.pathItems, path).writable)
   const lastPublicBannerClosedTlf = useFSState(s => s.lastPublicBannerClosedTlf)
   const setLastPublicBannerClosedTlf = useFSState(s => s.dispatch.setLastPublicBannerClosedTlf)
 
   const setLastClosed = () => setLastPublicBannerClosedTlf(tlfName)
 
-  const parsedPath = C.FS.parsePath(path)
+  const parsedPath = FS.parsePath(path)
   const tlfName = getTlfName(parsedPath)
 
   // If we're showing the banner for a new TLF, clear the closed state

@@ -175,7 +175,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   }, [])
 
   const openPrivateFolder = React.useCallback(() => {
-    C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
+    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
   }, [username])
 
   return (

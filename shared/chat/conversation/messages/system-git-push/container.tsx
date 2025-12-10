@@ -19,7 +19,7 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
           '/.kbfs_autogit_commit_' +
           commitHash
       )
-      C.FS.makeActionForOpenPathInFilesTab(path)
+      FS.makeActionForOpenPathInFilesTab(path)
     },
     [message]
   )

@@ -8,7 +8,7 @@ import * as Kbfs from '../common'
 type OwnProps = {path: T.FS.Path}
 
 const ConnectedBarePreview = (ownProps: OwnProps) => {
-  const path = ownProps.path ?? C.FS.defaultPath
+  const path = ownProps.path ?? FS.defaultPath
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
 

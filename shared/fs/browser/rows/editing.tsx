@@ -4,6 +4,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {rowStyles} from './common'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type Props = {
   editID: T.FS.EditID
@@ -14,7 +15,7 @@ const Editing = React.memo(function Editing({editID}: Props) {
     C.useShallow(s => ({
       commitEdit: s.dispatch.commitEdit,
       discardEdit: s.dispatch.discardEdit,
-      edit: s.edits.get(editID) || C.FS.emptyNewFolder,
+      edit: s.edits.get(editID) || FS.emptyNewFolder,
       setEditName: s.dispatch.setEditName,
     }))
   )

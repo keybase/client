@@ -2351,7 +2351,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           ? Config.teamFolder(meta.teamname)
           : Config.privateFolderWithUsers(participantInfo.name)
       )
-      C.FS.makeActionForOpenPathInFilesTab(path)
+      FS.makeActionForOpenPathInFilesTab(path)
     },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {

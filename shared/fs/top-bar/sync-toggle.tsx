@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
@@ -12,7 +13,7 @@ const Container = (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
   const {_tlfPathItem, _tlfs, setTlfSyncConfig} = useFSState(
     C.useShallow(s => ({
-      _tlfPathItem: C.FS.getPathItem(s.pathItems, ownProps.tlfPath),
+      _tlfPathItem: FS.getPathItem(s.pathItems, ownProps.tlfPath),
       _tlfs: s.tlfs,
       setTlfSyncConfig: s.dispatch.setTlfSyncConfig,
     }))
@@ -22,7 +23,7 @@ const Container = (ownProps: OwnProps) => {
   const enableSync = () => {
     setTlfSyncConfig(tlfPath, true)
   }
-  const syncConfig = C.FS.getTlfFromPath(_tlfs, tlfPath).syncConfig
+  const syncConfig = FS.getTlfFromPath(_tlfs, tlfPath).syncConfig
   // Disable sync when the TLF is empty and it's not enabled yet.
   // Band-aid fix for when new user has a non-exisitent TLF which we
   // can't enable sync for yet.

@@ -5,6 +5,7 @@ import * as Kbfs from '../common'
 import type * as T from '@/constants/types'
 import Actions from './actions'
 import MainBanner from './main-banner'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
 /*
@@ -20,7 +21,7 @@ type Props = {
 }
 
 const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  C.FS.hasPublicTag(path) ? (
+  FS.hasPublicTag(path) ? (
     <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} />
   ) : null
 
@@ -47,7 +48,7 @@ const NavMobileHeader = (props: Props) => {
     filterDone()
   }, [filterDone, props.path])
 
-  return props.path === C.FS.defaultPath ? (
+  return props.path === FS.defaultPath ? (
     <Kb.SafeAreaViewTop>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer} centerChildren={true}>
         <Kb.Text type="BodyBig">Files</Kb.Text>

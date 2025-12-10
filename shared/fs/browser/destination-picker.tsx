@@ -9,6 +9,7 @@ import Root from './root'
 import Rows from './rows/rows-container'
 import {OriginalOrCompressedButton} from '@/incoming-share'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {index: number}
 
@@ -21,7 +22,7 @@ const getDestinationParentPath = (dp: T.FS.DestinationPicker, ownProps: OwnProps
 
 const canWrite = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
   T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 2 &&
-  C.FS.getPathItem(pathItems, getDestinationParentPath(dp, ownProps)).writable
+  FS.getPathItem(pathItems, getDestinationParentPath(dp, ownProps)).writable
 
 const canCopy = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) => {
   if (!canWrite(dp, pathItems, ownProps)) {
@@ -40,7 +41,7 @@ const canCopy = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps
 const canMove = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
   canCopy(dp, pathItems, ownProps) &&
   dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy &&
-  C.FS.pathsInSameTlf(dp.source.path, getDestinationParentPath(dp, ownProps))
+  FS.pathsInSameTlf(dp.source.path, getDestinationParentPath(dp, ownProps))
 
 const canBackUp = C.isMobile
   ? (dp: T.FS.DestinationPicker, ownProps: OwnProps) =>
@@ -67,7 +68,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const dispatchProps = {
     _onBackUp: (currentPath: T.FS.Path) =>
-      C.FS.makeActionsForDestinationPickerOpen(getIndex(ownProps) + 1, T.FS.getPathParent(currentPath)),
+      FS.makeActionsForDestinationPickerOpen(getIndex(ownProps) + 1, T.FS.getPathParent(currentPath)),
     _onCopyHere: (destinationParentPath: T.FS.Path) => {
       moveOrCopy(destinationParentPath, 'copy')
       clearModals()
@@ -91,7 +92,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
 
   const index = getIndex(ownProps)
   const showHeaderBackInsteadOfCancel = isShare // && index > 0
-  const targetName = C.FS.getDestinationPickerPathName(destPicker)
+  const targetName = FS.getDestinationPickerPathName(destPicker)
   // If we are are dealing with incoming share, the first view is root,
   // so rely on the header back button instead of showing a separate row
   // for going to parent directory.
@@ -170,7 +171,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
             </Kb.Text>
           </Kb.ClickableBox>
         )}
-        {parentPath === C.FS.defaultPath ? (
+        {parentPath === FS.defaultPath ? (
           <Root destinationPickerIndex={index} />
         ) : (
           <Rows path={parentPath} destinationPickerIndex={index} />

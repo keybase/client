@@ -5,6 +5,7 @@ import {sortRowItems, type SortableRowItem} from './sort'
 import Rows, {type Props} from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {
   path: T.FS.Path // path to the parent folder containering the rows,
@@ -18,7 +19,7 @@ const getStillRows = (
   names: ReadonlySet<string>
 ): Array<RowTypes.StillRowItem> =>
   [...names].reduce<Array<RowTypes.StillRowItem>>((items, name) => {
-    const item = C.FS.getPathItem(pathItems, T.FS.pathConcat(parentPath, name))
+    const item = FS.getPathItem(pathItems, T.FS.pathConcat(parentPath, name))
     const path = T.FS.pathConcat(parentPath, item.name)
     return [
       ...items,
@@ -82,7 +83,7 @@ const getInTlfItemsFromStateProps = (
   stateProps: StateProps,
   path: T.FS.Path
 ): Array<RowTypes.NamedRowItem> => {
-  const _pathItem = C.FS.getPathItem(stateProps._pathItems, path)
+  const _pathItem = FS.getPathItem(stateProps._pathItems, path)
   if (_pathItem.type !== T.FS.PathType.Folder) {
     return filePlaceholderRows
   }
@@ -104,7 +105,7 @@ const getTlfRowsFromTlfs = (
   [...tlfs]
     .filter(([_, {isIgnored}]) => !isIgnored)
     .map(([name, {isNew, tlfMtime}]) => ({
-      disabled: C.FS.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex),
+      disabled: FS.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex),
       isNew,
       key: `tlf:${name}`,
       name,
@@ -134,7 +135,7 @@ const getTlfItemsFromStateProps = (
     return folderPlaceholderRows
   }
 
-  const {tlfList, tlfType} = C.FS.getTlfListAndTypeFromPath(stateProps._tlfs, path)
+  const {tlfList, tlfType} = FS.getTlfListAndTypeFromPath(stateProps._tlfs, path)
 
   return sortRowItems(
     getTlfRowsFromTlfs(tlfList, tlfType, stateProps._username, destinationPickerIndex),
@@ -174,7 +175,7 @@ const Container = (o: OwnProps) => {
       const _edits = s.edits
       const _filter = s.folderViewFilter
       const _pathItems = s.pathItems
-      const _sortSetting = C.FS.getPathUserSetting(s.pathUserSettings, o.path).sort
+      const _sortSetting = FS.getPathUserSetting(s.pathUserSettings, o.path).sort
       const _tlfs = s.tlfs
       return {_edits, _filter, _pathItems, _sortSetting, _tlfs}
     })

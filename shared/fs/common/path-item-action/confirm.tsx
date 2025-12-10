@@ -4,6 +4,7 @@ import * as T from '@/constants/types'
 import type {FloatingMenuProps} from './types'
 import * as Kb from '@/common-adapters'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -15,7 +16,7 @@ const Container = (ownProps: OwnProps) => {
   const {_pathItemActionMenu, size, setPathItemActionMenuView, download} = useFSState(
     C.useShallow(s => {
       const _pathItemActionMenu = s.pathItemActionMenu
-      const size = C.FS.getPathItem(s.pathItems, path).size
+      const size = FS.getPathItem(s.pathItems, path).size
       const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
       const download = s.dispatch.download
       return {_pathItemActionMenu, download, setPathItemActionMenuView, size}
@@ -70,8 +71,8 @@ const ConfirmHeader = (props: {action: 'save-media' | 'send-to-other-app'; size:
     </Kb.Text>
     <Kb.Text type="Body" style={styles.confirmText}>
       {props.action === 'save-media'
-        ? `You are about to download a ${C.FS.humanReadableFileSize(props.size)} file.`
-        : `The file will be downloaded and its size is ${C.FS.humanReadableFileSize(props.size)}.`}
+        ? `You are about to download a ${FS.humanReadableFileSize(props.size)} file.`
+        : `The file will be downloaded and its size is ${FS.humanReadableFileSize(props.size)}.`}
     </Kb.Text>
   </Kb.Box2>
 )

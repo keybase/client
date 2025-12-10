@@ -10,6 +10,7 @@ import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serial
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import type * as NotifConstants from '@/constants/notifications'
 import {useColorScheme} from 'react-native'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
 const {showTray} = KB2.functions
@@ -195,7 +196,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
 
   // Filter out folder paths.
   const filePaths = [...uploads.syncingPaths].filter(
-    path => C.FS.getPathItem(pathItems, path).type !== T.FS.PathType.Folder
+    path => FS.getPathItem(pathItems, path).type !== T.FS.PathType.Folder
   )
 
   const upDown = {

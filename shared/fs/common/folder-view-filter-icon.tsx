@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as Styles from '@/styles'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type Props = {
   onClick: () => void
@@ -12,7 +13,7 @@ type Props = {
 }
 
 const FolderViewFilterIcon = (props: Props) =>
-  C.FS.isFolder(props.path, props.pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
+  FS.isFolder(props.path, props.pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.Icon type="iconfont-filter" onClick={props.onClick} padding="tiny" style={props.style} />
   ) : null
 
@@ -20,7 +21,7 @@ type OwnProps = Omit<Props, 'pathItem'>
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, path))
+  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, path))
   const props = {
     ...ownProps,
     pathItem,

@@ -6,6 +6,7 @@ import {NormalPreview} from './filepreview'
 import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
@@ -17,7 +18,7 @@ type ChooseComponentProps = {
 const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview} = props
 
-  const fileContext = useFSState(s => s.fileContext.get(props.path) || C.FS.emptyFileContext)
+  const fileContext = useFSState(s => s.fileContext.get(props.path) || FS.emptyFileContext)
   const bare = C.isMobile && fileContext.viewType === T.RPCGen.GUIViewType.image
   React.useEffect(() => {
     bare && emitBarePreview()
@@ -43,7 +44,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     case T.FS.PathType.Unknown:
       return <SimpleScreens.Loading />
     default:
-      if (fileContext === C.FS.emptyFileContext) {
+      if (fileContext === FS.emptyFileContext) {
         // We don't have it yet, so don't render.
         return <SimpleScreens.Loading />
       }
@@ -59,10 +60,10 @@ const ChooseComponent = (props: ChooseComponentProps) => {
 type OwnProps = {path?: T.FS.Path}
 
 const Connected = (ownProps: OwnProps) => {
-  const path = ownProps.path ?? C.FS.defaultPath
+  const path = ownProps.path ?? FS.defaultPath
   const {_pathItem, kbfsDaemonStatus} = useFSState(
     C.useShallow(s => {
-      const _pathItem = C.FS.getPathItem(s.pathItems, path)
+      const _pathItem = FS.getPathItem(s.pathItems, path)
       const kbfsDaemonStatus = s.kbfsDaemonStatus
       return {_pathItem, kbfsDaemonStatus}
     })
@@ -73,7 +74,7 @@ const Connected = (ownProps: OwnProps) => {
     navigateUp()
     navigateAppend({props: {path}, selected: 'barePreview'})
   }
-  const isDefinitelyFolder = T.FS.getPathElements(path).length <= 3 && !C.FS.hasSpecialFileElement(path)
+  const isDefinitelyFolder = T.FS.getPathElements(path).length <= 3 && !FS.hasSpecialFileElement(path)
   const props = {
     emitBarePreview: emitBarePreview,
     kbfsDaemonStatus: kbfsDaemonStatus,

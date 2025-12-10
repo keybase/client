@@ -4,6 +4,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import DownloadWrapper from './download-wrapper'
 import {formatDurationFromNowTo} from '@/util/timestamp'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
 export type Props = {
@@ -35,7 +36,7 @@ const Download = (props: Props) => {
     C.useShallow(s => ({
       cancelDownload: s.dispatch.cancelDownload,
       dismissDownload: s.dispatch.dismissDownload,
-      dlState: s.downloads.state.get(props.downloadID) || C.FS.emptyDownloadState,
+      dlState: s.downloads.state.get(props.downloadID) || FS.emptyDownloadState,
       openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
     }))
   )
@@ -70,13 +71,13 @@ const Download = (props: Props) => {
           >
             {dlInfo.filename}
           </Kb.Text>
-          {C.FS.downloadIsOngoing(dlState) && getProgress(dlState)}
+          {FS.downloadIsOngoing(dlState) && getProgress(dlState)}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
           <Kb.Icon
             type="iconfont-remove"
             color={Kb.Styles.globalColors.white}
-            onClick={!C.FS.downloadIsOngoing(dlState) ? dismiss : cancel}
+            onClick={!FS.downloadIsOngoing(dlState) ? dismiss : cancel}
           />
         </Kb.Box2>
       </Kb.Box2>

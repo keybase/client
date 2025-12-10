@@ -276,7 +276,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
         archiveJobStartPath: {
           archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.kbfs,
-          kbfs: C.FS.pathToRPCPath(path).kbfs,
+          kbfs: FS.pathToRPCPath(path).kbfs,
         },
         outputPath: outPath,
         overwriteZip: true,

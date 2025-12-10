@@ -8,6 +8,7 @@ import type * as T from '@/constants/types'
 import {pickFiles} from '@/util/pick-files'
 import type HiddenString from '@/util/hidden-string'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type OutputProps = {operation: T.Crypto.Operations}
 type OutputActionsBarProps = {operation: T.Crypto.Operations}
@@ -132,7 +133,7 @@ const OutputProgress = (props: OutputProgressProps) => {
   return inProgress ? (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
       <Kb.ProgressBar ratio={ratio} style={styles.progressBar} />
-      <Kb.Text type="Body">{`${C.FS.humanizeBytes(bytesComplete, 1)} / ${C.FS.humanizeBytes(bytesTotal, 1)}`}</Kb.Text>
+      <Kb.Text type="Body">{`${FS.humanizeBytes(bytesComplete, 1)} / ${FS.humanizeBytes(bytesTotal, 1)}`}</Kb.Text>
     </Kb.Box2>
   ) : null
 }

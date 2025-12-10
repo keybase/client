@@ -38,11 +38,11 @@ export default function initPlatformSpecific() {
 
           const {downloads} = useFSState.getState()
 
-          const downloadState = downloads.state.get(downloadID) || C.FS.emptyDownloadState
-          const downloadInfo = downloads.info.get(downloadID) || C.FS.emptyDownloadInfo
+          const downloadState = downloads.state.get(downloadID) || FS.emptyDownloadState
+          const downloadInfo = downloads.info.get(downloadID) || FS.emptyDownloadInfo
           if (
-            downloadState === C.FS.emptyDownloadState ||
-            downloadInfo === C.FS.emptyDownloadInfo
+            downloadState === FS.emptyDownloadState ||
+            downloadInfo === FS.emptyDownloadInfo
           ) {
             logger.warn('missing download', downloadID)
             return

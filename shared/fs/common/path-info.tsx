@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {useFsPathInfo} from './hooks'
 import * as Kb from '@/common-adapters'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type PathInfoProps = {
   containerStyle?: Kb.Styles.StylesCrossPlatform
@@ -22,7 +23,7 @@ const useMountPointPath = (platformAfterMountPath: string) => {
 // name it different because of a bug in eslint that warns above in Props:
 //   11:25  error  'PathInfo' was used before it was defined  no-use-before-define
 const PathInfo_ = (props: PathInfoProps) => {
-  const pathInfo = useFsPathInfo(props.path, props.knownPathInfo || C.FS.emptyPathInfo)
+  const pathInfo = useFsPathInfo(props.path, props.knownPathInfo || FS.emptyPathInfo)
   const mountPointPath = useMountPointPath(pathInfo.platformAfterMountPath)
   return (
     <Kb.Box2 direction="vertical" style={props.containerStyle} fullWidth={true}>

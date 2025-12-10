@@ -3,9 +3,10 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import logger from '@/logger'
+import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 
-const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || C.FS.hasSpecialFileElement(path)
+const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 
 const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => {
   const {subscribePath, unsubscribe} = useFSState(
@@ -19,7 +20,7 @@ const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscr
       return () => {}
     }
 
-    const subscriptionID = C.FS.makeUUID()
+    const subscriptionID = FS.makeUUID()
     subscribePath(subscriptionID, path, topic)
     return () => unsubscribe(subscriptionID)
   }, [subscribePath, unsubscribe, path, topic])
@@ -33,7 +34,7 @@ const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic) => {
     }))
   )
   React.useEffect(() => {
-    const subscriptionID = C.FS.makeUUID()
+    const subscriptionID = FS.makeUUID()
     subscribeNonPath(subscriptionID, topic)
     return () => {
       unsubscribe(subscriptionID)
@@ -65,7 +66,7 @@ export const useFsTlfs = () => {
 }
 
 export const useFsTlf = (path: T.FS.Path) => {
-  const tlfPath = C.FS.getTlfPath(path)
+  const tlfPath = FS.getTlfPath(path)
   const {tlfs, loadAdditionalTlf} = useFSState(
     C.useShallow(s => ({
       loadAdditionalTlf: s.dispatch.loadAdditionalTlf,
@@ -83,7 +84,7 @@ export const useFsTlf = (path: T.FS.Path) => {
     // cover the refresh, so no need to load here. (To be clear,
     // notifications don't cover syncConfig, but we already load when user
     // toggles change.)
-    C.FS.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === C.FS.unknownTlf
+    FS.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === FS.unknownTlf
   // We need to load TLFs. We don't have notifications for this rpc yet, so
   // just poll on a 10s interval.
   Kb.useInterval(
@@ -107,12 +108,12 @@ export const useFsOnlineStatus = () => {
 }
 
 export const useFsPathInfo = (path: T.FS.Path, knownPathInfo: T.FS.PathInfo): T.FS.PathInfo => {
-  const pathInfo = useFSState(s => s.pathInfos.get(path) || C.FS.emptyPathInfo)
-  const alreadyKnown = knownPathInfo !== C.FS.emptyPathInfo
+  const pathInfo = useFSState(s => s.pathInfos.get(path) || FS.emptyPathInfo)
+  const alreadyKnown = knownPathInfo !== FS.emptyPathInfo
   React.useEffect(() => {
     if (alreadyKnown) {
       useFSState.getState().dispatch.loadedPathInfo(path, knownPathInfo)
-    } else if (pathInfo === C.FS.emptyPathInfo) {
+    } else if (pathInfo === FS.emptyPathInfo) {
       // We only need to load if it's empty. This never changes once we have
       // it.
       useFSState.getState().dispatch.loadPathInfo(path)
@@ -123,11 +124,11 @@ export const useFsPathInfo = (path: T.FS.Path, knownPathInfo: T.FS.PathInfo): T.
 
 export const useFsSoftError = (path: T.FS.Path): T.FS.SoftError | undefined => {
   const softErrors = useFSState(s => s.softErrors)
-  return C.FS.getSoftError(softErrors, path)
+  return FS.getSoftError(softErrors, path)
 }
 
 export const useFsDownloadInfo = (downloadID: string): T.FS.DownloadInfo => {
-  const info = useFSState(s => s.downloads.info.get(downloadID) || C.FS.emptyDownloadInfo)
+  const info = useFSState(s => s.downloads.info.get(downloadID) || FS.emptyDownloadInfo)
   const loadDownloadInfo = useFSState(s => s.dispatch.loadDownloadInfo)
   React.useEffect(() => {
     // This never changes, so simply just load it once.
@@ -148,7 +149,7 @@ export const useFsFileContext = (path: T.FS.Path) => {
   const {pathItem, loadFileContext} = useFSState(
     C.useShallow(s => ({
       loadFileContext: s.dispatch.loadFileContext,
-      pathItem: C.FS.getPathItem(s.pathItems, path),
+      pathItem: FS.getPathItem(s.pathItems, path),
     }))
   )
   const [urlError, setUrlError] = React.useState<string>('')
@@ -175,13 +176,13 @@ export const useFsWatchDownloadForMobile = C.isMobile
 
       const {dlState, finishedDownloadWithIntentMobile, finishedRegularDownloadMobile} = useFSState(
         C.useShallow(s => ({
-          dlState: s.downloads.state.get(downloadID) || C.FS.emptyDownloadState,
+          dlState: s.downloads.state.get(downloadID) || FS.emptyDownloadState,
           finishedDownloadWithIntentMobile: s.dispatch.dynamic.finishedDownloadWithIntentMobile,
           finishedRegularDownloadMobile: s.dispatch.dynamic.finishedRegularDownloadMobile,
         }))
       )
-      const finished = dlState !== C.FS.emptyDownloadState && !C.FS.downloadIsOngoing(dlState)
-      const mimeType = useFSState(s => s.fileContext.get(dlInfo.path) || C.FS.emptyFileContext).contentType
+      const finished = dlState !== FS.emptyDownloadState && !FS.downloadIsOngoing(dlState)
+      const mimeType = useFSState(s => s.fileContext.get(dlInfo.path) || FS.emptyFileContext).contentType
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
 

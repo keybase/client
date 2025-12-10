@@ -8,6 +8,7 @@ import CommaSeparatedName from './comma-separated-name'
 import {pluralize} from '@/util/string'
 import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} from './hooks'
 import {useFSState} from '@/constants/fs'
+import * as FS from '@/constants/fs'
 
 type Props = {
   containerStyle?: Kb.Styles.StylesCrossPlatform
@@ -18,13 +19,13 @@ const getNumberOfFilesAndFolders = (
   pathItems: T.FS.PathItems,
   path: T.FS.Path
 ): {folders: number; files: number; loaded: boolean} => {
-  const pathItem = C.FS.getPathItem(pathItems, path)
+  const pathItem = FS.getPathItem(pathItems, path)
   return pathItem.type === T.FS.PathType.Folder
     ? [...pathItem.children].reduce(
         ({folders, files, loaded}, p) => {
-          const item = C.FS.getPathItem(pathItems, T.FS.pathConcat(path, p))
+          const item = FS.getPathItem(pathItems, T.FS.pathConcat(path, p))
           const isFolder = item.type === T.FS.PathType.Folder
-          const isFile = item.type !== T.FS.PathType.Folder && item !== C.FS.unknownPathItem
+          const isFile = item.type !== T.FS.PathType.Folder && item !== FS.unknownPathItem
           return {
             files: files + (isFile ? 1 : 0),
             folders: folders + (isFolder ? 1 : 0),
@@ -79,7 +80,7 @@ const SoftErrorBanner = ({path}: {path: T.FS.Path}) => {
 const PathItemInfo = (props: Props) => {
   useFsOnlineStatus() // when used in chat, we don't have this from Files tab
   useFsPathMetadata(props.path)
-  const pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, props.path))
+  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, props.path))
   const name = (
     <CommaSeparatedName
       center={true}
@@ -95,9 +96,9 @@ const PathItemInfo = (props: Props) => {
         <ItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
         <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
         {pathItem.type === T.FS.PathType.File && (
-          <Kb.Text type="BodySmall">{C.FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
+          <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
-        {C.FS.isInTlf(props.path) && C.FS.isFolder(props.path, pathItem) && (
+        {FS.isInTlf(props.path) && FS.isFolder(props.path, pathItem) && (
           <FilesAndFoldersCount {...props} />
         )}
         {getTlfInfoLineOrLastModifiedLine(props.path)}
