@@ -8,11 +8,15 @@ import {useFSState} from '@/constants/fs'
 type OwnProps = {alwaysShow?: boolean}
 
 const SFMIContainer = (op: OwnProps) => {
-  const driverStatus = useFSState(s => s.sfmi.driverStatus)
-  const driverEnable = useFSState(s => s.dispatch.driverEnable)
-  const driverDisable = useFSState(s => s.dispatch.driverDisable)
-  const setSfmiBannerDismissedDesktop = useFSState(s => s.dispatch.dynamic.setSfmiBannerDismissedDesktop)
-  const settings = useFSState(s => s.settings)
+  const {driverStatus, driverEnable, driverDisable, setSfmiBannerDismissedDesktop, settings} = useFSState(
+    C.useShallow(s => ({
+      driverStatus: s.sfmi.driverStatus,
+      driverEnable: s.dispatch.driverEnable,
+      driverDisable: s.dispatch.driverDisable,
+      setSfmiBannerDismissedDesktop: s.dispatch.dynamic.setSfmiBannerDismissedDesktop,
+      settings: s.settings,
+    }))
+  )
   const onDisable = React.useCallback(() => driverDisable(), [driverDisable])
   const onDismiss = React.useCallback(
     () => setSfmiBannerDismissedDesktop?.(true),
@@ -210,11 +214,13 @@ const DokanOutdated = (props: {driverStatus: T.FS.DriverStatus; onDisable: () =>
 
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
-  const preferredMountDirs = useFSState(s => s.sfmi.preferredMountDirs)
-  const displayingMountDir = preferredMountDirs[0] || ''
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  const {preferredMountDirs, openLocalPathInSystemFileManagerDesktop} = useFSState(
+    C.useShallow(s => ({
+      preferredMountDirs: s.sfmi.preferredMountDirs,
+      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+    }))
   )
+  const displayingMountDir = preferredMountDirs[0] || ''
   const open = displayingMountDir
     ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
     : undefined
