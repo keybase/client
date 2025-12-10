@@ -1,10 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {usePushState} from '@/constants/push'
 
 const PushPrompt = () => {
-  const rejectPermissions = C.usePushState(s => s.dispatch.rejectPermissions)
-  const requestPermissions = C.usePushState(s => s.dispatch.requestPermissions)
+  const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
+  const requestPermissions = usePushState(s => s.dispatch.requestPermissions)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onNoPermissions = React.useCallback(() => {
     rejectPermissions()

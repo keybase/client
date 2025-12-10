@@ -8,6 +8,7 @@ import {getExtraChatLogsForLogSend} from './shared'
 import {isAndroid, version, pprofDir} from '@/constants/platform'
 import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
 import type {Props as OwnProps} from './container'
+import {usePushState} from '@/constants/push'
 
 export type Props = {
   chat: object
@@ -31,7 +32,7 @@ const Connected = (ownProps: OwnProps) => {
   const feedback = ownProps.feedback ?? ''
   const chat = getExtraChatLogsForLogSend()
   const loggedOut = C.useConfigState(s => !s.loggedIn)
-  const _push = C.usePushState(s => s.token)
+  const _push = usePushState(s => s.token)
   const push = React.useMemo(() => ({pushToken: _push}), [_push])
   const deviceID = C.useCurrentUserState(s => s.deviceID)
   const uid = C.useCurrentUserState(s => s.uid)

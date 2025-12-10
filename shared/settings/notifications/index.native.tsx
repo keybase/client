@@ -4,6 +4,7 @@ import Notifications from './render'
 import {Reloadable} from '@/common-adapters'
 import {useSettingsNotifState} from '@/constants/settings-notifications'
 import {useSettingsState} from '@/constants/settings'
+import {usePushState} from '@/constants/push'
 
 const MobileNotifications = () => {
   const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
@@ -29,8 +30,8 @@ const MobileNotifications = () => {
 }
 
 const TurnOnNotifications = () => {
-  const mobileHasPermissions = C.usePushState(s => s.hasPermissions)
-  const requestPermissions = C.usePushState(s => s.dispatch.requestPermissions)
+  const mobileHasPermissions = usePushState(s => s.hasPermissions)
+  const requestPermissions = usePushState(s => s.dispatch.requestPermissions)
   if (mobileHasPermissions) return null
   const onEnable = requestPermissions
   return (

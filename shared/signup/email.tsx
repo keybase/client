@@ -4,9 +4,10 @@ import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from './common'
 import {useSettingsEmailState} from '@/constants/settings-email'
 import {useSignupState} from '@/constants/signup'
+import {usePushState} from '@/constants/push'
 
 const ConnectedEnterEmail = () => {
-  const _showPushPrompt = C.usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
+  const _showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
   const addedEmail = useSettingsEmailState(s => s.addedEmail)
   const error = useSettingsEmailState(s => s.error)
   const initialEmail = useSignupState(s => s.email)

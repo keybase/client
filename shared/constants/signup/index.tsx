@@ -8,6 +8,7 @@ import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
 import {useSettingsEmailState} from '../settings-email'
+import {usePushState} from '../push'
 
 type Store = T.Immutable<{
   devicename: string
@@ -78,7 +79,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       }
 
       try {
-        C.usePushState.getState().dispatch.showPermissionsPrompt({justSignedUp: true})
+        usePushState.getState().dispatch.showPermissionsPrompt({justSignedUp: true})
 
         await T.RPCGen.signupSignupRpcListener({
           customResponseIncomingCallMap: {
@@ -128,7 +129,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
             s.signupError = error
           })
           C.useRouterState.getState().dispatch.navigateAppend('signupError')
-          C.usePushState.getState().dispatch.showPermissionsPrompt({justSignedUp: false})
+          usePushState.getState().dispatch.showPermissionsPrompt({justSignedUp: false})
         }
       }
     }

@@ -3,6 +3,7 @@ import * as Tabs from '@/constants/tabs'
 import * as React from 'react'
 import {Linking} from 'react-native'
 import {useColorScheme} from 'react-native'
+import {usePushState} from '@/constants/push'
 
 type InitialStateState = 'init' | 'loading' | 'loaded'
 
@@ -71,7 +72,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
     startupConversation = ''
   }
 
-  const showMonster = C.usePushState(s => {
+  const showMonster = usePushState(s => {
     const {hasPermissions, justSignedUp, showPushPrompt} = s
     return loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
   })
