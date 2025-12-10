@@ -8,8 +8,12 @@ import {useFSState} from '@/constants/fs'
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || C.FS.hasSpecialFileElement(path)
 
 const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => {
-  const subscribePath = useFSState(s => s.dispatch.subscribePath)
-  const unsubscribe = useFSState(s => s.dispatch.unsubscribe)
+  const {subscribePath, unsubscribe} = useFSState(
+    C.useShallow(s => ({
+      subscribePath: s.dispatch.subscribePath,
+      unsubscribe: s.dispatch.unsubscribe,
+    }))
+  )
   React.useEffect(() => {
     if (T.FS.getPathLevel(path) < 3) {
       return () => {}
@@ -22,8 +26,12 @@ const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscr
 }
 
 const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic) => {
-  const subscribeNonPath = useFSState(s => s.dispatch.subscribeNonPath)
-  const unsubscribe = useFSState(s => s.dispatch.unsubscribe)
+  const {subscribeNonPath, unsubscribe} = useFSState(
+    C.useShallow(s => ({
+      subscribeNonPath: s.dispatch.subscribeNonPath,
+      unsubscribe: s.dispatch.unsubscribe,
+    }))
+  )
   React.useEffect(() => {
     const subscriptionID = C.FS.makeUUID()
     subscribeNonPath(subscriptionID, topic)
@@ -58,8 +66,12 @@ export const useFsTlfs = () => {
 
 export const useFsTlf = (path: T.FS.Path) => {
   const tlfPath = C.FS.getTlfPath(path)
-  const tlfs = useFSState(s => s.tlfs)
-  const loadAdditionalTlf = useFSState(s => s.dispatch.loadAdditionalTlf)
+  const {tlfs, loadAdditionalTlf} = useFSState(
+    C.useShallow(s => ({
+      tlfs: s.tlfs,
+      loadAdditionalTlf: s.dispatch.loadAdditionalTlf,
+    }))
+  )
   const active =
     // If we don't have a TLF path, we are not inside a TLF yet. So no need
     // to load.
@@ -133,9 +145,13 @@ export const useFsDownloadStatus = () => {
 }
 
 export const useFsFileContext = (path: T.FS.Path) => {
-  const pathItem = useFSState(s => C.FS.getPathItem(s.pathItems, path))
+  const {pathItem, loadFileContext} = useFSState(
+    C.useShallow(s => ({
+      pathItem: C.FS.getPathItem(s.pathItems, path),
+      loadFileContext: s.dispatch.loadFileContext,
+    }))
+  )
   const [urlError, setUrlError] = React.useState<string>('')
-  const loadFileContext = useFSState(s => s.dispatch.loadFileContext)
   React.useEffect(() => {
     urlError && logger.info(`urlError: ${urlError}`)
     pathItem.type === T.FS.PathType.File && loadFileContext(path)
@@ -154,22 +170,20 @@ export const useFsFileContext = (path: T.FS.Path) => {
 
 export const useFsWatchDownloadForMobile = C.isMobile
   ? (downloadID: string, downloadIntent?: T.FS.DownloadIntent): boolean => {
-      const dlState = useFSState(s => s.downloads.state.get(downloadID) || C.FS.emptyDownloadState)
-      const finished = dlState !== C.FS.emptyDownloadState && !C.FS.downloadIsOngoing(dlState)
-
       const dlInfo = useFsDownloadInfo(downloadID)
       useFsFileContext(dlInfo.path)
 
+      const {dlState, finishedDownloadWithIntentMobile, finishedRegularDownloadMobile} = useFSState(
+        C.useShallow(s => ({
+          dlState: s.downloads.state.get(downloadID) || C.FS.emptyDownloadState,
+          finishedDownloadWithIntentMobile: s.dispatch.dynamic.finishedDownloadWithIntentMobile,
+          finishedRegularDownloadMobile: s.dispatch.dynamic.finishedRegularDownloadMobile,
+        }))
+      )
+      const finished = dlState !== C.FS.emptyDownloadState && !C.FS.downloadIsOngoing(dlState)
       const mimeType = useFSState(s => s.fileContext.get(dlInfo.path) || C.FS.emptyFileContext).contentType
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
-
-      const finishedDownloadWithIntentMobile = useFSState(
-        s => s.dispatch.dynamic.finishedDownloadWithIntentMobile
-      )
-      const finishedRegularDownloadMobile = useFSState(
-        s => s.dispatch.dynamic.finishedRegularDownloadMobile
-      )
 
       React.useEffect(() => {
         if (!downloadID || !downloadIntent || !finished || !mimeType) {
