@@ -10,9 +10,9 @@ type OwnProps = {alwaysShow?: boolean}
 const SFMIContainer = (op: OwnProps) => {
   const {driverStatus, driverEnable, driverDisable, setSfmiBannerDismissedDesktop, settings} = useFSState(
     C.useShallow(s => ({
-      driverStatus: s.sfmi.driverStatus,
-      driverEnable: s.dispatch.driverEnable,
       driverDisable: s.dispatch.driverDisable,
+      driverEnable: s.dispatch.driverEnable,
+      driverStatus: s.sfmi.driverStatus,
       setSfmiBannerDismissedDesktop: s.dispatch.dynamic.setSfmiBannerDismissedDesktop,
       settings: s.settings,
     }))
@@ -216,8 +216,8 @@ type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const {preferredMountDirs, openLocalPathInSystemFileManagerDesktop} = useFSState(
     C.useShallow(s => ({
-      preferredMountDirs: s.sfmi.preferredMountDirs,
       openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+      preferredMountDirs: s.sfmi.preferredMountDirs,
     }))
   )
   const displayingMountDir = preferredMountDirs[0] || ''
