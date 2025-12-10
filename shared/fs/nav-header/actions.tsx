@@ -13,8 +13,8 @@ type Props = {
 const FsNavHeaderRightActions = (props: Props) => {
   const {softErrors, setFolderViewFilter} = useFSState(
     C.useShallow(s => ({
-      softErrors: s.softErrors,
       setFolderViewFilter: s.dispatch.setFolderViewFilter,
+      softErrors: s.softErrors,
     }))
   )
   const hasSoftError = !!C.FS.getSoftError(softErrors, props.path)

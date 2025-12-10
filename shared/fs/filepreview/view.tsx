@@ -26,8 +26,8 @@ const FilePreviewView = (p: Props) => {
 const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   const {pathItem, fileContext} = useFSState(
     C.useShallow(s => ({
-      pathItem: C.FS.getPathItem(s.pathItems, path),
       fileContext: s.fileContext.get(path) || C.FS.emptyFileContext,
+      pathItem: C.FS.getPathItem(s.pathItems, path),
     }))
   )
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(

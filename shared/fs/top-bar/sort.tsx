@@ -34,8 +34,8 @@ const Container = (ownProps: OwnProps) => {
     C.useShallow(s => ({
       _kbfsDaemonStatus: s.kbfsDaemonStatus,
       _pathItem: C.FS.getPathItem(s.pathItems, path),
-      setSorting: s.dispatch.setSorting,
       _sortSetting: C.FS.getPathUserSetting(s.pathUserSettings, path).sort,
+      setSorting: s.dispatch.setSorting,
     }))
   )
 
