@@ -27,15 +27,10 @@ const Container = (op: OwnProps) => {
       const pathItem = C.FS.getPathItem(s.pathItems, path)
       const pathItemActionMenu = s.pathItemActionMenu
       const fileContext = s.fileContext.get(path) || C.FS.emptyFileContext
-      const cancelDownload = s.dispatch.cancelDownload
-      const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
-      const download = s.dispatch.download
-      const newFolderRow = s.dispatch.newFolderRow
-      const openPathInSystemFileManagerDesktop = s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+      const {cancelDownload, setPathItemActionMenuView, download, newFolderRow} = s.dispatch
+      const {favoriteIgnore, startRename, dismissDownload} = s.dispatch
+      const {openPathInSystemFileManagerDesktop} = s.dispatch.dynamic
       const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
-      const favoriteIgnore = s.dispatch.favoriteIgnore
-      const startRename = s.dispatch.startRename
-      const dismissDownload = s.dispatch.dismissDownload
       return {
         cancelDownload,
         dismissDownload,
