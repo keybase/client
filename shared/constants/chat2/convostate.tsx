@@ -2981,32 +2981,33 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     toggleMessageReaction: (ordinal, emoji) => {
+      if (!emoji) {
+        return
+      }
+      const message = get().messageMap.get(ordinal)
+      if (!message) {
+        logger.warn(`toggleMessageReaction: no message found`)
+        return
+      }
+      const {type, exploded, id} = message
+      if ((type === 'text' || type === 'attachment') && exploded) {
+        logger.warn(`toggleMessageReaction: message is exploded`)
+        return
+      }
+      const clientPrev = getClientPrev()
+      const conversationID = get().getConvID()
+      const tlfName = get().meta.tlfname
       const f = async () => {
-        // The service translates this to a delete if an identical reaction already exists
-        // so we only need to call this RPC to toggle it on & off
-        if (!emoji) {
-          return
-        }
-        const message = get().messageMap.get(ordinal)
-        if (!message) {
-          logger.warn(`toggleMessageReaction: no message found`)
-          return
-        }
-        const {type, exploded, id} = message
-        if ((type === 'text' || type === 'attachment') && exploded) {
-          logger.warn(`toggleMessageReaction: message is exploded`)
-          return
-        }
         logger.info(`toggleMessageReaction: posting reaction`)
         try {
           await T.RPCChat.localPostReactionNonblockRpcPromise({
             body: emoji,
-            clientPrev: getClientPrev(),
-            conversationID: get().getConvID(),
+            clientPrev,
+            conversationID,
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             outboxID: Common.generateOutboxID(),
             supersedes: id,
-            tlfName: get().meta.tlfname,
+            tlfName,
             tlfPublic: false,
           })
         } catch (error) {
