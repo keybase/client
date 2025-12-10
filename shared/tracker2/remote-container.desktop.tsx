@@ -10,6 +10,7 @@ import KB2 from '@/util/electron.desktop'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useTrackerState} from '@/constants/tracker2'
 import {useUsersState} from '@/constants/users'
+import {useFollowerState} from '@/constants/followers'
 
 const {closeWindow} = KB2.functions
 
@@ -32,7 +33,7 @@ const RemoteContainer = (d: DeserializeProps) => {
   const {guiID, location, reason, state: trackerState, teamShowcase} = details
 
   const replaceAvatar = useAvatarState(s => s.dispatch.replace)
-  const replaceFollower = C.useFollowerState(s => s.dispatch.replace)
+  const replaceFollower = useFollowerState(s => s.dispatch.replace)
   const replaceUsers = useUsersState(s => s.dispatch.replace)
   const replaceCurrent = C.useCurrentUserState(s => s.dispatch.replaceUsername)
   const replaceHTTP = C.useConfigState(s => s.dispatch.setHTTPSrvInfo)

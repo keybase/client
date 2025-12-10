@@ -4,6 +4,7 @@ import {type BackgroundColorType} from '.'
 import {useColorScheme} from 'react-native'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
+import {useFollowerState} from '@/constants/followers'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -52,8 +53,8 @@ const useUserData = (username: string) => {
     username,
   }
 
-  const followThem = C.useFollowerState(s => s.following.has(username))
-  // const followsYou = C.useFollowerState(s => s.followers.has(username))
+  const followThem = useFollowerState(s => s.following.has(username))
+  // const followsYou = useFollowerState(s => s.followers.has(username))
   // const mutualFollow = followThem && followsYou
   const _suggestionKeys = useTrackerState(s => (userIsYou ? s.proofSuggestions : undefined))
   const nonUserDetails = useTrackerState(s => s.getNonUserDetails(username))

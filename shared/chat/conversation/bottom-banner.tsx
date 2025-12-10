@@ -5,6 +5,7 @@ import _openSMS from '@/util/sms'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import type {Props as TextProps} from '@/common-adapters/text'
 import {useUsersState} from '@/constants/users'
+import {useFollowerState} from '@/constants/followers'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
@@ -85,7 +86,7 @@ const Invite = () => {
 }
 
 const Broken = () => {
-  const following = C.useFollowerState(s => s.following)
+  const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
   const participantInfo = C.useChatContext(s => s.participants)
   const users = participantInfo.all.filter(p => following.has(p) && infoMap.get(p)?.broken)
@@ -93,7 +94,7 @@ const Broken = () => {
 }
 
 const BannerContainer = React.memo(function BannerContainer() {
-  const following = C.useFollowerState(s => s.following)
+  const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
   const dismissed = C.useChatContext(s => s.dismissedInviteBanners)
   const participantInfo = C.useChatContext(s => s.participants)

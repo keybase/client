@@ -9,6 +9,7 @@ import './avatar.css'
 import type {Props} from '.'
 import {useColorScheme} from 'react-native'
 import {useUsersState} from '@/constants/users'
+import {useFollowerState} from '@/constants/followers'
 
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = (typeof avatarSizes)[number]
@@ -60,10 +61,10 @@ export default (ownProps: Props) => {
   const {onEditAvatarClick, imageOverrideUrl, size, lighterPlaceholders} = ownProps
   const isTeam = _isTeam || !!teamname
   const counter = AvatarZus.useAvatarState(s => s.counts.get(username || teamname || '') ?? 0)
-  const following = C.useFollowerState(s =>
+  const following = useFollowerState(s =>
     showFollowingStatus && username ? s.following.has(username) : false
   )
-  const followsYou = C.useFollowerState(s =>
+  const followsYou = useFollowerState(s =>
     showFollowingStatus && username ? s.followers.has(username) : false
   )
   const httpSrv = C.useConfigState(s => s.httpSrv)

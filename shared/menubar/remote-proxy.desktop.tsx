@@ -12,6 +12,7 @@ import type * as NotifConstants from '@/constants/notifications'
 import {useColorScheme} from 'react-native'
 import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
+import {useFollowerState} from '@/constants/followers'
 import {useUsersState} from '@/constants/users'
 
 const {showTray} = KB2.functions
@@ -78,7 +79,7 @@ const convoDiff = (a: C.Chat.ConvoState, b: C.Chat.ConvoState) => {
 const usernamesCache = new Map<string, Set<string>>()
 // TODO could make this render less
 const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
-  const followerState = C.useFollowerState(
+  const followerState = useFollowerState(
     C.useShallow(s => {
       const {followers, following} = s
       return {followers, following}

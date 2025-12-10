@@ -13,6 +13,7 @@ import {defaultUseNativeFrame, isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useState as useWNState} from '../whats-new'
+import {useFollowerState} from '../followers'
 import type * as Pinentry from '@/constants/pinentry'
 import {invalidPasswordErrorString} from './util'
 import {useSettingsContactsState} from '../settings-contacts'
@@ -813,7 +814,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         }
         case EngineGen.keybase1NotifyTrackingTrackingChanged: {
           const {isTracking, username} = action.payload.params
-          C.useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
+          useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
           break
         }
         case EngineGen.keybase1NotifyTrackingTrackingInfo: {
@@ -823,7 +824,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           }
           const newFollowers = new Set(_newFollowers)
           const newFollowing = new Set(_newFollowing)
-          const {following: oldFollowing, followers: oldFollowers, dispatch} = C.useFollowerState.getState()
+          const {following: oldFollowing, followers: oldFollowers, dispatch} = useFollowerState.getState()
           const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
           const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
           dispatch.replace(followers, following)

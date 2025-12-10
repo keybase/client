@@ -10,6 +10,7 @@ import {mapFilterByKey} from '@/util/map'
 import {useColorScheme} from 'react-native'
 import {useTrackerState} from '@/constants/tracker2'
 import {useUsersState} from '@/constants/users'
+import {useFollowerState} from '@/constants/followers'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
@@ -19,8 +20,8 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const details = useTrackerState(s => s.getDetails(trackerUsername))
   const infoMap = useUsersState(s => s.infoMap)
   const blockMap = useUsersState(s => s.blockMap)
-  const followers = C.useFollowerState(s => s.followers)
-  const following = C.useFollowerState(s => s.following)
+  const followers = useFollowerState(s => s.followers)
+  const following = useFollowerState(s => s.following)
   const username = C.useCurrentUserState(s => s.username)
   const httpSrv = C.useConfigState(s => s.httpSrv)
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details

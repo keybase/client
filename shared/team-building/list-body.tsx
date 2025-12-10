@@ -13,6 +13,7 @@ import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
 import {formatAnyPhoneNumbers} from '@/util/phone-numbers'
 import {useRoute} from '@react-navigation/native'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
+import {useFollowerState} from '@/constants/followers'
 // import {useAnimatedScrollHandler} from '@/common-adapters/reanimated'
 import {useColorScheme} from 'react-native'
 
@@ -232,7 +233,7 @@ export const ListBody = (
   const contactsPermissionStatus = useSettingsContactsState(s => s.permissionStatus)
 
   const username = C.useCurrentUserState(s => s.username)
-  const following = C.useFollowerState(s => s.following)
+  const following = useFollowerState(s => s.following)
 
   const maybeTeamDetails = C.useTeamsState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
   const preExistingTeamMembers: T.Teams.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap

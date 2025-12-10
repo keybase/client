@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {useTrackerState} from '@/constants/tracker2'
+import {useFollowerState} from '@/constants/followers'
 
 type OwnProps = {
   inTracker: boolean
@@ -47,8 +48,8 @@ const Container = (ownProps: OwnProps) => {
   )
   const {bio, followersCount, followingCount, fullname, location, blocked, hidFromFollowers, sbsDescription} =
     stateProps
-  const followThem = C.useFollowerState(s => s.following.has(username))
-  const followsYou = C.useFollowerState(s => s.followers.has(username))
+  const followThem = useFollowerState(s => s.following.has(username))
+  const followsYou = useFollowerState(s => s.followers.has(username))
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">

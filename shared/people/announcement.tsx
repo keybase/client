@@ -4,6 +4,7 @@ import openURL from '@/util/open-url'
 import * as Kb from '@/common-adapters'
 import PeopleItem from './item'
 import * as Settings from '@/constants/settings'
+import {usePeopleState} from '@/constants/people'
 
 type OwnProps = {
   appLink?: T.RPCGen.AppLinkType
@@ -18,8 +19,8 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {appLink, badged, confirmLabel, iconUrl, id, text, url, dismissable} = ownProps
-  const loadPeople = C.usePeopleState(s => s.dispatch.loadPeople)
-  const dismissAnnouncement = C.usePeopleState(s => s.dispatch.dismissAnnouncement)
+  const loadPeople = usePeopleState(s => s.dispatch.loadPeople)
+  const dismissAnnouncement = usePeopleState(s => s.dispatch.dismissAnnouncement)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const navigateToInbox = C.useChatState(s => s.dispatch.navigateToInbox)

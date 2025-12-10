@@ -15,6 +15,7 @@ import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import {useTrackerState} from '@/constants/tracker2'
 import {useUsersState} from '@/constants/users'
 import {useProfileState} from '@/constants/profile'
+import {useFollowerState} from '@/constants/followers'
 
 export type User = {
   username: string
@@ -94,7 +95,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
   const {onUsernameClicked, joinerStyle, showComma, showSpace, virtualText, withProfileCardPopup} = p
   const you = p.you === username
 
-  const following = C.useFollowerState(s => colorFollowing && s.following.has(username))
+  const following = useFollowerState(s => colorFollowing && s.following.has(username))
   const broken = useUsersState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)

@@ -10,6 +10,7 @@ import {useSettingsEmailState} from '@/constants/settings-email'
 import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
+import {usePeopleState} from '@/constants/people'
 
 type TodoOwnProps = {
   badged: boolean
@@ -22,7 +23,7 @@ type TodoOwnProps = {
 
 const installLinkURL = 'https://keybase.io/download'
 const useOnSkipTodo = (type: T.People.TodoType) => {
-  const skipTodo = C.usePeopleState(s => s.dispatch.skipTodo)
+  const skipTodo = usePeopleState(s => s.dispatch.skipTodo)
   return React.useCallback(() => {
     skipTodo(type)
   }, [skipTodo, type])
@@ -202,7 +203,7 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
   const addingEmail = useSettingsEmailState(s => s.addingEmail)
-  const setResentEmail = C.usePeopleState(s => s.dispatch.setResentEmail)
+  const setResentEmail = usePeopleState(s => s.dispatch.setResentEmail)
   const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
     editEmail({email, verify: true})
