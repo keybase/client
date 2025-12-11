@@ -17,6 +17,7 @@ import {useUsersState} from '../users'
 import {useCurrentUserState} from '../current-user'
 import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '../rpc-utils'
+import {useDaemonState} from '../daemon'
 
 const defaultTopReacjis = [
   {name: ':+1:'},
@@ -794,7 +795,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       if (get().staticConfig) {
         return
       }
-      const {handshakeVersion, dispatch} = C.useDaemonState.getState()
+      const {handshakeVersion, dispatch} = useDaemonState.getState()
       const f = async () => {
         const name = 'chat.loadStatic'
         dispatch.wait(name, handshakeVersion, true)

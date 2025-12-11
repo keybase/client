@@ -18,6 +18,7 @@ import * as Hooks from './hooks.native'
 import * as TabBar from './tab-bar.native'
 import type {RootParamList} from '@/router-v2/route-params'
 import {useColorScheme} from 'react-native'
+import {useDaemonState} from '@/constants/daemon'
 
 if (module.hot) {
   module.hot.accept('', () => {})
@@ -136,7 +137,7 @@ const modalScreenOptions = {
 } as const
 const RNApp = React.memo(function RNApp() {
   const everLoadedRef = React.useRef(false)
-  const loggedInLoaded = C.useDaemonState(s => {
+  const loggedInLoaded = useDaemonState(s => {
     const loaded = everLoadedRef.current || s.handshakeState === 'done'
     everLoadedRef.current = loaded
     return loaded

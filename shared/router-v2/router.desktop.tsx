@@ -15,6 +15,7 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {registerDebugClear} from '@/util/debug'
 import type {RootParamList} from '@/router-v2/route-params'
 import {useCurrentUserState} from '@/constants/current-user'
+import {useDaemonState} from '@/constants/daemon'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import './router.css'
 
@@ -118,7 +119,7 @@ const ElectronApp = React.memo(function ElectronApp() {
   const loggedInUser = useCurrentUserState(s => s.username)
   const loggedIn = C.useConfigState(s => s.loggedIn)
   const everLoadedRef = React.useRef(false)
-  const loggedInLoaded = C.useDaemonState(s => {
+  const loggedInLoaded = useDaemonState(s => {
     const loaded = everLoadedRef.current || s.handshakeState === 'done'
     everLoadedRef.current = loaded
     return loaded

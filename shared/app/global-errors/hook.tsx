@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import type {RPCError} from '@/util/errors'
 import * as Settings from '@/constants/settings'
+import {useDaemonState} from '@/constants/daemon'
 
 export type Size = 'Closed' | 'Small' | 'Big'
 
@@ -10,7 +11,7 @@ const detailsForError = (err?: Error | RPCError) => err?.stack ?? ''
 
 const useData = () => {
   const loggedIn = C.useConfigState(s => s.loggedIn)
-  const daemonError = C.useDaemonState(s => s.error)
+  const daemonError = useDaemonState(s => s.error)
   const error = C.useConfigState(s => s.globalError)
   const setGlobalError = C.useConfigState(s => s.dispatch.setGlobalError)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)

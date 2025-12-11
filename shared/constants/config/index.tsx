@@ -21,6 +21,7 @@ import {useSettingsContactsState} from '../settings-contacts'
 import {useSettingsState} from '../settings'
 import {useTrackerState} from '../tracker2'
 import {useFSState} from '../fs'
+import {useDaemonState} from '../daemon'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -262,8 +263,8 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
     // Re-get info about our account if you log in/we're done handshaking/became reachable
     if (r === T.RPCGen.Reachable.yes) {
       // not in waiting state
-      if (C.useDaemonState.getState().handshakeWaiters.size === 0) {
-        C.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+      if (useDaemonState.getState().handshakeWaiters.size === 0) {
+        C.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
       }
     }
 
@@ -739,7 +740,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       C.ignorePromise(f())
     },
     onEngineConnected: () => {
-      C.useDaemonState.getState().dispatch.startHandshake()
+      useDaemonState.getState().dispatch.startHandshake()
 
       // The startReachability RPC call both starts and returns the current
       // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
@@ -773,7 +774,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         await logger.dump()
       }
       C.ignorePromise(f())
-      C.useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
+      useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
     },
     onEngineIncoming: action => {
       switch (action.type) {
@@ -926,7 +927,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           s.justRevokedSelf = name
           s.revokedTrigger++
         })
-        C.useDaemonState.getState().dispatch.loadDaemonAccounts()
+        useDaemonState.getState().dispatch.loadDaemonAccounts()
       }
     },
     setAccounts: a => {
@@ -1022,9 +1023,9 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       if (!changed) return
 
       if (loggedIn) {
-        C.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+        C.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
       }
-      C.useDaemonState.getState().dispatch.loadDaemonAccounts()
+      useDaemonState.getState().dispatch.loadDaemonAccounts()
 
       const {loadOnStart} = get().dispatch
       if (loggedIn) {
@@ -1047,7 +1048,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       }
 
       if (!causedByStartup) {
-        C.ignorePromise(C.useDaemonState.getState().dispatch.refreshAccounts())
+        C.ignorePromise(useDaemonState.getState().dispatch.refreshAccounts())
       }
     },
     setLoginError: error => {

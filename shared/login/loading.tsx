@@ -1,11 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {useDaemonState} from '@/constants/daemon'
 
 const SplashContainer = () => {
-  const failedReason = C.useDaemonState(s => s.handshakeFailedReason)
-  const retriesLeft = C.useDaemonState(s => s.handshakeRetriesLeft)
-  const startHandshake = C.useDaemonState(s => s.dispatch.startHandshake)
+  const failedReason = useDaemonState(s => s.handshakeFailedReason)
+  const retriesLeft = useDaemonState(s => s.handshakeRetriesLeft)
+  const startHandshake = useDaemonState(s => s.dispatch.startHandshake)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   let status = ''

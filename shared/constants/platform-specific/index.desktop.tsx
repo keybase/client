@@ -13,6 +13,7 @@ import {kbfsNotification} from './kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import NotifyPopup from '@/util/notify-popup'
 import {noKBFSFailReason} from '@/constants/config/util'
+import {useDaemonState} from '../daemon'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions
@@ -155,14 +156,14 @@ export const initPlatformListener = () => {
     }
   })
 
-  C.useDaemonState.subscribe((s, old) => {
+  useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
     if (!isWindows) return
 
     const f = async () => {
       const waitKey = 'pipeCheckFail'
       const version = s.handshakeVersion
-      const {wait} = C.useDaemonState.getState().dispatch
+      const {wait} = useDaemonState.getState().dispatch
       wait(waitKey, version, true)
       try {
         logger.info('Checking RPC ownership')
@@ -235,7 +236,7 @@ export const initPlatformListener = () => {
     C.ignorePromise(f())
   })
 
-  C.useDaemonState.subscribe((s, old) => {
+  useDaemonState.subscribe((s, old) => {
     if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
     C.useConfigState.getState().dispatch.setStartupDetails({
       conversation: C.Chat.noConversationIDKey,
@@ -275,9 +276,9 @@ export const initPlatformListener = () => {
   }
   initializeInputMonitor()
 
-  C.useDaemonState.setState(s => {
+  useDaemonState.setState(s => {
     s.dispatch.onRestartHandshakeNative = () => {
-      const {handshakeFailedReason} = C.useDaemonState.getState()
+      const {handshakeFailedReason} = useDaemonState.getState()
       if (isWindows && handshakeFailedReason === noKBFSFailReason) {
         requestWindowsStartService?.()
       }
