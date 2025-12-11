@@ -1,5 +1,6 @@
 import * as C from '..'
 import logger from '@/logger'
+import {useConfigState} from '../config'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 import {useUsersState} from '../users'
@@ -124,7 +125,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
     loadDaemonAccounts: () => {
       const f = async () => {
         const version = get().handshakeVersion
-        if (C.useConfigState.getState().configuredAccounts.length) {
+        if (useConfigState.getState().configuredAccounts.length) {
           // bail on already loaded
           return
         }
@@ -133,7 +134,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         const handshakeVersion = version
 
         // did we beat getBootstrapStatus?
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           handshakeWait = true
         }
 
@@ -171,7 +172,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         const {setBootstrap} = useCurrentUserState.getState().dispatch
-        const {setDefaultUsername} = C.useConfigState.getState().dispatch
+        const {setDefaultUsername} = useConfigState.getState().dispatch
         const s = await T.RPCGen.configGetBootstrapStatusRpcPromise()
         const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
         setBootstrap({deviceID, deviceName, uid, username})
@@ -179,17 +180,17 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
           setDefaultUsername(username)
         }
         if (loggedIn) {
-          C.useConfigState.getState().dispatch.setUserSwitching(false)
+          useConfigState.getState().dispatch.setUserSwitching(false)
         }
 
         logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
-        C.useConfigState.getState().dispatch.setLoggedIn(loggedIn, false)
+        useConfigState.getState().dispatch.setLoggedIn(loggedIn, false)
         C.useChatState.getState().dispatch.updateUserReacjis(userReacjis)
 
         // set HTTP srv info
         if (s.httpSrvInfo) {
           logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
-          C.useConfigState.getState().dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
+          useConfigState.getState().dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
         } else {
           logger.info(`[Bootstrap] http server: no info given`)
         }
@@ -208,8 +209,8 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
     refreshAccounts: async () => {
       const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
       // already have one?
-      const {defaultUsername} = C.useConfigState.getState()
-      const {setAccounts, setDefaultUsername} = C.useConfigState.getState().dispatch
+      const {defaultUsername} = useConfigState.getState()
+      const {setAccounts, setDefaultUsername} = useConfigState.getState().dispatch
 
       let existingDefaultFound = false as boolean
       let currentName = ''
@@ -273,7 +274,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
 
       if (!_emitStartupOnLoadDaemonConnectedOnce) {
         _emitStartupOnLoadDaemonConnectedOnce = true
-        C.useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
+        useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
       }
     },
     startHandshake: () => {

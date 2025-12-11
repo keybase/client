@@ -1,12 +1,12 @@
-import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {getEngine} from '@/engine/require'
+import type {Store as ConfigStore} from '../config'
 
 type Store = T.Immutable<{
-  devices: C.ConfigStore['unlockFoldersDevices']
+  devices: ConfigStore['unlockFoldersDevices']
   phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success'
 }>
 

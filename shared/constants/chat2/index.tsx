@@ -4,6 +4,7 @@ import * as Tabs from '../tabs'
 import {useDeepLinksState} from '../deeplinks'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import type * as ConfigConstants from '../config'
+import {useConfigState} from '../config'
 import * as Message from './message'
 import * as Router2 from '../router2'
 import * as TeamConstants from '../teams'
@@ -524,7 +525,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     inboxRefresh: reason => {
       const f = async () => {
         const {username} = useCurrentUserState.getState()
-        const {loggedIn} = C.useConfigState.getState()
+        const {loggedIn} = useConfigState.getState()
         if (!loggedIn || !username) {
           return
         }
@@ -1740,7 +1741,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     unboxRows: (ids, force) => {
       // We want to unbox rows that have scroll into view
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
 

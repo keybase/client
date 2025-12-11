@@ -1,15 +1,15 @@
 import * as Kb from '@/common-adapters'
-import type * as C from '@/constants'
 import type * as React from 'react'
 import DeviceList from './device-list.desktop'
 import DragHeader from '../desktop/remote/drag-header.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
 import type * as Constants from '@/constants/unlock-folders'
+import type {Store as ConfigStore} from '@/constants/config'
 
 export type Props = {
   phase: Constants.State['phase']
-  devices: C.ConfigStore['unlockFoldersDevices']
+  devices: ConfigStore['unlockFoldersDevices']
   onClose: () => void
   toPaperKeyInput: () => void
   onBackFromPaperKey: () => void

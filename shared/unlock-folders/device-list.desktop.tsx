@@ -1,11 +1,11 @@
-import type * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import type {Store as ConfigStore} from '@/constants/config'
 
 export type Props = {
-  devices: C.ConfigStore['unlockFoldersDevices']
+  devices: ConfigStore['unlockFoldersDevices']
   toPaperKeyInput: () => void
 }
-type Device = C.ConfigStore['unlockFoldersDevices'][0]
+type Device = ConfigStore['unlockFoldersDevices'][0]
 
 const DeviceRow = ({device}: {device: Device}) => {
   const icon = (

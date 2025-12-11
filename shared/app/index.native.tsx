@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useDeepLinksState} from '@/constants/deeplinks'
@@ -30,7 +31,7 @@ const useDarkHookup = () => {
   const initedRef = React.useRef(false)
   const appStateRef = React.useRef('active')
   const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
-  const setMobileAppState = C.useConfigState(s => s.dispatch.setMobileAppState)
+  const setMobileAppState = useConfigState(s => s.dispatch.setMobileAppState)
   const setSystemSupported = C.useDarkModeState(s => s.dispatch.setSystemSupported)
   const setDarkModePreference = C.useDarkModeState(s => s.dispatch.setDarkModePreference)
 

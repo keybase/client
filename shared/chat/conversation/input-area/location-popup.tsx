@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {useConfigState} from '@/constants/config'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import LocationMap from '@/chat/location-map'
@@ -8,7 +9,7 @@ import {useCurrentUserState} from '@/constants/current-user'
 const LocationPopup = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const username = useCurrentUserState(s => s.username)
-  const httpSrv = C.useConfigState(s => s.httpSrv)
+  const httpSrv = useConfigState(s => s.httpSrv)
   const location = C.useChatState(s => s.lastCoord)
   const locationDenied = C.useChatContext(
     s => s.commandStatus?.displayType === T.RPCChat.UICommandStatusDisplayTyp.error
@@ -18,7 +19,7 @@ const LocationPopup = () => {
   const onClose = () => {
     clearModals()
   }
-  const onSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const sendMessage = C.useChatContext(s => s.dispatch.sendMessage)
   const onLocationShare = (duration: string) => {
     onClose()

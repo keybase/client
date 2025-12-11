@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {useConfigState} from '../config'
 import * as Styles from '@/styles'
 import * as Common from './common'
 import * as Tabs from '../tabs'
@@ -484,13 +485,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
 
     const onClick = () => {
-      C.useConfigState.getState().dispatch.showMain()
+      useConfigState.getState().dispatch.showMain()
       C.useChatState.getState().dispatch.navigateToInbox()
       get().dispatch.navigateToThread('desktopNotification')
     }
     const onClose = () => {}
     logger.info('invoking NotifyPopup for chat notification')
-    const sound = C.useConfigState.getState().notifySound
+    const sound = useConfigState.getState().notifySound
 
     const cleanBody = body.replaceAll(/!>(.*?)<!/g, '•••')
 
@@ -1231,7 +1232,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     blockConversation: reportUser => {
       const f = async () => {
         C.useChatState.getState().dispatch.navigateToInbox()
-        C.useConfigState.getState().dispatch.dynamic.persistRoute?.()
+        useConfigState.getState().dispatch.dynamic.persistRoute?.()
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
           conversationID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -1744,7 +1745,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     markTeamAsRead: teamID => {
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           logger.info('bail on not logged in')
           return
         }
@@ -1755,7 +1756,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     markThreadAsRead: force => {
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           logger.info('mark read bail on not logged in')
           return
         }
@@ -2694,7 +2695,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       const conversationIDKey = get().id
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           logger.info('mark unread bail on not logged in')
           return
         }

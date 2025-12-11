@@ -1,4 +1,5 @@
 import * as C from '..'
+import {useConfigState} from '../config'
 import * as AutoReset from '../autoreset'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
@@ -227,7 +228,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             C.useRouterState
               .getState()
               .dispatch.navigateAppend(
-                C.useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+                useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
                 true
               )
           }

@@ -1,5 +1,6 @@
 import * as C from '..'
 import {useProfileState} from '../profile'
+import {useConfigState} from '../config'
 import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Router2Constants from '../router2'
@@ -1901,7 +1902,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         const username = useCurrentUserState.getState().username
-        const loggedIn = C.useConfigState.getState().loggedIn
+        const loggedIn = useConfigState.getState().loggedIn
         if (!username || !loggedIn) {
           logger.warn('getTeams while logged out')
           return
@@ -2413,7 +2414,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           break
         case EngineGen.keybase1NotifyBadgesBadgeState: {
           const {badgeState} = action.payload.params
-          const loggedIn = C.useConfigState.getState().loggedIn
+          const loggedIn = useConfigState.getState().loggedIn
           if (loggedIn) {
             const deletedTeams = badgeState.deletedTeams || []
             const newTeams = new Set<string>(badgeState.newTeams || [])
@@ -2644,14 +2645,14 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               const convID = T.Chat.keyToConversationID(conversationIDKey)
               await T.RPCChat.localJoinConversationByIDLocalRpcPromise({convID}, waitingKey)
             } catch (error) {
-              C.useConfigState.getState().dispatch.setGlobalError(error)
+              useConfigState.getState().dispatch.setGlobalError(error)
             }
           } else {
             try {
               const convID = T.Chat.keyToConversationID(conversationIDKey)
               await T.RPCChat.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
             } catch (error) {
-              C.useConfigState.getState().dispatch.setGlobalError(error)
+              useConfigState.getState().dispatch.setGlobalError(error)
             }
           }
         }
@@ -2764,14 +2765,14 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               teamID,
             })
           } catch (payload) {
-            C.useConfigState.getState().dispatch.setGlobalError(payload)
+            useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
           try {
             await T.RPCGen.teamsSetTarsDisabledRpcPromise({disabled: settings.ignoreAccessRequests, teamID})
           } catch (payload) {
-            C.useConfigState.getState().dispatch.setGlobalError(payload)
+            useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityAnyMember !== settings.publicityAnyMember) {
@@ -2781,7 +2782,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               teamID,
             })
           } catch (payload) {
-            C.useConfigState.getState().dispatch.setGlobalError(payload)
+            useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityMember !== settings.publicityMember) {
@@ -2791,14 +2792,14 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               teamID,
             })
           } catch (payload) {
-            C.useConfigState.getState().dispatch.setGlobalError(payload)
+            useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityTeam !== settings.publicityTeam) {
           try {
             await T.RPCGen.teamsSetTeamShowcaseRpcPromise({isShowcased: settings.publicityTeam, teamID})
           } catch (payload) {
-            C.useConfigState.getState().dispatch.setGlobalError(payload)
+            useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
       }

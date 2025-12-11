@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {useConfigState} from '../config'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '@/logger'
 import {isIOS, isAndroid} from '../platform'
@@ -166,7 +167,7 @@ const listenForNativeAndroidIntentNotifications = async () => {
 
   RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
     logger.debug('[ShareDataIntent]', evt)
-    const {setAndroidShare} = C.useConfigState.getState().dispatch
+    const {setAndroidShare} = useConfigState.getState().dispatch
 
     const text = evt.text
     const urls = evt.localPaths
@@ -230,7 +231,7 @@ const getInitialPushiOS = async () => {
 
 export const initPushListener = () => {
   // Permissions
-  C.useConfigState.subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     // Only recheck on foreground, not background
     if (s.mobileAppState !== 'active') {
@@ -252,7 +253,7 @@ export const initPushListener = () => {
   })
 
   let lastCount = -1
-  C.useConfigState.subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.badgeState === old.badgeState) return
     if (!s.badgeState) return
     const count = s.badgeState.bigTeamBadgeCount + s.badgeState.smallTeamBadgeCount

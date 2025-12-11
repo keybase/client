@@ -376,7 +376,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         case RemoteGen.resetStore:
           break
         case RemoteGen.openChatFromWidget: {
-          C.useConfigState.getState().dispatch.showMain()
+          get().dispatch.showMain()
           C.getConvoState(action.payload.conversationIDKey).dispatch.navigateToThread('inboxSmall')
           break
         }
@@ -770,7 +770,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       C.ignorePromise(registerForGregorNotifications())
 
       get().dispatch.dynamic.onEngineConnectedDesktop?.()
-      C.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
+      get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     },
     onEngineDisonnected: () => {
       const f = async () => {

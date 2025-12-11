@@ -1,6 +1,7 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import {useProfileState} from '@/constants/profile'
 import {useCurrentUserState} from '@/constants/current-user'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
@@ -101,7 +102,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     : []
 
   const convLabel = getConversationLabel(participantInfo, meta, true)
-  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyLink = React.useCallback(() => {
     copyToClipboard(linkFromConvAndMessage(convLabel, id))
   }, [copyToClipboard, id, convLabel])

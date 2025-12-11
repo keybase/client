@@ -16,8 +16,6 @@ export {useChatState} from './chat2'
 export * as Chat from './chat2'
 export {useConvoState_ as useConvoState, stores_ as chatStores, ChatProvider_ as ChatProvider} from './chat2'
 export {getConvoState_ as getConvoState, useContext_ as useChatContext} from './chat2'
-export {useConfigState_ as useConfigState, type Store as ConfigStore} from './config'
-
 import {useFSState} from './fs'
 import {useConfigState_ as useConfigState} from './config'
 

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -96,7 +97,7 @@ const useRevoke = (deviceID = '') => {
         try {
           await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.waitingKeyDevices)
           load()
-          C.useConfigState.getState().dispatch.revoke(deviceName)
+          useConfigState.getState().dispatch.revoke(deviceName)
         } catch {}
       } else {
         try {
@@ -105,7 +106,7 @@ const useRevoke = (deviceID = '') => {
             C.waitingKeyDevices
           )
           load()
-          C.useConfigState.getState().dispatch.revoke(deviceName)
+          useConfigState.getState().dispatch.revoke(deviceName)
           navUpToScreen(
             C.isMobile ? (C.isTablet ? C.Tabs.settingsTab : settingsDevicesTab) : C.Tabs.devicesTab
           )

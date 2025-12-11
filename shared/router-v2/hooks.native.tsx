@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import * as Tabs from '@/constants/tabs'
 import * as React from 'react'
 import {useDeepLinksState} from '@/constants/deeplinks'
@@ -59,7 +60,7 @@ const isValidLink = (link: string) => {
 }
 
 export const useInitialState = (loggedInLoaded: boolean) => {
-  const config = C.useConfigState(
+  const config = useConfigState(
     C.useShallow(s => {
       const {androidShare, loggedIn, startup} = s
       return {androidShare, loggedIn, startup}

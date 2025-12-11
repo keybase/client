@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Styles from '@/styles'
+import {useConfigState} from '@/constants/config'
 import WaitingButton from '@/common-adapters/waiting-button'
 import Icon from '@/common-adapters/icon'
 
@@ -17,7 +18,7 @@ type Props = {
 }
 
 const ChatButton = ({small, style, username, afterClick}: Props) => {
-  const showMain = C.useConfigState(s => s.dispatch.showMain)
+  const showMain = useConfigState(s => s.dispatch.showMain)
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const chat = () => {
     afterClick?.()
