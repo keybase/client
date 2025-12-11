@@ -16,7 +16,7 @@ export * as Chat from './chat2'
 export {useConvoState_ as useConvoState, stores_ as chatStores, ChatProvider_ as ChatProvider} from './chat2'
 export {getConvoState_ as getConvoState, useContext_ as useChatContext} from './chat2'
 import {useFSState} from './fs'
-import {useConfigState_ as useConfigState} from './config'
+import {useConfigState} from './config'
 
 export {default as shallowEqual} from 'shallowequal'
 export * as PlatformSpecific from './platform-specific'

@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import {useTeamsSubscribe} from '@/teams/subscriber'
 import {useTrackerState} from '@/constants/tracker2'

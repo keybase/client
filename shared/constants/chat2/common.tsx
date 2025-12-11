@@ -1,4 +1,3 @@
-import * as C from '..'
 import * as T from '../types'
 import {isMobile, isTablet} from '../platform'
 import * as Router2 from '../router2'

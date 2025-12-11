@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {formatPhoneNumber} from '@/util/phone-numbers'
 import * as Teams from '@/constants/teams'

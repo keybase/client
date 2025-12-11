@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import type * as C from '@/constants'
 import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
 import * as Styles from '@/styles'

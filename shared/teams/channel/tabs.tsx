@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {Tab as TabType} from '@/common-adapters/tabs'

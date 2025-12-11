@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import KB2 from '@/util/electron.desktop'
 import isEqual from 'lodash/isEqual'
+import {useConfigState} from '@/constants/config'
 
 const {rendererNewProps} = KB2.functions
 
@@ -22,7 +23,7 @@ export default function useSerializeProps<ProxyProps extends object, SerializePr
 ) {
   const lastSent = React.useRef<Partial<SerializeProps>>({})
   const lastForceUpdate = React.useRef<number>(-1)
-  const currentForceUpdate = C.useConfigState(
+  const currentForceUpdate = useConfigState(
     s => s.remoteWindowNeedsProps.get(windowComponent)?.get(windowParam) ?? 0
   )
 

@@ -7,6 +7,7 @@ import {type CommonResponseHandler} from '@/engine/types'
 import isEqual from 'lodash/isEqual'
 import {rpcDeviceToDevice} from '../rpc-utils'
 import {invalidPasswordErrorString} from '@/constants/config/util'
+import {useConfigState} from '@/constants/config'
 
 export type Device = {
   deviceNumberOfType: number
@@ -14,7 +15,6 @@ export type Device = {
   name: string
   type: T.Devices.DeviceType
 }
-
 
 const decodeForgotUsernameError = (error: RPCError) => {
   switch (error.code) {
@@ -292,7 +292,10 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         if (email) {
           try {
-            await T.RPCGen.accountRecoverUsernameWithEmailRpcPromise({email}, C.waitingKeyProvisionForgotUsername)
+            await T.RPCGen.accountRecoverUsernameWithEmailRpcPromise(
+              {email},
+              C.waitingKeyProvisionForgotUsername
+            )
             set(s => {
               s.forgotUsernameResult = 'success'
             })
@@ -307,7 +310,10 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
         }
         if (phone) {
           try {
-            await T.RPCGen.accountRecoverUsernameWithPhoneRpcPromise({phone}, C.waitingKeyProvisionForgotUsername)
+            await T.RPCGen.accountRecoverUsernameWithPhoneRpcPromise(
+              {phone},
+              C.waitingKeyProvisionForgotUsername
+            )
             set(s => {
               s.forgotUsernameResult = 'success'
             })
@@ -543,16 +549,19 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
     },
     startProvision: (name = '', fromReset = false) => {
       get().dispatch.dynamic.cancel?.(true)
-      C.useConfigState.getState().dispatch.setLoginError()
-      C.useConfigState.getState().dispatch.resetRevokedSelf()
+      useConfigState.getState().dispatch.setLoginError()
+      useConfigState.getState().dispatch.resetRevokedSelf()
 
       set(s => {
         s.username = name
       })
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (C.useConfigState.getState().loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, C.waitingKeyConfigLoginAsOther)
+        if (useConfigState.getState().loggedIn) {
+          await T.RPCGen.loginLogoutRpcPromise(
+            {force: false, keepSecrets: true},
+            C.waitingKeyConfigLoginAsOther
+          )
         }
         C.useRouterState.getState().dispatch.navigateAppend({props: {fromReset}, selected: 'username'})
       }

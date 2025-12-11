@@ -1,15 +1,15 @@
 import * as C from '@/constants'
 import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
-import Teams from './main'
+import Main from './main'
 import openURL from '@/util/open-url'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useConfigState} from '@/constants/config'
 
 const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,
@@ -47,7 +47,7 @@ const orderTeams = (
 }
 
 const Connected = () => {
-  const data = useTeamsState(
+  const data = Teams.useTeamsState(
     C.useShallow(s => {
       const {deletedTeams, activityLevels, teamMeta, teamListFilter, dispatch} = s
       const {newTeamRequests, newTeams, teamListSort, teamIDToResetUsers} = s
@@ -73,7 +73,7 @@ const Connected = () => {
 
   const loaded = !C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoaded)
 
-  const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
+  const updateGregorCategory = useConfigState(s => s.dispatch.updateGregorCategory)
   const onHideChatBanner = () => {
     updateGregorCategory('sawChatBanner', 'true')
   }
@@ -106,7 +106,7 @@ const Connected = () => {
 
   return (
     <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={loadTeams}>
-      <Teams
+      <Main
         onCreateTeam={onCreateTeam}
         onJoinTeam={onJoinTeam}
         onManageChat={onManageChat}

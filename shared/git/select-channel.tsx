@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Git from '@/constants/git'
 import * as Teams from '@/constants/teams'
 import {useSafeNavigation} from '@/util/safe-navigation'

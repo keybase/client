@@ -13,6 +13,7 @@ import {initDesktopStyles} from '@/styles/index.desktop'
 import {isWindows} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
 import {debugWarning} from '@/util/debug-warning'
+import {useConfigState} from '@/constants/config'
 
 import type {default as NewMainType} from '../../app/main.desktop'
 
@@ -57,7 +58,7 @@ const setupApp = () => {
   ipcRendererOn?.('KBdispatchAction', (_: unknown, action: unknown) => {
     setTimeout(() => {
       try {
-        C.useConfigState.getState().dispatch.eventFromRemoteWindows(action as RemoteGen.Actions)
+        useConfigState.getState().dispatch.eventFromRemoteWindows(action as RemoteGen.Actions)
       } catch {}
     }, 0)
   })

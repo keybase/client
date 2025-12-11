@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -24,9 +23,7 @@ const ChannelRow = (props: ChannelRowProps) => {
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
   const details = useTeamsState(s => s.teamDetails.get(teamID))
   const hasAllMembers = details?.members.size === numParticipants
-  const activityLevel = useTeamsState(
-    s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none'
-  )
+  const activityLevel = useTeamsState(s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none')
 
   const nav = useSafeNavigation()
   const setChannelSelected = useTeamsState(s => s.dispatch.setChannelSelected)

@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {
@@ -33,7 +33,7 @@ const useLoadDataForChannelPage = (
 ) => {
   const prevSelectedTabRef = React.useRef(selectedTab)
   const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
-  const getMembers = useTeamsState(s => s.dispatch.getMembers)
+  const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
   const unboxRows = C.useChatState(s => s.dispatch.unboxRows)
   React.useEffect(() => {
@@ -68,7 +68,7 @@ const useLoadDataForChannelPage = (
     prevSelectedTabRef.current = selectedTab
   }, [selectedTab])
 
-  const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
   React.useEffect(() => {
     loadTeamChannelList(teamID)
   }, [loadTeamChannelList, teamID])
@@ -140,7 +140,7 @@ const Channel = (props: OwnProps) => {
   )
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
-  const teamMembers = useTeamsState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
+  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants, bots)
   const participants = useChannelParticipants(teamID, conversationIDKey)

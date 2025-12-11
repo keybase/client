@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'

@@ -143,7 +143,7 @@ const useInit = () => {
   eng.listenersAreReady()
 
   // On mobile there is no installer
-  C.useConfigState.getState().dispatch.installerRan()
+  useConfigState.getState().dispatch.installerRan()
 }
 
 // reanimated has issues updating shared values with this on seemingly w/ zoom toolkit

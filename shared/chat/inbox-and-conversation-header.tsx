@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
@@ -9,6 +8,7 @@ import {useRoute} from '@react-navigation/native'
 import type {RootRouteProps} from '@/router-v2/route-params'
 import {useUsersState} from '@/constants/users'
 import {useCurrentUserState} from '@/constants/current-user'
+import * as Teams from '@/constants/teams'
 
 const Header = () => {
   const {params} = useRoute<RootRouteProps<'chatRoot'>>()

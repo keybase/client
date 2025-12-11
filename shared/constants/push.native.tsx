@@ -243,7 +243,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           }
         }
         try {
-          C.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
+          useConfigState.getState().dispatch.dynamic.openAppSettings?.()
           const {increment} = C.useWaitingState.getState().dispatch
           increment(C.waitingKeyPushPermissionsRequesting)
           logger.info('[PushRequesting] asking native')

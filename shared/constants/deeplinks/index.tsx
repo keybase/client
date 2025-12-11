@@ -11,6 +11,7 @@ import URL from 'url-parse'
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import {useSettingsPhoneState} from '../settings-phone'
+import {useConfigState} from '@/constants/config'
 
 const prefix = 'keybase://'
 type Store = T.Immutable<{
@@ -291,7 +292,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
     handleSaltPackOpen: _path => {
       const path = typeof _path === 'string' ? _path : _path.stringValue()
 
-      if (!C.useConfigState.getState().loggedIn) {
+      if (!useConfigState.getState().loggedIn) {
         console.warn('Tried to open a saltpack file before being logged in')
         return
       }

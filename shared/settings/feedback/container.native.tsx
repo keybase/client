@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import {useConfigState} from '@/constants/config'
 import {useCurrentUserState} from '@/constants/current-user'
 import * as Kb from '@/common-adapters'

@@ -1,5 +1,5 @@
 import * as C from '..'
-import {useTeamsState} from '../teams'
+import * as Teams from '../teams'
 import * as T from '../types'
 import {useConfigState} from '../config'
 import * as Styles from '@/styles'

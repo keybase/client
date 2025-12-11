@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {useTeamsState} from '@/constants/teams'
@@ -87,5 +86,3 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default DeleteChannel
-
-

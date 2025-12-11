@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {Props} from '.'
+import {useConfigState} from '@/constants/config'
 
 const ChatPDF = (props: Props) => {
   const {ordinal, url} = props
@@ -10,7 +11,7 @@ const ChatPDF = (props: Props) => {
   const [error, setError] = React.useState('')
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
-  const showShareActionSheet = C.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
+  const showShareActionSheet = useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
   const onShare = () => {
     showShareActionSheet?.(url ?? '', '', 'application/pdf')
   }

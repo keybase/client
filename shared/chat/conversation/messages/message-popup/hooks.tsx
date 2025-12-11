@@ -73,7 +73,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   }, [navigateAppend, ordinal])
   const onAddReaction = C.isMobile ? _onAddReaction : undefined
 
-  const authorIsBot = useTeamsState(s =>
+  const authorIsBot = Teams.useTeamsState(s =>
     messageAuthorIsBot(s, meta.teamID, meta.teamname, meta.teamType, author, participantInfo)
   )
   const _onInstallBot = React.useCallback(() => {
@@ -219,7 +219,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const _onKick = React.useCallback(() => {
     navigateAppend(() => ({props: {members: [author], teamID}, selected: 'teamReallyRemoveMember'}))
   }, [navigateAppend, author, teamID])
-  const teamMembers = useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const authorInTeam = teamMembers?.has(author) ?? true
   const onKick = isDeleteable && !!teamID && !yourMessage && authorInTeam ? _onKick : undefined
   const itemKick = onKick

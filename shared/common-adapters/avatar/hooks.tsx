@@ -1,5 +1,4 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
-import * as C from '@/constants'
 import {useConfigState} from '@/constants/config'
 import * as React from 'react'
 import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType} from '../icon'

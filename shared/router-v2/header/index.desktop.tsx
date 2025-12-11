@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
@@ -7,6 +6,7 @@ import {IconWithPopupDesktop as WhatsNewIconWithPopup} from '@/whats-new/icon'
 import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
 import shallowEqual from 'shallowequal'
+import {useConfigState} from '@/constants/config'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
@@ -321,9 +321,9 @@ type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
 const DesktopHeaderWrapper = React.memo(
   function DesktopHeaderWrapper(p: HeaderProps) {
     const {options: _options, back, style, params, navigation} = p
-    const useNativeFrame = C.useConfigState(s => s.useNativeFrame)
-    const loggedIn = C.useConfigState(s => s.loggedIn)
-    const isMaximized = C.useConfigState(s => s.windowState.isMaximized)
+    const useNativeFrame = useConfigState(s => s.useNativeFrame)
+    const loggedIn = useConfigState(s => s.loggedIn)
+    const isMaximized = useConfigState(s => s.windowState.isMaximized)
     const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
     const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
     const options = React.useMemo(() => {

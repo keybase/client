@@ -1,7 +1,8 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useConfigState} from '@/constants/config'
+
 const isIPhoneX = false as boolean
 // import lagRadar from 'lag-radar'
 
@@ -85,7 +86,7 @@ const LogStats = (props: {num?: number}) => {
     Array<{count: number; label: string; labelFull: string; updated: boolean}>
   >([])
   const [, setDoRender] = React.useState(0)
-  const events = C.useConfigState(s => s.runtimeStats?.perfEvents)
+  const events = useConfigState(s => s.runtimeStats?.perfEvents)
   const lastEventsRef = React.useRef(new WeakSet<ReadonlyArray<T.RPCGen.PerfEvent>>())
 
   const eventsRef = React.useRef<Array<T.RPCGen.PerfEvent>>([])
@@ -396,7 +397,7 @@ const RuntimeStatsMobile = ({stats}: Props) => {
 }
 
 const RuntimeStats = () => {
-  const stats = C.useConfigState(s => s.runtimeStats)
+  const stats = useConfigState(s => s.runtimeStats)
   return stats ? (
     Kb.Styles.isMobile ? (
       <RuntimeStatsMobile stats={stats} />

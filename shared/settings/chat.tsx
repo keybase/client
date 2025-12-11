@@ -7,6 +7,7 @@ import Group from './group'
 import {useState as useSettingsChatState} from '@/constants/settings-chat'
 import {useSettingsNotifState} from '@/constants/settings-notifications'
 import {useSettingsState} from '@/constants/settings'
+import {useConfigState} from '@/constants/config'
 
 const emptyList = new Array<string>()
 
@@ -346,8 +347,8 @@ const Links = () => {
 }
 
 const Sound = () => {
-  const onToggleSound = C.useConfigState(s => s.dispatch.setNotifySound)
-  const sound = C.useConfigState(s => s.notifySound) // desktop
+  const onToggleSound = useConfigState(s => s.dispatch.setNotifySound)
+  const sound = useConfigState(s => s.notifySound) // desktop
   const allowEdit = useSettingsNotifState(s => s.allowEdit)
   const showDesktopSound = !C.isMobile && !C.isLinux
   const onToggle = useSettingsNotifState(s => s.dispatch.toggle)

@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {ModalTitle} from '@/teams/common'
 import * as T from '@/constants/types'
