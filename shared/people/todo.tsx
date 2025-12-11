@@ -11,6 +11,7 @@ import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
 import {usePeopleState, todoTypes} from '@/constants/people'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type TodoOwnProps = {
   badged: boolean

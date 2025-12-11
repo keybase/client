@@ -10,7 +10,7 @@ import {getDefaultCountryCode} from 'react-native-kb'
 import {getE164} from './settings-phone'
 import {isIOS} from './platform'
 import {pluralize} from '@/util/string'
-import {useCurrentUserState} from '../current-user'
+import {useCurrentUserState} from './current-user'
 
 const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
 

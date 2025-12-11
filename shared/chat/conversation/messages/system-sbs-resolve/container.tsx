@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {e164ToDisplay} from '@/util/phone-numbers'
