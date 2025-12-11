@@ -5,7 +5,15 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {useProvisionState} from '@/constants/provision'
+import {
+  badDeviceChars,
+  badDeviceRE,
+  cleanDeviceName,
+  deviceNameInstructions,
+  goodDeviceRE,
+  normalizeDeviceRE,
+  useProvisionState,
+} from '@/constants/provision'
 
 const SetPublicName = () => {
   const devices = useProvisionState(s => s.devices)
@@ -29,20 +37,20 @@ const SetPublicName = () => {
   const [deviceName, setDeviceName] = React.useState(C.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const debouncedSetReadyToShowError = debounce((ready: boolean) => setReadyToShowError(ready), 1000)
-  const cleanDeviceName = C.Provision.cleanDeviceName(deviceName)
-  const normalized = cleanDeviceName.replace(C.Provision.normalizeDeviceRE, '')
+  const cleanDeviceNameValue = cleanDeviceName(deviceName)
+  const normalized = cleanDeviceNameValue.replace(normalizeDeviceRE, '')
   const disabled =
     normalized.length < 3 ||
     normalized.length > 64 ||
-    !C.Provision.goodDeviceRE.test(cleanDeviceName) ||
-    C.Provision.badDeviceRE.test(cleanDeviceName)
-  const showDisabled = disabled && !!cleanDeviceName && readyToShowError
+    !goodDeviceRE.test(cleanDeviceNameValue) ||
+    badDeviceRE.test(cleanDeviceNameValue)
+  const showDisabled = disabled && !!cleanDeviceNameValue && readyToShowError
   const onSubmit = React.useCallback(() => {
-    ponSubmit(C.Provision.cleanDeviceName(cleanDeviceName))
-  }, [cleanDeviceName, ponSubmit])
+    ponSubmit(cleanDeviceName(cleanDeviceNameValue))
+  }, [cleanDeviceNameValue, ponSubmit])
   const _setDeviceName = (deviceName: string) => {
     setReadyToShowError(false)
-    setDeviceName(deviceName.replace(C.Provision.badDeviceChars, ''))
+    setDeviceName(deviceName.replace(badDeviceChars, ''))
     debouncedSetReadyToShowError(true)
   }
 
@@ -88,7 +96,7 @@ const SetPublicName = () => {
           />
           {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>
-              {C.Provision.deviceNameInstructions}
+              {deviceNameInstructions}
             </Kb.Text>
           ) : (
             <Kb.Text type="BodySmall">

@@ -7,7 +7,7 @@ import QRScan from './qr-scan'
 import Troubleshooting from '../troubleshooting'
 import type * as T from '@/constants/types'
 import {useCurrentUserState} from '@/constants/current-user'
-import {useProvisionState} from '@/constants/provision'
+import {type Device, useProvisionState} from '@/constants/provision'
 
 const CodePageContainer = () => {
   const storeDeviceName = useCurrentUserState(s => s.deviceName)
@@ -271,7 +271,7 @@ const textType = 'BodySemibold'
 const SwitchTab = (props: {
   selected: Tab
   onSelect: (tab: Tab) => void
-  otherDevice: C.Provision.Device
+  otherDevice: Device
   currentDeviceAlreadyProvisioned: boolean
 }) => {
   if (currentDeviceType === 'desktop' && props.otherDevice.type === 'desktop') {
@@ -335,7 +335,7 @@ const EnterText = (props: {
   code: string
   setCode: (code: string) => void
   onSubmitTextCode: (c: string) => void
-  otherDevice: C.Provision.Device
+  otherDevice: Device
 }) => {
   const {code, setCode} = props
   const {onSubmitTextCode} = props
@@ -386,7 +386,7 @@ const Instructions = (p: {
   currentDeviceAlreadyProvisioned: boolean
   currentDevice: T.Devices.Device
   currentDeviceName: string
-  otherDevice: C.Provision.Device
+  otherDevice: Device
   iconNumber: T.Devices.IconNumber
 }) => {
   const iconType = getIcon(

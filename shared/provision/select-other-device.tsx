@@ -1,19 +1,19 @@
-import type * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import DeviceIcon from '../devices/device-icon'
 import {SignupScreen} from '../signup/common'
+import {type Device} from '@/constants/provision'
 
 type Props = {
   passwordRecovery?: boolean
-  devices: ReadonlyArray<C.Provision.Device>
+  devices: ReadonlyArray<Device>
   onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void
 }
 
 const resetSignal = 'reset'
-type DeviceOrReset = C.Provision.Device | 'reset'
+type DeviceOrReset = Device | 'reset'
 
 const SelectOtherDevice = (props: Props) => {
   const {passwordRecovery, devices, onBack, onSelect, onResetAccount} = props
