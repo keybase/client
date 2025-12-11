@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
+import {useBotsState} from '@/constants/bots'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
 
@@ -186,7 +187,7 @@ const Container = (ownProps: OwnProps) => {
   const canManageBots = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageBots)
   const map = teamDetails?.members
   const info: T.Teams.MemberInfo = map?.get(ownProps.username) || blankInfo
-  const _bot = C.useBotsState(s => s.featuredBotsMap.get(ownProps.username))
+  const _bot = useBotsState(s => s.featuredBotsMap.get(ownProps.username))
   const bot = _bot ?? {
     botAlias: info.fullName,
     botUsername: ownProps.username,

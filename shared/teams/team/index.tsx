@@ -17,6 +17,7 @@ import {
   type Section,
   type Item,
 } from './rows'
+import {useBotsState} from '@/constants/bots'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -64,8 +65,8 @@ const useTabsState = (
 }
 
 const useLoadFeaturedBots = (teamDetails: T.Teams.TeamDetails, shouldLoad: boolean) => {
-  const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
-  const searchFeaturedBots = C.useBotsState(s => s.dispatch.searchFeaturedBots)
+  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
+  const searchFeaturedBots = useBotsState(s => s.dispatch.searchFeaturedBots)
   const _bots = React.useMemo(
     () => [...teamDetails.members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot'),
     [teamDetails.members]

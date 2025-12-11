@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import FollowButton from './follow-button'
 import ChatButton from '@/chat/chat-button'
+import {useBotsState} from '@/constants/bots'
 import {useTrackerState} from '@/constants/tracker2'
 import * as FS from '@/constants/fs'
 import {useFollowerState} from '@/constants/followers'
@@ -16,7 +17,7 @@ const Container = (ownProps: OwnProps) => {
   const d = useTrackerState(s => s.getDetails(username))
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
-  const isBot = C.useBotsState(s => s.featuredBotsMap.has(username))
+  const isBot = useBotsState(s => s.featuredBotsMap.has(username))
 
   const _guiID = d.guiID
   const _you = useCurrentUserState(s => s.username)
@@ -54,7 +55,7 @@ const Container = (ownProps: OwnProps) => {
   const onReload = () => _onReload(username)
   const onUnfollow = () => _onFollow(_guiID, false)
 
-  const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
+  const getFeaturedBots = useBotsState(s => s.dispatch.getFeaturedBots)
   // load featured bots on first render
   React.useEffect(() => {
     // TODO likely don't do this all the time, just once

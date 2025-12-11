@@ -4,7 +4,7 @@ import * as React from 'react'
 import debounce from 'lodash/debounce'
 import type * as T from '@/constants/types'
 import {Bot} from '../info-panel/bot'
-import {getFeaturedSorted} from '@/constants/bots'
+import {getFeaturedSorted, useBotsState} from '@/constants/bots'
 
 type Props = {teamID?: T.Teams.TeamID}
 
@@ -25,8 +25,8 @@ const SearchBotPopup = (props: Props) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
-  const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
-  const botSearchResults = C.useBotsState(s => s.botSearchResults)
+  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
+  const botSearchResults = useBotsState(s => s.botSearchResults)
   const waiting = C.Waiting.useAnyWaiting([
     C.waitingKeyBotsSearchUsers,
     C.waitingKeyBotsSearchFeatured,
@@ -36,9 +36,9 @@ const SearchBotPopup = (props: Props) => {
     clearModals()
   }
 
-  const searchFeaturedAndUsers = C.useBotsState(s => s.dispatch.searchFeaturedAndUsers)
-  const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
-  const setSearchFeaturedAndUsersResults = C.useBotsState(s => s.dispatch.setSearchFeaturedAndUsersResults)
+  const searchFeaturedAndUsers = useBotsState(s => s.dispatch.searchFeaturedAndUsers)
+  const getFeaturedBots = useBotsState(s => s.dispatch.getFeaturedBots)
+  const setSearchFeaturedAndUsersResults = useBotsState(s => s.dispatch.setSearchFeaturedAndUsersResults)
 
   const onSearch = debounce((query: string) => {
     setLastQuery(query)
