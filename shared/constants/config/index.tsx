@@ -22,6 +22,7 @@ import {useSettingsState} from '../settings'
 import {useTrackerState} from '../tracker2'
 import {useFSState} from '../fs'
 import {useDaemonState} from '../daemon'
+import {useProvisionState} from '../provision'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -672,7 +673,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
               'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
               'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
                 cancelOnCallback(undefined, response)
-                C.useProvisionState.getState().dispatch.dynamic.setUsername?.(username)
+                useProvisionState.getState().dispatch.dynamic.setUsername?.(username)
               },
               'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
               'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,

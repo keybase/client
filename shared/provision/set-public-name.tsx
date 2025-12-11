@@ -5,14 +5,15 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
+import {useProvisionState} from '@/constants/provision'
 
 const SetPublicName = () => {
-  const devices = C.useProvisionState(s => s.devices)
-  const error = C.useProvisionState(s => s.error)
+  const devices = useProvisionState(s => s.devices)
+  const error = useProvisionState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const ponBack = useSafeSubmit(navigateUp, !!error)
-  const psetDeviceName = C.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
+  const psetDeviceName = useProvisionState(s => s.dispatch.dynamic.setDeviceName)
   const ponSubmit = React.useCallback(
     (name: string) => {
       !waiting && psetDeviceName?.(name)

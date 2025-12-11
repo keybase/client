@@ -2,16 +2,17 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from '../signup/common'
+import {useProvisionState} from '@/constants/provision'
 
 const Container = () => {
-  const error = C.useProvisionState(s => s.error)
-  const hint = C.useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
+  const error = useProvisionState(s => s.error)
+  const hint = useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
-  const onSubmit = C.useProvisionState(s => s.dispatch.dynamic.setPassphrase)
+  const onSubmit = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
   const props = {
     error: error,
     hint: hint,

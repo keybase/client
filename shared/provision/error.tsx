@@ -5,6 +5,7 @@ import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
 import openURL from '@/util/open-url'
 import * as T from '@/constants/types'
+import {useProvisionState} from '@/constants/provision'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <LoginContainer onBack={p.onBack}>
@@ -31,7 +32,7 @@ const rewriteErrorDesc = (s: string) => {
 // Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
 const RenderError = () => {
   const _username = AutoReset.useState(s => s.username)
-  const error = C.useProvisionState(s => s.finalError)
+  const error = useProvisionState(s => s.finalError)
   const startAccountReset = AutoReset.useState(s => s.dispatch.startAccountReset)
   const _onAccountReset = (username: string) => {
     startAccountReset(false, username)

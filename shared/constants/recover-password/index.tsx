@@ -6,6 +6,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {type Device} from '../provision'
 import {rpcDeviceToDevice} from '../rpc-utils'
+import {useProvisionState} from '../provision'
 
 type Store = T.Immutable<{
   devices: Array<Device>
@@ -72,7 +73,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         if (p.abortProvisioning) {
-          C.useProvisionState.getState().dispatch.dynamic.cancel?.()
+          useProvisionState.getState().dispatch.dynamic.cancel?.()
         }
         let hadError = false
         try {

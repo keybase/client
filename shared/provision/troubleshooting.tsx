@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import {useProvisionState} from '@/constants/provision'
 type Props = {
   mode: 'QR' | 'text'
   onCancel: () => void
@@ -55,7 +56,7 @@ const Troubleshooting = (props: Props) => {
     navUpToScreen('login')
   }, [navUpToScreen])
 
-  const device = C.useProvisionState(s => s.codePageOtherDevice)
+  const device = useProvisionState(s => s.codePageOtherDevice)
   const deviceIconNo = (device.deviceNumberOfType % Devices.numBackgrounds) + 1
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.

@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from '../signup/common'
 import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useProvisionState} from '@/constants/provision'
 
 const ForgotUsername = () => {
   const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)
@@ -12,7 +13,7 @@ const ForgotUsername = () => {
     !defaultCountry && loadDefaultPhoneCountry()
   }, [defaultCountry, loadDefaultPhoneCountry])
 
-  const forgotUsernameResult = C.useProvisionState(s => s.forgotUsernameResult)
+  const forgotUsernameResult = useProvisionState(s => s.forgotUsernameResult)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvisionForgotUsername)
@@ -24,7 +25,7 @@ const ForgotUsername = () => {
   // truthy when it's valid. This is used in the form validation logic in the code.
   const [phoneNumber, setPhoneNumber] = React.useState<string | undefined>()
 
-  const forgotUsername = C.useProvisionState(s => s.dispatch.forgotUsername)
+  const forgotUsername = useProvisionState(s => s.dispatch.forgotUsername)
 
   const onSubmit = React.useCallback(() => {
     if (!emailSelected && phoneNumber) {

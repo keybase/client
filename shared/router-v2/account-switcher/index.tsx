@@ -8,6 +8,7 @@ import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
 import {useUsersState} from '@/constants/users'
 import {useCurrentUserState} from '@/constants/current-user'
+import {useProvisionState} from '@/constants/provision'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: ReadonlyArray<T>,
@@ -21,7 +22,7 @@ const Container = () => {
   const fullname = useTrackerState(s => s.getDetails(you).fullname ?? '')
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
   const _onProfileClick = useProfileState(s => s.dispatch.showUserProfile)
-  const onLoginAsAnotherUser = C.useProvisionState(s => s.dispatch.startProvision)
+  const onLoginAsAnotherUser = useProvisionState(s => s.dispatch.startProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()

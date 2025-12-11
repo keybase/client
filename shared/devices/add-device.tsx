@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Devices from '@/constants/devices'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {useProvisionState} from '@/constants/provision'
 
 type OwnProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
@@ -11,7 +12,7 @@ const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
 export default function AddDevice(ownProps: OwnProps) {
   const highlight = ownProps.highlight ?? noHighlight
   const iconNumbers = Devices.useNextDeviceIconNumber()
-  const addNewDevice = C.useProvisionState(s => s.dispatch.addNewDevice)
+  const addNewDevice = useProvisionState(s => s.dispatch.addNewDevice)
 
   const onAddComputer = React.useCallback(() => {
     addNewDevice('desktop')
@@ -33,7 +34,7 @@ export default function AddDevice(ownProps: OwnProps) {
   const onAddPhone = React.useCallback(() => {
     addNewDevice('mobile')
   }, [addNewDevice])
-  const cancel = C.useProvisionState(s => s.dispatch.dynamic.cancel)
+  const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = React.useCallback(() => {
     cancel?.()

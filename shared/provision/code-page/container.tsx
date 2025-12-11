@@ -7,22 +7,23 @@ import QRScan from './qr-scan'
 import Troubleshooting from '../troubleshooting'
 import type * as T from '@/constants/types'
 import {useCurrentUserState} from '@/constants/current-user'
+import {useProvisionState} from '@/constants/provision'
 
 const CodePageContainer = () => {
   const storeDeviceName = useCurrentUserState(s => s.deviceName)
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
   // we either have a name for real or we asked on a previous screen
-  const provisionDeviceName = C.useProvisionState(s => s.deviceName)
+  const provisionDeviceName = useProvisionState(s => s.deviceName)
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
   const deviceID = useCurrentUserState(s => s.deviceID)
   const currentDevice = Devices.useState(s => s.deviceMap.get(deviceID)) ?? Devices.emptyDevice
-  const error = C.useProvisionState(s => s.error)
+  const error = useProvisionState(s => s.error)
 
-  const otherDevice = C.useProvisionState(s => s.codePageOtherDevice)
+  const otherDevice = useProvisionState(s => s.codePageOtherDevice)
   const iconNumber = Devices.useDeviceIconNumber(otherDevice.id)
-  const textCode = C.useProvisionState(s => s.codePageIncomingTextCode)
+  const textCode = useProvisionState(s => s.codePageIncomingTextCode)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const submitTextCode = C.useProvisionState(s => s.dispatch.dynamic.submitTextCode)
+  const submitTextCode = useProvisionState(s => s.dispatch.dynamic.submitTextCode)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
