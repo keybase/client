@@ -2,6 +2,7 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
+import * as TeamBuilding from '@/constants/team-building'
 
 const services: {
   [K in T.TB.ServiceIdWithContact]: {
@@ -100,4 +101,4 @@ export const serviceIdToBadge = (service: T.TB.ServiceIdWithContact): boolean =>
   services[service].badge === true
 
 export const serviceMapToArray = (services: T.TB.ServiceMap) =>
-  C.TeamBuilding.allServices.filter(x => x !== 'keybase' && x in services)
+  TeamBuilding.allServices.filter(x => x !== 'keybase' && x in services)

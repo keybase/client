@@ -2,6 +2,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import {ServiceTabBar} from './service-tab-bar'
+import * as TeamBuilding from '@/constants/team-building'
 
 export const FilteredServiceTabBar = (
   props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
@@ -14,8 +15,8 @@ export const FilteredServiceTabBar = (
   const services = React.useMemo(
     () =>
       filterServices
-        ? C.TeamBuilding.allServices.filter(serviceId => filterServices.includes(serviceId))
-        : C.TeamBuilding.allServices,
+        ? TeamBuilding.allServices.filter(serviceId => filterServices.includes(serviceId))
+        : TeamBuilding.allServices,
     [filterServices]
   )
   return services.length === 1 && services[0] === 'keybase' ? null : (
