@@ -2,6 +2,7 @@ import * as C from '..'
 import * as T from '../types'
 import {isMobile, isTablet} from '../platform'
 import * as Router2 from '../router2'
+import {useActiveState} from '../active'
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 
@@ -31,7 +32,7 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: T.Chat.Conv
   }
 
   const {appFocused} = C.useConfigState.getState()
-  const {active: userActive} = C.useActiveState.getState()
+  const {active: userActive} = useActiveState.getState()
 
   return (
     appFocused && // app focused?

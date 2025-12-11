@@ -13,6 +13,7 @@ import {kbfsNotification} from './kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import NotifyPopup from '@/util/notify-popup'
 import {noKBFSFailReason} from '@/constants/config/util'
+import {useActiveState} from '../active'
 import {useDaemonState} from '../daemon'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
@@ -268,7 +269,7 @@ export const initPlatformListener = () => {
       if (skipAppFocusActions) {
         console.log('Skipping app focus actions!')
       } else {
-        C.useActiveState.getState().dispatch.setActive(userActive)
+        useActiveState.getState().dispatch.setActive(userActive)
         // let node thread save file
         activeChanged?.(Date.now(), userActive)
       }

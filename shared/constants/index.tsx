@@ -12,7 +12,6 @@ export {TBProvider_ as TBProvider, stores_ as TBstores, useContext_ as useTBCont
 export * as TeamBuilding from './team-building'
 export {useProvisionState} from './provision'
 export * as Provision from './provision'
-export {useActiveState} from './active'
 export {useEngineState} from './engine'
 export * as Tabs from './tabs'
 export {useTeamsState} from './teams'
