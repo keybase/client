@@ -4,6 +4,7 @@ import * as React from 'react'
 import ReactButton from './react-button'
 import type * as T from '@/constants/types'
 import {MessageContext} from './ids-context'
+import {useUsersState} from '@/constants/users'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 
@@ -25,7 +26,7 @@ const emptyStateProps = {
 const ReactionTooltip = (p: OwnProps) => {
   const {ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
-  const infoMap = C.useUsersState(s => s.infoMap)
+  const infoMap = useUsersState(s => s.infoMap)
   const {_reactions, good} = C.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)

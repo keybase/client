@@ -7,6 +7,7 @@ import {OrangeLineContext} from '../orange-line-context'
 import logger from '@/logger'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
+import {useCurrentUserState} from '@/constants/current-user'
 // import {useChatDebugDump} from '@/constants/chat2/debug'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
@@ -193,7 +194,7 @@ const missingMessage = C.Chat.makeMessageDeleted({})
 // TODO check flashlist if that ever gets turned back on
 const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordinal) => {
   const ordinal = Kb.Styles.isMobile ? _leadingItem : _trailingItem
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const orangeOrdinal = React.useContext(OrangeLineContext)
 
   // const TEMP = React.useRef({})

@@ -1,6 +1,6 @@
-import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
+import {useUsersState} from '@/constants/users'
 
 type OwnProps = {
   username: string
@@ -9,7 +9,7 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {username: _username, width} = ownProps
-  const _fullname = C.useUsersState(s => s.infoMap.get(ownProps.username)?.fullname ?? '')
+  const _fullname = useUsersState(s => s.infoMap.get(ownProps.username)?.fullname ?? '')
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const _onClick = showUserProfile
   const fullname = _fullname || ''

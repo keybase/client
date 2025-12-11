@@ -9,6 +9,7 @@ import type * as T from '@/constants/types'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type * as WalletTypes from '@/constants/types/wallets'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
+import {useCurrentUserState} from '@/constants/current-user'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
 const Kb = {
@@ -190,7 +191,7 @@ const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: Own
   const paymentInfo = C.useChatState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
   const status = error ? 'error' : (paymentInfo?.status ?? 'pending')
 
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   // TODO remove
   const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const author = message?.author

@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {getFeaturedSorted} from '@/constants/bots'
+import {useUsersState} from '@/constants/users'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -227,7 +228,7 @@ const BotTab = (props: Props) => {
         !(!adhocTeam && teamMembers && C.Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
     )
     .map((bot, index) => ({...bot, index, type: 'featuredBot'}))
-  const infoMap = C.useUsersState(s => s.infoMap)
+  const infoMap = useUsersState(s => s.infoMap)
   const loadedAllBots = C.useBotsState(s => s.featuredBotsLoaded)
 
   const usernamesToFeaturedBots = (usernames: string[]): Array<ItemBot> =>

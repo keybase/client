@@ -7,6 +7,7 @@ import {RPCToEmojiData} from '@/common-adapters/emoji'
 import EmojiMenu from './emoji-menu'
 import {useEmojiState} from '@/teams/emojis/use-emoji'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -18,7 +19,7 @@ type OwnProps = {
 const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
   const nav = useSafeNavigation()
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const canManageEmoji = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)

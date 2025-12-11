@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type {AllowedColors} from '@/common-adapters/text'
 import SelectableSmallTeam from './selectable-small-team'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {
   filter?: string
@@ -40,7 +41,7 @@ const Container = (ownProps: OwnProps) => {
   const _hasUnread = C.useChatContext(s => s.unread > 0)
   const _meta = C.useChatContext(s => s.meta)
   const _participantInfo = C.useChatContext(s => s.participants)
-  const _username = C.useCurrentUserState(s => s.username)
+  const _username = useCurrentUserState(s => s.username)
   const isMuted = C.useChatContext(s => s.meta.isMuted)
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const styles = getRowStyles(isSelected, _hasUnread)

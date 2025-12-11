@@ -13,7 +13,10 @@ import {backgroundModeIsNegative} from './text.shared'
 import isArray from 'lodash/isArray'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import {useTrackerState} from '@/constants/tracker2'
+import {useUsersState} from '@/constants/users'
 import {useProfileState} from '@/constants/profile'
+import {useFollowerState} from '@/constants/followers'
+import {useCurrentUserState} from '@/constants/current-user'
 
 export type User = {
   username: string
@@ -93,8 +96,8 @@ const Username = React.memo(function Username(p: UsernameProps) {
   const {onUsernameClicked, joinerStyle, showComma, showSpace, virtualText, withProfileCardPopup} = p
   const you = p.you === username
 
-  const following = C.useFollowerState(s => colorFollowing && s.following.has(username))
-  const broken = C.useUsersState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
+  const following = useFollowerState(s => colorFollowing && s.following.has(username))
+  const broken = useUsersState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = React.useCallback(
@@ -267,7 +270,7 @@ const Usernames = React.memo(
     const colorBroken = p.colorBroken ?? true
     const underline = p.underline ?? true
     const withProfileCardPopup = p.withProfileCardPopup ?? true
-    const you = C.useCurrentUserState(s => s.username)
+    const you = useCurrentUserState(s => s.username)
 
     const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
     const containerStyle2: Styles.StylesCrossPlatform = inline ? styles.inlineStyle : styles.nonInlineStyle

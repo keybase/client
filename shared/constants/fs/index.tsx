@@ -11,6 +11,8 @@ import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
 import {settingsFsTab} from '../settings'
+import {useNotifState} from '../notifications'
+import {useCurrentUserState} from '../current-user'
 
 
 const subscriptionDeduplicateIntervalSecond = 1
@@ -560,7 +562,7 @@ export const resetBannerType = (s: State, path: T.FS.Path): T.FS.ResetBannerType
     return T.FS.ResetBannerNoOthersType.None
   }
 
-  const you = C.useCurrentUserState.getState().username
+  const you = useCurrentUserState.getState().username
   if (resetParticipants.findIndex(username => username === you) >= 0) {
     return T.FS.ResetBannerNoOthersType.Self
   }
@@ -1608,7 +1610,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               const tlfType = rpcFolderTypeToTlfType(folder.folderType)
               const tlfName =
                 tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-                  ? tlfToPreferredOrder(folder.name, C.useCurrentUserState.getState().username)
+                  ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
                   : folder.name
               tlfType &&
                 payload[tlfType].set(
@@ -1637,7 +1639,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             })
             const counts = new Map<Tabs.Tab, number>()
             counts.set(Tabs.fsTab, computeBadgeNumberForAll(get().tlfs))
-            C.useNotifState.getState().dispatch.setBadgeCounts(counts)
+            useNotifState.getState().dispatch.setBadgeCounts(counts)
           }
         } catch (e) {
           errorToActionOrThrow(e)
@@ -1905,7 +1907,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
           const tlfName =
             tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-              ? tlfToPreferredOrder(folder.name, C.useCurrentUserState.getState().username)
+              ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
               : folder.name
 
           if (tlfType) {
@@ -2377,12 +2379,12 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
               break
             }
-            C.useNotifState.getState().dispatch.badgeApp('kbfsUploading', true)
+            useNotifState.getState().dispatch.badgeApp('kbfsUploading', true)
             await C.timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
           }
         } finally {
           pollJournalStatusPolling = false
-          C.useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
+          useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
           get().dispatch.checkKbfsDaemonRpcStatus()
         }
       }
@@ -2639,7 +2641,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               body: 'You are out of disk space. Some folders could not be synced.',
               sound: true,
             })
-            C.useNotifState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
+            useNotifState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
             break
           }
           case T.FS.DiskSpaceStatus.Warning:

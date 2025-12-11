@@ -14,6 +14,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {registerDebugClear} from '@/util/debug'
 import type {RootParamList} from '@/router-v2/route-params'
+import {useCurrentUserState} from '@/constants/current-user'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import './router.css'
 
@@ -114,7 +115,7 @@ const useConnectNavToState = () => {
 const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen, true, false)
 const ElectronApp = React.memo(function ElectronApp() {
   useConnectNavToState()
-  const loggedInUser = C.useCurrentUserState(s => s.username)
+  const loggedInUser = useCurrentUserState(s => s.username)
   const loggedIn = C.useConfigState(s => s.loggedIn)
   const everLoadedRef = React.useRef(false)
   const loggedInLoaded = C.useDaemonState(s => {

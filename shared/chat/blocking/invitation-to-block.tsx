@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const BlockButtons = () => {
   const nav = useSafeNavigation()
@@ -14,7 +15,7 @@ const BlockButtons = () => {
     return teamID ? blockButtonsMap.get(teamID) : undefined
   })
   const participantInfo = C.useChatContext(s => s.participants)
-  const currentUser = C.useCurrentUserState(s => s.username)
+  const currentUser = useCurrentUserState(s => s.username)
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const dismissBlockButtons = C.useChatContext(s => s.dispatch.dismissBlockButtons)
   if (!blockButtonInfo) {

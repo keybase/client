@@ -6,6 +6,8 @@ import SearchRow from './inbox/search-row'
 import NewChatButton from './inbox/new-chat-button'
 import {useRoute} from '@react-navigation/native'
 import type {RootRouteProps} from '@/router-v2/route-params'
+import {useUsersState} from '@/constants/users'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const Header = () => {
   const {params} = useRoute<RootRouteProps<'chatRoot'>>()
@@ -23,7 +25,7 @@ const Header = () => {
 }
 
 const Header2 = () => {
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const data = C.useChatContext(
     C.useShallow(s => {
@@ -68,7 +70,7 @@ const Header2 = () => {
   }, [participants, username])
 
   const canEditDesc = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname).editChannelDescription)
-  const otherInfo = C.useUsersState(s => s.infoMap.get(first))
+  const otherInfo = useUsersState(s => s.infoMap.get(first))
   // If it's a one-on-one chat, use the user's fullname as the description
   const desc = otherInfo?.bio?.replace(/(\r\n|\n|\r)/gm, ' ') || descriptionDecorated
   const fullName = otherInfo?.fullname

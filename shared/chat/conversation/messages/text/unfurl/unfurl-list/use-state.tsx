@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
+import {useCurrentUserState} from '@/constants/current-user'
 
 export const useActions = (youAreAuthor: boolean, messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => {
   const unfurlRemove = C.useChatContext(s => s.dispatch.unfurlRemove)
@@ -18,7 +19,7 @@ export const useActions = (youAreAuthor: boolean, messageID: T.Chat.MessageID, o
 export const getUnfurlInfo = (state: C.Chat.ConvoState, ordinal: T.Chat.Ordinal, idx: number) => {
   const message = state.messageMap.get(ordinal)
   const author = message?.author
-  const you = C.useCurrentUserState.getState().username
+  const you = useCurrentUserState.getState().username
   const youAreAuthor = author === you
   const unfurlInfo: undefined | T.RPCChat.UIMessageUnfurlInfo = [...(message?.unfurls?.values() ?? [])][idx]
 

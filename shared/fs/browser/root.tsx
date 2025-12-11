@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -8,6 +7,7 @@ import SfmiBanner from '../banner/system-file-manager-integration-banner/contain
 import {WrapRow} from './rows/rows'
 import {useFSState} from '@/constants/fs'
 import * as FS from '@/constants/fs'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type Props = {
   destinationPickerIndex?: number
@@ -81,7 +81,7 @@ const useTopNTlfs = (
 
 const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<SectionListItem> => {
   const tlfs = useFSState(s => s.tlfs)
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const privateTopN = useTopNTlfs(T.FS.TlfType.Private, tlfs.private, n)
   const publicTopN = useTopNTlfs(T.FS.TlfType.Public, tlfs.public, n)
   const teamTopN = useTopNTlfs(T.FS.TlfType.Team, tlfs.team, n)

@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import {UpdatePassword} from './password'
 import {usePWState} from '@/constants/settings-password'
 import {useSettingsState} from '@/constants/settings'
+import {useLogoutState} from '@/constants/logout'
 
 const LogoutContainer = () => {
   const checkPasswordIsCorrect = useSettingsState(s => s.checkPasswordIsCorrect)
@@ -23,7 +24,7 @@ const LogoutContainer = () => {
   }, [resetCheckPassword, navigateUp])
   const onCheckPassword = checkPassword
 
-  const requestLogout = C.useLogoutState(s => s.dispatch.requestLogout)
+  const requestLogout = useLogoutState(s => s.dispatch.requestLogout)
 
   const _onLogout = React.useCallback(() => {
     requestLogout()

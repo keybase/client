@@ -3,6 +3,7 @@ import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import * as T from '../types'
+import {useLogoutState} from '../logout'
 
 type Store = T.Immutable<{
   error: string
@@ -138,7 +139,7 @@ export const usePWState = Z.createZustand<State>((set, get) => {
           )
 
           if (thenLogout) {
-            C.useLogoutState.getState().dispatch.requestLogout()
+            useLogoutState.getState().dispatch.requestLogout()
           }
           C.useRouterState.getState().dispatch.navigateUp()
         } catch (error) {

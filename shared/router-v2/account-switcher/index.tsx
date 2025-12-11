@@ -6,6 +6,8 @@ import type * as T from '@/constants/types'
 import {settingsLogOutTab} from '@/constants/settings'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
+import {useUsersState} from '@/constants/users'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: ReadonlyArray<T>,
@@ -13,9 +15,9 @@ const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolea
 ): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
 const Container = () => {
-  const _fullnames = C.useUsersState(s => s.infoMap)
+  const _fullnames = useUsersState(s => s.infoMap)
   const _accountRows = C.useConfigState(s => s.configuredAccounts)
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const fullname = useTrackerState(s => s.getDetails(you).fullname ?? '')
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
   const _onProfileClick = useProfileState(s => s.dispatch.showUserProfile)

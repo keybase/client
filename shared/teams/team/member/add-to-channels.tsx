@@ -6,6 +6,7 @@ import * as Common from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -40,7 +41,7 @@ const getChannelsForList = (
 
 const AddToChannels = React.memo(function AddToChannels(props: Props) {
   const teamID = props.teamID
-  const myUsername = C.useCurrentUserState(s => s.username)
+  const myUsername = useCurrentUserState(s => s.username)
   const justMe = React.useMemo(() => [myUsername], [myUsername])
   const usernames = props.usernames ?? justMe
   const mode = props.usernames ? 'others' : 'self'

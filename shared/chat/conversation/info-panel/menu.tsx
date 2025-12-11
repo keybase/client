@@ -5,6 +5,8 @@ import * as T from '@/constants/types'
 import * as InfoPanelCommon from './common'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {TeamsSubscriberMountOnly} from '@/teams/subscriber'
+import {useUsersState} from '@/constants/users'
+import {useCurrentUserState} from '@/constants/current-user'
 
 export type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -23,8 +25,8 @@ const InfoPanelMenuConnectorVisible = React.memo(function InfoPanelMenuConnector
 
 const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
   const {isSmallTeam, pteamID} = p
-  const username = C.useCurrentUserState(s => s.username)
-  const infoMap = C.useUsersState(s => s.infoMap)
+  const username = useCurrentUserState(s => s.username)
+  const infoMap = useUsersState(s => s.infoMap)
   const participantInfo = C.useChatContext(s => s.participants)
   const meta = C.useChatContext(s => s.meta)
   const teamMeta = C.useTeamsState(s => (pteamID ? C.Teams.getTeamMeta(s, pteamID) : undefined))

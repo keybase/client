@@ -6,6 +6,8 @@ import * as T from '../types'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
 import {useProfileState} from '@/constants/profile'
+import {useUsersState} from '../users'
+import {useCurrentUserState} from '../current-user'
 
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),
@@ -317,7 +319,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followersCount = d.followers.size
           })
           if (fs.users) {
-            C.useUsersState
+            useUsersState
               .getState()
               .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
@@ -343,7 +345,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followingCount = d.following.size
           })
           if (fs.users) {
-            C.useUsersState
+            useUsersState
               .getState()
               .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
@@ -434,7 +436,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         d.hidFromFollowers = hidFromFollowers
       })
       username &&
-        C.useUsersState.getState().dispatch.updates([{info: {fullname: card.fullName}, name: username}])
+        useUsersState.getState().dispatch.updates([{info: {fullname: card.fullName}, name: username}])
     },
     notifyReset: guiID => {
       set(s => {
@@ -529,11 +531,11 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         }
         // if we mutated somehow reload ourselves and reget the suggestions
         case EngineGen.keybase1NotifyUsersUserChanged: {
-          if (C.useCurrentUserState.getState().uid !== action.payload.params.uid) {
+          if (useCurrentUserState.getState().uid !== action.payload.params.uid) {
             return
           }
           get().dispatch.load({
-            assertion: C.useCurrentUserState.getState().username,
+            assertion: useCurrentUserState.getState().username,
             forceDisplay: false,
             fromDaemon: false,
             guiID: C.generateGUIID(),

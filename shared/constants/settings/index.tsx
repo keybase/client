@@ -9,6 +9,7 @@ import logger from '@/logger'
 import {usePWState} from '../settings-password'
 import {useSettingsPhoneState} from '../settings-phone'
 import {useSettingsEmailState} from '../settings-email'
+import {useCurrentUserState} from '../current-user'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -132,7 +133,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     },
     deleteAccountForever: passphrase => {
       const f = async () => {
-        const username = C.useCurrentUserState.getState().username
+        const username = useCurrentUserState.getState().username
 
         if (!username) {
           throw new Error('Unable to delete account: no username set')

@@ -16,6 +16,7 @@ import {isIOS, isAndroid} from '../platform'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
 import {useSettingsContactsState} from '../settings-contacts'
+import {useCurrentUserState} from '../current-user'
 import {
   androidOpenSettings,
   androidShare,
@@ -616,7 +617,7 @@ export const initPlatformListener = () => {
     s.dispatch.dynamic.tabLongPress = C.wrapErrors((tab: string) => {
       if (tab !== Tabs.peopleTab) return
       const accountRows = C.useConfigState.getState().configuredAccounts
-      const current = C.useCurrentUserState.getState().username
+      const current = useCurrentUserState.getState().username
       const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
       if (row) {
         C.useConfigState.getState().dispatch.setUserSwitching(true)

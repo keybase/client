@@ -8,6 +8,8 @@ import invert from 'lodash/invert'
 import logger from '@/logger'
 import openSMS from '@/util/sms'
 import {RPCError, logError} from '@/util/errors'
+import {useUsersState} from '../users'
+import {useCurrentUserState} from '../current-user'
 import {isMobile, isPhone} from '../platform'
 import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '../rpc-utils'
@@ -359,7 +361,7 @@ export const getDisabledReasonsForRolePicker = (
     theyAreOwner = membersToModify.some(username => members.get(username)?.type === 'owner')
   }
 
-  const myUsername = C.useCurrentUserState.getState().username
+  const myUsername = useCurrentUserState.getState().username
   const you = members.get(myUsername)
   // Fallback to the lowest role, although this shouldn't happen
   const yourRole = you?.type ?? 'reader'
@@ -1627,7 +1629,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.errorInTeamCreation = ''
       })
-      const me = C.useCurrentUserState.getState().username
+      const me = useCurrentUserState.getState().username
       const participantInfo = C.getConvoState(conversationIDKey).participants
       // exclude bots from the newly created team, they can be added back later.
       const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
@@ -1833,7 +1835,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.teamIDToMembers.set(teamID, members)
           })
-          C.useUsersState.getState().dispatch.updates(
+          useUsersState.getState().dispatch.updates(
             [...members.values()].map(m => ({
               info: {fullname: m.fullName},
               name: m.username,
@@ -1898,7 +1900,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       }
 
       const f = async () => {
-        const username = C.useCurrentUserState.getState().username
+        const username = useCurrentUserState.getState().username
         const loggedIn = C.useConfigState.getState().loggedIn
         if (!username || !loggedIn) {
           logger.warn('getTeams while logged out')

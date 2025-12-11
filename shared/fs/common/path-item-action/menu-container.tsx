@@ -9,6 +9,7 @@ import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
 import {useFSState} from '@/constants/fs'
 import * as FS from '@/constants/fs'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -54,7 +55,7 @@ const Container = (op: OwnProps) => {
   const {sfmiEnabled, favoriteIgnore, startRename, dismissDownload} = data
 
   const {downloadID, downloadIntent, view} = pathItemActionMenu
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
   const cancel = () => {

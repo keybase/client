@@ -1,14 +1,14 @@
-import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import UserNotice from '../user-notice'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemSBSResolved}
 
 const Container = (ownProps: OwnProps) => {
   const {message} = ownProps
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const {prover, assertionUsername, assertionService} = message
   const isYou = you === prover
   return (

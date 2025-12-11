@@ -3,6 +3,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemInviteAccepted}
 
@@ -10,7 +11,7 @@ const SystemInviteAcceptedContainer = React.memo(function SystemInviteAcceptedCo
   const {message} = p
   const {role} = message
   const teamID = C.useChatContext(s => s.meta.teamID)
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onViewTeam = React.useCallback(() => {
     navigateAppend({props: {teamID}, selected: 'team'})

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import {useUsersState} from '@/constants/users'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the
 // modal from specific places from the app.
@@ -133,7 +134,7 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
     others = undefined
   }
 
-  const _allKnownBlocks = C.useUsersState(s => s.blockMap)
+  const _allKnownBlocks = useUsersState(s => s.blockMap)
   const loadingWaiting = C.Waiting.useAnyWaiting(C.waitingKeyUsersGetUserBlocks)
 
   const onClose = C.useRouterState(s => s.dispatch.navigateUp)
@@ -144,8 +145,8 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
     },
     [leaveTeam]
   )
-  const getBlockState = C.useUsersState(s => s.dispatch.getBlockState)
-  const _reportUser = C.useUsersState(s => s.dispatch.reportUser)
+  const getBlockState = useUsersState(s => s.dispatch.getBlockState)
+  const _reportUser = useUsersState(s => s.dispatch.reportUser)
   const refreshBlocksFor = getBlockState
   const reportUser = React.useCallback(
     (username: string, conversationIDKey: string | undefined, report: ReportSettings) => {
@@ -160,7 +161,7 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
     [_reportUser]
   )
   const setConversationStatus = C.useChatContext(s => s.dispatch.blockConversation)
-  const _setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
+  const _setUserBlocks = useUsersState(s => s.dispatch.setUserBlocks)
   const setUserBlocks = React.useCallback(
     (newBlocks: NewBlocksMap) => {
       // Convert our state block array to action payload.

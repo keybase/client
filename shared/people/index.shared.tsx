@@ -8,6 +8,7 @@ import FollowSuggestions from './follow-suggestions'
 import type {Props} from '.'
 import Todo from './todo'
 import {useSignupState} from '@/constants/signup'
+import {usePeopleState} from '@/constants/people'
 // import WotTask from './wot-task'
 
 const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Props) => React.ReactNode = (
@@ -84,8 +85,8 @@ const EmailVerificationBanner = React.memo(function EmailVerificationBanner() {
 })
 
 const ResentEmailVerificationBanner = React.memo(function ResentEmailVerificationBanner() {
-  const resentEmail = C.usePeopleState(s => s.resentEmail)
-  const setResentEmail = C.usePeopleState(s => s.dispatch.setResentEmail)
+  const resentEmail = usePeopleState(s => s.resentEmail)
+  const setResentEmail = usePeopleState(s => s.dispatch.setResentEmail)
   React.useEffect(
     () =>
       // Only have a cleanup function

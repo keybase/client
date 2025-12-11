@@ -3,6 +3,7 @@ import * as C from '..'
 import * as T from '../types'
 import * as Message from './message'
 import {base64ToUint8Array, uint8ArrayToHex} from 'uint8array-extras'
+import {useCurrentUserState} from '../current-user'
 
 const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {
   switch (m) {
@@ -263,8 +264,8 @@ export const inboxUIItemToConversationMeta = (
   const conversationIDKey = T.Chat.stringToConversationIDKey(i.convID)
   let pinnedMsg: T.Chat.PinnedMessageInfo | undefined
   if (i.pinnedMsg) {
-    const username = C.useCurrentUserState.getState().username
-    const devicename = C.useCurrentUserState.getState().deviceName
+    const username = useCurrentUserState.getState().username
+    const devicename = useCurrentUserState.getState().deviceName
     const getLastOrdinal = () =>
       C.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const message = Message.uiMessageToMessage(

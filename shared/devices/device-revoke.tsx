@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {settingsDevicesTab} from '@/constants/settings'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {deviceID: string}
 
@@ -85,7 +86,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
 const useRevoke = (deviceID = '') => {
   const d = Devices.useState(s => s.deviceMap.get(deviceID))
   const load = Devices.useState(s => s.dispatch.load)
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const wasCurrentDevice = d?.currentDevice ?? false
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const deviceName = d?.name ?? ''
@@ -128,7 +129,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
 
-  const actingDevice = C.useCurrentUserState(s => s.deviceID)
+  const actingDevice = useCurrentUserState(s => s.deviceID)
   C.useOnMountOnce(() => {
     const f = async () => {
       const tlfs = await loadEndangeredTLF(actingDevice, selectedDeviceID)

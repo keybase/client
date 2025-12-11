@@ -6,6 +6,7 @@ import * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
 import {useTrackerState} from '@/constants/tracker2'
+import {useFollowerState} from '@/constants/followers'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
 
@@ -19,8 +20,8 @@ const getFollowWaitingKey = (username: string) => `settings:followButton:${usern
 export const FollowButton = (props: FollowProps) => {
   const {username} = props
   const userDetails = useTrackerState(s => s.getDetails(username))
-  const followThem = C.useFollowerState(s => s.following.has(username))
-  const followsYou = C.useFollowerState(s => s.followers.has(username))
+  const followThem = useFollowerState(s => s.following.has(username))
+  const followsYou = useFollowerState(s => s.followers.has(username))
   const {guiID} = userDetails
 
   const showUser = useTrackerState(s => s.dispatch.showUser)
@@ -54,7 +55,7 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
   const username = item.username
   const label = item.contactName || item.component.phoneNumber || item.component.email || ''
 
-  const followThem = C.useFollowerState(s => s.following.has(username))
+  const followThem = useFollowerState(s => s.following.has(username))
   if (followThem) {
     return null
   }

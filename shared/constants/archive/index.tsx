@@ -5,6 +5,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as FS from '@/constants/fs'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {uint8ArrayToHex} from 'uint8array-extras'
+import {useCurrentUserState} from '../current-user'
 
 type ChatJob = {
   id: string
@@ -446,7 +447,7 @@ export const useState = Z.createZustand<State>((set, get) => {
   return {
     ...initialStore,
     chatIDToDisplayname: (conversationIDKey: string) => {
-      const you = C.useCurrentUserState.getState().username
+      const you = useCurrentUserState.getState().username
       const cs = C.getConvoState(conversationIDKey)
       const m = cs.meta
       if (m.teamname) {

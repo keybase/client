@@ -12,6 +12,7 @@ import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
 import type {RefType as Input2Ref} from '@/common-adapters/input2'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -20,7 +21,7 @@ const useHintText = (p: {
   minWriterRole: T.Chat.ConversationMeta['minWriterRole']
 }) => {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const {teamType, teamname, channelname} = C.useChatContext(s => s.meta)
   const participantInfoName = C.useChatContext(s => s.participants.name)
   if (Kb.Styles.isMobile && isExploding) {

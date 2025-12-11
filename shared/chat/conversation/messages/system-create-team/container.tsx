@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import type * as T from '@/constants/types'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemCreateTeam}
 
@@ -16,7 +17,7 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
     })
   )
   const role = C.useTeamsState(s => C.Teams.getRole(s, teamID))
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const isAdmin = C.Teams.isAdmin(role) || C.Teams.isOwner(role)
   const team = teamname
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

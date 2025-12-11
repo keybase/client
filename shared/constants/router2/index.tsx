@@ -13,6 +13,7 @@ import {
 import * as Z from '@/util/zustand'
 import {produce} from 'immer'
 import * as Tabs from '../tabs'
+import {usePeopleState} from '../people'
 import isEqual from 'lodash/isEqual'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet} from '../types/router2'
@@ -468,7 +469,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
 
       const updatePeople = () => {
         if (prev && getTab(prev) === Tabs.peopleTab && next && getTab(next) !== Tabs.peopleTab) {
-          C.usePeopleState.getState().dispatch.markViewed()
+          usePeopleState.getState().dispatch.markViewed()
         }
       }
       updatePeople()

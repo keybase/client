@@ -2,6 +2,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
+import {useCurrentUserState} from '@/constants/current-user'
 import ReactionItem from './reactionitem'
 import MessagePopupHeader from './header'
 import ExplodingPopupHeader from './exploding-header'
@@ -125,7 +126,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     setEditing(ordinal)
   }, [setEditing, ordinal])
 
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const yourMessage = author === you
   const onEdit = yourMessage ? _onEdit : undefined
   const isEditable = message.isEditable && yourMessage && !message.exploded
@@ -269,7 +270,7 @@ export const useHeader = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const message = C.useChatContext(s => {
     return s.messageMap.get(ordinal) ?? emptyText
   })
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const {author, deviceType, deviceName, botUsername, timestamp, exploding, explodingTime} = message
   const yourMessage = author === you
   const deviceRevokedAt = message.deviceRevokedAt || undefined

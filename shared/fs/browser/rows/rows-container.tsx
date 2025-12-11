@@ -6,6 +6,7 @@ import Rows, {type Props} from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
 import {useFSState} from '@/constants/fs'
 import * as FS from '@/constants/fs'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {
   path: T.FS.Path // path to the parent folder containering the rows,
@@ -180,7 +181,7 @@ const Container = (o: OwnProps) => {
       return {_edits, _filter, _pathItems, _sortSetting, _tlfs}
     })
   )
-  const _username = C.useCurrentUserState(s => s.username)
+  const _username = useCurrentUserState(s => s.username)
 
   const s = {
     _edits,

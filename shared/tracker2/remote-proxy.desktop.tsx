@@ -9,6 +9,9 @@ import {intersect} from '@/util/set'
 import {mapFilterByKey} from '@/util/map'
 import {useColorScheme} from 'react-native'
 import {useTrackerState} from '@/constants/tracker2'
+import {useUsersState} from '@/constants/users'
+import {useFollowerState} from '@/constants/followers'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
@@ -16,11 +19,11 @@ const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320
 const RemoteTracker = (props: {trackerUsername: string}) => {
   const {trackerUsername} = props
   const details = useTrackerState(s => s.getDetails(trackerUsername))
-  const infoMap = C.useUsersState(s => s.infoMap)
-  const blockMap = C.useUsersState(s => s.blockMap)
-  const followers = C.useFollowerState(s => s.followers)
-  const following = C.useFollowerState(s => s.following)
-  const username = C.useCurrentUserState(s => s.username)
+  const infoMap = useUsersState(s => s.infoMap)
+  const blockMap = useUsersState(s => s.blockMap)
+  const followers = useFollowerState(s => s.followers)
+  const following = useFollowerState(s => s.following)
+  const username = useCurrentUserState(s => s.username)
   const httpSrv = C.useConfigState(s => s.httpSrv)
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details

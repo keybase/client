@@ -6,6 +6,8 @@ import MenuHeader from './menu-header.new'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
+import {useUsersState} from '@/constants/users'
+import {useCurrentUserState} from '@/constants/current-user'
 
 export type Props = {
   firstItem: boolean
@@ -324,14 +326,14 @@ const Container = (ownProps: OwnProps) => {
   )
   const info = members.get(username) || blankInfo
 
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const fullName = you === username ? 'You' : info.fullName
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status
   const waitingForAdd = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, username))
   const waitingForRemove = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRemoveMember(teamID, username))
-  const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
+  const setUserBlocks = useUsersState(s => s.dispatch.setUserBlocks)
   const onBlock = () => {
     username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])
   }

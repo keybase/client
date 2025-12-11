@@ -13,6 +13,7 @@ import ChannelMemberRow from './rows'
 import BotRow from '../team/rows/bot-row/bot'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
+import {useUsersState} from '@/constants/users'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID
@@ -31,7 +32,7 @@ const useLoadDataForChannelPage = (
   const prevSelectedTabRef = React.useRef(selectedTab)
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
   const getMembers = C.useTeamsState(s => s.dispatch.getMembers)
-  const getBlockState = C.useUsersState(s => s.dispatch.getBlockState)
+  const getBlockState = useUsersState(s => s.dispatch.getBlockState)
   const unboxRows = C.useChatState(s => s.dispatch.unboxRows)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'members') {

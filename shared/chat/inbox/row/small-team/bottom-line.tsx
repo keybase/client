@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {SnippetContext, SnippetDecorationContext} from './contexts'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type Props = {
   layoutSnippet?: string
@@ -112,7 +113,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
     return !!typers?.size
   })
 
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const hasUnread = C.useChatContext(s => s.unread > 0)
   const _draft = C.useChatContext(s => s.meta.draft)
   const {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey} =

@@ -10,6 +10,8 @@ import {useSettingsEmailState} from '@/constants/settings-email'
 import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
+import {usePeopleState, todoTypes} from '@/constants/people'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type TodoOwnProps = {
   badged: boolean
@@ -22,7 +24,7 @@ type TodoOwnProps = {
 
 const installLinkURL = 'https://keybase.io/download'
 const useOnSkipTodo = (type: T.People.TodoType) => {
-  const skipTodo = C.usePeopleState(s => s.dispatch.skipTodo)
+  const skipTodo = usePeopleState(s => s.dispatch.skipTodo)
   return React.useCallback(() => {
     skipTodo(type)
   }, [skipTodo, type])
@@ -91,7 +93,7 @@ const AvatarUserConnector = (props: TodoOwnProps) => {
 }
 
 const BioConnector = (props: TodoOwnProps) => {
-  const myUsername = C.useCurrentUserState(s => s.username)
+  const myUsername = useCurrentUserState(s => s.username)
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const onConfirm = (username: string) => {
     // make sure we have tracker state & profile is up to date
@@ -102,7 +104,7 @@ const BioConnector = (props: TodoOwnProps) => {
 }
 
 const ProofConnector = (props: TodoOwnProps) => {
-  const myUsername = C.useCurrentUserState(s => s.username)
+  const myUsername = useCurrentUserState(s => s.username)
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onConfirm = showUserProfile
   const onDismiss = useOnSkipTodo('proof')
@@ -202,7 +204,7 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
   const addingEmail = useSettingsEmailState(s => s.addingEmail)
-  const setResentEmail = C.usePeopleState(s => s.dispatch.setResentEmail)
+  const setResentEmail = usePeopleState(s => s.dispatch.setResentEmail)
   const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
     editEmail({email, verify: true})
@@ -310,39 +312,39 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
 
 const TaskChooser = (props: TodoOwnProps) => {
   switch (props.todoType) {
-    case C.People.todoTypes.addEmail:
+    case todoTypes.addEmail:
       return <AddEmailConnector {...props} />
-    case C.People.todoTypes.addPhoneNumber:
+    case todoTypes.addPhoneNumber:
       return <AddPhoneNumberConnector {...props} />
-    case C.People.todoTypes.avatarTeam:
+    case todoTypes.avatarTeam:
       return <AvatarTeamConnector {...props} />
-    case C.People.todoTypes.avatarUser:
+    case todoTypes.avatarUser:
       return <AvatarUserConnector {...props} />
-    case C.People.todoTypes.bio:
+    case todoTypes.bio:
       return <BioConnector {...props} />
-    case C.People.todoTypes.proof:
+    case todoTypes.proof:
       return <ProofConnector {...props} />
-    case C.People.todoTypes.device:
+    case todoTypes.device:
       return <DeviceConnector {...props} />
-    case C.People.todoTypes.follow:
+    case todoTypes.follow:
       return <FollowConnector {...props} />
-    case C.People.todoTypes.chat:
+    case todoTypes.chat:
       return <ChatConnector {...props} />
-    case C.People.todoTypes.paperkey:
+    case todoTypes.paperkey:
       return <PaperKeyConnector {...props} />
-    case C.People.todoTypes.team:
+    case todoTypes.team:
       return <TeamConnector {...props} />
-    case C.People.todoTypes.folder:
+    case todoTypes.folder:
       return <FolderConnector {...props} />
-    case C.People.todoTypes.gitRepo:
+    case todoTypes.gitRepo:
       return <GitRepoConnector {...props} />
-    case C.People.todoTypes.legacyEmailVisibility:
+    case todoTypes.legacyEmailVisibility:
       return <LegacyEmailVisibilityConnector {...props} />
-    case C.People.todoTypes.teamShowcase:
+    case todoTypes.teamShowcase:
       return <TeamShowcaseConnector {...props} />
-    case C.People.todoTypes.verifyAllEmail:
+    case todoTypes.verifyAllEmail:
       return <VerifyAllEmailConnector {...props} />
-    case C.People.todoTypes.verifyAllPhoneNumber:
+    case todoTypes.verifyAllPhoneNumber:
       return <VerifyAllPhoneNumberConnector {...props} />
     default:
       return null

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import {useCurrentUserState} from '@/constants/current-user'
 import type * as T from '@/constants/types'
 import openUrl from '@/util/open-url'
 import * as Kb from '@/common-adapters'
@@ -37,7 +38,7 @@ const notAUserAssertion = {
 } satisfies Omit<T.Tracker.Assertion, 'type' | 'value' | 'wotProof'>
 
 const Container = (ownProps: OwnProps) => {
-  const isYours = C.useCurrentUserState(s => ownProps.username === s.username)
+  const isYours = useCurrentUserState(s => ownProps.username === s.username)
   const data = useTrackerState(
     C.useShallow(s => {
       let val = Tracker.noAssertion
