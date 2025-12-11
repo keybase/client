@@ -1,6 +1,5 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import * as TeamBuilding from '@/constants/team-building'
 

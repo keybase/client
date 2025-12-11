@@ -29,17 +29,17 @@ const SetPublicName = () => {
   const [deviceName, setDeviceName] = React.useState(C.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const debouncedSetReadyToShowError = debounce((ready: boolean) => setReadyToShowError(ready), 1000)
-  const cleanDeviceNameValue = Provision.cleanDeviceName(deviceName)
-  const normalized = cleanDeviceNameValue.replace(Provision.normalizeDeviceRE, '')
+  const cleanDeviceName = Provision.cleanDeviceName(deviceName)
+  const normalized = cleanDeviceName.replace(Provision.normalizeDeviceRE, '')
   const disabled =
     normalized.length < 3 ||
     normalized.length > 64 ||
-    !Provision.goodDeviceRE.test(cleanDeviceNameValue) ||
-    Provision.badDeviceRE.test(cleanDeviceNameValue)
-  const showDisabled = disabled && !!cleanDeviceNameValue && readyToShowError
+    !Provision.goodDeviceRE.test(cleanDeviceName) ||
+    Provision.badDeviceRE.test(cleanDeviceName)
+  const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const onSubmit = React.useCallback(() => {
-    ponSubmit(Provision.cleanDeviceName(cleanDeviceNameValue))
-  }, [cleanDeviceNameValue, ponSubmit])
+    ponSubmit(Provision.cleanDeviceName(cleanDeviceName))
+  }, [cleanDeviceName, ponSubmit])
   const _setDeviceName = (deviceName: string) => {
     setReadyToShowError(false)
     setDeviceName(deviceName.replace(Provision.badDeviceChars, ''))
