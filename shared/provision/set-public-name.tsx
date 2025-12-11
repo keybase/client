@@ -5,23 +5,15 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {
-  badDeviceChars,
-  badDeviceRE,
-  cleanDeviceName,
-  deviceNameInstructions,
-  goodDeviceRE,
-  normalizeDeviceRE,
-  useProvisionState,
-} from '@/constants/provision'
+import * as Provision from '@/constants/provision'
 
 const SetPublicName = () => {
-  const devices = useProvisionState(s => s.devices)
-  const error = useProvisionState(s => s.error)
+  const devices = Provision.useProvisionState(s => s.devices)
+  const error = Provision.useProvisionState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const ponBack = useSafeSubmit(navigateUp, !!error)
-  const psetDeviceName = useProvisionState(s => s.dispatch.dynamic.setDeviceName)
+  const psetDeviceName = Provision.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
   const ponSubmit = React.useCallback(
     (name: string) => {
       !waiting && psetDeviceName?.(name)
@@ -37,20 +29,20 @@ const SetPublicName = () => {
   const [deviceName, setDeviceName] = React.useState(C.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const debouncedSetReadyToShowError = debounce((ready: boolean) => setReadyToShowError(ready), 1000)
-  const cleanDeviceNameValue = cleanDeviceName(deviceName)
-  const normalized = cleanDeviceNameValue.replace(normalizeDeviceRE, '')
+  const cleanDeviceNameValue = Provision.cleanDeviceName(deviceName)
+  const normalized = cleanDeviceNameValue.replace(Provision.normalizeDeviceRE, '')
   const disabled =
     normalized.length < 3 ||
     normalized.length > 64 ||
-    !goodDeviceRE.test(cleanDeviceNameValue) ||
-    badDeviceRE.test(cleanDeviceNameValue)
+    !Provision.goodDeviceRE.test(cleanDeviceNameValue) ||
+    Provision.badDeviceRE.test(cleanDeviceNameValue)
   const showDisabled = disabled && !!cleanDeviceNameValue && readyToShowError
   const onSubmit = React.useCallback(() => {
-    ponSubmit(cleanDeviceName(cleanDeviceNameValue))
+    ponSubmit(Provision.cleanDeviceName(cleanDeviceNameValue))
   }, [cleanDeviceNameValue, ponSubmit])
   const _setDeviceName = (deviceName: string) => {
     setReadyToShowError(false)
-    setDeviceName(deviceName.replace(badDeviceChars, ''))
+    setDeviceName(deviceName.replace(Provision.badDeviceChars, ''))
     debouncedSetReadyToShowError(true)
   }
 
@@ -96,7 +88,7 @@ const SetPublicName = () => {
           />
           {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>
-              {deviceNameInstructions}
+              {Provision.deviceNameInstructions}
             </Kb.Text>
           ) : (
             <Kb.Text type="BodySmall">
