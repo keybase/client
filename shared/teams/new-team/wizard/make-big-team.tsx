@@ -3,11 +3,12 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {ModalTitle} from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useTeamsState} from '@/constants/teams'
 
 const MakeBigTeam = () => {
   const nav = useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
-  const setTeamWizardTeamSize = C.useTeamsState(s => s.dispatch.setTeamWizardTeamSize)
+  const setTeamWizardTeamSize = useTeamsState(s => s.dispatch.setTeamWizardTeamSize)
   const onSubmit = (isBig: boolean) => setTeamWizardTeamSize(isBig)
 
   const teamID = T.Teams.newTeamWizardTeamID

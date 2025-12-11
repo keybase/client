@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
+import * as Teams from '@/constants/teams'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 
@@ -42,7 +43,7 @@ const noChannel: Array<{channelname: string}> = []
 const getChannelSuggestions = (
   s: C.Chat.ConvoState,
   teamname: string,
-  teamMeta: C.Teams.State['teamMeta']
+  teamMeta: Teams.State['teamMeta']
 ) => {
   if (!teamname) {
     // this is an impteam, so get mutual teams from state
@@ -85,7 +86,7 @@ const useDataSource = (filter: string) => {
     C.waitingKeyTeamsGetChannels(teamID),
     C.waitingKeyChatMutualTeams(conversationIDKey),
   ])
-  const teamMeta = C.useTeamsState(s => s.teamMeta)
+  const teamMeta = Teams.useTeamsState(s => s.teamMeta)
   return C.useChatContext(
     C.useDeep(s => {
       const fil = filter.toLowerCase()

@@ -1,5 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 
@@ -43,9 +45,9 @@ const Activity = (p: Props) => {
 
 type MTProps = {title: string; teamID: T.Teams.TeamID}
 export const ModalTitle = ({title, teamID}: MTProps) => {
-  const teamname = C.useTeamsState(state => C.Teams.getTeamMeta(state, teamID).teamname)
-  const avatarFilepath = C.useTeamsState(state => state.newTeamWizard.avatarFilename)
-  const avatarCrop = C.useTeamsState(state => state.newTeamWizard.avatarCrop)
+  const teamname = useTeamsState(state => Teams.getTeamMeta(state, teamID).teamname)
+  const avatarFilepath = useTeamsState(state => state.newTeamWizard.avatarFilename)
+  const avatarCrop = useTeamsState(state => state.newTeamWizard.avatarCrop)
   const isNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
 
   return Kb.Styles.isMobile ? (
@@ -82,8 +84,8 @@ export const ModalTitle = ({title, teamID}: MTProps) => {
  * @param forceLoad force a reload even if they're already loaded.
  */
 export const useActivityLevels = (forceLoad?: boolean) => {
-  const activityLevelsLoaded = C.useTeamsState(s => s.activityLevels.loaded)
-  const getActivityForTeams = C.useTeamsState(s => s.dispatch.getActivityForTeams)
+  const activityLevelsLoaded = useTeamsState(s => s.activityLevels.loaded)
+  const getActivityForTeams = useTeamsState(s => s.dispatch.getActivityForTeams)
   // keep whether we've triggered a load so we only do it once.
   const triggeredLoad = React.useRef(false)
   React.useEffect(() => {

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useTeamsState} from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
@@ -144,7 +145,7 @@ const useDataUsers = () => {
     C.useDeep(s => {
       const {teamID, teamType} = s.meta
       // TODO not reactive
-      const teamMembers = C.useTeamsState.getState().teamIDToMembers.get(teamID)
+      const teamMembers = useTeamsState.getState().teamIDToMembers.get(teamID)
       const usernames = teamMembers
         ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
         : participantInfo.all

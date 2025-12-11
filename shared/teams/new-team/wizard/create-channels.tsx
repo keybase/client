@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
@@ -23,7 +24,7 @@ export const CreateChannelsModal = (props: Props) => {
   const {onSubmitChannels, waiting} = props
   const nav = useSafeNavigation()
   const teamID = props.teamID || T.Teams.newTeamWizardTeamID
-  const initialChannels = C.useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
+  const initialChannels = useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
 
   const [channels, setChannels] = React.useState<Array<string>>([...initialChannels])
   const setChannel = (i: number, value: string) => {
@@ -39,7 +40,7 @@ export const CreateChannelsModal = (props: Props) => {
   }
 
   const filteredChannels = channels.filter(c => c.trim())
-  const setTeamWizardChannels = C.useTeamsState(s => s.dispatch.setTeamWizardChannels)
+  const setTeamWizardChannels = useTeamsState(s => s.dispatch.setTeamWizardChannels)
   const onContinue = () =>
     onSubmitChannels ? onSubmitChannels(filteredChannels) : setTeamWizardChannels(filteredChannels)
   const onBack = () => nav.safeNavigateUp()

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as RowSizes from './sizes'
 import type * as T from '@/constants/types'
@@ -20,7 +21,7 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
 })
 const BigTeamHeaderImpl = (props: Props) => {
   const {teamID, teamname} = props
-  const badgeSubscribe = C.useTeamsState(s => !C.Teams.isTeamWithChosenChannels(s, teamname))
+  const badgeSubscribe = Teams.useTeamsState(s => !Teams.isTeamWithChosenChannels(s, teamname))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => navigateAppend({props: {teamID}, selected: 'team'})
 

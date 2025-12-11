@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
@@ -78,16 +79,16 @@ export const TeamMemberRow = (props: Props) => {
     resetLabel = ' • Needs to update Keybase'
   }
 
-  const roleLabel = !!active && C.Teams.typeToLabel[roleType]
+  const roleLabel = !!active && Teams.typeToLabel[roleType]
   const isYou = props.you === props.username
   const teamID = props.teamID
 
   const nav = useSafeNavigation()
-  const teamSelectedMembers = C.useTeamsState(s => s.teamSelectedMembers.get(teamID))
+  const teamSelectedMembers = Teams.useTeamsState(s => s.teamSelectedMembers.get(teamID))
   const anySelected = !!teamSelectedMembers?.size
   const selected = !!teamSelectedMembers?.has(props.username)
 
-  const setMemberSelected = C.useTeamsState(s => s.dispatch.setMemberSelected)
+  const setMemberSelected = Teams.useTeamsState(s => s.dispatch.setMemberSelected)
 
   const onSelect = React.useCallback(
     (selected: boolean) => {
@@ -136,7 +137,7 @@ export const TeamMemberRow = (props: Props) => {
             />
           )}
           <Kb.Text type="BodySmall">
-            {!!active && C.Teams.typeToLabel[roleType]}
+            {!!active && Teams.typeToLabel[roleType]}
             {resetLabel}
           </Kb.Text>
         </Kb.Box2>
@@ -308,17 +309,17 @@ type OwnProps = {
   firstItem: boolean
 }
 
-const blankInfo = C.Teams.initialMemberInfo
+const blankInfo = Teams.initialMemberInfo
 
 const Container = (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
-  const {members, reAddToTeam, removeMember, youCanManageMembers} = C.useTeamsState(
+  const {members, reAddToTeam, removeMember, youCanManageMembers} = Teams.useTeamsState(
     C.useShallow(s => {
-      const details = s.teamDetails.get(teamID) ?? C.Teams.emptyTeamDetails
+      const details = s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails
       const {members} = details
-      const m = C.Teams.getTeamMeta(s, teamID)
+      const m = Teams.getTeamMeta(s, teamID)
       const {teamname} = m
-      const youCanManageMembers = C.Teams.getCanPerform(s, teamname).manageMembers
+      const youCanManageMembers = Teams.getCanPerform(s, teamname).manageMembers
       const {dispatch} = s
       const {removeMember, reAddToTeam} = dispatch
       return {members, reAddToTeam, removeMember, youCanManageMembers}

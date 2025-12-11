@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
@@ -10,7 +11,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 const AddContacts = () => {
   const nav = useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
-  const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
+  const teamID = useTeamsState(s => s.addMembersWizard.teamID)
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
   const [selectedEmails, setSelectedEmails] = React.useState(new Set<string>())
@@ -30,7 +31,7 @@ const AddContacts = () => {
   const [waiting, setWaiting] = React.useState(false)
   const toAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
 
-  const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
+  const addMembersWizardPushMembers = useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 
   const onDone = () => {
     if (waiting) {

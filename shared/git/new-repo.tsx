@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Git from '@/constants/git'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 
@@ -9,11 +10,11 @@ const NewTeamSentry = '---NewTeam---'
 const Container = (ownProps: OwnProps) => {
   const {isTeam} = ownProps
   const error = Git.useGitState(s => s.error)
-  const teamnames = C.useTeamsState(s => s.teamnames)
-  const teams = [...teamnames].sort(C.Teams.sortTeamnames)
+  const teamnames = Teams.useTeamsState(s => s.teamnames)
+  const teams = [...teamnames].sort(Teams.sortTeamnames)
   const waitingKey = C.waitingKeyGitLoading
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
+  const getTeams = Teams.useTeamsState(s => s.dispatch.getTeams)
   const loadTeams = getTeams
   const onClose = navigateUp
   const createPersonalRepo = Git.useGitState(s => s.dispatch.createPersonalRepo)
@@ -26,7 +27,7 @@ const Container = (ownProps: OwnProps) => {
     }
     navigateUp()
   }
-  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const launchNewTeamWizardOrModal = Teams.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onNewTeam = () => {
     switchTab(C.Tabs.teamsTab)

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {useTeamsState} from '@/constants/teams'
 import type * as T from '@/constants/types'
 import {useTeamsSubscribe} from '@/teams/subscriber'
 import {useTrackerState} from '@/constants/tracker2'
@@ -8,7 +9,7 @@ import {useCurrentUserState} from '@/constants/current-user'
 const Container = () => {
   const waiting = C.useWaitingState(s => s.counts)
   const you = useCurrentUserState(s => s.username)
-  const teamMeta = C.useTeamsState(s => s.teamMeta)
+  const teamMeta = Teams.useTeamsState(s => s.teamMeta)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     // sadly a little racy, doing this for now
@@ -24,8 +25,8 @@ const Container = () => {
     navigateUp()
   }
 
-  const onPromote = C.useTeamsState(s => s.dispatch.setMemberPublicity)
-  const teams = C.Teams.sortTeamsByName(teamMeta)
+  const onPromote = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
+  const teams = Teams.sortTeamsByName(teamMeta)
 
   useTeamsSubscribe()
   return (

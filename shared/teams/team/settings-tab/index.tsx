@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker} from '@/teams/role-picker'
@@ -360,25 +361,25 @@ export type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
-  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? C.Teams.emptyTeamDetails
+  const teamMeta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID)) ?? Teams.emptyTeamDetails
   const publicityAnyMember = teamMeta.allowPromote
   const publicityMember = teamMeta.showcasing
   const publicityTeam = teamDetails.settings.teamShowcased
   const settings = teamDetails.settings
-  const welcomeMessage = C.useTeamsState(s => s.teamIDToWelcomeMessage.get(teamID))
+  const welcomeMessage = Teams.useTeamsState(s => s.teamIDToWelcomeMessage.get(teamID))
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
-  const error = C.useTeamsState(s => s.errorInSettings)
+  const error = Teams.useTeamsState(s => s.errorInSettings)
   const ignoreAccessRequests = teamDetails.settings.tarsDisabled
   const isBigTeam = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
   const openTeam = settings.open
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname
   const waitingForWelcomeMessage = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoadWelcomeMessage(teamID))
-  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
-  const _loadWelcomeMessage = C.useTeamsState(s => s.dispatch.loadWelcomeMessage)
-  const resetErrorInSettings = C.useTeamsState(s => s.dispatch.resetErrorInSettings)
-  const setPublicity = C.useTeamsState(s => s.dispatch.setPublicity)
+  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
+  const _loadWelcomeMessage = Teams.useTeamsState(s => s.dispatch.loadWelcomeMessage)
+  const resetErrorInSettings = Teams.useTeamsState(s => s.dispatch.resetErrorInSettings)
+  const setPublicity = Teams.useTeamsState(s => s.dispatch.setPublicity)
   const clearError = resetErrorInSettings
   const loadWelcomeMessage = React.useCallback(() => {
     _loadWelcomeMessage(teamID)

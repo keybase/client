@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -95,7 +96,7 @@ const useCanManageEmoji = () => {
   const canManageEmoji = C.useChatContext(s => {
     const meta = s.meta
     // TODO not reactive
-    return !meta.teamname || C.Teams.getCanPerformByID(C.useTeamsState.getState(), meta.teamID).manageEmojis
+    return !meta.teamname || Teams.getCanPerformByID(Teams.useTeamsState.getState(), meta.teamID).manageEmojis
   })
   return canManageEmoji
 }

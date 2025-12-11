@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {ModalTitle} from './common'
@@ -10,11 +11,11 @@ type Props = {teamID: T.Teams.TeamID}
 const EditTeamDescription = (props: Props) => {
   const teamID = props.teamID
 
-  const teamname = C.useTeamsState(s => C.Teams.getTeamNameFromID(s, teamID))
+  const teamname = Teams.useTeamsState(s => Teams.getTeamNameFromID(s, teamID))
   const waitingKey = C.waitingKeyTeamsTeam(teamID)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const error = C.useTeamsState(s => s.errorInEditDescription)
-  const origDescription = C.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''
+  const error = Teams.useTeamsState(s => s.errorInEditDescription)
+  const origDescription = Teams.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''
 
   if (teamID === T.Teams.noTeamID || teamname === undefined) {
     throw new Error(
@@ -23,7 +24,7 @@ const EditTeamDescription = (props: Props) => {
   }
 
   const [description, setDescription] = React.useState(origDescription)
-  const editTeamDescription = C.useTeamsState(s => s.dispatch.editTeamDescription)
+  const editTeamDescription = Teams.useTeamsState(s => s.dispatch.editTeamDescription)
 
   const nav = useSafeNavigation()
   const onSave = () => editTeamDescription(teamID, description)

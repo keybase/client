@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
@@ -179,12 +180,12 @@ type OwnProps = {
   username: string
 }
 
-const blankInfo = C.Teams.initialMemberInfo
+const blankInfo = Teams.initialMemberInfo
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
-  const canManageBots = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageBots)
+  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID))
+  const canManageBots = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageBots)
   const map = teamDetails?.members
   const info: T.Teams.MemberInfo = map?.get(ownProps.username) || blankInfo
   const _bot = useBotsState(s => s.featuredBotsMap.get(ownProps.username))

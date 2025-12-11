@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {useTeamsState} from '../teams'
 import * as Tabs from '../tabs'
 import {useDeepLinksState} from '../deeplinks'
 import * as EngineGen from '@/actions/engine-gen-gen'
@@ -103,7 +104,7 @@ export const getBotsAndParticipants = (
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
   const teamMembers =
-    C.useTeamsState.getState().teamIDToMembers.get(meta.teamID) ?? new Map<string, T.Teams.MemberInfo>()
+    useTeamsState.getState().teamIDToMembers.get(meta.teamID) ?? new Map<string, T.Teams.MemberInfo>()
   let bots: Array<string> = []
   if (isAdhocTeam) {
     bots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
@@ -934,8 +935,8 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       const {isMetaGood, meta} = C.getConvoState(selectedConversation)
       if (isMetaGood()) {
         const {teamID} = meta
-        if (!C.useTeamsState.getState().teamIDToMembers.get(teamID) && meta.teamname) {
-          C.useTeamsState.getState().dispatch.getMembers(teamID)
+        if (!useTeamsState.getState().teamIDToMembers.get(teamID) && meta.teamname) {
+          useTeamsState.getState().dispatch.getMembers(teamID)
         }
       }
     },
@@ -1292,7 +1293,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                 cs.dispatch.setMeta(meta)
               }
             })
-            C.useTeamsState.getState().dispatch.updateTeamRetentionPolicy(metas)
+            useTeamsState.getState().dispatch.updateTeamRetentionPolicy(metas)
           }
           // this is a more serious problem, but we don't need to bug the user about it
           logger.error(

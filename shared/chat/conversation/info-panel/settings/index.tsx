@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import MinWriterRole from './min-writer-role'
@@ -15,7 +16,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const username = useCurrentUserState(s => s.username)
   const meta = C.useChatContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
-  const yourOperations = C.useTeamsState(s => (teamname ? C.Teams.getCanPerformByID(s, teamID) : undefined))
+  const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
   const ignored = status === T.RPCChat.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
 
@@ -31,7 +32,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     entityType = 'adhoc'
   }
 
-  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const participantInfo = C.useChatContext(s => s.participants)
   const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
     u => u !== username && !C.Chat.isAssertion(u)

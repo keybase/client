@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
 import openURL from '@/util/open-url'
 import type * as T from '@/constants/types'
@@ -146,7 +147,7 @@ const PaperKeyConnector = (props: TodoOwnProps) => {
 
 const TeamConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onConfirm = () => {
     switchTab(C.Tabs.teamsTab)
     launchNewTeamWizardOrModal()

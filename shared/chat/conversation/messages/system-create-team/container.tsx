@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import type * as T from '@/constants/types'
@@ -16,9 +17,9 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
       return {showInfoPanel, teamID, teamname}
     })
   )
-  const role = C.useTeamsState(s => C.Teams.getRole(s, teamID))
+  const role = Teams.useTeamsState(s => Teams.getRole(s, teamID))
   const you = useCurrentUserState(s => s.username)
-  const isAdmin = C.Teams.isAdmin(role) || C.Teams.isOwner(role)
+  const isAdmin = Teams.isAdmin(role) || Teams.isOwner(role)
   const team = teamname
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onViewTeam = React.useCallback(() => {
@@ -55,7 +56,7 @@ const ManageComponent = (props: {isAdmin: boolean; onViewTeam: () => void}) => {
 }
 const AddInvite = (props: {teamID: string; isAdmin: boolean}) => {
   const {teamID, isAdmin} = props
-  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAddInvite = () => startAddMembersWizard(teamID)
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (isAdmin) {

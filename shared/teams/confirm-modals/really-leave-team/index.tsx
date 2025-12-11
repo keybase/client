@@ -1,5 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Teams from '@/constants/teams'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeSubmit} from '@/util/safe-submit'
 import type * as T from '@/constants/types'
@@ -120,10 +122,10 @@ type OwnProps = {teamID: T.Teams.TeamID}
 
 const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID
-  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
-  const {settings, members} = C.useTeamsState(s => s.teamDetails.get(teamID) ?? C.Teams.emptyTeamDetails)
+  const {teamname} = useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const {settings, members} = useTeamsState(s => s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails)
   const open = settings.open
-  const lastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, teamID))
+  const lastOwner = useTeamsState(s => Teams.isLastOwner(s, teamID))
   const stillLoadingTeam = !members
   const leaving = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLeaveTeam(teamname))
   const error = C.Waiting.useAnyErrors(C.waitingKeyTeamsLeaveTeam(teamname))
@@ -133,7 +135,7 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
     navigateUp()
     navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
   }, [navigateUp, navigateAppend, teamID])
-  const leaveTeam = C.useTeamsState(s => s.dispatch.leaveTeam)
+  const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
   const _onLeave = React.useCallback(
     (permanent: boolean) => {
       leaveTeam(teamname, permanent, 'teams')

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
@@ -69,7 +70,7 @@ const Header2 = () => {
       : participants
   }, [participants, username])
 
-  const canEditDesc = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname).editChannelDescription)
+  const canEditDesc = Teams.useTeamsState(s => Teams.getCanPerform(s, teamname).editChannelDescription)
   const otherInfo = useUsersState(s => s.infoMap.get(first))
   // If it's a one-on-one chat, use the user's fullname as the description
   const desc = otherInfo?.bio?.replace(/(\r\n|\n|\r)/gm, ' ') || descriptionDecorated

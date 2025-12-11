@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {useTeamsState} from '../teams'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {useDeepLinksState} from '../deeplinks'
 import * as RemoteGen from '@/actions/remote-gen'
@@ -271,7 +272,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       }
     }
 
-    C.useTeamsState.getState().dispatch.eagerLoadTeams()
+    useTeamsState.getState().dispatch.eagerLoadTeams()
   }
 
   const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
@@ -630,8 +631,8 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         }
 
         const updateTeams = () => {
-          C.useTeamsState.getState().dispatch.getTeams()
-          C.useTeamsState.getState().dispatch.refreshTeamRoleMap()
+          useTeamsState.getState().dispatch.getTeams()
+          useTeamsState.getState().dispatch.refreshTeamRoleMap()
         }
 
         const updateSettings = () => {

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -254,7 +255,7 @@ const useState = (ordinal: T.Chat.Ordinal) => {
       const {author, timestamp} = m
       const {teamID, botAliases, teamType, teamname} = s.meta
       // TODO not reactive
-      const authorRoleInTeam = C.useTeamsState.getState().teamIDToMembers.get(teamID)?.get(author)?.type
+      const authorRoleInTeam = useTeamsState.getState().teamIDToMembers.get(teamID)?.get(author)?.type
       const authorIsOwner = authorRoleInTeam === 'owner'
       const authorIsAdmin = authorRoleInTeam === 'admin'
       const botAlias = botAliases[author] ?? ''

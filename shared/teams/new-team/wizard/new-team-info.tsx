@@ -3,6 +3,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {ModalTitle} from '@/teams/common'
 import * as T from '@/constants/types'
+import * as Teams from '@/constants/teams'
+import {useTeamsState} from '@/constants/teams'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
@@ -26,9 +28,9 @@ const cannotJoinAsOwner = {admin: `Users can't join open teams as admins`}
 
 const NewTeamInfo = () => {
   const nav = useSafeNavigation()
-  const teamWizardState = C.useTeamsState(s => s.newTeamWizard)
-  const parentName = C.useTeamsState(s =>
-    teamWizardState.parentTeamID ? C.Teams.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
+  const teamWizardState = useTeamsState(s => s.newTeamWizard)
+  const parentName = useTeamsState(s =>
+    teamWizardState.parentTeamID ? Teams.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
   )
 
   const minLength = parentName ? 2 : 3
@@ -95,7 +97,7 @@ const NewTeamInfo = () => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 
-  const setTeamWizardNameDescription = C.useTeamsState(s => s.dispatch.setTeamWizardNameDescription)
+  const setTeamWizardNameDescription = useTeamsState(s => s.dispatch.setTeamWizardNameDescription)
 
   const onContinue = () =>
     setTeamWizardNameDescription({

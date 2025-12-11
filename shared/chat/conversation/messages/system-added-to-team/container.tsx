@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
@@ -14,8 +15,8 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
   const {addee, adder, author, bulkAdds, role: _role, timestamp} = message
   const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname, teamType} = meta
-  const authorIsAdmin = C.useTeamsState(s => C.Teams.userIsRoleInTeam(s, teamID, author, 'admin'))
-  const authorIsOwner = C.useTeamsState(s => C.Teams.userIsRoleInTeam(s, teamID, author, 'owner'))
+  const authorIsAdmin = Teams.useTeamsState(s => Teams.userIsRoleInTeam(s, teamID, author, 'admin'))
+  const authorIsOwner = Teams.useTeamsState(s => Teams.userIsRoleInTeam(s, teamID, author, 'owner'))
   const you = useCurrentUserState(s => s.username)
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
@@ -41,7 +42,7 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
     }
   }, [navigateAppend, showInfoPanel, teamID])
 
-  const role = _role !== 'none' && isBot(_role) ? C.Teams.typeToLabel[_role].toLowerCase() : null
+  const role = _role !== 'none' && isBot(_role) ? Teams.typeToLabel[_role].toLowerCase() : null
   const mc = (
     <ManageComponent
       addee={addee}
@@ -73,8 +74,8 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
             </Kb.Text>
           )}
           {_role !== 'none' &&
-            C.Teams.typeToLabel[_role] &&
-            ` as ${indefiniteArticle(_role)} ${C.Teams.typeToLabel[_role].toLowerCase()}`}
+            Teams.typeToLabel[_role] &&
+            ` as ${indefiniteArticle(_role)} ${Teams.typeToLabel[_role].toLowerCase()}`}
           .
         </Kb.Text>
         {mc}

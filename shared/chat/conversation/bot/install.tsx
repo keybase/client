@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import ChannelPicker from './channel-picker'
 import openURL from '@/util/open-url'
@@ -85,8 +86,8 @@ const InstallBotPopup = (props: Props) => {
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
-  const readOnly = C.useTeamsState(s =>
-    meta.teamname ? !C.Teams.getCanPerformByID(s, meta.teamID).manageBots : false
+  const readOnly = Teams.useTeamsState(s =>
+    meta.teamname ? !Teams.getCanPerformByID(s, meta.teamID).manageBots : false
   )
   const settings = C.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined

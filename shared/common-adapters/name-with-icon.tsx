@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
+import {useTeamsState} from '@/constants/teams'
 import Avatar, {type AvatarSize} from './avatar'
 import {Box} from './box'
 import ClickableBox from './clickable-box'
@@ -364,7 +365,7 @@ type OwnProps = ConnectedNameWithIconProps
 
 const ConnectedNameWithIcon = (p: OwnProps) => {
   const {onClick, username, teamname, ...props} = p
-  const teamID = C.useTeamsState(s => s.teamNameToID.get(teamname ?? ''))
+  const teamID = useTeamsState(s => s.teamNameToID.get(teamname ?? ''))
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onOpenTeamProfile = React.useCallback(() => {

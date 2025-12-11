@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import TeamMenu from './menu-container'
 import {pluralize} from '@/util/string'
@@ -7,9 +8,10 @@ import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/constants/current-user'
+import {useTeamsState} from '@/constants/teams'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
-  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAdd = () => startAddMembersWizard(teamID)
   return (
     <Kb.Button
@@ -24,9 +26,9 @@ const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
 }
 type FeatureTeamCardProps = {teamID: T.Teams.TeamID}
 const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
-  const setMemberPublicity = C.useTeamsState(s => s.dispatch.setMemberPublicity)
+  const setMemberPublicity = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
   const onFeature = () => setMemberPublicity(teamID, true)
-  const setJustFinishedAddMembersWizard = C.useTeamsState(s => s.dispatch.setJustFinishedAddMembersWizard)
+  const setJustFinishedAddMembersWizard = Teams.useTeamsState(s => s.dispatch.setJustFinishedAddMembersWizard)
   const onNoThanks = React.useCallback(() => {
     setJustFinishedAddMembersWizard(false)
   }, [setJustFinishedAddMembersWizard])
@@ -85,12 +87,12 @@ const roleDisplay = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
-  const meta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
-  const details = C.useTeamsState(s => s.teamDetails.get(teamID))
-  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
-  const justFinishedAddWizard = C.useTeamsState(s => s.addMembersWizard.justFinished)
+  const meta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const details = Teams.useTeamsState(s => s.teamDetails.get(teamID))
+  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
+  const justFinishedAddWizard = Teams.useTeamsState(s => s.addMembersWizard.justFinished)
   useActivityLevels()
-  const activityLevel = C.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
+  const activityLevel = Teams.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
   const makePopup = React.useCallback(
@@ -269,11 +271,11 @@ export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const nav = useSafeNavigation()
-  const meta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const meta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
   const yourUsername = useCurrentUserState(s => s.username)
-  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
-  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
+  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
+  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const addMembersWizardPushMembers = Teams.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 
   const onAddSelf = () => {
     startAddMembersWizard(teamID)

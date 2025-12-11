@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Rover from './background'
@@ -406,8 +407,8 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
   const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
   const showingDueToSelect = React.useRef(false)
-  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
-  const showTeamByName = C.useTeamsState(s => s.dispatch.showTeamByName)
+  const joinTeam = useTeamsState(s => s.dispatch.joinTeam)
+  const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const makePopup = React.useCallback(

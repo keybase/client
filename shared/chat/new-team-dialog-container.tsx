@@ -1,17 +1,18 @@
 import * as C from '@/constants'
 import {CreateNewTeam} from '../teams/new-team'
+import {useTeamsState} from '@/constants/teams'
 import upperFirst from 'lodash/upperFirst'
 
 const NewTeamDialog = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const baseTeam = ''
-  const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))
+  const errorText = useTeamsState(s => upperFirst(s.errorInTeamCreation))
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }
-  const resetErrorInTeamCreation = C.useTeamsState(s => s.dispatch.resetErrorInTeamCreation)
-  const createNewTeamFromConversation = C.useTeamsState(s => s.dispatch.createNewTeamFromConversation)
+  const resetErrorInTeamCreation = useTeamsState(s => s.dispatch.resetErrorInTeamCreation)
+  const createNewTeamFromConversation = useTeamsState(s => s.dispatch.createNewTeamFromConversation)
   const onClearError = resetErrorInTeamCreation
   const onSubmit = (teamname: string) => {
     createNewTeamFromConversation(conversationIDKey, teamname)

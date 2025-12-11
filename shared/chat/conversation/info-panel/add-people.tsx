@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
@@ -10,7 +11,7 @@ type Props = {
 const AddPeople = (p: Props) => {
   const {isGeneralChannel, isAdmin} = p
   const teamID = C.useChatContext(s => s.meta.teamID)
-  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const onAddPeople = React.useCallback(() => {
     startAddMembersWizard(teamID)

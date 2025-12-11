@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Git from '@/constants/git'
+import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -23,7 +24,7 @@ const noGit = Git.makeGitInfo()
 const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
   const {id, expanded, onShowDelete: onShowDelete_, onToggleExpand: onToggleExpand_} = ownProps
   const git = Git.useGitState(s => s.idToInfo.get(id) || noGit)
-  const teamID = C.useTeamsState(s => (git.teamname ? C.Teams.getTeamID(s, git.teamname) : undefined))
+  const teamID = Teams.useTeamsState(s => (git.teamname ? Teams.getTeamID(s, git.teamname) : undefined))
   const isNew = React.useContext(NewContext).has(id)
   const you = useCurrentUserState(s => s.username)
   const setTeamRepoSettings = Git.useGitState(s => s.dispatch.setTeamRepoSettings)

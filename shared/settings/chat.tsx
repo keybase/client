@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import Group from './group'
@@ -17,8 +18,8 @@ const Security = () => {
   const onContactSettingsSave = contactSettingsSaved
   const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
   const _contactSettingsEnabled = useSettingsChatState(s => s.contactSettings.settings?.enabled)
-  const _teamMeta = C.useTeamsState(s => s.teamMeta)
-  const teamMeta = C.Teams.sortTeamsByName(_teamMeta)
+  const _teamMeta = Teams.useTeamsState(s => s.teamMeta)
+  const teamMeta = Teams.sortTeamsByName(_teamMeta)
 
   const [contactSettingsEnabled, setContactSettingsEnabled] = React.useState(_contactSettingsEnabled)
   const _contactSettingsIndirectFollowees = useSettingsChatState(

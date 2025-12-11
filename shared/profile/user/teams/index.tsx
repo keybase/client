@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useTeamsState} from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -14,16 +15,16 @@ const noTeams = new Array<T.Tracker.TeamShowcase>()
 const Container = (ownProps: OwnProps) => {
   const d = useTrackerState(s => s.getDetails(ownProps.username))
   const _isYou = useCurrentUserState(s => s.username === ownProps.username)
-  const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
-  const _teamNameToID = C.useTeamsState(s => s.teamNameToID)
-  const _youAreInTeams = C.useTeamsState(s => s.teamnames.size > 0)
+  const _roles = useTeamsState(s => s.teamRoleMap.roles)
+  const _teamNameToID = useTeamsState(s => s.teamNameToID)
+  const _youAreInTeams = useTeamsState(s => s.teamnames.size > 0)
   const teamShowcase = d.teamShowcase || noTeams
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onEdit = () => {
     navigateAppend('profileShowcaseTeamOffer')
   }
-  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
-  const showTeamByName = C.useTeamsState(s => s.dispatch.showTeamByName)
+  const joinTeam = useTeamsState(s => s.dispatch.joinTeam)
+  const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
   const onJoinTeam = joinTeam
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onViewTeam = (teamname: string) => {

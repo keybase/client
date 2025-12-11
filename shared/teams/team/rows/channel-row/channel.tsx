@@ -5,6 +5,8 @@ import type * as T from '@/constants/types'
 import {Activity, useChannelParticipants} from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import * as Teams from '@/constants/teams'
+import {useTeamsState} from '@/constants/teams'
 
 type ChannelRowProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -12,22 +14,22 @@ type ChannelRowProps = {
 }
 const ChannelRow = (props: ChannelRowProps) => {
   const {conversationIDKey, teamID} = props
-  const channel = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channel = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const isGeneral = channel.channelname === 'general'
 
-  const selected = C.useTeamsState(s => !!s.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey))
-  const canPerform = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
+  const selected = useTeamsState(s => !!s.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey))
+  const canPerform = useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const canDelete = canPerform.deleteChannel && !isGeneral
 
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const details = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const details = useTeamsState(s => s.teamDetails.get(teamID))
   const hasAllMembers = details?.members.size === numParticipants
-  const activityLevel = C.useTeamsState(
+  const activityLevel = useTeamsState(
     s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none'
   )
 
   const nav = useSafeNavigation()
-  const setChannelSelected = C.useTeamsState(s => s.dispatch.setChannelSelected)
+  const setChannelSelected = useTeamsState(s => s.dispatch.setChannelSelected)
   const onSelect = (newSelected: boolean) => {
     setChannelSelected(teamID, channel.conversationIDKey, newSelected)
   }
@@ -63,7 +65,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     })
   }, [channel, props, nav])
 
-  const deleteChannelConfirmed = C.useTeamsState(s => s.dispatch.deleteChannelConfirmed)
+  const deleteChannelConfirmed = useTeamsState(s => s.dispatch.deleteChannelConfirmed)
 
   const onDeleteChannel = React.useCallback(() => {
     deleteChannelConfirmed(teamID, channel.conversationIDKey)

@@ -6,15 +6,17 @@ import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import {useTeamDetailsSubscribe} from './subscriber'
 import noop from 'lodash/noop'
+import * as Teams from '@/constants/teams'
+import {useTeamsState} from '@/constants/teams'
 
 type OwnProps = {teamID: T.Teams.TeamID}
 
 const DeleteTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID
-  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
-  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const {teamname} = useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const teamDetails = useTeamsState(s => s.teamDetails.get(teamID))
   const deleteWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsDeleteTeam(teamID))
-  const teamMetas = C.useTeamsState(s => s.teamMeta)
+  const teamMetas = useTeamsState(s => s.teamMeta)
   const subteamNames = teamDetails?.subteams.size
     ? [...teamDetails.subteams]
         .map(subteamID => teamMetas.get(subteamID)?.teamname ?? '')
@@ -24,7 +26,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = deleteWaiting ? noop : _onBack
-  const deleteTeam = C.useTeamsState(s => s.dispatch.deleteTeam)
+  const deleteTeam = useTeamsState(s => s.dispatch.deleteTeam)
   const _onDelete = React.useCallback(() => {
     deleteTeam(teamID)
   }, [deleteTeam, teamID])

@@ -5,6 +5,7 @@ import type * as T from '@/constants/types'
 import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
+import {useTeamsState} from '@/constants/teams'
 
 type DeletedTeam = {
   teamName: string
@@ -71,7 +72,7 @@ const sortOrderToTitle = {
   role: 'Your role',
 }
 const SortHeader = () => {
-  const onChangeSort = C.useTeamsState(s => s.dispatch.setTeamListSort)
+  const onChangeSort = useTeamsState(s => s.dispatch.setTeamListSort)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
@@ -102,7 +103,7 @@ const SortHeader = () => {
   )
 
   const {popup, showPopup, popupAnchor} = Kb.usePopup2(makePopup)
-  const sortOrder = C.useTeamsState(s => s.teamListSort)
+  const sortOrder = useTeamsState(s => s.teamListSort)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
       <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>

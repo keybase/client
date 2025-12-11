@@ -1,5 +1,6 @@
 import * as C from '..'
 import {useProfileState} from '../profile'
+import {useTeamsState} from '../teams'
 import * as T from '../types'
 import * as Crypto from '../crypto'
 import * as React from 'react'
@@ -336,7 +337,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       get().dispatch.closeTeamBuilding()
       const {teamSoFar} = get()
       if (get().namespace === 'teams') {
-        C.useTeamsState
+        useTeamsState
           .getState()
           .dispatch.addMembersWizardPushMembers(
             [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))

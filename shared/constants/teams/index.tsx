@@ -2370,8 +2370,8 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       switch (action.type) {
         case EngineGen.chat1ChatUiChatShowManageChannels: {
           const {teamname} = action.payload.params
-          const teamID = C.useTeamsState.getState().teamNameToID.get(teamname) ?? T.Teams.noTeamID
-          C.useTeamsState.getState().dispatch.manageChatChannels(teamID)
+          const teamID = get().teamNameToID.get(teamname) ?? T.Teams.noTeamID
+          get().dispatch.manageChatChannels(teamID)
           break
         }
         case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:

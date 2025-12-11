@@ -1,6 +1,8 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import {Activity, useChannelParticipants} from '../common'
@@ -27,11 +29,11 @@ type HeaderTitleProps = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
-  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
-  const channelInfo = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const teamname = useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
+  const channelInfo = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname, description} = channelInfo
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
+  const yourOperations = useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel && channelname !== 'general'
 
   const editChannelProps = {
@@ -45,7 +47,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const onAddMembers = () =>
     nav.safeNavigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})
   const onNavToTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
-  const activityLevel = C.useTeamsState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
+  const activityLevel = useTeamsState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
   const newMemberCount = useRecentJoins(conversationIDKey)
 
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
@@ -65,7 +67,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  const deleteChannelConfirmed = C.useTeamsState(s => s.dispatch.deleteChannelConfirmed)
+  const deleteChannelConfirmed = useTeamsState(s => s.dispatch.deleteChannelConfirmed)
 
   const menuItems: Array<Kb.MenuItem> = React.useMemo(
     () => [

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
@@ -46,8 +47,8 @@ type Props = {
 const TeamInviteByContact = (props: Props) => {
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
-  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
-  const invites = C.useTeamsState(s => s.teamDetails.get(teamID) ?? C.Teams.emptyTeamDetails).invites
+  const teamname = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
+  const invites = Teams.useTeamsState(s => s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails).invites
 
   useTeamDetailsSubscribe(teamID)
 
@@ -55,8 +56,8 @@ const TeamInviteByContact = (props: Props) => {
 
   const [selectedRole, setSelectedRole] = React.useState('writer' as T.Teams.TeamRoleType)
 
-  const loadingInvites = C.useTeamsState(s => s.teamNameToLoadingInvites.get(teamname))
-  const resetErrorInEmailInvite = C.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
+  const loadingInvites = Teams.useTeamsState(s => s.teamNameToLoadingInvites.get(teamname))
+  const resetErrorInEmailInvite = Teams.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
   const onBack = React.useCallback(() => {
     nav.safeNavigateUp()
     resetErrorInEmailInvite()
@@ -68,8 +69,8 @@ const TeamInviteByContact = (props: Props) => {
     },
     [setSelectedRole]
   )
-  const inviteToTeamByEmail = C.useTeamsState(s => s.dispatch.inviteToTeamByEmail)
-  const inviteToTeamByPhone = C.useTeamsState(s => s.dispatch.inviteToTeamByPhone)
+  const inviteToTeamByEmail = Teams.useTeamsState(s => s.dispatch.inviteToTeamByEmail)
+  const inviteToTeamByPhone = Teams.useTeamsState(s => s.dispatch.inviteToTeamByPhone)
 
   const onInviteContact = React.useCallback(
     (contact: Contact) => {
@@ -93,7 +94,7 @@ const TeamInviteByContact = (props: Props) => {
     [inviteToTeamByPhone, inviteToTeamByEmail, resetErrorInEmailInvite, selectedRole, teamID, teamname]
   )
 
-  const removePendingInvite = C.useTeamsState(s => s.dispatch.removePendingInvite)
+  const removePendingInvite = Teams.useTeamsState(s => s.dispatch.removePendingInvite)
   const onCancelInvite = React.useCallback(
     (inviteID: string) => {
       resetErrorInEmailInvite()

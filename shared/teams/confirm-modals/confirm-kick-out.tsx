@@ -1,5 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -15,12 +17,12 @@ const ConfirmKickOut = (props: Props) => {
 
   const [kickedVisible, setKickedVisible] = React.useState(false)
 
-  const _subteamIDs = C.useTeamsState(s => s.teamDetails.get(teamID)?.subteams) ?? new Set<string>()
+  const _subteamIDs = useTeamsState(s => s.teamDetails.get(teamID)?.subteams) ?? new Set<string>()
   const subteamIDs = Array.from(_subteamIDs)
-  const subteams = C.useTeamsState(
-    C.useShallow(s => subteamIDs.map(id => C.Teams.getTeamMeta(s, id).teamname))
+  const subteams = useTeamsState(
+    C.useShallow(s => subteamIDs.map(id => Teams.getTeamMeta(s, id).teamname))
   )
-  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
+  const teamname = useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
   const waitingKeys = ([] as string[]).concat.apply(
     members.map(member => C.waitingKeyTeamsRemoveMember(teamID, member)),
     members.map(member => subteamIDs.map(subteamID => C.waitingKeyTeamsRemoveMember(subteamID, member)))
@@ -29,9 +31,9 @@ const ConfirmKickOut = (props: Props) => {
   const nav = useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
-  const setMemberSelected = C.useTeamsState(s => s.dispatch.setMemberSelected)
-  const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
-  const loadTeam = C.useTeamsState(s => s.dispatch.loadTeam)
+  const setMemberSelected = useTeamsState(s => s.dispatch.setMemberSelected)
+  const removeMember = useTeamsState(s => s.dispatch.removeMember)
+  const loadTeam = useTeamsState(s => s.dispatch.loadTeam)
   // TODO(Y2K-1592): do this in one RPC
   const onRemove = () => {
     setMemberSelected(teamID, '', false, true)
@@ -59,7 +61,7 @@ const ConfirmKickOut = (props: Props) => {
 
   const prompt = (
     <Kb.Text center={true} type="Header" style={styles.prompt}>
-      Kick {C.Teams.stringifyPeople(members)} out of {teamname}?
+      Kick {Teams.stringifyPeople(members)} out of {teamname}?
     </Kb.Text>
   )
   const header = (

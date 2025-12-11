@@ -1,6 +1,8 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
@@ -17,14 +19,14 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const channelInfo = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channelInfo = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
 
   const nav = useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
-  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
-  const channelSetMemberSelected = C.useTeamsState(s => s.dispatch.channelSetMemberSelected)
+  const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const channelSetMemberSelected = useTeamsState(s => s.dispatch.channelSetMemberSelected)
   const removeFromChannel = C.useRPC(T.RPCChat.localRemoveFromConversationLocalRpcPromise)
 
   const onRemove = () => {
@@ -45,7 +47,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
     )
   }
 
-  const prompt = `Remove ${C.Teams.stringifyPeople(members)} from #${channelname}?`
+  const prompt = `Remove ${Teams.stringifyPeople(members)} from #${channelname}?`
   const header = (
     <Kb.Box style={styles.positionRelative}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />

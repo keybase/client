@@ -1,6 +1,7 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 
 // Filter bots out using team role info, isolate to only when related state changes
 export const useChannelParticipants = (
@@ -8,7 +9,7 @@ export const useChannelParticipants = (
   conversationIDKey: T.Chat.ConversationIDKey
 ) => {
   const participants = C.useConvoState(conversationIDKey, s => s.participants.all)
-  const teamMembers = C.useTeamsState(s => s.teamDetails.get(teamID)?.members)
+  const teamMembers = Teams.useTeamsState(s => s.teamDetails.get(teamID)?.members)
   return React.useMemo(
     () =>
       participants.filter(username => {
@@ -29,7 +30,7 @@ export const useAllChannelMetas = (
 } => {
   const getConversations = C.useRPC(T.RPCChat.localGetTLFConversationsLocalRpcPromise)
 
-  const teamname = C.useTeamsState(s => C.Teams.getTeamNameFromID(s, teamID) ?? '')
+  const teamname = Teams.useTeamsState(s => Teams.getTeamNameFromID(s, teamID) ?? '')
   const [channelMetas, setChannelMetas] = React.useState(
     new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>()
   )

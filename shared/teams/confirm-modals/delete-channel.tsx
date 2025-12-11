@@ -1,7 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
+import {useTeamsState} from '@/constants/teams'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
@@ -21,7 +23,7 @@ const Header = () => (
 const DeleteChannel = (props: Props) => {
   const teamID = props.teamID
   const routePropChannel = props.conversationIDKey
-  const storeSelectedChannels = C.useTeamsState(s => s.teamSelectedChannels.get(teamID))
+  const storeSelectedChannels = useTeamsState(s => s.teamSelectedChannels.get(teamID))
 
   // When the channels get deleted, the values in the store are gone but we should keep displaying the same thing.
   const [channelIDs] = React.useState<T.Chat.ConversationIDKey[]>(
@@ -50,8 +52,8 @@ const DeleteChannel = (props: Props) => {
     )}`
   }
 
-  const setChannelSelected = C.useTeamsState(s => s.dispatch.setChannelSelected)
-  const deleteMultiChannelsConfirmed = C.useTeamsState(s => s.dispatch.deleteMultiChannelsConfirmed)
+  const setChannelSelected = useTeamsState(s => s.dispatch.setChannelSelected)
+  const deleteMultiChannelsConfirmed = useTeamsState(s => s.dispatch.deleteMultiChannelsConfirmed)
 
   const onDelete = () => {
     deleteMultiChannelsConfirmed(teamID, Array.from(channelIDs.values()))

@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {Tab as TabType} from '@/common-adapters/tabs'
+import {useTeamsState} from '@/constants/teams'
 
 export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 
@@ -15,7 +16,7 @@ export type Props = {
 
 const ChannelTabs = (props: Props) => {
   const {selectedTab, setSelectedTab} = props
-  const error = C.useTeamsState(s => s.errorInAddToTeam)
+  const error = useTeamsState(s => s.errorInAddToTeam)
   const tabs: Array<TabType<TabKey>> = [
     {title: 'members' as const},
     {title: 'attachments' as const},

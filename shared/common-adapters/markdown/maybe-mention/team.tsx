@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
+import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
 import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'
@@ -36,13 +37,13 @@ const TeamMention = (ownProps: OwnProps) => {
   const resolved = !!mentionInfo
 
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
-  const showTeamByName = C.useTeamsState(s => s.dispatch.showTeamByName)
+  const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const _onViewTeam = (teamname: string) => {
     clearModals()
     showTeamByName(teamname)
   }
-  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
+  const joinTeam = useTeamsState(s => s.dispatch.joinTeam)
   const onJoinTeam = joinTeam
 
   const convID = _convID ? T.Chat.stringToConversationIDKey(_convID) : undefined

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as InfoPanelCommon from './common'
@@ -29,7 +30,7 @@ const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
   const infoMap = useUsersState(s => s.infoMap)
   const participantInfo = C.useChatContext(s => s.participants)
   const meta = C.useChatContext(s => s.meta)
-  const teamMeta = C.useTeamsState(s => (pteamID ? C.Teams.getTeamMeta(s, pteamID) : undefined))
+  const teamMeta = Teams.useTeamsState(s => (pteamID ? Teams.getTeamMeta(s, pteamID) : undefined))
   const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
 
@@ -86,10 +87,10 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const {teamname, teamID, channelname, isInChannel, ignored, fullname} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 
-  const canAddPeople = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageMembers)
-  const badgeSubscribe = C.useTeamsState(s => !C.Teams.isTeamWithChosenChannels(s, teamname))
+  const canAddPeople = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageMembers)
+  const badgeSubscribe = Teams.useTeamsState(s => !Teams.isTeamWithChosenChannels(s, teamname))
 
-  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)
   }, [startAddMembersWizard, teamID])
@@ -112,8 +113,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     () => teamID && navigateAppend(() => ({props: {teamID}, selected: 'teamReallyLeaveTeam'})),
     [navigateAppend, teamID]
   )
-  const addTeamWithChosenChannels = C.useTeamsState(s => s.dispatch.addTeamWithChosenChannels)
-  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
+  const addTeamWithChosenChannels = Teams.useTeamsState(s => s.dispatch.addTeamWithChosenChannels)
+  const manageChatChannels = Teams.useTeamsState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)
