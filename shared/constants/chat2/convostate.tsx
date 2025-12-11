@@ -1,7 +1,7 @@
 import * as C from '..'
-import * as Teams from '../teams'
+import * as TeamsUtil from '../teams/util'
 import * as T from '../types'
-import {useConfigState} from '../config'
+import type * as ConfigType from '../config'
 import * as Styles from '@/styles'
 import * as Common from './common'
 import * as Tabs from '../tabs'
@@ -15,8 +15,8 @@ import HiddenString from '@/util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import {useUsersState} from '../users'
-import {useCurrentUserState} from '../current-user'
+import type * as UsersType from '../users'
+import type * as CurrentUserType from '../current-user'
 import type {DebouncedFunc} from 'lodash'
 import {RPCError} from '@/util/errors'
 import {findLast} from '@/util/arrays'
@@ -31,6 +31,27 @@ import assign from 'lodash/assign'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {registerDebugClear} from '@/util/debug'
 import * as Config from '@/constants/config/util'
+import type * as TeamsType from '@/constants/teams'
+
+const getTeamsState = () => {
+  const {useTeamsState} = require('@/constants/teams') as typeof TeamsType
+  return useTeamsState.getState()
+}
+
+const getUsersState = () => {
+  const {useUsersState} = require('@/constants/users') as typeof UsersType
+  return useUsersState.getState()
+}
+
+const getCurrentUsersState = () => {
+  const {useCurrentUserState} = require('@/constants/current-user') as typeof CurrentUserType
+  return useCurrentUserState.getState()
+}
+
+const getConfigState = () => {
+  const {useConfigState} = require('@/constants/config') as typeof ConfigType
+  return useConfigState.getState()
+}
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -362,7 +383,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const closeBotModal = () => {
     C.useRouterState.getState().dispatch.clearModals()
     if (get().meta.teamname) {
-      Teams.useTeamsState.getState().dispatch.getMembers(get().meta.teamID)
+      getTeamsState().dispatch.getMembers(get().meta.teamID)
     }
   }
 
@@ -486,13 +507,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
 
     const onClick = () => {
-      useConfigState.getState().dispatch.showMain()
+      getConfigState().dispatch.showMain()
       C.useChatState.getState().dispatch.navigateToInbox()
       get().dispatch.navigateToThread('desktopNotification')
     }
     const onClose = () => {}
     logger.info('invoking NotifyPopup for chat notification')
-    const sound = useConfigState.getState().notifySound
+    const sound = getConfigState().notifySound
 
     const cleanBody = body.replaceAll(/!>(.*?)<!/g, '•••')
 
@@ -646,7 +667,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const refreshMutualTeamsInConv = () => {
     const f = async () => {
       const {id: conversationIDKey} = get()
-      const username = useCurrentUserState.getState().username
+      const username = getCurrentUsersState().username
       const otherParticipants = Meta.getRowParticipants(get().participants, username || '')
       const results = await T.RPCChat.localGetMutualTeamsLocalRpcPromise(
         {usernames: otherParticipants},
@@ -830,7 +851,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
 
   const onInboxFailed = (convID: Uint8Array, error: T.RPCChat.InboxUIItemError) => {
-    const username = useCurrentUserState.getState().username
+    const username = getCurrentUsersState().username
     const conversationIDKey = T.Chat.conversationIDToKey(convID)
     switch (error.typ) {
       case T.RPCChat.ConversationErrorType.transient:
@@ -846,7 +867,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
   const onSetConvSettings = (conv: T.RPCChat.InboxUIItem | null | undefined) => {
     const newRole = conv?.convSettings?.minWriterRoleInfo?.role
-    const role = newRole && Teams.teamRoleByEnum[newRole]
+    const role = newRole && TeamsUtil.teamRoleByEnum[newRole]
     const conversationIDKey = get().id
     const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite || false
     logger.info(
@@ -1233,7 +1254,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     blockConversation: reportUser => {
       const f = async () => {
         C.useChatState.getState().dispatch.navigateToInbox()
-        useConfigState.getState().dispatch.dynamic.persistRoute?.()
+        getConfigState().dispatch.dynamic.persistRoute?.()
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
           conversationID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -1413,8 +1434,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 hit: T.RPCChat.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
               ) => {
                 const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-                const username = useCurrentUserState.getState().username
-                const devicename = useCurrentUserState.getState().deviceName
+                const username = getCurrentUsersState().username
+                const devicename = getCurrentUsersState().deviceName
                 const m = Message.uiMessageToMessage(
                   conversationIDKey,
                   hit.message,
@@ -1557,8 +1578,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             s.loaded = true
           })
 
-          const username = useCurrentUserState.getState().username
-          const devicename = useCurrentUserState.getState().deviceName
+          const username = getCurrentUsersState().username
+          const devicename = getCurrentUsersState().deviceName
           const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
           const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
 
@@ -1696,8 +1717,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
 
         if (result.message) {
-          const devicename = useCurrentUserState.getState().deviceName
-          const username = useCurrentUserState.getState().username
+          const devicename = getCurrentUsersState().deviceName
+          const username = getCurrentUsersState().username
           const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
           const goodMessage = Message.uiMessageToMessage(
             get().id,
@@ -1746,7 +1767,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     markTeamAsRead: teamID => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!getConfigState().loggedIn) {
           logger.info('bail on not logged in')
           return
         }
@@ -1757,7 +1778,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     markThreadAsRead: force => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!getConfigState().loggedIn) {
           logger.info('mark read bail on not logged in')
           return
         }
@@ -1949,7 +1970,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
           return
         }
-        const username = useCurrentUserState.getState().username
+        const username = getCurrentUsersState().username
         if (!username) {
           throw new Error('messageReplyPrivately: making a convo while logged out?')
         }
@@ -2242,7 +2263,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     onIncomingMessage: incoming => {
       const {message: cMsg} = incoming
-      const username = useCurrentUserState.getState().username
+      const username = getCurrentUsersState().username
       // check for a reaction outbox notification before doing anything
       if (
         cMsg.state === T.RPCChat.MessageUnboxedState.outbox &&
@@ -2268,7 +2289,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
 
       const conversationIDKey = get().id
-      const devicename = useCurrentUserState.getState().deviceName
+      const devicename = getCurrentUsersState().deviceName
       const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
 
       // special case mutations
@@ -2324,8 +2345,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     onMessagesUpdated: messagesUpdated => {
       if (!messagesUpdated.updates) return
-      const username = useCurrentUserState.getState().username
-      const devicename = useCurrentUserState.getState().deviceName
+      const username = getCurrentUsersState().username
+      const devicename = getCurrentUsersState().deviceName
       const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
       const toAdd = new Array<T.Chat.Message>()
       messagesUpdated.updates.forEach(uimsg => {
@@ -2394,7 +2415,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           return
         }
-        const trole = Teams.teamRoleByEnum[role]
+        const trole = TeamsUtil.teamRoleByEnum[role]
         const r = trole === 'none' ? undefined : trole
         set(s => {
           const roles = s.botTeamRoleMap
@@ -2486,7 +2507,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const fetchConversationBio = () => {
         const participantInfo = get().participants
-        const username = useCurrentUserState.getState().username
+        const username = getCurrentUsersState().username
         const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
         if (otherParticipants.length === 1) {
           // we're in a one-on-one convo
@@ -2497,7 +2518,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             return
           }
 
-          useUsersState.getState().dispatch.getBio(username)
+          getUsersState().dispatch.getBio(username)
         }
       }
 
@@ -2507,7 +2528,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (isMetaGood()) {
           const {teamID, teamname} = meta
           if (teamname) {
-            Teams.useTeamsState.getState().dispatch.getMembers(teamID)
+            getTeamsState().dispatch.getMembers(teamID)
           }
         }
       }
@@ -2574,7 +2595,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const convID = get().getConvID()
         let policy: T.RPCChat.RetentionPolicy | undefined
         try {
-          policy = Teams.retentionPolicyToServiceRetentionPolicy(_policy)
+          policy = TeamsUtil.retentionPolicyToServiceRetentionPolicy(_policy)
           await T.RPCChat.localSetConvRetentionLocalRpcPromise({convID, policy})
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2601,7 +2622,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       let ordinal = T.Chat.numberToOrdinal(0)
       // Editing last message
       if (e === 'last') {
-        const editLastUser = useCurrentUserState.getState().username
+        const editLastUser = getCurrentUsersState().username
         // Editing your last message
         const ordinals = get().messageOrdinals
         const found =
@@ -2696,7 +2717,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       const conversationIDKey = get().id
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!getConfigState().loggedIn) {
           logger.info('mark unread bail on not logged in')
           return
         }
@@ -2868,8 +2889,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const conversationIDKey = get().id
         const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-        const username = useCurrentUserState.getState().username
-        const devicename = useCurrentUserState.getState().deviceName
+        const username = getCurrentUsersState().username
+        const devicename = getCurrentUsersState().deviceName
         const onDone = () => {
           set(s => {
             s.threadSearchInfo.status = 'done'
