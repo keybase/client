@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {useDeepLinksState} from '@/constants/deeplinks'
 import Main from './main.native'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import Animated, {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
@@ -103,7 +104,7 @@ const StoreHelper = (p: {children: React.ReactNode}): React.ReactNode => {
   const {children} = p
   useDarkHookup()
   useKeyboardHookup()
-  const handleAppLink = C.useDeepLinksState(s => s.dispatch.handleAppLink)
+  const handleAppLink = useDeepLinksState(s => s.dispatch.handleAppLink)
 
   React.useEffect(() => {
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {

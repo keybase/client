@@ -1,6 +1,7 @@
 import * as C from '..'
 import * as T from '../types'
 import * as Tabs from '../tabs'
+import {useDeepLinksState} from '../deeplinks'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import type * as ConfigConstants from '../config'
 import * as Message from './message'
@@ -1547,7 +1548,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           const first = resultMetas[0]
           if (!first) {
             if (p.reason === 'appLink') {
-              C.useDeepLinksState
+              useDeepLinksState
                 .getState()
                 .dispatch.setLinkError(
                   "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
@@ -1577,7 +1578,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             error.code === T.RPCGen.StatusCode.scteamnotfound &&
             reason === 'appLink'
           ) {
-            C.useDeepLinksState
+            useDeepLinksState
               .getState()
               .dispatch.setLinkError(
                 "We couldn't find this team. Please check that you're a member of the team and the channel exists."

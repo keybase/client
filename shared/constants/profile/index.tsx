@@ -1,6 +1,7 @@
 import * as C from '..'
 import * as T from '../types'
 import * as Validators from '@/util/simple-validators'
+import {useDeepLinksState} from '../deeplinks'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import openURL from '@/util/open-url'
@@ -406,7 +407,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
               s.errorCode = error.code
             })
             if (error.code === T.RPCGen.StatusCode.scgeneric && reason === 'appLink') {
-              C.useDeepLinksState
+              useDeepLinksState
                 .getState()
                 .dispatch.setLinkError(
                   "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."

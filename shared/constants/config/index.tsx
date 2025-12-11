@@ -1,6 +1,7 @@
 import * as C from '..'
 import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
+import {useDeepLinksState} from '../deeplinks'
 import * as RemoteGen from '@/actions/remote-gen'
 import * as Stats from '@/engine/stats'
 import * as Z from '@/util/zustand'
@@ -408,7 +409,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.saltpackFileOpen: {
-          C.useDeepLinksState.getState().dispatch.handleSaltPackOpen(action.payload.path)
+          useDeepLinksState.getState().dispatch.handleSaltPackOpen(action.payload.path)
           break
         }
         case RemoteGen.pinentryOnCancel: {
@@ -471,7 +472,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         case RemoteGen.link:
           {
             const {link} = action.payload
-            C.useDeepLinksState.getState().dispatch.handleAppLink(link)
+            useDeepLinksState.getState().dispatch.handleAppLink(link)
           }
           break
         case RemoteGen.installerRan:

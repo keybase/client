@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
+import {useDeepLinksState} from '@/constants/deeplinks'
 import logger from '@/logger'
 import * as T from '../types'
 import {RPCError} from '@/util/errors'
@@ -290,7 +291,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             } else if (error.code === T.RPCGen.StatusCode.scnotfound) {
               // we're on the profile page for a user that does not exist. Currently the only way
               // to get here is with an invalid link or deeplink.
-              C.useDeepLinksState
+              useDeepLinksState
                 .getState()
                 .dispatch.setLinkError(
                   `You followed a profile link for a user (${assertion}) that does not exist.`

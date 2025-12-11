@@ -3,6 +3,7 @@ import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
 import {useCurrentUserState} from '@/constants/current-user'
+import {linkFromConvAndMessage} from '@/constants/deeplinks'
 import ReactionItem from './reactionitem'
 import MessagePopupHeader from './header'
 import ExplodingPopupHeader from './exploding-header'
@@ -102,7 +103,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const convLabel = getConversationLabel(participantInfo, meta, true)
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyLink = React.useCallback(() => {
-    copyToClipboard(C.DeepLinks.linkFromConvAndMessage(convLabel, id))
+    copyToClipboard(linkFromConvAndMessage(convLabel, id))
   }, [copyToClipboard, id, convLabel])
   const itemCopyLink = [
     {icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'},
