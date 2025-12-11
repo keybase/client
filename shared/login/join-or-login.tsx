@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
 import {useSignupState} from '@/constants/signup'
+import {useProvisionState} from '@/constants/provision'
 
 const Intro = () => {
   const justDeletedSelf = C.useConfigState(s => s.justDeletedSelf)
@@ -18,7 +19,7 @@ const Intro = () => {
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const checkIsOnline = loadIsOnline
-  const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
+  const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const onLogin = () => {
     startProvision()
   }

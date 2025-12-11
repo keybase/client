@@ -4,6 +4,7 @@ import Login from '.'
 import sortBy from 'lodash/sortBy'
 import {useState as useRecoverState} from '@/constants/recover-password'
 import {useSignupState} from '@/constants/signup'
+import {useProvisionState} from '@/constants/provision'
 
 const needPasswordError = 'passphrase cannot be empty'
 
@@ -22,7 +23,7 @@ const ReloginContainer = () => {
   const onLogin = C.useConfigState(s => s.dispatch.login)
   const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
   const onSignup = () => requestAutoInvite()
-  const onSomeoneElse = C.useProvisionState(s => s.dispatch.startProvision)
+  const onSomeoneElse = useProvisionState(s => s.dispatch.startProvision)
   const error = perror?.desc || ''
   const loggedInMap = React.useMemo(
     () => new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret])),

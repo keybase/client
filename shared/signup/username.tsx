@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
 import {useSignupState} from '@/constants/signup'
+import {useProvisionState} from '@/constants/provision'
 
 const ConnectedEnterUsername = () => {
   const error = useSignupState(s => s.usernameError)
@@ -18,7 +19,7 @@ const ConnectedEnterUsername = () => {
   }
   const onContinue = checkUsername
 
-  const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
+  const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const onLogin = (initUsername: string) => {
     startProvision(initUsername)
   }

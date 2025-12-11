@@ -3,11 +3,12 @@ import * as AutoReset from '@/constants/autoreset'
 import * as React from 'react'
 import {useSafeSubmit} from '@/util/safe-submit'
 import SelectOtherDevice from './select-other-device'
+import {useProvisionState} from '@/constants/provision'
 
 const SelectOtherDeviceContainer = () => {
-  const devices = C.useProvisionState(s => s.devices)
-  const submitDeviceSelect = C.useProvisionState(s => s.dispatch.dynamic.submitDeviceSelect)
-  const username = C.useProvisionState(s => s.username)
+  const devices = useProvisionState(s => s.devices)
+  const submitDeviceSelect = useProvisionState(s => s.dispatch.dynamic.submitDeviceSelect)
+  const username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp

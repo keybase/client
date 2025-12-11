@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
+import {useBotsState} from '@/constants/bots'
 
 type Props = {botUsername: string}
 
@@ -47,7 +48,7 @@ const BotTeamPicker = (props: Props) => {
     })
   }
 
-  const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
+  const getFeaturedBots = useBotsState(s => s.dispatch.getFeaturedBots)
   C.useOnMountOnce(() => {
     getFeaturedBots()
   })

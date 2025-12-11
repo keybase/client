@@ -5,14 +5,15 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
+import * as Provision from '@/constants/provision'
 
 const SetPublicName = () => {
-  const devices = C.useProvisionState(s => s.devices)
-  const error = C.useProvisionState(s => s.error)
+  const devices = Provision.useProvisionState(s => s.devices)
+  const error = Provision.useProvisionState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const ponBack = useSafeSubmit(navigateUp, !!error)
-  const psetDeviceName = C.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
+  const psetDeviceName = Provision.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
   const ponSubmit = React.useCallback(
     (name: string) => {
       !waiting && psetDeviceName?.(name)
@@ -28,20 +29,20 @@ const SetPublicName = () => {
   const [deviceName, setDeviceName] = React.useState(C.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const debouncedSetReadyToShowError = debounce((ready: boolean) => setReadyToShowError(ready), 1000)
-  const cleanDeviceName = C.Provision.cleanDeviceName(deviceName)
-  const normalized = cleanDeviceName.replace(C.Provision.normalizeDeviceRE, '')
+  const cleanDeviceName = Provision.cleanDeviceName(deviceName)
+  const normalized = cleanDeviceName.replace(Provision.normalizeDeviceRE, '')
   const disabled =
     normalized.length < 3 ||
     normalized.length > 64 ||
-    !C.Provision.goodDeviceRE.test(cleanDeviceName) ||
-    C.Provision.badDeviceRE.test(cleanDeviceName)
+    !Provision.goodDeviceRE.test(cleanDeviceName) ||
+    Provision.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const onSubmit = React.useCallback(() => {
-    ponSubmit(C.Provision.cleanDeviceName(cleanDeviceName))
+    ponSubmit(Provision.cleanDeviceName(cleanDeviceName))
   }, [cleanDeviceName, ponSubmit])
   const _setDeviceName = (deviceName: string) => {
     setReadyToShowError(false)
-    setDeviceName(deviceName.replace(C.Provision.badDeviceChars, ''))
+    setDeviceName(deviceName.replace(Provision.badDeviceChars, ''))
     debouncedSetReadyToShowError(true)
   }
 
@@ -87,7 +88,7 @@ const SetPublicName = () => {
           />
           {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>
-              {C.Provision.deviceNameInstructions}
+              {Provision.deviceNameInstructions}
             </Kb.Text>
           ) : (
             <Kb.Text type="BodySmall">

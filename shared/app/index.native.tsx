@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {useDeepLinksState} from '@/constants/deeplinks'
 import Main from './main.native'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import Animated, {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
@@ -16,6 +17,7 @@ import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useUnmountAll} from '@/util/debug-react'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
 import {install} from 'react-native-kb'
+import {useEngineState} from '@/constants/engine'
 
 enableFreeze(true)
 setServiceDecoration(ServiceDecoration)
@@ -102,7 +104,7 @@ const StoreHelper = (p: {children: React.ReactNode}): React.ReactNode => {
   const {children} = p
   useDarkHookup()
   useKeyboardHookup()
-  const handleAppLink = C.useDeepLinksState(s => s.dispatch.handleAppLink)
+  const handleAppLink = useDeepLinksState(s => s.dispatch.handleAppLink)
 
   React.useEffect(() => {
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
@@ -131,9 +133,9 @@ const useInit = () => {
   const {batch} = C.useWaitingState.getState().dispatch
   const eng = makeEngine(batch, c => {
     if (c) {
-      C.useEngineState.getState().dispatch.onEngineConnected()
+      useEngineState.getState().dispatch.onEngineConnected()
     } else {
-      C.useEngineState.getState().dispatch.onEngineDisconnected()
+      useEngineState.getState().dispatch.onEngineDisconnected()
     }
   })
   C.initListeners()

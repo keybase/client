@@ -13,6 +13,7 @@ import ChannelMemberRow from './rows'
 import BotRow from '../team/rows/bot-row/bot'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
+import {useBotsState} from '@/constants/bots'
 import {useUsersState} from '@/constants/users'
 
 export type OwnProps = {
@@ -30,7 +31,7 @@ const useLoadDataForChannelPage = (
   bots: ReadonlyArray<string>
 ) => {
   const prevSelectedTabRef = React.useRef(selectedTab)
-  const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
+  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
   const getMembers = C.useTeamsState(s => s.dispatch.getMembers)
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
   const unboxRows = C.useChatState(s => s.dispatch.unboxRows)
@@ -52,7 +53,7 @@ const useLoadDataForChannelPage = (
     participants,
     teamID,
   ])
-  const searchFeaturedBots = C.useBotsState(s => s.dispatch.searchFeaturedBots)
+  const searchFeaturedBots = useBotsState(s => s.dispatch.searchFeaturedBots)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'bots') {
       // Load any bots that aren't in the featured bots map already

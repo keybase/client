@@ -8,6 +8,7 @@ import type {RPCError} from '@/util/errors'
 import * as Kb from '@/common-adapters'
 import UserCard from '@/login/user-card'
 import {SignupScreen, errorBanner} from '@/signup/common'
+import {useProvisionState} from '@/constants/provision'
 
 type OwnProps = {fromReset?: boolean}
 
@@ -35,13 +36,13 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
 const UsernameOrEmailContainer = (op: OwnProps) => {
   const _resetBannerUser = AutoReset.useState(s => s.username)
   const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
-  const _error = C.useProvisionState(s => s.error)
-  const {inlineError, inlineSignUpLink} = C.useProvisionState(
+  const _error = useProvisionState(s => s.error)
+  const {inlineError, inlineSignUpLink} = useProvisionState(
     C.useShallow(s => decodeInlineError(s.inlineError))
   )
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
   // So we can clear the error if the name is changed
-  const _username = C.useProvisionState(s => s.username)
+  const _username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
@@ -51,7 +52,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const onForgotUsername = React.useCallback(() => navigateAppend('forgotUsername'), [navigateAppend])
   const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
   const _onGoToSignup = requestAutoInvite
-  const _setUsername = C.useProvisionState(s => s.dispatch.dynamic.setUsername)
+  const _setUsername = useProvisionState(s => s.dispatch.dynamic.setUsername)
   const _onSubmit = React.useCallback(
     (username: string) => {
       !waiting && _setUsername?.(username)

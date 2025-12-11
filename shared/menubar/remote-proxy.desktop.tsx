@@ -16,6 +16,7 @@ import {useFollowerState} from '@/constants/followers'
 import {useUsersState} from '@/constants/users'
 import {useNotifState} from '@/constants/notifications'
 import {useCurrentUserState} from '@/constants/current-user'
+import {useDaemonState} from '@/constants/daemon'
 
 const {showTray} = KB2.functions
 
@@ -213,7 +214,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
     totalSyncingBytes: uploads.totalSyncingBytes,
   }
 
-  const daemonHandshakeState = C.useDaemonState(s => s.handshakeState)
+  const daemonHandshakeState = useDaemonState(s => s.handshakeState)
 
   const p: ProxyProps & WidgetProps = {
     ...upDown,

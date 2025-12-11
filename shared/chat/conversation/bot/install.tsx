@@ -4,6 +4,7 @@ import * as React from 'react'
 import ChannelPicker from './channel-picker'
 import openURL from '@/util/open-url'
 import * as T from '@/constants/types'
+import {useBotsState} from '@/constants/bots'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
@@ -78,7 +79,7 @@ const InstallBotPopup = (props: Props) => {
     return commands.length > 0 ? convCommands : botPublicCommands
   }, [meta, botPublicCommands, botUsername])
 
-  const featured = C.useBotsState(s => s.featuredBotsMap.get(botUsername))
+  const featured = useBotsState(s => s.featuredBotsMap.get(botUsername))
   const teamRole = C.useChatContext(s => s.botTeamRoleMap.get(botUsername))
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'

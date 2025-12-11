@@ -18,6 +18,7 @@ import {useFSState} from '@/constants/fs'
 import {useProfileState} from '@/constants/profile'
 import {useNotifState} from '@/constants/notifications'
 import {useCurrentUserState} from '@/constants/current-user'
+import {useProvisionState} from '@/constants/provision'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -36,7 +37,7 @@ const Header = () => {
   const fullname = useTrackerState(s => s.getDetails(username).fullname ?? '')
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
 
-  const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
+  const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const stop = useSettingsState(s => s.dispatch.stop)
   const onAddAccount = React.useCallback(() => {
     startProvision()

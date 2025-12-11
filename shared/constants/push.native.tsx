@@ -15,6 +15,7 @@ import {
 import {type Store, type State} from './push'
 import {useLogoutState} from './logout'
 import {useCurrentUserState} from './current-user'
+import {useDaemonState} from './daemon'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 
@@ -311,7 +312,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         if (
           p.show &&
           C.useConfigState.getState().loggedIn &&
-          C.useDaemonState.getState().handshakeState === 'done' &&
+          useDaemonState.getState().handshakeState === 'done' &&
           !get().justSignedUp &&
           !get().hasPermissions
         ) {

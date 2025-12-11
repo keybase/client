@@ -6,6 +6,7 @@ import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useUsersState} from '@/constants/users'
 import {useFollowerState} from '@/constants/followers'
 import {useCurrentUserState} from '@/constants/current-user'
+import {useDaemonState} from '@/constants/daemon'
 
 const RemoteContainer = (d: DeserializeProps) => {
   const {avatarRefreshCounter, badgeMap, daemonHandshakeState, darkMode, diskSpaceStatus, endEstimate} = d
@@ -13,7 +14,7 @@ const RemoteContainer = (d: DeserializeProps) => {
   const {kbfsDaemonStatus, kbfsEnabled, loggedIn, metaMap, navBadges, outOfDate, conversationsToSend} = d
   const {showingDiskSpaceBanner, totalSyncingBytes, unreadMap, username, windowShownCountNum} = d
   useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
-  C.useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
+  useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
   useFollowerState(s => s.dispatch.replace)(followers, following)
   useUsersState(s => s.dispatch.replace)(infoMap)
   const replaceUsername = useCurrentUserState(s => s.dispatch.replaceUsername)

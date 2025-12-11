@@ -4,11 +4,12 @@ import * as React from 'react'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
 import {useState as useRecoverState} from '@/constants/recover-password'
+import {useProvisionState} from '@/constants/provision'
 
 const Password = () => {
-  const error = C.useProvisionState(s => s.error)
+  const error = useProvisionState(s => s.error)
   const resetEmailSent = useRecoverState(s => s.resetEmailSent)
-  const username = C.useProvisionState(s => s.username)
+  const username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
@@ -18,7 +19,7 @@ const Password = () => {
   const onBack = () => {
     navigateUp()
   }
-  const _onSubmit = C.useProvisionState(s => s.dispatch.dynamic.setPassphrase)
+  const _onSubmit = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
   const onSubmit = React.useCallback(
     (password: string) => !waiting && _onSubmit?.(password),
     [_onSubmit, waiting]

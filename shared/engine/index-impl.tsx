@@ -68,9 +68,8 @@ class Engine {
     this._onConnectedCB = onConnected
     // the node engine doesn't do this and we don't want to pull in any reqs
     if (allowIncomingCalls) {
-      this._engineConstantsIncomingCall = (
-        require('@/constants/engine') as typeof EngineConst
-      ).useEngineState.getState().dispatch.onEngineIncoming
+      const {useEngineState} = require('@/constants/engine') as typeof EngineConst
+      this._engineConstantsIncomingCall = useEngineState.getState().dispatch.onEngineIncoming
     }
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
