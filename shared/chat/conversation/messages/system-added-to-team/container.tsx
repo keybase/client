@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import {getAddedUsernames} from '../system-users-added-to-conv/container'
 import {indefiniteArticle} from '@/util/string'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 
@@ -15,7 +16,7 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
   const {teamID, teamname, teamType} = meta
   const authorIsAdmin = C.useTeamsState(s => C.Teams.userIsRoleInTeam(s, teamID, author, 'admin'))
   const authorIsOwner = C.useTeamsState(s => C.Teams.userIsRoleInTeam(s, teamID, author, 'owner'))
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
 

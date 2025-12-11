@@ -6,6 +6,7 @@ import {ModalTitle} from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const AddSubteamMembers = () => {
   const nav = useSafeNavigation()
@@ -20,7 +21,7 @@ const AddSubteamMembers = () => {
       ? setTeamWizardSubteamMembers([...selectedMembers])
       : startAddMembersWizard(T.Teams.newTeamWizardTeamID)
 
-  const yourUsername = C.useCurrentUserState(s => s.username)
+  const yourUsername = useCurrentUserState(s => s.username)
   const parentTeamID = C.useTeamsState(s => s.newTeamWizard.parentTeamID ?? T.Teams.noTeamID)
   useTeamDetailsSubscribe(parentTeamID)
   const parentTeamName = C.useTeamsState(s => C.Teams.getTeamMeta(s, parentTeamID).teamname)

@@ -7,6 +7,7 @@ import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
 import {useProfileState} from '@/constants/profile'
 import {useUsersState} from '../users'
+import {useCurrentUserState} from '../current-user'
 
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),
@@ -530,11 +531,11 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         }
         // if we mutated somehow reload ourselves and reget the suggestions
         case EngineGen.keybase1NotifyUsersUserChanged: {
-          if (C.useCurrentUserState.getState().uid !== action.payload.params.uid) {
+          if (useCurrentUserState.getState().uid !== action.payload.params.uid) {
             return
           }
           get().dispatch.load({
-            assertion: C.useCurrentUserState.getState().username,
+            assertion: useCurrentUserState.getState().username,
             forceDisplay: false,
             fromDaemon: false,
             guiID: C.generateGUIID(),

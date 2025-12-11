@@ -14,6 +14,7 @@ import {formatAnyPhoneNumbers} from '@/util/phone-numbers'
 import {useRoute} from '@react-navigation/native'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
 import {useFollowerState} from '@/constants/followers'
+import {useCurrentUserState} from '@/constants/current-user'
 // import {useAnimatedScrollHandler} from '@/common-adapters/reanimated'
 import {useColorScheme} from 'react-native'
 
@@ -232,7 +233,7 @@ export const ListBody = (
   const contactsImported = useSettingsContactsState(s => s.importEnabled)
   const contactsPermissionStatus = useSettingsContactsState(s => s.permissionStatus)
 
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const following = useFollowerState(s => s.following)
 
   const maybeTeamDetails = C.useTeamsState(s => (teamID ? s.teamDetails.get(teamID) : undefined))

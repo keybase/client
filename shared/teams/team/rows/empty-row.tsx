@@ -2,6 +2,7 @@ import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
@@ -79,7 +80,7 @@ const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
   const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const notIn = teamMeta.role === 'none' || props.notChannelMember
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const onSecondaryAction = useSecondaryAction(props)
   const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
   const joinConversation = C.useConvoState(

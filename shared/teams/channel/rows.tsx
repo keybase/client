@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import MenuHeader from '../team/rows/menu-header.new'
 import {useUsersState} from '@/constants/users'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -36,7 +37,7 @@ const ChannelMemberRow = (props: Props) => {
   const teamMemberInfo = C.useTeamsState(
     s => s.teamDetails.get(teamID)?.members.get(username) ?? C.Teams.initialMemberInfo
   )
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type

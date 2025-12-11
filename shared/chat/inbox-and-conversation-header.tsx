@@ -7,6 +7,7 @@ import NewChatButton from './inbox/new-chat-button'
 import {useRoute} from '@react-navigation/native'
 import type {RootRouteProps} from '@/router-v2/route-params'
 import {useUsersState} from '@/constants/users'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const Header = () => {
   const {params} = useRoute<RootRouteProps<'chatRoot'>>()
@@ -24,7 +25,7 @@ const Header = () => {
 }
 
 const Header2 = () => {
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const data = C.useChatContext(
     C.useShallow(s => {

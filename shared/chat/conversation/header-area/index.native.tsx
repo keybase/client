@@ -9,6 +9,7 @@ import {Keyboard} from 'react-native'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {useUsersState} from '@/constants/users'
+import {useCurrentUserState} from '@/constants/current-user'
 
 export const HeaderAreaRight = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
@@ -204,7 +205,7 @@ const ChannelHeader = () => {
 
 const emptyArray = new Array<string>()
 const UsernameHeader = () => {
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
   const participantInfo = C.useChatContext(s => s.participants)
   const {participants, theirFullname} = C.useChatContext(

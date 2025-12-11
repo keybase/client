@@ -6,14 +6,15 @@ import QRImage from './qr-image'
 import QRScan from './qr-scan'
 import Troubleshooting from '../troubleshooting'
 import type * as T from '@/constants/types'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const CodePageContainer = () => {
-  const storeDeviceName = C.useCurrentUserState(s => s.deviceName)
+  const storeDeviceName = useCurrentUserState(s => s.deviceName)
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
   // we either have a name for real or we asked on a previous screen
   const provisionDeviceName = C.useProvisionState(s => s.deviceName)
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
-  const deviceID = C.useCurrentUserState(s => s.deviceID)
+  const deviceID = useCurrentUserState(s => s.deviceID)
   const currentDevice = Devices.useState(s => s.deviceMap.get(deviceID)) ?? Devices.emptyDevice
   const error = C.useProvisionState(s => s.error)
 

@@ -3,10 +3,11 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import LocationMap from '@/chat/location-map'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const LocationPopup = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const httpSrv = C.useConfigState(s => s.httpSrv)
   const location = C.useChatState(s => s.lastCoord)
   const locationDenied = C.useChatContext(

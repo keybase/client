@@ -6,6 +6,7 @@ import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {colors, darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
+import {useCurrentUserState} from '@/constants/current-user'
 
 export type OwnProps = {
   className?: string
@@ -18,7 +19,7 @@ export type OwnProps = {
 const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProps) {
   const ordinal = useOrdinal()
   const {onLongPress, style, emoji, className} = p
-  const me = C.useCurrentUserState(s => s.username)
+  const me = useCurrentUserState(s => s.username)
   const isDarkMode = useColorScheme() === 'dark'
   const {active, count, decorated} = C.useChatContext(
     C.useShallow(s => {

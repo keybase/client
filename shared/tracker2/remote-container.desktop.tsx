@@ -11,6 +11,7 @@ import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useTrackerState} from '@/constants/tracker2'
 import {useUsersState} from '@/constants/users'
 import {useFollowerState} from '@/constants/followers'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const {closeWindow} = KB2.functions
 
@@ -35,7 +36,7 @@ const RemoteContainer = (d: DeserializeProps) => {
   const replaceAvatar = useAvatarState(s => s.dispatch.replace)
   const replaceFollower = useFollowerState(s => s.dispatch.replace)
   const replaceUsers = useUsersState(s => s.dispatch.replace)
-  const replaceCurrent = C.useCurrentUserState(s => s.dispatch.replaceUsername)
+  const replaceCurrent = useCurrentUserState(s => s.dispatch.replaceUsername)
   const replaceHTTP = C.useConfigState(s => s.dispatch.setHTTPSrvInfo)
   const replaceTracker = useTrackerState(s => s.dispatch.replace)
   const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)

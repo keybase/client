@@ -6,6 +6,7 @@ import * as React from 'react'
 import openURL from '@/util/open-url'
 import {useTrackerState} from '@/constants/tracker2'
 import * as FS from '@/constants/fs'
+import {useCurrentUserState} from '@/constants/current-user'
 
 export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
@@ -24,7 +25,7 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
   const git = Git.useGitState(s => s.idToInfo.get(id) || noGit)
   const teamID = C.useTeamsState(s => (git.teamname ? C.Teams.getTeamID(s, git.teamname) : undefined))
   const isNew = React.useContext(NewContext).has(id)
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const setTeamRepoSettings = Git.useGitState(s => s.dispatch.setTeamRepoSettings)
   const _onBrowseGitRepo = FS.makeActionForOpenPathInFilesTab
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

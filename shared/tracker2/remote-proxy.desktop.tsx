@@ -11,6 +11,7 @@ import {useColorScheme} from 'react-native'
 import {useTrackerState} from '@/constants/tracker2'
 import {useUsersState} from '@/constants/users'
 import {useFollowerState} from '@/constants/followers'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
@@ -22,7 +23,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const blockMap = useUsersState(s => s.blockMap)
   const followers = useFollowerState(s => s.followers)
   const following = useFollowerState(s => s.following)
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const httpSrv = C.useConfigState(s => s.httpSrv)
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details

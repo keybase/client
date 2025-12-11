@@ -1,11 +1,12 @@
 import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
+import {useCurrentUserState} from '@/constants/current-user'
 import * as T from '@/constants/types'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 
 const Container = () => {
-  const _you = C.useCurrentUserState(s => s.username)
+  const _you = useCurrentUserState(s => s.username)
   const rekeyers = C.useChatContext(s => s.meta.rekeyers)
   const onBack = C.useRouterState(s => s.dispatch.navigateUp)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

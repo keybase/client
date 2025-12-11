@@ -12,6 +12,7 @@ import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
 import {settingsFsTab} from '../settings'
 import {useNotifState} from '../notifications'
+import {useCurrentUserState} from '../current-user'
 
 
 const subscriptionDeduplicateIntervalSecond = 1
@@ -561,7 +562,7 @@ export const resetBannerType = (s: State, path: T.FS.Path): T.FS.ResetBannerType
     return T.FS.ResetBannerNoOthersType.None
   }
 
-  const you = C.useCurrentUserState.getState().username
+  const you = useCurrentUserState.getState().username
   if (resetParticipants.findIndex(username => username === you) >= 0) {
     return T.FS.ResetBannerNoOthersType.Self
   }
@@ -1609,7 +1610,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               const tlfType = rpcFolderTypeToTlfType(folder.folderType)
               const tlfName =
                 tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-                  ? tlfToPreferredOrder(folder.name, C.useCurrentUserState.getState().username)
+                  ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
                   : folder.name
               tlfType &&
                 payload[tlfType].set(
@@ -1906,7 +1907,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
           const tlfName =
             tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-              ? tlfToPreferredOrder(folder.name, C.useCurrentUserState.getState().username)
+              ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
               : folder.name
 
           if (tlfType) {

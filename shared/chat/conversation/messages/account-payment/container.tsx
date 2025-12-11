@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import MarkdownMemo from '@/wallets/markdown-memo'
+import {useCurrentUserState} from '@/constants/current-user'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -60,7 +61,7 @@ const getRequestMessageInfo = (
 }
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
 
   const stateProps = (() => {

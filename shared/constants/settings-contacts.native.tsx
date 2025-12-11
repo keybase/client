@@ -10,6 +10,7 @@ import {getDefaultCountryCode} from 'react-native-kb'
 import {getE164} from './settings-phone'
 import {isIOS} from './platform'
 import {pluralize} from '@/util/string'
+import {useCurrentUserState} from '../current-user'
 
 const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
 
@@ -78,7 +79,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
         })
       }
       const f = async () => {
-        const username = C.useCurrentUserState.getState().username
+        const username = useCurrentUserState.getState().username
         if (!username) {
           logger.warn('no username')
           return
@@ -101,7 +102,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
         if (!C.useConfigState.getState().loggedIn) {
           return
         }
-        const username = C.useCurrentUserState.getState().username
+        const username = useCurrentUserState.getState().username
         if (!username) {
           logger.warn('no username')
           return

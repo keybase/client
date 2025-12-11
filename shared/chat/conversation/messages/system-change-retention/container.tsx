@@ -4,13 +4,14 @@ import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import * as T from '@/constants/types'
 import * as dateFns from 'date-fns'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemChangeRetention}
 
 const SystemChangeRetentionContainer = React.memo(function SystemChangeRetentionContainer(p: OwnProps) {
   const {message} = p
   const {isInherit, isTeam, membersType, policy, user} = message
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const meta = C.useChatContext(s => s.meta)
   const canManage = C.useTeamsState(s =>
     meta.teamType === 'adhoc' ? true : C.Teams.getCanPerform(s, meta.teamname).setRetentionPolicy

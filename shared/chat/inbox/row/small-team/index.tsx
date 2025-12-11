@@ -8,6 +8,7 @@ import * as RowSizes from '../sizes'
 import * as T from '@/constants/types'
 import SwipeConvActions from './swipe-conv-actions'
 import './small-team.css'
+import {useCurrentUserState} from '@/constants/current-user'
 import {
   IsTeamContext,
   ParticipantsContext,
@@ -66,7 +67,7 @@ const SmallTeamImpl = (p: Props) => {
       return {snippet, snippetDecoration}
     })
   )
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
   const participants = C.useChatContext(
     C.useShallow(s => {
@@ -166,7 +167,7 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const layoutIsTeam = React.useContext(IsTeamContext)
   const participants = React.useContext(ParticipantsContext)
   const isMuted = C.useChatContext(s => s.meta.isMuted)
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const isLocked = C.useChatContext(s => {
     const {meta} = s
     const isLocked = meta.rekeyers.has(you) || meta.rekeyers.size > 0 || !!meta.wasFinalizedBy

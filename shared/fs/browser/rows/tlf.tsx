@@ -6,6 +6,7 @@ import * as Kb from '@/common-adapters'
 import {useFsPathMetadata, TlfInfoLine, Filename} from '@/fs/common'
 import {useFSState} from '@/constants/fs'
 import * as FS from '@/constants/fs'
+import {useCurrentUserState} from '@/constants/current-user'
 
 export type OwnProps = {
   destinationPickerIndex?: number
@@ -24,7 +25,7 @@ const FsPathMetadataLoader = ({path}: {path: T.FS.Path}) => {
 const TLFContainer = (p: OwnProps) => {
   const {tlfType, name, mixedMode, destinationPickerIndex, disabled} = p
   const tlf = useFSState(s => FS.getTlfFromTlfs(s.tlfs, tlfType, name))
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const path = FS.tlfTypeAndNameToPath(tlfType, name)
   const _usernames = FS.getUsernamesFromTlfName(name).filter(name => name !== username)
   const onOpen = useOpen({destinationPickerIndex, path})

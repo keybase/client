@@ -14,6 +14,7 @@ import {
 } from 'react-native-kb'
 import {type Store, type State} from './push'
 import {useLogoutState} from './logout'
+import {useCurrentUserState} from './current-user'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 
@@ -120,7 +121,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         const waitKey = 'push:deleteToken'
         useLogoutState.getState().dispatch.wait(waitKey, version, true)
         try {
-          const deviceID = C.useCurrentUserState.getState().deviceID
+          const deviceID = useCurrentUserState.getState().deviceID
           if (!deviceID) {
             logger.info('[PushToken] no device id')
             return
@@ -273,7 +274,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
       })
 
       const uploadPushToken = async () => {
-        const {deviceID, username} = C.useCurrentUserState.getState()
+        const {deviceID, username} = useCurrentUserState.getState()
         if (!username || !deviceID) {
           return
         }

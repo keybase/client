@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import type {Position, StylesCrossPlatform} from '@/styles'
 import {useItems, useHeader} from './hooks'
 import openURL from '@/util/open-url'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -24,7 +25,7 @@ const PopText = (ownProps: OwnProps) => {
     const message = m ?? emptyMessage
     return message
   })
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const {conversationIDKey, author} = message
   const text = React.useMemo(() => {
     switch (message.type) {

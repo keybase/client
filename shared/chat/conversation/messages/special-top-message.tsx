@@ -10,6 +10,7 @@ import ProfileResetNotice from './system-profile-reset-notice'
 import RetentionNotice from './retention-notice'
 import {usingFlashList} from '../list-area/flashlist-config'
 import * as FS from '@/constants/fs'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const ErrorMessage = () => {
   const createConversationError = C.useChatState(s => s.createConversationError)
@@ -109,7 +110,7 @@ const ErrorMessage = () => {
 }
 
 const SpecialTopMessage = React.memo(function SpecialTopMessage() {
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const data = C.useChatContext(
     C.useShallow(s => {
       const ordinals = s.messageOrdinals

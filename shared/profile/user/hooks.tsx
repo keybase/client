@@ -5,6 +5,7 @@ import {useColorScheme} from 'react-native'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
 import {useFollowerState} from '@/constants/followers'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -28,7 +29,7 @@ const headerBackgroundColorType = (
 
 const useUserData = (username: string) => {
   const d = useTrackerState(s => s.getDetails(username))
-  const myName = C.useCurrentUserState(s => s.username)
+  const myName = useCurrentUserState(s => s.username)
   const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === myName
 

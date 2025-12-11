@@ -6,6 +6,7 @@ import {isMobile} from '../platform'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '../tabs'
 import {useFSState} from '../fs'
+import {useCurrentUserState} from '../current-user'
 
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
 export type NotificationKeys = 'kbfsUploading' | 'outOfSpace'
@@ -68,7 +69,7 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
   revokedDevices.forEach(d => allDeviceChanges.add(d))
 
   // don't see badges related to this device
-  const deviceID = C.useCurrentUserState.getState().deviceID
+  const deviceID = useCurrentUserState.getState().deviceID
   counts.set(Tabs.devicesTab, allDeviceChanges.size - (allDeviceChanges.has(deviceID) ? 1 : 0))
   counts.set(Tabs.chatTab, bs.smallTeamBadgeCount + bs.bigTeamBadgeCount)
   counts.set(Tabs.gitTab, newGitRepoGlobalUniqueIDs.length)

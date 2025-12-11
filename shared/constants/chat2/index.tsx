@@ -14,6 +14,7 @@ import * as Z from '@/util/zustand'
 import * as Common from './common'
 import {uint8ArrayToString} from 'uint8array-extras'
 import {useUsersState} from '../users'
+import {useCurrentUserState} from '../current-user'
 import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '../rpc-utils'
 
@@ -403,7 +404,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       // only one pending conversation state.
       // The fix involves being able to make multiple pending conversations
       const f = async () => {
-        const username = C.useCurrentUserState.getState().username
+        const username = useCurrentUserState.getState().username
         if (!username) {
           logger.error('Making a convo while logged out?')
           return
@@ -520,7 +521,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     inboxRefresh: reason => {
       const f = async () => {
-        const {username} = C.useCurrentUserState.getState()
+        const {username} = useCurrentUserState.getState()
         const {loggedIn} = C.useConfigState.getState()
         if (!loggedIn || !username) {
           return
@@ -892,7 +893,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     messageSendByUsername: (username, text, waitingKey) => {
       const f = async () => {
-        const tlfName = `${C.useCurrentUserState.getState().username},${username}`
+        const tlfName = `${useCurrentUserState.getState().username},${username}`
         try {
           const result = await T.RPCChat.localNewConversationLocalRpcPromise(
             {

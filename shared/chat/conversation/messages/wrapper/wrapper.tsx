@@ -12,6 +12,7 @@ import SendIndicator from './send-indicator'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
+import {useCurrentUserState} from '@/constants/current-user'
 // import {useDebugLayout} from '@/util/debug-react'
 
 export type Props = {
@@ -81,7 +82,7 @@ const getEcrType = (message: T.Chat.Message, you: string) => {
 
 // Combined selector hook that fetches all message data in a single subscription
 export const useMessageData = (ordinal: T.Chat.Ordinal) => {
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
 
   return C.useChatContext(
     C.useShallow(s => {

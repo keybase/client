@@ -5,12 +5,13 @@ import People from '.'
 import {useSignupState} from '@/constants/signup'
 import {useProfileState} from '@/constants/profile'
 import {usePeopleState, getPeopleDataWaitingKey} from '@/constants/people'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const waitToRefresh = 1000 * 60 * 5
 
 const PeopleReloadable = () => {
   const followSuggestions = usePeopleState(s => s.followSuggestions)
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const newItems = usePeopleState(s => s.newItems)
   const oldItems = usePeopleState(s => s.oldItems)
   const signupEmail = useSignupState(s => s.justSignedUpEmail)

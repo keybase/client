@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const PinnedMessage = React.memo(function PinnedMessage() {
   const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = C.useChatContext(
@@ -13,7 +14,7 @@ const PinnedMessage = React.memo(function PinnedMessage() {
       return {conversationIDKey, onIgnore, pinMessage, pinnedMsg, replyJump, teamname}
     })
   )
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname))
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
   const {message, pinnerUsername} = pinnedMsg ?? {}

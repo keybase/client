@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useCurrentUserState} from '@/constants/current-user'
 import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -137,7 +138,7 @@ type Section = Kb.SectionType<Item>
 const TeamMember = (props: OwnProps) => {
   const username = props.username
   const teamID = props.teamID
-  const isMe = username === C.useCurrentUserState(s => s.username)
+  const isMe = username === useCurrentUserState(s => s.username)
   const loading = C.useTeamsState(s => {
     const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
     if (!memberships?.expectedCount) {
@@ -421,7 +422,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     C.Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
   const amLastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, props.node.teamID))
-  const isMe = props.username === C.useCurrentUserState(s => s.username)
+  const isMe = props.username === useCurrentUserState(s => s.username)
   const changingRole = C.Waiting.useAnyWaiting(
     C.waitingKeyTeamsEditMembership(props.node.teamID, props.username)
   )
@@ -605,7 +606,7 @@ export const TeamMemberHeader = (props: Props) => {
 
   const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
-  const yourUsername = C.useCurrentUserState(s => s.username)
+  const yourUsername = useCurrentUserState(s => s.username)
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)

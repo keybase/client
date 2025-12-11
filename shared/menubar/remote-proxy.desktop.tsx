@@ -15,6 +15,7 @@ import {useFSState} from '@/constants/fs'
 import {useFollowerState} from '@/constants/followers'
 import {useUsersState} from '@/constants/users'
 import {useNotifState} from '@/constants/notifications'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const {showTray} = KB2.functions
 
@@ -87,7 +88,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
     })
   )
   const {following, followers} = followerState
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const configState = C.useConfigState(
     C.useShallow(s => {
       const {httpSrv, loggedIn, outOfDate, windowShownCount} = s

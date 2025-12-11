@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useCurrentUserState} from '@/constants/current-user'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Feedback from '.'
@@ -34,9 +35,9 @@ const Connected = (ownProps: OwnProps) => {
   const loggedOut = C.useConfigState(s => !s.loggedIn)
   const _push = usePushState(s => s.token)
   const push = React.useMemo(() => ({pushToken: _push}), [_push])
-  const deviceID = C.useCurrentUserState(s => s.deviceID)
-  const uid = C.useCurrentUserState(s => s.uid)
-  const username = C.useCurrentUserState(s => s.username)
+  const deviceID = useCurrentUserState(s => s.deviceID)
+  const uid = useCurrentUserState(s => s.uid)
+  const username = useCurrentUserState(s => s.username)
   const [sending, setSending] = React.useState(false)
   const [sendError, setSendError] = React.useState('')
   const mountedRef = React.useRef(true)

@@ -5,6 +5,7 @@ import * as React from 'react'
 import OpenMeta from './openmeta'
 import {default as TeamInfo, type Props as TIProps} from './teaminfo'
 import {useTrackerState} from '@/constants/tracker2'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {username: string}
 
@@ -12,7 +13,7 @@ const noTeams = new Array<T.Tracker.TeamShowcase>()
 
 const Container = (ownProps: OwnProps) => {
   const d = useTrackerState(s => s.getDetails(ownProps.username))
-  const _isYou = C.useCurrentUserState(s => s.username === ownProps.username)
+  const _isYou = useCurrentUserState(s => s.username === ownProps.username)
   const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
   const _teamNameToID = C.useTeamsState(s => s.teamNameToID)
   const _youAreInTeams = C.useTeamsState(s => s.teamnames.size > 0)

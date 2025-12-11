@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
 import CommonResult, {type ResultProps} from './common-result'
 import {useUsersState} from '@/constants/users'
+import {useCurrentUserState} from '@/constants/current-user'
 
 /*
  * This component is intended to be a drop-in replacement for UserResult.
@@ -18,7 +19,7 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const serviceUsername = props.services[props.resultForService]
 
   // action button specific definitions
-  const myUsername = C.useCurrentUserState(s => s.username)
+  const myUsername = useCurrentUserState(s => s.username)
   const blocked = useUsersState(s => s.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 

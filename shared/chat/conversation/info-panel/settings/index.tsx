@@ -5,13 +5,14 @@ import * as React from 'react'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '@/teams/team/settings-tab/retention'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
 type SettingsPanelProps = {isPreview: boolean}
 
 const SettingsPanel = (props: SettingsPanelProps) => {
   const {isPreview} = props
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const meta = C.useChatContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
   const yourOperations = C.useTeamsState(s => (teamname ? C.Teams.getCanPerformByID(s, teamID) : undefined))

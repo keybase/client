@@ -2,12 +2,13 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import UserNotice from '../user-notice'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type Props = {
   message: T.Chat.MessageSystemChangeAvatar
 }
 const SystemChangeAvatar = (props: Props) => {
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   return (
     <UserNotice>
       <Kb.Text type="BodySmall" style={styles.text}>

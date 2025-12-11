@@ -7,6 +7,7 @@ import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 import {useFSState} from '@/constants/fs'
 import * as FS from '@/constants/fs'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type Props = {
   canBack?: boolean
@@ -83,7 +84,7 @@ const DesktopSendToChat = (props: Props) => {
   const [title, setTitle] = React.useState('')
   const [conversationIDKey, setConversationIDKey] = React.useState(C.Chat.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()

@@ -3,12 +3,13 @@ import Mention, {type OwnProps} from './mention'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
 import {useFollowerState} from '@/constants/followers'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const Container = (ownProps: OwnProps) => {
   let {username} = ownProps
   username = username.toLowerCase()
   const following = useFollowerState(s => s.following.has(username))
-  const myUsername = C.useCurrentUserState(s => s.username)
+  const myUsername = useCurrentUserState(s => s.username)
   const theme = (() => {
     if (C.Chat.isSpecialMention(username)) {
       return 'highlight' as const

@@ -7,6 +7,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
 import {useUsersState} from '@/constants/users'
+import {useCurrentUserState} from '@/constants/current-user'
 
 export type Props = {
   firstItem: boolean
@@ -325,7 +326,7 @@ const Container = (ownProps: OwnProps) => {
   )
   const info = members.get(username) || blankInfo
 
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const fullName = you === username ? 'You' : info.fullName
   const needsPUK = info.needsPUK
   const roleType = info.type

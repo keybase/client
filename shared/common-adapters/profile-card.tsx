@@ -14,6 +14,7 @@ import Icon from './icon'
 import Meta from './meta'
 import {useProfileState} from '@/constants/profile'
 import {useFollowerState} from '@/constants/followers'
+import {useCurrentUserState} from '@/constants/current-user'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import WithTooltip from './with-tooltip'
@@ -139,7 +140,7 @@ const ProfileCard = ({
   const userDetails = useTrackerState(s => s.getDetails(username))
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
-  const isSelf = C.useCurrentUserState(s => s.username === username)
+  const isSelf = useCurrentUserState(s => s.username === username)
   const hasBrokenProof = userDetails.assertions
     ? [...userDetails.assertions.values()].find(assertion => assertion.state !== 'valid')
     : false
@@ -258,7 +259,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
   const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const isSelf = you === username
   const onShow = C.useDebouncedCallback(
     React.useCallback(() => {

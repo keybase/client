@@ -3,13 +3,14 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemUsersAddedToConversation}
 
 const UsersAddedToConversationContainer = React.memo(function UsersAddedToConversationContainer(p: OwnProps) {
   const {usernames} = p.message
   const channelname = C.useChatContext(s => s.meta.channelname)
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   let otherUsers: Array<string> | undefined
   if (usernames.includes(you)) {
     otherUsers = usernames.slice()

@@ -14,6 +14,7 @@ import {type CommonResponseHandler} from '@/engine/types'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useState as useWNState} from '../whats-new'
 import {useFollowerState} from '../followers'
+import {useCurrentUserState} from '../current-user'
 import type * as Pinentry from '@/constants/pinentry'
 import {invalidPasswordErrorString} from './util'
 import {useSettingsContactsState} from '../settings-contacts'
@@ -604,7 +605,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
 
       if (phase === 'startupOrReloginButNotInARush') {
         const getFollowerInfo = () => {
-          const {uid} = C.useCurrentUserState.getState()
+          const {uid} = useCurrentUserState.getState()
           logger.info(`getFollowerInfo: init; uid=${uid}`)
           if (uid) {
             // request follower info in the background
@@ -635,7 +636,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
 
         const updateChat = async () => {
           // On login lets load the untrusted inbox. This helps make some flows easier
-          if (C.useCurrentUserState.getState().username) {
+          if (useCurrentUserState.getState().username) {
             const {inboxRefresh} = C.useChatState.getState().dispatch
             inboxRefresh('bootstrap')
           }
@@ -819,7 +820,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         }
         case EngineGen.keybase1NotifyTrackingTrackingInfo: {
           const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
-          if (C.useCurrentUserState.getState().uid !== uid) {
+          if (useCurrentUserState.getState().uid !== uid) {
             return
           }
           const newFollowers = new Set(_newFollowers)
@@ -915,7 +916,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       }))
     },
     revoke: name => {
-      const wasCurrentDevice = C.useCurrentUserState.getState().deviceName === name
+      const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
       if (wasCurrentDevice) {
         const {configuredAccounts, defaultUsername} = get()
         const acc = configuredAccounts.find(n => n.username !== defaultUsername)

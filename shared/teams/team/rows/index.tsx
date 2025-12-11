@@ -12,6 +12,7 @@ import {RequestRow, InviteRow} from './invite-row'
 import {SubteamAddRow, SubteamInfoRow, SubteamTeamRow} from './subteam-row'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import {useEmojiState} from '../../emojis/use-emoji'
+import {useCurrentUserState} from '@/constants/current-user'
 
 type Requests = Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>
 
@@ -63,7 +64,7 @@ export const useMembersSections = (
   details: T.Teams.TeamDetails,
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
-  const yourUsername = C.useCurrentUserState(s => s.username)
+  const yourUsername = useCurrentUserState(s => s.username)
   // TODO: figure out if this is bad for performance and if we should leave these functions early when we're not on that tab
 
   // TODO: consider moving this to the parent

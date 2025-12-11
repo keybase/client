@@ -3,9 +3,10 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const Container = () => {
-  const username = C.useCurrentUserState(s => s.username)
+  const username = useCurrentUserState(s => s.username)
   const d = useTrackerState(s => s.getDetails(username))
   const _bio = d.bio || ''
   const _fullname = d.fullname || ''

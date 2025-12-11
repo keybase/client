@@ -3,10 +3,11 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useTeamsSubscribe} from '@/teams/subscriber'
 import {useTrackerState} from '@/constants/tracker2'
+import {useCurrentUserState} from '@/constants/current-user'
 
 const Container = () => {
   const waiting = C.useWaitingState(s => s.counts)
-  const you = C.useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
   const teamMeta = C.useTeamsState(s => s.teamMeta)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
