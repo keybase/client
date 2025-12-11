@@ -16,6 +16,7 @@ import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useUnmountAll} from '@/util/debug-react'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
 import {install} from 'react-native-kb'
+import {useEngineState} from '@/constants/engine'
 
 enableFreeze(true)
 setServiceDecoration(ServiceDecoration)
@@ -131,9 +132,9 @@ const useInit = () => {
   const {batch} = C.useWaitingState.getState().dispatch
   const eng = makeEngine(batch, c => {
     if (c) {
-      C.useEngineState.getState().dispatch.onEngineConnected()
+      useEngineState.getState().dispatch.onEngineConnected()
     } else {
-      C.useEngineState.getState().dispatch.onEngineDisconnected()
+      useEngineState.getState().dispatch.onEngineDisconnected()
     }
   })
   C.initListeners()

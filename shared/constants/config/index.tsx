@@ -23,6 +23,7 @@ import {useTrackerState} from '../tracker2'
 import {useFSState} from '../fs'
 import {useDaemonState} from '../daemon'
 import {useProvisionState} from '../provision'
+import {useEngineState} from '../engine'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -384,9 +385,9 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         }
         case RemoteGen.engineConnection: {
           if (action.payload.connected) {
-            C.useEngineState.getState().dispatch.onEngineConnected()
+            useEngineState.getState().dispatch.onEngineConnected()
           } else {
-            C.useEngineState.getState().dispatch.onEngineDisconnected()
+            useEngineState.getState().dispatch.onEngineDisconnected()
           }
           break
         }
