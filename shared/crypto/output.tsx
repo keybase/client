@@ -9,6 +9,7 @@ import {pickFiles} from '@/util/pick-files'
 import type HiddenString from '@/util/hidden-string'
 import {useFSState} from '@/constants/fs'
 import * as FS from '@/constants/fs'
+import {useConfigState} from '@/constants/config'
 
 type OutputProps = {operation: T.Crypto.Operations}
 type OutputActionsBarProps = {operation: T.Crypto.Operations}
@@ -192,7 +193,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     previewConversation({participants: [username.stringValue()], reason: 'search'})
   }
 
-  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyOutput = () => {
     copyToClipboard(output.stringValue())
   }

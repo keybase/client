@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -73,7 +74,7 @@ const PopText = (ownProps: OwnProps) => {
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const canReplyPrivately = ['small', 'big'].includes(teamType) || numPart > 2
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopy = React.useCallback(() => {
     text && copyToClipboard(text)
   }, [copyToClipboard, text])

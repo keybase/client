@@ -1,21 +1,22 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {useConfigState} from '@/constants/config'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
 import {useSignupState} from '@/constants/signup'
 import {useProvisionState} from '@/constants/provision'
 
 const Intro = () => {
-  const justDeletedSelf = C.useConfigState(s => s.justDeletedSelf)
-  const justRevokedSelf = C.useConfigState(s => s.justRevokedSelf)
+  const justDeletedSelf = useConfigState(s => s.justDeletedSelf)
+  const justRevokedSelf = useConfigState(s => s.justRevokedSelf)
   const bannerMessage = justDeletedSelf
     ? `Your Keybase account ${justDeletedSelf} has been deleted. Au revoir!`
     : justRevokedSelf
       ? `${justRevokedSelf} was revoked successfully`
       : ''
 
-  const isOnline = C.useConfigState(s => s.isOnline)
-  const loadIsOnline = C.useConfigState(s => s.dispatch.loadIsOnline)
+  const isOnline = useConfigState(s => s.isOnline)
+  const loadIsOnline = useConfigState(s => s.dispatch.loadIsOnline)
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const checkIsOnline = loadIsOnline

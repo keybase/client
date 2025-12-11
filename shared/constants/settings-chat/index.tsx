@@ -1,6 +1,7 @@
 import * as C from '..'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
+import {useConfigState} from '@/constants/config'
 
 export type ChatUnfurlState = {
   unfurlMode?: T.RPCChat.UnfurlMode
@@ -47,7 +48,7 @@ export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     contactSettingsRefresh: () => {
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
         try {
@@ -65,7 +66,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     contactSettingsSaved: (enabled, indirectFollowees, teamsEnabled, teamsList) => {
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
 
@@ -98,7 +99,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     resetState: 'default',
     unfurlSettingsRefresh: () => {
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
         try {
@@ -126,7 +127,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.unfurl = T.castDraft({unfurlError: undefined, unfurlMode, unfurlWhitelist})
       })
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
         try {

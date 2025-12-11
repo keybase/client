@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Props} from '.'
@@ -48,7 +49,7 @@ export default (ownProps: Props): Ret => {
   const sperror = C.Waiting.useAnyErrors(C.waitingKeyProfileUploadAvatar)
   const sendChatNotification = ownProps.sendChatNotification ?? false
   const submitting = C.Waiting.useAnyWaiting(C.waitingKeyProfileUploadAvatar)
-  const teamname = C.useTeamsState(s => (teamID ? C.Teams.getTeamNameFromID(s, teamID) : undefined) ?? '')
+  const teamname = Teams.useTeamsState(s => (teamID ? Teams.getTeamNameFromID(s, teamID) : undefined) ?? '')
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -61,7 +62,7 @@ export default (ownProps: Props): Ret => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
     clearModals()
   }
-  const uploadTeamAvatar = C.useTeamsState(s => s.dispatch.uploadTeamAvatar)
+  const uploadTeamAvatar = Teams.useTeamsState(s => s.dispatch.uploadTeamAvatar)
   const onSaveTeamAvatar = (
     _filename: string,
     teamname: string,
@@ -78,7 +79,7 @@ export default (ownProps: Props): Ret => {
     const filename = Kb.Styles.unnormalizePath(_filename)
     uploadAvatar(filename, crop)
   }
-  const setTeamWizardAvatar = C.useTeamsState(s => s.dispatch.setTeamWizardAvatar)
+  const setTeamWizardAvatar = Teams.useTeamsState(s => s.dispatch.setTeamWizardAvatar)
   const onSaveWizardAvatar = (_filename: string, crop?: T.Teams.AvatarCrop) => {
     const filename = Kb.Styles.unnormalizePath(_filename)
     setTeamWizardAvatar(crop, filename)

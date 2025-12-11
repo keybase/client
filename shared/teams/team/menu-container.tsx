@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import * as FS from '@/constants/fs'
+import * as Teams from '@/constants/teams'
 import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
@@ -79,13 +80,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const {teamname, role, memberCount} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
-  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
+  const {teamname, role, memberCount} = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const canDeleteTeam = yourOperations.deleteTeam
   const canInvite = yourOperations.manageMembers
-  const canLeaveTeam = C.useTeamsState(s => !C.Teams.isLastOwner(s, teamID) && role !== 'none')
+  const canLeaveTeam = Teams.useTeamsState(s => !Teams.isLastOwner(s, teamID) && role !== 'none')
   const canViewFolder = !yourOperations.joinTeam
-  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAddOrInvitePeople = () => {
     startAddMembersWizard(teamID)
   }

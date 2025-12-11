@@ -1,5 +1,6 @@
 import type * as React from 'react'
 import * as C from '..'
+import {useTeamsState} from '../teams'
 import type * as T from '../types'
 import {useSignupState} from '../signup'
 import {
@@ -476,7 +477,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
 
       const updateTeams = () => {
         if (prev && getTab(prev) === Tabs.teamsTab && next && getTab(next) !== Tabs.teamsTab) {
-          C.useTeamsState.getState().dispatch.clearNavBadges()
+          useTeamsState.getState().dispatch.clearNavBadges()
         }
       }
       updateTeams()

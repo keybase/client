@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
+import {useConfigState} from '../config'
 import * as Tabs from '../tabs'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
@@ -1585,7 +1586,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
     favoritesLoad: () => {
       const f = async () => {
         try {
-          if (!C.useConfigState.getState().loggedIn) {
+          if (!useConfigState.getState().loggedIn) {
             return
           }
           const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
@@ -2220,7 +2221,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
                   src: {
                     PathType: T.RPCGen.PathType.local,
                     local: T.FS.getNormalizedLocalPath(
-                      C.useConfigState.getState().incomingShareUseOriginal
+                      useConfigState.getState().incomingShareUseOriginal
                         ? originalPath
                         : scaledPath || originalPath
                     ),

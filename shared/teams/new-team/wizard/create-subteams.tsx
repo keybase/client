@@ -1,18 +1,18 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {ModalTitle} from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useTeamsState} from '@/constants/teams'
 
 const cleanSubteamName = (name: string) => name.replace(/[^0-9a-zA-Z_]/, '')
 
 const CreateSubteams = () => {
   const nav = useSafeNavigation()
   const teamID = T.Teams.newTeamWizardTeamID
-  const teamname = C.useTeamsState(s => s.newTeamWizard.name)
-  const initialSubteams = C.useTeamsState(s => s.newTeamWizard.subteams) ?? ['', '', '']
+  const teamname = useTeamsState(s => s.newTeamWizard.name)
+  const initialSubteams = useTeamsState(s => s.newTeamWizard.subteams) ?? ['', '', '']
 
   const [subteams, setSubteams] = React.useState<Array<string>>([...initialSubteams])
 
@@ -28,7 +28,7 @@ const CreateSubteams = () => {
     setSubteams(prev => [...prev, ''])
   }
 
-  const setTeamWizardSubteams = C.useTeamsState(s => s.dispatch.setTeamWizardSubteams)
+  const setTeamWizardSubteams = useTeamsState(s => s.dispatch.setTeamWizardSubteams)
   const onContinue = () => setTeamWizardSubteams(subteams.filter(s => !!s))
   const onBack = () => nav.safeNavigateUp()
 

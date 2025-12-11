@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import * as React from 'react'
 import Normal from '.'
 import * as T from '@/constants/types'
@@ -57,7 +58,7 @@ const useOrangeLine = () => {
   }, [maxVisibleMsgID, loadOrangeLine, active])
 
   // mobile backgrounded us
-  const mobileAppState = C.useConfigState(s => s.mobileAppState)
+  const mobileAppState = useConfigState(s => s.mobileAppState)
   const lastMobileAppStateRef = React.useRef(mobileAppState)
   React.useEffect(() => {
     if (mobileAppState !== lastMobileAppStateRef.current) {

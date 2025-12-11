@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import upperFirst from 'lodash/upperFirst'
+import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
@@ -7,20 +8,20 @@ type OwnProps = {initialTeamname?: string}
 
 const Container = (ownProps: OwnProps) => {
   const initialTeamname = ownProps.initialTeamname
-  const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamJoin))
-  const open = C.useTeamsState(s => s.teamJoinSuccessOpen)
-  const success = C.useTeamsState(s => s.teamJoinSuccess)
-  const successTeamName = C.useTeamsState(s => s.teamJoinSuccessTeamName)
+  const errorText = useTeamsState(s => upperFirst(s.errorInTeamJoin))
+  const open = useTeamsState(s => s.teamJoinSuccessOpen)
+  const success = useTeamsState(s => s.teamJoinSuccess)
+  const successTeamName = useTeamsState(s => s.teamJoinSuccessTeamName)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
-  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
+  const joinTeam = useTeamsState(s => s.dispatch.joinTeam)
   const onJoinTeam = joinTeam
 
   const [name, _setName] = React.useState(initialTeamname ?? '')
   const setName = (n: string) => _setName(n.toLowerCase())
-  const resetTeamJoin = C.useTeamsState(s => s.dispatch.resetTeamJoin)
+  const resetTeamJoin = useTeamsState(s => s.dispatch.resetTeamJoin)
   React.useEffect(() => {
     resetTeamJoin()
   }, [resetTeamJoin])

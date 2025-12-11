@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import * as Kb from '@/common-adapters'
@@ -11,7 +12,7 @@ const getOwnerDisabledReason = (
 ) => {
   return [...selected]
     .map(teamName => {
-      if (C.Teams.isSubteam(teamName)) {
+      if (Teams.isSubteam(teamName)) {
         return `${teamName} is a subteam which cannot have owners.`
       } else if (teamNameToRole.get(teamName) !== 'owner') {
         return `You are not an owner of ${teamName}.`
@@ -24,17 +25,17 @@ const getOwnerDisabledReason = (
 type OwnProps = {username: string}
 const Container = (ownProps: OwnProps) => {
   const {username: them} = ownProps
-  const roles = C.useTeamsState(s => s.teamRoleMap.roles)
-  const teams = C.useTeamsState(s => s.teamMeta)
-  const addUserToTeamsResults = C.useTeamsState(s => s.addUserToTeamsResults)
-  const addUserToTeamsState = C.useTeamsState(s => s.addUserToTeamsState)
-  const clearAddUserToTeamsResults = C.useTeamsState(s => s.dispatch.clearAddUserToTeamsResults)
-  const addUserToTeams = C.useTeamsState(s => s.dispatch.addUserToTeams)
-  const teamProfileAddList = C.useTeamsState(s => s.teamProfileAddList)
+  const roles = Teams.useTeamsState(s => s.teamRoleMap.roles)
+  const teams = Teams.useTeamsState(s => s.teamMeta)
+  const addUserToTeamsResults = Teams.useTeamsState(s => s.addUserToTeamsResults)
+  const addUserToTeamsState = Teams.useTeamsState(s => s.addUserToTeamsState)
+  const clearAddUserToTeamsResults = Teams.useTeamsState(s => s.dispatch.clearAddUserToTeamsResults)
+  const addUserToTeams = Teams.useTeamsState(s => s.dispatch.addUserToTeams)
+  const teamProfileAddList = Teams.useTeamsState(s => s.teamProfileAddList)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsProfileAddList)
   const _onAddToTeams = addUserToTeams
-  const getTeamProfileAddList = C.useTeamsState(s => s.dispatch.getTeamProfileAddList)
-  const resetTeamProfileAddList = C.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
+  const getTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.getTeamProfileAddList)
+  const resetTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
   const loadTeamList = React.useCallback(() => {
     getTeamProfileAddList(them)
   }, [getTeamProfileAddList, them])

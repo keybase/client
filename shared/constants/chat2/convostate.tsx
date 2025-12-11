@@ -1,5 +1,7 @@
 import * as C from '..'
+import * as Teams from '../teams'
 import * as T from '../types'
+import {useConfigState} from '../config'
 import * as Styles from '@/styles'
 import * as Common from './common'
 import * as Tabs from '../tabs'
@@ -360,7 +362,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const closeBotModal = () => {
     C.useRouterState.getState().dispatch.clearModals()
     if (get().meta.teamname) {
-      C.useTeamsState.getState().dispatch.getMembers(get().meta.teamID)
+      Teams.useTeamsState.getState().dispatch.getMembers(get().meta.teamID)
     }
   }
 
@@ -484,13 +486,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
 
     const onClick = () => {
-      C.useConfigState.getState().dispatch.showMain()
+      useConfigState.getState().dispatch.showMain()
       C.useChatState.getState().dispatch.navigateToInbox()
       get().dispatch.navigateToThread('desktopNotification')
     }
     const onClose = () => {}
     logger.info('invoking NotifyPopup for chat notification')
-    const sound = C.useConfigState.getState().notifySound
+    const sound = useConfigState.getState().notifySound
 
     const cleanBody = body.replaceAll(/!>(.*?)<!/g, '•••')
 
@@ -844,7 +846,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
   const onSetConvSettings = (conv: T.RPCChat.InboxUIItem | null | undefined) => {
     const newRole = conv?.convSettings?.minWriterRoleInfo?.role
-    const role = newRole && C.Teams.teamRoleByEnum[newRole]
+    const role = newRole && Teams.teamRoleByEnum[newRole]
     const conversationIDKey = get().id
     const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite || false
     logger.info(
@@ -1231,7 +1233,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     blockConversation: reportUser => {
       const f = async () => {
         C.useChatState.getState().dispatch.navigateToInbox()
-        C.useConfigState.getState().dispatch.dynamic.persistRoute?.()
+        useConfigState.getState().dispatch.dynamic.persistRoute?.()
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
           conversationID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -1744,7 +1746,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     markTeamAsRead: teamID => {
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           logger.info('bail on not logged in')
           return
         }
@@ -1755,7 +1757,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     markThreadAsRead: force => {
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           logger.info('mark read bail on not logged in')
           return
         }
@@ -2392,7 +2394,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           return
         }
-        const trole = C.Teams.teamRoleByEnum[role]
+        const trole = Teams.teamRoleByEnum[role]
         const r = trole === 'none' ? undefined : trole
         set(s => {
           const roles = s.botTeamRoleMap
@@ -2505,7 +2507,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (isMetaGood()) {
           const {teamID, teamname} = meta
           if (teamname) {
-            C.useTeamsState.getState().dispatch.getMembers(teamID)
+            Teams.useTeamsState.getState().dispatch.getMembers(teamID)
           }
         }
       }
@@ -2572,7 +2574,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const convID = get().getConvID()
         let policy: T.RPCChat.RetentionPolicy | undefined
         try {
-          policy = C.Teams.retentionPolicyToServiceRetentionPolicy(_policy)
+          policy = Teams.retentionPolicyToServiceRetentionPolicy(_policy)
           await T.RPCChat.localSetConvRetentionLocalRpcPromise({convID, policy})
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2694,7 +2696,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       const conversationIDKey = get().id
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           logger.info('mark unread bail on not logged in')
           return
         }

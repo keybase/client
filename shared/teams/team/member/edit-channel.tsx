@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {ModalTitle} from '@/teams/common'
@@ -29,10 +30,10 @@ const EditChannel = (props: Props) => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 
-  const updateChannelName = C.useTeamsState(s => s.dispatch.updateChannelName)
-  const updateTopic = C.useTeamsState(s => s.dispatch.updateTopic)
+  const updateChannelName = useTeamsState(s => s.dispatch.updateChannelName)
+  const updateTopic = useTeamsState(s => s.dispatch.updateTopic)
 
-  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
 
   const onSave = () => {
     const ps = [

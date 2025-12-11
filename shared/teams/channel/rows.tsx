@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
+import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -34,14 +35,14 @@ const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
   const infoMap = useUsersState(s => s.infoMap)
   const participantInfo = C.useConvoState(conversationIDKey, s => s.participants)
-  const teamMemberInfo = C.useTeamsState(
-    s => s.teamDetails.get(teamID)?.members.get(username) ?? C.Teams.initialMemberInfo
+  const teamMemberInfo = Teams.useTeamsState(
+    s => s.teamDetails.get(teamID)?.members.get(username) ?? Teams.initialMemberInfo
   )
   const you = useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
-  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
+  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const crown = React.useMemo(() => {
     const type = crownIcon(roleType)
     return active && type ? <Kb.Icon type={type} style={styles.crownIcon} fontSize={10} /> : null
@@ -60,14 +61,14 @@ const ChannelMemberRow = (props: Props) => {
         : 'Has reset their account; admins can re-invite'
     : null
 
-  const roleLabel = !!active && C.Teams.typeToLabel[teamMemberInfo.type]
+  const roleLabel = !!active && Teams.typeToLabel[teamMemberInfo.type]
   const isYou = you === username
 
-  const channelSelectedMembers = C.useTeamsState(s => s.channelSelectedMembers.get(conversationIDKey))
+  const channelSelectedMembers = Teams.useTeamsState(s => s.channelSelectedMembers.get(conversationIDKey))
   const anySelected = !!channelSelectedMembers?.size
   const memberSelected = !!channelSelectedMembers?.has(username)
 
-  const channelSetMemberSelected = C.useTeamsState(s => s.dispatch.channelSetMemberSelected)
+  const channelSetMemberSelected = Teams.useTeamsState(s => s.dispatch.channelSetMemberSelected)
 
   const onSelect = (selected: boolean) => {
     channelSetMemberSelected(conversationIDKey, username, selected)
@@ -110,7 +111,7 @@ const ChannelMemberRow = (props: Props) => {
             />
           )}
           <Kb.Text type="BodySmall" style={styles.marginRight}>
-            {!!active && C.Teams.typeToLabel[teamMemberInfo.type]}
+            {!!active && Teams.typeToLabel[teamMemberInfo.type]}
             {resetLabel}
           </Kb.Text>
         </Kb.Box>

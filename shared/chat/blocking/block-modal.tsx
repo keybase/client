@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import {useTeamsState} from '@/constants/teams'
 import {useUsersState} from '@/constants/users'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the
@@ -138,7 +139,7 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
   const loadingWaiting = C.Waiting.useAnyWaiting(C.waitingKeyUsersGetUserBlocks)
 
   const onClose = C.useRouterState(s => s.dispatch.navigateUp)
-  const leaveTeam = C.useTeamsState(s => s.dispatch.leaveTeam)
+  const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
   const leaveTeamAndBlock = React.useCallback(
     (teamname: string) => {
       leaveTeam(teamname, true, 'chat')

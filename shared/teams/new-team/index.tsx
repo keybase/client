@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import openUrl from '@/util/open-url'
@@ -115,14 +116,14 @@ type OwnProps = {subteamOf?: T.Teams.TeamID}
 
 const Container = (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? T.Teams.noTeamID
-  const baseTeam = C.useTeamsState(s => C.Teams.getTeamMeta(s, subteamOf).teamname)
-  const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))
+  const baseTeam = Teams.useTeamsState(s => Teams.getTeamMeta(s, subteamOf).teamname)
+  const errorText = Teams.useTeamsState(s => upperFirst(s.errorInTeamCreation))
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }
-  const resetErrorInTeamCreation = C.useTeamsState(s => s.dispatch.resetErrorInTeamCreation)
-  const createNewTeam = C.useTeamsState(s => s.dispatch.createNewTeam)
+  const resetErrorInTeamCreation = Teams.useTeamsState(s => s.dispatch.resetErrorInTeamCreation)
+  const createNewTeam = Teams.useTeamsState(s => s.dispatch.createNewTeam)
   const onClearError = resetErrorInTeamCreation
   const onSubmit = (teamname: string, joinSubteam: boolean) => {
     createNewTeam(teamname, joinSubteam)

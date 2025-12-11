@@ -4,6 +4,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
 import debounce from 'lodash/debounce'
+import {useConfigState} from '@/constants/config'
 
 const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {
   const errors: Array<Error> = []
@@ -103,7 +104,7 @@ export const useGitState = Z.createZustand<State>((set, get) => {
     async () => {
       const results = await T.RPCGen.gitGetAllGitMetadataRpcPromise(undefined, C.waitingKeyGitLoading)
       const {errors, repos} = parseRepos(results || [])
-      const {setGlobalError} = C.useConfigState.getState().dispatch
+      const {setGlobalError} = useConfigState.getState().dispatch
       errors.forEach(e => setGlobalError(e))
       set(s => {
         s.idToInfo = repos
@@ -213,4 +214,3 @@ const emptyInfo = {
 }
 export const makeGitInfo = (i?: Partial<T.Git.GitInfo>): T.Git.GitInfo =>
   i ? {...emptyInfo, ...i} : emptyInfo
-

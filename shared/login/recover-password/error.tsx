@@ -3,9 +3,10 @@ import * as Kb from '@/common-adapters'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
 import {useState as useRecoverState} from '@/constants/recover-password'
+import {useConfigState} from '@/constants/config'
 
 const ConnectedError = () => {
-  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const loggedIn = useConfigState(s => s.loggedIn)
   const error = useRecoverState(s => s.error)
   const popStack = C.useRouterState(s => s.dispatch.popStack)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

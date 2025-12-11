@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -160,8 +161,8 @@ const TeamBuilding = (p: OwnProps) => {
     [search, incFocusInputCounter, setSelectedService, searchString]
   )
 
-  const title = C.useTeamsState(s =>
-    namespace === 'teams' ? `Add to ${C.Teams.getTeamMeta(s, teamID ?? '').teamname}` : (p.title ?? '')
+  const title = Teams.useTeamsState(s =>
+    namespace === 'teams' ? `Add to ${Teams.getTeamMeta(s, teamID ?? '').teamname}` : (p.title ?? '')
   )
 
   const waitingForCreate = C.Waiting.useAnyWaiting(C.waitingKeyChatCreating)

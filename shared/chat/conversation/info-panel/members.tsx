@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -38,7 +39,7 @@ const MembersTab = (props: Props) => {
     })
   )
 
-  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
@@ -67,9 +68,9 @@ const MembersTab = (props: Props) => {
         ({
           fullname: (infoMap.get(p) || {fullname: ''}).fullname || participantInfo.contactName.get(p) || '',
           isAdmin:
-            teamname && teamMembers ? C.Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
+            teamname && teamMembers ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
           isOwner:
-            teamname && teamMembers ? C.Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
+            teamname && teamMembers ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
           key: `user-${p}`,
           type: 'member',
           username: p,

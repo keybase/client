@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
 import openUrl from '@/util/open-url'
 import Modal from './modal'
+import {useConfigState} from '@/constants/config'
 
 const Container = () => {
   const platform = useProfileState(s => s.platform)
@@ -48,7 +49,7 @@ const Container = () => {
       break
   }
   const platformUserName = username
-  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()

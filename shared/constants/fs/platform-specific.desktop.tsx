@@ -8,6 +8,7 @@ import * as Path from '@/util/path'
 import KB2 from '@/util/electron.desktop'
 import {uint8ArrayToHex} from 'uint8array-extras'
 import {useFSState} from '.'
+import {useConfigState} from '@/constants/config'
 
 const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
 const {darwinCopyToKBFSTempUploadFile, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
@@ -131,7 +132,7 @@ const onInstallCachedDokan = async () => {
 }
 
 const initPlatformSpecific = () => {
-  C.useConfigState.subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
     useFSState.getState().dispatch.onChangedFocus(s.appFocused)
   })
@@ -272,7 +273,7 @@ const initPlatformSpecific = () => {
     })
 
     s.dispatch.dynamic.openFilesFromWidgetDesktop = C.wrapErrors((path: T.FS.Path) => {
-      C.useConfigState.getState().dispatch.showMain()
+      useConfigState.getState().dispatch.showMain()
       if (path) {
         Constants.makeActionForOpenPathInFilesTab(path)
       } else {

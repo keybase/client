@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmptyRow from './empty-row'
@@ -123,9 +124,9 @@ export const useBotSections = (
 }
 
 export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.TeamDetails): Array<Section> => {
-  const invitesCollapsed = C.useTeamsState(s => s.invitesCollapsed)
+  const invitesCollapsed = Teams.useTeamsState(s => s.invitesCollapsed)
   const collapsed = invitesCollapsed.has(teamID)
-  const toggleInvitesCollapsed = C.useTeamsState(s => s.dispatch.toggleInvitesCollapsed)
+  const toggleInvitesCollapsed = Teams.useTeamsState(s => s.dispatch.toggleInvitesCollapsed)
   const onToggleCollapsed = () => toggleInvitesCollapsed(teamID)
 
   const sections: Array<Section> = []
@@ -188,8 +189,8 @@ export const useChannelsSections = (
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
   const isBig = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
-  const channels = C.useTeamsState(s => s.channelInfo.get(teamID))
-  const canCreate = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).createChannel)
+  const channels = Teams.useTeamsState(s => s.channelInfo.get(teamID))
+  const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
 
   if (!isBig) {
     return [
@@ -243,7 +244,7 @@ export const useSubteamsSections = (
   details: T.Teams.TeamDetails,
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
-  const subteamsFiltered = C.useTeamsState(s => s.subteamsFiltered)
+  const subteamsFiltered = Teams.useTeamsState(s => s.subteamsFiltered)
   const subteams = [...(subteamsFiltered ?? details.subteams)].sort()
   const sections: Array<Section> = []
 

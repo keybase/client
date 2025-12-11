@@ -9,6 +9,7 @@ import {RPCError} from '@/util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
 import {useSettingsEmailState} from '../settings-email'
 import {usePushState} from '../push'
+import {useConfigState} from '@/constants/config'
 
 type Store = T.Immutable<{
   devicename: string
@@ -254,7 +255,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (C.useConfigState.getState().loggedIn) {
+        if (useConfigState.getState().loggedIn) {
           await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true})
         }
         try {

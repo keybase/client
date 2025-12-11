@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/teams/common'
@@ -271,7 +272,7 @@ const HeaderRow = React.memo(function HeaderRow(p: {
   const {mode, teamID, onSelectAll, onSelectNone} = p
   const nav = useSafeNavigation()
   const onCreate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
-  const canCreate = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).createChannel)
+  const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
 
   return (
     <Kb.Box2
@@ -308,7 +309,7 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
 }) {
   const {meta, reloadChannels, selfMode} = p
   const nav = useSafeNavigation()
-  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, meta.teamID))
+  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, meta.teamID))
   const isAdmin = yourOperations.deleteChannel
   const canEdit = yourOperations.editChannelDescription
   const inChannel = meta.membershipType === 'active'
@@ -461,7 +462,7 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
     const {name, all} = s.participants
     return name.length ? name : all
   })
-  const activityLevel = C.useTeamsState(
+  const activityLevel = Teams.useTeamsState(
     s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )
   const allInChannel = usernames.every(member => participants.includes(member))

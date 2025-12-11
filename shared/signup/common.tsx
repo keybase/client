@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {type Props as ButtonProps} from '@/common-adapters/button'
 import openURL from '@/util/open-url'
+import {useConfigState} from '@/constants/config'
 
 type InfoIconProps = {
   invisible?: boolean
@@ -10,7 +11,7 @@ type InfoIconProps = {
 }
 
 export const InfoIcon = (props: InfoIconProps) => {
-  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const loggedIn = useConfigState(s => s.loggedIn)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {

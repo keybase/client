@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {useConfigState} from '@/constants/config'
 import * as Kbfs from '@/fs/common'
 import * as Platforms from '@/constants/platform'
 import * as T from '@/constants/types'
@@ -43,7 +44,7 @@ const Header = () => {
     startProvision()
   }, [startProvision])
   const onHelp = React.useCallback(() => openURL('https://book.keybase.io'), [])
-  const dumpLogs = C.useConfigState(s => s.dispatch.dumpLogs)
+  const dumpLogs = useConfigState(s => s.dispatch.dumpLogs)
   const onQuit = React.useCallback(() => {
     if (!__DEV__) {
       if (isLinux) {
@@ -177,7 +178,7 @@ const TabBar = React.memo(function TabBar(props: Props) {
   )
 
   const onSelectTab = Common.useSubnavTabAction(navigation, state)
-  const forceSmallNav = C.useConfigState(s => s.forceSmallNav)
+  const forceSmallNav = useConfigState(s => s.forceSmallNav)
 
   return username ? (
     <Kb.Box2
@@ -225,13 +226,13 @@ const Tab = React.memo(function Tab(props: TabProps) {
   const isPeopleTab = index === 0
   const {label} = Tabs.desktopTabMeta[tab]
   const current = useCurrentUserState(s => s.username)
-  const setUserSwitching = C.useConfigState(s => s.dispatch.setUserSwitching)
-  const login = C.useConfigState(s => s.dispatch.login)
+  const setUserSwitching = useConfigState(s => s.dispatch.setUserSwitching)
+  const login = useConfigState(s => s.dispatch.login)
   const onQuickSwitch = React.useMemo(
     () =>
       isPeopleTab
         ? () => {
-            const accountRows = C.useConfigState.getState().configuredAccounts
+            const accountRows = useConfigState.getState().configuredAccounts
             const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
             if (row) {
               setUserSwitching(true)

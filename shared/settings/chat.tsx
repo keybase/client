@@ -1,11 +1,13 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import Group from './group'
 import {useState as useSettingsChatState} from '@/constants/settings-chat'
 import {useSettingsNotifState} from '@/constants/settings-notifications'
 import {useSettingsState} from '@/constants/settings'
+import {useConfigState} from '@/constants/config'
 
 const emptyList = new Array<string>()
 
@@ -17,8 +19,8 @@ const Security = () => {
   const onContactSettingsSave = contactSettingsSaved
   const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
   const _contactSettingsEnabled = useSettingsChatState(s => s.contactSettings.settings?.enabled)
-  const _teamMeta = C.useTeamsState(s => s.teamMeta)
-  const teamMeta = C.Teams.sortTeamsByName(_teamMeta)
+  const _teamMeta = Teams.useTeamsState(s => s.teamMeta)
+  const teamMeta = Teams.sortTeamsByName(_teamMeta)
 
   const [contactSettingsEnabled, setContactSettingsEnabled] = React.useState(_contactSettingsEnabled)
   const _contactSettingsIndirectFollowees = useSettingsChatState(
@@ -345,8 +347,8 @@ const Links = () => {
 }
 
 const Sound = () => {
-  const onToggleSound = C.useConfigState(s => s.dispatch.setNotifySound)
-  const sound = C.useConfigState(s => s.notifySound) // desktop
+  const onToggleSound = useConfigState(s => s.dispatch.setNotifySound)
+  const sound = useConfigState(s => s.notifySound) // desktop
   const allowEdit = useSettingsNotifState(s => s.allowEdit)
   const showDesktopSound = !C.isMobile && !C.isLinux
   const onToggle = useSettingsNotifState(s => s.dispatch.toggle)

@@ -1,5 +1,5 @@
-import * as C from '@/constants'
 import * as Git from '@/constants/git'
+import * as Teams from '@/constants/teams'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -15,7 +15,7 @@ type OwnProps = {
 const SelectChannel = (ownProps: OwnProps) => {
   const {teamID, repoID} = ownProps
   const _selected = ownProps.selected
-  const teamname = C.useTeamsState(s => C.Teams.getTeamNameFromID(s, teamID) ?? '')
+  const teamname = Teams.useTeamsState(s => Teams.getTeamNameFromID(s, teamID) ?? '')
   const {channelMetas} = useAllChannelMetas(teamID)
   const waiting = channelMetas.size === 0 // TODO fix this?
   const channelNames = [...channelMetas.values()].map(info => info.channelname)

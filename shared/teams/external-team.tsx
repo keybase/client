@@ -3,6 +3,7 @@ import {useProfileState} from '@/constants/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as Teams from '@/constants/teams'
 import {useTeamLinkPopup} from './common'
 import {pluralize} from '@/util/string'
 import capitalize from 'lodash/capitalize'
@@ -174,7 +175,7 @@ const Header = ({info}: ExternalTeamProps) => {
 const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem: boolean}) => {
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({participants: [member.username], reason: 'teamMember'})
-  const roleString = C.Teams.teamRoleByEnum[member.role]
+  const roleString = Teams.teamRoleByEnum[member.role]
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   return (
     <Kb.ListItem2

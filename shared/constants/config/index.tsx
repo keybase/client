@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {useTeamsState} from '../teams'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {useDeepLinksState} from '../deeplinks'
 import * as RemoteGen from '@/actions/remote-gen'
@@ -229,7 +230,7 @@ interface State extends Store {
 }
 
 export const openAtLoginKey = 'openAtLogin'
-export const useConfigState_ = Z.createZustand<State>((set, get) => {
+export const useConfigState = Z.createZustand<State>((set, get) => {
   const nativeFrameKey = 'useNativeFrame'
   const notifySoundKey = 'notifySound'
   const forceSmallNavKey = 'ui.forceSmallNav'
@@ -271,7 +272,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       }
     }
 
-    C.useTeamsState.getState().dispatch.eagerLoadTeams()
+    useTeamsState.getState().dispatch.eagerLoadTeams()
   }
 
   const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
@@ -376,7 +377,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         case RemoteGen.resetStore:
           break
         case RemoteGen.openChatFromWidget: {
-          C.useConfigState.getState().dispatch.showMain()
+          get().dispatch.showMain()
           C.getConvoState(action.payload.conversationIDKey).dispatch.navigateToThread('inboxSmall')
           break
         }
@@ -630,8 +631,8 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         }
 
         const updateTeams = () => {
-          C.useTeamsState.getState().dispatch.getTeams()
-          C.useTeamsState.getState().dispatch.refreshTeamRoleMap()
+          useTeamsState.getState().dispatch.getTeams()
+          useTeamsState.getState().dispatch.refreshTeamRoleMap()
         }
 
         const updateSettings = () => {
@@ -770,7 +771,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       C.ignorePromise(registerForGregorNotifications())
 
       get().dispatch.dynamic.onEngineConnectedDesktop?.()
-      C.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
+      get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     },
     onEngineDisonnected: () => {
       const f = async () => {

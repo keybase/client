@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {useConfigState} from '@/constants/config'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
 import {useState as useRecoverState} from '@/constants/recover-password'
@@ -9,9 +10,9 @@ import {useProvisionState} from '@/constants/provision'
 const needPasswordError = 'passphrase cannot be empty'
 
 const ReloginContainer = () => {
-  const _users = C.useConfigState(s => s.configuredAccounts)
-  const perror = C.useConfigState(s => s.loginError)
-  const pselectedUser = C.useConfigState(s => s.defaultUsername)
+  const _users = useConfigState(s => s.configuredAccounts)
+  const perror = useConfigState(s => s.loginError)
+  const pselectedUser = useConfigState(s => s.defaultUsername)
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
   const onForgotPassword = (username: string) => {
     startRecoverPassword({username})
@@ -20,7 +21,7 @@ const ReloginContainer = () => {
   const onFeedback = () => {
     navigateAppend('signupSendFeedbackLoggedOut')
   }
-  const onLogin = C.useConfigState(s => s.dispatch.login)
+  const onLogin = useConfigState(s => s.dispatch.login)
   const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
   const onSignup = () => requestAutoInvite()
   const onSomeoneElse = useProvisionState(s => s.dispatch.startProvision)
@@ -35,7 +36,7 @@ const ReloginContainer = () => {
   const [selectedUser, setSelectedUser] = React.useState(pselectedUser)
   const [showTyping, setShowTyping] = React.useState(false)
 
-  const setLoginError = C.useConfigState(s => s.dispatch.setLoginError)
+  const setLoginError = useConfigState(s => s.dispatch.setLoginError)
   const prevPasswordRef = React.useRef(password)
   const prevErrorRef = React.useRef(error)
 

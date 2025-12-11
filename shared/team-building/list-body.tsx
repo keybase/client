@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as Shared from './shared'
 import PeopleResult from './search-result/people-result'
@@ -236,7 +237,7 @@ export const ListBody = (
   const username = useCurrentUserState(s => s.username)
   const following = useFollowerState(s => s.following)
 
-  const maybeTeamDetails = C.useTeamsState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
+  const maybeTeamDetails = useTeamsState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
   const preExistingTeamMembers: T.Teams.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
   const userRecs = C.useTBContext(s => s.userRecs)
   const _teamSoFar = C.useTBContext(s => s.teamSoFar)

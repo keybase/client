@@ -1,6 +1,7 @@
 // A mirror of the remote tracker windows.
 import * as C from '@/constants'
 import {useAvatarState} from '@/common-adapters/avatar/store'
+import {useConfigState} from '@/constants/config'
 import * as React from 'react'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
@@ -24,7 +25,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const followers = useFollowerState(s => s.followers)
   const following = useFollowerState(s => s.following)
   const username = useCurrentUserState(s => s.username)
-  const httpSrv = C.useConfigState(s => s.httpSrv)
+  const httpSrv = useConfigState(s => s.httpSrv)
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const counts = new Map([

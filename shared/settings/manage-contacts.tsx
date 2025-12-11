@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import {SettingsSection} from './account'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
 import {settingsFeedbackTab} from '@/constants/settings'
+import {useConfigState} from '@/constants/config'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
@@ -63,7 +64,7 @@ const ManageContactsBanner = () => {
   const contactsImported = useSettingsContactsState(s => s.importEnabled)
   const importedCount = useSettingsContactsState(s => s.importedCount)
   const error = useSettingsContactsState(s => s.importError)
-  const onOpenAppSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onOpenAppSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   const onStartChat = React.useCallback(() => {

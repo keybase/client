@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {Box2} from './box'
 import * as Styles from '@/styles'
@@ -102,9 +103,9 @@ type OwnProps = {
 }
 
 const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
-  const teamID = C.useTeamsState(s => C.Teams.getTeamID(s, ownProps.teamName))
-  const meta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
-  const description = C.useTeamsState(s => s.teamDetails.get(teamID)?.description) ?? ''
+  const teamID = Teams.useTeamsState(s => Teams.getTeamID(s, ownProps.teamName))
+  const meta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const description = Teams.useTeamsState(s => s.teamDetails.get(teamID)?.description) ?? ''
   const stateProps = {
     description,
     isMember: meta.isMember,
@@ -112,7 +113,7 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
     memberCount: meta.memberCount,
     teamID,
   }
-  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
+  const joinTeam = Teams.useTeamsState(s => s.dispatch.joinTeam)
   const _onJoinTeam = joinTeam
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

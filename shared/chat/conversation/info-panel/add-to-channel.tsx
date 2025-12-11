@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
@@ -18,9 +19,9 @@ const AddToChannel = (props: Props) => {
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
 
-  const {channelname} = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const {channelname} = Teams.useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const participants = useChannelParticipants(teamID, conversationIDKey)
-  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? C.Teams.emptyTeamDetails
+  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID)) ?? Teams.emptyTeamDetails
   const allMembers = React.useMemo(() => {
     return [...teamDetails.members.values()]
       .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
@@ -37,7 +38,7 @@ const AddToChannel = (props: Props) => {
   const addToChannel = C.useRPC(T.RPCChat.localBulkAddToConvRpcPromise)
 
   const onClose = () => nav.safeNavigateUp()
-  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const onAdd = () => {
     setWaiting(true)
     addToChannel(

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {useConfigState} from '@/constants/config'
 import type {RPCError} from '@/util/errors'
 import * as Settings from '@/constants/settings'
 import {useDaemonState} from '@/constants/daemon'
@@ -10,10 +11,10 @@ const summaryForError = (err?: Error | RPCError) => err?.message ?? ''
 const detailsForError = (err?: Error | RPCError) => err?.stack ?? ''
 
 const useData = () => {
-  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const loggedIn = useConfigState(s => s.loggedIn)
   const daemonError = useDaemonState(s => s.error)
-  const error = C.useConfigState(s => s.globalError)
-  const setGlobalError = C.useConfigState(s => s.dispatch.setGlobalError)
+  const error = useConfigState(s => s.globalError)
+  const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onFeedback = React.useCallback(() => {
@@ -25,7 +26,7 @@ const useData = () => {
       navigateAppend('feedback')
     }
   }, [navigateAppend, clearModals, loggedIn, setGlobalError])
-  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onDismiss = React.useCallback(() => {
     setGlobalError()
   }, [setGlobalError])

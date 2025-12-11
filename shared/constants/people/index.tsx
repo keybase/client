@@ -10,6 +10,7 @@ import {isMobile} from '../platform'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import debounce from 'lodash/debounce'
 import {useFollowerState} from '../followers'
+import {useConfigState} from '@/constants/config'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false as boolean
@@ -387,7 +388,7 @@ export const usePeopleState = Z.createZustand<State>((set, get) => {
           logger.info(
             'getPeopleData: appFocused:',
             'loggedIn',
-            C.useConfigState.getState().loggedIn,
+            useConfigState.getState().loggedIn,
             'action',
             {markViewed, numFollowSuggestionsWanted}
           )

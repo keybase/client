@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import './account-switcher.css'
+import {useConfigState} from '@/constants/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -17,7 +18,7 @@ const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolea
 
 const Container = () => {
   const _fullnames = useUsersState(s => s.infoMap)
-  const _accountRows = C.useConfigState(s => s.configuredAccounts)
+  const _accountRows = useConfigState(s => s.configuredAccounts)
   const you = useCurrentUserState(s => s.username)
   const fullname = useTrackerState(s => s.getDetails(you).fullname ?? '')
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
@@ -28,13 +29,13 @@ const Container = () => {
     navigateUp()
   }
 
-  const setUserSwitching = C.useConfigState(s => s.dispatch.setUserSwitching)
-  const login = C.useConfigState(s => s.dispatch.login)
+  const setUserSwitching = useConfigState(s => s.dispatch.setUserSwitching)
+  const login = useConfigState(s => s.dispatch.login)
   const onSelectAccountLoggedIn = (username: string) => {
     setUserSwitching(true)
     login(username, '')
   }
-  const onSelectAccountLoggedOut = C.useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
+  const onSelectAccountLoggedOut = useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSignOut = React.useCallback(() => {
     navigateAppend(settingsLogOutTab)

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {useTeamsState} from '@/constants/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
@@ -11,7 +12,7 @@ const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplex
   const {message} = p
   const teamID = C.useChatContext(s => s.meta.teamID)
   const you = useCurrentUserState(s => s.username)
-  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
+  const manageChatChannels = useTeamsState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)
   }, [manageChatChannels, teamID])

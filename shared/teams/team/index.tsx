@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
@@ -32,10 +33,10 @@ const useTabsState = (
   teamID: T.Teams.TeamID,
   providedTab?: T.Teams.TabKey
 ): [T.Teams.TabKey, (t: T.Teams.TabKey) => void] => {
-  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const defaultSelectedTab = lastSelectedTabs.get(teamID) ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<T.Teams.TabKey>(defaultSelectedTab)
-  const resetErrorInSettings = C.useTeamsState(s => s.dispatch.resetErrorInSettings)
+  const resetErrorInSettings = Teams.useTeamsState(s => s.dispatch.resetErrorInSettings)
   const setSelectedTab = React.useCallback(
     (t: T.Teams.TabKey) => {
       lastSelectedTabs.set(teamID, t)
@@ -87,10 +88,10 @@ const Team = (props: Props) => {
   const initialTab = props.initialTab
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
-  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? C.Teams.emptyTeamDetails
-  const teamMeta = C.useTeamsState(C.useDeep(s => C.Teams.getTeamMeta(s, teamID)))
-  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
-  const teamSeen = C.useTeamsState(s => s.dispatch.teamSeen)
+  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID)) ?? Teams.emptyTeamDetails
+  const teamMeta = Teams.useTeamsState(C.useDeep(s => Teams.getTeamMeta(s, teamID)))
+  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
+  const teamSeen = Teams.useTeamsState(s => s.dispatch.teamSeen)
 
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {

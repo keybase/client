@@ -1,4 +1,5 @@
-import * as C from '@/constants'
+import type * as C from '@/constants'
+import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
@@ -21,12 +22,12 @@ const isBot = (type: T.Teams.TeamRoleType) => type === 'bot' || type === 'restri
 
 export const useTeamHumans = (teamID: T.Teams.TeamID) => {
   const [lastTID, setLastTID] = React.useState('')
-  const getMembers = C.useTeamsState(s => s.dispatch.getMembers)
+  const getMembers = useTeamsState(s => s.dispatch.getMembers)
   if (lastTID !== teamID) {
     setLastTID(teamID)
     getMembers(teamID)
   }
-  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const teamMembers = useTeamsState(s => s.teamIDToMembers.get(teamID))
   const bots = React.useMemo(() => {
     const ret = new Set<string>()
     teamMembers?.forEach(({type}, username) => isBot(type) && ret.add(username))

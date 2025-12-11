@@ -1,5 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import type {StylesCrossPlatform} from '@/styles'
@@ -137,9 +139,9 @@ const RetentionPicker = (p: Props) => {
       const {attachTo, hidePopup} = p
 
       const makeItems = () => {
-        const policies = C.Teams.baseRetentionPolicies.slice()
+        const policies = Teams.baseRetentionPolicies.slice()
         if (showInheritOption) {
-          policies.unshift(C.Teams.retentionPolicies.policyInherit)
+          policies.unshift(Teams.retentionPolicies.policyInherit)
         }
         return policies.reduce<Kb.MenuItems>((arr, policy) => {
           switch (policy.type) {
@@ -445,8 +447,8 @@ const policyToExplanation = (
 // Switcher to avoid having RetentionPicker try to process nonexistent data
 const RetentionSwitcher = (props: {entityType: RetentionEntityType} & Props) => {
   const {teamID} = props
-  const existing = C.useTeamsState(s => s.teamIDToRetentionPolicy.get(teamID))
-  const getTeamRetentionPolicy = C.useTeamsState(s => s.dispatch.getTeamRetentionPolicy)
+  const existing = useTeamsState(s => s.teamIDToRetentionPolicy.get(teamID))
+  const getTeamRetentionPolicy = useTeamsState(s => s.dispatch.getTeamRetentionPolicy)
   React.useEffect(() => {
     // only load it up if its empty
     if (!existing) {
@@ -480,9 +482,9 @@ const Container = (ownProps: OwnProps) => {
   }
   const conversationIDKey = _cid ?? C.Chat.noConversationIDKey
   let policy = C.useConvoState(conversationIDKey, s =>
-    _cid ? s.meta.retentionPolicy : C.Teams.retentionPolicies.policyRetain
+    _cid ? s.meta.retentionPolicy : Teams.retentionPolicies.policyRetain
   )
-  const tempPolicy = C.useTeamsState(s => C.Teams.getTeamRetentionPolicyByID(s, teamID))
+  const tempPolicy = useTeamsState(s => Teams.getTeamRetentionPolicyByID(s, teamID))
   if (entityType !== 'adhoc') {
     loading = !tempPolicy
     if (tempPolicy) {
@@ -494,14 +496,14 @@ const Container = (ownProps: OwnProps) => {
     }
   }
 
-  const canSetPolicy = C.useTeamsState(
-    s => entityType === 'adhoc' || C.Teams.getCanPerformByID(s, teamID).setRetentionPolicy
+  const canSetPolicy = useTeamsState(
+    s => entityType === 'adhoc' || Teams.getCanPerformByID(s, teamID).setRetentionPolicy
   )
   const policyIsExploding =
     policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy?.type === 'explode')
   const showInheritOption = entityType === 'channel'
   const showOverrideNotice = entityType === 'big team'
-  const setTeamRetentionPolicy = C.useTeamsState(s => s.dispatch.setTeamRetentionPolicy)
+  const setTeamRetentionPolicy = useTeamsState(s => s.dispatch.setTeamRetentionPolicy)
   const setConvRetentionPolicy = C.useConvoState(conversationIDKey, s => s.dispatch.setConvRetentionPolicy)
   const saveRetentionPolicy = (policy: T.Retention.RetentionPolicy) => {
     if (['small team', 'big team'].includes(entityType)) {

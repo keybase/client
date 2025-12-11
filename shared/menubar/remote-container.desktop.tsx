@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import Menubar from './index.desktop'
+import {useConfigState} from '@/constants/config'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useUsersState} from '@/constants/users'
@@ -18,9 +19,9 @@ const RemoteContainer = (d: DeserializeProps) => {
   useFollowerState(s => s.dispatch.replace)(followers, following)
   useUsersState(s => s.dispatch.replace)(infoMap)
   const replaceUsername = useCurrentUserState(s => s.dispatch.replaceUsername)
-  const setHTTPSrvInfo = C.useConfigState(s => s.dispatch.setHTTPSrvInfo)
-  const setOutOfDate = C.useConfigState(s => s.dispatch.setOutOfDate)
-  const setLoggedIn = C.useConfigState(s => s.dispatch.setLoggedIn)
+  const setHTTPSrvInfo = useConfigState(s => s.dispatch.setHTTPSrvInfo)
+  const setOutOfDate = useConfigState(s => s.dispatch.setOutOfDate)
+  const setLoggedIn = useConfigState(s => s.dispatch.setLoggedIn)
   const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
 
   // defer this so we don't update while rendering

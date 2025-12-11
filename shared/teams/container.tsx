@@ -1,19 +1,21 @@
 import * as C from '@/constants'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
-import Teams from './main'
+import Main from './main'
 import openURL from '@/util/open-url'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useConfigState} from '@/constants/config'
 
 const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,
-  newRequests: T.Immutable<C.Teams.State['newTeamRequests']>,
-  teamIDToResetUsers: T.Immutable<C.Teams.State['teamIDToResetUsers']>,
-  newTeams: T.Immutable<C.Teams.State['newTeams']>,
+  newRequests: T.Immutable<Teams.State['newTeamRequests']>,
+  teamIDToResetUsers: T.Immutable<Teams.State['teamIDToResetUsers']>,
+  newTeams: T.Immutable<Teams.State['newTeams']>,
   sortOrder: T.Immutable<T.Teams.TeamListSort>,
   activityLevels: T.Immutable<T.Teams.ActivityLevels>,
   filter: string
@@ -24,19 +26,19 @@ const orderTeams = (
     : [...teams.values()]
   return teamsFiltered.sort((a, b) => {
     const sizeDiff =
-      C.Teams.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, b.id) -
-      C.Teams.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, a.id)
+      Teams.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, b.id) -
+      Teams.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, a.id)
     if (sizeDiff !== 0) return sizeDiff
     const newTeamsDiff = (newTeams.has(b.id) ? 1 : 0) - (newTeams.has(a.id) ? 1 : 0)
     if (newTeamsDiff !== 0) return newTeamsDiff
     const nameCompare = a.teamname.localeCompare(b.teamname)
     switch (sortOrder) {
       case 'role':
-        return C.Teams.compareTeamRoles(a.role, b.role) || nameCompare
+        return Teams.compareTeamRoles(a.role, b.role) || nameCompare
       case 'activity': {
         const activityA = activityLevels.teams.get(a.id)
         const activityB = activityLevels.teams.get(b.id)
-        return C.Teams.compareActivityLevels(activityA, activityB) || nameCompare
+        return Teams.compareActivityLevels(activityA, activityB) || nameCompare
       }
       default:
         return nameCompare
@@ -45,7 +47,7 @@ const orderTeams = (
 }
 
 const Connected = () => {
-  const data = C.useTeamsState(
+  const data = Teams.useTeamsState(
     C.useShallow(s => {
       const {deletedTeams, activityLevels, teamMeta, teamListFilter, dispatch} = s
       const {newTeamRequests, newTeams, teamListSort, teamIDToResetUsers} = s
@@ -71,7 +73,7 @@ const Connected = () => {
 
   const loaded = !C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoaded)
 
-  const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
+  const updateGregorCategory = useConfigState(s => s.dispatch.updateGregorCategory)
   const onHideChatBanner = () => {
     updateGregorCategory('sawChatBanner', 'true')
   }
@@ -104,7 +106,7 @@ const Connected = () => {
 
   return (
     <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={loadTeams}>
-      <Teams
+      <Main
         onCreateTeam={onCreateTeam}
         onJoinTeam={onJoinTeam}
         onManageChat={onManageChat}

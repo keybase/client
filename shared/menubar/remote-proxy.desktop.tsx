@@ -1,5 +1,6 @@
 // A mirror of the remote menubar windows.
 import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import KB2 from '@/util/electron.desktop'
@@ -90,7 +91,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
   )
   const {following, followers} = followerState
   const username = useCurrentUserState(s => s.username)
-  const configState = C.useConfigState(
+  const configState = useConfigState(
     C.useShallow(s => {
       const {httpSrv, loggedIn, outOfDate, windowShownCount} = s
       return {httpSrv, loggedIn, outOfDate, windowShownCount}

@@ -1,6 +1,7 @@
 // Inside tracker we use an embedded Avatar which is connected.
 import * as React from 'react'
 import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
 import type * as T from '@/constants/types'
@@ -37,7 +38,7 @@ const RemoteContainer = (d: DeserializeProps) => {
   const replaceFollower = useFollowerState(s => s.dispatch.replace)
   const replaceUsers = useUsersState(s => s.dispatch.replace)
   const replaceCurrent = useCurrentUserState(s => s.dispatch.replaceUsername)
-  const replaceHTTP = C.useConfigState(s => s.dispatch.setHTTPSrvInfo)
+  const replaceHTTP = useConfigState(s => s.dispatch.setHTTPSrvInfo)
   const replaceTracker = useTrackerState(s => s.dispatch.replace)
   const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
 

@@ -5,6 +5,7 @@ import * as React from 'react'
 import WalletPopup from './wallet-popup'
 import * as Wallets from '@/constants/wallets'
 import {useState as useWalletsState} from '@/constants/wallets'
+import {useConfigState} from '@/constants/config'
 
 type OwnProps = {accountID: string}
 
@@ -16,7 +17,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const attachmentRef = React.useRef<Kb.MeasureRef | null>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
 
-  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
 
   const [sk, setSK] = React.useState('')
   const loading = !sk
@@ -143,6 +144,3 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default ReallyRemoveAccountPopup
-
-
-

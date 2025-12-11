@@ -1,5 +1,6 @@
 import * as C from '..'
 import {useProfileState} from '../profile'
+import {useTeamsState} from '../teams'
 import * as Crypto from '../crypto'
 import * as Tabs from '../tabs'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
@@ -10,6 +11,7 @@ import URL from 'url-parse'
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import {useSettingsPhoneState} from '../settings-phone'
+import {useConfigState} from '@/constants/config'
 
 const prefix = 'keybase://'
 type Store = T.Immutable<{
@@ -120,7 +122,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
   }
 
   const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
-    C.useTeamsState
+    useTeamsState
       .getState()
       .dispatch.showTeamByName(
         teamname,
@@ -261,7 +263,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
           }, 500)
           return
         case 'team-invite-link':
-          C.useTeamsState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
+          useTeamsState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
           return
         case 'settingsPushPrompt':
           C.useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
@@ -290,7 +292,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
     handleSaltPackOpen: _path => {
       const path = typeof _path === 'string' ? _path : _path.stringValue()
 
-      if (!C.useConfigState.getState().loggedIn) {
+      if (!useConfigState.getState().loggedIn) {
         console.warn('Tried to open a saltpack file before being logged in')
         return
       }

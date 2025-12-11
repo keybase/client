@@ -1,5 +1,6 @@
 import * as C from '.'
 import * as Tabs from './tabs'
+import {useConfigState} from './config'
 import * as Z from '@/util/zustand'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '@/logger'
@@ -177,7 +178,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               }
               break
             case 'settings.contacts':
-              if (C.useConfigState.getState().loggedIn) {
+              if (useConfigState.getState().loggedIn) {
                 C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
                 C.useRouterState.getState().dispatch.navUpToScreen('peopleRoot')
               }
@@ -236,13 +237,13 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
           if (shownPushPrompt) {
             // we've already shown the prompt, take them to settings
-            C.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
+            useConfigState.getState().dispatch.dynamic.openAppSettings?.()
             get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
             return
           }
         }
         try {
-          C.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
+          useConfigState.getState().dispatch.dynamic.openAppSettings?.()
           const {increment} = C.useWaitingState.getState().dispatch
           increment(C.waitingKeyPushPermissionsRequesting)
           logger.info('[PushRequesting] asking native')
@@ -311,7 +312,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         // permissions checker finishes after the routeToInitialScreen is done.
         if (
           p.show &&
-          C.useConfigState.getState().loggedIn &&
+          useConfigState.getState().loggedIn &&
           useDaemonState.getState().handshakeState === 'done' &&
           !get().justSignedUp &&
           !get().hasPermissions

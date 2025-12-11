@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
@@ -20,7 +21,7 @@ const InfoPanelConnector = (ownProps: Props) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const meta = C.useConvoState(conversationIDKey, s => s.meta)
   const shouldNavigateOut = meta.conversationIDKey === C.Chat.noConversationIDKey
-  const yourRole = C.useTeamsState(s => C.Teams.getRole(s, meta.teamID))
+  const yourRole = Teams.useTeamsState(s => Teams.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname
   const teamname = meta.teamname
@@ -49,7 +50,7 @@ const InfoPanelConnector = (ownProps: Props) => {
   }, [selectedTab, storeSelectedTab, setInfoPanelTab])
 
   const getTabs = (): Array<TabType<Panel>> => {
-    const showSettings = !isPreview || C.Teams.isAdmin(yourRole) || C.Teams.isOwner(yourRole)
+    const showSettings = !isPreview || Teams.isAdmin(yourRole) || Teams.isOwner(yourRole)
 
     return [
       {title: 'members' as const},

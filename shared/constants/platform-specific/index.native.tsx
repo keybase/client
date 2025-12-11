@@ -1,5 +1,6 @@
 import * as C from '..'
 import {useProfileState} from '../profile'
+import {useConfigState} from '../config'
 import * as T from '../types'
 import * as Clipboard from 'expo-clipboard'
 import * as EngineGen from '@/actions/engine-gen-gen'
@@ -200,7 +201,7 @@ const loadStartupDetails = async () => {
     tab = ''
   }
 
-  C.useConfigState.getState().dispatch.setStartupDetails({
+  useConfigState.getState().dispatch.setStartupDetails({
     conversation: conversation ?? C.Chat.noConversationIDKey,
     followUser,
     link,
@@ -334,7 +335,7 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
 
 export const initPlatformListener = () => {
   let _lastPersist = ''
-  C.useConfigState.setState(s => {
+  useConfigState.setState(s => {
     s.dispatch.dynamic.persistRoute = C.wrapErrors((path?: ReadonlyArray<unknown>) => {
       const f = async () => {
         let param = {}
@@ -376,7 +377,7 @@ export const initPlatformListener = () => {
     })
   })
 
-  C.useConfigState.subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     let appFocused: boolean
     let logState: T.RPCGen.MobileAppState
@@ -399,10 +400,10 @@ export const initPlatformListener = () => {
     }
 
     logger.info(`setting app state on service to: ${logState}`)
-    C.useConfigState.getState().dispatch.changedFocus(appFocused)
+    useConfigState.getState().dispatch.changedFocus(appFocused)
   })
 
-  C.useConfigState.setState(s => {
+  useConfigState.setState(s => {
     s.dispatch.dynamic.copyToClipboard = C.wrapErrors((s: string) => {
       Clipboard.setStringAsync(s)
         .then(() => {})
@@ -441,7 +442,7 @@ export const initPlatformListener = () => {
     }
   })
 
-  C.useConfigState.setState(s => {
+  useConfigState.setState(s => {
     s.dispatch.dynamic.onFilePickerError = C.wrapErrors((error: Error) => {
       Alert.alert('Error', String(error))
     })
@@ -471,25 +472,25 @@ export const initPlatformListener = () => {
               .dispatch.navigateAppend({props: {image: first}, selected: 'profileEditAvatar'})
           }
         } catch (error) {
-          C.useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
+          useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
         }
       }
       C.ignorePromise(f())
     }
   })
 
-  C.useConfigState.subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
       const {type} = await NetInfo.fetch()
-      C.useConfigState
+      useConfigState
         .getState()
         .dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type, true)
     }
     C.ignorePromise(f())
   })
 
-  C.useConfigState.subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.networkStatus === old.networkStatus) return
     const type = s.networkStatus?.type
     if (!type) return
@@ -503,7 +504,7 @@ export const initPlatformListener = () => {
     C.ignorePromise(f())
   })
 
-  C.useConfigState.setState(s => {
+  useConfigState.setState(s => {
     s.dispatch.dynamic.showShareActionSheet = C.wrapErrors(
       (filePath: string, message: string, mimeType: string) => {
         const f = async () => {
@@ -514,7 +515,7 @@ export const initPlatformListener = () => {
     )
   })
 
-  C.useConfigState.subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     if (s.mobileAppState === 'active') {
       // only reload on foreground
@@ -541,7 +542,7 @@ export const initPlatformListener = () => {
     const f = async () => {
       await C.timeoutPromise(1000)
       const path = C.Router2.getVisiblePath()
-      C.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
+      useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
     }
 
     if (!calledShareListenersRegistered && C.Router2.logState().loggedIn) {
@@ -556,7 +557,7 @@ export const initPlatformListener = () => {
   initPushListener()
 
   NetInfo.addEventListener(({type}) => {
-    C.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
+    useConfigState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
   })
 
   const initAudioModes = () => {
@@ -571,7 +572,7 @@ export const initPlatformListener = () => {
     }
   }
 
-  C.useConfigState.setState(s => {
+  useConfigState.setState(s => {
     s.dispatch.dynamic.openAppSettings = C.wrapErrors(() => {
       const f = async () => {
         if (isAndroid) {
@@ -617,12 +618,12 @@ export const initPlatformListener = () => {
   C.useRouterState.setState(s => {
     s.dispatch.dynamic.tabLongPress = C.wrapErrors((tab: string) => {
       if (tab !== Tabs.peopleTab) return
-      const accountRows = C.useConfigState.getState().configuredAccounts
+      const accountRows = useConfigState.getState().configuredAccounts
       const current = useCurrentUserState.getState().username
       const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
       if (row) {
-        C.useConfigState.getState().dispatch.setUserSwitching(true)
-        C.useConfigState.getState().dispatch.login(row.username, '')
+        useConfigState.getState().dispatch.setUserSwitching(true)
+        useConfigState.getState().dispatch.login(row.username, '')
       }
     })
   })

@@ -7,6 +7,7 @@ import {MobileSendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
 import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
+import {useConfigState} from '@/constants/config'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
@@ -15,7 +16,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
     0
   )
   const originalOnly = originalTotalSize <= scaledTotalSize
-  const setUseOriginalInStore = C.useConfigState(s => s.dispatch.setIncomingShareUseOriginal)
+  const setUseOriginalInStore = useConfigState(s => s.dispatch.setIncomingShareUseOriginal)
 
   const setUseOriginalInService = React.useCallback((useOriginal: boolean) => {
     T.RPCGen.incomingShareSetPreferenceRpcPromise({
@@ -48,7 +49,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
     !originalOnly && syncCompressPreferenceFromServiceToStore()
   }, [originalOnly, syncCompressPreferenceFromServiceToStore])
 
-  const useOriginalValue = C.useConfigState(s => s.incomingShareUseOriginal)
+  const useOriginalValue = useConfigState(s => s.incomingShareUseOriginal)
 
   const isLarge = (useOriginalValue ? originalTotalSize : scaledTotalSize) > 1024 * 1024 * 150
 
@@ -197,7 +198,7 @@ type IncomingShareProps = {
 }
 
 const IncomingShare = (props: IncomingShareProps) => {
-  const useOriginalValue = C.useConfigState(s => s.incomingShareUseOriginal)
+  const useOriginalValue = useConfigState(s => s.incomingShareUseOriginal)
   const {sendPaths, text} = props.incomingShareItems.reduce(
     ({sendPaths, text}, item) => {
       if (item.content) {
@@ -280,7 +281,7 @@ const useIncomingShareItems = () => {
   React.useEffect(getIncomingShareItemsIOS, [getIncomingShareItemsIOS])
 
   // Android
-  const androidShare = C.useConfigState(s => s.androidShare)
+  const androidShare = useConfigState(s => s.androidShare)
   const getIncomingShareItemsAndroid = React.useCallback(() => {
     if (!C.isAndroid || !androidShare) {
       return

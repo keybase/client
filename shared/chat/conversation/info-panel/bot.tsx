@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -194,7 +195,7 @@ type Props = {
 const BotTab = (props: Props) => {
   const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
-  const yourOperations = C.useTeamsState(s => (teamname ? C.Teams.getCanPerformByID(s, teamID) : undefined))
+  const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
   let canManageBots = false
   if (teamname) {
     canManageBots = yourOperations?.manageBots ?? false
@@ -203,7 +204,7 @@ const BotTab = (props: Props) => {
   }
   const adhocTeam = teamType === 'adhoc'
   const participantInfo = C.useChatContext(s => s.participants)
-  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const participantsAll = participantInfo.all
 
   let botUsernames: Array<string> = []
@@ -213,8 +214,8 @@ const BotTab = (props: Props) => {
     botUsernames = [...teamMembers.values()]
       .filter(
         p =>
-          C.Teams.userIsRoleInTeamWithInfo(teamMembers, p.username, 'restrictedbot') ||
-          C.Teams.userIsRoleInTeamWithInfo(teamMembers, p.username, 'bot')
+          Teams.userIsRoleInTeamWithInfo(teamMembers, p.username, 'restrictedbot') ||
+          Teams.userIsRoleInTeamWithInfo(teamMembers, p.username, 'bot')
       )
       .map(p => p.username)
       .sort((l, r) => l.localeCompare(r))
@@ -225,7 +226,7 @@ const BotTab = (props: Props) => {
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
-        !(!adhocTeam && teamMembers && C.Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
+        !(!adhocTeam && teamMembers && Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
     )
     .map((bot, index) => ({...bot, index, type: 'featuredBot'}))
   const infoMap = useUsersState(s => s.infoMap)

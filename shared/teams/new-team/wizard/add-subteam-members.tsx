@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -14,22 +14,22 @@ const AddSubteamMembers = () => {
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()
   const onBack = () => nav.safeNavigateUp()
-  const setTeamWizardSubteamMembers = C.useTeamsState(s => s.dispatch.setTeamWizardSubteamMembers)
-  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const setTeamWizardSubteamMembers = Teams.useTeamsState(s => s.dispatch.setTeamWizardSubteamMembers)
+  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onContinue = () =>
     selectedMembers.size
       ? setTeamWizardSubteamMembers([...selectedMembers])
       : startAddMembersWizard(T.Teams.newTeamWizardTeamID)
 
   const yourUsername = useCurrentUserState(s => s.username)
-  const parentTeamID = C.useTeamsState(s => s.newTeamWizard.parentTeamID ?? T.Teams.noTeamID)
+  const parentTeamID = Teams.useTeamsState(s => s.newTeamWizard.parentTeamID ?? T.Teams.noTeamID)
   useTeamDetailsSubscribe(parentTeamID)
-  const parentTeamName = C.useTeamsState(s => C.Teams.getTeamMeta(s, parentTeamID).teamname)
-  const parentMembersMap = C.useTeamsState(
-    s => (s.teamDetails.get(parentTeamID) ?? C.Teams.emptyTeamDetails).members
+  const parentTeamName = Teams.useTeamsState(s => Teams.getTeamMeta(s, parentTeamID).teamname)
+  const parentMembersMap = Teams.useTeamsState(
+    s => (s.teamDetails.get(parentTeamID) ?? Teams.emptyTeamDetails).members
   )
   const parentMembers = [...parentMembersMap.values()].filter(
-    m => !C.Teams.isBot(m.type) && m.username !== yourUsername
+    m => !Teams.isBot(m.type) && m.username !== yourUsername
   )
   const filteredMembers = filter
     ? parentMembers.filter(

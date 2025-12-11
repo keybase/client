@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {formatPhoneNumber} from '@/util/phone-numbers'
+import * as Teams from '@/constants/teams'
+import {useTeamsState} from '@/constants/teams'
 
 export type Props = {
   isKeybaseUser?: boolean
@@ -15,7 +16,7 @@ export type Props = {
 
 export const TeamInviteRow = (props: Props) => {
   const {onCancelInvite, role, label, firstItem, subLabel, isKeybaseUser} = props
-  const text2 = subLabel ? `${subLabel} · ${C.Teams.typeToLabel[role]}` : C.Teams.typeToLabel[role]
+  const text2 = subLabel ? `${subLabel} · ${Teams.typeToLabel[role]}` : Teams.typeToLabel[role]
   return (
     <Kb.ListItem2
       type="Small"
@@ -85,15 +86,15 @@ const labelledInviteRegex = /^(.+?) \((.+)\)$/
 // TODO: when removing flags.teamsRedesign, move this into the component itself
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const teamDetails = useTeamsState(s => s.teamDetails.get(teamID))
   const _invites = teamDetails?.invites
 
-  const removePendingInvite = C.useTeamsState(s => s.dispatch.removePendingInvite)
+  const removePendingInvite = useTeamsState(s => s.dispatch.removePendingInvite)
   const _onCancelInvite = (inviteID: string) => {
     removePendingInvite(teamID, inviteID)
   }
 
-  const user = [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || C.Teams.emptyInviteInfo
+  const user = [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || Teams.emptyInviteInfo
 
   let label: string = ''
   let subLabel: undefined | string

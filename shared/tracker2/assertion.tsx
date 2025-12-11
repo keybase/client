@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import {useCurrentUserState} from '@/constants/current-user'
 import type * as T from '@/constants/types'
 import openUrl from '@/util/open-url'
@@ -423,7 +424,7 @@ const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
 
 const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
   const {value, color} = p
-  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyAddress = React.useCallback(() => {
     copyToClipboard(value)
   }, [copyToClipboard, value])

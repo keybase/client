@@ -6,6 +6,8 @@ import TeamMenu from '../team/menu-container'
 import {pluralize} from '@/util/string'
 import {Activity} from '../common'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import * as Teams from '@/constants/teams'
+import {useTeamsState} from '@/constants/teams'
 
 type Props = {
   firstItem: boolean
@@ -16,9 +18,9 @@ type Props = {
 const TeamRow = React.memo(function TeamRow(props: Props) {
   const {firstItem, showChat = true, teamID} = props
   const nav = useSafeNavigation()
-  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const teamMeta = useTeamsState(s => Teams.getTeamMeta(s, teamID))
   // useActivityLevels in ../container ensures these are loaded
-  const activityLevel = C.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
+  const activityLevel = useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
 
   const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
 
@@ -36,11 +38,11 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
   )
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 
-  const teamIDToResetUsers = C.useTeamsState(s => s.teamIDToResetUsers)
-  const badgeCount = C.useTeamsState(s =>
-    C.Teams.getTeamRowBadgeCount(s.newTeamRequests, teamIDToResetUsers, teamID)
+  const teamIDToResetUsers = useTeamsState(s => s.teamIDToResetUsers)
+  const badgeCount = useTeamsState(s =>
+    Teams.getTeamRowBadgeCount(s.newTeamRequests, teamIDToResetUsers, teamID)
   )
-  const isNew = C.useTeamsState(s => s.newTeams.has(teamID))
+  const isNew = useTeamsState(s => s.newTeams.has(teamID))
 
   const crownIconType: Kb.IconType | undefined =
     teamMeta.role === 'owner'

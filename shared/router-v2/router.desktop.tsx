@@ -1,5 +1,6 @@
 import * as Common from './common.desktop'
 import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
@@ -117,7 +118,7 @@ const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen, true, false)
 const ElectronApp = React.memo(function ElectronApp() {
   useConnectNavToState()
   const loggedInUser = useCurrentUserState(s => s.username)
-  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const loggedIn = useConfigState(s => s.loggedIn)
   const everLoadedRef = React.useRef(false)
   const loggedInLoaded = useDaemonState(s => {
     const loaded = everLoadedRef.current || s.handshakeState === 'done'

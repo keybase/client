@@ -6,14 +6,15 @@ import {ProxySettings} from './proxy'
 import {useSettingsState, traceInProgressKey, processorProfileInProgressKey} from '@/constants/settings'
 import {usePWState} from '@/constants/settings-password'
 import {useFSState} from '@/constants/fs'
+import {useConfigState} from '@/constants/config'
 
 let initialUseNativeFrame: boolean | undefined
 
 const showMakeIcons = __DEV__ && (false as boolean)
 
 const UseNativeFrame = () => {
-  const useNativeFrame = C.useConfigState(s => s.useNativeFrame)
-  const onChangeUseNativeFrame = C.useConfigState(s => s.dispatch.setUseNativeFrame)
+  const useNativeFrame = useConfigState(s => s.useNativeFrame)
+  const onChangeUseNativeFrame = useConfigState(s => s.dispatch.setUseNativeFrame)
   React.useEffect(() => {
     if (initialUseNativeFrame === undefined) {
       initialUseNativeFrame = useNativeFrame
@@ -76,12 +77,12 @@ let disableSpellCheckInitialValue: boolean | undefined
 const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(C.waitingKeySettingsSetLockdownMode)
   const hasRandomPW = usePWState(s => !!s.randomPW)
-  const openAtLogin = C.useConfigState(s => s.openAtLogin)
+  const openAtLogin = useConfigState(s => s.openAtLogin)
   const rememberPassword = usePWState(s => s.rememberPassword)
   const setLockdownModeError = C.Waiting.useAnyErrors(C.waitingKeySettingsSetLockdownMode)?.message || ''
   const setRememberPassword = usePWState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
-  const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
+  const onSetOpenAtLogin = useConfigState(s => s.dispatch.setOpenAtLogin)
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
   const loadDisableSpellcheck = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
@@ -205,7 +206,7 @@ const Developer = () => {
 
   const setDebugLevel = useFSState(s => s.dispatch.setDebugLevel)
   const onExtraKBFSLogging = () => setDebugLevel('vlog2')
-  const onToggleRuntimeStats = C.useConfigState(s => s.dispatch.toggleRuntimeStats)
+  const onToggleRuntimeStats = useConfigState(s => s.dispatch.toggleRuntimeStats)
   const onLabelClick = () =>
     setClickCount(s => {
       const next = s + 1

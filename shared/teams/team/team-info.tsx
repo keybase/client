@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {ModalTitle} from '../common'
@@ -10,8 +11,8 @@ type Props = {teamID: T.Teams.TeamID}
 const TeamInfo = (props: Props) => {
   const nav = useSafeNavigation()
   const {teamID} = props
-  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
-  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const teamMeta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID))
   const teamname = teamMeta.teamname
   const lastDot = teamname.lastIndexOf('.')
   const isSubteam = lastDot !== -1
@@ -27,12 +28,12 @@ const TeamInfo = (props: Props) => {
   const waiting = C.Waiting.useAnyWaiting([C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsRename])
 
   const errors = {
-    desc: C.useTeamsState(s => s.errorInEditDescription),
+    desc: Teams.useTeamsState(s => s.errorInEditDescription),
     rename: C.Waiting.useAnyErrors(C.waitingKeyTeamsRename)?.message,
   }
 
-  const editTeamDescription = C.useTeamsState(s => s.dispatch.editTeamDescription)
-  const renameTeam = C.useTeamsState(s => s.dispatch.renameTeam)
+  const editTeamDescription = Teams.useTeamsState(s => s.dispatch.editTeamDescription)
+  const renameTeam = Teams.useTeamsState(s => s.dispatch.renameTeam)
   const onBack = () => nav.safeNavigateUp()
   const onSave = () => {
     if (newName !== _leafName) {

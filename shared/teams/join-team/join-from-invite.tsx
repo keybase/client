@@ -1,16 +1,17 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import {Success} from './container'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 const JoinFromInvite = () => {
-  const {inviteID: id, inviteKey: key, inviteDetails: details} = C.useTeamsState(s => s.teamInviteDetails)
-  const error = C.useTeamsState(s => s.errorInTeamJoin)
+  const {inviteID: id, inviteKey: key, inviteDetails: details} = useTeamsState(s => s.teamInviteDetails)
+  const error = useTeamsState(s => s.errorInTeamJoin)
   const loaded = details !== undefined || !!error
 
-  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
-  const requestInviteLinkDetails = C.useTeamsState(s => s.dispatch.requestInviteLinkDetails)
+  const joinTeam = useTeamsState(s => s.dispatch.joinTeam)
+  const requestInviteLinkDetails = useTeamsState(s => s.dispatch.requestInviteLinkDetails)
 
   React.useEffect(() => {
     if (loaded) {
@@ -31,7 +32,7 @@ const JoinFromInvite = () => {
   const nav = useSafeNavigation()
 
   const onNavUp = () => nav.safeNavigateUp()
-  const respondToInviteLink = C.useTeamsState(s => s.dispatch.dynamic.respondToInviteLink)
+  const respondToInviteLink = useTeamsState(s => s.dispatch.dynamic.respondToInviteLink)
   const onJoinTeam = () => {
     setClickedJoin(true)
     respondToInviteLink?.(true)

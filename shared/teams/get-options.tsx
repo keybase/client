@@ -1,11 +1,11 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {HeaderRightActions} from './main/header'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useTeamsState} from '@/constants/teams'
 
 const useHeaderActions = () => {
   const nav = useSafeNavigation()
-  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
     onCreateTeam: () => launchNewTeamWizardOrModal(),
     onJoinTeam: () => nav.safeNavigateAppend('teamJoinTeamDialog'),
@@ -13,9 +13,9 @@ const useHeaderActions = () => {
 }
 
 const TeamsFilter = () => {
-  const filterValue = C.useTeamsState(s => s.teamListFilter)
-  const numTeams = C.useTeamsState(s => s.teamMeta.size)
-  const setFilter = C.useTeamsState(s => s.dispatch.setTeamListFilter)
+  const filterValue = useTeamsState(s => s.teamListFilter)
+  const numTeams = useTeamsState(s => s.teamMeta.size)
+  const setFilter = useTeamsState(s => s.dispatch.setTeamListFilter)
   return numTeams >= 20 ? (
     <Kb.SearchFilter
       value={filterValue}

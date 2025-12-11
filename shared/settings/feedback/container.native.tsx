@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import {useCurrentUserState} from '@/constants/current-user'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -32,7 +32,7 @@ const _status = {
 const Connected = (ownProps: OwnProps) => {
   const feedback = ownProps.feedback ?? ''
   const chat = getExtraChatLogsForLogSend()
-  const loggedOut = C.useConfigState(s => !s.loggedIn)
+  const loggedOut = useConfigState(s => !s.loggedIn)
   const _push = usePushState(s => s.token)
   const push = React.useMemo(() => ({pushToken: _push}), [_push])
   const deviceID = useCurrentUserState(s => s.deviceID)

@@ -10,6 +10,7 @@ import Button from './button'
 import Icon from './icon'
 import type {RPCError} from '@/util/errors'
 import * as Settings from '@/constants/settings'
+import {useConfigState} from '@/constants/config'
 
 const Kb = {
   Box2,
@@ -157,7 +158,7 @@ const ReloadContainer = (ownProps: OwnProps) => {
     error = ownProps.errorFilter(error) ? error : undefined
   }
 
-  const _loggedIn = C.useConfigState(s => s.loggedIn)
+  const _loggedIn = useConfigState(s => s.loggedIn)
 
   const stateProps = {
     _loggedIn,

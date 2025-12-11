@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Constants from '@/constants/router2'
+import {useConfigState} from '@/constants/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
@@ -144,7 +145,7 @@ const RNApp = React.memo(function RNApp() {
   })
 
   const {initialState, initialStateState} = Hooks.useInitialState(loggedInLoaded)
-  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const loggedIn = useConfigState(s => s.loggedIn)
   const setNavState = C.useRouterState(s => s.dispatch.setNavState)
   const onStateChange = React.useCallback(() => {
     const ns = C.Router2.getRootState()

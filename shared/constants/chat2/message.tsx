@@ -1,6 +1,7 @@
 // Message related constants
 import * as T from '../types'
 import * as C from '..'
+import * as Teams from '../teams'
 import type * as ConvoConstants from './convostate'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
@@ -618,7 +619,7 @@ const uiMessageToSystemMessage = (
     case T.RPCChat.MessageSystemType.addedtoteam: {
       const {adder = '', addee = '', team = ''} = body.addedtoteam
       const roleEnum = body.addedtoteam.role
-      const role = roleEnum ? C.Teams.teamRoleByEnum[roleEnum] : 'none'
+      const role = roleEnum ? Teams.teamRoleByEnum[roleEnum] : 'none'
       const bulkAdds = body.addedtoteam.bulkAdds || []
       return makeMessageSystemAddedToTeam({
         ...minimum,
@@ -633,7 +634,7 @@ const uiMessageToSystemMessage = (
     case T.RPCChat.MessageSystemType.inviteaddedtoteam: {
       const inviteaddedtoteam = body.inviteaddedtoteam
       const invitee = inviteaddedtoteam.invitee || 'someone'
-      const role = C.Teams.teamRoleByEnum[inviteaddedtoteam.role]
+      const role = Teams.teamRoleByEnum[inviteaddedtoteam.role]
       const adder = inviteaddedtoteam.adder || 'someone'
       const inviter = inviteaddedtoteam.inviter || 'someone'
       const team = inviteaddedtoteam.team || '???'

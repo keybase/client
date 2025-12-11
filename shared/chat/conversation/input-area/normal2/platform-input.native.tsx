@@ -27,6 +27,7 @@ import logger from '@/logger'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import type {RefType as Input2Ref, Props as Input2Props} from '@/common-adapters/input2'
+import {useConfigState} from '@/constants/config'
 
 const singleLineHeight = 36
 const threeLineHeight = 78
@@ -199,7 +200,7 @@ type ChatFilePickerProps = {
 const ChatFilePicker = (p: ChatFilePickerProps) => {
   const {attachTo, showingPopup, hidePopup} = p
   const conversationIDKey = C.useChatContext(s => s.id)
-  const filePickerError = C.useConfigState(s => s.dispatch.filePickerError)
+  const filePickerError = useConfigState(s => s.dispatch.filePickerError)
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {

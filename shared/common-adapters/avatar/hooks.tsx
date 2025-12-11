@@ -1,5 +1,5 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
-import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import * as React from 'react'
 import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType} from '../icon'
 import * as Styles from '@/styles'
@@ -67,7 +67,7 @@ export default (ownProps: Props) => {
   const followsYou = useFollowerState(s =>
     showFollowingStatus && username ? s.followers.has(username) : false
   )
-  const httpSrv = C.useConfigState(s => s.httpSrv)
+  const httpSrv = useConfigState(s => s.httpSrv)
   const blocked = useUsersState(s => s.blockMap.get(username || teamname || '')?.chatBlocked)
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const goToProfile = React.useCallback(

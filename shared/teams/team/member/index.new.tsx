@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import {useCurrentUserState} from '@/constants/current-user'
+import * as Teams from '@/constants/teams'
 import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -34,13 +35,13 @@ type TeamTreeRowIn = {
 } & TeamTreeRowNotIn
 
 const getMemberships = (
-  state: C.Teams.State,
+  state: Teams.State,
   teamIDs: Array<T.Teams.TeamID>,
   username: string
 ): Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo> => {
   const results = new Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>()
   teamIDs.forEach(teamID => {
-    const info = C.Teams.maybeGetSparseMemberInfo(state, teamID, username)
+    const info = Teams.maybeGetSparseMemberInfo(state, teamID, username)
     if (info) {
       results.set(teamID, info)
     }
@@ -54,9 +55,9 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
   const nodesIn: Array<TeamTreeRowIn> = []
 
-  const memberships = C.useTeamsState(s => s.teamMemberToTreeMemberships.get(targetTeamID)?.get(username))
-  const roleMap = C.useTeamsState(s => s.teamRoleMap.roles)
-  const teamMetas = C.useTeamsState(s => s.teamMeta)
+  const memberships = Teams.useTeamsState(s => s.teamMemberToTreeMemberships.get(targetTeamID)?.get(username))
+  const roleMap = Teams.useTeamsState(s => s.teamRoleMap.roles)
+  const teamMetas = Teams.useTeamsState(s => s.teamMeta)
 
   // Note that we do not directly take any information directly from the TeamTree result other
   // than the **shape of the tree**. The other information is delegated to
@@ -66,7 +67,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
     memberships?.memberships
       .filter(m => m.result.s === T.RPCGen.TeamTreeMembershipStatus.ok)
       .map(m => (m.result as TreeMembershipOK).ok.teamID) ?? []
-  const upToDateSparseMemberInfos = C.useTeamsState(C.useDeep(s => getMemberships(s, teamIDs, username)))
+  const upToDateSparseMemberInfos = Teams.useTeamsState(C.useDeep(s => getMemberships(s, teamIDs, username)))
 
   if (!memberships) {
     return {errors, nodesIn, nodesNotIn}
@@ -82,7 +83,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
         continue
       }
 
-      const ops = C.Teams.deriveCanPerform(roleMap.get(teamID))
+      const ops = Teams.deriveCanPerform(roleMap.get(teamID))
       const row = {
         canAdminister: ops.manageMembers,
         joinTime: sparseMemberInfo.joinTime,
@@ -139,7 +140,7 @@ const TeamMember = (props: OwnProps) => {
   const username = props.username
   const teamID = props.teamID
   const isMe = username === useCurrentUserState(s => s.username)
-  const loading = C.useTeamsState(s => {
+  const loading = Teams.useTeamsState(s => {
     const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
     if (!memberships?.expectedCount) {
       return true
@@ -152,7 +153,7 @@ const TeamMember = (props: OwnProps) => {
     return got < want
   })
 
-  const loadTeamTree = C.useTeamsState(s => s.dispatch.loadTeamTree)
+  const loadTeamTree = Teams.useTeamsState(s => s.dispatch.loadTeamTree)
 
   // Load up the memberships when the page is opened
   React.useEffect(() => {
@@ -274,7 +275,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   useTeamDetailsSubscribe(props.node.teamID)
   const nav = useSafeNavigation()
   const onAddWaitingKey = C.waitingKeyTeamsAddMember(props.node.teamID, props.username)
-  const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
+  const addToTeam = Teams.useTeamsState(s => s.dispatch.addToTeam)
   const onAdd = (role: T.Teams.TeamRoleType) => {
     addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
   }
@@ -282,8 +283,8 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
     () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'}),
     [props.node.teamID, nav]
   )
-  const disabledRoles = C.useTeamsState(s =>
-    C.Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
+  const disabledRoles = Teams.useTeamsState(s =>
+    Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
   const [open, setOpen] = React.useState(false)
 
@@ -356,8 +357,8 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
 }
 
 const LastActivity = (props: {loading: boolean; teamID: T.Teams.TeamID; username: string}) => {
-  const lastActivity = C.useTeamsState(s =>
-    C.Teams.getTeamMemberLastActivity(s, props.teamID, props.username)
+  const lastActivity = Teams.useTeamsState(s =>
+    Teams.getTeamMemberLastActivity(s, props.teamID, props.username)
   )
 
   return (
@@ -392,7 +393,7 @@ const NodeInRow = (props: NodeInRowProps) => {
       selected: 'teamAddToChannels',
     })
   const onKickOutWaitingKey = C.waitingKeyTeamsRemoveMember(props.node.teamID, props.username)
-  const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
+  const removeMember = Teams.useTeamsState(s => s.dispatch.removeMember)
   const onKickOut = () => {
     removeMember(props.node.teamID, props.username)
     if (props.isParentTeamMe) {
@@ -409,7 +410,7 @@ const NodeInRow = (props: NodeInRowProps) => {
 
   const [role, setRole] = React.useState<T.Teams.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
-  const editMembership = C.useTeamsState(s => s.dispatch.editMembership)
+  const editMembership = Teams.useTeamsState(s => s.dispatch.editMembership)
   const onChangeRole = (role: T.Teams.TeamRoleType) => {
     setRole(role)
     editMembership(props.node.teamID, [props.username], role)
@@ -418,10 +419,10 @@ const NodeInRow = (props: NodeInRowProps) => {
       nav.safeNavigateUp()
     }
   }
-  const disabledRoles = C.useTeamsState(s =>
-    C.Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
+  const disabledRoles = Teams.useTeamsState(s =>
+    Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
-  const amLastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, props.node.teamID))
+  const amLastOwner = Teams.useTeamsState(s => Teams.isLastOwner(s, props.node.teamID))
   const isMe = props.username === useCurrentUserState(s => s.username)
   const changingRole = C.Waiting.useAnyWaiting(
     C.waitingKeyTeamsEditMembership(props.node.teamID, props.username)
@@ -448,7 +449,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     <></>
   )
 
-  const myRole = C.useTeamsState(s => C.Teams.getRole(s, props.node.teamID))
+  const myRole = Teams.useTeamsState(s => Teams.getRole(s, props.node.teamID))
   const cantKickOut = props.node.canAdminister && props.node.role === 'owner' && myRole !== 'admin'
 
   return (
@@ -604,8 +605,8 @@ export const TeamMemberHeader = (props: Props) => {
   const nav = useSafeNavigation()
   const leaving = useNavUpIfRemovedFromTeam(teamID, username)
 
-  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
-  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const teamMeta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID))
   const yourUsername = useCurrentUserState(s => s.username)
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)

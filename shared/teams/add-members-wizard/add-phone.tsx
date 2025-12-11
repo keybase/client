@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {ModalTitle, usePhoneNumberList} from '../common'
@@ -9,7 +10,7 @@ import {useSettingsPhoneState} from '@/constants/settings-phone'
 const waitingKey = 'phoneLookup'
 
 const AddPhone = () => {
-  const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
+  const teamID = useTeamsState(s => s.addMembersWizard.teamID)
   const [error, setError] = React.useState('')
   const nav = useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
@@ -28,7 +29,7 @@ const AddPhone = () => {
   }, [defaultCountry, loadDefaultPhoneCountry])
 
   const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
-  const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
+  const addMembersWizardPushMembers = useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
   const onContinue = () => {
     setError('')
     emailsToAssertionsRPC(

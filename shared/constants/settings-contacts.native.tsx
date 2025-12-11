@@ -11,6 +11,7 @@ import {getE164} from './settings-phone'
 import {isIOS} from './platform'
 import {pluralize} from '@/util/string'
 import {useCurrentUserState} from './current-user'
+import {useConfigState} from '@/constants/config'
 
 const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
 
@@ -99,7 +100,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
     },
     loadContactImportEnabled: () => {
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
         const username = useCurrentUserState.getState().username

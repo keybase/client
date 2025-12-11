@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
@@ -21,7 +22,7 @@ const SystemInviteAcceptedContainer = React.memo(function SystemInviteAcceptedCo
     return <YouInviteAddedToTeamNotice onViewTeam={onViewTeam} />
   }
   const {inviter} = message
-  const roleLabel = role === 'none' ? null : C.Teams.typeToLabel[role]
+  const roleLabel = role === 'none' ? null : Teams.typeToLabel[role]
   // There's not a lot of space to explain the adder / inviter situation,
   // just pretend they were added by the inviter for now.
   return (

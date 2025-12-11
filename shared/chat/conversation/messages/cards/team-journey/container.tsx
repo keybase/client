@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
@@ -16,7 +17,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const conv = C.useChatContext(s => s.meta)
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
-  const canShowcase = C.useTeamsState(s => C.Teams.canShowcase(s, teamID))
+  const canShowcase = Teams.useTeamsState(s => Teams.canShowcase(s, teamID))
   const isBigTeam = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
@@ -26,10 +27,10 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _onGoToChannel = (channelname: string, teamname: string) =>
     previewConversation({channelname, reason: 'journeyCardPopular', teamname})
-  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
+  const manageChatChannels = Teams.useTeamsState(s => s.dispatch.manageChatChannels)
   const _onManageChannels = (teamID: string) => manageChatChannels(teamID)
 
-  const setMemberPublicity = C.useTeamsState(s => s.dispatch.setMemberPublicity)
+  const setMemberPublicity = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
   const _onPublishTeam = (teamID: string) => {
     navigateAppend('profileShowcaseTeamOffer')
     setMemberPublicity(teamID, true)

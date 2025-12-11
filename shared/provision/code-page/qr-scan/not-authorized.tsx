@@ -1,8 +1,8 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {useConfigState} from '@/constants/config'
 
 const QRScanNotAuthorized = () => {
-  const onOpenSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onOpenSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
   return (
     <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
       <Kb.Icon type="iconfont-camera" color={Kb.Styles.globalColors.white_40} />

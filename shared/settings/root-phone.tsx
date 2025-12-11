@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {useConfigState} from '@/constants/config'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -64,7 +65,7 @@ type Section = Omit<Kb.SectionType<Item>, 'renderItem'>
 function SettingsNav() {
   const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => !s.hasPermissions)
-  const statsShown = C.useConfigState(s => !!s.runtimeStats)
+  const statsShown = useConfigState(s => !!s.runtimeStats)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const contactsLabel = useSettingsContactsState(s =>
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'

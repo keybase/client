@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Teams from '@/constants/teams'
 import {useProfileState} from '@/constants/profile'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -262,16 +263,16 @@ const RequestRowStateWrapper = (props: RowProps & ExtraProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
-  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const {teamname} = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
   const _notifLabel = C.useChatState(s =>
     C.Chat.isBigTeam(s, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )
-  const disabledReasonsForRolePicker = C.useTeamsState(s =>
-    C.Teams.getDisabledReasonsForRolePicker(s, teamID, username)
+  const disabledReasonsForRolePicker = Teams.useTeamsState(s =>
+    Teams.getDisabledReasonsForRolePicker(s, teamID, username)
   )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, username))
-  const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
-  const ignoreRequest = C.useTeamsState(s => s.dispatch.ignoreRequest)
+  const removeMember = Teams.useTeamsState(s => s.dispatch.removeMember)
+  const ignoreRequest = Teams.useTeamsState(s => s.dispatch.ignoreRequest)
 
   const _onIgnoreRequest = (teamname: string) => {
     if (reset) {
@@ -281,7 +282,7 @@ const Container = (ownProps: OwnProps) => {
     }
   }
 
-  const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
+  const addToTeam = Teams.useTeamsState(s => s.dispatch.addToTeam)
   const letIn = (sendNotification: boolean, role: T.Teams.TeamRoleType) => {
     addToTeam(teamID, [{assertion: username, role}], sendNotification)
   }

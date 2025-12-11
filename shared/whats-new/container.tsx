@@ -4,6 +4,7 @@ import {currentVersion} from '@/constants/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
 import {useState as useWNState} from '@/constants/whats-new'
+import {useConfigState} from '@/constants/config'
 
 const WhatsNewContainer = () => {
   const _onNavigateExternal = (url: string) => {
@@ -14,7 +15,7 @@ const WhatsNewContainer = () => {
     switchTab(tab)
   }
 
-  const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
+  const updateGregorCategory = useConfigState(s => s.dispatch.updateGregorCategory)
   const _onUpdateLastSeenVersion = (lastSeenVersion: string) => {
     updateGregorCategory('whatsNewLastSeenVersion', lastSeenVersion)
   }

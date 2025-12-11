@@ -10,6 +10,7 @@ import {usePWState} from '../settings-password'
 import {useSettingsPhoneState} from '../settings-phone'
 import {useSettingsEmailState} from '../settings-email'
 import {useCurrentUserState} from '../current-user'
+import {useConfigState} from '@/constants/config'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -101,7 +102,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
       return
     }
 
-    if (maybeLoadAppLinkOnce || !C.useConfigState.getState().startup.link.endsWith('/phone-app')) {
+    if (maybeLoadAppLinkOnce || !useConfigState.getState().startup.link.endsWith('/phone-app')) {
       return
     }
     maybeLoadAppLinkOnce = true
@@ -144,7 +145,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
         }
 
         await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, C.waitingKeySettingsGeneric)
-        C.useConfigState.getState().dispatch.setJustDeletedSelf(username)
+        useConfigState.getState().dispatch.setJustDeletedSelf(username)
         C.useRouterState.getState().dispatch.clearModals()
         C.useRouterState.getState().dispatch.navigateAppend(Tabs.loginTab)
       }
@@ -152,7 +153,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     },
     loadLockdownMode: () => {
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
         try {
@@ -184,7 +185,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     },
     loadSettings: () => {
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
         try {
@@ -262,7 +263,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     },
     setLockdownMode: enabled => {
       const f = async () => {
-        if (!C.useConfigState.getState().loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
         try {

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/constants/current-user'
@@ -15,7 +16,7 @@ const PinnedMessage = React.memo(function PinnedMessage() {
     })
   )
   const you = useCurrentUserState(s => s.username)
-  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname))
+  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerform(s, teamname))
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
   const {message, pinnerUsername} = pinnedMsg ?? {}
   const {id: messageID, author, type} = message ?? {}
