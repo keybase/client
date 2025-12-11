@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
@@ -8,7 +9,7 @@ import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 type Action = {label: string; onClick: () => void} | 'wave'
 type OwnProps = {ordinal: T.Chat.Ordinal}
 
-const emptyJourney = C.Chat.makeMessageJourneycard({})
+const emptyJourney = Chat.makeMessageJourneycard({})
 
 const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {ordinal} = ownProps
@@ -18,7 +19,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const canShowcase = Teams.useTeamsState(s => Teams.canShowcase(s, teamID))
-  const isBigTeam = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
+  const isBigTeam = C.useChatState(s => Chat.isBigTeam(s, teamID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
   const dismissJourneycard = C.useChatContext(s => s.dispatch.dismissJourneycard)

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '@/styles'
@@ -15,7 +16,7 @@ type OwnProps = {
   visible: boolean
 }
 
-const emptyMessage = C.Chat.makeMessageAttachment({})
+const emptyMessage = Chat.makeMessageAttachment({})
 
 const PopAttach = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
@@ -73,7 +74,7 @@ const PopAttach = (ownProps: OwnProps) => {
   }, [messageAttachmentNativeSave, ordinal])
 
   const onSaveAttachment =
-    C.isMobile && (attachmentType === 'image' || C.Chat.isImageViewable(message))
+    C.isMobile && (attachmentType === 'image' || Chat.isImageViewable(message))
       ? _onSaveAttachment
       : undefined
 

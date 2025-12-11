@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -41,7 +42,7 @@ type OpenTeamResult = {
 
 type Item = NameResult | TextResult | BotResult | OpenTeamResult
 
-const emptySearch = C.Chat.makeInboxSearchInfo()
+const emptySearch = Chat.makeInboxSearchInfo()
 
 export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   const _inboxSearch = C.useChatState(s => s.inboxSearch ?? emptySearch)
@@ -114,7 +115,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     const {item, index} = h
     if (item.type !== 'bot') return null
     return (
-      <C.ChatProvider id={C.Chat.noConversationIDKey} key={index} canBeNull={true}>
+      <C.ChatProvider id={Chat.noConversationIDKey} key={index} canBeNull={true}>
         <Bot {...item.bot} onClick={onInstallBot} firstItem={index === 0} hideHover={true} />
       </C.ChatProvider>
     )
@@ -255,7 +256,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
           numSearchHits={numHits}
-          maxSearchHits={C.Chat.inboxSearchMaxTextMessages}
+          maxSearchHits={Chat.inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
       </C.ChatProvider>
@@ -265,7 +266,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
           numSearchHits={numHits}
-          maxSearchHits={C.Chat.inboxSearchMaxTextMessages}
+          maxSearchHits={Chat.inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
       </C.ChatProvider>

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
@@ -141,7 +142,7 @@ const TeamHeader = () => {
 }
 
 export const AdhocHeader = () => {
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const onShowNewTeamDialog = () => {
     navigateAppend(conversationIDKey => ({
       props: {conversationIDKey},

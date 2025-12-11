@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as RowSizes from './sizes'
@@ -25,7 +26,7 @@ const BigTeamChannelImpl = (props: Props) => {
   const isError = C.useChatContext(s => s.meta.trustedState === 'error')
   const snippetDecoration = C.useChatContext(s => {
     const d =
-      s.meta.conversationIDKey === C.Chat.noConversationIDKey
+      s.meta.conversationIDKey === Chat.noConversationIDKey
         ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
         : s.meta.snippetDecoration
 

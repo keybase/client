@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useConfigState} from '@/constants/config'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -17,7 +18,7 @@ type OwnProps = {
   visible: boolean
 }
 
-const emptyMessage = C.Chat.makeMessageText({})
+const emptyMessage = Chat.makeMessageText({})
 
 const PopText = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
@@ -45,7 +46,7 @@ const PopText = (ownProps: OwnProps) => {
                       `• ${c.commitHash.substring(0, 8)} - ${c.message.endsWith('\n') ? c.message.substring(0, c.message.length - 1) : c.message}`
                   ) ?? []
 
-                const branchName = C.Chat.systemGitBranchName(ref)
+                const branchName = Chat.systemGitBranchName(ref)
                 const parts = [
                   `pushed ${ref.commits?.length ?? 0} commit${(ref.commits?.length ?? 0) > 1 ? 's' : ''} to ${message.repo}/${branchName}`,
                   ...commits,
@@ -83,7 +84,7 @@ const PopText = (ownProps: OwnProps) => {
     messageReplyPrivately(ordinal)
   }, [messageReplyPrivately, ordinal])
   const onReplyPrivately = !yourMessage && canReplyPrivately ? _onReplyPrivately : undefined
-  const mapUnfurl = C.Chat.getMapUnfurl(message)
+  const mapUnfurl = Chat.getMapUnfurl(message)
   // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
   const onViewMap =
     mapUnfurl?.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone ? () => openURL(mapUnfurl.url) : undefined

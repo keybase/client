@@ -1,6 +1,7 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Teams from '@/constants/teams'
 import type {Tab as TabType} from '@/common-adapters/tabs'
 
@@ -105,7 +106,7 @@ const Container = (ownProps: OwnProps) => {
 
   const admin = yourOperations.manageMembers
   const error = Teams.useTeamsState(s => s.errorInAddToTeam)
-  const isBig = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
+  const isBig = C.useChatState(s => Chat.isBigTeam(s, teamID))
   const loading = C.Waiting.useAnyWaiting([
     C.waitingKeyTeamsTeam(teamID),
     C.waitingKeyTeamsTeamTars(teamMeta.teamname),

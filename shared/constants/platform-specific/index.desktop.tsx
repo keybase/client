@@ -1,4 +1,5 @@
 import * as C from '..'
+import * as Chat from '../chat2'
 import {useProfileState} from '../profile'
 import * as ConfigConstants from '../config'
 import {useConfigState} from '../config'
@@ -241,7 +242,7 @@ export const initPlatformListener = () => {
   useDaemonState.subscribe((s, old) => {
     if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
     useConfigState.getState().dispatch.setStartupDetails({
-      conversation: C.Chat.noConversationIDKey,
+      conversation: Chat.noConversationIDKey,
       followUser: '',
       link: '',
       tab: undefined,

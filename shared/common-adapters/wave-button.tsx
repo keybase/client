@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import {Box2, Box} from './box'
 import Icon from './icon'
@@ -33,7 +34,7 @@ const getWaveWaitingKey = (recipient: string) => {
 }
 
 const WaveButton = (props: Props) => {
-  const hasContext = C.Chat.useHasContext()
+  const hasContext = Chat.useHasContext()
   if (props.username) {
     if (hasContext) {
       return <WaveButtonImpl {...props} />

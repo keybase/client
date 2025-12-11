@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -42,7 +43,7 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
       return (
         <>
           {refs?.map(ref => {
-            const branchName = C.Chat.systemGitBranchName(ref)
+            const branchName = Chat.systemGitBranchName(ref)
             return (
               <GitPushCommon key={branchName}>
                 <GitPushDefault

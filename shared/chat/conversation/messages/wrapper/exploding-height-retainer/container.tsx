@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import ExplodingHeightRetainer from '.'
 import {useOrdinal} from '../../ids-context'
@@ -17,7 +18,7 @@ const ExplodingHeightRetainerContainer = React.memo(function ExplodingHeightReta
       const exploding = !!m?.exploding
       const exploded = !!m?.exploded
       const explodedBy = m?.explodedBy
-      const messageKey = m ? C.Chat.getMessageKey(m) : ''
+      const messageKey = m ? Chat.getMessageKey(m) : ''
       return {exploded, explodedBy, exploding, forceAsh, messageKey}
     })
   )

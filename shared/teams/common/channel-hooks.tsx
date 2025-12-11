@@ -1,5 +1,6 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 
@@ -56,7 +57,7 @@ export const useAllChannelMetas = (
               setChannelMetas(
                 new Map(
                   convs
-                    .map(conv => C.Chat.inboxUIItemToConversationMeta(conv))
+                    .map(conv => Chat.inboxUIItemToConversationMeta(conv))
                     .reduce((arr, a) => {
                       if (a) {
                         arr.push([a.conversationIDKey, a])

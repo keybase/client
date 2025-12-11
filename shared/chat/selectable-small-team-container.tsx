@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import type {AllowedColors} from '@/common-adapters/text'
 import SelectableSmallTeam from './selectable-small-team'
@@ -51,7 +52,7 @@ const Container = (ownProps: OwnProps) => {
 
   // order participants by hit, if it's set
   const filter = ownProps.filter ?? ''
-  const metaParts = C.Chat.getRowParticipants(_participantInfo, _username)
+  const metaParts = Chat.getRowParticipants(_participantInfo, _username)
   let participants = ownProps.participants ?? (metaParts.length > 0 ? metaParts : name.split(','))
   participants = participants.sort((a, b) => {
     const ai = a.indexOf(filter)

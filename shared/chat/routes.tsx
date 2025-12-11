@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import chatNewChat from '../team-building/page'
 import {headerNavigationOptions} from './conversation/header-area'
 import inboxGetOptions from './inbox/get-options'
@@ -8,7 +9,7 @@ import inboxAndConvoGetOptions from './inbox-and-conversation-2-get-options'
 const Convo = React.lazy(async () => import('./conversation/container'))
 
 export const newRoutes = {
-  chatConversation: C.Chat.makeChatScreen(Convo, {
+  chatConversation: Chat.makeChatScreen(Convo, {
     canBeNullConvoID: true,
     getOptions: p => ({
       ...headerNavigationOptions(p.route),
@@ -18,22 +19,22 @@ export const newRoutes = {
   chatEnterPaperkey: {
     screen: React.lazy(async () => import('./conversation/rekey/enter-paper-key')),
   },
-  chatRoot: C.Chat.isSplit
-    ? C.Chat.makeChatScreen(
+  chatRoot: Chat.isSplit
+    ? Chat.makeChatScreen(
         React.lazy(async () => import('./inbox-and-conversation-2')),
         {getOptions: inboxAndConvoGetOptions, skipProvider: true}
       )
-    : C.Chat.makeChatScreen(
+    : Chat.makeChatScreen(
         React.lazy(async () => import('./inbox/defer-loading')),
         {getOptions: inboxGetOptions, skipProvider: true}
       ),
 }
 
 export const newModalRoutes = {
-  chatAddToChannel: C.Chat.makeChatScreen(
+  chatAddToChannel: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/info-panel/add-to-channel'))
   ),
-  chatAttachmentFullscreen: C.Chat.makeChatScreen(
+  chatAttachmentFullscreen: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/attachment-fullscreen/screen')),
     {
       getOptions: {
@@ -42,58 +43,58 @@ export const newModalRoutes = {
       },
     }
   ),
-  chatAttachmentGetTitles: C.Chat.makeChatScreen(
+  chatAttachmentGetTitles: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/attachment-get-titles'))
   ),
-  chatBlockingModal: C.Chat.makeChatScreen(React.lazy(async () => import('./blocking/block-modal'))),
-  chatChooseEmoji: C.Chat.makeChatScreen(React.lazy(async () => import('./emoji-picker/container'))),
-  chatConfirmNavigateExternal: C.Chat.makeChatScreen(
+  chatBlockingModal: Chat.makeChatScreen(React.lazy(async () => import('./blocking/block-modal'))),
+  chatChooseEmoji: Chat.makeChatScreen(React.lazy(async () => import('./emoji-picker/container'))),
+  chatConfirmNavigateExternal: Chat.makeChatScreen(
     React.lazy(async () => import('./punycode-link-warning')),
     {skipProvider: true}
   ),
-  chatConfirmRemoveBot: C.Chat.makeChatScreen(
+  chatConfirmRemoveBot: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/confirm')),
     {canBeNullConvoID: true}
   ),
-  chatCreateChannel: C.Chat.makeChatScreen(
+  chatCreateChannel: Chat.makeChatScreen(
     React.lazy(async () => import('./create-channel')),
     {skipProvider: true}
   ),
-  chatDeleteHistoryWarning: C.Chat.makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
-  chatForwardMsgPick: C.Chat.makeChatScreen(React.lazy(async () => import('./conversation/fwd-msg'))),
-  chatInfoPanel: C.Chat.makeChatScreen(React.lazy(async () => import('./conversation/info-panel'))),
-  chatInstallBot: C.Chat.makeChatScreen(
+  chatDeleteHistoryWarning: Chat.makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
+  chatForwardMsgPick: Chat.makeChatScreen(React.lazy(async () => import('./conversation/fwd-msg'))),
+  chatInfoPanel: Chat.makeChatScreen(React.lazy(async () => import('./conversation/info-panel'))),
+  chatInstallBot: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/install')),
     {skipProvider: true}
   ),
-  chatInstallBotPick: C.Chat.makeChatScreen(
+  chatInstallBotPick: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/team-picker')),
     {skipProvider: true}
   ),
-  chatLocationPreview: C.Chat.makeChatScreen(
+  chatLocationPreview: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/input-area/location-popup'))
   ),
-  chatMessagePopup: C.Chat.makeChatScreen(
+  chatMessagePopup: Chat.makeChatScreen(
     React.lazy(async () => {
       const {MessagePopupModal} = await import('./conversation/messages/message-popup')
       return {default: MessagePopupModal}
     })
   ),
   chatNewChat,
-  chatPDF: C.Chat.makeChatScreen(
+  chatPDF: Chat.makeChatScreen(
     React.lazy(async () => import('./pdf')),
     {getOptions: C.isMobile ? undefined : {modal2: true, modal2Type: 'SuperWide'}}
   ),
-  chatSearchBots: C.Chat.makeChatScreen(
+  chatSearchBots: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/search')),
     {canBeNullConvoID: true}
   ),
-  chatSendToChat: C.Chat.makeChatScreen(
+  chatSendToChat: Chat.makeChatScreen(
     React.lazy(async () => import('./send-to-chat')),
     {skipProvider: true}
   ),
-  chatShowNewTeamDialog: C.Chat.makeChatScreen(React.lazy(async () => import('./new-team-dialog-container'))),
-  chatUnfurlMapPopup: C.Chat.makeChatScreen(
+  chatShowNewTeamDialog: Chat.makeChatScreen(React.lazy(async () => import('./new-team-dialog-container'))),
+  chatUnfurlMapPopup: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup'))
   ),
 }

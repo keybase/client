@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import type {StylesCrossPlatform} from '@/styles'
 import {useOrdinal} from './ids-context'
@@ -38,7 +39,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const onClick = React.useCallback(() => {
     toggleMessageReaction(ordinal, emoji || '')
   }, [toggleMessageReaction, emoji, ordinal])
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const onOpenEmojiPicker = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -23,7 +24,7 @@ const BlockButtons = () => {
   }
   const adder = blockButtonInfo.adder
   const others = (team ? participantInfo.all : participantInfo.name).filter(
-    person => person !== currentUser && person !== adder && !C.Chat.isAssertion(person)
+    person => person !== currentUser && person !== adder && !Chat.isAssertion(person)
   )
 
   const onViewProfile = () => showUserProfile(adder)

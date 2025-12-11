@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -14,8 +15,8 @@ import {useCurrentUserState} from '@/constants/current-user'
 export const HeaderAreaRight = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const pendingWaiting =
-    conversationIDKey === C.Chat.pendingWaitingConversationIDKey ||
-    conversationIDKey === C.Chat.pendingErrorConversationIDKey
+    conversationIDKey === Chat.pendingWaitingConversationIDKey ||
+    conversationIDKey === Chat.pendingErrorConversationIDKey
 
   // const {chatDebugDump} = React.useContext(DebugChatDumpContext)
   // const [showToast, setShowToast] = React.useState(false)
@@ -97,7 +98,7 @@ const BadgeHeaderLeftArray = (p: HeaderBackButtonProps) => {
 }
 
 export const headerNavigationOptions = (route: {params?: {conversationIDKey?: string}}) => {
-  const conversationIDKey = route.params?.conversationIDKey ?? C.Chat.noConversationIDKey
+  const conversationIDKey = route.params?.conversationIDKey ?? Chat.noConversationIDKey
   return {
     headerLeft: (props: HeaderBackButtonProps) => {
       const {onLabelLayout, labelStyle, ...rest} = props

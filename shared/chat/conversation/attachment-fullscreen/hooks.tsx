@@ -1,10 +1,11 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import type * as T from '@/constants/types'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
 import {useFSState} from '@/constants/fs'
 
-const blankMessage = C.Chat.makeMessageAttachment({})
+const blankMessage = Chat.makeMessageAttachment({})
 export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const [ordinal, setOrdinal] = React.useState(initialOrdinal)
@@ -43,7 +44,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   const {downloadPath, fileURL: path, fullHeight, fullWidth, fileType} = message
   const {previewHeight, previewURL: previewPath, previewWidth, title, transferProgress} = message
-  const {height: clampedHeight, width: clampedWidth} = C.Chat.clampImageSize(
+  const {height: clampedHeight, width: clampedWidth} = Chat.clampImageSize(
     previewWidth,
     previewHeight,
     maxWidth,

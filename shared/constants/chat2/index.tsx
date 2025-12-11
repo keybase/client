@@ -15,6 +15,7 @@ import * as Meta from './meta'
 import {isMobile, isPhone} from '../platform'
 import * as Z from '@/util/zustand'
 import * as Common from './common'
+import {clearChatStores} from './convostate'
 import {uint8ArrayToString} from 'uint8array-extras'
 import {useUsersState} from '../users'
 import {useCurrentUserState} from '../current-user'
@@ -457,7 +458,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             }
             const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
             get().dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
-            C.getConvoState(C.Chat.pendingErrorConversationIDKey).dispatch.navigateToThread(
+            C.getConvoState(T.Chat.pendingErrorConversationIDKey).dispatch.navigateToThread(
               'justCreated',
               highlightMessageID
             )
@@ -487,7 +488,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         const results = await T.RPCChat.localUserEmojisRpcPromise(
           {
             convID:
-              conversationIDKey && conversationIDKey !== C.Chat.noConversationIDKey
+              conversationIDKey && conversationIDKey !== T.Chat.noConversationIDKey
                 ? T.Chat.keyToConversationID(conversationIDKey)
                 : null,
             opts: {
@@ -653,7 +654,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           })
 
           if (
-            C.getConvoState(result.conversationIDKey).meta.conversationIDKey === C.Chat.noConversationIDKey
+            C.getConvoState(result.conversationIDKey).meta.conversationIDKey === T.Chat.noConversationIDKey
           ) {
             get().dispatch.unboxRows([result.conversationIDKey], true)
           }
@@ -855,7 +856,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       const newConvID = inboxLayout?.reselectInfo?.newConvID
       const oldConvID = inboxLayout?.reselectInfo?.oldConvID
 
-      const selectedConversation = C.Chat.getSelectedConversation()
+      const selectedConversation = Common.getSelectedConversation()
 
       if (!newConvID && !oldConvID) {
         return
@@ -966,7 +967,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         // We got some new messages appended
         case T.RPCChat.SyncInboxResType.incremental: {
           const items = syncRes.incremental.items || []
-          const selectedConversation = C.Chat.getSelectedConversation()
+          const selectedConversation = Common.getSelectedConversation()
           let loadMore = false as boolean
           const metas = items.reduce<Array<T.Chat.ConversationMeta>>((arr, i) => {
             const meta = Meta.unverifiedInboxUIItemToConversationMeta(i.conv)
@@ -1006,7 +1007,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         }
       }
       let loadMore = false as boolean
-      const selectedConversation = C.Chat.getSelectedConversation()
+      const selectedConversation = Common.getSelectedConversation()
       keys.forEach(key => {
         const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
           const cid = T.Chat.conversationIDToKey(u.convID)
@@ -1476,7 +1477,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         // need to let the mdoal hide first else its thrashy
         await C.timeoutPromise(500)
-        C.getConvoState(C.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+        C.getConvoState(T.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation([...users].map(u => u.id))
       }
       C.ignorePromise(f())
@@ -1504,7 +1505,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           }
         }
 
-        C.getConvoState(C.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+        C.getConvoState(T.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation(participants, highlightMessageID)
       }
 
@@ -1672,7 +1673,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         staticConfig: s.staticConfig,
       }))
       // also blow away convoState
-      C.Chat.clearChatStores()
+      clearChatStores()
     },
     setInboxNumSmallRows: (rows, ignoreWrite) => {
       set(s => {

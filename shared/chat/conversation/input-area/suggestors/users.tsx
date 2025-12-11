@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useTeamsState} from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as Common from './common'
@@ -234,7 +235,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
       ])}
       gap="tiny"
     >
-      {C.Chat.isSpecialMention(username ?? '') ? (
+      {Chat.isSpecialMention(username ?? '') ? (
         <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
           <Kb.Icon type="iconfont-people" color={Kb.Styles.globalColors.blueDark} fontSize={16} />
         </Kb.Box2>

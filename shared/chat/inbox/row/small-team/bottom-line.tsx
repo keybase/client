@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -136,7 +137,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
         const typers = !isInWidget ? s.typing : undefined
         const typingSnippet = (typers?.size ?? 0) > 0 ? 't' : undefined
         const maybeLayoutSnippet =
-          conversationIDKey === C.Chat.noConversationIDKey ? layoutSnippet : undefined
+          conversationIDKey === Chat.noConversationIDKey ? layoutSnippet : undefined
 
         const snippet = typingSnippet ?? snippetDecorated ?? maybeLayoutSnippet ?? ''
         const isDecryptingSnippet =

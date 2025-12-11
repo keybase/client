@@ -1,8 +1,9 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 
 const MakeTeam = () => {
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const onShowNewTeamDialog = () =>
     navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'}))
   return (

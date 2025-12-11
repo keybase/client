@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import Inbox, {type Props} from '.'
@@ -94,9 +95,9 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   if (lastIsFocused !== isFocused) {
     setLastIsFocused(isFocused)
     if (C.isMobile) {
-      if (isFocused && C.Chat.isSplit) {
+      if (isFocused && Chat.isSplit) {
         setTimeout(() => {
-          C.getConvoState(C.Chat.getSelectedConversation()).dispatch.tabSelected()
+          C.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
         }, 0)
       }
     }
@@ -107,7 +108,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   C.useOnMountOnce(() => {
     if (!C.isMobile) {
       // On mobile this is taken care of by NavigationEvents.
-      C.getConvoState(C.Chat.getSelectedConversation()).dispatch.tabSelected()
+      C.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
     }
     if (!inboxHasLoaded) {
       inboxRefresh('componentNeverLoaded')
@@ -144,7 +145,7 @@ const Connected = (ownProps: OwnProps) => {
   const neverLoaded = !inboxHasLoaded
   const inboxNumSmallRows = C.useChatState(s => s.inboxNumSmallRows ?? 5)
   const _inboxLayout = inboxLayout
-  const selectedConversationIDKey = conversationIDKey ?? C.Chat.noConversationIDKey
+  const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
   const isSearching = C.useChatState(s => !!s.inboxSearch)
   const smallTeamsExpanded = C.useChatState(s => s.smallTeamsExpanded)
   const {navKey} = ownProps

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text'
 import * as T from '@/constants/types'
@@ -587,7 +588,7 @@ export const useAttachmentSections = (
                 maxMediaThumbSize,
                 width: thumb.width,
               },
-              sizing: C.Chat.zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
+              sizing: Chat.zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
               thumb,
             }))
             const dataChunked = useFlexWrap ? [dataUnchunked] : chunk(dataUnchunked, rowSize)

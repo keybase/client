@@ -1,5 +1,6 @@
 // A mirror of the remote menubar windows.
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useConfigState} from '@/constants/config'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -54,7 +55,7 @@ const GetRowsFromTlfUpdate = (t: T.FS.TlfUpdate, uploads: T.FS.Uploads): RemoteT
   writer: t.writer,
 })
 
-const convoDiff = (a: C.Chat.ConvoState, b: C.Chat.ConvoState) => {
+const convoDiff = (a: Chat.ConvoState, b: Chat.ConvoState) => {
   if (a === b) return false
 
   if (a.meta !== b.meta) {

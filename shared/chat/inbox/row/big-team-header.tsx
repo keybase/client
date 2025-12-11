@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
@@ -14,7 +15,7 @@ type Props = {
 
 const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
   return (
-    <C.ChatProvider id={C.Chat.dummyConversationIDKey}>
+    <C.ChatProvider id={Chat.dummyConversationIDKey}>
       <BigTeamHeaderImpl {...props} />
     </C.ChatProvider>
   )

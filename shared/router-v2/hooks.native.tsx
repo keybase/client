@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useConfigState} from '@/constants/config'
 import * as Tabs from '@/constants/tabs'
 import * as React from 'react'
@@ -70,7 +71,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
   const {tab: startupTab, followUser: startupFollowUser, loaded: startupLoaded} = startup
   let {conversation: startupConversation} = startup
 
-  if (!C.Chat.isValidConversationIDKey(startupConversation)) {
+  if (!Chat.isValidConversationIDKey(startupConversation)) {
     startupConversation = ''
   }
 
@@ -136,8 +137,8 @@ export const useInitialState = (loggedInLoaded: boolean) => {
       } else if (startupTab || startupConversation) {
         try {
           const tab = startupConversation ? Tabs.chatTab : startupTab
-          C.Chat.useChatState.getState().dispatch.unboxRows([startupConversation])
-          C.Chat.getConvoState_(startupConversation).dispatch.loadMoreMessages({
+          Chat.useChatState.getState().dispatch.unboxRows([startupConversation])
+          Chat.getConvoState_(startupConversation).dispatch.loadMoreMessages({
             reason: 'savedLastState',
           })
 

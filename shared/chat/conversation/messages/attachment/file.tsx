@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Crypto from '@/constants/crypto'
 import * as React from 'react'
 import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
@@ -12,7 +13,7 @@ import {useFSState} from '@/constants/fs'
 
 type OwnProps = {showPopup: () => void}
 
-const missingMessage = C.Chat.makeMessageAttachment({})
+const missingMessage = Chat.makeMessageAttachment({})
 
 const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const ordinal = useOrdinal()
@@ -110,7 +111,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const onShowInFinder = !C.isMobile && downloadPath ? _onShowInFinder : undefined
   const showMessageMenu = p.showPopup
 
-  const progressLabel = C.Chat.messageAttachmentTransferStateToProgressLabel(transferState)
+  const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(transferState)
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
   const operation = isPathSaltpackEncrypted(fileName)
     ? Crypto.Operations.Decrypt

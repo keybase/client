@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SimpleTopLine} from './top-line'
@@ -58,10 +59,10 @@ const SmallTeamImpl = (p: Props) => {
       const {meta} = s
       // only use layout if we don't have the meta at all
       const maybeLayoutSnippet =
-        meta.conversationIDKey === C.Chat.noConversationIDKey ? layoutSnippet : undefined
+        meta.conversationIDKey === Chat.noConversationIDKey ? layoutSnippet : undefined
       const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
       const snippetDecoration =
-        meta.conversationIDKey === C.Chat.noConversationIDKey
+        meta.conversationIDKey === Chat.noConversationIDKey
           ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
           : meta.snippetDecoration
       return {snippet, snippetDecoration}
@@ -98,7 +99,7 @@ const SmallTeamImpl = (p: Props) => {
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
 
   const _onSelectConversation = React.useCallback(() => {
-    setOpenedRow(C.Chat.noConversationIDKey)
+    setOpenedRow(Chat.noConversationIDKey)
     navigateToThread('inboxSmall')
   }, [navigateToThread, setOpenedRow])
 

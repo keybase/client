@@ -2086,7 +2086,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.threadSearchInfo.visible = false
         // force loaded if we're an error
-        if (s.id === C.Chat.pendingErrorConversationIDKey) {
+        if (s.id === T.Chat.pendingErrorConversationIDKey) {
           s.loaded = true
         }
       })

@@ -1,4 +1,5 @@
 import * as C from '..'
+import * as Chat from '../chat2'
 import type * as T from '../types'
 import * as Z from '@/util/zustand'
 
@@ -18,7 +19,7 @@ export const useActiveState = Z.createZustand<State>(set => {
       set(s => {
         s.active = a
       })
-      const cs = C.getConvoState(C.Chat.getSelectedConversation())
+      const cs = C.getConvoState(Chat.getSelectedConversation())
       cs.dispatch.markThreadAsRead()
     },
   }

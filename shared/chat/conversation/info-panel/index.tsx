@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
@@ -20,7 +21,7 @@ const InfoPanelConnector = (ownProps: Props) => {
   const initialTab = ownProps.tab ?? storeSelectedTab
   const conversationIDKey = C.useChatContext(s => s.id)
   const meta = C.useConvoState(conversationIDKey, s => s.meta)
-  const shouldNavigateOut = meta.conversationIDKey === C.Chat.noConversationIDKey
+  const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
   const yourRole = Teams.useTeamsState(s => Teams.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname

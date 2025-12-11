@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
@@ -35,10 +36,10 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const participantInfo = C.useChatContext(s => s.participants)
   const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
-    u => u !== username && !C.Chat.isAssertion(u)
+    u => u !== username && !Chat.isAssertion(u)
   )
 
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const onShowClearConversationDialog = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}))
   }, [navigateAppend])
@@ -142,7 +143,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           ))}
         <RetentionPicker
           conversationIDKey={
-            ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : C.Chat.noConversationIDKey
+            ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : Chat.noConversationIDKey
           }
           dropdownStyle={styles.retentionDropdownStyle}
           entityType={entityType}

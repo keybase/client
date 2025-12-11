@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Banner from '../bottom-banner'
@@ -30,7 +31,7 @@ const LoadingLine = () => {
 const hotKeys = ['mod+f']
 const Conversation = React.memo(function Conversation() {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const onAttach = React.useCallback(
     (paths: Array<string>) => {
       const pathAndOutboxIDs = paths.map(p => ({path: p}))

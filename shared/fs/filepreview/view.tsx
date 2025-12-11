@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import DefaultView from './default-view'
@@ -73,7 +74,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   switch (fileContext.viewType) {
     case T.RPCGen.GUIViewType.default: {
       // mobile client only supports heic now
-      if (C.isIOS && C.Chat.isPathHEIC(pathItem.name)) {
+      if (C.isIOS && Chat.isPathHEIC(pathItem.name)) {
         return (
           <>
             {reloadBanner}

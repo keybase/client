@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
@@ -54,7 +55,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const swipeableRef = React.useRef<SwipeableMethods | null>(null)
   const closeOpenedRow = React.useCallback(() => {
     if (isOpened) {
-      setOpenedRow(C.Chat.noConversationIDKey)
+      setOpenedRow(Chat.noConversationIDKey)
     }
   }, [isOpened, setOpenedRow])
   const {children} = p

@@ -1,4 +1,5 @@
 import * as C from '..'
+import * as Chat from '../chat2'
 import * as T from '../types'
 import {useTeamsState} from '../teams'
 import * as EngineGen from '@/actions/engine-gen-gen'
@@ -343,7 +344,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       if (!isMobile || !f) {
         return
       }
-      const {dispatch} = C.getConvoState(C.Chat.getSelectedConversation())
+      const {dispatch} = C.getConvoState(Chat.getSelectedConversation())
       dispatch.loadMoreMessages({reason: 'foregrounding'})
       dispatch.markThreadAsRead()
     },
