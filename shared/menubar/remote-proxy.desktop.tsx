@@ -1,6 +1,6 @@
 // A mirror of the remote menubar windows.
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import type * as Chat from '@/constants/chat2'
 import {useConfigState} from '@/constants/config'
 import * as T from '@/constants/types'
 import * as React from 'react'
