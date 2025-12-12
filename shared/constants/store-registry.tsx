@@ -8,8 +8,11 @@ import type * as DaemonType from './daemon'
 import type * as DeepLinksType from './deeplinks'
 import type * as RouterType from './router2'
 import type * as TeamsType from './teams'
+import type * as TBType from './team-building'
 import type * as UsersType from './users'
 import type * as WaitingType from './waiting'
+import type * as T from './types'
+import type {ConvoState} from './chat2/convostate'
 
 type StoreName = 'active' | 'chat' | 'config' | 'current-user' | 'daemon' | 'deeplinks' | 'router' | 'teams' | 'users' | 'waiting'
 
@@ -77,6 +80,17 @@ class StoreRegistry {
 
   getState<T extends StoreName>(storeName: T): StoreStates[T] {
     return this.getStoreState(storeName)
+  }
+
+  getTBStore(name: T.TB.AllowedNamespace): TBType.State {
+    const {createTBStore} = require('./team-building') as typeof TBType
+    const store = createTBStore(name)
+    return store.getState()
+  }
+
+  getConvoState(id: T.Chat.ConversationIDKey): ConvoState {
+    const {getConvoState} = require('./chat2/convostate')
+    return getConvoState(id)
   }
 }
 

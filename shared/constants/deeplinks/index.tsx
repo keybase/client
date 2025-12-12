@@ -12,6 +12,7 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 import {useSettingsPhoneState} from '../settings-phone'
 import {useConfigState} from '@/constants/config'
+import {storeRegistry} from '../store-registry'
 
 const prefix = 'keybase://'
 type Store = T.Immutable<{
@@ -199,7 +200,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
           if (parts.length === 2) {
             const conversationIDKey = parts[1]
             if (conversationIDKey) {
-              C.getConvoState(conversationIDKey).dispatch.navigateToThread('navChanged')
+              storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('navChanged')
             }
             return
           }

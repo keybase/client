@@ -22,6 +22,7 @@ import type {GetOptionsRet} from '../types/router2'
 import {registerDebugClear} from '@/util/debug'
 import {useSettingsEmailState} from '../settings-email'
 import {useFSState} from '../fs'
+import {storeRegistry} from '../store-registry'
 export type PathParam = NavigateAppendType
 export type Route = NavigationState<KBRootParamList>['routes'][0]
 // still a little paranoid about some things being missing in this type
@@ -429,7 +430,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
             // team building or modal on top of that still
             const isTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(next)?.name
             if (!isTeamBuilding) {
-              C.TBstores.get(namespace)?.getState().dispatch.cancelTeamBuilding()
+              storeRegistry.getTBStore(namespace).dispatch.cancelTeamBuilding()
             }
           }
         }

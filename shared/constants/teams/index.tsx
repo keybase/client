@@ -1223,7 +1223,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           )
           if (res.notAdded && res.notAdded.length > 0) {
             const usernames = res.notAdded.map(elem => elem.username)
-            C.TBstores.get('teams')?.getState().dispatch.finishedTeamBuilding()
+            storeRegistry.getTBStore('teams').dispatch.finishedTeamBuilding()
             storeRegistry.getState('router').dispatch.navigateAppend({
               props: {source: 'teamAddSomeFailed', usernames},
               selected: 'contactRestricted',
@@ -1235,7 +1235,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
             s.errorInAddToTeam = ''
           })
           if (fromTeamBuilder) {
-            C.TBstores.get('teams')?.getState().dispatch.finishedTeamBuilding()
+            storeRegistry.getTBStore('teams').dispatch.finishedTeamBuilding()
           }
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -1247,7 +1247,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               ?.filter(elem => elem?.key === 'usernames')
               .map(elem => elem?.value)
             const usernames = users?.[0]?.split(',') ?? []
-            C.TBstores.get('teams')?.getState().dispatch.finishedTeamBuilding()
+            storeRegistry.getTBStore('teams').dispatch.finishedTeamBuilding()
             storeRegistry.getState('router').dispatch.navigateAppend({
               props: {source: 'teamAddAllFailed', usernames},
               selected: 'contactRestricted',
@@ -1261,7 +1261,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           })
           // TODO this should not error on member already in team
           if (fromTeamBuilder) {
-            C.TBstores.get('teams')?.getState().dispatch.setError(msg)
+            storeRegistry.getTBStore('teams').dispatch.setError(msg)
           }
         }
       }
@@ -1523,7 +1523,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         s.errorInTeamCreation = ''
       })
       const me = storeRegistry.getState('current-user').username
-      const participantInfo = C.getConvoState(conversationIDKey).participants
+      const participantInfo = storeRegistry.getConvoState(conversationIDKey).participants
       // exclude bots from the newly created team, they can be added back later.
       const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
       const users = participants.map(assertion => ({

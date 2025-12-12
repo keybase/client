@@ -469,7 +469,7 @@ registerDebugClear(() => {
   stores_.clear()
 })
 
-const createTBStore = (namespace: T.TB.AllowedNamespace) => {
+export const createTBStore = (namespace: T.TB.AllowedNamespace) => {
   const existing = stores_.get(namespace)
   if (existing) return existing
   const next = Z.createZustand<State>(createSlice)

@@ -27,6 +27,7 @@ import {useFSState} from '../fs'
 import {useDaemonState} from '../daemon'
 import {useProvisionState} from '../provision'
 import {useEngineState} from '../engine'
+import {storeRegistry} from '../store-registry'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -344,7 +345,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       if (!isMobile || !f) {
         return
       }
-      const {dispatch} = C.getConvoState(Chat.getSelectedConversation())
+      const {dispatch} = storeRegistry.getConvoState(Chat.getSelectedConversation())
       dispatch.loadMoreMessages({reason: 'foregrounding'})
       dispatch.markThreadAsRead()
     },
@@ -379,7 +380,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         case RemoteGen.openChatFromWidget: {
           get().dispatch.showMain()
-          C.getConvoState(action.payload.conversationIDKey).dispatch.navigateToThread('inboxSmall')
+          storeRegistry.getConvoState(action.payload.conversationIDKey).dispatch.navigateToThread('inboxSmall')
           break
         }
         case RemoteGen.inboxRefresh: {
