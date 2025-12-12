@@ -53,8 +53,8 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyBadgesBadgeState:
     case EngineGen.keybase1GregorUIPushState:
       {
-        const {useChatState} = require('./index') as typeof Index
-        useChatState.getState().dispatch.onEngineIncomingImpl(action)
+        const {storeRegistry} = require('../store-registry')
+        storeRegistry.crosscall('chat', 'onEngineIncomingImpl', action)
       }
       break
     default:

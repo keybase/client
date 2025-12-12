@@ -1,21 +1,30 @@
 // used to allow non-circular cross-calls between stores
 // ONLY for zustand stores
 import type * as ChatType from './chat2'
-import type * as TeamsType from './teams'
+import type * as ConfigType from './config'
+import type * as CurrentUserType from './current-user'
 import type * as DaemonType from './daemon'
+import type * as TeamsType from './teams'
+import type * as UsersType from './users'
 
-type StoreName = 'chat' | 'teams' | 'daemon'
+type StoreName = 'chat' | 'config' | 'current-user' | 'daemon' | 'teams' | 'users'
 
 type StoreActions = {
   chat: ChatType.State['dispatch']
+  config: ConfigType.State['dispatch']
+  'current-user': CurrentUserType.State['dispatch']
   daemon: DaemonType.State['dispatch']
   teams: TeamsType.State['dispatch']
+  users: UsersType.State['dispatch']
 }
 
 type StoreStates = {
   chat: ChatType.State
+  config: ConfigType.State
+  'current-user': CurrentUserType.State
   daemon: DaemonType.State
   teams: TeamsType.State
+  users: UsersType.State
 }
 
 type FunctionKeys<T> = {
@@ -37,6 +46,14 @@ class StoreRegistry {
         const {useChatState} = require('./chat2') as typeof ChatType
         return useChatState.getState() as StoreStates[T]
       }
+      case 'config': {
+        const {useConfigState} = require('./config') as typeof ConfigType
+        return useConfigState.getState() as StoreStates[T]
+      }
+      case 'current-user': {
+        const {useCurrentUserState} = require('./current-user') as typeof CurrentUserType
+        return useCurrentUserState.getState() as StoreStates[T]
+      }
       case 'daemon': {
         const {useDaemonState} = require('./daemon') as typeof DaemonType
         return useDaemonState.getState() as StoreStates[T]
@@ -44,6 +61,10 @@ class StoreRegistry {
       case 'teams': {
         const {useTeamsState} = require('./teams') as typeof TeamsType
         return useTeamsState.getState() as StoreStates[T]
+      }
+      case 'users': {
+        const {useUsersState} = require('./users') as typeof UsersType
+        return useUsersState.getState() as StoreStates[T]
       }
       default:
         throw new Error(`Unknown store: ${storeName}`)

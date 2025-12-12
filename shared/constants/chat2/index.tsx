@@ -1,11 +1,9 @@
 import * as C from '..'
 import * as T from '../types'
-import {useTeamsState} from '../teams'
 import * as Tabs from '../tabs'
 import {useDeepLinksState} from '../deeplinks'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import type * as ConfigConstants from '../config'
-import {useConfigState} from '../config'
 import * as Message from './message'
 import * as Router2 from '../router2'
 import * as TeamConstants from '../teams'
@@ -17,8 +15,6 @@ import * as Z from '@/util/zustand'
 import * as Common from './common'
 import {clearChatStores} from './convostate'
 import {uint8ArrayToString} from 'uint8array-extras'
-import {useUsersState} from '../users'
-import {useCurrentUserState} from '../current-user'
 import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '../rpc-utils'
 import {storeRegistry} from '../store-registry'
@@ -105,7 +101,7 @@ export const getBotsAndParticipants = (
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
   const teamMembers =
-    useTeamsState.getState().teamIDToMembers.get(meta.teamID) ?? new Map<string, T.Teams.MemberInfo>()
+    storeRegistry.getState('teams').teamIDToMembers.get(meta.teamID) ?? new Map<string, T.Teams.MemberInfo>()
   let bots: Array<string> = []
   if (isAdhocTeam) {
     bots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
@@ -409,7 +405,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       // only one pending conversation state.
       // The fix involves being able to make multiple pending conversations
       const f = async () => {
-        const username = useCurrentUserState.getState().username
+        const username = storeRegistry.getState('current-user').username
         if (!username) {
           logger.error('Making a convo while logged out?')
           return
@@ -526,8 +522,8 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     inboxRefresh: reason => {
       const f = async () => {
-        const {username} = useCurrentUserState.getState()
-        const {loggedIn} = useConfigState.getState()
+        const {username} = storeRegistry.getState('current-user')
+        const {loggedIn} = storeRegistry.getState('config')
         if (!loggedIn || !username) {
           return
         }
@@ -898,7 +894,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     messageSendByUsername: (username, text, waitingKey) => {
       const f = async () => {
-        const tlfName = `${useCurrentUserState.getState().username},${username}`
+        const tlfName = `${storeRegistry.getState('current-user').username},${username}`
         try {
           const result = await T.RPCChat.localNewConversationLocalRpcPromise(
             {
@@ -936,8 +932,8 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       const {isMetaGood, meta} = C.getConvoState(selectedConversation)
       if (isMetaGood()) {
         const {teamID} = meta
-        if (!useTeamsState.getState().teamIDToMembers.get(teamID) && meta.teamname) {
-          useTeamsState.getState().dispatch.getMembers(teamID)
+        if (!storeRegistry.getState('teams').teamIDToMembers.get(teamID) && meta.teamname) {
+          storeRegistry.crosscall('teams', 'getMembers', teamID)
         }
       }
     },
@@ -1110,7 +1106,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           const usernames = update.CanonicalName.split(',')
           const broken = (update.breaks.breaks || []).map(b => b.user.username)
           const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
-          useUsersState.getState().dispatch.updates(updates)
+          storeRegistry.crosscall('users', 'updates', updates)
           break
         }
         case EngineGen.chat1ChatUiChatInboxUnverified:
@@ -1173,7 +1169,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                   const match = error.message.match(/"(.*)"/)
                   const tempForceRedBox = match?.[1]
                   if (tempForceRedBox) {
-                    useUsersState.getState().dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
+                    storeRegistry.crosscall('users', 'updates', [{info: {broken: true}, name: tempForceRedBox}])
                   }
                 }
               }
@@ -1292,7 +1288,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                 cs.dispatch.setMeta(meta)
               }
             })
-            useTeamsState.getState().dispatch.updateTeamRetentionPolicy(metas)
+            storeRegistry.crosscall('teams', 'updateTeamRetentionPolicy', metas)
           }
           // this is a more serious problem, but we don't need to bug the user about it
           logger.error(
@@ -1326,7 +1322,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
       // TODO not reactive
-      const {infoMap} = useUsersState.getState()
+      const {infoMap} = storeRegistry.getState('users')
       const {convs} = action.payload.params
       const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
       const metas: Array<T.Chat.ConversationMeta> = []
@@ -1354,11 +1350,10 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         })
       })
       if (added) {
-        useUsersState
-          .getState()
-          .dispatch.updates(
-            Object.keys(usernameToFullname).map(name => ({info: {fullname: usernameToFullname[name]}, name}))
-          )
+        storeRegistry.crosscall('users', 'updates', Object.keys(usernameToFullname).map(name => ({
+          info: {fullname: usernameToFullname[name]},
+          name,
+        })))
       }
       if (metas.length > 0) {
         get().dispatch.metasReceived(metas)
@@ -1388,11 +1383,10 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         return map
       }, {})
 
-      useUsersState.getState().dispatch.updates(
-        Object.keys(usernameToFullname).map(name => ({
-          info: {fullname: usernameToFullname[name]},
-          name,
-        }))
+      storeRegistry.crosscall('users', 'updates', Object.keys(usernameToFullname).map(name => ({
+        info: {fullname: usernameToFullname[name]},
+        name,
+      }))
       )
 
       if (meta) {
@@ -1566,7 +1560,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           })
           const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
-            useChatState.getState().dispatch.metasReceived([meta])
+            storeRegistry.crosscall('chat', 'metasReceived', [meta])
           }
 
           C.getConvoState(first.conversationIDKey).dispatch.navigateToThread(
@@ -1741,7 +1735,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     unboxRows: (ids, force) => {
       // We want to unbox rows that have scroll into view
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!storeRegistry.getState('config').loggedIn) {
           return
         }
 

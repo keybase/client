@@ -42,35 +42,22 @@ import * as Strings from '@/constants/strings'
 // TODO remove
 import {getVisibleScreen} from '@/constants/router2'
 
-const getTeamsState = () => {
-  const {useTeamsState} = require('@/constants/teams') as typeof TeamsType
-  return useTeamsState.getState()
-}
+import {storeRegistry} from '../store-registry'
 
-const getUsersState = () => {
-  const {useUsersState} = require('@/constants/users') as typeof UsersType
-  return useUsersState.getState()
-}
+const getTeamsState = () => storeRegistry.getState('teams')
 
-const getCurrentUsersState = () => {
-  const {useCurrentUserState} = require('@/constants/current-user') as typeof CurrentUserType
-  return useCurrentUserState.getState()
-}
+const getUsersState = () => storeRegistry.getState('users')
 
-const getConfigState = () => {
-  const {useConfigState} = require('@/constants/config') as typeof ConfigType
-  return useConfigState.getState()
-}
+const getCurrentUsersState = () => storeRegistry.getState('current-user')
+
+const getConfigState = () => storeRegistry.getState('config')
 
 const getRouterState = () => {
   const {useRouterState} = require('@/constants/router2') as typeof RouterType
   return useRouterState.getState()
 }
 
-const getChatState = () => {
-  const {useChatState} = require('@/constants/chat2') as typeof ChatType
-  return useChatState.getState()
-}
+const getChatState = () => storeRegistry.getState('chat')
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
