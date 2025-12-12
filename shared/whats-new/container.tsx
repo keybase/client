@@ -3,7 +3,7 @@ import openURL from '@/util/open-url'
 import {currentVersion} from '@/constants/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
-import {useState as useWNState} from '@/constants/whats-new'
+import {useWhatsNewState as useWNState} from '@/constants/whats-new'
 import {useConfigState} from '@/constants/config'
 
 const WhatsNewContainer = () => {

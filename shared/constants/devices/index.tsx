@@ -20,7 +20,7 @@ export interface State extends T.Devices.State {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useDevicesState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearBadges: () => {
       C.ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
@@ -100,12 +100,12 @@ const makeDevice = (d?: Partial<T.Devices.Device>): T.Devices.Device =>
   d ? {...emptyDevice, ...d} : emptyDevice
 
 export const useActiveDeviceCounts = () => {
-  const ds = useState(s => s.deviceMap)
+  const ds = useDevicesState(s => s.deviceMap)
   return [...ds.values()].reduce((c, v) => (!v.revokedAt ? c + 1 : c), 0)
 }
 
 export const useRevokedDeviceCounts = () => {
-  const ds = useState(s => s.deviceMap)
+  const ds = useDevicesState(s => s.deviceMap)
   return [...ds.values()].reduce((c, v) => (v.revokedAt ? c + 1 : c), 0)
 }
 
@@ -116,12 +116,12 @@ export const useRevokedDeviceCounts = () => {
 export const numBackgrounds = 10
 
 export const useDeviceIconNumber = (deviceID: T.Devices.DeviceID) => {
-  const devices = useState(s => s.deviceMap)
+  const devices = useDevicesState(s => s.deviceMap)
   return (((devices.get(deviceID)?.deviceNumberOfType ?? 0) % numBackgrounds) + 1) as T.Devices.IconNumber
 }
 
 export const useNextDeviceIconNumber = () => {
-  const dm = useState(s => s.deviceMap)
+  const dm = useDevicesState(s => s.deviceMap)
   const next = React.useMemo(() => {
     // Find the max device number and add one (+ one more since these are 1-indexed)
     const result = {backup: 1, desktop: 1, mobile: 1}

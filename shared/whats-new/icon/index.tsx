@@ -4,7 +4,7 @@ import type {IconStyle} from '@/common-adapters/icon'
 import {keybaseFM} from '@/constants/whats-new'
 import Popup from './popup'
 import './icon.css'
-import {useState as useWNState} from '@/constants/whats-new'
+import {useWhatsNewState as useWNState} from '@/constants/whats-new'
 
 type OwnProps = {
   color?: string

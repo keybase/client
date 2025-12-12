@@ -40,7 +40,7 @@ export interface State extends Store {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useAutoResetState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     cancelReset: () => {
       set(s => {

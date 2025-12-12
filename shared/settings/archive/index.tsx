@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
-import {useState as useArchiveState} from '@/constants/archive'
+import {useArchiveState} from '@/constants/archive'
 import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
 

@@ -5,14 +5,14 @@ import * as Kb from '@/common-adapters'
 import {formatDurationForAutoreset} from '@/util/timestamp'
 
 const ResetModal = () => {
-  const isResetActive = AutoReset.useState(s => s.active)
+  const isResetActive = AutoReset.useAutoResetState(s => s.active)
   return isResetActive ? <ResetModalImpl /> : null
 }
 
 const ResetModalImpl = () => {
-  const active = AutoReset.useState(s => s.active)
-  const endTime = AutoReset.useState(s => s.endTime)
-  const error = AutoReset.useState(s => s.error)
+  const active = AutoReset.useAutoResetState(s => s.active)
+  const endTime = AutoReset.useAutoResetState(s => s.endTime)
+  const error = AutoReset.useAutoResetState(s => s.error)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   React.useEffect(() => {
     if (!active) {
@@ -27,7 +27,7 @@ const ResetModalImpl = () => {
       ? 'This account is eligible to be reset.'
       : `This account will reset in ${formatDurationForAutoreset(timeLeft)}.`
 
-  const onCancelReset = AutoReset.useState(s => s.dispatch.cancelReset)
+  const onCancelReset = AutoReset.useAutoResetState(s => s.dispatch.cancelReset)
 
   return (
     <Kb.SafeAreaView

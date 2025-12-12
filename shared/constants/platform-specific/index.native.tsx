@@ -480,8 +480,8 @@ export const initPlatformListener = () => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
       const {type} = await NetInfo.fetch()
-      useConfigState
-        .getState()
+      storeRegistry
+        .getState('config')
         .dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type, true)
     }
     C.ignorePromise(f())
@@ -554,7 +554,9 @@ export const initPlatformListener = () => {
   initPushListener()
 
   NetInfo.addEventListener(({type}) => {
-    storeRegistry.getState('config').dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
+    storeRegistry
+      .getState('config')
+      .dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
   })
 
   const initAudioModes = () => {

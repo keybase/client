@@ -4,7 +4,7 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {pickSave} from '@/util/pick-files'
 import * as FsCommon from '@/fs/common'
-import {useState as useArchiveState} from '@/constants/archive'
+import {useArchiveState} from '@/constants/archive'
 import {settingsArchiveTab} from '@/constants/settings'
 
 type Props =

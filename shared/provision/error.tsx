@@ -31,9 +31,9 @@ const rewriteErrorDesc = (s: string) => {
 
 // Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
 const RenderError = () => {
-  const _username = AutoReset.useState(s => s.username)
+  const _username = AutoReset.useAutoResetState(s => s.username)
   const error = useProvisionState(s => s.finalError)
-  const startAccountReset = AutoReset.useState(s => s.dispatch.startAccountReset)
+  const startAccountReset = AutoReset.useAutoResetState(s => s.dispatch.startAccountReset)
   const _onAccountReset = (username: string) => {
     startAccountReset(false, username)
   }
@@ -213,16 +213,16 @@ const RenderError = () => {
             You have options:
           </Kb.Text>
           <Kb.Box2 direction="vertical" style={styles.list}>
+            <Kb.Text center={true} type="Body">
+              {' - Run '}
+              <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the device with the corresponding PGP
+              private key
+            </Kb.Text>
+            {!Kb.Styles.isMobile && (
               <Kb.Text center={true} type="Body">
-                {' - Run '}
-                <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the device with the corresponding PGP
-                private key
+                {' - Install GPG, put your PGP private key on this machine and try again'}
               </Kb.Text>
-              {!Kb.Styles.isMobile && (
-                <Kb.Text center={true} type="Body">
-                  {' - Install GPG, put your PGP private key on this machine and try again'}
-                </Kb.Text>
-              )}
+            )}
             <Kb.Text center={true} type="Body">
               {' - Go back and authorize with another device or paper key'}
             </Kb.Text>

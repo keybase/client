@@ -114,7 +114,9 @@ export const useState = Z.createZustand<State>((set, get) => {
               // This same RPC is called at the beginning and end of the 7-day wait by the service.
               'keybase.1.loginUi.promptResetAccount': (params, response) => {
                 if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
-                  storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordPromptResetPassword')
+                  storeRegistry
+                    .getState('router')
+                    .dispatch.navigateAppend('recoverPasswordPromptResetPassword')
                   const clear = () => {
                     set(s => {
                       s.dispatch.dynamic.submitResetPassword = undefined
@@ -139,7 +141,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     })
                   })
                 } else {
-                  const {startAccountReset} = AutoReset.useState.getState().dispatch
+                  const {startAccountReset} = AutoReset.useAutoResetState.getState().dispatch
                   startAccountReset(true, '')
                   response.result(T.RPCGen.ResetPromptResponse.nothing)
                 }
@@ -227,7 +229,9 @@ export const useState = Z.createZustand<State>((set, get) => {
             storeRegistry
               .getState('router')
               .dispatch.navigateAppend(
-                storeRegistry.getState('config').loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+                storeRegistry.getState('config').loggedIn
+                  ? 'recoverPasswordErrorModal'
+                  : 'recoverPasswordError',
                 true
               )
           }

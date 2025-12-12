@@ -6,12 +6,12 @@ import {SignupScreen} from '@/signup/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 const KnowPassword = () => {
-  const error = AutoReset.useState(s => s.error)
+  const error = AutoReset.useAutoResetState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const nav = useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
   const onYes = React.useCallback(() => nav.safeNavigateAppend('resetEnterPassword'), [nav])
-  const resetAccount = AutoReset.useState(s => s.dispatch.resetAccount)
+  const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
   const onNo = React.useCallback(() => resetAccount(), [resetAccount])
   return (
     <SignupScreen

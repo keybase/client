@@ -15,13 +15,13 @@ const formatTimeLeft = (endTime: number) => {
 
 const Waiting = (props: Props) => {
   const {pipelineStarted} = props
-  const endTime = AutoReset.useState(s => s.endTime)
+  const endTime = AutoReset.useAutoResetState(s => s.endTime)
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
   const [sendAgainSuccess, setSendAgainSuccess] = React.useState(false)
   const nav = useSafeNavigation()
   const onClose = React.useCallback(() => nav.safeNavigateAppend('login', true), [nav])
-  const resetAccount = AutoReset.useState(s => s.dispatch.resetAccount)
+  const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
   const onSendAgain = React.useCallback(() => {
     setHasSentAgain(true)
     setSendAgainSuccess(false)

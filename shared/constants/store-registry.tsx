@@ -2,10 +2,11 @@
 // ONLY for zustand stores
 import type * as T from './types'
 import type * as TBType from './team-building'
+import type * as ConvoStateType from './chat2/convostate'
 import type {ConvoState} from './chat2/convostate'
 import type {State as ActiveState, useActiveState} from './active'
-import type {State as ArchiveState, useState as useArchiveState} from './archive'
-import type {State as AutoResetState, useState as useAutoResetState} from './autoreset'
+import type {State as ArchiveState, useArchiveState} from './archive'
+import type {State as AutoResetState, useAutoResetState} from './autoreset'
 import type {State as AvatarState, useAvatarState} from '@/common-adapters/avatar/store'
 import type {State as BotsState, useBotsState} from './bots'
 import type {State as ChatState, useChatState} from './chat2'
@@ -14,7 +15,7 @@ import type {State as CurrentUserState, useCurrentUserState} from './current-use
 import type {State as DaemonState, useDaemonState} from './daemon'
 import type {State as DarkModeState, useDarkModeState} from './darkmode'
 import type {State as DeepLinksState, useDeepLinksState} from './deeplinks'
-import type {State as DevicesState, useState as useDevicesState} from './devices'
+import type {State as DevicesState, useDevicesState} from './devices'
 import type {State as EngineState, useEngineState} from './engine'
 import type {State as FollowersState, useFollowerState} from './followers'
 import type {State as FSState, useFSState} from './fs'
@@ -25,11 +26,10 @@ import type {State as PeopleState, usePeopleState} from './people'
 import type {State as PinentryState, usePinentryState} from './pinentry'
 import type {State as ProfileState, useProfileState} from './profile'
 import type {State as ProvisionState, useProvisionState} from './provision'
-import type {State as PushState} from './push'
-import type {usePushState} from './push.native'
+import type {State as PushState, usePushState} from './push'
 import type {State as RouterState, useRouterState} from './router2'
 import type {State as SettingsState, useSettingsState} from './settings'
-import type {State as SettingsChatState, useState as useSettingsChatState} from './settings-chat'
+import type {State as SettingsChatState, useSettingsChatState} from './settings-chat'
 import type {State as SettingsContactsState, useSettingsContactsState} from './settings-contacts'
 import type {State as SettingsEmailState, useSettingsEmailState} from './settings-email'
 import type {State as SettingsPasswordState, usePWState} from './settings-password'
@@ -37,10 +37,10 @@ import type {State as SettingsPhoneState, useSettingsPhoneState} from './setting
 import type {State as SignupState, useSignupState} from './signup'
 import type {State as TeamsState, useTeamsState} from './teams'
 import type {State as Tracker2State, useTrackerState} from './tracker2'
-import type {State as UnlockFoldersState, useState as useUnlockFoldersState} from './unlock-folders'
+import type {State as UnlockFoldersState, useUnlockFoldersState} from './unlock-folders'
 import type {State as UsersState, useUsersState} from './users'
 import type {State as WaitingState, useWaitingState} from './waiting'
-import type {State as WhatsNewState, useState as useWhatsNewState} from './whats-new'
+import type {State as WhatsNewState, useWhatsNewState} from './whats-new'
 
 type StoreName =
   | 'active'
@@ -163,6 +163,7 @@ type StoreHooks = {
 
 class StoreRegistry {
   getStore<T extends StoreName>(storeName: T): StoreHooks[T] {
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
     switch (storeName) {
       case 'active': {
         const {useActiveState} = require('./active')
@@ -328,7 +329,7 @@ class StoreRegistry {
   }
 
   getConvoState(id: T.Chat.ConversationIDKey): ConvoState {
-    const {getConvoState} = require('./chat2/convostate')
+    const {getConvoState} = require('./chat2/convostate') as typeof ConvoStateType
     return getConvoState(id)
   }
 }

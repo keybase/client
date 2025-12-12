@@ -13,7 +13,6 @@ import {
   androidCheckPushPermissions,
 } from 'react-native-kb'
 import {type Store, type State} from './push'
-import {storeRegistry} from './store-registry'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 

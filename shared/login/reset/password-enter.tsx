@@ -7,13 +7,13 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 
 const EnterPassword = () => {
   const [password, setPassword] = React.useState('')
-  const error = AutoReset.useState(s => s.error)
-  const endTime = AutoReset.useState(s => s.endTime)
+  const error = AutoReset.useAutoResetState(s => s.error)
+  const endTime = AutoReset.useAutoResetState(s => s.endTime)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const nav = useSafeNavigation()
   const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
-  const resetAccount = AutoReset.useState(s => s.dispatch.resetAccount)
+  const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
   const onContinue = React.useCallback(() => {
     resetAccount(password)
   }, [resetAccount, password])
