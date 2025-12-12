@@ -1,6 +1,5 @@
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import {useConfigState} from '../config'
 import * as Tabs from '../tabs'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
@@ -12,8 +11,7 @@ import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
 import {settingsFsTab} from '../settings'
-import {useNotifState} from '../notifications'
-import {useCurrentUserState} from '../current-user'
+import {storeRegistry} from '../store-registry'
 
 export {makeActionForOpenPathInFilesTab} from './util'
 
@@ -564,7 +562,7 @@ export const resetBannerType = (s: State, path: T.FS.Path): T.FS.ResetBannerType
     return T.FS.ResetBannerNoOthersType.None
   }
 
-  const you = useCurrentUserState.getState().username
+  const you = storeRegistry.getState('current-user').username
   if (resetParticipants.findIndex(username => username === you) >= 0) {
     return T.FS.ResetBannerNoOthersType.Self
   }
@@ -1580,7 +1578,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
     favoritesLoad: () => {
       const f = async () => {
         try {
-          if (!useConfigState.getState().loggedIn) {
+          if (!storeRegistry.getState('config').loggedIn) {
             return
           }
           const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
@@ -1605,7 +1603,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               const tlfType = rpcFolderTypeToTlfType(folder.folderType)
               const tlfName =
                 tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-                  ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
+                  ? tlfToPreferredOrder(folder.name, storeRegistry.getState('current-user').username)
                   : folder.name
               tlfType &&
                 payload[tlfType].set(
@@ -1634,7 +1632,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             })
             const counts = new Map<Tabs.Tab, number>()
             counts.set(Tabs.fsTab, computeBadgeNumberForAll(get().tlfs))
-            useNotifState.getState().dispatch.setBadgeCounts(counts)
+            storeRegistry.getState('notifications').dispatch.setBadgeCounts(counts)
           }
         } catch (e) {
           errorToActionOrThrow(e)
@@ -1902,7 +1900,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
           const tlfName =
             tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-              ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
+              ? tlfToPreferredOrder(folder.name, storeRegistry.getState('current-user').username)
               : folder.name
 
           if (tlfType) {
@@ -2215,7 +2213,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
                   src: {
                     PathType: T.RPCGen.PathType.local,
                     local: T.FS.getNormalizedLocalPath(
-                      useConfigState.getState().incomingShareUseOriginal
+                      storeRegistry.getState('config').incomingShareUseOriginal
                         ? originalPath
                         : scaledPath || originalPath
                     ),
@@ -2374,12 +2372,12 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
               break
             }
-            useNotifState.getState().dispatch.badgeApp('kbfsUploading', true)
+            storeRegistry.getState('notifications').dispatch.badgeApp('kbfsUploading', true)
             await C.timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
           }
         } finally {
           pollJournalStatusPolling = false
-          useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
+          storeRegistry.getState('notifications').dispatch.badgeApp('kbfsUploading', false)
           get().dispatch.checkKbfsDaemonRpcStatus()
         }
       }
@@ -2636,7 +2634,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               body: 'You are out of disk space. Some folders could not be synced.',
               sound: true,
             })
-            useNotifState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
+            storeRegistry.getState('notifications').dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
             break
           }
           case T.FS.DiskSpaceStatus.Warning:
