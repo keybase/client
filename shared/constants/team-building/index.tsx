@@ -1,6 +1,4 @@
 import * as C from '..'
-import {useProfileState} from '../profile'
-import {useTeamsState} from '../teams'
 import * as T from '../types'
 import * as Crypto from '../crypto'
 import * as React from 'react'
@@ -9,13 +7,12 @@ import logger from '@/logger'
 import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
-import {useUsersState} from '../users'
 import {serviceIdFromString} from '@/util/platforms'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from './utils'
-import {useSettingsContactsState} from '../settings-contacts'
+import {storeRegistry} from '../store-registry'
 export {allServices, selfToUser, searchWaitingKey} from './utils'
 
 type Store = T.Immutable<{
@@ -273,7 +270,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
               // we want the first item
               for (const user of teamSoFar) {
                 const username = user.serviceMap.keybase || user.id
-                useProfileState.getState().dispatch.showUserProfile(username)
+                storeRegistry.getState('profile').dispatch.showUserProfile(username)
                 break
               }
             }, 100)
@@ -314,7 +311,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           const contactRes = _contactRes || []
           const contacts = contactRes.map(contactToUser)
           let suggestions = suggestionRes.map(interestingPersonToUser)
-          const expectingContacts = useSettingsContactsState.getState().importEnabled && includeContacts
+          const expectingContacts = storeRegistry.getState('settings-contacts').importEnabled && includeContacts
           if (expectingContacts) {
             suggestions = suggestions.slice(0, 10)
           }
@@ -337,8 +334,8 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       get().dispatch.closeTeamBuilding()
       const {teamSoFar} = get()
       if (get().namespace === 'teams') {
-        useTeamsState
-          .getState()
+        storeRegistry
+          .getState('teams')
           .dispatch.addMembersWizardPushMembers(
             [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
           )
@@ -416,7 +413,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         let users: typeof _users
         if (selectedService === 'keybase') {
           // If we are on Keybase tab, do additional search if query is phone/email.
-          const userRegion = useSettingsContactsState.getState().userCountryCode
+          const userRegion = storeRegistry.getState('settings-contacts').userCountryCode
           users = await specialContactSearch(_users, searchQuery, userRegion)
         } else {
           users = _users
@@ -433,7 +430,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<{info: {fullname: string}; name: string}>())
-        useUsersState.getState().dispatch.updates(updates)
+        storeRegistry.getState('users').dispatch.updates(updates)
         const blocks = users.reduce((arr, {serviceMap}) => {
           const {keybase} = serviceMap
           if (keybase) {
@@ -441,7 +438,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<string>())
-        blocks.length && useUsersState.getState().dispatch.getBlockState(blocks)
+        blocks.length && storeRegistry.getState('users').dispatch.getBlockState(blocks)
       }
       C.ignorePromise(f())
     },
