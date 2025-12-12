@@ -9,6 +9,7 @@ import type * as ChatType from './chat2'
 import type * as ConfigType from './config'
 import type * as CurrentUserType from './current-user'
 import type * as DaemonType from './daemon'
+import type * as DarkModeType from './darkmode'
 import type * as DeepLinksType from './deeplinks'
 import type * as DevicesType from './devices'
 import type * as EngineType from './engine'
@@ -44,6 +45,7 @@ type StoreName =
   | 'config'
   | 'current-user'
   | 'daemon'
+  | 'dark-mode'
   | 'deeplinks'
   | 'devices'
   | 'engine'
@@ -76,6 +78,7 @@ type StoreStates = {
   config: ConfigType.State
   'current-user': CurrentUserType.State
   daemon: DaemonType.State
+  'dark-mode': DarkModeType.State
   deeplinks: DeepLinksType.State
   devices: DevicesType.State
   engine: EngineType.State
@@ -137,6 +140,10 @@ class StoreRegistry {
       case 'daemon': {
         const {useDaemonState} = require('./daemon') as typeof DaemonType
         return useDaemonState.getState() as StoreStates[T]
+      }
+      case 'dark-mode': {
+        const {useDarkModeState} = require('./darkmode') as typeof DarkModeType
+        return useDarkModeState.getState() as StoreStates[T]
       }
       case 'deeplinks': {
         const {useDeepLinksState} = require('./deeplinks') as typeof DeepLinksType
