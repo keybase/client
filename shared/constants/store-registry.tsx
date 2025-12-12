@@ -1,42 +1,46 @@
 // used to allow non-circular cross-calls between stores
 // ONLY for zustand stores
-import type * as ArchiveType from './archive'
-import type * as ActiveType from './active'
-import type * as AutoResetType from './autoreset'
-import type * as AvatarType from '@/common-adapters/avatar/store'
-import type * as BotsType from './bots'
-import type * as ChatType from './chat2'
-import type * as ConfigType from './config'
-import type * as CurrentUserType from './current-user'
-import type * as DaemonType from './daemon'
-import type * as DarkModeType from './darkmode'
-import type * as DeepLinksType from './deeplinks'
-import type * as DevicesType from './devices'
-import type * as EngineType from './engine'
-import type * as FollowersType from './followers'
-import type * as FSType from './fs'
-import type * as GitType from './git'
-import type * as NotificationsType from './notifications'
-import type * as PeopleType from './people'
-import type * as PinentryType from './pinentry'
-import type * as ProfileType from './profile'
-import type * as ProvisionType from './provision'
-import type * as RouterType from './router2'
-import type * as SettingsContactsType from './settings-contacts'
-import type * as SettingsEmailType from './settings-email'
-import type * as SettingsPasswordType from './settings-password'
-import type * as SettingsPhoneType from './settings-phone'
-import type * as SettingsType from './settings'
-import type * as SignupType from './signup'
-import type * as TeamsType from './teams'
-import type * as TBType from './team-building'
-import type * as Tracker2Type from './tracker2'
-import type * as UnlockFoldersType from './unlock-folders'
-import type * as UsersType from './users'
-import type * as WaitingType from './waiting'
-import type * as WhatsNewType from './whats-new'
 import type * as T from './types'
+import type * as TBType from './team-building'
+import type * as ConvoStateType from './chat2/convostate'
 import type {ConvoState} from './chat2/convostate'
+import type {State as ActiveState, useActiveState} from './active'
+import type {State as ArchiveState, useArchiveState} from './archive'
+import type {State as AutoResetState, useAutoResetState} from './autoreset'
+import type {State as AvatarState, useAvatarState} from '@/common-adapters/avatar/store'
+import type {State as BotsState, useBotsState} from './bots'
+import type {State as ChatState, useChatState} from './chat2'
+import type {State as ConfigState, useConfigState} from './config'
+import type {State as CurrentUserState, useCurrentUserState} from './current-user'
+import type {State as DaemonState, useDaemonState} from './daemon'
+import type {State as DarkModeState, useDarkModeState} from './darkmode'
+import type {State as DeepLinksState, useDeepLinksState} from './deeplinks'
+import type {State as DevicesState, useDevicesState} from './devices'
+import type {State as EngineState, useEngineState} from './engine'
+import type {State as FollowersState, useFollowerState} from './followers'
+import type {State as FSState, useFSState} from './fs'
+import type {State as GitState, useGitState} from './git'
+import type {State as LogoutState, useLogoutState} from './logout'
+import type {State as NotificationsState, useNotifState} from './notifications'
+import type {State as PeopleState, usePeopleState} from './people'
+import type {State as PinentryState, usePinentryState} from './pinentry'
+import type {State as ProfileState, useProfileState} from './profile'
+import type {State as ProvisionState, useProvisionState} from './provision'
+import type {State as PushState, usePushState} from './push'
+import type {State as RouterState, useRouterState} from './router2'
+import type {State as SettingsState, useSettingsState} from './settings'
+import type {State as SettingsChatState, useSettingsChatState} from './settings-chat'
+import type {State as SettingsContactsState, useSettingsContactsState} from './settings-contacts'
+import type {State as SettingsEmailState, useSettingsEmailState} from './settings-email'
+import type {State as SettingsPasswordState, usePWState} from './settings-password'
+import type {State as SettingsPhoneState, useSettingsPhoneState} from './settings-phone'
+import type {State as SignupState, useSignupState} from './signup'
+import type {State as TeamsState, useTeamsState} from './teams'
+import type {State as Tracker2State, useTrackerState} from './tracker2'
+import type {State as UnlockFoldersState, useUnlockFoldersState} from './unlock-folders'
+import type {State as UsersState, useUsersState} from './users'
+import type {State as WaitingState, useWaitingState} from './waiting'
+import type {State as WhatsNewState, useWhatsNewState} from './whats-new'
 
 type StoreName =
   | 'active'
@@ -55,13 +59,16 @@ type StoreName =
   | 'followers'
   | 'fs'
   | 'git'
+  | 'logout'
   | 'notifications'
   | 'people'
   | 'pinentry'
   | 'profile'
   | 'provision'
+  | 'push'
   | 'router'
   | 'settings'
+  | 'settings-chat'
   | 'settings-contacts'
   | 'settings-email'
   | 'settings-password'
@@ -75,180 +82,236 @@ type StoreName =
   | 'whats-new'
 
 type StoreStates = {
-  active: ActiveType.State
-  archive: ArchiveType.State
-  autoreset: AutoResetType.State
-  avatar: AvatarType.State
-  bots: BotsType.State
-  chat: ChatType.State
-  config: ConfigType.State
-  'current-user': CurrentUserType.State
-  daemon: DaemonType.State
-  'dark-mode': DarkModeType.State
-  deeplinks: DeepLinksType.State
-  devices: DevicesType.State
-  engine: EngineType.State
-  followers: FollowersType.State
-  fs: FSType.State
-  git: GitType.State
-  notifications: NotificationsType.State
-  people: PeopleType.State
-  pinentry: PinentryType.State
-  profile: ProfileType.State
-  provision: ProvisionType.State
-  router: RouterType.State
-  settings: SettingsType.State
-  'settings-contacts': SettingsContactsType.State
-  'settings-email': SettingsEmailType.State
-  'settings-password': SettingsPasswordType.State
-  'settings-phone': SettingsPhoneType.State
-  signup: SignupType.State
-  teams: TeamsType.State
-  tracker2: Tracker2Type.State
-  'unlock-folders': UnlockFoldersType.State
-  users: UsersType.State
-  waiting: WaitingType.State
-  'whats-new': WhatsNewType.State
+  active: ActiveState
+  archive: ArchiveState
+  autoreset: AutoResetState
+  avatar: AvatarState
+  bots: BotsState
+  chat: ChatState
+  config: ConfigState
+  'current-user': CurrentUserState
+  daemon: DaemonState
+  'dark-mode': DarkModeState
+  deeplinks: DeepLinksState
+  devices: DevicesState
+  engine: EngineState
+  followers: FollowersState
+  fs: FSState
+  git: GitState
+  logout: LogoutState
+  notifications: NotificationsState
+  people: PeopleState
+  pinentry: PinentryState
+  profile: ProfileState
+  provision: ProvisionState
+  push: PushState
+  router: RouterState
+  settings: SettingsState
+  'settings-chat': SettingsChatState
+  'settings-contacts': SettingsContactsState
+  'settings-email': SettingsEmailState
+  'settings-password': SettingsPasswordState
+  'settings-phone': SettingsPhoneState
+  signup: SignupState
+  teams: TeamsState
+  tracker2: Tracker2State
+  'unlock-folders': UnlockFoldersState
+  users: UsersState
+  waiting: WaitingState
+  'whats-new': WhatsNewState
+}
+
+type StoreHooks = {
+  active: typeof useActiveState
+  archive: typeof useArchiveState
+  autoreset: typeof useAutoResetState
+  avatar: typeof useAvatarState
+  bots: typeof useBotsState
+  chat: typeof useChatState
+  config: typeof useConfigState
+  'current-user': typeof useCurrentUserState
+  daemon: typeof useDaemonState
+  'dark-mode': typeof useDarkModeState
+  deeplinks: typeof useDeepLinksState
+  devices: typeof useDevicesState
+  engine: typeof useEngineState
+  followers: typeof useFollowerState
+  fs: typeof useFSState
+  git: typeof useGitState
+  logout: typeof useLogoutState
+  notifications: typeof useNotifState
+  people: typeof usePeopleState
+  pinentry: typeof usePinentryState
+  profile: typeof useProfileState
+  provision: typeof useProvisionState
+  push: typeof usePushState
+  router: typeof useRouterState
+  settings: typeof useSettingsState
+  'settings-chat': typeof useSettingsChatState
+  'settings-contacts': typeof useSettingsContactsState
+  'settings-email': typeof useSettingsEmailState
+  'settings-password': typeof usePWState
+  'settings-phone': typeof useSettingsPhoneState
+  signup: typeof useSignupState
+  teams: typeof useTeamsState
+  tracker2: typeof useTrackerState
+  'unlock-folders': typeof useUnlockFoldersState
+  users: typeof useUsersState
+  waiting: typeof useWaitingState
+  'whats-new': typeof useWhatsNewState
 }
 
 class StoreRegistry {
-  private getStoreState<T extends StoreName>(storeName: T): StoreStates[T] {
+  getStore<T extends StoreName>(storeName: T): StoreHooks[T] {
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
     switch (storeName) {
       case 'active': {
-        const {useActiveState} = require('./active') as typeof ActiveType
-        return useActiveState.getState() as StoreStates[T]
+        const {useActiveState} = require('./active')
+        return useActiveState
       }
       case 'archive': {
-        const {useState} = require('./archive') as typeof ArchiveType
-        return useState.getState() as StoreStates[T]
+        const {useArchiveState} = require('./archive')
+        return useArchiveState
       }
       case 'autoreset': {
-        const {useState} = require('./autoreset') as typeof AutoResetType
-        return useState.getState() as StoreStates[T]
+        const {useAutoResetState} = require('./autoreset')
+        return useAutoResetState
       }
       case 'avatar': {
-        const {useAvatarState} = require('@/common-adapters/avatar/store') as typeof AvatarType
-        return useAvatarState.getState() as StoreStates[T]
+        const {useAvatarState} = require('@/common-adapters/avatar/store')
+        return useAvatarState
       }
       case 'bots': {
-        const {useBotsState} = require('./bots') as typeof BotsType
-        return useBotsState.getState() as StoreStates[T]
+        const {useBotsState} = require('./bots')
+        return useBotsState
       }
       case 'chat': {
-        const {useChatState} = require('./chat2') as typeof ChatType
-        return useChatState.getState() as StoreStates[T]
+        const {useChatState} = require('./chat2')
+        return useChatState
       }
       case 'config': {
-        const {useConfigState} = require('./config') as typeof ConfigType
-        return useConfigState.getState() as StoreStates[T]
+        const {useConfigState} = require('./config')
+        return useConfigState
       }
       case 'current-user': {
-        const {useCurrentUserState} = require('./current-user') as typeof CurrentUserType
-        return useCurrentUserState.getState() as StoreStates[T]
+        const {useCurrentUserState} = require('./current-user')
+        return useCurrentUserState
       }
       case 'daemon': {
-        const {useDaemonState} = require('./daemon') as typeof DaemonType
-        return useDaemonState.getState() as StoreStates[T]
+        const {useDaemonState} = require('./daemon')
+        return useDaemonState
       }
       case 'dark-mode': {
-        const {useDarkModeState} = require('./darkmode') as typeof DarkModeType
-        return useDarkModeState.getState() as StoreStates[T]
+        const {useDarkModeState} = require('./darkmode')
+        return useDarkModeState
       }
       case 'deeplinks': {
-        const {useDeepLinksState} = require('./deeplinks') as typeof DeepLinksType
-        return useDeepLinksState.getState() as StoreStates[T]
+        const {useDeepLinksState} = require('./deeplinks')
+        return useDeepLinksState
       }
       case 'devices': {
-        const {useState} = require('./devices') as typeof DevicesType
-        return useState.getState() as StoreStates[T]
+        const {useDevicesState} = require('./devices')
+        return useDevicesState
       }
       case 'engine': {
-        const {useEngineState} = require('./engine') as typeof EngineType
-        return useEngineState.getState() as StoreStates[T]
+        const {useEngineState} = require('./engine')
+        return useEngineState
       }
       case 'followers': {
-        const {useFollowerState} = require('./followers') as typeof FollowersType
-        return useFollowerState.getState() as StoreStates[T]
+        const {useFollowerState} = require('./followers')
+        return useFollowerState
       }
       case 'fs': {
-        const {useFSState} = require('./fs') as typeof FSType
-        return useFSState.getState() as StoreStates[T]
+        const {useFSState} = require('./fs')
+        return useFSState
       }
       case 'git': {
-        const {useGitState} = require('./git') as typeof GitType
-        return useGitState.getState() as StoreStates[T]
+        const {useGitState} = require('./git')
+        return useGitState
+      }
+      case 'logout': {
+        const {useLogoutState} = require('./logout')
+        return useLogoutState
       }
       case 'notifications': {
-        const {useNotifState} = require('./notifications') as typeof NotificationsType
-        return useNotifState.getState() as StoreStates[T]
+        const {useNotifState} = require('./notifications')
+        return useNotifState
       }
       case 'people': {
-        const {usePeopleState} = require('./people') as typeof PeopleType
-        return usePeopleState.getState() as StoreStates[T]
+        const {usePeopleState} = require('./people')
+        return usePeopleState
       }
       case 'pinentry': {
-        const {usePinentryState} = require('./pinentry') as typeof PinentryType
-        return usePinentryState.getState() as StoreStates[T]
+        const {usePinentryState} = require('./pinentry')
+        return usePinentryState
       }
       case 'profile': {
-        const {useProfileState} = require('./profile') as typeof ProfileType
-        return useProfileState.getState() as StoreStates[T]
+        const {useProfileState} = require('./profile')
+        return useProfileState
       }
       case 'provision': {
-        const {useProvisionState} = require('./provision') as typeof ProvisionType
-        return useProvisionState.getState() as StoreStates[T]
+        const {useProvisionState} = require('./provision')
+        return useProvisionState
+      }
+      case 'push': {
+        const {usePushState} = require('./push')
+        return usePushState
       }
       case 'router': {
-        const {useRouterState} = require('./router2') as typeof RouterType
-        return useRouterState.getState() as StoreStates[T]
+        const {useRouterState} = require('./router2')
+        return useRouterState
       }
       case 'settings': {
-        const {useSettingsState} = require('./settings') as typeof SettingsType
-        return useSettingsState.getState() as StoreStates[T]
+        const {useSettingsState} = require('./settings')
+        return useSettingsState
+      }
+      case 'settings-chat': {
+        const {useSettingsChatState} = require('./settings-chat')
+        return useSettingsChatState
       }
       case 'settings-contacts': {
-        const {useSettingsContactsState} = require('./settings-contacts') as typeof SettingsContactsType
-        return useSettingsContactsState.getState() as StoreStates[T]
+        const {useSettingsContactsState} = require('./settings-contacts')
+        return useSettingsContactsState
       }
       case 'settings-email': {
-        const {useSettingsEmailState} = require('./settings-email') as typeof SettingsEmailType
-        return useSettingsEmailState.getState() as StoreStates[T]
+        const {useSettingsEmailState} = require('./settings-email')
+        return useSettingsEmailState
       }
       case 'settings-password': {
-        const {usePWState} = require('./settings-password') as typeof SettingsPasswordType
-        return usePWState.getState() as StoreStates[T]
+        const {usePWState} = require('./settings-password')
+        return usePWState
       }
       case 'settings-phone': {
-        const {useSettingsPhoneState} = require('./settings-phone') as typeof SettingsPhoneType
-        return useSettingsPhoneState.getState() as StoreStates[T]
+        const {useSettingsPhoneState} = require('./settings-phone')
+        return useSettingsPhoneState
       }
       case 'signup': {
-        const {useSignupState} = require('./signup') as typeof SignupType
-        return useSignupState.getState() as StoreStates[T]
+        const {useSignupState} = require('./signup')
+        return useSignupState
       }
       case 'teams': {
-        const {useTeamsState} = require('./teams') as typeof TeamsType
-        return useTeamsState.getState() as StoreStates[T]
+        const {useTeamsState} = require('./teams')
+        return useTeamsState
       }
       case 'tracker2': {
-        const {useTrackerState} = require('./tracker2') as typeof Tracker2Type
-        return useTrackerState.getState() as StoreStates[T]
+        const {useTrackerState} = require('./tracker2')
+        return useTrackerState
       }
       case 'unlock-folders': {
-        const {useState} = require('./unlock-folders') as typeof UnlockFoldersType
-        return useState.getState() as StoreStates[T]
+        const {useUnlockFoldersState} = require('./unlock-folders')
+        return useUnlockFoldersState
       }
       case 'users': {
-        const {useUsersState} = require('./users') as typeof UsersType
-        return useUsersState.getState() as StoreStates[T]
+        const {useUsersState} = require('./users')
+        return useUsersState
       }
       case 'waiting': {
-        const {useWaitingState} = require('./waiting') as typeof WaitingType
-        return useWaitingState.getState() as StoreStates[T]
+        const {useWaitingState} = require('./waiting')
+        return useWaitingState
       }
       case 'whats-new': {
-        const {useState} = require('./whats-new') as typeof WhatsNewType
-        return useState.getState() as StoreStates[T]
+        const {useWhatsNewState} = require('./whats-new')
+        return useWhatsNewState
       }
       default:
         throw new Error(`Unknown store: ${storeName}`)
@@ -256,7 +319,7 @@ class StoreRegistry {
   }
 
   getState<T extends StoreName>(storeName: T): StoreStates[T] {
-    return this.getStoreState(storeName)
+    return this.getStore(storeName).getState() as StoreStates[T]
   }
 
   getTBStore(name: T.TB.AllowedNamespace): TBType.State {
@@ -266,7 +329,7 @@ class StoreRegistry {
   }
 
   getConvoState(id: T.Chat.ConversationIDKey): ConvoState {
-    const {getConvoState} = require('./chat2/convostate')
+    const {getConvoState} = require('./chat2/convostate') as typeof ConvoStateType
     return getConvoState(id)
   }
 }

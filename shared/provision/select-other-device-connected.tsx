@@ -13,7 +13,7 @@ const SelectOtherDeviceContainer = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = useSafeSubmit(_onBack, false)
-  const startAccountReset = AutoReset.useState(s => s.dispatch.startAccountReset)
+  const startAccountReset = AutoReset.useAutoResetState(s => s.dispatch.startAccountReset)
 
   const onResetAccount = React.useCallback(() => {
     startAccountReset(false, username)

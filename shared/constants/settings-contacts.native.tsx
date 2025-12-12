@@ -10,8 +10,7 @@ import {getDefaultCountryCode} from 'react-native-kb'
 import {getE164} from './settings-phone'
 import {isIOS} from './platform'
 import {pluralize} from '@/util/string'
-import {useCurrentUserState} from './current-user'
-import {useConfigState} from '@/constants/config'
+import {storeRegistry} from './store-registry'
 
 const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
 
@@ -80,7 +79,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
         })
       }
       const f = async () => {
-        const username = useCurrentUserState.getState().username
+        const username = storeRegistry.getState('current-user').username
         if (!username) {
           logger.warn('no username')
           return
@@ -100,10 +99,10 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
     },
     loadContactImportEnabled: () => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!storeRegistry.getState('config').loggedIn) {
           return
         }
-        const username = useCurrentUserState.getState().username
+        const username = storeRegistry.getState('current-user').username
         if (!username) {
           logger.warn('no username')
           return
@@ -226,7 +225,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
               s.waitingToShowJoinedModal = false
             })
             if (resolved.length) {
-              C.useRouterState.getState().dispatch.navigateAppend('settingsContactsJoined')
+              storeRegistry.getState('router').dispatch.navigateAppend('settingsContactsJoined')
             }
           }
         } catch (_error) {
@@ -242,7 +241,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
     },
     requestPermissions: (thenToggleImportOn?: boolean, fromSettings?: boolean) => {
       const f = async () => {
-        const {decrement, increment} = C.useWaitingState.getState().dispatch
+        const {decrement, increment} = storeRegistry.getState('waiting').dispatch
         increment(C.importContactsWaitingKey)
         const status = (await Contacts.requestPermissionsAsync()).status
 

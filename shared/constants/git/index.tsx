@@ -4,7 +4,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
 import debounce from 'lodash/debounce'
-import {useConfigState} from '@/constants/config'
+import {storeRegistry} from '../store-registry'
 
 const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {
   const errors: Array<Error> = []
@@ -104,7 +104,7 @@ export const useGitState = Z.createZustand<State>((set, get) => {
     async () => {
       const results = await T.RPCGen.gitGetAllGitMetadataRpcPromise(undefined, C.waitingKeyGitLoading)
       const {errors, repos} = parseRepos(results || [])
-      const {setGlobalError} = useConfigState.getState().dispatch
+      const {setGlobalError} = storeRegistry.getState('config').dispatch
       errors.forEach(e => setGlobalError(e))
       set(s => {
         s.idToInfo = repos
@@ -150,8 +150,8 @@ export const useGitState = Z.createZustand<State>((set, get) => {
         await _load()
         for (const [, info] of get().idToInfo) {
           if (info.repoID === repoID && info.teamname === teamname) {
-            C.useRouterState
-              .getState()
+            storeRegistry
+              .getState('router')
               .dispatch.navigateAppend({props: {expanded: info.id}, selected: 'gitRoot'})
             break
           }

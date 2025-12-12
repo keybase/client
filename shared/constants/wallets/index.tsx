@@ -2,7 +2,7 @@ import * as C from '..'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 import {loadAccountsWaitingKey} from './utils'
-import {useConfigState} from '@/constants/config'
+import {storeRegistry} from '../store-registry'
 
 export {loadAccountsWaitingKey} from './utils'
 
@@ -33,7 +33,7 @@ export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     load: () => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!storeRegistry.getState('config').loggedIn) {
           return
         }
         const res = await T.RPCStellar.localGetWalletAccountsLocalRpcPromise(undefined, [

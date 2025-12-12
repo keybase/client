@@ -102,8 +102,8 @@ export const useSettingsState = Z.createZustand<State>(set => {
       return
     }
     maybeLoadAppLinkOnce = true
-    C.useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
-    C.useRouterState.getState().dispatch.navigateAppend('settingsAddPhone')
+    storeRegistry.getState('router').dispatch.switchTab(Tabs.settingsTab)
+    storeRegistry.getState('router').dispatch.navigateAppend('settingsAddPhone')
   }
 
   const dispatch: State['dispatch'] = {
@@ -142,8 +142,8 @@ export const useSettingsState = Z.createZustand<State>(set => {
 
         await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, C.waitingKeySettingsGeneric)
         storeRegistry.getState('config').dispatch.setJustDeletedSelf(username)
-        C.useRouterState.getState().dispatch.clearModals()
-        C.useRouterState.getState().dispatch.navigateAppend(Tabs.loginTab)
+        storeRegistry.getState('router').dispatch.clearModals()
+        storeRegistry.getState('router').dispatch.navigateAppend(Tabs.loginTab)
       }
       C.ignorePromise(f())
     },
@@ -239,7 +239,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
           logDirForMobile: C.pprofDir,
           profileDurationSeconds,
         })
-        const {decrement, increment} = C.useWaitingState.getState().dispatch
+        const {decrement, increment} = storeRegistry.getState('waiting').dispatch
         increment(processorProfileInProgressKey)
         await C.timeoutPromise(profileDurationSeconds * 1_000)
         decrement(processorProfileInProgressKey)
@@ -297,7 +297,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
           logDirForMobile: C.pprofDir,
           traceDurationSeconds: durationSeconds,
         })
-        const {decrement, increment} = C.useWaitingState.getState().dispatch
+        const {decrement, increment} = storeRegistry.getState('waiting').dispatch
         increment(traceInProgressKey)
         await C.timeoutPromise(durationSeconds * 1_000)
         decrement(traceInProgressKey)

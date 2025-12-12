@@ -880,7 +880,7 @@ export const getPathStatusIconInMergeProps = (
 
 export const makeActionsForDestinationPickerOpen = (index: number, path: T.FS.Path) => {
   useFSState.getState().dispatch.setDestinationPickerParentPath(index, path)
-  C.useRouterState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
+  storeRegistry.getState('router').dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
 }
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, settingsFsTab] : [Tabs.fsTab]
@@ -1932,8 +1932,8 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             const users = fields?.filter(elem => elem.key === 'usernames')
             const usernames = users?.map(elem => elem.value ?? '') ?? []
             // Don't leave the user on a broken FS dir screen.
-            C.useRouterState.getState().dispatch.navigateUp()
-            C.useRouterState.getState().dispatch.navigateAppend({
+            storeRegistry.getState('router').dispatch.navigateUp()
+            storeRegistry.getState('router').dispatch.navigateAppend({
               props: {source: 'newFolder', usernames},
               selected: 'contactRestricted',
             })
@@ -2536,7 +2536,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         }
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
-      C.useRouterState.getState().dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      storeRegistry.getState('router').dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     showMoveOrCopy: initialDestinationParentPath => {
       set(s => {
@@ -2551,7 +2551,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
 
-      C.useRouterState.getState().dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      storeRegistry.getState('router').dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     startManualConflictResolution: tlfPath => {
       const f = async () => {

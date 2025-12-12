@@ -4,7 +4,7 @@ import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
 import * as T from '../types'
 import {RPCError} from '@/util/errors'
-import {useCurrentUserState} from '../current-user'
+import {storeRegistry} from '../store-registry'
 
 export const saltpackDocumentation = 'https://saltpack.org'
 export const inputDesktopMaxHeight = {maxHeight: '30%'} as const
@@ -272,7 +272,7 @@ export const useState = Z.createZustand<State>((set, get) => {
   const encrypt = (destinationDir: string = '') => {
     const f = async () => {
       const start = get().encrypt
-      const username = useCurrentUserState.getState().username
+      const username = storeRegistry.getState('current-user').username
       const signed = start.options.sign
       const inputType = start.inputType
       const input = start.input.stringValue()
@@ -398,7 +398,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
         const output = await (inputType === 'text' ? callText() : callFile())
 
-        const username = useCurrentUserState.getState().username
+        const username = storeRegistry.getState('current-user').username
         set(s => {
           onSuccess(s.sign, s.sign.input.stringValue() === input, '', output, inputType, true, username, '')
         })
@@ -576,7 +576,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       // User set themselves as a recipient, so don't show 'includeSelf' option
       // However we don't want to set hideIncludeSelf if we are also encrypting to an SBS user (since we must force includeSelf)
-      const currentUser = useCurrentUserState.getState().username
+      const currentUser = storeRegistry.getState('current-user').username
       const {options} = get().encrypt
       if (usernames.includes(currentUser) && !hasSBS) {
         get().dispatch.setEncryptOptions(options, true)
@@ -640,7 +640,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           break
       }
       if (C.isMobile) {
-        C.useRouterState.getState().dispatch.navigateAppend(route)
+        storeRegistry.getState('router').dispatch.navigateAppend(route)
       }
     },
     setEncryptOptions: (newOptions, hideIncludeSelf) => {

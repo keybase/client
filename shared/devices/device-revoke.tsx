@@ -85,8 +85,8 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
 }
 
 const useRevoke = (deviceID = '') => {
-  const d = Devices.useState(s => s.deviceMap.get(deviceID))
-  const load = Devices.useState(s => s.dispatch.load)
+  const d = Devices.useDevicesState(s => s.deviceMap.get(deviceID))
+  const load = Devices.useDevicesState(s => s.dispatch.load)
   const username = useCurrentUserState(s => s.username)
   const wasCurrentDevice = d?.currentDevice ?? false
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
@@ -120,7 +120,7 @@ const useRevoke = (deviceID = '') => {
 const DeviceRevoke = (ownProps: OwnProps) => {
   const selectedDeviceID = ownProps.deviceID
   const [endangeredTLFs, setEndangeredTLFs] = React.useState(new Array<string>())
-  const device = Devices.useState(s => s.deviceMap.get(selectedDeviceID))
+  const device = Devices.useDevicesState(s => s.deviceMap.get(selectedDeviceID))
   const deviceID = device?.deviceID
   const deviceName = device?.name ?? ''
   const type = device?.type ?? 'desktop'

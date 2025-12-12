@@ -293,8 +293,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
                 .dispatch.setLinkError(
                   `You followed a profile link for a user (${assertion}) that does not exist.`
                 )
-              C.useRouterState.getState().dispatch.navigateUp()
-              C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
+              storeRegistry.getState('router').dispatch.navigateUp()
+              storeRegistry.getState('router').dispatch.navigateAppend('keybaseLinkError')
             }
             // hooked into reloadable
             logger.error(`Error loading profile: ${error.message}`)

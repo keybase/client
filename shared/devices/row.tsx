@@ -15,7 +15,7 @@ export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
 const Container = React.memo(function Container(ownProps: OwnProps) {
   const {deviceID, firstItem} = ownProps
-  const device = Devices.useState(s => s.deviceMap.get(deviceID))
+  const device = Devices.useDevicesState(s => s.deviceMap.get(deviceID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showExistingDevicePage = React.useCallback(() => {
     navigateAppend({props: {deviceID}, selected: 'devicePage'})

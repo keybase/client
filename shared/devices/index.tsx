@@ -21,10 +21,10 @@ const splitAndSortDevices = (deviceMap: T.Immutable<Map<string, T.Devices.Device
 const itemHeight = {height: 48, type: 'fixed'} as const
 
 const ReloadableDevices = React.memo(function ReloadableDevices() {
-  const deviceMap = Devices.useState(s => s.deviceMap)
+  const deviceMap = Devices.useDevicesState(s => s.deviceMap)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
-  const {load: loadDevices, clearBadges} = Devices.useState(s => s.dispatch)
-  const storeSet = Devices.useState(s => s.isNew)
+  const {load: loadDevices, clearBadges} = Devices.useDevicesState(s => s.dispatch)
+  const storeSet = Devices.useDevicesState(s => s.isNew)
   const {badged} = useLocalBadging(storeSet, clearBadges)
 
   const newlyChangedItemIds = badged

@@ -14,9 +14,9 @@ export type Props = {
 
 const PromptReset = (props: Props) => {
   const nav = useSafeNavigation()
-  const skipPassword = AutoReset.useState(s => s.skipPassword)
-  const error = AutoReset.useState(s => s.error)
-  const resetAccount = AutoReset.useState(s => s.dispatch.resetAccount)
+  const skipPassword = AutoReset.useAutoResetState(s => s.skipPassword)
+  const error = AutoReset.useAutoResetState(s => s.error)
+  const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
   const {resetPassword} = props
 
   const submitResetPassword = useRecoverState(s => s.dispatch.dynamic.submitResetPassword)

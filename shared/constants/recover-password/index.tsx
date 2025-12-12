@@ -1,5 +1,4 @@
 import * as C from '..'
-import {useConfigState} from '../config'
 import * as AutoReset from '../autoreset'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
@@ -7,7 +6,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {type Device} from '../provision'
 import {rpcDeviceToDevice} from '../rpc-utils'
-import {useProvisionState} from '../provision'
+import {storeRegistry} from '../store-registry'
 
 type Store = T.Immutable<{
   devices: Array<Device>
@@ -74,7 +73,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         if (p.abortProvisioning) {
-          useProvisionState.getState().dispatch.dynamic.cancel?.()
+          storeRegistry.getState('provision').dispatch.dynamic.cancel?.()
         }
         let hadError = false
         try {
@@ -93,7 +92,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   const cancel = C.wrapErrors(() => {
                     clear()
                     response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
-                    C.useRouterState.getState().dispatch.navigateUp()
+                    storeRegistry.getState('router').dispatch.navigateUp()
                   })
                   s.devices = devices
                   s.dispatch.dynamic.cancel = cancel
@@ -107,15 +106,17 @@ export const useState = Z.createZustand<State>((set, get) => {
                     }
                   })
                 })
-                C.useRouterState
-                  .getState()
+                storeRegistry
+                  .getState('router')
                   .dispatch.navigateAppend('recoverPasswordDeviceSelector', !!replaceRoute)
               },
               'keybase.1.loginUi.promptPassphraseRecovery': () => {},
               // This same RPC is called at the beginning and end of the 7-day wait by the service.
               'keybase.1.loginUi.promptResetAccount': (params, response) => {
                 if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
-                  C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPromptResetPassword')
+                  storeRegistry
+                    .getState('router')
+                    .dispatch.navigateAppend('recoverPasswordPromptResetPassword')
                   const clear = () => {
                     set(s => {
                       s.dispatch.dynamic.submitResetPassword = undefined
@@ -130,17 +131,17 @@ export const useState = Z.createZustand<State>((set, get) => {
                         set(s => {
                           s.resetEmailSent = true
                         })
-                        C.useRouterState.getState().dispatch.navigateUp()
+                        storeRegistry.getState('router').dispatch.navigateUp()
                       }
                     )
                     s.dispatch.dynamic.cancel = C.wrapErrors(() => {
                       clear()
                       response.result(T.RPCGen.ResetPromptResponse.nothing)
-                      C.useRouterState.getState().dispatch.navigateUp()
+                      storeRegistry.getState('router').dispatch.navigateUp()
                     })
                   })
                 } else {
-                  const {startAccountReset} = AutoReset.useState.getState().dispatch
+                  const {startAccountReset} = AutoReset.useAutoResetState.getState().dispatch
                   startAccountReset(true, '')
                   response.result(T.RPCGen.ResetPromptResponse.nothing)
                 }
@@ -168,7 +169,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                       response.result({passphrase, storeSecret: false})
                     })
                   })
-                  C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPaperKey', true)
+                  storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordPaperKey', true)
                 } else {
                   const clear = () => {
                     set(s => {
@@ -191,7 +192,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                       })
                     })
                     // TODO maybe wait for loggedIn, for now the service promises to send this after login.
-                    C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordSetPassword')
+                    storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordSetPassword')
                   }
                 }
               },
@@ -201,7 +202,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                 set(s => {
                   s.explainedDevice = {name: params.name, type: params.kind}
                 })
-                C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordExplainDevice', true)
+                storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordExplainDevice', true)
               },
             },
             params: {username: p.username},
@@ -225,10 +226,12 @@ export const useState = Z.createZustand<State>((set, get) => {
             set(s => {
               s.error = msg
             })
-            C.useRouterState
-              .getState()
+            storeRegistry
+              .getState('router')
               .dispatch.navigateAppend(
-                useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+                storeRegistry.getState('config').loggedIn
+                  ? 'recoverPasswordErrorModal'
+                  : 'recoverPasswordError',
                 true
               )
           }
@@ -243,7 +246,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
         if (!hadError) {
-          C.useRouterState.getState().dispatch.clearModals()
+          storeRegistry.getState('router').dispatch.clearModals()
         }
       }
       C.ignorePromise(f())

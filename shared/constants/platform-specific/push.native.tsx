@@ -1,6 +1,5 @@
 import * as C from '..'
 import * as T from '../types'
-import {useConfigState} from '../config'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '@/logger'
 import {isIOS, isAndroid} from '../platform'
@@ -9,8 +8,7 @@ import {
   androidSetApplicationIconBadgeNumber,
   getNativeEmitter,
 } from 'react-native-kb'
-import {usePushState} from '../push'
-import {useLogoutState} from '../logout'
+import {storeRegistry} from '../store-registry'
 
 const setApplicationIconBadgeNumber = (n: number) => {
   if (isIOS) {
@@ -155,19 +153,19 @@ const listenForNativeAndroidIntentNotifications = async () => {
   const pushToken = await androidGetRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
 
-  usePushState.getState().dispatch.setPushToken(pushToken)
+  storeRegistry.getState('push').dispatch.setPushToken(pushToken)
 
   const RNEmitter = getNativeEmitter()
   RNEmitter.addListener('initialIntentFromNotification', (evt?: object) => {
     const notification = evt && normalizePush(evt)
     if (notification) {
-      usePushState.getState().dispatch.handlePush(notification)
+      storeRegistry.getState('push').dispatch.handlePush(notification)
     }
   })
 
   RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
     logger.debug('[ShareDataIntent]', evt)
-    const {setAndroidShare} = useConfigState.getState().dispatch
+    const {setAndroidShare} = storeRegistry.getState('config').dispatch
 
     const text = evt.text
     const urls = evt.localPaths
@@ -183,7 +181,7 @@ const listenForNativeAndroidIntentNotifications = async () => {
 const iosListenForPushNotificationsFromJS = () => {
   const onRegister = (token: string) => {
     logger.debug('[PushToken] received new token: ', token)
-    usePushState.getState().dispatch.setPushToken(token)
+    storeRegistry.getState('push').dispatch.setPushToken(token)
   }
 
   const onNotification = (n: object) => {
@@ -193,7 +191,7 @@ const iosListenForPushNotificationsFromJS = () => {
       return
     }
 
-    usePushState.getState().dispatch.handlePush(notification)
+    storeRegistry.getState('push').dispatch.handlePush(notification)
   }
 
   isIOS && PushNotificationIOS.addEventListener('notification', onNotification)
@@ -231,7 +229,7 @@ const getInitialPushiOS = async () => {
 
 export const initPushListener = () => {
   // Permissions
-  useConfigState.subscribe((s, old) => {
+  storeRegistry.getStore('config').subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     // Only recheck on foreground, not background
     if (s.mobileAppState !== 'active') {
@@ -239,21 +237,21 @@ export const initPushListener = () => {
       return
     }
     logger.debug(`[PushCheck] checking on foreground`)
-    usePushState
-      .getState()
+    storeRegistry
+      .getState('push')
       .dispatch.checkPermissions()
       .then(() => {})
       .catch(() => {})
   })
 
   // Token handling
-  useLogoutState.subscribe((s, old) => {
+  storeRegistry.getStore('logout').subscribe((s, old) => {
     if (s.version === old.version) return
-    usePushState.getState().dispatch.deleteToken(s.version)
+    storeRegistry.getState('push').dispatch.deleteToken(s.version)
   })
 
   let lastCount = -1
-  useConfigState.subscribe((s, old) => {
+  storeRegistry.getStore('config').subscribe((s, old) => {
     if (s.badgeState === old.badgeState) return
     if (!s.badgeState) return
     const count = s.badgeState.bigTeamBadgeCount + s.badgeState.smallTeamBadgeCount
@@ -265,7 +263,7 @@ export const initPushListener = () => {
     lastCount = count
   })
 
-  usePushState.getState().dispatch.initialPermissionsCheck()
+  storeRegistry.getState('push').dispatch.initialPermissionsCheck()
 
   const listenNative = async () => {
     if (isAndroid) {

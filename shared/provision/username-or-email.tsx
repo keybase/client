@@ -34,7 +34,7 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
 }
 
 const UsernameOrEmailContainer = (op: OwnProps) => {
-  const _resetBannerUser = AutoReset.useState(s => s.username)
+  const _resetBannerUser = AutoReset.useAutoResetState(s => s.username)
   const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
   const _error = useProvisionState(s => s.error)
   const {inlineError, inlineSignUpLink} = useProvisionState(

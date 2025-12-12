@@ -16,7 +16,7 @@ const CodePageContainer = () => {
   const provisionDeviceName = useProvisionState(s => s.deviceName)
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
   const deviceID = useCurrentUserState(s => s.deviceID)
-  const currentDevice = Devices.useState(s => s.deviceMap.get(deviceID)) ?? Devices.emptyDevice
+  const currentDevice = Devices.useDevicesState(s => s.deviceMap.get(deviceID)) ?? Devices.emptyDevice
   const error = useProvisionState(s => s.error)
 
   const otherDevice = useProvisionState(s => s.codePageOtherDevice)

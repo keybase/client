@@ -7,7 +7,7 @@ import {type CommonResponseHandler} from '@/engine/types'
 import isEqual from 'lodash/isEqual'
 import {rpcDeviceToDevice} from '../rpc-utils'
 import {invalidPasswordErrorString} from '@/constants/config/util'
-import {useConfigState} from '@/constants/config'
+import {storeRegistry} from '../store-registry'
 
 export type Device = {
   deviceNumberOfType: number
@@ -120,7 +120,7 @@ export interface State extends Store {
 
 export const useProvisionState = Z.createZustand<State>((set, get) => {
   const _cancel = C.wrapErrors((ignoreWarning?: boolean) => {
-    C.useWaitingState.getState().dispatch.clear(C.waitingKeyProvision)
+    storeRegistry.getState('waiting').dispatch.clear(C.waitingKeyProvision)
     if (!ignoreWarning) {
       console.log('Provision: cancel called while not overloaded')
     }
@@ -238,7 +238,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
                     response.result({phrase: good, secret: null as unknown as Uint8Array})
                   })
                 })
-                C.useRouterState.getState().dispatch.navigateAppend('codePage')
+                storeRegistry.getState('router').dispatch.navigateAppend('codePage')
               },
               'keybase.1.provisionUi.chooseDeviceType': (_params, response) => {
                 const {type} = get().codePageOtherDevice
@@ -257,7 +257,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
             },
             incomingCallMap: {
               'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-                C.useWaitingState.getState().dispatch.increment(C.waitingKeyProvision)
+                storeRegistry.getState('waiting').dispatch.increment(C.waitingKeyProvision)
               },
               'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
               'keybase.1.provisionUi.ProvisionerSuccess': () => {},
@@ -276,7 +276,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
             s.dispatch.dynamic.submitTextCode = _submitTextCode
           })
         }
-        C.useRouterState.getState().dispatch.clearModals()
+        storeRegistry.getState('router').dispatch.clearModals()
       }
       C.ignorePromise(f())
     },
@@ -407,7 +407,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
 
                 // we ignore the return as we never autosubmit, but we want things to increment
                 shouldAutoSubmit(!!previousErr, {type: 'promptSecret'})
-                C.useRouterState.getState().dispatch.navigateAppend('codePage')
+                storeRegistry.getState('router').dispatch.navigateAppend('codePage')
               },
               'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
                 if (isCanceled(response)) return
@@ -430,7 +430,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
                   console.log('Provision: auto submit device name')
                   get().dispatch.dynamic.setDeviceName?.(get().deviceName)
                 } else {
-                  C.useRouterState.getState().dispatch.navigateAppend('setPublicName')
+                  storeRegistry.getState('router').dispatch.navigateAppend('setPublicName')
                 }
               },
               'keybase.1.provisionUi.chooseDevice': (params, response) => {
@@ -456,7 +456,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
                   console.log('Provision: auto submit passphrase')
                   get().dispatch.dynamic.submitDeviceSelect?.(get().codePageOtherDevice.name)
                 } else {
-                  C.useRouterState.getState().dispatch.navigateAppend('selectOtherDevice')
+                  storeRegistry.getState('router').dispatch.navigateAppend('selectOtherDevice')
                 }
               },
               'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
@@ -486,10 +486,10 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
                 } else {
                   switch (type) {
                     case T.RPCGen.PassphraseType.passPhrase:
-                      C.useRouterState.getState().dispatch.navigateAppend('password')
+                      storeRegistry.getState('router').dispatch.navigateAppend('password')
                       break
                     case T.RPCGen.PassphraseType.paperKey:
-                      C.useRouterState.getState().dispatch.navigateAppend('paperkey')
+                      storeRegistry.getState('router').dispatch.navigateAppend('paperkey')
                       break
                     default:
                       throw new Error('Got confused about password entry. Please send a log to us!')
@@ -500,7 +500,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
             incomingCallMap: {
               'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
               'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-                C.useWaitingState.getState().dispatch.increment(C.waitingKeyProvision)
+                storeRegistry.getState('waiting').dispatch.increment(C.waitingKeyProvision)
               },
               'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
               'keybase.1.provisionUi.ProvisionerSuccess': () => {},
@@ -536,8 +536,8 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
                 set(s => {
                   s.finalError = finalError
                 })
-                C.useRouterState.getState().dispatch.clearModals()
-                C.useRouterState.getState().dispatch.navigateAppend('error', true)
+                storeRegistry.getState('router').dispatch.clearModals()
+                storeRegistry.getState('router').dispatch.navigateAppend('error', true)
               }
               break
           }
@@ -549,21 +549,21 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
     },
     startProvision: (name = '', fromReset = false) => {
       get().dispatch.dynamic.cancel?.(true)
-      useConfigState.getState().dispatch.setLoginError()
-      useConfigState.getState().dispatch.resetRevokedSelf()
+      storeRegistry.getState('config').dispatch.setLoginError()
+      storeRegistry.getState('config').dispatch.resetRevokedSelf()
 
       set(s => {
         s.username = name
       })
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (useConfigState.getState().loggedIn) {
+        if (storeRegistry.getState('config').loggedIn) {
           await T.RPCGen.loginLogoutRpcPromise(
             {force: false, keepSecrets: true},
             C.waitingKeyConfigLoginAsOther
           )
         }
-        C.useRouterState.getState().dispatch.navigateAppend({props: {fromReset}, selected: 'username'})
+        storeRegistry.getState('router').dispatch.navigateAppend({props: {fromReset}, selected: 'username'})
       }
       C.ignorePromise(f())
     },

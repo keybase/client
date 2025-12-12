@@ -1,5 +1,5 @@
 import {pathSep} from '@/constants/platform'
-import {useCurrentUserState} from '@/constants/current-user'
+import {storeRegistry} from '@/constants/store-registry'
 import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
 import {parseFolderNameToUsers} from '@/util/kbfs'
@@ -200,7 +200,7 @@ export function kbfsNotification(
 
   let title = `KBFS: ${action}`
   let body = `Chat or files with ${usernames} ${notification.status}`
-  const user = useCurrentUserState.getState().username
+  const user = storeRegistry.getState('current-user').username
   let rateLimitKey: string
 
   const isError = notification.statusCode === T.RPCGen.FSStatusCode.error
