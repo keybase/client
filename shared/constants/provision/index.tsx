@@ -100,7 +100,7 @@ const initialStore: Store = {
   username: '',
 }
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     dynamic: {
       cancel?: (ignoreWarning?: boolean) => void

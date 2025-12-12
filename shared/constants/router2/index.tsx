@@ -280,7 +280,7 @@ export const useSafeFocusEffect = (fn: () => void) => {
   } catch {}
 }
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   // only used for subscribing
   navState?: NavState
 }>

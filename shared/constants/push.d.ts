@@ -1,7 +1,7 @@
 import type * as T from './types'
 import type {UseBoundStore, StoreApi} from 'zustand'
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   hasPermissions: boolean
   justSignedUp: boolean
   showPushPrompt: boolean

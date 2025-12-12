@@ -28,7 +28,7 @@ const initialStore: Store = {
   widgetBadge: 'regular',
 }
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'

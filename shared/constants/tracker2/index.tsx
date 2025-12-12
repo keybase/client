@@ -148,7 +148,7 @@ const guiIDToUsername = (state: State, guiID: string) => {
 export const showableWotEntry = (entry: T.Tracker.WebOfTrustEntry): boolean =>
   entry.status === T.RPCGen.WotStatusType.accepted || entry.status === T.RPCGen.WotStatusType.proposed
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   showTrackerSet: Set<string>
   usernameToDetails: Map<string, T.Tracker.Details>
   proofSuggestions: Array<T.Tracker.Assertion>

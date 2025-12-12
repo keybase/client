@@ -24,7 +24,7 @@ const timeoutPromise = async (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   forceSmallNav: boolean
   allowAnimatedEmojis: boolean
   androidShare?:
@@ -366,7 +366,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         case RemoteGen.openChatFromWidget: {
           get().dispatch.showMain()
-          storeRegistry.getConvoState(action.payload.conversationIDKey).dispatch.navigateToThread('inboxSmall')
+          storeRegistry
+            .getConvoState(action.payload.conversationIDKey)
+            .dispatch.navigateToThread('inboxSmall')
           break
         }
         case RemoteGen.inboxRefresh: {
@@ -410,7 +412,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.openPathInSystemFileManager: {
-          storeRegistry.getState('fs').dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
+          storeRegistry
+            .getState('fs')
+            .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
           break
         }
         case RemoteGen.unlockFoldersSubmitPaperKey: {
@@ -441,7 +445,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.trackerChangeFollow: {
-          storeRegistry.getState('tracker2').dispatch.changeFollow(action.payload.guiID, action.payload.follow)
+          storeRegistry
+            .getState('tracker2')
+            .dispatch.changeFollow(action.payload.guiID, action.payload.follow)
           break
         }
         case RemoteGen.trackerIgnore: {
@@ -816,7 +822,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           }
           const newFollowers = new Set(_newFollowers)
           const newFollowing = new Set(_newFollowing)
-          const {following: oldFollowing, followers: oldFollowers, dispatch} = storeRegistry.getState('followers')
+          const {
+            following: oldFollowing,
+            followers: oldFollowers,
+            dispatch,
+          } = storeRegistry.getState('followers')
           const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
           const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
           dispatch.replace(followers, following)

@@ -1034,7 +1034,7 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
   throw error
 }
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   badge: T.RPCGen.FilesTabBadge
   criticalUpdate: boolean
   destinationPicker: T.FS.DestinationPicker

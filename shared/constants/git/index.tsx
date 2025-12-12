@@ -61,7 +61,7 @@ const initialStore: T.Git.State = {
   isNew: new Set(),
 }
 
-interface State extends T.Git.State {
+export interface State extends T.Git.State {
   dispatch: {
     setError: (err?: Error) => void
     clearBadges: () => void

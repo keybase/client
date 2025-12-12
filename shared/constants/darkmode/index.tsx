@@ -5,7 +5,7 @@ import {isMobile} from '../platform'
 
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   darkModePreference: DarkModePreference
   systemDarkMode: boolean
   supported: boolean

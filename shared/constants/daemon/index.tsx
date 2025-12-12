@@ -10,7 +10,7 @@ import {useCurrentUserState} from '../current-user'
 // normally this wouldn't be worth it but this is startup
 const getAccountsWaitKey = 'config.getAccounts'
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   error?: Error
   handshakeState: T.Config.DaemonHandshakeState
   handshakeFailedReason: string

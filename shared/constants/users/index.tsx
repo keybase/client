@@ -5,8 +5,7 @@ import * as T from '../types'
 import * as C from '..'
 import {mapGetEnsureValue} from '@/util/map'
 
-
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   blockMap: Map<string, T.Users.BlockState>
   infoMap: Map<string, T.Users.UserInfo>
 }>

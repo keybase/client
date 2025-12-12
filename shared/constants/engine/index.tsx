@@ -22,7 +22,7 @@ import * as UsersUtil from '../users/util'
 type Store = object
 const initialStore: Store = {}
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     onEngineConnected: () => void
     onEngineDisconnected: () => void

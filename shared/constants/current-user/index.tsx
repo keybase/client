@@ -1,7 +1,7 @@
 import type * as T from '../types'
 import * as Z from '@/util/zustand'
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   deviceID: T.RPCGen.DeviceID
   deviceName: string
   uid: string

@@ -346,7 +346,7 @@ const reduceRPCItemToPeopleItem = (
   }
 }
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   followSuggestions: Array<T.People.FollowSuggestion>
   newItems: Array<T.People.PeopleScreenItem>
   oldItems: Array<T.People.PeopleScreenItem>

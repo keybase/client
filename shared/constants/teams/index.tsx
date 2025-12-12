@@ -751,7 +751,7 @@ export const countValidInviteLinks = (inviteLinks: ReadonlyArray<T.Teams.InviteL
 export const maybeGetMostRecentValidInviteLink = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>) =>
   inviteLinks.find(inviteLink => inviteLink.isValid)
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   activityLevels: T.Teams.ActivityLevels
   addUserToTeamsResults: string
   addUserToTeamsState: T.Teams.AddUserToTeamsState
@@ -2032,7 +2032,9 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           )
           logger.info(`leaveTeam: left ${teamname} successfully`)
           storeRegistry.getState('router').dispatch.clearModals()
-          storeRegistry.getState('router').dispatch.navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
+          storeRegistry
+            .getState('router')
+            .dispatch.navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
           get().dispatch.getTeams()
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2164,7 +2166,9 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       })
     },
     manageChatChannels: teamID => {
-      storeRegistry.getState('router').dispatch.navigateAppend({props: {teamID}, selected: 'teamAddToChannels'})
+      storeRegistry
+        .getState('router')
+        .dispatch.navigateAppend({props: {teamID}, selected: 'teamAddToChannels'})
     },
     notifyTeamTeamRoleMapChanged: (newVersion: number) => {
       const loadedVersion = get().teamRoleMap.loadedVersion
@@ -2835,7 +2839,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.newTeamWizard.teamType = teamType
       })
-        storeRegistry.getState('router').dispatch.navigateAppend('teamWizard2TeamInfo')
+      storeRegistry.getState('router').dispatch.navigateAppend('teamWizard2TeamInfo')
     },
     setTeamsWithChosenChannels: teamsWithChosenChannels => {
       set(s => {
@@ -2898,7 +2902,9 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
             return
           }
         }
-        storeRegistry.getState('router').dispatch.navigateAppend({props: {initialTab, teamID}, selected: 'team'})
+        storeRegistry
+          .getState('router')
+          .dispatch.navigateAppend({props: {initialTab, teamID}, selected: 'team'})
         if (addMembers) {
           storeRegistry.getState('router').dispatch.navigateAppend({
             props: {namespace: 'teams', teamID, title: ''},
