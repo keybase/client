@@ -1,9 +1,7 @@
 // TODO change setNavState
 import type * as React from 'react'
 import * as C from '..'
-import {useTeamsState} from '../teams'
 import type * as T from '../types'
-import {useSignupState} from '../signup'
 import {
   createNavigationContainerRef,
   StackActions,
@@ -15,13 +13,10 @@ import {
 import * as Z from '@/util/zustand'
 import {produce} from 'immer'
 import * as Tabs from '../tabs'
-import {usePeopleState} from '../people'
 import isEqual from 'lodash/isEqual'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet} from '../types/router2'
 import {registerDebugClear} from '@/util/debug'
-import {useSettingsEmailState} from '../settings-email'
-import {useFSState} from '../fs'
 import {storeRegistry} from '../store-registry'
 export type PathParam = NavigateAppendType
 export type Route = NavigationState<KBRootParamList>['routes'][0]
@@ -438,7 +433,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       updateTeamBuilding()
 
       const updateFS = () => {
-        const {criticalUpdate, dispatch} = useFSState.getState()
+        const {criticalUpdate, dispatch} = storeRegistry.getState('fs')
         // Clear critical update when we nav away from tab
         if (criticalUpdate && prev && getTab(prev) === Tabs.fsTab && next && getTab(next) !== Tabs.fsTab) {
           dispatch.setCriticalUpdate(false)
@@ -459,27 +454,27 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       const updateSignup = () => {
         // Clear "just signed up email" when you leave the people tab after signup
         if (
-          useSignupState.getState().justSignedUpEmail &&
+          storeRegistry.getState('signup').justSignedUpEmail &&
           prev &&
           getTab(prev) === Tabs.peopleTab &&
           next &&
           getTab(next) !== Tabs.peopleTab
         ) {
-          useSignupState.getState().dispatch.clearJustSignedUpEmail()
+          storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
         }
       }
       updateSignup()
 
       const updatePeople = () => {
         if (prev && getTab(prev) === Tabs.peopleTab && next && getTab(next) !== Tabs.peopleTab) {
-          usePeopleState.getState().dispatch.markViewed()
+          storeRegistry.getState('people').dispatch.markViewed()
         }
       }
       updatePeople()
 
       const updateTeams = () => {
         if (prev && getTab(prev) === Tabs.teamsTab && next && getTab(next) !== Tabs.teamsTab) {
-          useTeamsState.getState().dispatch.clearNavBadges()
+          storeRegistry.getState('teams').dispatch.clearNavBadges()
         }
       }
       updateTeams()
@@ -487,18 +482,18 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       const updateSettings = () => {
         // Clear "check your inbox" in settings when you leave the settings tab
         if (
-          useSettingsEmailState.getState().addedEmail &&
+          storeRegistry.getState('settings-email').addedEmail &&
           prev &&
           getTab(prev) === Tabs.settingsTab &&
           next &&
           getTab(next) !== Tabs.settingsTab
         ) {
-          useSettingsEmailState.getState().dispatch.resetAddedEmail()
+          storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
         }
       }
       updateSettings()
 
-      C.useChatState.getState().dispatch.onRouteChanged(prev, next)
+      storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
     },
     switchTab: name => {
       DEBUG_NAV && console.log('[Nav] switchTab', {name})
@@ -514,7 +509,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
   }
 
   const appendPeopleBuilder = () => {
-    C.useRouterState.getState().dispatch.navigateAppend({
+    storeRegistry.getState('router').dispatch.navigateAppend({
       props: {
         filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
         namespace: 'people',
@@ -525,14 +520,14 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
   }
 
   const appendNewChatBuilder = () => {
-    C.useRouterState
-      .getState()
+    storeRegistry
+      .getState('router')
       .dispatch.navigateAppend({props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'})
   }
 
   // Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
   const appendNewTeamBuilder = (teamID: T.Teams.TeamID) => {
-    C.useRouterState.getState().dispatch.navigateAppend({
+    storeRegistry.getState('router').dispatch.navigateAppend({
       props: {
         filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
         goButtonLabel: 'Add',
@@ -545,7 +540,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
   }
 
   const appendEncryptRecipientsBuilder = () => {
-    C.useRouterState.getState().dispatch.navigateAppend({
+    storeRegistry.getState('router').dispatch.navigateAppend({
       props: {
         filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
         goButtonLabel: 'Add',
