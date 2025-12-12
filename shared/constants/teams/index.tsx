@@ -15,6 +15,7 @@ import {isMobile, isPhone} from '../platform'
 import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '../rpc-utils'
 import {fixCrop} from '@/util/crop'
+import {storeRegistry} from '../store-registry'
 import {
   makeRetentionPolicy,
   serviceRetentionPolicyToRetentionPolicy,
@@ -1433,8 +1434,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           get().dispatch.loadTeamChannelList(teamID)
           // Select the new channel, and switch to the chat tab.
           if (navToChatOnSuccess) {
-            const {previewConversation} = C.useChatState.getState().dispatch
-            previewConversation({
+            storeRegistry.call('chat', 'previewConversation', {
               channelname,
               conversationIDKey: newConversationIDKey,
               reason: 'newChannel',
