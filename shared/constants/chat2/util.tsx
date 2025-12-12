@@ -1,7 +1,6 @@
 import * as T from '../types'
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import type * as Index from '.'
 
 export const onEngineConnected = () => {
   const f = async () => {

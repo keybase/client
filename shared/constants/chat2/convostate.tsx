@@ -3,7 +3,6 @@
 import * as C from '..'
 import * as TeamsUtil from '../teams/util'
 import * as T from '../types'
-import type * as ConfigType from '../config'
 import * as Styles from '@/styles'
 import * as Common from './common'
 import * as Tabs from '../tabs'
@@ -17,8 +16,6 @@ import HiddenString from '@/util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import type * as UsersType from '../users'
-import type * as CurrentUserType from '../current-user'
 import type {DebouncedFunc} from 'lodash'
 import {RPCError} from '@/util/errors'
 import {findLast} from '@/util/arrays'
@@ -33,9 +30,6 @@ import assign from 'lodash/assign'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {registerDebugClear} from '@/util/debug'
 import * as Config from '@/constants/config/util'
-import type * as TeamsType from '@/constants/teams'
-import type * as RouterType from '@/constants/router2'
-import type * as ChatType from '@/constants/chat2'
 import {isMobile} from '@/constants/platform'
 import {ignorePromise, shallowEqual, enumKeys} from '@/constants'
 import * as Strings from '@/constants/strings'
@@ -44,19 +38,10 @@ import {getVisibleScreen} from '@/constants/router2'
 
 import {storeRegistry} from '../store-registry'
 
-const getTeamsState = () => storeRegistry.getState('teams')
-
 const getUsersState = () => storeRegistry.getState('users')
-
 const getCurrentUsersState = () => storeRegistry.getState('current-user')
-
 const getConfigState = () => storeRegistry.getState('config')
-
-const getRouterState = () => {
-  const {useRouterState} = require('@/constants/router2') as typeof RouterType
-  return useRouterState.getState()
-}
-
+const getRouterState = () => storeRegistry.getState('router')
 const getChatState = () => storeRegistry.getState('chat')
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
@@ -387,9 +372,9 @@ export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const closeBotModal = () => {
-    getRouterState().dispatch.clearModals()
+    storeRegistry.crosscall('router', 'clearModals')
     if (get().meta.teamname) {
-      getTeamsState().dispatch.getMembers(get().meta.teamID)
+      storeRegistry.crosscall('teams', 'getMembers', get().meta.teamID)
     }
   }
 
@@ -513,13 +498,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
 
     const onClick = () => {
-      getConfigState().dispatch.showMain()
-      getChatState().dispatch.navigateToInbox()
+      storeRegistry.crosscall('config', 'showMain')
+      storeRegistry.crosscall('chat', 'navigateToInbox')
       get().dispatch.navigateToThread('desktopNotification')
     }
     const onClose = () => {}
     logger.info('invoking NotifyPopup for chat notification')
-    const sound = getConfigState().notifySound
+    const sound = storeRegistry.getState('config').notifySound
 
     const cleanBody = body.replaceAll(/!>(.*?)<!/g, '•••')
 
@@ -656,7 +641,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       logger.error(errMsg)
       throw new Error(errMsg)
     }
-    getChatState().dispatch.paymentInfoReceived(paymentInfo)
+    storeRegistry.crosscall('chat', 'paymentInfoReceived', paymentInfo)
     getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
   }
 
@@ -1188,7 +1173,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
 
         const pathAndOutboxIDs = [{outboxID, path}]
-        getRouterState().dispatch.navigateAppend({
+        storeRegistry.crosscall('router', 'navigateAppend', {
           props: {conversationIDKey: get().id, noDragDrop: true, pathAndOutboxIDs},
           selected: 'chatAttachmentGetTitles',
         })
@@ -1196,7 +1181,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       ignorePromise(f())
     },
     attachmentPreviewSelect: ordinal => {
-      getRouterState().dispatch.navigateAppend({
+      storeRegistry.crosscall('router', 'navigateAppend', {
         props: {conversationIDKey: get().id, ordinal},
         selected: 'chatAttachmentFullscreen',
       })
@@ -1259,8 +1244,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     blockConversation: reportUser => {
       const f = async () => {
-        getChatState().dispatch.navigateToInbox()
-        getConfigState().dispatch.dynamic.persistRoute?.()
+        storeRegistry.crosscall('chat', 'navigateToInbox')
+        storeRegistry.getState('config').dispatch.dynamic.persistRoute?.()
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
           conversationID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -2535,7 +2520,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (isMetaGood()) {
           const {teamID, teamname} = meta
           if (teamname) {
-            getTeamsState().dispatch.getMembers(teamID)
+            storeRegistry.crosscall('teams', 'getMembers', teamID)
           }
         }
       }

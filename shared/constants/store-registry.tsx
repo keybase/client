@@ -6,14 +6,16 @@ import type * as CurrentUserType from './current-user'
 import type * as DaemonType from './daemon'
 import type * as TeamsType from './teams'
 import type * as UsersType from './users'
+import type * as RouterType from './router2'
 
-type StoreName = 'chat' | 'config' | 'current-user' | 'daemon' | 'teams' | 'users'
+type StoreName = 'chat' | 'config' | 'current-user' | 'daemon' | 'teams' | 'users' | 'router'
 
 type StoreActions = {
   chat: ChatType.State['dispatch']
   config: ConfigType.State['dispatch']
   'current-user': CurrentUserType.State['dispatch']
   daemon: DaemonType.State['dispatch']
+  router: RouterType.State['dispatch']
   teams: TeamsType.State['dispatch']
   users: UsersType.State['dispatch']
 }
@@ -23,6 +25,7 @@ type StoreStates = {
   config: ConfigType.State
   'current-user': CurrentUserType.State
   daemon: DaemonType.State
+  router: RouterType.State
   teams: TeamsType.State
   users: UsersType.State
 }
@@ -57,6 +60,10 @@ class StoreRegistry {
       case 'daemon': {
         const {useDaemonState} = require('./daemon') as typeof DaemonType
         return useDaemonState.getState() as StoreStates[T]
+      }
+      case 'router': {
+        const {useRouterState} = require('./router2') as typeof RouterType
+        return useRouterState.getState() as StoreStates[T]
       }
       case 'teams': {
         const {useTeamsState} = require('./teams') as typeof TeamsType

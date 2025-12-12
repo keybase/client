@@ -163,7 +163,7 @@ const initialStore: Store = {
   },
 }
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     dynamic: {
       copyToClipboard: (s: string) => void
