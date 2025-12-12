@@ -1,6 +1,6 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
-import type * as Index from '.'
 import * as T from '../types'
+import {storeRegistry} from '../store-registry'
 import invert from 'lodash/invert'
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
@@ -17,8 +17,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyBadgesBadgeState:
     case EngineGen.keybase1GregorUIPushState:
       {
-        const {useTeamsState} = require('.') as typeof Index
-        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+        storeRegistry.getState('teams').dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

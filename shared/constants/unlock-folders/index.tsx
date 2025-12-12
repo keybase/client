@@ -3,7 +3,7 @@ import * as T from '../types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {getEngine} from '@/engine/require'
-import type {Store as ConfigStore} from '../config'
+import type {State as ConfigStore} from '../config'
 import {useConfigState} from '@/constants/config'
 
 type Store = T.Immutable<{

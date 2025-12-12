@@ -1,5 +1,5 @@
 import * as Z from '@/util/zustand'
-import {useConfigState} from '../config'
+import {storeRegistry} from '../store-registry'
 import type * as EngineGen from '@/actions/engine-gen-gen'
 import * as ArchiveUtil from '../archive/util'
 import * as AutoResetUtil from '../autoreset/util'
@@ -22,7 +22,7 @@ import * as UsersUtil from '../users/util'
 type Store = object
 const initialStore: Store = {}
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     onEngineConnected: () => void
     onEngineDisconnected: () => void
@@ -36,7 +36,7 @@ export const useEngineState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     onEngineConnected: () => {
       ChatUtil.onEngineConnected()
-      useConfigState.getState().dispatch.onEngineConnected()
+      storeRegistry.getState('config').dispatch.onEngineConnected()
       NotifUtil.onEngineConnected()
       PeopleUtil.onEngineConnected()
       PinentryUtil.onEngineConnected()
@@ -44,7 +44,7 @@ export const useEngineState = Z.createZustand<State>(set => {
       UnlockFoldersUtil.onEngineConnected()
     },
     onEngineDisconnected: () => {
-      useConfigState.getState().dispatch.onEngineDisonnected()
+      storeRegistry.getState('config').dispatch.onEngineDisonnected()
     },
     onEngineIncoming: action => {
       // defer a frame so its more like before
@@ -54,9 +54,9 @@ export const useEngineState = Z.createZustand<State>(set => {
         AutoResetUtil.onEngineIncoming(action)
         BotsUtil.onEngineIncoming(action)
         ChatUtil.onEngineIncoming(action)
-        useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
-        useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
-        useConfigState.getState().dispatch.onEngineIncoming(action)
+        storeRegistry.getState('config').dispatch.dynamic.onEngineIncomingDesktop?.(action)
+        storeRegistry.getState('config').dispatch.dynamic.onEngineIncomingNative?.(action)
+        storeRegistry.getState('config').dispatch.onEngineIncoming(action)
         DeepLinksUtil.onEngineIncoming(action)
         DevicesUtil.onEngineIncoming(action)
         FSUtil.onEngineIncoming(action)

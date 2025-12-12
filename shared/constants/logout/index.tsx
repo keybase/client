@@ -9,7 +9,7 @@ const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
 }
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   waiters: Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things
   version: number

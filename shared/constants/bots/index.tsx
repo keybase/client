@@ -23,7 +23,7 @@ const initialStore: Store = {
   featuredBotsPage: -1,
 }
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     getFeaturedBots: (limit?: number, page?: number) => void
     loadNextBotPage: (pageSize?: number) => void
@@ -89,7 +89,10 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
         let userRes: ReadonlyArray<T.RPCGen.APIUserSearchResult> | undefined
         try {
           const temp = await Promise.all([
-            T.RPCGen.featuredBotSearchRpcPromise({limit: 10, offset: 0, query}, C.waitingKeyBotsSearchFeatured),
+            T.RPCGen.featuredBotSearchRpcPromise(
+              {limit: 10, offset: 0, query},
+              C.waitingKeyBotsSearchFeatured
+            ),
             T.RPCGen.userSearchUserSearchRpcPromise(
               {
                 includeContacts: false,

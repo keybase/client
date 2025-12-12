@@ -1,7 +1,7 @@
 import * as T from '../types'
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import type * as Index from '.'
+import {storeRegistry} from '../store-registry'
 import logger from '@/logger'
 
 export const onEngineConnected = () => {
@@ -22,8 +22,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1RekeyUIRefresh:
     case EngineGen.keybase1RekeyUIDelegateRekeyUI:
       {
-        const {useState} = require('.') as typeof Index
-        useState.getState().dispatch.onEngineIncomingImpl(action)
+        storeRegistry.getState('unlock-folders').dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

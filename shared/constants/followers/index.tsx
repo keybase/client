@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   followers: Set<string>
   following: Set<string>
 }>
@@ -10,7 +10,7 @@ const initialStore: Store = {
   following: new Set(),
 }
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     resetState: 'default'
     replace: (followers: ReadonlySet<string>, following: ReadonlySet<string>) => void

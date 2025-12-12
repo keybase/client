@@ -15,7 +15,7 @@ const initialStore: Store = {
   lastSeenVersion: '',
   seenVersions: getSeenVersions(''),
 }
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     resetState: 'default'
     updateLastSeen: (lastSeenItem?: {md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}) => void

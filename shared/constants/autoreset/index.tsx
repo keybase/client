@@ -29,7 +29,7 @@ const initialStore: Store = {
   username: '',
 }
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     cancelReset: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
@@ -189,4 +189,3 @@ export const useState = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
-

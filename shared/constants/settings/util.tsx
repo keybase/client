@@ -1,5 +1,5 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
-import type * as Index from '.'
+import {storeRegistry} from '../store-registry'
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
   switch (action.type) {
@@ -8,8 +8,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
     case EngineGen.keybase1NotifyEmailAddressEmailsChanged:
       {
-        const {useSettingsState} = require('.') as typeof Index
-        useSettingsState.getState().dispatch.onEngineIncomingImpl(action)
+        storeRegistry.getState('settings').dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

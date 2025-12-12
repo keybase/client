@@ -4,7 +4,7 @@ import {produce} from 'immer'
 
 export type ProxyProps = {
   darkMode: boolean
-  devices: ConfigConstants.Store['unlockFoldersDevices']
+  devices: ConfigConstants.State['unlockFoldersDevices']
   paperKeyError: string
   waiting: boolean
 }

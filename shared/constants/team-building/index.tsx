@@ -18,7 +18,7 @@ import {searchWaitingKey} from './utils'
 import {useSettingsContactsState} from '../settings-contacts'
 export {allServices, selfToUser, searchWaitingKey} from './utils'
 
-export type Store = T.Immutable<{
+type Store = T.Immutable<{
   namespace: T.TB.AllowedNamespace
   error: string
   teamSoFar: Set<T.TB.User>

@@ -10,7 +10,7 @@ const initialStore: T.Devices.State = {
   isNew: new Set(),
 }
 
-interface State extends T.Devices.State {
+export interface State extends T.Devices.State {
   dispatch: {
     load: () => void
     clearBadges: () => void
@@ -98,7 +98,6 @@ export const emptyDevice: T.Devices.Device = {
 
 const makeDevice = (d?: Partial<T.Devices.Device>): T.Devices.Device =>
   d ? {...emptyDevice, ...d} : emptyDevice
-
 
 export const useActiveDeviceCounts = () => {
   const ds = useState(s => s.deviceMap)

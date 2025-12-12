@@ -1,13 +1,12 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
 import type * as T from '../types'
-import type * as Index from '.'
+import {storeRegistry} from '../store-registry'
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
   switch (action.type) {
     case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
       {
-        const {useBotsState} = require('./index') as typeof Index
-        useBotsState.getState().dispatch.onEngineIncomingImpl(action)
+        storeRegistry.getState('bots').dispatch.onEngineIncomingImpl(action)
       }
       break
     default:
