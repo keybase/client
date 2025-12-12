@@ -95,7 +95,7 @@ const initialStore: Store = {
   wotAuthorError: '',
 }
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     dynamic: {
       afterCheckProof?: () => void

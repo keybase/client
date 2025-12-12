@@ -19,10 +19,12 @@ import type * as GitType from './git'
 import type * as NotificationsType from './notifications'
 import type * as PeopleType from './people'
 import type * as PinentryType from './pinentry'
+import type * as ProfileType from './profile'
 import type * as ProvisionType from './provision'
 import type * as RouterType from './router2'
 import type * as SettingsContactsType from './settings-contacts'
 import type * as SettingsEmailType from './settings-email'
+import type * as SettingsPhoneType from './settings-phone'
 import type * as SettingsType from './settings'
 import type * as SignupType from './signup'
 import type * as TeamsType from './teams'
@@ -55,11 +57,13 @@ type StoreName =
   | 'notifications'
   | 'people'
   | 'pinentry'
+  | 'profile'
   | 'provision'
   | 'router'
   | 'settings'
   | 'settings-contacts'
   | 'settings-email'
+  | 'settings-phone'
   | 'signup'
   | 'teams'
   | 'tracker2'
@@ -88,11 +92,13 @@ type StoreStates = {
   notifications: NotificationsType.State
   people: PeopleType.State
   pinentry: PinentryType.State
+  profile: ProfileType.State
   provision: ProvisionType.State
   router: RouterType.State
   settings: SettingsType.State
   'settings-contacts': SettingsContactsType.State
   'settings-email': SettingsEmailType.State
+  'settings-phone': SettingsPhoneType.State
   signup: SignupType.State
   teams: TeamsType.State
   tracker2: Tracker2Type.State
@@ -181,6 +187,10 @@ class StoreRegistry {
         const {usePinentryState} = require('./pinentry') as typeof PinentryType
         return usePinentryState.getState() as StoreStates[T]
       }
+      case 'profile': {
+        const {useProfileState} = require('./profile') as typeof ProfileType
+        return useProfileState.getState() as StoreStates[T]
+      }
       case 'provision': {
         const {useProvisionState} = require('./provision') as typeof ProvisionType
         return useProvisionState.getState() as StoreStates[T]
@@ -200,6 +210,10 @@ class StoreRegistry {
       case 'settings-email': {
         const {useSettingsEmailState} = require('./settings-email') as typeof SettingsEmailType
         return useSettingsEmailState.getState() as StoreStates[T]
+      }
+      case 'settings-phone': {
+        const {useSettingsPhoneState} = require('./settings-phone') as typeof SettingsPhoneType
+        return useSettingsPhoneState.getState() as StoreStates[T]
       }
       case 'signup': {
         const {useSignupState} = require('./signup') as typeof SignupType
