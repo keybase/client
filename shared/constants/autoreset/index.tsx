@@ -5,7 +5,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import type * as RecoverPassword from '../recover-password'
-import {useProvisionState} from '../provision'
+import {storeRegistry} from '../store-registry'
 
 type Store = T.Immutable<{
   active: boolean
@@ -117,7 +117,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = ''
                   })
-                  useProvisionState.getState().dispatch.startProvision(get().username, true)
+                  storeRegistry.getState('provision').dispatch.startProvision(get().username, true)
                 } else {
                   C.useRouterState.getState().dispatch.navUpToScreen('login')
                 }

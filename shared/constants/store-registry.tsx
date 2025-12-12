@@ -16,12 +16,14 @@ import type * as EngineType from './engine'
 import type * as FollowersType from './followers'
 import type * as FSType from './fs'
 import type * as GitType from './git'
+import type * as LogoutType from './logout'
 import type * as NotificationsType from './notifications'
 import type * as PeopleType from './people'
 import type * as PinentryType from './pinentry'
 import type * as ProfileType from './profile'
 import type * as ProvisionType from './provision'
 import type * as RouterType from './router2'
+import type * as SettingsChatType from './settings-chat'
 import type * as SettingsContactsType from './settings-contacts'
 import type * as SettingsEmailType from './settings-email'
 import type * as SettingsPasswordType from './settings-password'
@@ -55,6 +57,7 @@ type StoreName =
   | 'followers'
   | 'fs'
   | 'git'
+  | 'logout'
   | 'notifications'
   | 'people'
   | 'pinentry'
@@ -62,6 +65,7 @@ type StoreName =
   | 'provision'
   | 'router'
   | 'settings'
+  | 'settings-chat'
   | 'settings-contacts'
   | 'settings-email'
   | 'settings-password'
@@ -91,6 +95,7 @@ type StoreStates = {
   followers: FollowersType.State
   fs: FSType.State
   git: GitType.State
+  logout: LogoutType.State
   notifications: NotificationsType.State
   people: PeopleType.State
   pinentry: PinentryType.State
@@ -98,6 +103,7 @@ type StoreStates = {
   provision: ProvisionType.State
   router: RouterType.State
   settings: SettingsType.State
+  'settings-chat': SettingsChatType.State
   'settings-contacts': SettingsContactsType.State
   'settings-email': SettingsEmailType.State
   'settings-password': SettingsPasswordType.State
@@ -178,6 +184,10 @@ class StoreRegistry {
         const {useGitState} = require('./git') as typeof GitType
         return useGitState.getState() as StoreStates[T]
       }
+      case 'logout': {
+        const {useLogoutState} = require('./logout') as typeof LogoutType
+        return useLogoutState.getState() as StoreStates[T]
+      }
       case 'notifications': {
         const {useNotifState} = require('./notifications') as typeof NotificationsType
         return useNotifState.getState() as StoreStates[T]
@@ -205,6 +215,10 @@ class StoreRegistry {
       case 'settings': {
         const {useSettingsState} = require('./settings') as typeof SettingsType
         return useSettingsState.getState() as StoreStates[T]
+      }
+      case 'settings-chat': {
+        const {useState} = require('./settings-chat') as typeof SettingsChatType
+        return useState.getState() as StoreStates[T]
       }
       case 'settings-contacts': {
         const {useSettingsContactsState} = require('./settings-contacts') as typeof SettingsContactsType

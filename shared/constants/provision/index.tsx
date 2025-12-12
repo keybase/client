@@ -7,7 +7,7 @@ import {type CommonResponseHandler} from '@/engine/types'
 import isEqual from 'lodash/isEqual'
 import {rpcDeviceToDevice} from '../rpc-utils'
 import {invalidPasswordErrorString} from '@/constants/config/util'
-import {useConfigState} from '@/constants/config'
+import {storeRegistry} from '../store-registry'
 
 export type Device = {
   deviceNumberOfType: number
@@ -549,15 +549,15 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
     },
     startProvision: (name = '', fromReset = false) => {
       get().dispatch.dynamic.cancel?.(true)
-      useConfigState.getState().dispatch.setLoginError()
-      useConfigState.getState().dispatch.resetRevokedSelf()
+      storeRegistry.getState('config').dispatch.setLoginError()
+      storeRegistry.getState('config').dispatch.resetRevokedSelf()
 
       set(s => {
         s.username = name
       })
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (useConfigState.getState().loggedIn) {
+        if (storeRegistry.getState('config').loggedIn) {
           await T.RPCGen.loginLogoutRpcPromise(
             {force: false, keepSecrets: true},
             C.waitingKeyConfigLoginAsOther

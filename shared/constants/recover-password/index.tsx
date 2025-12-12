@@ -1,5 +1,4 @@
 import * as C from '..'
-import {useConfigState} from '../config'
 import * as AutoReset from '../autoreset'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
@@ -7,7 +6,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {type Device} from '../provision'
 import {rpcDeviceToDevice} from '../rpc-utils'
-import {useProvisionState} from '../provision'
+import {storeRegistry} from '../store-registry'
 
 type Store = T.Immutable<{
   devices: Array<Device>
@@ -74,7 +73,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         if (p.abortProvisioning) {
-          useProvisionState.getState().dispatch.dynamic.cancel?.()
+          storeRegistry.getState('provision').dispatch.dynamic.cancel?.()
         }
         let hadError = false
         try {
@@ -228,7 +227,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             C.useRouterState
               .getState()
               .dispatch.navigateAppend(
-                useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+                storeRegistry.getState('config').loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
                 true
               )
           }
