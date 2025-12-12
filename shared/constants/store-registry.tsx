@@ -170,12 +170,12 @@ class StoreRegistry {
         return useActiveState
       }
       case 'archive': {
-        const {useState} = require('./archive')
-        return useState
+        const {useArchiveState} = require('./archive')
+        return useArchiveState
       }
       case 'autoreset': {
-        const {useState} = require('./autoreset')
-        return useState
+        const {useAutoResetState} = require('./autoreset')
+        return useAutoResetState
       }
       case 'avatar': {
         const {useAvatarState} = require('@/common-adapters/avatar/store')
@@ -210,8 +210,8 @@ class StoreRegistry {
         return useDeepLinksState
       }
       case 'devices': {
-        const {useState} = require('./devices')
-        return useState
+        const {useDevicesState} = require('./devices')
+        return useDevicesState
       }
       case 'engine': {
         const {useEngineState} = require('./engine')
@@ -266,8 +266,8 @@ class StoreRegistry {
         return useSettingsState
       }
       case 'settings-chat': {
-        const {useState} = require('./settings-chat')
-        return useState
+        const {useSettingsChatState} = require('./settings-chat')
+        return useSettingsChatState
       }
       case 'settings-contacts': {
         const {useSettingsContactsState} = require('./settings-contacts')
@@ -298,8 +298,8 @@ class StoreRegistry {
         return useTrackerState
       }
       case 'unlock-folders': {
-        const {useState} = require('./unlock-folders')
-        return useState
+        const {useUnlockFoldersState} = require('./unlock-folders')
+        return useUnlockFoldersState
       }
       case 'users': {
         const {useUsersState} = require('./users')
@@ -310,8 +310,8 @@ class StoreRegistry {
         return useWaitingState
       }
       case 'whats-new': {
-        const {useState} = require('./whats-new')
-        return useState
+        const {useWhatsNewState} = require('./whats-new')
+        return useWhatsNewState
       }
       default:
         throw new Error(`Unknown store: ${storeName}`)
