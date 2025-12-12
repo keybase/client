@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -66,7 +67,7 @@ const TeamPicker = (props: Props) => {
         break
       default:
         // heics
-        if (C.Chat.isImageViewable(message)) {
+        if (Chat.isImageViewable(message)) {
           const src = message.fileURL || message.previewURL
           preview = src ? <Kb.ZoomableImage src={src} style={styles.image} boxCacheKey="fwdheics" /> : null
         }

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -120,9 +121,9 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
       const loadMoreType = s.moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
       const pendingState =
-        s.id === C.Chat.pendingWaitingConversationIDKey
+        s.id === Chat.pendingWaitingConversationIDKey
           ? 'waiting'
-          : s.id === C.Chat.pendingErrorConversationIDKey
+          : s.id === Chat.pendingErrorConversationIDKey
             ? 'error'
             : 'done'
 
@@ -132,7 +133,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       const isSelfConversation = teamType === 'adhoc' && partNum === 1 && partAll.includes(username)
       const showTeamOffer =
         hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && partNum > 2
-      const hasOlderResetConversation = supersedes !== C.Chat.noConversationIDKey
+      const hasOlderResetConversation = supersedes !== Chat.noConversationIDKey
       // don't show default header in the case of the retention notice being visible
       const showRetentionNotice =
         retentionPolicy.type !== 'retain' &&

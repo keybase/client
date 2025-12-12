@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error'
@@ -9,7 +10,7 @@ const Conversation = function Conversation() {
   const type = C.useChatContext(s => {
     const meta = s.meta
     switch (s.id) {
-      case C.Chat.noConversationIDKey:
+      case Chat.noConversationIDKey:
         return 'noConvo'
       default:
         if (meta.membershipType === 'youAreReset') {

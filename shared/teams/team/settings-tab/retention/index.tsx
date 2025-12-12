@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import {useTeamsState} from '@/constants/teams'
@@ -480,7 +481,7 @@ const Container = (ownProps: OwnProps) => {
   } else if (!entityType.endsWith('team')) {
     throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
   }
-  const conversationIDKey = _cid ?? C.Chat.noConversationIDKey
+  const conversationIDKey = _cid ?? Chat.noConversationIDKey
   let policy = C.useConvoState(conversationIDKey, s =>
     _cid ? s.meta.retentionPolicy : Teams.retentionPolicies.policyRetain
   )

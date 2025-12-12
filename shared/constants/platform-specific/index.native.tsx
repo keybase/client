@@ -1,4 +1,5 @@
 import * as C from '..'
+import * as Chat from '../chat2'
 import {useProfileState} from '../profile'
 import {useConfigState} from '../config'
 import * as T from '../types'
@@ -202,7 +203,7 @@ const loadStartupDetails = async () => {
   }
 
   useConfigState.getState().dispatch.setStartupDetails({
-    conversation: conversation ?? C.Chat.noConversationIDKey,
+    conversation: conversation ?? Chat.noConversationIDKey,
     followUser,
     link,
     tab: tab as Tabs.Tab,

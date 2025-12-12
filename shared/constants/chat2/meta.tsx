@@ -1,10 +1,10 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
 import * as C from '..'
 import * as T from '../types'
-import * as Teams from '../teams'
+import * as Teams from '../teams/util'
 import * as Message from './message'
 import {base64ToUint8Array, uint8ArrayToHex} from 'uint8array-extras'
-import {useCurrentUserState} from '../current-user'
+import {storeRegistry} from '../store-registry'
 
 const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {
   switch (m) {
@@ -206,9 +206,7 @@ const UIItemToRetentionPolicies = (
 ) => {
   // default inherit for teams, retain for ad-hoc
   // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
-  let retentionPolicy = isTeam
-    ? Teams.makeRetentionPolicy({type: 'inherit'})
-    : Teams.makeRetentionPolicy()
+  let retentionPolicy = isTeam ? Teams.makeRetentionPolicy({type: 'inherit'}) : Teams.makeRetentionPolicy()
   if (i.convRetention) {
     // it has been set for this conversation
     retentionPolicy = Teams.serviceRetentionPolicyToRetentionPolicy(i.convRetention)
@@ -265,8 +263,8 @@ export const inboxUIItemToConversationMeta = (
   const conversationIDKey = T.Chat.stringToConversationIDKey(i.convID)
   let pinnedMsg: T.Chat.PinnedMessageInfo | undefined
   if (i.pinnedMsg) {
-    const username = useCurrentUserState.getState().username
-    const devicename = useCurrentUserState.getState().deviceName
+    const username = storeRegistry.getState('current-user').username
+    const devicename = storeRegistry.getState('current-user').deviceName
     const getLastOrdinal = () =>
       C.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const message = Message.uiMessageToMessage(

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useCurrentUserState} from '@/constants/current-user'
 import * as Teams from '@/constants/teams'
 import {useProfileState} from '@/constants/profile'
@@ -431,7 +432,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     C.waitingKeyTeamsLoadTeamTreeActivity(props.node.teamID, props.username)
   )
 
-  const isSmallTeam = !C.useChatState(s => C.Chat.isBigTeam(s, props.node.teamID))
+  const isSmallTeam = !C.useChatState(s => Chat.isBigTeam(s, props.node.teamID))
   const channelsJoined = isSmallTeam
     ? ''
     : Array.from(channelMetas)

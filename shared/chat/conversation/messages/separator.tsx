@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -190,7 +191,7 @@ const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUse
   )
 })
 
-const missingMessage = C.Chat.makeMessageDeleted({})
+const missingMessage = Chat.makeMessageDeleted({})
 
 // TODO check flashlist if that ever gets turned back on
 const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordinal) => {

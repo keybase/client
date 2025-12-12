@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import {useIsHighlighted, useOrdinal} from '../ids-context'
 import * as Kb from '@/common-adapters'
@@ -26,7 +27,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
           submitState: '',
         }
       }
-      const messageKey = C.Chat.getMessageKey(message)
+      const messageKey = Chat.getMessageKey(message)
       const {exploding, exploded, submitState, explodingTime: explodesAt} = message
       return {
         exploded,

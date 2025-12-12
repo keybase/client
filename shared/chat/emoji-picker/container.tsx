@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -36,7 +37,7 @@ const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) 
   const conversationIDKey = C.useChatContext(s => s.id)
   const onChoose = React.useCallback(
     (emoji: string, renderableEmoji: RenderableEmoji) => {
-      if (conversationIDKey !== C.Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
+      if (conversationIDKey !== Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
         toggleMessageReaction(onPickAddToMessageOrdinal, emoji)
       }
       onPickAction?.(emoji, renderableEmoji)
@@ -112,7 +113,7 @@ const WrapperMobile = (props: Props) => {
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const addEmoji = React.useCallback(
     () =>
       navigateAppend(conversationIDKey => ({
@@ -183,7 +184,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(emojiData.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const canManageEmoji = useCanManageEmoji()
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const addEmoji = React.useCallback(() => {
     onDidPick?.()
     navigateAppend(conversationIDKey => ({

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
@@ -188,7 +189,7 @@ export const useChannelsSections = (
   teamID: T.Teams.TeamID,
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
-  const isBig = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
+  const isBig = C.useChatState(s => Chat.isBigTeam(s, teamID))
   const channels = Teams.useTeamsState(s => s.channelInfo.get(teamID))
   const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
 
@@ -295,7 +296,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
   const [filter, setFilter] = React.useState('')
 
   const doGetUserEmoji = React.useCallback(() => {
-    if (!convID || convID === C.Chat.noConversationIDKey || !shouldActuallyLoad) {
+    if (!convID || convID === Chat.noConversationIDKey || !shouldActuallyLoad) {
       return
     }
     getUserEmoji(
@@ -346,7 +347,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
     renderItem: () => (
       <EmojiAddRow
         teamID={teamID}
-        convID={convID ?? C.Chat.noConversationIDKey}
+        convID={convID ?? Chat.noConversationIDKey}
         filter={filter}
         setFilter={setFilter}
       />
@@ -368,7 +369,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
           <EmojiItemRow
             emoji={item.e}
             firstItem={index === 0}
-            conversationIDKey={convID ?? C.Chat.noConversationIDKey}
+            conversationIDKey={convID ?? Chat.noConversationIDKey}
             teamID={teamID}
           />
         ) : null,

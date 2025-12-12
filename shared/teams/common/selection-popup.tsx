@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import {useTeamsState} from '@/constants/teams'
@@ -201,7 +202,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const membersSet = useTeamsState(s => s.teamSelectedMembers.get(teamID))
-  const isBigTeam = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
+  const isBigTeam = C.useChatState(s => Chat.isBigTeam(s, teamID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   if (!membersSet) {
     // we shouldn't be rendered

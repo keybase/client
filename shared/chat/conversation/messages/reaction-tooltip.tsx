@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import ReactButton from './react-button'
@@ -30,7 +31,7 @@ const ReactionTooltip = (p: OwnProps) => {
   const {_reactions, good} = C.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
-      if (message && C.Chat.isMessageWithReactions(message)) {
+      if (message && Chat.isMessageWithReactions(message)) {
         const _reactions = message.reactions
         return {_reactions, good: true}
       }
@@ -39,7 +40,7 @@ const ReactionTooltip = (p: OwnProps) => {
   )
   const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const onAddReaction = React.useCallback(() => {
     onHidden()
     navigateAppend(conversationIDKey => ({

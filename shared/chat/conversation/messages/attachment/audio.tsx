@@ -1,11 +1,12 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useOrdinal} from '../ids-context'
 import AudioPlayer from '@/chat/audio/audio-player'
 import {useFSState} from '@/constants/fs'
 
-const missingMessage = C.Chat.makeMessageAttachment()
+const missingMessage = Chat.makeMessageAttachment()
 
 const messageAttachmentHasProgress = (message: T.Chat.MessageAttachment) => {
   return (
@@ -22,7 +23,7 @@ const AudioAttachment = () => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : missingMessage
   })
-  const progressLabel = C.Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
+  const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message)
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
@@ -58,7 +59,7 @@ const PinnedMessage = React.memo(function PinnedMessage() {
   if (!text) {
     return null
   }
-  const sizing = imageWidth && imageHeight ? C.Chat.zoomImage(imageWidth, imageHeight, 30) : undefined
+  const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 30) : undefined
   const pin = (
     <Kb.ClickableBox className="hover_container" onClick={onClick} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">

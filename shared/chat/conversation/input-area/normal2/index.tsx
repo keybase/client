@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import CommandMarkdown from '../../command-markdown'
@@ -96,7 +97,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
       const metaGood = s.isMetaGood()
       const storeDraft = metaGood ? meta.draft : undefined
       const explodingMode = s.explodingMode
-      const convRetention = C.Chat.getEffectiveRetentionPolicy(meta)
+      const convRetention = Chat.getEffectiveRetentionPolicy(meta)
       const explodingModeSeconds =
         convRetention.type === 'explode'
           ? Math.min(explodingMode || Infinity, convRetention.seconds)

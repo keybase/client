@@ -6,10 +6,10 @@ import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import openURL from '@/util/open-url'
 import {RPCError} from '@/util/errors'
-import {isMobile} from '../platform'
 import {fixCrop} from '@/util/crop'
 import {useTrackerState} from '../tracker2'
 import {useCurrentUserState} from '../current-user'
+import {showUserProfile} from './util'
 
 type ProveGenericParams = {
   logoBlack: T.Tracker.SiteIconSet
@@ -608,12 +608,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         dispatch: s.dispatch,
       }))
     },
-    showUserProfile: username => {
-      if (isMobile) {
-        C.useRouterState.getState().dispatch.clearModals()
-      }
-      C.useRouterState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
-    },
+    showUserProfile,
     submitBTCAddress: () => {
       submitCryptoAddress('bitcoin')
     },

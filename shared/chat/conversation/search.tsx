@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import type * as Styles from '@/styles'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -56,7 +57,7 @@ const useCommon = (ownProps: OwnProps) => {
 
   const selectResult = React.useCallback(
     (index: number) => {
-      const message = _hits[index] || C.Chat.makeMessageText()
+      const message = _hits[index] || Chat.makeMessageText()
       if (message.id > 0) {
         loadMessagesCentered(message.id, 'always')
       }

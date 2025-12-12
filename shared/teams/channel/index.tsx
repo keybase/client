@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
@@ -136,7 +137,7 @@ const Channel = (props: OwnProps) => {
   const meta = C.useConvoState(conversationIDKey, s => s.meta)
   const {bots, participants: _participants} = C.useConvoState(
     conversationIDKey,
-    C.useDeep(s => C.Chat.getBotsAndParticipants(meta, s.participants, true /* sort */))
+    C.useDeep(s => Chat.getBotsAndParticipants(meta, s.participants, true /* sort */))
   )
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'

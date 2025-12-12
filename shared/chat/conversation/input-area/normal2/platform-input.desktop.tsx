@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -152,7 +153,7 @@ const FileButton = React.memo(function FileButton(p: {
 }) {
   const {setHtmlInputRef} = p
   const htmlInputRef = React.useRef<HTMLInputElement | null>(null)
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const pickFile = React.useCallback(() => {
     const paths = htmlInputRef.current?.files ? fileListToPaths(htmlInputRef.current.files) : undefined
     const pathAndOutboxIDs = paths?.reduce<Array<{path: string}>>((arr, path: string) => {

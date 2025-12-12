@@ -15,6 +15,7 @@ import {settingsFsTab} from '../settings'
 import {useNotifState} from '../notifications'
 import {useCurrentUserState} from '../current-user'
 
+export {makeActionForOpenPathInFilesTab} from './util'
 
 const subscriptionDeduplicateIntervalSecond = 1
 export const defaultPath = T.FS.stringToPath('/keybase')
@@ -885,13 +886,6 @@ export const makeActionsForDestinationPickerOpen = (index: number, path: T.FS.Pa
 }
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, settingsFsTab] : [Tabs.fsTab]
-
-export const makeActionForOpenPathInFilesTab = (
-  // TODO: remove the second arg when we are done with migrating to nav2
-  path: T.FS.Path
-) => {
-  C.useRouterState.getState().dispatch.navigateAppend({props: {path}, selected: 'fsRoot'})
-}
 
 export const getMainBannerType = (
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus,

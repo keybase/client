@@ -1,7 +1,7 @@
 import * as T from '../types'
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import type * as Index from '.'
+import {storeRegistry} from '../store-registry'
 
 export const onEngineConnected = () => {
   const f = async () => {
@@ -53,8 +53,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyBadgesBadgeState:
     case EngineGen.keybase1GregorUIPushState:
       {
-        const {useChatState} = require('./index') as typeof Index
-        useChatState.getState().dispatch.onEngineIncomingImpl(action)
+        storeRegistry.getState('chat').dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

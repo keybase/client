@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
@@ -17,7 +18,7 @@ const Header = () => {
       canBeNull={true}
       id={
         // eslint-disable-next-line
-        params?.conversationIDKey ?? C.Chat.noConversationIDKey
+        params?.conversationIDKey ?? Chat.noConversationIDKey
       }
     >
       <Header2 />
@@ -39,7 +40,7 @@ const Header2 = () => {
       const isTeam = ['small', 'big'].includes(teamType)
       const participants = teamType === 'adhoc' ? s.participants.name : null
 
-      const otherParticipants = C.Chat.getRowParticipants(s.participants, username)
+      const otherParticipants = Chat.getRowParticipants(s.participants, username)
 
       const first = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
       return {
@@ -87,7 +88,7 @@ const Header2 = () => {
     showInfoPanel(!infoPanelShowing, undefined)
   }, [showInfoPanel, infoPanelShowing])
 
-  const showActions = C.Chat.isValidConversationIDKey(conversationIDKey)
+  const showActions = Chat.isValidConversationIDKey(conversationIDKey)
 
   const descStyleOverride = React.useMemo(
     () =>

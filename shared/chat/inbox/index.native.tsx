@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as RowSizes from './row/sizes'
@@ -265,7 +266,7 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
 
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
-      setOpenRow(C.Chat.noConversationIDKey)
+      setOpenRow(Chat.noConversationIDKey)
     }, [setOpenRow])
   )
 

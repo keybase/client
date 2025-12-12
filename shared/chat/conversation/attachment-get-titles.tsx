@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -144,7 +145,7 @@ const Container = (ownProps: OwnProps) => {
       preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
       break
     default: {
-      if (C.isIOS && path && C.Chat.isPathHEIC(path)) {
+      if (C.isIOS && path && Chat.isPathHEIC(path)) {
         preview = <Kb.ZoomableImage src={path} style={styles.image} boxCacheKey="getTitlesHeicImg" />
       } else {
         preview = (

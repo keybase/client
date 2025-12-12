@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Z from '@/util/zustand'
 import type * as T from '@/constants/types'
 
@@ -7,7 +7,7 @@ type Store = T.Immutable<{
 }>
 
 const initialStore: Store = {
-  openedRow: C.Chat.noConversationIDKey,
+  openedRow: Chat.noConversationIDKey,
 }
 
 interface State extends Store {

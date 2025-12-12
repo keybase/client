@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import MarkdownMemo from '@/wallets/markdown-memo'
@@ -45,7 +46,7 @@ type OwnProps = {
 }
 
 const getRequestMessageInfo = (
-  accountsInfoMap: C.Chat.ConvoState['accountsInfoMap'],
+  accountsInfoMap: Chat.ConvoState['accountsInfoMap'],
   message: T.Chat.MessageRequestPayment
 ) => {
   const maybeRequestInfo = accountsInfoMap.get(message.id)
@@ -68,7 +69,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
     const youAreSender = ownProps.message.author === you
     switch (ownProps.message.type) {
       case 'sendPayment': {
-        const paymentInfo = C.Chat.getPaymentMessageInfo(accountsInfoMap, ownProps.message)
+        const paymentInfo = Chat.getPaymentMessageInfo(accountsInfoMap, ownProps.message)
         if (!paymentInfo) {
           // waiting for service to load it (missed service cache on loading thread)
           return loadingProps

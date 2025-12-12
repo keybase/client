@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 import {Video} from './video'
 import openURL from '@/util/open-url'
@@ -24,7 +24,7 @@ const UnfurlImage = (p: Props) => {
     linkURL && openURL(linkURL)
   }, [linkURL])
   const maxSize = Math.min(maxWidth, 320) - (widthPadding || 0)
-  const {height, width} = C.Chat.clampImageSize(p.width, p.height, maxSize, 320)
+  const {height, width} = Chat.clampImageSize(p.width, p.height, maxSize, 320)
 
   return isVideo ? (
     <Video

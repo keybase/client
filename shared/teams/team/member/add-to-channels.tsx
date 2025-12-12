@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
@@ -21,7 +22,7 @@ const getChannelsForList = (
   const processed = [...channels.values()].reduce(
     ({list, general}: {general: T.Chat.ConversationMeta; list: Array<T.Chat.ConversationMeta>}, c) =>
       c.channelname === 'general' ? {general: c, list} : {general, list: [...list, c]},
-    {general: C.Chat.makeConversationMeta(), list: []}
+    {general: Chat.makeConversationMeta(), list: []}
   )
   const {list, general} = processed
   const sortedList = list.sort((a, b) => a.channelname.localeCompare(b.channelname))

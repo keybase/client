@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
 import teamsRootGetOptions from './get-options'
@@ -9,7 +10,7 @@ export const newRoutes = {
     React.lazy(async () => import('./team')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
-  teamChannel: C.Chat.makeChatScreen(
+  teamChannel: Chat.makeChatScreen(
     React.lazy(async () => import('./channel')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
@@ -41,7 +42,7 @@ export const newModalRoutes = {
     React.lazy(async () => import('./team/settings-tab/retention/warning'))
   ),
   teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji'))),
-  teamAddEmojiAlias: C.Chat.makeChatScreen(React.lazy(async () => import('./emojis/add-alias'))),
+  teamAddEmojiAlias: Chat.makeChatScreen(React.lazy(async () => import('./emojis/add-alias'))),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels'))),
   teamAddToTeamConfirm: {
     getOptions: {gesturesEnabled: false},

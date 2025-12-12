@@ -1,8 +1,9 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {maxWidth, maxHeight} from '../shared'
 
-const missingMessage = C.Chat.makeMessageAttachment()
+const missingMessage = Chat.makeMessageAttachment()
 
 export const useState = () => {
   const ordinal = useOrdinal()
@@ -12,7 +13,7 @@ export const useState = () => {
       const message = m?.type === 'attachment' ? m : missingMessage
       const {fileURL, previewHeight, previewWidth} = message
       let {previewURL} = message
-      let {height, width} = C.Chat.clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
+      let {height, width} = Chat.clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
       // This is mostly a sanity check and also allows us to handle HEIC even though the go side doesn't
       // understand
       if (height === 0 || width === 0) {

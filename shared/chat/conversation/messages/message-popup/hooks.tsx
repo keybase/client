@@ -1,6 +1,7 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Teams from '@/constants/teams'
 import {useConfigState} from '@/constants/config'
 import {useProfileState} from '@/constants/profile'
@@ -11,7 +12,7 @@ import MessagePopupHeader from './header'
 import ExplodingPopupHeader from './exploding-header'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 
-const emptyText = C.Chat.makeMessageText({})
+const emptyText = Chat.makeMessageText({})
 
 const messageAuthorIsBot = (
   state: Teams.State,
@@ -41,7 +42,7 @@ const getConversationLabel = (
   if (conv.teamType === 'small') {
     return alwaysIncludeChannelName ? conv.teamname + '#' + conv.channelname : conv.teamname
   }
-  return C.Chat.getRowParticipants(participantInfo, '').join(',')
+  return Chat.getRowParticipants(participantInfo, '').join(',')
 }
 
 export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
@@ -60,7 +61,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     },
     [toggleMessageReaction, ordinal]
   )
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const _onAddReaction = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
       props: {
@@ -277,7 +278,7 @@ export const useHeader = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const {author, deviceType, deviceName, botUsername, timestamp, exploding, explodingTime} = message
   const yourMessage = author === you
   const deviceRevokedAt = message.deviceRevokedAt || undefined
-  const mapUnfurl = C.Chat.getMapUnfurl(message)
+  const mapUnfurl = Chat.getMapUnfurl(message)
   const isLocation = !!mapUnfurl
 
   return exploding ? (

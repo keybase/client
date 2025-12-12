@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {MessageContext, useOrdinal} from '../ids-context'
@@ -43,7 +44,7 @@ const messageShowsPopup = (type?: T.Chat.Message['type']) =>
   ].includes(type)
 
 // If there is no matching message treat it like a deleted
-const missingMessage = C.Chat.makeMessageDeleted({})
+const missingMessage = Chat.makeMessageDeleted({})
 
 // Pure helper functions - moved outside hooks to avoid recreating them per message
 const getReactionsPopupPosition = (
@@ -54,7 +55,7 @@ const getReactionsPopupPosition = (
 ) => {
   if (C.isMobile) return 'none' as const
   if (hasReactions) return 'none' as const
-  const validMessage = C.Chat.isMessageWithReactions(message)
+  const validMessage = Chat.isMessageWithReactions(message)
   if (!validMessage) return 'none' as const
   return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
 }
@@ -107,7 +108,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
       const botname = botUsername === author ? '' : (botUsername ?? '')
       const reactionsPopupPosition = getReactionsPopupPosition(ordinal, ordinals ?? [], hasReactions, m)
       const ecrType = getEcrType(m, you)
-      const shouldShowPopup = C.Chat.shouldShowPopup(accountsInfoMap, m)
+      const shouldShowPopup = Chat.shouldShowPopup(accountsInfoMap, m)
       // Inline highlight mode check to avoid separate selector
       const centeredOrdinalType = s.messageCenterOrdinal
       const showCenteredHighlight =
@@ -180,7 +181,7 @@ type WMProps = {
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
 const hasSuccessfulInlinePayments = (
-  paymentStatusMap: C.Chat.State['paymentStatusMap'],
+  paymentStatusMap: Chat.State['paymentStatusMap'],
   message: T.Chat.Message
 ): boolean => {
   if (message.type !== 'text' || !message.inlinePaymentIDs) {

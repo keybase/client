@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Styles from '@/styles'
 import {WithProfileCardPopup} from './profile-card'
 import Text from './text'
@@ -26,7 +26,7 @@ const Mention = ({username, theme, style, allowFontScaling, onClick}: Props) => 
       @{username}
     </Text>
   )
-  return C.Chat.isSpecialMention(username) ? (
+  return Chat.isSpecialMention(username) ? (
     renderText()
   ) : (
     <WithProfileCardPopup username={username}>{renderText}</WithProfileCardPopup>

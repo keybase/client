@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
@@ -26,7 +27,7 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
     showInfoPanel(true, 'settings')
   }, [showInfoPanel])
 
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const onViewBot = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
       props: {botUsername: addee, conversationIDKey},

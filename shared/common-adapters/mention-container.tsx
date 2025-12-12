@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import Mention, {type OwnProps} from './mention'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
@@ -11,7 +12,7 @@ const Container = (ownProps: OwnProps) => {
   const following = useFollowerState(s => s.following.has(username))
   const myUsername = useCurrentUserState(s => s.username)
   const theme = (() => {
-    if (C.Chat.isSpecialMention(username)) {
+    if (Chat.isSpecialMention(username)) {
       return 'highlight' as const
     } else {
       if (myUsername === username) {
@@ -32,7 +33,7 @@ const Container = (ownProps: OwnProps) => {
       showUser(username, true)
     }
   }
-  const onClick = C.Chat.isSpecialMention(username) ? undefined : _onClick
+  const onClick = Chat.isSpecialMention(username) ? undefined : _onClick
 
   const props = {
     onClick,

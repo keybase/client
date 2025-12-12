@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 
 type Props = {
@@ -9,7 +10,7 @@ type Props = {
 const MoreMenuPopup = (props: Props) => {
   const {onHidden, visible} = props
   const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
-  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const navigateAppend = Chat.useChatNavigateAppend()
   const onLocationShare = () => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatLocationPreview'}))
   }

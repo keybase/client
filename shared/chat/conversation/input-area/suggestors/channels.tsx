@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import type * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Teams from '@/constants/teams'
 import * as Common from './common'
@@ -41,7 +42,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
 
 const noChannel: Array<{channelname: string}> = []
 const getChannelSuggestions = (
-  s: C.Chat.ConvoState,
+  s: Chat.ConvoState,
   teamname: string,
   teamMeta: Teams.State['teamMeta']
 ) => {
