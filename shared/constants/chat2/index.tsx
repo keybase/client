@@ -933,7 +933,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       if (isMetaGood()) {
         const {teamID} = meta
         if (!storeRegistry.getState('teams').teamIDToMembers.get(teamID) && meta.teamname) {
-          storeRegistry.crosscall('teams', 'getMembers', teamID)
+          storeRegistry.getState('teams').dispatch.getMembers(teamID)
         }
       }
     },
@@ -1106,7 +1106,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           const usernames = update.CanonicalName.split(',')
           const broken = (update.breaks.breaks || []).map(b => b.user.username)
           const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
-          storeRegistry.crosscall('users', 'updates', updates)
+          storeRegistry.getState('users').dispatch.updates(updates)
           break
         }
         case EngineGen.chat1ChatUiChatInboxUnverified:
@@ -1169,7 +1169,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                   const match = error.message.match(/"(.*)"/)
                   const tempForceRedBox = match?.[1]
                   if (tempForceRedBox) {
-                    storeRegistry.crosscall('users', 'updates', [{info: {broken: true}, name: tempForceRedBox}])
+                    storeRegistry.getState('users').dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
                   }
                 }
               }
@@ -1288,7 +1288,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                 cs.dispatch.setMeta(meta)
               }
             })
-            storeRegistry.crosscall('teams', 'updateTeamRetentionPolicy', metas)
+            storeRegistry.getState('teams').dispatch.updateTeamRetentionPolicy(metas)
           }
           // this is a more serious problem, but we don't need to bug the user about it
           logger.error(
@@ -1350,7 +1350,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         })
       })
       if (added) {
-        storeRegistry.crosscall('users', 'updates', Object.keys(usernameToFullname).map(name => ({
+        storeRegistry.getState('users').dispatch.updates(Object.keys(usernameToFullname).map(name => ({
           info: {fullname: usernameToFullname[name]},
           name,
         })))
@@ -1383,11 +1383,10 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         return map
       }, {})
 
-      storeRegistry.crosscall('users', 'updates', Object.keys(usernameToFullname).map(name => ({
+      storeRegistry.getState('users').dispatch.updates(Object.keys(usernameToFullname).map(name => ({
         info: {fullname: usernameToFullname[name]},
         name,
-      }))
-      )
+      })))
 
       if (meta) {
         get().dispatch.metasReceived([meta])
@@ -1560,7 +1559,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           })
           const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
-            storeRegistry.crosscall('chat', 'metasReceived', [meta])
+            storeRegistry.getState('chat').dispatch.metasReceived([meta])
           }
 
           C.getConvoState(first.conversationIDKey).dispatch.navigateToThread(

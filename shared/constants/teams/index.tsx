@@ -1429,7 +1429,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           get().dispatch.loadTeamChannelList(teamID)
           // Select the new channel, and switch to the chat tab.
           if (navToChatOnSuccess) {
-            storeRegistry.crosscall('chat', 'previewConversation', {
+            storeRegistry.getState('chat').dispatch.previewConversation({
               channelname,
               conversationIDKey: newConversationIDKey,
               reason: 'newChannel',

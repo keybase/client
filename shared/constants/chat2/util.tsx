@@ -53,7 +53,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1GregorUIPushState:
       {
         const {storeRegistry} = require('../store-registry')
-        storeRegistry.crosscall('chat', 'onEngineIncomingImpl', action)
+        storeRegistry.getState('chat').dispatch.onEngineIncomingImpl(action)
       }
       break
     default:
