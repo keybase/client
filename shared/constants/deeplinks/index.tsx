@@ -1,4 +1,3 @@
-import * as C from '..'
 import * as Crypto from '../crypto'
 import * as Tabs from '../tabs'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
@@ -165,7 +164,9 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
       switch (parts[0]) {
         case 'profile':
           if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
-            parts.length === 4 && parts[3] && storeRegistry.getState('profile').dispatch.showUserProfile(parts[3])
+            parts.length === 4 &&
+              parts[3] &&
+              storeRegistry.getState('profile').dispatch.showUserProfile(parts[3])
             storeRegistry.getState('profile').dispatch.addProof(parts[2]!, 'appLink')
             return
           } else if (parts[1] === 'show' && parts.length === 3) {

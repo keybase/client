@@ -66,7 +66,7 @@ export const dumpLogs = async (reason?: string) => {
 }
 
 export const initPlatformListener = () => {
-  useConfigState.setState(s => {
+  storeRegistry.getState('config').setState(s => {
     s.dispatch.dynamic.dumpLogsNative = dumpLogs
     s.dispatch.dynamic.showMainNative = C.wrapErrors(() => showMainWindow?.())
     s.dispatch.dynamic.copyToClipboard = C.wrapErrors((s: string) => copyToClipboard?.(s))
@@ -135,8 +135,8 @@ export const initPlatformListener = () => {
           const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
           NotifyPopup('Client out of date!', {body}, 60 * 60)
           // This is from the API server. Consider notifications from server always critical.
-          useConfigState
-            .getState()
+          storeRegistry
+            .getState('config')
             .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
           break
         }

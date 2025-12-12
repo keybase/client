@@ -132,7 +132,7 @@ const onInstallCachedDokan = async () => {
 }
 
 const initPlatformSpecific = () => {
-  useConfigState.subscribe((s, old) => {
+  storeRegistry.getState('config').subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
     useFSState.getState().dispatch.onChangedFocus(s.appFocused)
   })
