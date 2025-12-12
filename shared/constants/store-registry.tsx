@@ -24,6 +24,7 @@ import type * as ProvisionType from './provision'
 import type * as RouterType from './router2'
 import type * as SettingsContactsType from './settings-contacts'
 import type * as SettingsEmailType from './settings-email'
+import type * as SettingsPasswordType from './settings-password'
 import type * as SettingsPhoneType from './settings-phone'
 import type * as SettingsType from './settings'
 import type * as SignupType from './signup'
@@ -63,6 +64,7 @@ type StoreName =
   | 'settings'
   | 'settings-contacts'
   | 'settings-email'
+  | 'settings-password'
   | 'settings-phone'
   | 'signup'
   | 'teams'
@@ -98,6 +100,7 @@ type StoreStates = {
   settings: SettingsType.State
   'settings-contacts': SettingsContactsType.State
   'settings-email': SettingsEmailType.State
+  'settings-password': SettingsPasswordType.State
   'settings-phone': SettingsPhoneType.State
   signup: SignupType.State
   teams: TeamsType.State
@@ -210,6 +213,10 @@ class StoreRegistry {
       case 'settings-email': {
         const {useSettingsEmailState} = require('./settings-email') as typeof SettingsEmailType
         return useSettingsEmailState.getState() as StoreStates[T]
+      }
+      case 'settings-password': {
+        const {usePWState} = require('./settings-password') as typeof SettingsPasswordType
+        return usePWState.getState() as StoreStates[T]
       }
       case 'settings-phone': {
         const {useSettingsPhoneState} = require('./settings-phone') as typeof SettingsPhoneType

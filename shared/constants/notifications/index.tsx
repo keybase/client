@@ -4,9 +4,7 @@ import type * as T from '../types'
 import {isMobile} from '../platform'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '../tabs'
-import {useFSState} from '../fs'
-import {useCurrentUserState} from '../current-user'
-import {useConfigState} from '@/constants/config'
+import {storeRegistry} from '../store-registry'
 
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
 export type NotificationKeys = 'kbfsUploading' | 'outOfSpace'
@@ -69,7 +67,7 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
   revokedDevices.forEach(d => allDeviceChanges.add(d))
 
   // don't see badges related to this device
-  const deviceID = useCurrentUserState.getState().deviceID
+  const deviceID = storeRegistry.getState('current-user').deviceID
   counts.set(Tabs.devicesTab, allDeviceChanges.size - (allDeviceChanges.has(deviceID) ? 1 : 0))
   counts.set(Tabs.chatTab, bs.smallTeamBadgeCount + bs.bigTeamBadgeCount)
   counts.set(Tabs.gitTab, newGitRepoGlobalUniqueIDs.length)
@@ -104,16 +102,16 @@ export const useNotifState = Z.createZustand<State>((set, get) => {
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyAuditRootAuditError:
-          useConfigState
-            .getState()
+          storeRegistry
+            .getState('config')
             .dispatch.setGlobalError(
               new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
             )
 
           break
         case EngineGen.keybase1NotifyAuditBoxAuditError:
-          useConfigState
-            .getState()
+          storeRegistry
+            .getState('config')
             .dispatch.setGlobalError(
               new Error(
                 `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
@@ -122,11 +120,11 @@ export const useNotifState = Z.createZustand<State>((set, get) => {
           break
         case EngineGen.keybase1NotifyBadgesBadgeState: {
           const badgeState = action.payload.params.badgeState
-          useConfigState.getState().dispatch.setBadgeState(badgeState)
+          storeRegistry.getState('config').dispatch.setBadgeState(badgeState)
 
           const counts = badgeStateToBadgeCounts(badgeState)
           if (!isMobile && shouldTriggerTlfLoad(badgeState)) {
-            useFSState.getState().dispatch.favoritesLoad()
+            storeRegistry.getState('fs').dispatch.favoritesLoad()
           }
           if (counts) {
             get().dispatch.setBadgeCounts(counts)

@@ -7,9 +7,8 @@ import logger from '@/logger'
 import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
-import {useSettingsEmailState} from '../settings-email'
 import {usePushState} from '../push'
-import {useConfigState} from '@/constants/config'
+import {storeRegistry} from '../store-registry'
 
 type Store = T.Immutable<{
   devicename: string
@@ -121,7 +120,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         }
         // If the email was set to be visible during signup, we need to set that with a separate RPC.
         if (noErrors() && get().emailVisible) {
-          useSettingsEmailState.getState().dispatch.editEmail({email: get().email, makeSearchable: true})
+          storeRegistry.getState('settings-email').dispatch.editEmail({email: get().email, makeSearchable: true})
         }
       } catch (_error) {
         if (_error instanceof RPCError) {
@@ -255,7 +254,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (useConfigState.getState().loggedIn) {
+        if (storeRegistry.getState('config').loggedIn) {
           await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true})
         }
         try {
