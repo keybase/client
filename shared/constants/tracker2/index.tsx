@@ -1,14 +1,11 @@
 import * as C from '@/constants'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
-import {useDeepLinksState} from '@/constants/deeplinks'
 import logger from '@/logger'
 import * as T from '../types'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
-import {useProfileState} from '@/constants/profile'
-import {useUsersState} from '../users'
-import {useCurrentUserState} from '../current-user'
+import {storeRegistry} from '../store-registry'
 
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),
@@ -291,8 +288,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             } else if (error.code === T.RPCGen.StatusCode.scnotfound) {
               // we're on the profile page for a user that does not exist. Currently the only way
               // to get here is with an invalid link or deeplink.
-              useDeepLinksState
-                .getState()
+              storeRegistry
+                .getState('deeplinks')
                 .dispatch.setLinkError(
                   `You followed a profile link for a user (${assertion}) that does not exist.`
                 )
@@ -320,8 +317,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followersCount = d.followers.size
           })
           if (fs.users) {
-            useUsersState
-              .getState()
+            storeRegistry
+              .getState('users')
               .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
         } catch (error) {
@@ -346,8 +343,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followingCount = d.following.size
           })
           if (fs.users) {
-            useUsersState
-              .getState()
+            storeRegistry
+              .getState('users')
               .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
         } catch (error) {
@@ -437,7 +434,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         d.hidFromFollowers = hidFromFollowers
       })
       username &&
-        useUsersState.getState().dispatch.updates([{info: {fullname: card.fullName}, name: username}])
+        storeRegistry.getState('users').dispatch.updates([{info: {fullname: card.fullName}, name: username}])
     },
     notifyReset: guiID => {
       set(s => {
@@ -532,11 +529,11 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         }
         // if we mutated somehow reload ourselves and reget the suggestions
         case EngineGen.keybase1NotifyUsersUserChanged: {
-          if (useCurrentUserState.getState().uid !== action.payload.params.uid) {
+          if (storeRegistry.getState('current-user').uid !== action.payload.params.uid) {
             return
           }
           get().dispatch.load({
-            assertion: useCurrentUserState.getState().username,
+            assertion: storeRegistry.getState('current-user').username,
             forceDisplay: false,
             fromDaemon: false,
             guiID: C.generateGUIID(),
@@ -596,7 +593,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
       })
       if (!skipNav) {
         // go to profile page
-        useProfileState.getState().dispatch.showUserProfile(username)
+        storeRegistry.getState('profile').dispatch.showUserProfile(username)
       }
     },
     updateResult: (guiID, result, reason) => {

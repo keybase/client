@@ -1,9 +1,9 @@
 import {isMobile} from '../platform'
-import {useRouterState} from '../router2'
+import {storeRegistry} from '../store-registry'
 
 export const showUserProfile = (username: string) => {
   if (isMobile) {
-    useRouterState.getState().dispatch.clearModals()
+    storeRegistry.getState('router').dispatch.clearModals()
   }
-  useRouterState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
+  storeRegistry.getState('router').dispatch.navigateAppend({props: {username}, selected: 'profile'})
 }

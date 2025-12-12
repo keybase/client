@@ -1,14 +1,12 @@
 import * as C from '..'
 import * as T from '../types'
 import * as Validators from '@/util/simple-validators'
-import {useDeepLinksState} from '../deeplinks'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import openURL from '@/util/open-url'
 import {RPCError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
-import {useTrackerState} from '../tracker2'
-import {useCurrentUserState} from '../current-user'
+import {storeRegistry} from '../store-registry'
 import {showUserProfile} from './util'
 
 type ProveGenericParams = {
@@ -204,7 +202,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           s.proofFound = true
           s.proofStatus = T.RPCGen.ProofStatus.ok
         })
-        C.useRouterState.getState().dispatch.navigateAppend('profileConfirmOrPending')
+        storeRegistry.getState('router').dispatch.navigateAppend('profileConfirmOrPending')
       } catch (_error) {
         if (_error instanceof RPCError) {
           const error = _error
@@ -241,14 +239,14 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         // Special cases
         switch (service) {
           case 'dnsOrGenericWebSite':
-            C.useRouterState.getState().dispatch.navigateAppend('profileProveWebsiteChoice')
+            storeRegistry.getState('router').dispatch.navigateAppend('profileProveWebsiteChoice')
             return
           case 'zcash': //  fallthrough
           case 'btc':
-            C.useRouterState.getState().dispatch.navigateAppend('profileProveEnterUsername')
+            storeRegistry.getState('router').dispatch.navigateAppend('profileProveEnterUsername')
             return
           case 'pgp':
-            C.useRouterState.getState().dispatch.navigateAppend('profilePgp')
+            storeRegistry.getState('router').dispatch.navigateAppend('profilePgp')
             return
           default:
         }
@@ -265,8 +263,8 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         let canceled = false
 
         const loadAfter = () =>
-          useTrackerState.getState().dispatch.load({
-            assertion: useCurrentUserState.getState().username,
+          storeRegistry.getState('tracker2').dispatch.load({
+            assertion: storeRegistry.getState('current-user').username,
             guiID: C.generateGUIID(),
             inTracker: false,
             reason: '',
@@ -313,7 +311,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.proofText = proof
                   })
-                  C.useRouterState.getState().dispatch.navigateAppend('profilePostProof')
+                  storeRegistry.getState('router').dispatch.navigateAppend('profilePostProof')
                 } else if (proof) {
                   set(s => {
                     s.platformGenericURL = proof
@@ -362,12 +360,12 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
                   })
                 }
                 if (service) {
-                  C.useRouterState.getState().dispatch.navigateAppend('profileProveEnterUsername')
+                  storeRegistry.getState('router').dispatch.navigateAppend('profileProveEnterUsername')
                 } else if (genericService && parameters) {
                   set(s => {
                     s.platformGenericParams = T.castDraft(toProveGenericParams(parameters))
                   })
-                  C.useRouterState.getState().dispatch.navigateAppend('profileGenericEnterUsername')
+                  storeRegistry.getState('router').dispatch.navigateAppend('profileGenericEnterUsername')
                 }
               },
             },
@@ -407,12 +405,12 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
               s.errorCode = error.code
             })
             if (error.code === T.RPCGen.StatusCode.scgeneric && reason === 'appLink') {
-              useDeepLinksState
-                .getState()
+              storeRegistry
+                .getState('deeplinks')
                 .dispatch.setLinkError(
                   "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
                 )
-              C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
+              storeRegistry.getState('router').dispatch.navigateAppend('keybaseLinkError')
             }
           }
           if (genericService) {
@@ -433,9 +431,9 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       C.ignorePromise(f())
     },
     backToProfile: () => {
-      C.useRouterState.getState().dispatch.clearModals()
+      storeRegistry.getState('router').dispatch.clearModals()
       setTimeout(() => {
-        get().dispatch.showUserProfile(useCurrentUserState.getState().username)
+        get().dispatch.showUserProfile(storeRegistry.getState('current-user').username)
       }, 100)
     },
     checkProof: () => {
@@ -465,7 +463,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
               s.proofStatus = status
             })
             if (!isGeneric) {
-              C.useRouterState.getState().dispatch.navigateAppend('profileConfirmOrPending')
+              storeRegistry.getState('router').dispatch.navigateAppend('profileConfirmOrPending')
             }
           }
         } catch {
@@ -494,15 +492,15 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     editProfile: (bio, fullName, location) => {
       const f = async () => {
         await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, C.waitingKeyTracker)
-        get().dispatch.showUserProfile(useCurrentUserState.getState().username)
+        get().dispatch.showUserProfile(storeRegistry.getState('current-user').username)
       }
       C.ignorePromise(f())
     },
     finishRevoking: () => {
-      const username = useCurrentUserState.getState().username
+      const username = storeRegistry.getState('current-user').username
       get().dispatch.showUserProfile(username)
-      useTrackerState.getState().dispatch.load({
-        assertion: useCurrentUserState.getState().username,
+      storeRegistry.getState('tracker2').dispatch.load({
+        assertion: storeRegistry.getState('current-user').username,
         guiID: C.generateGUIID(),
         inTracker: false,
         reason: '',
@@ -521,7 +519,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           username: pgpFullName || '',
         }))
 
-        C.useRouterState.getState().dispatch.navigateAppend('profileGenerate')
+        storeRegistry.getState('router').dispatch.navigateAppend('profileGenerate')
         // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
         set(s => {
           s.dispatch.dynamic.cancelPgpGen = C.wrapErrors(() => {
@@ -543,7 +541,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
                 }
               },
               'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
-                C.useRouterState.getState().dispatch.navigateAppend('profileFinished')
+                storeRegistry.getState('router').dispatch.navigateAppend('profileFinished')
                 set(s => {
                   s.promptShouldStoreKeyOnServer = prompt
                   s.dispatch.dynamic.finishedWithKeyGen = C.wrapErrors((shouldStoreKeyOnServer: boolean) => {
@@ -597,7 +595,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         await T.RPCGen.proveCheckProofRpcPromise({sigID}, C.waitingKeyProfile)
-        useTrackerState.getState().dispatch.showUser(useCurrentUserState.getState().username, false)
+        storeRegistry.getState('tracker2').dispatch.showUser(storeRegistry.getState('current-user').username, false)
       }
       C.ignorePromise(f())
     },
@@ -622,7 +620,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.blockUserModal = undefined
           })
-          useTrackerState.getState().dispatch.load({
+          storeRegistry.getState('tracker2').dispatch.load({
             assertion: username,
             guiID: C.generateGUIID(),
             inTracker: false,
@@ -643,7 +641,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     },
     submitRevokeProof: proofId => {
       const f = async () => {
-        const you = useTrackerState.getState().getDetails(useCurrentUserState.getState().username)
+        const you = storeRegistry.getState('tracker2').getDetails(storeRegistry.getState('current-user').username)
         if (!you.assertions) return
         const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
         if (!proof) return
@@ -675,7 +673,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await T.RPCGen.userUnblockUserRpcPromise({username})
-          useTrackerState.getState().dispatch.load({
+          storeRegistry.getState('tracker2').dispatch.load({
             assertion: username,
             guiID: C.generateGUIID(),
             inTracker: false,
@@ -687,8 +685,8 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           }
           const error = _error
           logger.warn(`Error unblocking user ${username}`, error)
-          useTrackerState
-            .getState()
+          storeRegistry
+            .getState('tracker2')
             .dispatch.updateResult(guiID, 'error', `Failed to unblock ${username}: ${error.desc}`)
         }
       }
@@ -725,7 +723,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
             {crop: fixCrop(crop), filename},
             C.waitingKeyProfileUploadAvatar
           )
-          C.useRouterState.getState().dispatch.navigateUp()
+          storeRegistry.getState('router').dispatch.navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
