@@ -1,7 +1,7 @@
 import * as T from '../types'
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import type * as Index from '.'
+import {storeRegistry} from '../store-registry'
 import {isMobile} from '../platform'
 import logger from '@/logger'
 
@@ -61,8 +61,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyAuditBoxAuditError:
     case EngineGen.keybase1NotifyBadgesBadgeState:
       {
-        const {useNotifState} = require('.') as typeof Index
-        useNotifState.getState().dispatch.onEngineIncomingImpl(action)
+        storeRegistry.getState('notifications').dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

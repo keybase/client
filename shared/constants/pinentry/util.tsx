@@ -1,7 +1,7 @@
 import * as T from '../types'
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import type * as Index from '.'
+import {storeRegistry} from '../store-registry'
 import logger from '@/logger'
 
 export const onEngineConnected = () => {
@@ -20,8 +20,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
   switch (action.type) {
     case EngineGen.keybase1SecretUiGetPassphrase:
       {
-        const {usePinentryState} = require('.') as typeof Index
-        usePinentryState.getState().dispatch.onEngineIncomingImpl(action)
+        storeRegistry.getState('pinentry').dispatch.onEngineIncomingImpl(action)
       }
       break
     default:

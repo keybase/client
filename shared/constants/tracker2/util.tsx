@@ -1,7 +1,7 @@
 import * as T from '../types'
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import type * as Index from '.'
+import {storeRegistry} from '../store-registry'
 import logger from '@/logger'
 
 export const onEngineConnected = () => {
@@ -28,8 +28,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1Identify3UiIdentify3UpdateUserCard:
     case EngineGen.keybase1Identify3UiIdentify3Summary:
       {
-        const {useTrackerState} = require('.') as typeof Index
-        useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
+        storeRegistry.getState('tracker2').dispatch.onEngineIncomingImpl(action)
       }
       break
     default:
