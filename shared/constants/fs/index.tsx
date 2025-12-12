@@ -1034,7 +1034,7 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
   throw error
 }
 
-type Store = T.Immutable<{
+export type Store = T.Immutable<{
   badge: T.RPCGen.FilesTabBadge
   criticalUpdate: boolean
   destinationPicker: T.FS.DestinationPicker
@@ -1108,7 +1108,7 @@ const initialStore: Store = {
   },
 }
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     cancelDownload: (downloadID: string) => void
     checkKbfsDaemonRpcStatus: () => void

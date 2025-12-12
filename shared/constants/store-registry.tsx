@@ -18,8 +18,21 @@ import type * as WaitingType from './waiting'
 import type * as T from './types'
 import type {ConvoState} from './chat2/convostate'
 
-type StoreName = 'active' | 'chat' | 'config' | 'current-user' | 'daemon' | 'deeplinks' | 'fs' | 'people' | 'router' | 'settings-email' | 'signup' | 'teams' | 'users' | 'waiting'
-
+type StoreName =
+  | 'active'
+  | 'chat'
+  | 'config'
+  | 'current-user'
+  | 'daemon'
+  | 'deeplinks'
+  | 'fs'
+  | 'people'
+  | 'router'
+  | 'settings-email'
+  | 'signup'
+  | 'teams'
+  | 'users'
+  | 'waiting'
 
 type StoreStates = {
   active: ActiveType.State

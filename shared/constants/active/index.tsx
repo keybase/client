@@ -1,4 +1,3 @@
-import * as C from '..'
 import * as Chat from '../chat2'
 import type * as T from '../types'
 import * as Z from '@/util/zustand'
