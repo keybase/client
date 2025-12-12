@@ -21,6 +21,7 @@ import type * as NotificationsType from './notifications'
 import type * as PeopleType from './people'
 import type * as PinentryType from './pinentry'
 import type * as ProfileType from './profile'
+import type * as PushType from './push'
 import type * as ProvisionType from './provision'
 import type * as RouterType from './router2'
 import type * as SettingsChatType from './settings-chat'
@@ -63,6 +64,7 @@ type StoreName =
   | 'pinentry'
   | 'profile'
   | 'provision'
+  | 'push'
   | 'router'
   | 'settings'
   | 'settings-chat'
@@ -101,6 +103,7 @@ type StoreStates = {
   pinentry: PinentryType.State
   profile: ProfileType.State
   provision: ProvisionType.State
+  push: PushType.State
   router: RouterType.State
   settings: SettingsType.State
   'settings-chat': SettingsChatType.State
@@ -207,6 +210,10 @@ class StoreRegistry {
       case 'provision': {
         const {useProvisionState} = require('./provision') as typeof ProvisionType
         return useProvisionState.getState() as StoreStates[T]
+      }
+      case 'push': {
+        const {usePushState} = require('./push.native') as typeof PushType
+        return usePushState.getState() as StoreStates[T]
       }
       case 'router': {
         const {useRouterState} = require('./router2') as typeof RouterType

@@ -119,11 +119,11 @@ export const useState = Z.createZustand<State>((set, get) => {
                   })
                   storeRegistry.getState('provision').dispatch.startProvision(get().username, true)
                 } else {
-                  C.useRouterState.getState().dispatch.navUpToScreen('login')
+                  storeRegistry.getState('router').dispatch.navUpToScreen('login')
                 }
               }
             })
-            C.useRouterState.getState().dispatch.navigateAppend('resetConfirm', true)
+            storeRegistry.getState('router').dispatch.navigateAppend('resetConfirm', true)
           } else {
             logger.info('Starting account reset process')
             get().dispatch.startAccountReset(true, '')
@@ -139,8 +139,8 @@ export const useState = Z.createZustand<State>((set, get) => {
                     s.endTime = params.endTime * 1000
                   })
                 }
-                C.useRouterState
-                  .getState()
+                storeRegistry
+                  .getState('router')
                   .dispatch.navigateAppend(
                     {props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'},
                     true
@@ -175,7 +175,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.error = ''
         s.username = username
       })
-      C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
+      storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
     },
     updateARState: (active, endTime) => {
       set(s => {

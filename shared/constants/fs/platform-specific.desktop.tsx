@@ -8,7 +8,7 @@ import * as Path from '@/util/path'
 import KB2 from '@/util/electron.desktop'
 import {uint8ArrayToHex} from 'uint8array-extras'
 import {useFSState} from '.'
-import {useConfigState} from '@/constants/config'
+import {storeRegistry} from '../store-registry'
 
 const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
 const {darwinCopyToKBFSTempUploadFile, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
@@ -72,7 +72,7 @@ const driverEnableFuse = async (isRetry: boolean) => {
   if (fuseInstallResultIsKextPermissionError(result)) {
     useFSState.getState().dispatch.driverKextPermissionError()
     if (!isRetry) {
-      C.useRouterState.getState().dispatch.navigateAppend('kextPermission')
+      storeRegistry.getState('router').dispatch.navigateAppend('kextPermission')
     }
   } else {
     await T.RPCGen.installInstallKBFSRpcPromise() // restarts kbfsfuse
@@ -273,11 +273,11 @@ const initPlatformSpecific = () => {
     })
 
     s.dispatch.dynamic.openFilesFromWidgetDesktop = C.wrapErrors((path: T.FS.Path) => {
-      useConfigState.getState().dispatch.showMain()
+      storeRegistry.getState('config').dispatch.showMain()
       if (path) {
         Constants.makeActionForOpenPathInFilesTab(path)
       } else {
-        C.useRouterState.getState().dispatch.navigateAppend(Tabs.fsTab)
+        storeRegistry.getState('router').dispatch.navigateAppend(Tabs.fsTab)
       }
     })
 

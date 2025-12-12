@@ -7,7 +7,6 @@ import logger from '@/logger'
 import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
-import {usePushState} from '../push'
 import {storeRegistry} from '../store-registry'
 
 type Store = T.Immutable<{
@@ -116,7 +115,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         if (noErrors()) {
           get().dispatch.restartSignup()
         } else {
-          C.useRouterState.getState().dispatch.navigateAppend('signupError')
+          storeRegistry.getState('router').dispatch.navigateAppend('signupError')
         }
         // If the email was set to be visible during signup, we need to set that with a separate RPC.
         if (noErrors() && get().emailVisible) {
@@ -128,8 +127,8 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.signupError = error
           })
-          C.useRouterState.getState().dispatch.navigateAppend('signupError')
-          usePushState.getState().dispatch.showPermissionsPrompt({justSignedUp: false})
+          storeRegistry.getState('router').dispatch.navigateAppend('signupError')
+          storeRegistry.getState('push').dispatch.showPermissionsPrompt({justSignedUp: false})
         }
       }
     }
@@ -170,8 +169,8 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
             s.signupError = undefined
           })
           if (noErrors()) {
-            C.useRouterState.getState().dispatch.navigateUp()
-            C.useRouterState.getState().dispatch.navigateAppend('signupEnterUsername')
+            storeRegistry.getState('router').dispatch.navigateUp()
+            storeRegistry.getState('router').dispatch.navigateAppend('signupEnterUsername')
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -204,7 +203,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
             s.usernameTaken = ''
           })
           if (noErrors()) {
-            C.useRouterState.getState().dispatch.navigateAppend('signupEnterDevicename')
+            storeRegistry.getState('router').dispatch.navigateAppend('signupEnterDevicename')
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -236,7 +235,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         s.usernameError = ''
         s.usernameTaken = ''
       })
-      C.useRouterState.getState().dispatch.navigateUp()
+      storeRegistry.getState('router').dispatch.navigateUp()
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
@@ -267,7 +266,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.inviteCode = ''
           })
-          C.useRouterState.getState().dispatch.navigateAppend('signupError')
+          storeRegistry.getState('router').dispatch.navigateAppend('signupError')
         }
       }
       C.ignorePromise(f())

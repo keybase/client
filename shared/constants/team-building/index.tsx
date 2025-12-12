@@ -294,7 +294,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals.at(-1)?.name
       if (routeNames.includes(routeName ?? '')) {
-        C.useRouterState.getState().dispatch.navigateUp()
+        storeRegistry.getState('router').dispatch.navigateUp()
       }
     },
     fetchUserRecs: () => {
@@ -362,7 +362,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           break
         }
         case 'chat2': {
-          C.useChatState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
+          storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(finishedTeam)
           break
         }
         default:

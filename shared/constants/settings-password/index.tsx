@@ -141,7 +141,7 @@ export const usePWState = Z.createZustand<State>((set, get) => {
           if (thenLogout) {
             storeRegistry.getState('logout').dispatch.requestLogout()
           }
-          C.useRouterState.getState().dispatch.navigateUp()
+          storeRegistry.getState('router').dispatch.navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

@@ -640,7 +640,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           break
       }
       if (C.isMobile) {
-        C.useRouterState.getState().dispatch.navigateAppend(route)
+        storeRegistry.getState('router').dispatch.navigateAppend(route)
       }
     },
     setEncryptOptions: (newOptions, hideIncludeSelf) => {

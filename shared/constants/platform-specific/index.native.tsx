@@ -1,7 +1,6 @@
 import * as C from '..'
 import * as Chat from '../chat2'
-import {useProfileState} from '../profile'
-import {useConfigState} from '../config'
+import {storeRegistry} from '../store-registry'
 import * as T from '../types'
 import * as Clipboard from 'expo-clipboard'
 import * as EngineGen from '@/actions/engine-gen-gen'
@@ -17,9 +16,6 @@ import {Alert, Linking, ActionSheetIOS} from 'react-native'
 import {isIOS, isAndroid} from '../platform'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
-import {useSettingsContactsState} from '../settings-contacts'
-import {useCurrentUserState} from '../current-user'
-import {useDaemonState} from '../daemon'
 import {
   androidOpenSettings,
   androidShare,
@@ -202,7 +198,7 @@ const loadStartupDetails = async () => {
     tab = ''
   }
 
-  useConfigState.getState().dispatch.setStartupDetails({
+  storeRegistry.getState('config').dispatch.setStartupDetails({
     conversation: conversation ?? Chat.noConversationIDKey,
     followUser,
     link,
@@ -297,7 +293,7 @@ const ensureBackgroundTask = () => {
       lon: pos?.coords.longitude ?? 0,
     }
 
-    C.useChatState.getState().dispatch.updateLastCoord(coord)
+    storeRegistry.getState('chat').dispatch.updateLastCoord(coord)
     return Promise.resolve()
   })
 }
@@ -322,7 +318,7 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
           lat: location.coords.latitude,
           lon: location.coords.longitude,
         }
-        C.useChatState.getState().dispatch.updateLastCoord(coord)
+        storeRegistry.getState('chat').dispatch.updateLastCoord(coord)
       }
     )
     return () => sub.remove()
@@ -401,7 +397,7 @@ export const initPlatformListener = () => {
     }
 
     logger.info(`setting app state on service to: ${logState}`)
-    useConfigState.getState().dispatch.changedFocus(appFocused)
+    storeRegistry.getState('config').dispatch.changedFocus(appFocused)
   })
 
   useConfigState.setState(s => {
@@ -473,7 +469,7 @@ export const initPlatformListener = () => {
               .dispatch.navigateAppend({props: {image: first}, selected: 'profileEditAvatar'})
           }
         } catch (error) {
-          useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
+          storeRegistry.getState('config').dispatch.filePickerError(new Error(String(error)))
         }
       }
       C.ignorePromise(f())
@@ -520,7 +516,7 @@ export const initPlatformListener = () => {
     if (s.mobileAppState === old.mobileAppState) return
     if (s.mobileAppState === 'active') {
       // only reload on foreground
-      useSettingsContactsState.getState().dispatch.loadContactPermissions()
+      storeRegistry.getState('settings-contacts').dispatch.loadContactPermissions()
     }
   })
 
@@ -528,7 +524,7 @@ export const initPlatformListener = () => {
   if (isAndroid) {
     C.useDarkModeState.subscribe((s, old) => {
       if (s.darkModePreference === old.darkModePreference) return
-      const {darkModePreference} = C.useDarkModeState.getState()
+      const {darkModePreference} = storeRegistry.getState('dark-mode')
       androidAppColorSchemeChanged(darkModePreference)
     })
   }
@@ -543,7 +539,7 @@ export const initPlatformListener = () => {
     const f = async () => {
       await C.timeoutPromise(1000)
       const path = C.Router2.getVisiblePath()
-      useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
+      storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(path)
     }
 
     if (!calledShareListenersRegistered && C.Router2.logState().loggedIn) {
@@ -558,7 +554,7 @@ export const initPlatformListener = () => {
   initPushListener()
 
   NetInfo.addEventListener(({type}) => {
-    useConfigState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
+    storeRegistry.getState('config').dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
   })
 
   const initAudioModes = () => {
@@ -567,7 +563,7 @@ export const initPlatformListener = () => {
   initAudioModes()
 
   if (isAndroid) {
-    const daemonState = useDaemonState.getState()
+    const daemonState = storeRegistry.getState('daemon')
     if (daemonState.handshakeState === 'done' || daemonState.handshakeVersion > 0) {
       configureAndroidCacheDir()
     }
@@ -594,7 +590,7 @@ export const initPlatformListener = () => {
     s.dispatch.dynamic.onEngineIncomingNative = C.wrapErrors((action: EngineGen.Actions) => {
       switch (action.type) {
         case EngineGen.chat1ChatUiTriggerContactSync:
-          useSettingsContactsState.getState().dispatch.manageContactsCache()
+          storeRegistry.getState('settings-contacts').dispatch.manageContactsCache()
           break
         case EngineGen.keybase1LogUiLog: {
           const {params} = action.payload
@@ -619,12 +615,12 @@ export const initPlatformListener = () => {
   C.useRouterState.setState(s => {
     s.dispatch.dynamic.tabLongPress = C.wrapErrors((tab: string) => {
       if (tab !== Tabs.peopleTab) return
-      const accountRows = useConfigState.getState().configuredAccounts
-      const current = useCurrentUserState.getState().username
+      const accountRows = storeRegistry.getState('config').configuredAccounts
+      const current = storeRegistry.getState('current-user').username
       const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
       if (row) {
-        useConfigState.getState().dispatch.setUserSwitching(true)
-        useConfigState.getState().dispatch.login(row.username, '')
+        storeRegistry.getState('config').dispatch.setUserSwitching(true)
+        storeRegistry.getState('config').dispatch.login(row.username, '')
       }
     })
   })

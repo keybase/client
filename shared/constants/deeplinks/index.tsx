@@ -58,7 +58,7 @@ export interface State extends Store {
 
 export const useDeepLinksState = Z.createZustand<State>((set, get) => {
   const handleShowUserProfileLink = (username: string) => {
-    C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+    storeRegistry.getState('router').dispatch.switchTab(Tabs.peopleTab)
     storeRegistry.getState('profile').dispatch.showUserProfile(username)
   }
 
@@ -143,8 +143,8 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
           if (!phones || phones.size > 0) {
             return
           }
-          C.useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
-          C.useRouterState.getState().dispatch.navigateAppend('settingsAddPhone')
+          storeRegistry.getState('router').dispatch.switchTab(Tabs.settingsTab)
+          storeRegistry.getState('router').dispatch.navigateAppend('settingsAddPhone')
         } else if (username && username !== 'app') {
           handleShowUserProfileLink(username)
           return
@@ -183,9 +183,9 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
         case 'team':
           try {
             const decoded = decodeURIComponent(link)
-            C.useRouterState.getState().dispatch.switchTab(Tabs.fsTab)
-            C.useRouterState
-              .getState()
+            storeRegistry.getState('router').dispatch.switchTab(Tabs.fsTab)
+            storeRegistry
+              .getState('router')
               .dispatch.navigateAppend({props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'})
             return
           } catch {
@@ -207,7 +207,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
               const teamChat = parts[1]!.split('#')
               if (teamChat.length !== 2) {
                 get().dispatch.setLinkError(error)
-                C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
+                storeRegistry.getState('router').dispatch.navigateAppend('keybaseLinkError')
                 return
               }
               const [teamname, channelname] = teamChat
@@ -218,7 +218,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
               }
 
               const highlightMessageID = T.Chat.numberToMessageID(_highlightMessageID)
-              const {previewConversation} = C.useChatState.getState().dispatch
+              const {previewConversation} = storeRegistry.getState('chat').dispatch
               previewConversation({
                 channelname,
                 highlightMessageID,
@@ -232,7 +232,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
                 logger.warn(`invalid chat message id: ${highlightMessageID}`)
                 return
               }
-              const {previewConversation} = C.useChatState.getState().dispatch
+              const {previewConversation} = storeRegistry.getState('chat').dispatch
               previewConversation({
                 highlightMessageID: T.Chat.numberToMessageID(highlightMessageID),
                 participants: parts[1]!.split(','),
@@ -256,35 +256,35 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
         case 'incoming-share':
           // android needs to render first when coming back
           setTimeout(() => {
-            C.useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
+            storeRegistry.getState('router').dispatch.navigateAppend('incomingShareNew')
           }, 500)
           return
         case 'team-invite-link':
           storeRegistry.getState('teams').dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
           return
         case 'settingsPushPrompt':
-          C.useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
+          storeRegistry.getState('router').dispatch.navigateAppend('settingsPushPrompt')
           return
         case Tabs.teamsTab:
-          C.useRouterState.getState().dispatch.switchTab(Tabs.teamsTab)
+          storeRegistry.getState('router').dispatch.switchTab(Tabs.teamsTab)
           return
         case Tabs.fsTab:
-          C.useRouterState.getState().dispatch.switchTab(Tabs.fsTab)
+          storeRegistry.getState('router').dispatch.switchTab(Tabs.fsTab)
           return
         case Tabs.chatTab:
-          C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+          storeRegistry.getState('router').dispatch.switchTab(Tabs.chatTab)
           return
         case Tabs.peopleTab:
-          C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+          storeRegistry.getState('router').dispatch.switchTab(Tabs.peopleTab)
           return
         case Tabs.settingsTab:
-          C.useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
+          storeRegistry.getState('router').dispatch.switchTab(Tabs.settingsTab)
           return
         default:
         // Fall through to the error return below.
       }
       get().dispatch.setLinkError(error)
-      C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
+      storeRegistry.getState('router').dispatch.navigateAppend('keybaseLinkError')
     },
     handleSaltPackOpen: _path => {
       const path = typeof _path === 'string' ? _path : _path.stringValue()
@@ -306,7 +306,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
       }
       const {onSaltpackOpenFile} = Crypto.useState.getState().dispatch
       onSaltpackOpenFile(operation, path)
-      C.useRouterState.getState().dispatch.switchTab(Tabs.cryptoTab)
+      storeRegistry.getState('router').dispatch.switchTab(Tabs.cryptoTab)
     },
 
     onEngineIncomingImpl: action => {

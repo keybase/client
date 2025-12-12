@@ -150,8 +150,8 @@ export const useGitState = Z.createZustand<State>((set, get) => {
         await _load()
         for (const [, info] of get().idToInfo) {
           if (info.repoID === repoID && info.teamname === teamname) {
-            C.useRouterState
-              .getState()
+            storeRegistry
+              .getState('router')
               .dispatch.navigateAppend({props: {expanded: info.id}, selected: 'gitRoot'})
             break
           }
