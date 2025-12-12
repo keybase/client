@@ -254,7 +254,7 @@ class StoreRegistry {
         return useProvisionState
       }
       case 'push': {
-        const {usePushState} = require('./push.native')
+        const {usePushState} = require('./push')
         return usePushState
       }
       case 'router': {
