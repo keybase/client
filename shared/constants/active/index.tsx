@@ -1,7 +1,7 @@
-import * as C from '..'
 import * as Chat from '../chat2'
 import type * as T from '../types'
 import * as Z from '@/util/zustand'
+import {storeRegistry} from '../store-registry'
 
 type Store = T.Immutable<{active: boolean}>
 const initialStore: Store = {active: true}
@@ -19,7 +19,7 @@ export const useActiveState = Z.createZustand<State>(set => {
       set(s => {
         s.active = a
       })
-      const cs = C.getConvoState(Chat.getSelectedConversation())
+      const cs = storeRegistry.getConvoState(Chat.getSelectedConversation())
       cs.dispatch.markThreadAsRead()
     },
   }

@@ -17,6 +17,7 @@ import {type Store, type State} from './push'
 import {useLogoutState} from './logout'
 import {useCurrentUserState} from './current-user'
 import {useDaemonState} from './daemon'
+import {storeRegistry} from './store-registry'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 
@@ -79,7 +80,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     const {conversationIDKey, unboxPayload, membersType} = notification
 
     logger.warn('push selecting ', conversationIDKey)
-    C.getConvoState(conversationIDKey).dispatch.navigateToThread('push', undefined, unboxPayload)
+    storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('push', undefined, unboxPayload)
     if (unboxPayload && membersType && !isIOS) {
       logger.info('[Push] unboxing message')
       try {
@@ -174,7 +175,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
             case 'chat.extension':
               {
                 const {conversationIDKey} = notification
-                C.getConvoState(conversationIDKey).dispatch.navigateToThread('extension')
+                storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('extension')
               }
               break
             case 'settings.contacts':

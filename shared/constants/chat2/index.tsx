@@ -359,7 +359,7 @@ export interface State extends Store {
 
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
-  ids.filter(id => C.getConvoState(id).meta.trustedState === 'untrusted')
+  ids.filter(id => storeRegistry.getConvoState(id).meta.trustedState === 'untrusted')
 
 // generic chat store
 export const useChatState = Z.createZustand<State>((set, get) => {
@@ -375,8 +375,8 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       }
       b.conversations?.forEach(c => {
         const id = T.Chat.conversationIDToKey(c.convID)
-        C.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
-        C.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
+        storeRegistry.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
+        storeRegistry.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
       })
       const {bigTeamBadgeCount, smallTeamBadgeCount} = b
       set(s => {
@@ -434,11 +434,11 @@ export const useChatState = Z.createZustand<State>((set, get) => {
               uiConv.participants ?? []
             )
             if (participantInfo.all.length > 0) {
-              C.getConvoState(T.Chat.stringToConversationIDKey(uiConv.convID)).dispatch.setParticipants(
+              storeRegistry.getConvoState(T.Chat.stringToConversationIDKey(uiConv.convID)).dispatch.setParticipants(
                 participantInfo
               )
             }
-            C.getConvoState(conversationIDKey).dispatch.navigateToThread('justCreated', highlightMessageID)
+            storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('justCreated', highlightMessageID)
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -453,7 +453,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             }
             const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
             get().dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
-            C.getConvoState(T.Chat.pendingErrorConversationIDKey).dispatch.navigateToThread(
+            storeRegistry.getConvoState(T.Chat.pendingErrorConversationIDKey).dispatch.navigateToThread(
               'justCreated',
               highlightMessageID
             )
@@ -468,7 +468,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         return
       }
       const missing = inboxLayout.widgetList.reduce<Array<T.Chat.ConversationIDKey>>((l, v) => {
-        if (!C.getConvoState(v.convID).isMetaGood()) {
+        if (!storeRegistry.getConvoState(v.convID).isMetaGood()) {
           l.push(v.convID)
         }
         return l
@@ -577,7 +577,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           })
 
           const missingMetas = results.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
-            if (!C.getConvoState(r.conversationIDKey).isMetaGood()) {
+            if (!storeRegistry.getConvoState(r.conversationIDKey).isMetaGood()) {
               arr.push(r.conversationIDKey)
             }
             return arr
@@ -649,7 +649,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           })
 
           if (
-            C.getConvoState(result.conversationIDKey).meta.conversationIDKey === T.Chat.noConversationIDKey
+            storeRegistry.getConvoState(result.conversationIDKey).meta.conversationIDKey === T.Chat.noConversationIDKey
           ) {
             get().dispatch.unboxRows([result.conversationIDKey], true)
           }
@@ -780,9 +780,9 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         query = selected?.query
       }
 
-      C.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSearch')
+      storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSearch')
       if (query) {
-        const cs = C.getConvoState(conversationIDKey)
+        const cs = storeRegistry.getConvoState(conversationIDKey)
         cs.dispatch.setThreadSearchQuery(query)
         cs.dispatch.toggleThreadSearch(false)
         cs.dispatch.threadSearch(query)
@@ -888,7 +888,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         logger.info(
           `maybeChangeSelectedConv: selecting new conv: new:${newConvID} old:${oldConvID} prevselected ${selectedConversation}`
         )
-        C.getConvoState(newConvID).dispatch.navigateToThread('findNewestConversation')
+        storeRegistry.getConvoState(newConvID).dispatch.navigateToThread('findNewestConversation')
       }
     },
     messageSendByUsername: (username, text, waitingKey) => {
@@ -905,7 +905,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             },
             waitingKey
           )
-          C.getConvoState(T.Chat.conversationIDToKey(result.conv.info.id)).dispatch.sendMessage(text)
+          storeRegistry.getConvoState(T.Chat.conversationIDToKey(result.conv.info.id)).dispatch.sendMessage(text)
         } catch (error) {
           if (error instanceof RPCError) {
             logger.warn('Could not send in messageSendByUsernames', error.message)
@@ -916,10 +916,10 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     metasReceived: (metas, removals) => {
       removals?.forEach(r => {
-        C.getConvoState(r).dispatch.setMeta()
+        storeRegistry.getConvoState(r).dispatch.setMeta()
       })
       metas.forEach(m => {
-        const {meta: oldMeta, dispatch, isMetaGood} = C.getConvoState(m.conversationIDKey)
+        const {meta: oldMeta, dispatch, isMetaGood} = storeRegistry.getConvoState(m.conversationIDKey)
         if (isMetaGood()) {
           dispatch.updateMeta(Meta.updateMeta(oldMeta, m))
         } else {
@@ -928,7 +928,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       })
 
       const selectedConversation = Common.getSelectedConversation()
-      const {isMetaGood, meta} = C.getConvoState(selectedConversation)
+      const {isMetaGood, meta} = storeRegistry.getConvoState(selectedConversation)
       if (isMetaGood()) {
         const {teamID} = meta
         if (!storeRegistry.getState('teams').teamIDToMembers.get(teamID) && meta.teamname) {
@@ -975,7 +975,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             return arr
           }, [])
           if (loadMore) {
-            C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+            storeRegistry.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
           }
           const removals = syncRes.incremental.removals?.map(T.Chat.stringToConversationIDKey)
           // Update new untrusted
@@ -1022,12 +1022,12 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           )
           get().dispatch.unboxRows(conversationIDKeys, true)
           if (T.RPCChat.StaleUpdateType[key] === T.RPCChat.StaleUpdateType.clear) {
-            conversationIDKeys.forEach(convID => C.getConvoState(convID).dispatch.messagesClear())
+            conversationIDKeys.forEach(convID => storeRegistry.getConvoState(convID).dispatch.messagesClear())
           }
         }
       })
       if (loadMore) {
-        C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+        storeRegistry.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
       }
     },
     onEngineIncomingImpl: action => {
@@ -1043,7 +1043,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         case EngineGen.chat1NotifyChatChatAttachmentUploadProgress: {
           const {convID} = action.payload.params
           const conversationIDKey = T.Chat.conversationIDToKey(convID)
-          C.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
+          storeRegistry.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
         case EngineGen.chat1ChatUiChatCommandMarkdown: //fallthrough
@@ -1053,7 +1053,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         case EngineGen.chat1ChatUiChatGiphySearchResults: {
           const {convID} = action.payload.params
           const conversationIDKey = T.Chat.stringToConversationIDKey(convID)
-          C.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
+          storeRegistry.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
         case EngineGen.chat1NotifyChatChatParticipantsInfo: {
@@ -1062,7 +1062,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             const participants = participantMap?.[convIDStr]
             const conversationIDKey = T.Chat.stringToConversationIDKey(convIDStr)
             if (participants) {
-              C.getConvoState(conversationIDKey).dispatch.setParticipants(
+              storeRegistry.getConvoState(conversationIDKey).dispatch.setParticipants(
                 uiParticipantsToParticipantInfo(participants)
               )
             }
@@ -1135,7 +1135,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             case T.RPCChat.ChatActivityType.incomingMessage: {
               const {incomingMessage} = activity
               const conversationIDKey = T.Chat.conversationIDToKey(incomingMessage.convID)
-              C.getConvoState(conversationIDKey).dispatch.onIncomingMessage(incomingMessage)
+              storeRegistry.getConvoState(conversationIDKey).dispatch.onIncomingMessage(incomingMessage)
               get().dispatch.onIncomingInboxUIItem(incomingMessage.conv ?? undefined)
               break
             }
@@ -1161,7 +1161,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                 const outboxID = T.Chat.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
                 // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
                 const reason = Message.rpcErrorToString(error)
-                C.getConvoState(conversationIDKey).dispatch.onMessageErrored(outboxID, reason, error.typ)
+                storeRegistry.getConvoState(conversationIDKey).dispatch.onMessageErrored(outboxID, reason, error.typ)
 
                 if (error.typ === T.RPCChat.OutboxErrorType.identify) {
                   // Find out the user who failed identify
@@ -1181,7 +1181,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
               const {setAppNotificationSettings} = activity
               const conversationIDKey = T.Chat.conversationIDToKey(setAppNotificationSettings.convID)
               const settings = setAppNotificationSettings.settings
-              const cs = C.getConvoState(conversationIDKey)
+              const cs = storeRegistry.getConvoState(conversationIDKey)
               if (cs.isMetaGood()) {
                 cs.dispatch.updateMeta(Meta.parseNotificationSettings(settings))
               }
@@ -1195,7 +1195,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
               // The types here are askew. It confuses frontend MessageType with protocol MessageType.
               // Placeholder is an example where it doesn't make sense.
               const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || Common.allMessageTypes
-              C.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
+              storeRegistry.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
                 deletableMessageTypes,
                 upToMessageID: T.Chat.numberToMessageID(expunge.expunge.upto),
               })
@@ -1213,7 +1213,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                 return arr
               }, [])
 
-              !!messageIDs && C.getConvoState(conversationIDKey).dispatch.messagesExploded(messageIDs)
+              !!messageIDs && storeRegistry.getConvoState(conversationIDKey).dispatch.messagesExploded(messageIDs)
               break
             }
             case T.RPCChat.ChatActivityType.reactionUpdate: {
@@ -1229,14 +1229,14 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                 targetMsgID: T.Chat.numberToMessageID(ru.targetMsgID),
               }))
               logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
-              C.getConvoState(conversationIDKey).dispatch.updateReactions(updates)
+              storeRegistry.getConvoState(conversationIDKey).dispatch.updateReactions(updates)
               get().dispatch.updateUserReacjis(reactionUpdate.userReacjis)
               break
             }
             case T.RPCChat.ChatActivityType.messagesUpdated: {
               const {messagesUpdated} = activity
               const conversationIDKey = T.Chat.conversationIDToKey(messagesUpdated.convID)
-              C.getConvoState(conversationIDKey).dispatch.onMessagesUpdated(messagesUpdated)
+              storeRegistry.getConvoState(conversationIDKey).dispatch.onMessagesUpdated(messagesUpdated)
               break
             }
             default:
@@ -1246,7 +1246,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         case EngineGen.chat1NotifyChatChatTypingUpdate: {
           const {typingUpdates} = action.payload.params
           typingUpdates?.forEach(u => {
-            C.getConvoState(T.Chat.conversationIDToKey(u.convID)).dispatch.setTyping(
+            storeRegistry.getConvoState(T.Chat.conversationIDToKey(u.convID)).dispatch.setTyping(
               new Set(u.typers?.map(t => t.username))
             )
           })
@@ -1263,7 +1263,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
             return
           }
-          const cs = C.getConvoState(meta.conversationIDKey)
+          const cs = storeRegistry.getConvoState(meta.conversationIDKey)
           // only insert if the convo is already in the inbox
           if (cs.isMetaGood()) {
             cs.dispatch.setMeta(meta)
@@ -1281,7 +1281,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           }, [])
           if (metas.length) {
             metas.forEach(meta => {
-              const cs = C.getConvoState(meta.conversationIDKey)
+              const cs = storeRegistry.getConvoState(meta.conversationIDKey)
               // only insert if the convo is already in the inbox
               if (cs.isMetaGood()) {
                 cs.dispatch.setMeta(meta)
@@ -1336,7 +1336,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           inboxUIItem.participants ?? []
         )
         if (participantInfo.all.length > 0) {
-          C.getConvoState(T.Chat.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(
+          storeRegistry.getConvoState(T.Chat.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(
             participantInfo
           )
         }
@@ -1417,7 +1417,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         // same? ignore
         if (wasChat && isChat && wasID === isID) {
           // if we've never loaded anything, keep going so we load it
-          if (!isID || C.getConvoState(isID).maxMsgIDSeen !== -1) {
+          if (!isID || storeRegistry.getConvoState(isID).maxMsgIDSeen !== -1) {
             return
           }
         }
@@ -1427,14 +1427,14 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           if (wasChat && wasID && T.Chat.isValidConversationIDKey(wasID)) {
             get().dispatch.unboxRows([wasID], true)
             // needed?
-            // C.getConvoState(wasID).dispatch.clearOrangeLine('deselected')
+            // storeRegistry.getConvoState(wasID).dispatch.clearOrangeLine('deselected')
           }
         }
 
         // still chatting? just select new one
         if (wasChat && isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
           deselectAction()
-          C.getConvoState(isID).dispatch.selectedConversation()
+          storeRegistry.getConvoState(isID).dispatch.selectedConversation()
           return
         }
 
@@ -1447,7 +1447,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         // going into a chat
         if (isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
           deselectAction()
-          C.getConvoState(isID).dispatch.selectedConversation()
+          storeRegistry.getConvoState(isID).dispatch.selectedConversation()
           return
         }
       }
@@ -1457,7 +1457,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           const n = Router2.getVisibleScreen(next)
           const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
           const isID = nParams?.conversationIDKey
-          isID && C.getConvoState(isID).dispatch.tabSelected()
+          isID && storeRegistry.getConvoState(isID).dispatch.tabSelected()
         }
       }
       maybeChangeChatSelection()
@@ -1467,7 +1467,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         // need to let the mdoal hide first else its thrashy
         await C.timeoutPromise(500)
-        C.getConvoState(T.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+        storeRegistry.getConvoState(T.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation([...users].map(u => u.id))
       }
       C.ignorePromise(f())
@@ -1490,12 +1490,12 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           if (names.length !== toFindN) continue
           const p = [...names].sort().join(',')
           if (p === toFind) {
-            C.getConvoState(cs.getState().id).dispatch.navigateToThread('justCreated', highlightMessageID)
+            storeRegistry.getConvoState(cs.getState().id).dispatch.navigateToThread('justCreated', highlightMessageID)
             return
           }
         }
 
-        C.getConvoState(T.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+        storeRegistry.getConvoState(T.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation(participants, highlightMessageID)
       }
 
@@ -1515,7 +1515,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             })
           }
 
-          C.getConvoState(conversationIDKey).dispatch.navigateToThread('previewResolved', highlightMessageID)
+          storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('previewResolved', highlightMessageID)
           return
         }
 
@@ -1559,7 +1559,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             storeRegistry.getState('chat').dispatch.metasReceived([meta])
           }
 
-          C.getConvoState(first.conversationIDKey).dispatch.navigateToThread(
+          storeRegistry.getConvoState(first.conversationIDKey).dispatch.navigateToThread(
             'previewResolved',
             highlightMessageID
           )
@@ -1736,7 +1736,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         // Get valid keys that we aren't already loading or have loaded
         const conversationIDKeys = ids.reduce((arr: Array<string>, id) => {
           if (id && T.Chat.isValidConversationIDKey(id)) {
-            const cs = C.getConvoState(id)
+            const cs = storeRegistry.getConvoState(id)
             const trustedState = cs.meta.trustedState
             if (force || (trustedState !== 'requesting' && trustedState !== 'trusted')) {
               arr.push(id)
@@ -1791,12 +1791,12 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             // on first layout, initialize any drafts and muted status
             // After the first layout, any other updates will come in the form of meta updates.
             layout.smallTeams?.forEach(t => {
-              const cs = C.getConvoState(t.convID)
+              const cs = storeRegistry.getConvoState(t.convID)
               cs.dispatch.updateFromUIInboxLayout(t)
             })
             layout.bigTeams?.forEach(t => {
               if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
-                const cs = C.getConvoState(t.channel.convID)
+                const cs = storeRegistry.getConvoState(t.channel.convID)
                 cs.dispatch.updateFromUIInboxLayout(t.channel)
               }
             })
@@ -1853,7 +1853,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             }
             const _conversationIDKey = category.substring(Common.explodingModeGregorKeyPrefix.length)
             const conversationIDKey = T.Chat.stringToConversationIDKey(_conversationIDKey)
-            C.getConvoState(conversationIDKey).dispatch.setExplodingMode(seconds, true)
+            storeRegistry.getConvoState(conversationIDKey).dispatch.setExplodingMode(seconds, true)
           } catch (e) {
             logger.info('Error parsing exploding' + e)
           }

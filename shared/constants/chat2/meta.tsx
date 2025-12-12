@@ -266,7 +266,7 @@ export const inboxUIItemToConversationMeta = (
     const username = storeRegistry.getState('current-user').username
     const devicename = storeRegistry.getState('current-user').deviceName
     const getLastOrdinal = () =>
-      C.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+      storeRegistry.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const message = Message.uiMessageToMessage(
       conversationIDKey,
       i.pinnedMsg.message,

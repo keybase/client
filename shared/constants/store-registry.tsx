@@ -6,13 +6,33 @@ import type * as ConfigType from './config'
 import type * as CurrentUserType from './current-user'
 import type * as DaemonType from './daemon'
 import type * as DeepLinksType from './deeplinks'
+import type * as FSType from './fs'
+import type * as PeopleType from './people'
 import type * as RouterType from './router2'
+import type * as SettingsEmailType from './settings-email'
+import type * as SignupType from './signup'
 import type * as TeamsType from './teams'
+import type * as TBType from './team-building'
 import type * as UsersType from './users'
 import type * as WaitingType from './waiting'
+import type * as T from './types'
+import type {ConvoState} from './chat2/convostate'
 
-type StoreName = 'active' | 'chat' | 'config' | 'current-user' | 'daemon' | 'deeplinks' | 'router' | 'teams' | 'users' | 'waiting'
-
+type StoreName =
+  | 'active'
+  | 'chat'
+  | 'config'
+  | 'current-user'
+  | 'daemon'
+  | 'deeplinks'
+  | 'fs'
+  | 'people'
+  | 'router'
+  | 'settings-email'
+  | 'signup'
+  | 'teams'
+  | 'users'
+  | 'waiting'
 
 type StoreStates = {
   active: ActiveType.State
@@ -21,7 +41,11 @@ type StoreStates = {
   'current-user': CurrentUserType.State
   daemon: DaemonType.State
   deeplinks: DeepLinksType.State
+  fs: FSType.State
+  people: PeopleType.State
   router: RouterType.State
+  'settings-email': SettingsEmailType.State
+  signup: SignupType.State
   teams: TeamsType.State
   users: UsersType.State
   waiting: WaitingType.State
@@ -54,9 +78,25 @@ class StoreRegistry {
         const {useDeepLinksState} = require('./deeplinks') as typeof DeepLinksType
         return useDeepLinksState.getState() as StoreStates[T]
       }
+      case 'fs': {
+        const {useFSState} = require('./fs') as typeof FSType
+        return useFSState.getState() as StoreStates[T]
+      }
+      case 'people': {
+        const {usePeopleState} = require('./people') as typeof PeopleType
+        return usePeopleState.getState() as StoreStates[T]
+      }
       case 'router': {
         const {useRouterState} = require('./router2') as typeof RouterType
         return useRouterState.getState() as StoreStates[T]
+      }
+      case 'settings-email': {
+        const {useSettingsEmailState} = require('./settings-email') as typeof SettingsEmailType
+        return useSettingsEmailState.getState() as StoreStates[T]
+      }
+      case 'signup': {
+        const {useSignupState} = require('./signup') as typeof SignupType
+        return useSignupState.getState() as StoreStates[T]
       }
       case 'teams': {
         const {useTeamsState} = require('./teams') as typeof TeamsType
@@ -77,6 +117,17 @@ class StoreRegistry {
 
   getState<T extends StoreName>(storeName: T): StoreStates[T] {
     return this.getStoreState(storeName)
+  }
+
+  getTBStore(name: T.TB.AllowedNamespace): TBType.State {
+    const {createTBStore} = require('./team-building') as typeof TBType
+    const store = createTBStore(name)
+    return store.getState()
+  }
+
+  getConvoState(id: T.Chat.ConversationIDKey): ConvoState {
+    const {getConvoState} = require('./chat2/convostate')
+    return getConvoState(id)
   }
 }
 

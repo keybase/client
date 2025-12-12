@@ -346,7 +346,7 @@ const reduceRPCItemToPeopleItem = (
   }
 }
 
-type Store = T.Immutable<{
+export type Store = T.Immutable<{
   followSuggestions: Array<T.People.FollowSuggestion>
   newItems: Array<T.People.PeopleScreenItem>
   oldItems: Array<T.People.PeopleScreenItem>
@@ -359,7 +359,7 @@ const initialStore: Store = {
   resentEmail: '',
 }
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
     loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
