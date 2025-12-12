@@ -1,5 +1,4 @@
 import * as C from '..'
-import * as Chat from '../chat2'
 import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as RemoteGen from '@/actions/remote-gen'
@@ -14,6 +13,7 @@ import {defaultUseNativeFrame, isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from './util'
 import {storeRegistry} from '../store-registry'
+import {getSelectedConversation} from '@/constants/chat2/common'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -331,7 +331,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       if (!isMobile || !f) {
         return
       }
-      const {dispatch} = storeRegistry.getConvoState(Chat.getSelectedConversation())
+      const {dispatch} = storeRegistry.getConvoState(getSelectedConversation())
       dispatch.loadMoreMessages({reason: 'foregrounding'})
       dispatch.markThreadAsRead()
     },
