@@ -13,7 +13,7 @@ export {useWaitingState} from './waiting'
 export * as Waiting from './waiting'
 export {useChatState} from './chat2'
 export {useConvoState_ as useConvoState, stores_ as chatStores, ChatProvider_ as ChatProvider} from './chat2'
-export {getConvoState_ as getConvoState, useContext_ as useChatContext} from './chat2'
+export {getConvoState, useContext_ as useChatContext} from './chat2'
 import {useFSState} from './fs'
 import {useConfigState} from './config'
 
