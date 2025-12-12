@@ -400,7 +400,7 @@ func TestQueueState(t *testing.T) {
 	require.Zero(t, queueItem.index)
 	require.Equal(t, purgeInfo, queueItem.purgeInfo)
 
-	// Insert an item with a shorter time and make sure it's updated appropiated
+	// Insert an item with a shorter time and make sure it's updated appropriately
 	purgeInfo2 := chat1.EphemeralPurgeInfo{
 		ConvID:          chat1.ConversationID("conv1"),
 		MinUnexplodedID: 5,

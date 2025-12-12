@@ -265,16 +265,20 @@ func (t *EphemeralTracker) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID)
 	return allPurgeInfo, nil
 }
 
-func (t *EphemeralTracker) SetPurgeInfo(ctx context.Context,
+func (t *EphemeralTracker) setPurgeInfo(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (err error) {
 	t.Lock()
 	defer t.Unlock()
+	return t.put(ctx, uid, convID, *purgeInfo)
+}
 
+func (t *EphemeralTracker) SetPurgeInfo(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (err error) {
 	if purgeInfo == nil {
 		return nil
 	}
-
-	if err = t.put(ctx, uid, convID, *purgeInfo); err != nil {
+	err = t.setPurgeInfo(ctx, convID, uid, purgeInfo)
+	if err != nil {
 		return err
 	}
 	// Let our background monitor know about the new info.
@@ -283,18 +287,18 @@ func (t *EphemeralTracker) SetPurgeInfo(ctx context.Context,
 
 // When we are filtering new messages coming in/out of storage, we maybe update
 // if they tell us about something older we should be purging.
-func (t *EphemeralTracker) MaybeUpdatePurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (err error) {
+func (t *EphemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (updated bool, err error) {
 	t.Lock()
 	defer t.Unlock()
 
 	if purgeInfo == nil || purgeInfo.IsNil() {
-		return nil
+		return false, nil
 	}
 
 	cache, err := t.get(ctx, uid, convID)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if cache != nil { // Throw away our update info if what we already have is more restrictive.
 		if cache.info.IsActive {
@@ -309,28 +313,49 @@ func (t *EphemeralTracker) MaybeUpdatePurgeInfo(ctx context.Context,
 		}
 	}
 	if cache != nil && purgeInfo.Eq(cache.info) {
-		return nil
+		return false, nil
 	}
-	if err = t.put(ctx, uid, convID, *purgeInfo); err != nil {
-		return nil
+	return true, t.put(ctx, uid, convID, *purgeInfo)
+}
+
+func (t *EphemeralTracker) MaybeUpdatePurgeInfo(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (err error) {
+	updated, err := t.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
+	if err != nil {
+		return err
 	}
-	return t.G().EphemeralPurger.Queue(ctx, *purgeInfo)
+	if updated {
+		return t.G().EphemeralPurger.Queue(ctx, *purgeInfo)
+	}
+	return nil
+}
+
+func (t *EphemeralTracker) inactivatePurgeInfo(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID) (cache *ephemeralTrackerMemCache, err error) {
+	t.Lock()
+	defer t.Unlock()
+
+	cache, err = t.get(ctx, uid, convID)
+	if err != nil {
+		return nil, err
+	} else if cache == nil {
+		return nil, nil
+	}
+	cache.info.IsActive = false
+	if err = t.put(ctx, uid, convID, cache.info); err != nil {
+		return nil, err
+	}
+	return cache, nil
 }
 
 func (t *EphemeralTracker) InactivatePurgeInfo(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID) (err error) {
-	t.Lock()
-	defer t.Unlock()
-
-	cache, err := t.get(ctx, uid, convID)
+	cache, err := t.inactivatePurgeInfo(ctx, convID, uid)
 	if err != nil {
 		return err
-	} else if cache == nil {
-		return nil
 	}
-	cache.info.IsActive = false
-	if err = t.put(ctx, uid, convID, cache.info); err != nil {
-		return err
+	if cache == nil {
+		return nil
 	}
 	// Let our background monitor know about the new info.
 	return t.G().EphemeralPurger.Queue(ctx, cache.info)
