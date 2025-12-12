@@ -6,11 +6,7 @@ import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import * as Tabs from '../tabs'
 import logger from '@/logger'
-import {usePWState} from '../settings-password'
-import {useSettingsPhoneState} from '../settings-phone'
-import {useSettingsEmailState} from '../settings-email'
-import {useCurrentUserState} from '../current-user'
-import {useConfigState} from '@/constants/config'
+import {storeRegistry} from '../store-registry'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -97,12 +93,12 @@ export interface State extends Store {
 let maybeLoadAppLinkOnce = false
 export const useSettingsState = Z.createZustand<State>(set => {
   const maybeLoadAppLink = () => {
-    const phones = useSettingsPhoneState.getState().phones
+    const phones = storeRegistry.getState('settings-phone').phones
     if (!phones || phones.size > 0) {
       return
     }
 
-    if (maybeLoadAppLinkOnce || !useConfigState.getState().startup.link.endsWith('/phone-app')) {
+    if (maybeLoadAppLinkOnce || !storeRegistry.getState('config').startup.link.endsWith('/phone-app')) {
       return
     }
     maybeLoadAppLinkOnce = true
@@ -134,7 +130,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     },
     deleteAccountForever: passphrase => {
       const f = async () => {
-        const username = useCurrentUserState.getState().username
+        const username = storeRegistry.getState('current-user').username
 
         if (!username) {
           throw new Error('Unable to delete account: no username set')
@@ -145,7 +141,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
         }
 
         await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, C.waitingKeySettingsGeneric)
-        useConfigState.getState().dispatch.setJustDeletedSelf(username)
+        storeRegistry.getState('config').dispatch.setJustDeletedSelf(username)
         C.useRouterState.getState().dispatch.clearModals()
         C.useRouterState.getState().dispatch.navigateAppend(Tabs.loginTab)
       }
@@ -153,7 +149,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     },
     loadLockdownMode: () => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!storeRegistry.getState('config').loggedIn) {
           return
         }
         try {
@@ -185,7 +181,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     },
     loadSettings: () => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!storeRegistry.getState('config').loggedIn) {
           return
         }
         try {
@@ -193,8 +189,8 @@ export const useSettingsState = Z.createZustand<State>(set => {
             undefined,
             C.waitingKeySettingsLoadSettings
           )
-          useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
-          useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
+          storeRegistry.getState('settings-email').dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
+          storeRegistry.getState('settings-phone').dispatch.setNumbers(settings.phoneNumbers ?? undefined)
           maybeLoadAppLink()
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -217,21 +213,21 @@ export const useSettingsState = Z.createZustand<State>(set => {
       switch (action.type) {
         case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
           logger.info('email verified')
-          useSettingsEmailState.getState().dispatch.notifyEmailVerified(action.payload.params.emailAddress)
+          storeRegistry.getState('settings-email').dispatch.notifyEmailVerified(action.payload.params.emailAddress)
           break
         case EngineGen.keybase1NotifyUsersPasswordChanged: {
           const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
-          usePWState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
+          storeRegistry.getState('settings-password').dispatch.notifyUsersPasswordChanged(randomPW)
           break
         }
         case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
           const {list} = action.payload.params
-          useSettingsPhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+          storeRegistry.getState('settings-phone').dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
           break
         }
         case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
           const list = action.payload.params.list ?? []
-          useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
+          storeRegistry.getState('settings-email').dispatch.notifyEmailAddressEmailsChanged(list)
           break
         }
         default:
@@ -263,7 +259,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     },
     setLockdownMode: enabled => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!storeRegistry.getState('config').loggedIn) {
           return
         }
         try {

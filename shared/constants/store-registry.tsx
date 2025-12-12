@@ -9,6 +9,7 @@ import type * as ChatType from './chat2'
 import type * as ConfigType from './config'
 import type * as CurrentUserType from './current-user'
 import type * as DaemonType from './daemon'
+import type * as DarkModeType from './darkmode'
 import type * as DeepLinksType from './deeplinks'
 import type * as DevicesType from './devices'
 import type * as EngineType from './engine'
@@ -18,10 +19,13 @@ import type * as GitType from './git'
 import type * as NotificationsType from './notifications'
 import type * as PeopleType from './people'
 import type * as PinentryType from './pinentry'
+import type * as ProfileType from './profile'
 import type * as ProvisionType from './provision'
 import type * as RouterType from './router2'
 import type * as SettingsContactsType from './settings-contacts'
 import type * as SettingsEmailType from './settings-email'
+import type * as SettingsPasswordType from './settings-password'
+import type * as SettingsPhoneType from './settings-phone'
 import type * as SettingsType from './settings'
 import type * as SignupType from './signup'
 import type * as TeamsType from './teams'
@@ -44,6 +48,7 @@ type StoreName =
   | 'config'
   | 'current-user'
   | 'daemon'
+  | 'dark-mode'
   | 'deeplinks'
   | 'devices'
   | 'engine'
@@ -53,11 +58,14 @@ type StoreName =
   | 'notifications'
   | 'people'
   | 'pinentry'
+  | 'profile'
   | 'provision'
   | 'router'
   | 'settings'
   | 'settings-contacts'
   | 'settings-email'
+  | 'settings-password'
+  | 'settings-phone'
   | 'signup'
   | 'teams'
   | 'tracker2'
@@ -76,6 +84,7 @@ type StoreStates = {
   config: ConfigType.State
   'current-user': CurrentUserType.State
   daemon: DaemonType.State
+  'dark-mode': DarkModeType.State
   deeplinks: DeepLinksType.State
   devices: DevicesType.State
   engine: EngineType.State
@@ -85,11 +94,14 @@ type StoreStates = {
   notifications: NotificationsType.State
   people: PeopleType.State
   pinentry: PinentryType.State
+  profile: ProfileType.State
   provision: ProvisionType.State
   router: RouterType.State
   settings: SettingsType.State
   'settings-contacts': SettingsContactsType.State
   'settings-email': SettingsEmailType.State
+  'settings-password': SettingsPasswordType.State
+  'settings-phone': SettingsPhoneType.State
   signup: SignupType.State
   teams: TeamsType.State
   tracker2: Tracker2Type.State
@@ -138,6 +150,10 @@ class StoreRegistry {
         const {useDaemonState} = require('./daemon') as typeof DaemonType
         return useDaemonState.getState() as StoreStates[T]
       }
+      case 'dark-mode': {
+        const {useDarkModeState} = require('./darkmode') as typeof DarkModeType
+        return useDarkModeState.getState() as StoreStates[T]
+      }
       case 'deeplinks': {
         const {useDeepLinksState} = require('./deeplinks') as typeof DeepLinksType
         return useDeepLinksState.getState() as StoreStates[T]
@@ -174,6 +190,10 @@ class StoreRegistry {
         const {usePinentryState} = require('./pinentry') as typeof PinentryType
         return usePinentryState.getState() as StoreStates[T]
       }
+      case 'profile': {
+        const {useProfileState} = require('./profile') as typeof ProfileType
+        return useProfileState.getState() as StoreStates[T]
+      }
       case 'provision': {
         const {useProvisionState} = require('./provision') as typeof ProvisionType
         return useProvisionState.getState() as StoreStates[T]
@@ -193,6 +213,14 @@ class StoreRegistry {
       case 'settings-email': {
         const {useSettingsEmailState} = require('./settings-email') as typeof SettingsEmailType
         return useSettingsEmailState.getState() as StoreStates[T]
+      }
+      case 'settings-password': {
+        const {usePWState} = require('./settings-password') as typeof SettingsPasswordType
+        return usePWState.getState() as StoreStates[T]
+      }
+      case 'settings-phone': {
+        const {useSettingsPhoneState} = require('./settings-phone') as typeof SettingsPhoneType
+        return useSettingsPhoneState.getState() as StoreStates[T]
       }
       case 'signup': {
         const {useSignupState} = require('./signup') as typeof SignupType

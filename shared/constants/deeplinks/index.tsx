@@ -1,6 +1,4 @@
 import * as C from '..'
-import {useProfileState} from '../profile'
-import {useTeamsState} from '../teams'
 import * as Crypto from '../crypto'
 import * as Tabs from '../tabs'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
@@ -10,8 +8,6 @@ import type HiddenString from '@/util/hidden-string'
 import URL from 'url-parse'
 import logger from '@/logger'
 import * as T from '@/constants/types'
-import {useSettingsPhoneState} from '../settings-phone'
-import {useConfigState} from '@/constants/config'
 import {storeRegistry} from '../store-registry'
 
 const prefix = 'keybase://'
@@ -63,7 +59,7 @@ export interface State extends Store {
 export const useDeepLinksState = Z.createZustand<State>((set, get) => {
   const handleShowUserProfileLink = (username: string) => {
     C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
-    useProfileState.getState().dispatch.showUserProfile(username)
+    storeRegistry.getState('profile').dispatch.showUserProfile(username)
   }
 
   const isKeybaseIoUrl = (url: URL) => {
@@ -123,8 +119,8 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
   }
 
   const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
-    useTeamsState
-      .getState()
+    storeRegistry
+      .getState('teams')
       .dispatch.showTeamByName(
         teamname,
         action === 'manage_settings' ? 'settings' : undefined,
@@ -143,7 +139,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
         const url = new URL(link)
         const username = urlToUsername(url)
         if (username === 'phone-app') {
-          const phones = useSettingsPhoneState.getState().phones
+          const phones = storeRegistry.getState('settings-phone').phones
           if (!phones || phones.size > 0) {
             return
           }
@@ -169,8 +165,8 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
       switch (parts[0]) {
         case 'profile':
           if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
-            parts.length === 4 && parts[3] && useProfileState.getState().dispatch.showUserProfile(parts[3])
-            useProfileState.getState().dispatch.addProof(parts[2]!, 'appLink')
+            parts.length === 4 && parts[3] && storeRegistry.getState('profile').dispatch.showUserProfile(parts[3])
+            storeRegistry.getState('profile').dispatch.addProof(parts[2]!, 'appLink')
             return
           } else if (parts[1] === 'show' && parts.length === 3) {
             // Username is basically a team name part, we can use the same logic to
@@ -264,7 +260,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
           }, 500)
           return
         case 'team-invite-link':
-          useTeamsState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
+          storeRegistry.getState('teams').dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
           return
         case 'settingsPushPrompt':
           C.useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
@@ -293,7 +289,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
     handleSaltPackOpen: _path => {
       const path = typeof _path === 'string' ? _path : _path.stringValue()
 
-      if (!useConfigState.getState().loggedIn) {
+      if (!storeRegistry.getState('config').loggedIn) {
         console.warn('Tried to open a saltpack file before being logged in')
         return
       }

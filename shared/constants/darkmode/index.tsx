@@ -17,7 +17,7 @@ const initialStore: Store = {
   systemDarkMode: false,
 }
 
-interface State extends Store {
+export interface State extends Store {
   // Not to be used by regular components, useColorScheme instead
   isDarkMode: () => boolean
   dispatch: {
