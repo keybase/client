@@ -28,7 +28,7 @@ const initialStore: Store = {
   handshakeWaiters: new Map(),
 }
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     loadDaemonAccounts: () => void
     loadDaemonBootstrapStatus: () => Promise<void>

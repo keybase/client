@@ -6,7 +6,7 @@ import * as Z from '@/util/zustand'
 type Store = T.Immutable<{active: boolean}>
 const initialStore: Store = {active: true}
 
-interface State extends Store {
+export interface State extends Store {
   dispatch: {
     resetState: 'default'
     setActive: (a: boolean) => void
