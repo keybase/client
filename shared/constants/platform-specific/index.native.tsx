@@ -332,7 +332,7 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
 
 export const initPlatformListener = () => {
   let _lastPersist = ''
-  useConfigState.setState(s => {
+  storeRegistry.getStore('config').setState(s => {
     s.dispatch.dynamic.persistRoute = C.wrapErrors((path?: ReadonlyArray<unknown>) => {
       const f = async () => {
         let param = {}
@@ -374,7 +374,7 @@ export const initPlatformListener = () => {
     })
   })
 
-  useConfigState.subscribe((s, old) => {
+  storeRegistry.getStore('config').subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     let appFocused: boolean
     let logState: T.RPCGen.MobileAppState
@@ -400,7 +400,7 @@ export const initPlatformListener = () => {
     storeRegistry.getState('config').dispatch.changedFocus(appFocused)
   })
 
-  useConfigState.setState(s => {
+  storeRegistry.getStore('config').setState(s => {
     s.dispatch.dynamic.copyToClipboard = C.wrapErrors((s: string) => {
       Clipboard.setStringAsync(s)
         .then(() => {})
@@ -429,7 +429,7 @@ export const initPlatformListener = () => {
     }
   }
 
-  useDaemonState.subscribe((s, old) => {
+  storeRegistry.getStore('daemon').subscribe((s, old) => {
     const versionChanged = s.handshakeVersion !== old.handshakeVersion
     const stateChanged = s.handshakeState !== old.handshakeState
     const justBecameReady = stateChanged && s.handshakeState === 'done' && old.handshakeState !== 'done'
@@ -439,7 +439,7 @@ export const initPlatformListener = () => {
     }
   })
 
-  useConfigState.setState(s => {
+  storeRegistry.getStore('config').setState(s => {
     s.dispatch.dynamic.onFilePickerError = C.wrapErrors((error: Error) => {
       Alert.alert('Error', String(error))
     })
@@ -452,7 +452,7 @@ export const initPlatformListener = () => {
     })
   })
 
-  useProfileState.setState(s => {
+  storeRegistry.getStore('profile').setState(s => {
     s.dispatch.editAvatar = () => {
       const f = async () => {
         try {
@@ -464,8 +464,8 @@ export const initPlatformListener = () => {
             return acc
           }, undefined)
           if (!result.canceled && first) {
-            C.useRouterState
-              .getState()
+            storeRegistry
+              .getState('router')
               .dispatch.navigateAppend({props: {image: first}, selected: 'profileEditAvatar'})
           }
         } catch (error) {
@@ -476,7 +476,7 @@ export const initPlatformListener = () => {
     }
   })
 
-  useConfigState.subscribe((s, old) => {
+  storeRegistry.getStore('config').subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
       const {type} = await NetInfo.fetch()
@@ -487,7 +487,7 @@ export const initPlatformListener = () => {
     C.ignorePromise(f())
   })
 
-  useConfigState.subscribe((s, old) => {
+  storeRegistry.getStore('config').subscribe((s, old) => {
     if (s.networkStatus === old.networkStatus) return
     const type = s.networkStatus?.type
     if (!type) return
@@ -501,7 +501,7 @@ export const initPlatformListener = () => {
     C.ignorePromise(f())
   })
 
-  useConfigState.setState(s => {
+  storeRegistry.getStore('config').setState(s => {
     s.dispatch.dynamic.showShareActionSheet = C.wrapErrors(
       (filePath: string, message: string, mimeType: string) => {
         const f = async () => {
@@ -512,7 +512,7 @@ export const initPlatformListener = () => {
     )
   })
 
-  useConfigState.subscribe((s, old) => {
+  storeRegistry.getStore('config').subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     if (s.mobileAppState === 'active') {
       // only reload on foreground
@@ -522,7 +522,7 @@ export const initPlatformListener = () => {
 
   // Location
   if (isAndroid) {
-    C.useDarkModeState.subscribe((s, old) => {
+    storeRegistry.getStore('dark-mode').subscribe((s, old) => {
       if (s.darkModePreference === old.darkModePreference) return
       const {darkModePreference} = storeRegistry.getState('dark-mode')
       androidAppColorSchemeChanged(darkModePreference)
@@ -532,7 +532,7 @@ export const initPlatformListener = () => {
   // we call this when we're logged in.
   let calledShareListenersRegistered = false
 
-  C.useRouterState.subscribe((s, old) => {
+  storeRegistry.getStore('router').subscribe((s, old) => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
@@ -569,7 +569,7 @@ export const initPlatformListener = () => {
     }
   }
 
-  useConfigState.setState(s => {
+  storeRegistry.getStore('config').setState(s => {
     s.dispatch.dynamic.openAppSettings = C.wrapErrors(() => {
       const f = async () => {
         if (isAndroid) {
@@ -612,7 +612,7 @@ export const initPlatformListener = () => {
     })
   })
 
-  C.useRouterState.setState(s => {
+  storeRegistry.getStore('router').setState(s => {
     s.dispatch.dynamic.tabLongPress = C.wrapErrors((tab: string) => {
       if (tab !== Tabs.peopleTab) return
       const accountRows = storeRegistry.getState('config').configuredAccounts

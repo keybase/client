@@ -121,155 +121,155 @@ type StoreStates = {
 }
 
 class StoreRegistry {
-  private getStoreState<T extends StoreName>(storeName: T): StoreStates[T] {
+  getStore<T extends StoreName>(storeName: T) {
     switch (storeName) {
       case 'active': {
         const {useActiveState} = require('./active') as typeof ActiveType
-        return useActiveState.getState() as StoreStates[T]
+        return useActiveState
       }
       case 'archive': {
         const {useState} = require('./archive') as typeof ArchiveType
-        return useState.getState() as StoreStates[T]
+        return useState
       }
       case 'autoreset': {
         const {useState} = require('./autoreset') as typeof AutoResetType
-        return useState.getState() as StoreStates[T]
+        return useState
       }
       case 'avatar': {
         const {useAvatarState} = require('@/common-adapters/avatar/store') as typeof AvatarType
-        return useAvatarState.getState() as StoreStates[T]
+        return useAvatarState
       }
       case 'bots': {
         const {useBotsState} = require('./bots') as typeof BotsType
-        return useBotsState.getState() as StoreStates[T]
+        return useBotsState
       }
       case 'chat': {
         const {useChatState} = require('./chat2') as typeof ChatType
-        return useChatState.getState() as StoreStates[T]
+        return useChatState
       }
       case 'config': {
         const {useConfigState} = require('./config') as typeof ConfigType
-        return useConfigState.getState() as StoreStates[T]
+        return useConfigState
       }
       case 'current-user': {
         const {useCurrentUserState} = require('./current-user') as typeof CurrentUserType
-        return useCurrentUserState.getState() as StoreStates[T]
+        return useCurrentUserState
       }
       case 'daemon': {
         const {useDaemonState} = require('./daemon') as typeof DaemonType
-        return useDaemonState.getState() as StoreStates[T]
+        return useDaemonState
       }
       case 'dark-mode': {
         const {useDarkModeState} = require('./darkmode') as typeof DarkModeType
-        return useDarkModeState.getState() as StoreStates[T]
+        return useDarkModeState
       }
       case 'deeplinks': {
         const {useDeepLinksState} = require('./deeplinks') as typeof DeepLinksType
-        return useDeepLinksState.getState() as StoreStates[T]
+        return useDeepLinksState
       }
       case 'devices': {
         const {useState} = require('./devices') as typeof DevicesType
-        return useState.getState() as StoreStates[T]
+        return useState
       }
       case 'engine': {
         const {useEngineState} = require('./engine') as typeof EngineType
-        return useEngineState.getState() as StoreStates[T]
+        return useEngineState
       }
       case 'followers': {
         const {useFollowerState} = require('./followers') as typeof FollowersType
-        return useFollowerState.getState() as StoreStates[T]
+        return useFollowerState
       }
       case 'fs': {
         const {useFSState} = require('./fs') as typeof FSType
-        return useFSState.getState() as StoreStates[T]
+        return useFSState
       }
       case 'git': {
         const {useGitState} = require('./git') as typeof GitType
-        return useGitState.getState() as StoreStates[T]
+        return useGitState
       }
       case 'logout': {
         const {useLogoutState} = require('./logout') as typeof LogoutType
-        return useLogoutState.getState() as StoreStates[T]
+        return useLogoutState
       }
       case 'notifications': {
         const {useNotifState} = require('./notifications') as typeof NotificationsType
-        return useNotifState.getState() as StoreStates[T]
+        return useNotifState
       }
       case 'people': {
         const {usePeopleState} = require('./people') as typeof PeopleType
-        return usePeopleState.getState() as StoreStates[T]
+        return usePeopleState
       }
       case 'pinentry': {
         const {usePinentryState} = require('./pinentry') as typeof PinentryType
-        return usePinentryState.getState() as StoreStates[T]
+        return usePinentryState
       }
       case 'profile': {
         const {useProfileState} = require('./profile') as typeof ProfileType
-        return useProfileState.getState() as StoreStates[T]
+        return useProfileState
       }
       case 'provision': {
         const {useProvisionState} = require('./provision') as typeof ProvisionType
-        return useProvisionState.getState() as StoreStates[T]
+        return useProvisionState
       }
       case 'push': {
         const {usePushState} = require('./push.native') as typeof PushType
-        return usePushState.getState() as StoreStates[T]
+        return usePushState
       }
       case 'router': {
         const {useRouterState} = require('./router2') as typeof RouterType
-        return useRouterState.getState() as StoreStates[T]
+        return useRouterState
       }
       case 'settings': {
         const {useSettingsState} = require('./settings') as typeof SettingsType
-        return useSettingsState.getState() as StoreStates[T]
+        return useSettingsState
       }
       case 'settings-chat': {
         const {useState} = require('./settings-chat') as typeof SettingsChatType
-        return useState.getState() as StoreStates[T]
+        return useState
       }
       case 'settings-contacts': {
         const {useSettingsContactsState} = require('./settings-contacts') as typeof SettingsContactsType
-        return useSettingsContactsState.getState() as StoreStates[T]
+        return useSettingsContactsState
       }
       case 'settings-email': {
         const {useSettingsEmailState} = require('./settings-email') as typeof SettingsEmailType
-        return useSettingsEmailState.getState() as StoreStates[T]
+        return useSettingsEmailState
       }
       case 'settings-password': {
         const {usePWState} = require('./settings-password') as typeof SettingsPasswordType
-        return usePWState.getState() as StoreStates[T]
+        return usePWState
       }
       case 'settings-phone': {
         const {useSettingsPhoneState} = require('./settings-phone') as typeof SettingsPhoneType
-        return useSettingsPhoneState.getState() as StoreStates[T]
+        return useSettingsPhoneState
       }
       case 'signup': {
         const {useSignupState} = require('./signup') as typeof SignupType
-        return useSignupState.getState() as StoreStates[T]
+        return useSignupState
       }
       case 'teams': {
         const {useTeamsState} = require('./teams') as typeof TeamsType
-        return useTeamsState.getState() as StoreStates[T]
+        return useTeamsState
       }
       case 'tracker2': {
         const {useTrackerState} = require('./tracker2') as typeof Tracker2Type
-        return useTrackerState.getState() as StoreStates[T]
+        return useTrackerState
       }
       case 'unlock-folders': {
         const {useState} = require('./unlock-folders') as typeof UnlockFoldersType
-        return useState.getState() as StoreStates[T]
+        return useState
       }
       case 'users': {
         const {useUsersState} = require('./users') as typeof UsersType
-        return useUsersState.getState() as StoreStates[T]
+        return useUsersState
       }
       case 'waiting': {
         const {useWaitingState} = require('./waiting') as typeof WaitingType
-        return useWaitingState.getState() as StoreStates[T]
+        return useWaitingState
       }
       case 'whats-new': {
         const {useState} = require('./whats-new') as typeof WhatsNewType
-        return useState.getState() as StoreStates[T]
+        return useState
       }
       default:
         throw new Error(`Unknown store: ${storeName}`)
@@ -277,7 +277,7 @@ class StoreRegistry {
   }
 
   getState<T extends StoreName>(storeName: T): StoreStates[T] {
-    return this.getStoreState(storeName)
+    return this.getStore(storeName).getState() as StoreStates[T]
   }
 
   getTBStore(name: T.TB.AllowedNamespace): TBType.State {

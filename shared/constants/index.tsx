@@ -14,8 +14,7 @@ export * as Waiting from './waiting'
 export {useChatState} from './chat2'
 export {useConvoState_ as useConvoState, stores_ as chatStores, ChatProvider_ as ChatProvider} from './chat2'
 export {getConvoState, useContext_ as useChatContext} from './chat2'
-import {useFSState} from './fs'
-import {useConfigState} from './config'
+import {storeRegistry} from './store-registry'
 
 export {default as shallowEqual} from 'shallowequal'
 export * as PlatformSpecific from './platform-specific'
@@ -24,8 +23,8 @@ export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).t
 
 export const initListeners = () => {
   const f = async () => {
-    await useFSState.getState().dispatch.setupSubscriptions()
-    useConfigState.getState().dispatch.setupSubscriptions()
+    await storeRegistry.getState('fs').dispatch.setupSubscriptions()
+    storeRegistry.getState('config').dispatch.setupSubscriptions()
   }
   ignorePromise(f())
 }

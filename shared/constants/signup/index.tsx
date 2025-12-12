@@ -78,7 +78,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       }
 
       try {
-        usePushState.getState().dispatch.showPermissionsPrompt({justSignedUp: true})
+        storeRegistry.getState('push').dispatch.showPermissionsPrompt({justSignedUp: true})
 
         await T.RPCGen.signupSignupRpcListener({
           customResponseIncomingCallMap: {

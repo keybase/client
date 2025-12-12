@@ -136,7 +136,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         } catch (e) {
           logger.error('[PushToken] delete failed', e)
         } finally {
-          useLogoutState.getState().dispatch.wait(waitKey, version, false)
+          storeRegistry.getState('logout').dispatch.wait(waitKey, version, false)
         }
       }
       C.ignorePromise(f())
@@ -240,7 +240,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           }
         }
         try {
-          useConfigState.getState().dispatch.dynamic.openAppSettings?.()
+          storeRegistry.getState('config').dispatch.dynamic.openAppSettings?.()
           const {increment} = storeRegistry.getState('waiting').dispatch
           increment(C.waitingKeyPushPermissionsRequesting)
           logger.info('[PushRequesting] asking native')
