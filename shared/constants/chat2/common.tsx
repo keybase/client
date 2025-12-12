@@ -1,7 +1,6 @@
 import * as T from '../types'
 import {isMobile, isTablet} from '../platform'
 import * as Router2 from '../router2'
-import {useActiveState} from '../active'
 import {storeRegistry} from '../store-registry'
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
@@ -32,7 +31,7 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: T.Chat.Conv
   }
 
   const {appFocused} = storeRegistry.getState('config')
-  const {active: userActive} = useActiveState.getState()
+  const {active: userActive} = storeRegistry.getState('active')
 
   return (
     appFocused && // app focused?

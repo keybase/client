@@ -1,7 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
 import * as Tabs from '../tabs'
-import {useDeepLinksState} from '../deeplinks'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import type * as ConfigConstants from '../config'
 import * as Message from './message'
@@ -940,15 +939,15 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     navigateToInbox: (allowSwitchTab = true) => {
       // components can call us during render sometimes so always defer
       setTimeout(() => {
-        C.useRouterState.getState().dispatch.navUpToScreen('chatRoot')
+        storeRegistry.getState('router').dispatch.navUpToScreen('chatRoot')
         if (allowSwitchTab) {
-          C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+          storeRegistry.getState('router').dispatch.switchTab(Tabs.chatTab)
         }
       }, 1)
     },
     onChatInboxSynced: action => {
       const {syncRes} = action.payload.params
-      const {clear} = C.useWaitingState.getState().dispatch
+      const {clear} = storeRegistry.getState('waiting').dispatch
       const {inboxRefresh} = get().dispatch
       clear(C.waitingKeyChatInboxSyncStarted)
 
@@ -1113,7 +1112,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           get().dispatch.onGetInboxUnverifiedConvs(action)
           break
         case EngineGen.chat1NotifyChatChatInboxSyncStarted:
-          C.useWaitingState.getState().dispatch.increment(C.waitingKeyChatInboxSyncStarted)
+          storeRegistry.getState('waiting').dispatch.increment(C.waitingKeyChatInboxSyncStarted)
           break
 
         case EngineGen.chat1NotifyChatChatInboxSynced:
@@ -1542,12 +1541,10 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           const first = resultMetas[0]
           if (!first) {
             if (p.reason === 'appLink') {
-              useDeepLinksState
-                .getState()
-                .dispatch.setLinkError(
-                  "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
-                )
-              C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
+              storeRegistry.getState('deeplinks').dispatch.setLinkError(
+                "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
+              )
+              storeRegistry.getState('router').dispatch.navigateAppend('keybaseLinkError')
               return
             } else {
               return
@@ -1572,12 +1569,10 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             error.code === T.RPCGen.StatusCode.scteamnotfound &&
             reason === 'appLink'
           ) {
-            useDeepLinksState
-              .getState()
-              .dispatch.setLinkError(
-                "We couldn't find this team. Please check that you're a member of the team and the channel exists."
-              )
-            C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
+            storeRegistry.getState('deeplinks').dispatch.setLinkError(
+              "We couldn't find this team. Please check that you're a member of the team and the channel exists."
+            )
+            storeRegistry.getState('router').dispatch.navigateAppend('keybaseLinkError')
             return
           } else {
             throw error
