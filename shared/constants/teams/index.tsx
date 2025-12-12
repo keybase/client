@@ -16,12 +16,7 @@ import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '../rpc-utils'
 import {fixCrop} from '@/util/crop'
 import {storeRegistry} from '../store-registry'
-import {
-  makeRetentionPolicy,
-  serviceRetentionPolicyToRetentionPolicy,
-  teamRoleByEnum,
-  retentionPolicyToServiceRetentionPolicy,
-} from './util'
+import * as Util from './util'
 
 export {
   baseRetentionPolicies,
@@ -53,7 +48,7 @@ export const rpcDetailsToMemberInfos = (
 ): Map<string, T.Teams.MemberInfo> => {
   const infos: Array<[string, T.Teams.MemberInfo]> = []
   members.forEach(({fullName, joinTime, needsPUK, status, username, role}) => {
-    const maybeRole = teamRoleByEnum[role]
+    const maybeRole = Util.teamRoleByEnum[role]
     if (maybeRole === 'none') {
       return
     }
@@ -141,7 +136,7 @@ export const rpcTeamRoleMapAndVersionToTeamRoleMap = (
       ret.roles.set(key, {
         implicitAdmin:
           value.implicitRole === T.RPCGen.TeamRole.admin || value.implicitRole === T.RPCGen.TeamRole.owner,
-        role: teamRoleByEnum[value.role],
+        role: Util.teamRoleByEnum[value.role],
       })
     }
   }
@@ -500,7 +495,7 @@ export const teamListToMeta = (
         isMember: t.role !== T.RPCGen.TeamRole.none,
         isOpen: t.isOpenTeam,
         memberCount: t.memberCount,
-        role: teamRoleByEnum[t.role],
+        role: Util.teamRoleByEnum[t.role],
         showcasing: t.isMemberShowcased,
         teamname: t.fqName,
       },
@@ -519,7 +514,7 @@ const annotatedInvitesToInviteDetails = (
       const teamInvite = inviteMD.invite
 
       const {invites, inviteLinks} = invitesAndLinks
-      const role = teamRoleByEnum[teamInvite.role]
+      const role = Util.teamRoleByEnum[teamInvite.role]
       if (role === 'none') {
         return invitesAndLinks
       }
@@ -577,11 +572,11 @@ export const emptyTeamDetails: T.Teams.TeamDetails = {
 export const emptyTeamSettings = Object.freeze(emptyTeamDetails.settings)
 
 export const annotatedTeamToDetails = (t: T.RPCGen.AnnotatedTeam): T.Teams.TeamDetails => {
-  const maybeOpenJoinAs = teamRoleByEnum[t.settings.joinAs]
+  const maybeOpenJoinAs = Util.teamRoleByEnum[t.settings.joinAs]
   const members = new Map<string, T.Teams.MemberInfo>()
   t.members?.forEach(member => {
     const {fullName, needsPUK, status, username} = member
-    const maybeRole = teamRoleByEnum[member.role]
+    const maybeRole = Util.teamRoleByEnum[member.role]
     members.set(username, {
       fullName,
       joinTime: member.joinTime || undefined,
@@ -732,7 +727,7 @@ export const consumeTeamTreeMembershipValue = (
 ): T.Teams.TreeloaderSparseMemberInfo => {
   return {
     joinTime: value.joinTime ?? undefined,
-    type: teamRoleByEnum[value.role],
+    type: Util.teamRoleByEnum[value.role],
   }
 }
 
@@ -1434,7 +1429,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           get().dispatch.loadTeamChannelList(teamID)
           // Select the new channel, and switch to the chat tab.
           if (navToChatOnSuccess) {
-            storeRegistry.call('chat', 'previewConversation', {
+            storeRegistry.crosscall('chat', 'previewConversation', {
               channelname,
               conversationIDKey: newConversationIDKey,
               reason: 'newChannel',
@@ -1770,14 +1765,14 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
     },
     getTeamRetentionPolicy: teamID => {
       const f = async () => {
-        let retentionPolicy = makeRetentionPolicy()
+        let retentionPolicy = Util.makeRetentionPolicy()
         try {
           const policy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
             {teamID},
             C.waitingKeyTeamsTeam(teamID)
           )
           try {
-            retentionPolicy = serviceRetentionPolicyToRetentionPolicy(policy)
+            retentionPolicy = Util.serviceRetentionPolicyToRetentionPolicy(policy)
             if (retentionPolicy.type === 'inherit') {
               throw new Error(`RPC returned retention policy of type 'inherit' for team policy`)
             }
@@ -2733,7 +2728,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
     setTeamRetentionPolicy: (teamID, policy) => {
       const f = async () => {
         try {
-          const servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
+          const servicePolicy = Util.retentionPolicyToServiceRetentionPolicy(policy)
           await T.RPCChat.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
             C.waitingKeyTeamsTeam(teamID),
           ])

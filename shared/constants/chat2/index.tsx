@@ -21,7 +21,7 @@ import {useUsersState} from '../users'
 import {useCurrentUserState} from '../current-user'
 import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '../rpc-utils'
-import {useDaemonState} from '../daemon'
+import {storeRegistry} from '../store-registry'
 
 const defaultTopReacjis = [
   {name: ':+1:'},
@@ -799,7 +799,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       if (get().staticConfig) {
         return
       }
-      const {handshakeVersion, dispatch} = useDaemonState.getState()
+      const {handshakeVersion, dispatch} = storeRegistry.getState('daemon')
       const f = async () => {
         const name = 'chat.loadStatic'
         dispatch.wait(name, handshakeVersion, true)
@@ -1173,9 +1173,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                   const match = error.message.match(/"(.*)"/)
                   const tempForceRedBox = match?.[1]
                   if (tempForceRedBox) {
-                    useUsersState
-                      .getState()
-                      .dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
+                    useUsersState.getState().dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
                   }
                 }
               }

@@ -1,15 +1,20 @@
+// used to allow non-circular cross-calls between stores
+// ONLY for zustand stores
 import type * as ChatType from './chat2'
 import type * as TeamsType from './teams'
+import type * as DaemonType from './daemon'
 
-type StoreName = 'chat' | 'teams'
+type StoreName = 'chat' | 'teams' | 'daemon'
 
 type StoreActions = {
   chat: ChatType.State['dispatch']
+  daemon: DaemonType.State['dispatch']
   teams: TeamsType.State['dispatch']
 }
 
 type StoreStates = {
   chat: ChatType.State
+  daemon: DaemonType.State
   teams: TeamsType.State
 }
 
@@ -29,12 +34,14 @@ class StoreRegistry {
   private getStoreState<T extends StoreName>(storeName: T): StoreStates[T] {
     switch (storeName) {
       case 'chat': {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const {useChatState} = require('./chat2') as typeof ChatType
         return useChatState.getState() as StoreStates[T]
       }
+      case 'daemon': {
+        const {useDaemonState} = require('./daemon') as typeof DaemonType
+        return useDaemonState.getState() as StoreStates[T]
+      }
       case 'teams': {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const {useTeamsState} = require('./teams') as typeof TeamsType
         return useTeamsState.getState() as StoreStates[T]
       }
@@ -43,12 +50,13 @@ class StoreRegistry {
     }
   }
 
-  call<T extends StoreName, A extends ActionName<T>>(
+  crosscall<T extends StoreName, A extends ActionName<T>>(
     storeName: T,
     actionName: A,
     ...args: Parameters<ActionFunction<T, A>>
   ): ReturnType<ActionFunction<T, A>> {
     const state = this.getStoreState(storeName)
+    // @ts-ignore
     const action = state.dispatch[actionName] as ActionFunction<T, A>
     if (typeof action !== 'function') {
       throw new Error(`Action ${actionName} not found on store ${storeName}`)
@@ -62,4 +70,3 @@ class StoreRegistry {
 }
 
 export const storeRegistry = new StoreRegistry()
-
