@@ -117,7 +117,6 @@ helpers.rootLinuxNode(env, {
   println "Setting up build: ${env.BUILD_TAG}"
 
   ws("client") {
-
     stage("Setup") {
       parallel (
         checkout: {
