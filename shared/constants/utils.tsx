@@ -54,8 +54,6 @@ export function enumKeys<T extends Record<string, string | number>>(enumeration:
   return Object.keys(enumeration).filter(key => typeof enumeration[key] === 'number') as (keyof T)[]
 }
 
-export const assertNever = (_: never) => undefined
-
 export const useNav = () => {
   const na = useNavigation()
   const {canGoBack} = na
@@ -68,6 +66,7 @@ export const useNav = () => {
   }
 }
 
+export {wrapErrors} from '@/util/debug'
 export {default as shallowEqual} from 'shallowequal'
 export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 export {useShallow, useDeep} from '@/util/zustand'

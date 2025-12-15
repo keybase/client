@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Z from '@/util/zustand'
-import * as C from '@/constants'
-import {ignorePromise} from '../utils'
+import * as S from '../strings'
+import {ignorePromise, updateImmerMap} from '../utils'
 import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import debounce from 'lodash/debounce'
@@ -29,9 +29,9 @@ export const useDevicesState = Z.createZustand<State>((set, get) => {
     load: debounce(
       () => {
         const f = async () => {
-          const results = await T.RPCGen.deviceDeviceHistoryListRpcPromise(undefined, C.waitingKeyDevices)
+          const results = await T.RPCGen.deviceDeviceHistoryListRpcPromise(undefined, S.waitingKeyDevices)
           set(s => {
-            C.updateImmerMap(
+            updateImmerMap(
               s.deviceMap,
               new Map(
                 results?.map(r => {

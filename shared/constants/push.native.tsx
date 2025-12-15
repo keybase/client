@@ -1,5 +1,5 @@
-import * as C from '.'
 import * as Tabs from './tabs'
+import * as S from './strings'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from './utils'
 import {storeRegistry} from './store-registry'
 import * as Z from '@/util/zustand'
@@ -242,7 +242,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         try {
           storeRegistry.getState('config').dispatch.dynamic.openAppSettings?.()
           const {increment} = storeRegistry.getState('waiting').dispatch
-          increment(C.waitingKeyPushPermissionsRequesting)
+          increment(S.waitingKeyPushPermissionsRequesting)
           logger.info('[PushRequesting] asking native')
           await requestPermissionsFromNative()
           const permissions = await checkPermissionsFromNative()
@@ -260,7 +260,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           }
         } finally {
           const {decrement} = storeRegistry.getState('waiting').dispatch
-          decrement(C.waitingKeyPushPermissionsRequesting)
+          decrement(S.waitingKeyPushPermissionsRequesting)
           get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
         }
       }

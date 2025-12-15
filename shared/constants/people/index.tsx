@@ -1,4 +1,3 @@
-import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {ignorePromise} from '../utils'
 import * as Z from '@/util/zustand'
@@ -11,6 +10,7 @@ import {isMobile} from '../platform'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import debounce from 'lodash/debounce'
 import {storeRegistry} from '../store-registry'
+import {RPCError, isNetworkErr} from '../utils'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false as boolean
@@ -505,10 +505,10 @@ export const usePeopleState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.homeHomeMarkViewedRpcPromise()
         } catch (error) {
-          if (!(error instanceof C.RPCError)) {
+          if (!(error instanceof RPCError)) {
             throw error
           }
-          if (C.isNetworkErr(error.code)) {
+          if (isNetworkErr(error.code)) {
             logger.warn('Network error calling homeMarkViewed')
           } else {
             throw error

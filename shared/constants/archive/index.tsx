@@ -1,12 +1,12 @@
 import * as T from '../types'
 import * as Z from '@/util/zustand'
-import * as C from '..'
 import {ignorePromise} from '../utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as FS from '@/constants/fs'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {uint8ArrayToHex} from 'uint8array-extras'
 import {storeRegistry} from '../store-registry'
+import {isMobile} from '../platform'
 
 type ChatJob = {
   id: string
@@ -202,7 +202,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
         [...get().chatJobs.values()].map(async job => {
           if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
             await T.RPCChat.localArchiveChatDeleteRpcPromise({
-              deleteOutputPath: C.isMobile,
+              deleteOutputPath: isMobile,
               identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
               jobID: job.id,
             })

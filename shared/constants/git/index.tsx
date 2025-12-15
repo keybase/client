@@ -1,4 +1,4 @@
-import * as C from '..'
+import * as S from '../strings'
 import * as T from '../types'
 import {ignorePromise} from '../utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
@@ -103,7 +103,7 @@ export const useGitState = Z.createZustand<State>((set, get) => {
 
   const _load = debounce(
     async () => {
-      const results = await T.RPCGen.gitGetAllGitMetadataRpcPromise(undefined, C.waitingKeyGitLoading)
+      const results = await T.RPCGen.gitGetAllGitMetadataRpcPromise(undefined, S.waitingKeyGitLoading)
       const {errors, repos} = parseRepos(results || [])
       const {setGlobalError} = storeRegistry.getState('config').dispatch
       errors.forEach(e => setGlobalError(e))
@@ -125,24 +125,24 @@ export const useGitState = Z.createZustand<State>((set, get) => {
     },
     createPersonalRepo: repoName => {
       callAndHandleError(async () => {
-        await T.RPCGen.gitCreatePersonalRepoRpcPromise({repoName}, C.waitingKeyGitLoading)
+        await T.RPCGen.gitCreatePersonalRepoRpcPromise({repoName}, S.waitingKeyGitLoading)
       })
     },
     createTeamRepo: (repoName, teamname, notifyTeam) => {
       callAndHandleError(async () => {
         const teamName = {parts: teamname.split('.')}
-        await T.RPCGen.gitCreateTeamRepoRpcPromise({notifyTeam, repoName, teamName}, C.waitingKeyGitLoading)
+        await T.RPCGen.gitCreateTeamRepoRpcPromise({notifyTeam, repoName, teamName}, S.waitingKeyGitLoading)
       })
     },
     deletePersonalRepo: repoName => {
       callAndHandleError(async () => {
-        await T.RPCGen.gitDeletePersonalRepoRpcPromise({repoName}, C.waitingKeyGitLoading)
+        await T.RPCGen.gitDeletePersonalRepoRpcPromise({repoName}, S.waitingKeyGitLoading)
       })
     },
     deleteTeamRepo: (repoName, teamname, notifyTeam) => {
       callAndHandleError(async () => {
         const teamName = {parts: teamname.split('.')}
-        await T.RPCGen.gitDeleteTeamRepoRpcPromise({notifyTeam, repoName, teamName}, C.waitingKeyGitLoading)
+        await T.RPCGen.gitDeleteTeamRepoRpcPromise({notifyTeam, repoName, teamName}, S.waitingKeyGitLoading)
       })
     },
     load,

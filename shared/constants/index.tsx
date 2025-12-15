@@ -1,7 +1,6 @@
 export * from './platform'
 export * from './values'
 export * from './strings'
-export {wrapErrors} from '@/util/debug'
 export {useRouterState, makeScreen} from './router2'
 export * as Router2 from './router2'
 export * as Tabs from './tabs'

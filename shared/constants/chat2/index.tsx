@@ -17,7 +17,7 @@ import {uint8ArrayToString} from 'uint8array-extras'
 import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '../rpc-utils'
 import {storeRegistry} from '../store-registry'
-import {waitingKeyChatCreating, waitingKeyChatLoadingEmoji, waitingKeyChatInboxSyncStarted} from '../strings'
+import * as S from '../strings'
 
 const defaultTopReacjis = [
   {name: ':+1:'},
@@ -419,7 +419,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
               tlfVisibility: T.RPCGen.TLFVisibility.private,
               topicType: T.RPCChat.TopicType.chat,
             },
-            waitingKeyChatCreating
+            S.waitingKeyChatCreating
           )
           const {conv, uiConv} = result
           const conversationIDKey = T.Chat.conversationIDToKey(conv.info.id)
@@ -494,7 +494,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
               onlyInTeam: onlyInTeam ?? false,
             },
           },
-          waitingKeyChatLoadingEmoji
+          S.waitingKeyChatLoadingEmoji
         )
         get().dispatch.loadedUserEmoji(results)
       }
@@ -954,7 +954,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       const {syncRes} = action.payload.params
       const {clear} = storeRegistry.getState('waiting').dispatch
       const {inboxRefresh} = get().dispatch
-      clear(waitingKeyChatInboxSyncStarted)
+      clear(S.waitingKeyChatInboxSyncStarted)
 
       switch (syncRes.syncType) {
         // Just clear it all
@@ -1117,7 +1117,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           get().dispatch.onGetInboxUnverifiedConvs(action)
           break
         case EngineGen.chat1NotifyChatChatInboxSyncStarted:
-          storeRegistry.getState('waiting').dispatch.increment(waitingKeyChatInboxSyncStarted)
+          storeRegistry.getState('waiting').dispatch.increment(S.waitingKeyChatInboxSyncStarted)
           break
 
         case EngineGen.chat1NotifyChatChatInboxSynced:
