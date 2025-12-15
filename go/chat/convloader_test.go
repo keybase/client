@@ -373,3 +373,39 @@ func TestConvLoaderJobQueue(t *testing.T) {
 	_, err = j.Push(newTask(convID1, types.ConvLoaderPriorityLow, types.ConvLoaderUnique))
 	require.Error(t, err)
 }
+
+// TestConvLoaderStartStopRace tests the race condition where Start() is called
+// multiple times and then Stop() is called. Without the fix in Start() that
+// waits for existing goroutines before starting new ones, Stop() can hang
+// because the errgroup accumulates goroutines from multiple Start() calls.
+func TestConvLoaderStartStopRace(t *testing.T) {
+	// Use existing test setup which properly initializes everything
+	ctx, tc, world, _, _, _, _ := setupLoaderTest(t)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+
+	// Get the existing loader and stop it first
+	loader := tc.Context().ConvLoader.(*BackgroundConvLoader)
+	select {
+	case <-loader.Stop(ctx):
+		t.Logf("Initial Stop() completed")
+	case <-time.After(5 * time.Second):
+		t.Fatal("Initial Stop() timed out")
+	}
+
+	// Now test the race: Start multiple times rapidly
+	for i := 0; i < 5; i++ {
+		loader.Start(ctx, uid)
+		require.True(t, loader.isRunning())
+	}
+
+	select {
+	case <-loader.Stop(ctx):
+		t.Logf("Final Stop() completed")
+	case <-time.After(5 * time.Second):
+		t.Fatal("Final Stop() timed out")
+	}
+	require.False(t, loader.isRunning())
+}

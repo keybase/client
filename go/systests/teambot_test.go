@@ -395,6 +395,11 @@ func TestTeambotKeyRemovedMember(t *testing.T) {
 		},
 	}
 	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArgs)
+	newEkArg := keybase1.NewTeambotEkArg{
+		Id:         teamID,
+		Generation: 1,
+	}
+	checkNewTeambotEKNotifications(botua.tc, botua.notifications, newEkArg)
 	user1.removeTeamMember(teamName.String(), botua.username)
 
 	team, err := teams.Load(mctx1.Ctx(), mctx1.G(), keybase1.LoadTeamArg{
