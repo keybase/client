@@ -1,4 +1,3 @@
-import * as C from '..'
 import * as Chat from '../chat2'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
 import {storeRegistry} from '../store-registry'
@@ -14,7 +13,9 @@ import NotifyPopup from '@/util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '@/logger'
 import {Alert, Linking, ActionSheetIOS} from 'react-native'
-import {isIOS, isAndroid} from '../platform'
+import {isIOS, isAndroid} from '../platform.native'
+import {wrapErrors} from '@/util/debug'
+import {getTab, getVisiblePath, logState} from '../router2'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
 import {
@@ -334,16 +335,16 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
 export const initPlatformListener = () => {
   let _lastPersist = ''
   storeRegistry.getStore('config').setState(s => {
-    s.dispatch.dynamic.persistRoute = C.wrapErrors((path?: ReadonlyArray<unknown>) => {
+    s.dispatch.dynamic.persistRoute = wrapErrors((path?: ReadonlyArray<unknown>) => {
       const f = async () => {
         let param = {}
         let routeName = Tabs.peopleTab
         if (path) {
-          const cur = C.Router2.getTab()
+          const cur = getTab()
           if (cur) {
             routeName = cur
           }
-          const ap = C.Router2.getVisiblePath()
+          const ap = getVisiblePath()
           ap.some(r => {
             if (r.name === 'chatConversation') {
               const rParams = r.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
@@ -368,7 +369,7 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.onEngineIncomingNative = C.wrapErrors((action: EngineGen.Actions) => {
+    s.dispatch.dynamic.onEngineIncomingNative = wrapErrors((action: EngineGen.Actions) => {
       switch (action.type) {
         default:
       }
@@ -402,7 +403,7 @@ export const initPlatformListener = () => {
   })
 
   storeRegistry.getStore('config').setState(s => {
-    s.dispatch.dynamic.copyToClipboard = C.wrapErrors((s: string) => {
+    s.dispatch.dynamic.copyToClipboard = wrapErrors((s: string) => {
       Clipboard.setStringAsync(s)
         .then(() => {})
         .catch(() => {})
@@ -441,10 +442,10 @@ export const initPlatformListener = () => {
   })
 
   storeRegistry.getStore('config').setState(s => {
-    s.dispatch.dynamic.onFilePickerError = C.wrapErrors((error: Error) => {
+    s.dispatch.dynamic.onFilePickerError = wrapErrors((error: Error) => {
       Alert.alert('Error', String(error))
     })
-    s.dispatch.dynamic.openAppStore = C.wrapErrors(() => {
+    s.dispatch.dynamic.openAppStore = wrapErrors(() => {
       Linking.openURL(
         isAndroid
           ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
@@ -503,7 +504,7 @@ export const initPlatformListener = () => {
   })
 
   storeRegistry.getStore('config').setState(s => {
-    s.dispatch.dynamic.showShareActionSheet = C.wrapErrors(
+    s.dispatch.dynamic.showShareActionSheet = wrapErrors(
       (filePath: string, message: string, mimeType: string) => {
         const f = async () => {
           await showShareActionSheet({filePath, message, mimeType})
@@ -539,11 +540,11 @@ export const initPlatformListener = () => {
     if (next === prev) return
     const f = async () => {
       await timeoutPromise(1000)
-      const path = C.Router2.getVisiblePath()
+      const path = getVisiblePath()
       storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(path)
     }
 
-    if (!calledShareListenersRegistered && C.Router2.logState().loggedIn) {
+    if (!calledShareListenersRegistered && logState().loggedIn) {
       calledShareListenersRegistered = true
       shareListenersRegistered()
     }
@@ -573,7 +574,7 @@ export const initPlatformListener = () => {
   }
 
   storeRegistry.getStore('config').setState(s => {
-    s.dispatch.dynamic.openAppSettings = C.wrapErrors(() => {
+    s.dispatch.dynamic.openAppSettings = wrapErrors(() => {
       const f = async () => {
         if (isAndroid) {
           androidOpenSettings()
@@ -590,7 +591,7 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.onEngineIncomingNative = C.wrapErrors((action: EngineGen.Actions) => {
+    s.dispatch.dynamic.onEngineIncomingNative = wrapErrors((action: EngineGen.Actions) => {
       switch (action.type) {
         case EngineGen.chat1ChatUiTriggerContactSync:
           storeRegistry.getState('settings-contacts').dispatch.manageContactsCache()
@@ -616,7 +617,7 @@ export const initPlatformListener = () => {
   })
 
   storeRegistry.getStore('router').setState(s => {
-    s.dispatch.dynamic.tabLongPress = C.wrapErrors((tab: string) => {
+    s.dispatch.dynamic.tabLongPress = wrapErrors((tab: string) => {
       if (tab !== Tabs.peopleTab) return
       const accountRows = storeRegistry.getState('config').configuredAccounts
       const current = storeRegistry.getState('current-user').username

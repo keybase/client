@@ -1,4 +1,3 @@
-import * as C from '..'
 import * as Chat from '../chat2'
 import {ignorePromise} from '../utils'
 import {storeRegistry} from '../store-registry'
@@ -15,6 +14,7 @@ import {kbfsNotification} from './kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import NotifyPopup from '@/util/notify-popup'
 import {noKBFSFailReason} from '@/constants/config/util'
+import {wrapErrors} from '@/util/debug'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions
@@ -69,9 +69,9 @@ export const dumpLogs = async (reason?: string) => {
 export const initPlatformListener = () => {
   storeRegistry.getStore('config').setState(s => {
     s.dispatch.dynamic.dumpLogsNative = dumpLogs
-    s.dispatch.dynamic.showMainNative = C.wrapErrors(() => showMainWindow?.())
-    s.dispatch.dynamic.copyToClipboard = C.wrapErrors((s: string) => copyToClipboard?.(s))
-    s.dispatch.dynamic.onEngineConnectedDesktop = C.wrapErrors(() => {
+    s.dispatch.dynamic.showMainNative = wrapErrors(() => showMainWindow?.())
+    s.dispatch.dynamic.copyToClipboard = wrapErrors((s: string) => copyToClipboard?.(s))
+    s.dispatch.dynamic.onEngineConnectedDesktop = wrapErrors(() => {
       // Introduce ourselves to the service
       const f = async () => {
         await T.RPCGen.configHelloIAmRpcPromise({details: KB2.constants.helloDetails})
@@ -79,7 +79,7 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.onEngineIncomingDesktop = C.wrapErrors((action: EngineGen.Actions) => {
+    s.dispatch.dynamic.onEngineIncomingDesktop = wrapErrors((action: EngineGen.Actions) => {
       switch (action.type) {
         case EngineGen.keybase1LogsendPrepareLogsend: {
           const f = async () => {
