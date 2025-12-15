@@ -20,11 +20,11 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.7.2-0.20180927150649-699df6a3acf6
 	github.com/docopt/docopt-go v0.0.0-20160216232012-784ddc588536
-	github.com/dustin/go-humanize v1.0.0
+	github.com/dustin/go-humanize v1.0.1
 	github.com/eapache/channels v1.1.0
 	github.com/gammazero/workerpool v0.0.0-20181230203049-86a96b5d5d92
 	github.com/go-errors/errors v1.4.2
-	github.com/go-sql-driver/mysql v1.8.1
+	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.63.4
@@ -67,7 +67,7 @@ require (
 	// NOTE: if stellar/go is updated, consider removing the `replace` directive
 	// for goautoneg at the bottom of this go.mod
 	github.com/stellar/go v0.0.0-20221209134558-b4ba6f8e67f2
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/urfave/cli v1.22.1
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
