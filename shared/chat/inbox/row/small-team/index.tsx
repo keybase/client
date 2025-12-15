@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
+import {ChatProvider, useContext as useChatContext} from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SimpleTopLine} from './top-line'
@@ -33,9 +34,9 @@ export type Props = {
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
   return (
-    <C.ChatProvider id={p.conversationIDKey}>
+    <ChatProvider id={p.conversationIDKey}>
       <SmallTeamImpl {...p} />
-    </C.ChatProvider>
+    </ChatProvider>
   )
 })
 
@@ -43,7 +44,7 @@ const SmallTeamImpl = (p: Props) => {
   const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime, layoutSnippetDecoration} = p
   const {isInWidget} = p
 
-  const {snippet, snippetDecoration} = C.useChatContext(
+  const {snippet, snippetDecoration} = useChatContext(
     C.useShallow(s => {
       const typingSnippet = (() => {
         const typers = !isInWidget ? s.typing : undefined
@@ -69,8 +70,8 @@ const SmallTeamImpl = (p: Props) => {
     })
   )
   const you = useCurrentUserState(s => s.username)
-  const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
-  const participants = C.useChatContext(
+  const navigateToThread = useChatContext(s => s.dispatch.navigateToThread)
+  const participants = useChatContext(
     C.useShallow(s => {
       const {meta} = s
       const participantInfo = s.participants

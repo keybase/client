@@ -9,8 +9,5 @@ export {TBProvider_ as TBProvider, stores_ as TBstores, useContext_ as useTBCont
 export * as Tabs from './tabs'
 export {useWaitingState} from './waiting'
 export * as Waiting from './waiting'
-export {useChatState} from './chat2'
-export {useConvoState_ as useConvoState, stores_ as chatStores, ChatProvider_ as ChatProvider} from './chat2'
-export {getConvoState, useContext_ as useChatContext} from './chat2'
 export * as PlatformSpecific from './platform-specific'
 export * from './utils'
