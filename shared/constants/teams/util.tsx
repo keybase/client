@@ -139,3 +139,15 @@ export const retentionPolicyToServiceRetentionPolicy = (
       return {inherit: {}, typ: T.RPCChat.RetentionPolicyType.inherit}
   }
 }
+
+export const userIsRoleInTeamWithInfo = (
+  memberInfo: ReadonlyMap<string, T.Teams.MemberInfo>,
+  username: string,
+  role: T.Teams.TeamRoleType
+): boolean => {
+  const member = memberInfo.get(username)
+  if (!member) {
+    return false
+  }
+  return member.type === role
+}

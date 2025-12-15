@@ -24,6 +24,7 @@ export {
   serviceRetentionPolicyToRetentionPolicy,
   teamRoleByEnum,
   retentionPolicyToServiceRetentionPolicy,
+  userIsRoleInTeamWithInfo,
 } from './util'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
@@ -205,25 +206,13 @@ export const initialCanUserPerform = Object.freeze<T.Teams.TeamOperations>({
   setTeamShowcase: false,
 })
 
-export const userIsRoleInTeamWithInfo = (
-  memberInfo: ReadonlyMap<string, T.Teams.MemberInfo>,
-  username: string,
-  role: T.Teams.TeamRoleType
-): boolean => {
-  const member = memberInfo.get(username)
-  if (!member) {
-    return false
-  }
-  return member.type === role
-}
-
 export const userIsRoleInTeam = (
   state: State,
   teamID: T.Teams.TeamID,
   username: string,
   role: T.Teams.TeamRoleType
 ): boolean => {
-  return userIsRoleInTeamWithInfo(
+  return Util.userIsRoleInTeamWithInfo(
     state.teamIDToMembers.get(teamID) || new Map<string, T.Teams.MemberInfo>(),
     username,
     role

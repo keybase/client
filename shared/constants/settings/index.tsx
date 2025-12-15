@@ -9,53 +9,9 @@ import {RPCError} from '@/util/errors'
 import * as Tabs from '../tabs'
 import logger from '@/logger'
 import {storeRegistry} from '../store-registry'
+import {processorProfileInProgressKey, traceInProgressKey} from './util'
 
-export const traceInProgressKey = 'settings:traceInProgress'
-export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
-
-export const settingsAboutTab = 'settingsTabs.aboutTab'
-export const settingsAdvancedTab = 'settingsTabs.advancedTab'
-export const settingsArchiveTab = 'settingsTabs.archiveTab'
-export const settingsChatTab = 'settingsTabs.chatTab'
-export const settingsCryptoTab = 'settingsTabs.cryptoTab'
-export const settingsDevicesTab = 'settingsTabs.devicesTab'
-export const settingsDisplayTab = 'settingsTabs.displayTab'
-export const settingsFeedbackTab = 'settingsTabs.feedbackTab'
-export const settingsFoldersTab = 'settingsTabs.foldersTab'
-export const settingsFsTab = 'settingsTabs.fsTab'
-export const settingsGitTab = 'settingsTabs.gitTab'
-export const settingsInvitationsTab = 'settingsTabs.invitationsTab'
-export const settingsAccountTab = 'settingsTabs.accountTab'
-export const settingsNotificationsTab = 'settingsTabs.notificationsTab'
-export const settingsPasswordTab = 'settingsTabs.password'
-export const settingsScreenprotectorTab = 'settingsTabs.screenprotector'
-export const settingsLogOutTab = 'settingsTabs.logOutTab'
-export const settingsUpdatePaymentTab = 'settingsTabs.updatePaymentTab'
-export const settingsWalletsTab = 'settingsTabs.walletsTab'
-export const settingsContactsTab = 'settingsTabs.contactsTab'
-export const settingsWhatsNewTab = 'settingsTabs.whatsNewTab'
-
-export type SettingsTab =
-  | typeof settingsAccountTab
-  | typeof settingsUpdatePaymentTab
-  | typeof settingsInvitationsTab
-  | typeof settingsNotificationsTab
-  | typeof settingsAdvancedTab
-  | typeof settingsFeedbackTab
-  | typeof settingsAboutTab
-  | typeof settingsDevicesTab
-  | typeof settingsDisplayTab
-  | typeof settingsGitTab
-  | typeof settingsFoldersTab
-  | typeof settingsFsTab
-  | typeof settingsLogOutTab
-  | typeof settingsScreenprotectorTab
-  | typeof settingsPasswordTab
-  | typeof settingsWalletsTab
-  | typeof settingsChatTab
-  | typeof settingsCryptoTab
-  | typeof settingsContactsTab
-  | typeof settingsWhatsNewTab
+export * from './util'
 
 type Store = T.Immutable<{
   checkPasswordIsCorrect?: boolean
@@ -191,7 +147,9 @@ export const useSettingsState = Z.createZustand<State>(set => {
             undefined,
             S.waitingKeySettingsLoadSettings
           )
-          storeRegistry.getState('settings-email').dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
+          storeRegistry
+            .getState('settings-email')
+            .dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
           storeRegistry.getState('settings-phone').dispatch.setNumbers(settings.phoneNumbers ?? undefined)
           maybeLoadAppLink()
         } catch (error) {
@@ -215,7 +173,9 @@ export const useSettingsState = Z.createZustand<State>(set => {
       switch (action.type) {
         case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
           logger.info('email verified')
-          storeRegistry.getState('settings-email').dispatch.notifyEmailVerified(action.payload.params.emailAddress)
+          storeRegistry
+            .getState('settings-email')
+            .dispatch.notifyEmailVerified(action.payload.params.emailAddress)
           break
         case EngineGen.keybase1NotifyUsersPasswordChanged: {
           const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
@@ -224,7 +184,9 @@ export const useSettingsState = Z.createZustand<State>(set => {
         }
         case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
           const {list} = action.payload.params
-          storeRegistry.getState('settings-phone').dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+          storeRegistry
+            .getState('settings-phone')
+            .dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
           break
         }
         case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {

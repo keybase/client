@@ -4,7 +4,7 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {keybaseFM} from '@/constants/whats-new'
 import NewFeatureRow from './new-feature-row'
-import {settingsCryptoTab, settingsDisplayTab} from '@/constants/settings'
+import {settingsCryptoTab, settingsDisplayTab} from '@/constants/settings/util'
 
 export type VersionProps = {
   seen: boolean
