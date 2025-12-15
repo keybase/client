@@ -1,5 +1,5 @@
 # When updating the version, remember to bump keybase_packaging_v# in docker_build.sh.
-FROM golang:1.23.4-bullseye
+FROM golang:1.25.5-bullseye
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 # Install dependencies from the standard repos.

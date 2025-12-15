@@ -1,8 +1,8 @@
 module github.com/keybase/client/go
 
-go 1.23.0
+go 1.24.0
 
-toolchain go1.23.12
+toolchain go1.25.5
 
 require (
 	bazil.org/fuse v0.0.0-20200424023519-3c101025617f
@@ -55,7 +55,7 @@ require (
 	github.com/kr/text v0.2.0
 	github.com/kyokomi/emoji v2.2.2+incompatible
 	github.com/mattn/go-isatty v0.0.20
-	github.com/miekg/dns v1.1.57
+	github.com/miekg/dns v1.1.69
 	github.com/nfnt/resize v0.0.0-20160724205520-891127d8d1b5
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/xattr v0.2.2
@@ -72,14 +72,14 @@ require (
 	github.com/urfave/cli v1.22.1
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	go.uber.org/zap v1.24.0
-	golang.org/x/crypto v0.36.0
-	golang.org/x/image v0.23.0
-	golang.org/x/mobile v0.0.0-20250106192035-c31d5b91ecc3
-	golang.org/x/net v0.38.0
-	golang.org/x/sync v0.14.0
-	golang.org/x/sys v0.33.0
-	golang.org/x/text v0.25.0
-	golang.org/x/time v0.9.0
+	golang.org/x/crypto v0.46.0
+	golang.org/x/image v0.34.0
+	golang.org/x/mobile v0.0.0-20251209145715-2553ed8ce294
+	golang.org/x/net v0.48.0
+	golang.org/x/sync v0.19.0
+	golang.org/x/sys v0.39.0
+	golang.org/x/text v0.32.0
+	golang.org/x/time v0.14.0
 	gopkg.in/src-d/go-billy.v4 v4.3.2
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	mvdan.cc/xurls/v2 v2.0.0-00010101000000-000000000000
@@ -344,8 +344,8 @@ require (
 	go4.org v0.0.0-20161118210015-09d86de304dc // indirect
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20241108190413-2d47ceb2692f // indirect
-	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/tools v0.29.0 // indirect
+	golang.org/x/mod v0.31.0 // indirect
+	golang.org/x/tools v0.40.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

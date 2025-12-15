@@ -82,7 +82,7 @@ helpers.rootLinuxNode(env, {
   }
   sh '''#!/bin/bash
       source  ~/.gvm/scripts/gvm
-      gvm install go1.23.12 -B && gvm use go1.23.12 --default
+      gvm install go1.25.5 -B && gvm use go1.25.5 --default
       source  ~/.nvm/nvm.sh
       nvm install 24 && nvm use 24 && nvm alias default 24
 
@@ -507,7 +507,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
 
     sh 'go install golang.org/x/vuln/cmd/govulncheck@latest'
     sh 'go version'
-    // sh 'govulncheck ./...'
+    sh 'govulncheck ./...'
     if (env.CHANGE_TARGET) {
       println("Running golangci-lint on new code")
       fetchChangeTarget()
