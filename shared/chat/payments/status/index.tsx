@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import PaymentStatusError from './error'
 import Text from '@/common-adapters/text'

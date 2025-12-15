@@ -1,5 +1,4 @@
 import type * as T from '@/constants/types'
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'

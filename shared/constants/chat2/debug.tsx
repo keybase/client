@@ -1,6 +1,5 @@
 // Debug utilities for chat
 import * as React from 'react'
-import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {debugWarning} from '@/util/debug-warning'

@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'

@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'

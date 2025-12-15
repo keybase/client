@@ -1,5 +1,4 @@
 import * as Channels from './channels'
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import * as Commands from './commands'
 import * as Emoji from './emoji'

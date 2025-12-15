@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import {useTeamsState} from '@/constants/teams'
 import {useUsersState} from '@/constants/users'
