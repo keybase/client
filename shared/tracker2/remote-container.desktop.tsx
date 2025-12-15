@@ -13,6 +13,7 @@ import {useTrackerState} from '@/constants/tracker2'
 import {useUsersState} from '@/constants/users'
 import {useFollowerState} from '@/constants/followers'
 import {useCurrentUserState} from '@/constants/current-user'
+import {useDarkModeState} from '@/constants/darkmode'
 
 const {closeWindow} = KB2.functions
 
@@ -40,7 +41,7 @@ const RemoteContainer = (d: DeserializeProps) => {
   const replaceCurrent = useCurrentUserState(s => s.dispatch.replaceUsername)
   const replaceHTTP = useConfigState(s => s.dispatch.setHTTPSrvInfo)
   const replaceTracker = useTrackerState(s => s.dispatch.replace)
-  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
+  const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)
 
   React.useEffect(() => {
     const id = setTimeout(() => {

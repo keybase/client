@@ -8,6 +8,7 @@ import {useUsersState} from '@/constants/users'
 import {useFollowerState} from '@/constants/followers'
 import {useCurrentUserState} from '@/constants/current-user'
 import {useDaemonState} from '@/constants/daemon'
+import {useDarkModeState} from '@/constants/darkmode'
 
 const RemoteContainer = (d: DeserializeProps) => {
   const {avatarRefreshCounter, badgeMap, daemonHandshakeState, darkMode, diskSpaceStatus, endEstimate} = d
@@ -22,7 +23,7 @@ const RemoteContainer = (d: DeserializeProps) => {
   const setHTTPSrvInfo = useConfigState(s => s.dispatch.setHTTPSrvInfo)
   const setOutOfDate = useConfigState(s => s.dispatch.setOutOfDate)
   const setLoggedIn = useConfigState(s => s.dispatch.setLoggedIn)
-  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
+  const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)
 
   // defer this so we don't update while rendering
   React.useEffect(() => {

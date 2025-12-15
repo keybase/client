@@ -4,10 +4,11 @@ import * as C from '@/constants'
 import * as R from '@/constants/remote'
 import Pinentry from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
+import {useDarkModeState} from '@/constants/darkmode'
 
 const RemoteContainer = (d: DeserializeProps) => {
   const {darkMode, ...rest} = d
-  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
+  const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)
 
   React.useEffect(() => {
     const id = setTimeout(() => {

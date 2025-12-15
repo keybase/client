@@ -19,6 +19,7 @@ import {useUnmountAll} from '@/util/debug-react'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
 import {install} from 'react-native-kb'
 import {useEngineState} from '@/constants/engine'
+import * as DarkMode from '@/constants/darkmode'
 
 enableFreeze(true)
 setServiceDecoration(ServiceDecoration)
@@ -30,10 +31,10 @@ module.hot?.accept(() => {
 const useDarkHookup = () => {
   const initedRef = React.useRef(false)
   const appStateRef = React.useRef('active')
-  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
+  const setSystemDarkMode = DarkMode.useDarkModeState(s => s.dispatch.setSystemDarkMode)
   const setMobileAppState = useConfigState(s => s.dispatch.setMobileAppState)
-  const setSystemSupported = C.useDarkModeState(s => s.dispatch.setSystemSupported)
-  const setDarkModePreference = C.useDarkModeState(s => s.dispatch.setDarkModePreference)
+  const setSystemSupported = DarkMode.useDarkModeState(s => s.dispatch.setSystemSupported)
+  const setDarkModePreference = DarkMode.useDarkModeState(s => s.dispatch.setDarkModePreference)
 
   // once
   if (!initedRef.current) {
