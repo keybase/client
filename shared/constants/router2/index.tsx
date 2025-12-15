@@ -2,11 +2,9 @@
 import type * as React from 'react'
 import type * as T from '../types'
 import {
-  createNavigationContainerRef,
   StackActions,
   CommonActions,
   type NavigationContainerRef,
-  type NavigationState,
   useFocusEffect,
 } from '@react-navigation/core'
 import * as Z from '@/util/zustand'
@@ -15,23 +13,15 @@ import * as Tabs from '../tabs'
 import isEqual from 'lodash/isEqual'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet} from '../types/router2'
-import {registerDebugClear} from '@/util/debug'
 import {storeRegistry} from '../store-registry'
 import {isMobile, isTablet} from '../platform'
 import {shallowEqual, type ViewPropsToPageProps} from '../utils'
 export type PathParam = NavigateAppendType
-export type Route = NavigationState<KBRootParamList>['routes'][0]
-// still a little paranoid about some things being missing in this type
-export type NavState = Partial<Route['state']>
 export type Navigator = NavigationContainerRef<KBRootParamList>
+import {navigationRef, getTab, getRootState, type Route, type NavState} from './util'
+export {type NavState, getTab, navigationRef, getRootState} from './util'
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
-
-export const navigationRef = createNavigationContainerRef<KBRootParamList>()
-
-registerDebugClear(() => {
-  navigationRef.current = null
-})
 
 export const _getNavigator = () => {
   return navigationRef.isReady() ? navigationRef : undefined
@@ -44,11 +34,6 @@ export const logState = () => {
   const modals = safePaths(getModalStack(rs))
   const visible = safePaths(getVisiblePath(rs))
   return {loggedIn: _isLoggedIn(rs), modals, visible}
-}
-
-export const getRootState = (): NavState | undefined => {
-  if (!navigationRef.isReady()) return
-  return navigationRef.getRootState()
 }
 
 const _isLoggedIn = (s: T.Immutable<NavState>) => {
@@ -164,16 +149,6 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   }
 
   navUpHelper(route.state, name)
-}
-
-export const getTab = (navState?: T.Immutable<NavState>): undefined | Tabs.Tab => {
-  const s = navState || getRootState()
-  const loggedInRoute = s?.routes?.[0]
-  if (loggedInRoute?.name === 'loggedIn') {
-    // eslint-disable-next-line
-    return loggedInRoute.state?.routes?.[loggedInRoute.state.index ?? 0]?.name as Tabs.Tab
-  }
-  return undefined
 }
 
 const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.

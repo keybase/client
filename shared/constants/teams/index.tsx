@@ -15,6 +15,7 @@ import {bodyToJSON} from '../rpc-utils'
 import {fixCrop} from '@/util/crop'
 import {storeRegistry} from '../store-registry'
 import * as Util from './util'
+import {getTab} from '../router2/util'
 
 export {
   baseRetentionPolicies,
@@ -2300,12 +2301,12 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           break
         case EngineGen.keybase1NotifyTeamTeamDeleted:
           // likely wrong?
-          if (C.Router2.getTab()) {
+          if (getTab()) {
             storeRegistry.getState('router').dispatch.navUpToScreen('teamsRoot')
           }
           break
         case EngineGen.keybase1NotifyTeamTeamExit:
-          if (C.Router2.getTab()) {
+          if (getTab()) {
             storeRegistry.getState('router').dispatch.navUpToScreen('teamsRoot')
           }
           break

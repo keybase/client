@@ -1,5 +1,5 @@
 import * as T from '../types'
-import {ignorePromise, timeoutPromise, RPCError} from '../utils'
+import {ignorePromise, timeoutPromise} from '../utils'
 import {serverConfigFileName} from '../platform'
 import {waitingKeyConfigLogin} from '../strings'
 import * as EngineGen from '@/actions/engine-gen-gen'
