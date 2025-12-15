@@ -19,7 +19,7 @@ const AudioAttachment = () => {
   const ordinal = useOrdinal()
 
   // TODO not message
-  const message = C.useChatContext(s => {
+  const message = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : missingMessage
   })

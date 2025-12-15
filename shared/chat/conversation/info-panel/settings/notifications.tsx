@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
@@ -101,14 +102,14 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
 }
 
 const Notifications = () => {
-  const meta = C.useChatContext(s => s.meta)
+  const meta = Chat.useChatContext(s => s.meta)
   const [channelWide, setChannelWide] = React.useState(meta.notificationsGlobalIgnoreMentions)
   const [desktop, setDesktop] = React.useState(meta.notificationsDesktop)
   const [mobile, setMobile] = React.useState(meta.notificationsMobile)
   const [muted, setMuted] = React.useState(meta.isMuted)
   const [saving, setSaving] = React.useState(false)
   const delayUnsave = Kb.useTimeout(() => setSaving(false), 100)
-  const updateNotificationSettings = C.useChatContext(s => s.dispatch.updateNotificationSettings)
+  const updateNotificationSettings = Chat.useChatContext(s => s.dispatch.updateNotificationSettings)
   const saveNotifications = (
     desktop: T.Chat.NotificationsType,
     mobile: T.Chat.NotificationsType,
@@ -118,7 +119,7 @@ const Notifications = () => {
     updateNotificationSettings(desktop, mobile, channelWide)
     delayUnsave()
   }
-  const mute = C.useChatContext(s => s.dispatch.mute)
+  const mute = Chat.useChatContext(s => s.dispatch.mute)
   const saveMuted = (muted: boolean) => {
     setSaving(true)
     mute(muted)

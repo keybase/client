@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useConfigState} from '@/constants/config'
 import * as React from 'react'
 import Normal from '.'
@@ -9,11 +10,11 @@ import {OrangeLineContext} from '../orange-line-context'
 
 const useOrangeLine = () => {
   const [orangeLine, setOrangeLine] = React.useState(T.Chat.numberToOrdinal(0))
-  const id = C.useChatContext(s => s.id)
+  const id = Chat.useChatContext(s => s.id)
   // this hook only deals with the active changes, otherwise the rest of the logic is in the store
   const loadOrangeLine = React.useCallback(() => {
     const f = async () => {
-      const store = C.getConvoState(id)
+      const store = Chat.getConvoState(id)
       const convID = store.getConvID()
       const readMsgID = store.meta.readMsgID
       const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
@@ -31,7 +32,7 @@ const useOrangeLine = () => {
     loadOrangeLine()
   }, [loadOrangeLine])
 
-  const {markedAsUnread, maxVisibleMsgID} = C.useChatContext(
+  const {markedAsUnread, maxVisibleMsgID} = Chat.useChatContext(
     C.useShallow(s => {
       const {maxVisibleMsgID} = s.meta
       const {markedAsUnread} = s

@@ -30,9 +30,9 @@ type Item =
 type Section = Kb.SectionType<Item>
 
 const MembersTab = (props: Props) => {
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const infoMap = useUsersState(s => s.infoMap)
-  const {channelname, teamID, teamname} = C.useChatContext(
+  const {channelname, teamID, teamname} = Chat.useChatContext(
     C.useShallow(s => {
       const {meta} = s
       const {teamID, channelname, teamname} = meta
@@ -44,8 +44,8 @@ const MembersTab = (props: Props) => {
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
-  const participantInfo = C.useChatContext(s => s.participants)
-  const participants = C.useChatContext(
+  const participantInfo = Chat.useChatContext(s => s.participants)
+  const participants = Chat.useChatContext(
     C.useShallow(s => Chat.getBotsAndParticipants(s.meta, s.participants).participants)
   )
   const [lastTeamName, setLastTeamName] = React.useState('')

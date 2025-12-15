@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import PaymentStatusError from './error'
 import Text from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'
@@ -188,12 +189,12 @@ const reduceStatus = (status: string): Status => {
 const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: OwnProps) {
   const {error, paymentID, text, allowFontScaling} = p
   const ordinal = useOrdinal()
-  const paymentInfo = C.useChatState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
+  const paymentInfo = Chat.useChatState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
   const status = error ? 'error' : (paymentInfo?.status ?? 'pending')
 
   const you = useCurrentUserState(s => s.username)
   // TODO remove
-  const message = C.useChatContext(s => s.messageMap.get(ordinal))
+  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
   const author = message?.author
   const allowPopup =
     status === 'completed' || status === 'pending' || status === 'claimable' || author === you

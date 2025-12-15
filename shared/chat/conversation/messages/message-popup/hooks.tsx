@@ -46,15 +46,15 @@ const getConversationLabel = (
 }
 
 export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
-  const message = C.useChatContext(s => {
+  const message = Chat.useChatContext(s => {
     return s.messageMap.get(ordinal) ?? emptyText
   })
   const isAttach = message.type === 'attachment'
   const {author, id, deviceName, timestamp, deviceRevokedAt} = message
-  const meta = C.useChatContext(s => s.meta)
+  const meta = Chat.useChatContext(s => s.meta)
   const {teamID, teamname} = meta
-  const participantInfo = C.useChatContext(s => s.participants)
-  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const participantInfo = Chat.useChatContext(s => s.participants)
+  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onReact = React.useCallback(
     (emoji: string) => {
       toggleMessageReaction(ordinal, emoji)
@@ -112,7 +112,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     {icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'},
   ] as const
 
-  const {messageDelete, pinMessage, setEditing, setMarkAsUnread, setReplyTo} = C.useChatContext(
+  const {messageDelete, pinMessage, setEditing, setMarkAsUnread, setReplyTo} = Chat.useChatContext(
     C.useShallow(s => {
       const {messageDelete, pinMessage, setEditing, setMarkAsUnread, setReplyTo} = s.dispatch
       return {messageDelete, pinMessage, setEditing, setMarkAsUnread, setReplyTo}
@@ -271,7 +271,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
 }
 
 export const useHeader = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
-  const message = C.useChatContext(s => {
+  const message = Chat.useChatContext(s => {
     return s.messageMap.get(ordinal) ?? emptyText
   })
   const you = useCurrentUserState(s => s.username)

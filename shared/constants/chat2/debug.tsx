@@ -19,7 +19,7 @@ registerDebugClear(() => {
 
 const chatDebugDump = chatDebugEnabled
   ? (conversationIDKey: T.Chat.ConversationIDKey) => {
-      const cs = C.getConvoState(conversationIDKey)
+      const cs = Chat.getConvoState(conversationIDKey)
       logger.error('[CHATDEBUG] os: ', cs.messageOrdinals)
       // logger.error('[CHATDEBUG] orange: ', cs.orangeAboveOrdinal)
       const m = cs.meta

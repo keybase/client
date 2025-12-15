@@ -10,7 +10,7 @@ type OwnProps = {style?: Styles.StylesCrossPlatform}
 const useCommon = (ownProps: OwnProps) => {
   const {style} = ownProps
 
-  const data = C.useChatContext(
+  const data = Chat.useChatContext(
     C.useShallow(s => {
       const {id: conversationIDKey, threadSearchInfo, threadSearchQuery: initialText, dispatch} = s
       const {hits: _hits, status} = threadSearchInfo

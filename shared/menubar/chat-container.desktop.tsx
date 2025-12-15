@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Kb from '@/common-adapters'
@@ -45,9 +46,9 @@ const ChatPreview = (p: Pick<DeserializeProps, 'conversationsToSend'> & {convLim
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
       {convRows.map(id => (
-        <C.ChatProvider key={id} id={id}>
+        <Chat.ChatProvider key={id} id={id}>
           <RemoteSmallTeam conversationIDKey={id} conversationsToSend={conversationsToSend} />
-        </C.ChatProvider>
+        </Chat.ChatProvider>
       ))}
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonContainer}>
         <Kb.Button label="Open inbox" onClick={openInbox} small={true} mode="Secondary" />

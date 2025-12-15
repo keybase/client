@@ -1,5 +1,6 @@
 import * as Channels from './channels'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Kb from '@/common-adapters'
@@ -408,7 +409,7 @@ type PopupProps = {
 }
 const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
-  const conversationIdKey = C.useChatContext(s => s.id)
+  const conversationIdKey = Chat.useChatContext(s => s.id)
 
   const attachRef = React.useRef<Kb.MeasureRef | null>({
     divRef: {current: null},
@@ -424,9 +425,9 @@ const Popup = (p: PopupProps) => {
 
   return Kb.Styles.isMobile ? (
     <Kb.FloatingBox containerStyle={suggestionOverlayStyle} onHidden={setInactive}>
-      <C.ChatProvider id={conversationIdKey}>
+      <Chat.ChatProvider id={conversationIdKey}>
         <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
-      </C.ChatProvider>
+      </Chat.ChatProvider>
     </Kb.FloatingBox>
   ) : (
     <Kb.Overlay

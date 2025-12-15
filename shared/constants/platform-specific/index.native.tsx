@@ -208,7 +208,7 @@ const loadStartupDetails = async () => {
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
-  C.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+  Chat.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: text,
     displayType: T.RPCChat.UICommandStatusDisplayTyp.error,

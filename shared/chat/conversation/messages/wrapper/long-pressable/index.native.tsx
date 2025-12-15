@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
@@ -55,8 +56,8 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
     []
   )
 
-  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
-  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
+  const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const setReplyTo = Chat.useChatContext(s => s.dispatch.setReplyTo)
   const ordinal = useOrdinal()
   const {focusInput} = React.useContext(FocusContext)
   const onSwipeLeft = React.useCallback(() => {

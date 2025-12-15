@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import * as T from '@/constants/types'
@@ -9,7 +10,7 @@ const noMessageID = T.Chat.numberToMessageID(0)
 
 const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer() {
   const ordinal = useOrdinal()
-  const {unfurlResolvePrompt, messageID, promptDomains} = C.useChatContext(
+  const {unfurlResolvePrompt, messageID, promptDomains} = Chat.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
       const messageID = message?.type === 'text' ? message.id : noMessageID

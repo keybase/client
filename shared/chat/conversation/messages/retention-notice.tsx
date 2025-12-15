@@ -1,5 +1,6 @@
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -41,12 +42,12 @@ function makeRetentionNotice(
 }
 
 const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer() {
-  const meta = C.useChatContext(s => s.meta)
+  const meta = Chat.useChatContext(s => s.meta)
   const {teamType, retentionPolicy: policy, teamRetentionPolicy: teamPolicy} = meta
   const canChange = Teams.useTeamsState(s => {
     return meta.teamType !== 'adhoc' ? Teams.getCanPerformByID(s, meta.teamID).setRetentionPolicy : true
   })
-  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
   const onChange = React.useCallback(() => showInfoPanel(true, 'settings'), [showInfoPanel])
   const explanation = makeRetentionNotice(policy, teamPolicy, teamType) ?? undefined
 

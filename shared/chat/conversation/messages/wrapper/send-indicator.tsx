@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useOrdinal} from '../ids-context'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -50,7 +51,7 @@ const shownEncryptingSet = new Set()
 const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
   const ordinal = useOrdinal()
 
-  const {isExploding, sent, failed, id} = C.useChatContext(
+  const {isExploding, sent, failed, id} = Chat.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
       return {

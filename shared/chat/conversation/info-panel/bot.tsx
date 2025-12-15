@@ -35,8 +35,8 @@ type Section = Kb.SectionType<Item>
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
-  const settings = C.useChatContext(s => s.botSettings.get(username))
-  const editBotSettings = C.useChatContext(s => s.dispatch.editBotSettings)
+  const settings = Chat.useChatContext(s => s.botSettings.get(username))
+  const editBotSettings = Chat.useChatContext(s => s.dispatch.editBotSettings)
   return (
     <Kb.WaitingButton
       disabled={!settings}
@@ -75,7 +75,7 @@ export const Bot = (props: BotProps) => {
   const {ownerTeam, ownerUser} = props
   const {onClick, firstItem} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
-  const refreshBotSettings = C.useChatContext(s => s.dispatch.refreshBotSettings)
+  const refreshBotSettings = Chat.useChatContext(s => s.dispatch.refreshBotSettings)
   React.useEffect(() => {
     if (conversationIDKey && showChannelAdd) {
       // fetch bot settings if trying to show the add to channel button
@@ -194,7 +194,7 @@ type Props = {
 }
 
 const BotTab = (props: Props) => {
-  const meta = C.useChatContext(s => s.meta)
+  const meta = Chat.useChatContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
   const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
   let canManageBots = false
@@ -204,7 +204,7 @@ const BotTab = (props: Props) => {
     canManageBots = true
   }
   const adhocTeam = teamType === 'adhoc'
-  const participantInfo = C.useChatContext(s => s.participants)
+  const participantInfo = Chat.useChatContext(s => s.participants)
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const participantsAll = participantInfo.all
 
@@ -258,7 +258,7 @@ const BotTab = (props: Props) => {
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
   const navigateAppend = Chat.useChatNavigateAppend()
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const onBotAdd = () => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatSearchBots'}))
   }

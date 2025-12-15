@@ -13,19 +13,19 @@ const emptyJourney = Chat.makeMessageJourneycard({})
 
 const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {ordinal} = ownProps
-  const m = C.useChatContext(s => s.messageMap.get(ordinal))
+  const m = Chat.useChatContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'journeycard' ? m : emptyJourney
-  const conv = C.useChatContext(s => s.meta)
+  const conv = Chat.useChatContext(s => s.meta)
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const canShowcase = Teams.useTeamsState(s => Teams.canShowcase(s, teamID))
-  const isBigTeam = C.useChatState(s => Chat.isBigTeam(s, teamID))
+  const isBigTeam = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
-  const dismissJourneycard = C.useChatContext(s => s.dispatch.dismissJourneycard)
+  const dismissJourneycard = Chat.useChatContext(s => s.dispatch.dismissJourneycard)
   const _onDismiss = (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) =>
     dismissJourneycard(cardType, ordinal)
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const _onGoToChannel = (channelname: string, teamname: string) =>
     previewConversation({channelname, reason: 'journeyCardPopular', teamname})
   const manageChatChannels = Teams.useTeamsState(s => s.dispatch.manageChatChannels)
@@ -42,7 +42,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const onGoToChannel = (channelName: string) => _onGoToChannel(channelName, teamname)
   const onPublishTeam = () => _onPublishTeam(teamID)
 
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const {cardType} = message
   let textComponent: React.ReactNode
   let image: Kb.IconType | undefined

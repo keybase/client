@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -10,7 +11,7 @@ import {pluralize} from '@/util/string'
 
 const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   const ordinal = useOrdinal()
-  const {isSendError, text, flipGameID, sendMessage} = C.useChatContext(
+  const {isSendError, text, flipGameID, sendMessage} = Chat.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
       const isSendError = message?.type === 'text' ? !!message.errorReason : false
@@ -20,7 +21,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
       return {flipGameID, isSendError, message, sendMessage, text}
     })
   )
-  const status = C.useChatState(s => s.flipStatusMap.get(flipGameID))
+  const status = Chat.useChatState(s => s.flipStatusMap.get(flipGameID))
   const onFlipAgain = React.useCallback(() => {
     text && sendMessage(text.stringValue())
   }, [sendMessage, text])

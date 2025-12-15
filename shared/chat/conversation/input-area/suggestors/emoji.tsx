@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -38,14 +39,14 @@ const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 const empty = new Array<EmojiData>()
 
 const useDataSource = (filter: string) => {
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const fetchUserEmoji = Chat.useChatState(s => s.dispatch.fetchUserEmoji)
   React.useEffect(() => {
     fetchUserEmoji(conversationIDKey)
   }, [conversationIDKey, fetchUserEmoji])
 
   const userEmojisLoading = C.Waiting.useAnyWaiting(C.waitingKeyChatLoadingEmoji)
-  const userEmojis = C.useChatState(s => s.userEmojisForAutocomplete)
+  const userEmojis = Chat.useChatState(s => s.userEmojisForAutocomplete)
 
   if (!emojiPrepass.test(filter)) {
     return {

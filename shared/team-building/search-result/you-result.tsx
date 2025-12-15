@@ -1,11 +1,12 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import CommonResult, {type ResultProps} from './common-result'
 
 const YouResult = React.memo(function YouResult(props: ResultProps) {
   const cancelTeamBuilding = C.useTBContext(s => s.dispatch.cancelTeamBuilding)
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onSelfChat = () => {
     cancelTeamBuilding()
     // wait till modal is gone else we can thrash

@@ -372,7 +372,7 @@ const Container = (ownProps: OwnProps) => {
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
   const error = Teams.useTeamsState(s => s.errorInSettings)
   const ignoreAccessRequests = teamDetails.settings.tarsDisabled
-  const isBigTeam = C.useChatState(s => Chat.isBigTeam(s, teamID))
+  const isBigTeam = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
   const openTeam = settings.open
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname

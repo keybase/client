@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
@@ -13,7 +14,7 @@ type Props = {teamID: T.Teams.TeamID}
 const AddToChannel = (props: Props) => {
   const {teamID} = props
   const nav = useSafeNavigation()
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
 
   const [toAdd, setToAdd] = React.useState<Set<string>>(new Set())
   const [filter, setFilter] = React.useState('')

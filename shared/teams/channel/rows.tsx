@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useProfileState} from '@/constants/profile'
 import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
@@ -34,7 +35,7 @@ const crownIcon = (roleType: T.Teams.TeamRoleType) => {
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = C.useConvoState(conversationIDKey, s => s.participants)
+  const participantInfo = Chat.useConvoState(conversationIDKey, s => s.participants)
   const teamMemberInfo = Teams.useTeamsState(
     s => s.teamDetails.get(teamID)?.members.get(username) ?? Teams.initialMemberInfo
   )
@@ -73,7 +74,7 @@ const ChannelMemberRow = (props: Props) => {
   const onSelect = (selected: boolean) => {
     channelSetMemberSelected(conversationIDKey, username, selected)
   }
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = React.useCallback(() => {
     username && previewConversation({participants: [username], reason: 'teamMember'})
   }, [username, previewConversation])

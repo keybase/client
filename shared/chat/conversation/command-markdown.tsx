@@ -1,8 +1,9 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 
 const CommandMarkdown = () => {
-  const md = C.useChatContext(s => s.commandMarkdown)
+  const md = Chat.useChatContext(s => s.commandMarkdown)
   const body = md?.body ?? ''
   const title = md?.title ?? undefined
   return (

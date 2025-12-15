@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useProfileState} from '@/constants/profile'
 import {useCurrentUserState} from '@/constants/current-user'
 import * as T from '@/constants/types'
@@ -7,7 +8,7 @@ import YouRekey from './you-rekey'
 
 const Container = () => {
   const _you = useCurrentUserState(s => s.username)
-  const rekeyers = C.useChatContext(s => s.meta.rekeyers)
+  const rekeyers = Chat.useChatContext(s => s.meta.rekeyers)
   const onBack = C.useRouterState(s => s.dispatch.navigateUp)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onEnterPaperkey = () => {

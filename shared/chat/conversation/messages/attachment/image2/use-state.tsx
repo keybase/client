@@ -7,7 +7,7 @@ const missingMessage = Chat.makeMessageAttachment()
 
 export const useState = () => {
   const ordinal = useOrdinal()
-  return C.useChatContext(
+  return Chat.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)
       const message = m?.type === 'attachment' ? m : missingMessage

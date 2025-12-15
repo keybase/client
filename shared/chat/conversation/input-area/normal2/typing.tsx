@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
@@ -44,7 +45,7 @@ const Names = (props: {names?: ReadonlySet<string>}) => {
 const emptySet = new Set<string>()
 
 const Typing = React.memo(function Typing() {
-  const names = C.useChatContext(
+  const names = Chat.useChatContext(
     C.useShallow(s => {
       const names = s.typing
       if (!C.isMobile) return names

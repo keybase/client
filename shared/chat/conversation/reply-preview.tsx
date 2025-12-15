@@ -5,8 +5,8 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 
 const ReplyPreview = () => {
-  const rordinal = C.useChatContext(s => s.replyTo)
-  const message = C.useChatContext(s => {
+  const rordinal = Chat.useChatContext(s => s.replyTo)
+  const message = Chat.useChatContext(s => {
     return rordinal ? s.messageMap.get(rordinal) : null
   })
   let text = ''
@@ -32,7 +32,7 @@ const ReplyPreview = () => {
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
   const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 80) : null
-  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = Chat.useChatContext(s => s.dispatch.setReplyTo)
   const onCancel = React.useCallback(() => {
     setReplyTo(T.Chat.numberToOrdinal(0))
   }, [setReplyTo])

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -19,7 +20,7 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
 
   const forceListRedraw = React.useContext(ForceListRedrawContext)
 
-  const type = C.useChatContext(s => s.messageMap.get(ordinal)?.type)
+  const type = Chat.useChatContext(s => s.messageMap.get(ordinal)?.type)
   const [lastType, setLastType] = React.useState(type)
 
   if (lastType !== type) {

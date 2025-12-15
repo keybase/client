@@ -7,18 +7,18 @@ import {useCurrentUserState} from '@/constants/current-user'
 
 const BlockButtons = () => {
   const nav = useSafeNavigation()
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
 
-  const team = C.useChatContext(s => s.meta.teamname)
-  const teamID = C.useChatContext(s => s.meta.teamID)
-  const blockButtonInfo = C.useChatState(s => {
+  const team = Chat.useChatContext(s => s.meta.teamname)
+  const teamID = Chat.useChatContext(s => s.meta.teamID)
+  const blockButtonInfo = Chat.useChatState(s => {
     const blockButtonsMap = s.blockButtonsMap
     return teamID ? blockButtonsMap.get(teamID) : undefined
   })
-  const participantInfo = C.useChatContext(s => s.participants)
+  const participantInfo = Chat.useChatContext(s => s.participants)
   const currentUser = useCurrentUserState(s => s.username)
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const dismissBlockButtons = C.useChatContext(s => s.dispatch.dismissBlockButtons)
+  const dismissBlockButtons = Chat.useChatContext(s => s.dispatch.dismissBlockButtons)
   if (!blockButtonInfo) {
     return null
   }

@@ -85,7 +85,7 @@ const getEcrType = (message: T.Chat.Message, you: string) => {
 export const useMessageData = (ordinal: T.Chat.Ordinal) => {
   const you = useCurrentUserState(s => s.username)
 
-  return C.useChatContext(
+  return Chat.useChatContext(
     C.useShallow(s => {
       const accountsInfoMap = s.accountsInfoMap
       const m = s.messageMap.get(ordinal) ?? missingMessage
@@ -102,7 +102,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
         !!submitState && !exploded && you === author && !idMatchesOrdinal && !isShowingUploadProgressBar
       const showRevoked = !!m.deviceRevokedAt
       const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
-      const paymentStatusMap = C.useChatState.getState().paymentStatusMap
+      const paymentStatusMap = Chat.useChatState.getState().paymentStatusMap
       const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
       const hasReactions = (m.reactions?.size ?? 0) > 0
       const botname = botUsername === author ? '' : (botUsername ?? '')
@@ -318,7 +318,7 @@ enum EditCancelRetryType {
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
   const ordinal = useOrdinal()
-  const {failureDescription, outboxID, exploding, messageDelete, messageRetry, setEditing} = C.useChatContext(
+  const {failureDescription, outboxID, exploding, messageDelete, messageRetry, setEditing} = Chat.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)
       const outboxID = m?.outboxID

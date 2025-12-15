@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
@@ -13,11 +14,11 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
   const {message} = p
   const {isInherit, isTeam, membersType, policy, user} = message
   const you = useCurrentUserState(s => s.username)
-  const meta = C.useChatContext(s => s.meta)
+  const meta = Chat.useChatContext(s => s.meta)
   const canManage = Teams.useTeamsState(s =>
     meta.teamType === 'adhoc' ? true : Teams.getCanPerform(s, meta.teamname).setRetentionPolicy
   )
-  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
   const onManageRetention = React.useCallback(() => {
     showInfoPanel(true, 'settings')
   }, [showInfoPanel])

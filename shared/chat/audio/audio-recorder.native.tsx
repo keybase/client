@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {Portal} from '@/common-adapters/portal.native'
@@ -388,7 +389,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     setStaged(false)
     setShowAudioSend(false)
   }, [setStaged, ampTracker, stopRecording, setShowAudioSend])
-  const setCommandStatusInfo = C.useChatContext(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
 
   const startRecording = React.useCallback(() => {
     // calls of this never handle the promise so just handle it here
@@ -460,7 +461,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     return
   }, [setCommandStatusInfo, ampTracker, onReset, ampSV])
 
-  const sendAudioRecording = C.useChatContext(s => s.dispatch.sendAudioRecording)
+  const sendAudioRecording = Chat.useChatContext(s => s.dispatch.sendAudioRecording)
 
   const sendRecording = React.useCallback(() => {
     const impl = async () => {

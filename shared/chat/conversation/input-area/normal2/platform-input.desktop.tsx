@@ -134,7 +134,7 @@ const EmojiButton = React.memo(function EmojiButton(p: EmojiButtonProps) {
 })
 
 const GiphyButton = React.memo(function GiphyButton() {
-  const toggleGiphyPrefill = C.useChatContext(s => s.dispatch.toggleGiphyPrefill)
+  const toggleGiphyPrefill = Chat.useChatContext(s => s.dispatch.toggleGiphyPrefill)
   const onGiphyToggle = toggleGiphyPrefill
 
   return (
@@ -214,7 +214,7 @@ const useKeyboard = (p: UseKeyboardProps) => {
   const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
   const {onChangeText, onEditLastMessage, showReplyPreview} = p
   const lastText = React.useRef('')
-  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = Chat.useChatContext(s => s.dispatch.setReplyTo)
   const {scrollDown, scrollUp} = React.useContext(ScrollContext)
   const onCancelReply = React.useCallback(() => {
     setReplyTo(T.Chat.numberToOrdinal(0))
@@ -389,7 +389,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const focusInput = React.useCallback(() => {
     inputRef.current?.focus()
   }, [inputRef])
-  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
+  const setEditing = Chat.useChatContext(s => s.dispatch.setEditing)
   const onEditLastMessage = React.useCallback(() => {
     setEditing('last')
   }, [setEditing])

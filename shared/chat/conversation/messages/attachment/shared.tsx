@@ -67,7 +67,7 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
 export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   const {style} = p
   const ordinal = useOrdinal()
-  const state = C.useChatContext(s => {
+  const state = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     if (m?.type !== 'attachment') {
       return 'none'
@@ -88,7 +88,7 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     }
   })
 
-  const downloadPath = C.useChatContext(s => {
+  const downloadPath = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     if (m?.type === 'attachment') {
       return m.downloadPath
@@ -96,7 +96,7 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     return ''
   })
 
-  const download = C.useChatContext(s =>
+  const download = Chat.useChatContext(s =>
     C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
   )
   const onDownload = React.useCallback(() => {
@@ -181,7 +181,7 @@ export const getEditStyle = (isEditing: boolean) => {
 
 export const Title = () => {
   const ordinal = useOrdinal()
-  const title = C.useChatContext(s => {
+  const title = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? (m.decoratedText?.stringValue() ?? m.title) : ''
   })
@@ -210,7 +210,7 @@ export const Title = () => {
 
 const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
   const ordinal = useOrdinal()
-  const isCollapsed = C.useChatContext(s => {
+  const isCollapsed = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const message = m?.type === 'attachment' ? m : missingMessage
     const {isCollapsed} = message
@@ -245,7 +245,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 const useCollapseAction = () => {
   const ordinal = useOrdinal()
-  const toggleMessageCollapse = C.useChatContext(s => s.dispatch.toggleMessageCollapse)
+  const toggleMessageCollapse = Chat.useChatContext(s => s.dispatch.toggleMessageCollapse)
   const onCollapse = React.useCallback(() => {
     toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
   }, [toggleMessageCollapse, ordinal])
@@ -273,14 +273,14 @@ export const useCollapseIcon = C.isMobile ? useCollapseIconMobile : useCollapseI
 
 export const useAttachmentState = () => {
   const ordinal = useOrdinal()
-  const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
+  const attachmentPreviewSelect = Chat.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const openFullscreen = React.useCallback(() => {
     Keyboard.dismiss()
     attachmentPreviewSelect(ordinal)
   }, [attachmentPreviewSelect, ordinal])
 
   const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
-    C.useChatContext(
+    Chat.useChatContext(
       C.useShallow(s => {
         const m = s.messageMap.get(ordinal)
         const message = m?.type === 'attachment' ? m : missingMessage

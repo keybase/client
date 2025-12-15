@@ -71,11 +71,11 @@ type WrapperProps = Pick<
 >
 
 const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
-  const inboxHasLoaded = C.useChatState(s => s.inboxHasLoaded)
-  const queueMetaToRequest = C.useChatState(s => s.dispatch.queueMetaToRequest)
+  const inboxHasLoaded = Chat.useChatState(s => s.inboxHasLoaded)
+  const queueMetaToRequest = Chat.useChatState(s => s.dispatch.queueMetaToRequest)
   const isFocused = useIsFocused()
-  const inboxNumSmallRows = C.useChatState(s => s.inboxNumSmallRows ?? 5)
-  const allowShowFloatingButton = C.useChatState(s => {
+  const inboxNumSmallRows = Chat.useChatState(s => s.inboxNumSmallRows ?? 5)
+  const allowShowFloatingButton = Chat.useChatState(s => {
     const {inboxLayout} = s
     const inboxNumSmallRows = s.inboxNumSmallRows ?? 5
     return inboxLayout
@@ -88,8 +88,8 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   const onNewChat = appendNewChatBuilder
   const onUntrustedInboxVisible = queueMetaToRequest
 
-  const setInboxNumSmallRows = C.useChatState(s => s.dispatch.setInboxNumSmallRows)
-  const toggleSmallTeamsExpanded = C.useChatState(s => s.dispatch.toggleSmallTeamsExpanded)
+  const setInboxNumSmallRows = Chat.useChatState(s => s.dispatch.setInboxNumSmallRows)
+  const toggleSmallTeamsExpanded = Chat.useChatState(s => s.dispatch.toggleSmallTeamsExpanded)
   const [lastIsFocused, setLastIsFocused] = React.useState(isFocused)
 
   if (lastIsFocused !== isFocused) {
@@ -97,18 +97,18 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     if (C.isMobile) {
       if (isFocused && Chat.isSplit) {
         setTimeout(() => {
-          C.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
+          Chat.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
         }, 0)
       }
     }
   }
 
-  const inboxRefresh = C.useChatState(s => s.dispatch.inboxRefresh)
+  const inboxRefresh = Chat.useChatState(s => s.dispatch.inboxRefresh)
 
   C.useOnMountOnce(() => {
     if (!C.isMobile) {
       // On mobile this is taken care of by NavigationEvents.
-      C.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
+      Chat.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
     }
     if (!inboxHasLoaded) {
       inboxRefresh('componentNeverLoaded')
@@ -139,15 +139,15 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
 const noSmallTeams = new Array<T.RPCChat.UIInboxSmallTeamRow>()
 const noBigTeams = new Array<T.RPCChat.UIInboxBigTeamRow>()
 const Connected = (ownProps: OwnProps) => {
-  const inboxLayout = C.useChatState(s => s.inboxLayout)
-  const inboxHasLoaded = C.useChatState(s => s.inboxHasLoaded)
+  const inboxLayout = Chat.useChatState(s => s.inboxLayout)
+  const inboxHasLoaded = Chat.useChatState(s => s.inboxHasLoaded)
   const {conversationIDKey} = ownProps
   const neverLoaded = !inboxHasLoaded
-  const inboxNumSmallRows = C.useChatState(s => s.inboxNumSmallRows ?? 5)
+  const inboxNumSmallRows = Chat.useChatState(s => s.inboxNumSmallRows ?? 5)
   const _inboxLayout = inboxLayout
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
-  const isSearching = C.useChatState(s => !!s.inboxSearch)
-  const smallTeamsExpanded = C.useChatState(s => s.smallTeamsExpanded)
+  const isSearching = Chat.useChatState(s => !!s.inboxSearch)
+  const smallTeamsExpanded = Chat.useChatState(s => s.smallTeamsExpanded)
   const {navKey} = ownProps
   const bigTeams = _inboxLayout ? _inboxLayout.bigTeams || noBigTeams : noBigTeams
   const showAllSmallRows = smallTeamsExpanded || !bigTeams.length
@@ -203,7 +203,7 @@ const Connected = (ownProps: OwnProps) => {
     ]
   }, [bigRows, smallRows, divider])
 
-  const unreadIndices = C.useChatState(
+  const unreadIndices = Chat.useChatState(
     C.useShallow(s =>
       s.getUnreadIndicies(
         rows.map(row => {

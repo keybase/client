@@ -31,7 +31,7 @@ const AddMembersConfirm = () => {
   )
   const isSubteam = useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname.includes('.'))
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
-  const isBigTeam = C.useChatState(s => (fromNewTeamWizard ? false : Chat.isBigTeam(s, teamID)))
+  const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : Chat.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
   const isInTeam = useTeamsState(s => Teams.getRole(s, teamID) !== 'none')
 

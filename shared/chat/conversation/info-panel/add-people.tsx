@@ -11,7 +11,7 @@ type Props = {
 
 const AddPeople = (p: Props) => {
   const {isGeneralChannel, isAdmin} = p
-  const teamID = C.useChatContext(s => s.meta.teamID)
+  const teamID = Chat.useChatContext(s => s.meta.teamID)
   const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
   const navigateAppend = Chat.useChatNavigateAppend()
   const onAddPeople = React.useCallback(() => {

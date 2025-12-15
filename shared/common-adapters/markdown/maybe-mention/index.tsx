@@ -63,8 +63,8 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {name, channel} = ownProps
-  const info = C.useChatState(s => s.maybeMentionMap.get(Chat.getTeamMentionName(name, channel)))
-  const resolveMaybeMention = C.useChatContext(s => s.dispatch.resolveMaybeMention)
+  const info = Chat.useChatState(s => s.maybeMentionMap.get(Chat.getTeamMentionName(name, channel)))
+  const resolveMaybeMention = Chat.useChatContext(s => s.dispatch.resolveMaybeMention)
   const onResolve = () => {
     resolveMaybeMention(channel, name)
   }

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters/index'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -13,7 +14,7 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const ordinal = useOrdinal()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  const data = C.useChatContext(
+  const data = Chat.useChatContext(
     C.useShallow(s => {
       const {unfurl, youAreAuthor, author} = getUnfurlInfo(s, ordinal, idx)
       if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {

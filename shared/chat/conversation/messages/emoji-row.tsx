@@ -16,7 +16,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const {className, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
 
-  const {hasUnfurls, setReplyTo, toggleMessageReaction, type} = C.useChatContext(
+  const {hasUnfurls, setReplyTo, toggleMessageReaction, type} = Chat.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)
       const type = m?.type
@@ -26,7 +26,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
     })
   )
 
-  const emojis = C.useChatState(C.useShallow(s => s.userReacjis.topReacjis.slice(0, 5)))
+  const emojis = Chat.useChatState(C.useShallow(s => s.userReacjis.topReacjis.slice(0, 5)))
   const navigateAppend = Chat.useChatNavigateAppend()
   const _onForward = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({

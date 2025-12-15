@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as Path from '@/util/path'
@@ -187,7 +188,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   }
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onReplyInChat = (username: HiddenString) => {
     navigateUp()
     previewConversation({participants: [username.stringValue()], reason: 'search'})

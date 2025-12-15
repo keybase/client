@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import type * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Teams from '@/constants/teams'
 import * as Common from './common'
@@ -53,7 +53,7 @@ const getChannelSuggestions = (
       return noChannel
     }
     // TODO not reactive
-    const suggestions = (C.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
+    const suggestions = (Chat.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
       Array<{channelname: string; teamname: string}>
     >((arr, t) => {
       t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel &&
@@ -66,7 +66,7 @@ const getChannelSuggestions = (
   }
   // TODO: get all the channels in the team, too, for this
   // TODO not reactive
-  const suggestions = (C.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
+  const suggestions = (Chat.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
     Array<{channelname: string}>
   >((arr, t) => {
     t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel &&
@@ -79,8 +79,8 @@ const getChannelSuggestions = (
 }
 
 const useDataSource = (filter: string) => {
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const meta = C.useChatContext(s => s.meta)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const meta = Chat.useChatContext(s => s.meta)
   const {teamID} = meta
 
   const suggestChannelsLoading = C.Waiting.useAnyWaiting([
@@ -88,7 +88,7 @@ const useDataSource = (filter: string) => {
     C.waitingKeyChatMutualTeams(conversationIDKey),
   ])
   const teamMeta = Teams.useTeamsState(s => s.teamMeta)
-  return C.useChatContext(
+  return Chat.useChatContext(
     C.useDeep(s => {
       const fil = filter.toLowerCase()
       // don't include 'small' here to ditch the single #general suggestion

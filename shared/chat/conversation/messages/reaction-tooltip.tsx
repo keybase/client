@@ -28,7 +28,7 @@ const ReactionTooltip = (p: OwnProps) => {
   const {ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
   const infoMap = useUsersState(s => s.infoMap)
-  const {_reactions, good} = C.useChatContext(
+  const {_reactions, good} = Chat.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
       if (message && Chat.isMessageWithReactions(message)) {
@@ -78,7 +78,7 @@ const ReactionTooltip = (p: OwnProps) => {
     reactions = reactions.filter(r => r.emoji === emoji)
   }
   const insets = Kb.useSafeAreaInsets()
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const messageContext = React.useMemo(
     () => ({canFixOverdraw: false, isHighlighted: false, ordinal}),
     [ordinal]
@@ -104,7 +104,7 @@ const ReactionTooltip = (p: OwnProps) => {
       style={styles.overlay}
     >
       {/* need context since this uses a portal... */}
-      <C.ChatProvider id={conversationIDKey}>
+      <Chat.ChatProvider id={conversationIDKey}>
         <MessageContext.Provider value={messageContext}>
           <Kb.Box2
             onMouseLeave={onMouseLeave}
@@ -143,7 +143,7 @@ const ReactionTooltip = (p: OwnProps) => {
             )}
           </Kb.Box2>
         </MessageContext.Provider>
-      </C.ChatProvider>
+      </Chat.ChatProvider>
     </Kb.Overlay>
   )
 }

@@ -23,8 +23,8 @@ const useHintText = (p: {
 }) => {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
   const username = useCurrentUserState(s => s.username)
-  const {teamType, teamname, channelname} = C.useChatContext(s => s.meta)
-  const participantInfoName = C.useChatContext(s => s.participants.name)
+  const {teamType, teamname, channelname} = Chat.useChatContext(s => s.meta)
+  const participantInfoName = Chat.useChatContext(s => s.participants.name)
   if (Kb.Styles.isMobile && isExploding) {
     return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   }
@@ -67,10 +67,10 @@ const useHintText = (p: {
 }
 
 const Input = React.memo(function Input() {
-  const showGiphySearch = C.useChatContext(s => s.giphyWindow)
-  const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
-  const showCommandStatus = C.useChatContext(s => !!s.commandStatus)
-  const showReplyTo = C.useChatContext(s => !!s.messageMap.get(s.replyTo)?.id)
+  const showGiphySearch = Chat.useChatContext(s => s.giphyWindow)
+  const showCommandMarkdown = Chat.useChatContext(s => !!s.commandMarkdown)
+  const showCommandStatus = Chat.useChatContext(s => !!s.commandStatus)
+  const showReplyTo = Chat.useChatContext(s => !!s.messageMap.get(s.replyTo)?.id)
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
       {showReplyTo && <ReplyPreview />}
@@ -83,8 +83,8 @@ const Input = React.memo(function Input() {
 })
 
 const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
-  const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
-  const data = C.useChatContext(
+  const infoPanelShowing = Chat.useChatState(s => s.infoPanelShowing)
+  const data = Chat.useChatContext(
     C.useShallow(s => {
       const {meta, id: conversationIDKey, editing: editOrdinal, messageMap, unsentText} = s
       const {sendMessage, setEditing, jumpToRecent, setExplodingMode} = s.dispatch
@@ -166,7 +166,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
       if (!text) return
       injectText('', true)
       sendMessage(text)
-      const cs = C.getConvoState(conversationIDKey)
+      const cs = Chat.getConvoState(conversationIDKey)
       if (cs.messageCenterOrdinal) {
         cs.dispatch.toggleThreadSearch(true)
         jumpToRecent()
@@ -227,7 +227,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   React.useEffect(() => {
     const rows = [loadIDOnUnloadRef.current]
     return () => {
-      C.useChatState.getState().dispatch.unboxRows(rows)
+      Chat.useChatState.getState().dispatch.unboxRows(rows)
     }
   }, [loadIDOnUnloadRef])
 

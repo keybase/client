@@ -201,7 +201,7 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
 
   // const TEMP = React.useRef({})
 
-  const ret = C.useChatContext(
+  const ret = Chat.useChatContext(
     C.useShallow(s => {
       const previous = s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0)
       const pmessage = s.messageMap.get(previous)
@@ -249,7 +249,7 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
 }
 
 const useState = (ordinal: T.Chat.Ordinal) => {
-  const d = C.useChatContext(
+  const d = Chat.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const participantInfoNames = s.participants.name

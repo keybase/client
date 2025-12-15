@@ -5,7 +5,7 @@ import OldProfileReset from './system-old-profile-reset-notice/container'
 import ResetUser from './reset-user'
 
 const BottomMessageContainer = React.memo(function BottomMessageContainer() {
-  const {showSuperseded, showResetParticipants} = C.useChatContext(
+  const {showSuperseded, showResetParticipants} = Chat.useChatContext(
     C.useShallow(s => {
       const meta = s.meta
       const showResetParticipants = meta.resetParticipants.size !== 0

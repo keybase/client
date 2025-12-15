@@ -14,7 +14,7 @@ import * as Teams from '@/constants/teams'
 const Header = () => {
   const {params} = useRoute<RootRouteProps<'chatRoot'>>()
   return (
-    <C.ChatProvider
+    <Chat.ChatProvider
       canBeNull={true}
       id={
         // eslint-disable-next-line
@@ -22,14 +22,14 @@ const Header = () => {
       }
     >
       <Header2 />
-    </C.ChatProvider>
+    </Chat.ChatProvider>
   )
 }
 
 const Header2 = () => {
   const username = useCurrentUserState(s => s.username)
-  const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
-  const data = C.useChatContext(
+  const infoPanelShowing = Chat.useChatState(s => s.infoPanelShowing)
+  const data = Chat.useChatContext(
     C.useShallow(s => {
       const {meta, id, dispatch} = s
       const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta

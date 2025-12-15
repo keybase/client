@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import Menubar from './index.desktop'
 import {useConfigState} from '@/constants/config'
 import type {DeserializeProps} from './remote-serializer.desktop'
@@ -74,13 +75,13 @@ const RemoteContainer = (d: DeserializeProps) => {
   React.useEffect(() => {
     const id = setTimeout(() => {
       for (const [id, unread] of unreadMap) {
-        C.getConvoState(id).dispatch.unreadUpdated(unread)
+        Chat.getConvoState(id).dispatch.unreadUpdated(unread)
       }
       for (const [id, badge] of badgeMap) {
-        C.getConvoState(id).dispatch.badgesUpdated(badge)
+        Chat.getConvoState(id).dispatch.badgesUpdated(badge)
       }
       for (const [id, next] of metaMap) {
-        C.getConvoState(id).dispatch.updateMeta(next)
+        Chat.getConvoState(id).dispatch.updateMeta(next)
       }
     }, 1)
     return () => {

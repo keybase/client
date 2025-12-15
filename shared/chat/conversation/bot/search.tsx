@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
@@ -22,7 +23,7 @@ type Item =
 type Section = Omit<Kb.SectionType<Item>, 'title'> & {title: string}
 
 const SearchBotPopup = (props: Props) => {
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
   const featuredBotsMap = useBotsState(s => s.featuredBotsMap)

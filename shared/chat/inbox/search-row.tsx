@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import ChatFilterRow from './filter-row'
 import StartNewChat from './row/start-new-chat'
 
@@ -7,16 +8,16 @@ type OwnProps = {headerContext: 'chat-header' | 'inbox-header'}
 
 export default React.memo(function InboxSearchRow(ownProps: OwnProps) {
   const {headerContext} = ownProps
-  const hasLoadedEmptyInbox = C.useChatState(
+  const hasLoadedEmptyInbox = Chat.useChatState(
     s =>
       s.inboxHasLoaded &&
       !!s.inboxLayout &&
       (s.inboxLayout.smallTeams || []).length === 0 &&
       (s.inboxLayout.bigTeams || []).length === 0
   )
-  const showEmptyInbox = C.useChatState(s => !s.inboxSearch && hasLoadedEmptyInbox)
+  const showEmptyInbox = Chat.useChatState(s => !s.inboxSearch && hasLoadedEmptyInbox)
   const showStartNewChat = !C.isMobile && showEmptyInbox
-  const isSearching = C.useChatState(s => !!s.inboxSearch)
+  const isSearching = Chat.useChatState(s => !!s.inboxSearch)
   const showFilter = !showEmptyInbox
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -25,9 +26,9 @@ export default React.memo(function InboxSearchRow(ownProps: OwnProps) {
   }, [navigateUp])
 
   const [query, setQuery] = React.useState('')
-  const inboxSearchSelect = C.useChatState(s => s.dispatch.inboxSearchSelect)
-  const inboxSearch = C.useChatState(s => s.dispatch.inboxSearch)
-  const inboxSearchMoveSelectedIndex = C.useChatState(s => s.dispatch.inboxSearchMoveSelectedIndex)
+  const inboxSearchSelect = Chat.useChatState(s => s.dispatch.inboxSearchSelect)
+  const inboxSearch = Chat.useChatState(s => s.dispatch.inboxSearch)
+  const inboxSearchMoveSelectedIndex = Chat.useChatState(s => s.dispatch.inboxSearchMoveSelectedIndex)
   const onEnsureSelection = React.useCallback(() => {
     inboxSearchSelect()
   }, [inboxSearchSelect])

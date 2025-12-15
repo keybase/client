@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 
 type Props = {
@@ -8,7 +9,7 @@ type Props = {
 }
 
 const ReactionItem = (props: Props) => {
-  const _topReacjis = C.useChatState(s => s.userReacjis.topReacjis)
+  const _topReacjis = Chat.useChatState(s => s.userReacjis.topReacjis)
   const onReact = (emoji: string) => {
     props.onReact(emoji)
     props.onHidden()

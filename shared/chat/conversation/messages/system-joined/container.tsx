@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -11,7 +12,7 @@ type OwnProps = {message: T.Chat.MessageSystemJoined}
 const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const {message} = p
   const {joiners, author, leavers, timestamp} = message
-  const meta = C.useChatContext(s => s.meta)
+  const meta = Chat.useChatContext(s => s.meta)
   const {channelname, teamType, teamname} = meta
   const joiners2 = React.useMemo(() => {
     return !joiners?.length && !leavers?.length ? [author] : joiners

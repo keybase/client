@@ -141,8 +141,8 @@ const getTeams = (layout?: T.RPCChat.UIInboxLayout) => {
 
 const useDataUsers = () => {
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = C.useChatContext(s => s.participants)
-  return C.useChatContext(
+  const participantInfo = Chat.useChatContext(s => s.participants)
+  return Chat.useChatContext(
     C.useDeep(s => {
       const {teamID, teamType} = s.meta
       // TODO not reactive
@@ -165,7 +165,7 @@ const useDataUsers = () => {
 }
 
 const useDataTeams = () => {
-  const inboxLayout = C.useChatState(s => s.inboxLayout)
+  const inboxLayout = Chat.useChatState(s => s.inboxLayout)
   const teams = React.useMemo(() => getTeams(inboxLayout), [inboxLayout])
   const allChannels = React.useMemo(
     () =>

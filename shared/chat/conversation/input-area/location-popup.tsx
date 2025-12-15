@@ -7,11 +7,11 @@ import LocationMap from '@/chat/location-map'
 import {useCurrentUserState} from '@/constants/current-user'
 
 const LocationPopup = () => {
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const username = useCurrentUserState(s => s.username)
   const httpSrv = useConfigState(s => s.httpSrv)
-  const location = C.useChatState(s => s.lastCoord)
-  const locationDenied = C.useChatContext(
+  const location = Chat.useChatState(s => s.lastCoord)
+  const locationDenied = Chat.useChatContext(
     s => s.commandStatus?.displayType === T.RPCChat.UICommandStatusDisplayTyp.error
   )
   const [mapLoaded, setMapLoaded] = React.useState(false)
@@ -20,7 +20,7 @@ const LocationPopup = () => {
     clearModals()
   }
   const onSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
-  const sendMessage = C.useChatContext(s => s.dispatch.sendMessage)
+  const sendMessage = Chat.useChatContext(s => s.dispatch.sendMessage)
   const onLocationShare = (duration: string) => {
     onClose()
     sendMessage(duration ? `/location live ${duration}` : '/location')

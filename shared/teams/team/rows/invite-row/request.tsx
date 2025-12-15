@@ -265,7 +265,7 @@ const RequestRowStateWrapper = (props: RowProps & ExtraProps) => {
 const Container = (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
   const {teamname} = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  const _notifLabel = C.useChatState(s =>
+  const _notifLabel = Chat.useChatState(s =>
     Chat.isBigTeam(s, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )
   const disabledReasonsForRolePicker = Teams.useTeamsState(s =>
@@ -287,7 +287,7 @@ const Container = (ownProps: OwnProps) => {
   const letIn = (sendNotification: boolean, role: T.Teams.TeamRoleType) => {
     addToTeam(teamID, [{assertion: username, role}], sendNotification)
   }
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamInvite'})
   }

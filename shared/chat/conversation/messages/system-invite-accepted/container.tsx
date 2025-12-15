@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
@@ -11,7 +12,7 @@ type OwnProps = {message: T.Chat.MessageSystemInviteAccepted}
 const SystemInviteAcceptedContainer = React.memo(function SystemInviteAcceptedContainer(p: OwnProps) {
   const {message} = p
   const {role} = message
-  const teamID = C.useChatContext(s => s.meta.teamID)
+  const teamID = Chat.useChatContext(s => s.meta.teamID)
   const you = useCurrentUserState(s => s.username)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onViewTeam = React.useCallback(() => {

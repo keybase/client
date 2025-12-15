@@ -40,8 +40,8 @@ const Container = (ownProps: OwnProps) => {
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
-  const attachmentUploadCanceled = C.useChatContext(s => s.dispatch.attachmentUploadCanceled)
+  const navigateToThread = Chat.useChatContext(s => s.dispatch.navigateToThread)
+  const attachmentUploadCanceled = Chat.useChatContext(s => s.dispatch.attachmentUploadCanceled)
   const onCancel = () => {
     attachmentUploadCanceled(
       pathAndOutboxIDs.reduce((l: Array<T.RPCChat.OutboxID>, {outboxID}) => {
@@ -54,8 +54,8 @@ const Container = (ownProps: OwnProps) => {
     navigateUp()
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const attachmentsUpload = C.useChatContext(s => s.dispatch.attachmentsUpload)
-  const attachFromDragAndDrop = C.useChatContext(s => s.dispatch.attachFromDragAndDrop)
+  const attachmentsUpload = Chat.useChatContext(s => s.dispatch.attachmentsUpload)
+  const attachFromDragAndDrop = Chat.useChatContext(s => s.dispatch.attachFromDragAndDrop)
   const _onSubmit = React.useCallback(
     (titles: Array<string>, spoiler: boolean) => {
       tlfName || noDragDrop

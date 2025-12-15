@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -45,7 +46,7 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
     keybaseUsername && navigateAppend({props: {username: keybaseUsername}, selected: 'chatBlockingModal'})
   }, [navigateAppend, keybaseUsername])
 
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = React.useCallback(() => {
     navigateUp()
     previewConversation({participants: [decoratedUsername], reason: 'search'})

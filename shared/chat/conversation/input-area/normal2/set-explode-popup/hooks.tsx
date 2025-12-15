@@ -28,8 +28,8 @@ const makeItems = (meta: T.Chat.ConversationMeta) => {
 
 export default (p: Props) => {
   const {setExplodingMode, onHidden, visible, attachTo, onAfterSelect} = p
-  const _meta = C.useChatContext(s => s.meta)
-  const selected = C.useChatContext(s => s.explodingMode)
+  const _meta = Chat.useChatContext(s => s.meta)
+  const selected = Chat.useChatContext(s => s.explodingMode)
   const onSelect = React.useCallback(
     (seconds: number) => {
       setExplodingMode(seconds)

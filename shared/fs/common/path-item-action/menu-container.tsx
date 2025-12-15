@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common/hooks'
 import * as React from 'react'
@@ -86,7 +87,7 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const openChat = cancelAfter(() => {
     previewConversation({
       reason: 'files',

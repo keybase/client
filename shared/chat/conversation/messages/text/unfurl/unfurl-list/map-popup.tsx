@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters/index'
 import type * as T from '@/constants/types'
 import openURL from '@/util/open-url'
@@ -26,7 +27,7 @@ const UnfurlMapPopup = (props: Props) => {
     onClose()
     openURL(url)
   }
-  const sendMessage = C.useChatContext(s => s.dispatch.sendMessage)
+  const sendMessage = Chat.useChatContext(s => s.dispatch.sendMessage)
   const onStopSharing = () => {
     onClose()
     sendMessage('/location stop')

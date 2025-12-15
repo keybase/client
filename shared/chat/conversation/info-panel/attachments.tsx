@@ -439,8 +439,8 @@ export const useAttachmentSections = (
     T.RPCChat.GalleryItemTyp.media
   )
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
-  const loadAttachmentView = C.useChatContext(s => s.dispatch.loadAttachmentView)
-  const loadMessagesCentered = C.useChatContext(s => s.dispatch.loadMessagesCentered)
+  const loadAttachmentView = Chat.useChatContext(s => s.dispatch.loadAttachmentView)
+  const loadMessagesCentered = Chat.useChatContext(s => s.dispatch.loadMessagesCentered)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 
   const jumpToAttachment = React.useCallback(
@@ -470,7 +470,7 @@ export const useAttachmentSections = (
     }
   }, [lastSAV, loadAttachmentView, loadImmediately, selectedAttachmentView])
 
-  const attachmentView = C.useChatContext(s => s.attachmentViewMap)
+  const attachmentView = Chat.useChatContext(s => s.attachmentViewMap)
   const attachmentInfo = attachmentView.get(selectedAttachmentView)
   const fromMsgID = attachmentInfo ? getFromMsgID(attachmentInfo) : undefined
 
@@ -484,11 +484,11 @@ export const useAttachmentSections = (
     loadAttachmentView(selectedAttachmentView)
   }
 
-  const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
+  const attachmentPreviewSelect = Chat.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const onMediaClick = (message: T.Chat.MessageAttachment) => attachmentPreviewSelect(message.ordinal)
 
-  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
-  const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
+  const attachmentDownload = Chat.useChatContext(s => s.dispatch.attachmentDownload)
+  const messageAttachmentNativeShare = Chat.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (Kb.Styles.isMobile) {

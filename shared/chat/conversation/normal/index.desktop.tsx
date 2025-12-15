@@ -20,7 +20,7 @@ const Offline = () => (
 )
 
 const LoadingLine = () => {
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const showLoader = C.Waiting.useAnyWaiting([
     C.waitingKeyChatThreadLoad(conversationIDKey),
     C.waitingKeyChatInboxSyncStarted,
@@ -30,7 +30,7 @@ const LoadingLine = () => {
 
 const hotKeys = ['mod+f']
 const Conversation = React.memo(function Conversation() {
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const navigateAppend = Chat.useChatNavigateAppend()
   const onAttach = React.useCallback(
     (paths: Array<string>) => {
@@ -42,17 +42,17 @@ const Conversation = React.memo(function Conversation() {
     },
     [navigateAppend]
   )
-  const showThreadSearch = C.useChatContext(s => s.threadSearchInfo.visible)
-  const cannotWrite = C.useChatContext(s => s.meta.cannotWrite)
-  const threadLoadedOffline = C.useChatContext(s => s.meta.offline)
-  const dragAndDropRejectReason = C.useChatContext(s => {
+  const showThreadSearch = Chat.useChatContext(s => s.threadSearchInfo.visible)
+  const cannotWrite = Chat.useChatContext(s => s.meta.cannotWrite)
+  const threadLoadedOffline = Chat.useChatContext(s => s.meta.offline)
+  const dragAndDropRejectReason = Chat.useChatContext(s => {
     const meta = s.meta
     const {cannotWrite, minWriterRole} = meta
     return cannotWrite
       ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
       : undefined
   })
-  const attachmentPasted = C.useChatContext(s => s.dispatch.attachmentPasted)
+  const attachmentPasted = Chat.useChatContext(s => s.dispatch.attachmentPasted)
   const onPaste = React.useCallback(
     (e: React.SyntheticEvent) => {
       readImageFromClipboard(e)
@@ -65,7 +65,7 @@ const Conversation = React.memo(function Conversation() {
     },
     [attachmentPasted]
   )
-  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
     toggleThreadSearch()
   }, [toggleThreadSearch])

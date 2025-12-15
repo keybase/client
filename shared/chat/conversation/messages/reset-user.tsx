@@ -1,12 +1,13 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 
 const ResetUser = () => {
-  const meta = C.useChatContext(s => s.meta)
-  const participantInfo = C.useChatContext(s => s.participants)
-  const resetChatWithoutThem = C.useChatContext(s => s.dispatch.resetChatWithoutThem)
-  const resetLetThemIn = C.useChatContext(s => s.dispatch.resetLetThemIn)
+  const meta = Chat.useChatContext(s => s.meta)
+  const participantInfo = Chat.useChatContext(s => s.participants)
+  const resetChatWithoutThem = Chat.useChatContext(s => s.dispatch.resetChatWithoutThem)
+  const resetLetThemIn = Chat.useChatContext(s => s.dispatch.resetLetThemIn)
   const _participants = participantInfo.all
   const _resetParticipants = meta.resetParticipants
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)

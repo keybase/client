@@ -1,9 +1,10 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 const HeaderNewChatButton = () => {
-  const hide = C.useChatState(
+  const hide = Chat.useChatState(
     s =>
       s.inboxHasLoaded &&
       !!s.inboxLayout &&

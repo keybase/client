@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import UnfurlGeneric from './generic'
@@ -56,7 +57,7 @@ const renderTypeToClass = new Map<UnfurlRenderType, React.ExoticComponent<{idx: 
 
 const UnfurlListContainer = React.memo(function UnfurlListContainer() {
   const ordinal = useOrdinal()
-  const unfurlTypes: Array<UnfurlRenderType | 'none'> = C.useChatContext(
+  const unfurlTypes: Array<UnfurlRenderType | 'none'> = Chat.useChatContext(
     C.useShallow(s =>
       [...(s.messageMap.get(ordinal)?.unfurls?.values() ?? [])].map(u => {
         const ut = u.unfurl.unfurlType
