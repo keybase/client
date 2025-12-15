@@ -1,6 +1,5 @@
-import * as C from '..'
 import * as T from '../types'
-import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
+import {ignorePromise, timeoutPromise} from '../utils'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '@/logger'
 import {isIOS, isAndroid} from '../platform'

@@ -7,10 +7,6 @@ import * as Z from '@/util/zustand'
 import {settingsPasswordTab} from '../settings'
 import {storeRegistry} from '../store-registry'
 
-const ignorePromise = (f: Promise<void>) => {
-  f.then(() => {}).catch(() => {})
-}
-
 type Store = T.Immutable<{
   waiters: Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things

@@ -1,6 +1,6 @@
 import * as C from '.'
 import * as Contacts from 'expo-contacts'
-import {ignorePromise} from '../utils'
+import {ignorePromise} from './utils'
 import * as T from './types'
 import * as Z from '@/util/zustand'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'

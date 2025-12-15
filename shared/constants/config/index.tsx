@@ -16,15 +16,6 @@ import {invalidPasswordErrorString} from './util'
 import {storeRegistry} from '../store-registry'
 import {getSelectedConversation} from '@/constants/chat2/common'
 
-const ignorePromise = (f: Promise<void>) => {
-  f.then(() => {}).catch(() => {})
-}
-
-const timeoutPromise = async (timeMs: number) =>
-  new Promise<void>(resolve => {
-    setTimeout(() => resolve(), timeMs)
-  })
-
 type Store = T.Immutable<{
   forceSmallNav: boolean
   allowAnimatedEmojis: boolean

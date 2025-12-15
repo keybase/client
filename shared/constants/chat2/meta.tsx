@@ -1,5 +1,4 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
-import * as C from '..'
 import {shallowEqual} from '../utils'
 import * as T from '../types'
 import * as Teams from '../teams/util'
