@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"fmt"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -41,11 +42,11 @@ var ResetTypeRevMap = map[ResetType]string{
 	2: "DELETE",
 }
 
-func (e ResetType) String() string {
-	if v, ok := ResetTypeRevMap[e]; ok {
+func (o ResetType) String() string {
+	if v, ok := ResetTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ResetMerkleRoot struct {
@@ -72,7 +73,7 @@ func (o ResetPrev) DeepCopy() ResetPrev {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.EldestKID),
 		LastSeqno: o.LastSeqno.DeepCopy(),
@@ -118,8 +119,7 @@ func (o ResetSummary) DeepCopy() ResetSummary {
 	}
 }
 
-type ResetInterface interface {
-}
+type ResetInterface interface{}
 
 func ResetProtocol(i ResetInterface) rpc.Protocol {
 	return rpc.Protocol{

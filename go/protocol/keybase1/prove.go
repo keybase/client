@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type CheckProofStatus struct {
@@ -50,11 +51,9 @@ type CheckProofArg struct {
 	SigID     SigID `codec:"sigID" json:"sigID"`
 }
 
-type ListSomeProofServicesArg struct {
-}
+type ListSomeProofServicesArg struct{}
 
-type ListProofServicesArg struct {
-}
+type ListProofServicesArg struct{}
 
 type ValidateUsernameArg struct {
 	SessionID  int    `codec:"sessionID" json:"sessionID"`

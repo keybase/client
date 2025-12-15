@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type DeviceDetail struct {
@@ -28,21 +29,21 @@ func (o DeviceDetail) DeepCopy() DeviceDetail {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Provisioner),
 		ProvisionedAt: (func(x *Time) *Time {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.ProvisionedAt),
 		RevokedAt: (func(x *Time) *Time {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.RevokedAt),
 		RevokedBy: o.RevokedBy.DeepCopy(),
@@ -50,7 +51,7 @@ func (o DeviceDetail) DeepCopy() DeviceDetail {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.RevokedByDevice),
 		CurrentDevice: o.CurrentDevice,
@@ -74,8 +75,7 @@ type CheckDeviceNameFormatArg struct {
 	Name      string `codec:"name" json:"name"`
 }
 
-type DismissDeviceChangeNotificationsArg struct {
-}
+type DismissDeviceChangeNotificationsArg struct{}
 
 type CheckDeviceNameForUserArg struct {
 	SessionID  int    `codec:"sessionID" json:"sessionID"`

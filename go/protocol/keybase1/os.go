@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"fmt"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -33,15 +34,14 @@ var RuntimeGroupRevMap = map[RuntimeGroup]string{
 	3: "WINDOWSLIKE",
 }
 
-func (e RuntimeGroup) String() string {
-	if v, ok := RuntimeGroupRevMap[e]; ok {
+func (o RuntimeGroup) String() string {
+	if v, ok := RuntimeGroupRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
-type RuntimeInterface interface {
-}
+type RuntimeInterface interface{}
 
 func RuntimeProtocol(i RuntimeInterface) rpc.Protocol {
 	return rpc.Protocol{

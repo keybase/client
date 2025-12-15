@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type TLFIdentifyBehavior int
@@ -71,11 +72,11 @@ var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
 	15: "FS_GUI",
 }
 
-func (e TLFIdentifyBehavior) String() string {
-	if v, ok := TLFIdentifyBehaviorRevMap[e]; ok {
+func (o TLFIdentifyBehavior) String() string {
+	if v, ok := TLFIdentifyBehaviorRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type CanonicalTlfName string
@@ -128,7 +129,7 @@ func (o TLFIdentifyFailure) DeepCopy() TLFIdentifyFailure {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Breaks),
 	}

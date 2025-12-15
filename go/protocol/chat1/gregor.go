@@ -27,7 +27,7 @@ func (o GenericPayload) DeepCopy() GenericPayload {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
 	}
@@ -51,7 +51,7 @@ func (o NewConversationPayload) DeepCopy() NewConversationPayload {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
 	}
@@ -79,7 +79,7 @@ func (o NewMessagePayload) DeepCopy() NewMessagePayload {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
 		UntrustedTeamRole: o.UntrustedTeamRole.DeepCopy(),
@@ -117,7 +117,7 @@ func (o ReadMessagePayload) DeepCopy() ReadMessagePayload {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
 	}
@@ -143,7 +143,7 @@ func (o SetStatusPayload) DeepCopy() SetStatusPayload {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
 	}
@@ -169,7 +169,7 @@ func (o TeamTypePayload) DeepCopy() TeamTypePayload {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
 	}
@@ -195,7 +195,7 @@ func (o SetAppNotificationSettingsPayload) DeepCopy() SetAppNotificationSettings
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
 	}
@@ -233,7 +233,7 @@ func (o ExpungePayload) DeepCopy() ExpungePayload {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
 	}
@@ -352,7 +352,7 @@ func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.TeamMemberRoleUpdate),
 		Joined: (func(x []ConversationMember) []ConversationMember {
@@ -403,7 +403,7 @@ func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
 		UnreadUpdates: (func(x []UnreadUpdate) []UnreadUpdate {
@@ -496,7 +496,7 @@ func (o SetConvSettingsUpdate) DeepCopy() SetConvSettingsUpdate {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.ConvSettings),
 	}
@@ -538,8 +538,7 @@ func (o SubteamRenameUpdate) DeepCopy() SubteamRenameUpdate {
 	}
 }
 
-type GregorInterface interface {
-}
+type GregorInterface interface{}
 
 func GregorProtocol(i GregorInterface) rpc.Protocol {
 	return rpc.Protocol{

@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type Session struct {
@@ -31,8 +32,7 @@ type CurrentSessionArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type SessionPingArg struct {
-}
+type SessionPingArg struct{}
 
 type SessionInterface interface {
 	CurrentSession(context.Context, int) (Session, error)

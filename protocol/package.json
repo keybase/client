@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/keybase/protocol",
   "dependencies": {
-    "avdl-compiler": "1.4.10",
+    "avdl-compiler": "github:keybase/node-avdl-compiler#master",
     "avdl2json": "2.2.5",
     "camelcase": "6.3.0",
     "iced-coffee-script": "108.0.14",

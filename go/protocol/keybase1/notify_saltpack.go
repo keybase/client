@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type SaltpackOperationType int
@@ -35,11 +36,11 @@ var SaltpackOperationTypeRevMap = map[SaltpackOperationType]string{
 	3: "VERIFY",
 }
 
-func (e SaltpackOperationType) String() string {
-	if v, ok := SaltpackOperationTypeRevMap[e]; ok {
+func (o SaltpackOperationType) String() string {
+	if v, ok := SaltpackOperationTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type SaltpackOperationStartArg struct {

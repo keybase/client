@@ -4,11 +4,12 @@
 package keybase1
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type ResetPromptType int
@@ -36,11 +37,11 @@ var ResetPromptTypeRevMap = map[ResetPromptType]string{
 	3: "ENTER_RESET_PW",
 }
 
-func (e ResetPromptType) String() string {
-	if v, ok := ResetPromptTypeRevMap[e]; ok {
+func (o ResetPromptType) String() string {
+	if v, ok := ResetPromptTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ResetPromptInfo struct {
@@ -99,7 +100,7 @@ func (o ResetPrompt) DeepCopy() ResetPrompt {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Complete__),
 	}
@@ -127,11 +128,11 @@ var ResetPromptResponseRevMap = map[ResetPromptResponse]string{
 	2: "CONFIRM_RESET",
 }
 
-func (e ResetPromptResponse) String() string {
-	if v, ok := ResetPromptResponseRevMap[e]; ok {
+func (o ResetPromptResponse) String() string {
+	if v, ok := ResetPromptResponseRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PassphraseRecoveryPromptType int
@@ -150,11 +151,11 @@ var PassphraseRecoveryPromptTypeRevMap = map[PassphraseRecoveryPromptType]string
 	0: "ENCRYPTED_PGP_KEYS",
 }
 
-func (e PassphraseRecoveryPromptType) String() string {
-	if v, ok := PassphraseRecoveryPromptTypeRevMap[e]; ok {
+func (o PassphraseRecoveryPromptType) String() string {
+	if v, ok := PassphraseRecoveryPromptTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ResetMessage int
@@ -191,11 +192,11 @@ var ResetMessageRevMap = map[ResetMessage]string{
 	6: "RESET_LINK_SENT",
 }
 
-func (e ResetMessage) String() string {
-	if v, ok := ResetMessageRevMap[e]; ok {
+func (o ResetMessage) String() string {
+	if v, ok := ResetMessageRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type GetEmailOrUsernameArg struct {

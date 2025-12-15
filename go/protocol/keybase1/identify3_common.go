@@ -19,8 +19,7 @@ func (o Identify3GUIID) DeepCopy() Identify3GUIID {
 	return o
 }
 
-type Identify3CommonInterface interface {
-}
+type Identify3CommonInterface interface{}
 
 func Identify3CommonProtocol(i Identify3CommonInterface) rpc.Protocol {
 	return rpc.Protocol{

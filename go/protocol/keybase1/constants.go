@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"fmt"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -759,15 +760,14 @@ var StatusCodeRevMap = map[StatusCode]string{
 	5104: "SCSimpleFSNoAccess",
 }
 
-func (e StatusCode) String() string {
-	if v, ok := StatusCodeRevMap[e]; ok {
+func (o StatusCode) String() string {
+	if v, ok := StatusCodeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
-type ConstantsInterface interface {
-}
+type ConstantsInterface interface{}
 
 func ConstantsProtocol(i ConstantsInterface) rpc.Protocol {
 	return rpc.Protocol{

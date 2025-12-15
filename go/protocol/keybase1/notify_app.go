@@ -4,13 +4,13 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type ExitArg struct {
-}
+type ExitArg struct{}
 
 type NotifyAppInterface interface {
 	Exit(context.Context) error

@@ -4,11 +4,12 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
+	"time"
+
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
-	"time"
 )
 
 type PushReason int
@@ -33,11 +34,11 @@ var PushReasonRevMap = map[PushReason]string{
 	2: "NEW_DATA",
 }
 
-func (e PushReason) String() string {
-	if v, ok := PushReasonRevMap[e]; ok {
+func (o PushReason) String() string {
+	if v, ok := PushReasonRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PushStateArg struct {

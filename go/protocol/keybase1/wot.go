@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type UsernameVerificationType string
@@ -115,11 +116,11 @@ var WotReactionTypeRevMap = map[WotReactionType]string{
 	1: "ACCEPT",
 }
 
-func (e WotReactionType) String() string {
-	if v, ok := WotReactionTypeRevMap[e]; ok {
+func (o WotReactionType) String() string {
+	if v, ok := WotReactionTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type WotVouch struct {

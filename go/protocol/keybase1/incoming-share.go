@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type IncomingShareType int
@@ -35,11 +36,11 @@ var IncomingShareTypeRevMap = map[IncomingShareType]string{
 	3: "VIDEO",
 }
 
-func (e IncomingShareType) String() string {
-	if v, ok := IncomingShareTypeRevMap[e]; ok {
+func (o IncomingShareType) String() string {
+	if v, ok := IncomingShareTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type IncomingShareItem struct {
@@ -119,11 +120,11 @@ var IncomingShareCompressPreferenceRevMap = map[IncomingShareCompressPreference]
 	1: "COMPRESSED",
 }
 
-func (e IncomingShareCompressPreference) String() string {
-	if v, ok := IncomingShareCompressPreferenceRevMap[e]; ok {
+func (o IncomingShareCompressPreference) String() string {
+	if v, ok := IncomingShareCompressPreferenceRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type IncomingSharePreference struct {
@@ -136,11 +137,9 @@ func (o IncomingSharePreference) DeepCopy() IncomingSharePreference {
 	}
 }
 
-type GetIncomingShareItemsArg struct {
-}
+type GetIncomingShareItemsArg struct{}
 
-type GetPreferenceArg struct {
-}
+type GetPreferenceArg struct{}
 
 type SetPreferenceArg struct {
 	Preference IncomingSharePreference `codec:"preference" json:"preference"`

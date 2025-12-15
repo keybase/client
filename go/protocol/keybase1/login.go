@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type ConfiguredAccount struct {
@@ -100,8 +101,7 @@ type LoginOneshotArg struct {
 	PaperKey  string `codec:"paperKey" json:"paperKey"`
 }
 
-type IsOnlineArg struct {
-}
+type IsOnlineArg struct{}
 
 type LoginInterface interface {
 	// Returns an array of information about accounts configured on the local

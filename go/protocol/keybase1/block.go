@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type BlockStatus int
@@ -32,11 +33,11 @@ var BlockStatusRevMap = map[BlockStatus]string{
 	2: "ARCHIVED",
 }
 
-func (e BlockStatus) String() string {
-	if v, ok := BlockStatusRevMap[e]; ok {
+func (o BlockStatus) String() string {
+	if v, ok := BlockStatusRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type GetBlockRes struct {
@@ -180,8 +181,7 @@ func (o ReferenceCountRes) DeepCopy() ReferenceCountRes {
 	}
 }
 
-type BlockPingResponse struct {
-}
+type BlockPingResponse struct{}
 
 func (o BlockPingResponse) DeepCopy() BlockPingResponse {
 	return BlockPingResponse{}
@@ -259,8 +259,7 @@ func (o BlockQuotaInfo) DeepCopy() BlockQuotaInfo {
 	}
 }
 
-type GetSessionChallengeArg struct {
-}
+type GetSessionChallengeArg struct{}
 
 type AuthenticateSessionArg struct {
 	Signature string `codec:"signature" json:"signature"`
@@ -322,8 +321,7 @@ type GetReferenceCountArg struct {
 	Status BlockStatus    `codec:"status" json:"status"`
 }
 
-type GetUserQuotaInfoArg struct {
-}
+type GetUserQuotaInfoArg struct{}
 
 type GetTeamQuotaInfoArg struct {
 	Tid TeamID `codec:"tid" json:"tid"`
@@ -338,8 +336,7 @@ type GetTeamQuotaInfo2Arg struct {
 	IncludeFolders bool   `codec:"includeFolders" json:"includeFolders"`
 }
 
-type BlockPingArg struct {
-}
+type BlockPingArg struct{}
 
 type BlockInterface interface {
 	GetSessionChallenge(context.Context) (ChallengeInfo, error)

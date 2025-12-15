@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type KBFSTeamSettings struct {
@@ -49,8 +50,7 @@ type FSOnlineStatusChangedEventArg struct {
 	Online bool `codec:"online" json:"online"`
 }
 
-type FSFavoritesChangedEventArg struct {
-}
+type FSFavoritesChangedEventArg struct{}
 
 type FSSubscriptionNotifyPathEventArg struct {
 	ClientID        string                  `codec:"clientID" json:"clientID"`

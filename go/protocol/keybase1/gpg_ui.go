@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type SelectKeyRes struct {
@@ -48,8 +49,7 @@ type SignArg struct {
 	Fingerprint []byte `codec:"fingerprint" json:"fingerprint"`
 }
 
-type GetTTYArg struct {
-}
+type GetTTYArg struct{}
 
 type GpgUiInterface interface {
 	WantToAddGPGKey(context.Context, int) (bool, error)

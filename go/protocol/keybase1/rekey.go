@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type TLF struct {
@@ -144,11 +145,11 @@ var OutcomeRevMap = map[Outcome]string{
 	2: "IGNORED",
 }
 
-func (e Outcome) String() string {
-	if v, ok := OutcomeRevMap[e]; ok {
+func (o Outcome) String() string {
+	if v, ok := OutcomeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type RevokeWarning struct {

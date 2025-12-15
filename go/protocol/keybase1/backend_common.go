@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"fmt"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -30,11 +31,11 @@ var BlockTypeRevMap = map[BlockType]string{
 	2: "GIT",
 }
 
-func (e BlockType) String() string {
-	if v, ok := BlockTypeRevMap[e]; ok {
+func (o BlockType) String() string {
+	if v, ok := BlockTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type BlockIdCombo struct {
@@ -63,8 +64,7 @@ func (o ChallengeInfo) DeepCopy() ChallengeInfo {
 	}
 }
 
-type BackendCommonInterface interface {
-}
+type BackendCommonInterface interface{}
 
 func BackendCommonProtocol(i BackendCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

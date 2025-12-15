@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type SignMode int
@@ -32,11 +33,11 @@ var SignModeRevMap = map[SignMode]string{
 	2: "CLEAR",
 }
 
-func (e SignMode) String() string {
-	if v, ok := SignModeRevMap[e]; ok {
+func (o SignMode) String() string {
+	if v, ok := SignModeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PGPSignOptions struct {

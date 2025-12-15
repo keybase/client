@@ -6,6 +6,7 @@ package chat1
 import (
 	"errors"
 	"fmt"
+
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -29,11 +30,11 @@ var EmojiLoadSourceTypRevMap = map[EmojiLoadSourceTyp]string{
 	1: "STR",
 }
 
-func (e EmojiLoadSourceTyp) String() string {
-	if v, ok := EmojiLoadSourceTypRevMap[e]; ok {
+func (o EmojiLoadSourceTyp) String() string {
+	if v, ok := EmojiLoadSourceTypRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type EmojiLoadSource struct {
@@ -131,11 +132,11 @@ var EmojiRemoteSourceTypRevMap = map[EmojiRemoteSourceTyp]string{
 	1: "STOCKALIAS",
 }
 
-func (e EmojiRemoteSourceTyp) String() string {
-	if v, ok := EmojiRemoteSourceTypRevMap[e]; ok {
+func (o EmojiRemoteSourceTyp) String() string {
+	if v, ok := EmojiRemoteSourceTypRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type EmojiMessage struct {
@@ -229,14 +230,14 @@ func (o EmojiRemoteSource) DeepCopy() EmojiRemoteSource {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Message__),
 		Stockalias__: (func(x *EmojiStockAlias) *EmojiStockAlias {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Stockalias__),
 	}
@@ -297,7 +298,7 @@ func (o Emoji) DeepCopy() Emoji {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.CreationInfo),
 		Teamname: (func(x *string) *string {
@@ -373,8 +374,7 @@ func (o EmojiStorage) DeepCopy() EmojiStorage {
 	}
 }
 
-type EmojiInterface interface {
-}
+type EmojiInterface interface{}
 
 func EmojiProtocol(i EmojiInterface) rpc.Protocol {
 	return rpc.Protocol{

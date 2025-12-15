@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type BoxAuditAttemptResult int
@@ -41,11 +42,11 @@ var BoxAuditAttemptResultRevMap = map[BoxAuditAttemptResult]string{
 	5: "OK_NOT_ATTEMPTED_SUBTEAM",
 }
 
-func (e BoxAuditAttemptResult) String() string {
-	if v, ok := BoxAuditAttemptResultRevMap[e]; ok {
+func (o BoxAuditAttemptResult) String() string {
+	if v, ok := BoxAuditAttemptResultRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type BoxAuditAttempt struct {
@@ -71,7 +72,7 @@ func (o BoxAuditAttempt) DeepCopy() BoxAuditAttempt {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Generation),
 		Rotated: o.Rotated,

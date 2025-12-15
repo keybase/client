@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type PromptDefault int
@@ -32,11 +33,11 @@ var PromptDefaultRevMap = map[PromptDefault]string{
 	2: "NO",
 }
 
-func (e PromptDefault) String() string {
-	if v, ok := PromptDefaultRevMap[e]; ok {
+func (o PromptDefault) String() string {
+	if v, ok := PromptDefaultRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PromptYesNoArg struct {

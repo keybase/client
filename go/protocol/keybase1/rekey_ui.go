@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type RekeyEventType int
@@ -50,11 +51,11 @@ var RekeyEventTypeRevMap = map[RekeyEventType]string{
 	8: "NO_GREGOR_MESSAGES",
 }
 
-func (e RekeyEventType) String() string {
-	if v, ok := RekeyEventTypeRevMap[e]; ok {
+func (o RekeyEventType) String() string {
+	if v, ok := RekeyEventTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type RekeyEvent struct {
@@ -69,8 +70,7 @@ func (o RekeyEvent) DeepCopy() RekeyEvent {
 	}
 }
 
-type DelegateRekeyUIArg struct {
-}
+type DelegateRekeyUIArg struct{}
 
 type RefreshArg struct {
 	SessionID         int               `codec:"sessionID" json:"sessionID"`

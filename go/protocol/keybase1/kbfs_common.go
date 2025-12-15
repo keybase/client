@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"fmt"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -30,11 +31,11 @@ var FSStatusCodeRevMap = map[FSStatusCode]string{
 	2: "ERROR",
 }
 
-func (e FSStatusCode) String() string {
-	if v, ok := FSStatusCodeRevMap[e]; ok {
+func (o FSStatusCode) String() string {
+	if v, ok := FSStatusCodeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type FSNotificationType int
@@ -89,11 +90,11 @@ var FSNotificationTypeRevMap = map[FSNotificationType]string{
 	12: "SYNC_CONFIG_CHANGED",
 }
 
-func (e FSNotificationType) String() string {
-	if v, ok := FSNotificationTypeRevMap[e]; ok {
+func (o FSNotificationType) String() string {
+	if v, ok := FSNotificationTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type FSErrorType int
@@ -160,11 +161,11 @@ var FSErrorTypeRevMap = map[FSErrorType]string{
 	16: "OFFLINE_UNSYNCED",
 }
 
-func (e FSErrorType) String() string {
-	if v, ok := FSErrorTypeRevMap[e]; ok {
+func (o FSErrorType) String() string {
+	if v, ok := FSErrorTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type FSNotification struct {
@@ -340,7 +341,7 @@ func (o FSSyncStatus) DeepCopy() FSSyncStatus {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.EndEstimate),
 	}
@@ -366,8 +367,7 @@ func (o FolderSyncStatus) DeepCopy() FolderSyncStatus {
 	}
 }
 
-type KbfsCommonInterface interface {
-}
+type KbfsCommonInterface interface{}
 
 func KbfsCommonProtocol(i KbfsCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

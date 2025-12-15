@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"fmt"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -27,11 +28,11 @@ var NetworkSourceRevMap = map[NetworkSource]string{
 	1: "REMOTE",
 }
 
-func (e NetworkSource) String() string {
-	if v, ok := NetworkSourceRevMap[e]; ok {
+func (o NetworkSource) String() string {
+	if v, ok := NetworkSourceRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type InstrumentationStat struct {
@@ -66,8 +67,7 @@ func (o InstrumentationStat) DeepCopy() InstrumentationStat {
 	}
 }
 
-type NetworkStatsInterface interface {
-}
+type NetworkStatsInterface interface{}
 
 func NetworkStatsProtocol(i NetworkStatsInterface) rpc.Protocol {
 	return rpc.Protocol{

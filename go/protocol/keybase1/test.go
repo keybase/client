@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 // Result from calling test(..).
@@ -83,8 +84,7 @@ type PanicArg struct {
 	Message string `codec:"message" json:"message"`
 }
 
-type TestAirdropRegArg struct {
-}
+type TestAirdropRegArg struct{}
 
 type EchoArg struct {
 	Arg Generic `codec:"arg" json:"arg"`
