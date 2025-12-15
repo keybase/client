@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as RemoteGen from '../actions/remote-gen'
-import * as C from '@/constants'
 import * as R from '@/constants/remote'
 import Pinentry from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'

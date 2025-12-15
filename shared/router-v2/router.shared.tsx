@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import * as React from 'react'

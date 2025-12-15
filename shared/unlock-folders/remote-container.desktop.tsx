@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as R from '@/constants/remote'
 import * as React from 'react'
 import * as RemoteGen from '../actions/remote-gen'
