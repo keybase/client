@@ -1,6 +1,5 @@
 // TODO change setNavState
 import type * as React from 'react'
-import * as C from '..'
 import type * as T from '../types'
 import {
   createNavigationContainerRef,
@@ -18,6 +17,9 @@ import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} fr
 import type {GetOptionsRet} from '../types/router2'
 import {registerDebugClear} from '@/util/debug'
 import {storeRegistry} from '../store-registry'
+import {isMobile, isTablet} from '../platform'
+import shallowEqual from 'shallowequal'
+import type {ViewPropsToPageProps} from '..'
 export type PathParam = NavigateAppendType
 export type Route = NavigationState<KBRootParamList>['routes'][0]
 // still a little paranoid about some things being missing in this type
@@ -165,17 +167,17 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   navUpHelper(route.state, name)
 }
 
-export const getTab = (navState?: T.Immutable<NavState>): undefined | C.Tabs.Tab => {
+export const getTab = (navState?: T.Immutable<NavState>): undefined | Tabs.Tab => {
   const s = navState || getRootState()
   const loggedInRoute = s?.routes?.[0]
   if (loggedInRoute?.name === 'loggedIn') {
     // eslint-disable-next-line
-    return loggedInRoute.state?.routes?.[loggedInRoute.state.index ?? 0]?.name as C.Tabs.Tab
+    return loggedInRoute.state?.routes?.[loggedInRoute.state.index ?? 0]?.name as Tabs.Tab
   }
   return undefined
 }
 
-const isSplit = !C.isMobile || C.isTablet // Whether the inbox and conversation panels are visible side-by-side.
+const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
@@ -368,7 +370,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       const vp = getVisiblePath(ns)
       const visible = vp.at(-1)
       if (visible) {
-        if (routeName === visible.name && C.shallowEqual(visible.params, params)) {
+        if (routeName === visible.name && shallowEqual(visible.params, params)) {
           console.log('Skipping append dupe')
           return
         }
@@ -566,11 +568,11 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
 // Works for components with or without route params
 export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
-  options?: {getOptions?: GetOptionsRet | ((props: C.ViewPropsToPageProps<COM>) => GetOptionsRet)}
+  options?: {getOptions?: GetOptionsRet | ((props: ViewPropsToPageProps<COM>) => GetOptionsRet)}
 ) {
   return {
     ...options,
-    screen: function Screen(p: C.ViewPropsToPageProps<COM>) {
+    screen: function Screen(p: ViewPropsToPageProps<COM>) {
       const Comp = Component as any
       return <Comp {...(p.route.params ?? {})} />
     },
