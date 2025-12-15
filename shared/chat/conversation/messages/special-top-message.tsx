@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'

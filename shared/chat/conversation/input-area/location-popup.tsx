@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import {useConfigState} from '@/constants/config'
 import * as Kb from '@/common-adapters'
@@ -138,4 +139,3 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export default LocationPopup
-

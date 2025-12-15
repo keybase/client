@@ -104,7 +104,7 @@ const DesktopSendToChat = (props: Props) => {
       )
     )
     clearModals()
-    getConvoState(conversationIDKey).dispatch.navigateToThread('files')
+    Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
     <Kb.PopupWrapper>

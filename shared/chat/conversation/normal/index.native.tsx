@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import {PortalHost} from '@/common-adapters/portal.native'
 import * as Kb from '@/common-adapters'
