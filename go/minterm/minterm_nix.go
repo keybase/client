@@ -10,7 +10,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/keybase/go-crypto/ssh/terminal"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 func (m *MinTerm) open() error {

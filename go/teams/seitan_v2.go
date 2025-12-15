@@ -10,10 +10,11 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 
+	"crypto/ed25519"
+
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/msgpack"
-	"github.com/keybase/go-crypto/ed25519"
 	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"

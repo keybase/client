@@ -4,12 +4,13 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"crypto/ed25519"
+
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-crypto/ed25519"
 )
 
 type KVStoreBoxer interface {

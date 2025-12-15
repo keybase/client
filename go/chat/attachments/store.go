@@ -12,12 +12,13 @@ import (
 	"path/filepath"
 	"sync"
 
+	"crypto/ed25519"
+
 	"github.com/keybase/client/go/chat/attachments/progress"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/go-crypto/ed25519"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	lru "github.com/hashicorp/golang-lru"

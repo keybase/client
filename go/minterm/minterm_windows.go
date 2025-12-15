@@ -11,7 +11,7 @@ import (
 	"os"
 
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/go-crypto/ssh/terminal"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // terminal takes io.ReadWriter, so for windows we mash

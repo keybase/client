@@ -22,6 +22,8 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 
+	"crypto/ed25519"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/storage"
@@ -38,7 +40,6 @@ import (
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/go-crypto/ed25519"
 )
 
 const CurrentMessageBoxedVersion = chat1.MessageBoxedVersion_V2
