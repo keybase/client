@@ -85,7 +85,7 @@ helpers.rootLinuxNode(env, {
 
       source  ~/.gvm/scripts/gvm
       set -x
-      gvm debug
+      GVM_DEBUG=1
       gvm install go1.25.5 --prefer-binary && gvm use go1.25.5 --default
       source  ~/.nvm/nvm.sh
       nvm install 24 && nvm use 24 && nvm alias default 24
