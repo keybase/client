@@ -13,91 +13,12 @@ export * as Waiting from './waiting'
 export {useChatState} from './chat2'
 export {useConvoState_ as useConvoState, stores_ as chatStores, ChatProvider_ as ChatProvider} from './chat2'
 export {getConvoState, useContext_ as useChatContext} from './chat2'
-import {storeRegistry} from './store-registry'
 
 export {default as shallowEqual} from 'shallowequal'
 export * as PlatformSpecific from './platform-specific'
+export * from './utils'
 
-export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
-
-export const initListeners = () => {
-  const f = async () => {
-    await storeRegistry.getState('fs').dispatch.setupSubscriptions()
-    storeRegistry.getState('config').dispatch.setupSubscriptions()
-  }
-  ignorePromise(f())
-}
-
-// extracts the payload from pages used in routing
-export type PagesToParams<T> = {
-  [K in keyof T]: T[K] extends {screen: infer U}
-    ? U extends (args: infer V) => any
-      ? V extends {route: {params: infer W}}
-        ? W
-        : undefined
-      : undefined
-    : undefined
-}
-
-// get the views params and wrap them as the page would see it
-export type ViewPropsToPageProps<T> =
-  T extends React.LazyExoticComponent<infer C>
-    ? C extends React.ComponentType<infer P>
-      ? P extends undefined | never
-        ? {route: {params?: undefined}}
-        : {route: {params: P}}
-      : {route: {params?: undefined}}
-    : T extends (p: infer P) => any
-      ? P extends undefined | never
-        ? {route: {params?: undefined}}
-        : {route: {params: P}}
-      : {route: {params?: undefined}}
-export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
-  ? {route: {params: P | undefined}}
-  : never
-
-import logger from '@/logger'
 export {debugWarning} from '@/util/debug-warning'
-
-export const ignorePromise = (f: Promise<void> | Promise<PromiseSettledResult<void>[]>) => {
-  f.then(() => {}).catch((e: unknown) => {
-    // likely remove this after some time
-    logger.error('ignorePromise error', e)
-  })
-}
-
-export const timeoutPromise = async (timeMs: number) =>
-  new Promise<void>(resolve => {
-    setTimeout(() => resolve(), timeMs)
-  })
-
-export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
-  try {
-    return await f()
-  } catch {
-    return undefined
-  }
-}
-
-export function enumKeys<T extends Record<string, string | number>>(enumeration: T): (keyof T)[] {
-  return Object.keys(enumeration).filter(key => typeof enumeration[key] === 'number') as (keyof T)[]
-}
-
-export const assertNever = (_: never) => undefined
-
-import {useNavigation} from '@react-navigation/core'
-import {type RouteKeys} from '@/router-v2/route-params'
-export const useNav = () => {
-  const na = useNavigation()
-  const {canGoBack} = na
-  const pop: undefined | (() => void) = canGoBack() ? na.goBack : undefined
-  const navigate: (n: RouteKeys) => void = na.navigate
-  return {
-    canGoBack,
-    navigate,
-    pop,
-  }
-}
 
 export {useIsMounted, useOnMountOnce, useOnUnMountOnce, useEvent, useLogMount} from './react'
 export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
