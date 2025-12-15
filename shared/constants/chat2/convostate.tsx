@@ -31,7 +31,7 @@ import {clearChatTimeCache} from '@/util/timestamp'
 import {registerDebugClear} from '@/util/debug'
 import * as Config from '@/constants/config/util'
 import {isMobile} from '@/constants/platform'
-import {ignorePromise, shallowEqual, enumKeys} from '@/constants'
+import {ignorePromise, shallowEqual, enumKeys} from '@/constants/utils'
 import * as Strings from '@/constants/strings'
 // TODO remove
 import {getVisibleScreen} from '@/constants/router2'
@@ -2168,10 +2168,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             storeRegistry.getState('router').dispatch.clearModals()
           }
 
-          storeRegistry.getState('router').dispatch.navigateAppend(
-            {props: {conversationIDKey}, selected: Common.threadRouteName},
-            replace
-          )
+          storeRegistry
+            .getState('router')
+            .dispatch.navigateAppend({props: {conversationIDKey}, selected: Common.threadRouteName}, replace)
         }
       }
       updateNav()

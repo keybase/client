@@ -13,18 +13,5 @@ export * as Waiting from './waiting'
 export {useChatState} from './chat2'
 export {useConvoState_ as useConvoState, stores_ as chatStores, ChatProvider_ as ChatProvider} from './chat2'
 export {getConvoState, useContext_ as useChatContext} from './chat2'
-
-export {default as shallowEqual} from 'shallowequal'
 export * as PlatformSpecific from './platform-specific'
 export * from './utils'
-
-export {debugWarning} from '@/util/debug-warning'
-
-export {useIsMounted, useOnMountOnce, useOnUnMountOnce, useEvent, useLogMount} from './react'
-export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
-export {useShallow, useDeep} from '@/util/zustand'
-export {isNetworkErr, RPCError} from '@/util/errors'
-export {default as useRPC} from '@/util/use-rpc'
-export {produce} from 'immer'
-export * from './immer'
-export {default as featureFlags} from '../util/feature-flags'
