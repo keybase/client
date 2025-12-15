@@ -1,5 +1,6 @@
 import * as T from '../types'
 import * as C from '..'
+import {ignorePromise} from '../utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {storeRegistry} from '../store-registry'
 
@@ -12,7 +13,7 @@ export const onEngineConnected = () => {
       console.warn('Error in registering home UI:', error)
     }
   }
-  C.ignorePromise(f())
+  ignorePromise(f())
 }
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {

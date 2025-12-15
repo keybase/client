@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as Z from '@/util/zustand'
+import {ignorePromise} from '../utils'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import trim from 'lodash/trim'
@@ -111,7 +112,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.pendingInvites = pendingInvites
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     reclaimInvite: inviteId => {
       const f = async () => {
@@ -128,7 +129,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         get().dispatch.loadInvites()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetError: () => {
       set(s => {
@@ -169,7 +170,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.loadInvites()
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
   }
   return {

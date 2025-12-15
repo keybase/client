@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
+import {ignorePromise} from '../utils'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
@@ -378,7 +379,7 @@ export const usePeopleState = Z.createZustand<State>((set, get) => {
           i: id,
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadPeople: debounce(
       (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
@@ -494,7 +495,7 @@ export const usePeopleState = Z.createZustand<State>((set, get) => {
             // never throw black bars
           } catch {}
         }
-        C.ignorePromise(f())
+        ignorePromise(f())
       },
       1000,
       {leading: true, trailing: false}
@@ -514,7 +515,7 @@ export const usePeopleState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
@@ -548,7 +549,7 @@ export const usePeopleState = Z.createZustand<State>((set, get) => {
           get().dispatch.loadPeople(false)
         } catch {}
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
   }
   return {

@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as Chat from '../chat2'
+import {ignorePromise} from '../utils'
 import {storeRegistry} from '../store-registry'
 import * as ConfigConstants from '../config'
 import * as EngineGen from '@/actions/engine-gen-gen'
@@ -75,7 +76,7 @@ export const initPlatformListener = () => {
       const f = async () => {
         await T.RPCGen.configHelloIAmRpcPromise({details: KB2.constants.helloDetails})
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     })
 
     s.dispatch.dynamic.onEngineIncomingDesktop = C.wrapErrors((action: EngineGen.Actions) => {
@@ -89,7 +90,7 @@ export const initPlatformListener = () => {
               response.result()
             }
           }
-          C.ignorePromise(f())
+          ignorePromise(f())
           break
         }
         case EngineGen.keybase1NotifyAppExit:
@@ -107,7 +108,7 @@ export const initPlatformListener = () => {
               console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
             }
           }
-          C.ignorePromise(f())
+          ignorePromise(f())
           break
         }
         case EngineGen.keybase1NotifyServiceShutdown: {
@@ -178,7 +179,7 @@ export const initPlatformListener = () => {
         wait(waitKey, version, false, error.message || 'windows pipe owner fail', true)
       }
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   })
 
   const handleWindowFocusEvents = () => {
@@ -233,7 +234,7 @@ export const initPlatformListener = () => {
         await setOpenAtLogin?.(openAtLogin)
       }
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   })
 
   storeRegistry.getStore('daemon').subscribe((s, old) => {

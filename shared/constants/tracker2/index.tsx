@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as EngineGen from '@/actions/engine-gen-gen'
+import {generateGUIID, ignorePromise} from '../utils'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import * as T from '../types'
@@ -213,7 +214,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
           get().dispatch.updateResult(guiID, 'error', `Failed to ${follow ? 'follow' : 'unfollow'}`)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     closeTracker: guiID => {
       set(s => {
@@ -241,7 +242,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     ignore: guiID => {
       const f = async () => {
@@ -252,7 +253,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
           get().dispatch.updateResult(guiID, 'error', `Failed to ignore`)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     load: p => {
       const {guiID, forceDisplay, assertion, reason, ignoreCache = false, inTracker} = p
@@ -301,7 +302,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
 
       const loadFollowers = async () => {
         if (inTracker) return
@@ -327,7 +328,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(loadFollowers())
+      ignorePromise(loadFollowers())
 
       const loadFollowing = async () => {
         if (inTracker) return
@@ -353,7 +354,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(loadFollowing())
+      ignorePromise(loadFollowing())
     },
     loadNonUserProfile: assertion => {
       const f = async () => {
@@ -403,7 +404,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     notifyCard: (guiID, card) => {
       const username = guiIDToUsername(get(), guiID)
@@ -501,7 +502,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             get().dispatch.load({
               assertion: username,
               fromDaemon: false,
-              guiID: C.generateGUIID(),
+              guiID: generateGUIID(),
               ignoreCache: true,
               inTracker: false,
               reason: '',
@@ -536,7 +537,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             assertion: storeRegistry.getState('current-user').username,
             forceDisplay: false,
             fromDaemon: false,
-            guiID: C.generateGUIID(),
+            guiID: generateGUIID(),
             ignoreCache: false,
             inTracker: false,
             reason: '',
@@ -586,7 +587,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         // with new nav we never show trackers from inside the app
         forceDisplay: false,
         fromDaemon: false,
-        guiID: C.generateGUIID(),
+        guiID: generateGUIID(),
         ignoreCache: true,
         inTracker: asTracker,
         reason: '',

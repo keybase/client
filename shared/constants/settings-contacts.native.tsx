@@ -1,5 +1,6 @@
 import * as C from '.'
 import * as Contacts from 'expo-contacts'
+import {ignorePromise} from '../utils'
 import * as T from './types'
 import * as Z from '@/util/zustand'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -90,7 +91,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
         )
         get().dispatch.loadContactImportEnabled()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     importContactsLater: () => {
       set(s => {
@@ -129,7 +130,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
         get().dispatch.loadContactPermissions()
         get().dispatch.manageContactsCache()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadContactPermissions: () => {
       const f = async () => {
@@ -140,7 +141,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
           s.permissionStatus = status
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     manageContactsCache: () => {
       const f = async () => {
@@ -237,7 +238,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     requestPermissions: (thenToggleImportOn?: boolean, fromSettings?: boolean) => {
       const f = async () => {
@@ -253,7 +254,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
         })
         decrement(C.importContactsWaitingKey)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: 'default',
   }

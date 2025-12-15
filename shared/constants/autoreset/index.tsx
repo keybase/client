@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as Z from '@/util/zustand'
+import {ignorePromise} from '../utils'
 import * as T from '@/constants/types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
@@ -78,7 +79,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
@@ -163,7 +164,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: 'default',
     startAccountReset: (skipPassword, _username) => {

@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {ignorePromise, timeoutPromise} from '../utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as RemoteGen from '@/actions/remote-gen'
 import * as Stats from '@/engine/stats'
@@ -256,7 +257,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     if (r === T.RPCGen.Reachable.yes) {
       // not in waiting state
       if (storeRegistry.getState('daemon').handshakeWaiters.size === 0) {
-        C.ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
+        ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
       }
     }
 
@@ -481,7 +482,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           get().dispatch.showMain()
           break
         case RemoteGen.dumpLogs:
-          C.ignorePromise(get().dispatch.dumpLogs(action.payload.reason))
+          ignorePromise(get().dispatch.dumpLogs(action.payload.reason))
           break
         case RemoteGen.remoteWindowWantsProps:
           get().dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
@@ -592,7 +593,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           logger.warn('Error in checking whether we are online', err)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadOnStart: phase => {
       if (phase === get().loadOnStartPhase) return
@@ -647,10 +648,10 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
 
         getFollowerInfo()
-        C.ignorePromise(updateServerConfig())
+        ignorePromise(updateServerConfig())
         updateTeams()
         updateSettings()
-        C.ignorePromise(updateChat())
+        ignorePromise(updateChat())
       }
     },
     login: (username, passphrase) => {
@@ -724,7 +725,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
       }
       get().dispatch.setLoginError()
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     logoutAndTryToLogInAs: username => {
       const f = async () => {
@@ -733,7 +734,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
         get().dispatch.setDefaultUsername(username)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     onEngineConnected: () => {
       storeRegistry.getState('daemon').dispatch.startHandshake()
@@ -749,7 +750,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           logger.warn('error bootstrapping reachability: ', err)
         }
       }
-      C.ignorePromise(startReachability())
+      ignorePromise(startReachability())
 
       // If ever you want to get OOBMs for a different system, then you need to enter it here.
       const registerForGregorNotifications = async () => {
@@ -760,7 +761,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           logger.warn('error in registering gregor listener: ', error)
         }
       }
-      C.ignorePromise(registerForGregorNotifications())
+      ignorePromise(registerForGregorNotifications())
 
       get().dispatch.dynamic.onEngineConnectedDesktop?.()
       get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
@@ -769,7 +770,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         await logger.dump()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
       storeRegistry.getState('daemon').dispatch.setError(new Error('Disconnected'))
     },
     onEngineIncoming: action => {
@@ -867,7 +868,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         const reachability = await T.RPCGen.reachabilityCheckReachabilityRpcPromise()
         setGregorReachable(reachability.reachable)
       }
-      C.ignorePromise(updateGregor())
+      ignorePromise(updateGregor())
 
       const updateFS = async () => {
         if (isInit) return
@@ -880,13 +881,13 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           logger.warn(`failed to check KBFS reachability: ${error.message}`)
         }
       }
-      C.ignorePromise(updateFS())
+      ignorePromise(updateFS())
     },
     powerMonitorEvent: event => {
       const f = async () => {
         await T.RPCGen.appStatePowerMonitorEventRpcPromise({event})
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     remoteWindowNeedsProps: (component, params) => {
       set(s => {
@@ -1023,7 +1024,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       if (!changed) return
 
       if (loggedIn) {
-        C.ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
+        ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
       }
       storeRegistry.getState('daemon').dispatch.loadDaemonAccounts()
 
@@ -1032,12 +1033,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         if (!causedByStartup) {
           loadOnStart('reloggedIn')
           const f = async () => {
-            await C.timeoutPromise(1000)
+            await timeoutPromise(1000)
             requestAnimationFrame(() => {
               loadOnStart('startupOrReloginButNotInARush')
             })
           }
-          C.ignorePromise(f())
+          ignorePromise(f())
         }
       } else {
         Z.resetAllStores()
@@ -1048,7 +1049,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
 
       if (!causedByStartup) {
-        C.ignorePromise(storeRegistry.getState('daemon').dispatch.refreshAccounts())
+        ignorePromise(storeRegistry.getState('daemon').dispatch.refreshAccounts())
       }
     },
     setLoginError: error => {
@@ -1148,7 +1149,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           })
         } catch {}
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     updateWindowState: ws => {
       const next = {...get().windowState, ...ws}

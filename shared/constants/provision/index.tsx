@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {ignorePromise} from '../utils'
 import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '../platform'
@@ -278,7 +279,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
         }
         storeRegistry.getState('router').dispatch.clearModals()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     dynamic: {
       cancel: _cancel,
@@ -328,7 +329,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: () => {
       get().dispatch.dynamic.cancel?.(true)
@@ -545,7 +546,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
           get().dispatch.resetState()
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     startProvision: (name = '', fromReset = false) => {
       get().dispatch.dynamic.cancel?.(true)
@@ -565,7 +566,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
         }
         storeRegistry.getState('router').dispatch.navigateAppend({props: {fromReset}, selected: 'username'})
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
   }
 

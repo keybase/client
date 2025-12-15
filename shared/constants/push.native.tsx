@@ -1,5 +1,6 @@
 import * as C from '.'
 import * as Tabs from './tabs'
+import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
 import {storeRegistry} from './store-registry'
 import * as Z from '@/util/zustand'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -138,7 +139,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           storeRegistry.getState('logout').dispatch.wait(waitKey, version, false)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     handlePush: notification => {
       const f = async () => {
@@ -188,7 +189,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           logger.error('[Push] unhandled!!')
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     initialPermissionsCheck: () => {
       const f = async () => {
@@ -203,8 +204,8 @@ export const usePushState = Z.createZustand<State>((set, get) => {
             return !!v.b
           }
           const [shownNativePushPrompt, shownMonsterPushPrompt] = await Promise.all([
-            C.neverThrowPromiseFunc(shownNativePushPromptTask),
-            C.neverThrowPromiseFunc(shownMonsterPushPromptTask),
+            neverThrowPromiseFunc(shownNativePushPromptTask),
+            neverThrowPromiseFunc(shownMonsterPushPromptTask),
           ])
           logger.info(
             '[PushInitialCheck] shownNativePushPrompt:',
@@ -218,14 +219,14 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     rejectPermissions: () => {
       set(s => {
         s.hasPermissions = false
         s.showPushPrompt = false
       })
-      C.ignorePromise(neverShowMonsterAgain())
+      ignorePromise(neverShowMonsterAgain())
     },
     requestPermissions: () => {
       const f = async () => {
@@ -263,7 +264,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: 'default',
     setPushToken: (token: string) => {
@@ -291,7 +292,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         }
       }
       if (token) {
-        C.ignorePromise(uploadPushToken())
+        ignorePromise(uploadPushToken())
       }
     },
     showPermissionsPrompt: p => {
@@ -314,15 +315,15 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           !get().hasPermissions
         ) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
-          await C.timeoutPromise(100)
+          await timeoutPromise(100)
           storeRegistry.getState('router').dispatch.switchTab(Tabs.peopleTab)
           storeRegistry.getState('router').dispatch.navigateAppend('settingsPushPrompt')
         }
       }
-      C.ignorePromise(monsterPrompt())
+      ignorePromise(monsterPrompt())
 
       if (!get().showPushPrompt && p.persistSkip) {
-        C.ignorePromise(neverShowMonsterAgain())
+        ignorePromise(neverShowMonsterAgain())
       }
     },
   }

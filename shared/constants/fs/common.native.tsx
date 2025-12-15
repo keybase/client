@@ -1,5 +1,6 @@
 import * as C from '..'
 import logger from '@/logger'
+import {ignorePromise} from '../utils'
 import * as T from '../types'
 import * as Styles from '@/styles'
 import * as FS from '@/constants/fs'
@@ -22,7 +23,7 @@ export default function initNative() {
             FS.errorToActionOrThrow(e)
           }
         }
-        C.ignorePromise(f())
+        ignorePromise(f())
       }
     )
 
@@ -61,7 +62,7 @@ export default function initNative() {
             FS.errorToActionOrThrow(err)
           }
         }
-        C.ignorePromise(f())
+        ignorePromise(f())
       }
     )
   })

@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {ignorePromise} from '../utils'
 import * as Z from '@/util/zustand'
 import {storeRegistry} from '../store-registry'
 
@@ -62,7 +63,7 @@ export const useSettingsChatState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     contactSettingsSaved: (enabled, indirectFollowees, teamsEnabled, teamsList) => {
       const f = async () => {
@@ -94,7 +95,7 @@ export const useSettingsChatState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: 'default',
     unfurlSettingsRefresh: () => {
@@ -120,7 +121,7 @@ export const useSettingsChatState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     unfurlSettingsSaved: (unfurlMode, unfurlWhitelist) => {
       set(s => {
@@ -142,7 +143,7 @@ export const useSettingsChatState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
   }
   return {

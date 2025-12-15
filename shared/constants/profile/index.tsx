@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {generateGUIID, ignorePromise} from '../utils'
 import * as Validators from '@/util/simple-validators'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
@@ -214,7 +215,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         }
       }
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   // only let one of these happen at a time
@@ -265,7 +266,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         const loadAfter = () =>
           storeRegistry.getState('tracker2').dispatch.load({
             assertion: storeRegistry.getState('current-user').username,
-            guiID: C.generateGUIID(),
+            guiID: generateGUIID(),
             inTracker: false,
             reason: '',
           })
@@ -428,7 +429,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     backToProfile: () => {
       storeRegistry.getState('router').dispatch.clearModals()
@@ -473,7 +474,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
       get().dispatch.dynamic.afterCheckProof?.()
     },
     clearPlatformGeneric: () => {
@@ -494,14 +495,14 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, C.waitingKeyTracker)
         get().dispatch.showUserProfile(storeRegistry.getState('current-user').username)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     finishRevoking: () => {
       const username = storeRegistry.getState('current-user').username
       get().dispatch.showUserProfile(username)
       storeRegistry.getState('tracker2').dispatch.load({
         assertion: storeRegistry.getState('current-user').username,
-        guiID: C.generateGUIID(),
+        guiID: generateGUIID(),
         inTracker: false,
         reason: '',
       })
@@ -570,7 +571,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           s.dispatch.dynamic.finishedWithKeyGen = undefined
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     hideStellar: hidden => {
       const f = async () => {
@@ -586,7 +587,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           logger.warn('Error setting Stellar hidden:', e)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     recheckProof: sigID => {
       set(s => {
@@ -597,7 +598,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         await T.RPCGen.proveCheckProofRpcPromise({sigID}, C.waitingKeyProfile)
         storeRegistry.getState('tracker2').dispatch.showUser(storeRegistry.getState('current-user').username, false)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: () => {
       set(s => ({
@@ -622,7 +623,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           })
           storeRegistry.getState('tracker2').dispatch.load({
             assertion: username,
-            guiID: C.generateGUIID(),
+            guiID: generateGUIID(),
             inTracker: false,
             reason: '',
           })
@@ -637,7 +638,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     submitRevokeProof: proofId => {
       const f = async () => {
@@ -667,7 +668,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     submitUnblockUser: (username, guiID) => {
       const f = async () => {
@@ -675,7 +676,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.userUnblockUserRpcPromise({username})
           storeRegistry.getState('tracker2').dispatch.load({
             assertion: username,
-            guiID: C.generateGUIID(),
+            guiID: generateGUIID(),
             inTracker: false,
             reason: '',
           })
@@ -690,7 +691,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
             .dispatch.updateResult(guiID, 'error', `Failed to unblock ${username}: ${error.desc}`)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     submitZcashAddress: () => {
       submitCryptoAddress('zcash')
@@ -732,7 +733,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           logger.warn(`Error uploading user avatar: ${error.message}`)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
   }
   return {

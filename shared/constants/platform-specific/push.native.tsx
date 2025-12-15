@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '@/logger'
 import {isIOS, isAndroid} from '../platform'
@@ -200,7 +201,7 @@ const iosListenForPushNotificationsFromJS = () => {
 }
 
 const getStartupDetailsFromInitialPush = async () => {
-  const notification = await Promise.race([isAndroid ? null : getInitialPushiOS(), C.timeoutPromise(10)])
+  const notification = await Promise.race([isAndroid ? null : getInitialPushiOS(), timeoutPromise(10)])
   if (!notification) {
     return
   }
@@ -274,7 +275,7 @@ export const initPushListener = () => {
       iosListenForPushNotificationsFromJS()
     }
   }
-  C.ignorePromise(listenNative())
+  ignorePromise(listenNative())
 }
 
 export {getStartupDetailsFromInitialPush}

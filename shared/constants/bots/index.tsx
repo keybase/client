@@ -2,6 +2,7 @@ import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
 import * as C from '..'
+import {ignorePromise} from '../utils'
 import logger from '@/logger'
 
 type BotSearchResults = {
@@ -63,7 +64,7 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadNextBotPage: ps => {
       get().dispatch.getFeaturedBots(ps ?? pageSize, get().featuredBotsPage + 1)
@@ -124,7 +125,7 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
           }, []),
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     searchFeaturedBots: (query, limit, offset) => {
       const f = async () => {
@@ -150,7 +151,7 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     setLoadedAllBots: loaded => {
       set(s => {

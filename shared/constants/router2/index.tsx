@@ -18,8 +18,7 @@ import type {GetOptionsRet} from '../types/router2'
 import {registerDebugClear} from '@/util/debug'
 import {storeRegistry} from '../store-registry'
 import {isMobile, isTablet} from '../platform'
-import shallowEqual from 'shallowequal'
-import type {ViewPropsToPageProps} from '..'
+import {shallowEqual, type ViewPropsToPageProps} from '../utils'
 export type PathParam = NavigateAppendType
 export type Route = NavigationState<KBRootParamList>['routes'][0]
 // still a little paranoid about some things being missing in this type

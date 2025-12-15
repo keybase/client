@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {ignorePromise} from '../utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
@@ -97,7 +98,7 @@ export const useGitState = Z.createZustand<State>((set, get) => {
         })
       }
     }
-    C.ignorePromise(wrapper())
+    ignorePromise(wrapper())
   }
 
   const _load = debounce(
@@ -114,7 +115,7 @@ export const useGitState = Z.createZustand<State>((set, get) => {
     {leading: true, trailing: false}
   )
   const load = () => {
-    C.ignorePromise(_load())
+    ignorePromise(_load())
   }
   const dispatch: State['dispatch'] = {
     clearBadges: () => {
@@ -157,7 +158,7 @@ export const useGitState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {

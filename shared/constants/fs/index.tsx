@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
+import {ignorePromise, timeoutPromise} from '../utils'
 import * as Tabs from '../tabs'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
@@ -1324,7 +1325,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
     } catch (error) {
       if (n > 0) {
         logger.warn(`failed to check if we are connected to MDServer: ${String(error)}; n=${n}`)
-        await C.timeoutPromise(2000)
+        await timeoutPromise(2000)
         return checkIfWeReConnectedToMDServerUpToNTimes(n - 1)
       } else {
         logger.warn(`failed to check if we are connected to MDServer : ${String(error)}; n=${n}, throwing`)
@@ -1344,7 +1345,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID})
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     checkKbfsDaemonRpcStatus: () => {
       const f = async () => {
@@ -1363,7 +1364,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           waitForKbfsDaemon()
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     commitEdit: editID => {
       const edit = get().edits.get(editID)
@@ -1417,7 +1418,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     deleteFile: path => {
       const f = async () => {
@@ -1433,7 +1434,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(e, path)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     discardEdit: editID => {
       set(s => {
@@ -1444,7 +1445,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID})
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     dismissRedbar: index => {
       set(s => {
@@ -1457,7 +1458,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.SimpleFSSimpleFSDismissUploadRpcPromise({uploadID})
         } catch {}
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     download: (path, type) => {
       const f = async () => {
@@ -1473,7 +1474,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           )
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     driverDisable: () => {
       get().dispatch.dynamic.afterDriverDisable?.()
@@ -1573,7 +1574,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           })
         )
       })
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     favoritesLoad: () => {
       const f = async () => {
@@ -1639,7 +1640,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         }
         return
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     finishManualConflictResolution: localViewTlfPath => {
       const f = async () => {
@@ -1648,7 +1649,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         })
         get().dispatch.favoritesLoad()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     folderListLoad: (rootPath, isRecursive) => {
       const f = async () => {
@@ -1763,13 +1764,13 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           return
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     getOnlineStatus: () => {
       const f = async () => {
         await checkIfWeReConnectedToMDServerUpToNTimes(2)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     journalUpdate: (syncingPaths, totalSyncingBytes, endEstimate) => {
       set(s => {
@@ -1885,7 +1886,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(error)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadAdditionalTlf: tlfPath => {
       const f = async () => {
@@ -1941,7 +1942,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(error, tlfPath)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadDownloadInfo: downloadID => {
       const f = async () => {
@@ -1961,7 +1962,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(error)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadDownloadStatus: () => {
       const f = async () => {
@@ -1996,7 +1997,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(error)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadFileContext: path => {
       const f = async () => {
@@ -2017,7 +2018,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           return
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadFilesTabBadge: () => {
       const f = async () => {
@@ -2036,7 +2037,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           } catch {}
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadPathInfo: path => {
       const f = async () => {
@@ -2048,7 +2049,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           platformAfterMountPath: pathInfo.platformAfterMountPath,
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadPathMetadata: path => {
       const f = async () => {
@@ -2073,7 +2074,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           return
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadSettings: () => {
       const f = async () => {
@@ -2096,7 +2097,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadTlfSyncConfig: tlfPath => {
       const f = async () => {
@@ -2136,7 +2137,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           return
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadUploadStatus: () => {
       const f = async () => {
@@ -2168,7 +2169,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(err)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadedPathInfo: (path, info) => {
       set(s => {
@@ -2235,7 +2236,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           return
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     newFolderRow: parentPath => {
       const parentPathItem = getPathItem(get().pathItems, parentPath)
@@ -2338,7 +2339,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             break
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     pollJournalStatus: () => {
       if (pollJournalStatusPolling) {
@@ -2373,7 +2374,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               break
             }
             storeRegistry.getState('notifications').dispatch.badgeApp('kbfsUploading', true)
-            await C.timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
+            await timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
           }
         } finally {
           pollJournalStatusPolling = false
@@ -2381,7 +2382,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           get().dispatch.checkKbfsDaemonRpcStatus()
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     redbar: error => {
       set(s => {
@@ -2404,7 +2405,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSSetDebugLevelRpcPromise({level})
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     setDestinationPickerParentPath: (index, path) => {
       set(s => {
@@ -2496,7 +2497,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         })
         get().dispatch.loadSettings()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     setTlfSoftError: (path, softError) => {
       set(s => {
@@ -2518,7 +2519,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         )
         get().dispatch.loadTlfSyncConfig(tlfPath)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     setTlfsAsUnloaded: () => {
       set(s => {
@@ -2560,7 +2561,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         })
         get().dispatch.favoritesLoad()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     startRename: path => {
       const parentPath = T.FS.getPathParent(path)
@@ -2588,7 +2589,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(err)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     subscribePath: (subscriptionID, path, topic) => {
       const f = async () => {
@@ -2611,7 +2612,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     syncStatusChanged: status => {
       const diskSpaceStatus = status.outOfSyncSpace
@@ -2668,7 +2669,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           })
         } catch {}
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     upload: (parentPath, localPath) => {
       const f = async () => {
@@ -2681,7 +2682,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(err)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     userFileEditsLoad: () => {
       const f = async () => {
@@ -2694,20 +2695,20 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(error)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     userIn: () => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSUserInRpcPromise({clientID})
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
       get().dispatch.checkKbfsDaemonRpcStatus()
     },
     userOut: () => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSUserOutRpcPromise({clientID})
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     waitForKbfsDaemon: () => {
       if (waitForKbfsDaemonInProgress) {
@@ -2728,7 +2729,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         waitForKbfsDaemonInProgress = false
         get().dispatch.checkKbfsDaemonRpcStatus()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
   }
 

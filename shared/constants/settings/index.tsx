@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {ignorePromise, timeoutPromise} from '../utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import openURL from '@/util/open-url'
 import * as Z from '@/util/zustand'
@@ -120,13 +121,13 @@ export const useSettingsState = Z.createZustand<State>(set => {
           s.checkPasswordIsCorrect = res
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     dbNuke: () => {
       const f = async () => {
         await T.RPCGen.ctlDbNukeRpcPromise(undefined, C.waitingKeySettingsGeneric)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     deleteAccountForever: passphrase => {
       const f = async () => {
@@ -145,7 +146,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
         storeRegistry.getState('router').dispatch.clearModals()
         storeRegistry.getState('router').dispatch.navigateAppend(Tabs.loginTab)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadLockdownMode: () => {
       const f = async () => {
@@ -163,7 +164,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadProxyData: () => {
       const f = async () => {
@@ -177,7 +178,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
           return
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadSettings: () => {
       const f = async () => {
@@ -200,14 +201,14 @@ export const useSettingsState = Z.createZustand<State>(set => {
           return
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loginBrowserViaWebAuthToken: () => {
       const f = async () => {
         const link = await T.RPCGen.configGenerateWebAuthTokenRpcPromise()
         openURL(link)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
@@ -241,10 +242,10 @@ export const useSettingsState = Z.createZustand<State>(set => {
         })
         const {decrement, increment} = storeRegistry.getState('waiting').dispatch
         increment(processorProfileInProgressKey)
-        await C.timeoutPromise(profileDurationSeconds * 1_000)
+        await timeoutPromise(profileDurationSeconds * 1_000)
         decrement(processorProfileInProgressKey)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetCheckPassword: () => {
       set(s => {
@@ -273,7 +274,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     setProxyData: proxyData => {
       const f = async () => {
@@ -283,13 +284,13 @@ export const useSettingsState = Z.createZustand<State>(set => {
           logger.warn('Error in saving proxy data', err)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     stop: exitCode => {
       const f = async () => {
         await T.RPCGen.ctlStopRpcPromise({exitCode})
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     trace: durationSeconds => {
       const f = async () => {
@@ -299,10 +300,10 @@ export const useSettingsState = Z.createZustand<State>(set => {
         })
         const {decrement, increment} = storeRegistry.getState('waiting').dispatch
         increment(traceInProgressKey)
-        await C.timeoutPromise(durationSeconds * 1_000)
+        await timeoutPromise(durationSeconds * 1_000)
         decrement(traceInProgressKey)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
   }
   return {

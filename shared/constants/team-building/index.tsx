@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {ignorePromise} from '../utils'
 import * as Crypto from '../crypto'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
@@ -325,7 +326,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     finishTeamBuilding: () => {
       set(s => {
@@ -440,7 +441,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         }, new Array<string>())
         blocks.length && storeRegistry.getState('users').dispatch.getBlockState(blocks)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     selectRole: role => {
       set(s => {

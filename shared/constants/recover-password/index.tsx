@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {ignorePromise} from '../utils'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
@@ -248,7 +249,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           storeRegistry.getState('router').dispatch.clearModals()
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
   }
   return {

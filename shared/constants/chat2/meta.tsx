@@ -1,5 +1,6 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
 import * as C from '..'
+import {shallowEqual} from '../utils'
 import * as T from '../types'
 import * as Teams from '../teams/util'
 import * as Message from './message'
@@ -124,16 +125,16 @@ const copyOverOldValuesIfEqual = (
   newMeta: T.Immutable<T.Chat.ConversationMeta>
 ) => {
   const merged = {...newMeta}
-  if (C.shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
+  if (shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
     merged.rekeyers = oldMeta.rekeyers
   }
-  if (C.shallowEqual([...merged.resetParticipants], [...oldMeta.resetParticipants])) {
+  if (shallowEqual([...merged.resetParticipants], [...oldMeta.resetParticipants])) {
     merged.resetParticipants = oldMeta.resetParticipants
   }
-  if (C.shallowEqual(merged.retentionPolicy, oldMeta.retentionPolicy)) {
+  if (shallowEqual(merged.retentionPolicy, oldMeta.retentionPolicy)) {
     merged.retentionPolicy = oldMeta.retentionPolicy
   }
-  if (C.shallowEqual(merged.teamRetentionPolicy, oldMeta.teamRetentionPolicy)) {
+  if (shallowEqual(merged.teamRetentionPolicy, oldMeta.teamRetentionPolicy)) {
     merged.teamRetentionPolicy = oldMeta.teamRetentionPolicy
   }
   return merged

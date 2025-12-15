@@ -4,6 +4,7 @@ import logger from '@/logger'
 import * as T from '../types'
 import * as C from '..'
 import {mapGetEnsureValue} from '@/util/map'
+import {ignorePromise} from '../utils'
 
 type Store = T.Immutable<{
   blockMap: Map<string, T.Users.BlockState>
@@ -57,7 +58,7 @@ export const useUsersState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     getBlockState: usernames => {
       const f = async () => {
@@ -68,7 +69,7 @@ export const useUsersState = Z.createZustand<State>((set, get) => {
           })
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
@@ -118,7 +119,7 @@ export const useUsersState = Z.createZustand<State>((set, get) => {
           C.waitingKeyUsersReportUser
         )
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: 'default',
     setUserBlocks: blocks => {
@@ -127,7 +128,7 @@ export const useUsersState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.userSetUserBlocksRpcPromise({blocks}, C.waitingKeyUsersSetUserBlocks)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     updates: infos => {
       set(s => {

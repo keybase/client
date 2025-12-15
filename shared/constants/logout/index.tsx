@@ -1,5 +1,6 @@
 import * as C from '..'
 import logger from '@/logger'
+import {ignorePromise, timeoutPromise} from '../utils'
 import * as T from '@/constants/types'
 // normally util.container but it re-exports from us so break the cycle
 import * as Z from '@/util/zustand'
@@ -70,10 +71,10 @@ export const useLogoutState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         const waitKey = 'nullhandshake'
         get().dispatch.wait(waitKey, version, true)
-        await C.timeoutPromise(10)
+        await timeoutPromise(10)
         get().dispatch.wait(waitKey, version, false)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     wait: (name, _version, increment) => {
       const {version} = get()

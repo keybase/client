@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as Platforms from '../platform'
+import {ignorePromise} from '../utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
@@ -132,7 +133,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         }
       }
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const dispatch: State['dispatch'] = {
@@ -158,7 +159,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     checkInviteCode: () => {
       const invitationCode = get().inviteCode
@@ -181,7 +182,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     checkUsername: username => {
       set(s => {
@@ -219,7 +220,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     clearJustSignedUpEmail: () => {
       set(s => {
@@ -269,7 +270,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           storeRegistry.getState('router').dispatch.navigateAppend('signupError')
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     // shouldn't ever be used
     requestInvite: (email, name) => {
@@ -299,7 +300,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: () => {
       set(s => ({

@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as Chat from '../chat2'
+import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
 import {storeRegistry} from '../store-registry'
 import * as T from '../types'
 import * as Clipboard from 'expo-clipboard'
@@ -136,7 +137,7 @@ export const showShareActionSheet = async (options: {
 
 const loadStartupDetails = async () => {
   const [routeState, initialUrl, push] = await Promise.all([
-    C.neverThrowPromiseFunc(async () => {
+    neverThrowPromiseFunc(async () => {
       try {
         const config = JSON.parse(guiConfig) as {ui?: {routeState2?: string}} | undefined
         return Promise.resolve(config?.ui?.routeState2 ?? '')
@@ -144,8 +145,8 @@ const loadStartupDetails = async () => {
         return Promise.resolve('')
       }
     }),
-    C.neverThrowPromiseFunc(async () => Linking.getInitialURL()),
-    C.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
+    neverThrowPromiseFunc(async () => Linking.getInitialURL()),
+    neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
   ] as const)
 
   // Clear last value to be extra safe bad things don't hose us forever
@@ -364,7 +365,7 @@ export const initPlatformListener = () => {
           value: {isNull: false, s},
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     })
 
     s.dispatch.dynamic.onEngineIncomingNative = C.wrapErrors((action: EngineGen.Actions) => {
@@ -410,7 +411,7 @@ export const initPlatformListener = () => {
 
   const configureAndroidCacheDir = () => {
     if (isAndroid && fsCacheDir && fsDownloadDir) {
-      C.ignorePromise(
+      ignorePromise(
         T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
           // [app]/.cache by default, which can't be used for sharing to other apps.
@@ -472,7 +473,7 @@ export const initPlatformListener = () => {
           storeRegistry.getState('config').dispatch.filePickerError(new Error(String(error)))
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     }
   })
 
@@ -484,7 +485,7 @@ export const initPlatformListener = () => {
         .getState('config')
         .dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type, true)
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   })
 
   storeRegistry.getStore('config').subscribe((s, old) => {
@@ -498,7 +499,7 @@ export const initPlatformListener = () => {
         console.warn('Error sending mobileNetStateUpdate', err)
       }
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   })
 
   storeRegistry.getStore('config').setState(s => {
@@ -507,7 +508,7 @@ export const initPlatformListener = () => {
         const f = async () => {
           await showShareActionSheet({filePath, message, mimeType})
         }
-        C.ignorePromise(f())
+        ignorePromise(f())
       }
     )
   })
@@ -537,7 +538,7 @@ export const initPlatformListener = () => {
     const prev = old.navState
     if (next === prev) return
     const f = async () => {
-      await C.timeoutPromise(1000)
+      await timeoutPromise(1000)
       const path = C.Router2.getVisiblePath()
       storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(path)
     }
@@ -546,11 +547,11 @@ export const initPlatformListener = () => {
       calledShareListenersRegistered = true
       shareListenersRegistered()
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   })
 
   // Start this immediately instead of waiting so we can do more things in parallel
-  C.ignorePromise(loadStartupDetails())
+  ignorePromise(loadStartupDetails())
   initPushListener()
 
   NetInfo.addEventListener(({type}) => {
@@ -560,7 +561,7 @@ export const initPlatformListener = () => {
   })
 
   const initAudioModes = () => {
-    C.ignorePromise(setupAudioMode(false))
+    ignorePromise(setupAudioMode(false))
   }
   initAudioModes()
 
@@ -586,7 +587,7 @@ export const initPlatformListener = () => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     })
 
     s.dispatch.dynamic.onEngineIncomingNative = C.wrapErrors((action: EngineGen.Actions) => {
@@ -604,10 +605,10 @@ export const initPlatformListener = () => {
           break
         }
         case EngineGen.chat1ChatUiChatWatchPosition:
-          C.ignorePromise(onChatWatchPosition(action))
+          ignorePromise(onChatWatchPosition(action))
           break
         case EngineGen.chat1ChatUiChatClearWatch:
-          C.ignorePromise(onChatClearWatch())
+          ignorePromise(onChatClearWatch())
           break
         default:
       }

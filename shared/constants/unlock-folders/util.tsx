@@ -1,5 +1,6 @@
 import * as T from '../types'
 import * as C from '..'
+import {ignorePromise} from '../utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {storeRegistry} from '../store-registry'
 import logger from '@/logger'
@@ -14,7 +15,7 @@ export const onEngineConnected = () => {
       logger.debug('error in registering rekey ui: ', error)
     }
   }
-  C.ignorePromise(f())
+  ignorePromise(f())
 }
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
