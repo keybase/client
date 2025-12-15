@@ -62,7 +62,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
 
   // Note that we do not directly take any information directly from the TeamTree result other
   // than the **shape of the tree**. The other information is delegated to
-  // C.Teams.maybeGetSparseMemberInfo which opportunistically sources the information from the
+  // Teams.maybeGetSparseMemberInfo which opportunistically sources the information from the
   // teamDetails map if present, so as to show up-to-date information.
   const teamIDs: Array<T.Teams.TeamID> =
     memberships?.memberships
