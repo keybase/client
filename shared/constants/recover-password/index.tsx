@@ -1,5 +1,4 @@
 import * as C from '..'
-import * as AutoReset from '../autoreset'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
@@ -141,7 +140,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     })
                   })
                 } else {
-                  const {startAccountReset} = AutoReset.useAutoResetState.getState().dispatch
+                  const {startAccountReset} = storeRegistry.getState('autoreset').dispatch
                   startAccountReset(true, '')
                   response.result(T.RPCGen.ResetPromptResponse.nothing)
                 }
