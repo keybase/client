@@ -1,8 +1,8 @@
 import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
-import * as C from '..'
-import {ignorePromise} from '../utils'
+import {ignorePromise, RPCError, isNetworkErr} from '../utils'
+import * as S from '../strings'
 import logger from '@/logger'
 
 type BotSearchResults = {
@@ -54,10 +54,10 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
           get().dispatch.updateFeaturedBots(bots ?? [], page)
           get().dispatch.setLoadedAllBots(loadedAllBots)
         } catch (error) {
-          if (!(error instanceof C.RPCError)) {
+          if (!(error instanceof RPCError)) {
             return
           }
-          if (C.isNetworkErr(error.code)) {
+          if (isNetworkErr(error.code)) {
             logger.info('Network error getting featured bots')
           } else {
             logger.info(error.message)
@@ -92,7 +92,7 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
           const temp = await Promise.all([
             T.RPCGen.featuredBotSearchRpcPromise(
               {limit: 10, offset: 0, query},
-              C.waitingKeyBotsSearchFeatured
+              S.waitingKeyBotsSearchFeatured
             ),
             T.RPCGen.userSearchUserSearchRpcPromise(
               {
@@ -102,13 +102,13 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
                 query,
                 service: 'keybase',
               },
-              C.waitingKeyBotsSearchUsers
+              S.waitingKeyBotsSearchUsers
             ),
           ])
           botRes = temp[0]
           userRes = temp[1] ?? undefined
         } catch (error) {
-          if (!(error instanceof C.RPCError)) {
+          if (!(error instanceof RPCError)) {
             return
           }
           logger.info(`searchFeaturedAndUsers: failed to run search: ${error.message}`)
@@ -141,10 +141,10 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
           }
           get().dispatch.updateFeaturedBots(bots)
         } catch (error) {
-          if (!(error instanceof C.RPCError)) {
+          if (!(error instanceof RPCError)) {
             return
           }
-          if (C.isNetworkErr(error.code)) {
+          if (isNetworkErr(error.code)) {
             logger.info('Network error searching featured bots')
           } else {
             logger.info(error.message)

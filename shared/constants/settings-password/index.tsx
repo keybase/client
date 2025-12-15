@@ -1,6 +1,6 @@
-import * as C from '..'
 import * as Z from '@/util/zustand'
 import {ignorePromise} from '../utils'
+import {waitingKeySettingsGeneric} from '../strings'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import * as T from '../types'
@@ -136,7 +136,7 @@ export const usePWState = Z.createZustand<State>((set, get) => {
               oldPassphrase: '',
               passphrase: newPassword,
             },
-            C.waitingKeySettingsGeneric
+            waitingKeySettingsGeneric
           )
 
           if (thenLogout) {

@@ -1,6 +1,6 @@
-import * as C from '..'
 import * as T from '../types'
 import {ignorePromise} from '../utils'
+import * as Router2 from '../router2'
 import * as Crypto from '../crypto'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
@@ -291,7 +291,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       })
     },
     closeTeamBuilding: () => {
-      const modals = C.Router2.getModalStack()
+      const modals = Router2.getModalStack()
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals.at(-1)?.name
       if (routeNames.includes(routeName ?? '')) {

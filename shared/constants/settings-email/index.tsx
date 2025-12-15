@@ -1,5 +1,5 @@
 import * as Z from '@/util/zustand'
-import * as C from '@/constants'
+import {addEmailWaitingKey} from '../strings'
 import {ignorePromise} from '../utils'
 import * as T from '../types'
 import {isValidEmail} from '@/util/simple-validators'
@@ -87,7 +87,7 @@ export const useSettingsEmailState = Z.createZustand<State>((set, get) => {
                 ? T.RPCGen.IdentityVisibility.public
                 : T.RPCGen.IdentityVisibility.private,
             },
-            C.addEmailWaitingKey
+            addEmailWaitingKey
           )
           logger.info('success')
           if (email !== get().addingEmail) {

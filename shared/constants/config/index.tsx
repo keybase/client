@@ -1,6 +1,7 @@
-import * as C from '..'
 import * as T from '../types'
-import {ignorePromise, timeoutPromise} from '../utils'
+import {ignorePromise, timeoutPromise, RPCError} from '../utils'
+import {serverConfigFileName} from '../platform'
+import {waitingKeyConfigLogin} from '../strings'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as RemoteGen from '@/actions/remote-gen'
 import * as Stats from '@/engine/stats'
@@ -417,7 +418,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
               get().dispatch.openUnlockFolders([])
             })
             .catch((e: unknown) => {
-              if (!(e instanceof C.RPCError)) return
+              if (!(e instanceof RPCError)) return
               set(s => {
                 s.unlockFoldersError = e.desc
               })
@@ -607,7 +608,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           if (get().loggedIn) {
             try {
               await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
-                serverConfigPath: C.serverConfigFileName,
+                serverConfigPath: serverConfigFileName,
               })
             } catch {}
           }
@@ -697,7 +698,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
               paperKey: '',
               username,
             },
-            waitingKey: C.waitingKeyConfigLogin,
+            waitingKey: waitingKeyConfigLogin,
           })
           logger.info('login call succeeded')
           get().dispatch.setLoggedIn(true, false)
@@ -720,7 +721,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     logoutAndTryToLogInAs: username => {
       const f = async () => {
         if (get().loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, C.waitingKeyConfigLogin)
+          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, waitingKeyConfigLogin)
         }
         get().dispatch.setDefaultUsername(username)
       }

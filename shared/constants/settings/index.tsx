@@ -1,6 +1,7 @@
-import * as C from '..'
 import * as T from '../types'
 import {ignorePromise, timeoutPromise} from '../utils'
+import * as S from '../strings'
+import {androidIsTestDevice, pprofDir} from '../platform'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import openURL from '@/util/open-url'
 import * as Z from '@/util/zustand'
@@ -115,7 +116,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
       const f = async () => {
         const res = await T.RPCGen.accountPassphraseCheckRpcPromise(
           {passphrase},
-          C.waitingKeySettingsCheckPassword
+          S.waitingKeySettingsCheckPassword
         )
         set(s => {
           s.checkPasswordIsCorrect = res
@@ -125,7 +126,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     },
     dbNuke: () => {
       const f = async () => {
-        await T.RPCGen.ctlDbNukeRpcPromise(undefined, C.waitingKeySettingsGeneric)
+        await T.RPCGen.ctlDbNukeRpcPromise(undefined, S.waitingKeySettingsGeneric)
       }
       ignorePromise(f())
     },
@@ -137,11 +138,11 @@ export const useSettingsState = Z.createZustand<State>(set => {
           throw new Error('Unable to delete account: no username set')
         }
 
-        if (C.androidIsTestDevice) {
+        if (androidIsTestDevice) {
           return
         }
 
-        await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, C.waitingKeySettingsGeneric)
+        await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, S.waitingKeySettingsGeneric)
         storeRegistry.getState('config').dispatch.setJustDeletedSelf(username)
         storeRegistry.getState('router').dispatch.clearModals()
         storeRegistry.getState('router').dispatch.navigateAppend(Tabs.loginTab)
@@ -188,7 +189,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
         try {
           const settings = await T.RPCGen.userLoadMySettingsRpcPromise(
             undefined,
-            C.waitingKeySettingsLoadSettings
+            S.waitingKeySettingsLoadSettings
           )
           storeRegistry.getState('settings-email').dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
           storeRegistry.getState('settings-phone').dispatch.setNumbers(settings.phoneNumbers ?? undefined)
@@ -237,7 +238,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     processorProfile: profileDurationSeconds => {
       const f = async () => {
         await T.RPCGen.pprofLogProcessorProfileRpcPromise({
-          logDirForMobile: C.pprofDir,
+          logDirForMobile: pprofDir,
           profileDurationSeconds,
         })
         const {decrement, increment} = storeRegistry.getState('waiting').dispatch
@@ -264,7 +265,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
           return
         }
         try {
-          await T.RPCGen.accountSetLockdownModeRpcPromise({enabled}, C.waitingKeySettingsSetLockdownMode)
+          await T.RPCGen.accountSetLockdownModeRpcPromise({enabled}, S.waitingKeySettingsSetLockdownMode)
           set(s => {
             s.lockdownModeEnabled = enabled
           })
@@ -295,7 +296,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     trace: durationSeconds => {
       const f = async () => {
         await T.RPCGen.pprofLogTraceRpcPromise({
-          logDirForMobile: C.pprofDir,
+          logDirForMobile: pprofDir,
           traceDurationSeconds: durationSeconds,
         })
         const {decrement, increment} = storeRegistry.getState('waiting').dispatch

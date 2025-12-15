@@ -1,6 +1,7 @@
-import * as C from '..'
 import * as Z from '@/util/zustand'
 import {ignorePromise} from '../utils'
+import {isMobile} from '../platform'
+import {waitingKeyCrypto} from '../strings'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
 import * as T from '../types'
@@ -24,12 +25,12 @@ export const verifyOutput = 'verifyOutput'
 
 // Update me once Saltpack works with files on mobile.
 export const infoMessage = {
-  decrypt: C.isMobile
+  decrypt: isMobile
     ? 'Decrypt messages encrypted with Saltpack.'
     : 'Decrypt any ciphertext or .encrypted.saltpack file.',
   encrypt: "Encrypt to anyone, even if they're not on Keybase yet.",
   sign: 'Add your cryptographic signature to a message or file.',
-  verify: C.isMobile ? 'Verify a signed message.' : 'Verify any signed text or .signed.saltpack file.',
+  verify: isMobile ? 'Verify a signed message.' : 'Verify any signed text or .signed.saltpack file.',
 }
 
 export const Tabs = [
@@ -288,7 +289,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             usedUnresolvedSBS,
             unresolvedSBSAssertion,
             ciphertext: output,
-          } = await T.RPCGen.saltpackSaltpackEncryptStringRpcPromise({opts, plaintext: input}, C.waitingKeyCrypto)
+          } = await T.RPCGen.saltpackSaltpackEncryptStringRpcPromise({opts, plaintext: input}, waitingKeyCrypto)
           return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
         }
         const callFile = async () => {
@@ -298,7 +299,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             filename: output,
           } = await T.RPCGen.saltpackSaltpackEncryptFileRpcPromise(
             {destinationDir, filename: input, opts},
-            C.waitingKeyCrypto
+            waitingKeyCrypto
           )
           return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
         }
@@ -339,7 +340,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const input = start.input.stringValue()
       try {
         const callText = async () => {
-          const res = await T.RPCGen.saltpackSaltpackDecryptStringRpcPromise({ciphertext: input}, C.waitingKeyCrypto)
+          const res = await T.RPCGen.saltpackSaltpackDecryptStringRpcPromise({ciphertext: input}, waitingKeyCrypto)
           const {plaintext: output, info, signed} = res
           const {sender} = info
           const {username, fullname} = sender
@@ -349,7 +350,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         const callFile = async () => {
           const result = await T.RPCGen.saltpackSaltpackDecryptFileRpcPromise(
             {destinationDir, encryptedFilename: input},
-            C.waitingKeyCrypto
+            waitingKeyCrypto
           )
           const {decryptedFilename: output, info, signed} = result
           const {sender} = info
@@ -392,10 +393,10 @@ export const useState = Z.createZustand<State>((set, get) => {
       const input = start.input.stringValue()
       try {
         const callText = async () =>
-          await T.RPCGen.saltpackSaltpackSignStringRpcPromise({plaintext: input}, C.waitingKeyCrypto)
+          await T.RPCGen.saltpackSaltpackSignStringRpcPromise({plaintext: input}, waitingKeyCrypto)
 
         const callFile = async () =>
-          await T.RPCGen.saltpackSaltpackSignFileRpcPromise({destinationDir, filename: input}, C.waitingKeyCrypto)
+          await T.RPCGen.saltpackSaltpackSignFileRpcPromise({destinationDir, filename: input}, waitingKeyCrypto)
 
         const output = await (inputType === 'text' ? callText() : callFile())
 
@@ -425,7 +426,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const input = start.input.stringValue()
       try {
         const callText = async () => {
-          const res = await T.RPCGen.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input}, C.waitingKeyCrypto)
+          const res = await T.RPCGen.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input}, waitingKeyCrypto)
           const {plaintext: output, sender, verified: signed} = res
           const {username, fullname} = sender
           return {fullname, output, signed, username}
@@ -433,7 +434,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         const callFile = async () => {
           const res = await T.RPCGen.saltpackSaltpackVerifyFileRpcPromise(
             {destinationDir, signedFilename: input},
-            C.waitingKeyCrypto
+            waitingKeyCrypto
           )
           const {verifiedFilename: output, sender, verified: signed} = res
           const {username, fullname} = sender
@@ -640,7 +641,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           verify()
           break
       }
-      if (C.isMobile) {
+      if (isMobile) {
         storeRegistry.getState('router').dispatch.navigateAppend(route)
       }
     },
@@ -693,7 +694,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
       // mobile doesn't run anything automatically
-      if (type === 'text' && !C.isMobile) {
+      if (type === 'text' && !isMobile) {
         get().dispatch.runTextOperation(op)
       }
     },
@@ -718,7 +719,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         o.recipients = T.castDraft(recipients)
       })
       // mobile doesn't run anything automatically
-      if (get().encrypt.inputType === 'text' && !C.isMobile) {
+      if (get().encrypt.inputType === 'text' && !isMobile) {
         get().dispatch.runTextOperation('encrypt')
       }
     },
