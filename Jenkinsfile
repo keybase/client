@@ -81,8 +81,10 @@ helpers.rootLinuxNode(env, {
     WINDOWS_PATH="${env.PATH}"
   }
   sh '''#!/bin/bash
+      set -euo pipefail
+
       source  ~/.gvm/scripts/gvm
-      gvm install go1.25.5 -B && gvm use go1.25.5 --default
+      gvm install go1.25.5 --prefer-binary && gvm use go1.25.5 --default
       source  ~/.nvm/nvm.sh
       nvm install 24 && nvm use 24 && nvm alias default 24
 
