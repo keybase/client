@@ -1,6 +1,7 @@
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 import * as C from '..'
+import {ignorePromise} from '../utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as FS from '@/constants/fs'
 import {formatTimeForPopup} from '@/util/timestamp'
@@ -192,11 +193,11 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
         })
       }
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const clearCompletedChat = () => {
-    C.ignorePromise(
+    ignorePromise(
       Promise.allSettled(
         [...get().chatJobs.values()].map(async job => {
           if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
@@ -213,7 +214,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
   }
 
   const clearCompletedKBFS = () => {
-    C.ignorePromise(
+    ignorePromise(
       Promise.allSettled(
         [...get().kbfsJobs.values()].map(async job => {
           if (job.phase === 'Done') {
@@ -263,14 +264,14 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
         })
       })
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
   const loadKBFS = () => {
     const f = async () => {
       const status = await T.RPCGen.SimpleFSSimpleFSGetArchiveStatusRpcPromise()
       setKBFSJobStatus(status)
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const startFSArchive = (path: string, outPath: string) => {
@@ -284,7 +285,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
         overwriteZip: true,
       })
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const startFSArchiveAll = (outputDir: string) => {
@@ -309,7 +310,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
         }
       })
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const startGitArchive = (gitRepo: string, outPath: string) => {
@@ -323,7 +324,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
         overwriteZip: true,
       })
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const startGitArchiveAll = (outputDir: string) => {
@@ -346,7 +347,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
         }
       })
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const dispatch: State['dispatch'] = {
@@ -359,7 +360,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
         })
         loadChat()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     cancelOrDismissKBFS: async (jobID: string) => {
       await T.RPCGen.SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise({jobID})
@@ -380,7 +381,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
           s.kbfsJobsFreshness.set(jobID, resp.currentTLFRevision)
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
@@ -405,7 +406,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
         })
         loadChat()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: 'default',
     resetWaiters: () =>
@@ -421,7 +422,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
         })
         // don't reload here, resume doesn't block for the job to actually restart
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     start: (type, target, outPath) => {
       switch (type) {

@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as Z from '@/util/zustand'
+import {ignorePromise} from '../utils'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import * as T from '../types'
@@ -65,7 +66,7 @@ export const usePWState = Z.createZustand<State>((set, get) => {
           return
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadPgpSettings: () => {
       const f = async () => {
@@ -84,7 +85,7 @@ export const usePWState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadRememberPassword: () => {
       const f = async () => {
@@ -93,7 +94,7 @@ export const usePWState = Z.createZustand<State>((set, get) => {
           s.rememberPassword = remember
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     notifyUsersPasswordChanged: randomPW => {
       set(s => {
@@ -117,7 +118,7 @@ export const usePWState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         await T.RPCGen.configSetRememberPassphraseRpcPromise({remember})
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     submitNewPassword: (thenLogout = false) => {
       const f = async () => {
@@ -152,7 +153,7 @@ export const usePWState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
   }
   return {

@@ -1,10 +1,10 @@
 import * as C from '..'
 import * as Z from '@/util/zustand'
+import {ignorePromise} from '../utils'
 import * as T from '@/constants/types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
-import type * as RecoverPassword from '../recover-password'
 import {storeRegistry} from '../store-registry'
 
 type Store = T.Immutable<{
@@ -79,7 +79,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
@@ -164,12 +164,11 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: 'default',
     startAccountReset: (skipPassword, _username) => {
-      const {useState: useRecoverState} = require('../recover-password') as typeof RecoverPassword
-      const username = _username || useRecoverState.getState().username
+      const username = _username || storeRegistry.getState('recover-password').username
       set(s => {
         s.skipPassword = skipPassword
         s.error = ''

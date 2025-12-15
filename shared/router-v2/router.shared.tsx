@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import * as React from 'react'
@@ -6,6 +5,7 @@ import {Splash} from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {colors, darkColors, themed} from '@/styles/colors'
 import {useFSState} from '@/constants/fs'
+import {useDarkModeState} from '@/constants/darkmode'
 
 export const SimpleLoading = React.memo(function SimpleLoading() {
   return (
@@ -45,7 +45,7 @@ export const theme: Theme = {
       return themed.black_10 as string
     },
     get card() {
-      return (C.useDarkModeState.getState().isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
+      return (useDarkModeState.getState().isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
     },
     get notification() {
       return themed.black as string
@@ -54,7 +54,7 @@ export const theme: Theme = {
       return themed.black as string
     },
     get text() {
-      return (C.useDarkModeState.getState().isDarkMode() ? darkColors.black : colors.black) as string
+      return (useDarkModeState.getState().isDarkMode() ? darkColors.black : colors.black) as string
     },
   },
   dark: false,

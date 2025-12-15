@@ -1,5 +1,6 @@
 import * as C from '..'
 import logger from '@/logger'
+import {ignorePromise} from '../utils'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 import {storeRegistry} from '../store-registry'
@@ -114,7 +115,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
           wait(name, version, false)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
       get().dispatch.loadDaemonAccounts()
     },
     daemonHandshakeDone: () => {
@@ -161,7 +162,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     // set to true so we reget status when we're reachable again
     loadDaemonBootstrapStatus: async () => {

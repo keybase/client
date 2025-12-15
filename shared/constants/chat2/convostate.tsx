@@ -31,7 +31,7 @@ import {clearChatTimeCache} from '@/util/timestamp'
 import {registerDebugClear} from '@/util/debug'
 import * as Config from '@/constants/config/util'
 import {isMobile} from '@/constants/platform'
-import {ignorePromise, shallowEqual, enumKeys} from '@/constants'
+import {enumKeys, ignorePromise, shallowEqual} from '../utils'
 import * as Strings from '@/constants/strings'
 // TODO remove
 import {getVisibleScreen} from '@/constants/router2'
@@ -2168,10 +2168,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             storeRegistry.getState('router').dispatch.clearModals()
           }
 
-          storeRegistry.getState('router').dispatch.navigateAppend(
-            {props: {conversationIDKey}, selected: Common.threadRouteName},
-            replace
-          )
+          storeRegistry
+            .getState('router')
+            .dispatch.navigateAppend({props: {conversationIDKey}, selected: Common.threadRouteName}, replace)
         }
       }
       updateNav()
@@ -3298,7 +3297,8 @@ export const ProviderScreen = React.memo(function ProviderScreen(p: {
 
 import type {NavigateAppendType} from '@/router-v2/route-params'
 export const useChatNavigateAppend = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const useRouterState = storeRegistry.getStore('router')
+  const navigateAppend = useRouterState(s => s.dispatch.navigateAppend)
   const cid = useContext_(s => s.id)
   return React.useCallback(
     (makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType, replace?: boolean) => {

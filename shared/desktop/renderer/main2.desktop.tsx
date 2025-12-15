@@ -19,13 +19,14 @@ import type {default as NewMainType} from '../../app/main.desktop'
 
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
+import {useDarkModeState} from '@/constants/darkmode'
 setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
 
 // node side plumbs through initial pref so we avoid flashes
 const darkModeFromNode = window.location.search.match(/darkMode=(light|dark)/)
-const setSystemDarkMode = C.useDarkModeState.getState().dispatch.setSystemDarkMode
+const setSystemDarkMode = useDarkModeState.getState().dispatch.setSystemDarkMode
 
 if (darkModeFromNode) {
   const dm = darkModeFromNode[1]

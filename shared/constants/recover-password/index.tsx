@@ -1,6 +1,6 @@
 import * as C from '..'
-import * as AutoReset from '../autoreset'
 import * as T from '../types'
+import {ignorePromise} from '../utils'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
@@ -141,7 +141,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     })
                   })
                 } else {
-                  const {startAccountReset} = AutoReset.useAutoResetState.getState().dispatch
+                  const {startAccountReset} = storeRegistry.getState('autoreset').dispatch
                   startAccountReset(true, '')
                   response.result(T.RPCGen.ResetPromptResponse.nothing)
                 }
@@ -249,7 +249,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           storeRegistry.getState('router').dispatch.clearModals()
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
   }
   return {

@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {ignorePromise, timeoutPromise, type ViewPropsToPageProps} from '../utils'
 import * as Tabs from '../tabs'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import type * as ConfigConstants from '../config'
@@ -461,7 +462,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     ensureWidgetMetas: () => {
       const {inboxLayout} = get()
@@ -497,7 +498,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         )
         get().dispatch.loadedUserEmoji(results)
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     findGeneralConvIDFromTeamID: teamID => {
       const f = async () => {
@@ -518,7 +519,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     inboxRefresh: reason => {
       const f = async () => {
@@ -545,7 +546,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     inboxSearch: query => {
       set(s => {
@@ -740,7 +741,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     inboxSearchMoveSelectedIndex: increment => {
       set(s => {
@@ -836,7 +837,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           dispatch.wait(name, handshakeVersion, false)
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     loadedUserEmoji: results => {
       set(s => {
@@ -916,7 +917,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     metasReceived: (metas, removals) => {
       removals?.forEach(r => {
@@ -1479,13 +1480,13 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     onTeamBuildingFinished: users => {
       const f = async () => {
         // need to let the mdoal hide first else its thrashy
-        await C.timeoutPromise(500)
+        await timeoutPromise(500)
         storeRegistry
           .getConvoState(T.Chat.pendingWaitingConversationIDKey)
           .dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation([...users].map(u => u.id))
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     paymentInfoReceived: paymentInfo => {
       set(s => {
@@ -1604,7 +1605,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         }
       }
       previewConversationPersonMakesAConversation()
-      C.ignorePromise(previewConversationTeam())
+      ignorePromise(previewConversationTeam())
     },
     queueMetaHandle: () => {
       // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
@@ -1618,13 +1619,13 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           get().dispatch.unboxRows(conversationIDKeys)
         }
         if (metaQueue.size && conversationIDKeys.length) {
-          await C.timeoutPromise(100)
+          await timeoutPromise(100)
         }
         if (metaQueue.size) {
           get().dispatch.queueMetaHandle()
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     queueMetaToRequest: ids => {
       let added = false as boolean
@@ -1668,7 +1669,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           s.botPublicCommands.set(username, {commands, loadError: false})
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetConversationErrored: () => {
       set(s => {
@@ -1706,7 +1707,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           })
         } catch {}
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     setInfoPanelTab: tab => {
       set(s => {
@@ -1743,7 +1744,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           get().dispatch.inboxSearch('')
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     toggleSmallTeamsExpanded: () => {
       set(s => {
@@ -1786,7 +1787,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     updateCoinFlipStatus: statuses => {
       set(s => {
@@ -1844,7 +1845,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         const {accuracy, lat, lon} = coord
         await T.RPCChat.localLocationUpdateRpcPromise({coord: {accuracy, lat, lon}})
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     updateUserReacjis: userReacjis => {
       set(s => {
@@ -1965,14 +1966,14 @@ import type {GetOptionsRet} from '@/constants/types/router2'
 export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
   options?: {
-    getOptions?: GetOptionsRet | ((props: ChatProviderProps<C.ViewPropsToPageProps<COM>>) => GetOptionsRet)
+    getOptions?: GetOptionsRet | ((props: ChatProviderProps<ViewPropsToPageProps<COM>>) => GetOptionsRet)
     skipProvider?: boolean
     canBeNullConvoID?: boolean
   }
 ) {
   return {
     ...options,
-    screen: function Screen(p: ChatProviderProps<C.ViewPropsToPageProps<COM>>) {
+    screen: function Screen(p: ChatProviderProps<ViewPropsToPageProps<COM>>) {
       const Comp = Component as any
       return options?.skipProvider ? (
         <Comp {...p.route.params} />

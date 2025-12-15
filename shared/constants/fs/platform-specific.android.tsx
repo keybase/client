@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
+import {ignorePromise} from '../utils'
 import * as FS from '@/constants/fs'
 import logger from '@/logger'
 import nativeInit from './common.native'
@@ -21,7 +22,7 @@ export default function initPlatformSpecific() {
           downloadDirOverride: fsDownloadDir,
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     })
     // needs to be called, TODO could make this better
     s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged()
@@ -61,7 +62,7 @@ export default function initPlatformSpecific() {
           }
           // No need to dismiss here as the download wrapper does it for Android.
         }
-        C.ignorePromise(f())
+        ignorePromise(f())
       }
     )
   })

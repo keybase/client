@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Z from '@/util/zustand'
 import * as C from '@/constants'
+import {ignorePromise} from '../utils'
 import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import debounce from 'lodash/debounce'
@@ -23,7 +24,7 @@ export interface State extends T.Devices.State {
 export const useDevicesState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearBadges: () => {
-      C.ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
+      ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
     },
     load: debounce(
       () => {
@@ -41,7 +42,7 @@ export const useDevicesState = Z.createZustand<State>((set, get) => {
             )
           })
         }
-        C.ignorePromise(f())
+        ignorePromise(f())
       },
       1000,
       {leading: true, trailing: false}

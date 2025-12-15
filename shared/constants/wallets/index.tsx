@@ -1,5 +1,5 @@
-import * as C from '..'
 import * as T from '../types'
+import {ignorePromise} from '../utils'
 import * as Z from '@/util/zustand'
 import {loadAccountsWaitingKey} from './utils'
 import {storeRegistry} from '../store-registry'
@@ -56,7 +56,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     removeAccount: accountID => {
       const f = async () => {
@@ -66,7 +66,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         )
         get().dispatch.load()
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: 'default',
   }

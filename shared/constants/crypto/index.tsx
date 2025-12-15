@@ -1,5 +1,6 @@
 import * as C from '..'
 import * as Z from '@/util/zustand'
+import {ignorePromise} from '../utils'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
 import * as T from '../types'
@@ -328,7 +329,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         })
       }
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const decrypt = (destinationDir: string = '') => {
@@ -381,7 +382,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
     }
 
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const sign = (destinationDir: string = '') => {
@@ -414,7 +415,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
     }
 
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const verify = (destinationDir: string = '') => {
@@ -463,7 +464,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
     }
 
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const download = (op: T.Crypto.Operations) => {
@@ -485,7 +486,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         o.outputType = 'file'
       })
     }
-    C.ignorePromise(f())
+    ignorePromise(f())
   }
 
   const dispatch: State['dispatch'] = {

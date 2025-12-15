@@ -1,5 +1,6 @@
 import * as Z from '@/util/zustand'
 import * as C from '@/constants'
+import {ignorePromise, timeoutPromise} from '../utils'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import * as T from '../types'
@@ -64,7 +65,7 @@ export const useSettingsNotifState = Z.createZustand<State>((set, get) => {
         let handled = false
         // If the rpc is fast don't clear it out first
         const maybeClear = async () => {
-          await C.timeoutPromise(500)
+          await timeoutPromise(500)
           if (!handled) {
             set(s => {
               s.allowEdit = true
@@ -72,7 +73,7 @@ export const useSettingsNotifState = Z.createZustand<State>((set, get) => {
             })
           }
         }
-        C.ignorePromise(maybeClear())
+        ignorePromise(maybeClear())
 
         let body = ''
         let chatGlobalSettings: T.RPCChat.GlobalAppNotificationSettings
@@ -164,7 +165,7 @@ export const useSettingsNotifState = Z.createZustand<State>((set, get) => {
           }, new Map<string, NotificationsGroupState>())
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
     resetState: 'default',
     toggle: (group, name) => {
@@ -260,7 +261,7 @@ export const useSettingsNotifState = Z.createZustand<State>((set, get) => {
           s.allowEdit = true
         })
       }
-      C.ignorePromise(f())
+      ignorePromise(f())
     },
   }
   return {

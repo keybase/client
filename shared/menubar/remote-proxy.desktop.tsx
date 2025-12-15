@@ -19,6 +19,7 @@ import {useUsersState} from '@/constants/users'
 import {useNotifState} from '@/constants/notifications'
 import {useCurrentUserState} from '@/constants/current-user'
 import {useDaemonState} from '@/constants/daemon'
+import {useDarkModeState} from '@/constants/darkmode'
 
 const {showTray} = KB2.functions
 
@@ -29,7 +30,7 @@ type WidgetProps = {
 
 function useWidgetBrowserWindow(p: WidgetProps) {
   const {widgetBadge, desktopAppBadgeCount} = p
-  const systemDarkMode = C.useDarkModeState(s => s.systemDarkMode)
+  const systemDarkMode = useDarkModeState(s => s.systemDarkMode)
   React.useEffect(() => {
     showTray?.(desktopAppBadgeCount, widgetBadge)
   }, [widgetBadge, desktopAppBadgeCount, systemDarkMode])

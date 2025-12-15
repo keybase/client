@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Constants from '@/constants/router2'
 import {useConfigState} from '@/constants/config'
+import {useDarkModeState} from '@/constants/darkmode'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
@@ -174,7 +175,7 @@ const RNApp = React.memo(function RNApp() {
   }
 
   const isDarkMode = useColorScheme() === 'dark'
-  const barStyle = C.useDarkModeState(s => {
+  const barStyle = useDarkModeState(s => {
     return s.darkModePreference === 'system' ? 'default' : isDarkMode ? 'light-content' : 'dark-content'
   })
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />

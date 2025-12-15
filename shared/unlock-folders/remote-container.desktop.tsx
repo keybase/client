@@ -1,10 +1,10 @@
-import * as C from '@/constants'
 import * as R from '@/constants/remote'
 import * as React from 'react'
 import * as RemoteGen from '../actions/remote-gen'
 import UnlockFolders from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {useUnlockFoldersState as useUFState} from '@/constants/unlock-folders'
+import {useDarkModeState} from '@/constants/darkmode'
 
 const RemoteContainer = (d: DeserializeProps) => {
   const {darkMode, devices, waiting, paperKeyError: _error} = d
@@ -12,7 +12,7 @@ const RemoteContainer = (d: DeserializeProps) => {
   const phase = useUFState(s => s.phase)
   const toPaperKeyInput = useUFState(s => s.dispatch.toPaperKeyInput)
   const onBackFromPaperKey = useUFState(s => s.dispatch.onBackFromPaperKey)
-  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
+  const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)
 
   const [paperKeyError, setPaperKeyError] = React.useState(_error)
   const lastError = React.useRef(_error)
