@@ -38,12 +38,12 @@ const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const _hasBadge = C.useChatContext(s => s.badge > 0)
-  const _hasUnread = C.useChatContext(s => s.unread > 0)
-  const _meta = C.useChatContext(s => s.meta)
-  const _participantInfo = C.useChatContext(s => s.participants)
+  const _hasBadge = Chat.useChatContext(s => s.badge > 0)
+  const _hasUnread = Chat.useChatContext(s => s.unread > 0)
+  const _meta = Chat.useChatContext(s => s.meta)
+  const _participantInfo = Chat.useChatContext(s => s.participants)
   const _username = useCurrentUserState(s => s.username)
-  const isMuted = C.useChatContext(s => s.meta.isMuted)
+  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const styles = getRowStyles(isSelected, _hasUnread)
   const participantNeedToRekey = _meta.rekeyers.size > 0

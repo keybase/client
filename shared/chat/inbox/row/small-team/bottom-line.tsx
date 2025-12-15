@@ -109,16 +109,16 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: boolean; style: Kb.
 const BottomLine = React.memo(function BottomLine(p: Props) {
   const {allowBold, isSelected, backgroundColor, isInWidget, layoutSnippet} = p
 
-  const isTypingSnippet = C.useChatContext(s => {
+  const isTypingSnippet = Chat.useChatContext(s => {
     const typers = !isInWidget ? s.typing : undefined
     return !!typers?.size
   })
 
   const you = useCurrentUserState(s => s.username)
-  const hasUnread = C.useChatContext(s => s.unread > 0)
-  const _draft = C.useChatContext(s => s.meta.draft)
+  const hasUnread = Chat.useChatContext(s => s.unread > 0)
+  const _draft = Chat.useChatContext(s => s.meta.draft)
   const {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey} =
-    C.useChatContext(
+    Chat.useChatContext(
       C.useShallow(s => {
         const {
           membershipType,

@@ -3264,7 +3264,7 @@ export function useHasContext() {
 }
 
 // use this if in doubt
-export function useContext<T>(selector: (state: ConvoState) => T): T {
+export function useChatContext<T>(selector: (state: ConvoState) => T): T {
   const store = React.useContext(Context)
   if (!store) {
     throw new Error('Missing ConvoContext.Provider in the tree')
@@ -3299,7 +3299,7 @@ import type {NavigateAppendType} from '@/router-v2/route-params'
 export const useChatNavigateAppend = () => {
   const useRouterState = storeRegistry.getStore('router')
   const navigateAppend = useRouterState(s => s.dispatch.navigateAppend)
-  const cid = useContext(s => s.id)
+  const cid = useChatContext(s => s.id)
   return React.useCallback(
     (makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType, replace?: boolean) => {
       navigateAppend(makePath(cid), replace)

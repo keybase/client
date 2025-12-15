@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
-import {useChatState} from '@/constants/chat2'
 import {useCurrentUserState} from '@/constants/current-user'
 import * as Teams from '@/constants/teams'
 import {useProfileState} from '@/constants/profile'
@@ -433,7 +432,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     C.waitingKeyTeamsLoadTeamTreeActivity(props.node.teamID, props.username)
   )
 
-  const isSmallTeam = !useChatState(s => Chat.isBigTeam(s, props.node.teamID))
+  const isSmallTeam = !Chat.useChatState(s => Chat.isBigTeam(s, props.node.teamID))
   const channelsJoined = isSmallTeam
     ? ''
     : Array.from(channelMetas)
@@ -612,7 +611,7 @@ export const TeamMemberHeader = (props: Props) => {
   const yourUsername = useCurrentUserState(s => s.username)
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const previewConversation = useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
   const onViewProfile = () => showUserProfile(username)
   const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})

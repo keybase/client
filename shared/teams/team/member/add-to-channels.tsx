@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
-import {getConvoState, useConvoState, useChatState} from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
@@ -31,7 +30,7 @@ const getChannelsForList = (
     .map(c => c.conversationIDKey)
     .filter(convIDKey => {
       // TODO not reactive
-      const participants = getConvoState(convIDKey).participants.all
+      const participants = Chat.getConvoState(convIDKey).participants.all
       // At least one person is not in the channel
       return usernames.some(member => !participants.includes(member))
     })
@@ -73,7 +72,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => {
       // TODO not reactive
-      const p = getConvoState(c.conversationIDKey).participants
+      const p = Chat.getConvoState(c.conversationIDKey).participants
       return {
         channelMeta: c,
         numMembers: p.name.length || p.all.length || 0,
@@ -460,7 +459,7 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
   const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames, rowHeight} = p
   const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
-  const participants = useConvoState(conversationIDKey, s => {
+  const participants = Chat.useConvoState(conversationIDKey, s => {
     const {name, all} = s.participants
     return name.length ? name : all
   })
@@ -468,7 +467,7 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
     s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )
   const allInChannel = usernames.every(member => participants.includes(member))
-  const previewConversation = useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onPreviewChannel = () =>
     previewConversation({
       conversationIDKey: channelMeta.conversationIDKey,

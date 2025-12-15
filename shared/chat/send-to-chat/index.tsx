@@ -56,7 +56,7 @@ export const MobileSendToChat = (props: Props) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const fileContext = useFSState(s => s.fileContext)
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
-    const {dispatch} = C.getConvoState(conversationIDKey)
+    const {dispatch} = Chat.getConvoState(conversationIDKey)
     text && dispatch.injectIntoInput(text)
     if (sendPaths?.length) {
       navigateAppend({
@@ -95,7 +95,7 @@ const DesktopSendToChat = (props: Props) => {
     setConvName(convname)
   }
   const onSend = () => {
-    const {dispatch} = C.getConvoState(conversationIDKey)
+    const {dispatch} = Chat.getConvoState(conversationIDKey)
     sendPaths.forEach(path =>
       dispatch.attachmentsUpload(
         [{path: T.FS.pathToString(path)}],
@@ -104,7 +104,7 @@ const DesktopSendToChat = (props: Props) => {
       )
     )
     clearModals()
-    C.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
+    getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
     <Kb.PopupWrapper>

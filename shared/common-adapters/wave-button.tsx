@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
-import {ChatProvider, useContext as useChatContext, useChatState} from '@/constants/chat2'
 import * as React from 'react'
 import {Box2, Box} from './box'
 import Icon from './icon'
@@ -41,9 +40,9 @@ const WaveButton = (props: Props) => {
       return <WaveButtonImpl {...props} />
     } else {
       return (
-        <ChatProvider key="wave" id="" canBeNull={true}>
+        <Chat.ChatProvider key="wave" id="" canBeNull={true}>
           <WaveButtonImpl {...props} />
-        </ChatProvider>
+        </Chat.ChatProvider>
       )
     }
   }
@@ -60,8 +59,8 @@ const WaveButtonImpl = (props: Props) => {
   const [waved, setWaved] = React.useState(false)
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = C.Waiting.useAnyWaiting(waitingKey)
-  const sendMessage = useChatContext(s => s.dispatch.sendMessage)
-  const messageSendByUsername = useChatState(s => s.dispatch.messageSendByUsername)
+  const sendMessage = Chat.useChatContext(s => s.dispatch.sendMessage)
+  const messageSendByUsername = Chat.useChatState(s => s.dispatch.messageSendByUsername)
   const onWave = () => {
     if (props.username) {
       messageSendByUsername(props.username, ':wave:', waitingKey)
