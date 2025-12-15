@@ -22,7 +22,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const {onLongPress, style, emoji, className} = p
   const me = useCurrentUserState(s => s.username)
   const isDarkMode = useColorScheme() === 'dark'
-  const {active, count, decorated} = C.useChatContext(
+  const {active, count, decorated} = Chat.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
       const reaction = message?.reactions?.get(emoji || '')
@@ -35,7 +35,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
     })
   )
 
-  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onClick = React.useCallback(() => {
     toggleMessageReaction(ordinal, emoji || '')
   }, [toggleMessageReaction, emoji, ordinal])

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
@@ -13,8 +14,8 @@ const RestrictedItem = '---RESTRICTED---'
 export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, teamID?: T.Teams.TeamID) => {
   const cleanInConvIDKey = T.Chat.isValidConversationIDKey(inConvIDKey ?? '') ? inConvIDKey : undefined
   const [conversationIDKey, setConversationIDKey] = React.useState(cleanInConvIDKey)
-  const generalConvID = C.useChatState(s => teamID && s.teamIDToGeneralConvID.get(teamID))
-  const findGeneralConvIDFromTeamID = C.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
+  const generalConvID = Chat.useChatState(s => teamID && s.teamIDToGeneralConvID.get(teamID))
+  const findGeneralConvIDFromTeamID = Chat.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
   React.useEffect(() => {
     if (!cleanInConvIDKey && teamID) {
       if (!generalConvID) {
@@ -40,9 +41,9 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   if (!conversationIDKey) return null
   return (
-    <C.ChatProvider id={conversationIDKey}>
+    <Chat.ChatProvider id={conversationIDKey}>
       <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
-    </C.ChatProvider>
+    </Chat.ChatProvider>
   )
 }
 
@@ -65,8 +66,8 @@ const InstallBotPopup = (props: Props) => {
   const [installInConvs, setInstallInConvs] = React.useState<ReadonlyArray<string>>([])
   const [disableDone, setDisableDone] = React.useState(false)
 
-  const botPublicCommands = C.useChatState(s => s.botPublicCommands.get(botUsername))
-  const meta = C.useChatContext(s => s.meta)
+  const botPublicCommands = Chat.useChatState(s => s.botPublicCommands.get(botUsername))
+  const meta = Chat.useChatContext(s => s.meta)
   const commands = React.useMemo(() => {
     const {botCommands} = meta
     const commands = (
@@ -81,7 +82,7 @@ const InstallBotPopup = (props: Props) => {
   }, [meta, botPublicCommands, botUsername])
 
   const featured = useBotsState(s => s.featuredBotsMap.get(botUsername))
-  const teamRole = C.useChatContext(s => s.botTeamRoleMap.get(botUsername))
+  const teamRole = Chat.useChatContext(s => s.botTeamRoleMap.get(botUsername))
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
@@ -89,7 +90,7 @@ const InstallBotPopup = (props: Props) => {
   const readOnly = Teams.useTeamsState(s =>
     meta.teamname ? !Teams.getCanPerformByID(s, meta.teamID).manageBots : false
   )
-  const settings = C.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
+  const settings = Chat.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
   let teamID: T.Teams.TeamID = T.Teams.noTeamID
   if (meta.teamname) {
@@ -102,7 +103,7 @@ const InstallBotPopup = (props: Props) => {
   // dispatch
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const addBotMember = C.useChatContext(s => s.dispatch.addBotMember)
+  const addBotMember = Chat.useChatContext(s => s.dispatch.addBotMember)
   const onClose = () => {
     Kb.Styles.isMobile ? navigateUp() : clearModals()
   }
@@ -122,7 +123,7 @@ const InstallBotPopup = (props: Props) => {
     }
     addBotMember(botUsername, installWithCommands, installWithMentions, installWithRestrict, installInConvs)
   }
-  const editBotSettings = C.useChatContext(s => s.dispatch.editBotSettings)
+  const editBotSettings = Chat.useChatContext(s => s.dispatch.editBotSettings)
   const onEdit = () => {
     if (!conversationIDKey) {
       return
@@ -143,8 +144,8 @@ const InstallBotPopup = (props: Props) => {
     navigateAppend('feedback')
   }
 
-  const refreshBotSettings = C.useChatContext(s => s.dispatch.refreshBotSettings)
-  const refreshBotRoleInConv = C.useChatContext(s => s.dispatch.refreshBotRoleInConv)
+  const refreshBotSettings = Chat.useChatContext(s => s.dispatch.refreshBotSettings)
+  const refreshBotRoleInConv = Chat.useChatContext(s => s.dispatch.refreshBotRoleInConv)
 
   // lifecycle
   React.useEffect(() => {
@@ -158,7 +159,7 @@ const InstallBotPopup = (props: Props) => {
   const noCommands = !commands?.commands
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
-  const refreshBotPublicCommands = C.useChatState(s => s.dispatch.refreshBotPublicCommands)
+  const refreshBotPublicCommands = Chat.useChatState(s => s.dispatch.refreshBotPublicCommands)
   React.useEffect(() => {
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     if (noCommands) {

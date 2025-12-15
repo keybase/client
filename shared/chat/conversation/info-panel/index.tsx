@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
@@ -16,11 +15,11 @@ type Props = {
 }
 
 const InfoPanelConnector = (ownProps: Props) => {
-  const storeSelectedTab = C.useChatState(s => s.infoPanelSelectedTab)
-  const setInfoPanelTab = C.useChatState(s => s.dispatch.setInfoPanelTab)
+  const storeSelectedTab = Chat.useChatState(s => s.infoPanelSelectedTab)
+  const setInfoPanelTab = Chat.useChatState(s => s.dispatch.setInfoPanelTab)
   const initialTab = ownProps.tab ?? storeSelectedTab
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const meta = C.useConvoState(conversationIDKey, s => s.meta)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const meta = Chat.useConvoState(conversationIDKey, s => s.meta)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
   const yourRole = Teams.useTeamsState(s => Teams.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
@@ -30,13 +29,13 @@ const InfoPanelConnector = (ownProps: Props) => {
   const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab ?? 'members')
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
-  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
-  const clearAttachmentView = C.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
+  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
+  const clearAttachmentView = Chat.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
   const onCancel = () => {
     showInfoPanel(false, undefined)
     clearAttachmentView()
   }
-  const onGoToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
+  const onGoToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
 
   if (lastSNO !== shouldNavigateOut) {
     setLastSNO(shouldNavigateOut)

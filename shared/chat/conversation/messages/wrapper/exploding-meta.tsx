@@ -15,7 +15,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
   const ordinal = useOrdinal()
   const [now, setNow] = React.useState(() => Date.now())
 
-  const {exploding, exploded, submitState, explodesAt, messageKey} = C.useChatContext(
+  const {exploding, exploded, submitState, explodesAt, messageKey} = Chat.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
       if (!message || (message.type !== 'text' && message.type !== 'attachment') || !message.exploding) {

@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
@@ -14,7 +13,7 @@ type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContainer(p: OwnProps) {
   const {message} = p
   const {addee, adder, author, bulkAdds, role: _role, timestamp} = message
-  const meta = C.useChatContext(s => s.meta)
+  const meta = Chat.useChatContext(s => s.meta)
   const {teamID, teamname, teamType} = meta
   const authorIsAdmin = Teams.useTeamsState(s => Teams.userIsRoleInTeam(s, teamID, author, 'admin'))
   const authorIsOwner = Teams.useTeamsState(s => Teams.userIsRoleInTeam(s, teamID, author, 'owner'))
@@ -22,7 +21,7 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
 
-  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
   const onManageNotifications = React.useCallback(() => {
     showInfoPanel(true, 'settings')
   }, [showInfoPanel])

@@ -15,7 +15,7 @@ type SettingsPanelProps = {isPreview: boolean}
 const SettingsPanel = (props: SettingsPanelProps) => {
   const {isPreview} = props
   const username = useCurrentUserState(s => s.username)
-  const meta = C.useChatContext(s => s.meta)
+  const meta = Chat.useChatContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
   const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
   const ignored = status === T.RPCChat.ConversationStatus.ignored
@@ -34,7 +34,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
-  const participantInfo = C.useChatContext(s => s.participants)
+  const participantInfo = Chat.useChatContext(s => s.participants)
   const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
     u => u !== username && !Chat.isAssertion(u)
   )
@@ -44,7 +44,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}))
   }, [navigateAppend])
 
-  const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
+  const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
   const onHideConv = React.useCallback(() => hideConversation(true), [hideConversation])
   const onUnhideConv = React.useCallback(() => hideConversation(false), [hideConversation])
   const onShowBlockConversationDialog = React.useCallback(() => {
@@ -63,7 +63,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     }
   }, [membersForBlock, onHideConv, teamname, navigateAppend])
 
-  const leaveConversation = C.useChatContext(s => s.dispatch.leaveConversation)
+  const leaveConversation = Chat.useChatContext(s => s.dispatch.leaveConversation)
   const onLeaveConversation = React.useCallback(() => {
     leaveConversation()
   }, [leaveConversation])
@@ -76,7 +76,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   return (
     <Kb.ScrollView>
       <Kb.Box2

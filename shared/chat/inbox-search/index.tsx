@@ -45,9 +45,9 @@ type Item = NameResult | TextResult | BotResult | OpenTeamResult
 const emptySearch = Chat.makeInboxSearchInfo()
 
 export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
-  const _inboxSearch = C.useChatState(s => s.inboxSearch ?? emptySearch)
-  const toggleInboxSearch = C.useChatState(s => s.dispatch.toggleInboxSearch)
-  const inboxSearchSelect = C.useChatState(s => s.dispatch.inboxSearchSelect)
+  const _inboxSearch = Chat.useChatState(s => s.inboxSearch ?? emptySearch)
+  const toggleInboxSearch = Chat.useChatState(s => s.dispatch.toggleInboxSearch)
+  const inboxSearchSelect = Chat.useChatState(s => s.dispatch.inboxSearchSelect)
   const onCancel = React.useCallback(() => {
     toggleInboxSearch(false)
   }, [toggleInboxSearch])
@@ -115,9 +115,9 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     const {item, index} = h
     if (item.type !== 'bot') return null
     return (
-      <C.ChatProvider id={Chat.noConversationIDKey} key={index} canBeNull={true}>
+      <Chat.ChatProvider id={Chat.noConversationIDKey} key={index} canBeNull={true}>
         <Bot {...item.bot} onClick={onInstallBot} firstItem={index === 0} hideHover={true} />
-      </C.ChatProvider>
+      </Chat.ChatProvider>
     )
   }
 
@@ -251,7 +251,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     const numHits = item.type === 'text' ? item.numHits : undefined
     const realIndex = index + section.indexOffset
     return item.sizeType === 'big' ? (
-      <C.ChatProvider id={item.conversationIDKey}>
+      <Chat.ChatProvider id={item.conversationIDKey}>
         <SelectableBigTeamChannel
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
@@ -259,9 +259,9 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
           maxSearchHits={Chat.inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
-      </C.ChatProvider>
+      </Chat.ChatProvider>
     ) : (
-      <C.ChatProvider id={item.conversationIDKey}>
+      <Chat.ChatProvider id={item.conversationIDKey}>
         <SelectableSmallTeam
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
@@ -269,7 +269,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
           maxSearchHits={Chat.inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
-      </C.ChatProvider>
+      </Chat.ChatProvider>
     )
   }
 

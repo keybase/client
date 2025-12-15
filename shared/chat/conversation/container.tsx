@@ -7,7 +7,7 @@ import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 
 const Conversation = function Conversation() {
-  const type = C.useChatContext(s => {
+  const type = Chat.useChatContext(s => {
     const meta = s.meta
     switch (s.id) {
       case Chat.noConversationIDKey:

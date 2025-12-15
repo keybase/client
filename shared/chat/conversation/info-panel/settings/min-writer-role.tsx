@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
@@ -10,7 +10,7 @@ import {indefiniteArticle} from '@/util/string'
 const positionFallbacks = ['bottom center'] as const
 
 const MinWriterRole = () => {
-  const meta = C.useChatContext(s => s.meta)
+  const meta = Chat.useChatContext(s => s.meta)
   const {teamname, minWriterRole} = meta
 
   const canPerform = Teams.useTeamsState(s => (teamname ? Teams.getCanPerform(s, teamname) : undefined))
@@ -18,7 +18,7 @@ const MinWriterRole = () => {
 
   const [saving, setSaving] = React.useState(false)
   const [selected, setSelected] = React.useState(minWriterRole)
-  const setMinWriterRole = C.useChatContext(s => s.dispatch.setMinWriterRole)
+  const setMinWriterRole = Chat.useChatContext(s => s.dispatch.setMinWriterRole)
 
   const onSetNewRole = (role: T.Teams.TeamRoleType) => setMinWriterRole(role)
   const selectRole = (role: T.Teams.TeamRoleType) => {

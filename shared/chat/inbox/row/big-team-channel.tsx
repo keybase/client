@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -15,16 +14,16 @@ type Props = {
 
 const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   return (
-    <C.ChatProvider id={props.conversationIDKey}>
+    <Chat.ChatProvider id={props.conversationIDKey}>
       <BigTeamChannelImpl {...props} />
-    </C.ChatProvider>
+    </Chat.ChatProvider>
   )
 })
 const BigTeamChannelImpl = (props: Props) => {
   const {selected, layoutChannelname, layoutSnippetDecoration} = props
-  const channelname = C.useChatContext(s => s.meta.channelname || layoutChannelname)
-  const isError = C.useChatContext(s => s.meta.trustedState === 'error')
-  const snippetDecoration = C.useChatContext(s => {
+  const channelname = Chat.useChatContext(s => s.meta.channelname || layoutChannelname)
+  const isError = Chat.useChatContext(s => s.meta.trustedState === 'error')
+  const snippetDecoration = Chat.useChatContext(s => {
     const d =
       s.meta.conversationIDKey === Chat.noConversationIDKey
         ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
@@ -38,11 +37,11 @@ const BigTeamChannelImpl = (props: Props) => {
         return 0
     }
   })
-  const hasBadge = C.useChatContext(s => s.badge > 0)
-  const hasDraft = C.useChatContext(s => !!s.meta.draft)
-  const hasUnread = C.useChatContext(s => s.unread > 0)
-  const isMuted = C.useChatContext(s => s.meta.isMuted)
-  const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
+  const hasBadge = Chat.useChatContext(s => s.badge > 0)
+  const hasDraft = Chat.useChatContext(s => !!s.meta.draft)
+  const hasUnread = Chat.useChatContext(s => s.unread > 0)
+  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
+  const navigateToThread = Chat.useChatContext(s => s.dispatch.navigateToThread)
   const onSelectConversation = () => navigateToThread('inboxBig')
 
   let outboxTooltip: string | undefined

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as Hooks from './hooks'
 import * as React from 'react'
@@ -35,7 +36,7 @@ const useScrolling = (p: {
   setListRef: (r: HTMLDivElement | null) => void
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const {listRef, setListRef: _setListRef, containsLatestMessage} = p
   const containsLatestMessageRef = React.useRef(containsLatestMessage)
   React.useEffect(() => {
@@ -43,7 +44,7 @@ const useScrolling = (p: {
   }, [containsLatestMessage])
   const {messageOrdinals, centeredOrdinal, loaded} = p
   const numOrdinals = messageOrdinals.length
-  const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
+  const loadNewerMessagesDueToScroll = Chat.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
   const loadNewerMessages = C.useThrottledCallback(
     React.useCallback(() => {
       loadNewerMessagesDueToScroll(numOrdinals)
@@ -53,7 +54,7 @@ const useScrolling = (p: {
   // if we scroll up try and keep the position
   const scrollBottomOffsetRef = React.useRef<number | undefined>(undefined)
 
-  const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  const loadOlderMessages = Chat.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
@@ -327,7 +328,7 @@ const useScrolling = (p: {
   }, [scrollDown, scrollToBottom, scrollUp, setScrollRef])
 
   // go to editing message
-  const editingOrdinal = C.useChatContext(s => s.editing)
+  const editingOrdinal = Chat.useChatContext(s => s.editing)
   const lastEditingOrdinalRef = React.useRef(0)
   React.useEffect(() => {
     if (lastEditingOrdinalRef.current !== editingOrdinal) return
@@ -473,7 +474,7 @@ const useItems = (p: {
 
 const noOrdinals = new Array<T.Chat.Ordinal>()
 const ThreadWrapper = React.memo(function ThreadWrapper() {
-  const data = C.useChatContext(
+  const data = Chat.useChatContext(
     C.useShallow(s => {
       const {messageTypeMap, editing: editingOrdinal, id: conversationIDKey} = s
       const {messageCenterOrdinal: mco, messageOrdinals = noOrdinals, loaded} = s

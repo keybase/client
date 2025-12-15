@@ -12,9 +12,9 @@ type Props = {ordinal: T.Chat.Ordinal}
 type PickerState = 'picker' | 'title'
 
 const TeamPicker = (props: Props) => {
-  const srcConvID = C.useChatContext(s => s.id)
+  const srcConvID = Chat.useChatContext(s => s.id)
   const ordinal = props.ordinal
-  const message = C.useChatContext(s => s.messageMap.get(ordinal))
+  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
   const dstConvIDRef = React.useRef<Uint8Array | undefined>(undefined)
@@ -74,7 +74,7 @@ const TeamPicker = (props: Props) => {
     }
   }
 
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault()
     event?.stopPropagation()

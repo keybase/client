@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import MaybePopup from './maybe-popup'
 
 const DeleteHistoryWarning = () => {
@@ -8,7 +9,7 @@ const DeleteHistoryWarning = () => {
     navigateUp()
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const messageDeleteHistory = C.useChatContext(s => s.dispatch.messageDeleteHistory)
+  const messageDeleteHistory = Chat.useChatContext(s => s.dispatch.messageDeleteHistory)
   const onDeleteHistory = () => {
     clearModals()
     messageDeleteHistory()

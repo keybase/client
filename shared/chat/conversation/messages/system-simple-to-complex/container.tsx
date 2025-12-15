@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import {useTeamsState} from '@/constants/teams'
 import type * as T from '@/constants/types'
@@ -10,7 +10,7 @@ type OwnProps = {message: T.Chat.MessageSystemSimpleToComplex}
 
 const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplexContainer(p: OwnProps) {
   const {message} = p
-  const teamID = C.useChatContext(s => s.meta.teamID)
+  const teamID = Chat.useChatContext(s => s.meta.teamID)
   const you = useCurrentUserState(s => s.username)
   const manageChatChannels = useTeamsState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {

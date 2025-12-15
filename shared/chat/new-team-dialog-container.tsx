@@ -1,10 +1,11 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {CreateNewTeam} from '../teams/new-team'
 import {useTeamsState} from '@/constants/teams'
 import upperFirst from 'lodash/upperFirst'
 
 const NewTeamDialog = () => {
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const baseTeam = ''
   const errorText = useTeamsState(s => upperFirst(s.errorInTeamCreation))
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

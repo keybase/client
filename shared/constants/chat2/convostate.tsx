@@ -3206,10 +3206,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 }
 
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
-export const stores_ = new Map<T.Chat.ConversationIDKey, MadeStore>()
+export const chatStores = new Map<T.Chat.ConversationIDKey, MadeStore>()
 
 export const clearChatStores = () => {
-  stores_.clear()
+  chatStores.clear()
 }
 
 registerDebugClear(() => {
@@ -3217,18 +3217,18 @@ registerDebugClear(() => {
 })
 
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
-  const existing = stores_.get(id)
+  const existing = chatStores.get(id)
   if (existing) return existing
   const next = Z.createZustand<ConvoState>(createSlice)
   next.setState({id})
-  stores_.set(id, next)
+  chatStores.set(id, next)
   next.getState().dispatch.setupSubscriptions()
   return next
 }
 
 // debug only
 export function hasConvoState(id: T.Chat.ConversationIDKey) {
-  return stores_.has(id)
+  return chatStores.has(id)
 }
 
 // non reactive call, used in actions/dispatches
@@ -3243,7 +3243,7 @@ type ConvoProviderProps = React.PropsWithChildren<{
   id: T.Chat.ConversationIDKey
   canBeNull?: boolean
 }>
-export const ChatProvider_ = React.memo(function ChatProvider_({
+export const ChatProvider = React.memo(function ChatProvider({
   canBeNull,
   children,
   ...props
@@ -3264,7 +3264,7 @@ export function useHasContext() {
 }
 
 // use this if in doubt
-export function useContext_<T>(selector: (state: ConvoState) => T): T {
+export function useChatContext<T>(selector: (state: ConvoState) => T): T {
   const store = React.useContext(Context)
   if (!store) {
     throw new Error('Missing ConvoContext.Provider in the tree')
@@ -3273,7 +3273,7 @@ export function useContext_<T>(selector: (state: ConvoState) => T): T {
 }
 
 // unusual, usually you useContext, but maybe in teams
-export function useConvoState_<T>(id: T.Chat.ConversationIDKey, selector: (state: ConvoState) => T): T {
+export function useConvoState<T>(id: T.Chat.ConversationIDKey, selector: (state: ConvoState) => T): T {
   const store = createConvoStore(id)
   return useStore(store, selector)
 }
@@ -3289,9 +3289,9 @@ export const ProviderScreen = React.memo(function ProviderScreen(p: {
   canBeNull?: boolean
 }) {
   return (
-    <ChatProvider_ id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
+    <ChatProvider id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
       {p.children}
-    </ChatProvider_>
+    </ChatProvider>
   )
 })
 
@@ -3299,7 +3299,7 @@ import type {NavigateAppendType} from '@/router-v2/route-params'
 export const useChatNavigateAppend = () => {
   const useRouterState = storeRegistry.getStore('router')
   const navigateAppend = useRouterState(s => s.dispatch.navigateAppend)
-  const cid = useContext_(s => s.id)
+  const cid = useChatContext(s => s.id)
   return React.useCallback(
     (makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType, replace?: boolean) => {
       navigateAppend(makePath(cid), replace)

@@ -1,6 +1,6 @@
 // A mirror of the remote menubar windows.
 import * as C from '@/constants'
-import type * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat2'
 import {useConfigState} from '@/constants/config'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -114,7 +114,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
     })
   )
   const infoMap = useUsersState(s => s.infoMap)
-  const widgetList = C.useChatState(s => s.inboxLayout?.widgetList)
+  const widgetList = Chat.useChatState(s => s.inboxLayout?.widgetList)
   const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
@@ -131,7 +131,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
   const [remakeChat, setRemakeChat] = React.useState(0)
   React.useEffect(() => {
     const unsubs = widgetList?.map(v => {
-      return C.chatStores.get(v.convID)?.subscribe((s, old) => {
+      return Chat.chatStores.get(v.convID)?.subscribe((s, old) => {
         if (convoDiff(s, old)) {
           setRemakeChat(c => c + 1)
         }
@@ -149,7 +149,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
     () =>
       widgetList?.map(v => {
         remakeChat // implied dependency
-        const {badge, unread, participants, meta} = C.getConvoState(v.convID)
+        const {badge, unread, participants, meta} = Chat.getConvoState(v.convID)
         const c = meta
         return {
           channelname: c.channelname,

@@ -15,9 +15,9 @@ type Props = {
 
 const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
   return (
-    <C.ChatProvider id={Chat.dummyConversationIDKey}>
+    <Chat.ChatProvider id={Chat.dummyConversationIDKey}>
       <BigTeamHeaderImpl {...props} />
-    </C.ChatProvider>
+    </Chat.ChatProvider>
   )
 })
 const BigTeamHeaderImpl = (props: Props) => {
@@ -30,7 +30,7 @@ const BigTeamHeaderImpl = (props: Props) => {
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
-        <C.ChatProvider id="" canBeNull={true}>
+        <Chat.ChatProvider id="" canBeNull={true}>
           <TeamMenu
             attachTo={attachTo}
             visible={true}
@@ -39,7 +39,7 @@ const BigTeamHeaderImpl = (props: Props) => {
             hasHeader={true}
             isSmallTeam={false}
           />
-        </C.ChatProvider>
+        </Chat.ChatProvider>
       )
     },
     [teamID]

@@ -13,7 +13,7 @@ import * as Meta from './meta'
 import {isMobile, isPhone} from '../platform'
 import * as Z from '@/util/zustand'
 import * as Common from './common'
-import {clearChatStores} from './convostate'
+import {clearChatStores, chatStores} from './convostate'
 import {uint8ArrayToString} from 'uint8array-extras'
 import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '../rpc-utils'
@@ -371,7 +371,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     badgesUpdated: b => {
       if (!b) return
       // clear all first
-      for (const [, cs] of C.chatStores) {
+      for (const [, cs] of chatStores) {
         cs.getState().dispatch.badgesUpdated(0)
       }
       b.conversations?.forEach(c => {
@@ -386,7 +386,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       })
     },
     clearMetas: () => {
-      for (const [, cs] of C.chatStores) {
+      for (const [, cs] of chatStores) {
         cs.getState().dispatch.setMeta()
       }
     },
@@ -541,7 +541,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           get().dispatch.clearMetas()
         }
         if (clearExistingMessages) {
-          for (const [, cs] of C.chatStores) {
+          for (const [, cs] of chatStores) {
             cs.getState().dispatch.messagesClear()
           }
         }
@@ -1501,7 +1501,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         if (!participants) return
         const toFind = [...participants].sort().join(',')
         const toFindN = participants.length
-        for (const cs of C.chatStores.values()) {
+        for (const cs of chatStores.values()) {
           const names = cs.getState().participants.name
           if (names.length !== toFindN) continue
           const p = [...names].sort().join(',')
@@ -1862,7 +1862,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       )
       if (!explodingItems.length) {
         // No conversations have exploding modes, clear out what is set
-        for (const s of C.chatStores.values()) {
+        for (const s of chatStores.values()) {
           s.getState().dispatch.setExplodingMode(0, true)
         }
       } else {
@@ -1920,7 +1920,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     dispatch,
     getBackCount: conversationIDKey => {
       let count = 0
-      C.chatStores.forEach(s => {
+      chatStores.forEach(s => {
         const {id, badge} = s.getState()
         // only show sum of badges that aren't for the current conversation
         if (id !== conversationIDKey) {
@@ -1933,7 +1933,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       let badgeCount = 0
       let hiddenCount = 0
 
-      C.chatStores.forEach(s => {
+      chatStores.forEach(s => {
         const {id, badge} = s.getState()
         if (ids.has(id)) {
           badgeCount -= badge
@@ -1946,7 +1946,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     getUnreadIndicies: ids => {
       const unreadIndices: Map<number, number> = new Map()
       ids.forEach((cur, idx) => {
-        Array.from(C.chatStores.values()).some(s => {
+        Array.from(chatStores.values()).some(s => {
           const {id, badge} = s.getState()
           if (id === cur && badge > 0) {
             unreadIndices.set(idx, badge)

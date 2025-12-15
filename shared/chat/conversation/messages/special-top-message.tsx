@@ -14,8 +14,8 @@ import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/constants/current-user'
 
 const ErrorMessage = () => {
-  const createConversationError = C.useChatState(s => s.createConversationError)
-  const createConversation = C.useChatState(s => s.dispatch.createConversation)
+  const createConversationError = Chat.useChatState(s => s.createConversationError)
+  const createConversation = Chat.useChatState(s => s.dispatch.createConversation)
 
   const _onCreateWithoutThem = React.useCallback(
     (allowedUsers: ReadonlyArray<string>) => {
@@ -24,7 +24,7 @@ const ErrorMessage = () => {
     [createConversation]
   )
 
-  const navigateToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
+  const navigateToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
   const _onBack = React.useCallback(() => {
     navigateToInbox()
   }, [navigateToInbox])
@@ -112,7 +112,7 @@ const ErrorMessage = () => {
 
 const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const username = useCurrentUserState(s => s.username)
-  const data = C.useChatContext(
+  const data = Chat.useChatContext(
     C.useShallow(s => {
       const ordinals = s.messageOrdinals
       const hasLoadedEver = ordinals !== undefined

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -15,10 +16,10 @@ type Props = {
 
 const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
-  const smallTeamBadgeCount = C.useChatState(s => s.smallTeamBadgeCount)
-  const totalSmallTeams = C.useChatState(s => s.inboxLayout?.totalSmallTeams ?? 0)
+  const smallTeamBadgeCount = Chat.useChatState(s => s.smallTeamBadgeCount)
+  const totalSmallTeams = Chat.useChatState(s => s.inboxLayout?.totalSmallTeams ?? 0)
   // we remove the badge count of the stuff we're showing
-  let {badgeCount, hiddenCount} = C.useChatState(
+  let {badgeCount, hiddenCount} = Chat.useChatState(
     C.useShallow(s =>
       s.getBadgeHiddenCount(new Set(rows.filter(r => r.type === 'small').map(r => r.conversationIDKey)))
     )

@@ -1,11 +1,12 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import CommonResult, {type ResultProps} from './common-result'
 
 const HellobotResult = React.memo(function HellobotResult(props: ResultProps) {
   const cancelTeamBuilding = C.useTBContext(s => s.dispatch.cancelTeamBuilding)
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onSelfChat = () => {
     cancelTeamBuilding()
     setTimeout(() => {

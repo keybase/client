@@ -22,7 +22,7 @@ const emptyMessage = Chat.makeMessageText({})
 
 const PopText = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
-  const message = C.useChatContext(s => {
+  const message = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const message = m ?? emptyMessage
     return message
@@ -63,7 +63,7 @@ const PopText = (ownProps: OwnProps) => {
   }, [message])
 
   const yourMessage = author === you
-  const {isTeam, messageReplyPrivately, numPart, teamType} = C.useChatContext(
+  const {isTeam, messageReplyPrivately, numPart, teamType} = Chat.useChatContext(
     C.useShallow(s => {
       const {teamType, teamname} = s.meta
       const isTeam = !!teamname

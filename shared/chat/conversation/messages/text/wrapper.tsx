@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useReply} from './reply'
@@ -35,7 +35,7 @@ const getStyle = (
 const MessageMarkdown = React.memo(function MessageMarkdown(p: {style: Kb.Styles.StylesCrossPlatform}) {
   const {style} = p
   const ordinal = useOrdinal()
-  const text = C.useChatContext(s => {
+  const text = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     if (m?.type !== 'text') return ''
     const decoratedText = m.decoratedText
@@ -70,7 +70,7 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   const reply = useReply(ordinal)
 
   // Get text-specific styling info
-  const textType = C.useChatContext(s => {
+  const textType = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const errorReason = m?.errorReason
     return errorReason ? ('error' as const) : !m?.submitState ? ('sent' as const) : ('pending' as const)

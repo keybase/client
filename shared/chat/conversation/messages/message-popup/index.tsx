@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AttachmentMessage from './attachment'
@@ -17,7 +18,7 @@ type Props = {
 
 const MessagePopup = React.memo(function MessagePopup(p: Props) {
   const {ordinal, attachTo, onHidden, position, style, visible} = p
-  const type = C.useChatContext(s => s.messageMap.get(ordinal)?.type)
+  const type = Chat.useChatContext(s => s.messageMap.get(ordinal)?.type)
   switch (type) {
     case 'text':
     case 'setChannelname':
@@ -117,13 +118,13 @@ export const useMessagePopup = (p: {
   shouldShow?: () => boolean
   style?: Kb.Styles.StylesCrossPlatform
 }) => {
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const {ordinal, shouldShow, style} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (shouldShow?.() ?? true) ? (
-        <C.ChatProvider id={conversationIDKey}>
+        <Chat.ChatProvider id={conversationIDKey}>
           <Kb.FloatingModalContext.Provider value="bottomsheet">
             <MessagePopup
               ordinal={ordinal}
@@ -135,7 +136,7 @@ export const useMessagePopup = (p: {
               visible={true}
             />
           </Kb.FloatingModalContext.Provider>
-        </C.ChatProvider>
+        </Chat.ChatProvider>
       ) : null
     },
     [ordinal, shouldShow, style, conversationIDKey]

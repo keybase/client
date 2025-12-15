@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {Props} from '.'
@@ -6,7 +7,7 @@ import {useConfigState} from '@/constants/config'
 
 const ChatPDF = (props: Props) => {
   const {ordinal, url} = props
-  const message = C.useChatContext(s => s.messageMap.get(ordinal))
+  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
   const title = message?.title || message?.fileName || 'PDF'
   const [error, setError] = React.useState('')
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

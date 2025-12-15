@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SetDescriptionType from './container'
@@ -6,7 +6,7 @@ import type SetDescriptionType from './container'
 const SetDescription = React.memo(function SetDescription(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
-  const message = C.useChatContext(s => s.messageMap.get(ordinal))
+  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
 
   if (message?.type !== 'setDescription') return null
 

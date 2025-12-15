@@ -33,9 +33,9 @@ export type Props = {
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
   return (
-    <C.ChatProvider id={p.conversationIDKey}>
+    <Chat.ChatProvider id={p.conversationIDKey}>
       <SmallTeamImpl {...p} />
-    </C.ChatProvider>
+    </Chat.ChatProvider>
   )
 })
 
@@ -43,7 +43,7 @@ const SmallTeamImpl = (p: Props) => {
   const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime, layoutSnippetDecoration} = p
   const {isInWidget} = p
 
-  const {snippet, snippetDecoration} = C.useChatContext(
+  const {snippet, snippetDecoration} = Chat.useChatContext(
     C.useShallow(s => {
       const typingSnippet = (() => {
         const typers = !isInWidget ? s.typing : undefined
@@ -69,8 +69,8 @@ const SmallTeamImpl = (p: Props) => {
     })
   )
   const you = useCurrentUserState(s => s.username)
-  const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
-  const participants = C.useChatContext(
+  const navigateToThread = Chat.useChatContext(s => s.dispatch.navigateToThread)
+  const participants = Chat.useChatContext(
     C.useShallow(s => {
       const {meta} = s
       const participantInfo = s.participants
@@ -167,9 +167,9 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const {backgroundColor, isSelected} = p
   const layoutIsTeam = React.useContext(IsTeamContext)
   const participants = React.useContext(ParticipantsContext)
-  const isMuted = C.useChatContext(s => s.meta.isMuted)
+  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
   const you = useCurrentUserState(s => s.username)
-  const isLocked = C.useChatContext(s => {
+  const isLocked = Chat.useChatContext(s => {
     const {meta} = s
     const isLocked = meta.rekeyers.has(you) || meta.rekeyers.size > 0 || !!meta.wasFinalizedBy
     return isLocked

@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -9,7 +9,7 @@ type OwnProps = {message: T.Chat.MessageSystemUsersAddedToConversation}
 
 const UsersAddedToConversationContainer = React.memo(function UsersAddedToConversationContainer(p: OwnProps) {
   const {usernames} = p.message
-  const channelname = C.useChatContext(s => s.meta.channelname)
+  const channelname = Chat.useChatContext(s => s.meta.channelname)
   const you = useCurrentUserState(s => s.username)
   let otherUsers: Array<string> | undefined
   if (usernames.includes(you)) {

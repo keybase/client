@@ -14,11 +14,11 @@ type Props = {conversationIDKey?: T.Chat.ConversationIDKey; navKey?: string}
 const InboxAndConversation = React.memo(function InboxAndConversation(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
   const navKey = props.navKey ?? ''
-  const inboxSearch = C.useChatState(s => s.inboxSearch)
-  const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
+  const inboxSearch = Chat.useChatState(s => s.inboxSearch)
+  const infoPanelShowing = Chat.useChatState(s => s.infoPanelShowing)
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
   const seenValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
-  const selectNextConvo = C.useChatState(s => {
+  const selectNextConvo = Chat.useChatState(s => {
     if (seenValidCIDRef.current) {
       return null
     }
@@ -31,13 +31,13 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props: Pro
       seenValidCIDRef.current = selectNextConvo
       // need to defer , not sure why, shouldn't be
       setTimeout(() => {
-        C.getConvoState(selectNextConvo).dispatch.navigateToThread('findNewestConversationFromLayout')
+        Chat.getConvoState(selectNextConvo).dispatch.navigateToThread('findNewestConversationFromLayout')
       }, 100)
     }
   }, [selectNextConvo])
 
   return (
-    <C.ChatProvider id={conversationIDKey} canBeNull={true}>
+    <Chat.ChatProvider id={conversationIDKey} canBeNull={true}>
       <Kb.KeyboardAvoidingView2>
         <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.container}>
           {!C.isTablet && inboxSearch ? (
@@ -55,7 +55,7 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props: Pro
           ) : null}
         </Kb.Box2>
       </Kb.KeyboardAvoidingView2>
-    </C.ChatProvider>
+    </Chat.ChatProvider>
   )
 })
 

@@ -22,7 +22,7 @@ const noAdmins: Array<string> = []
 
 const TeamMention = (ownProps: OwnProps) => {
   const {allowFontScaling, name, channel, style} = ownProps
-  const maybeMentionInfo = C.useChatState(s =>
+  const maybeMentionInfo = Chat.useChatState(s =>
     s.maybeMentionMap.get(Chat.getTeamMentionName(name, channel))
   )
   const mentionInfo =
@@ -37,7 +37,7 @@ const TeamMention = (ownProps: OwnProps) => {
   const publicAdmins = mentionInfo?.publicAdmins || noAdmins
   const resolved = !!mentionInfo
 
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const _onViewTeam = (teamname: string) => {

@@ -1,6 +1,7 @@
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useTeamsState} from '@/constants/teams'
 import {useUsersState} from '@/constants/users'
 
@@ -161,7 +162,7 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
     },
     [_reportUser]
   )
-  const setConversationStatus = C.useChatContext(s => s.dispatch.blockConversation)
+  const setConversationStatus = Chat.useChatContext(s => s.dispatch.blockConversation)
   const _setUserBlocks = useUsersState(s => s.dispatch.setUserBlocks)
   const setUserBlocks = React.useCallback(
     (newBlocks: NewBlocksMap) => {

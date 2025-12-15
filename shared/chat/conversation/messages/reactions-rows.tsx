@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmojiRow from './emoji-row'
@@ -30,7 +31,7 @@ const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
 
 const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {
   const ordinal = useOrdinal()
-  const reactions = C.useChatContext(
+  const reactions = Chat.useChatContext(
     C.useDeep(s => {
       const message = s.messageMap.get(ordinal)
       const reactions = message?.reactions

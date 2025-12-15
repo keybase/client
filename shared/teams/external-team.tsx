@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import {useProfileState} from '@/constants/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -173,7 +174,7 @@ const Header = ({info}: ExternalTeamProps) => {
 }
 
 const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem: boolean}) => {
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({participants: [member.username], reason: 'teamMember'})
   const roleString = Teams.teamRoleByEnum[member.role]
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)

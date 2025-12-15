@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
@@ -10,7 +11,7 @@ type OwnProps = {message: T.Chat.MessageSystemCreateTeam}
 
 const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(p: OwnProps) {
   const {creator} = p.message
-  const {showInfoPanel, teamID, teamname} = C.useChatContext(
+  const {showInfoPanel, teamID, teamname} = Chat.useChatContext(
     C.useShallow(s => {
       const {teamID, teamname} = s.meta
       const {showInfoPanel} = s.dispatch

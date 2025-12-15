@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -31,8 +31,8 @@ const getBkgColor = (status: T.RPCChat.UIChatThreadStatusTyp) => {
 }
 
 const ThreadLoadStatus = () => {
-  const status = C.useChatContext(s => s.threadLoadStatus)
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const status = Chat.useChatContext(s => s.threadLoadStatus)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
 
   logger.info(`ThreadLoadStatus: convID: ${conversationIDKey} status: ${status}`)
   if (status === T.RPCChat.UIChatThreadStatusTyp.none) {

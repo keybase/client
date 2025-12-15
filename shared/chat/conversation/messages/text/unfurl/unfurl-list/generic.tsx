@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters/index'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -11,7 +12,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p
   const ordinal = useOrdinal()
 
-  const data = C.useChatContext(
+  const data = Chat.useChatContext(
     C.useShallow(s => {
       const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
       if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {

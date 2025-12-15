@@ -7,7 +7,7 @@ import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/constants/current-user'
 
 const PinnedMessage = React.memo(function PinnedMessage() {
-  const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = C.useChatContext(
+  const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = Chat.useChatContext(
     C.useShallow(s => {
       const {meta, dispatch, id: conversationIDKey} = s
       const teamname = meta.teamname

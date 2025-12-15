@@ -7,15 +7,15 @@ import {useFSState} from '@/constants/fs'
 
 const blankMessage = Chat.makeMessageAttachment({})
 export const useData = (initialOrdinal: T.Chat.Ordinal) => {
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const [ordinal, setOrdinal] = React.useState(initialOrdinal)
 
-  const message: T.Chat.MessageAttachment = C.useChatContext(s => {
+  const message: T.Chat.MessageAttachment = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : blankMessage
   })
 
-  const loadNextAttachment = C.useChatContext(s => s.dispatch.loadNextAttachment)
+  const loadNextAttachment = Chat.useChatContext(s => s.dispatch.loadNextAttachment)
   const onSwitchAttachment = React.useCallback(
     (backInTime: boolean) => {
       const f = async () => {
@@ -40,8 +40,8 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
-  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
+  const attachmentDownload = Chat.useChatContext(s => s.dispatch.attachmentDownload)
   const {downloadPath, fileURL: path, fullHeight, fullWidth, fileType} = message
   const {previewHeight, previewURL: previewPath, previewWidth, title, transferProgress} = message
   const {height: clampedHeight, width: clampedWidth} = Chat.clampImageSize(

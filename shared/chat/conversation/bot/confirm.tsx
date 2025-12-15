@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import type * as T from '@/constants/types'
 import {useBotConversationIDKey} from './install'
 
@@ -13,7 +14,7 @@ type Props = {
 const ConfirmBotRemoveImpl = (props: {botUsername: string}) => {
   const {botUsername} = props
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const removeBotMember = C.useChatContext(s => s.dispatch.removeBotMember)
+  const removeBotMember = Chat.useChatContext(s => s.dispatch.removeBotMember)
   const onClose = React.useCallback(() => {
     clearModals()
   }, [clearModals])
@@ -36,9 +37,9 @@ const ConfirmBotRemove = (props: Props) => {
   const {teamID, botUsername} = props
   const conversationIDKey = useBotConversationIDKey(props.conversationIDKey, teamID)
   return conversationIDKey ? (
-    <C.ChatProvider id={conversationIDKey}>
+    <Chat.ChatProvider id={conversationIDKey}>
       <ConfirmBotRemoveImpl botUsername={botUsername} />
-    </C.ChatProvider>
+    </Chat.ChatProvider>
   ) : null
 }
 

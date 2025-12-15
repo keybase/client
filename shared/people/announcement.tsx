@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import openURL from '@/util/open-url'
 import * as Kb from '@/common-adapters'
@@ -23,7 +24,7 @@ const Container = (ownProps: OwnProps) => {
   const dismissAnnouncement = usePeopleState(s => s.dispatch.dismissAnnouncement)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const navigateToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
+  const navigateToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
   const onConfirm = () => {
     if (url) {
       openURL(url)

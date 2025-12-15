@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -26,7 +26,7 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
 
   const activity = <Activity level={activityLevel} />
 
-  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({reason: 'teamRow', teamname: teamMeta.teamname})
 
   const makePopup = React.useCallback(

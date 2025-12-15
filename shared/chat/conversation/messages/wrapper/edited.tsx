@@ -1,11 +1,11 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useIsHighlighted, useOrdinal} from '../ids-context'
 
 export const useEdited = () => {
   const ordinal = useOrdinal()
-  const hasBeenEdited = C.useChatContext(s => {
+  const hasBeenEdited = Chat.useChatContext(s => {
     const message = s.messageMap.get(ordinal)
     const hasBeenEdited = message?.hasBeenEdited ?? false
     return hasBeenEdited

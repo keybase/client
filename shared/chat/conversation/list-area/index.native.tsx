@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
 import * as Kb from '@/common-adapters'
@@ -36,7 +37,7 @@ const useScrolling = (p: {
 }) => {
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
-  const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  const loadOlderMessages = Chat.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const scrollToBottom = React.useCallback(() => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   }, [listRef])
@@ -86,15 +87,15 @@ const ConversationList = React.memo(function ConversationList() {
     </Kb.Text>
   ) : null
 
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
 
   // used to force a rerender when a type changes, aka placeholder resolves
   const [extraData, setExtraData] = React.useState(0)
   const [lastED, setLastED] = React.useState(extraData)
 
-  const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
-  const messageTypeMap = C.useChatContext(s => s.messageTypeMap)
-  const _messageOrdinals = C.useChatContext(s => s.messageOrdinals)
+  const centeredOrdinal = Chat.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
+  const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
+  const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
 
   const messageOrdinals = React.useMemo(() => {
     return [...(_messageOrdinals ?? [])].reverse()

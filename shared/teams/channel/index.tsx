@@ -36,7 +36,7 @@ const useLoadDataForChannelPage = (
   const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
   const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
-  const unboxRows = C.useChatState(s => s.dispatch.unboxRows)
+  const unboxRows = Chat.useChatState(s => s.dispatch.unboxRows)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'members') {
       if (meta.conversationIDKey === 'EMPTY') {
@@ -134,8 +134,8 @@ const Channel = (props: OwnProps) => {
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
 
-  const meta = C.useConvoState(conversationIDKey, s => s.meta)
-  const {bots, participants: _participants} = C.useConvoState(
+  const meta = Chat.useConvoState(conversationIDKey, s => s.meta)
+  const {bots, participants: _participants} = Chat.useConvoState(
     conversationIDKey,
     C.useDeep(s => Chat.getBotsAndParticipants(meta, s.participants, true /* sort */))
   )

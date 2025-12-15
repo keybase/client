@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
@@ -15,7 +15,7 @@ type Props = {
 
 const Timestamp = React.memo(function Timestamp() {
   const layoutTime = React.useContext(TimeContext)
-  const timeNum = C.useChatContext(s => s.meta.timestamp || layoutTime)
+  const timeNum = Chat.useChatContext(s => s.meta.timestamp || layoutTime)
   const timestamp = timeNum ? formatTimeForConversationList(timeNum) : ''
   return <>{timestamp}</>
 })
@@ -72,8 +72,8 @@ const Names = React.memo(function Names(p: {isSelected?: boolean; showBold: bool
 
 const SimpleTopLine = React.memo(function SimpleTopLine(p: Props) {
   const {isSelected, isInWidget} = p
-  const hasUnread = C.useChatContext(s => s.unread > 0)
-  const hasBadge = C.useChatContext(s => s.badge > 0)
+  const hasUnread = Chat.useChatContext(s => s.unread > 0)
+  const hasBadge = Chat.useChatContext(s => s.badge > 0)
   const props = {
     hasBadge,
     hasUnread,

@@ -6,7 +6,7 @@ import {useOrdinal, useIsHighlighted} from '../ids-context'
 import type * as T from '@/constants/types'
 
 export const useReply = (ordinal: T.Chat.Ordinal) => {
-  const showReplyTo = C.useChatContext(s => {
+  const showReplyTo = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'text' ? !!m.replyTo : false
   })
@@ -126,12 +126,12 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
 
 const Reply = React.memo(function Reply() {
   const ordinal = useOrdinal()
-  const replyTo = C.useChatContext(s => {
+  const replyTo = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'text' ? m.replyTo : undefined
   })
 
-  const replyJump = C.useChatContext(s => s.dispatch.replyJump)
+  const replyJump = Chat.useChatContext(s => s.dispatch.replyJump)
   const onClick = C.useEvent(() => {
     const id = replyTo?.id ?? 0
     id && replyJump(id)

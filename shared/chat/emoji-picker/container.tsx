@@ -31,10 +31,10 @@ type RoutableProps = {
 }
 
 const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
-  const topReacjis = C.useChatState(s => s.userReacjis.topReacjis)
+  const topReacjis = Chat.useChatState(s => s.userReacjis.topReacjis)
   const [filter, setFilter] = React.useState('')
-  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const onChoose = React.useCallback(
     (emoji: string, renderableEmoji: RenderableEmoji) => {
       if (conversationIDKey !== Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
@@ -54,9 +54,9 @@ const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) 
 }
 
 const useSkinTone = () => {
-  const currentSkinTone = T.Chat.EmojiSkinToneFromRPC(C.useChatState(s => s.userReacjis.skinTone))
+  const currentSkinTone = T.Chat.EmojiSkinToneFromRPC(Chat.useChatState(s => s.userReacjis.skinTone))
   const rpc = C.useRPC(T.RPCChat.localPutReacjiSkinToneRpcPromise)
-  const updateUserReacjis = C.useChatState(s => s.dispatch.updateUserReacjis)
+  const updateUserReacjis = Chat.useChatState(s => s.dispatch.updateUserReacjis)
   const setSkinTone = React.useCallback(
     (emojiSkinTone: undefined | T.Chat.EmojiSkinTone) => {
       rpc(
@@ -73,12 +73,12 @@ const useSkinTone = () => {
 }
 
 const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) => {
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const customEmojiGroups = C.useChatState(s => s.userEmojis)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const customEmojiGroups = Chat.useChatState(s => s.userEmojis)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyChatLoadingEmoji)
   const [lastOnlyInTeam, setLastOnlyInTeam] = React.useState(onlyInTeam)
   const [lastDisabled, setLastDisabled] = React.useState(disabled)
-  const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
+  const fetchUserEmoji = Chat.useChatState(s => s.dispatch.fetchUserEmoji)
 
   React.useEffect(() => {
     if (lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
@@ -94,7 +94,7 @@ const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) =>
 }
 
 const useCanManageEmoji = () => {
-  const canManageEmoji = C.useChatContext(s => {
+  const canManageEmoji = Chat.useChatContext(s => {
     const meta = s.meta
     // TODO not reactive
     return !meta.teamname || Teams.getCanPerformByID(Teams.useTeamsState.getState(), meta.teamID).manageEmojis

@@ -17,7 +17,7 @@ const missingMessage = Chat.makeMessageAttachment({})
 
 const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const ordinal = useOrdinal()
-  const data = C.useChatContext(
+  const data = Chat.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const isEditing = !!s.editing

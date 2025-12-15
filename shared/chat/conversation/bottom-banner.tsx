@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import _openSMS from '@/util/sms'
@@ -10,7 +11,7 @@ import {useFollowerState} from '@/constants/followers'
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
 const Invite = () => {
-  const participantInfo = C.useChatContext(s => s.participants)
+  const participantInfo = Chat.useChatContext(s => s.participants)
   const participantInfoAll = participantInfo.all
   const users = participantInfoAll.filter(p => p.includes('@'))
 
@@ -31,7 +32,7 @@ const Invite = () => {
 
   const usernameToContactName = participantInfo.contactName
 
-  const onDismiss = C.useChatContext(s => s.dispatch.dismissBottomBanner)
+  const onDismiss = Chat.useChatContext(s => s.dispatch.dismissBottomBanner)
 
   const theirName =
     users.length === 1
@@ -88,7 +89,7 @@ const Invite = () => {
 const Broken = () => {
   const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = C.useChatContext(s => s.participants)
+  const participantInfo = Chat.useChatContext(s => s.participants)
   const users = participantInfo.all.filter(p => following.has(p) && infoMap.get(p)?.broken)
   return <Kb.ProofBrokenBanner users={users} />
 }
@@ -96,9 +97,9 @@ const Broken = () => {
 const BannerContainer = React.memo(function BannerContainer() {
   const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
-  const dismissed = C.useChatContext(s => s.dismissedInviteBanners)
-  const participantInfo = C.useChatContext(s => s.participants)
-  const type = C.useChatContext(s => {
+  const dismissed = Chat.useChatContext(s => s.dismissedInviteBanners)
+  const participantInfo = Chat.useChatContext(s => s.participants)
+  const type = Chat.useChatContext(s => {
     const teamType = s.meta.teamType
     if (teamType !== 'adhoc') {
       return 'none'

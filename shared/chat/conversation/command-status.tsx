@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useConfigState} from '@/constants/config'
@@ -10,11 +10,11 @@ const empty = {
 }
 
 const Container = () => {
-  const info = C.useChatContext(s => s.commandStatus)
+  const info = Chat.useChatContext(s => s.commandStatus)
   const _info = info || empty
 
   const onOpenAppSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
-  const setCommandStatusInfo = C.useChatContext(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
   const onCancel = () => {
     setCommandStatusInfo()
   }

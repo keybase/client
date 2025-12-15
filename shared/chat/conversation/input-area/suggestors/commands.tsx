@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
@@ -42,8 +43,8 @@ const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   const {selected, item: command} = p
   const prefix = getCommandPrefix(command)
-  const botSettings = C.useChatContext(s => s.botSettings)
-  const enabled = C.useChatContext(s => {
+  const botSettings = Chat.useChatContext(s => s.botSettings)
+  const enabled = Chat.useChatContext(s => {
     const {botCommands} = s.meta
     const suggestBotCommands =
       botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
@@ -104,10 +105,10 @@ type UseDataSourceProps = {
 
 const useDataSource = (p: UseDataSourceProps) => {
   const {filter, inputRef, lastTextRef} = p
-  const staticConfig = C.useChatState(s => s.staticConfig)
-  const showGiphySearch = C.useChatContext(s => s.giphyWindow)
-  const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
-  return C.useChatContext(
+  const staticConfig = Chat.useChatState(s => s.staticConfig)
+  const showGiphySearch = Chat.useChatContext(s => s.giphyWindow)
+  const showCommandMarkdown = Chat.useChatContext(s => !!s.commandMarkdown)
+  return Chat.useChatContext(
     C.useShallow(s => {
       if (showCommandMarkdown || showGiphySearch) {
         return []

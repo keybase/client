@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
@@ -10,11 +9,11 @@ import AddPeople from './add-people'
 const gearIconSize = Kb.Styles.isMobile ? 24 : 16
 
 const TeamHeader = () => {
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const meta = C.useChatContext(s => s.meta)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const meta = Chat.useChatContext(s => s.meta)
   const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
-  const participants = C.useChatContext(s => s.participants)
-  const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
+  const participants = Chat.useChatContext(s => s.participants)
+  const onJoinChannel = Chat.useChatContext(s => s.dispatch.joinConversation)
   const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
   const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
@@ -31,7 +30,7 @@ const TeamHeader = () => {
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
-        <C.ChatProvider id={conversationIDKey}>
+        <Chat.ChatProvider id={conversationIDKey}>
           <InfoPanelMenu
             attachTo={attachTo}
             floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
@@ -40,7 +39,7 @@ const TeamHeader = () => {
             isSmallTeam={isSmallTeam}
             visible={true}
           />
-        </C.ChatProvider>
+        </Chat.ChatProvider>
       )
     },
     [conversationIDKey, isSmallTeam]

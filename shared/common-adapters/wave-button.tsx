@@ -40,9 +40,9 @@ const WaveButton = (props: Props) => {
       return <WaveButtonImpl {...props} />
     } else {
       return (
-        <C.ChatProvider key="wave" id="" canBeNull={true}>
+        <Chat.ChatProvider key="wave" id="" canBeNull={true}>
           <WaveButtonImpl {...props} />
-        </C.ChatProvider>
+        </Chat.ChatProvider>
       )
     }
   }
@@ -59,8 +59,8 @@ const WaveButtonImpl = (props: Props) => {
   const [waved, setWaved] = React.useState(false)
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = C.Waiting.useAnyWaiting(waitingKey)
-  const sendMessage = C.useChatContext(s => s.dispatch.sendMessage)
-  const messageSendByUsername = C.useChatState(s => s.dispatch.messageSendByUsername)
+  const sendMessage = Chat.useChatContext(s => s.dispatch.sendMessage)
+  const messageSendByUsername = Chat.useChatState(s => s.dispatch.messageSendByUsername)
   const onWave = () => {
     if (props.username) {
       messageSendByUsername(props.username, ':wave:', waitingKey)

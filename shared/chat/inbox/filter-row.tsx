@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
@@ -18,10 +19,10 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
   const {onEnsureSelection, onSelectDown, onSelectUp, showSearch} = ownProps
   const {onQueryChanged: onSetFilter, query: filter} = ownProps
 
-  const isSearching = C.useChatState(s => !!s.inboxSearch)
+  const isSearching = Chat.useChatState(s => !!s.inboxSearch)
 
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
-  const toggleInboxSearch = C.useChatState(s => s.dispatch.toggleInboxSearch)
+  const toggleInboxSearch = Chat.useChatState(s => s.dispatch.toggleInboxSearch)
   const onStartSearch = React.useCallback(() => {
     toggleInboxSearch(true)
   }, [toggleInboxSearch])

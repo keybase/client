@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import type CoinFlipType from './coinflip'
@@ -12,7 +13,7 @@ type Props = {
 }
 
 export const useBottom = (ordinal: T.Chat.Ordinal) => {
-  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts} = C.useChatContext(
+  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts} = Chat.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
       const hasCoinFlip = message?.type === 'text' && !!message.flipGameID

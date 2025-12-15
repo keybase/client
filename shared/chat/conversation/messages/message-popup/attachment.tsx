@@ -20,7 +20,7 @@ const emptyMessage = Chat.makeMessageAttachment({})
 
 const PopAttach = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
-  const message = C.useChatContext(s => {
+  const message = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const message = m?.type === 'attachment' ? m : emptyMessage
     return message
@@ -35,7 +35,7 @@ const PopAttach = (ownProps: OwnProps) => {
     messageAttachmentNativeSave,
     messageAttachmentNativeShare,
     showInfoPanel,
-  } = C.useChatContext(
+  } = Chat.useChatContext(
     C.useShallow(s => {
       const {
         attachmentDownload,

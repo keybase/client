@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -19,7 +18,7 @@ const AudioAttachment = () => {
   const ordinal = useOrdinal()
 
   // TODO not message
-  const message = C.useChatContext(s => {
+  const message = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : missingMessage
   })

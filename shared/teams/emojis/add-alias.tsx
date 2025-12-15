@@ -1,5 +1,6 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
@@ -25,7 +26,7 @@ const AddAliasModal = (props: Props) => {
   const [emoji, setEmoji] = React.useState<ChosenEmoji | undefined>(undefined)
   const [alias, setAlias] = React.useState('')
   const [error, setError] = React.useState<undefined | string>(undefined)
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
 
   const aliasInputRef = React.useRef<AliasRef>(null)
   const onChoose = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
@@ -143,7 +144,7 @@ const ChooseEmoji = Kb.Styles.isMobile
       }
 
       const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-      const conversationIDKey = C.useChatContext(s => s.id)
+      const conversationIDKey = Chat.useChatContext(s => s.id)
       const openEmojiPicker = () =>
         navigateAppend({
           props: {

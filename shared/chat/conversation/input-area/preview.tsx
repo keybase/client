@@ -1,11 +1,11 @@
-import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 const Preview = () => {
-  const meta = C.useChatContext(s => s.meta)
-  const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
-  const onLeaveChannel = C.useChatContext(s => s.dispatch.leaveConversation)
+  const meta = Chat.useChatContext(s => s.meta)
+  const onJoinChannel = Chat.useChatContext(s => s.dispatch.joinConversation)
+  const onLeaveChannel = Chat.useChatContext(s => s.dispatch.leaveConversation)
   const {channelname} = meta
   const [clicked, setClicked] = React.useState<undefined | 'join' | 'leave'>(undefined)
 

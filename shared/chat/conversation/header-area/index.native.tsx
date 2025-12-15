@@ -13,7 +13,7 @@ import {useUsersState} from '@/constants/users'
 import {useCurrentUserState} from '@/constants/current-user'
 
 export const HeaderAreaRight = () => {
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const pendingWaiting =
     conversationIDKey === Chat.pendingWaitingConversationIDKey ||
     conversationIDKey === Chat.pendingErrorConversationIDKey
@@ -37,9 +37,9 @@ export const HeaderAreaRight = () => {
   //   </>
   // ) : null
 
-  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
   const onShowInfoPanel = React.useCallback(() => showInfoPanel(true, undefined), [showInfoPanel])
-  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
     // fix a race with the keyboard going away and coming back quickly
     Keyboard.dismiss()
@@ -67,8 +67,8 @@ enum HeaderType {
 }
 
 const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
-  const participantInfo = C.useChatContext(s => s.participants)
-  const type = C.useChatContext(s => {
+  const participantInfo = Chat.useChatContext(s => s.participants)
+  const type = Chat.useChatContext(s => {
     const meta = s.meta
     const teamName = meta.teamname
     if (teamName) {
@@ -103,20 +103,20 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
     headerLeft: (props: HeaderBackButtonProps) => {
       const {onLabelLayout, labelStyle, ...rest} = props
       return (
-        <C.ChatProvider id={conversationIDKey}>
+        <Chat.ChatProvider id={conversationIDKey}>
           <BadgeHeaderLeftArray {...rest} />
-        </C.ChatProvider>
+        </Chat.ChatProvider>
       )
     },
     headerRight: () => (
-      <C.ChatProvider id={conversationIDKey}>
+      <Chat.ChatProvider id={conversationIDKey}>
         <HeaderAreaRight />
-      </C.ChatProvider>
+      </Chat.ChatProvider>
     ),
     headerTitle: () => (
-      <C.ChatProvider id={conversationIDKey}>
+      <Chat.ChatProvider id={conversationIDKey}>
         <HeaderBranchContainer />
-      </C.ChatProvider>
+      </Chat.ChatProvider>
     ),
   }
 }
@@ -124,8 +124,8 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
 export const useBackBadge = () => {
   const visiblePath = C.Router2.getVisiblePath()
   const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const badgeNumber = C.useChatState(s => s.getBackCount(conversationIDKey))
+  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const badgeNumber = Chat.useChatState(s => s.getBackCount(conversationIDKey))
   if (!onTopOfInbox) return 0
   return badgeNumber
 }
@@ -134,8 +134,8 @@ const shhIconColor = Kb.Styles.globalColors.black_20
 const shhIconFontSize = 24
 
 const ShhIcon = React.memo(function ShhIcon() {
-  const isMuted = C.useChatContext(s => s.meta.isMuted)
-  const mute = C.useChatContext(s => s.dispatch.mute)
+  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
+  const mute = Chat.useChatContext(s => s.dispatch.mute)
   const unMuteConversation = React.useCallback(() => {
     mute(false)
   }, [mute])
@@ -158,7 +158,7 @@ const useMaxWidthStyle = () => {
 }
 
 const ChannelHeader = () => {
-  const {channelname, smallTeam, teamname, teamID} = C.useChatContext(
+  const {channelname, smallTeam, teamname, teamID} = Chat.useChatContext(
     C.useShallow(s => {
       const meta = s.meta
       const {channelname, teamname, teamType, teamID} = meta
@@ -208,8 +208,8 @@ const emptyArray = new Array<string>()
 const UsernameHeader = () => {
   const you = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = C.useChatContext(s => s.participants)
-  const {participants, theirFullname} = C.useChatContext(
+  const participantInfo = Chat.useChatContext(s => s.participants)
+  const {participants, theirFullname} = Chat.useChatContext(
     C.useShallow(s => {
       const meta = s.meta
       const participants = meta.teamname ? emptyArray : participantInfo.name
@@ -261,8 +261,8 @@ const UsernameHeader = () => {
 }
 
 const PhoneOrEmailHeader = () => {
-  const participantInfo = C.useChatContext(s => s.participants)
-  const meta = C.useChatContext(s => s.meta)
+  const participantInfo = Chat.useChatContext(s => s.participants)
+  const meta = Chat.useChatContext(s => s.meta)
   const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)

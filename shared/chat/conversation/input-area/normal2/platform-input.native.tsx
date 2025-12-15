@@ -200,7 +200,7 @@ type ChatFilePickerProps = {
 }
 const ChatFilePicker = (p: ChatFilePickerProps) => {
   const {attachTo, showingPopup, hidePopup} = p
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const filePickerError = useConfigState(s => s.dispatch.filePickerError)
   const navigateAppend = Chat.useChatNavigateAppend()
   const launchNativeImagePicker = React.useCallback(

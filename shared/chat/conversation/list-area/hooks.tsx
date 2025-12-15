@@ -14,14 +14,14 @@ export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => 
       return
     }
     // Force mark as read since this is triggered by navigation (user action)
-    C.getConvoState(conversationIDKey).dispatch.markThreadAsRead(true)
+    Chat.getConvoState(conversationIDKey).dispatch.markThreadAsRead(true)
   }, [conversationIDKey])
 
   return {markInitiallyLoadedThreadAsRead}
 }
 
 export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number) => {
-  const data = C.useChatContext(
+  const data = Chat.useChatContext(
     C.useShallow(s => {
       const {loaded, moreToLoadForward} = s
       const {jumpToRecent, toggleThreadSearch} = s.dispatch
