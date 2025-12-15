@@ -151,6 +151,13 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   navUpHelper(route.state, name)
 }
 
+export const navToProfile = (username: string) => {
+  if (isMobile) {
+    useRouterState.getState().dispatch.clearModals()
+  }
+  useRouterState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
+}
+
 const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {

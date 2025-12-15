@@ -8,7 +8,7 @@ import openURL from '@/util/open-url'
 import {RPCError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
 import {storeRegistry} from '../store-registry'
-import {showUserProfile} from './util'
+import {navToProfile} from '../router2'
 
 type ProveGenericParams = {
   logoBlack: T.Tracker.SiteIconSet
@@ -596,7 +596,9 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         await T.RPCGen.proveCheckProofRpcPromise({sigID}, S.waitingKeyProfile)
-        storeRegistry.getState('tracker2').dispatch.showUser(storeRegistry.getState('current-user').username, false)
+        storeRegistry
+          .getState('tracker2')
+          .dispatch.showUser(storeRegistry.getState('current-user').username, false)
       }
       ignorePromise(f())
     },
@@ -607,7 +609,9 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         dispatch: s.dispatch,
       }))
     },
-    showUserProfile,
+    showUserProfile: username => {
+      navToProfile(username)
+    },
     submitBTCAddress: () => {
       submitCryptoAddress('bitcoin')
     },
@@ -642,7 +646,9 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     },
     submitRevokeProof: proofId => {
       const f = async () => {
-        const you = storeRegistry.getState('tracker2').getDetails(storeRegistry.getState('current-user').username)
+        const you = storeRegistry
+          .getState('tracker2')
+          .getDetails(storeRegistry.getState('current-user').username)
         if (!you.assertions) return
         const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
         if (!proof) return

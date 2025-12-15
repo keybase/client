@@ -4,12 +4,12 @@ import * as React from 'react'
 import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType} from '../icon'
 import * as Styles from '@/styles'
 import * as AvatarZus from './store'
-import {useProfileState} from '@/constants/profile'
 import './avatar.css'
 import type {Props} from '.'
 import {useColorScheme} from 'react-native'
 import {useUsersState} from '@/constants/users'
 import {useFollowerState} from '@/constants/followers'
+import {navToProfile} from '@/constants/router2'
 
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = (typeof avatarSizes)[number]
@@ -69,7 +69,7 @@ export default (ownProps: Props) => {
   )
   const httpSrv = useConfigState(s => s.httpSrv)
   const blocked = useUsersState(s => s.blockMap.get(username || teamname || '')?.chatBlocked)
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = navToProfile
   const goToProfile = React.useCallback(
     () => username && showUserProfile(username),
     [showUserProfile, username]
