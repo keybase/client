@@ -2,7 +2,6 @@ import type * as React from 'react'
 import {useNavigation} from '@react-navigation/core'
 import {type RouteKeys} from '@/router-v2/route-params'
 import logger from '@/logger'
-import {storeRegistry} from './store-registry'
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
@@ -10,14 +9,6 @@ export const ignorePromise = (f: Promise<void> | Promise<PromiseSettledResult<vo
   f.then(() => {}).catch((e: unknown) => {
     logger.error('ignorePromise error', e)
   })
-}
-
-export const initListeners = () => {
-  const f = async () => {
-    await storeRegistry.getState('fs').dispatch.setupSubscriptions()
-    storeRegistry.getState('config').dispatch.setupSubscriptions()
-  }
-  ignorePromise(f())
 }
 
 export type PagesToParams<T> = {

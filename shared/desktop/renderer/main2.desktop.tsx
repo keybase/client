@@ -14,12 +14,11 @@ import {isWindows} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
 import {debugWarning} from '@/util/debug-warning'
 import {useConfigState} from '@/constants/config'
-
 import type {default as NewMainType} from '../../app/main.desktop'
-
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useDarkModeState} from '@/constants/darkmode'
+import {initPlatformListener} from '@/constants/platform-specific'
 setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
@@ -53,7 +52,7 @@ const setupApp = () => {
   const eng = makeEngine(batch, () => {
     // do nothing we wait for the remote version from node
   })
-  C.initListeners()
+  initPlatformListener()
   eng.listenersAreReady()
 
   ipcRendererOn?.('KBdispatchAction', (_: unknown, action: unknown) => {

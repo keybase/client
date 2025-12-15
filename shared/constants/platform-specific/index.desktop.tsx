@@ -285,4 +285,6 @@ export const initPlatformListener = () => {
       }
     }
   })
+
+  ignorePromise(storeRegistry.getState('fs').dispatch.setupSubscriptions())
 }

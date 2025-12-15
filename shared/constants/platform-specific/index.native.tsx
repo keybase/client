@@ -1,4 +1,3 @@
-import * as Chat from '../chat2'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
 import {storeRegistry} from '../store-registry'
 import * as T from '../types'
@@ -31,6 +30,7 @@ import {
 } from 'react-native-kb'
 import {initPushListener, getStartupDetailsFromInitialPush} from './push.native'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
+import {noConversationIDKey} from '@/constants/types/chat2/common'
 
 export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -201,7 +201,7 @@ const loadStartupDetails = async () => {
   }
 
   storeRegistry.getState('config').dispatch.setStartupDetails({
-    conversation: conversation ?? Chat.noConversationIDKey,
+    conversation: conversation ?? noConversationIDKey,
     followUser,
     link,
     tab: tab as Tabs.Tab,
@@ -209,7 +209,7 @@ const loadStartupDetails = async () => {
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
-  Chat.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+  storeRegistry.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: text,
     displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
@@ -628,4 +628,6 @@ export const initPlatformListener = () => {
       }
     })
   })
+
+  ignorePromise(storeRegistry.getState('fs').dispatch.setupSubscriptions())
 }

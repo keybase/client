@@ -201,7 +201,6 @@ export interface State extends Store {
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
     setUserSwitching: (sw: boolean) => void
     setUseNativeFrame: (use: boolean) => void
-    setupSubscriptions: () => void
     showMain: () => void
     toggleRuntimeStats: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
@@ -1116,10 +1115,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.userSwitching = sw
       })
-    },
-    setupSubscriptions: () => {
-      // Kick off platform specific stuff
-      C.PlatformSpecific.initPlatformListener()
     },
     showMain: () => {
       get().dispatch.dynamic.showMainNative?.()

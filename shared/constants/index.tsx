@@ -1,4 +1,3 @@
-// Used to avoid circular dependencies, keep orders
 export * from './platform'
 export * from './values'
 export * from './strings'
