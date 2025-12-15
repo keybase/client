@@ -1,11 +1,11 @@
 import * as C from '@/constants'
+import * as TB from '@/constants/team-building'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {validateEmailAddress} from '@/util/email-address'
 import {UserMatchMention} from './phone-search'
 import ContinueButton from './continue-button'
-import * as TeamBuilding from '@/constants/team-building'
 
 type EmailSearchProps = {
   continueLabel: string
@@ -14,10 +14,10 @@ type EmailSearchProps = {
 }
 
 const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
-  const teamBuildingSearchResults = C.useTBContext(s => s.searchResults)
+  const teamBuildingSearchResults = TB.useTBContext(s => s.searchResults)
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
-  const waiting = C.Waiting.useAnyWaiting(TeamBuilding.searchWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(TB.searchWaitingKey)
   const user: T.TB.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 
@@ -35,7 +35,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
     [search]
   )
 
-  const addUsersToTeamSoFar = C.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
+  const addUsersToTeamSoFar = TB.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
 
   const onSubmit = React.useCallback(() => {
     if (!user || !canSubmit) {

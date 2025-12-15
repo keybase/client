@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as TB from '@/constants/team-building'
 import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as Shared from './shared'
@@ -239,9 +240,9 @@ export const ListBody = (
 
   const maybeTeamDetails = useTeamsState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
   const preExistingTeamMembers: T.Teams.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
-  const userRecs = C.useTBContext(s => s.userRecs)
-  const _teamSoFar = C.useTBContext(s => s.teamSoFar)
-  const _searchResults = C.useTBContext(s => s.searchResults)
+  const userRecs = TB.useTBContext(s => s.userRecs)
+  const _teamSoFar = TB.useTBContext(s => s.teamSoFar)
+  const _searchResults = TB.useTBContext(s => s.searchResults)
   const _recommendations = React.useMemo(
     () => deriveSearchResults(userRecs, _teamSoFar, username, following, preExistingTeamMembers),
     [userRecs, _teamSoFar, username, following, preExistingTeamMembers]
