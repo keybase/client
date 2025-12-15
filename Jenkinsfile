@@ -178,6 +178,13 @@ helpers.rootLinuxNode(env, {
           test_linux: {
             def packagesToTest = [:]
             if (hasGoChanges || hasJenkinsfileChanges) {
+              // Install gofumpt for protocol generation
+              dir("go/buildtools") {
+                println "Installing gofumpt"
+                retry(5) {
+                  sh 'go install mvdan.cc/gofumpt'
+                }
+              }
               // Check protocol diffs
               // Clean the index first
               sh "git add -A"
