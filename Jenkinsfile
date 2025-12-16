@@ -316,22 +316,27 @@ helpers.rootLinuxNode(env, {
                 def GOBIN_UNIX="${env.USERPROFILE}/go/bin"
 
                 // Install Go 1.25.5 on Windows (using Git Bash for Unix-like symlink support)
-                sh """
-                  export GOBIN="${GOBIN_UNIX}"
-                  mkdir -p "\${GOBIN}"
+                // Need to add existing Go to PATH first so we can run 'go install'
+                withEnv([
+                  "PATH=C:\\tools\\go\\bin;${WINDOWS_PATH}",
+                ]) {
+                  sh """
+                    export GOBIN="${GOBIN_UNIX}"
+                    mkdir -p "\${GOBIN}"
 
-                  echo "Installing go1.25.5..."
-                  go install golang.org/dl/go1.25.5@latest
+                    echo "Installing go1.25.5..."
+                    go install golang.org/dl/go1.25.5@latest
 
-                  echo "Downloading Go 1.25.5 SDK..."
-                  "\${GOBIN}/go1.25.5" download
+                    echo "Downloading Go 1.25.5 SDK..."
+                    "\${GOBIN}/go1.25.5" download
 
-                  # Create symlink so 'go' invokes go1.25.5 (Git Bash handles .exe transparently)
-                  ln -sf "\${GOBIN}/go1.25.5" "\${GOBIN}/go"
+                    # Create symlink so 'go' invokes go1.25.5 (Git Bash handles .exe transparently)
+                    ln -sf "\${GOBIN}/go1.25.5" "\${GOBIN}/go"
 
-                  echo "Go 1.25.5 installed successfully"
-                  "\${GOBIN}/go" version
-                """
+                    echo "Go 1.25.5 installed successfully"
+                    "\${GOBIN}/go" version
+                  """
+                }
 
                 withEnv([
                   "GOROOT=${sh(returnStdout: true, script: "\"${GOBIN_UNIX}/go\" env GOROOT").trim()}",
