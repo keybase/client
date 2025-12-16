@@ -684,23 +684,33 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     set(s => {
       const m = s.messageMap.get(targetOrdinal)
       if (m && Message.isMessageWithReactions(m)) {
-        const rs = {
-          decorated: m.reactions?.get(emoji)?.decorated ?? decorated,
-          users: m.reactions?.get(emoji)?.users ?? new Set(),
-        }
         if (!m.reactions) {
           m.reactions = new Map()
         }
-        m.reactions.set(emoji, rs)
-        const existing = [...rs.users].find(r => r.username === username)
-        if (existing) {
-          // found an existing reaction. remove it from our list
-          rs.users.delete(existing)
-        }
-        // no existing reaction. add this one to the map
-        rs.users.add(Message.makeReaction({timestamp: Date.now(), username}))
-        if (rs.users.size === 0) {
-          m.reactions.delete(emoji)
+        const existingReaction = m.reactions.get(emoji)
+        const existingUsers = existingReaction?.users ?? new Set()
+        const hasExisting = [...existingUsers].some(r => r.username === username)
+        if (hasExisting) {
+          const newUsers = new Set(existingUsers)
+          const toRemove = [...newUsers].find(r => r.username === username)
+          if (toRemove) {
+            newUsers.delete(toRemove)
+          }
+          if (newUsers.size === 0) {
+            m.reactions.delete(emoji)
+          } else {
+            m.reactions.set(emoji, {
+              decorated: existingReaction?.decorated ?? decorated,
+              users: newUsers,
+            })
+          }
+        } else {
+          const newUsers = new Set(existingUsers)
+          newUsers.add(Message.makeReaction({timestamp: Date.now(), username}))
+          m.reactions.set(emoji, {
+            decorated: existingReaction?.decorated ?? decorated,
+            users: newUsers,
+          })
         }
       }
     })
