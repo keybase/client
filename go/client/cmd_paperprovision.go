@@ -42,7 +42,6 @@ func NewCmdPaperProvisionRunner(g *libkb.GlobalContext) *CmdPaperProvision {
 }
 
 func (c *CmdPaperProvision) Run() (err error) {
-
 	client, err := GetPaperProvisionClient(c.G())
 	if err != nil {
 		return err

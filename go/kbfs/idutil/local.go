@@ -62,7 +62,8 @@ func MakeLocalUsers(users []kbname.NormalizedUsername) []LocalUser {
 }
 
 func verifyingKeysToPublicKeys(
-	keys []kbfscrypto.VerifyingKey) []keybase1.PublicKey {
+	keys []kbfscrypto.VerifyingKey,
+) []keybase1.PublicKey {
 	publicKeys := make([]keybase1.PublicKey, len(keys))
 	for i, key := range keys {
 		publicKeys[i] = keybase1.PublicKey{
@@ -74,7 +75,8 @@ func verifyingKeysToPublicKeys(
 }
 
 func cryptPublicKeysToPublicKeys(
-	keys []kbfscrypto.CryptPublicKey) []keybase1.PublicKey {
+	keys []kbfscrypto.CryptPublicKey,
+) []keybase1.PublicKey {
 	publicKeys := make([]keybase1.PublicKey, len(keys))
 	for i, key := range keys {
 		publicKeys[i] = keybase1.PublicKey{
@@ -133,7 +135,8 @@ func (lu LocalUser) DeepCopy() LocalUser {
 
 func makeLocalTeams(
 	teams []kbname.NormalizedUsername, startingIndex int, ty tlf.Type) (
-	localTeams []TeamInfo) {
+	localTeams []TeamInfo,
+) {
 	localTeams = make([]TeamInfo, len(teams))
 	for index := 0; index < len(teams); index++ {
 		i := index + startingIndex
@@ -175,7 +178,8 @@ func MakeLocalTeams(teams []kbname.NormalizedUsername) []TeamInfo {
 
 // MakeLocalUserSigningKeyOrBust returns a unique signing key for this user.
 func MakeLocalUserSigningKeyOrBust(
-	name kbname.NormalizedUsername) kbfscrypto.SigningKey {
+	name kbname.NormalizedUsername,
+) kbfscrypto.SigningKey {
 	return kbfscrypto.MakeFakeSigningKeyOrBust(
 		string(name) + " signing key")
 }
@@ -183,21 +187,24 @@ func MakeLocalUserSigningKeyOrBust(
 // MakeLocalUserCryptPublicKeyOrBust returns the public key
 // corresponding to the crypt private key for this user.
 func MakeLocalUserCryptPublicKeyOrBust(
-	name kbname.NormalizedUsername) kbfscrypto.CryptPublicKey {
+	name kbname.NormalizedUsername,
+) kbfscrypto.CryptPublicKey {
 	return MakeLocalUserCryptPrivateKeyOrBust(name).GetPublicKey()
 }
 
 // MakeLocalUserVerifyingKeyOrBust makes a new verifying key
 // corresponding to the signing key for this user.
 func MakeLocalUserVerifyingKeyOrBust(
-	name kbname.NormalizedUsername) kbfscrypto.VerifyingKey {
+	name kbname.NormalizedUsername,
+) kbfscrypto.VerifyingKey {
 	return MakeLocalUserSigningKeyOrBust(name).GetVerifyingKey()
 }
 
 // MakeLocalUserCryptPrivateKeyOrBust returns a unique private
 // encryption key for this user.
 func MakeLocalUserCryptPrivateKeyOrBust(
-	name kbname.NormalizedUsername) kbfscrypto.CryptPrivateKey {
+	name kbname.NormalizedUsername,
+) kbfscrypto.CryptPrivateKey {
 	return kbfscrypto.MakeFakeCryptPrivateKeyOrBust(
 		string(name) + " crypt key")
 }
@@ -205,7 +212,8 @@ func MakeLocalUserCryptPrivateKeyOrBust(
 // MakeLocalTLFCryptKeyOrBust returns a unique private symmetric key
 // for a TLF.
 func MakeLocalTLFCryptKeyOrBust(
-	name string, keyGen kbfsmd.KeyGen) kbfscrypto.TLFCryptKey {
+	name string, keyGen kbfsmd.KeyGen,
+) kbfscrypto.TLFCryptKey {
 	// Put the key gen first to make it more likely to fit into the
 	// 32-character "random" seed.
 	return kbfscrypto.MakeFakeTLFCryptKeyOrBust(

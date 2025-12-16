@@ -221,7 +221,8 @@ func (s *SavedContactsStore) RetrieveAssertionToName(mctx libkb.MetaContext) (re
 }
 
 func (s *SavedContactsStore) UnresolveContactsWithComponent(mctx libkb.MetaContext,
-	phoneNumber *keybase1.PhoneNumber, email *keybase1.EmailAddress) {
+	phoneNumber *keybase1.PhoneNumber, email *keybase1.EmailAddress,
+) {
 	// TODO: Use a phoneNumber | email variant instead of two pointers.
 	contactList, err := s.RetrieveContacts(mctx)
 	if err != nil {

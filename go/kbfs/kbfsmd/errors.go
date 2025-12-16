@@ -34,8 +34,7 @@ func (e InvalidBranchID) Error() string {
 
 // MetadataIsFinalError indicates that we tried to make or set a
 // successor to a finalized folder.
-type MetadataIsFinalError struct {
-}
+type MetadataIsFinalError struct{}
 
 // Error implements the error interface for MetadataIsFinalError.
 func (e MetadataIsFinalError) Error() string {
@@ -176,8 +175,7 @@ func (e NewMetadataVersionError) Error() string {
 
 // MutableRootMetadataNoImplError is returned when an interface expected
 // to implement MutableRootMetadata does not do so.
-type MutableRootMetadataNoImplError struct {
-}
+type MutableRootMetadataNoImplError struct{}
 
 // Error implements the error interface for MutableRootMetadataNoImplError
 func (e MutableRootMetadataNoImplError) Error() string {

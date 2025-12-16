@@ -422,7 +422,8 @@ func (ost *onlineStatusTracker) GetOnlineStatus() keybase1.KbfsOnlineStatus {
 }
 
 func newOnlineStatusTracker(
-	config Config, onChange func()) *onlineStatusTracker {
+	config Config, onChange func(),
+) *onlineStatusTracker {
 	ctx, cancel := context.WithCancel(context.Background())
 	log := config.MakeLogger("onlineStatusTracker")
 	ost := &onlineStatusTracker{

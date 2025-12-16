@@ -80,7 +80,6 @@ func ToServerSKB(gc *GlobalContext, key GenericKey, tsec Triplesec, gen Passphra
 }
 
 func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec Triplesec, gen PassphraseGeneration) (ret *SKB, err error) {
-
 	ret = NewSKBWithGlobalContext(gc)
 
 	var pk, sk bytes.Buffer
@@ -283,7 +282,6 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 }
 
 func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
-
 	switch {
 	case IsPGPAlgo(s.Type):
 		var w *Warnings

@@ -260,7 +260,8 @@ type rekeyStateScheduled struct {
 }
 
 func newRekeyStateScheduled(
-	fsm *rekeyFSM, delay time.Duration, task rekeyTask) *rekeyStateScheduled {
+	fsm *rekeyFSM, delay time.Duration, task rekeyTask,
+) *rekeyStateScheduled {
 	task.ctx.setLogger(fsm.log)
 	return &rekeyStateScheduled{
 		fsm: fsm,
@@ -532,7 +533,8 @@ func (m *rekeyFSM) triggerCallbacksForTest(e RekeyEvent) {
 
 // listenOnEvent implements RekeyFSM interface for rekeyFSM.
 func (m *rekeyFSM) listenOnEvent(
-	event rekeyEventType, callback func(RekeyEvent), repeatedly bool) {
+	event rekeyEventType, callback func(RekeyEvent), repeatedly bool,
+) {
 	m.muListeners.Lock()
 	defer m.muListeners.Unlock()
 	m.listeners[event] = append(m.listeners[event], rekeyFSMListener{
@@ -564,7 +566,8 @@ func getRekeyFSM(ctx context.Context, ops KBFSOps, tlfID tlf.ID) RekeyFSM {
 // Currently this is only used in tests and RekeyFile. Normal rekey activities
 // should go through the FSM asychronously.
 func RequestRekeyAndWaitForOneFinishEvent(ctx context.Context,
-	ops KBFSOps, tlfID tlf.ID) (res RekeyResult, err error) {
+	ops KBFSOps, tlfID tlf.ID,
+) (res RekeyResult, err error) {
 	fsm := getRekeyFSM(ctx, ops, tlfID)
 	rekeyWaiter := make(chan struct{})
 	fsm.listenOnEvent(rekeyFinishedEvent, func(e RekeyEvent) {

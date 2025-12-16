@@ -2,12 +2,13 @@ package systests
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
-	"strings"
-	"testing"
 )
 
 func TestRevokeDevices(t *testing.T) {
@@ -52,7 +53,6 @@ func TestRevokeDevices(t *testing.T) {
 		ActingDevice: dev1.deviceID,
 		TargetDevice: dev2.deviceID,
 	})
-
 	if err != nil {
 		t.Fatalf("Bad answer from RPC: %s", err)
 	}

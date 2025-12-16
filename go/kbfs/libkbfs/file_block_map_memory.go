@@ -32,7 +32,8 @@ func newFileBlockMapMemory() *fileBlockMapMemory {
 
 func (fbmm *fileBlockMapMemory) putTopBlock(
 	_ context.Context, parentPtr data.BlockPointer,
-	childName data.PathPartString, topBlock *data.FileBlock) error {
+	childName data.PathPartString, topBlock *data.FileBlock,
+) error {
 	nameMap, ok := fbmm.blocks[parentPtr]
 	if !ok {
 		nameMap = make(map[string]fileBlockMapMemoryInfo)
@@ -44,7 +45,8 @@ func (fbmm *fileBlockMapMemory) putTopBlock(
 
 func (fbmm *fileBlockMapMemory) GetTopBlock(
 	_ context.Context, parentPtr data.BlockPointer,
-	childName data.PathPartString) (*data.FileBlock, error) {
+	childName data.PathPartString,
+) (*data.FileBlock, error) {
 	nameMap, ok := fbmm.blocks[parentPtr]
 	if !ok {
 		return nil, errors.Errorf("No such parent %s", parentPtr)
@@ -59,7 +61,8 @@ func (fbmm *fileBlockMapMemory) GetTopBlock(
 
 func (fbmm *fileBlockMapMemory) getFilenames(
 	_ context.Context, parentPtr data.BlockPointer) (
-	names []data.PathPartString, err error) {
+	names []data.PathPartString, err error,
+) {
 	nameMap, ok := fbmm.blocks[parentPtr]
 	if !ok {
 		return nil, nil

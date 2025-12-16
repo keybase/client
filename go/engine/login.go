@@ -14,8 +14,10 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-var errNoConfig = errors.New("No user config available")
-var errNoDevice = errors.New("No device provisioned locally for this user")
+var (
+	errNoConfig = errors.New("No user config available")
+	errNoDevice = errors.New("No device provisioned locally for this user")
+)
 
 // Login is an engine.
 type Login struct {

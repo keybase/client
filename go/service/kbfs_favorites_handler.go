@@ -33,7 +33,8 @@ func newKBFSFavoritesHandler(g *libkb.GlobalContext) *kbfsFavoritesHandler {
 }
 
 func (r *kbfsFavoritesHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
-	category string, item gregor.Item) (bool, error) {
+	category string, item gregor.Item,
+) (bool, error) {
 	switch category {
 	case "kbfs.favorites":
 		return true, r.favoritesChanged(ctx, cli, item)
@@ -59,7 +60,8 @@ func (r *kbfsFavoritesHandler) Name() string {
 
 func (r *kbfsFavoritesHandler) favoritesChanged(ctx context.Context,
 	cli gregor1.IncomingInterface,
-	item gregor.Item) error {
+	item gregor.Item,
+) error {
 	r.G().Log.CDebugf(ctx, "kbfsFavoritesHandler: kbfs."+
 		"favorites received")
 

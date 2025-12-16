@@ -38,7 +38,8 @@ func NewStateChecker(config Config) *StateChecker {
 // the blockSizes map, if the given path represents an indirect block.
 func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 	lState *kbfssync.LockState, ops *folderBranchOps, kmd libkey.KeyMetadata,
-	file data.Path, blockSizes map[data.BlockPointer]uint32) error {
+	file data.Path, blockSizes map[data.BlockPointer]uint32,
+) error {
 	infos, err := ops.blocks.GetIndirectFileBlockInfos(ctx, lState, kmd, file)
 	if err != nil {
 		return err
@@ -54,7 +55,8 @@ func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 // blockSizes map, if the given path represents an indirect block.
 func (sc *StateChecker) findAllDirBlocks(ctx context.Context,
 	lState *kbfssync.LockState, ops *folderBranchOps, kmd libkey.KeyMetadata,
-	dir data.Path, blockSizes map[data.BlockPointer]uint32) error {
+	dir data.Path, blockSizes map[data.BlockPointer]uint32,
+) error {
 	infos, err := ops.blocks.GetIndirectDirBlockInfos(ctx, lState, kmd, dir)
 	if err != nil {
 		return err
@@ -71,7 +73,8 @@ func (sc *StateChecker) findAllDirBlocks(ctx context.Context,
 // subdirectories.
 func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
 	lState *kbfssync.LockState, ops *folderBranchOps, kmd libkey.KeyMetadata,
-	dir data.Path, blockSizes map[data.BlockPointer]uint32) error {
+	dir data.Path, blockSizes map[data.BlockPointer]uint32,
+) error {
 	children, err := ops.blocks.GetEntries(ctx, lState, kmd, dir)
 	if err != nil {
 		return err
@@ -107,7 +110,8 @@ func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
 }
 
 func (sc *StateChecker) getLastGCData(ctx context.Context,
-	tlfID tlf.ID) (time.Time, kbfsmd.Revision) {
+	tlfID tlf.ID,
+) (time.Time, kbfsmd.Revision) {
 	config, ok := sc.config.(*ConfigLocal)
 	if !ok {
 		return time.Time{}, kbfsmd.RevisionUninitialized
@@ -209,12 +213,14 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 			// Any child block change pointers?
 			file := data.Path{
 				FolderBranch: data.FolderBranch{
-					Tlf: tlfID, Branch: data.MasterBranch},
+					Tlf: tlfID, Branch: data.MasterBranch,
+				},
 				Path: []data.PathNode{{
 					BlockPointer: info.BlockPointer,
 					Name: data.NewPathPartString(fmt.Sprintf(
 						"<MD with revision %d>", rmd.Revision()), nil),
-				}}}
+				}},
+			}
 			err := sc.findAllFileBlocks(ctx, lState, ops, rmd.ReadOnly(),
 				file, actualLiveBlocks)
 			if err != nil {

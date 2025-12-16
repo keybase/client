@@ -231,7 +231,8 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 // Make sure PaperKeyGen uses the secret store.
 func TestPaperKeyGenWithSecretStore(t *testing.T) {
 	testEngineWithSecretStore(t, func(
-		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI,
+	) {
 		uis := libkb.UIs{
 			LogUI:    tc.G.UI.GetLogUI(),
 			LoginUI:  &libkb.TestLoginUI{},

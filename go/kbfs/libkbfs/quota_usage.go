@@ -66,7 +66,8 @@ func QuotaUsageLogModule(suffix string) string {
 // EventuallyConsistentQuotaUsage object.
 func NewEventuallyConsistentQuotaUsage(
 	config Config, log logger.Logger,
-	vlog *libkb.VDebugLog) *EventuallyConsistentQuotaUsage {
+	vlog *libkb.VDebugLog,
+) *EventuallyConsistentQuotaUsage {
 	q := &EventuallyConsistentQuotaUsage{
 		config: config,
 		log:    log,
@@ -80,7 +81,8 @@ func NewEventuallyConsistentQuotaUsage(
 // EventuallyConsistentQuotaUsage object.
 func NewEventuallyConsistentTeamQuotaUsage(
 	config Config, tid keybase1.TeamID,
-	log logger.Logger, vlog *libkb.VDebugLog) *EventuallyConsistentQuotaUsage {
+	log logger.Logger, vlog *libkb.VDebugLog,
+) *EventuallyConsistentQuotaUsage {
 	q := NewEventuallyConsistentQuotaUsage(config, log, vlog)
 	q.tid = tid
 	return q
@@ -93,7 +95,8 @@ func (q *EventuallyConsistentQuotaUsage) getCached() cachedQuotaUsage {
 }
 
 func (q *EventuallyConsistentQuotaUsage) getID(
-	ctx context.Context) (keybase1.UserOrTeamID, error) {
+	ctx context.Context,
+) (keybase1.UserOrTeamID, error) {
 	if q.tid.IsNil() {
 		session, err := q.config.KBPKI().GetCurrentSession(ctx)
 		if err != nil {
@@ -105,7 +108,8 @@ func (q *EventuallyConsistentQuotaUsage) getID(
 }
 
 func (q *EventuallyConsistentQuotaUsage) cache(
-	ctx context.Context, quotaInfo *kbfsblock.QuotaInfo, doCacheToDisk bool) {
+	ctx context.Context, quotaInfo *kbfsblock.QuotaInfo, doCacheToDisk bool,
+) {
 	id, err := q.getID(ctx)
 	if err != nil {
 		q.log.CDebugf(ctx, "Can't get ID: %+v", err)
@@ -120,8 +124,7 @@ func (q *EventuallyConsistentQuotaUsage) cache(
 		q.cached.usageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageWrite]
 		q.cached.archiveBytes = quotaInfo.Total.Bytes[kbfsblock.UsageArchive]
 		q.cached.gitUsageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageGitWrite]
-		q.cached.gitArchiveBytes =
-			quotaInfo.Total.Bytes[kbfsblock.UsageGitArchive]
+		q.cached.gitArchiveBytes = quotaInfo.Total.Bytes[kbfsblock.UsageGitArchive]
 	} else {
 		q.cached.usageBytes = 0
 	}
@@ -139,7 +142,8 @@ func (q *EventuallyConsistentQuotaUsage) cache(
 }
 
 func (q *EventuallyConsistentQuotaUsage) fetch(ctx context.Context) (
-	quotaInfo *kbfsblock.QuotaInfo, err error) {
+	quotaInfo *kbfsblock.QuotaInfo, err error,
+) {
 	bserver := q.config.BlockServer()
 	for i := 0; bserver == nil; i++ {
 		// This is possible if a login event comes in during
@@ -189,7 +193,8 @@ func (q *EventuallyConsistentQuotaUsage) doBackgroundFetch() {
 }
 
 func (q *EventuallyConsistentQuotaUsage) getAndCache(
-	ctx context.Context) (err error) {
+	ctx context.Context,
+) (err error) {
 	defer func() {
 		q.log.CDebugf(ctx, "getAndCache: error=%v", err)
 	}()
@@ -253,7 +258,8 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 func (q *EventuallyConsistentQuotaUsage) Get(
 	ctx context.Context, bgTolerance, blockTolerance time.Duration) (
 	timestamp time.Time, usageBytes, archiveBytes, limitBytes int64,
-	err error) {
+	err error,
+) {
 	c := q.getCached()
 	err = q.fetcher.Do(ctx, bgTolerance, blockTolerance, c.timestamp)
 	if err != nil {
@@ -279,7 +285,8 @@ func (q *EventuallyConsistentQuotaUsage) GetAllTypes(
 	ctx context.Context, bgTolerance, blockTolerance time.Duration) (
 	timestamp time.Time,
 	usageBytes, archiveBytes, limitBytes,
-	gitUsageBytes, gitArchiveBytes, gitLimitBytes int64, err error) {
+	gitUsageBytes, gitArchiveBytes, gitLimitBytes int64, err error,
+) {
 	c := q.getCached()
 	err = q.fetcher.Do(ctx, bgTolerance, blockTolerance, c.timestamp)
 	if err != nil {

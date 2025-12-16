@@ -134,7 +134,8 @@ func (s *Syncer) sendNotificationLoop() {
 }
 
 func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
-	updates []chat1.ConversationStaleUpdate, immediate bool) {
+	updates []chat1.ConversationStaleUpdate, immediate bool,
+) {
 	if len(updates) == 0 {
 		s.Debug(ctx, "sending inbox stale message")
 		s.fullReloadCh <- uid
@@ -171,7 +172,8 @@ func (s *Syncer) IsConnected(ctx context.Context) bool {
 }
 
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
-	syncRes *chat1.SyncChatRes) (err error) {
+	syncRes *chat1.SyncChatRes,
+) (err error) {
 	ctx = globals.CtxAddLogTags(ctx, s.G())
 	defer s.Trace(ctx, &err, "Connected")()
 	s.Lock()
@@ -198,7 +200,8 @@ func (s *Syncer) Disconnected(ctx context.Context) {
 }
 
 func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
-	convIDs []chat1.ConversationID) {
+	convIDs []chat1.ConversationID,
+) {
 	// Clear caches from members type changed convos
 	for _, convID := range convIDs {
 		s.Debug(ctx, "handleMembersTypeChanged: clearing message cache: %s", convID)
@@ -210,7 +213,8 @@ func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *Syncer) handleFilteredConvs(ctx context.Context, uid gregor1.UID, syncConvs []chat1.Conversation,
-	filteredConvs []types.RemoteConversation) {
+	filteredConvs []types.RemoteConversation,
+) {
 	fmap := make(map[chat1.ConvIDStr]bool)
 	for _, fconv := range filteredConvs {
 		fmap[fconv.Conv.GetConvID().ConvIDStr()] = true
@@ -236,7 +240,8 @@ func (s *Syncer) maxSyncUnboxConvs() int {
 }
 
 func (s *Syncer) getShouldUnboxSyncConvMap(ctx context.Context, convs []chat1.Conversation,
-	topicNameChanged []chat1.ConversationID) (m map[chat1.ConvIDStr]bool) {
+	topicNameChanged []chat1.ConversationID,
+) (m map[chat1.ConvIDStr]bool) {
 	m = make(map[chat1.ConvIDStr]bool)
 	for _, t := range topicNameChanged {
 		m[t.ConvIDStr()] = true
@@ -295,7 +300,8 @@ func (s *Syncer) shouldUnboxSyncConv(conv chat1.Conversation) bool {
 }
 
 func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
-	allConvs []chat1.Conversation, shouldUnboxMap map[chat1.ConvIDStr]bool) {
+	allConvs []chat1.Conversation, shouldUnboxMap map[chat1.ConvIDStr]bool,
+) {
 	if len(allConvs) == 0 {
 		s.Debug(ctx, "notifyIncrementalSync: no conversations given, sending a current result")
 		s.G().ActivityNotifier.InboxSynced(ctx, uid, chat1.TopicType_NONE,
@@ -330,7 +336,8 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
-	syncRes *chat1.SyncChatRes) (err error) {
+	syncRes *chat1.SyncChatRes,
+) (err error) {
 	defer s.Trace(ctx, &err, "Sync")()
 	s.Lock()
 	if !s.isConnected {

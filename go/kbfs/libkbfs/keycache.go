@@ -35,7 +35,8 @@ func NewKeyCacheStandard(capacity int) *KeyCacheStandard {
 
 // GetTLFCryptKey implements the KeyCache interface for KeyCacheStandard.
 func (k *KeyCacheStandard) GetTLFCryptKey(tlf tlf.ID, keyGen kbfsmd.KeyGen) (
-	kbfscrypto.TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error,
+) {
 	cacheKey := keyCacheKey{tlf, keyGen}
 	if entry, ok := k.lru.Get(cacheKey); ok {
 		if key, ok := entry.(kbfscrypto.TLFCryptKey); ok {
@@ -49,7 +50,8 @@ func (k *KeyCacheStandard) GetTLFCryptKey(tlf tlf.ID, keyGen kbfsmd.KeyGen) (
 
 // PutTLFCryptKey implements the KeyCache interface for KeyCacheStandard.
 func (k *KeyCacheStandard) PutTLFCryptKey(
-	tlf tlf.ID, keyGen kbfsmd.KeyGen, key kbfscrypto.TLFCryptKey) error {
+	tlf tlf.ID, keyGen kbfsmd.KeyGen, key kbfscrypto.TLFCryptKey,
+) error {
 	cacheKey := keyCacheKey{tlf, keyGen}
 	k.lru.Add(cacheKey, key)
 	return nil

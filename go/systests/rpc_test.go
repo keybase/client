@@ -139,7 +139,6 @@ func testResolve3Offline(t *testing.T, g *libkb.GlobalContext, fcm *fakeConnecti
 }
 
 func testIdentifyResolve3(t *testing.T, g *libkb.GlobalContext) {
-
 	cli, err := client.GetIdentifyClient(g)
 	if err != nil {
 		t.Fatalf("failed to get new identifyclient: %v", err)
@@ -194,7 +193,6 @@ func testCheckInvitationCode(t *testing.T, g *libkb.GlobalContext) {
 }
 
 func testLoadAllPublicKeysUnverified(t *testing.T, g *libkb.GlobalContext) {
-
 	cli, err := client.GetUserClient(g)
 	if err != nil {
 		t.Fatalf("failed to get user client: %s", err)
@@ -337,7 +335,6 @@ func testCheckDevicesForUser(t *testing.T, g *libkb.GlobalContext) {
 }
 
 func testIdentify2(t *testing.T, g *libkb.GlobalContext) {
-
 	cli, err := client.GetIdentifyClient(g)
 	if err != nil {
 		t.Fatalf("failed to get new identifyclient: %v", err)
@@ -361,7 +358,6 @@ func testIdentify2(t *testing.T, g *libkb.GlobalContext) {
 }
 
 func testMerkle(t *testing.T, g *libkb.GlobalContext) {
-
 	cli, err := client.GetMerkleClient(g)
 	if err != nil {
 		t.Fatalf("failed to get new merkle client: %v", err)
@@ -377,7 +373,6 @@ func testMerkle(t *testing.T, g *libkb.GlobalContext) {
 }
 
 func testConfig(t *testing.T, g *libkb.GlobalContext) {
-
 	cli, err := client.GetConfigClient(g)
 	if err != nil {
 		t.Fatalf("failed to get new config client: %v", err)
@@ -421,6 +416,7 @@ func (s FakeGregorState) GetItem(msgID gregor.MsgID) (i gregor.Item, r bool) { r
 func (s FakeGregorState) ItemsInCategory(c gregor.Category) (i []gregor.Item, e error) {
 	return
 }
+
 func (s FakeGregorState) ItemsWithCategoryPrefix(c gregor.Category) (i []gregor.Item, r error) {
 	return
 }
@@ -506,7 +502,7 @@ func TestIdentifyLite(t *testing.T) {
 	require.NoError(t, err, "failed to get new identifyclient")
 
 	// test ok assertions
-	var units = []struct {
+	units := []struct {
 		assertion string
 		resID     keybase1.TeamID
 		resName   string
@@ -915,7 +911,6 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 
 	testResolveImplicitTeam(t, g, iTeam1.ID, false, keybase1.Seqno(0))
 	testResolveImplicitTeam(t, g, iTeam2.ID, false, keybase1.Seqno(1))
-
 }
 
 func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
@@ -1107,51 +1102,67 @@ func (p *simpleIdentifyUI) DelegateIdentifyUI(context.Context) (int, error) {
 	p.delegated = true
 	return 1, nil
 }
+
 func (p *simpleIdentifyUI) Start(context.Context, keybase1.StartArg) error {
 	return nil
 }
+
 func (p *simpleIdentifyUI) DisplayKey(context.Context, keybase1.DisplayKeyArg) error {
 	return simpleIdentifyUIError("DisplayKey")
 }
+
 func (p *simpleIdentifyUI) ReportLastTrack(context.Context, keybase1.ReportLastTrackArg) error {
 	return nil
 }
+
 func (p *simpleIdentifyUI) LaunchNetworkChecks(_ context.Context, arg keybase1.LaunchNetworkChecksArg) error {
 	return nil
 }
+
 func (p *simpleIdentifyUI) DisplayTrackStatement(context.Context, keybase1.DisplayTrackStatementArg) error {
 	return simpleIdentifyUIError("DisplayTrackStatement")
 }
+
 func (p *simpleIdentifyUI) ReportTrackToken(context.Context, keybase1.ReportTrackTokenArg) error {
 	return nil
 }
+
 func (p *simpleIdentifyUI) FinishWebProofCheck(context.Context, keybase1.FinishWebProofCheckArg) error {
 	return simpleIdentifyUIError("FinishWebProofCheck")
 }
+
 func (p *simpleIdentifyUI) FinishSocialProofCheck(_ context.Context, arg keybase1.FinishSocialProofCheckArg) error {
 	return nil
 }
+
 func (p *simpleIdentifyUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryptocurrencyArg) error {
 	return simpleIdentifyUIError("DisplayCryptocurrency")
 }
+
 func (p *simpleIdentifyUI) DisplayStellarAccount(context.Context, keybase1.DisplayStellarAccountArg) error {
 	return simpleIdentifyUIError("DisplayStellarAccount")
 }
+
 func (p *simpleIdentifyUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
 	return nil
 }
+
 func (p *simpleIdentifyUI) Confirm(context.Context, keybase1.ConfirmArg) (res keybase1.ConfirmResult, err error) {
 	return p.confirmRes, nil
 }
+
 func (p *simpleIdentifyUI) Cancel(context.Context, int) error {
 	return nil
 }
+
 func (p *simpleIdentifyUI) Finish(context.Context, int) error {
 	return nil
 }
+
 func (p *simpleIdentifyUI) Dismiss(context.Context, keybase1.DismissArg) error {
 	return simpleIdentifyUIError("Dismiss")
 }
+
 func (p *simpleIdentifyUI) DisplayTLFCreateWithInvite(context.Context, keybase1.DisplayTLFCreateWithInviteArg) error {
 	return simpleIdentifyUIError("DisplayTLFCreateWithInvite")
 }

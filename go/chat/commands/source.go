@@ -15,8 +15,10 @@ import (
 	"github.com/keybase/clockwork"
 )
 
-var ErrInvalidCommand = errors.New("invalid command")
-var ErrInvalidArguments = errors.New("invalid arguments")
+var (
+	ErrInvalidCommand   = errors.New("invalid command")
+	ErrInvalidArguments = errors.New("invalid arguments")
+)
 
 type Source struct {
 	globals.Contextified
@@ -162,7 +164,8 @@ func (s *Source) ListCommands(ctx context.Context, uid gregor1.UID, conv types.C
 }
 
 func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName string, body chat1.MessageBody, replyTo *chat1.MessageID) (handled bool, err error) {
+	tlfName string, body chat1.MessageBody, replyTo *chat1.MessageID,
+) (handled bool, err error) {
 	defer s.Trace(ctx, &err, "AttemptBuiltinCommand")()
 	if !body.IsType(chat1.MessageType_TEXT) {
 		return false, nil
@@ -186,7 +189,8 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 }
 
 func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) {
+	tlfName, text string,
+) {
 	defer s.Trace(ctx, nil, "PreviewBuiltinCommand")()
 
 	// always try bot command, it might do something and is mutually exclusive with the rest of this

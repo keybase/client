@@ -21,7 +21,6 @@ func getFileSize(f *os.File) (int64, error) {
 
 func fsizeStat(f *os.File) (int64, error) {
 	fi, err := f.Stat()
-
 	if err != nil {
 		return 0, err
 	}

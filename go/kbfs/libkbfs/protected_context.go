@@ -28,7 +28,8 @@ type protectedContext struct {
 }
 
 func newProtectedContext(
-	ctx context.Context, log logger.Logger) *protectedContext {
+	ctx context.Context, log logger.Logger,
+) *protectedContext {
 	return &protectedContext{ctx: ctx, log: log}
 }
 

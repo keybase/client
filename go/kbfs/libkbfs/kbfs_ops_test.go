@@ -52,7 +52,8 @@ var _ BlockOps = (*CheckBlockOps)(nil)
 
 func (cbo *CheckBlockOps) Ready(ctx context.Context, kmd libkey.KeyMetadata,
 	block data.Block) (id kbfsblock.ID, plainSize int, readyBlockData data.ReadyBlockData,
-	err error) {
+	err error,
+) {
 	id, plainSize, readyBlockData, err = cbo.BlockOps.Ready(ctx, kmd, block)
 	encodedSize := readyBlockData.GetEncodedSize()
 	if plainSize > encodedSize {
@@ -72,7 +73,8 @@ const (
 var individualTestTimeout = 30 * time.Second
 
 func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
-	config *ConfigMock, ctx context.Context, cancel context.CancelFunc) {
+	config *ConfigMock, ctx context.Context, cancel context.CancelFunc,
+) {
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
@@ -146,7 +148,9 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	brc := &testBlockRetrievalConfig{
 		nil, newTestLogMaker(t), config.BlockCache(), nil,
 		NewMockBlockServer(ctlr), newTestDiskBlockCacheGetter(t, nil),
-		newTestSyncedTlfGetterSetter(), testInitModeGetter{InitDefault}, clock,
+		newTestSyncedTlfGetterSetter(),
+		testInitModeGetter{InitDefault},
+		clock,
 		NewReporterSimple(clock, 1), nil, mockPublisher,
 	}
 	brq := newBlockRetrievalQueue(0, 0, 0, brc, env.EmptyAppStateUpdater{})
@@ -195,7 +199,8 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 
 func kbfsTestShutdown(
 	ctx context.Context, t *testing.T, mockCtrl *gomock.Controller,
-	config *ConfigMock, cancel context.CancelFunc) {
+	config *ConfigMock, cancel context.CancelFunc,
+) {
 	config.ctr.CheckForFailures()
 	err := config.conflictResolutionDB.Close()
 	require.NoError(t, err)
@@ -232,7 +237,8 @@ func (mnh modeNoHistory) SendEditNotificationsEnabled() bool {
 // kbfsOpsInitNoMocks returns a config that doesn't use any mocks. The
 // shutdown call is kbfsTestShutdownNoMocks.
 func kbfsOpsInitNoMocks(t *testing.T, users ...kbname.NormalizedUsername) (
-	*ConfigLocal, keybase1.UID, context.Context, context.CancelFunc) {
+	*ConfigLocal, keybase1.UID, context.Context, context.CancelFunc,
+) {
 	config := MakeTestConfigOrBust(t, users...)
 	// Turn off tlf edit history because it messes with the FBO state
 	// asynchronously.
@@ -267,7 +273,8 @@ func kbfsOpsInitNoMocks(t *testing.T, users ...kbname.NormalizedUsername) (
 
 func kbfsTestShutdownNoMocks(
 	ctx context.Context, t *testing.T,
-	config *ConfigLocal, cancel context.CancelFunc) {
+	config *ConfigLocal, cancel context.CancelFunc,
+) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
 	err := libcontext.CleanupCancellationDelayer(ctx)
@@ -276,7 +283,8 @@ func kbfsTestShutdownNoMocks(
 
 // TODO: Get rid of all users of this.
 func kbfsTestShutdownNoMocksNoCheck(ctx context.Context, t *testing.T,
-	config *ConfigLocal, cancel context.CancelFunc) {
+	config *ConfigLocal, cancel context.CancelFunc,
+) {
 	_ = config.Shutdown(ctx)
 	cancel()
 	err := libcontext.CleanupCancellationDelayer(ctx)
@@ -286,7 +294,8 @@ func kbfsTestShutdownNoMocksNoCheck(ctx context.Context, t *testing.T,
 func checkBlockCache(
 	ctx context.Context, t *testing.T, config *ConfigMock, id tlf.ID,
 	expectedCleanBlocks []kbfsblock.ID,
-	expectedDirtyBlocks map[data.BlockPointer]data.BranchName) {
+	expectedDirtyBlocks map[data.BlockPointer]data.BranchName,
+) {
 	bcache := config.BlockCache().(*data.BlockCacheStandard)
 	// make sure the LRU consists of exactly the right set of clean blocks
 	for _, id := range expectedCleanBlocks {
@@ -323,7 +332,8 @@ func checkBlockCache(
 // parseTlfHandleOrBust parses the given TLF name, which must be
 // canonical, into a TLF handle, failing if there's an error.
 func parseTlfHandleOrBust(t logger.TestLogBackend, config Config,
-	name string, ty tlf.Type, id tlf.ID) *tlfhandle.Handle {
+	name string, ty tlf.Type, id tlf.ID,
+) *tlfhandle.Handle {
 	ctx := context.Background()
 	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), tlfhandle.ConstIDGetter{ID: id}, nil, name, ty)
@@ -387,7 +397,8 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 // createNewRMD creates a new RMD for the given name. Returns its ID
 // and handle also.
 func createNewRMD(t *testing.T, config Config, name string, ty tlf.Type) (
-	tlf.ID, *tlfhandle.Handle, *RootMetadata) {
+	tlf.ID, *tlfhandle.Handle, *RootMetadata,
+) {
 	id := tlf.FakeID(1, ty)
 	h := parseTlfHandleOrBust(t, config, name, ty, id)
 	h.SetTlfID(id)
@@ -397,7 +408,8 @@ func createNewRMD(t *testing.T, config Config, name string, ty tlf.Type) (
 }
 
 func makeImmutableRMDForTest(t *testing.T, config Config, rmd *RootMetadata,
-	mdID kbfsmd.ID) ImmutableRootMetadata {
+	mdID kbfsmd.ID,
+) ImmutableRootMetadata {
 	session, err := config.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
 	// We have to fake out the signature here because most tests
@@ -420,7 +432,8 @@ func makeImmutableRMDForTest(t *testing.T, config Config, rmd *RootMetadata,
 // injectNewRMD creates a new RMD and makes sure the existing ops for
 // its ID has as its head that RMD.
 func injectNewRMD(t *testing.T, config *ConfigMock) (
-	keybase1.UserOrTeamID, tlf.ID, *RootMetadata) {
+	keybase1.UserOrTeamID, tlf.ID, *RootMetadata,
+) {
 	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 	var keyGen kbfsmd.KeyGen
 	if id.Type() == tlf.Public {
@@ -540,7 +553,8 @@ type failIdentifyKBPKI struct {
 func (kbpki failIdentifyKBPKI) Identify(
 	ctx context.Context, assertion, reason string,
 	_ keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 		kbpki.identifyErr
 }
@@ -571,7 +585,8 @@ func expectBlock(config *ConfigMock, kmd libkey.KeyMetadata, blockPtr data.Block
 		ptrMatcher{blockPtr}, gomock.Any(), gomock.Any(), gomock.Any()).
 		Do(func(ctx context.Context, kmd libkey.KeyMetadata,
 			blockPtr data.BlockPointer, getBlock data.Block,
-			lifetime data.BlockCacheLifetime, _ data.BranchName) {
+			lifetime data.BlockCacheLifetime, _ data.BranchName,
+		) {
 			getBlock.Set(block)
 			_ = config.BlockCache().Put(
 				blockPtr, kmd.TlfID(), getBlock, lifetime, data.DoCacheHash)
@@ -681,8 +696,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 
 	ops.head = makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(2))
 	ops.headStatus = headTrusted
-	n, ei, err :=
-		config.KBFSOps().GetOrCreateRootNode(ctx, h, data.MasterBranch)
+	n, ei, err := config.KBFSOps().GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 
@@ -710,7 +724,8 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 // md.ReadOnly(), which doesn't buy us much in tests.
 
 func makeBP(id kbfsblock.ID, kmd libkey.KeyMetadata, config Config,
-	u keybase1.UserOrTeamID) data.BlockPointer {
+	u keybase1.UserOrTeamID,
+) data.BlockPointer {
 	return data.BlockPointer{
 		ID:      id,
 		KeyGen:  kmd.LatestKeyGeneration(),
@@ -725,7 +740,8 @@ func makeBP(id kbfsblock.ID, kmd libkey.KeyMetadata, config Config,
 
 func makeIFP(id kbfsblock.ID, kmd libkey.KeyMetadata, config Config,
 	u keybase1.UserOrTeamID, encodedSize uint32,
-	off data.Int64Offset) data.IndirectFilePtr {
+	off data.Int64Offset,
+) data.IndirectFilePtr {
 	return data.IndirectFilePtr{
 		BlockInfo: data.BlockInfo{
 			BlockPointer: makeBP(id, kmd, config, u),
@@ -766,7 +782,8 @@ func nodeFromPath(t *testing.T, ops *folderBranchOps, p data.Path) Node {
 
 func testPutBlockInCache(
 	t *testing.T, config *ConfigMock, ptr data.BlockPointer, id tlf.ID,
-	block data.Block) {
+	block data.Block,
+) {
 	err := config.BlockCache().Put(
 		ptr, id, block, data.TransientEntry, data.DoCacheHash)
 	require.NoError(t, err)
@@ -970,9 +987,11 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	rmd.data.Dir.BlockPointer = blockPtr
 	node := data.PathNode{BlockPointer: blockPtr, Name: testPPS("p")}
 	aNode := data.PathNode{
-		BlockPointer: makeBP(aID, rmd, config, u), Name: testPPS("a")}
+		BlockPointer: makeBP(aID, rmd, config, u), Name: testPPS("a"),
+	}
 	bNode := data.PathNode{
-		BlockPointer: makeBP(bID, rmd, config, u), Name: testPPS("b")}
+		BlockPointer: makeBP(bID, rmd, config, u), Name: testPPS("b"),
+	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
 		Path:         []data.PathNode{node, aNode, bNode},
@@ -1025,7 +1044,8 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 		Name:         testPPS("p"),
 	}
 	aNode := data.PathNode{
-		BlockPointer: makeBP(aID, rmd, config, u), Name: testPPS("a")}
+		BlockPointer: makeBP(aID, rmd, config, u), Name: testPPS("a"),
+	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
 		Path:         []data.PathNode{node, aNode},
@@ -1267,7 +1287,8 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 
 func getBlockFromCache(
 	ctx context.Context, t *testing.T, config Config, id tlf.ID,
-	ptr data.BlockPointer, branch data.BranchName) data.Block {
+	ptr data.BlockPointer, branch data.BranchName,
+) data.Block {
 	if block, err := config.DirtyBlockCache().Get(
 		ctx, id, ptr, branch); err == nil {
 		return block
@@ -1283,7 +1304,8 @@ func getBlockFromCache(
 
 func getDirBlockFromCache(
 	ctx context.Context, t *testing.T, config Config, id tlf.ID,
-	ptr data.BlockPointer, branch data.BranchName) *data.DirBlock {
+	ptr data.BlockPointer, branch data.BranchName,
+) *data.DirBlock {
 	block := getBlockFromCache(ctx, t, config, id, ptr, branch)
 	dblock, ok := block.(*data.DirBlock)
 	if !ok {
@@ -1294,7 +1316,8 @@ func getDirBlockFromCache(
 
 func getFileBlockFromCache(
 	ctx context.Context, t *testing.T, config Config, id tlf.ID,
-	ptr data.BlockPointer, branch data.BranchName) *data.FileBlock {
+	ptr data.BlockPointer, branch data.BranchName,
+) *data.FileBlock {
 	block := getBlockFromCache(ctx, t, config, id, ptr, branch)
 	fblock, ok := block.(*data.FileBlock)
 	if !ok {
@@ -1478,7 +1501,8 @@ func TestCreateLinkFailKBFSPrefix(t *testing.T) {
 // path will have n+1 nodes (one extra for the root node), and there
 // will be n+1 corresponding blocks.
 func makeDirTree(id tlf.ID, uid keybase1.UserOrTeamID, components ...string) (
-	data.DirEntry, data.Path, []*data.DirBlock) {
+	data.DirEntry, data.Path, []*data.DirBlock,
+) {
 	var idCounter byte = 0x10
 	makeBlockID := func() kbfsblock.ID {
 		id := kbfsblock.FakeID(idCounter)
@@ -1497,7 +1521,8 @@ func makeDirTree(id tlf.ID, uid keybase1.UserOrTeamID, components ...string) (
 		},
 	}
 	nodes := []data.PathNode{{
-		BlockPointer: bi.BlockPointer, Name: testPPS("{root}")}}
+		BlockPointer: bi.BlockPointer, Name: testPPS("{root}"),
+	}}
 	rootBlock := data.NewDirBlock().(*data.DirBlock)
 	rootBlock.SetEncodedSize(bi.EncodedSize)
 	blocks := []*data.DirBlock{rootBlock}
@@ -2016,7 +2041,8 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 }
 
 func checkSyncOp(t *testing.T, codec kbfscodec.Codec,
-	so *syncOp, filePtr data.BlockPointer, writes []WriteRange) {
+	so *syncOp, filePtr data.BlockPointer, writes []WriteRange,
+) {
 	if so == nil {
 		t.Error("No sync info for written file!")
 		return
@@ -2041,7 +2067,8 @@ func checkSyncOp(t *testing.T, codec kbfscodec.Codec,
 }
 
 func checkSyncOpInCache(t *testing.T, codec kbfscodec.Codec,
-	ops *folderBranchOps, filePtr data.BlockPointer, writes []WriteRange) {
+	ops *folderBranchOps, filePtr data.BlockPointer, writes []WriteRange,
+) {
 	// check the in-progress syncOp
 	si, ok := ops.blocks.unrefCache[filePtr.Ref()]
 	if !ok {
@@ -2389,7 +2416,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 
 func mergeUnrefCache(
 	ops *folderBranchOps, lState *kbfssync.LockState, file data.Path,
-	md *RootMetadata) {
+	md *RootMetadata,
+) {
 	ops.blocks.blockLock.RLock(lState)
 	defer ops.blocks.blockLock.RUnlock(lState)
 	ops.blocks.unrefCache[file.TailPointer().Ref()].mergeUnrefCache(md)
@@ -3448,7 +3476,8 @@ type corruptBlockServer struct {
 func (cbs corruptBlockServer) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, cacheType DiskBlockCacheType) (
-	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error,
+) {
 	data, keyServerHalf, err := cbs.BlockServer.Get(
 		ctx, tlfID, id, context, cacheType)
 	if err != nil {
@@ -3861,9 +3890,9 @@ func (fi *fakeFileInfo) Size() int64 {
 
 func (fi *fakeFileInfo) Mode() os.FileMode {
 	if fi.et == data.Dir || fi.et == data.Exec {
-		return 0700
+		return 0o700
 	}
-	return 0600
+	return 0o600
 }
 
 func (fi *fakeFileInfo) ModTime() time.Time {
@@ -3887,12 +3916,14 @@ type wrappedAutocreateNode struct {
 func (wan wrappedAutocreateNode) ShouldCreateMissedLookup(
 	ctx context.Context, _ data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString,
-	data.BlockPointer) {
+	data.BlockPointer,
+) {
 	return true, ctx, wan.et, &fakeFileInfo{wan.et}, wan.sympath, data.ZeroPtr
 }
 
 func testKBFSOpsAutocreateNodes(
-	t *testing.T, et data.EntryType, sympath data.PathPartString) {
+	t *testing.T, et data.EntryType, sympath data.PathPartString,
+) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
 	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
@@ -3929,7 +3960,8 @@ func TestKBFSOpsAutocreateNodesSym(t *testing.T) {
 }
 
 func testKBFSOpsMigrateToImplicitTeam(
-	t *testing.T, ty tlf.Type, name string, initialMDVer kbfsmd.MetadataVer) {
+	t *testing.T, ty tlf.Type, name string, initialMDVer kbfsmd.MetadataVer,
+) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
@@ -4135,7 +4167,8 @@ type testKBFSOpsRootNode struct {
 func (n testKBFSOpsRootNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString,
-	data.BlockPointer) {
+	data.BlockPointer,
+) {
 	if name.Plaintext() == "memfs" {
 		return true, ctx, data.FakeDir, nil, testPPS(""), data.ZeroPtr
 	}
@@ -4171,7 +4204,7 @@ func TestKBFSOpsReadonlyFSNodes(t *testing.T) {
 	config.AddRootNodeWrapper(rw.wrap)
 
 	t.Log("Populate a memory file system with a few dirs and files")
-	err := fs.MkdirAll("a/b", 0700)
+	err := fs.MkdirAll("a/b", 0o700)
 	require.NoError(t, err)
 	c, err := fs.Create("a/b/c")
 	require.NoError(t, err)
@@ -4316,7 +4349,8 @@ type diskMDCacheWithCommitChan struct {
 }
 
 func newDiskMDCacheWithCommitChan(
-	dmc DiskMDCache, commitCh chan<- kbfsmd.Revision) DiskMDCache {
+	dmc DiskMDCache, commitCh chan<- kbfsmd.Revision,
+) DiskMDCache {
 	return &diskMDCacheWithCommitChan{
 		DiskMDCache: dmc,
 		commitCh:    commitCh,
@@ -4325,7 +4359,8 @@ func newDiskMDCacheWithCommitChan(
 }
 
 func (dmc *diskMDCacheWithCommitChan) Commit(
-	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
+) error {
 	err := dmc.DiskMDCache.Commit(ctx, tlfID, rev)
 	if err != nil {
 		return err
@@ -4409,7 +4444,8 @@ type bserverPutToDiskCache struct {
 func (b bserverPutToDiskCache) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, cacheType DiskBlockCacheType) (
-	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error,
+) {
 	buf, serverHalf, err = b.BlockServer.Get(
 		ctx, tlfID, id, context, cacheType)
 	if err != nil {
@@ -4424,7 +4460,8 @@ func (b bserverPutToDiskCache) Put(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	cacheType DiskBlockCacheType) (err error) {
+	cacheType DiskBlockCacheType,
+) (err error) {
 	err = b.BlockServer.Put(ctx, tlfID, id, context, buf, serverHalf, cacheType)
 	if err != nil {
 		return err
@@ -4435,7 +4472,8 @@ func (b bserverPutToDiskCache) Put(
 }
 
 func enableDiskCacheForTest(
-	t *testing.T, config *ConfigLocal, tempdir string) *diskBlockCacheWrapped {
+	t *testing.T, config *ConfigLocal, tempdir string,
+) *diskBlockCacheWrapped {
 	dbc, err := newDiskBlockCacheWrapped(config, "", config.Mode())
 	require.NoError(t, err)
 	config.diskBlockCache = dbc
@@ -4673,7 +4711,8 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 }
 
 func waitForPrefetchInTest(
-	ctx context.Context, t *testing.T, config Config, node Node) {
+	ctx context.Context, t *testing.T, config Config, node Node,
+) {
 	t.Helper()
 	md, err := config.KBFSOps().GetNodeMetadata(ctx, node)
 	require.NoError(t, err)
@@ -4689,7 +4728,8 @@ func waitForPrefetchInTest(
 
 func waitForIndirectPtrBlocksInTest(
 	ctx context.Context, t *testing.T, config Config, node Node,
-	kmd libkey.KeyMetadata) {
+	kmd libkey.KeyMetadata,
+) {
 	t.Helper()
 	md, err := config.KBFSOps().GetNodeMetadata(ctx, node)
 	require.NoError(t, err)

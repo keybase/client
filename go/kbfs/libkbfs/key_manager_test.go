@@ -46,7 +46,8 @@ func mockNormalizeSocialAssertion(config *ConfigMock) {
 }
 
 func keyManagerInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Controller,
-	config *ConfigMock, ctx context.Context) {
+	config *ConfigMock, ctx context.Context,
+) {
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
@@ -79,7 +80,8 @@ func keyManagerShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 var serverHalf = kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
 
 func expectUncachedGetTLFCryptKey(t *testing.T, config *ConfigMock, tlfID tlf.ID, keyGen, currKeyGen kbfsmd.KeyGen,
-	storesHistoric bool, tlfCryptKey, currTLFCryptKey kbfscrypto.TLFCryptKey) {
+	storesHistoric bool, tlfCryptKey, currTLFCryptKey kbfscrypto.TLFCryptKey,
+) {
 	if keyGen == currKeyGen {
 		require.Equal(t, tlfCryptKey, currTLFCryptKey)
 	}
@@ -104,7 +106,8 @@ func expectUncachedGetTLFCryptKey(t *testing.T, config *ConfigMock, tlfID tlf.ID
 
 func expectUncachedGetTLFCryptKeyAnyDevice(
 	config *ConfigMock, tlfID tlf.ID, keyGen kbfsmd.KeyGen, uid keybase1.UID,
-	subkey kbfscrypto.CryptPublicKey, tlfCryptKey kbfscrypto.TLFCryptKey) {
+	subkey kbfscrypto.CryptPublicKey, tlfCryptKey kbfscrypto.TLFCryptKey,
+) {
 	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, tlfCryptKey)
 
 	// get the xor'd key out of the metadata
@@ -121,7 +124,8 @@ func expectUncachedGetTLFCryptKeyAnyDevice(
 
 func expectRekey(config *ConfigMock, bh tlf.Handle, numDevices int,
 	handleChange, expectNewKeyGen bool,
-	tlfCryptKey kbfscrypto.TLFCryptKey) {
+	tlfCryptKey kbfscrypto.TLFCryptKey,
+) {
 	if handleChange {
 		// if the handle changes the key manager checks for a conflict
 		config.mockMdops.EXPECT().GetLatestHandleForTLF(gomock.Any(), gomock.Any()).
@@ -246,7 +250,8 @@ func testKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver kb
 
 // makeDirWKeyInfoMap creates a new user device key info map with a writer key.
 func makeDirWKeyInfoMap(uid keybase1.UID,
-	cryptPublicKey kbfscrypto.CryptPublicKey) kbfsmd.UserDevicePublicKeys {
+	cryptPublicKey kbfscrypto.CryptPublicKey,
+) kbfsmd.UserDevicePublicKeys {
 	return kbfsmd.UserDevicePublicKeys{
 		uid: {
 			cryptPublicKey: true,
@@ -523,8 +528,7 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsmd.Meta
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(
 		gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(3)
-	if done, _, err :=
-		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Fatalf("Got error on rekey: %t, %+v", done, err)
 	}
 
@@ -759,8 +763,7 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsm
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(
 		gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil)
-	if done, _, err :=
-		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Fatalf("Got error on rekey: %t, %+v", done, err)
 	}
 
@@ -830,8 +833,7 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver kbf
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(
 		gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(2)
-	if done, _, err :=
-		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Fatalf("Got error on rekey: %t, %+v", done, err)
 	}
 
@@ -1510,7 +1512,8 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func keyManagerTestSimulateSelfRekeyBit(
-	ctx context.Context, t *testing.T, config Config, tlfID tlf.ID) {
+	ctx context.Context, t *testing.T, config Config, tlfID tlf.ID,
+) {
 	// Simulate the mdserver sending back this node's own rekey
 	// request.  This shouldn't increase the MD version.  Since this
 	// doesn't kick off a rekey request, we don't need to wait for the
@@ -1800,8 +1803,7 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
 
 	// Stall user 1's rekey, to ensure a conflict.
-	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config1, StallableMDPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx := StallMDOp(ctx, config1, StallableMDPut, 1)
 
 	// Have user 1 also try to rekey but fail due to conflict
 	errChan := make(chan error, 1)
@@ -1883,7 +1885,8 @@ type cryptoLocalTrapAny struct {
 func (clta *cryptoLocalTrapAny) DecryptTLFCryptKeyClientHalfAny(
 	ctx context.Context,
 	keys []EncryptedTLFCryptKeyClientAndEphemeral, promptPaper bool) (
-	kbfscrypto.TLFCryptKeyClientHalf, int, error) {
+	kbfscrypto.TLFCryptKeyClientHalf, int, error,
+) {
 	if promptPaper {
 		clta.promptPaperChOnce.Do(func() {
 			close(clta.promptPaperCh)

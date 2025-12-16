@@ -16,8 +16,7 @@ import (
 // the root directory actually has free space/files, which may fail in
 // certain weird configs.
 func TestDiskLimits(t *testing.T) {
-	availableBytes, totalBytes, availableFiles, totalFiles, err :=
-		getDiskLimits("/")
+	availableBytes, totalBytes, availableFiles, totalFiles, err := getDiskLimits("/")
 	require.NoError(t, err)
 	require.NotEqual(t, uint64(0), availableBytes)
 	require.NotEqual(t, uint64(0), totalBytes)

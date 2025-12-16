@@ -121,7 +121,8 @@ func (h *UIInboxLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error) {
 }
 
 func (h *UIInboxLoader) presentUnverifiedInbox(ctx context.Context, convs []types.RemoteConversation,
-	offline bool) (res chat1.UnverifiedInboxUIItems, err error) {
+	offline bool,
+) (res chat1.UnverifiedInboxUIItems, err error) {
 	for _, rawConv := range convs {
 		if len(rawConv.Conv.MaxMsgSummaries) == 0 {
 			h.Debug(ctx, "presentUnverifiedInbox: invalid convo, no max msg summaries, skipping: %s",
@@ -280,7 +281,8 @@ func (h *UIInboxLoader) transmitLoop(shutdownCh chan struct{}) error {
 }
 
 func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
-	maxUnbox *int, skipUnverified bool) (err error) {
+	maxUnbox *int, skipUnverified bool,
+) (err error) {
 	defer h.Trace(ctx, &err, "LoadNonblock")()
 	uid := h.uid
 	// Retry helpers
@@ -441,7 +443,8 @@ func (c *bigTeamCollector) finalize(ctx context.Context) (res []chat1.UIInboxBig
 }
 
 func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
-	reselectMode chat1.InboxLayoutReselectMode) (res chat1.UIInboxLayout) {
+	reselectMode chat1.InboxLayoutReselectMode,
+) (res chat1.UIInboxLayout) {
 	var widgetList []chat1.UIInboxSmallTeamRow
 	var btunboxes []chat1.ConversationID
 	btcollector := newBigTeamCollector()
@@ -653,7 +656,8 @@ func (h *UIInboxLoader) setLastLayout(l *chat1.UIInboxLayout) {
 }
 
 func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode,
-	reason string) {
+	reason string,
+) {
 	defer h.Trace(ctx, nil, "UpdateLayout: %s", reason)()
 	select {
 	case h.layoutCh <- reselectMode:

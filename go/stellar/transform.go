@@ -483,7 +483,6 @@ func RemoteRecentPaymentsToPage(mctx libkb.MetaContext, remoter remote.Remoter, 
 	}
 
 	return page, nil
-
 }
 
 func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID, pending []stellar1.PaymentSummary) (payments []stellar1.PaymentOrErrorLocal, err error) {
@@ -507,8 +506,8 @@ func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accoun
 }
 
 func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stellar1.AccountID, details stellar1.AccountDetails,
-	isPrimary bool, accountName string, accountMode stellar1.AccountMode) (stellar1.WalletAccountLocal, error) {
-
+	isPrimary bool, accountName string, accountMode stellar1.AccountMode,
+) (stellar1.WalletAccountLocal, error) {
 	var empty stellar1.WalletAccountLocal
 	balance, err := balanceList(details.Balances).balanceDescription(mctx)
 	if err != nil {

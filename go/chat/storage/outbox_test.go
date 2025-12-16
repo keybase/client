@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-
 	"time"
 
 	"github.com/keybase/client/go/kbtest"

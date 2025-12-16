@@ -318,7 +318,8 @@ func TestReactions(t *testing.T) {
 	require.NoError(t, err)
 
 	verifyThread := func(msgID, supersededBy chat1.MessageID, body string,
-		reactionIDs []chat1.MessageID, reactionMap chat1.ReactionMap) {
+		reactionIDs []chat1.MessageID, reactionMap chat1.ReactionMap,
+	) {
 		thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid,
 			chat1.GetThreadReason_GENERAL, nil,
 			&chat1.GetThreadQuery{
@@ -418,7 +419,6 @@ func TestReactions(t *testing.T) {
 		}, 0, nil, nil, nil)
 		require.NoError(t, err)
 		return deleteMsgBoxed.GetMessageID()
-
 	}
 
 	t.Logf("send text")

@@ -120,7 +120,8 @@ func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, memberCtime *
 }
 
 func newEKUnboxErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind, boxGeneration keybase1.EkGeneration,
-	missingKind EphemeralKeyKind, missingGeneration keybase1.EkGeneration, contentCtime *gregor1.Time) EphemeralKeyError {
+	missingKind EphemeralKeyKind, missingGeneration keybase1.EkGeneration, contentCtime *gregor1.Time,
+) EphemeralKeyError {
 	debugMsg := fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", ekKind, boxGeneration, missingKind, missingGeneration)
 	var humanMsg string
 	if deviceProvisionedAfterContentCreation(mctx, contentCtime) {
@@ -148,7 +149,8 @@ func newTeambotEKWrongKIDErr(mctx libkb.MetaContext, ctime, now keybase1.Time) E
 }
 
 func newEKCorruptedErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind,
-	expectedGeneration, boxGeneration keybase1.EkGeneration) EphemeralKeyError {
+	expectedGeneration, boxGeneration keybase1.EkGeneration,
+) EphemeralKeyError {
 	debugMsg := fmt.Sprintf("Storage error for %s@generation:%v, got generation %v instead", ekKind, boxGeneration, expectedGeneration)
 	return newEphemeralKeyError(debugMsg, "", EphemeralKeyErrorKindCORRUPTEDGEN, ekKind)
 }
@@ -163,7 +165,8 @@ func humanMsgWithPrefix(humanMsg string) string {
 }
 
 func newEphemeralKeyError(debugMsg, humanMsg string, errKind EphemeralKeyErrorKind,
-	ekKind EphemeralKeyKind) EphemeralKeyError {
+	ekKind EphemeralKeyKind,
+) EphemeralKeyError {
 	humanMsg = humanMsgWithPrefix(humanMsg)
 	return EphemeralKeyError{
 		DebugMsg: debugMsg,
@@ -173,6 +176,7 @@ func newEphemeralKeyError(debugMsg, humanMsg string, errKind EphemeralKeyErrorKi
 		EKKind:   ekKind,
 	}
 }
+
 func newEphemeralKeyErrorFromStatus(e libkb.AppStatusError) EphemeralKeyError {
 	var errKind EphemeralKeyErrorKind
 	var ekKind EphemeralKeyKind

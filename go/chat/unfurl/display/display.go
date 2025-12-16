@@ -9,7 +9,8 @@ import (
 )
 
 func assetToImageDisplay(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset,
-	srv types.AttachmentURLSrv) (res chat1.UnfurlImageDisplay, err error) {
+	srv types.AttachmentURLSrv,
+) (res chat1.UnfurlImageDisplay, err error) {
 	var height, width int
 	typ, err := asset.Metadata.AssetType()
 	if err != nil {
@@ -36,7 +37,8 @@ func assetToImageDisplay(ctx context.Context, convID chat1.ConversationID, asset
 }
 
 func displayUnfurlGeneric(ctx context.Context, srv types.AttachmentURLSrv, convID chat1.ConversationID,
-	unfurl chat1.UnfurlGeneric) (res chat1.UnfurlGenericDisplay) {
+	unfurl chat1.UnfurlGeneric,
+) (res chat1.UnfurlGenericDisplay) {
 	res.Title = unfurl.Title
 	res.Url = unfurl.Url
 	res.SiteName = unfurl.SiteName
@@ -58,7 +60,8 @@ func displayUnfurlGeneric(ctx context.Context, srv types.AttachmentURLSrv, convI
 }
 
 func displayUnfurlGiphy(ctx context.Context, srv types.AttachmentURLSrv, convID chat1.ConversationID,
-	unfurl chat1.UnfurlGiphy) (res chat1.UnfurlGiphyDisplay, err error) {
+	unfurl chat1.UnfurlGiphy,
+) (res chat1.UnfurlGiphyDisplay, err error) {
 	if unfurl.Image != nil {
 		if img, err := assetToImageDisplay(ctx, convID, *unfurl.Image, srv); err == nil {
 			res.Image = &img
@@ -82,7 +85,8 @@ func displayUnfurlGiphy(ctx context.Context, srv types.AttachmentURLSrv, convID 
 }
 
 func DisplayUnfurl(ctx context.Context, srv types.AttachmentURLSrv, convID chat1.ConversationID,
-	unfurl chat1.Unfurl) (res chat1.UnfurlDisplay, err error) { // nolint
+	unfurl chat1.Unfurl,
+) (res chat1.UnfurlDisplay, err error) { // nolint
 	typ, err := unfurl.UnfurlType()
 	if err != nil {
 		return res, err

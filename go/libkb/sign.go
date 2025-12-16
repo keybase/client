@@ -62,7 +62,6 @@ func (h HashingWriteCloser) Close() error {
 type HashSummer func() []byte
 
 func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints, config *packet.Config) (in io.WriteCloser, h HashSummer, err error) {
-
 	var aout io.WriteCloser
 
 	aout, err = armor.Encode(out, "PGP MESSAGE", PGPArmorHeaders)
@@ -78,8 +77,8 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 }
 
 func AttachedSignWrapper(out io.WriteCloser, key PGPKeyBundle, armored bool) (
-	in io.WriteCloser, err error) {
-
+	in io.WriteCloser, err error,
+) {
 	if armored {
 		in, _, err = ArmoredAttachedSign(out, *key.Entity, nil, nil)
 	} else {

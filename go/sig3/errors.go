@@ -40,5 +40,7 @@ func (e SequenceError) Error() string {
 	return fmt.Sprintf("sig3 sequencing error: %s", e.m)
 }
 
-var _ error = ParseError{}
-var _ error = Sig3Error{}
+var (
+	_ error = ParseError{}
+	_ error = Sig3Error{}
+)

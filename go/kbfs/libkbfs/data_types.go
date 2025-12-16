@@ -129,8 +129,7 @@ func (bc *BlockChanges) SizeEstimate() uint64 {
 		for _, op := range bc.Ops {
 			numPtrs := len(op.Refs()) + len(op.Unrefs()) +
 				2*len(op.allUpdates())
-			bc.sizeEstimate +=
-				uint64(numPtrs)*data.BPSize + op.SizeExceptUpdates()
+			bc.sizeEstimate += uint64(numPtrs)*data.BPSize + op.SizeExceptUpdates()
 		}
 	}
 	return bc.sizeEstimate
@@ -380,7 +379,8 @@ func (s PrefetchStatus) ToProtocol() kbgitkbfs.PrefetchStatus {
 // PrefetchStatusFromProtocol transforms a kbgitkbfs.PrefetchStatus to a
 // PrefetchStatus, while validating its value.
 func PrefetchStatusFromProtocol(
-	protocolPrefetchStatus kbgitkbfs.PrefetchStatus) PrefetchStatus {
+	protocolPrefetchStatus kbgitkbfs.PrefetchStatus,
+) PrefetchStatus {
 	s := PrefetchStatus(protocolPrefetchStatus)
 	switch s {
 	case NoPrefetch:
@@ -427,7 +427,8 @@ func (spl syncPathList) makeBlock(codec kbfscodec.Codec) (data.Block, error) {
 }
 
 func syncPathListFromBlock(codec kbfscodec.Codec, b *data.FileBlock) (
-	paths syncPathList, err error) {
+	paths syncPathList, err error,
+) {
 	err = codec.Decode(b.Contents, &paths)
 	if err != nil {
 		return syncPathList{}, err
@@ -537,7 +538,8 @@ func (bra BlockRequestAction) String() string {
 
 // Combine returns a new action by taking `other` into account.
 func (bra BlockRequestAction) Combine(
-	other BlockRequestAction) BlockRequestAction {
+	other BlockRequestAction,
+) BlockRequestAction {
 	combined := bra | other
 	// If the actions don't agree on stop-if-full, we should remove it
 	// from the combined result.
@@ -721,7 +723,8 @@ type PrefetchProgress struct {
 // ToProtocolProgress creates a progress suitable of being sent over
 // the keybase1 protocol to the service.
 func (p PrefetchProgress) ToProtocolProgress(clock Clock) (
-	out keybase1.PrefetchProgress) {
+	out keybase1.PrefetchProgress,
+) {
 	out.BytesFetched = int64(p.SubtreeBytesFetched)
 	out.BytesTotal = int64(p.SubtreeBytesTotal)
 	out.Start = keybase1.ToTime(p.Start)

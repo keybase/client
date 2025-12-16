@@ -70,12 +70,14 @@ type fakeKeybaseClient struct {
 var _ rpc.GenericClient = (*fakeKeybaseClient)(nil)
 
 func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{},
-	res interface{}, _ time.Duration) error {
+	res interface{}, _ time.Duration,
+) error {
 	return c.call(ctx, s, args, res)
 }
 
 func (c *fakeKeybaseClient) CallCompressed(ctx context.Context, s string, args interface{},
-	res interface{}, _ rpc.CompressionType, _ time.Duration) error {
+	res interface{}, _ rpc.CompressionType, _ time.Duration,
+) error {
 	return c.call(ctx, s, args, res)
 }
 
@@ -123,13 +125,12 @@ func (c *fakeKeybaseClient) call(ctx context.Context, s string, args interface{}
 			return fmt.Errorf("Could not find user info for UID %s", arg.Uid)
 		}
 
-		*res.(*keybase1.UserPlusKeysV2AllIncarnations) =
-			keybase1.UserPlusKeysV2AllIncarnations{
-				Current: keybase1.UserPlusKeysV2{
-					Uid:      arg.Uid,
-					Username: string(userInfo.Name),
-				},
-			}
+		*res.(*keybase1.UserPlusKeysV2AllIncarnations) = keybase1.UserPlusKeysV2AllIncarnations{
+			Current: keybase1.UserPlusKeysV2{
+				Uid:      arg.Uid,
+				Username: string(userInfo.Name),
+			},
+		}
 
 		c.loadUserPlusKeysCalled = true
 		return nil
@@ -156,12 +157,15 @@ func (c *fakeKeybaseClient) Notify(_ context.Context, s string, args interface{}
 	return fmt.Errorf("Unknown notify: %s %v", s, args)
 }
 
-const expectCall = true
-const expectCached = false
+const (
+	expectCall   = true
+	expectCached = false
+)
 
 func testCurrentSession(
 	t *testing.T, client *fakeKeybaseClient, c *KeybaseDaemonRPC,
-	expectedSession idutil.SessionInfo, expectedCalled bool) {
+	expectedSession idutil.SessionInfo, expectedCalled bool,
+) {
 	client.currentSessionCalled = false
 
 	ctx := context.Background()
@@ -215,7 +219,8 @@ func TestKeybaseDaemonSessionCache(t *testing.T) {
 func testLoadUserPlusKeys(
 	t *testing.T, client *fakeKeybaseClient, c *KeybaseDaemonRPC,
 	uid keybase1.UID, expectedName kbname.NormalizedUsername,
-	expectedCalled bool) {
+	expectedCalled bool,
+) {
 	client.loadUserPlusKeysCalled = false
 
 	ctx := context.Background()
@@ -230,7 +235,8 @@ func testLoadUserPlusKeys(
 func testIdentify(
 	t *testing.T, client *fakeKeybaseClient, c *KeybaseDaemonRPC,
 	uid keybase1.UID, expectedName kbname.NormalizedUsername,
-	expectedCalled bool) {
+	expectedCalled bool,
+) {
 	client.identifyCalled = false
 
 	ctx := context.Background()

@@ -14,7 +14,7 @@ import (
 
 func (si SecurityInformation) String() string {
 	var cf collectFlags
-	var raw = uint32(si)
+	raw := uint32(si)
 	cf.AddDense(raw, []string{
 		"OWNER", "GROUP", "DACL", "SACL", "LABEL", "ATTRIBUTE", "SCOPE",
 	})
@@ -39,7 +39,7 @@ func (sd *SecurityDescriptor) String() string {
 		"DACL_PROTECTED", "SACL_PROTECTED",
 		"RM_CONTROL_VALID", "SELF_RELATIVE",
 	})
-	var res = cf.String()
+	res := cf.String()
 	if sd.ptr.Revision != 1 {
 		res += "INVALID-REVISION"
 	}

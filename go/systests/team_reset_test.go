@@ -18,7 +18,6 @@ func divDebug(ctx *smuContext, fmt string, arg ...interface{}) {
 }
 
 func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuUser) {
-
 	// Keep reloading this team until we get that Bob has been deactivated.
 	// It might happen after the team is rotated, since a cache bust via gregor has
 	// to happen

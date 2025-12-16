@@ -53,7 +53,8 @@ func newBlockServerRemoteClientHandler(
 	kbCtx Context, initMode InitMode, name string, log logger.Logger,
 	signer kbfscrypto.Signer, csg idutil.CurrentSessionGetter,
 	srvRemote rpc.Remote,
-	rpcLogFactory rpc.LogFactory) *blockServerRemoteClientHandler {
+	rpcLogFactory rpc.LogFactory,
+) *blockServerRemoteClientHandler {
 	deferLog := log.CloneWithAddedDepth(1)
 	b := &blockServerRemoteClientHandler{
 		name:          name,
@@ -126,7 +127,6 @@ func (b *blockServerRemoteClientHandler) reconnect() error {
 
 	b.initNewConnection()
 	return nil
-
 }
 
 func (b *blockServerRemoteClientHandler) shutdown() {
@@ -162,7 +162,8 @@ const (
 // resetAuth is called to reset the authorization on a BlockServer
 // connection.
 func (b *blockServerRemoteClientHandler) resetAuth(
-	ctx context.Context, c keybase1.BlockInterface) (err error) {
+	ctx context.Context, c keybase1.BlockInterface,
+) (err error) {
 	ctx = context.WithValue(ctx, ctxBServerResetKey, b.name)
 
 	defer func() {
@@ -202,7 +203,8 @@ func (b *blockServerRemoteClientHandler) resetAuth(
 
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (b *blockServerRemoteClientHandler) RefreshAuthToken(
-	ctx context.Context) {
+	ctx context.Context,
+) {
 	if v := ctx.Value(ctxBServerResetKey); v == b.name {
 		b.log.CDebugf(ctx, "Avoiding resetAuth recursion")
 		return
@@ -222,7 +224,8 @@ func (b *blockServerRemoteClientHandler) HandlerName() string {
 
 // OnConnect implements the ConnectionHandler interface.
 func (b *blockServerRemoteClientHandler) OnConnect(ctx context.Context,
-	conn *rpc.Connection, client rpc.GenericClient, _ *rpc.Server) error {
+	conn *rpc.Connection, client rpc.GenericClient, _ *rpc.Server,
+) error {
 	// reset auth -- using client here would cause problematic recursion.
 	c := keybase1.BlockClient{Cli: client}
 	err := b.resetAuth(ctx, c)
@@ -253,7 +256,8 @@ func (b *blockServerRemoteClientHandler) OnDoCommandError(err error, wait time.D
 
 // OnDisconnected implements the ConnectionHandler interface.
 func (b *blockServerRemoteClientHandler) OnDisconnected(ctx context.Context,
-	status rpc.DisconnectStatus) {
+	status rpc.DisconnectStatus,
+) {
 	if status == rpc.StartingNonFirstConnection {
 		b.log.CWarningf(ctx, "%s: disconnected", b.name)
 	}
@@ -331,7 +335,8 @@ var _ BlockServer = (*BlockServerRemote)(nil)
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
 func NewBlockServerRemote(kbCtx Context, config blockServerRemoteConfig,
-	blkSrvRemote rpc.Remote, rpcLogFactory rpc.LogFactory) *BlockServerRemote {
+	blkSrvRemote rpc.Remote, rpcLogFactory rpc.LogFactory,
+) *BlockServerRemote {
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
@@ -360,7 +365,8 @@ func NewBlockServerRemote(kbCtx Context, config blockServerRemoteConfig,
 
 // For testing.
 func newBlockServerRemoteWithClient(kbCtx Context, config blockServerRemoteConfig,
-	client keybase1.BlockInterface) *BlockServerRemote {
+	client keybase1.BlockInterface,
+) *BlockServerRemote {
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
@@ -405,7 +411,8 @@ func (b *BlockServerRemote) RefreshAuthToken(ctx context.Context) {
 func (b *BlockServerRemote) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, cacheType DiskBlockCacheType) (
-	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	var res keybase1.GetBlockRes
 	b.log.LazyTrace(ctx, "BServer: Get %s", id)
@@ -451,7 +458,8 @@ func (b *BlockServerRemote) Get(
 func (b *BlockServerRemote) GetEncodedSizes(
 	ctx context.Context, tlfID tlf.ID, ids []kbfsblock.ID,
 	contexts []kbfsblock.Context) (
-	sizes []uint32, statuses []keybase1.BlockStatus, err error) {
+	sizes []uint32, statuses []keybase1.BlockStatus, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	b.log.LazyTrace(ctx, "BServer: GetEncodedSizes %s", ids)
 	defer func() {
@@ -495,7 +503,8 @@ func (b *BlockServerRemote) Put(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	bContext kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	cacheType DiskBlockCacheType) (err error) {
+	cacheType DiskBlockCacheType,
+) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
@@ -529,7 +538,8 @@ func (b *BlockServerRemote) PutAgain(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	bContext kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	cacheType DiskBlockCacheType) (err error) {
+	cacheType DiskBlockCacheType,
+) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
@@ -560,7 +570,8 @@ func (b *BlockServerRemote) PutAgain(
 
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
-	id kbfsblock.ID, context kbfsblock.Context) (err error) {
+	id kbfsblock.ID, context kbfsblock.Context,
+) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	b.log.LazyTrace(ctx, "BServer: AddRef %s", id)
 	defer func() {
@@ -584,7 +595,8 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 // RemoveBlockReferences implements the BlockServer interface for
 // BlockServerRemote
 func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
-	tlfID tlf.ID, contexts kbfsblock.ContextMap) (liveCounts map[kbfsblock.ID]int, err error) {
+	tlfID tlf.ID, contexts kbfsblock.ContextMap,
+) (liveCounts map[kbfsblock.ID]int, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	// TODO: Define a more compact printout of contexts.
 	b.log.LazyTrace(ctx, "BServer: RemRef %v", contexts)
@@ -603,7 +615,8 @@ func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerRemote
 func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
-	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
+	tlfID tlf.ID, contexts kbfsblock.ContextMap,
+) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	b.log.LazyTrace(ctx, "BServer: ArchiveRef %v", contexts)
 	defer func() {
@@ -622,7 +635,8 @@ func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 // BlockServerRemote.
 func (b *BlockServerRemote) GetLiveBlockReferences(
 	ctx context.Context, tlfID tlf.ID, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
+	liveCounts map[kbfsblock.ID]int, err error,
+) {
 	return kbfsblock.GetReferenceCount(
 		ctx, tlfID, contexts, keybase1.BlockStatus_LIVE, b.getConn.getClient())
 }
@@ -630,7 +644,8 @@ func (b *BlockServerRemote) GetLiveBlockReferences(
 // IsUnflushed implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) IsUnflushed(
 	_ context.Context, _ tlf.ID, _ kbfsblock.ID) (
-	bool, error) {
+	bool, error,
+) {
 	return false, nil
 }
 
@@ -658,7 +673,8 @@ func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblo
 // GetTeamQuotaInfo implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) GetTeamQuotaInfo(
 	ctx context.Context, tid keybase1.TeamID) (
-	info *kbfsblock.QuotaInfo, err error) {
+	info *kbfsblock.QuotaInfo, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	b.log.LazyTrace(ctx, "BServer: GetTeamQuotaInfo")
 	defer func() {

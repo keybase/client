@@ -280,8 +280,7 @@ func TestToTLFWriterKeyBundleV3(t *testing.T) {
 	encryptedOldKeys := wkbV3.EncryptedHistoricTLFCryptKeys
 	wkbV3.EncryptedHistoricTLFCryptKeys = kbfscrypto.EncryptedTLFCryptKeys{}
 	require.Equal(t, expectedWKBV3, wkbV3)
-	oldKeys, err :=
-		kbfscrypto.DecryptTLFCryptKeys(codec, encryptedOldKeys, tlfCryptKey2)
+	oldKeys, err := kbfscrypto.DecryptTLFCryptKeys(codec, encryptedOldKeys, tlfCryptKey2)
 	require.NoError(t, err)
 	require.Equal(t, oldKeys, []kbfscrypto.TLFCryptKey{tlfCryptKey1})
 }
@@ -456,7 +455,8 @@ func makeFakeDeviceKeyInfoMapV2Future(t *testing.T) userDeviceKeyInfoMapV2Future
 }
 
 func makeFakeTLFWriterKeyBundleV2Future(
-	t *testing.T) tlfWriterKeyBundleV2Future {
+	t *testing.T,
+) tlfWriterKeyBundleV2Future {
 	wkb := TLFWriterKeyBundleV2{
 		nil,
 		kbfscrypto.MakeTLFPublicKey([32]byte{0xa}),
@@ -494,7 +494,8 @@ func (rkbf tlfReaderKeyBundleV2Future) ToCurrentStruct() kbfscodec.CurrentStruct
 }
 
 func makeFakeTLFReaderKeyBundleV2Future(
-	t *testing.T) tlfReaderKeyBundleV2Future {
+	t *testing.T,
+) tlfReaderKeyBundleV2Future {
 	rkb := TLFReaderKeyBundleV2{
 		nil,
 		kbfscrypto.TLFEphemeralPublicKeys{

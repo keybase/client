@@ -64,7 +64,8 @@ func (b BlockServerMeasured) FastForwardBackoff() {
 func (b BlockServerMeasured) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, cacheType DiskBlockCacheType) (
-	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error,
+) {
 	b.getTimer.Time(func() {
 		buf, serverHalf, err = b.delegate.Get(
 			ctx, tlfID, id, context, cacheType)
@@ -76,7 +77,8 @@ func (b BlockServerMeasured) Get(
 func (b BlockServerMeasured) GetEncodedSizes(
 	ctx context.Context, tlfID tlf.ID, ids []kbfsblock.ID,
 	contexts []kbfsblock.Context) (
-	sizes []uint32, statuses []keybase1.BlockStatus, err error) {
+	sizes []uint32, statuses []keybase1.BlockStatus, err error,
+) {
 	b.getEncodedSizeTimer.Time(func() {
 		sizes, statuses, err = b.delegate.GetEncodedSizes(
 			ctx, tlfID, ids, contexts)
@@ -89,7 +91,8 @@ func (b BlockServerMeasured) Put(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	cacheType DiskBlockCacheType) (err error) {
+	cacheType DiskBlockCacheType,
+) (err error) {
 	b.putTimer.Time(func() {
 		err = b.delegate.Put(
 			ctx, tlfID, id, context, buf, serverHalf, cacheType)
@@ -102,7 +105,8 @@ func (b BlockServerMeasured) PutAgain(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	cacheType DiskBlockCacheType) (err error) {
+	cacheType DiskBlockCacheType,
+) (err error) {
 	b.putAgainTimer.Time(func() {
 		err = b.delegate.PutAgain(
 			ctx, tlfID, id, context, buf, serverHalf, cacheType)
@@ -113,7 +117,8 @@ func (b BlockServerMeasured) PutAgain(
 // AddBlockReference implements the BlockServer interface for
 // BlockServerMeasured.
 func (b BlockServerMeasured) AddBlockReference(ctx context.Context, tlfID tlf.ID,
-	id kbfsblock.ID, context kbfsblock.Context) (err error) {
+	id kbfsblock.ID, context kbfsblock.Context,
+) (err error) {
 	b.addBlockReferenceTimer.Time(func() {
 		err = b.delegate.AddBlockReference(ctx, tlfID, id, context)
 	})
@@ -124,7 +129,8 @@ func (b BlockServerMeasured) AddBlockReference(ctx context.Context, tlfID tlf.ID
 // BlockServerMeasured.
 func (b BlockServerMeasured) RemoveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
+	liveCounts map[kbfsblock.ID]int, err error,
+) {
 	b.removeBlockReferencesTimer.Time(func() {
 		liveCounts, err = b.delegate.RemoveBlockReferences(
 			ctx, tlfID, contexts)
@@ -135,7 +141,8 @@ func (b BlockServerMeasured) RemoveBlockReferences(ctx context.Context,
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerMeasured.
 func (b BlockServerMeasured) ArchiveBlockReferences(ctx context.Context,
-	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
+	tlfID tlf.ID, contexts kbfsblock.ContextMap,
+) (err error) {
 	b.archiveBlockReferencesTimer.Time(func() {
 		err = b.delegate.ArchiveBlockReferences(ctx, tlfID, contexts)
 	})
@@ -146,7 +153,8 @@ func (b BlockServerMeasured) ArchiveBlockReferences(ctx context.Context,
 // BlockServerMeasured.
 func (b BlockServerMeasured) GetLiveBlockReferences(
 	ctx context.Context, tlfID tlf.ID, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
+	liveCounts map[kbfsblock.ID]int, err error,
+) {
 	b.getLiveBlockReferencesTimer.Time(func() {
 		liveCounts, err = b.delegate.GetLiveBlockReferences(
 			ctx, tlfID, contexts)
@@ -156,12 +164,12 @@ func (b BlockServerMeasured) GetLiveBlockReferences(
 
 // IsUnflushed implements the BlockServer interface for BlockServerMeasured.
 func (b BlockServerMeasured) IsUnflushed(ctx context.Context, tlfID tlf.ID,
-	id kbfsblock.ID) (isUnflushed bool, err error) {
+	id kbfsblock.ID,
+) (isUnflushed bool, err error) {
 	b.isUnflushedTimer.Time(func() {
 		isUnflushed, err = b.delegate.IsUnflushed(ctx, tlfID, id)
 	})
 	return isUnflushed, err
-
 }
 
 // Shutdown implements the BlockServer interface for
@@ -184,6 +192,7 @@ func (b BlockServerMeasured) GetUserQuotaInfo(ctx context.Context) (info *kbfsbl
 // GetTeamQuotaInfo implements the BlockServer interface for BlockServerMeasured
 func (b BlockServerMeasured) GetTeamQuotaInfo(
 	ctx context.Context, tid keybase1.TeamID) (
-	info *kbfsblock.QuotaInfo, err error) {
+	info *kbfsblock.QuotaInfo, err error,
+) {
 	return b.delegate.GetTeamQuotaInfo(ctx, tid)
 }

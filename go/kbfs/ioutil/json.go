@@ -18,7 +18,7 @@ import (
 // it to the given file, making its parent directory first if
 // necessary.
 func SerializeToJSONFile(obj interface{}, path string) error {
-	err := MkdirAll(filepath.Dir(path), 0700)
+	err := MkdirAll(filepath.Dir(path), 0o700)
 	if err != nil {
 		return err
 	}
@@ -28,7 +28,7 @@ func SerializeToJSONFile(obj interface{}, path string) error {
 		return errors.Wrapf(err, "failed to marshal %q as JSON", path)
 	}
 
-	return WriteFile(path, buf, 0600)
+	return WriteFile(path, buf, 0o600)
 }
 
 // DeserializeFromJSONFile deserializes the given JSON file into the

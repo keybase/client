@@ -22,14 +22,16 @@ type CmdSimpleFSDebugDeobfuscate struct {
 
 // NewCmdSimpleFSDebugDeobfuscate creates a new cli.Command.
 func NewCmdSimpleFSDebugDeobfuscate(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:         "deobfuscate",
 		ArgumentHelp: "<path> [<path2> <path3>...]",
 		Usage:        "Returns the possible plaintext paths for a given keybase path",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSDebugDeobfuscate{
-				Contextified: libkb.NewContextified(g)}, "deobfuscate", c)
+				Contextified: libkb.NewContextified(g),
+			}, "deobfuscate", c)
 			cl.SetNoStandalone()
 		},
 	}

@@ -245,7 +245,6 @@ func (d *Service) Handle(c net.Conn) {
 func (d *Service) Run() (err error) {
 	mctx := libkb.NewMetaContextBackground(d.G()).WithLogTag("SVC")
 	defer func() {
-
 		d.stopProfile()
 
 		if d.startCh != nil {
@@ -657,7 +656,6 @@ func (d *Service) addGlobalHooks() {
 }
 
 func (d *Service) StartLoopbackServer(loginMode libkb.LoginAttempt) error {
-
 	ctx := context.Background()
 
 	var l net.Listener

@@ -33,6 +33,7 @@ func NewDeviceWithKeys(signingKey, encryptionKey GenericKey, deviceID keybase1.D
 		keychainMode:  keychainMode,
 	}
 }
+
 func NewDeviceWithKeysOnly(signingKey, encryptionKey GenericKey, keychainMode KeychainMode) *DeviceWithKeys {
 	return &DeviceWithKeys{
 		signingKey:    signingKey,
@@ -40,21 +41,27 @@ func NewDeviceWithKeysOnly(signingKey, encryptionKey GenericKey, keychainMode Ke
 		keychainMode:  keychainMode,
 	}
 }
+
 func (d DeviceWithKeys) EncryptionKey() GenericKey {
 	return d.encryptionKey
 }
+
 func (d DeviceWithKeys) SigningKey() GenericKey {
 	return d.signingKey
 }
+
 func (d DeviceWithKeys) DeviceID() keybase1.DeviceID {
 	return d.deviceID
 }
+
 func (d DeviceWithKeys) DeviceName() string {
 	return d.deviceName
 }
+
 func (d DeviceWithKeys) DeviceCtime() keybase1.Time {
 	return d.deviceCtime
 }
+
 func (d *DeviceWithKeys) SetDeviceInfo(i keybase1.DeviceID, n string) {
 	d.deviceID = i
 	d.deviceName = n

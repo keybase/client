@@ -7,8 +7,8 @@ import (
 )
 
 func loginWithPassphraseStream(mctx MetaContext, usernameOrEmail string, tsec Triplesec,
-	pps *PassphraseStream, ls *LoginSession) (err error) {
-
+	pps *PassphraseStream, ls *LoginSession,
+) (err error) {
 	defer mctx.Trace("pplGotPassphrase", &err)()
 
 	loginSessionBytes, err := ls.Session()
@@ -139,7 +139,6 @@ func (l *loginReply) GetAppStatus() *AppStatus {
 }
 
 func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {
-
 	arg := APIArg{
 		Endpoint:    "login",
 		SessionType: APISessionTypeNONE,
@@ -395,7 +394,6 @@ func GetTriplesecMaybePrompt(m MetaContext) (tsec Triplesec, ppgen PassphraseGen
 // success returns a PassphraseStream and Triplesec derived from the user's
 // passphrase. As a side effect, it stores the full LKSec in the secret store.
 func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, tsec Triplesec, err error) {
-
 	// We have to get the current username before we install the new provisional login context,
 	// which will shadow the logged in username.
 	nun := m.CurrentUsername()
@@ -467,7 +465,6 @@ func VerifyPassphraseForLoggedInUser(m MetaContext, pp string) (pps *PassphraseS
 // is optional. If not available, a new one is requested. Eventually we will kill ComputeLoginPackage
 // and rename this to that.
 func ComputeLoginPackage2(m MetaContext, pps *PassphraseStream) (ret PDPKALoginPackage, err error) {
-
 	defer m.Trace("ComputeLoginPackage2", &err)()
 	var ls *LoginSession
 	if m.LoginContext() != nil {

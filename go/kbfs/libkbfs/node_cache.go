@@ -79,8 +79,10 @@ func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) (*nodeStandar
 	}
 	return nodeStandard, nil
 }
+
 func (ncs *nodeCacheStandard) wrapNodeStandard(
-	n Node, rootWrappers []func(Node) Node, parent Node) Node {
+	n Node, rootWrappers []func(Node) Node, parent Node,
+) Node {
 	if parent != nil {
 		return parent.WrapChild(n)
 	}
@@ -91,7 +93,8 @@ func (ncs *nodeCacheStandard) wrapNodeStandard(
 }
 
 func (ncs *nodeCacheStandard) makeNodeStandardForEntryLocked(
-	entry *nodeCacheEntry) *nodeStandard {
+	entry *nodeCacheEntry,
+) *nodeStandard {
 	entry.refCount++
 	return makeNodeStandard(entry.core)
 }
@@ -99,7 +102,8 @@ func (ncs *nodeCacheStandard) makeNodeStandardForEntryLocked(
 // GetOrCreate implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) GetOrCreate(
 	ptr data.BlockPointer, name data.PathPartString, parent Node,
-	et data.EntryType) (n Node, err error) {
+	et data.EntryType,
+) (n Node, err error) {
 	var rootWrappers []func(Node) Node
 	defer func() {
 		if n != nil {
@@ -187,7 +191,8 @@ func (ncs *nodeCacheStandard) Get(ref data.BlockRef) (n Node) {
 
 // UpdatePointer implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) UpdatePointer(
-	oldRef data.BlockRef, newPtr data.BlockPointer) (updatedNode NodeID) {
+	oldRef data.BlockRef, newPtr data.BlockPointer,
+) (updatedNode NodeID) {
 	if oldRef == (data.BlockRef{}) && newPtr == (data.BlockPointer{}) {
 		return nil
 	}
@@ -221,7 +226,8 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 // Move implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Move(
 	ref data.BlockRef, newParent Node, newName data.PathPartString) (
-	undoFn func(), err error) {
+	undoFn func(), err error,
+) {
 	if ref == (data.BlockRef{}) {
 		return nil, nil
 	}
@@ -262,7 +268,8 @@ func (ncs *nodeCacheStandard) Move(
 
 // Unlink implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Unlink(
-	ref data.BlockRef, oldPath data.Path, oldDe data.DirEntry) (undoFn func()) {
+	ref data.BlockRef, oldPath data.Path, oldDe data.DirEntry,
+) (undoFn func()) {
 	if ref == (data.BlockRef{}) {
 		return nil
 	}
@@ -332,7 +339,8 @@ func (ncs *nodeCacheStandard) UnlinkedDirEntry(node Node) data.DirEntry {
 // UpdateUnlinkedDirEntry implements the NodeCache interface for
 // nodeCacheStandard.
 func (ncs *nodeCacheStandard) UpdateUnlinkedDirEntry(
-	node Node, newDe data.DirEntry) {
+	node Node, newDe data.DirEntry,
+) {
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 
@@ -447,7 +455,8 @@ func (ncs *nodeCacheStandard) AddRootWrapper(f func(Node) Node) {
 }
 
 func (ncs *nodeCacheStandard) SetObfuscatorMaker(
-	makeOb func() data.Obfuscator) {
+	makeOb func() data.Obfuscator,
+) {
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 	ncs.makeObfuscator = makeOb

@@ -42,7 +42,8 @@ func checkWriterSig(rmds *RootMetadataSigned) error {
 // given info. If md stores the writer signature info internally, it
 // must match the given one.
 func makeRootMetadataSigned(sigInfo, writerSigInfo kbfscrypto.SignatureInfo,
-	md RootMetadata) (*RootMetadataSigned, error) {
+	md RootMetadata,
+) (*RootMetadataSigned, error) {
 	rmds := &RootMetadataSigned{
 		MD:            md,
 		SigInfo:       sigInfo,
@@ -61,7 +62,8 @@ func makeRootMetadataSigned(sigInfo, writerSigInfo kbfscrypto.SignatureInfo,
 func SignRootMetadata(
 	ctx context.Context, codec kbfscodec.Codec,
 	rootMetadataSigner, writerMetadataSigner kbfscrypto.Signer,
-	brmd RootMetadata) (*RootMetadataSigned, error) {
+	brmd RootMetadata,
+) (*RootMetadataSigned, error) {
 	// encode the root metadata
 	buf, err := codec.Encode(brmd)
 	if err != nil {
@@ -113,7 +115,8 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 // MakeFinalCopy returns a complete copy of this RootMetadataSigned
 // with the revision incremented and the final bit set.
 func (rmds *RootMetadataSigned) MakeFinalCopy(
-	codec kbfscodec.Codec, finalizedInfo *tlf.HandleExtension) (*RootMetadataSigned, error) {
+	codec kbfscodec.Codec, finalizedInfo *tlf.HandleExtension,
+) (*RootMetadataSigned, error) {
 	if finalizedInfo.Type != tlf.HandleExtensionFinalized {
 		return nil, fmt.Errorf(
 			"Extension %s does not have finalized type",
@@ -154,7 +157,8 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(
 func (rmds *RootMetadataSigned) IsValidAndSigned(
 	ctx context.Context, codec kbfscodec.Codec,
 	teamMemChecker TeamMembershipChecker, extra ExtraMetadata,
-	offline keybase1.OfflineAvailability) error {
+	offline keybase1.OfflineAvailability,
+) error {
 	// Optimization -- if the RootMetadata signature is nil, it
 	// will fail verification.
 	if rmds.SigInfo.IsNil() {
@@ -217,7 +221,8 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 // the given user and device (identified by the device verifying key),
 // and returns an error if not.
 func (rmds *RootMetadataSigned) IsLastModifiedBy(
-	uid keybase1.UID, key kbfscrypto.VerifyingKey) error {
+	uid keybase1.UID, key kbfscrypto.VerifyingKey,
+) error {
 	err := rmds.MD.IsLastModifiedBy(uid, key)
 	if err != nil {
 		return err
@@ -247,7 +252,8 @@ func (rmds *RootMetadataSigned) IsLastModifiedBy(
 // be used instead of directly calling codec.Encode(), as it handles
 // some version-specific quirks.
 func EncodeRootMetadataSigned(
-	codec kbfscodec.Codec, rmds *RootMetadataSigned) ([]byte, error) {
+	codec kbfscodec.Codec, rmds *RootMetadataSigned,
+) ([]byte, error) {
 	err := checkWriterSig(rmds)
 	if err != nil {
 		return nil, err
@@ -265,7 +271,8 @@ func EncodeRootMetadataSigned(
 // specified versioned structure.
 func DecodeRootMetadataSigned(
 	codec kbfscodec.Codec, tlf tlf.ID, ver, max MetadataVer, buf []byte) (
-	*RootMetadataSigned, error) {
+	*RootMetadataSigned, error,
+) {
 	rmd, err := makeMutableRootMetadataForDecode(codec, tlf, ver, max, buf)
 	if err != nil {
 		return nil, err

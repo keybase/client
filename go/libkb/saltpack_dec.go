@@ -25,7 +25,8 @@ func SaltpackDecrypt(m MetaContext, source io.Reader, sink io.WriteCloser,
 	decryptionKeyring saltpack.SigncryptKeyring,
 	checkSenderMki func(*saltpack.MessageKeyInfo) error,
 	checkSenderSigningKey func(saltpack.SigningPublicKey) error,
-	keyResolver saltpack.SymmetricKeyResolver) (mki *saltpack.MessageKeyInfo, err error) {
+	keyResolver saltpack.SymmetricKeyResolver,
+) (mki *saltpack.MessageKeyInfo, err error) {
 	defer func() {
 		if derr, ok := err.(DecryptionError); ok {
 			derr.Cause.StatusCode = getStatusCodeFromDecryptionError(&derr)

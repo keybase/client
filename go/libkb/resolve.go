@@ -5,10 +5,9 @@ package libkb
 
 import (
 	"fmt"
+	"runtime/debug"
 	"sync"
 	"time"
-
-	"runtime/debug"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -75,9 +74,11 @@ func (res *ResolveResult) UserOrTeam() keybase1.UserOrTeamLite {
 func (res *ResolveResult) GetUsername() string {
 	return res.resolvedKbUsername
 }
+
 func (res *ResolveResult) GetNormalizedUsername() NormalizedUsername {
 	return NewNormalizedUsername(res.GetUsername())
 }
+
 func (res *ResolveResult) GetNormalizedQueriedUsername() NormalizedUsername {
 	return NewNormalizedUsername(res.queriedKbUsername)
 }
@@ -89,6 +90,7 @@ func (res *ResolveResult) WasTeamIDAssertion() bool {
 func (res *ResolveResult) GetTeamID() keybase1.TeamID {
 	return res.teamID
 }
+
 func (res *ResolveResult) GetTeamName() keybase1.TeamName {
 	return res.resolvedTeamName
 }

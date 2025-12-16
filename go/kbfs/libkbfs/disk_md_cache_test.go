@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"crypto/rand"
-
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,7 +25,8 @@ type testDiskMDCacheConfig struct {
 }
 
 func newDiskMDCacheLocalForTestWithStorage(
-	t *testing.T, s storage.Storage) *DiskMDCacheLocal {
+	t *testing.T, s storage.Storage,
+) *DiskMDCacheLocal {
 	cache, err := newDiskMDCacheLocalFromStorage(&testDiskMDCacheConfig{
 		newTestCodecGetter(),
 		newTestLogMaker(t),

@@ -2,8 +2,9 @@ package home
 
 import (
 	"context"
-	"github.com/keybase/client/go/contacts"
 	"testing"
+
+	"github.com/keybase/client/go/contacts"
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"

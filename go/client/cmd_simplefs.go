@@ -69,7 +69,8 @@ const (
 
 func makeKbfsPath(
 	path string, rev int64, timeString, relTimeString string) (
-	keybase1.Path, error) {
+	keybase1.Path, error,
+) {
 	p := strings.TrimPrefix(path, mountDir)
 	if strings.HasPrefix(p, protPrefix) {
 		var err error
@@ -109,12 +110,12 @@ func makeKbfsPath(
 		ArchivedParam: keybase1.NewKBFSArchivedParamWithRelTimeString(
 			relTimeString),
 	}), nil
-
 }
 
 func makeSimpleFSPathWithArchiveParams(
 	path string, rev int64, timeString, relTimeString string) (
-	keybase1.Path, error) {
+	keybase1.Path, error,
+) {
 	path = filepath.ToSlash(path)
 	path = strings.TrimSuffix(path, "/")
 
@@ -248,8 +249,8 @@ func makeDestPath(
 	src keybase1.Path,
 	dest keybase1.Path,
 	isDestPath bool,
-	destPathString string) (keybase1.Path, error) {
-
+	destPathString string,
+) (keybase1.Path, error) {
 	isSrcDir, srcPathString, err := checkPathIsDir(ctx, cli, src)
 	if err != nil {
 		return keybase1.Path{}, err
@@ -350,7 +351,8 @@ func doOverwritePrompt(g *libkb.GlobalContext, dest string) error {
 }
 
 func newPathWithSameType(
-	pathString string, oldPath keybase1.Path) (keybase1.Path, error) {
+	pathString string, oldPath keybase1.Path,
+) (keybase1.Path, error) {
 	pt, err := oldPath.PathType()
 	if err != nil {
 		return keybase1.Path{}, err
@@ -372,7 +374,6 @@ func newPathWithSameType(
 }
 
 func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keybase1.SimpleFSInterface, path keybase1.Path) ([]keybase1.Path, error) {
-
 	var returnPaths []keybase1.Path
 	pathString := path.String()
 	directory := filepath.ToSlash(filepath.Dir(pathString))

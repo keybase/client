@@ -96,7 +96,8 @@ func (refs blockRefMap) getLiveCount() (count int) {
 }
 
 func (refs blockRefMap) checkExists(context kbfsblock.Context) (
-	bool, blockRefStatus, error) {
+	bool, blockRefStatus, error,
+) {
 	refEntry, ok := refs[context.GetRefNonce()]
 	if !ok {
 		return false, unknownBlockRef, nil
@@ -111,7 +112,8 @@ func (refs blockRefMap) checkExists(context kbfsblock.Context) (
 }
 
 func (refs blockRefMap) put(context kbfsblock.Context, status blockRefStatus,
-	tag string) error {
+	tag string,
+) error {
 	refNonce := context.GetRefNonce()
 	if refEntry, ok := refs[refNonce]; ok {
 		err := refEntry.checkContext(context)

@@ -32,7 +32,8 @@ func NewRooterChecker(p libkb.RemoteProofChainLink) (*RooterChecker, libkb.Proof
 func (rc *RooterChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *RooterChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode,
-	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
+	pvlU keybase1.MerkleStoreEntry,
+) (*libkb.SigHint, libkb.ProofError) {
 	// TODO CORE-8951 see if we can populate verifiedHint with anything useful.
 	return nil, CheckProofPvl(mctx, keybase1.ProofType_ROOTER, rc.proof, h, pvlU)
 }

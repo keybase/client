@@ -36,7 +36,8 @@ type DocDb struct {
 // newDocDbFromStorage creates a new *DocDb with the passed-in
 // storage.Storage interface as the storage layer for the db.
 func newDocDbFromStorage(config libkbfs.Config, s storage.Storage) (
-	db *DocDb, err error) {
+	db *DocDb, err error,
+) {
 	log := config.MakeLogger("DD")
 	closers := make([]io.Closer, 0, 1)
 	closer := func() {
@@ -72,7 +73,8 @@ func newDocDbFromStorage(config libkbfs.Config, s storage.Storage) (
 // newDocDb creates a new *DocDb with a
 // specified billy filesystem as the storage layer.
 func newDocDb(config libkbfs.Config, fs billy.Filesystem) (
-	db *DocDb, err error) {
+	db *DocDb, err error,
+) {
 	log := config.MakeLogger("DD")
 	defer func() {
 		if err != nil {
@@ -115,7 +117,8 @@ func (db *DocDb) getMetadataLocked(docID string) (md docMD, err error) {
 
 // checkAndLockDb checks whether the db is started.
 func (db *DocDb) checkDbLocked(
-	ctx context.Context, method string) error {
+	ctx context.Context, method string,
+) error {
 	// First see if the context has expired since we began.
 	select {
 	case <-ctx.Done():
@@ -137,7 +140,8 @@ func (db *DocDb) checkDbLocked(
 
 // Get returns the info for the given doc.
 func (db *DocDb) Get(ctx context.Context, docID string) (
-	parentDocID, name string, err error) {
+	parentDocID, name string, err error,
+) {
 	db.lock.RLock()
 	defer db.lock.RUnlock()
 	err = db.checkDbLocked(ctx, "DD(Get)")
@@ -154,7 +158,8 @@ func (db *DocDb) Get(ctx context.Context, docID string) (
 
 // Put saves the revisions for the given TLF.
 func (db *DocDb) Put(
-	ctx context.Context, docID, parentDocID, name string) error {
+	ctx context.Context, docID, parentDocID, name string,
+) error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 	err := db.checkDbLocked(ctx, "DD(Put)")
@@ -176,7 +181,8 @@ func (db *DocDb) Put(
 
 // Delete removes the metadata for the TLF from the DB.
 func (db *DocDb) Delete(
-	ctx context.Context, docID string) error {
+	ctx context.Context, docID string,
+) error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 	err := db.checkDbLocked(ctx, "DD(Delete)")

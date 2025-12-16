@@ -155,7 +155,6 @@ func (p ProvisionUI) ChooseDevice(ctx context.Context, arg keybase1.ChooseDevice
 	_ = p.parent.Output("\n")
 
 	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDevice, p.parent, "Choose a device", 1, allowed)
-
 	if err != nil {
 		if err == ErrInputCanceled {
 			return keybase1.DeviceID(""), libkb.InputCanceledError{}
@@ -199,7 +198,6 @@ func (p ProvisionUI) ChooseDeviceType(ctx context.Context, arg keybase1.ChooseDe
 		return keybase1.DeviceType_MOBILE, nil
 	}
 	return res, fmt.Errorf("invalid device type option: %d", ret)
-
 }
 
 func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) (keybase1.SecretResponse, error) {

@@ -82,7 +82,8 @@ func NewMDOpsStandard(config Config) *MDOpsStandard {
 // convertVerifyingKeyError gives a better error when the TLF was
 // signed by a key that is no longer associated with the last writer.
 func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
-	rmds *RootMetadataSigned, handle *tlfhandle.Handle, err error) error {
+	rmds *RootMetadataSigned, handle *tlfhandle.Handle, err error,
+) error {
 	if _, ok := err.(VerifyingKeyNotFoundError); !ok {
 		return err
 	}
@@ -110,7 +111,8 @@ const ctxMDOpsSkipKeyVerification ctxMDOpsSkipKeyVerificationType = 1
 func (md *MDOpsStandard) decryptMerkleLeaf(
 	ctx context.Context, rmd ReadOnlyRootMetadata,
 	kbfsRoot *kbfsmd.MerkleRoot, leafBytes []byte) (
-	leaf *kbfsmd.MerkleLeaf, err error) {
+	leaf *kbfsmd.MerkleLeaf, err error,
+) {
 	var eLeaf kbfsmd.EncryptedMerkleLeaf
 	err = md.config.Codec().Decode(leafBytes, &eLeaf)
 	if err != nil {
@@ -251,7 +253,8 @@ func (md *MDOpsStandard) decryptMerkleLeaf(
 func (md *MDOpsStandard) makeMerkleLeaf(
 	ctx context.Context, rmd ReadOnlyRootMetadata,
 	kbfsRoot *kbfsmd.MerkleRoot, leafBytes []byte) (
-	leaf *kbfsmd.MerkleLeaf, err error) {
+	leaf *kbfsmd.MerkleLeaf, err error,
+) {
 	if rmd.TlfID().Type() != tlf.Public {
 		return md.decryptMerkleLeaf(ctx, rmd, kbfsRoot, leafBytes)
 	}
@@ -280,7 +283,8 @@ func mdToMerkleTreeID(irmd ImmutableRootMetadata) keybase1.MerkleTreeID {
 
 func (md *MDOpsStandard) checkMerkleTimes(ctx context.Context,
 	latestRootTime time.Time, kbfsRoot *kbfsmd.MerkleRoot,
-	timeToCheck time.Time, allowedGapSinceMerkle time.Duration) error {
+	timeToCheck time.Time, allowedGapSinceMerkle time.Duration,
+) error {
 	var latestKbfsTime time.Time
 	if kbfsRoot != nil {
 		latestKbfsTime = time.Unix(kbfsRoot.Timestamp, 0)
@@ -329,7 +333,8 @@ func (md *MDOpsStandard) checkMerkleTimes(ctx context.Context,
 // chain leading up to `leafRev` that's been validated so far.  If no
 // validations have occurred yet, it returns `leafRev`.
 func (md *MDOpsStandard) startOfValidatedChainForLeaf(
-	tlfID tlf.ID, leafRev kbfsmd.Revision) kbfsmd.Revision {
+	tlfID tlf.ID, leafRev kbfsmd.Revision,
+) kbfsmd.Revision {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	revs, ok := md.leafChainsValidated[tlfID]
@@ -344,7 +349,8 @@ func (md *MDOpsStandard) startOfValidatedChainForLeaf(
 }
 
 func (md *MDOpsStandard) mdserver(ctx context.Context) (
-	mds MDServer, err error) {
+	mds MDServer, err error,
+) {
 	// The init code sets the MDOps before it sets the MDServer, and
 	// so it might be used before the MDServer is available (e.g., if
 	// the Keybase service is established before the MDServer is set,
@@ -370,7 +376,8 @@ func (md *MDOpsStandard) mdserver(ctx context.Context) (
 func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	ctx context.Context, rmds *RootMetadataSigned,
 	verifyingKey kbfscrypto.VerifyingKey, irmd ImmutableRootMetadata,
-	root keybase1.MerkleRootV2, timeToCheck time.Time) (err error) {
+	root keybase1.MerkleRootV2, timeToCheck time.Time,
+) (err error) {
 	ctx = context.WithValue(ctx, ctxMDOpsSkipKeyVerification, struct{}{})
 	// This gives us the KBFS merkle root that comes after the KBFS merkle
 	// root right after the one included by `root`. In other words, if the
@@ -423,8 +430,7 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	// recent writes to the TLF), there's no way for us to know for sure the
 	// write is legit, from merkle tree perspective, and future reads of the
 	// TLF will fail without manual intervention.
-	kbfsRoot, merkleNodes, rootSeqno, err :=
-		md.config.MDCache().GetNextMD(rmds.MD.TlfID(), root.Seqno)
+	kbfsRoot, merkleNodes, rootSeqno, err := md.config.MDCache().GetNextMD(rmds.MD.TlfID(), root.Seqno)
 	switch errors.Cause(err).(type) {
 	case nil:
 	case NextMDNotCachedError:
@@ -435,8 +441,7 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 		if err != nil {
 			return err
 		}
-		kbfsRoot, merkleNodes, rootSeqno, err =
-			mdserv.FindNextMD(ctx, rmds.MD.TlfID(), root.Seqno)
+		kbfsRoot, merkleNodes, rootSeqno, err = mdserv.FindNextMD(ctx, rmds.MD.TlfID(), root.Seqno)
 		if err != nil {
 			return err
 		}
@@ -561,7 +566,8 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	// this is to check a write happens before K2.
 	if irmd.Revision() > leaf.Revision {
 		return MDWrittenAfterRevokeError{
-			irmd.TlfID(), irmd.Revision(), leaf.Revision, verifyingKey}
+			irmd.TlfID(), irmd.Revision(), leaf.Revision, verifyingKey,
+		}
 	} else if irmd.Revision() == leaf.Revision {
 		return nil
 	}
@@ -614,7 +620,8 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 func (md *MDOpsStandard) verifyKey(
 	ctx context.Context, rmds *RootMetadataSigned,
 	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
-	irmd ImmutableRootMetadata) (cacheable bool, err error) {
+	irmd ImmutableRootMetadata,
+) (cacheable bool, err error) {
 	err = md.config.KBPKI().HasVerifyingKey(
 		ctx, uid, verifyingKey, rmds.untrustedServerTimestamp,
 		md.config.OfflineAvailabilityForID(irmd.TlfID()))
@@ -657,7 +664,8 @@ func (md *MDOpsStandard) verifyKey(
 
 func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 	rmds *RootMetadataSigned, irmd ImmutableRootMetadata, handle *tlfhandle.Handle,
-	getRangeLock *sync.Mutex) error {
+	getRangeLock *sync.Mutex,
+) error {
 	if !rmds.MD.IsWriterMetadataCopiedSet() {
 		// Skip verifying the writer key if it's the same as the
 		// overall signer's key (which must be verified elsewhere).
@@ -767,7 +775,8 @@ type merkleBasedTeamChecker struct {
 func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
 	verifyingKey kbfscrypto.VerifyingKey,
-	offline keybase1.OfflineAvailability) (bool, error) {
+	offline keybase1.OfflineAvailability,
+) (bool, error) {
 	isCurrentWriter, err := mbtc.teamMembershipChecker.IsTeamWriter(
 		ctx, tid, uid, verifyingKey, offline)
 	if err != nil {
@@ -822,7 +831,8 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 func (mbtc merkleBasedTeamChecker) IsTeamReader(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
 	offline keybase1.OfflineAvailability) (
-	bool, error) {
+	bool, error,
+) {
 	if mbtc.irmd.TlfID().Type() == tlf.Public {
 		return true, nil
 	}
@@ -853,7 +863,8 @@ func (mbtc merkleBasedTeamChecker) IsTeamReader(
 // shouldn't be used.
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	handle *tlfhandle.Handle, rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata,
-	getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
+	getRangeLock *sync.Mutex,
+) (ImmutableRootMetadata, error) {
 	// First, construct the ImmutableRootMetadata object, even before
 	// we validate the writer or the keys, because the irmd will be
 	// used in that process to check for valid successors.
@@ -949,7 +960,8 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *tlfhandle.Handle,
 	mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
-	id tlf.ID, rmd ImmutableRootMetadata, err error) {
+	id tlf.ID, rmd ImmutableRootMetadata, err error,
+) {
 	// If we already know the tlf ID, we shouldn't be calling this
 	// function.
 	if handle.TlfID() != tlf.NullID {
@@ -1058,7 +1070,8 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *tlfhandle.Han
 
 // GetIDForHandle implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetIDForHandle(
-	ctx context.Context, handle *tlfhandle.Handle) (id tlf.ID, err error) {
+	ctx context.Context, handle *tlfhandle.Handle,
+) (id tlf.ID, err error) {
 	mdcache := md.config.MDCache()
 	id, err = mdcache.GetIDForHandle(handle)
 	switch errors.Cause(err).(type) {
@@ -1089,7 +1102,8 @@ func (md *MDOpsStandard) GetIDForHandle(
 
 func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	id tlf.ID, bid kbfsmd.BranchID, handle *tlfhandle.Handle, rmds *RootMetadataSigned,
-	extra kbfsmd.ExtraMetadata, getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
+	extra kbfsmd.ExtraMetadata, getRangeLock *sync.Mutex,
+) (ImmutableRootMetadata, error) {
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.TlfID() {
 		return ImmutableRootMetadata{}, MDMismatchError{
@@ -1112,7 +1126,8 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 
 func (md *MDOpsStandard) processSignedMD(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
-	rmds *RootMetadataSigned) (ImmutableRootMetadata, error) {
+	rmds *RootMetadataSigned,
+) (ImmutableRootMetadata, error) {
 	extra, err := md.getExtraMD(ctx, rmds.MD)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
@@ -1136,7 +1151,8 @@ func (md *MDOpsStandard) processSignedMD(
 
 func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
-	ImmutableRootMetadata, error) {
+	ImmutableRootMetadata, error,
+) {
 	mdserv, err := md.mdserver(ctx)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
@@ -1155,14 +1171,16 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
 // GetForTLF implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetForTLF(
 	ctx context.Context, id tlf.ID, lockBeforeGet *keybase1.LockID) (
-	ImmutableRootMetadata, error) {
+	ImmutableRootMetadata, error,
+) {
 	return md.getForTLF(ctx, id, kbfsmd.NullBranchID, kbfsmd.Merged, lockBeforeGet)
 }
 
 // GetForTLFByTime implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetForTLFByTime(
 	ctx context.Context, id tlf.ID, serverTime time.Time) (
-	irmd ImmutableRootMetadata, err error) {
+	irmd ImmutableRootMetadata, err error,
+) {
 	md.log.CDebugf(ctx, "GetForTLFByTime %s %s", id, serverTime)
 	defer func() {
 		if err == nil {
@@ -1188,13 +1206,15 @@ func (md *MDOpsStandard) GetForTLFByTime(
 // GetUnmergedForTLF implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetUnmergedForTLF(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) (
-	ImmutableRootMetadata, error) {
+	ImmutableRootMetadata, error,
+) {
 	return md.getForTLF(ctx, id, bid, kbfsmd.Unmerged, nil)
 }
 
 func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, rmdses []*RootMetadataSigned) (
-	[]ImmutableRootMetadata, error) {
+	[]ImmutableRootMetadata, error,
+) {
 	if len(rmdses) == 0 {
 		return nil, nil
 	}
@@ -1299,7 +1319,8 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 
 func (md *MDOpsStandard) getRange(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision,
-	lockBeforeGet *keybase1.LockID) ([]ImmutableRootMetadata, error) {
+	lockBeforeGet *keybase1.LockID,
+) ([]ImmutableRootMetadata, error) {
 	mdserv, err := md.mdserver(ctx)
 	if err != nil {
 		return nil, err
@@ -1319,7 +1340,8 @@ func (md *MDOpsStandard) getRange(ctx context.Context, id tlf.ID,
 // GetRange implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetRange(ctx context.Context, id tlf.ID,
 	start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
-	[]ImmutableRootMetadata, error) {
+	[]ImmutableRootMetadata, error,
+) {
 	return md.getRange(
 		ctx, id, kbfsmd.NullBranchID, kbfsmd.Merged, start, stop, lockBeforeGet)
 }
@@ -1327,14 +1349,16 @@ func (md *MDOpsStandard) GetRange(ctx context.Context, id tlf.ID,
 // GetUnmergedRange implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetUnmergedRange(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, start, stop kbfsmd.Revision) (
-	[]ImmutableRootMetadata, error) {
+	[]ImmutableRootMetadata, error,
+) {
 	return md.getRange(ctx, id, bid, kbfsmd.Unmerged, start, stop, nil)
 }
 
 func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext,
 	priority keybase1.MDPriority, bps data.BlockPutState) (
-	ImmutableRootMetadata, error) {
+	ImmutableRootMetadata, error,
+) {
 	session, err := md.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
@@ -1399,7 +1423,8 @@ func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata,
 func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext,
 	priority keybase1.MDPriority, bps data.BlockPutState) (
-	ImmutableRootMetadata, error) {
+	ImmutableRootMetadata, error,
+) {
 	if rmd.MergedStatus() == kbfsmd.Unmerged {
 		return ImmutableRootMetadata{}, UnexpectedUnmergedPutError{}
 	}
@@ -1410,7 +1435,8 @@ func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata,
 func (md *MDOpsStandard) PutUnmerged(
 	ctx context.Context, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
-	ImmutableRootMetadata, error) {
+	ImmutableRootMetadata, error,
+) {
 	rmd.SetUnmerged()
 	if rmd.BID() == kbfsmd.NullBranchID {
 		// new branch ID
@@ -1425,7 +1451,8 @@ func (md *MDOpsStandard) PutUnmerged(
 
 // PruneBranch implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) PruneBranch(
-	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error {
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
+) error {
 	mdserv, err := md.mdserver(ctx)
 	if err != nil {
 		return err
@@ -1437,7 +1464,8 @@ func (md *MDOpsStandard) PruneBranch(
 func (md *MDOpsStandard) ResolveBranch(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, _ []kbfsblock.ID,
 	rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey,
-	bps data.BlockPutState) (ImmutableRootMetadata, error) {
+	bps data.BlockPutState,
+) (ImmutableRootMetadata, error) {
 	// Put the MD first.
 	irmd, err := md.Put(
 		ctx, rmd, verifyingKey, nil, keybase1.MDPriorityNormal, bps)
@@ -1457,7 +1485,8 @@ func (md *MDOpsStandard) ResolveBranch(
 
 // GetLatestHandleForTLF implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-	tlf.Handle, error) {
+	tlf.Handle, error,
+) {
 	mdserv, err := md.mdserver(ctx)
 	if err != nil {
 		return tlf.Handle{}, err
@@ -1469,7 +1498,8 @@ func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 // ValidateLatestHandleNotFinal implements the MDOps interface for
 // MDOpsStandard.
 func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
-	ctx context.Context, h *tlfhandle.Handle) (bool, error) {
+	ctx context.Context, h *tlfhandle.Handle,
+) (bool, error) {
 	if h.IsFinal() || h.TlfID() == tlf.NullID {
 		return false, nil
 	}
@@ -1520,7 +1550,8 @@ func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
 }
 
 func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd kbfsmd.RootMetadata) (
-	extra kbfsmd.ExtraMetadata, err error) {
+	extra kbfsmd.ExtraMetadata, err error,
+) {
 	wkbID, rkbID := brmd.GetTLFWriterKeyBundleID(), brmd.GetTLFReaderKeyBundleID()
 	if (wkbID == kbfsmd.TLFWriterKeyBundleID{}) || (rkbID == kbfsmd.TLFReaderKeyBundleID{}) {
 		// Pre-v3 metadata embed key bundles and as such won't set any IDs.

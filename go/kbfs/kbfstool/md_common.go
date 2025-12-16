@@ -21,7 +21,8 @@ var mdInputRegexp = regexp.MustCompile(
 	`^(.+?)(?::(.*?))?(?:\^(.*?)(?:-(.*?))?)?$`)
 
 func mdSplitInput(input string) (
-	tlfStr, branchStr, startStr, stopStr string, err error) {
+	tlfStr, branchStr, startStr, stopStr string, err error,
+) {
 	matches := mdInputRegexp.FindStringSubmatch(input)
 	if matches == nil {
 		return "", "", "", "", fmt.Errorf("Could not parse %q", input)
@@ -46,7 +47,8 @@ func mdJoinInput(tlfStr, branchStr, startStr, stopStr string) string {
 
 func mdParseInput(ctx context.Context, config libkbfs.Config,
 	tlfStr, branchStr, startStr, stopStr string) (
-	tlfID tlf.ID, branchID kbfsmd.BranchID, start, stop kbfsmd.Revision, err error) {
+	tlfID tlf.ID, branchID kbfsmd.BranchID, start, stop kbfsmd.Revision, err error,
+) {
 	tlfID, err = getTlfID(ctx, config, tlfStr)
 	if err != nil {
 		return tlf.ID{}, kbfsmd.BranchID{}, kbfsmd.RevisionUninitialized,
@@ -81,7 +83,8 @@ func mdParseInput(ctx context.Context, config libkbfs.Config,
 
 func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI,
 	mdOps libkbfs.MDOps, osg idutil.OfflineStatusGetter, tlfStr string) (
-	*tlfhandle.Handle, error) {
+	*tlfhandle.Handle, error,
+) {
 	p, err := fsrpc.NewPath(tlfStr)
 	if err != nil {
 		return nil, err
@@ -98,7 +101,8 @@ func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI,
 
 func getTlfID(
 	ctx context.Context, config libkbfs.Config, tlfStr string) (
-	tlf.ID, error) {
+	tlf.ID, error,
+) {
 	_, err := kbfsmd.ParseID(tlfStr)
 	if err == nil {
 		return tlf.ID{}, errors.New("Cannot handle metadata IDs")
@@ -121,7 +125,8 @@ func getTlfID(
 }
 
 func getBranchID(ctx context.Context, config libkbfs.Config,
-	tlfID tlf.ID, branchStr string) (kbfsmd.BranchID, error) {
+	tlfID tlf.ID, branchStr string,
+) (kbfsmd.BranchID, error) {
 	if branchStr == "master" {
 		return kbfsmd.NullBranchID, nil
 	}
@@ -143,7 +148,8 @@ func getBranchID(ctx context.Context, config libkbfs.Config,
 
 func getRevision(ctx context.Context, config libkbfs.Config,
 	tlfID tlf.ID, branchID kbfsmd.BranchID,
-	revisionStr string) (kbfsmd.Revision, error) {
+	revisionStr string,
+) (kbfsmd.Revision, error) {
 	if len(revisionStr) == 0 || revisionStr == "latest" {
 		if branchID == kbfsmd.NullBranchID {
 			irmd, err := config.MDOps().GetForTLF(ctx, tlfID, nil)
@@ -183,7 +189,8 @@ func reverseIRMDList(irmds []libkbfs.ImmutableRootMetadata) []libkbfs.ImmutableR
 
 func mdGet(ctx context.Context, config libkbfs.Config, tlfID tlf.ID,
 	branchID kbfsmd.BranchID, start, stop kbfsmd.Revision) (
-	irmds []libkbfs.ImmutableRootMetadata, err error) {
+	irmds []libkbfs.ImmutableRootMetadata, err error,
+) {
 	if start > stop {
 		panic("start unexpectedly greater than stop")
 	}
@@ -234,7 +241,8 @@ func mdGet(ctx context.Context, config libkbfs.Config, tlfID tlf.ID,
 }
 
 func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
-	tlfPath string) (libkbfs.ImmutableRootMetadata, error) {
+	tlfPath string,
+) (libkbfs.ImmutableRootMetadata, error) {
 	handle, err := parseTLFPath(
 		ctx, config.KBPKI(), config.MDOps(), config, tlfPath)
 	if err != nil {

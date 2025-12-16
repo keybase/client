@@ -37,12 +37,14 @@ type diskFavoriteClient struct {
 var _ favoriteStore = diskFavoriteClient{}
 
 func (c diskFavoriteClient) favkey(
-	uid keybase1.UID, folder keybase1.FolderHandle) []byte {
+	uid keybase1.UID, folder keybase1.FolderHandle,
+) []byte {
 	return []byte(fmt.Sprintf("%s:%s", uid, folder.ToString()))
 }
 
 func (c diskFavoriteClient) FavoriteAdd(
-	uid keybase1.UID, folder keybase1.FolderHandle) error {
+	uid keybase1.UID, folder keybase1.FolderHandle,
+) error {
 	enc, err := c.codec.Encode(folder)
 	if err != nil {
 		return err
@@ -52,12 +54,14 @@ func (c diskFavoriteClient) FavoriteAdd(
 }
 
 func (c diskFavoriteClient) FavoriteDelete(
-	uid keybase1.UID, folder keybase1.FolderHandle) error {
+	uid keybase1.UID, folder keybase1.FolderHandle,
+) error {
 	return c.favoriteDb.Delete(c.favkey(uid, folder), nil)
 }
 
 func (c diskFavoriteClient) FavoriteList(uid keybase1.UID) (
-	[]keybase1.Folder, error) {
+	[]keybase1.Folder, error,
+) {
 	iter := c.favoriteDb.NewIterator(util.BytesPrefix([]byte(uid+":")), nil)
 	defer iter.Release()
 	var folders []keybase1.Folder
@@ -86,7 +90,8 @@ type memoryFavoriteClient struct {
 var _ favoriteStore = memoryFavoriteClient{}
 
 func (c memoryFavoriteClient) FavoriteAdd(
-	uid keybase1.UID, folder keybase1.FolderHandle) error {
+	uid keybase1.UID, folder keybase1.FolderHandle,
+) error {
 	if c.favorites[uid] == nil {
 		c.favorites[uid] = make(map[string]keybase1.FolderHandle)
 	}
@@ -95,7 +100,8 @@ func (c memoryFavoriteClient) FavoriteAdd(
 }
 
 func (c memoryFavoriteClient) FavoriteDelete(
-	uid keybase1.UID, folder keybase1.FolderHandle) error {
+	uid keybase1.UID, folder keybase1.FolderHandle,
+) error {
 	if c.favorites[uid] != nil {
 		delete(c.favorites[uid], folder.ToString())
 	}
@@ -103,7 +109,8 @@ func (c memoryFavoriteClient) FavoriteDelete(
 }
 
 func (c memoryFavoriteClient) FavoriteList(
-	uid keybase1.UID) ([]keybase1.Folder, error) {
+	uid keybase1.UID,
+) ([]keybase1.Folder, error) {
 	folders := make([]keybase1.Folder, len(c.favorites[uid]))
 	i := 0
 	for _, v := range c.favorites[uid] {
@@ -134,7 +141,8 @@ type makeKeysFunc func(kbname.NormalizedUsername, int) (
 	kbfscrypto.CryptPublicKey, kbfscrypto.VerifyingKey)
 
 func (k *KeybaseDaemonLocal) addDeviceForTesting(uid keybase1.UID,
-	makeKeys makeKeysFunc) (int, error) {
+	makeKeys makeKeysFunc,
+) (int, error) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 
@@ -154,7 +162,8 @@ func (k *KeybaseDaemonLocal) addDeviceForTesting(uid keybase1.UID,
 }
 
 func (k *KeybaseDaemonLocal) revokeDeviceForTesting(clock Clock,
-	uid keybase1.UID, index int) error {
+	uid keybase1.UID, index int,
+) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 
@@ -175,12 +184,10 @@ func (k *KeybaseDaemonLocal) revokeDeviceForTesting(clock Clock,
 	}
 
 	if user.RevokedVerifyingKeys == nil {
-		user.RevokedVerifyingKeys =
-			make(map[kbfscrypto.VerifyingKey]idutil.RevokedKeyInfo)
+		user.RevokedVerifyingKeys = make(map[kbfscrypto.VerifyingKey]idutil.RevokedKeyInfo)
 	}
 	if user.RevokedCryptPublicKeys == nil {
-		user.RevokedCryptPublicKeys =
-			make(map[kbfscrypto.CryptPublicKey]idutil.RevokedKeyInfo)
+		user.RevokedCryptPublicKeys = make(map[kbfscrypto.CryptPublicKey]idutil.RevokedKeyInfo)
 	}
 
 	kbtime := keybase1.ToTime(clock.Now())
@@ -210,7 +217,8 @@ func (k *KeybaseDaemonLocal) revokeDeviceForTesting(clock Clock,
 }
 
 func (k *KeybaseDaemonLocal) switchDeviceForTesting(uid keybase1.UID,
-	index int) error {
+	index int,
+) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 
@@ -234,7 +242,8 @@ func (k *KeybaseDaemonLocal) switchDeviceForTesting(uid keybase1.UID,
 }
 
 func (k *KeybaseDaemonLocal) addTeamWriterForTest(
-	tid keybase1.TeamID, uid keybase1.UID) error {
+	tid keybase1.TeamID, uid keybase1.UID,
+) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	teamName, isImplicit, err := k.DaemonLocal.AddTeamWriterForTest(tid, uid)
@@ -255,7 +264,8 @@ func (k *KeybaseDaemonLocal) addTeamWriterForTest(
 }
 
 func (k *KeybaseDaemonLocal) removeTeamWriterForTest(
-	tid keybase1.TeamID, uid keybase1.UID) error {
+	tid keybase1.TeamID, uid keybase1.UID,
+) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	teamName, err := k.DaemonLocal.RemoveTeamWriterForTest(tid, uid)
@@ -270,7 +280,8 @@ func (k *KeybaseDaemonLocal) removeTeamWriterForTest(
 }
 
 func (k *KeybaseDaemonLocal) addTeamReaderForTest(
-	tid keybase1.TeamID, uid keybase1.UID) error {
+	tid keybase1.TeamID, uid keybase1.UID,
+) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	teamName, err := k.DaemonLocal.AddTeamReaderForTest(tid, uid)
@@ -308,7 +319,8 @@ func (k *KeybaseDaemonLocal) addTeamsForTest(teams []idutil.TeamInfo) {
 
 // FavoriteAdd implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteAdd(
-	ctx context.Context, folder keybase1.FolderHandle) error {
+	ctx context.Context, folder keybase1.FolderHandle,
+) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -324,7 +336,8 @@ func (k *KeybaseDaemonLocal) FavoriteAdd(
 
 // FavoriteDelete implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteDelete(
-	ctx context.Context, folder keybase1.FolderHandle) error {
+	ctx context.Context, folder keybase1.FolderHandle,
+) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -340,7 +353,8 @@ func (k *KeybaseDaemonLocal) FavoriteDelete(
 
 // FavoriteList implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteList(
-	ctx context.Context, sessionID int) (keybase1.FavoritesResult, error) {
+	ctx context.Context, sessionID int,
+) (keybase1.FavoritesResult, error) {
 	if err := checkContext(ctx); err != nil {
 		return keybase1.FavoritesResult{}, err
 	}
@@ -367,13 +381,15 @@ func (k *KeybaseDaemonLocal) FavoriteList(
 
 // EncryptFavorites implements KeybaseService for KeybaseDaemonLocal
 func (k *KeybaseDaemonLocal) EncryptFavorites(ctx context.Context,
-	dataToEncrypt []byte) ([]byte, error) {
+	dataToEncrypt []byte,
+) ([]byte, error) {
 	return nil, checkContext(ctx)
 }
 
 // DecryptFavorites implements KeybaseService for KeybaseDaemonLocal
 func (k *KeybaseDaemonLocal) DecryptFavorites(ctx context.Context,
-	dataToDecrypt []byte) ([]byte, error) {
+	dataToDecrypt []byte,
+) ([]byte, error) {
 	return nil, checkContext(ctx)
 }
 
@@ -394,26 +410,30 @@ func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.
 
 // NotifyPathUpdated implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) NotifyPathUpdated(
-	ctx context.Context, _ string) error {
+	ctx context.Context, _ string,
+) error {
 	return checkContext(ctx)
 }
 
 // NotifySyncStatus implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) NotifySyncStatus(ctx context.Context,
-	_ *keybase1.FSPathSyncStatus) error {
+	_ *keybase1.FSPathSyncStatus,
+) error {
 	return checkContext(ctx)
 }
 
 // NotifyOverallSyncStatus implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) NotifyOverallSyncStatus(
-	ctx context.Context, _ keybase1.FolderSyncStatus) error {
+	ctx context.Context, _ keybase1.FolderSyncStatus,
+) error {
 	return checkContext(ctx)
 }
 
 // FlushUserFromLocalCache implements the KeybaseDaemon interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FlushUserFromLocalCache(ctx context.Context,
-	uid keybase1.UID) {
+	uid keybase1.UID,
+) {
 	// Do nothing.
 }
 
@@ -432,7 +452,8 @@ func (k *KeybaseDaemonLocal) EstablishMountDir(ctx context.Context) (string, err
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) PutGitMetadata(
 	ctx context.Context, folder keybase1.FolderHandle, repoID keybase1.RepoID,
-	metadata keybase1.GitLocalMetadata) error {
+	metadata keybase1.GitLocalMetadata,
+) error {
 	return nil
 }
 
@@ -466,7 +487,8 @@ func (k *KeybaseDaemonLocal) Shutdown() {
 
 func newKeybaseDaemonLocal(
 	codec kbfscodec.Codec, currentUID keybase1.UID, users []idutil.LocalUser,
-	teams []idutil.TeamInfo, favoriteStore favoriteStore) *KeybaseDaemonLocal {
+	teams []idutil.TeamInfo, favoriteStore favoriteStore,
+) *KeybaseDaemonLocal {
 	k := &KeybaseDaemonLocal{
 		DaemonLocal:   idutil.NewDaemonLocal(currentUID, users, teams, codec),
 		favoriteStore: favoriteStore,
@@ -479,7 +501,8 @@ func newKeybaseDaemonLocal(
 // Any storage (e.g. the favorites) persists to disk.
 func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []idutil.LocalUser,
 	teams []idutil.TeamInfo, favDBFile string, codec kbfscodec.Codec) (
-	*KeybaseDaemonLocal, error) {
+	*KeybaseDaemonLocal, error,
+) {
 	favoriteDb, err := leveldb.OpenFile(favDBFile, ldbutils.LeveldbOptions(nil))
 	if err != nil {
 		return nil, err
@@ -494,7 +517,8 @@ func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []idutil.LocalUser,
 // Any storage (e.g. the favorites) is kept in memory only.
 func NewKeybaseDaemonMemory(currentUID keybase1.UID,
 	users []idutil.LocalUser, teams []idutil.TeamInfo,
-	codec kbfscodec.Codec) *KeybaseDaemonLocal {
+	codec kbfscodec.Codec,
+) *KeybaseDaemonLocal {
 	favoriteStore := memoryFavoriteClient{
 		favorites: make(map[keybase1.UID]map[string]keybase1.FolderHandle),
 	}

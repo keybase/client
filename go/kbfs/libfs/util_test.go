@@ -20,7 +20,7 @@ func TestDeobfuscate(t *testing.T) {
 
 	t.Log("Check basic obfuscate->deobfuscate path")
 	p := "a/b"
-	err := fs.MkdirAll(p, os.FileMode(0600))
+	err := fs.MkdirAll(p, os.FileMode(0o600))
 	require.NoError(t, err)
 	obsPath := fs.PathForLogging(p)
 	require.NotEqual(t, p, obsPath)

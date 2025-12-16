@@ -10,8 +10,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-var DefaultTeamTopic = "general"
-var EmojiPattern = regexp.MustCompile(`(?::)([^:\s]+)(?::)`)
+var (
+	DefaultTeamTopic = "general"
+	EmojiPattern     = regexp.MustCompile(`(?::)([^:\s]+)(?::)`)
+)
 
 type ChatContext struct {
 	CtxFactory           types.ContextFactory      // source of verified user info and crypt keys

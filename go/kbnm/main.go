@@ -34,8 +34,10 @@ type Request struct {
 	Body   string `json:"body"`
 }
 
-var plainFlag = flag.Bool("plain", false, "newline-delimited JSON IO, no length prefix")
-var versionFlag = flag.Bool("version", false, "print the version and exit")
+var (
+	plainFlag   = flag.Bool("plain", false, "newline-delimited JSON IO, no length prefix")
+	versionFlag = flag.Bool("version", false, "print the version and exit")
+)
 
 // process consumes a single message
 func process(h *handler, in nativemessaging.JSONDecoder, out nativemessaging.JSONEncoder) error {

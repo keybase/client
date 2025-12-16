@@ -55,7 +55,8 @@ func deduperKey(details stellar1.PaymentDetailsLocal) string {
 }
 
 func (d *walletNotificationDisplay) displayPaymentDetails(ctx context.Context, source string,
-	accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
+	accountID stellar1.AccountID, paymentID stellar1.PaymentID,
+) error {
 	notif := newWalletNotification(source)
 	details, err := d.cli.GetPaymentDetailsLocal(ctx, stellar1.GetPaymentDetailsLocalArg{
 		AccountID: accountID,

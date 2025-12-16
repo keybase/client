@@ -112,7 +112,6 @@ func (e *WotReact) Run(mctx libkb.MetaContext) error {
 
 		return err
 	})
-
 	if err != nil {
 		return err
 	}

@@ -37,7 +37,8 @@ func (brw *blockRetrievalWorker) run() {
 // blockRetrievalQueue, using the passed in blockGetter to obtain blocks for
 // requests.
 func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue,
-	workCh channels.Channel) *blockRetrievalWorker {
+	workCh channels.Channel,
+) *blockRetrievalWorker {
 	brw := &blockRetrievalWorker{
 		blockGetter: bg,
 		stopCh:      make(chan struct{}),

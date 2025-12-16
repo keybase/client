@@ -204,7 +204,8 @@ func (d *DiskLRU) readIndex(_ context.Context, lctx libkb.LRUContext) (res *disk
 }
 
 func (d *DiskLRU) writeIndex(_ context.Context, lctx libkb.LRUContext, index *diskLRUIndex,
-	forceFlush bool) error {
+	forceFlush bool,
+) error {
 	if forceFlush || lctx.GetClock().Now().Sub(d.lastFlush) > d.flushDuration {
 		marshalIndex := index.Marshal()
 		if err := lctx.GetKVStore().PutObj(d.indexKey(), nil, marshalIndex); err != nil {
@@ -228,7 +229,8 @@ func (d *DiskLRU) readEntry(ctx context.Context, lctx libkb.LRUContext, key stri
 }
 
 func (d *DiskLRU) accessEntry(ctx context.Context, lctx libkb.LRUContext, index *diskLRUIndex,
-	entry *DiskLRUEntry) error {
+	entry *DiskLRUEntry,
+) error {
 	// Promote the key in the index
 	index.Put(entry.Key)
 	// Write out the entry with new accessed time
@@ -284,8 +286,8 @@ func (d *DiskLRU) removeEntry(ctx context.Context, lctx libkb.LRUContext, index 
 }
 
 func (d *DiskLRU) addEntry(ctx context.Context, lctx libkb.LRUContext, index *diskLRUIndex, key string,
-	value interface{}) (evicted *DiskLRUEntry, err error) {
-
+	value interface{},
+) (evicted *DiskLRUEntry, err error) {
 	// Add the new item
 	index.Put(key)
 	item := DiskLRUEntry{
@@ -509,7 +511,6 @@ func (d *DiskLRU) cleanOutOfSync(mctx libkb.MetaContext, cacheDir string, batchS
 // background to prevent leaking space.  We delay to keep off the critical path
 // to start up.
 func CleanOutOfSyncWithDelay(mctx libkb.MetaContext, d *DiskLRU, cacheDir string, delay time.Duration) {
-
 	mctx.Debug("CleanOutOfSyncWithDelay: cleaning %s in %v", cacheDir, delay)
 	select {
 	case <-mctx.Ctx().Done():

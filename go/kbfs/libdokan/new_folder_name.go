@@ -22,8 +22,10 @@ func isNewFolderName(name string) bool {
 	return name == newFolderName || name == newFolderAltName
 }
 
-var newFolderName, newFolderNameErr = getNewFolderName()
-var newFolderAltName = altCase(newFolderName)
+var (
+	newFolderName, newFolderNameErr = getNewFolderName()
+	newFolderAltName                = altCase(newFolderName)
+)
 
 func altCase(s string) string {
 	_, idx := utf8.DecodeRuneInString(s)
@@ -59,7 +61,7 @@ func lpcwstrToString(ptr *uint16) string {
 	if ptr == nil {
 		return ""
 	}
-	var len = 0
+	len := 0
 	for tmp := ptr; *tmp != 0; tmp = (*uint16)(unsafe.Pointer((uintptr(unsafe.Pointer(tmp)) + 2))) {
 		len++
 	}
@@ -73,5 +75,6 @@ func ptrUcs2Slice(ptr *uint16, lenUcs2 int) []uint16 {
 	return *(*[]uint16)(unsafe.Pointer(&reflect.SliceHeader{
 		Data: uintptr(unsafe.Pointer(ptr)),
 		Len:  lenUcs2,
-		Cap:  lenUcs2}))
+		Cap:  lenUcs2,
+	}))
 }

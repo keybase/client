@@ -97,7 +97,6 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 }
 
 func (h *IdentifyHandler) identifyLite(mctx libkb.MetaContext, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
-
 	var au libkb.AssertionURL
 	var parseError error
 	if len(arg.Assertion) > 0 {
@@ -188,7 +187,6 @@ func (h *IdentifyHandler) Resolve3(ctx context.Context, arg keybase1.Resolve3Arg
 }
 
 func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
-
 	res := h.G().Resolver.ResolveFullExpressionNeedUsername(libkb.NewMetaContext(ctx, h.G()), arg)
 	err = res.GetError()
 	if err != nil {
@@ -228,8 +226,8 @@ func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg k
 }
 
 func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg,
-	writerAssertions, readerAssertions []libkb.AssertionExpression) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
-
+	writerAssertions, readerAssertions []libkb.AssertionExpression,
+) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
 	lookupName := keybase1.ImplicitTeamDisplayName{
 		IsPublic: arg.IsPublic,
 	}
@@ -311,8 +309,8 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 }
 
 func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg,
-	res keybase1.ResolveIdentifyImplicitTeamRes, resolvedAssertions []libkb.ResolvedAssertion) (keybase1.ResolveIdentifyImplicitTeamRes, error) {
-
+	res keybase1.ResolveIdentifyImplicitTeamRes, resolvedAssertions []libkb.ResolvedAssertion,
+) (keybase1.ResolveIdentifyImplicitTeamRes, error) {
 	// errgroup collects errors and returns the first non-nil.
 	// subctx is canceled when the group finishes.
 	group, subctx := errgroup.WithContext(ctx)

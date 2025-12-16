@@ -7,8 +7,7 @@ package data
 import "time"
 
 // WallClock is a wrapper around the built-in clock.
-type WallClock struct {
-}
+type WallClock struct{}
 
 // Now returns the current wall clock time.
 func (wc WallClock) Now() time.Time {

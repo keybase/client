@@ -24,14 +24,16 @@ type CmdSimpleFSSyncShow struct {
 
 // NewCmdSimpleFSSyncShow creates a new cli.Command.
 func NewCmdSimpleFSSyncShow(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:         "show",
 		ArgumentHelp: "<path-to-folder>",
 		Usage:        "shows the sync configuration and status for the given folder, or all folders if none is specified",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSSyncShow{
-				Contextified: libkb.NewContextified(g)}, "show", c)
+				Contextified: libkb.NewContextified(g),
+			}, "show", c)
 			cl.SetNoStandalone()
 		},
 	}
@@ -44,7 +46,8 @@ func printBytesStored(ui libkb.TerminalUI, bytes int64, tab string) {
 }
 
 func printPrefetchStatus(
-	ui libkb.TerminalUI, status keybase1.FolderSyncStatus, tab string) {
+	ui libkb.TerminalUI, status keybase1.FolderSyncStatus, tab string,
+) {
 	switch status.PrefetchStatus {
 	case keybase1.PrefetchStatus_COMPLETE:
 		ui.Printf("%sStatus: fully synced\n", tab)
@@ -79,7 +82,8 @@ func appendToTlfPath(tlfPath keybase1.Path, p string) (keybase1.Path, error) {
 }
 
 func printLocalStats(
-	ui libkb.TerminalUI, status keybase1.FolderSyncStatus) {
+	ui libkb.TerminalUI, status keybase1.FolderSyncStatus,
+) {
 	a := status.LocalDiskBytesAvailable
 	t := status.LocalDiskBytesTotal
 	ui.Printf("%s (%.2f%%) of the local disk is available for caching.\n",
@@ -89,7 +93,8 @@ func printLocalStats(
 func printFolderStatus(
 	ctx context.Context, cli keybase1.SimpleFSClient, ui libkb.TerminalUI,
 	config keybase1.FolderSyncConfig, status keybase1.FolderSyncStatus,
-	tab string, tlfPath keybase1.Path, doPrintLocalStats bool) error {
+	tab string, tlfPath keybase1.Path, doPrintLocalStats bool,
+) error {
 	switch config.Mode {
 	case keybase1.FolderSyncMode_DISABLED:
 		ui.Printf("%sSyncing disabled\n", tab)

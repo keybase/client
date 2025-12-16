@@ -81,7 +81,6 @@ func seedToPDPKAKID(seed []byte) (ret keybase1.KID, err error) {
 }
 
 func computePDPKA(li loginIdentifier, seed []byte, loginSession []byte) (ret PDPKA, err error) {
-
 	var nonce [16]byte
 	if _, err = rand.Read(nonce[:]); err != nil {
 		return ret, err

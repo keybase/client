@@ -17,8 +17,10 @@ import (
 	"github.com/stellar/go/build"
 )
 
-const minAmountRelayXLM = "2.01"
-const minAmountCreateAccountXLM = "1"
+const (
+	minAmountRelayXLM         = "2.01"
+	minAmountCreateAccountXLM = "1"
+)
 
 // Batch sends a batch of payments from the user to multiple recipients in
 // a time-efficient manner.
@@ -205,7 +207,6 @@ func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, s
 			result.Error = fmt.Errorf("you must send at least %s XLM to fund the account for %s", minAmountCreateAccountXLM, payment.Recipient)
 			return result
 		}
-
 	}
 
 	result.Direct = &stellar1.PaymentDirectPost{

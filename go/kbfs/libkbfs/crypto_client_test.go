@@ -32,7 +32,8 @@ type FakeCryptoClient struct {
 func NewFakeCryptoClient(
 	codec kbfscodec.Codec, signingKey kbfscrypto.SigningKey,
 	cryptPrivateKey kbfscrypto.CryptPrivateKey, readyChan chan<- struct{},
-	goChan <-chan struct{}) *FakeCryptoClient {
+	goChan <-chan struct{},
+) *FakeCryptoClient {
 	return &FakeCryptoClient{
 		Local: NewCryptoLocal(
 			codec, signingKey, cryptPrivateKey, makeBlockCryptV1()),
@@ -58,12 +59,14 @@ func (fc FakeCryptoClient) maybeWaitOnChannel(ctx context.Context) error {
 }
 
 func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
-	res interface{}, _ time.Duration) error {
+	res interface{}, _ time.Duration,
+) error {
 	return fc.call(ctx, s, args, res)
 }
 
 func (fc FakeCryptoClient) CallCompressed(ctx context.Context, s string, args interface{},
-	res interface{}, _ rpc.CompressionType, _ time.Duration) error {
+	res interface{}, _ rpc.CompressionType, _ time.Duration,
+) error {
 	return fc.call(ctx, s, args, res)
 }
 
@@ -84,8 +87,7 @@ func (fc FakeCryptoClient) call(ctx context.Context, s string, args interface{},
 		// there's no need.
 		var ed25519Signature keybase1.ED25519Signature
 		copy(ed25519Signature[:], sigInfo.Signature)
-		publicKey :=
-			kbcrypto.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.KID().ToBytes())
+		publicKey := kbcrypto.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.KID().ToBytes())
 		*sigRes = keybase1.ED25519SignatureInfo{
 			Sig:       ed25519Signature,
 			PublicKey: keybase1.ED25519PublicKey(*publicKey),
@@ -287,8 +289,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 4)
 	clientHalves := make([]kbfscrypto.TLFCryptKeyClientHalf, 0, 4)
 	for i := 0; i < 4; i++ {
-		ephPublicKey, ephPrivateKey, err :=
-			c.MakeRandomTLFEphemeralKeys()
+		ephPublicKey, ephPrivateKey, err := c.MakeRandomTLFEphemeralKeys()
 		require.NoError(t, err)
 
 		cryptKey, err := kbfscrypto.MakeRandomTLFCryptKey()
@@ -433,7 +434,8 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 		encryptedClientHalfWrongVersion)
 	assert.Equal(t,
 		kbfscrypto.UnknownEncryptionVer{
-			Ver: encryptedClientHalfWrongVersion.Version},
+			Ver: encryptedClientHalfWrongVersion.Version,
+		},
 		errors.Cause(err))
 
 	// Wrong sizes.
@@ -453,7 +455,8 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 		encryptedClientHalfWrongNonceSize)
 	assert.Equal(t,
 		kbfscrypto.InvalidNonceError{
-			Nonce: encryptedClientHalfWrongNonceSize.Nonce},
+			Nonce: encryptedClientHalfWrongNonceSize.Nonce,
+		},
 		errors.Cause(err))
 
 	// Corrupt key.

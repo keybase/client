@@ -23,7 +23,8 @@ import (
 )
 
 func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
-	*DirData, BlockCache, DirtyBlockCache) {
+	*DirData, BlockCache, DirtyBlockCache,
+) {
 	// Make a fake dir.
 	ptr := BlockPointer{
 		ID:         kbfsblock.FakeID(42),
@@ -42,7 +43,8 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 	cleanCache := NewBlockCacheStandard(1<<10, 1<<20)
 	dirtyBcache := SimpleDirtyBlockCacheStandard()
 	getter := func(ctx context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
-		_ Path, _ BlockReqType) (*DirBlock, bool, error) {
+		_ Path, _ BlockReqType,
+	) (*DirBlock, bool, error) {
 		isDirty := true
 		block, err := dirtyBcache.Get(ctx, id, ptr, MasterBranch)
 		if err != nil {
@@ -148,11 +150,11 @@ func TestDirDataGetChildren(t *testing.T) {
 	require.Equal(t, uint64(2), children[NewPathPartString("b", nil)].Size)
 	require.Equal(t, uint64(3), children[NewPathPartString("z1", nil)].Size)
 	require.Equal(t, uint64(4), children[NewPathPartString("z2", nil)].Size)
-
 }
 
 func testDirDataCheckLookup(
-	ctx context.Context, t *testing.T, dd *DirData, name string, size uint64) {
+	ctx context.Context, t *testing.T, dd *DirData, name string, size uint64,
+) {
 	de, err := dd.Lookup(ctx, NewPathPartString(name, nil))
 	require.NoError(t, err)
 	require.Equal(t, size, de.Size)
@@ -219,7 +221,8 @@ func TestDirDataLookup(t *testing.T) {
 }
 
 func addFakeDirDataEntry(
-	ctx context.Context, t *testing.T, dd *DirData, name string, size uint64) {
+	ctx context.Context, t *testing.T, dd *DirData, name string, size uint64,
+) {
 	_, err := dd.AddEntry(ctx, NewPathPartString(name, nil), DirEntry{
 		EntryInfo: EntryInfo{
 			Size: size,
@@ -237,7 +240,8 @@ type testDirDataLeaf struct {
 func testDirDataCheckLeafs(
 	t *testing.T, dd *DirData, cleanBcache BlockCache,
 	dirtyBcache DirtyBlockCache, expectedLeafs []testDirDataLeaf,
-	maxPtrsPerBlock, numDirEntries int) {
+	maxPtrsPerBlock, numDirEntries int,
+) {
 	// Top block should always be dirty.
 	ctx := context.Background()
 	cacheBlock, err := dirtyBcache.Get(
@@ -298,7 +302,8 @@ func testDirDataCheckLeafs(
 					}
 				}
 				leafs = append(leafs, testDirDataLeaf{
-					iptr.Off, len(dblock.Children), wasDirty})
+					iptr.Off, len(dblock.Children), wasDirty,
+				})
 			}
 		}
 		indBlocks = append(newIndBlocks, indBlocks[1:]...)
@@ -310,7 +315,8 @@ func testDirDataCheckLeafs(
 
 func testDirDataCleanCache(
 	t *testing.T, dd *DirData, cleanBCache BlockCache,
-	dirtyBCache DirtyBlockCache) {
+	dirtyBCache DirtyBlockCache,
+) {
 	dbc := dirtyBCache.(*DirtyBlockCacheStandard)
 	for id, block := range dbc.cache {
 		ptr := BlockPointer{ID: id.id}
@@ -531,7 +537,6 @@ func TestDirDataUpdateEntry(t *testing.T) {
 		},
 	})
 	require.Equal(t, idutil.NoSuchNameError{Name: "foo"}, err)
-
 }
 
 func TestDirDataShifting(t *testing.T) {

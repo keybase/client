@@ -9,8 +9,10 @@ import (
 	"fmt"
 )
 
-var errExactlyOnePath = errors.New("exactly one path must be specified")
-var errAtLeastOnePath = errors.New("at least one path must be specified")
+var (
+	errExactlyOnePath = errors.New("exactly one path must be specified")
+	errAtLeastOnePath = errors.New("at least one path must be specified")
+)
 
 type cannotWriteErr struct {
 	pathStr string

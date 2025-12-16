@@ -54,7 +54,6 @@ func NewCmdSimpleFSWrite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSWrite) Run() error {
-
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
 		return err

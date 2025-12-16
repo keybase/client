@@ -141,20 +141,22 @@ func (r *rawTeam) parseLinks(ctx context.Context) ([]SCChainLink, error) {
 // Get new links from the server.
 func (l *LoaderContextG) getNewLinksFromServer(ctx context.Context,
 	teamID keybase1.TeamID, lows getLinksLows,
-	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
+	readSubteamID *keybase1.TeamID,
+) (*rawTeam, error) {
 	return l.getLinksFromServerCommon(ctx, teamID, &lows, nil, readSubteamID)
 }
 
 // Get full links from the server.
 // Does not guarantee that the server returned the correct links, nor that they are unstubbed.
 func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
-	teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
+	teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID,
+) (*rawTeam, error) {
 	return l.getLinksFromServerCommon(ctx, teamID, nil, requestSeqnos, readSubteamID)
 }
 
 func (l *LoaderContextG) getLinksFromServerCommon(ctx context.Context,
-	teamID keybase1.TeamID, lows *getLinksLows, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
-
+	teamID keybase1.TeamID, lows *getLinksLows, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID,
+) (*rawTeam, error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
 	arg := libkb.NewAPIArg("team/get")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
@@ -251,7 +253,6 @@ func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamI
 }
 
 func (l *LoaderContextG) processMerkleReply(ctx context.Context, teamID keybase1.TeamID, public bool, leaf *libkb.MerkleTeamLeaf) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
-
 	if !leaf.TeamID.Eq(teamID) {
 		return r1, r2, fmt.Errorf("merkle returned wrong leaf: %v != %v", leaf.TeamID.String(), teamID.String())
 	}
@@ -289,7 +290,6 @@ func (l *LoaderContextG) putCachedCheckpoint(seqno keybase1.Seqno, leaf *libkb.M
 }
 
 func (l *LoaderContextG) merkleLookupTripleAtCheckpoint(mctx libkb.MetaContext, leafID keybase1.UserOrTeamID, seqno keybase1.Seqno) (leaf *libkb.MerkleGenericLeaf, err error) {
-
 	ret := l.getCachedCheckpointLookup(leafID, seqno)
 	if ret != nil {
 		mctx.VLogf(libkb.VLog0, "hit checkpoint cache")
@@ -344,7 +344,8 @@ func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid key
 }
 
 func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID, lkc *loadKeyCache) (
-	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error) {
+	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error,
+) {
 	ctx, tbs := l.G().CTimeBuckets(ctx)
 	defer tbs.Record("LoaderContextG.loadKeyV2")()
 

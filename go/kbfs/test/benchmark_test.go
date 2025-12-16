@@ -21,12 +21,15 @@ import (
 func BenchmarkWriteSeq512(b *testing.B) {
 	benchmarkWriteSeqN(b, 512, 0xFFFFFFFFFFFF)
 }
+
 func BenchmarkWriteSeq4k(b *testing.B) {
 	benchmarkWriteSeqN(b, 4*1024, 0xFFFFFFFFFFFF)
 }
+
 func BenchmarkWriteSeq64k(b *testing.B) {
 	benchmarkWriteSeqN(b, 64*1024, 0xFFFFFFFFFFFF)
 }
+
 func BenchmarkWriteSeq512k(b *testing.B) {
 	benchmarkWriteSeqN(b, 512*1024, 0xFFFFFFFFFFFF)
 }
@@ -35,12 +38,15 @@ func BenchmarkWriteSeq512k(b *testing.B) {
 func BenchmarkWrite1mb512(b *testing.B) {
 	benchmarkWriteSeqN(b, 512, 0xFFFFF)
 }
+
 func BenchmarkWrite1mb4k(b *testing.B) {
 	benchmarkWriteSeqN(b, 4*1024, 0xFFFFF)
 }
+
 func BenchmarkWrite1mb64k(b *testing.B) {
 	benchmarkWriteSeqN(b, 64*1024, 0xFFFFF)
 }
+
 func BenchmarkWrite1mb512k(b *testing.B) {
 	benchmarkWriteSeqN(b, 512*1024, 0xFFFFF)
 }
@@ -81,12 +87,15 @@ func benchmarkWriteSeqN(b *testing.B, n int64, mask int64) {
 func BenchmarkReadHoleSeq512(b *testing.B) {
 	benchmarkReadSeqHoleN(b, 512, 0xFFFFFFF)
 }
+
 func BenchmarkReadHoleSeq4k(b *testing.B) {
 	benchmarkReadSeqHoleN(b, 4*1024, 0xFFFFFFF)
 }
+
 func BenchmarkReadHoleSeq64k(b *testing.B) {
 	benchmarkReadSeqHoleN(b, 64*1024, 0xFFFFFFF)
 }
+
 func BenchmarkReadHoleSeq512k(b *testing.B) {
 	benchmarkReadSeqHoleN(b, 512*1024, 0xFFFFFFF)
 }
@@ -95,12 +104,15 @@ func BenchmarkReadHoleSeq512k(b *testing.B) {
 func BenchmarkReadHole1mb512(b *testing.B) {
 	benchmarkReadSeqHoleN(b, 512, 0xFFFFF)
 }
+
 func BenchmarkReadHole1mb4k(b *testing.B) {
 	benchmarkReadSeqHoleN(b, 4*1024, 0xFFFFF)
 }
+
 func BenchmarkReadHole1mb64k(b *testing.B) {
 	benchmarkReadSeqHoleN(b, 64*1024, 0xFFFFF)
 }
+
 func BenchmarkReadHole1mb512k(b *testing.B) {
 	benchmarkReadSeqHoleN(b, 512*1024, 0xFFFFF)
 }
@@ -142,7 +154,8 @@ func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 }
 
 func benchmarkDoBenchWrites(b *testing.B, cb func(fileOp) error,
-	numWritesPerFile int, buf []byte, startIter int) error {
+	numWritesPerFile int, buf []byte, startIter int,
+) error {
 	var n int
 	err := cb(getBenchN(&n))
 	if err != nil {
@@ -174,7 +187,8 @@ func benchmarkDoBenchWrites(b *testing.B, cb func(fileOp) error,
 }
 
 func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
-	perWriteBytes int64, writebwKBps int, doWarmUp bool) {
+	perWriteBytes int64, writebwKBps int, doWarmUp bool,
+) {
 	buf := make([]byte, perWriteBytes)
 	b.SetBytes(fileBytes)
 	numWritesPerFile := int(fileBytes / perWriteBytes)
@@ -216,13 +230,15 @@ func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
 }
 
 func benchmarkWriteWithBandwidthPlusWarmup(b *testing.B, fileBytes int64,
-	perWriteBytes int64, writebwKBps int) {
+	perWriteBytes int64, writebwKBps int,
+) {
 	benchmarkWriteWithBandwidthHelper(b, fileBytes, perWriteBytes,
 		writebwKBps, true)
 }
 
 func benchmarkWriteWithBandwidth(b *testing.B, fileBytes int64,
-	perWriteBytes int64, writebwKBps int) {
+	perWriteBytes int64, writebwKBps int,
+) {
 	benchmarkWriteWithBandwidthHelper(b, fileBytes, perWriteBytes,
 		writebwKBps, false)
 }
@@ -301,7 +317,8 @@ func BenchmarkWriteMixedFilesNormalBandwidth(b *testing.B) {
 }
 
 func benchmarkMultiFileSync(
-	b *testing.B, numFiles, fileSize int, timeWrites, timeFlush bool) {
+	b *testing.B, numFiles, fileSize int, timeWrites, timeFlush bool,
+) {
 	isolateStages := !timeWrites || !timeFlush
 	benchmark(b,
 		journal(),

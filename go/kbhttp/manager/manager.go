@@ -122,7 +122,8 @@ func (r *Srv) monitorAppState() {
 }
 
 func (r *Srv) HandleFunc(endpoint string, tokenMode SrvTokenMode,
-	serve func(w http.ResponseWriter, req *http.Request)) {
+	serve func(w http.ResponseWriter, req *http.Request),
+) {
 	r.httpSrv.HandleFunc("/"+endpoint, func(w http.ResponseWriter, req *http.Request) {
 		switch tokenMode {
 		case SrvTokenModeDefault:

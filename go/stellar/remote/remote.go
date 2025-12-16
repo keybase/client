@@ -175,7 +175,8 @@ func Post(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
 }
 
 func fetchBundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID) (
-	b *stellar1.Bundle, bv stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, accountGens bundle.AccountPukGens, err error) {
+	b *stellar1.Bundle, bv stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, accountGens bundle.AccountPukGens, err error,
+) {
 	defer mctx.Trace("Stellar.fetchBundleForAccount", &err)()
 
 	fetchArgs := libkb.HTTPArgs{}
@@ -662,7 +663,8 @@ func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 }
 
 func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID,
-	currency string) error {
+	currency string,
+) error {
 	mctx := libkb.NewMetaContext(ctx, g)
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(ctx)

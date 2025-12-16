@@ -253,7 +253,8 @@ func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, shortCode 
 }
 
 func (s *ReacjiStore) PutSkinTone(ctx context.Context, uid gregor1.UID,
-	skinTone keybase1.ReacjiSkinTone) error {
+	skinTone keybase1.ReacjiSkinTone,
+) error {
 	s.Lock()
 	defer s.Unlock()
 

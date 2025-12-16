@@ -131,5 +131,4 @@ func TestChatBadConversationError(t *testing.T) {
 	require.Equal(t, convID.Value, cid.String())
 	err = libkb.ImportStatusAsError(nil, &status)
 	require.Equal(t, e, err)
-
 }

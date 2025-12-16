@@ -7,14 +7,13 @@
 package main
 
 import (
+	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
-
-	"crypto/ed25519"
 )
 
 // to avoid importing all of libkb, some constants copied from

@@ -31,9 +31,7 @@ func (p *Paragraph) Buffer(b []byte) {
 	p.data = append(p.data, b...)
 }
 
-var (
-	nl = []byte{'\n'}
-)
+var nl = []byte{'\n'}
 
 // makePad makes a whitespace pad that is l bytes long.
 func makePad(l int) []byte {

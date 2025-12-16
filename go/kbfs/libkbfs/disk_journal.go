@@ -79,7 +79,8 @@ type diskJournal struct {
 // makeDiskJournal returns a new diskJournal for the given directory.
 func makeDiskJournal(
 	codec kbfscodec.Codec, dir string, entryType reflect.Type) (
-	*diskJournal, error) {
+	*diskJournal, error,
+) {
 	j := &diskJournal{
 		codec:     codec,
 		dir:       dir,
@@ -138,7 +139,7 @@ func (j diskJournal) readOrdinalFromDisk(path string) (journalOrdinal, error) {
 }
 
 func (j *diskJournal) writeOrdinalToDisk(path string, o journalOrdinal) error {
-	return ioutil.WriteSerializedFile(path, []byte(o.String()), 0600)
+	return ioutil.WriteSerializedFile(path, []byte(o.String()), 0o600)
 }
 
 func (j diskJournal) readEarliestOrdinalFromDisk() (journalOrdinal, error) {
@@ -271,7 +272,8 @@ func (j diskJournal) readJournalEntry(o journalOrdinal) (interface{}, error) {
 }
 
 func (j *diskJournal) writeJournalEntry(
-	o journalOrdinal, entry interface{}) error {
+	o journalOrdinal, entry interface{},
+) error {
 	entryType := reflect.TypeOf(entry)
 	if entryType != j.entryType {
 		panic(errors.Errorf("Expected entry type %v, got %v",
@@ -290,7 +292,8 @@ func (j *diskJournal) writeJournalEntry(
 // successful, appendJournalEntry returns the ordinal of the
 // just-appended entry.
 func (j *diskJournal) appendJournalEntry(
-	o *journalOrdinal, entry interface{}) (journalOrdinal, error) {
+	o *journalOrdinal, entry interface{},
+) (journalOrdinal, error) {
 	var next journalOrdinal
 	if j.empty() {
 		if o != nil {

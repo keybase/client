@@ -45,8 +45,7 @@ const (
 
 // Default mode:
 
-type modeDefault struct {
-}
+type modeDefault struct{}
 
 func (md modeDefault) Type() InitModeType {
 	return InitDefault
@@ -217,8 +216,7 @@ func (md modeDefault) EditHistoryPrefetchingEnabled() bool {
 
 // Minimal mode:
 
-type modeMinimal struct {
-}
+type modeMinimal struct{}
 
 func (mm modeMinimal) Type() InitModeType {
 	return InitMinimal

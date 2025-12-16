@@ -22,7 +22,6 @@ type buildNumberResponse struct {
 }
 
 func GetNextBuildNumber(keybaseToken string, version string, botID string, platform string) error {
-
 	form := url.Values{}
 	form.Set("version", version)
 	form.Add("bot_id", botID)

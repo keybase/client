@@ -44,7 +44,8 @@ func (ol *observerList) remove(o Observer) {
 }
 
 func (ol *observerList) localChange(
-	ctx context.Context, node Node, write WriteRange) {
+	ctx context.Context, node Node, write WriteRange,
+) {
 	ol.lock.RLock()
 	defer ol.lock.RUnlock()
 	for _, o := range ol.observers {
@@ -53,7 +54,8 @@ func (ol *observerList) localChange(
 }
 
 func (ol *observerList) batchChanges(
-	ctx context.Context, changes []NodeChange, affectedNodeIDs []NodeID) {
+	ctx context.Context, changes []NodeChange, affectedNodeIDs []NodeID,
+) {
 	ol.lock.RLock()
 	defer ol.lock.RUnlock()
 	for _, o := range ol.observers {
@@ -62,7 +64,8 @@ func (ol *observerList) batchChanges(
 }
 
 func (ol *observerList) tlfHandleChange(
-	ctx context.Context, newHandle *tlfhandle.Handle) {
+	ctx context.Context, newHandle *tlfhandle.Handle,
+) {
 	ol.lock.RLock()
 	defer ol.lock.RUnlock()
 	for _, o := range ol.observers {
@@ -101,7 +104,8 @@ func (stol *syncedTlfObserverList) remove(o SyncedTlfObserver) {
 
 func (stol *syncedTlfObserverList) fullSyncStarted(
 	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
-	waitCh <-chan struct{}) {
+	waitCh <-chan struct{},
+) {
 	stol.lock.RLock()
 	defer stol.lock.RUnlock()
 	for _, o := range stol.observers {
@@ -110,7 +114,8 @@ func (stol *syncedTlfObserverList) fullSyncStarted(
 }
 
 func (stol *syncedTlfObserverList) syncModeChanged(
-	ctx context.Context, tlfID tlf.ID, newMode keybase1.FolderSyncMode) {
+	ctx context.Context, tlfID tlf.ID, newMode keybase1.FolderSyncMode,
+) {
 	stol.lock.RLock()
 	defer stol.lock.RUnlock()
 	for _, o := range stol.observers {

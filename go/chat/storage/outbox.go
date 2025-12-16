@@ -4,10 +4,9 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
-
-	"sort"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -24,8 +23,10 @@ type outboxStorage interface {
 	name() string
 }
 
-type OutboxPendingPreviewFn func(context.Context, *chat1.OutboxRecord) error
-type OutboxNewMessageNotifierFn func(context.Context, chat1.OutboxRecord)
+type (
+	OutboxPendingPreviewFn     func(context.Context, *chat1.OutboxRecord) error
+	OutboxNewMessageNotifierFn func(context.Context, chat1.OutboxRecord)
+)
 
 type Outbox struct {
 	globals.Contextified
@@ -38,9 +39,11 @@ type Outbox struct {
 	newMessageNotifier OutboxNewMessageNotifierFn
 }
 
-const outboxVersion = 4
-const ephemeralPurgeCutoff = 24 * time.Hour
-const errorPurgeCutoff = time.Hour * 24 * 7 // one week
+const (
+	outboxVersion        = 4
+	ephemeralPurgeCutoff = 24 * time.Hour
+	errorPurgeCutoff     = time.Hour * 24 * 7 // one week
+)
 
 // Ordinals for the outbox start at 100.
 // So that journeycard ordinals, which are added at the last minute by postProcessConv, do not conflict.
@@ -139,7 +142,8 @@ func (o *Outbox) SetClock(cl clockwork.Clock) {
 func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, suppliedOutboxID *chat1.OutboxID,
 	sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions,
-	identifyBehavior keybase1.TLFIdentifyBehavior) (rec chat1.OutboxRecord, err Error) {
+	identifyBehavior keybase1.TLFIdentifyBehavior,
+) (rec chat1.OutboxRecord, err Error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
@@ -307,7 +311,8 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 }
 
 func (o *Outbox) MarkConvAsError(ctx context.Context, convID chat1.ConversationID,
-	errRec chat1.OutboxStateError) (res []chat1.OutboxRecord, err error) {
+	errRec chat1.OutboxStateError,
+) (res []chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 	obox, err := o.readStorage(ctx)
@@ -374,7 +379,8 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 }
 
 func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
-	identifyBehavior *keybase1.TLFIdentifyBehavior) (res *chat1.OutboxRecord, err error) {
+	identifyBehavior *keybase1.TLFIdentifyBehavior,
+) (res *chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
@@ -505,7 +511,8 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (res ch
 }
 
 func (o *Outbox) AppendToThread(ctx context.Context, convID chat1.ConversationID,
-	thread *chat1.ThreadView) error {
+	thread *chat1.ThreadView,
+) error {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 

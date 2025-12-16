@@ -24,7 +24,8 @@ func NewRemoteClient(g *globals.Context, cli rpc.GenericClient) *RemoteClient {
 }
 
 func (c *RemoteClient) Call(ctx context.Context, method string, arg interface{},
-	res interface{}, timeout time.Duration) (err error) {
+	res interface{}, timeout time.Duration,
+) (err error) {
 	defer c.Trace(ctx, &err, "%s", method)()
 	err = c.cli.Call(ctx, method, arg, res, timeout)
 	if err == nil {
@@ -36,7 +37,8 @@ func (c *RemoteClient) Call(ctx context.Context, method string, arg interface{},
 }
 
 func (c *RemoteClient) CallCompressed(ctx context.Context, method string, arg interface{},
-	res interface{}, ctype rpc.CompressionType, timeout time.Duration) (err error) {
+	res interface{}, ctype rpc.CompressionType, timeout time.Duration,
+) (err error) {
 	defer c.Trace(ctx, &err, "%s", method)()
 	err = c.cli.CallCompressed(ctx, method, arg, res, ctype, timeout)
 	if err == nil {

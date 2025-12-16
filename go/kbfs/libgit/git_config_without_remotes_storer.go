@@ -27,7 +27,8 @@ type GitConfigWithoutRemotesStorer struct {
 // implementation that strips remotes from the config before writing
 // them to disk.
 func NewGitConfigWithoutRemotesStorer(fs *libfs.FS) (
-	*GitConfigWithoutRemotesStorer, error) {
+	*GitConfigWithoutRemotesStorer, error,
+) {
 	fsStorer, err := filesystem.NewStorage(fs)
 	if err != nil {
 		return nil, err
@@ -58,7 +59,8 @@ func (cwrs *GitConfigWithoutRemotesStorer) Config() (*gogitcfg.Config, error) {
 
 // SetConfig implements the `storer.Storer` interface.
 func (cwrs *GitConfigWithoutRemotesStorer) SetConfig(c *gogitcfg.Config) (
-	err error) {
+	err error,
+) {
 	if cwrs.stored && c.Core == cwrs.cfg.Core {
 		// Ignore any change that doesn't change the core we know
 		// about, to avoid attempting to write config files with
@@ -101,5 +103,7 @@ func (cwrs *GitConfigWithoutRemotesStorer) SetConfig(c *gogitcfg.Config) (
 	return cwrs.Storage.SetConfig(c)
 }
 
-var _ storage.Storer = (*GitConfigWithoutRemotesStorer)(nil)
-var _ storer.Initializer = (*GitConfigWithoutRemotesStorer)(nil)
+var (
+	_ storage.Storer     = (*GitConfigWithoutRemotesStorer)(nil)
+	_ storer.Initializer = (*GitConfigWithoutRemotesStorer)(nil)
+)

@@ -9,7 +9,6 @@ import (
 )
 
 var tests = map[string]string{
-
 	// The vt100 escape character \033 (i.e. \x1b) is substituted with '^', even as part of escape sequence
 	"\x1b":          "^[",
 	"aaa\x1b[3Gbbb": "aaa^[[3Gbbb",
@@ -147,6 +146,7 @@ func rot13(r rune) rune {
 	}
 	return r
 }
+
 func Test_replace(t *testing.T) {
 	// Run a couple of awful growth/shrinkage tests
 	a := tenRunes('a')

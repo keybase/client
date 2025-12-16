@@ -136,7 +136,6 @@ var DefaultAttemptStrategy = AttemptStrategy{
 
 // New creates a new S3.  Optional client argument allows for custom http.clients to be used.
 func New(g *libkb.GlobalContext, signer Signer, region Region, client ...*http.Client) *S3 {
-
 	var httpclient *http.Client
 
 	if len(client) > 0 {
@@ -536,7 +535,6 @@ type WebsiteConfiguration struct {
 }
 
 func (b *Bucket) PutBucketWebsite(configuration WebsiteConfiguration) error {
-
 	doc, err := xml.Marshal(configuration)
 	if err != nil {
 		return err
@@ -903,7 +901,7 @@ func (s3 *S3) query(ctx context.Context, req *request, resp interface{}) error {
 
 // prepare sets up req to be delivered to S3.
 func (s3 *S3) prepare(req *request) error {
-	var signpath = req.path
+	signpath := req.path
 
 	if !req.prepared {
 		req.prepared = true

@@ -105,7 +105,8 @@ func removeEmpty(strs []string) (ret []string) {
 }
 
 func getStatsActivityStorerOrBust(
-	logger *zap.Logger) libpages.ActivityStatsStorer {
+	logger *zap.Logger,
+) libpages.ActivityStatsStorer {
 	if len(fMySQLDSN) == 0 {
 		fileBasedStorer, err := libpages.NewFileBasedActivityStatsStorer(
 			activityStatsPath, logger)
@@ -126,8 +127,10 @@ func getStatsActivityStorerOrBust(
 	return mysqlStorer
 }
 
-const activityStatsReportInterval = 5 * time.Minute
-const activityStatsPath = "./kbp-stats"
+const (
+	activityStatsReportInterval = 5 * time.Minute
+	activityStatsPath           = "./kbp-stats"
+)
 
 func main() {
 	flag.Parse()
@@ -155,7 +158,8 @@ func main() {
 	shutdownSimpleFS := func(_ context.Context) error { return nil }
 	createSimpleFS := func(
 		libkbfsCtx libkbfs.Context, config libkbfs.Config) (
-		rpc.Protocol, error) {
+		rpc.Protocol, error,
+	) {
 		// Start autogit before the RPC connection to the service is
 		// fully initialized. Use a big cache since kbpages doesn't
 		// need memory for other stuff.
@@ -198,11 +202,14 @@ func main() {
 		enabler := &libpages.ActivityStatsEnabler{
 			Durations: []libpages.NameableDuration{
 				{
-					Duration: time.Hour, Name: "hourly"},
+					Duration: time.Hour, Name: "hourly",
+				},
 				{
-					Duration: time.Hour * 24, Name: "daily"},
+					Duration: time.Hour * 24, Name: "daily",
+				},
 				{
-					Duration: time.Hour * 24 * 7, Name: "weekly"},
+					Duration: time.Hour * 24 * 7, Name: "weekly",
+				},
 			},
 			Interval: activityStatsReportInterval,
 			Storer:   activityStorer,

@@ -320,8 +320,8 @@ type searchEmailsOrPhoneNumbersResult struct {
 
 func (h *UserSearchHandler) searchEmailsOrPhoneNumbers(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	phoneNumbers []keybase1.RawPhoneNumber, requireUsernames bool,
-	includeServicesSummary bool) (ret searchEmailsOrPhoneNumbersResult, err error) {
-
+	includeServicesSummary bool,
+) (ret searchEmailsOrPhoneNumbersResult, err error) {
 	// Create assertions from e-mail addresses. Only search for the ones that
 	// actually yield a valid assertions, but return all of them in results
 	// from this function.
@@ -676,8 +676,8 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 }
 
 func (h *UserSearchHandler) BulkEmailOrPhoneSearch(ctx context.Context,
-	arg keybase1.BulkEmailOrPhoneSearchArg) (ret []keybase1.EmailOrPhoneNumberSearchResult, err error) {
-
+	arg keybase1.BulkEmailOrPhoneSearchArg,
+) (ret []keybase1.EmailOrPhoneNumberSearchResult, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.Trace(fmt.Sprintf("UserSearch#BulkEmailOrPhoneSearch(%d emails,%d phones)",
 		len(arg.Emails), len(arg.PhoneNumbers)), &err)()

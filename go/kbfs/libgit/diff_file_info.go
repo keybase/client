@@ -27,7 +27,7 @@ func (cfi *diffFileInfo) Size() int64 {
 
 func (cfi *diffFileInfo) Mode() os.FileMode {
 	// Make it read-only.
-	return 0600
+	return 0o600
 }
 
 func (cfi *diffFileInfo) ModTime() time.Time {

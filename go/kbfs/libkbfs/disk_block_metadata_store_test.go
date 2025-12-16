@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"context"
-
 	"os"
 	"testing"
 
@@ -27,19 +26,24 @@ type testBlockMetadataStoreConfig struct {
 func (t *testBlockMetadataStoreConfig) Codec() kbfscodec.Codec {
 	return t.codec
 }
+
 func (t *testBlockMetadataStoreConfig) MakeLogger(
-	module string) logger.Logger {
+	module string,
+) logger.Logger {
 	return t.log
 }
+
 func (t *testBlockMetadataStoreConfig) StorageRoot() string {
 	return t.storageRoot
 }
+
 func (t *testBlockMetadataStoreConfig) Mode() InitMode {
 	return modeTest{modeDefault{}}
 }
 
 func makeBlockMetadataStoreForTest(t *testing.T) (
-	blockMetadataStore BlockMetadataStore, tempdir string) {
+	blockMetadataStore BlockMetadataStore, tempdir string,
+) {
 	tempdir, err := os.MkdirTemp(os.TempDir(), "xattr_test")
 	require.NoError(t, err)
 	config := testBlockMetadataStoreConfig{
@@ -54,7 +58,8 @@ func makeBlockMetadataStoreForTest(t *testing.T) (
 }
 
 func shutdownBlockMetadataStoreTest(
-	blockMetadataStore BlockMetadataStore, tempdir string) {
+	blockMetadataStore BlockMetadataStore, tempdir string,
+) {
 	blockMetadataStore.Shutdown()
 	os.RemoveAll(tempdir)
 }

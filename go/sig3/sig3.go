@@ -1,13 +1,12 @@
 package sig3
 
 import (
+	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
-
-	"crypto/ed25519"
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
@@ -57,9 +56,11 @@ type LinkFromFuture struct {
 	Base
 }
 
-var _ Generic = (*Base)(nil)
-var _ Generic = (*RotateKey)(nil)
-var _ Generic = (*LinkFromFuture)(nil)
+var (
+	_ Generic = (*Base)(nil)
+	_ Generic = (*RotateKey)(nil)
+	_ Generic = (*LinkFromFuture)(nil)
+)
 
 // NewRotateKey makes a new rotate key given sig3 skeletons (Outer and Inner) and
 // also the PTKs that are going to be advertised in the sig3 link.

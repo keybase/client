@@ -9,8 +9,10 @@ import (
 	"github.com/keybase/clockwork"
 )
 
-const defaultCacheLifetime = 10 * time.Minute
-const defaultCacheSize = 1000
+const (
+	defaultCacheLifetime = 10 * time.Minute
+	defaultCacheSize     = 1000
+)
 
 type cacheItem struct {
 	data  interface{}

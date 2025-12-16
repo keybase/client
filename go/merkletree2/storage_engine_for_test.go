@@ -24,8 +24,10 @@ type InMemoryStorageEngine struct {
 	cfg Config
 }
 
-var _ StorageEngine = &InMemoryStorageEngine{}
-var _ StorageEngineWithBlinding = &InMemoryStorageEngine{}
+var (
+	_ StorageEngine             = &InMemoryStorageEngine{}
+	_ StorageEngineWithBlinding = &InMemoryStorageEngine{}
+)
 
 type SortedKVPR []*KVPRecord
 

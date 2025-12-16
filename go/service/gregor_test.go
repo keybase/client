@@ -112,6 +112,7 @@ func newNlistener(t *testing.T) *nlistener {
 func (n *nlistener) FavoritesChanged(uid keybase1.UID) {
 	n.favoritesChanged = append(n.favoritesChanged, uid)
 }
+
 func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	select {
 	case n.threadStale <- cids:
@@ -119,6 +120,7 @@ func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.Conversation
 		require.Fail(n.t, "thread send timeout")
 	}
 }
+
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
 	select {
 	case n.badgeState <- badgeState:
@@ -316,9 +318,11 @@ func (m mockGregord) ConsumeMessageMulti(ctx context.Context, arg gregor1.Consum
 func (m mockGregord) ConsumePublishMessage(_ context.Context, _ gregor1.Message) error {
 	return errors.New("unimplemented")
 }
+
 func (m mockGregord) Ping(_ context.Context) (string, error) {
 	return "", nil
 }
+
 func (m mockGregord) State(ctx context.Context, arg gregor1.StateArg) (gregor1.State, error) {
 	state, err := m.sm.State(ctx, arg.Uid, arg.Deviceid, arg.TimeOrOffset)
 	if err != nil {
@@ -326,15 +330,19 @@ func (m mockGregord) State(ctx context.Context, arg gregor1.StateArg) (gregor1.S
 	}
 	return state.(gregor1.State), nil
 }
+
 func (m mockGregord) StateByCategoryPrefix(_ context.Context, _ gregor1.StateByCategoryPrefixArg) (gregor1.State, error) {
 	return gregor1.State{}, errors.New("unimplemented")
 }
+
 func (m mockGregord) Version(_ context.Context, _ gregor1.UID) (string, error) {
 	return "mock", nil
 }
+
 func (m mockGregord) DescribeConnectedUsers(ctx context.Context, arg []gregor1.UID) ([]gregor1.ConnectedUser, error) {
 	return nil, nil
 }
+
 func (m mockGregord) DescribeConnectedUsersInternal(ctx context.Context, arg []gregor1.UID) ([]gregor1.ConnectedUser, error) {
 	return nil, nil
 }
@@ -423,7 +431,8 @@ func setupSyncTests(t *testing.T, g *globals.Context) (*gregorHandler, mockGrego
 }
 
 func checkMessages(t *testing.T, source string, msgs []gregor.InBandMessage,
-	refMsgs []gregor.InBandMessage) {
+	refMsgs []gregor.InBandMessage,
+) {
 	require.Len(t, msgs, len(refMsgs))
 	for index, refMsg := range refMsgs {
 		msg := msgs[index]
@@ -1119,11 +1128,11 @@ func TestOfflineConsume(t *testing.T) {
 	require.Equal(t, 1, len(items))
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
 		items[0].Metadata().MsgID().String())
-
 }
 
 func badgerResync(ctx context.Context, t testing.TB, b *badges.Badger, chatRemote func() chat1.RemoteInterface,
-	gcli *grclient.Client) {
+	gcli *grclient.Client,
+) {
 	iboxVersion, err := b.GetInboxVersionForTest(ctx)
 	require.NoError(t, err)
 	b.G().Log.Debug("Badger: Resync(): using inbox version: %v", iboxVersion)

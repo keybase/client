@@ -72,7 +72,8 @@ func (k *MemberKeyer) lockKey(teamID keybase1.TeamID, app keybase1.TeamApplicati
 }
 
 func (k *MemberKeyer) cacheKey(teamID keybase1.TeamID, botUID keybase1.UID,
-	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) string {
+	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration,
+) string {
 	return fmt.Sprintf("%s-%s-%d-%d", teamID, botUID, app, generation)
 }
 
@@ -81,7 +82,8 @@ func (k *MemberKeyer) cacheKey(teamID keybase1.TeamID, botUID keybase1.UID,
 // keys that have already been posted so we don't hit the server each time.
 func (k *MemberKeyer) GetOrCreateTeambotKey(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	gBotUID gregor1.UID, appKey keybase1.TeamApplicationKey) (
-	key keybase1.TeambotKey, created bool, err error) {
+	key keybase1.TeambotKey, created bool, err error,
+) {
 	mctx = mctx.WithLogTag("GOCTBK")
 
 	botUID, err := keybase1.UIDFromSlice(gBotUID.Bytes())
@@ -100,7 +102,8 @@ func (k *MemberKeyer) GetOrCreateTeambotKey(mctx libkb.MetaContext, teamID keyba
 
 func (k *MemberKeyer) getOrCreateTeambotKeyLocked(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	botUID keybase1.UID, appKey keybase1.TeamApplicationKey) (
-	key keybase1.TeambotKey, created bool, err error) {
+	key keybase1.TeambotKey, created bool, err error,
+) {
 	defer mctx.Trace(fmt.Sprintf("getOrCreateTeambotKeyLocked: teamID: %v, botUID: %v", teamID, botUID), &err)()
 
 	seed := k.deriveTeambotKeyFromAppKey(mctx, appKey, botUID)
@@ -162,7 +165,8 @@ func (k *MemberKeyer) deriveTeambotKeyFromAppKey(mctx libkb.MetaContext, applica
 }
 
 func (k *MemberKeyer) postNewTeambotKey(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	sig, box string) (err error) {
+	sig, box string,
+) (err error) {
 	defer mctx.Trace("MemberKeyer#postNewTeambotKey", &err)()
 
 	apiArg := libkb.APIArg{
@@ -182,7 +186,8 @@ func (k *MemberKeyer) postNewTeambotKey(mctx libkb.MetaContext, teamID keybase1.
 
 func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.Team,
 	botUID keybase1.UID, appKey keybase1.TeamApplicationKey) (
-	sig string, box *keybase1.TeambotKeyBoxed, isRestrictedBotMember bool, err error) {
+	sig string, box *keybase1.TeambotKeyBoxed, isRestrictedBotMember bool, err error,
+) {
 	defer mctx.Trace(fmt.Sprintf("MemberKeyer#prepareNewTeambotKey: teamID: %v, botUID: %v", team.ID, botUID),
 		&err)()
 
@@ -255,7 +260,8 @@ func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.T
 }
 
 func (k *MemberKeyer) PurgeCacheAtGeneration(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	botUID keybase1.UID, app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) {
+	botUID keybase1.UID, app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration,
+) {
 	unlock := k.lockForTeamIDAndApp(mctx, teamID, app)
 	defer unlock()
 	cacheKey := k.cacheKey(teamID, botUID, app, generation)

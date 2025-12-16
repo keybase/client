@@ -30,8 +30,8 @@ const (
 // getVolumeName requires a drive letter and colon with a
 // trailing backslash
 func getVolumeName(RootPathName string) (string, error) {
-	var VolumeNameBuffer = make([]uint16, syscall.MAX_PATH+1)
-	var nVolumeNameSize = uint32(len(VolumeNameBuffer))
+	VolumeNameBuffer := make([]uint16, syscall.MAX_PATH+1)
+	nVolumeNameSize := uint32(len(VolumeNameBuffer))
 
 	_, _, callErr := getVolumeProc.Call(
 		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(RootPathName))),
@@ -54,9 +54,8 @@ func getVolumeName(RootPathName string) (string, error) {
 // getDosVolumeName requires a drive letter and colon with no
 // trailing backslash
 func getDosVolumeName(path string) (string, error) {
-
-	var VolumeNameBuffer = make([]uint16, syscall.MAX_PATH+1)
-	var nVolumeNameSize = uint32(len(VolumeNameBuffer))
+	VolumeNameBuffer := make([]uint16, syscall.MAX_PATH+1)
+	nVolumeNameSize := uint32(len(VolumeNameBuffer))
 
 	ret, _, err := queryDosDeviceProc.Call(
 		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(path))),
@@ -87,7 +86,7 @@ func isDriveFree(drive string) bool {
 }
 
 func getMountDirs() ([]string, error) {
-	//start with drive D
+	// start with drive D
 	i := uint(3)
 	var drives []string
 	for ; i < 26; i++ {

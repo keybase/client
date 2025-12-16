@@ -18,7 +18,6 @@ import (
 
 // Get a PTK seed and verify against the sigchain that is the correct key.
 func GetAndVerifyPerTeamKey(mctx libkb.MetaContext, team Teamer, gen keybase1.PerTeamKeyGeneration) (ret keybase1.PerTeamKeySeedItem, err error) {
-
 	if team.MainChain() == nil {
 		return ret, libkb.NotFoundError{Msg: fmt.Sprintf("no team secret found at generation %v, since inner team was nil", gen)}
 	}
@@ -27,7 +26,8 @@ func GetAndVerifyPerTeamKey(mctx libkb.MetaContext, team Teamer, gen keybase1.Pe
 	ret, ok = team.MainChain().PerTeamKeySeedsUnverified[gen]
 	if !ok {
 		return ret, libkb.NotFoundError{
-			Msg: fmt.Sprintf("no team secret found at generation %v", gen)}
+			Msg: fmt.Sprintf("no team secret found at generation %v", gen),
+		}
 	}
 	km, err := NewTeamKeyManagerWithSeedItem(team.MainChain().ID(), ret)
 	if err != nil {
@@ -313,7 +313,6 @@ func (t *TeamKeyManager) perTeamKeySection() (*SCPerTeamKey, error) {
 }
 
 func (t *TeamKeyManager) setNextSharedSecret(mctx libkb.MetaContext, secret keybase1.PerTeamKeySeed) (err error) {
-
 	check, err := computeSeedCheck(t.id, secret, &t.check)
 	if err != nil {
 		return err
@@ -397,7 +396,8 @@ func derivedSecret(secret keybase1.PerTeamKeySeed, context string) []byte {
 // Takes a prev to decrypt and the seed of the successor generation.
 // For example (prev[3], seed[4]) -> seed[3]
 func decryptPrevSingle(ctx context.Context,
-	prevToDecrypt prevKeySealedEncoded, successor keybase1.PerTeamKeySeed) (*keybase1.PerTeamKeySeed, error) {
+	prevToDecrypt prevKeySealedEncoded, successor keybase1.PerTeamKeySeed,
+) (*keybase1.PerTeamKeySeed, error) {
 	if successor.IsZero() {
 		return nil, fmt.Errorf("Got 0 key, which can't be right")
 	}
@@ -421,7 +421,6 @@ func decryptPrevSingle(ctx context.Context,
 }
 
 func computeSeedCheck(id keybase1.TeamID, seed keybase1.PerTeamKeySeed, prev *keybase1.PerTeamSeedCheck) (*keybase1.PerTeamSeedCheck, error) {
-
 	var prevValue keybase1.PerTeamSeedCheckValue
 	switch {
 	case prev == nil:
@@ -455,7 +454,6 @@ func computeSeedCheck(id keybase1.TeamID, seed keybase1.PerTeamKeySeed, prev *ke
 // are at the back of the sequence and not interspersed throughout. This is valid so long as we always compute
 // these checks on load of new links.
 func computeSeedChecks(ctx context.Context, teamID keybase1.TeamID, latestChainGen keybase1.PerTeamKeyGeneration, getter func(g keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamSeedCheck, keybase1.PerTeamKeySeed, error), setter func(g keybase1.PerTeamKeyGeneration, c keybase1.PerTeamSeedCheck)) error {
-
 	var firstNonNilCheck keybase1.PerTeamKeyGeneration
 	var foundLinkToUpdate bool
 

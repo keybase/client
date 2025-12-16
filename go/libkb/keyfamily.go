@@ -445,7 +445,6 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 	kf.SingleKeys = make(map[keybase1.KID]GenericKey)
 	for i, bundle := range rkf.AllBundles {
 		newKey, w, err := ParseGenericKey(bundle)
-
 		// Some users have some historical bad keys, so no reason to crap
 		// out if we can't parse them, especially if there are others than
 		// can do just as well.
@@ -606,7 +605,6 @@ func NowAsKeybaseTime(seqno keybase1.Seqno) *KeybaseTime {
 // Delegate performs a delegation to the key described in the given TypedChainLink.
 // This maybe be a sub- or sibkey delegation.
 func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
-
 	kid := tcl.GetDelegatedKid()
 	sigid := tcl.GetSigID()
 	tm := TclToKeybaseTime(tcl)
@@ -642,8 +640,8 @@ func (ckf *ComputedKeyFamily) DelegatePerUserKey(perUserKey keybase1.PerUserKey)
 func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid keybase1.SigID, signingKid, parentKID keybase1.KID,
 	pgpHash string, isSibkey bool, ctime, etime time.Time,
 	merkleHashMeta keybase1.HashMeta, fau keybase1.Seqno,
-	dascl keybase1.SigChainLocation) (err error) {
-
+	dascl keybase1.SigChainLocation,
+) (err error) {
 	cki.G().Log.Debug("ComputeKeyInfos#Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
 	info, found := cki.Infos[kid]
 	etimeUnix := cki.G().HonorSigchainExpireTime(etime.Unix())
@@ -1052,7 +1050,6 @@ func (ckf ComputedKeyFamily) GetDeletedKeys() []GenericKey {
 // UpdateDevices takes the Device object from the given ChainLink
 // and updates keys to reflects any device changes encoded therein.
 func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
-
 	var dobj *Device
 	if dobj = tcl.GetDevice(); dobj == nil {
 		ckf.G().VDL.Log(VLog1, "Short-circuit of UpdateDevices(); not a device link")
@@ -1190,7 +1187,6 @@ func (ckf *ComputedKeyFamily) GetDeviceForKID(kid keybase1.KID) (*Device, error)
 	}
 
 	return ckf.getDeviceForKidHelper(parent)
-
 }
 
 func (ckf *ComputedKeyFamily) getDeviceForKidHelper(kid keybase1.KID) (ret *Device, err error) {

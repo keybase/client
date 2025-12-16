@@ -71,6 +71,7 @@ func TestUntrack(t *testing.T) {
 		_testUntrack(t, sigVersion)
 	})
 }
+
 func _testUntrack(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "untrack")
 	defer tc.Cleanup()

@@ -189,7 +189,6 @@ func (e *ResolveThenIdentify2) GetIdentifyOutcome() *libkb.IdentifyOutcome {
 // but the UPAK cache will be used, and busted with ForceRepoll semantics. The output, on success,
 // is a populated UserPlusKeysV2.
 func ResolveAndCheck(m libkb.MetaContext, s string, useTracking bool) (ret keybase1.UserPlusKeysV2, err error) {
-
 	m = m.WithLogTag("RAC")
 	defer m.Trace(fmt.Sprintf("ResolveAndCheck(%q,%t)", s, useTracking), &err)()
 

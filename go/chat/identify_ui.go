@@ -12,18 +12,23 @@ var _ libkb.IdentifyUI = chatNullIdentifyUI{}
 func (c chatNullIdentifyUI) Start(libkb.MetaContext, string, keybase1.IdentifyReason, bool) error {
 	return nil
 }
+
 func (c chatNullIdentifyUI) FinishWebProofCheck(libkb.MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error {
 	return nil
 }
+
 func (c chatNullIdentifyUI) FinishSocialProofCheck(libkb.MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error {
 	return nil
 }
+
 func (c chatNullIdentifyUI) Confirm(libkb.MetaContext, *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	return keybase1.ConfirmResult{}, nil
 }
+
 func (c chatNullIdentifyUI) DisplayCryptocurrency(libkb.MetaContext, keybase1.Cryptocurrency) error {
 	return nil
 }
+
 func (c chatNullIdentifyUI) DisplayStellarAccount(libkb.MetaContext, keybase1.StellarAccount) error {
 	return nil
 }
@@ -31,6 +36,7 @@ func (c chatNullIdentifyUI) DisplayKey(libkb.MetaContext, keybase1.IdentifyKey) 
 func (c chatNullIdentifyUI) ReportLastTrack(libkb.MetaContext, *keybase1.TrackSummary) error {
 	return nil
 }
+
 func (c chatNullIdentifyUI) LaunchNetworkChecks(libkb.MetaContext, *keybase1.Identity, *keybase1.User) error {
 	return nil
 }
@@ -44,6 +50,7 @@ func (c chatNullIdentifyUI) Finish(libkb.MetaContext) error { return nil }
 func (c chatNullIdentifyUI) DisplayTLFCreateWithInvite(libkb.MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil
 }
+
 func (c chatNullIdentifyUI) Dismiss(libkb.MetaContext, string, keybase1.DismissReason) error {
 	return nil
 }

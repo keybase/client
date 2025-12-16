@@ -67,7 +67,8 @@ func (d testBWDelegate) OnShutdown(ctx context.Context) {
 }
 
 func (d testBWDelegate) requireNextState(
-	ctx context.Context, expectedState ...bwState) bwState {
+	ctx context.Context, expectedState ...bwState,
+) bwState {
 	select {
 	case bws := <-d.stateCh:
 		require.Contains(d.t, expectedState, bws)
@@ -176,7 +177,8 @@ func (c testTLFJournalConfig) BGFlushDirOpBatchSize() int {
 }
 
 func (c testTLFJournalConfig) makeBlock(data []byte) (
-	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
+	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf,
+) {
 	id, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(c.t, err)
 	bCtx := kbfsblock.MakeFirstContext(
@@ -187,14 +189,16 @@ func (c testTLFJournalConfig) makeBlock(data []byte) (
 }
 
 func (c testTLFJournalConfig) makeMD(
-	revision kbfsmd.Revision, prevRoot kbfsmd.ID) *RootMetadata {
+	revision kbfsmd.Revision, prevRoot kbfsmd.ID,
+) *RootMetadata {
 	return makeMDForTest(c.t, c.ver, c.tlfID, revision, c.uid, c.crypto, prevRoot)
 }
 
 func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
 	extra kbfsmd.ExtraMetadata, expectedRevision kbfsmd.Revision,
 	expectedPrevRoot kbfsmd.ID, expectedMergeStatus kbfsmd.MergeStatus,
-	expectedBranchID kbfsmd.BranchID) {
+	expectedBranchID kbfsmd.BranchID,
+) {
 	verifyingKey := c.crypto.SigningKeySigner.Key.GetVerifyingKey()
 	checkBRMD(c.t, c.uid, verifyingKey, c.Codec(),
 		rmds.MD, extra, expectedRevision, expectedPrevRoot,
@@ -209,7 +213,8 @@ func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
 
 func (c testTLFJournalConfig) checkRange(rmdses []rmdsWithExtra,
 	firstRevision kbfsmd.Revision, firstPrevRoot kbfsmd.ID,
-	mStatus kbfsmd.MergeStatus, bid kbfsmd.BranchID) {
+	mStatus kbfsmd.MergeStatus, bid kbfsmd.BranchID,
+) {
 	c.checkMD(rmdses[0].rmds, rmdses[0].extra, firstRevision,
 		firstPrevRoot, mStatus, bid)
 
@@ -228,7 +233,8 @@ func setupTLFJournalTest(
 	t *testing.T, ver kbfsmd.MetadataVer, bwStatus TLFJournalBackgroundWorkStatus) (
 	tempdir string, config *testTLFJournalConfig, ctx context.Context,
 	cancel context.CancelFunc, tlfJournal *tlfJournal,
-	delegate testBWDelegate) {
+	delegate testBWDelegate,
+) {
 	// Set up config and dependencies.
 	bsplitter, err := data.NewBlockSplitterSimpleExact(
 		64*1024, int(64*1024/data.BPSize), 8*1024)
@@ -334,7 +340,8 @@ func setupTLFJournalTest(
 func teardownTLFJournalTest(
 	ctx context.Context, tempdir string, config *testTLFJournalConfig,
 	cancel context.CancelFunc, tlfJournal *tlfJournal,
-	delegate testBWDelegate) {
+	delegate testBWDelegate,
+) {
 	// If there are any errant state changes left in the journal, this
 	// will cause them to be aborted.
 	close(delegate.testDoneCh)
@@ -364,7 +371,8 @@ func teardownTLFJournalTest(
 }
 
 func putOneMD(ctx context.Context, config *testTLFJournalConfig,
-	tlfJournal *tlfJournal) {
+	tlfJournal *tlfJournal,
+) {
 	md := config.makeMD(kbfsmd.RevisionInitial, kbfsmd.ID{})
 	_, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 	require.NoError(config.t, err)
@@ -374,8 +382,7 @@ func putOneMD(ctx context.Context, config *testTLFJournalConfig,
 // behavior.
 
 func testTLFJournalBasic(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -388,8 +395,7 @@ func testTLFJournalBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalPauseResume(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -407,8 +413,7 @@ func testTLFJournalPauseResume(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalPauseShutdown(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -430,7 +435,8 @@ func (bs hangingBlockServer) Put(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	_ DiskBlockCacheType) error {
+	_ DiskBlockCacheType,
+) error {
 	close(bs.onPutCh)
 	// Hang until the context is cancelled.
 	<-ctx.Done()
@@ -447,22 +453,21 @@ func (bs hangingBlockServer) waitForPut(ctx context.Context, t *testing.T) {
 
 func putBlock(ctx context.Context,
 	t *testing.T, config *testTLFJournalConfig,
-	tlfJournal *tlfJournal, data []byte) {
+	tlfJournal *tlfJournal, data []byte,
+) {
 	id, bCtx, serverHalf := config.makeBlock(data)
 	err := tlfJournal.putBlockData(ctx, id, bCtx, data, serverHalf)
 	require.NoError(t, err)
 }
 
 func testTLFJournalBlockOpBasic(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
-	numFlushed, rev, converted, err :=
-		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
-			kbfsmd.ID{})
+	numFlushed, rev, converted, err := tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
+		kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
 	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
@@ -470,13 +475,14 @@ func testTLFJournalBlockOpBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalBlockOpBusyPause(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
-	bs := hangingBlockServer{tlfJournal.delegateBlockServer,
-		make(chan struct{})}
+	bs := hangingBlockServer{
+		tlfJournal.delegateBlockServer,
+		make(chan struct{}),
+	}
 	tlfJournal.delegateBlockServer = bs
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
@@ -491,13 +497,14 @@ func testTLFJournalBlockOpBusyPause(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalBlockOpBusyShutdown(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
-	bs := hangingBlockServer{tlfJournal.delegateBlockServer,
-		make(chan struct{})}
+	bs := hangingBlockServer{
+		tlfJournal.delegateBlockServer,
+		make(chan struct{}),
+	}
 	tlfJournal.delegateBlockServer = bs
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
@@ -509,13 +516,14 @@ func testTLFJournalBlockOpBusyShutdown(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalSecondBlockOpWhileBusy(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
-	bs := hangingBlockServer{tlfJournal.delegateBlockServer,
-		make(chan struct{})}
+	bs := hangingBlockServer{
+		tlfJournal.delegateBlockServer,
+		make(chan struct{}),
+	}
 	tlfJournal.delegateBlockServer = bs
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
@@ -528,8 +536,7 @@ func testTLFJournalSecondBlockOpWhileBusy(t *testing.T, ver kbfsmd.MetadataVer) 
 }
 
 func testTLFJournalBlockOpDiskByteLimit(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -546,9 +553,8 @@ func testTLFJournalBlockOpDiskByteLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 			ctx, id, bCtx, data2, serverHalf)
 	}()
 
-	numFlushed, rev, converted, err :=
-		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
-			kbfsmd.ID{})
+	numFlushed, rev, converted, err := tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
+		kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
 	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
@@ -570,8 +576,7 @@ func testTLFJournalBlockOpDiskByteLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalBlockOpDiskFileLimit(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -589,9 +594,8 @@ func testTLFJournalBlockOpDiskFileLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 			ctx, id, bCtx, data2, serverHalf)
 	}()
 
-	numFlushed, rev, converted, err :=
-		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
-			kbfsmd.ID{})
+	numFlushed, rev, converted, err := tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
+		kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
 	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
@@ -613,8 +617,7 @@ func testTLFJournalBlockOpDiskFileLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalBlockOpDiskQuotaLimit(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -624,8 +627,7 @@ func testTLFJournalBlockOpDiskQuotaLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 	data1 := []byte{1, 2, 3, 4}
 	putBlock(ctx, t, config, tlfJournal, data1)
 
-	usedQuotaBytes, quotaBytes :=
-		tlfJournal.diskLimiter.getQuotaInfo(tlfJournal.uid.AsUserOrTeam())
+	usedQuotaBytes, quotaBytes := tlfJournal.diskLimiter.getQuotaInfo(tlfJournal.uid.AsUserOrTeam())
 	require.Equal(t,
 		int64(math.MaxInt64-6)+int64(len(data1)), usedQuotaBytes)
 	require.Equal(t, int64(math.MaxInt64), quotaBytes)
@@ -638,9 +640,8 @@ func testTLFJournalBlockOpDiskQuotaLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 			ctx, id, bCtx, data2, serverHalf)
 	}()
 
-	numFlushed, rev, converted, err :=
-		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
-			kbfsmd.ID{})
+	numFlushed, rev, converted, err := tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
+		kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
 	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
@@ -653,16 +654,14 @@ func testTLFJournalBlockOpDiskQuotaLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 		t.Fatal(ctx.Err())
 	}
 
-	usedQuotaBytes, quotaBytes =
-		tlfJournal.diskLimiter.getQuotaInfo(tlfJournal.uid.AsUserOrTeam())
+	usedQuotaBytes, quotaBytes = tlfJournal.diskLimiter.getQuotaInfo(tlfJournal.uid.AsUserOrTeam())
 	require.Equal(t,
 		int64(math.MaxInt64-6)+int64(len(data2)), usedQuotaBytes)
 	require.Equal(t, int64(math.MaxInt64), quotaBytes)
 }
 
 func testTLFJournalBlockOpDiskQuotaLimitResolve(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -674,8 +673,7 @@ func testTLFJournalBlockOpDiskQuotaLimitResolve(t *testing.T, ver kbfsmd.Metadat
 	err := tlfJournal.putBlockData(ctx, id1, bCtx1, data1, serverHalf1)
 	require.NoError(t, err)
 
-	usedQuotaBytes, quotaBytes :=
-		tlfJournal.diskLimiter.getQuotaInfo(tlfJournal.uid.AsUserOrTeam())
+	usedQuotaBytes, quotaBytes := tlfJournal.diskLimiter.getQuotaInfo(tlfJournal.uid.AsUserOrTeam())
 	require.Equal(t,
 		int64(math.MaxInt64-6)+int64(len(data1)), usedQuotaBytes)
 	require.Equal(t, int64(math.MaxInt64), quotaBytes)
@@ -714,16 +712,14 @@ func testTLFJournalBlockOpDiskQuotaLimitResolve(t *testing.T, ver kbfsmd.Metadat
 		t.Fatal(ctx.Err())
 	}
 
-	usedQuotaBytes, quotaBytes =
-		tlfJournal.diskLimiter.getQuotaInfo(tlfJournal.uid.AsUserOrTeam())
+	usedQuotaBytes, quotaBytes = tlfJournal.diskLimiter.getQuotaInfo(tlfJournal.uid.AsUserOrTeam())
 	require.Equal(t,
 		int64(math.MaxInt64-6)+int64(len(data2)), usedQuotaBytes)
 	require.Equal(t, int64(math.MaxInt64), quotaBytes)
 }
 
 func testTLFJournalBlockOpDiskLimitDuplicate(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -748,8 +744,7 @@ func testTLFJournalBlockOpDiskLimitDuplicate(t *testing.T, ver kbfsmd.MetadataVe
 }
 
 func testTLFJournalBlockOpDiskLimitCancel(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -766,8 +761,7 @@ func testTLFJournalBlockOpDiskLimitCancel(t *testing.T, ver kbfsmd.MetadataVer) 
 }
 
 func testTLFJournalBlockOpDiskLimitTimeout(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -790,8 +784,7 @@ func testTLFJournalBlockOpDiskLimitTimeout(t *testing.T, ver kbfsmd.MetadataVer)
 }
 
 func testTLFJournalBlockOpDiskLimitPutFailure(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -817,7 +810,8 @@ type hangingMDServer struct {
 }
 
 func (md hangingMDServer) Put(ctx context.Context, rmds *RootMetadataSigned,
-	_ kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
+	_ kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority,
+) error {
 	close(md.onPutCh)
 	// Hang until the context is cancelled.
 	<-ctx.Done()
@@ -833,8 +827,7 @@ func (md hangingMDServer) waitForPut(ctx context.Context, t *testing.T) {
 }
 
 func testTLFJournalMDServerBusyPause(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -855,8 +848,7 @@ func testTLFJournalMDServerBusyPause(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalMDServerBusyShutdown(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -874,8 +866,7 @@ func testTLFJournalMDServerBusyShutdown(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalBlockOpWhileBusy(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -908,14 +899,16 @@ type shimMDServer struct {
 
 func (s *shimMDServer) GetRange(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
-	start, stop kbfsmd.Revision, _ *keybase1.LockID) ([]*RootMetadataSigned, error) {
+	start, stop kbfsmd.Revision, _ *keybase1.LockID,
+) ([]*RootMetadataSigned, error) {
 	rmdses := s.nextGetRange
 	s.nextGetRange = nil
 	return rmdses, nil
 }
 
 func (s *shimMDServer) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
+	extra kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority,
+) error {
 	if s.nextErr != nil {
 		err := s.nextErr
 		s.nextErr = nil
@@ -934,7 +927,8 @@ func (s *shimMDServer) Put(ctx context.Context, rmds *RootMetadataSigned,
 
 func (s *shimMDServer) GetForTLF(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, _ *keybase1.LockID) (
-	*RootMetadataSigned, error) {
+	*RootMetadataSigned, error,
+) {
 	s.getForTLFCalled = true
 	if len(s.rmdses) == 0 {
 		return nil, nil
@@ -950,7 +944,8 @@ func (s *shimMDServer) Shutdown() {
 }
 
 func requireJournalEntryCounts(t *testing.T, j *tlfJournal,
-	expectedBlockEntryCount, expectedMDEntryCount uint64) {
+	expectedBlockEntryCount, expectedMDEntryCount uint64,
+) {
 	blockEntryCount, mdEntryCount, err := j.getJournalEntryCounts()
 	require.NoError(t, err)
 	require.Equal(t, expectedBlockEntryCount, blockEntryCount)
@@ -960,8 +955,7 @@ func requireJournalEntryCounts(t *testing.T, j *tlfJournal,
 // The tests below test tlfJournal's MD flushing behavior.
 
 func testTLFJournalFlushMDBasic(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -1005,8 +999,7 @@ func testTLFJournalFlushMDBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalFlushMDConflict(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -1074,7 +1067,8 @@ func (s *orderedBlockServer) Put(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	_ DiskBlockCacheType) error {
+	_ DiskBlockCacheType,
+) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	*s.puts = append(*s.puts, id)
@@ -1096,7 +1090,8 @@ type orderedMDServer struct {
 
 func (s *orderedMDServer) Put(
 	ctx context.Context, rmds *RootMetadataSigned, _ kbfsmd.ExtraMetadata,
-	_ *keybase1.LockContext, _ keybase1.MDPriority) error {
+	_ *keybase1.LockContext, _ keybase1.MDPriority,
+) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	*s.puts = append(*s.puts, rmds.MD.RevisionNumber())
@@ -1138,8 +1133,7 @@ func testTLFJournalGCd(t *testing.T, tlfJournal *tlfJournal) {
 // was added to the block journal before an MD op was added to the MD
 // journal, then that block op will be flushed before that MD op.
 func testTLFJournalFlushOrdering(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -1225,9 +1219,9 @@ func testTLFJournalFlushOrdering(t *testing.T, ver kbfsmd.MetadataVer) {
 // branch is squashed multiple times, and then hits a conflict, the
 // blocks are flushed completely before the conflict-resolving MD.
 func testTLFJournalFlushOrderingAfterSquashAndCR(
-	t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 	tlfJournal.forcedSquashByBytes = 20
@@ -1364,8 +1358,7 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 // MD ops while respecting the relative orderings of blocks and MD ops
 // when flushing.
 func testTLFJournalFlushInterleaving(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -1468,7 +1461,8 @@ func testTLFJournalPauseBlocksAndConvertBranch(ctx context.Context,
 	t *testing.T, tlfJournal *tlfJournal, config *testTLFJournalConfig) (
 	firstRev kbfsmd.Revision, firstRoot kbfsmd.ID,
 	retUnpauseBlockPutCh chan<- struct{}, retErrCh <-chan error,
-	blocksLeftAfterFlush uint64, mdsLeftAfterFlush uint64) {
+	blocksLeftAfterFlush uint64, mdsLeftAfterFlush uint64,
+) {
 	branchCh := make(chan struct{}, 1)
 	tlfJournal.onBranchChange = testBranchChangeListener{branchCh}
 
@@ -1545,13 +1539,11 @@ func testTLFJournalPauseBlocksAndConvertBranch(ctx context.Context,
 // testTLFJournalConvertWhileFlushing tests that we can do branch
 // conversion while blocks are still flushing.
 func testTLFJournalConvertWhileFlushing(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
-	_, _, unpauseBlockPutCh, errCh, blocksLeftAfterFlush, mdsLeftAfterFlush :=
-		testTLFJournalPauseBlocksAndConvertBranch(ctx, t, tlfJournal, config)
+	_, _, unpauseBlockPutCh, errCh, blocksLeftAfterFlush, mdsLeftAfterFlush := testTLFJournalPauseBlocksAndConvertBranch(ctx, t, tlfJournal, config)
 
 	// Now finish the block put, and let the flush finish.  We
 	// should be on a local squash branch after this.
@@ -1571,14 +1563,12 @@ func testTLFJournalConvertWhileFlushing(t *testing.T, ver kbfsmd.MetadataVer) {
 // testTLFJournalSquashWhileFlushing tests that we can do journal
 // coalescing while blocks are still flushing.
 func testTLFJournalSquashWhileFlushing(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
 	firstRev, firstPrevRoot, unpauseBlockPutCh, errCh,
-		blocksLeftAfterFlush, _ :=
-		testTLFJournalPauseBlocksAndConvertBranch(ctx, t, tlfJournal, config)
+		blocksLeftAfterFlush, _ := testTLFJournalPauseBlocksAndConvertBranch(ctx, t, tlfJournal, config)
 
 	// While it's paused, resolve the branch.
 	resolveMD := config.makeMD(firstRev, firstPrevRoot)
@@ -1616,8 +1606,7 @@ func (t *testImmediateBackOff) Reset() {
 }
 
 func testTLFJournalFlushRetry(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -1666,8 +1655,7 @@ func testTLFJournalFlushRetry(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -1748,8 +1736,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testTLFJournalSquashByBytes(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 	tlfJournal.forcedSquashByBytes = 10
@@ -1782,8 +1769,7 @@ func testTLFJournalSquashByBytes(t *testing.T, ver kbfsmd.MetadataVer) {
 
 // Test that the first revision of a TLF doesn't get squashed.
 func testTLFJournalFirstRevNoSquash(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 	tlfJournal.forcedSquashByBytes = 10
@@ -1832,8 +1818,7 @@ func testTLFJournalFirstRevNoSquash(t *testing.T, ver kbfsmd.MetadataVer) {
 // mode, it doesn't flush any MDs until `finishSingleOp()` is called,
 // and then it only flushes one squashed MD.
 func testTLFJournalSingleOp(t *testing.T, ver kbfsmd.MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalSingleOpBackgroundWorkEnabled)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalSingleOpBackgroundWorkEnabled)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 

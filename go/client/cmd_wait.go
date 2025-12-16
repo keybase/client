@@ -2,13 +2,14 @@ package client
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
-	"time"
 )
 
 type CmdWait struct {

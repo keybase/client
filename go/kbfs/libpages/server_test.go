@@ -31,7 +31,7 @@ func populateContent(t *testing.T, config libkbfs.Config) {
 	fs, err := libfs.NewFS(
 		ctx, config, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
-	err = fs.MkdirAll("/dir", 0600)
+	err = fs.MkdirAll("/dir", 0o600)
 	require.NoError(t, err)
 	err = fs.Symlink("dir", "dir-link")
 	require.NoError(t, err)
@@ -46,7 +46,8 @@ func populateContent(t *testing.T, config libkbfs.Config) {
 }
 
 func makeTestKBFSConfig(t *testing.T) (
-	kbfsConfig libkbfs.Config, shutdown func()) {
+	kbfsConfig libkbfs.Config, shutdown func(),
+) {
 	// This env is needed for the regression test for HOTPOT-2207.
 	oldEnv := os.Getenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest)
 	os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, "1")

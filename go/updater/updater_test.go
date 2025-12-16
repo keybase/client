@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
-
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/updater/saltpack"
 	"github.com/keybase/client/go/updater/util"
@@ -47,7 +46,7 @@ otWUI0nTu2vG2Fx Mgeyqm20Ug8j7Bi N. END KEYBASE SALTPACK DETACHED SIGNATURE.`
 func makeKeybaseUpdateTempDir(t *testing.T, updater *Updater, testAsset *Asset) (tmpDir string) {
 	// This creates a real KebyaseUpdater.[ID] directory in os.TempDir
 	// Then we download the test zip to this directory from testServer
-	tmpDir, err := util.MakeTempDir("KeybaseUpdater.", 0700)
+	tmpDir, err := util.MakeTempDir("KeybaseUpdater.", 0o700)
 	require.NoError(t, err)
 	err = updater.downloadAsset(testAsset, tmpDir, UpdateOptions{})
 	require.NoError(t, err)
@@ -118,7 +117,7 @@ func (u testUpdateUI) Verify(update Update) error {
 	if u.verifyErr != nil {
 		return u.verifyErr
 	}
-	var validCodeSigningKIDs = map[string]bool{
+	validCodeSigningKIDs := map[string]bool{
 		"0120d7539e27e83a9c8caf8701199c6985c0a96801ff7cb69456e9b3a8a8446c66080a": true, // joshblum (saltine)
 	}
 	return saltpack.VerifyDetachedFileAtPath(update.Asset.LocalPath, update.Asset.Signature, validCodeSigningKIDs, testLog)
@@ -218,7 +217,6 @@ func (c *testConfig) IsLastUpdateCheckTimeRecent(_ time.Duration) bool {
 }
 
 func (c *testConfig) SetLastUpdateCheckTime() {
-
 }
 
 // For overriding the current Auto setting
@@ -461,7 +459,7 @@ func TestUpdaterAuto(t *testing.T) {
 func TestUpdaterDownloadNil(t *testing.T) {
 	upr, err := newTestUpdater(t)
 	require.NoError(t, err)
-	tmpDir, err := util.MakeTempDir("TestUpdaterDownloadNil", 0700)
+	tmpDir, err := util.MakeTempDir("TestUpdaterDownloadNil", 0o700)
 	defer util.RemoveFileAtPath(tmpDir)
 	require.NoError(t, err)
 	err = upr.downloadAsset(nil, tmpDir, UpdateOptions{})
@@ -736,7 +734,7 @@ func TestFindDownloadedAsset(t *testing.T) {
 	assert.Equal(t, "", matchingAssetPath)
 
 	// 3. asset given -> created KeybaseUpdate. -> directory empty
-	tmpDir, err := util.MakeTempDir("KeybaseUpdater.", 0700)
+	tmpDir, err := util.MakeTempDir("KeybaseUpdater.", 0o700)
 	assert.NoError(t, err)
 	require.NoError(t, err)
 
@@ -747,10 +745,10 @@ func TestFindDownloadedAsset(t *testing.T) {
 	util.RemoveFileAtPath(tmpDir)
 
 	// 4. asset given -> created KeybaseUpdate. -> file exists but no match
-	tmpDir, err = util.MakeTempDir("KeybaseUpdater.", 0700)
+	tmpDir, err = util.MakeTempDir("KeybaseUpdater.", 0o700)
 	assert.NoError(t, err)
 	tmpFile := filepath.Join(tmpDir, "nottemp")
-	err = os.WriteFile(tmpFile, []byte("Contents of temp file"), 0700)
+	err = os.WriteFile(tmpFile, []byte("Contents of temp file"), 0o700)
 	require.NoError(t, err)
 
 	matchingAssetPath, err = upr.FindDownloadedAsset("temp")
@@ -760,9 +758,9 @@ func TestFindDownloadedAsset(t *testing.T) {
 	util.RemoveFileAtPath(tmpDir)
 
 	// 5. asset given -> created KeybaseUpdate. -> file exixst and matches
-	tmpDir, err = util.MakeTempDir("KeybaseUpdater.", 0700)
+	tmpDir, err = util.MakeTempDir("KeybaseUpdater.", 0o700)
 	tmpFile = filepath.Join(tmpDir, "temp")
-	err = os.WriteFile(tmpFile, []byte("Contents of temp file"), 0700)
+	err = os.WriteFile(tmpFile, []byte("Contents of temp file"), 0o700)
 	require.NoError(t, err)
 
 	matchingAssetPath, err = upr.FindDownloadedAsset("temp")
@@ -770,7 +768,6 @@ func TestFindDownloadedAsset(t *testing.T) {
 	assert.Equal(t, tmpFile, matchingAssetPath)
 
 	util.RemoveFileAtPath(tmpDir)
-
 }
 
 func TestUpdaterGuiBusy(t *testing.T) {
@@ -786,14 +783,14 @@ func TestUpdaterGuiBusy(t *testing.T) {
 
 	// Now put the config file there and make sure the right error is returned
 	now := time.Now().Unix() * 1000
-	err = os.WriteFile(testAppStatePath, []byte(fmt.Sprintf(`{"isUserActive":true, "changedAtMs":%d}`, now)), 0644)
+	err = os.WriteFile(testAppStatePath, []byte(fmt.Sprintf(`{"isUserActive":true, "changedAtMs":%d}`, now)), 0o644)
 	assert.NoError(t, err)
 	defer util.RemoveFileAtPath(testAppStatePath)
 	_, err = upr.Update(ctx)
 	assert.EqualError(t, err, "Update Error (guiBusy): User active, retrying later")
 
 	// If the user was recently active, they are still considered busy.
-	err = os.WriteFile(testAppStatePath, []byte(fmt.Sprintf(`{"isUserActive":false, "changedAtMs":%d}`, now)), 0644)
+	err = os.WriteFile(testAppStatePath, []byte(fmt.Sprintf(`{"isUserActive":false, "changedAtMs":%d}`, now)), 0o644)
 	assert.NoError(t, err)
 	_, err = upr.Update(ctx)
 	assert.EqualError(t, err, "Update Error (guiBusy): User active, retrying later")
@@ -806,7 +803,7 @@ func TestUpdaterGuiBusy(t *testing.T) {
 	// If the user wasn't recently active, they are not considered busy
 	ctx.isCheckCommand = false
 	later := time.Now().Add(-5*time.Minute).Unix() * 1000
-	err = os.WriteFile(testAppStatePath, []byte(fmt.Sprintf(`{"isUserActive":false, "changedAtMs":%d}`, later)), 0644)
+	err = os.WriteFile(testAppStatePath, []byte(fmt.Sprintf(`{"isUserActive":false, "changedAtMs":%d}`, later)), 0o644)
 	assert.NoError(t, err)
 	_, err = upr.Update(ctx)
 	assert.NoError(t, err)

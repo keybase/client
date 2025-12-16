@@ -180,7 +180,6 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 		}
 
 		u, err = LoadUser(arg)
-
 		if err != nil {
 			return err
 		}
@@ -217,7 +216,6 @@ func (m *CachedFullSelf) cacheMe(u *User) {
 // CALLER BEWARE! You must only provide this function with a user you know to be "self".
 // This function will not do any checking along those lines (see comment below).
 func (m *CachedFullSelf) Update(ctx context.Context, u *User) (err error) {
-
 	// NOTE(max) 20171101: We used to do this:
 	//
 	//   if !u.GetUID().Equal(m.G().GetMyUID()) {

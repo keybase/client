@@ -98,8 +98,10 @@ type ImpatientDebugDumper struct {
 	chronologicalTimeTrackerList *ctxTimeTrackerList
 }
 
-const impatientDebugDumperCheckInterval = time.Second
-const impatientDebugDumperDumpMinInterval = time.Minute // 1 dump per min max
+const (
+	impatientDebugDumperCheckInterval   = time.Second
+	impatientDebugDumperDumpMinInterval = time.Minute // 1 dump per min max
+)
 
 // NewImpatientDebugDumper creates a new *ImpatientDebugDumper, which logs with
 // a logger made by config.MakeLogger("IGD"), and dumps goroutines if an

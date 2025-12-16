@@ -745,7 +745,8 @@ func checkCryptKeyInfo(t *testing.T, privKey kbfscrypto.CryptPrivateKey,
 	serverHalf kbfscrypto.TLFCryptKeyServerHalf, expectedEPubKeyIndex int,
 	expectedEPubKey kbfscrypto.TLFEphemeralPublicKey,
 	expectedTLFCryptKey kbfscrypto.TLFCryptKey, info TLFCryptKeyInfo,
-	ePubKey kbfscrypto.TLFEphemeralPublicKey) {
+	ePubKey kbfscrypto.TLFEphemeralPublicKey,
+) {
 	require.Equal(t, expectedEPubKeyIndex, info.EPubKeyIndex)
 	require.Equal(t, expectedEPubKey, ePubKey)
 
@@ -763,7 +764,8 @@ func checkCryptKeyInfo(t *testing.T, privKey kbfscrypto.CryptPrivateKey,
 func checkGetTLFCryptKeyV2(t *testing.T, keyGen KeyGen,
 	expected expectedRekeyInfoV2,
 	expectedTLFCryptKey kbfscrypto.TLFCryptKey,
-	wkb *TLFWriterKeyBundleV2, rkb *TLFReaderKeyBundleV2) {
+	wkb *TLFWriterKeyBundleV2, rkb *TLFReaderKeyBundleV2,
+) {
 	expectedServerHalves := expected.serverHalves[keyGen-FirstValidKeyGen]
 	for uid, privKeys := range expected.writerPrivKeys {
 		for privKey := range privKeys {
@@ -808,7 +810,8 @@ func checkGetTLFCryptKeyV2(t *testing.T, keyGen KeyGen,
 // pubKeys1 and pubKeys2. A user's keys in pubKeys1 and pubKeys2 must
 // be disjoint.
 func accumulatePublicKeys(
-	pubKeys1, pubKeys2 UserDevicePublicKeys) UserDevicePublicKeys {
+	pubKeys1, pubKeys2 UserDevicePublicKeys,
+) UserDevicePublicKeys {
 	pubKeys := make(UserDevicePublicKeys)
 	for uid, keys := range pubKeys1 {
 		pubKeys[uid] = make(DevicePublicKeys)
@@ -835,7 +838,8 @@ func accumulatePublicKeys(
 // unionPublicKeyUsers returns the union of the usersin pubKeys1 and
 // pubKeys2, which must be disjoint. Not a deep copy.
 func unionPublicKeyUsers(
-	pubKeys1, pubKeys2 UserDevicePublicKeys) UserDevicePublicKeys {
+	pubKeys1, pubKeys2 UserDevicePublicKeys,
+) UserDevicePublicKeys {
 	pubKeys := make(UserDevicePublicKeys)
 	for uid, keys := range pubKeys1 {
 		pubKeys[uid] = keys
@@ -850,7 +854,8 @@ func unionPublicKeyUsers(
 }
 
 func userDeviceKeyInfoMapV2ToPublicKeys(
-	udkimV2 UserDeviceKeyInfoMapV2) UserDevicePublicKeys {
+	udkimV2 UserDeviceKeyInfoMapV2,
+) UserDevicePublicKeys {
 	pubKeys := make(UserDevicePublicKeys)
 	for uid, dkimV2 := range udkimV2 {
 		pubKeys[uid] = make(DevicePublicKeys)
@@ -862,7 +867,8 @@ func userDeviceKeyInfoMapV2ToPublicKeys(
 }
 
 func userDeviceServerHalvesToPublicKeys(
-	serverHalves UserDeviceKeyServerHalves) UserDevicePublicKeys {
+	serverHalves UserDeviceKeyServerHalves,
+) UserDevicePublicKeys {
 	pubKeys := make(UserDevicePublicKeys)
 	for uid, keys := range serverHalves {
 		pubKeys[uid] = make(DevicePublicKeys)
@@ -877,7 +883,8 @@ func userDeviceServerHalvesToPublicKeys(
 // info expected from expectedRekeyInfos and expectedPubKey.
 func checkKeyBundlesV2(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV2,
 	expectedTLFCryptKeys []kbfscrypto.TLFCryptKey,
-	expectedPubKeys []kbfscrypto.TLFPublicKey, rmd *RootMetadataV2) {
+	expectedPubKeys []kbfscrypto.TLFPublicKey, rmd *RootMetadataV2,
+) {
 	require.Equal(t, len(expectedTLFCryptKeys), len(expectedPubKeys))
 	require.Equal(t, len(expectedTLFCryptKeys),
 		int(rmd.LatestKeyGeneration()-FirstValidKeyGen+1))

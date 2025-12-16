@@ -69,7 +69,8 @@ func newTestTeamChannelSource(channels []string) *testTeamChannelSource {
 }
 
 func (t *testTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, err error) {
+	teamID chat1.TLFID, topicType chat1.TopicType,
+) (res []chat1.ChannelNameMention, err error) {
 	for _, c := range t.channels {
 		res = append(res, chat1.ChannelNameMention{
 			TopicName: c,
@@ -79,22 +80,26 @@ func (t *testTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gr
 }
 
 func (t *testTeamChannelSource) GetLastActiveForTLF(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
-	topicType chat1.TopicType) (gregor1.Time, error) {
+	topicType chat1.TopicType,
+) (gregor1.Time, error) {
 	return 0, fmt.Errorf("testTeamChannelSource.GetLastActiveForTLF not implemented")
 }
 
 func (t *testTeamChannelSource) GetLastActiveForTeams(ctx context.Context, uid gregor1.UID,
-	topicType chat1.TopicType) (res chat1.LastActiveTimeAll, err error) {
+	topicType chat1.TopicType,
+) (res chat1.LastActiveTimeAll, err error) {
 	return res, fmt.Errorf("testTeamChannelSource.GetLastActiveForTeams not implemented")
 }
 
 func (t *testTeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (string, error) {
+	teamID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID,
+) (string, error) {
 	return "", fmt.Errorf("testTeamChannelSource.GetChannelTopicName not implemented")
 }
 
 func (t *testTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
+	teamID chat1.TLFID, topicType chat1.TopicType,
+) (res []chat1.ConversationLocal, err error) {
 	return res, nil
 }
 
@@ -145,14 +150,17 @@ type testInboxSource struct {
 }
 
 func (t testInboxSource) Read(ctx context.Context, uid gregor1.UID, localizeTyp types.ConversationLocalizerTyp,
-	dataSource types.InboxSourceDataSourceTyp, maxLocalize *int, query *chat1.GetInboxLocalQuery) (types.Inbox, chan types.AsyncInboxResult, error) {
+	dataSource types.InboxSourceDataSourceTyp, maxLocalize *int, query *chat1.GetInboxLocalQuery,
+) (types.Inbox, chan types.AsyncInboxResult, error) {
 	return types.Inbox{
-		Convs: []chat1.ConversationLocal{{
-			Info: chat1.ConversationInfoLocal{
-				TopicName: "mike",
+		Convs: []chat1.ConversationLocal{
+			{
+				Info: chat1.ConversationInfoLocal{
+					TopicName: "mike",
+				},
 			},
 		},
-		}}, nil, nil
+	}, nil, nil
 }
 
 func (s *testUIDSource) LookupUID(ctx context.Context, un libkb.NormalizedUsername) (uid keybase1.UID, err error) {
@@ -319,7 +327,7 @@ func TestDecorateMentions(t *testing.T) {
 }
 
 func BenchmarkDecorateLinks(b *testing.B) {
-	var messages = []string{
+	messages := []string{
 		"The buttons have been \"encrypted\" and the plaintext is still there.",
 		":joy: ",
 		"it looked like \"CASINO\" to me ",
@@ -968,7 +976,8 @@ func (c *contactStoreMock) RetrieveAssertionToName(libkb.MetaContext) (map[strin
 }
 
 func (c *contactStoreMock) UnresolveContactsWithComponent(mctx libkb.MetaContext,
-	phoneNumber *keybase1.PhoneNumber, email *keybase1.EmailAddress) {
+	phoneNumber *keybase1.PhoneNumber, email *keybase1.EmailAddress,
+) {
 	panic("unexpected call to UnresolveContactsWithComponent in mock")
 }
 

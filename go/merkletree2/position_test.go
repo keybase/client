@@ -10,7 +10,6 @@ import (
 )
 
 func TestEncoding(t *testing.T) {
-
 	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	encodingTests := []struct {
@@ -39,7 +38,6 @@ func TestEncoding(t *testing.T) {
 }
 
 func TestGetAndUpdateParentAndGetChild(t *testing.T) {
-
 	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	parentChildTests := []struct {
@@ -74,7 +72,6 @@ func TestGetAndUpdateParentAndGetChild(t *testing.T) {
 }
 
 func TestUpdateToParentAtLevel(t *testing.T) {
-
 	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
@@ -105,11 +102,9 @@ func TestUpdateToParentAtLevel(t *testing.T) {
 			require.True(t, parent.Equals(&childToUpdate), "expected: %x actual: %x", parent, childToUpdate)
 		})
 	}
-
 }
 
 func TestUpdateToParentAndAllSiblings(t *testing.T) {
-
 	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
@@ -144,7 +139,6 @@ func TestUpdateToParentAndAllSiblings(t *testing.T) {
 }
 
 func TestNewConfigError(t *testing.T) {
-
 	_, err := NewConfig(nil, false, 5, 8, 6, ConstructStringValueContainer)
 	require.Error(t, err)
 	require.IsType(t, InvalidConfigError{}, err)
@@ -156,7 +150,6 @@ func TestNewConfigError(t *testing.T) {
 }
 
 func TestPositionIsOnPathToKey(t *testing.T) {
-
 	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
@@ -186,11 +179,9 @@ func TestPositionIsOnPathToKey(t *testing.T) {
 			require.Equal(t, test.expected, pos.isOnPathToKey(test.k))
 		})
 	}
-
 }
 
 func TestGetDeepestPositionAtLevelAndSiblingsOnPathToKey(t *testing.T) {
-
 	config1bit, config2bits, _ := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
@@ -228,7 +219,6 @@ func TestGetDeepestPositionAtLevelAndSiblingsOnPathToKey(t *testing.T) {
 }
 
 func TestGetLevel(t *testing.T) {
-
 	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
@@ -256,11 +246,9 @@ func TestGetLevel(t *testing.T) {
 			require.Equal(t, int(test.lev), test.c.getLevel(&pos))
 		})
 	}
-
 }
 
 func TestGetParentAtLevel(t *testing.T) {
-
 	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
@@ -291,11 +279,9 @@ func TestGetParentAtLevel(t *testing.T) {
 			require.True(t, expParent.Equals(test.c.getParentAtLevel(&pos, test.lev)))
 		})
 	}
-
 }
 
 func TestPositionToChildIndexPath(t *testing.T) {
-
 	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
@@ -326,11 +312,9 @@ func TestPositionToChildIndexPath(t *testing.T) {
 			require.Equal(t, test.p, test.c.positionToChildIndexPath(&pos))
 		})
 	}
-
 }
 
 func TestGetDeepestChildIndex(t *testing.T) {
-
 	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
@@ -361,11 +345,9 @@ func TestGetDeepestChildIndex(t *testing.T) {
 			require.Equal(t, test.lev, test.c.getDeepestChildIndex(&pos))
 		})
 	}
-
 }
 
 func TestGetKeyIntervalUnderPosition(t *testing.T) {
-
 	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
@@ -394,5 +376,4 @@ func TestGetKeyIntervalUnderPosition(t *testing.T) {
 			require.Equal(t, test.maxKey, maxI)
 		})
 	}
-
 }

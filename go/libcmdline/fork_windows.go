@@ -18,7 +18,8 @@ const flagCreateNewConsole = 0x00000010
 // SpawnDetachedProcess spawns a background process and detech from the calling
 // process.
 func SpawnDetachedProcess(
-	cmd string, args []string, log logger.Logger) (pid int, err error) {
+	cmd string, args []string, log logger.Logger,
+) (pid int, err error) {
 	var files []uintptr
 	var devnull *os.File
 

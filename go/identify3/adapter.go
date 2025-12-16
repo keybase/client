@@ -157,7 +157,6 @@ func (i *UIAdapter) getColorForValid(following bool) keybase1.Identify3RowColor 
 
 // return true if we need an upgrade
 func (i *UIAdapter) setRowStatus(mctx libkb.MetaContext, arg *keybase1.Identify3Row, lcr keybase1.LinkCheckResult) bool {
-
 	needUpgrade := false
 	mctx.Debug("ID3: setRowStatus(lcr: %+v, cached: %+v, diff: %+v, remoteDiff: %+v, hint: %+v)",
 		lcr, lcr.Cached, lcr.Diff, lcr.RemoteDiff, lcr.Hint)
@@ -552,7 +551,6 @@ func (i *UIAdapter) plumbRevokeds(mctx libkb.MetaContext, rows []keybase1.Revoke
 }
 
 func (i *UIAdapter) LaunchNetworkChecks(mctx libkb.MetaContext, id *keybase1.Identity, user *keybase1.User) error {
-
 	if id.BreaksTracking {
 		i.session.SetTrackBroken()
 	}
@@ -596,9 +594,11 @@ func (i *UIAdapter) Finish(mctx libkb.MetaContext) error {
 	_ = i.sendResult(mctx, i.session.ResultType())
 	return nil
 }
+
 func (i *UIAdapter) DisplayTLFCreateWithInvite(libkb.MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil
 }
+
 func (i *UIAdapter) Dismiss(libkb.MetaContext, string, keybase1.DismissReason) error {
 	return nil
 }

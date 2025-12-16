@@ -3,7 +3,6 @@ package teams
 import (
 	"context"
 	"encoding/json"
-
 	"os"
 	"os/exec"
 	"path/filepath"

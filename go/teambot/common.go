@@ -11,8 +11,10 @@ import (
 	"github.com/keybase/client/go/teams"
 )
 
-const lruSize = 1000
-const maxRetries = 5
+const (
+	lruSize    = 1000
+	maxRetries = 5
+)
 
 type TeambotTransientKeyError struct {
 	inner      error
@@ -83,7 +85,8 @@ func extractTeambotKeyMetadataFromSig(sig string) (*kbcrypto.NaclSigningKeyPubli
 // Verify that the blob is validly signed, and that the signing key is the
 // given team's latest PTK, then parse its contents.
 func verifyTeambotKeySigWithLatestPTK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string) (
-	metadata *keybase1.TeambotKeyMetadata, wrongKID bool, err error) {
+	metadata *keybase1.TeambotKeyMetadata, wrongKID bool, err error,
+) {
 	defer mctx.Trace("verifyTeambotSigWithLatestPTK", &err)()
 
 	signerKey, metadata, err := extractTeambotKeyMetadataFromSig(sig)
@@ -135,7 +138,8 @@ func CurrentUserIsBot(mctx libkb.MetaContext, botUID *gregor1.UID) bool {
 }
 
 func DeleteTeambotKeyForTest(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) error {
+	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration,
+) error {
 	if err := deleteTeambotKeyForTest(mctx, teamID, app, int(generation), false /* isEphemeral */); err != nil {
 		return err
 	}
@@ -143,7 +147,8 @@ func DeleteTeambotKeyForTest(mctx libkb.MetaContext, teamID keybase1.TeamID,
 }
 
 func DeleteTeambotEKForTest(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	generation keybase1.EkGeneration) error {
+	generation keybase1.EkGeneration,
+) error {
 	if err := deleteTeambotKeyForTest(mctx, teamID, keybase1.TeamApplication_CHAT, int(generation), true /* isEphemeral */); err != nil {
 		return err
 	}
@@ -151,7 +156,8 @@ func DeleteTeambotEKForTest(mctx libkb.MetaContext, teamID keybase1.TeamID,
 }
 
 func deleteTeambotKeyForTest(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	app keybase1.TeamApplication, generation int, isEphemeral bool) error {
+	app keybase1.TeamApplication, generation int, isEphemeral bool,
+) error {
 	apiArg := libkb.APIArg{
 		Endpoint:    "teambot/delete_for_test",
 		SessionType: libkb.APISessionTypeREQUIRED,

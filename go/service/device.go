@@ -88,8 +88,8 @@ type _deviceChange struct {
 }
 
 func LoopAndDismissForDeviceChangeNotifications(mctx libkb.MetaContext, dismisser libkb.GregorState,
-	gregorState gregor.State, exceptedDeviceID string) (err error) {
-
+	gregorState gregor.State, exceptedDeviceID string,
+) (err error) {
 	items, err := gregorState.Items()
 	if err != nil {
 		return err

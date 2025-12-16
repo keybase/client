@@ -10,7 +10,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-
 	"strings"
 	"sync"
 
@@ -45,7 +44,6 @@ func (g *GpgCLI) SetTTY(t string) {
 }
 
 func (g *GpgCLI) Configure(mctx MetaContext) (err error) {
-
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
@@ -138,7 +136,6 @@ func (g *GpgCLI) ImportKeyArmored(mctx MetaContext, secret bool, fp PGPFingerpri
 }
 
 func (g *GpgCLI) ImportKey(mctx MetaContext, secret bool, fp PGPFingerprint, tty string) (*PGPKeyBundle, error) {
-
 	armored, err := g.ImportKeyArmored(mctx, secret, fp, tty)
 	if err != nil {
 		return nil, err

@@ -36,7 +36,8 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 // Set's the channel policy if `setChannel`, otherwise sets the team-wide policy. `setChannel` is ignored if using a non-team.
 // UI is optional if `doPrompt` is false.
 func postRetentionPolicy(ctx context.Context, lcli chat1.LocalClient, tui libkb.TerminalUI,
-	conv *chat1.ConversationLocal, policy chat1.RetentionPolicy, setChannel bool, doPrompt bool) (err error) {
+	conv *chat1.ConversationLocal, policy chat1.RetentionPolicy, setChannel bool, doPrompt bool,
+) (err error) {
 	teamInvolved := (conv.Info.MembersType == chat1.ConversationMembersType_TEAM)
 	teamWide := teamInvolved && !setChannel
 
@@ -71,7 +72,8 @@ func postRetentionPolicy(ctx context.Context, lcli chat1.LocalClient, tui libkb.
 
 // Post a min writer role for the given conversation
 func postConvMinWriterRole(ctx context.Context, lcli chat1.LocalClient, tui libkb.TerminalUI,
-	conv *chat1.ConversationLocal, role keybase1.TeamRole, doPrompt bool) (err error) {
+	conv *chat1.ConversationLocal, role keybase1.TeamRole, doPrompt bool,
+) (err error) {
 	if doPrompt {
 		promptText := fmt.Sprintf("Set the minimium writer role of %v for this conversation?\nHit Enter to confirm, or Ctrl-C to cancel.", role)
 		if _, err = tui.Prompt(PromptDescriptorChatSetConvMinWriterRole, promptText); err != nil {

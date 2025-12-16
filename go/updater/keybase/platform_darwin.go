@@ -168,8 +168,10 @@ func (c context) IsCheckCommand() bool {
 	return c.isCheckCommand
 }
 
-const serviceInBundlePath = "/Contents/SharedSupport/bin/keybase"
-const kbfsInBundlePath = "/Contents/SharedSupport/bin/kbfs"
+const (
+	serviceInBundlePath = "/Contents/SharedSupport/bin/keybase"
+	kbfsInBundlePath    = "/Contents/SharedSupport/bin/kbfs"
+)
 
 type processPaths struct {
 	serviceProcPath string

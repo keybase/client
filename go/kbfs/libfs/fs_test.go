@@ -27,7 +27,8 @@ import (
 )
 
 func makeFSWithBranch(t *testing.T, branch data.BranchName, subdir string) (
-	context.Context, *tlfhandle.Handle, *FS) {
+	context.Context, *tlfhandle.Handle, *FS,
+) {
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	h, err := tlfhandle.ParseHandle(
@@ -40,12 +41,14 @@ func makeFSWithBranch(t *testing.T, branch data.BranchName, subdir string) (
 }
 
 func makeFS(t *testing.T, subdir string) (
-	context.Context, *tlfhandle.Handle, *FS) {
+	context.Context, *tlfhandle.Handle, *FS,
+) {
 	return makeFSWithBranch(t, data.MasterBranch, subdir)
 }
 
 func makeFSWithJournal(t *testing.T, subdir string) (
-	context.Context, *tlfhandle.Handle, *FS, func()) {
+	context.Context, *tlfhandle.Handle, *FS, func(),
+) {
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1")
@@ -81,7 +84,8 @@ func makeFSWithJournal(t *testing.T, subdir string) (
 
 func testCreateFile(
 	ctx context.Context, t *testing.T, fs *FS, file string,
-	parent libkbfs.Node) {
+	parent libkbfs.Node,
+) {
 	f, err := fs.Create(file)
 	require.NoError(t, err)
 	require.Equal(t, file, f.Name())
@@ -173,7 +177,7 @@ func TestAppendFile(t *testing.T) {
 	require.NoError(t, err)
 
 	testCreateFile(ctx, t, fs, "foo", rootNode)
-	f, err := fs.OpenFile("foo", os.O_APPEND, 0600)
+	f, err := fs.OpenFile("foo", os.O_APPEND, 0o600)
 	require.NoError(t, err)
 
 	// Append one byte to the file.
@@ -217,11 +221,11 @@ func TestRecreateAndExcl(t *testing.T) {
 	require.NoError(t, err)
 
 	// Try to create it with EXCL, and fail.
-	_, err = fs.OpenFile("foo", os.O_CREATE|os.O_EXCL, 0600)
+	_, err = fs.OpenFile("foo", os.O_CREATE|os.O_EXCL, 0o600)
 	require.NotNil(t, err)
 
 	// Creating a different file exclusively should work though.
-	f, err = fs.OpenFile("foo2", os.O_CREATE|os.O_EXCL, 0600)
+	f, err = fs.OpenFile("foo2", os.O_CREATE|os.O_EXCL, 0o600)
 	require.NoError(t, err)
 	err = f.Close()
 	require.NoError(t, err)
@@ -251,9 +255,9 @@ func TestStat(t *testing.T) {
 		require.Equal(t, "a", fi.Name())
 		// Not sure exactly what the dir size should be.
 		require.True(t, fi.Size() > 0)
-		expectedMode := os.FileMode(0500) | os.ModeDir
+		expectedMode := os.FileMode(0o500) | os.ModeDir
 		if isWriter {
-			expectedMode |= 0200
+			expectedMode |= 0o200
 		}
 		require.Equal(t, expectedMode, fi.Mode())
 		require.True(t, clock.Now().Equal(fi.ModTime()))
@@ -267,9 +271,9 @@ func TestStat(t *testing.T) {
 	checkFile := func(fi os.FileInfo, isWriter bool) {
 		require.Equal(t, "foo", fi.Name())
 		require.Equal(t, int64(1), fi.Size())
-		expectedMode := os.FileMode(0400)
+		expectedMode := os.FileMode(0o400)
 		if isWriter {
-			expectedMode |= 0200
+			expectedMode |= 0o200
 		}
 		require.Equal(t, expectedMode, fi.Mode())
 		require.True(t, clock.Now().Equal(fi.ModTime()))
@@ -320,7 +324,7 @@ func TestRename(t *testing.T) {
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	testCreateFile(ctx, t, fs, "foo", rootNode)
-	err = fs.MkdirAll("a/b", os.FileMode(0600))
+	err = fs.MkdirAll("a/b", os.FileMode(0o600))
 	require.NoError(t, err)
 
 	f, err := fs.Open("foo")
@@ -358,7 +362,7 @@ func TestRemove(t *testing.T) {
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	testCreateFile(ctx, t, fs, "foo", rootNode)
-	err = fs.MkdirAll("a/b", os.FileMode(0600))
+	err = fs.MkdirAll("a/b", os.FileMode(0o600))
 	require.NoError(t, err)
 
 	// Remove a file.
@@ -411,10 +415,10 @@ func TestMkdirAll(t *testing.T) {
 	ctx, _, fs := makeFS(t, "")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
-	err := fs.MkdirAll("a/b", os.FileMode(0600))
+	err := fs.MkdirAll("a/b", os.FileMode(0o600))
 	require.NoError(t, err)
 
-	err = fs.MkdirAll("a/b/c/d", os.FileMode(0600))
+	err = fs.MkdirAll("a/b/c/d", os.FileMode(0o600))
 	require.NoError(t, err)
 
 	f, err := fs.Create("a/b/c/d/foo")
@@ -428,7 +432,7 @@ func TestSymlink(t *testing.T) {
 	ctx, _, fs := makeFS(t, "")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
-	err := fs.MkdirAll("a/b/c", os.FileMode(0600))
+	err := fs.MkdirAll("a/b/c", os.FileMode(0o600))
 	require.NoError(t, err)
 
 	foo, err := fs.Create("a/b/c/foo")
@@ -477,7 +481,7 @@ func TestSymlink(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("File symlink across to a higher dir")
-	err = fs.MkdirAll("a/b/c/d/e/f", os.FileMode(0600))
+	err = fs.MkdirAll("a/b/c/d/e/f", os.FileMode(0o600))
 	require.NoError(t, err)
 	err = fs.Symlink("../../../foo", "a/b/c/d/e/f/bar")
 	require.NoError(t, err)
@@ -540,14 +544,14 @@ func TestChmod(t *testing.T) {
 
 	fi, err := fs.Stat("foo")
 	require.NoError(t, err)
-	require.True(t, fi.Mode()&0100 == 0)
+	require.True(t, fi.Mode()&0o100 == 0)
 
-	err = fs.Chmod("foo", 0777)
+	err = fs.Chmod("foo", 0o777)
 	require.NoError(t, err)
 
 	fi, err = fs.Stat("foo")
 	require.NoError(t, err)
-	require.True(t, fi.Mode()&0100 != 0)
+	require.True(t, fi.Mode()&0o100 != 0)
 }
 
 func TestChtimes(t *testing.T) {
@@ -582,7 +586,7 @@ func TestChroot(t *testing.T) {
 
 	require.Equal(t, "/keybase/private/user1", fs.Root())
 
-	err := fs.MkdirAll("a/b/c", os.FileMode(0600))
+	err := fs.MkdirAll("a/b/c", os.FileMode(0o600))
 	require.NoError(t, err)
 
 	foo, err := fs.Create("a/b/c/foo")
@@ -730,6 +734,6 @@ func TestEmptyFS(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, fis, 0)
 
-	err = fs.MkdirAll("a", 0777)
+	err = fs.MkdirAll("a", 0o777)
 	require.Error(t, err)
 }

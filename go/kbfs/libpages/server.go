@@ -212,7 +212,8 @@ func (a adaptedLogger) Warning(format string, args ...interface{}) {
 }
 
 func (s *Server) handleUnauthorized(w http.ResponseWriter,
-	r *http.Request, realm string, authorizationPossible bool) {
+	r *http.Request, realm string, authorizationPossible bool,
+) {
 	if authorizationPossible {
 		w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=%s", realm))
 		w.WriteHeader(http.StatusUnauthorized)
@@ -222,7 +223,8 @@ func (s *Server) handleUnauthorized(w http.ResponseWriter,
 }
 
 func (s *Server) isDirWithNoIndexHTML(
-	realFS *libfs.FS, requestPath string) (bool, error) {
+	realFS *libfs.FS, requestPath string,
+) (bool, error) {
 	fi, err := realFS.Stat(strings.Trim(path.Clean(requestPath), "/"))
 	switch {
 	case os.IsNotExist(err):
@@ -306,7 +308,8 @@ func (w statusCodePeekingResponseWriter) Write(data []byte) (int, error) {
 }
 
 func (s *ServedRequestInfo) wrapResponseWriter(
-	w http.ResponseWriter) http.ResponseWriter {
+	w http.ResponseWriter,
+) http.ResponseWriter {
 	return statusCodePeekingResponseWriter{w: w, code: &s.HTTPStatus}
 }
 
@@ -488,7 +491,8 @@ const (
 
 func makeACMEManager(kbfsConfig libkbfs.Config, useStaging bool,
 	certStoreType CertStoreType, hostPolicy autocert.HostPolicy) (
-	*autocert.Manager, error) {
+	*autocert.Manager, error,
+) {
 	manager := &autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: hostPolicy,
@@ -540,7 +544,8 @@ func (f *logForwarder) Write(p []byte) (n int, err error) {
 // Keybase Pages based on config and kbfsConfig. HTTPs setup is handled with
 // ACME.
 func ListenAndServe(ctx context.Context,
-	config *ServerConfig, kbfsConfig libkbfs.Config) (err error) {
+	config *ServerConfig, kbfsConfig libkbfs.Config,
+) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 

@@ -15,26 +15,33 @@ type Storage struct {
 }
 
 // Increment to invalidate the disk cache.
-const diskStorageVersion = 12
-const memCacheLRUSize = 200
+const (
+	diskStorageVersion = 12
+	memCacheLRUSize    = 200
+)
 
 type DiskStorageItem struct {
 	Version int                `codec:"V"`
 	State   *keybase1.TeamData `codec:"S"`
 }
 
-var _ teamDataGeneric = (*keybase1.TeamData)(nil)
-var _ diskItemGeneric = (*DiskStorageItem)(nil)
+var (
+	_ teamDataGeneric = (*keybase1.TeamData)(nil)
+	_ diskItemGeneric = (*DiskStorageItem)(nil)
+)
 
 func (d *DiskStorageItem) version() int {
 	return d.Version
 }
+
 func (d *DiskStorageItem) value() teamDataGeneric {
 	return d.State
 }
+
 func (d *DiskStorageItem) setVersion(i int) {
 	d.Version = i
 }
+
 func (d *DiskStorageItem) setValue(v teamDataGeneric) error {
 	typed, ok := v.(*keybase1.TeamData)
 	if !ok {

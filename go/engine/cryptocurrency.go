@@ -139,7 +139,6 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 		me,
 		sigVersion,
 	)
-
 	if err != nil {
 		return err
 	}

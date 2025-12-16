@@ -889,7 +889,8 @@ func TestJournalCoalescingConflictingCreatesMultiblock(t *testing.T) {
 
 func testJournalConflictClearing(
 	t *testing.T, tlfBaseName string, switchTlf func(string) optionOp,
-	lsfavs func([]string) fileOp, isBackedByTeam, expectSelfFav bool) {
+	lsfavs func([]string) fileOp, isBackedByTeam, expectSelfFav bool,
+) {
 	iteamSuffix := ""
 	if isBackedByTeam {
 		iteamSuffix = " #1"

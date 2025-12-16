@@ -100,7 +100,6 @@ func Replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary,
 }
 
 func replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary, error) {
-
 	var game *Game
 	var err error
 	game, gh, err = gh.start(rh)

@@ -46,7 +46,8 @@ type EventuallyConsistentMerkleRoot struct {
 // NewEventuallyConsistentMerkleRoot creates a new
 // EventuallyConsistentMerkleRoot object.
 func NewEventuallyConsistentMerkleRoot(
-	config Config, getter idutil.MerkleRootGetter) *EventuallyConsistentMerkleRoot {
+	config Config, getter idutil.MerkleRootGetter,
+) *EventuallyConsistentMerkleRoot {
 	ecmr := &EventuallyConsistentMerkleRoot{
 		config: config,
 		log:    config.MakeLogger(ECMRID),
@@ -59,7 +60,8 @@ func NewEventuallyConsistentMerkleRoot(
 }
 
 func (ecmr *EventuallyConsistentMerkleRoot) getAndCache(
-	ctx context.Context) (err error) {
+	ctx context.Context,
+) (err error) {
 	defer func() {
 		ecmr.log.CDebugf(ctx, "getAndCache: error=%v", err)
 	}()
@@ -100,7 +102,8 @@ func (ecmr *EventuallyConsistentMerkleRoot) getCached() cachedMerkleRoot {
 func (ecmr *EventuallyConsistentMerkleRoot) Get(
 	ctx context.Context, bgTolerance, blockTolerance time.Duration) (
 	timestamp time.Time, root keybase1.MerkleRootV2,
-	rootTime time.Time, err error) {
+	rootTime time.Time, err error,
+) {
 	c := ecmr.getCached()
 	err = ecmr.fetcher.Do(ctx, bgTolerance, blockTolerance, c.timestamp)
 	if err != nil {

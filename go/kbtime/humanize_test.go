@@ -16,7 +16,7 @@ func mustAddLongDuration(t *testing.T, tval time.Time, s string) time.Time {
 func TestRelTime(t *testing.T) {
 	now := time.Date(2020, time.January, 10, 14, 0, 0, 0, time.UTC)
 
-	var tests = []struct {
+	tests := []struct {
 		a   time.Time
 		b   time.Time
 		out string

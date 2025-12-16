@@ -1,9 +1,10 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"testing"
 )
 
 func assertEmail(mctx libkb.MetaContext, t *testing.T, expected string) {

@@ -18,7 +18,8 @@ func (f fileInfoForActivesGetterTest) IsDir() bool        { return false }
 func (f fileInfoForActivesGetterTest) Sys() interface{}   { return nil }
 
 func makeFileInfoActivesGetterForTest(
-	tlfModTimes, hostModTimes []time.Time) fileinfoActivesGetter {
+	tlfModTimes, hostModTimes []time.Time,
+) fileinfoActivesGetter {
 	tlfs := make([]os.FileInfo, 0, len(tlfModTimes))
 	hosts := make([]os.FileInfo, 0, len(hostModTimes))
 	for _, m := range tlfModTimes {

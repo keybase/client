@@ -133,7 +133,8 @@ const (
 // GetRootCerts returns a byte array with the appropriate root certs
 // for the given host:port string.
 func GetRootCerts(serverAddr string,
-	certGetter func(host string) (certsBundle []byte, ok bool)) []byte {
+	certGetter func(host string) (certsBundle []byte, ok bool),
+) []byte {
 	// Use the environment variable, if set.
 	envTestRootCert := os.Getenv(EnvTestRootCertPEM)
 	if len(envTestRootCert) != 0 {

@@ -125,7 +125,8 @@ func (m *GetUsernameMock) DisplayPrimaryPaperKey(_ context.Context, arg keybase1
 }
 
 func (m *GetUsernameMock) PromptResetAccount(_ context.Context,
-	arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	arg keybase1.PromptResetAccountArg,
+) (keybase1.ResetPromptResponse, error) {
 	return keybase1.ResetPromptResponse_NOTHING, nil
 }
 
@@ -235,7 +236,6 @@ func userHasStoredSecret(tc *libkb.TestContext, username string) bool {
 
 // Test that the login flow using the secret store works.
 func TestLoginWithStoredSecret(t *testing.T) {
-
 	tc := SetupEngineTest(t, "login with stored secret")
 	defer tc.Cleanup()
 
@@ -314,7 +314,6 @@ func TestLoginWithPassphraseErrors(t *testing.T) {
 // Test that the login flow with passphrase but without saving the
 // secret works.
 func TestLoginWithPassphraseNoStore(t *testing.T) {
-
 	tc := SetupEngineTest(t, "login with passphrase (no store)")
 	defer tc.Cleanup()
 
@@ -365,6 +364,7 @@ var errFakeNetworkTimeout = errors.New("fake network timeout in test")
 func (r *timeoutAPI) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
 	return libkb.APINetError{Err: errFakeNetworkTimeout}
 }
+
 func (r *timeoutAPI) PostDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
 	return libkb.APINetError{Err: errFakeNetworkTimeout}
 }

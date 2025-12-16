@@ -67,7 +67,8 @@ type Unfurler struct {
 var _ types.Unfurler = (*Unfurler)(nil)
 
 func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer,
-	storage types.UserConversationBackedStorage, sender UnfurlMessageSender, ri func() chat1.RemoteInterface) *Unfurler {
+	storage types.UserConversationBackedStorage, sender UnfurlMessageSender, ri func() chat1.RemoteInterface,
+) *Unfurler {
 	extractor := NewExtractor(g)
 	scraper := NewScraper(g)
 	packager := NewPackager(g, store, s3signer, ri)
@@ -154,7 +155,8 @@ func (u *Unfurler) Retry(ctx context.Context, outboxID chat1.OutboxID) {
 }
 
 func (u *Unfurler) extractURLs(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msg chat1.MessageUnboxed) (res []ExtractorHit) {
+	msg chat1.MessageUnboxed,
+) (res []ExtractorHit) {
 	if !msg.IsValid() {
 		return nil
 	}
@@ -189,7 +191,8 @@ func (u *Unfurler) getTask(ctx context.Context, outboxID chat1.OutboxID) (res un
 }
 
 func (u *Unfurler) saveTask(ctx context.Context, outboxID chat1.OutboxID, uid gregor1.UID,
-	convID chat1.ConversationID, url string) error {
+	convID chat1.ConversationID, url string,
+) error {
 	return u.G().GetKVStore().PutObj(u.taskKey(outboxID), nil, unfurlTask{
 		UID:    uid,
 		ConvID: convID,
@@ -232,7 +235,8 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 }
 
 func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msg chat1.MessageUnboxed) {
+	msg chat1.MessageUnboxed,
+) {
 	defer u.Trace(ctx, nil, "UnfurlAndSend")()
 	// early out for errors
 	if !msg.IsValid() {
@@ -295,7 +299,8 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 // Prefetch attempts to parse hits out of `msgText` and scrape/package the
 // unfurl so the result is cached.
 func (u *Unfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgText string) (numPrefetched int) {
+	msgText string,
+) (numPrefetched int) {
 	u.prefetchLock.Lock()
 	defer u.prefetchLock.Unlock()
 	defer u.Trace(ctx, nil, "Prefetch")()
@@ -363,7 +368,8 @@ func (u *Unfurler) testingSendUnfurl(unfurl *chat1.Unfurl) {
 }
 
 func (u *Unfurler) scrapeAndPackage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	url string) (unfurl chat1.Unfurl, err error) {
+	url string,
+) (unfurl chat1.Unfurl, err error) {
 	unfurlRaw, err := u.scraper.Scrape(ctx, url, nil)
 	if err != nil {
 		u.Debug(ctx, "unfurl: failed to scrape: <error msg suppressed> (%T)", err)
@@ -444,7 +450,8 @@ func (u *Unfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain 
 }
 
 func (u *Unfurler) WhitelistAddExemption(ctx context.Context, uid gregor1.UID,
-	exemption types.WhitelistExemption) {
+	exemption types.WhitelistExemption,
+) {
 	defer u.Trace(ctx, nil, "WhitelistAddExemption")()
 	u.extractor.AddWhitelistExemption(ctx, uid, exemption)
 }

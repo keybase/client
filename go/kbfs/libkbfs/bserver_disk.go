@@ -47,9 +47,11 @@ var _ blockServerLocal = (*BlockServerDisk)(nil)
 // its data in the given directory.
 func newBlockServerDisk(
 	codec kbfscodec.Codec, log logger.Logger,
-	dirPath string, shutdownFunc func(logger.Logger)) *BlockServerDisk {
+	dirPath string, shutdownFunc func(logger.Logger),
+) *BlockServerDisk {
 	bserv := &BlockServerDisk{
-		codec, log, dirPath, shutdownFunc, sync.RWMutex{},
+		codec, log, dirPath, shutdownFunc,
+		sync.RWMutex{},
 		make(map[tlf.ID]*blockServerDiskTlfStorage),
 	}
 	return bserv
@@ -58,14 +60,16 @@ func newBlockServerDisk(
 // NewBlockServerDir constructs a new BlockServerDisk that stores
 // its data in the given directory.
 func NewBlockServerDir(codec kbfscodec.Codec,
-	log logger.Logger, dirPath string) *BlockServerDisk {
+	log logger.Logger, dirPath string,
+) *BlockServerDisk {
 	return newBlockServerDisk(codec, log, dirPath, nil)
 }
 
 // NewBlockServerTempDir constructs a new BlockServerDisk that stores its
 // data in a temp directory which is cleaned up on shutdown.
 func NewBlockServerTempDir(codec kbfscodec.Codec,
-	log logger.Logger) (*BlockServerDisk, error) {
+	log logger.Logger,
+) (*BlockServerDisk, error) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_bserver_tmp")
 	if err != nil {
 		return nil, err
@@ -81,7 +85,8 @@ func NewBlockServerTempDir(codec kbfscodec.Codec,
 var errBlockServerDiskShutdown = errors.New("BlockServerDisk is shutdown")
 
 func (b *BlockServerDisk) getStorage(tlfID tlf.ID) (
-	*blockServerDiskTlfStorage, error) {
+	*blockServerDiskTlfStorage, error,
+) {
 	storage, err := func() (*blockServerDiskTlfStorage, error) {
 		b.tlfStorageLock.RLock()
 		defer b.tlfStorageLock.RUnlock()
@@ -90,7 +95,6 @@ func (b *BlockServerDisk) getStorage(tlfID tlf.ID) (
 		}
 		return b.tlfStorage[tlfID], nil
 	}()
-
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +132,8 @@ func (b *BlockServerDisk) FastForwardBackoff() {}
 func (b *BlockServerDisk) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, _ DiskBlockCacheType) (
-	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
@@ -163,7 +168,8 @@ func (b *BlockServerDisk) Get(
 func (b *BlockServerDisk) GetEncodedSizes(
 	ctx context.Context, tlfID tlf.ID, ids []kbfsblock.ID,
 	contexts []kbfsblock.Context) (
-	sizes []uint32, statuses []keybase1.BlockStatus, err error) {
+	sizes []uint32, statuses []keybase1.BlockStatus, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, nil, err
 	}
@@ -215,7 +221,8 @@ func (b *BlockServerDisk) Put(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	_ DiskBlockCacheType) (err error) {
+	_ DiskBlockCacheType,
+) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -257,7 +264,8 @@ func (b *BlockServerDisk) PutAgain(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	_ DiskBlockCacheType) (err error) {
+	_ DiskBlockCacheType,
+) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -291,7 +299,8 @@ func (b *BlockServerDisk) PutAgain(
 
 // AddBlockReference implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
-	id kbfsblock.ID, context kbfsblock.Context) error {
+	id kbfsblock.ID, context kbfsblock.Context,
+) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -334,7 +343,8 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 // BlockServerDisk.
 func (b *BlockServerDisk) RemoveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
+	liveCounts map[kbfsblock.ID]int, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -378,7 +388,8 @@ func (b *BlockServerDisk) RemoveBlockReferences(ctx context.Context,
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerDisk.
 func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
-	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
+	tlfID tlf.ID, contexts kbfsblock.ContextMap,
+) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -423,7 +434,8 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 // BlockServerDisk.
 func (b *BlockServerDisk) GetLiveBlockReferences(
 	ctx context.Context, tlfID tlf.ID, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
+	liveCounts map[kbfsblock.ID]int, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -459,7 +471,8 @@ func (b *BlockServerDisk) GetLiveBlockReferences(
 // getAllRefsForTest implements the blockServerLocal interface for
 // BlockServerDisk.
 func (b *BlockServerDisk) getAllRefsForTest(ctx context.Context, tlfID tlf.ID) (
-	map[kbfsblock.ID]blockRefMap, error) {
+	map[kbfsblock.ID]blockRefMap, error,
+) {
 	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
 		return nil, err
@@ -476,7 +489,8 @@ func (b *BlockServerDisk) getAllRefsForTest(ctx context.Context, tlfID tlf.ID) (
 
 // IsUnflushed implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) IsUnflushed(ctx context.Context, tlfID tlf.ID,
-	_ kbfsblock.ID) (bool, error) {
+	_ kbfsblock.ID,
+) (bool, error) {
 	if err := checkContext(ctx); err != nil {
 		return false, err
 	}
@@ -541,7 +555,8 @@ func (b *BlockServerDisk) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock
 // GetTeamQuotaInfo implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) GetTeamQuotaInfo(
 	ctx context.Context, _ keybase1.TeamID) (
-	info *kbfsblock.QuotaInfo, err error) {
+	info *kbfsblock.QuotaInfo, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}

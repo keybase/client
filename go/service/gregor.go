@@ -30,10 +30,12 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-const GregorRequestTimeout time.Duration = 30 * time.Second
-const GregorConnectionRetryInterval time.Duration = 2 * time.Second
-const GregorGetClientTimeout time.Duration = 4 * time.Second
-const slowConnSleepTime = 1 * time.Second
+const (
+	GregorRequestTimeout          time.Duration = 30 * time.Second
+	GregorConnectionRetryInterval time.Duration = 2 * time.Second
+	GregorGetClientTimeout        time.Duration = 4 * time.Second
+	slowConnSleepTime                           = 1 * time.Second
+)
 
 type IdentifyUIHandler struct {
 	libkb.Contextified
@@ -228,8 +230,10 @@ type gregorHandler struct {
 	transportForTesting *connTransport
 }
 
-var _ libkb.GregorState = (*gregorHandler)(nil)
-var _ libkb.GregorListener = (*gregorHandler)(nil)
+var (
+	_ libkb.GregorState    = (*gregorHandler)(nil)
+	_ libkb.GregorListener = (*gregorHandler)(nil)
+)
 
 func newGregorHandler(g *globals.Context) *gregorHandler {
 	gh := &gregorHandler{
@@ -390,7 +394,6 @@ func (g *gregorHandler) resetGregorClient(ctx context.Context, uid gregor1.UID, 
 }
 
 func (g *gregorHandler) getGregorCli() (*grclient.Client, error) {
-
 	if g == nil {
 		return nil, errors.New("gregorHandler client unset")
 	}
@@ -592,8 +595,8 @@ func (g *gregorHandler) pushOutOfBandMessages(m []gregor1.OutOfBandMessage) {
 // otherwise it will try all of them. gregorHandler needs to be locked when calling
 // this function.
 func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.IncomingInterface,
-	t time.Time, handler libkb.GregorInBandMessageHandler) ([]gregor.InBandMessage, error) {
-
+	t time.Time, handler libkb.GregorInBandMessageHandler,
+) ([]gregor.InBandMessage, error) {
 	var msgs []gregor.InBandMessage
 	var err error
 
@@ -679,7 +682,8 @@ func (g *gregorHandler) syncReplayThread() {
 // gregord. This can happen either on initial startup, or after a reconnect. Needs
 // to be called with gregorHandler locked.
 func (g *gregorHandler) serverSync(ctx context.Context,
-	cli gregor1.IncomingInterface, gcli *grclient.Client, syncRes *chat1.SyncAllNotificationRes) (res []gregor.InBandMessage, err error) {
+	cli gregor1.IncomingInterface, gcli *grclient.Client, syncRes *chat1.SyncAllNotificationRes,
+) (res []gregor.InBandMessage, err error) {
 	defer g.chatLog.Trace(ctx, &err, "serverSync")()
 
 	// Get time of the last message we synced (unless this is our first time syncing)
@@ -722,7 +726,8 @@ func (g *gregorHandler) makeReconnectOobm() gregor1.Message {
 }
 
 func (g *gregorHandler) authParams(ctx context.Context) (uid gregor1.UID, deviceID gregor1.DeviceID,
-	token gregor1.SessionToken, nist *libkb.NIST, err error) {
+	token gregor1.SessionToken, nist *libkb.NIST, err error,
+) {
 	var res loggedInRes
 	var stoken string
 	var kuid keybase1.UID
@@ -763,8 +768,8 @@ func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.C
 // OnConnect is called by the rpc library to indicate we have connected to
 // gregord
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
-	cli rpc.GenericClient, srv *rpc.Server) (err error) {
-
+	cli rpc.GenericClient, srv *rpc.Server,
+) (err error) {
 	ctx = libkb.WithLogTag(ctx, "GRGRONCONN")
 
 	defer g.chatLog.Trace(ctx, &err, "OnConnect")()
@@ -1049,7 +1054,8 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 // handleInBandMessage runs a message on all the alive handlers. gregorHandler
 // must be locked when calling this function.
 func (g *gregorHandler) handleInBandMessage(ctx context.Context, cli gregor1.IncomingInterface,
-	ibm gregor.InBandMessage) (err error) {
+	ibm gregor.InBandMessage,
+) (err error) {
 	ctx = libkb.WithLogTag(ctx, "GRGIBM")
 	defer g.chatLog.Trace(ctx, &err, "gregorHandler#handleInBandMessage with %d handlers", len(g.ibmHandlers))()
 
@@ -1083,7 +1089,8 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, cli gregor1.Inc
 
 // handleInBandMessageWithHandler runs a message against the specified handler
 func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context, cli gregor1.IncomingInterface,
-	ibm gregor.InBandMessage, handler libkb.GregorInBandMessageHandler) (bool, error) {
+	ibm gregor.InBandMessage, handler libkb.GregorInBandMessageHandler,
+) (bool, error) {
 	g.Debug(ctx, "handleInBand: %+v", ibm)
 
 	gcli, err := g.getGregorCli()
@@ -1155,8 +1162,8 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context, cli 
 }
 
 func (h IdentifyUIHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string,
-	item gregor.Item) (bool, error) {
-
+	item gregor.Item,
+) (bool, error) {
 	switch category {
 	case "show_tracker_popup":
 		return true, h.handleShowTrackerPopupCreate(ctx, cli, item)
@@ -1166,8 +1173,8 @@ func (h IdentifyUIHandler) Create(ctx context.Context, cli gregor1.IncomingInter
 }
 
 func (h IdentifyUIHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string,
-	item gregor.Item) (bool, error) {
-
+	item gregor.Item,
+) (bool, error) {
 	switch category {
 	case "show_tracker_popup":
 		return true, h.handleShowTrackerPopupDismiss(ctx, cli, item)
@@ -1177,8 +1184,8 @@ func (h IdentifyUIHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInte
 }
 
 func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, cli gregor1.IncomingInterface,
-	item gregor.Item) error {
-
+	item gregor.Item,
+) error {
 	h.G().Log.Debug("handleShowTrackerPopupCreate: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor handler for show_tracker_popup: nil message body")
@@ -1234,7 +1241,8 @@ func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, cli
 }
 
 func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cli gregor1.IncomingInterface,
-	item gregor.Item) error {
+	item gregor.Item,
+) error {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 
 	mctx.Debug("handleShowTrackerPopupDismiss: %+v", item)
@@ -1356,7 +1364,6 @@ const (
 )
 
 func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, did keybase1.DeviceID, token string, nist *libkb.NIST, res loggedInRes) {
-
 	// Check to see if we have been shut down,
 	select {
 	case <-g.shutdownCh:
@@ -1743,7 +1750,8 @@ func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat
 }
 
 func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []byte,
-	dtime gregor1.TimeOrOffset) (res gregor1.MsgID, err error) {
+	dtime gregor1.TimeOrOffset,
+) (res gregor1.MsgID, err error) {
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.UpdateCategory(%s)", cat),
 		&err,
 	)()
@@ -1764,7 +1772,8 @@ func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []b
 			{
 				Category_:   gregor1.Category(cat),
 				SkipMsgIDs_: []gregor1.MsgID{msgID},
-			}},
+			},
+		},
 	}
 
 	gcli, err := g.getGregorCli()
@@ -1902,7 +1911,8 @@ type timeoutClient struct {
 var _ rpc.GenericClient = (*timeoutClient)(nil)
 
 func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{},
-	res interface{}, timeout time.Duration) error {
+	res interface{}, timeout time.Duration,
+) error {
 	if timeout == 0 {
 		timeout = t.timeout
 	}
@@ -1914,7 +1924,8 @@ func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{}
 }
 
 func (t *timeoutClient) CallCompressed(ctx context.Context, method string, arg interface{},
-	res interface{}, ctype rpc.CompressionType, timeout time.Duration) error {
+	res interface{}, ctype rpc.CompressionType, timeout time.Duration,
+) error {
 	if timeout == 0 {
 		timeout = t.timeout
 	}

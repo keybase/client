@@ -23,7 +23,8 @@ type dirBlockMapDisk struct {
 var _ dirBlockMap = (*dirBlockMapDisk)(nil)
 
 func newDirBlockMapDisk(
-	dirtyBcache *DirtyBlockCacheDisk, kmd libkey.KeyMetadata) *dirBlockMapDisk {
+	dirtyBcache *DirtyBlockCacheDisk, kmd libkey.KeyMetadata,
+) *dirBlockMapDisk {
 	return &dirBlockMapDisk{
 		dirtyBcache: dirtyBcache,
 		kmd:         kmd,
@@ -32,7 +33,8 @@ func newDirBlockMapDisk(
 }
 
 func (dbmd *dirBlockMapDisk) putBlock(
-	ctx context.Context, ptr data.BlockPointer, block *data.DirBlock) error {
+	ctx context.Context, ptr data.BlockPointer, block *data.DirBlock,
+) error {
 	err := dbmd.dirtyBcache.Put(
 		ctx, dbmd.kmd.TlfID(), ptr, data.MasterBranch, block)
 	if err != nil {
@@ -44,7 +46,8 @@ func (dbmd *dirBlockMapDisk) putBlock(
 }
 
 func (dbmd *dirBlockMapDisk) getBlock(
-	ctx context.Context, ptr data.BlockPointer) (*data.DirBlock, error) {
+	ctx context.Context, ptr data.BlockPointer,
+) (*data.DirBlock, error) {
 	if !dbmd.ptrs[ptr] {
 		return nil, errors.Errorf("No such block %s", ptr)
 	}
@@ -61,12 +64,14 @@ func (dbmd *dirBlockMapDisk) getBlock(
 }
 
 func (dbmd *dirBlockMapDisk) hasBlock(
-	_ context.Context, ptr data.BlockPointer) (bool, error) {
+	_ context.Context, ptr data.BlockPointer,
+) (bool, error) {
 	return dbmd.ptrs[ptr], nil
 }
 
 func (dbmd *dirBlockMapDisk) deleteBlock(
-	_ context.Context, ptr data.BlockPointer) error {
+	_ context.Context, ptr data.BlockPointer,
+) error {
 	delete(dbmd.ptrs, ptr)
 	return nil
 }

@@ -44,5 +44,7 @@ func getBuildSpecificFSCommands(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 
 const develUsage = false
 
-var restrictedSignupFlags = []cli.Flag{}
-var restrictedProveFlags = []cli.Flag{}
+var (
+	restrictedSignupFlags = []cli.Flag{}
+	restrictedProveFlags  = []cli.Flag{}
+)

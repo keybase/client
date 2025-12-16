@@ -75,7 +75,8 @@ func (ldb *LevelDb) Close() (err error) {
 
 // Get gets data from the DB.
 func (ldb *LevelDb) Get(key []byte, ro *opt.ReadOptions) (
-	value []byte, err error) {
+	value []byte, err error,
+) {
 	defer func() {
 		if err != nil {
 			err = errors.WithStack(err)
@@ -86,7 +87,8 @@ func (ldb *LevelDb) Get(key []byte, ro *opt.ReadOptions) (
 
 // GetWithMeter gets data from the DB while tracking the hit rate.
 func (ldb *LevelDb) GetWithMeter(key []byte, hitMeter, missMeter *CountMeter) (
-	value []byte, err error) {
+	value []byte, err error,
+) {
 	defer func() {
 		if err == nil {
 			if hitMeter != nil {
@@ -111,7 +113,8 @@ func (ldb *LevelDb) Put(key, value []byte, wo *opt.WriteOptions) (err error) {
 
 // PutWithMeter gets data from the DB while tracking the hit rate.
 func (ldb *LevelDb) PutWithMeter(key, value []byte, putMeter *CountMeter) (
-	err error) {
+	err error,
+) {
 	defer func() {
 		if err == nil && putMeter != nil {
 			putMeter.Mark(1)
@@ -133,7 +136,8 @@ func (ldb *LevelDb) StatStrings() ([]string, error) {
 // passed-in storage.Storage as its underlying storage layer, and with
 // the options specified.
 func OpenLevelDbWithOptions(stor storage.Storage, options *opt.Options) (
-	*LevelDb, error) {
+	*LevelDb, error,
+) {
 	db, err := leveldb.Open(stor, options)
 	if ldberrors.IsCorrupted(err) {
 		// There's a possibility that if the leveldb wasn't closed properly
@@ -154,7 +158,8 @@ func OpenLevelDbWithOptions(stor storage.Storage, options *opt.Options) (
 // storage.Storage as its underlying storage layer.
 func OpenLevelDb(
 	stor storage.Storage, sizeGetter DbWriteBufferSizeGetter) (
-	*LevelDb, error) {
+	*LevelDb, error,
+) {
 	options := LeveldbOptions(sizeGetter)
 	options.Filter = filter.NewBloomFilter(16)
 	return OpenLevelDbWithOptions(stor, options)
@@ -168,7 +173,8 @@ func versionPathFromVersion(dirPath string, version uint64) string {
 // version number.
 func GetVersionedPathForDb(
 	log logger.Logger, dirPath string, dbName string,
-	currentDbVersion uint64) (versionedDirPath string, err error) {
+	currentDbVersion uint64,
+) (versionedDirPath string, err error) {
 	// Read the version file
 	versionFilepath := filepath.Join(dirPath, diskCacheVersionFilename)
 	versionBytes, err := ioutil.ReadFile(versionFilepath)
@@ -236,13 +242,13 @@ func GetVersionedPathForDb(
 		}
 	}
 	// Ensure the DB directory exists.
-	err = os.MkdirAll(dirPath, 0700)
+	err = os.MkdirAll(dirPath, 0o700)
 	if err != nil {
 		// This does actually need to be fatal.
 		return "", err
 	}
 	versionString := strconv.FormatUint(version, 10)
-	err = ioutil.WriteFile(versionFilepath, []byte(versionString), 0600)
+	err = ioutil.WriteFile(versionFilepath, []byte(versionString), 0o600)
 	if err != nil {
 		// This also needs to be fatal.
 		return "", err
@@ -257,7 +263,8 @@ func GetVersionedPathForDb(
 func OpenVersionedLevelDb(
 	log logger.Logger, storageRoot string, dbFolderName string,
 	currentDbVersion uint64, dbFilename string,
-	sizeGetter DbWriteBufferSizeGetter) (db *LevelDb, err error) {
+	sizeGetter DbWriteBufferSizeGetter,
+) (db *LevelDb, err error) {
 	dbPath := filepath.Join(storageRoot, dbFolderName)
 	versionPath, err := GetVersionedPathForDb(
 		log, dbPath, dbFolderName, currentDbVersion)

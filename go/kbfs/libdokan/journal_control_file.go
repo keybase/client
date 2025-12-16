@@ -23,7 +23,8 @@ type JournalControlFile struct {
 
 // WriteFile implements writes for dokan.
 func (f *JournalControlFile) WriteFile(ctx context.Context,
-	fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
+	fi *dokan.FileInfo, bs []byte, offset int64,
+) (n int, err error) {
 	f.folder.fs.logEnter(ctx,
 		fmt.Sprintf("JournalQuotaFile (f.action=%s) Write", f.action))
 	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()

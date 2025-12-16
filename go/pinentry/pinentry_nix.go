@@ -9,9 +9,8 @@ package pinentry
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-
 	"os/exec"
+	"path/filepath"
 
 	"github.com/keybase/client/go/logger"
 )
@@ -44,7 +43,7 @@ func canExec(s string) error {
 	switch {
 	case mode.IsDir():
 		return fmt.Errorf("Program '%s' is a directory", s)
-	case int(mode)&0111 == 0:
+	case int(mode)&0o111 == 0:
 		return fmt.Errorf("Program '%s' isn't executable", s)
 	default:
 		return nil

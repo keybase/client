@@ -29,6 +29,7 @@ func (i *id3FakeUIRouter) GetLogUI() (LogUI, error)                             
 func (i *id3FakeUIRouter) GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error) {
 	return nil, nil
 }
+
 func (i *id3FakeUIRouter) DumpUIs() map[UIKind]ConnectionID {
 	return nil
 }
@@ -57,15 +58,19 @@ func (i *id3FakeUI) assertAndCleanState(t *testing.T, expected []keybase1.Identi
 func (i *id3FakeUI) Identify3ShowTracker(context.Context, keybase1.Identify3ShowTrackerArg) error {
 	return nil
 }
+
 func (i *id3FakeUI) Identify3UpdateRow(context.Context, keybase1.Identify3Row) error {
 	return nil
 }
+
 func (i *id3FakeUI) Identify3UpdateUserCard(context.Context, keybase1.Identify3UpdateUserCardArg) error {
 	return nil
 }
+
 func (i *id3FakeUI) Identify3UserReset(_ context.Context, id keybase1.Identify3GUIID) error {
 	return nil
 }
+
 func (i *id3FakeUI) Identify3TrackerTimedOut(_ context.Context, id keybase1.Identify3GUIID) error {
 	i.timeOuts = append(i.timeOuts, id)
 	return nil

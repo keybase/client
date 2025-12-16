@@ -15,7 +15,8 @@ import (
 )
 
 func blockCacheTestInit(t *testing.T, capacity int,
-	bytesCapacity uint64) *BlockCacheStandard {
+	bytesCapacity uint64,
+) *BlockCacheStandard {
 	return NewBlockCacheStandard(capacity, bytesCapacity)
 }
 

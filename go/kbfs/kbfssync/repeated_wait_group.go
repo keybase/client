@@ -70,7 +70,8 @@ func (rwg *RepeatedWaitGroup) Wait(ctx context.Context) error {
 // wait group is paused.  It returns whether it was paused with
 // outstanding work still left in the group.
 func (rwg *RepeatedWaitGroup) WaitUnlessPaused(ctx context.Context) (
-	bool, error) {
+	bool, error,
+) {
 	paused, isIdleCh, pauseCh := func() (bool, chan struct{}, chan struct{}) {
 		rwg.lock.Lock()
 		defer rwg.lock.Unlock()

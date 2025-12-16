@@ -440,7 +440,8 @@ func (idx *Indexer) hasPriority(ctx context.Context, convID chat1.ConversationID
 }
 
 func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID,
-	msgs []chat1.MessageUnboxed) (err error) {
+	msgs []chat1.MessageUnboxed,
+) (err error) {
 	idx.Lock()
 	if !idx.started {
 		idx.Unlock()
@@ -452,7 +453,8 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
-	msgs []chat1.MessageUnboxed, force bool) (cb chan struct{}, err error) {
+	msgs []chat1.MessageUnboxed, force bool,
+) (cb chan struct{}, err error) {
 	cb = make(chan struct{})
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		close(cb)
@@ -480,7 +482,8 @@ func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID,
-	msgs []chat1.MessageUnboxed) (err error) {
+	msgs []chat1.MessageUnboxed,
+) (err error) {
 	idx.Lock()
 	if !idx.started {
 		idx.Unlock()
@@ -492,7 +495,8 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
-	msgs []chat1.MessageUnboxed, force bool) (cb chan struct{}, err error) {
+	msgs []chat1.MessageUnboxed, force bool,
+) (cb chan struct{}, err error) {
 	cb = make(chan struct{})
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		close(cb)
@@ -524,7 +528,8 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 // our index is missing many messages, we page through and add batches of
 // missing messages.
 func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversation,
-	numJobs int, inboxIndexStatus *inboxIndexStatus) (completedJobs int, err error) {
+	numJobs int, inboxIndexStatus *inboxIndexStatus,
+) (completedJobs int, err error) {
 	conv := rconv.Conv
 	convID := conv.GetConvID()
 	md, err := idx.store.GetMetadata(ctx, convID)
@@ -669,7 +674,8 @@ func (idx *Indexer) allConvs(ctx context.Context, convID *chat1.ConversationID) 
 }
 
 func (idx *Indexer) convsPrioritySorted(ctx context.Context,
-	convMap map[chat1.ConvIDStr]types.RemoteConversation) (res []types.RemoteConversation) {
+	convMap map[chat1.ConvIDStr]types.RemoteConversation,
+) (res []types.RemoteConversation) {
 	res = make([]types.RemoteConversation, len(convMap))
 	index := 0
 	for _, conv := range convMap {
@@ -685,7 +691,8 @@ func (idx *Indexer) convsPrioritySorted(ctx context.Context,
 // Search tokenizes the given query and finds the intersection of all matches
 // for each token, returning matches.
 func (idx *Indexer) Search(ctx context.Context, query, origQuery string,
-	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (res *chat1.ChatSearchInboxResults, err error) {
+	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus,
+) (res *chat1.ChatSearchInboxResults, err error) {
 	defer idx.Trace(ctx, &err, "Indexer.Search")()
 	defer func() {
 		// get a selective sync to run after the search completes even if we
@@ -812,7 +819,6 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 			res.PercentIndexed = md.PercentIndexed(conv.Conv)
 		}
 		if err != nil {
-
 			res.Err = err.Error()
 		}
 	}()
@@ -878,6 +884,7 @@ func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) (err error) {
 }
 
 func (idx *Indexer) GetStoreHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	query string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
+	query string,
+) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
 	return idx.store.GetHits(ctx, convID, query)
 }

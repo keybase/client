@@ -18,7 +18,8 @@ func ReadyBlock(
 	ctx context.Context, bcache BlockCache, rp ReadyProvider,
 	kmd libkey.KeyMetadata, block Block, chargedTo keybase1.UserOrTeamID,
 	bType keybase1.BlockType, hashBehavior BlockCacheHashBehavior) (
-	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
+	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error,
+) {
 	var ptr BlockPointer
 	directType := DirectBlock
 	if block.IsIndirect() {

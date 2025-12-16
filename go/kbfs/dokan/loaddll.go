@@ -23,9 +23,11 @@ import (
 
 const firstSafeDokanVersion = 121
 
-const shortPath = `DOKAN1.DLL`
-const syswow64 = `C:\WINDOWS\SYSWOW64\`
-const system32 = `C:\WINDOWS\SYSTEM32\`
+const (
+	shortPath = `DOKAN1.DLL`
+	syswow64  = `C:\WINDOWS\SYSWOW64\`
+	system32  = `C:\WINDOWS\SYSTEM32\`
+)
 
 type errorPrinter struct {
 	buf bytes.Buffer
@@ -92,11 +94,13 @@ func doLoadDokanAndGetSymbols(epc *errorPrinter, path string) error {
 	for _, v := range []struct {
 		name string
 		ptr  *C.uintptr_t
-	}{{`DokanRemoveMountPoint`, &C.kbfsLibdokanPtr_RemoveMountPoint},
+	}{
+		{`DokanRemoveMountPoint`, &C.kbfsLibdokanPtr_RemoveMountPoint},
 		{`DokanOpenRequestorToken`, &C.kbfsLibdokanPtr_OpenRequestorToken},
 		{`DokanMain`, &C.kbfsLibdokanPtr_Main},
 		{`DokanVersion`, &dokanVersionProc},
-		{`DokanDriverVersion`, &dokanDriverVersionProc}} {
+		{`DokanDriverVersion`, &dokanDriverVersionProc},
+	} {
 		uptr, err := windows.GetProcAddress(hdl, v.name)
 		if err != nil {
 			return fmt.Errorf(`GetProcAddress(%q) -> %v,%v`, v.name, uptr, err)

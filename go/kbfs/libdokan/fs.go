@@ -48,8 +48,10 @@ const DefaultMountFlags = dokan.CurrentSession
 
 // currentUserSID stores the Windows identity of the user running
 // this process. This is the same process-wide.
-var currentUserSID, currentUserSIDErr = winacl.CurrentProcessUserSid()
-var currentGroupSID, _ = winacl.CurrentProcessPrimaryGroupSid()
+var (
+	currentUserSID, currentUserSIDErr = winacl.CurrentProcessUserSid()
+	currentGroupSID, _                = winacl.CurrentProcessPrimaryGroupSid()
+)
 
 // NewFS creates an FS
 func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, error) {
@@ -81,7 +83,8 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 			tlfType:    tlf.SingleTeam,
 			folders:    make(map[string]fileOpener),
 			aliasCache: map[string]string{},
-		}}
+		},
+	}
 
 	ctx = wrapContext(ctx, f)
 
@@ -234,6 +237,7 @@ func (oc *openContext) isCreation() bool {
 	}
 	return false
 }
+
 func (oc *openContext) isExistingError() bool {
 	return oc.CreateDisposition == dokan.FileCreate
 }
@@ -255,7 +259,8 @@ func (oc *openContext) isOpenReparsePoint() bool {
 // returnDirNoCleanup returns a dir or nothing depending on the open
 // flags and does not call .Cleanup on error.
 func (oc *openContext) returnDirNoCleanup(f dokan.File) (
-	dokan.File, dokan.CreateStatus, error) {
+	dokan.File, dokan.CreateStatus, error,
+) {
 	if err := oc.ReturningDirAllowed(); err != nil {
 		return nil, 0, err
 	}
@@ -265,7 +270,8 @@ func (oc *openContext) returnDirNoCleanup(f dokan.File) (
 // returnFileNoCleanup returns a file or nothing depending on the open
 // flags and does not call .Cleanup on error.
 func (oc *openContext) returnFileNoCleanup(f dokan.File) (
-	dokan.File, dokan.CreateStatus, error) {
+	dokan.File, dokan.CreateStatus, error,
+) {
 	if err := oc.ReturningFileAllowed(); err != nil {
 		return nil, 0, err
 	}
@@ -339,7 +345,8 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 	case libfs.HumanErrorFileName == ps[0], libfs.HumanNoLoginFileName == ps[0]:
 		return oc.returnFileNoCleanup(&SpecialReadFile{
 			read: f.remoteStatus.NewSpecialReadFunc,
-			fs:   f})
+			fs:   f,
+		})
 
 	case libfs.EnableAutoJournalsFileName == ps[0]:
 		return oc.returnFileNoCleanup(&JournalControlFile{

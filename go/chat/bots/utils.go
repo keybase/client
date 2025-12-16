@@ -43,8 +43,8 @@ func SortCommandsForMatching(cmds []chat1.UserBotCommandOutput) {
 func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor1.UID,
 	botSettings keybase1.TeamBotSettings,
 	msg chat1.MessagePlaintext, convID *chat1.ConversationID,
-	mentionMap map[string]struct{}, debug utils.DebugLabeler) (bool, error) {
-
+	mentionMap map[string]struct{}, debug utils.DebugLabeler,
+) (bool, error) {
 	// First make sure bot can receive on the given conversation. This ID may
 	// be null if we are creating the conversation.
 	if convID != nil && !botSettings.ConvIDAllowed(convID.String()) {

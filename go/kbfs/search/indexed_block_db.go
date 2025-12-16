@@ -63,7 +63,8 @@ type IndexedBlockDb struct {
 // db.
 func newIndexedBlockDbFromStorage(
 	config libkbfs.Config, blockStorage, tlfStorage storage.Storage) (
-	db *IndexedBlockDb, err error) {
+	db *IndexedBlockDb, err error,
+) {
 	log := config.MakeLogger("IBD")
 	closers := make([]io.Closer, 0, 2)
 	closer := func() {
@@ -132,7 +133,8 @@ func newIndexedBlockDbFromStorage(
 // newIndexedBlockDb creates a new *IndexedBlockDb with a
 // specified directory on the filesystem as storage.
 func newIndexedBlockDb(config libkbfs.Config, dirPath string) (
-	db *IndexedBlockDb, err error) {
+	db *IndexedBlockDb, err error,
+) {
 	log := config.MakeLogger("IBD")
 	defer func() {
 		if err != nil {
@@ -250,7 +252,8 @@ func tlfKey(tlfID tlf.ID, ptr data.BlockPointer) []byte {
 // getMetadataLocked retrieves the metadata for a block in the db, or
 // returns leveldb.ErrNotFound and a zero-valued metadata otherwise.
 func (db *IndexedBlockDb) getMetadataLocked(
-	ptr data.BlockPointer, metered bool) (metadata blockMD, err error) {
+	ptr data.BlockPointer, metered bool,
+) (metadata blockMD, err error) {
 	var hitMeter, missMeter *ldbutils.CountMeter
 	if metered {
 		hitMeter = db.hitMeter
@@ -296,7 +299,8 @@ func (e DbClosedError) Error() string {
 
 // checkAndLockDb checks whether the db is started.
 func (db *IndexedBlockDb) checkDbLocked(
-	ctx context.Context, method string) error {
+	ctx context.Context, method string,
+) error {
 	// First see if the context has expired since we began.
 	select {
 	case <-ctx.Done():
@@ -319,7 +323,8 @@ func (db *IndexedBlockDb) checkDbLocked(
 // Get returns the version and doc ID for the given block.
 func (db *IndexedBlockDb) Get(
 	ctx context.Context, ptr data.BlockPointer) (
-	indexVersion uint64, docID string, dirDone bool, err error) {
+	indexVersion uint64, docID string, dirDone bool, err error,
+) {
 	db.lock.RLock()
 	defer db.lock.RUnlock()
 	err = db.checkDbLocked(ctx, "IBD(Get)")
@@ -337,7 +342,8 @@ func (db *IndexedBlockDb) Get(
 func (db *IndexedBlockDb) putLocked(
 	ctx context.Context, blockDb *ldbutils.LevelDb, tlfID tlf.ID,
 	ptr data.BlockPointer, indexVersion uint64, docID string,
-	dirDone bool) error {
+	dirDone bool,
+) error {
 	md := blockMD{
 		IndexVersion: indexVersion,
 		DocID:        docID,
@@ -355,7 +361,8 @@ func (db *IndexedBlockDb) putLocked(
 // Put saves the version and doc ID for the given block.
 func (db *IndexedBlockDb) Put(
 	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
-	indexVersion uint64, docID string, dirDone bool) error {
+	indexVersion uint64, docID string, dirDone bool,
+) error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 	err := db.checkDbLocked(ctx, "IBD(Put)")
@@ -379,7 +386,8 @@ func (db *IndexedBlockDb) Put(
 func (db *IndexedBlockDb) PutMemory(
 	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
 	indexVersion uint64, docID string, dirDone bool) (
-	flushFn func() error, err error) {
+	flushFn func() error, err error,
+) {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 
@@ -423,7 +431,8 @@ func (db *IndexedBlockDb) ClearMemory() error {
 
 // Delete removes the metadata for the block pointer from the DB.
 func (db *IndexedBlockDb) Delete(
-	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer) error {
+	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
+) error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 	err := db.checkDbLocked(ctx, "IBD(Delete)")

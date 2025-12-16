@@ -163,7 +163,8 @@ type DirtyBlockCacheStandard struct {
 func NewDirtyBlockCacheStandard(
 	clock idutil.Clock, log logger.Logger, vlog *libkb.VDebugLog,
 	minSyncBufCap int64, maxSyncBufCap int64,
-	startSyncBufCap int64) *DirtyBlockCacheStandard {
+	startSyncBufCap int64,
+) *DirtyBlockCacheStandard {
 	d := &DirtyBlockCacheStandard{
 		clock:              clock,
 		log:                log,
@@ -194,7 +195,8 @@ func SimpleDirtyBlockCacheStandard() *DirtyBlockCacheStandard {
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) Get(
 	_ context.Context, _ tlf.ID, ptr BlockPointer, branch BranchName) (
-	Block, error) {
+	Block, error,
+) {
 	block := func() Block {
 		dirtyID := dirtyBlockID{
 			id:       ptr.ID,
@@ -216,7 +218,8 @@ func (d *DirtyBlockCacheStandard) Get(
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) Put(
 	_ context.Context, _ tlf.ID, ptr BlockPointer, branch BranchName,
-	block Block) error {
+	block Block,
+) error {
 	dirtyID := dirtyBlockID{
 		id:       ptr.ID,
 		refNonce: ptr.RefNonce,
@@ -232,7 +235,8 @@ func (d *DirtyBlockCacheStandard) Put(
 // Delete implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) Delete(_ tlf.ID, ptr BlockPointer,
-	branch BranchName) error {
+	branch BranchName,
+) error {
 	dirtyID := dirtyBlockID{
 		id:       ptr.ID,
 		refNonce: ptr.RefNonce,
@@ -248,7 +252,8 @@ func (d *DirtyBlockCacheStandard) Delete(_ tlf.ID, ptr BlockPointer,
 // IsDirty implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) IsDirty(_ tlf.ID, ptr BlockPointer,
-	branch BranchName) (isDirty bool) {
+	branch BranchName,
+) (isDirty bool) {
 	dirtyID := dirtyBlockID{
 		id:       ptr.ID,
 		refNonce: ptr.RefNonce,
@@ -279,7 +284,8 @@ const backpressureSlack = 1 * time.Second
 // how slow the background Syncs are, so we don't accumulate more
 // bytes to Sync than we can handle.  See KBFS-731.
 func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
-	deadline time.Time) time.Duration {
+	deadline time.Time,
+) time.Duration {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 	// We don't want to use the whole deadline, so cut it some slack.
@@ -329,7 +335,8 @@ func (d *DirtyBlockCacheStandard) acceptNewWrite(newBytes int64) bool {
 }
 
 func (d *DirtyBlockCacheStandard) maybeDecreaseBuffer(start time.Time,
-	deadline time.Time, soFar float64) (bool, time.Duration, float64) {
+	deadline time.Time, soFar float64,
+) (bool, time.Duration, float64) {
 	// Update syncBufferCap if the write has been blocked for more
 	// than half of its timeout.  (We use half the timeout in case a
 	// user Sync operation, which can't be subjected to backpressure,
@@ -433,9 +440,8 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 			// decrease the buffer size?
 			if !syncStarted.IsZero() {
 				deadline := syncStarted.Add(lastKnownTimeout)
-				decreased, maxWakeup, fracDeadlineSoFar =
-					d.maybeDecreaseBuffer(syncStarted,
-						deadline, fracDeadlineSoFar)
+				decreased, maxWakeup, fracDeadlineSoFar = d.maybeDecreaseBuffer(syncStarted,
+					deadline, fracDeadlineSoFar)
 			} else {
 				maxWakeup = 0
 			}
@@ -487,7 +493,8 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 // for DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) RequestPermissionToDirty(
 	ctx context.Context, _ tlf.ID, estimatedDirtyBytes int64) (
-	DirtyPermChan, error) {
+	DirtyPermChan, error,
+) {
 	d.shutdownLock.RLock()
 	defer d.shutdownLock.RUnlock()
 	if d.isShutdown {
@@ -544,7 +551,8 @@ func (d *DirtyBlockCacheStandard) updateWaitBufLocked(bytes int64) {
 // UpdateUnsyncedBytes implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) UpdateUnsyncedBytes(_ tlf.ID,
-	newUnsyncedBytes int64, wasSyncing bool) {
+	newUnsyncedBytes int64, wasSyncing bool,
+) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	if wasSyncing {

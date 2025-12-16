@@ -180,6 +180,7 @@ func TestPutAndGetImplicitTeam(t *testing.T) {
 	testPutAndGetImplicitTeam(t, false)
 	testPutAndGetImplicitTeam(t, true)
 }
+
 func testPutAndGetImplicitTeam(t *testing.T, public bool) {
 	t.Logf("running with public:%v", public)
 

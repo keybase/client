@@ -20,9 +20,11 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const ephemeralTrackerDiskVersion = 1
-const dbKeyPrefix = "et|uid:%s|convID:"
-const memCacheLRUSize = 1000
+const (
+	ephemeralTrackerDiskVersion = 1
+	dbKeyPrefix                 = "et|uid:%s|convID:"
+	memCacheLRUSize             = 1000
+)
 
 type EphemeralTracker struct {
 	globals.Contextified
@@ -53,7 +55,8 @@ func NewEphemeralTracker(g *globals.Context) *EphemeralTracker {
 		// lru.New only panics if size <= 0
 		log.Panicf("Could not create lru cache: %v", err)
 	}
-	return &EphemeralTracker{Contextified: globals.NewContextified(g),
+	return &EphemeralTracker{
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "EphemeralTracker", false),
 		lru:          nlru,
 		flushLoopCh:  make(chan struct{}, 10),
@@ -197,7 +200,8 @@ func (t *EphemeralTracker) flushLocked(ctx context.Context, uid gregor1.UID) err
 }
 
 func (t *EphemeralTracker) GetPurgeInfo(ctx context.Context,
-	uid gregor1.UID, convID chat1.ConversationID) (chat1.EphemeralPurgeInfo, error) {
+	uid gregor1.UID, convID chat1.ConversationID,
+) (chat1.EphemeralPurgeInfo, error) {
 	defer t.Trace(ctx, nil, "GetPurgeInfo")()
 	t.Lock()
 	defer t.Unlock()
@@ -266,14 +270,16 @@ func (t *EphemeralTracker) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID)
 }
 
 func (t *EphemeralTracker) setPurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (err error) {
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo,
+) (err error) {
 	t.Lock()
 	defer t.Unlock()
 	return t.put(ctx, uid, convID, *purgeInfo)
 }
 
 func (t *EphemeralTracker) SetPurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (err error) {
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo,
+) (err error) {
 	if purgeInfo == nil {
 		return nil
 	}
@@ -288,7 +294,8 @@ func (t *EphemeralTracker) SetPurgeInfo(ctx context.Context,
 // When we are filtering new messages coming in/out of storage, we maybe update
 // if they tell us about something older we should be purging.
 func (t *EphemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (updated bool, err error) {
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo,
+) (updated bool, err error) {
 	t.Lock()
 	defer t.Unlock()
 
@@ -319,7 +326,8 @@ func (t *EphemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 }
 
 func (t *EphemeralTracker) MaybeUpdatePurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (err error) {
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo,
+) (err error) {
 	updated, err := t.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
 	if err != nil {
 		return err
@@ -331,7 +339,8 @@ func (t *EphemeralTracker) MaybeUpdatePurgeInfo(ctx context.Context,
 }
 
 func (t *EphemeralTracker) inactivatePurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID) (cache *ephemeralTrackerMemCache, err error) {
+	convID chat1.ConversationID, uid gregor1.UID,
+) (cache *ephemeralTrackerMemCache, err error) {
 	t.Lock()
 	defer t.Unlock()
 
@@ -349,7 +358,8 @@ func (t *EphemeralTracker) inactivatePurgeInfo(ctx context.Context,
 }
 
 func (t *EphemeralTracker) InactivatePurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID) (err error) {
+	convID chat1.ConversationID, uid gregor1.UID,
+) (err error) {
 	cache, err := t.inactivatePurgeInfo(ctx, convID, uid)
 	if err != nil {
 		return err

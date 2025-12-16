@@ -18,7 +18,8 @@ func newCmdGitArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		Usage: "view instructions on archiving git repos",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdGitArchive{
-				Contextified: libkb.NewContextified(g)}, "archive", c)
+				Contextified: libkb.NewContextified(g),
+			}, "archive", c)
 			cl.SetNoStandalone()
 		},
 	}

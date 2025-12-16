@@ -1,12 +1,11 @@
 package sig3
 
 import (
+	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
 	"testing"
 	"time"
-
-	"crypto/ed25519"
 
 	"github.com/keybase/client/go/msgpack"
 	"github.com/stretchr/testify/require"

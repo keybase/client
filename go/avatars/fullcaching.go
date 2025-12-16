@@ -150,7 +150,8 @@ func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, 
 }
 
 func (c *FullCachingSource) makeRemoteFetchRequests(reqs []remoteFetchArg,
-	loadFn func(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)) {
+	loadFn func(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error),
+) {
 	mctx := libkb.NewMetaContextBackground(c.G())
 	namesSet := make(map[string]bool)
 	formatsSet := make(map[keybase1.AvatarFormat]bool)
@@ -447,7 +448,8 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 }
 
 func (c *FullCachingSource) dispatchPopulateFromRes(m libkb.MetaContext, res keybase1.LoadAvatarsRes,
-	spec avatarLoadSpec) {
+	spec avatarLoadSpec,
+) {
 	c.Lock()
 	defer c.Unlock()
 	if !c.started {
@@ -492,7 +494,8 @@ func (c *FullCachingSource) mergeRes(res *keybase1.LoadAvatarsRes, m keybase1.Lo
 }
 
 func (c *FullCachingSource) loadNames(m libkb.MetaContext, names []string, formats []keybase1.AvatarFormat,
-	users bool) (res keybase1.LoadAvatarsRes, err error) {
+	users bool,
+) (res keybase1.LoadAvatarsRes, err error) {
 	loadSpec, err := c.specLoad(m, names, formats)
 	if err != nil {
 		return res, err

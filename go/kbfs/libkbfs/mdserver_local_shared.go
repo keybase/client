@@ -23,7 +23,8 @@ import (
 // true is returned.
 func isReader(ctx context.Context, teamMemChecker kbfsmd.TeamMembershipChecker,
 	currentUID keybase1.UID, mergedMasterHead kbfsmd.RootMetadata,
-	extra kbfsmd.ExtraMetadata) (bool, error) {
+	extra kbfsmd.ExtraMetadata,
+) (bool, error) {
 	h, err := mergedMasterHead.MakeBareTlfHandle(extra)
 	if err != nil {
 		return false, err
@@ -49,7 +50,8 @@ func isWriterOrValidRekey(ctx context.Context,
 	teamMemChecker kbfsmd.TeamMembershipChecker, codec kbfscodec.Codec,
 	currentUID keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
 	mergedMasterHead, newMd kbfsmd.RootMetadata, prevExtra, extra kbfsmd.ExtraMetadata) (
-	bool, error) {
+	bool, error,
+) {
 	h, err := mergedMasterHead.MakeBareTlfHandle(prevExtra)
 	if err != nil {
 		return false, err
@@ -94,7 +96,8 @@ func newMDServerLocalTruncatedLockManager() mdServerLocalTruncateLockManager {
 }
 
 func (m mdServerLocalTruncateLockManager) truncateLock(
-	deviceKey kbfscrypto.CryptPublicKey, id tlf.ID) (bool, error) {
+	deviceKey kbfscrypto.CryptPublicKey, id tlf.ID,
+) (bool, error) {
 	lockKey, ok := m.locksDb[id]
 	if !ok {
 		m.locksDb[id] = deviceKey
@@ -111,7 +114,8 @@ func (m mdServerLocalTruncateLockManager) truncateLock(
 }
 
 func (m mdServerLocalTruncateLockManager) truncateUnlock(
-	deviceKey kbfscrypto.CryptPublicKey, id tlf.ID) (bool, error) {
+	deviceKey kbfscrypto.CryptPublicKey, id tlf.ID,
+) (bool, error) {
 	lockKey, ok := m.locksDb[id]
 	if !ok {
 		// Already unlocked.
@@ -165,7 +169,8 @@ func (m *mdServerLocalUpdateManager) setHead(id tlf.ID, server mdServerLocal) {
 
 func (m *mdServerLocalUpdateManager) registerForUpdate(
 	id tlf.ID, currHead, currMergedHeadRev kbfsmd.Revision,
-	server mdServerLocal) <-chan error {
+	server mdServerLocal,
+) <-chan error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 

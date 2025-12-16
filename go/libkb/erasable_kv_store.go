@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-
 	"net/url"
 	"os"
 	"path/filepath"
@@ -48,9 +47,11 @@ type boxedData struct {
 // If we change this, make sure to update the key derivation reason for all
 // callers of ErasableKVStore!
 // ***
-const cryptoVersion = 1
-const noiseSuffix = ".ns"
-const storageSubDir = "eraseablekvstore"
+const (
+	cryptoVersion = 1
+	noiseSuffix   = ".ns"
+	storageSubDir = "eraseablekvstore"
+)
 
 func getStorageDir(mctx MetaContext, subDir string) string {
 	base := mctx.G().Env.GetDataDir()
@@ -144,7 +145,8 @@ func (s *FileErasableKVStore) unbox(mctx MetaContext, data []byte, noiseBytes No
 }
 
 func (s *FileErasableKVStore) box(mctx MetaContext, val interface{},
-	noiseBytes NoiseBytes) (data []byte, err error) {
+	noiseBytes NoiseBytes,
+) (data []byte, err error) {
 	defer mctx.Trace("FileErasableKVStore#box", &err)()
 	data, err = MPackEncode(val)
 	if err != nil {

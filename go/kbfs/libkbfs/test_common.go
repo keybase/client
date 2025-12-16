@@ -82,7 +82,8 @@ func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger
 // arguments and environment variables.
 func MakeTestBlockServerOrBust(t logger.TestLogBackend, c *ConfigLocal,
 	config blockServerRemoteConfig,
-	rpcLogFactory rpc.LogFactory) BlockServer {
+	rpcLogFactory rpc.LogFactory,
+) BlockServer {
 	// see if a local remote server is specified
 	bserverAddr := os.Getenv(EnvTestBServerAddr)
 	switch {
@@ -138,7 +139,8 @@ func newTestRPCLogFactory(t testLogger) rpc.LogFactory {
 // being logged in.
 func MakeTestConfigOrBustLoggedInWithMode(
 	t logger.TestLogBackend, loggedInIndex int,
-	mode InitModeType, users ...kbname.NormalizedUsername) *ConfigLocal {
+	mode InitModeType, users ...kbname.NormalizedUsername,
+) *ConfigLocal {
 	log := logger.NewTestLogger(t)
 	config := newConfigForTest(mode, func(m string) logger.Logger {
 		return log
@@ -237,7 +239,8 @@ func MakeTestConfigOrBustLoggedInWithMode(
 // unit-testing with the given list of users. loggedInIndex specifies the
 // index (in the list) of the user being logged in.
 func MakeTestConfigOrBustLoggedIn(t logger.TestLogBackend, loggedInIndex int,
-	users ...kbname.NormalizedUsername) *ConfigLocal {
+	users ...kbname.NormalizedUsername,
+) *ConfigLocal {
 	return MakeTestConfigOrBustLoggedInWithMode(
 		t, loggedInIndex, InitDefault, users...)
 }
@@ -245,7 +248,8 @@ func MakeTestConfigOrBustLoggedIn(t logger.TestLogBackend, loggedInIndex int,
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
 func MakeTestConfigOrBust(t logger.TestLogBackend,
-	users ...kbname.NormalizedUsername) *ConfigLocal {
+	users ...kbname.NormalizedUsername,
+) *ConfigLocal {
 	return MakeTestConfigOrBustLoggedIn(t, 0, users...)
 }
 
@@ -254,7 +258,8 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 // enabled in the returned Config, regardless of the journal status in
 // `config`.
 func ConfigAsUserWithMode(config *ConfigLocal,
-	loggedInUser kbname.NormalizedUsername, mode InitModeType) *ConfigLocal {
+	loggedInUser kbname.NormalizedUsername, mode InitModeType,
+) *ConfigLocal {
 	c := newConfigForTest(mode, config.loggerFn)
 	c.SetMetadataVersion(config.MetadataVersion())
 	c.SetRekeyWithPromptWaitTime(config.RekeyWithPromptWaitTime())
@@ -350,7 +355,8 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 // enabled in the returned Config, regardless of the journal status in
 // `config`.
 func ConfigAsUser(config *ConfigLocal,
-	loggedInUser kbname.NormalizedUsername) *ConfigLocal {
+	loggedInUser kbname.NormalizedUsername,
+) *ConfigLocal {
 	c := ConfigAsUserWithMode(config, loggedInUser, config.Mode().Type())
 	c.SetMode(config.mode) // preserve any unusual test mode wrappers
 	return c
@@ -371,7 +377,8 @@ func NewEmptyTLFReaderKeyBundle() kbfsmd.TLFReaderKeyBundleV2 {
 }
 
 func keySaltForUserDevice(name kbname.NormalizedUsername,
-	index int) kbname.NormalizedUsername {
+	index int,
+) kbname.NormalizedUsername {
 	if index > 0 {
 		// We can't include the device index when it's 0, because we
 		// have to match what's done in MakeLocalUsers.
@@ -381,7 +388,8 @@ func keySaltForUserDevice(name kbname.NormalizedUsername,
 }
 
 func makeFakeKeys(name kbname.NormalizedUsername, index int) (
-	kbfscrypto.CryptPublicKey, kbfscrypto.VerifyingKey) {
+	kbfscrypto.CryptPublicKey, kbfscrypto.VerifyingKey,
+) {
 	keySalt := keySaltForUserDevice(name, index)
 	newCryptPublicKey := idutil.MakeLocalUserCryptPublicKeyOrBust(keySalt)
 	newVerifyingKey := idutil.MakeLocalUserVerifyingKeyOrBust(keySalt)
@@ -391,7 +399,8 @@ func makeFakeKeys(name kbname.NormalizedUsername, index int) (
 // AddDeviceForLocalUserOrBust creates a new device for a user and
 // returns the index for that device.
 func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
-	uid keybase1.UID) int {
+	uid keybase1.UID,
+) int {
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		t.Fatal("Bad keybase daemon")
@@ -407,7 +416,8 @@ func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 // RevokeDeviceForLocalUserOrBust revokes a device for a user in the
 // given index.
 func RevokeDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
-	uid keybase1.UID, index int) {
+	uid keybase1.UID, index int,
+) {
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		t.Fatal("Bad keybase daemon")
@@ -452,7 +462,8 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 // that does already resolve to something.  It only applies to the
 // given config.
 func AddNewAssertionForTest(
-	config Config, oldAssertion, newAssertion string) error {
+	config Config, oldAssertion, newAssertion string,
+) error {
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		return errors.New("Bad keybase daemon")
@@ -485,7 +496,8 @@ func AddNewAssertionForTest(
 // AddNewAssertionForTestOrBust is like AddNewAssertionForTest, but
 // dies if there's an error.
 func AddNewAssertionForTestOrBust(t logger.TestLogBackend, config Config,
-	oldAssertion, newAssertion string) {
+	oldAssertion, newAssertion string,
+) {
 	err := AddNewAssertionForTest(config, oldAssertion, newAssertion)
 	if err != nil {
 		t.Fatal(err)
@@ -494,7 +506,8 @@ func AddNewAssertionForTestOrBust(t logger.TestLogBackend, config Config,
 
 // AddTeamWriterForTest makes the given user a team writer.
 func AddTeamWriterForTest(
-	config Config, tid keybase1.TeamID, uid keybase1.UID) error {
+	config Config, tid keybase1.TeamID, uid keybase1.UID,
+) error {
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		return errors.New("Bad keybase daemon")
@@ -506,7 +519,8 @@ func AddTeamWriterForTest(
 // AddTeamWriterForTestOrBust is like AddTeamWriterForTest, but
 // dies if there's an error.
 func AddTeamWriterForTestOrBust(t logger.TestLogBackend, config Config,
-	tid keybase1.TeamID, uid keybase1.UID) {
+	tid keybase1.TeamID, uid keybase1.UID,
+) {
 	err := AddTeamWriterForTest(config, tid, uid)
 	if err != nil {
 		t.Fatal(err)
@@ -515,7 +529,8 @@ func AddTeamWriterForTestOrBust(t logger.TestLogBackend, config Config,
 
 // RemoveTeamWriterForTest removes the given user from a team.
 func RemoveTeamWriterForTest(
-	config Config, tid keybase1.TeamID, uid keybase1.UID) error {
+	config Config, tid keybase1.TeamID, uid keybase1.UID,
+) error {
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		return errors.New("Bad keybase daemon")
@@ -527,7 +542,8 @@ func RemoveTeamWriterForTest(
 // RemoveTeamWriterForTestOrBust is like RemoveTeamWriterForTest, but
 // dies if there's an error.
 func RemoveTeamWriterForTestOrBust(t logger.TestLogBackend, config Config,
-	tid keybase1.TeamID, uid keybase1.UID) {
+	tid keybase1.TeamID, uid keybase1.UID,
+) {
 	err := RemoveTeamWriterForTest(config, tid, uid)
 	if err != nil {
 		t.Fatal(err)
@@ -536,7 +552,8 @@ func RemoveTeamWriterForTestOrBust(t logger.TestLogBackend, config Config,
 
 // AddTeamReaderForTest makes the given user a team reader.
 func AddTeamReaderForTest(
-	config Config, tid keybase1.TeamID, uid keybase1.UID) error {
+	config Config, tid keybase1.TeamID, uid keybase1.UID,
+) error {
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		return errors.New("Bad keybase daemon")
@@ -548,7 +565,8 @@ func AddTeamReaderForTest(
 // AddTeamReaderForTestOrBust is like AddTeamWriterForTest, but
 // dies if there's an error.
 func AddTeamReaderForTestOrBust(t logger.TestLogBackend, config Config,
-	tid keybase1.TeamID, uid keybase1.UID) {
+	tid keybase1.TeamID, uid keybase1.UID,
+) {
 	err := AddTeamReaderForTest(config, tid, uid)
 	if err != nil {
 		t.Fatal(err)
@@ -579,7 +597,8 @@ func AddTeamKeyForTest(config Config, tid keybase1.TeamID) error {
 // AddTeamKeyForTestOrBust is like AddTeamKeyForTest, but
 // dies if there's an error.
 func AddTeamKeyForTestOrBust(t logger.TestLogBackend, config Config,
-	tid keybase1.TeamID) {
+	tid keybase1.TeamID,
+) {
 	err := AddTeamKeyForTest(config, tid)
 	if err != nil {
 		t.Fatal(err)
@@ -589,7 +608,8 @@ func AddTeamKeyForTestOrBust(t logger.TestLogBackend, config Config,
 // AddEmptyTeamsForTest creates teams for the given names with empty
 // membership lists.
 func AddEmptyTeamsForTest(
-	config Config, teams ...kbname.NormalizedUsername) ([]idutil.TeamInfo, error) {
+	config Config, teams ...kbname.NormalizedUsername,
+) ([]idutil.TeamInfo, error) {
 	teamInfos := idutil.MakeLocalTeams(teams)
 
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
@@ -604,7 +624,8 @@ func AddEmptyTeamsForTest(
 // AddEmptyTeamsForTestOrBust is like AddEmptyTeamsForTest, but dies
 // if there's an error.
 func AddEmptyTeamsForTestOrBust(t logger.TestLogBackend,
-	config Config, teams ...kbname.NormalizedUsername) []idutil.TeamInfo {
+	config Config, teams ...kbname.NormalizedUsername,
+) []idutil.TeamInfo {
 	teamInfos, err := AddEmptyTeamsForTest(config, teams...)
 	if err != nil {
 		t.Fatal(err)
@@ -615,7 +636,8 @@ func AddEmptyTeamsForTestOrBust(t logger.TestLogBackend,
 // AddImplicitTeamForTest adds an implicit team with a TLF ID.
 func AddImplicitTeamForTest(
 	config Config, name, suffix string, teamNumber byte, ty tlf.Type) (
-	keybase1.TeamID, error) {
+	keybase1.TeamID, error,
+) {
 	iteamInfo, err := config.KeybaseService().ResolveIdentifyImplicitTeam(
 		context.Background(), name, suffix, ty, true, "",
 		keybase1.OfflineAvailability_NONE)
@@ -629,7 +651,8 @@ func AddImplicitTeamForTest(
 // dies if there's an error.
 func AddImplicitTeamForTestOrBust(t logger.TestLogBackend,
 	config Config, name, suffix string, teamNumber byte,
-	ty tlf.Type) keybase1.TeamID {
+	ty tlf.Type,
+) keybase1.TeamID {
 	teamID, err := AddImplicitTeamForTest(config, name, suffix, teamNumber, ty)
 	if err != nil {
 		t.Fatal(err)
@@ -639,7 +662,8 @@ func AddImplicitTeamForTestOrBust(t logger.TestLogBackend,
 
 // ChangeTeamNameForTest renames a team.
 func ChangeTeamNameForTest(
-	config Config, oldName, newName string) error {
+	config Config, oldName, newName string,
+) error {
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		return errors.New("Bad keybase daemon")
@@ -657,7 +681,8 @@ func ChangeTeamNameForTest(
 // ChangeTeamNameForTestOrBust is like ChangeTeamNameForTest, but dies
 // if there's an error.
 func ChangeTeamNameForTestOrBust(t logger.TestLogBackend, config Config,
-	oldName, newName string) {
+	oldName, newName string,
+) {
 	err := ChangeTeamNameForTest(config, oldName, newName)
 	if err != nil {
 		t.Fatal(err)
@@ -666,7 +691,8 @@ func ChangeTeamNameForTestOrBust(t logger.TestLogBackend, config Config,
 
 // SetGlobalMerkleRootForTest sets the global Merkle root and time.
 func SetGlobalMerkleRootForTest(
-	config Config, root keybase1.MerkleRootV2, rootTime time.Time) error {
+	config Config, root keybase1.MerkleRootV2, rootTime time.Time,
+) error {
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		return errors.New("Bad keybase daemon")
@@ -680,7 +706,8 @@ func SetGlobalMerkleRootForTest(
 // SetGlobalMerkleRootForTest, but dies if there's an error.
 func SetGlobalMerkleRootForTestOrBust(
 	t logger.TestLogBackend, config Config, root keybase1.MerkleRootV2,
-	rootTime time.Time) {
+	rootTime time.Time,
+) {
 	err := SetGlobalMerkleRootForTest(config, root, rootTime)
 	if err != nil {
 		t.Fatal(err)
@@ -690,7 +717,8 @@ func SetGlobalMerkleRootForTestOrBust(
 // SetKbfsMerkleRootForTest sets a Merkle root for the given KBFS tree ID.
 func SetKbfsMerkleRootForTest(
 	config Config, treeID keybase1.MerkleTreeID,
-	root *kbfsmd.MerkleRoot) error {
+	root *kbfsmd.MerkleRoot,
+) error {
 	md, ok := config.MDServer().(mdServerLocal)
 	if !ok {
 		return errors.New("Bad md server")
@@ -703,7 +731,8 @@ func SetKbfsMerkleRootForTest(
 // but dies if there's an error.
 func SetKbfsMerkleRootForTestOrBust(
 	t logger.TestLogBackend, config Config, treeID keybase1.MerkleTreeID,
-	root *kbfsmd.MerkleRoot) {
+	root *kbfsmd.MerkleRoot,
+) {
 	err := SetKbfsMerkleRootForTest(config, treeID, root)
 	if err != nil {
 		t.Fatal(err)
@@ -722,7 +751,8 @@ func EnableImplicitTeamsForTest(config Config) error {
 }
 
 func testRPCWithCanceledContext(t logger.TestLogBackend,
-	serverConn net.Conn, fn func(context.Context) error) {
+	serverConn net.Conn, fn func(context.Context) error,
+) {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		// Wait for RPC in fn to make progress.
@@ -742,7 +772,8 @@ func testRPCWithCanceledContext(t logger.TestLogBackend,
 // updates.  Send a struct{}{} down the returned channel to restart
 // notifications
 func DisableUpdatesForTesting(config Config, folderBranch data.FolderBranch) (
-	chan<- struct{}, error) {
+	chan<- struct{}, error,
+) {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return nil, errors.New("Unexpected KBFSOps type")
@@ -770,7 +801,8 @@ func DisableCRForTesting(config Config, folderBranch data.FolderBranch) error {
 // RestartCRForTesting re-enables conflict resolution for the given
 // folder.  baseCtx must have a cancellation delayer.
 func RestartCRForTesting(baseCtx context.Context, config Config,
-	folderBranch data.FolderBranch) error {
+	folderBranch data.FolderBranch,
+) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -791,7 +823,8 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 // SetCRFailureForTesting sets whether CR should always fail on the folder
 // branch.
 func SetCRFailureForTesting(ctx context.Context, config Config,
-	folderBranch data.FolderBranch, fail failModeForTesting) error {
+	folderBranch data.FolderBranch, fail failModeForTesting,
+) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -805,7 +838,8 @@ func SetCRFailureForTesting(ctx context.Context, config Config,
 // ForceQuotaReclamationForTesting kicks off quota reclamation under
 // the given config, for the given folder-branch.
 func ForceQuotaReclamationForTesting(config Config,
-	folderBranch data.FolderBranch) error {
+	folderBranch data.FolderBranch,
+) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -819,7 +853,8 @@ func ForceQuotaReclamationForTesting(config Config,
 // CheckConfigAndShutdown shuts down the given config, but fails the
 // test if there's an error.
 func CheckConfigAndShutdown(
-	ctx context.Context, t logger.TestLogBackend, config Config) {
+	ctx context.Context, t logger.TestLogBackend, config Config,
+) {
 	err := config.Shutdown(ctx)
 	switch errors.Cause(err).(type) {
 	case data.ShutdownHappenedError:
@@ -833,7 +868,8 @@ func CheckConfigAndShutdown(
 // must be canonical, creating it if necessary.
 func GetRootNodeForTest(
 	ctx context.Context, config Config, name string,
-	t tlf.Type) (Node, error) {
+	t tlf.Type,
+) (Node, error) {
 	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, name, t)
 	if err != nil {
@@ -853,7 +889,8 @@ func GetRootNodeForTest(
 // an error.
 func GetRootNodeOrBust(
 	ctx context.Context, t logger.TestLogBackend,
-	config Config, name string, ty tlf.Type) Node {
+	config Config, name string, ty tlf.Type,
+) Node {
 	n, err := GetRootNodeForTest(ctx, config, name, ty)
 	if err != nil {
 		t.Fatalf("Couldn't get root node for %s (type=%s): %+v",

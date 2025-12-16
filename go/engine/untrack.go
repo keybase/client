@@ -212,7 +212,6 @@ func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User
 		false, /* ignoreIfUnsupported */
 		me,
 		sigVersion)
-
 	if err != nil {
 		return
 	}

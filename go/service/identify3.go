@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/identify3"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"

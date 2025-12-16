@@ -12,7 +12,8 @@ import (
 
 func TestMakeSimpleFSPath(t *testing.T) {
 	check := func(path string, rev int64, timeString, relTimeString string,
-		expectedPT keybase1.PathType) {
+		expectedPT keybase1.PathType,
+	) {
 		p, err := makeSimpleFSPathWithArchiveParams(
 			path, rev, timeString, relTimeString)
 		require.NoError(t, err)

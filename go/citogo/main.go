@@ -324,7 +324,6 @@ func (r *runner) testExists() (bool, error) {
 		return true, nil
 	}
 	return false, fmt.Errorf("%s: file of wrong type", f)
-
 }
 
 func (r *runner) run() error {

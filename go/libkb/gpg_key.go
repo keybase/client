@@ -74,7 +74,7 @@ func (g *GPGKey) SignToStringMctx(mctx MetaContext, msg []byte) (sig string, id 
 		return sig, id, err
 	}
 	var hsh [32]byte
-	var tmp = h.Sum(nil)
+	tmp := h.Sum(nil)
 	copy(hsh[:], tmp)
 	id = keybase1.SigIDBaseFromBytes(hsh)
 	return sig, id, nil

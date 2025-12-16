@@ -17,7 +17,8 @@ import (
 // NewOpenFileCountFile returns a special read file that contains the
 // number of files and directories currently being held open by the OS.
 func NewOpenFileCountFile(
-	folder *Folder, entryValid *time.Duration) *SpecialReadFile {
+	folder *Folder, entryValid *time.Duration,
+) *SpecialReadFile {
 	*entryValid = 0
 	return &SpecialReadFile{
 		read: func(_ context.Context) ([]byte, time.Time, error) {

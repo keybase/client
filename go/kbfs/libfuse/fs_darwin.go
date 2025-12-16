@@ -127,7 +127,8 @@ type Trash struct {
 
 // Lookup implements the fs.NodeRequestLookuper interface for *Trash
 func (t *Trash) Lookup(ctx context.Context,
-	req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
+	req *fuse.LookupRequest, resp *fuse.LookupResponse,
+) (fs.Node, error) {
 	if req.Name == strconv.Itoa(os.Getuid()) {
 		return &Alias{
 			realPath: fmt.Sprintf("../private/%s/.trash", t.kbusername),
@@ -138,7 +139,7 @@ func (t *Trash) Lookup(ctx context.Context,
 
 // Attr implements the fs.Node interface for *Trash
 func (t *Trash) Attr(ctx context.Context, a *fuse.Attr) error {
-	a.Mode = os.ModeDir | 0755
+	a.Mode = os.ModeDir | 0o755
 	return nil
 }
 

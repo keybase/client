@@ -85,7 +85,6 @@ func (l RPCLoggerAdapter) Profile(format string, args ...interface{}) {
 }
 
 func (l RPCLoggerAdapter) Configure(_ string, _ bool, _ string) {
-
 }
 
 func (l RPCLoggerAdapter) CloneWithAddedDepth(_ int) Logger {
@@ -93,5 +92,4 @@ func (l RPCLoggerAdapter) CloneWithAddedDepth(_ int) Logger {
 }
 
 func (l RPCLoggerAdapter) SetExternalHandler(_ ExternalHandler) {
-
 }

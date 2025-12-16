@@ -43,6 +43,7 @@ func (m *outerMatch) standardPath() string {
 func unquotedTrailingTrimFuncWindows(r rune) bool {
 	return r != '\\' && unicode.IsPunct(r)
 }
+
 func unquotedTrailingTrimFuncUnix(r rune) bool {
 	return r != '/' && unicode.IsPunct(r)
 }
@@ -152,7 +153,8 @@ func ParseKBFSPaths(ctx context.Context, body string) (paths []chat1.KBFSPath) {
 
 func DecorateWithKBFSPath(
 	ctx context.Context, body string, paths []chat1.KBFSPath) (
-	res string) {
+	res string,
+) {
 	var offset, added int
 	for _, path := range paths {
 		body, added = DecorateBody(ctx, body, path.StartIndex+offset, len(path.RawPath), chat1.NewUITextDecorationWithKbfspath(path))

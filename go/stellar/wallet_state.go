@@ -456,7 +456,6 @@ func (w *WalletState) PendingPayments(ctx context.Context, accountID stellar1.Ac
 		w.G().Log.CDebugf(ctx, "WalletState pending payments for %s: %d", accountID, len(payments))
 	} else {
 		w.G().Log.CDebugf(ctx, "WalletState pending payments error for %s: %s", accountID, err)
-
 	}
 	return payments, err
 }
@@ -551,7 +550,6 @@ func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayC
 		}
 	}
 	return result, err
-
 }
 
 // MarkAsRead is an override of remoter's MarkAsRead.

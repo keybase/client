@@ -85,7 +85,8 @@ func (l *InternalLogger) Debug(fmt string, arg ...interface{}) {
 }
 
 func (l *InternalLogger) CDebugf(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	l.log.Printf(prepareString(ctx, fmt), arg...)
 }
 
@@ -94,7 +95,8 @@ func (l *InternalLogger) Info(fmt string, arg ...interface{}) {
 }
 
 func (l *InternalLogger) CInfof(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	l.log.Printf(keybase1.LogLevel_INFO.String()+prepareString(ctx, fmt), arg...)
 }
 
@@ -103,7 +105,8 @@ func (l *InternalLogger) Notice(fmt string, arg ...interface{}) {
 }
 
 func (l *InternalLogger) CNoticef(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	l.log.Printf(keybase1.LogLevel_NOTICE.String()+prepareString(ctx, fmt), arg...)
 }
 
@@ -112,7 +115,8 @@ func (l *InternalLogger) Warning(fmt string, arg ...interface{}) {
 }
 
 func (l *InternalLogger) CWarningf(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	l.log.Printf(keybase1.LogLevel_WARN.String()+prepareString(ctx, fmt), arg...)
 }
 
@@ -125,7 +129,8 @@ func (l *InternalLogger) Errorf(fmt string, arg ...interface{}) {
 }
 
 func (l *InternalLogger) CErrorf(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	l.log.Printf(keybase1.LogLevel_ERROR.String()+prepareString(ctx, fmt), arg...)
 }
 
@@ -134,7 +139,8 @@ func (l *InternalLogger) Critical(fmt string, arg ...interface{}) {
 }
 
 func (l *InternalLogger) CCriticalf(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	l.log.Printf(keybase1.LogLevel_CRITICAL.String()+prepareString(ctx, fmt), arg...)
 }
 
@@ -143,7 +149,8 @@ func (l *InternalLogger) Fatalf(fmt string, arg ...interface{}) {
 }
 
 func (l *InternalLogger) CFatalf(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	l.log.Fatalf(prepareString(ctx, fmt), arg...)
 }
 

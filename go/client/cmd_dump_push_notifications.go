@@ -5,6 +5,7 @@ package client
 
 import (
 	"encoding/json"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -23,7 +24,6 @@ func (c *CmdDumpPushNotifications) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdDumpPushNotifications) Run() error {
-
 	cli, err := GetGregorClient(c.G())
 	if err != nil {
 		return err
@@ -46,6 +46,7 @@ func (c *CmdDumpPushNotifications) Run() error {
 	_ = c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
 	return nil
 }
+
 func NewCmdDumpPushNotificationsRunner(g *libkb.GlobalContext) *CmdDumpPushNotifications {
 	return &CmdDumpPushNotifications{Contextified: libkb.NewContextified(g)}
 }

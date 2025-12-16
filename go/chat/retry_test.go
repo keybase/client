@@ -19,12 +19,14 @@ import (
 type errorClient struct{}
 
 func (e errorClient) Call(_ context.Context, method string, _ interface{},
-	_ interface{}, _ time.Duration) error {
+	_ interface{}, _ time.Duration,
+) error {
 	return fmt.Errorf("errorClient: Call %s", method)
 }
 
 func (e errorClient) CallCompressed(_ context.Context, method string, _ interface{},
-	_ interface{}, _ rpc.CompressionType, _ time.Duration) error {
+	_ interface{}, _ rpc.CompressionType, _ time.Duration,
+) error {
 	return fmt.Errorf("errorClient: Call %s", method)
 }
 
@@ -123,5 +125,4 @@ func TestFetchRetry(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox full stale received")
 	}
-
 }

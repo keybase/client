@@ -23,11 +23,15 @@ type ID struct {
 // ZeroID is a zero-valued ID.
 var ZeroID = ID{}
 
-var _ encoding.BinaryMarshaler = ID{}
-var _ encoding.BinaryUnmarshaler = (*ID)(nil)
+var (
+	_ encoding.BinaryMarshaler   = ID{}
+	_ encoding.BinaryUnmarshaler = (*ID)(nil)
+)
 
-var _ encoding.TextMarshaler = ID{}
-var _ encoding.TextUnmarshaler = (*ID)(nil)
+var (
+	_ encoding.TextMarshaler   = ID{}
+	_ encoding.TextUnmarshaler = (*ID)(nil)
+)
 
 const (
 	// MaxIDStringLength is the maximum length of the string
@@ -175,7 +179,8 @@ func MakeRandomIDInRange(start, end float64, mathRandForTest bool) (ID, error) {
 // encoded and encrypted contents.
 func MakePermanentID(
 	encodedEncryptedData []byte, encryptionVer kbfscrypto.EncryptionVer) (
-	ID, error) {
+	ID, error,
+) {
 	h, err := kbfshash.DoHash(
 		encodedEncryptedData, encryptionVer.ToHashType())
 	if err != nil {

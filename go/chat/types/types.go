@@ -301,7 +301,8 @@ func (j ConvLoaderJob) String() string {
 }
 
 func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination, priority ConvLoaderPriority,
-	uniqueness ConvLoaderUniqueness, postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)) ConvLoaderJob {
+	uniqueness ConvLoaderUniqueness, postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob),
+) ConvLoaderJob {
 	return ConvLoaderJob{
 		ConvID:       convID,
 		Pagination:   pagination,
@@ -403,17 +404,20 @@ var _ AttachmentFetcher = (*DummyAttachmentFetcher)(nil)
 
 func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
 	convID chat1.ConversationID, asset chat1.Asset, r func() chat1.RemoteInterface, signer s3.Signer,
-	progress ProgressReporter) error {
+	progress ProgressReporter,
+) error {
 	return nil
 }
 
 func (d DummyAttachmentFetcher) StreamAttachment(ctx context.Context, convID chat1.ConversationID,
-	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (io.ReadSeeker, error) {
+	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer,
+) (io.ReadSeeker, error) {
 	return nil, nil
 }
 
 func (d DummyAttachmentFetcher) DeleteAssets(ctx context.Context,
-	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (err error) {
+	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer,
+) (err error) {
 	return nil
 }
 
@@ -432,7 +436,8 @@ type DummyAttachmentHTTPSrv struct{}
 var _ AttachmentURLSrv = (*DummyAttachmentHTTPSrv)(nil)
 
 func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	preview, noAnim, isEmoji bool) string {
+	preview, noAnim, isEmoji bool,
+) string {
 	return ""
 }
 
@@ -441,7 +446,8 @@ func (d DummyAttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outbox
 }
 
 func (d DummyAttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID,
-	asset chat1.Asset) string {
+	asset chat1.Asset,
+) string {
 	return ""
 }
 
@@ -452,8 +458,10 @@ func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 func (d DummyAttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) string {
 	return ""
 }
+
 func (d DummyAttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, results []chat1.GiphySearchResult) string {
+	tlfName string, results []chat1.GiphySearchResult,
+) string {
 	return ""
 }
 func (d DummyAttachmentHTTPSrv) OnDbNuke(mctx libkb.MetaContext) error { return nil }
@@ -480,6 +488,7 @@ func (d DummyEphemeralPurger) Stop(ctx context.Context) chan struct{} {
 	close(ch)
 	return ch
 }
+
 func (d DummyEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
 	return nil
 }
@@ -494,25 +503,33 @@ func (d DummyIndexer) Stop(ctx context.Context) chan struct{} {
 	close(ch)
 	return ch
 }
+
 func (d DummyIndexer) Suspend(ctx context.Context) bool {
 	return false
 }
+
 func (d DummyIndexer) Resume(ctx context.Context) bool {
 	return false
 }
+
 func (d DummyIndexer) Search(ctx context.Context, query, origQuery string,
-	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
+	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus,
+) (*chat1.ChatSearchInboxResults, error) {
 	return nil, nil
 }
+
 func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, msg []chat1.MessageUnboxed) error {
 	return nil
 }
+
 func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, msg []chat1.MessageUnboxed) error {
 	return nil
 }
+
 func (d DummyIndexer) SearchableConvs(ctx context.Context, convID *chat1.ConversationID) ([]RemoteConversation, error) {
 	return nil, nil
 }
+
 func (d DummyIndexer) IndexInbox(ctx context.Context) (map[chat1.ConvIDStr]chat1.ProfileSearchConvStats, error) {
 	return nil, nil
 }
@@ -521,15 +538,19 @@ func (d DummyIndexer) ClearCache()              {}
 func (d DummyIndexer) OnLogout(mctx libkb.MetaContext) error {
 	return nil
 }
+
 func (d DummyIndexer) OnDbNuke(mctx libkb.MetaContext) error {
 	return nil
 }
+
 func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID) (bool, error) {
 	return false, nil
 }
+
 func (d DummyIndexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID) (int, error) {
 	return 0, nil
 }
+
 func (d DummyIndexer) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
 	return nil
 }
@@ -558,9 +579,11 @@ var _ Unfurler = (*DummyUnfurler)(nil)
 func (d DummyUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) {
 }
+
 func (d DummyUnfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgText string) int {
 	return 0
 }
+
 func (d DummyUnfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.UnfurlResult, error) {
 	return UnfurlerTaskStatusFailed, nil, nil
 }
@@ -596,12 +619,14 @@ type DummyStellarSender struct{}
 var _ StellarSender = (*DummyStellarSender)(nil)
 
 func (d DummyStellarSender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body string, replyTo *chat1.MessageID) []ParsedStellarPayment {
+	body string, replyTo *chat1.MessageID,
+) []ParsedStellarPayment {
 	return nil
 }
 
 func (d DummyStellarSender) DescribePayments(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, payments []ParsedStellarPayment) (res chat1.UIChatPaymentSummary, toSend []ParsedStellarPayment, err error) {
+	convID chat1.ConversationID, payments []ParsedStellarPayment,
+) (res chat1.UIChatPaymentSummary, toSend []ParsedStellarPayment, err error) {
 	return res, toSend, nil
 }
 
@@ -610,7 +635,8 @@ func (d DummyStellarSender) SendPayments(ctx context.Context, convID chat1.Conve
 }
 
 func (d DummyStellarSender) DecorateWithPayments(ctx context.Context, body string,
-	payments []chat1.TextPayment) string {
+	payments []chat1.TextPayment,
+) string {
 	return body
 }
 
@@ -624,16 +650,20 @@ func (d DummyCoinFlipManager) Stop(ctx context.Context) chan struct{} {
 	close(ch)
 	return ch
 }
+
 func (d DummyCoinFlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string, outboxID *chat1.OutboxID) error {
 	return nil
 }
+
 func (d DummyCoinFlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed,
-	inboxVers chat1.InboxVers, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool {
+	inboxVers chat1.InboxVers, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType,
+) bool {
 	return false
 }
 
 func (d DummyCoinFlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
-	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) (chan chat1.UICoinFlipStatus, chan error) {
+	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID,
+) (chan chat1.UICoinFlipStatus, chan error) {
 	return nil, nil
 }
 
@@ -658,12 +688,14 @@ func (d DummyTeamMentionLoader) Stop(ctx context.Context) chan struct{} {
 
 func (d DummyTeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
 	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention,
-	forceRemote bool) error {
+	forceRemote bool,
+) error {
 	return nil
 }
 
 func (d DummyTeamMentionLoader) IsTeamMention(ctx context.Context, uid gregor1.UID,
-	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) bool {
+	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention,
+) bool {
 	return false
 }
 
@@ -686,7 +718,8 @@ func (d DummyExternalAPIKeySource) GetAllKeys(ctx context.Context) (res []chat1.
 type DummyBotCommandManager struct{}
 
 func (d DummyBotCommandManager) Advertise(ctx context.Context, alias *string,
-	ads []chat1.AdvertiseCommandsParam) error {
+	ads []chat1.AdvertiseCommandsParam,
+) error {
 	return nil
 }
 
@@ -703,7 +736,8 @@ func (d DummyBotCommandManager) ListCommands(ctx context.Context, convID chat1.C
 }
 
 func (d DummyBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID,
-	info *chat1.BotInfo) (chan error, error) {
+	info *chat1.BotInfo,
+) (chan error, error) {
 	ch := make(chan error, 1)
 	ch <- nil
 	return ch, nil
@@ -726,7 +760,8 @@ func (d DummyUIInboxLoader) Stop(ctx context.Context) chan struct{} {
 }
 
 func (d DummyUIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
-	maxUnbox *int, skipUnverified bool) error {
+	maxUnbox *int, skipUnverified bool,
+) error {
 	return nil
 }
 
@@ -753,15 +788,19 @@ var _ AttachmentUploader = (*DummyAttachmentUploader)(nil)
 
 func (d DummyAttachmentUploader) Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID, title, filename string, metadata []byte,
-	callerPreview *chat1.MakePreviewRes) (AttachmentUploaderResultCb, error) {
+	callerPreview *chat1.MakePreviewRes,
+) (AttachmentUploaderResultCb, error) {
 	return nil, nil
 }
+
 func (d DummyAttachmentUploader) Status(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderTaskStatus, AttachmentUploadResult, error) {
 	return 0, AttachmentUploadResult{}, nil
 }
+
 func (d DummyAttachmentUploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderResultCb, error) {
 	return nil, nil
 }
+
 func (d DummyAttachmentUploader) Cancel(ctx context.Context, outboxID chat1.OutboxID) error {
 	return nil
 }
@@ -769,9 +808,11 @@ func (d DummyAttachmentUploader) Complete(ctx context.Context, outboxID chat1.Ou
 func (d DummyAttachmentUploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error) {
 	return "", nil
 }
+
 func (d DummyAttachmentUploader) GetUploadTempSink(ctx context.Context, filename string) (*os.File, chat1.OutboxID, error) {
 	return nil, nil, nil
 }
+
 func (d DummyAttachmentUploader) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) error {
 	return nil
 }
@@ -784,13 +825,15 @@ var _ UIThreadLoader = (*DummyUIThreadLoader)(nil)
 func (d DummyUIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
 	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
 	cbmode chat1.GetThreadNonblockCbMode, knownRemote []string,
-	query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error {
+	query *chat1.GetThreadQuery, uipagination *chat1.UIPagination,
+) error {
 	return nil
 }
 
 func (d DummyUIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	reason chat1.GetThreadReason, knownRemotes []string, query *chat1.GetThreadQuery,
-	pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	pagination *chat1.Pagination,
+) (chat1.ThreadView, error) {
 	return chat1.ThreadView{}, nil
 }
 
@@ -803,18 +846,23 @@ type DummyParticipantSource struct{}
 var _ ParticipantSource = (*DummyParticipantSource)(nil)
 
 func (d DummyParticipantSource) Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	dataSource InboxSourceDataSourceTyp) ([]gregor1.UID, error) {
+	dataSource InboxSourceDataSourceTyp,
+) ([]gregor1.UID, error) {
 	return nil, nil
 }
+
 func (d DummyParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) chan ParticipantResult {
+	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp,
+) chan ParticipantResult {
 	ch := make(chan ParticipantResult)
 	close(ch)
 	return ch
 }
+
 func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) {
 }
+
 func (d DummyParticipantSource) GetParticipantsFromUids(
 	ctx context.Context,
 	uids []gregor1.UID,
@@ -827,37 +875,51 @@ type DummyEmojiSource struct{}
 var _ EmojiSource = (*DummyEmojiSource)(nil)
 
 func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias, filename string, allowOverwrite bool) (res chat1.EmojiRemoteSource, err error) {
+	alias, filename string, allowOverwrite bool,
+) (res chat1.EmojiRemoteSource, err error) {
 	return res, err
 }
+
 func (DummyEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
+	newAlias, existingAlias string,
+) (res chat1.EmojiRemoteSource, err error) {
 	return res, err
 }
+
 func (DummyEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias string) error {
+	alias string,
+) error {
 	return nil
 }
+
 func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID,
-	opts chat1.EmojiFetchOpts) (chat1.UserEmojis, error) {
+	opts chat1.EmojiFetchOpts,
+) (chat1.UserEmojis, error) {
 	return chat1.UserEmojis{}, nil
 }
+
 func (DummyEmojiSource) Decorate(ctx context.Context, body string, uid gregor1.UID,
-	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji,
+) string {
 	return body
 }
+
 func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
-	convID chat1.ConversationID, mode EmojiHarvestMode) (res []chat1.HarvestedEmoji, err error) {
+	convID chat1.ConversationID, mode EmojiHarvestMode,
+) (res []chat1.HarvestedEmoji, err error) {
 	return res, err
 }
 func (DummyEmojiSource) IsStockEmoji(alias string) bool { return true }
 func (DummyEmojiSource) RemoteToLocalSource(ctx context.Context, uid gregor1.UID,
-	remote chat1.EmojiRemoteSource) (source chat1.EmojiLoadSource, noAnimSource chat1.EmojiLoadSource, err error) {
+	remote chat1.EmojiRemoteSource,
+) (source chat1.EmojiLoadSource, noAnimSource chat1.EmojiLoadSource, err error) {
 	return source, noAnimSource, nil
 }
+
 func (DummyEmojiSource) ToggleAnimations(ctx context.Context, uid gregor1.UID, enabled bool) error {
 	return nil
 }
+
 func (DummyEmojiSource) IsValidSize(size int64) bool {
 	return false
 }
@@ -877,21 +939,27 @@ func (d DummyEphemeralTracker) Stop(ctx context.Context) chan struct{} {
 	close(ch)
 	return ch
 }
+
 func (d DummyEphemeralTracker) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) ([]chat1.EphemeralPurgeInfo, error) {
 	return nil, nil
 }
+
 func (d DummyEphemeralTracker) GetPurgeInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.EphemeralPurgeInfo, error) {
 	return chat1.EphemeralPurgeInfo{}, nil
 }
+
 func (d DummyEphemeralTracker) InactivatePurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
 	return nil
 }
+
 func (d DummyEphemeralTracker) SetPurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) error {
 	return nil
 }
+
 func (d DummyEphemeralTracker) MaybeUpdatePurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) error {
 	return nil
 }
+
 func (d DummyEphemeralTracker) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
 	return nil
 }

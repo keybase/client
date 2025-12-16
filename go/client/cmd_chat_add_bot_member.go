@@ -52,7 +52,8 @@ func newCmdChatAddBotMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 }
 
 func resolveConversationForBotMember(g *libkb.GlobalContext, resolvingRequest chatConversationResolvingRequest,
-	hasTTY bool) (resolver *chatConversationResolver, res chat1.ConversationInfoLocal, err error) {
+	hasTTY bool,
+) (resolver *chatConversationResolver, res chat1.ConversationInfoLocal, err error) {
 	ui := NewChatCLIUI(g)
 	protocols := []rpc.Protocol{
 		chat1.ChatUiProtocol(ui),

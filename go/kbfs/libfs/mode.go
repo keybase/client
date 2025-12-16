@@ -18,7 +18,8 @@ import (
 // IsWriter returns whether or not the currently logged-in user is a
 // valid writer for the folder described by `h`.
 func IsWriter(ctx context.Context, kbpki libkbfs.KBPKI,
-	osg idutil.OfflineStatusGetter, h *tlfhandle.Handle) (bool, error) {
+	osg idutil.OfflineStatusGetter, h *tlfhandle.Handle,
+) (bool, error) {
 	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, kbpki, h.Type() == tlf.Public)
 	// We are using GetCurrentUserInfoIfPossible here so err is only non-nil if
@@ -52,8 +53,9 @@ func IsWriter(ctx context.Context, kbpki libkbfs.KBPKI,
 func WritePermMode(
 	ctx context.Context, node libkbfs.Node, original os.FileMode,
 	kbpki libkbfs.KBPKI, osg idutil.OfflineStatusGetter,
-	h *tlfhandle.Handle) (os.FileMode, error) {
-	original &^= os.FileMode(0222) // clear write perm bits
+	h *tlfhandle.Handle,
+) (os.FileMode, error) {
+	original &^= os.FileMode(0o222) // clear write perm bits
 
 	if node != nil && node.Readonly(ctx) {
 		return original, nil
@@ -64,7 +66,7 @@ func WritePermMode(
 		return 0, err
 	}
 	if isWriter {
-		original |= 0200
+		original |= 0o200
 	}
 
 	return original, nil

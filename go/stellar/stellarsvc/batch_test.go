@@ -206,7 +206,8 @@ type testChatHelper struct {
 
 func (tch *testChatHelper) SendMsgByName(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
-	msgType chat1.MessageType) error {
+	msgType chat1.MessageType,
+) error {
 	tch.Lock()
 	defer tch.Unlock()
 	if msgType == chat1.MessageType_SENDPAYMENT {

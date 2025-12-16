@@ -61,7 +61,6 @@ func ProofErrorToState(pe ProofError) keybase1.ProofState {
 	default:
 		return keybase1.ProofState_TEMP_FAILURE
 	}
-
 }
 
 type ProofErrorImpl struct {
@@ -192,12 +191,14 @@ func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
 		err:    fmt.Sprintf(s, a...),
 	}
 }
+
 func NewAssertionParseErrorWithReason(reason AssertionParseErrorReason, s string, a ...interface{}) AssertionParseError {
 	return AssertionParseError{
 		reason: reason,
 		err:    fmt.Sprintf(s, a...),
 	}
 }
+
 func IsAssertionParseErrorWithReason(err error, reason AssertionParseErrorReason) bool {
 	aerr, ok := err.(AssertionParseError)
 	return ok && aerr.reason == reason
@@ -261,8 +262,7 @@ func (e WrongKeyError) Error() string {
 
 // =============================================================================
 
-type UnexpectedKeyError struct {
-}
+type UnexpectedKeyError struct{}
 
 func (e UnexpectedKeyError) Error() string {
 	return "Found a key or fingerprint when one wasn't expected"
@@ -371,8 +371,7 @@ func (e NoSyncedPGPKeyError) Error() string {
 
 // =============================================================================
 
-type NoSecretKeyError struct {
-}
+type NoSecretKeyError struct{}
 
 func (u NoSecretKeyError) Error() string {
 	return "No secret key available"
@@ -380,8 +379,7 @@ func (u NoSecretKeyError) Error() string {
 
 // =============================================================================
 
-type NoPaperKeysError struct {
-}
+type NoPaperKeysError struct{}
 
 func (u NoPaperKeysError) Error() string {
 	return "No paper keys available"
@@ -729,6 +727,7 @@ type InvalidHostnameError struct {
 func (e InvalidHostnameError) Error() string {
 	return "Invalid hostname: " + e.h
 }
+
 func NewInvalidHostnameError(h string) InvalidHostnameError {
 	return InvalidHostnameError{h: h}
 }
@@ -756,6 +755,7 @@ type ProtocolSchemeMismatch struct {
 func (h ProtocolSchemeMismatch) Error() string {
 	return h.msg
 }
+
 func NewProtocolSchemeMismatch(msg string) ProtocolSchemeMismatch {
 	return ProtocolSchemeMismatch{msg: msg}
 }
@@ -768,6 +768,7 @@ type ProtocolDowngradeError struct {
 func (h ProtocolDowngradeError) Error() string {
 	return h.msg
 }
+
 func NewProtocolDowngradeError(msg string) ProtocolDowngradeError {
 	return ProtocolDowngradeError{msg: msg}
 }
@@ -1624,8 +1625,7 @@ func (e IdentifyFailedError) Error() string {
 
 // =============================================================================
 
-type IdentifiesFailedError struct {
-}
+type IdentifiesFailedError struct{}
 
 func (e IdentifiesFailedError) Error() string {
 	return "one or more identifies failed"
@@ -1745,8 +1745,7 @@ func (e InvalidArgumentError) Error() string {
 	return fmt.Sprintf("invalid argument: %s", e.Msg)
 }
 
-type RetryExhaustedError struct {
-}
+type RetryExhaustedError struct{}
 
 func (e RetryExhaustedError) Error() string {
 	return "Prompt attempts exhausted."
@@ -2023,8 +2022,7 @@ func (e ChatMessageCollisionError) Error() string {
 
 // =============================================================================
 
-type ChatCollisionError struct {
-}
+type ChatCollisionError struct{}
 
 func (e ChatCollisionError) Error() string {
 	return "conversation id collision"
@@ -2705,8 +2703,7 @@ func (e UserReverifyNeededError) Error() string {
 
 // =============================================================================
 
-type OfflineError struct {
-}
+type OfflineError struct{}
 
 func NewOfflineError() error {
 	return OfflineError{}
@@ -2743,8 +2740,7 @@ func (e InvalidStellarAccountIDError) Verbose() string {
 
 // =============================================================================
 
-type ResetWithActiveDeviceError struct {
-}
+type ResetWithActiveDeviceError struct{}
 
 func (e ResetWithActiveDeviceError) Error() string {
 	return "You cannot reset your account from a logged-in device."

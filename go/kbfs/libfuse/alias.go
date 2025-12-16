@@ -28,7 +28,7 @@ var _ fs.Node = (*Alias)(nil)
 
 // Attr implements the fs.Node interface for Alias.
 func (*Alias) Attr(ctx context.Context, a *fuse.Attr) error {
-	a.Mode = os.ModeSymlink | 0777
+	a.Mode = os.ModeSymlink | 0o777
 	// Aliases can't be moved, so let bazil generate an inode.
 	return nil
 }

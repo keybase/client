@@ -43,7 +43,8 @@ func newCmdChatArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 			cli.StringFlag{
 				Name:  "o, outfile",
 				Usage: "Output directory name for the archive",
-			}}...),
+			},
+		}...),
 	}
 }
 

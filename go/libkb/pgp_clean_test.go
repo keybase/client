@@ -5,12 +5,12 @@ package libkb
 
 import (
 	"encoding/base64"
-	require "github.com/stretchr/testify/require"
 	"testing"
+
+	require "github.com/stretchr/testify/require"
 )
 
 func TestKeithWinstein(t *testing.T) {
-
 	var err error
 	// Encode the key with spaces as a Base64-encoded string, since trailing
 	// spaces don't survive our various text editors
@@ -24,7 +24,6 @@ func TestKeithWinstein(t *testing.T) {
 }
 
 func TestBug8612Prepass(t *testing.T) {
-
 	whackyKey := `-----BEGIN PGP PUBLIC KEY BLOCK-----              [1/2]
 
 mI0EWcknrwEEAK2X5lKA76pf6i5D1aVcApUAH6NnZ4NkFeSxKT92soiSWkFn+I/G
@@ -70,5 +69,4 @@ UzzykQlAfLl74336wrkSZfa2GnBBJQHvlnLosnmbGCzsd3KMkuJv90hxxt1rqjN6
 	require.Error(t, err)
 	_, _, err = ReadOneKeyFromStringLiberal(whackyKey)
 	require.NoError(t, err)
-
 }

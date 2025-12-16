@@ -124,7 +124,8 @@ func NewTlfHistory() *TlfHistory {
 // should be added for any particular writer.  It returns the maximum
 // known revision including an update from this writer.
 func (th *TlfHistory) AddNotifications(
-	writerName string, messages []string) (maxRev kbfsmd.Revision, err error) {
+	writerName string, messages []string,
+) (maxRev kbfsmd.Revision, err error) {
 	newEdits := make(notificationsByRevision, 0, len(messages))
 
 	// Unmarshal and sort the new messages.
@@ -180,7 +181,8 @@ func (th *TlfHistory) AddNotifications(
 // notifications with revision numbers equal or greater to the minimum
 // unflushed revision.
 func (th *TlfHistory) AddUnflushedNotifications(
-	loggedInUser string, msgs []NotificationMessage) {
+	loggedInUser string, msgs []NotificationMessage,
+) {
 	th.lock.Lock()
 	defer th.lock.Unlock()
 	if th.unflushed == nil {
@@ -288,7 +290,8 @@ func ignoreFile(filename string) bool {
 // It returns true if it has added enough notifications for the given
 // writer, and the caller should not send any more for that writer.
 func (r *recomputer) processNotification(
-	writer string, notification NotificationMessage) (doTrim bool) {
+	writer string, notification NotificationMessage,
+) (doTrim bool) {
 	// Ignore notifications that come after any present unflushed
 	// notifications, as the local client won't be able to see them.
 	if r.minUnflushed != kbfsmd.RevisionUninitialized &&
@@ -387,11 +390,10 @@ func (r *recomputer) processNotification(
 			r.fileEvents[notification.Params.OldFilename] = event
 			delete(r.fileEvents, eventFilename)
 		} else {
-			r.fileEvents[notification.Params.OldFilename] =
-				fileEvent{
-					newName: eventFilename,
-					rev:     notification.Revision,
-				}
+			r.fileEvents[notification.Params.OldFilename] = fileEvent{
+				newName: eventFilename,
+				rev:     notification.Revision,
+			}
 		}
 
 		// If renaming a directory, check whether there are any events
@@ -476,7 +478,8 @@ func (r *recomputer) processNotification(
 }
 
 func (th *TlfHistory) recomputeLocked(loggedInUser string) (
-	history writersByRevision, writersWhoNeedMore map[string]bool) {
+	history writersByRevision, writersWhoNeedMore map[string]bool,
+) {
 	writersWhoNeedMore = make(map[string]bool)
 
 	r := newRecomputer()
@@ -543,8 +546,7 @@ func (th *TlfHistory) recomputeLocked(loggedInUser string) (
 			if loggedInUser == nextWriter {
 				numProcessed -= loggedInProcessed
 			}
-			th.byWriter[nextWriter].notifications =
-				th.byWriter[nextWriter].notifications[:numProcessed]
+			th.byWriter[nextWriter].notifications = th.byWriter[nextWriter].notifications[:numProcessed]
 		} else {
 			writersHeap[0].notifications = writersHeap[0].notifications[1:]
 		}
@@ -604,7 +606,8 @@ func (th *TlfHistory) recomputeLocked(loggedInUser string) (
 }
 
 func (th *TlfHistory) getHistoryIfCached() (
-	cached bool, history writersByRevision, loggedInUser string) {
+	cached bool, history writersByRevision, loggedInUser string,
+) {
 	th.lock.RLock()
 	defer th.lock.RUnlock()
 	if th.computed {
@@ -634,7 +637,8 @@ func (th *TlfHistory) getHistory(loggedInUser string) writersByRevision {
 // all recently-added notifications, and returns the names of writers
 // which don't yet have the maximum number of edits in the history.
 func (th *TlfHistory) Recompute(loggedInUser string) (
-	writersWhoNeedMore map[string]bool) {
+	writersWhoNeedMore map[string]bool,
+) {
 	th.lock.Lock()
 	defer th.lock.Unlock()
 	_, writersWhoNeedMore = th.recomputeLocked(loggedInUser)

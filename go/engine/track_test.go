@@ -183,7 +183,6 @@ func TestTrackNewUserWithPGP(t *testing.T) {
 
 // see issue #578
 func TestTrackRetrack(t *testing.T) {
-
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	sigVersion := libkb.GetDefaultSigVersion(tc.G)
@@ -258,7 +257,8 @@ func TestTrackWithSecretStore(t *testing.T) {
 
 func _testTrackWithSecretStore(t *testing.T, sigVersion libkb.SigVersion) {
 	testEngineWithSecretStore(t, func(
-		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI,
+	) {
 		trackAliceWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true}, secretUI)
 		untrackAlice(tc, fu, sigVersion)
 	})
@@ -278,7 +278,6 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 	trackee := "t_tracy"
 
 	doID := func(tc libkb.TestContext, fui *FakeIdentifyUI) {
-
 		iarg := &keybase1.Identify2Arg{
 			UserAssertion: trackee,
 			// We need to block on identification so that the track token

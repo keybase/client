@@ -12,7 +12,8 @@ import (
 // NewCmdSimpleFSDebug creates the debug command, which is just a
 // holder for subcommands.
 func NewCmdSimpleFSDebug(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:  "debug",
 		Usage: "Debug utilities",

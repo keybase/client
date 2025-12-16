@@ -45,8 +45,7 @@ type PreviewRes struct {
 
 func IsFatalImageErr(err error) bool {
 	switch err {
-	case image.ErrFormat,
-		bmp.ErrUnsupported:
+	case image.ErrFormat, bmp.ErrUnsupported:
 		return true
 	}
 	switch err.(type) {
@@ -64,7 +63,8 @@ func IsFatalImageErr(err error) bool {
 // Preview creates preview assets from src. It returns an in-memory BufferSource
 // and the content type of the preview asset.
 func Preview(ctx context.Context, log utils.DebugLabeler, src ReadResetter, contentType,
-	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
+	basename string, nvh types.NativeVideoHelper,
+) (res *PreviewRes, err error) {
 	defer log.Trace(ctx, &err, "Preview(%s)", contentType)()
 	defer func() {
 		if IsFatalImageErr(err) {
@@ -95,7 +95,8 @@ func Preview(ctx context.Context, log utils.DebugLabeler, src ReadResetter, cont
 
 // previewVideoBlank previews a video by inserting a black rectangle with a play button on it.
 func previewVideoBlank(ctx context.Context, log utils.DebugLabeler, src io.Reader,
-	basename string) (res *PreviewRes, err error) {
+	basename string,
+) (res *PreviewRes, err error) {
 	const width, height = 300, 150
 	img := image.NewNRGBA(image.Rect(0, 0, width, height))
 	for y := 0; y < height; y++ {

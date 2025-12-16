@@ -12,8 +12,10 @@ import (
 
 const invalidBaseIndex = 0xFF
 
-var Base30 = NewBaseX("abcdefghjkmnpqrsuvwxyz23456789")
-var Base58 = NewBaseX("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+var (
+	Base30 = NewBaseX("abcdefghjkmnpqrsuvwxyz23456789")
+	Base58 = NewBaseX("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+)
 
 type BaseXEncoder struct {
 	size        int

@@ -16,9 +16,11 @@ import (
 	"github.com/keybase/client/go/logger"
 )
 
-const shortPath = `DOKAN1.DLL`
-const syswow64 = `C:\WINDOWS\SYSWOW64\`
-const system32 = `C:\WINDOWS\SYSTEM32\`
+const (
+	shortPath = `DOKAN1.DLL`
+	syswow64  = `C:\WINDOWS\SYSWOW64\`
+	system32  = `C:\WINDOWS\SYSTEM32\`
+)
 
 type errorPrinter struct {
 	buf bytes.Buffer

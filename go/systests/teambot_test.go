@@ -14,7 +14,8 @@ import (
 )
 
 func checkNewTeambotKeyNotifications(tc *libkb.TestContext, notifications *teamNotifyHandler,
-	expectedArgs []keybase1.NewTeambotKeyArg) {
+	expectedArgs []keybase1.NewTeambotKeyArg,
+) {
 	matches := map[keybase1.NewTeambotKeyArg]struct{}{}
 	numFound := 0
 	for {
@@ -41,7 +42,8 @@ func checkNewTeambotKeyNotifications(tc *libkb.TestContext, notifications *teamN
 }
 
 func checkTeambotKeyNeededNotifications(tc *libkb.TestContext, notifications *teamNotifyHandler,
-	expectedArg keybase1.TeambotKeyNeededArg) {
+	expectedArg keybase1.TeambotKeyNeededArg,
+) {
 	select {
 	case arg := <-notifications.teambotKeyNeededCh:
 		require.Equal(tc.T, expectedArg, arg)

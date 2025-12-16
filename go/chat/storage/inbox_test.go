@@ -2,11 +2,10 @@ package storage
 
 import (
 	"context"
+	"encoding/hex"
 	"sort"
 	"testing"
 	"time"
-
-	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -67,7 +66,8 @@ func makeInboxMsg(id chat1.MessageID, typ chat1.MessageType) chat1.MessageBoxed 
 }
 
 func convListCompare(t *testing.T, ref []types.RemoteConversation, res []types.RemoteConversation,
-	name string) {
+	name string,
+) {
 	require.Equal(t, len(ref), len(res), name+" size mismatch")
 	refMap := make(map[chat1.ConvIDStr]types.RemoteConversation)
 	for _, conv := range ref {
@@ -79,7 +79,6 @@ func convListCompare(t *testing.T, ref []types.RemoteConversation, res []types.R
 }
 
 func TestInboxBasic(t *testing.T) {
-
 	tc, inbox, uid := setupInboxTest(t, "basic")
 	defer tc.Cleanup()
 
@@ -309,7 +308,6 @@ func TestInboxEmptySuperseder(t *testing.T) {
 	oneChatTypePerTLF := false
 	q = &chat1.GetInboxQuery{OneChatTypePerTLF: &oneChatTypePerTLF}
 	mergeReadAndCheck(t, superseded, "superseded")
-
 }
 
 func TestInboxNewConversation(t *testing.T) {
@@ -357,7 +355,6 @@ func TestInboxNewConversation(t *testing.T) {
 }
 
 func TestInboxNewMessage(t *testing.T) {
-
 	tc, inbox, uid := setupInboxTest(t, "basic")
 	defer tc.Cleanup()
 
@@ -453,7 +450,6 @@ func TestInboxNewMessage(t *testing.T) {
 }
 
 func TestInboxReadMessage(t *testing.T) {
-
 	tc, inbox, uid := setupInboxTest(t, "basic")
 	defer tc.Cleanup()
 
@@ -497,7 +493,6 @@ func TestInboxReadMessage(t *testing.T) {
 }
 
 func TestInboxSetStatus(t *testing.T) {
-
 	tc, inbox, uid := setupInboxTest(t, "basic")
 	defer tc.Cleanup()
 
@@ -535,7 +530,6 @@ func TestInboxSetStatus(t *testing.T) {
 }
 
 func TestInboxSetStatusMuted(t *testing.T) {
-
 	tc, inbox, uid := setupInboxTest(t, "basic")
 	defer tc.Cleanup()
 
@@ -573,7 +567,6 @@ func TestInboxSetStatusMuted(t *testing.T) {
 }
 
 func TestInboxTlfFinalize(t *testing.T) {
-
 	tc, inbox, uid := setupInboxTest(t, "basic")
 	defer tc.Cleanup()
 

@@ -33,7 +33,6 @@ func testTail(t *testing.T, testname, filename string, count, actual int, first,
 	if strings.TrimSpace(lines[len(lines)-1]) != "" {
 		t.Errorf("test %s: last line: %q, expected %q", testname, strings.TrimSpace(lines[len(lines)-1]), "")
 	}
-
 }
 
 func TestTail(t *testing.T) {
@@ -46,7 +45,6 @@ func TestTail(t *testing.T) {
 	testTail(t, "tail -c 100002", filename, 100002, 89994, "05001", lastLine)
 	testTail(t, "tail -c 100002", filename, 100002, 89994, "05001", lastLine)
 	testTail(t, "tail -c 250002", filename, 250002, 249999, "00179", lastLine)
-
 }
 
 func TestTailMulti(t *testing.T) {

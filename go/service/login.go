@@ -30,8 +30,10 @@ func (h *LoginHandler) GetConfiguredAccounts(context context.Context, sessionID 
 func (h *LoginHandler) Logout(ctx context.Context, arg keybase1.LogoutArg) (err error) {
 	defer h.G().CTrace(ctx, "Logout [service RPC]", &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOGOUT")
-	eng := engine.NewLogout(libkb.LogoutOptions{Force: arg.Force,
-		KeepSecrets: arg.KeepSecrets})
+	eng := engine.NewLogout(libkb.LogoutOptions{
+		Force:       arg.Force,
+		KeepSecrets: arg.KeepSecrets,
+	})
 	return engine.RunEngine2(mctx, eng)
 }
 

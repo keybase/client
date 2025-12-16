@@ -21,8 +21,10 @@ type SaltpackUserKeyfinder struct {
 	SBSAssertion                  string
 }
 
-var _ libkb.Engine2 = (*SaltpackUserKeyfinder)(nil)
-var _ libkb.SaltpackRecipientKeyfinderEngineInterface = (*SaltpackUserKeyfinder)(nil)
+var (
+	_ libkb.Engine2                                   = (*SaltpackUserKeyfinder)(nil)
+	_ libkb.SaltpackRecipientKeyfinderEngineInterface = (*SaltpackUserKeyfinder)(nil)
+)
 
 // NewSaltpackUserKeyfinderAsInterface creates a SaltpackUserKeyfinder engine.
 func NewSaltpackUserKeyfinderAsInterface(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
@@ -136,7 +138,6 @@ func (e *SaltpackUserKeyfinder) identifyAndAddRecipients(m libkb.MetaContext) er
 }
 
 func (e *SaltpackUserKeyfinder) IdentifyUser(m libkb.MetaContext, user string) (upk *keybase1.UserPlusKeysV2, err error) {
-
 	Arg := keybase1.Identify2Arg{
 		UserAssertion: user,
 		Reason: keybase1.IdentifyReason{

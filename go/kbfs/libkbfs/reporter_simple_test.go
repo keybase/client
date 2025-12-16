@@ -14,7 +14,8 @@ import (
 )
 
 func checkReportedErrors(t *testing.T, expected []error,
-	got []ReportedError) {
+	got []ReportedError,
+) {
 	if len(expected) != len(got) {
 		t.Errorf("Unexpected number of errors: %d", len(got))
 		return

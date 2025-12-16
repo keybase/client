@@ -133,7 +133,8 @@ func (h *IncomingShareHandler) dbKey() libkb.DbKey {
 }
 
 func (h *IncomingShareHandler) GetPreference(ctx context.Context) (
-	pref keybase1.IncomingSharePreference, err error) {
+	pref keybase1.IncomingSharePreference, err error,
+) {
 	found, err := h.G().GetKVStore().GetInto(&pref, h.dbKey())
 	if err != nil {
 		return keybase1.IncomingSharePreference{}, err
@@ -147,6 +148,7 @@ func (h *IncomingShareHandler) GetPreference(ctx context.Context) (
 }
 
 func (h *IncomingShareHandler) SetPreference(ctx context.Context,
-	preference keybase1.IncomingSharePreference) error {
+	preference keybase1.IncomingSharePreference,
+) error {
 	return h.G().GetKVStore().PutObj(h.dbKey(), nil, preference)
 }

@@ -13,10 +13,12 @@ import (
 	"os/exec"
 )
 
-var usersCount int
-var walletsCount int
-var bin string
-var home string
+var (
+	usersCount   int
+	walletsCount int
+	bin          string
+	home         string
+)
 
 func main() {
 	parseFlags()

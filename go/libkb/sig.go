@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-
 	"strings"
 
 	"github.com/keybase/client/go/kbcrypto"
@@ -120,7 +119,6 @@ func SigExtractPGPPayload(armored string) (payload []byte, sigID keybase1.SigIDB
 }
 
 func (ps *ParsedSig) ExtractPayload() (payload []byte, err error) {
-
 	ring := EmptyKeyRing{}
 	md, err := openpgp.ReadMessage(bytes.NewReader(ps.SigBody), ring, nil, nil)
 	if err != nil {
@@ -134,7 +132,6 @@ func (ps *ParsedSig) ExtractPayload() (payload []byte, err error) {
 }
 
 func (ps *ParsedSig) AssertPayload(expected []byte) error {
-
 	data, err := ps.ExtractPayload()
 	if err != nil {
 		return err

@@ -12,8 +12,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-const blockIndexVersion = 8
-const blockSize = 100
+const (
+	blockIndexVersion = 8
+	blockSize         = 100
+)
 
 type blockEngine struct {
 	globals.Contextified
@@ -67,8 +69,8 @@ func (be *blockEngine) getMsgID(blockNum, blockPos int) chat1.MessageID {
 }
 
 func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
-	convID chat1.ConversationID, uid gregor1.UID) (bi blockIndex, err Error) {
-
+	convID chat1.ConversationID, uid gregor1.UID,
+) (bi blockIndex, err Error) {
 	be.Debug(ctx, "createBlockIndex: creating new block index: convID: %s uid: %s", convID, uid)
 
 	// Grab latest server version to tag local data with
@@ -130,12 +132,14 @@ func (be *blockEngine) readBlockIndex(ctx context.Context, convID chat1.Conversa
 
 type bekey string
 
-var bebikey bekey = "bebi"
-var beskkey bekey = "besk"
+var (
+	bebikey bekey = "bebi"
+	beskkey bekey = "besk"
+)
 
 func (be *blockEngine) Init(ctx context.Context, key [32]byte, convID chat1.ConversationID,
-	uid gregor1.UID) (context.Context, Error) {
-
+	uid gregor1.UID,
+) (context.Context, Error) {
 	ctx = context.WithValue(ctx, beskkey, key)
 
 	bi, err := be.readBlockIndex(ctx, convID, uid)
@@ -148,7 +152,8 @@ func (be *blockEngine) Init(ctx context.Context, key [32]byte, convID chat1.Conv
 }
 
 func (be *blockEngine) fetchBlockIndex(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID) (bi blockIndex, err Error) {
+	uid gregor1.UID,
+) (bi blockIndex, err Error) {
 	var ok bool
 	val := ctx.Value(bebikey)
 	if bi, ok = val.(blockIndex); !ok {
@@ -181,7 +186,6 @@ func (be *blockEngine) createBlockSingle(ctx context.Context, bi blockIndex, blo
 }
 
 func (be *blockEngine) createBlock(ctx context.Context, bi *blockIndex, blockID int) (block, Error) {
-
 	// Create all the blocks up to the one we want
 	var b block
 	for i := bi.MaxBlock + 1; i <= blockID; i++ {
@@ -318,7 +322,8 @@ func (be *blockEngine) writeBlock(ctx context.Context, bi blockIndex, b block) (
 }
 
 func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) Error {
+	msgs []chat1.MessageUnboxed,
+) Error {
 	msgIDs := make([]chat1.MessageID, len(msgs))
 	msgMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
 	for index, msg := range msgs {
@@ -329,7 +334,8 @@ func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.Conversat
 }
 
 func (be *blockEngine) writeMessagesIDMap(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgIDs []chat1.MessageID, msgMap map[chat1.MessageID]chat1.MessageUnboxed) Error {
+	msgIDs []chat1.MessageID, msgMap map[chat1.MessageID]chat1.MessageUnboxed,
+) Error {
 	var err Error
 	var maxB block
 	var newBlock block
@@ -390,8 +396,8 @@ func (be *blockEngine) writeMessagesIDMap(ctx context.Context, convID chat1.Conv
 }
 
 func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
-	convID chat1.ConversationID, uid gregor1.UID, maxID, minID chat1.MessageID) (err Error) {
-
+	convID chat1.ConversationID, uid gregor1.UID, maxID, minID chat1.MessageID,
+) (err Error) {
 	// Run all errors through resultCollector
 	defer func() {
 		if err != nil {
@@ -464,7 +470,8 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 }
 
 func (be *blockEngine) ClearMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgIDs []chat1.MessageID) Error {
+	msgIDs []chat1.MessageID,
+) Error {
 	msgMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
 	for _, msgID := range msgIDs {
 		msgMap[msgID] = chat1.MessageUnboxed{}

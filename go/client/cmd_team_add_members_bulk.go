@@ -82,7 +82,6 @@ func (c *CmdTeamAddMembersBulk) parseBulkList(v string, role keybase1.TeamRole) 
 		n++
 	}
 	return n, nil
-
 }
 
 func (c *CmdTeamAddMembersBulk) ParseArgv(ctx *cli.Context) (err error) {

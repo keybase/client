@@ -86,7 +86,7 @@ func TestShowcaseMember(t *testing.T) {
 	name, id := createTeam2(tc)
 	t.Logf("Created team %q", name)
 
-	var defaultTeamShowcase = keybase1.TeamShowcase{IsShowcased: false, Description: nil, SetByUID: nil, AnyMemberShowcase: true}
+	defaultTeamShowcase := keybase1.TeamShowcase{IsShowcased: false, Description: nil, SetByUID: nil, AnyMemberShowcase: true}
 
 	tmShowcase, err := GetTeamAndMemberShowcase(context.TODO(), tc.G, id)
 	require.NoError(t, err)

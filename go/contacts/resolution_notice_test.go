@@ -4,11 +4,12 @@
 package contacts
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
-	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"

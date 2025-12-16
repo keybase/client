@@ -22,7 +22,8 @@ type defaultGiphySearcher struct {
 }
 
 func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, apiKeySource types.ExternalAPIKeySource,
-	query *string, limit int, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
+	query *string, limit int, urlsrv types.AttachmentURLSrv,
+) ([]chat1.GiphySearchResult, error) {
 	return giphy.Search(d.G(), mctx, apiKeySource, query, limit, urlsrv)
 }
 
@@ -69,7 +70,8 @@ func (s *Giphy) getLimit() int {
 }
 
 func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string, replyTo *chat1.MessageID) (err error) {
+	tlfName, text string, replyTo *chat1.MessageID,
+) (err error) {
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
@@ -98,7 +100,8 @@ func (s *Giphy) queryEqual(query *string, shown *string) bool {
 }
 
 func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) {
+	tlfName, text string,
+) {
 	defer s.Trace(ctx, nil, "Preview")()
 	s.Lock()
 	if s.currentOpCancelFn != nil {

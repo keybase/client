@@ -34,26 +34,30 @@ type singleEncryptionKeyGetter struct {
 }
 
 func (g singleEncryptionKeyGetter) GetTLFCryptKeyForEncryption(
-	ctx context.Context, kmd libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+	ctx context.Context, kmd libkey.KeyMetadata,
+) (kbfscrypto.TLFCryptKey, error) {
 	return g.k, nil
 }
 
 func (g singleEncryptionKeyGetter) GetTLFCryptKeyForMDDecryption(
 	ctx context.Context, kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
-	kbfscrypto.TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error,
+) {
 	return g.k, nil
 }
 
 func (g singleEncryptionKeyGetter) GetFirstTLFCryptKey(
 	ctx context.Context, kmd libkey.KeyMetadata) (
-	kbfscrypto.TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error,
+) {
 	return g.k, nil
 }
 
 func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 	codec kbfscodec.Codec, crypto CryptoCommon, tlfID tlf.ID,
 	signer kbfscrypto.Signer, ekg singleEncryptionKeyGetter,
-	bsplit data.BlockSplitter, tempdir string, j *mdJournal) {
+	bsplit data.BlockSplitter, tempdir string, j *mdJournal,
+) {
 	codec = kbfscodec.NewMsgpack()
 	crypto = MakeCryptoCommon(codec, makeBlockCryptV1())
 
@@ -100,7 +104,8 @@ func teardownMDJournalTest(t testing.TB, tempdir string) {
 
 func makeMDForTest(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 	revision kbfsmd.Revision, uid keybase1.UID,
-	signer kbfscrypto.Signer, prevRoot kbfsmd.ID) *RootMetadata {
+	signer kbfscrypto.Signer, prevRoot kbfsmd.ID,
+) *RootMetadata {
 	nug := idutiltest.NormalizedUsernameGetter{
 		uid.AsUserOrTeam(): "fake_username",
 	}
@@ -125,12 +130,14 @@ type constMerkleRootGetter struct{}
 var _ idutil.MerkleRootGetter = constMerkleRootGetter{}
 
 func (cmrg constMerkleRootGetter) GetCurrentMerkleRoot(
-	ctx context.Context) (keybase1.MerkleRootV2, time.Time, error) {
+	ctx context.Context,
+) (keybase1.MerkleRootV2, time.Time, error) {
 	return keybase1.MerkleRootV2{}, time.Time{}, nil
 }
 
 func (cmrg constMerkleRootGetter) VerifyMerkleRoot(
-	_ context.Context, _ keybase1.MerkleRootV2, _ keybase1.KBFSRoot) error {
+	_ context.Context, _ keybase1.MerkleRootV2, _ keybase1.KBFSRoot,
+) error {
 	return nil
 }
 
@@ -138,7 +145,8 @@ func putMDRangeHelper(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 	signer kbfscrypto.Signer, firstRevision kbfsmd.Revision,
 	firstPrevRoot kbfsmd.ID, mdCount int, uid keybase1.UID,
 	putMD func(context.Context, *RootMetadata) (kbfsmd.ID, error)) (
-	[]*RootMetadata, kbfsmd.ID) {
+	[]*RootMetadata, kbfsmd.ID,
+) {
 	require.True(t, mdCount > 0)
 	ctx := context.Background()
 	var mds []*RootMetadata
@@ -164,7 +172,8 @@ func putMDRangeHelper(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 func putMDRange(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 	signer kbfscrypto.Signer, ekg encryptionKeyGetter,
 	bsplit data.BlockSplitter, firstRevision kbfsmd.Revision,
-	firstPrevRoot kbfsmd.ID, mdCount int, j *mdJournal) ([]*RootMetadata, kbfsmd.ID) {
+	firstPrevRoot kbfsmd.ID, mdCount int, j *mdJournal,
+) ([]*RootMetadata, kbfsmd.ID) {
 	return putMDRangeHelper(t, ver, tlfID, signer, firstRevision,
 		firstPrevRoot, mdCount, j.uid,
 		func(ctx context.Context, md *RootMetadata) (kbfsmd.ID, error) {
@@ -177,7 +186,8 @@ func checkBRMD(t *testing.T, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	codec kbfscodec.Codec, brmd kbfsmd.RootMetadata,
 	extra kbfsmd.ExtraMetadata, expectedRevision kbfsmd.Revision,
 	expectedPrevRoot kbfsmd.ID, expectedMergeStatus kbfsmd.MergeStatus,
-	expectedBranchID kbfsmd.BranchID) {
+	expectedBranchID kbfsmd.BranchID,
+) {
 	require.Equal(t, expectedRevision, brmd.RevisionNumber())
 	require.Equal(t, expectedPrevRoot, brmd.GetPrevRoot())
 	require.Equal(t, expectedMergeStatus, brmd.MergedStatus())
@@ -196,7 +206,8 @@ func checkBRMD(t *testing.T, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 func checkIBRMDRange(t *testing.T, uid keybase1.UID,
 	key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
 	ibrmds []ImmutableBareRootMetadata, firstRevision kbfsmd.Revision,
-	firstPrevRoot kbfsmd.ID, mStatus kbfsmd.MergeStatus, bid kbfsmd.BranchID) {
+	firstPrevRoot kbfsmd.ID, mStatus kbfsmd.MergeStatus, bid kbfsmd.BranchID,
+) {
 	checkBRMD(t, uid, key, codec, ibrmds[0], ibrmds[0].extra,
 		firstRevision, firstPrevRoot, mStatus, bid)
 
@@ -227,8 +238,7 @@ func BenchmarkMDJournalBasic(b *testing.B) {
 func benchmarkMDJournalBasicBody(b *testing.B, ver kbfsmd.MetadataVer, mdCount int) {
 	b.StopTimer()
 
-	_, _, id, signer, ekg, bsplit, tempdir, j :=
-		setupMDJournalTest(noLogTB{b}, ver)
+	_, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(noLogTB{b}, ver)
 	defer teardownMDJournalTest(b, tempdir)
 
 	putMDRangeHelper(b, ver, id, signer, kbfsmd.Revision(10),
@@ -256,8 +266,7 @@ func benchmarkMDJournalBasic(b *testing.B, ver kbfsmd.MetadataVer) {
 }
 
 func testMDJournalBasic(t *testing.T, ver kbfsmd.MetadataVer) {
-	codec, _, id, signer, ekg, bsplit, tempdir, j :=
-		setupMDJournalTest(t, ver)
+	codec, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(t, ver)
 	defer teardownMDJournalTest(t, tempdir)
 
 	// Should start off as empty.
@@ -572,7 +581,8 @@ func testMDJournalGCd(t *testing.T, j *mdJournal) {
 }
 
 func flushAllMDs(
-	ctx context.Context, t *testing.T, signer kbfscrypto.Signer, j *mdJournal) {
+	ctx context.Context, t *testing.T, signer kbfscrypto.Signer, j *mdJournal,
+) {
 	end, err := j.end()
 	require.NoError(t, err)
 	for {
@@ -624,7 +634,7 @@ func testMDJournalFlushAll(t *testing.T, ver kbfsmd.MetadataVer) {
 	names := listDir(t, j.dir)
 	require.Equal(t, getMDJournalNames(ver), names)
 
-	err := ioutil.WriteFile(filepath.Join(j.dir, "extra_file"), nil, 0600)
+	err := ioutil.WriteFile(filepath.Join(j.dir, "extra_file"), nil, 0o600)
 	require.NoError(t, err)
 
 	flushAllMDs(ctx, t, signer, j)
@@ -635,8 +645,7 @@ func testMDJournalFlushAll(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testMDJournalBranchConversion(t *testing.T, ver kbfsmd.MetadataVer) {
-	codec, _, id, signer, ekg, bsplit, tempdir, j :=
-		setupMDJournalTest(t, ver)
+	codec, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(t, ver)
 	defer teardownMDJournalTest(t, tempdir)
 
 	firstRevision := kbfsmd.Revision(10)
@@ -694,8 +703,7 @@ func testMDJournalBranchConversion(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testMDJournalResolveAndClear(t *testing.T, ver kbfsmd.MetadataVer, bid kbfsmd.BranchID) {
-	_, _, id, signer, ekg, bsplit, tempdir, j :=
-		setupMDJournalTest(t, ver)
+	_, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(t, ver)
 	defer teardownMDJournalTest(t, tempdir)
 
 	firstRevision := kbfsmd.Revision(10)
@@ -774,7 +782,8 @@ type limitedCryptoSigner struct {
 }
 
 func (s *limitedCryptoSigner) Sign(ctx context.Context, msg []byte) (
-	kbfscrypto.SignatureInfo, error) {
+	kbfscrypto.SignatureInfo, error,
+) {
 	if s.remaining <= 0 {
 		return kbfscrypto.SignatureInfo{}, errors.New("No more Sign calls left")
 	}
@@ -787,8 +796,7 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	// version doesn't actually do any signing.
 	ver := kbfsmd.InitialExtraMetadataVer
 
-	codec, _, id, signer, ekg, bsplit, tempdir, j :=
-		setupMDJournalTest(t, ver)
+	codec, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(t, ver)
 	defer teardownMDJournalTest(t, tempdir)
 
 	firstRevision := kbfsmd.Revision(10)
@@ -1048,8 +1056,7 @@ func testMDJournalRestart(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testMDJournalRestartAfterBranchConversion(t *testing.T, ver kbfsmd.MetadataVer) {
-	codec, crypto, id, signer, ekg, bsplit, tempdir, j :=
-		setupMDJournalTest(t, ver)
+	codec, crypto, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(t, ver)
 	defer teardownMDJournalTest(t, tempdir)
 
 	// Push some new metadata blocks.

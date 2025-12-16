@@ -25,17 +25,19 @@ import (
 	"golang.org/x/net/context"
 )
 
-const saltpackExtension = ".saltpack"
-const encryptedSuffix = ".encrypted"
-const signedSuffix = ".signed"
-const txtExtension = ".txt"
-const zipExtension = ".zip"
-const encryptedExtension = encryptedSuffix + saltpackExtension
-const signedExtension = signedSuffix + saltpackExtension
-const decryptedExtension = ".decrypted"
-const verifiedExtension = ".verified"
-const encryptedDirSuffix = zipExtension + encryptedSuffix
-const signedDirSuffix = zipExtension + signedSuffix
+const (
+	saltpackExtension  = ".saltpack"
+	encryptedSuffix    = ".encrypted"
+	signedSuffix       = ".signed"
+	txtExtension       = ".txt"
+	zipExtension       = ".zip"
+	encryptedExtension = encryptedSuffix + saltpackExtension
+	signedExtension    = signedSuffix + saltpackExtension
+	decryptedExtension = ".decrypted"
+	verifiedExtension  = ".verified"
+	encryptedDirSuffix = zipExtension + encryptedSuffix
+	signedDirSuffix    = zipExtension + signedSuffix
+)
 
 type SaltpackHandler struct {
 	*BaseHandler

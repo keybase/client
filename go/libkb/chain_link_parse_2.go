@@ -138,7 +138,6 @@ func jsonGetString(d []byte, args ...string) string {
 		return ""
 	}
 	return s
-
 }
 
 func importServerTrustFields(m MetaContext, tmp *ChainLinkUnpacked, data []byte, selfUID keybase1.UID) error {
@@ -153,7 +152,6 @@ func importServerTrustFields(m MetaContext, tmp *ChainLinkUnpacked, data []byte,
 }
 
 func ImportLinkFromServer(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
-
 	sig2Stubbed := jsonGetString(data, "s2")
 	if sig2Stubbed != "" {
 		return importLinkFromServerV2Stubbed(m, parent, sig2Stubbed)

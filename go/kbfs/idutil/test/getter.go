@@ -23,7 +23,8 @@ var _ idutil.NormalizedUsernameGetter = NormalizedUsernameGetter{}
 // interface for NormalizedUsernameGetter.
 func (g NormalizedUsernameGetter) GetNormalizedUsername(
 	ctx context.Context, id keybase1.UserOrTeamID,
-	_ keybase1.OfflineAvailability) (kbname.NormalizedUsername, error) {
+	_ keybase1.OfflineAvailability,
+) (kbname.NormalizedUsername, error) {
 	name, ok := g[id]
 	if !ok {
 		return kbname.NormalizedUsername(""),

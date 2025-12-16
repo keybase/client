@@ -95,7 +95,6 @@ func (a *ActiveDevice) ClearCaches() {
 
 // Copy ActiveDevice info from the given ActiveDevice.
 func (a *ActiveDevice) Copy(m MetaContext, src *ActiveDevice) error {
-
 	// Take a consistent snapshot of the src device. Be careful not to hold
 	// locks on both devices at once.
 	src.Lock()
@@ -127,7 +126,8 @@ func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LoginState account request.
 func (a *ActiveDevice) Set(m MetaContext, uv keybase1.UserVersion, deviceID keybase1.DeviceID,
-	sigKey, encKey GenericKey, deviceName string, deviceCtime keybase1.Time, keychainMode KeychainMode) error {
+	sigKey, encKey GenericKey, deviceName string, deviceCtime keybase1.Time, keychainMode KeychainMode,
+) error {
 	a.Lock()
 	defer a.Unlock()
 
@@ -156,7 +156,8 @@ func (a *ActiveDevice) KeychainMode() KeychainMode {
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
 func (a *ActiveDevice) setSigningKey(g *GlobalContext, uv keybase1.UserVersion, deviceID keybase1.DeviceID,
-	sigKey GenericKey, deviceName string) error {
+	sigKey GenericKey, deviceName string,
+) error {
 	a.Lock()
 	defer a.Unlock()
 
@@ -189,7 +190,6 @@ func (a *ActiveDevice) setEncryptionKey(uv keybase1.UserVersion, deviceID keybas
 
 // should only called by the functions in this type, with the write lock.
 func (a *ActiveDevice) internalUpdateUserVersionDeviceID(uv keybase1.UserVersion, deviceID keybase1.DeviceID) error {
-
 	if uv.IsNil() {
 		return errors.New("ActiveDevice.set with nil uid")
 	}

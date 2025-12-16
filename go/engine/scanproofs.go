@@ -67,7 +67,7 @@ func (c *ScanProofsCache) Save(filepath string) error {
 		// Don't save if nothing has changed
 		return nil
 	}
-	temppath, f, err := libkb.OpenTempFile(filepath, "", 0644)
+	temppath, f, err := libkb.OpenTempFile(filepath, "", 0o644)
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func (e *ScanProofsEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	// One ticker for each proof type.
-	var tickers = make(map[keybase1.ProofType]*time.Ticker)
+	tickers := make(map[keybase1.ProofType]*time.Ticker)
 	m.Info("Running with ratelimit: %v ms", e.ratelimit)
 	if e.ratelimit < 0 {
 		return fmt.Errorf("Ratelimit value can not be negative: %v", e.ratelimit)

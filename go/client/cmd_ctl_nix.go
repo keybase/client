@@ -126,15 +126,15 @@ func (c *CmdCtlRedirector) isRedirectorEnabled() (bool, error) {
 func redirectorPerm(toggleOn bool) uint32 {
 	if toggleOn {
 		// suid set; octal.
-		return 04755
+		return 0o4755
 	}
 	// suid unset; octal.
-	return 0755
+	return 0o755
 }
 
 func (c *CmdCtlRedirector) createMount() error {
-	rootMountPerm := 0755 | os.ModeDir
-	mountedPerm := 0555 | os.ModeDir // permissions different when mounted
+	rootMountPerm := 0o755 | os.ModeDir
+	mountedPerm := 0o555 | os.ModeDir // permissions different when mounted
 	fileInfo, err := os.Stat(c.RootRedirectorMount)
 	switch {
 	case os.IsNotExist(err):
@@ -197,8 +197,8 @@ func (c *CmdCtlRedirector) tryAtomicallySetConfigAndChmodRedirector(originallyEn
 	defer func() {
 		// Don't check if err != nil here, since we want this to run even if, e.g.,
 		// the syscall.Chmod call failed.
-		_ = os.Chmod(c.RootConfigDirectory, 0755|os.ModeDir)
-		_ = os.Chmod(c.RootConfigFilename, 0644)
+		_ = os.Chmod(c.RootConfigDirectory, 0o755|os.ModeDir)
+		_ = os.Chmod(c.RootConfigFilename, 0o644)
 	}()
 
 	err := configWriter.SetBoolAtPath(libkb.DisableRootRedirectorConfigKey, !c.ToggleOn)
@@ -449,11 +449,11 @@ func (c *CmdCtlInit) RunEnv() error {
 		if err != nil {
 			return err
 		}
-		err = os.MkdirAll(dir, 0755)
+		err = os.MkdirAll(dir, 0o755)
 		if err != nil {
 			return err
 		}
-		envfile, err := os.OpenFile(envfileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		envfile, err := os.OpenFile(envfileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 		if err != nil {
 			return err
 		}

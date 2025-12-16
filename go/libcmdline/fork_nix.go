@@ -16,7 +16,8 @@ import (
 // SpawnDetachedProcess spawns a background process and detech from the calling
 // process.
 func SpawnDetachedProcess(
-	cmd string, args []string, _ logger.Logger) (pid int, err error) {
+	cmd string, args []string, _ logger.Logger,
+) (pid int, err error) {
 	var files []uintptr
 	var devnull *os.File
 

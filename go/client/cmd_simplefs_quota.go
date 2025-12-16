@@ -26,7 +26,8 @@ type CmdSimpleFSQuota struct {
 
 // NewCmdSimpleFSQuota creates a new cli.Command.
 func NewCmdSimpleFSQuota(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:  "quota",
 		Usage: "show quota usage for logged-in user or a team",
@@ -110,12 +111,10 @@ type simpleFSQuotaStruct struct {
 
 func (c *CmdSimpleFSQuota) output(usage keybase1.SimpleFSQuotaUsage) error {
 	ui := c.G().UI.GetTerminalUI()
-	usageBytes, archiveBytes, limitBytes :=
-		usage.UsageBytes, usage.ArchiveBytes, usage.LimitBytes
+	usageBytes, archiveBytes, limitBytes := usage.UsageBytes, usage.ArchiveBytes, usage.LimitBytes
 
 	if c.git {
-		usageBytes, archiveBytes, limitBytes =
-			usage.GitUsageBytes, usage.GitArchiveBytes, usage.GitLimitBytes
+		usageBytes, archiveBytes, limitBytes = usage.GitUsageBytes, usage.GitArchiveBytes, usage.GitLimitBytes
 	}
 
 	if c.json {

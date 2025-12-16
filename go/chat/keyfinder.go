@@ -48,18 +48,21 @@ func (k *KeyFinderImpl) Reset() {
 }
 
 func (k *KeyFinderImpl) encCacheKey(name string, tlfID chat1.TLFID, membersType chat1.ConversationMembersType,
-	public bool, botUID *gregor1.UID) string {
+	public bool, botUID *gregor1.UID,
+) string {
 	return fmt.Sprintf("_enc:%s|%s|%v|%v|%v", name, tlfID, membersType, public, botUID)
 }
 
 func (k *KeyFinderImpl) decCacheKey(name string, tlfID chat1.TLFID, membersType chat1.ConversationMembersType,
-	generation int, public bool, kbfsEncrypted bool, botUID *gregor1.UID) string {
+	generation int, public bool, kbfsEncrypted bool, botUID *gregor1.UID,
+) string {
 	return fmt.Sprintf("_dec:%s|%s|%v|%v|%v|%d|%v", name, tlfID, membersType, public,
 		kbfsEncrypted, generation, botUID)
 }
 
 func (k *KeyFinderImpl) createNameInfoSource(ctx context.Context,
-	membersType chat1.ConversationMembersType) types.NameInfoSource {
+	membersType chat1.ConversationMembersType,
+) types.NameInfoSource {
 	return CreateNameInfoSource(ctx, k.G(), membersType)
 }
 
@@ -92,8 +95,8 @@ func (k *KeyFinderImpl) writeDecKey(key string, v types.CryptKey) {
 // FindForEncryption finds keys up-to-date enough for encrypting.
 // Ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (res types.CryptKey, ni types.NameInfo, err error) {
-
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+) (res types.CryptKey, ni types.NameInfo, err error) {
 	ckey := k.encCacheKey(tlfName, tlfID, membersType, public, botUID)
 	existing, ok := k.lookupEncKey(ckey)
 	if ok {
@@ -116,7 +119,8 @@ func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, t
 func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 	tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID) (res types.CryptKey, err error) {
+	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID,
+) (res types.CryptKey, err error) {
 	ckey := k.decCacheKey(tlfName, tlfID, membersType, keyGeneration,
 		public, kbfsEncrypted, botUID)
 	existing, ok := k.lookupDecKey(ckey)
@@ -133,20 +137,23 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 }
 
 func (k *KeyFinderImpl) EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (ek types.EphemeralCryptKey, err error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+) (ek types.EphemeralCryptKey, err error) {
 	return k.createNameInfoSource(mctx.Ctx(), membersType).EphemeralEncryptionKey(
 		mctx, tlfName, tlfID, membersType, public, botUID)
 }
 
 func (k *KeyFinderImpl) EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
-	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (types.EphemeralCryptKey, error) {
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time,
+) (types.EphemeralCryptKey, error) {
 	return k.createNameInfoSource(mctx.Ctx(), membersType).EphemeralDecryptionKey(
 		mctx, tlfName, tlfID, membersType, public, botUID, generation, contentCtime)
 }
 
 func (k *KeyFinderImpl) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
+	membersType chat1.ConversationMembersType, public bool,
+) (bool, []keybase1.KID, error) {
 	return k.createNameInfoSource(ctx, membersType).ShouldPairwiseMAC(ctx, tlfName, tlfID, membersType, public)
 }
 
@@ -165,7 +172,8 @@ func (k *KeyFinderMock) Reset() {}
 func (k *KeyFinderMock) FindForEncryption(ctx context.Context,
 	_ string, _ chat1.TLFID,
 	_ chat1.ConversationMembersType, _ bool,
-	botUID *gregor1.UID) (res types.CryptKey, ni types.NameInfo, err error) {
+	botUID *gregor1.UID,
+) (res types.CryptKey, ni types.NameInfo, err error) {
 	if botUID != nil {
 		return res, ni, fmt.Errorf("bot keys not supported in KeyFinderMock")
 	}
@@ -175,7 +183,8 @@ func (k *KeyFinderMock) FindForEncryption(ctx context.Context,
 func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
 	_ string, teamID chat1.TLFID,
 	_ chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID) (res types.CryptKey, err error) {
+	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID,
+) (res types.CryptKey, err error) {
 	if botUID != nil {
 		return res, fmt.Errorf("TeambotKeys not supported in KeyFinderMock")
 	}
@@ -188,18 +197,21 @@ func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
 }
 
 func (k *KeyFinderMock) EphemeralKeyForEncryption(_ libkb.MetaContext, _ string, _ chat1.TLFID,
-	_ chat1.ConversationMembersType, _ bool, _ *gregor1.UID) (types.EphemeralCryptKey, error) {
+	_ chat1.ConversationMembersType, _ bool, _ *gregor1.UID,
+) (types.EphemeralCryptKey, error) {
 	panic("unimplemented")
 }
 
 func (k *KeyFinderMock) EphemeralKeyForDecryption(_ libkb.MetaContext, _ string, _ chat1.TLFID,
 	_ chat1.ConversationMembersType, _ bool, _ *gregor1.UID,
-	_ keybase1.EkGeneration, _ *gregor1.Time) (types.EphemeralCryptKey, error) {
+	_ keybase1.EkGeneration, _ *gregor1.Time,
+) (types.EphemeralCryptKey, error) {
 	panic("unimplemented")
 }
 
 func (k *KeyFinderMock) ShouldPairwiseMAC(_ context.Context, _ string, _ chat1.TLFID,
-	_ chat1.ConversationMembersType, _ bool) (bool, []keybase1.KID, error) {
+	_ chat1.ConversationMembersType, _ bool,
+) (bool, []keybase1.KID, error) {
 	panic("unimplemented")
 }
 

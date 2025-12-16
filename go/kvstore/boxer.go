@@ -1,10 +1,9 @@
 package kvstore
 
 import (
+	"crypto/ed25519"
 	"encoding/base64"
 	"fmt"
-
-	"crypto/ed25519"
 
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/kbcrypto"
@@ -95,8 +94,8 @@ func (b *KVStoreRealBoxer) fetchVerifyKey(mctx libkb.MetaContext, uid keybase1.U
 }
 
 func (b *KVStoreRealBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartext string) (
-	ciphertext string, teamKeyGen keybase1.PerTeamKeyGeneration, version int, err error) {
-
+	ciphertext string, teamKeyGen keybase1.PerTeamKeyGeneration, version int, err error,
+) {
 	defer mctx.Trace(fmt.Sprintf("KVStoreRealBoxer#Box: %s, %s, %s", entryID.TeamID, entryID.Namespace, entryID.EntryKey),
 		&err)()
 
@@ -154,8 +153,8 @@ func (b *KVStoreRealBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 
 func (b *KVStoreRealBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, ciphertext string,
 	teamKeyGen keybase1.PerTeamKeyGeneration, formatVersion int, senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno,
-	senderDeviceID keybase1.DeviceID) (cleartext string, err error) {
-
+	senderDeviceID keybase1.DeviceID,
+) (cleartext string, err error) {
 	defer mctx.Trace(fmt.Sprintf("KVStoreRealBoxer#Unbox: t:%s, n:%s, k:%s", entryID.TeamID, entryID.Namespace, entryID.EntryKey),
 		&err)()
 

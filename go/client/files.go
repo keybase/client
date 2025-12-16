@@ -310,7 +310,6 @@ func (s *FileSink) HitError(e error) error {
 		err = os.Remove(s.name)
 	}
 	return err
-
 }
 
 type UnixFilter struct {

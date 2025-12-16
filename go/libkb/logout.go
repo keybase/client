@@ -97,7 +97,6 @@ func (mctx MetaContext) LogoutUsernameWithOptions(username NormalizedUsername, o
 }
 
 func (mctx MetaContext) logoutSecretStore(username NormalizedUsername, keepSecrets bool) {
-
 	g := mctx.G()
 	g.secretStoreMu.Lock()
 	defer g.secretStoreMu.Unlock()
@@ -194,7 +193,6 @@ func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
 	}
 
 	passphraseState, err := LoadPassphraseStateWithForceRepoll(mctx)
-
 	if err != nil {
 		return keybase1.CanLogoutRes{
 			CanLogout: false,

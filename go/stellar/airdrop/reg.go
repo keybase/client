@@ -206,7 +206,6 @@ func HandleRequest(ctx context.Context, xp rpc.Transporter, srv *rpc.Server, p R
 	}
 	go arh.Run(libkb.CopyTagsToBackground(ctx), xp, srv)
 	return nil
-
 }
 
 func (a *RequestHandler) Run(ctx context.Context, xp rpc.Transporter, srv *rpc.Server) {
@@ -240,13 +239,15 @@ func (a *RequestHandler) Reg1(ctx context.Context, arg keybase1.Reg1Arg) (ret ke
 	return ret, err
 }
 
-var ErrWrongState = errors.New("wrong state")
-var ErrCannotDecrypt = errors.New("cannot decrypt")
-var ErrWrongUID = errors.New("wrong UID")
-var ErrWrongKID = errors.New("wrong KID")
-var ErrBadKID = errors.New("bad KID")
-var ErrTimeout = errors.New("request timed out")
-var ErrCanceled = errors.New("canceled")
+var (
+	ErrWrongState    = errors.New("wrong state")
+	ErrCannotDecrypt = errors.New("cannot decrypt")
+	ErrWrongUID      = errors.New("wrong UID")
+	ErrWrongKID      = errors.New("wrong KID")
+	ErrBadKID        = errors.New("bad KID")
+	ErrTimeout       = errors.New("request timed out")
+	ErrCanceled      = errors.New("canceled")
+)
 
 func (a *RequestHandler) Reg2(ctx context.Context, ctext []byte) (err error) {
 	var nonce [24]byte

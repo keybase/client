@@ -40,7 +40,8 @@ type TLF struct {
 }
 
 func newTLF(ctx context.Context, fl *FolderList, h *tlfhandle.Handle,
-	name tlf.PreferredName) *TLF {
+	name tlf.PreferredName,
+) *TLF {
 	folder := newFolder(ctx, fl, h, name)
 	tlf := &TLF{
 		folder: folder,
@@ -73,7 +74,8 @@ func (tlf *TLF) vlog() *libkb.VDebugLog {
 
 func (tlf *TLF) loadDirHelper(
 	ctx context.Context, mode libkbfs.ErrorModeType, branch data.BranchName,
-	filterErr bool) (dir *Dir, exitEarly bool, err error) {
+	filterErr bool,
+) (dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
 	if dir != nil {
 		return dir, false, nil
@@ -103,8 +105,7 @@ func (tlf *TLF) loadDirHelper(
 	}
 
 	if branch == data.MasterBranch {
-		conflictBranch, isLocalConflictBranch :=
-			data.MakeConflictBranchName(handle)
+		conflictBranch, isLocalConflictBranch := data.MakeConflictBranchName(handle)
 		if isLocalConflictBranch {
 			branch = conflictBranch
 		}
@@ -151,12 +152,14 @@ func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
 // indicates that the calling function should pretend it's an empty
 // folder.
 func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context) (
-	*Dir, bool, error) {
+	*Dir, bool, error,
+) {
 	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, data.MasterBranch, true)
 }
 
 func (tlf *TLF) loadArchivedDir(
-	ctx context.Context, branch data.BranchName) (*Dir, bool, error) {
+	ctx context.Context, branch data.BranchName,
+) (*Dir, bool, error) {
 	// Always filter errors for archive TLF directories, so that we
 	// don't try to initialize them.
 	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, branch, true)
@@ -179,7 +182,7 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 		// stale data for too long if we end up loading the
 		// dir.
 		a.Valid = 1 * time.Second
-		a.Mode = os.ModeDir | 0500
+		a.Mode = os.ModeDir | 0o500
 		a.Uid = uint32(os.Getuid())
 		return nil
 	}
@@ -281,7 +284,8 @@ func (tlf *TLF) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, e
 
 // Symlink implements the fs.NodeSymlinker interface for TLF.
 func (tlf *TLF) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
-	fs.Node, error) {
+	fs.Node, error,
+) {
 	dir, err := tlf.loadDir(ctx)
 	if err != nil {
 		return nil, err
@@ -293,13 +297,15 @@ var _ fs.NodeLinker = (*TLF)(nil)
 
 // Link implements the fs.NodeLinker interface for TLF.
 func (tlf *TLF) Link(
-	_ context.Context, _ *fuse.LinkRequest, _ fs.Node) (fs.Node, error) {
+	_ context.Context, _ *fuse.LinkRequest, _ fs.Node,
+) (fs.Node, error) {
 	return nil, fuse.ENOTSUP
 }
 
 // Rename implements the fs.NodeRenamer interface for TLF.
 func (tlf *TLF) Rename(ctx context.Context, req *fuse.RenameRequest,
-	newDir fs.Node) error {
+	newDir fs.Node,
+) error {
 	dir, err := tlf.loadDir(ctx)
 	if err != nil {
 		return err
@@ -361,7 +367,8 @@ var _ fs.NodeOpener = (*TLF)(nil)
 
 // Open implements the fs.NodeOpener interface for TLF.
 func (tlf *TLF) Open(ctx context.Context, req *fuse.OpenRequest,
-	resp *fuse.OpenResponse) (fs.Handle, error) {
+	resp *fuse.OpenResponse,
+) (fs.Handle, error) {
 	// Explicitly load the directory when a TLF is opened, because
 	// some OSX programs like ls have a bug that doesn't report errors
 	// on a ReadDirAll.

@@ -22,11 +22,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var decorateBegin = "$>kb$"
-var decorateEnd = "$<kb$"
+var (
+	decorateBegin = "$>kb$"
+	decorateEnd   = "$<kb$"
+)
 
 func checkEmoji(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
-	uid gregor1.UID, conv chat1.ConversationInfoLocal, msgID chat1.MessageID, emoji string) {
+	uid gregor1.UID, conv chat1.ConversationInfoLocal, msgID chat1.MessageID, emoji string,
+) {
 	msg, err := tc.Context().ConvSource.GetMessage(ctx, conv.Id, uid, msgID, nil, nil, true)
 	require.NoError(t, err)
 	require.True(t, msg.IsValid())
@@ -262,7 +265,8 @@ func TestEmojiSourceAliasDecorate(t *testing.T) {
 					Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
 						Text: ":+1::skin-tone-0:",
 					}),
-				}},
+				},
+			},
 		},
 		{
 			input:  ":my+1: <- :nothing: dksjdksdj :: :alias:",

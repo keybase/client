@@ -130,7 +130,8 @@ func (s SimpleFSMock) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSSta
 
 // SimpleFSGetRevisions - Get revision info for a directory entry
 func (s SimpleFSMock) SimpleFSGetRevisions(
-	_ context.Context, _ keybase1.SimpleFSGetRevisionsArg) error {
+	_ context.Context, _ keybase1.SimpleFSGetRevisionsArg,
+) error {
 	return nil
 }
 
@@ -138,7 +139,8 @@ func (s SimpleFSMock) SimpleFSGetRevisions(
 // indicate status of pending to get more entries.
 func (s SimpleFSMock) SimpleFSReadRevisions(
 	_ context.Context, _ keybase1.OpID) (
-	keybase1.GetRevisionsResult, error) {
+	keybase1.GetRevisionsResult, error,
+) {
 	return keybase1.GetRevisionsResult{}, nil
 }
 
@@ -190,91 +192,106 @@ func (s SimpleFSMock) SimpleFSSyncStatus(ctx context.Context, filter keybase1.Li
 
 // SimpleFSUserEditHistory implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSUserEditHistory(ctx context.Context) (
-	res []keybase1.FSFolderEditHistory, err error) {
+	res []keybase1.FSFolderEditHistory, err error,
+) {
 	return nil, nil
 }
 
 // SimpleFSFolderEditHistory implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSFolderEditHistory(
 	ctx context.Context, path keybase1.Path) (
-	res keybase1.FSFolderEditHistory, err error) {
+	res keybase1.FSFolderEditHistory, err error,
+) {
 	return keybase1.FSFolderEditHistory{}, nil
 }
 
 // SimpleFSReset implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSReset(
-	_ context.Context, _ keybase1.SimpleFSResetArg) error {
+	_ context.Context, _ keybase1.SimpleFSResetArg,
+) error {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSClearConflictState(_ context.Context,
-	_ keybase1.Path) error {
+	_ keybase1.Path,
+) error {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSFinishResolvingConflict(_ context.Context,
-	_ keybase1.Path) error {
+	_ keybase1.Path,
+) error {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSForceStuckConflict(_ context.Context,
-	_ keybase1.Path) error {
+	_ keybase1.Path,
+) error {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSListFavorites(_ context.Context) (
-	keybase1.FavoritesResult, error) {
+	keybase1.FavoritesResult, error,
+) {
 	return keybase1.FavoritesResult{}, nil
 }
 
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSGetUserQuotaUsage(ctx context.Context) (
-	keybase1.SimpleFSQuotaUsage, error) {
+	keybase1.SimpleFSQuotaUsage, error,
+) {
 	return keybase1.SimpleFSQuotaUsage{}, nil
 }
 
 // SimpleFSGetTeamQuotaUsage implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSGetTeamQuotaUsage(
 	_ context.Context, _ keybase1.TeamName) (
-	keybase1.SimpleFSQuotaUsage, error) {
+	keybase1.SimpleFSQuotaUsage, error,
+) {
 	return keybase1.SimpleFSQuotaUsage{}, nil
 }
 
 // SimpleFSGetFolder implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSGetFolder(
 	_ context.Context, _ keybase1.KBFSPath) (
-	res keybase1.FolderWithFavFlags, err error) {
+	res keybase1.FolderWithFavFlags, err error,
+) {
 	return res, nil
 }
 
 // SimpleFSFolderSyncConfigAndStatus implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSFolderSyncConfigAndStatus(
 	_ context.Context, _ keybase1.Path) (
-	keybase1.FolderSyncConfigAndStatus, error) {
+	keybase1.FolderSyncConfigAndStatus, error,
+) {
 	return keybase1.FolderSyncConfigAndStatus{}, nil
 }
 
 // SimpleFSFolderSetSyncConfig implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSSetFolderSyncConfig(
-	_ context.Context, _ keybase1.SimpleFSSetFolderSyncConfigArg) error {
+	_ context.Context, _ keybase1.SimpleFSSetFolderSyncConfigArg,
+) error {
 	return nil
 }
 
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSSyncConfigAndStatus(
-	_ context.Context, _ *keybase1.TLFIdentifyBehavior) (keybase1.SyncConfigAndStatusRes, error) {
+	_ context.Context, _ *keybase1.TLFIdentifyBehavior,
+) (keybase1.SyncConfigAndStatusRes, error) {
 	return keybase1.SyncConfigAndStatusRes{}, nil
 }
 
 // SimpleFSGetOnlineStatus implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSGetOnlineStatus(
-	_ context.Context, _ string) (keybase1.KbfsOnlineStatus, error) {
+	_ context.Context, _ string,
+) (keybase1.KbfsOnlineStatus, error) {
 	return keybase1.KbfsOnlineStatus_ONLINE, nil
 }
 
 // SimpleFSCheckReachability implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSCheckReachability(
-	_ context.Context) error {
+	_ context.Context,
+) error {
 	return nil
 }
 
@@ -295,19 +312,22 @@ func (s SimpleFSMock) SimpleFSSetNotificationThreshold(_ context.Context, _ int6
 
 // SimpleFSObfuscatePath implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSObfuscatePath(
-	_ context.Context, _ keybase1.Path) (string, error) {
+	_ context.Context, _ keybase1.Path,
+) (string, error) {
 	return "", nil
 }
 
 // SimpleFSDeobfuscatePath implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSDeobfuscatePath(
-	_ context.Context, _ keybase1.Path) ([]string, error) {
+	_ context.Context, _ keybase1.Path,
+) ([]string, error) {
 	return nil, nil
 }
 
 // SimpleFSGetStats implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSGetStats(_ context.Context) (
-	keybase1.SimpleFSStats, error) {
+	keybase1.SimpleFSStats, error,
+) {
 	return keybase1.SimpleFSStats{}, nil
 }
 
@@ -327,66 +347,80 @@ func (s SimpleFSMock) SimpleFSUnsubscribe(ctx context.Context, arg keybase1.Simp
 }
 
 func (s SimpleFSMock) SimpleFSStartDownload(
-	ctx context.Context, arg keybase1.SimpleFSStartDownloadArg) (downloadID string, err error) {
+	ctx context.Context, arg keybase1.SimpleFSStartDownloadArg,
+) (downloadID string, err error) {
 	return "", nil
 }
 
 func (s SimpleFSMock) SimpleFSGetDownloadStatus(ctx context.Context) (
-	status keybase1.DownloadStatus, err error) {
+	status keybase1.DownloadStatus, err error,
+) {
 	return keybase1.DownloadStatus{}, nil
 }
 
 func (s SimpleFSMock) SimpleFSDismissDownload(
-	ctx context.Context, downloadID string) (err error) {
+	ctx context.Context, downloadID string,
+) (err error) {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSCancelDownload(
-	ctx context.Context, downloadID string) (err error) {
+	ctx context.Context, downloadID string,
+) (err error) {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSGetDownloadInfo(
-	ctx context.Context, downloadID string) (downloadInfo keybase1.DownloadInfo, err error) {
+	ctx context.Context, downloadID string,
+) (downloadInfo keybase1.DownloadInfo, err error) {
 	return keybase1.DownloadInfo{}, nil
 }
 
 func (s SimpleFSMock) SimpleFSConfigureDownload(
-	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg,
+) (err error) {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSMakeTempDirForUpload(
-	ctx context.Context) (dirPath string, err error) {
+	ctx context.Context,
+) (dirPath string, err error) {
 	return "", nil
 }
 
 func (s SimpleFSMock) SimpleFSStartUpload(ctx context.Context,
-	arg keybase1.SimpleFSStartUploadArg) (uploadID string, err error) {
+	arg keybase1.SimpleFSStartUploadArg,
+) (uploadID string, err error) {
 	return "", nil
 }
 
 func (s SimpleFSMock) SimpleFSGetUploadStatus(
-	ctx context.Context) (status []keybase1.UploadState, err error) {
+	ctx context.Context,
+) (status []keybase1.UploadState, err error) {
 	return nil, nil
 }
 
 func (s SimpleFSMock) SimpleFSCancelUpload(
-	ctx context.Context, uploadID string) (err error) {
+	ctx context.Context, uploadID string,
+) (err error) {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSDismissUpload(
-	ctx context.Context, uploadID string) (err error) {
+	ctx context.Context, uploadID string,
+) (err error) {
 	return nil
 }
+
 func (s SimpleFSMock) SimpleFSGetGUIFileContext(ctx context.Context,
-	path keybase1.KBFSPath) (resource keybase1.GUIFileContext, err error) {
+	path keybase1.KBFSPath,
+) (resource keybase1.GUIFileContext, err error) {
 	return keybase1.GUIFileContext{}, nil
 }
 
 func (s SimpleFSMock) SimpleFSGetFilesTabBadge(_ context.Context) (
-	keybase1.FilesTabBadge, error) {
+	keybase1.FilesTabBadge, error,
+) {
 	return keybase1.FilesTabBadge_NONE, nil
 }
 
@@ -404,13 +438,15 @@ func (s SimpleFSMock) SimpleFSSetSfmiBannerDismissed(ctx context.Context, dismis
 }
 
 func (s SimpleFSMock) SimpleFSSetSyncOnCellular(
-	_ context.Context, _ bool) error {
+	_ context.Context, _ bool,
+) error {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSSearch(
 	_ context.Context, _ keybase1.SimpleFSSearchArg) (
-	keybase1.SimpleFSSearchResults, error) {
+	keybase1.SimpleFSSearchResults, error,
+) {
 	return keybase1.SimpleFSSearchResults{}, nil
 }
 
@@ -419,49 +455,58 @@ func (s SimpleFSMock) SimpleFSResetIndex(ctx context.Context) error {
 }
 
 func (s SimpleFSMock) SimpleFSGetIndexProgress(
-	ctx context.Context) (res keybase1.SimpleFSIndexProgress, err error) {
+	ctx context.Context,
+) (res keybase1.SimpleFSIndexProgress, err error) {
 	return keybase1.SimpleFSIndexProgress{}, nil
 }
 
 func (s SimpleFSMock) SimpleFSCancelJournalUploads(
-	_ context.Context, _ keybase1.KBFSPath) (err error) {
+	_ context.Context, _ keybase1.KBFSPath,
+) (err error) {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSArchiveStart(ctx context.Context,
-	arg keybase1.SimpleFSArchiveStartArg) (jobDesc keybase1.SimpleFSArchiveJobDesc, err error) {
+	arg keybase1.SimpleFSArchiveStartArg,
+) (jobDesc keybase1.SimpleFSArchiveJobDesc, err error) {
 	return keybase1.SimpleFSArchiveJobDesc{}, nil
 }
 
 func (s SimpleFSMock) SimpleFSArchiveCancelOrDismissJob(ctx context.Context,
-	jobID string) (err error) {
+	jobID string,
+) (err error) {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSGetArchiveStatus(ctx context.Context) (
-	status keybase1.SimpleFSArchiveStatus, err error) {
+	status keybase1.SimpleFSArchiveStatus, err error,
+) {
 	return keybase1.SimpleFSArchiveStatus{}, nil
 }
 
 func (s SimpleFSMock) SimpleFSGetArchiveJobFreshness(
-	ctx context.Context, jobID string) (keybase1.SimpleFSArchiveJobFreshness, error) {
+	ctx context.Context, jobID string,
+) (keybase1.SimpleFSArchiveJobFreshness, error) {
 	return keybase1.SimpleFSArchiveJobFreshness{}, nil
 }
 
 func (s SimpleFSMock) SimpleFSArchiveCheckArchive(ctx context.Context,
-	archiveZipFilePath string) (result keybase1.SimpleFSArchiveCheckArchiveResult, err error) {
+	archiveZipFilePath string,
+) (result keybase1.SimpleFSArchiveCheckArchiveResult, err error) {
 	return keybase1.SimpleFSArchiveCheckArchiveResult{}, nil
 }
 
 func (s SimpleFSMock) SimpleFSArchiveAllFiles(
 	ctx context.Context, arg keybase1.SimpleFSArchiveAllFilesArg) (
-	keybase1.SimpleFSArchiveAllFilesResult, error) {
+	keybase1.SimpleFSArchiveAllFilesResult, error,
+) {
 	return keybase1.SimpleFSArchiveAllFilesResult{}, nil
 }
 
 func (s SimpleFSMock) SimpleFSArchiveAllGitRepos(
 	ctx context.Context, arg keybase1.SimpleFSArchiveAllGitReposArg) (
-	keybase1.SimpleFSArchiveAllGitReposResult, error) {
+	keybase1.SimpleFSArchiveAllGitReposResult, error,
+) {
 	return keybase1.SimpleFSArchiveAllGitReposResult{}, nil
 }
 
@@ -497,7 +542,6 @@ func TestSimpleFSPathRemote(t *testing.T) {
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
 	assert.Equal(tc.T, "/private", testPath.Kbfs().Path)
-
 }
 
 func TestSimpleFSPathLocal(t *testing.T) {
@@ -520,7 +564,7 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "test1.txt"))
-	err = os.WriteFile(path1.Local(), []byte("foo"), 0644)
+	err = os.WriteFile(path1.Local(), []byte("foo"), 0o644)
 	require.NoError(t, err)
 
 	isSrcDir, srcPathString, err := checkPathIsDir(context.TODO(), SimpleFSMock{localExists: true}, path1)
@@ -571,7 +615,6 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
 
 	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs().Path)
-
 }
 
 func TestSimpleFSRemoteSrcFile(t *testing.T) {
@@ -701,7 +744,6 @@ func TestSimpleFSLocalSrcDir(t *testing.T) {
 	pathType, err = destPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
-
 }
 
 func TestSimpleFSRemoteSrcDir(t *testing.T) {
@@ -770,7 +812,6 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	pathType, err = destPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected remote path, got local")
-
 }
 
 func TestSimpleFSLocalExists(t *testing.T) {
@@ -782,7 +823,7 @@ func TestSimpleFSLocalExists(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 	tempFile := filepath.Join(tempdir, "test1.txt")
-	err = os.WriteFile(tempFile, []byte("foo"), 0644)
+	err = os.WriteFile(tempFile, []byte("foo"), 0o644)
 	require.NoError(t, err)
 
 	testPath, err := makeSimpleFSPath(tempdir)
@@ -813,11 +854,11 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 	tempdir, err := os.MkdirTemp("", "simpleFstest")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
-	err = os.WriteFile(filepath.Join(tempdir, "test1.txt"), []byte("foo"), 0644)
+	err = os.WriteFile(filepath.Join(tempdir, "test1.txt"), []byte("foo"), 0o644)
 	require.NoError(t, err)
-	err = os.WriteFile(filepath.Join(tempdir, "test2.txt"), []byte("foo"), 0644)
+	err = os.WriteFile(filepath.Join(tempdir, "test2.txt"), []byte("foo"), 0o644)
 	require.NoError(t, err)
-	err = os.WriteFile(filepath.Join(tempdir, "test3.txt"), []byte("foo"), 0644)
+	err = os.WriteFile(filepath.Join(tempdir, "test3.txt"), []byte("foo"), 0o644)
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "*.txt"))
 
@@ -845,5 +886,4 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 	assert.Equal(tc.T, "/private/foobar/temp/test1.txt", paths[0].Kbfs().Path)
 	assert.Equal(tc.T, "/private/foobar/temp/test2.txt", paths[1].Kbfs().Path)
 	assert.Equal(tc.T, "/private/foobar/temp/test3.txt", paths[2].Kbfs().Path)
-
 }

@@ -289,7 +289,6 @@ func (k *PGPKeyBundle) Encode() (ret string, err error) {
 }
 
 func PGPKeyRawToArmored(raw []byte, priv bool) (ret string, err error) {
-
 	var writer io.WriteCloser
 	var out bytes.Buffer
 	var which string
@@ -302,7 +301,6 @@ func PGPKeyRawToArmored(raw []byte, priv bool) (ret string, err error) {
 	hdr := fmt.Sprintf("PGP %s KEY BLOCK", which)
 
 	writer, err = armor.Encode(&out, hdr, PGPArmorHeaders)
-
 	if err != nil {
 		return
 	}
@@ -341,8 +339,10 @@ func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser, private bool) error {
 	return writer.Close()
 }
 
-var cleanPGPInputRxx = regexp.MustCompile(`[ \t\r]*\n[ \t\r]*`)
-var bug8612PrepassRxx = regexp.MustCompile(`^(?P<header>-{5}BEGIN PGP (.*?)-{5})(\s*(?P<junk>.+?))$`)
+var (
+	cleanPGPInputRxx  = regexp.MustCompile(`[ \t\r]*\n[ \t\r]*`)
+	bug8612PrepassRxx = regexp.MustCompile(`^(?P<header>-{5}BEGIN PGP (.*?)-{5})(\s*(?P<junk>.+?))$`)
+)
 
 func cleanPGPInput(s string) string {
 	s = strings.TrimSpace(s)
@@ -407,7 +407,6 @@ func firstPrivateKey(s string) (string, error) {
 		line := scanner.Text()
 		if looking && strings.HasPrefix(line, "-----BEGIN PGP PRIVATE KEY BLOCK-----") {
 			looking = false
-
 		}
 		if looking {
 			continue
@@ -504,7 +503,6 @@ func GetOneKey(jw *jsonw.Wrapper) (*PGPKeyBundle, *Warnings, error) {
 // XXX for now this is OK but probably we need a PGP uid parser
 // as in pgp-utils
 func (k *PGPKeyBundle) FindKeybaseUsername(un string) bool {
-
 	rxx := regexp.MustCompile("(?i)< " + un + "@keybase.io>$")
 
 	for _, id := range k.Identities {
@@ -538,7 +536,6 @@ func (k PGPKeyBundle) UsersDescription() []string {
 // GetPrimaryUID gets the primary UID in the given key bundle, returned
 // in the 'Max K (foo) <bar@baz.com>' convention.
 func (k PGPKeyBundle) GetPrimaryUID() string {
-
 	var pri *openpgp.Identity
 	var s string
 	if len(k.Identities) == 0 {
@@ -605,7 +602,6 @@ func (k *PGPKeyBundle) CanSign() bool {
 }
 
 func (k *PGPKeyBundle) GetBinaryKID() keybase1.BinaryKID {
-
 	prefix := []byte{
 		byte(kbcrypto.KeybaseKIDV1),
 		byte(k.PrimaryKey.PubKeyAlgo),

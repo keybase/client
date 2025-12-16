@@ -28,8 +28,7 @@ type onDemandDeltaObject struct {
 
 var _ plumbing.DeltaObject = (*onDemandDeltaObject)(nil)
 
-type notDeltaError struct {
-}
+type notDeltaError struct{}
 
 func (nde notDeltaError) Error() string {
 	return "Not a delta object"

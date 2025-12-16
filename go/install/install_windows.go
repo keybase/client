@@ -218,8 +218,10 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 	return logName, err
 }
 
-const autoRegPath = `Software\Microsoft\Windows\CurrentVersion\Run`
-const autoRegName = `Keybase.Keybase.GUI`
+const (
+	autoRegPath = `Software\Microsoft\Windows\CurrentVersion\Run`
+	autoRegName = `Keybase.Keybase.GUI`
+)
 
 // TODO Remove this in 2022.
 const autoRegDeprecatedName = `electron.app.keybase`

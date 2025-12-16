@@ -77,7 +77,8 @@ func SignED25519(ctx context.Context, g *libkb.GlobalContext, arg keybase1.SignE
 // SignED25519ForKBFS signs the given message with the current user's private
 // signing key on behalf of KBFS.
 func SignED25519ForKBFS(ctx context.Context, g *libkb.GlobalContext, arg keybase1.SignED25519ForKBFSArg) (
-	ret keybase1.ED25519SignatureInfo, err error) {
+	ret keybase1.ED25519SignatureInfo, err error,
+) {
 	signingKey, err := GetMySecretKey(ctx, g, libkb.DeviceSigningKeyType, arg.Reason)
 	if err != nil {
 		return
@@ -182,7 +183,6 @@ func unboxBytes32(encryptionKey libkb.GenericKey, ciphertext keybase1.EncryptedB
 
 	copy(bytes32[:], decryptedData)
 	return
-
 }
 
 func getMatchingSecretKey(m libkb.MetaContext, getSecretUI func() libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (key libkb.GenericKey, index int, err error) {

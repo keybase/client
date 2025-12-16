@@ -135,7 +135,6 @@ func cryptocurrencyIsBTCSegwitViaPrefix(s string) bool {
 }
 
 func CryptocurrencyParseAndCheck(s string) (CryptocurrencyType, []byte, error) {
-
 	switch {
 	case cryptocurrencyIsBTCSegwitViaPrefix(s):
 		return cryptocurrencyParseBTCSegwit(s)

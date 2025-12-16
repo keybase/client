@@ -19,10 +19,12 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 )
 
-const APIHost = "api.giphy.com"
-const MediaHost = "media.giphy.com"
-const Host = "giphy.com"
-const giphyProxy = "https://giphy-proxy.core.keybaseapi.com"
+const (
+	APIHost    = "api.giphy.com"
+	MediaHost  = "media.giphy.com"
+	Host       = "giphy.com"
+	giphyProxy = "https://giphy-proxy.core.keybaseapi.com"
+)
 
 func getPreferredPreview(mctx libkb.MetaContext, img gifImage) (string, bool, error) {
 	isMobile := mctx.G().IsMobileAppType()
@@ -187,7 +189,8 @@ func Asset(mctx libkb.MetaContext, sourceURL string) (res io.ReadCloser, length 
 }
 
 func Search(g *globals.Context, mctx libkb.MetaContext, apiKeySource types.ExternalAPIKeySource, query *string, limit int,
-	srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
+	srv types.AttachmentURLSrv,
+) (res []chat1.GiphySearchResult, err error) {
 	var endpoint string
 	apiKey, err := apiKeySource.GetKey(mctx.Ctx(), chat1.ExternalAPIKeyTyp_GIPHY)
 	if err != nil {

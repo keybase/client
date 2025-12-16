@@ -588,5 +588,4 @@ func TestPGPDecryptWithSyncedKey(t *testing.T) {
 
 	decryptCalledPassphrase = decryptIt()
 	require.False(t, decryptCalledPassphrase, "passphrase get wasn't called")
-
 }

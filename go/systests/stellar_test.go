@@ -23,8 +23,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const disable = true
-const disableMsg = "new protocol version on testnet incompatible with stellard"
+const (
+	disable    = true
+	disableMsg = "new protocol version on testnet incompatible with stellard"
+)
 
 func TestStellarNoteRoundtripAndResets(t *testing.T) {
 	if disable {
@@ -237,7 +239,6 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		assertWithinFeeBounds(t, res[0].BalanceDescription, "90", baseFeeStroops*4)
 		return true
 	})
-
 }
 
 // XLM is sent to a rooter assertion that does not resolve.

@@ -114,7 +114,8 @@ func (h *Server) squashSquashableErrors(err error) error {
 }
 
 func (h *Server) handleOfflineError(ctx context.Context, err error,
-	res chat1.OfflinableResult) error {
+	res chat1.OfflinableResult,
+) error {
 	if err == nil {
 		return nil
 	}
@@ -508,7 +509,8 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 }
 
 func (h *Server) limitConvResults(ctx context.Context, uid gregor1.UID, allConvs []types.RemoteConversation,
-	num int) ([]chat1.ConversationLocal, error) {
+	num int,
+) ([]chat1.ConversationLocal, error) {
 	var convs []types.RemoteConversation
 	sort.Sort(utils.RemoteConvByMtime(allConvs))
 	if len(allConvs) <= num {
@@ -720,7 +722,8 @@ func (h *Server) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLoca
 }
 
 func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
-	arg chat1.GetNextAttachmentMessageLocalArg) (res chat1.GetNextAttachmentMessageLocalRes, err error) {
+	arg chat1.GetNextAttachmentMessageLocalArg,
+) (res chat1.GetNextAttachmentMessageLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, &err, "GetNextAttachmentMessageLocal(%s,%d,%v)",
@@ -855,7 +858,8 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 }
 
 func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor1.UID,
-	convID chat1.ConversationID, msgBody chat1.MessageBody, replyTo *chat1.MessageID) (res chat1.MessageBody, err error) {
+	convID chat1.ConversationID, msgBody chat1.MessageBody, replyTo *chat1.MessageID,
+) (res chat1.MessageBody, err error) {
 	defer h.Trace(ctx, &err, "runStellarSendUI")()
 	ui := h.getChatUI(sessionID)
 	bodyTyp, err := msgBody.MessageType()
@@ -908,7 +912,8 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 var quickReactionPattern = regexp.MustCompile(`(?:^\+:)([^\s]+)(?::)$`)
 
 func (h *Server) isQuickReaction(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body string) (reaction string, msgID chat1.MessageID, ok bool) {
+	body string,
+) (reaction string, msgID chat1.MessageID, ok bool) {
 	body = strings.TrimSpace(body)
 	if !(strings.HasPrefix(body, "+:") && strings.HasSuffix(body, ":")) {
 		return "", 0, false
@@ -1211,7 +1216,7 @@ func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTem
 	if res, err = h.G().AttachmentUploader.GetUploadTempFile(ctx, arg.OutboxID, arg.Filename); err != nil {
 		return res, err
 	}
-	return res, os.WriteFile(res, arg.Data, 0644)
+	return res, os.WriteFile(res, arg.Data, 0o644)
 }
 
 func (h *Server) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) (err error) {
@@ -1220,7 +1225,8 @@ func (h *Server) CancelUploadTempFile(ctx context.Context, outboxID chat1.Outbox
 }
 
 func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
-	arg chat1.PostFileAttachmentLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+	arg chat1.PostFileAttachmentLocalNonblockArg,
+) (res chat1.PostLocalNonblockRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, &err, "PostFileAttachmentLocalNonblock")()
@@ -1391,7 +1397,6 @@ type downloadAttachmentArg struct {
 }
 
 func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, arg downloadAttachmentArg) (res chat1.DownloadAttachmentLocalRes, err error) {
-
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	progress := func(bytesComplete, bytesTotal int64) {
@@ -1416,7 +1421,8 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 }
 
 func (h *Server) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
-	partMode utils.PresentParticipantsMode) (res *chat1.InboxUIItem) {
+	partMode utils.PresentParticipantsMode,
+) (res *chat1.InboxUIItem) {
 	if conv != nil {
 		pc := utils.PresentConversationLocal(ctx, h.G(), uid, *conv, partMode)
 		res = &pc
@@ -1529,7 +1535,8 @@ func (h *Server) FindGeneralConvFromTeamID(ctx context.Context, teamID keybase1.
 }
 
 func (h *Server) FindConversationsLocal(ctx context.Context,
-	arg chat1.FindConversationsLocalArg) (res chat1.FindConversationsLocalRes, err error) {
+	arg chat1.FindConversationsLocalArg,
+) (res chat1.FindConversationsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, &err, "FindConversationsLocal")()
@@ -1855,7 +1862,8 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 }
 
 func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
-	arg chat1.SetAppNotificationSettingsLocalArg) (res chat1.SetAppNotificationSettingsLocalRes, err error) {
+	arg chat1.SetAppNotificationSettingsLocalArg,
+) (res chat1.SetAppNotificationSettingsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
@@ -1933,7 +1941,8 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 }
 
 func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,
-	strSettings map[string]bool) (err error) {
+	strSettings map[string]bool,
+) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, &err, "SetGlobalAppNotificationSettings")()
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
@@ -1952,7 +1961,8 @@ func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res
 }
 
 func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
-	arg chat1.AddTeamMemberAfterResetArg) (err error) {
+	arg chat1.AddTeamMemberAfterResetArg,
+) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, &err, "AddTeamMemberAfterReset")()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
@@ -2295,7 +2305,8 @@ func (h *Server) CancelActiveInboxSearch(ctx context.Context) (err error) {
 }
 
 func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query, origQuery string,
-	opts chat1.SearchOpts, ui libkb.ChatUI) (res chat1.ChatSearchInboxResults, err error) {
+	opts chat1.SearchOpts, ui libkb.ChatUI,
+) (res chat1.ChatSearchInboxResults, err error) {
 	defer h.Trace(ctx, &err, "delegateInboxSearch")()
 	convs, err := h.G().Indexer.SearchableConvs(ctx, opts.ConvID)
 	if err != nil {
@@ -2583,7 +2594,8 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 }
 
 func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (
-	res map[chat1.ConvIDStr]chat1.ProfileSearchConvStats, err error) {
+	res map[chat1.ConvIDStr]chat1.ProfileSearchConvStats, err error,
+) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), identifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, &err, "ProfileChatSearch")()
@@ -2848,8 +2860,10 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 	switch arg.Typ {
 	case chat1.GalleryItemTyp_MEDIA:
 		opts.MessageType = chat1.MessageType_ATTACHMENT
-		opts.AssetTypes = []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE,
-			chat1.AssetMetadataType_VIDEO}
+		opts.AssetTypes = []chat1.AssetMetadataType{
+			chat1.AssetMetadataType_IMAGE,
+			chat1.AssetMetadataType_VIDEO,
+		}
 	case chat1.GalleryItemTyp_LINK:
 		opts.MessageType = chat1.MessageType_TEXT
 		opts.FilterLinks = true
@@ -3185,8 +3199,8 @@ func (h *Server) validateBotRole(ctx context.Context, role keybase1.TeamRole) er
 }
 
 func (h *Server) teamIDFromTLFName(ctx context.Context, membersType chat1.ConversationMembersType,
-	tlfName string, isPublic bool) (res keybase1.TeamID, err error) {
-
+	tlfName string, isPublic bool,
+) (res keybase1.TeamID, err error) {
 	switch membersType {
 	case chat1.ConversationMembersType_KBFS:
 		return res, errors.New("unable to find a team for KBFS conv")

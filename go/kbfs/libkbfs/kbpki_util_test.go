@@ -22,47 +22,54 @@ type daemonKBPKI struct {
 }
 
 func (d daemonKBPKI) GetCurrentSession(ctx context.Context) (
-	idutil.SessionInfo, error) {
+	idutil.SessionInfo, error,
+) {
 	return d.daemon.GetCurrentSession(ctx)
 }
 
 func (d daemonKBPKI) Resolve(
 	ctx context.Context, assertion string,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	return d.daemon.Resolve(ctx, assertion, offline)
 }
 
 func (d daemonKBPKI) NormalizeSocialAssertion(
 	ctx context.Context, assertion string) (
-	keybase1.SocialAssertion, error) {
+	keybase1.SocialAssertion, error,
+) {
 	return d.daemon.NormalizeSocialAssertion(ctx, assertion)
 }
 
 func (d daemonKBPKI) Identify(
 	ctx context.Context, assertion, reason string,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	return d.daemon.Identify(ctx, assertion, reason, offline)
 }
 
 func (d daemonKBPKI) ResolveImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
 	offline keybase1.OfflineAvailability) (
-	idutil.ImplicitTeamInfo, error) {
+	idutil.ImplicitTeamInfo, error,
+) {
 	return d.daemon.ResolveImplicitTeam(
 		ctx, assertions, suffix, tlfType, offline)
 }
 
 func (d daemonKBPKI) GetNormalizedUsername(
 	ctx context.Context, id keybase1.UserOrTeamID,
-	offline keybase1.OfflineAvailability) (kbname.NormalizedUsername, error) {
+	offline keybase1.OfflineAvailability,
+) (kbname.NormalizedUsername, error) {
 	return d.daemon.GetNormalizedUsername(ctx, id, offline)
 }
 
 func (d daemonKBPKI) ResolveTeamTLFID(
 	ctx context.Context, teamID keybase1.TeamID,
-	offline keybase1.OfflineAvailability) (tlf.ID, error) {
+	offline keybase1.OfflineAvailability,
+) (tlf.ID, error) {
 	return d.daemon.ResolveTeamTLFID(ctx, teamID, offline)
 }
 
@@ -72,7 +79,8 @@ func (d daemonKBPKI) ResolveTeamTLFID(
 // TODO: Make tests that use this just use KBPKIClient; need to figure
 // out what to do with other mocked methods of KBPKI.
 func interposeDaemonKBPKI(
-	config *ConfigMock, users ...kbname.NormalizedUsername) {
+	config *ConfigMock, users ...kbname.NormalizedUsername,
+) {
 	localUsers := idutil.MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
 
@@ -110,7 +118,8 @@ func (ik *identifyCountingKBPKI) getIdentifyCalls() int {
 func (ik *identifyCountingKBPKI) Identify(
 	ctx context.Context, assertion, reason string,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	ik.addIdentifyCall()
 	return ik.KBPKI.Identify(ctx, assertion, reason, offline)
 }

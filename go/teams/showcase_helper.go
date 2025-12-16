@@ -32,7 +32,8 @@ func (c *memberShowcaseRes) GetAppStatus() *libkb.AppStatus {
 }
 
 func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (ret keybase1.TeamAndMemberShowcase,
-	err error) {
+	err error,
+) {
 	t, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:                        id,
 		Public:                    false,
@@ -91,7 +92,8 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, id ke
 }
 
 func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, isShowcased *bool,
-	description *string, anyMemberShowcase *bool) error {
+	description *string, anyMemberShowcase *bool,
+) error {
 	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 	if err != nil {
 		return err

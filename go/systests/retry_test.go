@@ -1,9 +1,10 @@
 package systests
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"sync"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 type testRunFunc func(t libkb.TestingTB)
@@ -76,9 +77,11 @@ func (t *testAttempt) Skip(args ...interface{}) {
 func (t *testAttempt) SkipNow() {
 	t.t.SkipNow()
 }
+
 func (t *testAttempt) Skipf(format string, args ...interface{}) {
 	t.t.Skipf(format, args...)
 }
+
 func (t *testAttempt) Skipped() bool {
 	return t.t.Skipped()
 }
@@ -92,7 +95,6 @@ func (t *testAttempt) Helper() {
 // which has a flake in it but hopefully is going to be phased out, so not
 // really worth fixing the flake.
 func retryFlakeyTestOnlyUseIfPermitted(t *testing.T, numTries int, test testRunFunc) {
-
 	for i := 0; i < numTries-1; i++ {
 		attempt := testAttempt{t: t}
 		if attempt.run(test) {

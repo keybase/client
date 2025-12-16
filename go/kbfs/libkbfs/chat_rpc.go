@@ -74,7 +74,8 @@ func (c *ChatRPC) HandlerName() string {
 
 // OnConnect implements the ConnectionHandler interface.
 func (c *ChatRPC) OnConnect(ctx context.Context, conn *rpc.Connection,
-	_ rpc.GenericClient, server *rpc.Server) error {
+	_ rpc.GenericClient, server *rpc.Server,
+) error {
 	if c.config.KBFSOps() != nil {
 		c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, nil)
 	}
@@ -109,7 +110,8 @@ func (c *ChatRPC) OnDoCommandError(err error, wait time.Duration) {
 
 // OnDisconnected implements the ConnectionHandler interface.
 func (c *ChatRPC) OnDisconnected(_ context.Context,
-	status rpc.DisconnectStatus) {
+	status rpc.DisconnectStatus,
+) {
 	if status == rpc.StartingNonFirstConnection {
 		c.log.Warning("Chat is disconnected")
 		if c.config.KBFSOps() != nil {
@@ -193,7 +195,8 @@ func membersTypeFromTlfType(tlfType tlf.Type) chat1.ConversationMembersType {
 func (c *ChatRPC) GetConversationID(
 	ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type,
 	channelName string, chatType chat1.TopicType) (
-	chat1.ConversationID, error) {
+	chat1.ConversationID, error,
+) {
 	vis := keybase1.TLFVisibility_PRIVATE
 	if tlfType == tlf.Public {
 		vis = keybase1.TLFVisibility_PUBLIC
@@ -220,14 +223,16 @@ func (c *ChatRPC) GetConversationID(
 }
 
 func (c *ChatRPC) getSelfConvInfoIfCached() (
-	selfConvID, lastWrittenConvID chat1.ConversationID) {
+	selfConvID, lastWrittenConvID chat1.ConversationID,
+) {
 	c.convLock.RLock()
 	defer c.convLock.RUnlock()
 	return c.selfConvID, c.lastWrittenConvID
 }
 
 func (c *ChatRPC) getSelfConvInfo(ctx context.Context) (
-	selfConvID, lastWrittenConvID chat1.ConversationID, err error) {
+	selfConvID, lastWrittenConvID chat1.ConversationID, err error,
+) {
 	selfConvID, lastWrittenConvID = c.getSelfConvInfoIfCached()
 	if selfConvID != nil {
 		return selfConvID, lastWrittenConvID, err
@@ -270,7 +275,8 @@ func (c *ChatRPC) getSelfConvInfo(ctx context.Context) (
 // SendTextMessage implements the Chat interface.
 func (c *ChatRPC) SendTextMessage(
 	ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type,
-	convID chat1.ConversationID, body string) error {
+	convID chat1.ConversationID, body string,
+) error {
 	if len(body) == 0 {
 		c.log.CDebugf(ctx, "Ignoring empty message")
 		return nil
@@ -368,7 +374,8 @@ func (c *ChatRPC) SendTextMessage(
 
 func (c *ChatRPC) getLastSelfWrittenHandles(
 	ctx context.Context, chatType chat1.TopicType, seen map[string]bool) (
-	results []*tlfhandle.Handle, err error) {
+	results []*tlfhandle.Handle, err error,
+) {
 	selfConvID, _, err := c.getSelfConvInfo(ctx)
 	if err != nil {
 		return nil, err
@@ -432,7 +439,8 @@ func (c *ChatRPC) getLastSelfWrittenHandles(
 // GetGroupedInbox implements the Chat interface.
 func (c *ChatRPC) GetGroupedInbox(
 	ctx context.Context, chatType chat1.TopicType, maxChats int) (
-	results []*tlfhandle.Handle, err error) {
+	results []*tlfhandle.Handle, err error,
+) {
 	// First get the latest TLFs written by this user.
 	seen := make(map[string]bool)
 	results, err = c.getLastSelfWrittenHandles(ctx, chatType, seen)
@@ -524,7 +532,8 @@ func (c *ChatRPC) GetGroupedInbox(
 func (c *ChatRPC) GetChannels(
 	ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type,
 	chatType chat1.TopicType) (
-	convIDs []chat1.ConversationID, channelNames []string, err error) {
+	convIDs []chat1.ConversationID, channelNames []string, err error,
+) {
 	expectedVisibility := keybase1.TLFVisibility_PRIVATE
 	if tlfType == tlf.Public {
 		expectedVisibility = keybase1.TLFVisibility_PUBLIC
@@ -569,7 +578,8 @@ const readChannelPageSize = 100
 // ReadChannel implements the Chat interface.
 func (c *ChatRPC) ReadChannel(
 	ctx context.Context, convID chat1.ConversationID, startPage []byte) (
-	messages []string, nextPage []byte, err error) {
+	messages []string, nextPage []byte, err error,
+) {
 	pagination := &chat1.Pagination{Num: readChannelPageSize}
 	if startPage != nil {
 		pagination.Next = startPage
@@ -620,7 +630,8 @@ func (c *ChatRPC) ReadChannel(
 
 // RegisterForMessages implements the Chat interface.
 func (c *ChatRPC) RegisterForMessages(
-	convID chat1.ConversationID, cb ChatChannelNewMessageCB) {
+	convID chat1.ConversationID, cb ChatChannelNewMessageCB,
+) {
 	str := convID.ConvIDStr()
 	c.convLock.Lock()
 	defer c.convLock.Unlock()
@@ -642,7 +653,8 @@ var _ chat1.NotifyChatInterface = (*ChatRPC)(nil)
 
 func (c *ChatRPC) newNotificationChannel(
 	ctx context.Context, convID chat1.ConversationID,
-	conv *chat1.InboxUIItem) error {
+	conv *chat1.InboxUIItem,
+) error {
 	if conv == nil {
 		c.log.CDebugf(ctx,
 			"No conv for new notification channel %s; ignoring", convID)
@@ -703,7 +715,8 @@ func (c *ChatRPC) setLastWrittenConvID(ctx context.Context, body string) error {
 // NewChatActivity implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) NewChatActivity(
-	ctx context.Context, arg chat1.NewChatActivityArg) error {
+	ctx context.Context, arg chat1.NewChatActivityArg,
+) error {
 	activityType, err := arg.Activity.ActivityType()
 	if err != nil {
 		return err
@@ -770,21 +783,24 @@ func (c *ChatRPC) NewChatActivity(
 // ChatIdentifyUpdate implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatIdentifyUpdate(
-	_ context.Context, _ keybase1.CanonicalTLFNameAndIDWithBreaks) error {
+	_ context.Context, _ keybase1.CanonicalTLFNameAndIDWithBreaks,
+) error {
 	return nil
 }
 
 // ChatTLFFinalize implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatTLFFinalize(
-	_ context.Context, _ chat1.ChatTLFFinalizeArg) error {
+	_ context.Context, _ chat1.ChatTLFFinalizeArg,
+) error {
 	return nil
 }
 
 // ChatTLFResolve implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatTLFResolve(
-	_ context.Context, _ chat1.ChatTLFResolveArg) error {
+	_ context.Context, _ chat1.ChatTLFResolveArg,
+) error {
 	return nil
 }
 
@@ -797,140 +813,160 @@ func (c *ChatRPC) ChatInboxStale(_ context.Context, _ keybase1.UID) error {
 // ChatThreadsStale implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatThreadsStale(
-	_ context.Context, _ chat1.ChatThreadsStaleArg) error {
+	_ context.Context, _ chat1.ChatThreadsStaleArg,
+) error {
 	return nil
 }
 
 // ChatTypingUpdate implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatTypingUpdate(
-	_ context.Context, _ []chat1.ConvTypingUpdate) error {
+	_ context.Context, _ []chat1.ConvTypingUpdate,
+) error {
 	return nil
 }
 
 // ChatJoinedConversation implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatJoinedConversation(
-	_ context.Context, _ chat1.ChatJoinedConversationArg) error {
+	_ context.Context, _ chat1.ChatJoinedConversationArg,
+) error {
 	return nil
 }
 
 // ChatLeftConversation implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatLeftConversation(
-	_ context.Context, _ chat1.ChatLeftConversationArg) error {
+	_ context.Context, _ chat1.ChatLeftConversationArg,
+) error {
 	return nil
 }
 
 // ChatResetConversation implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatResetConversation(
-	_ context.Context, _ chat1.ChatResetConversationArg) error {
+	_ context.Context, _ chat1.ChatResetConversationArg,
+) error {
 	return nil
 }
 
 // ChatInboxSyncStarted implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatInboxSyncStarted(
-	_ context.Context, _ keybase1.UID) error {
+	_ context.Context, _ keybase1.UID,
+) error {
 	return nil
 }
 
 // ChatInboxSynced implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatInboxSynced(
-	_ context.Context, _ chat1.ChatInboxSyncedArg) error {
+	_ context.Context, _ chat1.ChatInboxSyncedArg,
+) error {
 	return nil
 }
 
 // ChatSetConvRetention implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatSetConvRetention(
-	_ context.Context, _ chat1.ChatSetConvRetentionArg) error {
+	_ context.Context, _ chat1.ChatSetConvRetentionArg,
+) error {
 	return nil
 }
 
 // ChatSetTeamRetention implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatSetTeamRetention(
-	_ context.Context, _ chat1.ChatSetTeamRetentionArg) error {
+	_ context.Context, _ chat1.ChatSetTeamRetentionArg,
+) error {
 	return nil
 }
 
 // ChatSetConvSettings implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatSetConvSettings(
-	_ context.Context, _ chat1.ChatSetConvSettingsArg) error {
+	_ context.Context, _ chat1.ChatSetConvSettingsArg,
+) error {
 	return nil
 }
 
 // ChatSubteamRename implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatSubteamRename(
-	_ context.Context, _ chat1.ChatSubteamRenameArg) error {
+	_ context.Context, _ chat1.ChatSubteamRenameArg,
+) error {
 	return nil
 }
 
 // ChatKBFSToImpteamUpgrade implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatKBFSToImpteamUpgrade(
-	_ context.Context, _ chat1.ChatKBFSToImpteamUpgradeArg) error {
+	_ context.Context, _ chat1.ChatKBFSToImpteamUpgradeArg,
+) error {
 	return nil
 }
 
 // ChatAttachmentUploadStart implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatAttachmentUploadStart(
-	_ context.Context, _ chat1.ChatAttachmentUploadStartArg) error {
+	_ context.Context, _ chat1.ChatAttachmentUploadStartArg,
+) error {
 	return nil
 }
 
 // ChatAttachmentUploadProgress implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatAttachmentUploadProgress(
-	_ context.Context, _ chat1.ChatAttachmentUploadProgressArg) error {
+	_ context.Context, _ chat1.ChatAttachmentUploadProgressArg,
+) error {
 	return nil
 }
 
 // ChatAttachmentDownloadProgress implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatAttachmentDownloadProgress(
-	_ context.Context, _ chat1.ChatAttachmentDownloadProgressArg) error {
+	_ context.Context, _ chat1.ChatAttachmentDownloadProgressArg,
+) error {
 	return nil
 }
 
 // ChatAttachmentDownloadComplete implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatAttachmentDownloadComplete(
-	_ context.Context, _ chat1.ChatAttachmentDownloadCompleteArg) error {
+	_ context.Context, _ chat1.ChatAttachmentDownloadCompleteArg,
+) error {
 	return nil
 }
 
 // ChatArchiveProgress implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatArchiveProgress(
-	_ context.Context, _ chat1.ChatArchiveProgressArg) error {
+	_ context.Context, _ chat1.ChatArchiveProgressArg,
+) error {
 	return nil
 }
 
 // ChatArchiveComplete implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatArchiveComplete(
-	_ context.Context, _ chat1.ArchiveJobID) error {
+	_ context.Context, _ chat1.ArchiveJobID,
+) error {
 	return nil
 }
 
 // ChatPaymentInfo implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatPaymentInfo(
-	_ context.Context, _ chat1.ChatPaymentInfoArg) error {
+	_ context.Context, _ chat1.ChatPaymentInfoArg,
+) error {
 	return nil
 }
 
 // ChatRequestInfo implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatRequestInfo(
-	_ context.Context, _ chat1.ChatRequestInfoArg) error {
+	_ context.Context, _ chat1.ChatRequestInfoArg,
+) error {
 	return nil
 }
 
@@ -943,14 +979,16 @@ func (c *ChatRPC) ChatPromptUnfurl(_ context.Context, _ chat1.ChatPromptUnfurlAr
 // ChatConvUpdate implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatConvUpdate(
-	_ context.Context, _ chat1.ChatConvUpdateArg) error {
+	_ context.Context, _ chat1.ChatConvUpdateArg,
+) error {
 	return nil
 }
 
 // ChatWelcomeMessageLoaded implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatWelcomeMessageLoaded(
-	_ context.Context, _ chat1.ChatWelcomeMessageLoadedArg) error {
+	_ context.Context, _ chat1.ChatWelcomeMessageLoadedArg,
+) error {
 	return nil
 }
 

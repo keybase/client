@@ -6,7 +6,6 @@ package libkb
 import (
 	"bytes"
 	"fmt"
-
 	"os"
 	"path/filepath"
 	"sync"
@@ -66,7 +65,7 @@ func doSomeIO() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(dir, "some-io"), []byte("O_O"), 0666)
+	return os.WriteFile(filepath.Join(dir, "some-io"), []byte("O_O"), 0o666)
 }
 
 func testLevelDbPut(db *LevelDb) (key DbKey, err error) {
@@ -286,7 +285,6 @@ func TestLevelDb(t *testing.T) {
 					if err = tr.Commit(); err != nil {
 						t.Error(err)
 					}
-
 				}()
 
 				go func() {

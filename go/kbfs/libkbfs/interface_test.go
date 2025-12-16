@@ -34,7 +34,8 @@ type testLogMaker struct {
 }
 
 func newTestLogMakerWithVDebug(
-	t *testing.T, vdebugSetting string) testLogMaker {
+	t *testing.T, vdebugSetting string,
+) testLogMaker {
 	return testLogMaker{logger.NewTestLogger(t), vdebugSetting}
 }
 
@@ -87,7 +88,8 @@ func newTestSyncedTlfGetterSetter() *testSyncedTlfGetterSetter {
 }
 
 func (t *testSyncedTlfGetterSetter) GetTlfSyncState(
-	tlfID tlf.ID) FolderSyncConfig {
+	tlfID tlf.ID,
+) FolderSyncConfig {
 	return t.syncedTlfs[tlfID]
 }
 
@@ -106,7 +108,8 @@ func (t *testSyncedTlfGetterSetter) IsSyncedTlfPath(tlfPath string) bool {
 
 func (t *testSyncedTlfGetterSetter) SetTlfSyncState(
 	_ context.Context, tlfID tlf.ID,
-	config FolderSyncConfig) (<-chan error, error) {
+	config FolderSyncConfig,
+) (<-chan error, error) {
 	t.syncedTlfs[tlfID] = config
 	return nil, nil
 }
@@ -120,7 +123,8 @@ func (t *testSyncedTlfGetterSetter) GetAllSyncedTlfs() []tlf.ID {
 }
 
 func (t *testSyncedTlfGetterSetter) OfflineAvailabilityForPath(
-	tlfPath string) keybase1.OfflineAvailability {
+	tlfPath string,
+) keybase1.OfflineAvailability {
 	if t.IsSyncedTlfPath(tlfPath) {
 		return keybase1.OfflineAvailability_BEST_EFFORT
 	}
@@ -128,7 +132,8 @@ func (t *testSyncedTlfGetterSetter) OfflineAvailabilityForPath(
 }
 
 func (t *testSyncedTlfGetterSetter) OfflineAvailabilityForID(
-	tlfID tlf.ID) keybase1.OfflineAvailability {
+	tlfID tlf.ID,
+) keybase1.OfflineAvailability {
 	if t.IsSyncedTlf(tlfID) {
 		return keybase1.OfflineAvailability_BEST_EFFORT
 	}

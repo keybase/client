@@ -51,8 +51,10 @@ type Loader struct {
 	sync.Mutex
 }
 
-var defaultLoader *Loader
-var defaultLock sync.Mutex
+var (
+	defaultLoader *Loader
+	defaultLock   sync.Mutex
+)
 
 func NewLoader(g *libkb.GlobalContext) *Loader {
 	p := &Loader{

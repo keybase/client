@@ -39,18 +39,23 @@ func (l *LogUI) Log(level keybase1.LogLevel, format string, args []interface{}) 
 func (l *LogUI) Debug(format string, args ...interface{}) {
 	l.Log(keybase1.LogLevel_DEBUG, format, args)
 }
+
 func (l *LogUI) Info(format string, args ...interface{}) {
 	l.Log(keybase1.LogLevel_INFO, format, args)
 }
+
 func (l *LogUI) Critical(format string, args ...interface{}) {
 	l.Log(keybase1.LogLevel_CRITICAL, format, args)
 }
+
 func (l *LogUI) Warning(format string, args ...interface{}) {
 	l.Log(keybase1.LogLevel_WARN, format, args)
 }
+
 func (l *LogUI) Errorf(format string, args ...interface{}) {
 	l.Log(keybase1.LogLevel_ERROR, format, args)
 }
+
 func (l *LogUI) Notice(format string, args ...interface{}) {
 	l.Log(keybase1.LogLevel_NOTICE, format, args)
 }

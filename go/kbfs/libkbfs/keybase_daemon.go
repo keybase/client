@@ -133,7 +133,8 @@ func (k keybaseDaemon) NewCrypto(config Config, params InitParams, ctx Context, 
 
 func (k keybaseDaemon) NewChat(
 	config Config, params InitParams, ctx Context, log logger.Logger) (
-	chat Chat, err error) {
+	chat Chat, err error,
+) {
 	localUser := kbname.NewNormalizedUsername(params.LocalUser)
 	if localUser == "" {
 		chat = NewChatRPC(config, ctx)

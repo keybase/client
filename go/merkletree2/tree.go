@@ -243,7 +243,8 @@ func (t *Tree) makeNextRootMetadata(ctx logger.ContextInterface, tr Transaction,
 }
 
 func (t *Tree) GenerateAndStoreMasterSecret(
-	ctx logger.ContextInterface, tr Transaction, s Seqno) (ms MasterSecret, err error) {
+	ctx logger.ContextInterface, tr Transaction, s Seqno,
+) (ms MasterSecret, err error) {
 	ms, err = t.cfg.Encoder.GenerateMasterSecret(s)
 	if err != nil {
 		return nil, err
@@ -277,7 +278,8 @@ func (t *Tree) encodeKVPairs(sortedKVPairs []KeyValuePair) (kevPairs []KeyEncode
 // state. This function does not check the condition is true for efficiency
 // reasons.
 func (t *Tree) Build(
-	ctx logger.ContextInterface, tr Transaction, sortedKVPairs []KeyValuePair, addOnsHash Hash) (s Seqno, rootHash Hash, err error) {
+	ctx logger.ContextInterface, tr Transaction, sortedKVPairs []KeyValuePair, addOnsHash Hash,
+) (s Seqno, rootHash Hash, err error) {
 	t.Lock()
 	defer t.Unlock()
 
@@ -341,7 +343,8 @@ func (t *Tree) Build(
 }
 
 func (t *Tree) hashTreeRecursive(ctx logger.ContextInterface, tr Transaction, s Seqno, ms MasterSecret,
-	p *Position, sortedKEVPairs []KeyEncodedValuePair) (ret Hash, err error) {
+	p *Position, sortedKEVPairs []KeyEncodedValuePair,
+) (ret Hash, err error) {
 	select {
 	case <-ctx.Ctx().Done():
 		return nil, ctx.Ctx().Err()
@@ -406,7 +409,6 @@ func (t *Tree) makeKeyHashPairsFromKeyValuePairs(ms MasterSecret, unhashed []Key
 }
 
 func (t *Tree) makeAndStoreLeaf(ctx logger.ContextInterface, tr Transaction, s Seqno, ms MasterSecret, p *Position, sortedKEVPairs []KeyEncodedValuePair, ret *Hash) (err error) {
-
 	err = t.makeKeyHashPairsFromKeyValuePairs(ms, sortedKEVPairs, &t.bufLeaf)
 	if err != nil {
 		return err

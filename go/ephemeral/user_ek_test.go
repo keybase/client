@@ -11,8 +11,8 @@ import (
 )
 
 func publishAndVerifyUserEK(mctx libkb.MetaContext, t *testing.T,
-	merkleRoot libkb.MerkleRoot, uid keybase1.UID) keybase1.EkGeneration {
-
+	merkleRoot libkb.MerkleRoot, uid keybase1.UID,
+) keybase1.EkGeneration {
 	publishedMetadata, err := publishNewUserEK(mctx, merkleRoot)
 	require.NoError(t, err)
 

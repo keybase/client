@@ -18,13 +18,15 @@ import (
 )
 
 func newBlankConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
-	uid gregor1.UID, ri chat1.RemoteInterface, sender types.Sender, tlfName string) chat1.Conversation {
+	uid gregor1.UID, ri chat1.RemoteInterface, sender types.Sender, tlfName string,
+) chat1.Conversation {
 	return newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, tlfName,
 		chat1.ConversationMembersType_IMPTEAMUPGRADE)
 }
 
 func localizeConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
-	uid gregor1.UID, conv chat1.Conversation) chat1.ConversationLocal {
+	uid gregor1.UID, conv chat1.Conversation,
+) chat1.ConversationLocal {
 	rc := utils.RemoteConv(conv)
 	locals, _, err := tc.Context().InboxSource.Localize(ctx, uid, []types.RemoteConversation{rc},
 		types.ConversationLocalizerBlocking)
@@ -35,7 +37,8 @@ func localizeConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 
 func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	uid gregor1.UID, ri chat1.RemoteInterface, _ types.Sender, tlfName string,
-	membersType chat1.ConversationMembersType) chat1.Conversation {
+	membersType chat1.ConversationMembersType,
+) chat1.Conversation {
 	res, created, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_CHAT, membersType,
 		keybase1.TLFVisibility_PRIVATE, nil, func() chat1.RemoteInterface { return ri },
 		NewConvFindExistingNormal)
@@ -52,7 +55,8 @@ func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.C
 }
 
 func newConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, uid gregor1.UID,
-	ri chat1.RemoteInterface, sender types.Sender, tlfName string) (chat1.ConversationLocal, chat1.Conversation) {
+	ri chat1.RemoteInterface, sender types.Sender, tlfName string,
+) (chat1.ConversationLocal, chat1.Conversation) {
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, tlfName)
 	_, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
@@ -432,7 +436,6 @@ func TestSyncerMembersTypeChanged(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox synced received")
 	}
-
 }
 
 func TestSyncerAppState(t *testing.T) {

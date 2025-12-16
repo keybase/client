@@ -63,7 +63,8 @@ type userKeyAPI struct {
 }
 
 func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (
-	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
+	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error,
+) {
 	u.log.Debug("+ GetUser")
 	defer func() {
 		u.log.Debug("- GetUser -> %v", err)
@@ -101,7 +102,6 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 		Endpoint: "pubsub/poll",
 		Args:     args,
 	}, &psb)
-
 	// If there was an error (say if the API server was down), then don't busy
 	// loop, wait the pollWait amount of time before exiting.
 	if err != nil {

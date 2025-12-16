@@ -48,7 +48,7 @@ func (s ServiceInfo) WriteFile(path string, log logger.Logger) error {
 		return err
 	}
 
-	file := NewFile(path, out, 0644)
+	file := NewFile(path, out, 0o644)
 	return file.Save(log)
 }
 

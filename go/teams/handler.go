@@ -125,7 +125,8 @@ func HandleOpenTeamSweepRequest(ctx context.Context, g *libkb.GlobalContext, msg
 }
 
 func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalContext,
-	team *Team, resetUsersUntrusted []keybase1.TeamCLKRResetUser, rotate bool) (postedLink bool, err error) {
+	team *Team, resetUsersUntrusted []keybase1.TeamCLKRResetUser, rotate bool,
+) (postedLink bool, err error) {
 	// When CLKR is invoked because of account reset and it's an open team,
 	// we go ahead and boot reset readers and writers out of the team. Key
 	// is also rotated in the process (in the same ChangeMembership link).

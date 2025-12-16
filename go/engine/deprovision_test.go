@@ -217,7 +217,6 @@ func testDeprovisionAfterRevokePaper(t *testing.T, upgradePerUserKey bool) {
 }
 
 func assertDeprovisionLoggedOut(tc libkb.TestContext) {
-
 	// Sign up a new user and have it store its secret in the
 	// secret store (if possible).
 	fu := NewFakeUserOrBust(tc.T, "dpr")
@@ -320,7 +319,6 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 }
 
 func assertCurrentDeviceRevoked(tc libkb.TestContext) {
-
 	// Sign up a new user and have it store its secret in the
 	// secret store (if possible).
 	fu := NewFakeUserOrBust(tc.T, "dpr")

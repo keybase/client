@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-
 	"mime/multipart"
 	"os"
 	"os/exec"
@@ -155,7 +154,6 @@ func addGzippedFile(mpart *multipart.Writer, param, filename, data string) error
 // tail the logs that start with the stem `stem`, which are of type `which`.
 // Get the most recent `numBytes` from the concatenation of the files.
 func tail(log logger.Logger, which string, stem string, numBytes int) (ret string) {
-
 	numFiles := 0
 
 	log.Debug("+ tailing %s file with stem %q", which, stem)
@@ -348,7 +346,6 @@ func tailSystemdJournal(log logger.Logger, userUnits []string, numBytes int) (re
 // tailFile takes the last n bytes, but advances to the first newline. Returns the log (as a string)
 // and a bool, indicating if we read the full log, or we had to advance into the log to find the newline.
 func tailFile(log logger.Logger, which string, filename string, numBytes int) (ret string, seeked bool) {
-
 	log.Debug("+ tailing %s log %q (%d bytes)", which, filename, numBytes)
 	defer func() {
 		log.Debug("- scanned %d bytes", len(ret))
@@ -400,7 +397,7 @@ func addFileToTar(tw *tar.Writer, path string) error {
 			Typeflag: tar.TypeReg,
 			Name:     filepath.Base(path),
 			Size:     stat.Size(),
-			Mode:     int64(0600),
+			Mode:     int64(0o600),
 			ModTime:  stat.ModTime(),
 		}
 		if err := tw.WriteHeader(&header); err != nil {

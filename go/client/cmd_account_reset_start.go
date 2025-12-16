@@ -64,7 +64,6 @@ func (c *CmdAccountResetStart) Run() error {
 		return err
 	}
 	return nil
-
 }
 
 func (c *CmdAccountResetStart) GetUsage() libkb.Usage {

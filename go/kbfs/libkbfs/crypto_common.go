@@ -29,7 +29,8 @@ var _ cryptoPure = (*CryptoCommon)(nil)
 // MakeCryptoCommon returns a default CryptoCommon object.
 func MakeCryptoCommon(
 	codec kbfscodec.Codec,
-	blockCryptVersioner blockCryptVersioner) CryptoCommon {
+	blockCryptVersioner blockCryptVersioner,
+) CryptoCommon {
 	return CryptoCommon{codec, blockCryptVersioner}
 }
 
@@ -56,7 +57,8 @@ func (c CryptoCommon) MakeBlockRefNonce() (nonce kbfsblock.RefNonce, err error) 
 // MakeRandomBlockCryptKeyServerHalf implements the Crypto interface
 // for CryptoCommon.
 func (c CryptoCommon) MakeRandomBlockCryptKeyServerHalf() (
-	kbfscrypto.BlockCryptKeyServerHalf, error) {
+	kbfscrypto.BlockCryptKeyServerHalf, error,
+) {
 	return kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 }
 
@@ -64,13 +66,15 @@ func (c CryptoCommon) MakeRandomBlockCryptKeyServerHalf() (
 // CryptoCommon.
 func (c CryptoCommon) MakeRandomTLFEphemeralKeys() (
 	kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.TLFEphemeralPrivateKey,
-	error) {
+	error,
+) {
 	return kbfscrypto.MakeRandomTLFEphemeralKeys()
 }
 
 // MakeRandomTLFKeys implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey,
-	kbfscrypto.TLFPrivateKey, kbfscrypto.TLFCryptKey, error) {
+	kbfscrypto.TLFPrivateKey, kbfscrypto.TLFCryptKey, error,
+) {
 	publicKey, privateKey, err := box.GenerateKey(rand.Reader)
 	if err != nil {
 		return kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
@@ -92,7 +96,8 @@ func (c CryptoCommon) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey,
 // EncryptPrivateMetadata implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) EncryptPrivateMetadata(
 	pmd PrivateMetadata, key kbfscrypto.TLFCryptKey) (
-	encryptedPmd kbfscrypto.EncryptedPrivateMetadata, err error) {
+	encryptedPmd kbfscrypto.EncryptedPrivateMetadata, err error,
+) {
 	encodedPmd, err := c.codec.Encode(pmd)
 	if err != nil {
 		return kbfscrypto.EncryptedPrivateMetadata{}, err
@@ -104,7 +109,8 @@ func (c CryptoCommon) EncryptPrivateMetadata(
 // DecryptPrivateMetadata implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) DecryptPrivateMetadata(
 	encryptedPmd kbfscrypto.EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (
-	PrivateMetadata, error) {
+	PrivateMetadata, error,
+) {
 	encodedPrivateMetadata, err := kbfscrypto.DecryptPrivateMetadata(
 		encryptedPmd, key)
 	if err != nil {
@@ -124,7 +130,8 @@ func (c CryptoCommon) DecryptPrivateMetadata(
 func (c CryptoCommon) EncryptBlock(
 	block data.Block, tlfCryptKey kbfscrypto.TLFCryptKey,
 	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (
-	plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error) {
+	plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error,
+) {
 	encodedBlock, err := c.codec.Encode(block)
 	if err != nil {
 		return -1, kbfscrypto.EncryptedBlock{}, err
@@ -135,10 +142,9 @@ func (c CryptoCommon) EncryptBlock(
 		return -1, kbfscrypto.EncryptedBlock{}, err
 	}
 
-	encryptedBlock, err =
-		kbfscrypto.EncryptPaddedEncodedBlock(
-			paddedBlock, tlfCryptKey, blockServerHalf,
-			c.blockCryptVersioner.BlockCryptVersion())
+	encryptedBlock, err = kbfscrypto.EncryptPaddedEncodedBlock(
+		paddedBlock, tlfCryptKey, blockServerHalf,
+		c.blockCryptVersioner.BlockCryptVersion())
 	if err != nil {
 		return -1, kbfscrypto.EncryptedBlock{}, err
 	}
@@ -151,7 +157,8 @@ func (c CryptoCommon) EncryptBlock(
 func (c CryptoCommon) DecryptBlock(
 	encryptedBlock kbfscrypto.EncryptedBlock,
 	tlfCryptKey kbfscrypto.TLFCryptKey,
-	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block data.Block) error {
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block data.Block,
+) error {
 	var paddedBlock []byte
 	paddedBlock, err := kbfscrypto.DecryptBlock(
 		encryptedBlock, tlfCryptKey, blockServerHalf)

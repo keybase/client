@@ -271,7 +271,6 @@ func (h ConfigHandler) SetPath(_ context.Context, arg keybase1.SetPathArg) error
 }
 
 func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
-
 	svcPath := os.Getenv("PATH")
 	g.Log.Debug("mergeIntoPath: service path = %s", svcPath)
 	g.Log.Debug("mergeIntoPath: merge path   = %s", p2)
@@ -579,7 +578,8 @@ func (h ConfigHandler) GenerateWebAuthToken(ctx context.Context) (ret string, er
 }
 
 func (h ConfigHandler) UpdateLastLoggedInAndServerConfig(
-	ctx context.Context, serverConfigPath string) error {
+	ctx context.Context, serverConfigPath string,
+) error {
 	arg := libkb.APIArg{
 		Endpoint:    "user/features",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -620,5 +620,5 @@ func (h ConfigHandler) UpdateLastLoggedInAndServerConfig(
 	if err != nil {
 		return err
 	}
-	return libkb.NewFile(serverConfigPath, newBytes, 0644).Save(h.G().Log)
+	return libkb.NewFile(serverConfigPath, newBytes, 0o644).Save(h.G().Log)
 }

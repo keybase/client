@@ -35,7 +35,8 @@ func NewRedditChecker(p libkb.RemoteProofChainLink) (*RedditChecker, libkb.Proof
 func (rc *RedditChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *RedditChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode,
-	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
+	pvlU keybase1.MerkleStoreEntry,
+) (*libkb.SigHint, libkb.ProofError) {
 	// TODO CORE-8951 see if we can populate verifiedHint with anything useful.
 	return nil, CheckProofPvl(mctx, keybase1.ProofType_REDDIT, rc.proof, h, pvlU)
 }
@@ -113,7 +114,8 @@ func (t *RedditServiceType) PostInstructions(un string) *libkb.Markup {
 }
 
 func (t *RedditServiceType) FormatProofText(mctx libkb.MetaContext, ppr *libkb.PostProofRes,
-	kbUsername, remoteUsername string, sigID keybase1.SigID) (res string, err error) {
+	kbUsername, remoteUsername string, sigID keybase1.SigID,
+) (res string, err error) {
 	var title string
 	if title, err = ppr.Metadata.AtKey("title").GetString(); err != nil {
 		return

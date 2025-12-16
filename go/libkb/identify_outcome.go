@@ -210,7 +210,6 @@ func (i IdentifyOutcome) TrackingStatement() *jsonw.Wrapper {
 }
 
 func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, err error) {
-
 	if i.Error != nil {
 		err = i.Error
 		return warnings, err

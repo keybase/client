@@ -12,8 +12,7 @@ import (
 
 // UnexpectedShortCryptoRandRead indicates that fewer bytes were read
 // from crypto.rand.Read() than expected.
-type UnexpectedShortCryptoRandRead struct {
-}
+type UnexpectedShortCryptoRandRead struct{}
 
 // Error implements the error interface for UnexpectedShortRandRead.
 func (e UnexpectedShortCryptoRandRead) Error() string {

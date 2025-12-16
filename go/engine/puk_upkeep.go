@@ -104,7 +104,6 @@ func (e *PerUserKeyUpkeep) inner(m libkb.MetaContext) error {
 
 // Whether we should roll the per-user-key.
 func (e *PerUserKeyUpkeep) shouldRollKey(m libkb.MetaContext, uid keybase1.UID, upak *keybase1.UserPlusKeysV2) (bool, error) {
-
 	if len(upak.PerUserKeys) == 0 {
 		m.Debug("PerUserKeyUpkeep has no per-user-key")
 		return false, nil

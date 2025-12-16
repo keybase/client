@@ -26,7 +26,8 @@ func PutMetadata(ctx context.Context, g *libkb.GlobalContext, arg keybase1.PutGi
 	// for versioned storage.
 	localMetadataVersioned := keybase1.NewGitLocalMetadataVersionedWithV1(
 		keybase1.GitLocalMetadataV1{
-			RepoName: arg.Metadata.RepoName})
+			RepoName: arg.Metadata.RepoName,
+		})
 
 	mh := codec.MsgpackHandle{WriteExt: true}
 	var msgpackLocalMetadata []byte

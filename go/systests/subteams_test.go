@@ -1,9 +1,8 @@
 package systests
 
 import (
-	"testing"
-
 	"fmt"
+	"testing"
 
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"

@@ -13,12 +13,14 @@ func NotifyTeambotEKNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID, gener
 }
 
 func NotifyTeambotKeyNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) error {
+	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration,
+) error {
 	return notifyTeambotKeyNeeded(mctx, teamID, app, int(generation), false /* isEphemeral */)
 }
 
 func notifyTeambotKeyNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	app keybase1.TeamApplication, generation int, isEphemeral bool) (err error) {
+	app keybase1.TeamApplication, generation int, isEphemeral bool,
+) (err error) {
 	defer mctx.Trace("notifyTeambotKeyNeeded", &err)()
 	apiArg := libkb.APIArg{
 		Endpoint:    "teambot/key_needed",
@@ -34,21 +36,26 @@ func notifyTeambotKeyNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	return err
 }
 
-const teambotKeyWrongKIDDBVersion = 1
-const MaxTeambotKeyWrongKIDPermitted = time.Hour * 24
+const (
+	teambotKeyWrongKIDDBVersion    = 1
+	MaxTeambotKeyWrongKIDPermitted = time.Hour * 24
+)
 
 func TeambotEKWrongKIDCacheKey(teamID keybase1.TeamID, botUID keybase1.UID,
-	generation keybase1.EkGeneration) libkb.DbKey {
+	generation keybase1.EkGeneration,
+) libkb.DbKey {
 	return teambotKeyWrongKIDCacheKey(teamID, botUID, keybase1.TeamApplication_CHAT, int(generation), true /* isEphemeral */)
 }
 
 func TeambotKeyWrongKIDCacheKey(teamID keybase1.TeamID, botUID keybase1.UID,
-	generation keybase1.TeambotKeyGeneration, app keybase1.TeamApplication) libkb.DbKey {
+	generation keybase1.TeambotKeyGeneration, app keybase1.TeamApplication,
+) libkb.DbKey {
 	return teambotKeyWrongKIDCacheKey(teamID, botUID, app, int(generation), false /* isEphemeral */)
 }
 
 func teambotKeyWrongKIDCacheKey(teamID keybase1.TeamID, botUID keybase1.UID,
-	app keybase1.TeamApplication, generation int, isEphemeral bool) libkb.DbKey {
+	app keybase1.TeamApplication, generation int, isEphemeral bool,
+) libkb.DbKey {
 	prefix := "TeambotKey"
 	if isEphemeral {
 		prefix = "TeambotEK"
@@ -62,14 +69,16 @@ func teambotKeyWrongKIDCacheKey(teamID keybase1.TeamID, botUID keybase1.UID,
 }
 
 func TeambotEKWrongKIDPermitted(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	botUID keybase1.UID, generation keybase1.EkGeneration, now keybase1.Time) (bool, keybase1.Time, error) {
+	botUID keybase1.UID, generation keybase1.EkGeneration, now keybase1.Time,
+) (bool, keybase1.Time, error) {
 	return teambotKeyWrongKIDPermitted(mctx, teamID, botUID,
 		keybase1.TeamApplication_CHAT, int(generation), now, true /* isEphemeral */)
 }
 
 func TeambotKeyWrongKIDPermitted(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	botUID keybase1.UID, app keybase1.TeamApplication,
-	generation keybase1.TeambotKeyGeneration, now keybase1.Time) (bool, keybase1.Time, error) {
+	generation keybase1.TeambotKeyGeneration, now keybase1.Time,
+) (bool, keybase1.Time, error) {
 	return teambotKeyWrongKIDPermitted(mctx, teamID, botUID,
 		app, int(generation), now, false /* isEphemeral */)
 }
@@ -80,7 +89,8 @@ func TeambotKeyWrongKIDPermitted(mctx libkb.MetaContext, teamID keybase1.TeamID,
 // new key signed by the latest PTK.
 func teambotKeyWrongKIDPermitted(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	botUID keybase1.UID, app keybase1.TeamApplication, generation int,
-	now keybase1.Time, isEphemeral bool) (bool, keybase1.Time, error) {
+	now keybase1.Time, isEphemeral bool,
+) (bool, keybase1.Time, error) {
 	key := teambotKeyWrongKIDCacheKey(teamID, botUID, app, generation, isEphemeral)
 	var ctime keybase1.Time
 	found, err := mctx.G().GetKVStore().GetInto(&ctime, key)

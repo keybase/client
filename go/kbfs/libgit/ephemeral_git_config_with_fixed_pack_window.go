@@ -33,13 +33,15 @@ func (e *ephemeralGitConfigWithFixedPackWindow) Init() error {
 
 // PackfileWriter implements the `storer.PackfileWriter` interface.
 func (e *ephemeralGitConfigWithFixedPackWindow) PackfileWriter(
-	ch plumbing.StatusChan) (io.WriteCloser, error) {
+	ch plumbing.StatusChan,
+) (io.WriteCloser, error) {
 	return e.pfWriter.PackfileWriter(ch)
 }
 
 // Config implements the `storer.Storer` interface.
 func (e *ephemeralGitConfigWithFixedPackWindow) Config() (
-	*gogitcfg.Config, error) {
+	*gogitcfg.Config, error,
+) {
 	cfg, err := e.Storer.Config()
 	if err != nil {
 		return nil, err
@@ -50,7 +52,8 @@ func (e *ephemeralGitConfigWithFixedPackWindow) Config() (
 
 // SetConfig implements the `storer.Storer` interface.
 func (e *ephemeralGitConfigWithFixedPackWindow) SetConfig(c *gogitcfg.Config) (
-	err error) {
+	err error,
+) {
 	// The config is "ephemeral", so don't persist any config
 	// changes to storage.
 	return nil
@@ -58,37 +61,44 @@ func (e *ephemeralGitConfigWithFixedPackWindow) SetConfig(c *gogitcfg.Config) (
 
 // ForEachObjectHash implements the `storer.LooseObjectStorer` interface.
 func (e *ephemeralGitConfigWithFixedPackWindow) ForEachObjectHash(
-	f func(plumbing.Hash) error) error {
+	f func(plumbing.Hash) error,
+) error {
 	return e.los.ForEachObjectHash(f)
 }
 
 // LooseObjectHash implements the `storer.LooseObjectStorer` interface.
 func (e *ephemeralGitConfigWithFixedPackWindow) LooseObjectTime(
-	h plumbing.Hash) (time.Time, error) {
+	h plumbing.Hash,
+) (time.Time, error) {
 	return e.los.LooseObjectTime(h)
 }
 
 // DeleteLooseObject implements the `storer.LooseObjectStorer` interface.
 func (e *ephemeralGitConfigWithFixedPackWindow) DeleteLooseObject(
-	h plumbing.Hash) error {
+	h plumbing.Hash,
+) error {
 	return e.los.DeleteLooseObject(h)
 }
 
 // ObjectPacks implements the `storer.PackedObjectStorer` interface.
 func (e *ephemeralGitConfigWithFixedPackWindow) ObjectPacks() (
-	[]plumbing.Hash, error) {
+	[]plumbing.Hash, error,
+) {
 	return e.pos.ObjectPacks()
 }
 
 // DeleteOldObjectPackAndIndex implements the
 // `storer.PackedObjectStorer` interface.
 func (e *ephemeralGitConfigWithFixedPackWindow) DeleteOldObjectPackAndIndex(
-	h plumbing.Hash, t time.Time) error {
+	h plumbing.Hash, t time.Time,
+) error {
 	return e.pos.DeleteOldObjectPackAndIndex(h, t)
 }
 
-var _ storage.Storer = (*ephemeralGitConfigWithFixedPackWindow)(nil)
-var _ storer.Initializer = (*ephemeralGitConfigWithFixedPackWindow)(nil)
-var _ storer.PackfileWriter = (*ephemeralGitConfigWithFixedPackWindow)(nil)
-var _ storer.LooseObjectStorer = (*ephemeralGitConfigWithFixedPackWindow)(nil)
-var _ storer.PackedObjectStorer = (*ephemeralGitConfigWithFixedPackWindow)(nil)
+var (
+	_ storage.Storer            = (*ephemeralGitConfigWithFixedPackWindow)(nil)
+	_ storer.Initializer        = (*ephemeralGitConfigWithFixedPackWindow)(nil)
+	_ storer.PackfileWriter     = (*ephemeralGitConfigWithFixedPackWindow)(nil)
+	_ storer.LooseObjectStorer  = (*ephemeralGitConfigWithFixedPackWindow)(nil)
+	_ storer.PackedObjectStorer = (*ephemeralGitConfigWithFixedPackWindow)(nil)
+)

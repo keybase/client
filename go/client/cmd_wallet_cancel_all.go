@@ -102,7 +102,7 @@ func (c *cmdWalletCancelAll) Run() (err error) {
 	// if c.outfile defined, append finished txIDs
 	var outfile *os.File
 	if len(c.outfile) > 0 {
-		outfile, err = os.OpenFile(c.outfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		outfile, err = os.OpenFile(c.outfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 		if err != nil {
 			return err
 		}
@@ -173,7 +173,6 @@ func (c *cmdWalletCancelAll) Run() (err error) {
 	}
 	dui.Printf("All goroutines finished with no errors!\n")
 	return nil
-
 }
 
 func (c *cmdWalletCancelAll) GetUsage() libkb.Usage {
@@ -185,7 +184,6 @@ func (c *cmdWalletCancelAll) GetUsage() libkb.Usage {
 }
 
 func (c *cmdWalletCancelAll) getInTxIDs() (in []string, err error) {
-
 	// read outfile for already processed txIDs
 	out, err := c.getOutTxIDs()
 	if err != nil {

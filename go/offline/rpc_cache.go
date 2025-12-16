@@ -64,7 +64,8 @@ func hash(rpcName string, uid keybase1.UID, arg interface{}) ([]byte, error) {
 }
 
 func dbKey(rpcName string, uid keybase1.UID, arg interface{}) (libkb.DbKey,
-	error) {
+	error,
+) {
 	raw, err := hash(rpcName, uid, arg)
 	if err != nil {
 		return libkb.DbKey{}, err
@@ -73,7 +74,6 @@ func dbKey(rpcName string, uid keybase1.UID, arg interface{}) (libkb.DbKey,
 		Typ: libkb.DBOfflineRPC,
 		Key: hex.EncodeToString(raw[0:16]),
 	}, nil
-
 }
 
 type Version int
@@ -157,8 +157,8 @@ func (c *RPCCache) put(mctx libkb.MetaContext, version Version, rpcName string, 
 // nil, then `resPtr` will have been filled in already by the cache.
 // Otherwise, `res` should be used by the caller as the response.
 func (c *RPCCache) Serve(mctx libkb.MetaContext, oa keybase1.OfflineAvailability, version Version, rpcName string, encrypted bool, arg interface{}, resPtr interface{},
-	handler func(mctx libkb.MetaContext) (interface{}, error)) (res interface{}, err error) {
-
+	handler func(mctx libkb.MetaContext) (interface{}, error),
+) (res interface{}, err error) {
 	if oa != keybase1.OfflineAvailability_BEST_EFFORT {
 		return handler(mctx)
 	}

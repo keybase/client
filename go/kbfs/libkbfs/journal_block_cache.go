@@ -19,7 +19,8 @@ var _ data.BlockCache = journalBlockCache{}
 // CheckForKnownPtr implements BlockCache.
 func (j journalBlockCache) CheckForKnownPtr(
 	tlfID tlf.ID, block *data.FileBlock,
-	hashBehavior data.BlockCacheHashBehavior) (data.BlockPointer, error) {
+	hashBehavior data.BlockCacheHashBehavior,
+) (data.BlockPointer, error) {
 	_, ok := j.jManager.getTLFJournal(tlfID, nil)
 	if !ok {
 		return j.BlockCache.CheckForKnownPtr(tlfID, block, hashBehavior)

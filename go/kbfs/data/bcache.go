@@ -46,7 +46,8 @@ type BlockCacheStandard struct {
 // block will exceed this bytes capacity, transient entries are
 // evicted until the block will fit in capacity.
 func NewBlockCacheStandard(transientCapacity int,
-	cleanBytesCapacity uint64) *BlockCacheStandard {
+	cleanBytesCapacity uint64,
+) *BlockCacheStandard {
 	b := &BlockCacheStandard{
 		cleanBytesCapacity: cleanBytesCapacity,
 		cleanPermanent:     make(map[kbfsblock.ID]Block),
@@ -70,7 +71,8 @@ func NewBlockCacheStandard(transientCapacity int,
 
 // GetWithLifetime implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) GetWithLifetime(ptr BlockPointer) (
-	Block, BlockCacheLifetime, error) {
+	Block, BlockCacheLifetime, error,
+) {
 	if b.cleanTransient != nil {
 		if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
 			block, ok := tmp.(Block)
@@ -138,7 +140,8 @@ func (b *BlockCacheStandard) onEvict(key interface{}, value interface{}) {
 // CheckForKnownPtr implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) CheckForKnownPtr(
 	tlf tlf.ID, block *FileBlock, hashBehavior BlockCacheHashBehavior) (
-	BlockPointer, error) {
+	BlockPointer, error,
+) {
 	if hashBehavior == SkipCacheHash {
 		// Avoid hashing if we're not caching the hashes.
 		return BlockPointer{}, nil
@@ -239,7 +242,8 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64, lifetime BlockCacheLif
 // when it gets Put into the cache again.
 func (b *BlockCacheStandard) Put(
 	ptr BlockPointer, tlf tlf.ID, block Block,
-	lifetime BlockCacheLifetime, hashBehavior BlockCacheHashBehavior) error {
+	lifetime BlockCacheLifetime, hashBehavior BlockCacheHashBehavior,
+) error {
 	// We first check if the block shouldn't be cached, since CommonBlocks can
 	// take this path.
 	if lifetime == NoCacheEntry {
@@ -330,7 +334,8 @@ func (b *BlockCacheStandard) DeletePermanent(id kbfsblock.ID) error {
 
 // DeleteTransient implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) DeleteTransient(
-	id kbfsblock.ID, tlf tlf.ID) error {
+	id kbfsblock.ID, tlf tlf.ID,
+) error {
 	if b.cleanTransient == nil {
 		return nil
 	}

@@ -64,7 +64,6 @@ func TestSeqno(t *testing.T) {
 
 	require.Equal(t, seqno0+1, seqno1, "seqno1")
 	require.Equal(t, seqno0+2, seqno2, "seqno2")
-
 }
 
 // TestSeqnoConcurrent will check that concurrent seqno attempts
@@ -88,7 +87,7 @@ func TestSeqnoConcurrent(t *testing.T) {
 
 	// fakePayment simulates getting a seqno and then "submitting" that
 	// seqno after a delay.
-	var fakePayment = func(t *testing.T) {
+	fakePayment := func(t *testing.T) {
 		mctx := libkb.NewMetaContextBackground(tcs[0].G)
 		sp, unlock := stellar.NewSeqnoProvider(mctx, ws)
 		defer unlock()

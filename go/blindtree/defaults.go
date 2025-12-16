@@ -5,11 +5,13 @@ import (
 )
 
 // Blind tree defaults. Should not be changed without updating the clients first!
-const encodingType = merkletree2.EncodingTypeBlindedSHA512_256v1
-const useBlindedValueHashes bool = true
-const logChildrenPerNode uint8 = 1
-const maxValuesPerLeaf = 1
-const keysByteLength = 16
+const (
+	encodingType                = merkletree2.EncodingTypeBlindedSHA512_256v1
+	useBlindedValueHashes bool  = true
+	logChildrenPerNode    uint8 = 1
+	maxValuesPerLeaf            = 1
+	keysByteLength              = 16
+)
 
 func GetCurrentBlindTreeConfig() (cfg merkletree2.Config) {
 	valueConstructor := func() interface{} { return BlindMerkleValue{} }

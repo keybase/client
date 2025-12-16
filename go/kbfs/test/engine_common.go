@@ -51,7 +51,8 @@ func maybeSetBw(t testing.TB, config libkbfs.Config, bwKBps int) {
 }
 
 func makeTeams(t testing.TB, config libkbfs.Config, e Engine, teams teamMap,
-	users map[kbname.NormalizedUsername]User) {
+	users map[kbname.NormalizedUsername]User,
+) {
 	teamNames := make([]kbname.NormalizedUsername, 0, len(teams))
 	for name := range teams {
 		teamNames = append(teamNames, name)
@@ -75,7 +76,8 @@ func makeTeams(t testing.TB, config libkbfs.Config, e Engine, teams teamMap,
 }
 
 func makeImplicitTeams(t testing.TB, config libkbfs.Config, e Engine,
-	implicitTeams teamMap, users map[kbname.NormalizedUsername]User) {
+	implicitTeams teamMap, users map[kbname.NormalizedUsername]User,
+) {
 	if len(implicitTeams) > 0 {
 		err := libkbfs.EnableImplicitTeamsForTest(config)
 		if err != nil {

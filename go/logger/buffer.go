@@ -110,7 +110,8 @@ func defaultBufferedLoggerConfig() *BufferedLoggerConfig {
 // NewAutoFlushingBufferedWriter returns an io.Writer that buffers its output
 // and flushes automatically after `flushFrequency`.
 func NewAutoFlushingBufferedWriter(baseWriter io.Writer,
-	config *BufferedLoggerConfig) (w io.Writer, shutdown chan struct{}, done chan struct{}) {
+	config *BufferedLoggerConfig,
+) (w io.Writer, shutdown chan struct{}, done chan struct{}) {
 	if config == nil {
 		config = defaultBufferedLoggerConfig()
 	}

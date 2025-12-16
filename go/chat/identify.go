@@ -80,7 +80,6 @@ func (i *CachingIdentifyNotifier) Reset() {
 }
 
 func (i *CachingIdentifyNotifier) Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
-
 	// Send to storage as well (charge forward on error)
 	if err := i.storage.UpdateTLFIdentifyBreak(ctx, update.TlfID.ToBytes(), update.Breaks.Breaks); err != nil {
 		i.Debug(ctx, "failed to update storage with TLF identify info: %s", err.Error())
@@ -163,7 +162,8 @@ func NewNameIdentifier(g *globals.Context) *NameIdentifier {
 }
 
 func (t *NameIdentifier) Identify(ctx context.Context, names []string, private bool,
-	getTLFID func() keybase1.TLFID, getCanonicalName func() keybase1.CanonicalTlfName) (res []keybase1.TLFIdentifyFailure, err error) {
+	getTLFID func() keybase1.TLFID, getCanonicalName func() keybase1.CanonicalTlfName,
+) (res []keybase1.TLFIdentifyFailure, err error) {
 	idNotifier := globals.CtxIdentifyNotifier(ctx)
 	identBehavior, breaks, ok := globals.CtxIdentifyMode(ctx)
 	if !ok {

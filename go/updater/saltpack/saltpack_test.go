@@ -74,7 +74,7 @@ func TestVerifyNoValidIDs(t *testing.T) {
 }
 
 func TestVerifyBadValidIDs(t *testing.T) {
-	var badCodeSigningKIDs = map[string]bool{
+	badCodeSigningKIDs := map[string]bool{
 		"whatever": true,
 	}
 

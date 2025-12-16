@@ -325,6 +325,7 @@ func deviceIDFromDevice(m MetaContext, uid keybase1.UID, device *Device) keybase
 	}
 	return m.G().Env.GetDeviceIDForUID(uid)
 }
+
 func deviceNameLookup(m MetaContext, device *Device, me *User, key GenericKey) string {
 	if device != nil {
 		if device.Description != nil && *device.Description != "" {
@@ -462,9 +463,11 @@ type EmptyKeyRing struct{}
 func (k EmptyKeyRing) KeysById(id uint64, fp []byte) []openpgp.Key { //nolint
 	return []openpgp.Key{}
 }
+
 func (k EmptyKeyRing) KeysByIdUsage(id uint64, fp []byte, usage byte) []openpgp.Key { //nolint
 	return []openpgp.Key{}
 }
+
 func (k EmptyKeyRing) DecryptionKeys() []openpgp.Key {
 	return []openpgp.Key{}
 }

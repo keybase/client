@@ -18,11 +18,15 @@ type ID struct {
 	h kbfshash.Hash
 }
 
-var _ encoding.BinaryMarshaler = ID{}
-var _ encoding.BinaryUnmarshaler = (*ID)(nil)
+var (
+	_ encoding.BinaryMarshaler   = ID{}
+	_ encoding.BinaryUnmarshaler = (*ID)(nil)
+)
 
-var _ encoding.TextMarshaler = ID{}
-var _ encoding.TextUnmarshaler = (*ID)(nil)
+var (
+	_ encoding.TextMarshaler   = ID{}
+	_ encoding.TextUnmarshaler = (*ID)(nil)
+)
 
 // MakeID creates a new ID from the given RootMetadata object.
 func MakeID(codec kbfscodec.Codec, md RootMetadata) (ID, error) {

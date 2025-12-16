@@ -42,7 +42,8 @@ var _ fmt.Stringer = PathPartString{}
 // plaintext string representing one part of a path, and a
 // `Obfuscator`.
 func NewPathPartString(
-	plaintext string, obfuscator Obfuscator) PathPartString {
+	plaintext string, obfuscator Obfuscator,
+) PathPartString {
 	var toObfuscate string
 	_, ext := SplitFileExtension(plaintext)
 	// Treat the long tarball suffix specially, since it's already

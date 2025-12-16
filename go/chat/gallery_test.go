@@ -196,7 +196,6 @@ func TestAttachmentGalleryLinks(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, last)
 	require.Equal(t, 1, len(nm))
-
 }
 
 func TestAttachmentGalleryPagination(t *testing.T) {

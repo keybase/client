@@ -69,7 +69,8 @@ func (s *Srv) debug(msg string, args ...interface{}) {
 }
 
 func (s *Srv) makeError(w http.ResponseWriter, code int, msg string,
-	args ...interface{}) {
+	args ...interface{},
+) {
 	s.debug("serve: error code: %d msg %s", code, fmt.Sprintf(msg, args...))
 	w.WriteHeader(code)
 }

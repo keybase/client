@@ -38,7 +38,8 @@ func NewFileData(
 	file Path, chargedTo keybase1.UserOrTeamID, bsplit BlockSplitter,
 	kmd libkey.KeyMetadata, getter FileBlockGetter,
 	cacher dirtyBlockCacher, log logger.Logger,
-	vlog *libkb.VDebugLog) *FileData {
+	vlog *libkb.VDebugLog,
+) *FileData {
 	fd := &FileData{
 		getter: getter,
 	}
@@ -62,7 +63,8 @@ func (fd *FileData) rootBlockPointer() BlockPointer {
 func (fd *FileData) blockGetter(
 	ctx context.Context, kmd libkey.KeyMetadata, ptr BlockPointer,
 	file Path, rtype BlockReqType) (
-	block BlockWithPtrs, wasDirty bool, err error) {
+	block BlockWithPtrs, wasDirty bool, err error,
+) {
 	return fd.getter(ctx, kmd, ptr, file, rtype)
 }
 
@@ -70,7 +72,8 @@ func (fd *FileData) getLeafBlocksForOffsetRange(ctx context.Context,
 	ptr BlockPointer, pblock *FileBlock, startOff, endOff Int64Offset,
 	prefixOk bool) (pathsFromRoot [][]ParentBlockAndChildIndex,
 	blocks map[BlockPointer]Block, nextBlockOffset Int64Offset,
-	err error) {
+	err error,
+) {
 	var eo Offset
 	if endOff >= 0 {
 		eo = endOff
@@ -101,7 +104,8 @@ func childFileIptr(p ParentBlockAndChildIndex) IndirectFilePtr {
 // the function will ignore context deadline errors and return
 // whatever prefix of the data it could fetch within the deadine.
 func (fd *FileData) getByteSlicesInOffsetRange(ctx context.Context,
-	startOff, endOff Int64Offset, prefixOk bool) ([][]byte, error) {
+	startOff, endOff Int64Offset, prefixOk bool,
+) ([][]byte, error) {
 	if startOff < 0 || endOff < -1 {
 		return nil, fmt.Errorf("Bad offset range [%d, %d)", startOff, endOff)
 	} else if endOff != -1 && endOff <= startOff {
@@ -244,7 +248,8 @@ const readTimeoutSmallerBy = 2 * time.Second
 // operation nears the deadline set in `ctx`, it returns as big a
 // prefix as possible before reaching the deadline.
 func (fd *FileData) Read(ctx context.Context, dest []byte,
-	startOff Int64Offset) (int64, error) {
+	startOff Int64Offset,
+) (int64, error) {
 	if len(dest) == 0 {
 		return 0, nil
 	}
@@ -282,7 +287,8 @@ func (fd *FileData) Read(ctx context.Context, dest []byte,
 // half-inclusive range `[startOff, endOff)`.  If `endOff` == -1, it
 // returns data until the end of the file.
 func (fd *FileData) GetBytes(ctx context.Context,
-	startOff, endOff Int64Offset) (data []byte, err error) {
+	startOff, endOff Int64Offset,
+) (data []byte, err error) {
 	bytes, err := fd.getByteSlicesInOffsetRange(ctx, startOff, endOff, false)
 	if err != nil {
 		return nil, err
@@ -306,7 +312,8 @@ func (fd *FileData) GetBytes(ctx context.Context,
 // for the existing block, and use the existing block's ID for the new
 // indirect block that becomes the parent.
 func (fd *FileData) createIndirectBlock(
-	ctx context.Context, df *DirtyFile, dver Ver) (*FileBlock, error) {
+	ctx context.Context, df *DirtyFile, dver Ver,
+) (*FileBlock, error) {
 	newID, err := kbfsblock.MakeTemporaryID()
 	if err != nil {
 		return nil, err
@@ -355,7 +362,8 @@ func (fd *FileData) GetFileBlockAtOffset(ctx context.Context,
 	topBlock *FileBlock, off Int64Offset, rtype BlockReqType) (
 	ptr BlockPointer, parentBlocks []ParentBlockAndChildIndex,
 	block *FileBlock, nextBlockStartOff, startOff Int64Offset,
-	wasDirty bool, err error) {
+	wasDirty bool, err error,
+) {
 	ptr, parentBlocks, b, nbso, so, wasDirty, err := fd.tree.getBlockAtOffset(
 		ctx, topBlock, off, rtype)
 	if err != nil {
@@ -400,7 +408,8 @@ func (fd *FileData) fileTopBlocker(df *DirtyFile) createTopBlockFn {
 func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 	topBlock *FileBlock, oldDe DirEntry, df *DirtyFile) (
 	newDe DirEntry, dirtyPtrs []BlockPointer, unrefs []BlockInfo,
-	newlyDirtiedChildBytes int64, bytesExtended int64, err error) {
+	newlyDirtiedChildBytes int64, bytesExtended int64, err error,
+) {
 	n := int64(len(data))
 	nCopied := int64(0)
 	oldSizeWithoutHoles := oldDe.Size
@@ -410,9 +419,8 @@ func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 
 	dirtyMap := make(map[BlockPointer]bool)
 	for nCopied < n {
-		ptr, parentBlocks, block, nextBlockOff, startOff, wasDirty, err :=
-			fd.GetFileBlockAtOffset(
-				ctx, topBlock, off+Int64Offset(nCopied), BlockWrite)
+		ptr, parentBlocks, block, nextBlockOff, startOff, wasDirty, err := fd.GetFileBlockAtOffset(
+			ctx, topBlock, off+Int64Offset(nCopied), BlockWrite)
 		if err != nil {
 			return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
 		}
@@ -493,8 +501,7 @@ func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 			// If we're filling a hole, swap the new right block into
 			// the hole and shift everything else over.
 			if needFillHole {
-				newDirtyPtrs, newUnrefs, bytes, err :=
-					fd.tree.shiftBlocksToFillHole(ctx, rightParents)
+				newDirtyPtrs, newUnrefs, bytes, err := fd.tree.shiftBlocksToFillHole(ctx, rightParents)
 				if err != nil {
 					return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
 				}
@@ -586,7 +593,8 @@ func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 func (fd *FileData) TruncateExtend(ctx context.Context, size uint64,
 	topBlock *FileBlock, parentBlocks []ParentBlockAndChildIndex,
 	oldDe DirEntry, df *DirtyFile) (
-	newDe DirEntry, dirtyPtrs []BlockPointer, err error) {
+	newDe DirEntry, dirtyPtrs []BlockPointer, err error,
+) {
 	fd.tree.vlog.CLogf(
 		ctx, libkb.VLog1, "truncateExtend: extending file %v to size %d",
 		fd.rootBlockPointer(), size)
@@ -658,11 +666,11 @@ func (fd *FileData) TruncateExtend(ctx context.Context, size uint64,
 func (fd *FileData) TruncateShrink(ctx context.Context, size uint64,
 	topBlock *FileBlock, oldDe DirEntry) (
 	newDe DirEntry, dirtyPtrs []BlockPointer, unrefs []BlockInfo,
-	newlyDirtiedChildBytes int64, err error) {
+	newlyDirtiedChildBytes int64, err error,
+) {
 	iSize := Int64Offset(size) // TODO: deal with overflow
 
-	ptr, parentBlocks, block, nextBlockOff, startOff, wasDirty, err :=
-		fd.GetFileBlockAtOffset(ctx, topBlock, iSize, BlockWrite)
+	ptr, parentBlocks, block, nextBlockOff, startOff, wasDirty, err := fd.GetFileBlockAtOffset(ctx, topBlock, iSize, BlockWrite)
 	if err != nil {
 		return DirEntry{}, nil, nil, 0, err
 	}
@@ -820,7 +828,8 @@ func (fd *FileData) getNextDirtyFileBlockAtOffset(ctx context.Context,
 	topBlock *FileBlock, off Int64Offset, rtype BlockReqType,
 	dirtyBcache DirtyBlockCache) (
 	ptr BlockPointer, parentBlocks []ParentBlockAndChildIndex,
-	block *FileBlock, nextBlockStartOff, startOff Int64Offset, err error) {
+	block *FileBlock, nextBlockStartOff, startOff Int64Offset, err error,
+) {
 	ptr, parentBlocks, b, nbso, so, err := fd.tree.getNextDirtyBlockAtOffset(
 		ctx, topBlock, off, rtype, dirtyBcache)
 	if err != nil {
@@ -847,7 +856,8 @@ func (fd *FileData) getNextDirtyFileBlockAtOffset(ctx context.Context,
 // that now need to be unreferenced.
 func (fd *FileData) Split(ctx context.Context, id tlf.ID,
 	dirtyBcache DirtyBlockCache, topBlock *FileBlock, df *DirtyFile) (
-	unrefs []BlockInfo, err error) {
+	unrefs []BlockInfo, err error,
+) {
 	if !topBlock.IsInd {
 		return nil, nil
 	}
@@ -864,9 +874,8 @@ func (fd *FileData) Split(ctx context.Context, id tlf.ID,
 	//      dirty block, updating its ID in the indirect pointer list
 	off := Int64Offset(0)
 	for off >= 0 {
-		_, parentBlocks, block, nextBlockOff, startOff, err :=
-			fd.getNextDirtyFileBlockAtOffset(
-				ctx, topBlock, off, BlockWrite, dirtyBcache)
+		_, parentBlocks, block, nextBlockOff, startOff, err := fd.getNextDirtyFileBlockAtOffset(
+			ctx, topBlock, off, BlockWrite, dirtyBcache)
 		if err != nil {
 			return unrefs, err
 		}
@@ -895,9 +904,8 @@ func (fd *FileData) Split(ctx context.Context, id tlf.ID,
 					return unrefs, err
 				}
 			}
-			rPtr, rParentBlocks, rblock, _, _, _, err :=
-				fd.GetFileBlockAtOffset(
-					ctx, topBlock, endOfBlock, BlockWrite)
+			rPtr, rParentBlocks, rblock, _, _, _, err := fd.GetFileBlockAtOffset(
+				ctx, topBlock, endOfBlock, BlockWrite)
 			if err != nil {
 				return unrefs, err
 			}
@@ -937,9 +945,8 @@ func (fd *FileData) Split(ctx context.Context, id tlf.ID,
 			}
 
 			endOfBlock := startOff + Int64Offset(len(block.Contents))
-			rPtr, rParentBlocks, rblock, _, _, _, err :=
-				fd.GetFileBlockAtOffset(
-					ctx, topBlock, endOfBlock, BlockWrite)
+			rPtr, rParentBlocks, rblock, _, _, _, err := fd.GetFileBlockAtOffset(
+				ctx, topBlock, endOfBlock, BlockWrite)
 			if err != nil {
 				return unrefs, err
 			}
@@ -1002,7 +1009,8 @@ func (fd *FileData) Ready(ctx context.Context, id tlf.ID,
 	bcache BlockCache, dirtyBcache IsDirtyProvider,
 	rp ReadyProvider, bps BlockPutState, topBlock *FileBlock, df *DirtyFile,
 	hashBehavior BlockCacheHashBehavior) (
-	map[BlockInfo]BlockPointer, error) {
+	map[BlockInfo]BlockPointer, error,
+) {
 	return fd.tree.ready(
 		ctx, id, bcache, dirtyBcache, rp, bps, topBlock,
 		func(ptr BlockPointer) func() error {
@@ -1017,14 +1025,16 @@ func (fd *FileData) Ready(ctx context.Context, id tlf.ID,
 // contained in all the indirect blocks in this file tree, given an
 // already-fetched top block.
 func (fd *FileData) GetIndirectFileBlockInfosWithTopBlock(
-	ctx context.Context, topBlock *FileBlock) ([]BlockInfo, error) {
+	ctx context.Context, topBlock *FileBlock,
+) ([]BlockInfo, error) {
 	return fd.tree.getIndirectBlockInfosWithTopBlock(ctx, topBlock)
 }
 
 // GetIndirectFileBlockInfos returns the block infos contained in all
 // the indirect blocks in this file tree.
 func (fd *FileData) GetIndirectFileBlockInfos(ctx context.Context) (
-	[]BlockInfo, error) {
+	[]BlockInfo, error,
+) {
 	return fd.tree.getIndirectBlockInfos(ctx)
 }
 
@@ -1033,7 +1043,8 @@ func (fd *FileData) GetIndirectFileBlockInfos(ctx context.Context) (
 // clears the encoded size for those indirect pointers.
 func (fd *FileData) FindIPtrsAndClearSize(
 	ctx context.Context, topBlock *FileBlock, ptrs map[BlockPointer]bool) (
-	found map[BlockPointer]bool, err error) {
+	found map[BlockPointer]bool, err error,
+) {
 	if !topBlock.IsInd || len(ptrs) == 0 {
 		return nil, nil
 	}
@@ -1104,7 +1115,8 @@ func (fd *FileData) FindIPtrsAndClearSize(
 // returns the new top pointer of the copy, and all the new child
 // pointers in the copy.
 func (fd *FileData) DeepCopy(ctx context.Context, dataVer Ver) (
-	newTopPtr BlockPointer, allChildPtrs []BlockPointer, err error) {
+	newTopPtr BlockPointer, allChildPtrs []BlockPointer, err error,
+) {
 	topBlock, _, err := fd.getter(ctx, fd.tree.kmd, fd.rootBlockPointer(),
 		fd.tree.file, BlockRead)
 	if err != nil {
@@ -1254,7 +1266,8 @@ func (fd *FileData) DeepCopy(ctx context.Context, dataVer Ver) (
 func (fd *FileData) UndupChildrenInCopy(ctx context.Context,
 	bcache BlockCache, rp ReadyProvider, bps BlockPutState,
 	topBlock *FileBlock, hashBehavior BlockCacheHashBehavior) (
-	[]BlockInfo, error) {
+	[]BlockInfo, error,
+) {
 	if !topBlock.IsInd {
 		return nil, nil
 	}
@@ -1306,7 +1319,8 @@ func (fd *FileData) UndupChildrenInCopy(ctx context.Context,
 func (fd *FileData) ReadyNonLeafBlocksInCopy(ctx context.Context,
 	bcache BlockCache, rp ReadyProvider, bps BlockPutState,
 	topBlock *FileBlock, hashBehavior BlockCacheHashBehavior) (
-	[]BlockInfo, error) {
+	[]BlockInfo, error,
+) {
 	if !topBlock.IsInd {
 		return nil, nil
 	}

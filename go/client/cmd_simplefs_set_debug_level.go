@@ -21,14 +21,16 @@ type CmdSimpleFSSetDebugLevel struct {
 
 // NewCmdSimpleFSSetDebugLevel creates a new cli.Command.
 func NewCmdSimpleFSSetDebugLevel(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:         "set-debug-level",
 		ArgumentHelp: "<integer_level>",
 		Usage:        "Changes the amount of debug logging done by the file system",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSSetDebugLevel{
-				Contextified: libkb.NewContextified(g)}, "set-debug-level", c)
+				Contextified: libkb.NewContextified(g),
+			}, "set-debug-level", c)
 			cl.SetNoStandalone()
 		},
 	}

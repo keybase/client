@@ -102,7 +102,8 @@ type folderBranchStatusKeeper struct {
 
 func newFolderBranchStatusKeeper(
 	config Config, nodeCache NodeCache,
-	fboIDBytes []byte) *folderBranchStatusKeeper {
+	fboIDBytes []byte,
+) *folderBranchStatusKeeper {
 	return &folderBranchStatusKeeper{
 		config:     config,
 		nodeCache:  nodeCache,
@@ -133,7 +134,8 @@ func (fbsk *folderBranchStatusKeeper) setRootMetadata(md ImmutableRootMetadata) 
 }
 
 func (fbsk *folderBranchStatusKeeper) setCRSummary(unmerged []*crChainSummary,
-	merged []*crChainSummary) {
+	merged []*crChainSummary,
+) {
 	fbsk.dataMutex.Lock()
 	defer fbsk.dataMutex.Unlock()
 	if reflect.DeepEqual(unmerged, fbsk.unmerged) &&
@@ -188,7 +190,8 @@ func (fbsk *folderBranchStatusKeeper) rmDirtyNode(n Node) bool {
 
 // dataMutex should be taken by the caller
 func (fbsk *folderBranchStatusKeeper) convertNodesToPathsLocked(
-	m map[NodeID]Node) []string {
+	m map[NodeID]Node,
+) []string {
 	var ret []string
 	for _, n := range m {
 		ret = append(ret, fbsk.nodeCache.PathFromNode(n).String())
@@ -198,7 +201,8 @@ func (fbsk *folderBranchStatusKeeper) convertNodesToPathsLocked(
 
 func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 	ctx context.Context) (
-	FolderBranchStatus, <-chan StatusUpdate, tlf.ID, error) {
+	FolderBranchStatus, <-chan StatusUpdate, tlf.ID, error,
+) {
 	fbsk.dataMutex.Lock()
 	defer fbsk.dataMutex.Unlock()
 	fbsk.updateMutex.Lock()
@@ -240,9 +244,8 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 		}
 		qu := fbsk.config.GetQuotaUsage(chargedTo)
 		_, usageBytes, archiveBytes, limitBytes,
-			gitUsageBytes, gitArchiveBytes, gitLimitBytes, quErr :=
-			qu.GetAllTypes(
-				ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
+			gitUsageBytes, gitArchiveBytes, gitLimitBytes, quErr := qu.GetAllTypes(
+			ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 		if quErr != nil {
 			// The error is ignored here so that other fields can
 			// still be populated even if this fails.
@@ -290,7 +293,8 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 // channel is closed whenever the status changes, except for journal
 // status changes.
 func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
-	blocks *folderBlockOps) (FolderBranchStatus, <-chan StatusUpdate, error) {
+	blocks *folderBlockOps,
+) (FolderBranchStatus, <-chan StatusUpdate, error) {
 	fbs, ch, tlfID, err := fbsk.getStatusWithoutJournaling(ctx)
 	if err != nil {
 		return FolderBranchStatus{}, nil, err

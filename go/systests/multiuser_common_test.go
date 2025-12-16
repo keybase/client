@@ -134,6 +134,7 @@ func (t smuTerminalUI) PromptPassword(libkb.PromptDescriptor, string) (string, e
 func (t smuTerminalUI) PromptPasswordMaybeScripted(libkb.PromptDescriptor, string) (string, error) {
 	return "", nil
 }
+
 func (t smuTerminalUI) PromptYesNo(libkb.PromptDescriptor, string, libkb.PromptDefault) (bool, error) {
 	return false, nil
 }
@@ -164,30 +165,39 @@ var _ libkb.LoginUI = (*usernameLoginUI)(nil)
 func (s usernameLoginUI) GetEmailOrUsername(contextOld.Context, int) (string, error) {
 	return s.username, nil
 }
+
 func (s usernameLoginUI) PromptRevokePaperKeys(contextOld.Context, keybase1.PromptRevokePaperKeysArg) (ret bool, err error) {
 	return false, nil
 }
+
 func (s usernameLoginUI) DisplayPaperKeyPhrase(contextOld.Context, keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
+
 func (s usernameLoginUI) DisplayPrimaryPaperKey(contextOld.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
+
 func (s usernameLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
 	return keybase1.ResetPromptResponse_NOTHING, nil
 }
+
 func (s usernameLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
 }
+
 func (s usernameLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
 	return nil
 }
+
 func (s usernameLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
 }
+
 func (s usernameLoginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
 	return "", nil
 }
+
 func (s usernameLoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
 	return nil
 }
@@ -438,7 +448,8 @@ func (u *smuUser) getTeamsClient() keybase1.TeamsClient {
 }
 
 func (u *smuUser) pollForMembershipUpdate(team smuTeam, keyGen keybase1.PerTeamKeyGeneration,
-	poller func(d keybase1.TeamDetails) bool) keybase1.TeamDetails {
+	poller func(d keybase1.TeamDetails) bool,
+) keybase1.TeamDetails {
 	wait := 100 * time.Millisecond
 	var totalWait time.Duration
 	i := 0
@@ -503,8 +514,10 @@ func (u *smuUser) createTeam2(readers, writers, admins, owners []*smuUser) smuTe
 	x, err := cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1.String()})
 	require.NoError(u.ctx.t, err)
 	lists := [][]*smuUser{readers, writers, admins, owners}
-	roles := []keybase1.TeamRole{keybase1.TeamRole_READER,
-		keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER}
+	roles := []keybase1.TeamRole{
+		keybase1.TeamRole_READER,
+		keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER,
+	}
 	for i, list := range lists {
 		for _, u2 := range list {
 			_, err = cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{

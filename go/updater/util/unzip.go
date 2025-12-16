@@ -81,7 +81,7 @@ func Unzip(sourcePath, destinationPath string, log Log) error {
 		}
 	}()
 
-	err = os.MkdirAll(destinationPath, 0755)
+	err = os.MkdirAll(destinationPath, 0o755)
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func Unzip(sourcePath, destinationPath string, log Log) error {
 				return err
 			}
 		} else {
-			err := os.MkdirAll(filepath.Dir(filePath), 0755)
+			err := os.MkdirAll(filepath.Dir(filePath), 0o755)
 			if err != nil {
 				return err
 			}

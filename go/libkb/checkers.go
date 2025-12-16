@@ -15,9 +15,11 @@ import (
 var emailRE = regexp.MustCompile(`^\S+@\S+\.\S+$`)
 
 // Also used in shared/signup/device-name/index.tsx
-var deviceRE = regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+‘’—–-]*$`)
-var badDeviceRE = regexp.MustCompile(`  |[ '_-]$|['_-][ ]?['_-]`)
-var normalizeDeviceRE = regexp.MustCompile(`[^a-zA-Z0-9]`)
+var (
+	deviceRE          = regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+‘’—–-]*$`)
+	badDeviceRE       = regexp.MustCompile(`  |[ '_-]$|['_-][ ]?['_-]`)
+	normalizeDeviceRE = regexp.MustCompile(`[^a-zA-Z0-9]`)
+)
 
 var CheckEmail = Checker{
 	F: func(s string) bool {

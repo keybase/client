@@ -180,11 +180,15 @@ type ID struct {
 	id [idByteLen]byte
 }
 
-var _ encoding.BinaryMarshaler = ID{}
-var _ encoding.BinaryUnmarshaler = (*ID)(nil)
+var (
+	_ encoding.BinaryMarshaler   = ID{}
+	_ encoding.BinaryUnmarshaler = (*ID)(nil)
+)
 
-var _ encoding.TextMarshaler = ID{}
-var _ encoding.TextUnmarshaler = (*ID)(nil)
+var (
+	_ encoding.TextMarshaler   = ID{}
+	_ encoding.TextUnmarshaler = (*ID)(nil)
+)
 
 // NullID is an empty ID
 var NullID = ID{}
@@ -355,7 +359,8 @@ func MakeIDFromTeam(t Type, tid keybase1.TeamID, epoch byte) (ID, error) {
 // GetEpochFromTeamTLF returns 1) whether this ID matches the given
 // team TID, and 2) if so, which epoch it is.
 func (id ID) GetEpochFromTeamTLF(tid keybase1.TeamID) (
-	matches bool, epoch byte, err error) {
+	matches bool, epoch byte, err error,
+) {
 	tidBytes := tid.ToBytes()
 	if len(tidBytes) != idByteLen {
 		return false, 0, errors.Errorf(

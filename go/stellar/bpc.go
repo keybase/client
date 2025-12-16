@@ -58,13 +58,15 @@ func (c *buildPaymentCache) PrimaryAccount(mctx libkb.MetaContext) (stellar1.Acc
 }
 
 func (c *buildPaymentCache) AccountSeqno(mctx libkb.MetaContext,
-	accountID stellar1.AccountID) (string, error) {
+	accountID stellar1.AccountID,
+) (string, error) {
 	seqno, err := c.remoter.AccountSeqno(mctx.Ctx(), accountID)
 	return fmt.Sprintf("%v", seqno), err
 }
 
 func (c *buildPaymentCache) IsAccountFunded(mctx libkb.MetaContext,
-	accountID stellar1.AccountID, bid stellar1.BuildPaymentID) (res bool, err error) {
+	accountID stellar1.AccountID, bid stellar1.BuildPaymentID,
+) (res bool, err error) {
 	fill := func() (interface{}, error) {
 		funded, err := isAccountFunded(mctx.Ctx(), c.remoter, accountID)
 		res = funded
@@ -80,7 +82,8 @@ func (c *buildPaymentCache) IsAccountFunded(mctx libkb.MetaContext,
 }
 
 func (c *buildPaymentCache) LookupRecipient(mctx libkb.MetaContext,
-	to stellarcommon.RecipientInput) (res stellarcommon.Recipient, err error) {
+	to stellarcommon.RecipientInput,
+) (res stellarcommon.Recipient, err error) {
 	fill := func() (interface{}, error) {
 		return LookupRecipient(mctx, to, false /* isCLI */)
 	}
@@ -98,12 +101,14 @@ func (c *buildPaymentCache) ShouldOfferAdvancedSend(mctx libkb.MetaContext, from
 }
 
 func (c *buildPaymentCache) GetOutsideExchangeRate(mctx libkb.MetaContext,
-	currency stellar1.OutsideCurrencyCode) (rate stellar1.OutsideExchangeRate, err error) {
+	currency stellar1.OutsideCurrencyCode,
+) (rate stellar1.OutsideExchangeRate, err error) {
 	return c.remoter.ExchangeRate(mctx.Ctx(), string(currency))
 }
 
 func (c *buildPaymentCache) AvailableXLMToSend(mctx libkb.MetaContext,
-	accountID stellar1.AccountID) (string, error) {
+	accountID stellar1.AccountID,
+) (string, error) {
 	details, err := c.remoter.Details(mctx.Ctx(), accountID)
 	if err != nil {
 		return "", err
@@ -115,7 +120,8 @@ func (c *buildPaymentCache) AvailableXLMToSend(mctx libkb.MetaContext,
 }
 
 func (c *buildPaymentCache) GetOutsideCurrencyPreference(mctx libkb.MetaContext,
-	accountID stellar1.AccountID, bid stellar1.BuildPaymentID) (res stellar1.OutsideCurrencyCode, err error) {
+	accountID stellar1.AccountID, bid stellar1.BuildPaymentID,
+) (res stellar1.OutsideCurrencyCode, err error) {
 	fillInner := func() (interface{}, error) {
 		cr, err := GetCurrencySetting(mctx, accountID)
 		return cr.Code, err

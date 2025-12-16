@@ -103,7 +103,6 @@ func (p *provisionee) DidCounterSign2(ctx context.Context, arg keybase1.DidCount
 }
 
 func (p *provisionee) run() (err error) {
-
 	if err = p.setDeviceID(); err != nil {
 		return err
 	}
@@ -171,7 +170,6 @@ func (p *provisionee) startServer(s Secret) (err error) {
 }
 
 func (p *provisionee) pickFirstConnection() (err error) {
-
 	select {
 	case <-p.start:
 	case sec := <-p.arg.SecretChannel:
@@ -184,7 +182,8 @@ func (p *provisionee) pickFirstConnection() (err error) {
 			return err
 		}
 		cli := keybase1.Kex2ProvisionerClient{
-			Cli: rpc.NewClient(p.xp, nil, nil)}
+			Cli: rpc.NewClient(p.xp, nil, nil),
+		}
 		if err = cli.KexStart(p.arg.Ctx); err != nil {
 			return err
 		}

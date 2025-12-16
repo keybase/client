@@ -186,7 +186,6 @@ func (u *User) ToTrackingStatementSeqTail() *jsonw.Wrapper {
 }
 
 func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (err error) {
-
 	track := jsonw.NewDictionary()
 	if u.HasActiveKey() {
 		key := u.ToTrackingStatementKey(&err)
@@ -775,8 +774,8 @@ func MakeSig(
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
 	me *User,
-	sigVersion SigVersion) (sig string, sigID keybase1.SigID, linkID LinkID, err error) {
-
+	sigVersion SigVersion,
+) (sig string, sigID keybase1.SigID, linkID LinkID, err error) {
 	switch sigVersion {
 	case KeybaseSignatureV1:
 		var sigIDBase keybase1.SigIDBase
@@ -810,7 +809,8 @@ func MakeSig(
 }
 
 func (u *User) RevokeKeysProof(m MetaContext, key GenericKey, kidsToRevoke []keybase1.KID,
-	deviceToDisable keybase1.DeviceID, merkleRoot *MerkleRoot) (*ProofMetadataRes, error) {
+	deviceToDisable keybase1.DeviceID, merkleRoot *MerkleRoot,
+) (*ProofMetadataRes, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeRevoke,
@@ -1020,8 +1020,8 @@ func PerUserKeyProof(m MetaContext,
 	pukSigKID keybase1.KID,
 	pukEncKID keybase1.KID,
 	generation keybase1.PerUserKeyGeneration,
-	signingKey GenericKey) (*ProofMetadataRes, error) {
-
+	signingKey GenericKey,
+) (*ProofMetadataRes, error) {
 	if me == nil {
 		return nil, fmt.Errorf("missing user object for proof")
 	}
@@ -1072,8 +1072,8 @@ type UserLinkSignature struct {
 // Modifies the User `me` with a sigchain bump and key delegation.
 // Returns a JSONPayload ready for use in "sigs" in sig/multi.
 func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUserKeySeed, generation keybase1.PerUserKeyGeneration,
-	signer GenericKey) (*UserLinkSignature, error) {
-
+	signer GenericKey,
+) (*UserLinkSignature, error) {
 	pukSigKey, err := perUserKeySeed.DeriveSigningKey()
 	if err != nil {
 		return nil, err
@@ -1136,7 +1136,8 @@ func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUse
 
 // StellarProof creates a proof of a stellar wallet.
 func StellarProof(m MetaContext, me *User, walletAddress stellar1.AccountID,
-	signingKey GenericKey) (*ProofMetadataRes, error) {
+	signingKey GenericKey,
+) (*ProofMetadataRes, error) {
 	if me == nil {
 		return nil, fmt.Errorf("missing user object for proof")
 	}
@@ -1205,7 +1206,8 @@ func StellarProof(m MetaContext, me *User, walletAddress stellar1.AccountID,
 // Modifies the User `me` with a sigchain bump and key delegation.
 // Returns a JSONPayload ready for use in "sigs" in sig/multi.
 func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.AccountID,
-	stellarSigner stellar1.SecretKey, deviceSigner GenericKey) (*UserLinkSignature, error) {
+	stellarSigner stellar1.SecretKey, deviceSigner GenericKey,
+) (*UserLinkSignature, error) {
 	// Make reverse sig
 	forward, err := StellarProof(m, me, walletAddress, deviceSigner)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/msgpack"
@@ -33,7 +34,8 @@ var errWrongContactEncryptionScheme = errors.New(
 func getPerUserKeyFn(mctx libkb.MetaContext,
 	pukGen *keybase1.PerUserKeyGeneration) (keyFn func(ctx context.
 	Context) ([32]byte, error), gen keybase1.PerUserKeyGeneration,
-	errOuter error) {
+	errOuter error,
+) {
 	pukring, err := mctx.G().GetPerUserKeyring(mctx.Ctx())
 	if err != nil {
 		return nil, gen, err
@@ -65,7 +67,8 @@ func getPerUserKeyFn(mctx libkb.MetaContext,
 }
 
 func encryptContactBlob(mctx libkb.MetaContext, res ContactResolution) (string,
-	error) {
+	error,
+) {
 	keyFn, gen, err := getPerUserKeyFn(mctx, nil)
 	if err != nil {
 		return "", err
@@ -87,7 +90,8 @@ func encryptContactBlob(mctx libkb.MetaContext, res ContactResolution) (string,
 }
 
 func DecryptContactBlob(mctx libkb.MetaContext,
-	contactResBlob string) (res ContactResolution, err error) {
+	contactResBlob string,
+) (res ContactResolution, err error) {
 	messagePacked, err := base64.StdEncoding.DecodeString(contactResBlob)
 	if err != nil {
 		return res, err
@@ -114,8 +118,8 @@ func DecryptContactBlob(mctx libkb.MetaContext,
 }
 
 func SendEncryptedContactResolutionToServer(mctx libkb.MetaContext,
-	resolutions []ContactResolution) error {
-
+	resolutions []ContactResolution,
+) error {
 	type resolvedArg struct {
 		ResolvedContactBlobBase64 string `json:"blob"`
 	}

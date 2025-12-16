@@ -216,7 +216,6 @@ func (n nameLookupBurstCacheKey) String() string {
 // Resolve a team name to a team ID.
 // Will always hit the server for subteams. The server can lie in this return value.
 func (l *TeamLoader) ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error) {
-
 	defer l.G().CVTrace(ctx, libkb.VLog0, fmt.Sprintf("resolveNameToUIDUntrusted(%s,%v,%v)", teamName.String(), public, allowCache), &err)()
 
 	// For root team names, just hash.
@@ -487,7 +486,6 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *load2ResT, 
 }
 
 func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT, error) {
-
 	// Single-flight lock by team ID.
 	lock := l.locktab.AcquireOnName(ctx, l.G(), arg.teamID.String())
 	defer lock.Release(ctx)
@@ -812,7 +810,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
 	err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain(), hiddenResp.GetUncommittedSeqno())
-
 	if err != nil {
 		return nil, err
 	}
@@ -1057,7 +1054,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 func (l *TeamLoader) hiddenPackageGetter(mctx libkb.MetaContext, id keybase1.TeamID, team *keybase1.TeamData, me keybase1.UserVersion) func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration, role keybase1.TeamRole, err error) {
 	return func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration,
-		role keybase1.TeamRole, err error) {
+		role keybase1.TeamRole, err error,
+	) {
 		if team == nil {
 			return encKID, gen, keybase1.TeamRole_NONE, nil
 		}
@@ -1114,7 +1112,6 @@ func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.Te
 	mctx.Debug("user is not an allowed keyer of the team")
 
 	return false, nil
-
 }
 
 func (l *TeamLoader) checkNeedRotate(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, hiddenPackage *hidden.LoaderPackage) (ret bool, err error) {
@@ -1127,7 +1124,6 @@ func (l *TeamLoader) checkNeedRotate(mctx libkb.MetaContext, chain *keybase1.Tea
 }
 
 func (l *TeamLoader) checkNeedRotateWithSigner(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, signer keybase1.Signer) (ret bool, err error) {
-
 	defer mctx.Trace(fmt.Sprintf("TeamLoader::checkNeedRotateWithSigner(%+v)", signer), &err)()
 
 	uv := signer.UserVersion()
@@ -1175,7 +1171,6 @@ func (l *TeamLoader) checkNeedRotateWithSigner(mctx libkb.MetaContext, chain *ke
 }
 
 func (l *TeamLoader) doOneLink(mctx libkb.MetaContext, arg load2ArgT, ret *keybase1.TeamData, hiddenPackage *hidden.LoaderPackage, link *ChainLinkUnpacked, i int, suppressLoggingStart int, suppressLoggingUpto int, lastSeqno keybase1.Seqno, parentChildOperations *[](*parentChildOperation), prev libkb.LinkID, fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache, parentsCache *parentChainCache) (*keybase1.TeamData, libkb.LinkID, error) {
-
 	var nilPrev libkb.LinkID
 
 	ctx := mctx.Ctx()
@@ -1493,8 +1488,8 @@ func (l *TeamLoader) satisfiesNeedAdmin(mctx libkb.MetaContext, me keybase1.User
 
 // Check whether a user is an implicit admin of a team.
 func (l *TeamLoader) isImplicitAdminOf(ctx context.Context, teamID keybase1.TeamID, ancestorID *keybase1.TeamID,
-	me keybase1.UserVersion, uv keybase1.UserVersion) (bool, error) {
-
+	me keybase1.UserVersion, uv keybase1.UserVersion,
+) (bool, error) {
 	// IDs of ancestors that were not freshly polled.
 	// Check them again with forceRepoll if the affirmative is not found cached.
 	checkAgain := make(map[keybase1.TeamID]bool)
@@ -1569,7 +1564,8 @@ func (l *TeamLoader) isImplicitAdminOf(ctx context.Context, teamID keybase1.Team
 }
 
 func (l *TeamLoader) satisfiesNeedsKBFSKeyGeneration(mctx libkb.MetaContext,
-	kbfs keybase1.TeamKBFSKeyRefresher, state Teamer) error {
+	kbfs keybase1.TeamKBFSKeyRefresher, state Teamer,
+) error {
 	if kbfs.Generation == 0 {
 		return nil
 	}
@@ -1612,7 +1608,8 @@ func (l *TeamLoader) satisfiesNeedKeyGeneration(mctx libkb.MetaContext, needKeyG
 // Whether the snapshot has loaded the reader key masks and key generations we
 // need.
 func (l *TeamLoader) satisfiesNeedApplicationsAtGenerations(mctx libkb.MetaContext,
-	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication, team Teamer) error {
+	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication, team Teamer,
+) error {
 	if len(needApplicationsAtGenerations) == 0 {
 		return nil
 	}
@@ -1631,7 +1628,8 @@ func (l *TeamLoader) satisfiesNeedApplicationsAtGenerations(mctx libkb.MetaConte
 
 func (l *TeamLoader) satisfiesNeedApplicationsAtGenerationsWithKBFS(mctx libkb.MetaContext,
 	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication,
-	state Teamer) error {
+	state Teamer,
+) error {
 	if len(needApplicationsAtGenerations) == 0 {
 		return nil
 	}
@@ -1650,8 +1648,8 @@ func (l *TeamLoader) satisfiesNeedApplicationsAtGenerationsWithKBFS(mctx libkb.M
 
 // Whether the snapshot has each of `wantMembers` as a member.
 func (l *TeamLoader) satisfiesWantMembers(mctx libkb.MetaContext,
-	wantMembers []keybase1.UserVersion, wantMembersRole keybase1.TeamRole, state Teamer) error {
-
+	wantMembers []keybase1.UserVersion, wantMembersRole keybase1.TeamRole, state Teamer,
+) error {
 	if wantMembersRole == keybase1.TeamRole_NONE {
 		// Default to writer.
 		wantMembersRole = keybase1.TeamRole_WRITER

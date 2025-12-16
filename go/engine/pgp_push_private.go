@@ -66,7 +66,6 @@ func getPrivateFingerprints(m libkb.MetaContext, fps []keybase1.PGPFingerprint) 
 	var ret []libkb.PGPFingerprint
 	for _, fp := range fps {
 		ret = append(ret, libkb.ImportPGPFingerprint(fp))
-
 	}
 	return ret, nil
 }
@@ -215,7 +214,6 @@ func (e *PGPPushPrivate) push(m libkb.MetaContext, fp libkb.PGPFingerprint, tty 
 }
 
 func (e *PGPPushPrivate) Run(m libkb.MetaContext) (err error) {
-
 	defer m.Trace("PGPPushPrivate#Run", &err)()
 
 	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())

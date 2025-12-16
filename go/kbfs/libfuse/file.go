@@ -72,14 +72,15 @@ type File struct {
 var _ fs.Node = (*File)(nil)
 
 func (f *File) fillAttrWithMode(
-	ctx context.Context, ei *data.EntryInfo, a *fuse.Attr) (err error) {
+	ctx context.Context, ei *data.EntryInfo, a *fuse.Attr,
+) (err error) {
 	if err = f.folder.fillAttrWithUIDAndWritePerm(
 		ctx, f.node, ei, a); err != nil {
 		return err
 	}
-	a.Mode |= 0400
+	a.Mode |= 0o400
 	if ei.Type == data.Exec {
-		a.Mode |= 0100
+		a.Mode |= 0o100
 	}
 
 	a.Inode = f.inode
@@ -148,12 +149,12 @@ func (f *File) Access(ctx context.Context, r *fuse.AccessRequest) (err error) {
 		return fuse.EPERM
 	}
 
-	if r.Mask&03 == 0 {
+	if r.Mask&0o3 == 0 {
 		// Since we only check for w and x bits, we can return nil early here.
 		return nil
 	}
 
-	if r.Mask&01 != 0 {
+	if r.Mask&0o1 != 0 {
 		ei, err := f.folder.fs.config.KBFSOps().Stat(ctx, f.node)
 		if err != nil {
 			if isNoSuchNameError(err) {
@@ -166,7 +167,7 @@ func (f *File) Access(ctx context.Context, r *fuse.AccessRequest) (err error) {
 		}
 	}
 
-	if r.Mask&02 != 0 {
+	if r.Mask&0o2 != 0 {
 		iw, err := f.folder.isWriter(ctx)
 		if err != nil {
 			return err
@@ -225,7 +226,8 @@ var _ fs.HandleReader = (*File)(nil)
 
 // Read implements the fs.HandleReader interface for File.
 func (f *File) Read(ctx context.Context, req *fuse.ReadRequest,
-	resp *fuse.ReadResponse) (err error) {
+	resp *fuse.ReadResponse,
+) (err error) {
 	off := req.Offset
 	sz := cap(resp.Data)
 	ctx = f.folder.fs.config.MaybeStartTrace(ctx, "File.Read",
@@ -248,7 +250,8 @@ var _ fs.HandleWriter = (*File)(nil)
 
 // Write implements the fs.HandleWriter interface for File.
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest,
-	resp *fuse.WriteResponse) (err error) {
+	resp *fuse.WriteResponse,
+) (err error) {
 	sz := len(req.Data)
 	ctx = f.folder.fs.config.MaybeStartTrace(ctx, "File.Write",
 		fmt.Sprintf("%s sz=%d", f.node.GetBasename(), sz))
@@ -270,7 +273,8 @@ var _ fs.NodeSetattrer = (*File)(nil)
 
 // Setattr implements the fs.NodeSetattrer interface for File.
 func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
-	resp *fuse.SetattrResponse) (err error) {
+	resp *fuse.SetattrResponse,
+) (err error) {
 	valid := req.Valid
 	ctx = f.folder.fs.config.MaybeStartTrace(ctx, "File.SetAttr",
 		fmt.Sprintf("%s %s", f.node.GetBasename(), valid))
@@ -291,7 +295,7 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 
 	if valid.Mode() {
 		// Unix has 3 exec bits, KBFS has one; we follow the user-exec bit.
-		exec := req.Mode&0100 != 0
+		exec := req.Mode&0o100 != 0
 		err := f.folder.fs.config.KBFSOps().SetEx(
 			ctx, f.node, exec)
 		if err != nil {

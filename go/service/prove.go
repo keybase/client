@@ -38,33 +38,41 @@ func (p *proveUI) PromptOverwrite(ctx context.Context, arg keybase1.PromptOverwr
 	arg.SessionID = p.sessionID
 	return p.cli.PromptOverwrite(ctx, arg)
 }
+
 func (p *proveUI) PromptUsername(ctx context.Context, arg keybase1.PromptUsernameArg) (un string, err error) {
 	arg.SessionID = p.sessionID
 	return p.cli.PromptUsername(ctx, arg)
 }
+
 func (p *proveUI) OutputPrechecks(ctx context.Context, arg keybase1.OutputPrechecksArg) error {
 	arg.SessionID = p.sessionID
 	return p.cli.OutputPrechecks(ctx, arg)
 }
+
 func (p *proveUI) PreProofWarning(ctx context.Context, arg keybase1.PreProofWarningArg) (ok bool, err error) {
 	arg.SessionID = p.sessionID
 	return p.cli.PreProofWarning(ctx, arg)
 }
+
 func (p *proveUI) OutputInstructions(ctx context.Context, arg keybase1.OutputInstructionsArg) (err error) {
 	arg.SessionID = p.sessionID
 	return p.cli.OutputInstructions(ctx, arg)
 }
+
 func (p *proveUI) OkToCheck(ctx context.Context, arg keybase1.OkToCheckArg) (bool, error) {
 	arg.SessionID = p.sessionID
 	return p.cli.OkToCheck(ctx, arg)
 }
+
 func (p *proveUI) Checking(ctx context.Context, arg keybase1.CheckingArg) error {
 	arg.SessionID = p.sessionID
 	return p.cli.Checking(ctx, arg)
 }
+
 func (p *proveUI) ContinueChecking(ctx context.Context, _ int) (bool, error) {
 	return p.cli.ContinueChecking(ctx, p.sessionID)
 }
+
 func (p *proveUI) DisplayRecheckWarning(ctx context.Context, arg keybase1.DisplayRecheckWarningArg) error {
 	arg.SessionID = p.sessionID
 	return p.cli.DisplayRecheckWarning(ctx, arg)

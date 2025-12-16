@@ -3,9 +3,8 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	"time"
-
 	"sync"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -98,7 +97,6 @@ func culDBKeyV1(uid keybase1.UID) DbKey {
 }
 
 func culDBKeyVersioned(version int, uid keybase1.UID, stubMode StubMode) DbKey {
-
 	typ := DBUserPlusKeysVersioned
 	if stubMode == StubModeUnstubbed {
 		typ = DBUserPlusKeysVersionedUnstubbed
@@ -125,7 +123,6 @@ const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V6
 func (u *CachedUPAKLoader) getCachedUPAKFromDB(ctx context.Context, uid keybase1.UID, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
 	var tmp keybase1.UserPlusKeysV2AllIncarnations
 	found, err := u.G().LocalDb.GetInto(&tmp, culDBKeyV2(uid, stubMode))
-
 	if err != nil {
 		u.G().Log.CWarningf(ctx, "trouble accessing UserPlusKeysV2AllIncarnations cache: %s", err)
 		return nil
@@ -157,7 +154,6 @@ func (u *CachedUPAKLoader) getMemCacheMaybeTryBothSlots(ctx context.Context, uid
 }
 
 func pickBetterFromCache(getter func(stubMode StubMode) *keybase1.UserPlusKeysV2AllIncarnations, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations, finalStubMode StubMode) {
-
 	ret = getter(stubMode)
 	if stubMode == StubModeUnstubbed {
 		return ret, StubModeUnstubbed
@@ -206,7 +202,6 @@ func (u *CachedUPAKLoader) getCachedUPAKTryMemThenDisk(ctx context.Context, uid 
 }
 
 func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, stubMode StubMode, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
-
 	if u.Freshness == time.Duration(0) || u.noCache {
 		u.G().VDL.CLogf(ctx, VLog0, "| cache miss since cache disabled")
 		return nil, false
@@ -284,7 +279,6 @@ func (u *CachedUPAKLoader) putUPAKToDB(ctx context.Context, uid keybase1.UID, st
 }
 
 func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.UserPlusKeysV2AllIncarnations, stubMode StubMode) (err error) {
-
 	if u.noCache {
 		u.G().VDL.CLogf(ctx, VLog0, "| no cache enabled, so not putting UPAK")
 		return nil
@@ -353,7 +347,6 @@ func (u *CachedUPAKLoader) LoadLite(arg LoadUserArg) (*keybase1.UPKLiteV1AllInca
 // followees. So if you provide accessor, the UPAK won't be deep-copied, but you'll
 // be able to access it from inside the accessor with exclusion.
 func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo, accessor func(k *keybase1.UserPlusKeysV2AllIncarnations) error, shouldReturnFullUser bool) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error) {
-
 	// Add a LU= tax to this context, for all subsequent debugging
 	arg = arg.EnsureCtxAndLogTag()
 
@@ -577,11 +570,9 @@ func (u *CachedUPAKLoader) LoadV2(arg LoadUserArg) (*keybase1.UserPlusKeysV2AllI
 }
 
 func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error) {
-
 	var info CachedUserLoadInfo
 	larg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithPublicKeyOptional()
 	upak, _, err := u.loadWithInfo(larg, &info, nil, false)
-
 	if err != nil {
 		return false, nil, false, err
 	}
@@ -631,7 +622,8 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 // KID, as well as the Key data associated with that KID. It picks the latest such
 // incarnation if there are multiple.
 func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2,
-	upak *keybase1.UserPlusKeysV2AllIncarnations, key *keybase1.PublicKeyV2NaCl, err error) {
+	upak *keybase1.UserPlusKeysV2AllIncarnations, key *keybase1.PublicKeyV2NaCl, err error,
+) {
 	ctx = WithLogTag(ctx, "LK") // Load key
 	defer u.G().CVTrace(ctx, VLog0, fmt.Sprintf("LoadKeyV2 uid:%s,kid:%s", uid, kid), &err)()
 	ctx, tbs := u.G().CTimeBuckets(ctx)
@@ -689,7 +681,6 @@ func (u *CachedUPAKLoader) markStale(ctx context.Context, uid keybase1.UID, mode
 }
 
 func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
-
 	u.G().VDL.CLogf(ctx, VLog0, "| CachedUPAKLoader#Invalidate(%s)", uid)
 
 	if u.noCache {

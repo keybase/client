@@ -251,42 +251,55 @@ var _ libkb.LoginUI = (*testRecoverUIProvision)(nil)
 func (r *testRecoverUIProvision) GetEmailOrUsername(context.Context, int) (string, error) {
 	return r.username, nil
 }
+
 func (r *testRecoverUIProvision) PromptRevokePaperKeys(context.Context, keybase1.PromptRevokePaperKeysArg) (ret bool, err error) {
 	return false, nil
 }
+
 func (r *testRecoverUIProvision) DisplayPaperKeyPhrase(context.Context, keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
+
 func (r *testRecoverUIProvision) DisplayPrimaryPaperKey(context.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
+
 func (r *testRecoverUIProvision) ChooseProvisioningMethod(context.Context, keybase1.ChooseProvisioningMethodArg) (ret keybase1.ProvisionMethod, err error) {
 	return keybase1.ProvisionMethod_PASSPHRASE, nil
 }
+
 func (r *testRecoverUIProvision) ChooseGPGMethod(context.Context, keybase1.ChooseGPGMethodArg) (ret keybase1.GPGMethod, err error) {
 	return ret, nil
 }
+
 func (r *testRecoverUIProvision) SwitchToGPGSignOK(context.Context, keybase1.SwitchToGPGSignOKArg) (ret bool, err error) {
 	return ret, nil
 }
+
 func (r *testRecoverUIProvision) ChooseDeviceType(context.Context, keybase1.ChooseDeviceTypeArg) (ret keybase1.DeviceType, err error) {
 	return ret, nil
 }
+
 func (r *testRecoverUIProvision) DisplayAndPromptSecret(context.Context, keybase1.DisplayAndPromptSecretArg) (ret keybase1.SecretResponse, err error) {
 	return ret, nil
 }
+
 func (r *testRecoverUIProvision) DisplaySecretExchanged(context.Context, int) error {
 	return nil
 }
+
 func (r *testRecoverUIProvision) PromptNewDeviceName(context.Context, keybase1.PromptNewDeviceNameArg) (ret string, err error) {
 	return r.deviceName, nil
 }
+
 func (r *testRecoverUIProvision) ProvisioneeSuccess(context.Context, keybase1.ProvisioneeSuccessArg) error {
 	return nil
 }
+
 func (r *testRecoverUIProvision) ProvisionerSuccess(context.Context, keybase1.ProvisionerSuccessArg) error {
 	return nil
 }
+
 func (r *testRecoverUIProvision) ChooseDevice(ctx context.Context, arg keybase1.ChooseDeviceArg) (ret keybase1.DeviceID, err error) {
 	for _, d := range arg.Devices {
 		if d.Type == keybase1.DeviceTypeV2_PAPER {
@@ -295,25 +308,32 @@ func (r *testRecoverUIProvision) ChooseDevice(ctx context.Context, arg keybase1.
 	}
 	return "", nil
 }
+
 func (r *testRecoverUIProvision) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	res.Passphrase = r.paperkey
 	return res, nil
 }
+
 func (r *testRecoverUIProvision) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
 	return keybase1.ResetPromptResponse_NOTHING, nil
 }
+
 func (r *testRecoverUIProvision) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
 }
+
 func (r *testRecoverUIProvision) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
 }
+
 func (r *testRecoverUIProvision) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
 	return nil
 }
+
 func (r *testRecoverUIProvision) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
 	return "", nil
 }
+
 func (r *testRecoverUIProvision) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
 	return nil
 }
@@ -329,56 +349,71 @@ func (n *testRecoverUIRecover) Prompt(pd libkb.PromptDescriptor, s string) (ret 
 	n.G().Log.Debug("Terminal Prompt %d: %s -> %s (%v)\n", pd, s, ret, libkb.ErrToOk(err))
 	return ret, fmt.Errorf("unexpected prompt")
 }
+
 func (n *testRecoverUIRecover) PromptPassword(pd libkb.PromptDescriptor, _ string) (string, error) {
 	return "", fmt.Errorf("unexpected prompt password")
 }
+
 func (n *testRecoverUIRecover) PromptPasswordMaybeScripted(pd libkb.PromptDescriptor, _ string) (string, error) {
 	return "", fmt.Errorf("unexpected prompt password")
 }
+
 func (n *testRecoverUIRecover) Output(s string) error {
 	n.G().Log.Debug("Terminal Output: %s", s)
 	return nil
 }
+
 func (n *testRecoverUIRecover) OutputDesc(od libkb.OutputDescriptor, s string) error {
 	n.G().Log.Debug("Terminal Output %d: %s", od, s)
 	return nil
 }
+
 func (n *testRecoverUIRecover) Printf(f string, args ...interface{}) (int, error) {
 	s := fmt.Sprintf(f, args...)
 	n.G().Log.Debug("Terminal Printf: %s", s)
 	return len(s), nil
 }
+
 func (n *testRecoverUIRecover) PrintfUnescaped(f string, args ...interface{}) (int, error) {
 	s := fmt.Sprintf(f, args...)
 	n.G().Log.Debug("Terminal PrintfUnescaped: %s", s)
 	return len(s), nil
 }
+
 func (n *testRecoverUIRecover) Write(b []byte) (int, error) {
 	n.G().Log.Debug("Terminal write: %s", string(b))
 	return len(b), nil
 }
+
 func (n *testRecoverUIRecover) OutputWriter() io.Writer {
 	return n
 }
+
 func (n *testRecoverUIRecover) UnescapedOutputWriter() io.Writer {
 	return n
 }
+
 func (n *testRecoverUIRecover) ErrorWriter() io.Writer {
 	return n
 }
+
 func (n *testRecoverUIRecover) PromptYesNo(pd libkb.PromptDescriptor, s string, def libkb.PromptDefault) (ret bool, err error) {
 	n.G().Log.Debug("Terminal PromptYesNo %d: %s -> %s (%v)\n", pd, s, ret, libkb.ErrToOk(err))
 	return ret, fmt.Errorf("unexpected prompt yes/no")
 }
+
 func (n *testRecoverUIRecover) PromptForConfirmation(prompt string) error {
 	return nil
 }
+
 func (n *testRecoverUIRecover) Tablify(headings []string, rowfunc func() []string) {
 	libkb.Tablify(n.OutputWriter(), headings, rowfunc)
 }
+
 func (n *testRecoverUIRecover) TerminalSize() (width int, height int) {
 	return 80, 24
 }
+
 func (n *testRecoverUIRecover) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	res.Passphrase = n.passphrase
 	return res, nil

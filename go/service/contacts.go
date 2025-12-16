@@ -21,21 +21,24 @@ type bulkLookupContactsProvider struct{}
 var _ contacts.ContactsProvider = (*bulkLookupContactsProvider)(nil)
 
 func (c *bulkLookupContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, token contacts.Token) (contacts.ContactLookupResults, error) {
+	numbers []keybase1.RawPhoneNumber, token contacts.Token,
+) (contacts.ContactLookupResults, error) {
 	defer mctx.Trace(fmt.Sprintf("bulkLookupContactsProvider#LookupAllWithToken(len=%d)", len(emails)+len(numbers)),
 		nil)()
 	return contacts.BulkLookupContacts(mctx, emails, numbers, token)
 }
 
 func (c *bulkLookupContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber) (contacts.ContactLookupResults, error) {
+	numbers []keybase1.RawPhoneNumber,
+) (contacts.ContactLookupResults, error) {
 	defer mctx.Trace(fmt.Sprintf("bulkLookupContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
 		nil)()
 	return c.LookupAllWithToken(mctx, emails, numbers, contacts.NoneToken)
 }
 
 func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,
-	uids []keybase1.UID) (res map[keybase1.UID]contacts.ContactUsernameAndFullName, err error) {
+	uids []keybase1.UID,
+) (res map[keybase1.UID]contacts.ContactUsernameAndFullName, err error) {
 	defer mctx.Trace(fmt.Sprintf("bulkLookupContactsProvider#FillUsernames(len=%d)", len(res)),
 		nil)()
 
@@ -62,7 +65,8 @@ func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,
 }
 
 func (c *bulkLookupContactsProvider) FindFollowing(mctx libkb.MetaContext,
-	uids []keybase1.UID) (res map[keybase1.UID]bool, err error) {
+	uids []keybase1.UID,
+) (res map[keybase1.UID]bool, err error) {
 	defer mctx.Trace(fmt.Sprintf("bulkLookupContactsProvider#FillFollowing(len=%d)", len(res)),
 		nil)()
 
@@ -103,7 +107,6 @@ func (c *bulkLookupContactsProvider) FindFollowing(mctx libkb.MetaContext,
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +114,8 @@ func (c *bulkLookupContactsProvider) FindFollowing(mctx libkb.MetaContext,
 }
 
 func (c *bulkLookupContactsProvider) FindServiceMaps(mctx libkb.MetaContext,
-	uids []keybase1.UID) (res map[keybase1.UID]libkb.UserServiceSummary, err error) {
+	uids []keybase1.UID,
+) (res map[keybase1.UID]libkb.UserServiceSummary, err error) {
 	defer mctx.Trace(fmt.Sprintf("bulkLookupContactsProvider#FindServiceMaps(len=%d)", len(uids)),
 		&err)()
 

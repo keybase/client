@@ -16,8 +16,10 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
-const LKSecVersion = 100
-const LKSecLen = 32
+const (
+	LKSecVersion = 100
+	LKSecLen     = 32
+)
 
 type LKSecClientHalf struct {
 	c *[LKSecLen]byte
@@ -362,7 +364,6 @@ func (s *LKSec) attemptBug3964Recovery(m MetaContext, data []byte, nonce *[24]by
 }
 
 func (s *LKSec) tryAllDevicesForBug3964Recovery(m MetaContext, devices DeviceKeyMap, data []byte, nonce *[24]byte) (res []byte, erroneousMask LKSecServerHalf, err error) {
-
 	// This logline is asserted in testing in bug_3964_repairman_test
 	defer m.Trace("LKSec#tryAllDevicesForBug3964Recovery()", &err)()
 

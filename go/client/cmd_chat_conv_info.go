@@ -42,7 +42,8 @@ func newCmdChatConvInfo(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 }
 
 func resolveToConversation(g *libkb.GlobalContext, resolvingRequest chatConversationResolvingRequest,
-	hasTTY bool) (resolver *chatConversationResolver, res *chat1.ConversationLocal, err error) {
+	hasTTY bool,
+) (resolver *chatConversationResolver, res *chat1.ConversationLocal, err error) {
 	ui := NewChatCLIUI(g)
 	protocols := []rpc.Protocol{
 		chat1.ChatUiProtocol(ui),

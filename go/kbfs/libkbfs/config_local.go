@@ -255,7 +255,8 @@ func (k keyOpsConfigWrapper) KBPKI() idutil.KBPKI {
 func NewConfigLocal(mode InitMode,
 	loggerFn func(module string) logger.Logger,
 	storageRoot string, diskCacheMode DiskCacheMode,
-	kbCtx Context) *ConfigLocal {
+	kbCtx Context,
+) *ConfigLocal {
 	config := &ConfigLocal{
 		loggerFn:        loggerFn,
 		storageRoot:     storageRoot,
@@ -295,8 +296,7 @@ func NewConfigLocal(mode InitMode,
 	config.bgFlushPeriod = bgFlushPeriodDefault
 	config.metadataVersion = defaultClientMetadataVer
 	config.defaultBlockType = defaultBlockTypeDefault
-	config.quotaUsage =
-		make(map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage)
+	config.quotaUsage = make(map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage)
 	config.rekeyFSMLimiter = NewOngoingWorkLimiter(config.Mode().RekeyWorkers())
 	config.diskBlockCacheFraction = defaultDiskBlockCacheFraction
 	config.syncBlockCacheFraction = defaultSyncBlockCacheFraction
@@ -990,7 +990,8 @@ func (c *ConfigLocal) SetTraceOptions(enabled bool) {
 
 // MaybeStartTrace implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) MaybeStartTrace(
-	ctx context.Context, family, title string) context.Context {
+	ctx context.Context, family, title string,
+) context.Context {
 	traceEnabled := func() bool {
 		c.traceLock.RLock()
 		defer c.traceLock.RUnlock()
@@ -1207,7 +1208,8 @@ func (c *ConfigLocal) journalizeBcaches(jManager *JournalManager) error {
 
 // GetQuotaUsage implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) GetQuotaUsage(
-	chargedTo keybase1.UserOrTeamID) *EventuallyConsistentQuotaUsage {
+	chargedTo keybase1.UserOrTeamID,
+) *EventuallyConsistentQuotaUsage {
 	c.lock.RLock()
 	quota, ok := c.quotaUsage[chargedTo]
 	if ok {
@@ -1255,7 +1257,7 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
 		params.byteLimit, params.fileLimit)
-	err := os.MkdirAll(configRoot, 0700)
+	err := os.MkdirAll(configRoot, 0o700)
 	if err != nil {
 		return err
 	}
@@ -1273,7 +1275,8 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 // non-fatal.
 func (c *ConfigLocal) EnableJournaling(
 	ctx context.Context, journalRoot string,
-	bws TLFJournalBackgroundWorkStatus) error {
+	bws TLFJournalBackgroundWorkStatus,
+) error {
 	jManager, err := GetJournalManager(c)
 	if err == nil {
 		// Journaling shouldn't be enabled twice for the same
@@ -1293,7 +1296,7 @@ func (c *ConfigLocal) EnableJournaling(
 	flushListener := c.KBFSOps().(mdFlushListener)
 
 	// Make sure the journal root exists.
-	err = ioutil.MkdirAll(journalRoot, 0700)
+	err = ioutil.MkdirAll(journalRoot, 0o700)
 	if err != nil {
 		return err
 	}
@@ -1338,7 +1341,8 @@ func (c *ConfigLocal) EnableJournaling(
 }
 
 func (c *ConfigLocal) cleanSyncBlockCacheForTlfInBackgroundLocked(
-	tlfID tlf.ID, ch chan<- error) {
+	tlfID tlf.ID, ch chan<- error,
+) {
 	// Start a background goroutine deleting all the blocks from this
 	// TLF.
 	ctx, cancel := context.WithCancel(context.Background())
@@ -1519,7 +1523,8 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 }
 
 func (c *ConfigLocal) openConfigLevelDB(configName string) (
-	*ldbutils.LevelDb, error) {
+	*ldbutils.LevelDb, error,
+) {
 	dbPath := filepath.Join(c.storageRoot, configName)
 	stor, err := storage.OpenFile(dbPath, false)
 	if err != nil {
@@ -1620,7 +1625,8 @@ func (c *ConfigLocal) IsSyncedTlfPath(tlfPath string) bool {
 // OfflineAvailabilityForPath implements the offlineStatusGetter
 // interface for ConfigLocal.
 func (c *ConfigLocal) OfflineAvailabilityForPath(
-	tlfPath string) keybase1.OfflineAvailability {
+	tlfPath string,
+) keybase1.OfflineAvailability {
 	if c.IsSyncedTlfPath(tlfPath) {
 		return keybase1.OfflineAvailability_BEST_EFFORT
 	}
@@ -1630,7 +1636,8 @@ func (c *ConfigLocal) OfflineAvailabilityForPath(
 // OfflineAvailabilityForID implements the offlineStatusGetter
 // interface for ConfigLocal.
 func (c *ConfigLocal) OfflineAvailabilityForID(
-	tlfID tlf.ID) keybase1.OfflineAvailability {
+	tlfID tlf.ID,
+) keybase1.OfflineAvailability {
 	if c.GetTlfSyncState(tlfID).Mode != keybase1.FolderSyncMode_DISABLED {
 		return keybase1.OfflineAvailability_BEST_EFFORT
 	}
@@ -1639,7 +1646,8 @@ func (c *ConfigLocal) OfflineAvailabilityForID(
 
 func (c *ConfigLocal) setTlfSyncState(
 	ctx context.Context, tlfID tlf.ID, config FolderSyncConfig) (
-	<-chan error, error) {
+	<-chan error, error,
+) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
@@ -1709,7 +1717,8 @@ func (c *ConfigLocal) setTlfSyncState(
 // ConfigLocal.
 func (c *ConfigLocal) SetTlfSyncState(
 	ctx context.Context, tlfID tlf.ID, config FolderSyncConfig) (
-	<-chan error, error) {
+	<-chan error, error,
+) {
 	if !c.IsTestMode() && config.Mode != keybase1.FolderSyncMode_ENABLED {
 		// If we're disabling, or just changing the partial sync
 		// config (which may be removing paths), we should cancel all
@@ -1739,7 +1748,8 @@ func (c *ConfigLocal) GetAllSyncedTlfs() []tlf.ID {
 
 // PrefetchStatus implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
-	ptr data.BlockPointer) PrefetchStatus {
+	ptr data.BlockPointer,
+) PrefetchStatus {
 	dbc := c.DiskBlockCache()
 	if dbc == nil {
 		// We must be in testing mode, so check the block retrieval queue.
@@ -1838,7 +1848,8 @@ func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
 // SubscriptionManager implements the Config interface.
 func (c *ConfigLocal) SubscriptionManager(
 	clientID SubscriptionManagerClientID, purgeable bool,
-	notifier SubscriptionNotifier) SubscriptionManager {
+	notifier SubscriptionNotifier,
+) SubscriptionManager {
 	return c.subscriptionManagerManager.get(clientID, purgeable, notifier)
 }
 

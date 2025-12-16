@@ -59,7 +59,8 @@ type MDServerDisk struct {
 var _ mdServerLocal = (*MDServerDisk)(nil)
 
 func newMDServerDisk(config mdServerLocalConfig, dirPath string,
-	shutdownFunc func(logger.Logger)) (*MDServerDisk, error) {
+	shutdownFunc func(logger.Logger),
+) (*MDServerDisk, error) {
 	handlePath := filepath.Join(dirPath, "handles")
 	handleDb, err := leveldb.OpenFile(handlePath, ldbutils.LeveldbOptions(nil))
 	if err != nil {
@@ -90,7 +91,8 @@ func newMDServerDisk(config mdServerLocalConfig, dirPath string,
 // NewMDServerDir constructs a new MDServerDisk that stores its data
 // in the given directory.
 func NewMDServerDir(
-	config mdServerLocalConfig, dirPath string) (*MDServerDisk, error) {
+	config mdServerLocalConfig, dirPath string,
+) (*MDServerDisk, error) {
 	return newMDServerDisk(config, dirPath, nil)
 }
 
@@ -129,7 +131,8 @@ func (md *MDServerDisk) enableImplicitTeams() {
 }
 
 func (md *MDServerDisk) setKbfsMerkleRoot(
-	treeID keybase1.MerkleTreeID, root *kbfsmd.MerkleRoot) {
+	treeID keybase1.MerkleTreeID, root *kbfsmd.MerkleRoot,
+) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	md.merkleRoots[treeID] = root
@@ -145,7 +148,6 @@ func (md *MDServerDisk) getStorage(tlfID tlf.ID) (*mdServerTlfStorage, error) {
 		}
 		return md.tlfStorage[tlfID], nil
 	}()
-
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +178,8 @@ func (md *MDServerDisk) getStorage(tlfID tlf.ID) (*mdServerTlfStorage, error) {
 }
 
 func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
-	mStatus kbfsmd.MergeStatus) (tlfID tlf.ID, created bool, err error) {
+	mStatus kbfsmd.MergeStatus,
+) (tlfID tlf.ID, created bool, err error) {
 	handleBytes, err := md.config.Codec().Encode(handle)
 	if err != nil {
 		return tlf.NullID, false, kbfsmd.ServerError{Err: err}
@@ -240,7 +243,8 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 // GetForHandle implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetForHandle(ctx context.Context, handle tlf.Handle,
 	mStatus kbfsmd.MergeStatus, _ *keybase1.LockID) (
-	tlf.ID, *RootMetadataSigned, error) {
+	tlf.ID, *RootMetadataSigned, error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return tlf.NullID, nil, err
 	}
@@ -309,7 +313,8 @@ func (md *MDServerDisk) getBranchID(ctx context.Context, id tlf.ID) (kbfsmd.Bran
 }
 
 func (md *MDServerDisk) putBranchID(
-	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error {
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
+) error {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	err := md.checkShutdownLocked()
@@ -355,7 +360,8 @@ func (md *MDServerDisk) deleteBranchID(ctx context.Context, id tlf.ID) error {
 // GetForTLF implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetForTLF(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, _ *keybase1.LockID) (
-	*RootMetadataSigned, error) {
+	*RootMetadataSigned, error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -388,7 +394,8 @@ func (md *MDServerDisk) GetForTLF(ctx context.Context, id tlf.ID,
 // GetForTLFByTime implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetForTLFByTime(
 	ctx context.Context, id tlf.ID, serverTime time.Time) (
-	*RootMetadataSigned, error) {
+	*RootMetadataSigned, error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -434,7 +441,8 @@ func (md *MDServerDisk) GetForTLFByTime(
 // GetRange implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetRange(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision,
-	_ *keybase1.LockID) ([]*RootMetadataSigned, error) {
+	_ *keybase1.LockID,
+) ([]*RootMetadataSigned, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -468,7 +476,8 @@ func (md *MDServerDisk) GetRange(ctx context.Context, id tlf.ID,
 
 // Put implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
+	extra kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority,
+) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -510,19 +519,22 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
 
 // Lock (does not) implement the MDServer interface for MDServerDisk.
 func (*MDServerDisk) Lock(ctx context.Context,
-	tlfID tlf.ID, lockID keybase1.LockID) error {
+	tlfID tlf.ID, lockID keybase1.LockID,
+) error {
 	panic("Lock called on *MDServerDisk")
 }
 
 // ReleaseLock (does not) implement the MDServer interface for MDServerDisk.
 func (*MDServerDisk) ReleaseLock(ctx context.Context,
-	tlfID tlf.ID, lockID keybase1.LockID) error {
+	tlfID tlf.ID, lockID keybase1.LockID,
+) error {
 	panic("ReleaseLock called on *MDServerDisk")
 }
 
 // StartImplicitTeamMigration implements the MDServer interface.
 func (md *MDServerDisk) StartImplicitTeamMigration(
-	ctx context.Context, id tlf.ID) (err error) {
+	ctx context.Context, id tlf.ID,
+) (err error) {
 	panic("StartImplicitTeamMigration called on *MDServerDisk")
 }
 
@@ -551,7 +563,8 @@ func (md *MDServerDisk) PruneBranch(ctx context.Context, id tlf.ID, bid kbfsmd.B
 }
 
 func (md *MDServerDisk) getCurrentMergedHeadRevision(
-	ctx context.Context, id tlf.ID) (rev kbfsmd.Revision, err error) {
+	ctx context.Context, id tlf.ID,
+) (rev kbfsmd.Revision, err error) {
 	head, err := md.GetForTLF(ctx, id, kbfsmd.NullBranchID, kbfsmd.Merged, nil)
 	if err != nil {
 		return 0, err
@@ -564,7 +577,8 @@ func (md *MDServerDisk) getCurrentMergedHeadRevision(
 
 // RegisterForUpdate implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) RegisterForUpdate(ctx context.Context, id tlf.ID,
-	currHead kbfsmd.Revision) (<-chan error, error) {
+	currHead kbfsmd.Revision,
+) (<-chan error, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -587,7 +601,8 @@ func (md *MDServerDisk) CancelRegistration(_ context.Context, id tlf.ID) {
 
 // TruncateLock implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) TruncateLock(ctx context.Context, id tlf.ID) (
-	bool, error) {
+	bool, error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return false, err
 	}
@@ -609,7 +624,8 @@ func (md *MDServerDisk) TruncateLock(ctx context.Context, id tlf.ID) (
 
 // TruncateUnlock implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) TruncateUnlock(ctx context.Context, id tlf.ID) (
-	bool, error) {
+	bool, error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return false, err
 	}
@@ -696,7 +712,8 @@ func (md *MDServerDisk) CheckForRekeys(ctx context.Context) <-chan error {
 }
 
 func (md *MDServerDisk) addNewAssertionForTest(uid keybase1.UID,
-	newAssertion keybase1.SocialAssertion) error {
+	newAssertion keybase1.SocialAssertion,
+) error {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	err := md.checkShutdownLocked()
@@ -736,7 +753,8 @@ func (md *MDServerDisk) addNewAssertionForTest(uid keybase1.UID,
 
 // GetLatestHandleForTLF implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-	tlf.Handle, error) {
+	tlf.Handle, error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return tlf.Handle{}, err
 	}
@@ -780,7 +798,8 @@ func (md *MDServerDisk) OffsetFromServerTime() (time.Duration, bool) {
 // GetKeyBundles implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetKeyBundles(ctx context.Context,
 	tlfID tlf.ID, wkbID kbfsmd.TLFWriterKeyBundleID, rkbID kbfsmd.TLFReaderKeyBundleID) (
-	*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error) {
+	*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, nil, err
 	}
@@ -803,14 +822,16 @@ func (md *MDServerDisk) FastForwardBackoff() {}
 func (md *MDServerDisk) FindNextMD(
 	ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (
 	nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
-	nextRootSeqno keybase1.Seqno, err error) {
+	nextRootSeqno keybase1.Seqno, err error,
+) {
 	return nil, nil, 0, nil
 }
 
 // GetMerkleRootLatest implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetMerkleRootLatest(
 	ctx context.Context, treeID keybase1.MerkleTreeID) (
-	root *kbfsmd.MerkleRoot, err error) {
+	root *kbfsmd.MerkleRoot, err error,
+) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
 	return md.merkleRoots[treeID], nil

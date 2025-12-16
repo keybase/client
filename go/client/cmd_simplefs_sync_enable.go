@@ -23,14 +23,16 @@ type CmdSimpleFSSyncEnable struct {
 
 // NewCmdSimpleFSSyncEnable creates a new cli.Command.
 func NewCmdSimpleFSSyncEnable(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:         "enable",
 		ArgumentHelp: "[path-to-sync]",
 		Usage:        "syncs the given folder to local storage, for offline access",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSSyncEnable{
-				Contextified: libkb.NewContextified(g)}, "enable", c)
+				Contextified: libkb.NewContextified(g),
+			}, "enable", c)
 			cl.SetNoStandalone()
 		},
 	}

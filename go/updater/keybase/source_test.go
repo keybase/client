@@ -106,7 +106,7 @@ func TestUpdateSourceRequest(t *testing.T) {
 	cfg, _ := testConfig(t)
 	updateSource := newUpdateSource(cfg, testAPIServer.server.URL, testLog)
 
-	var options = updater.UpdateOptions{
+	options := updater.UpdateOptions{
 		Version:        "1.2.3-400+abcdef",
 		Platform:       "platform",
 		Channel:        "channel",

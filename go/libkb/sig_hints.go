@@ -89,7 +89,6 @@ func (sh SigHints) Lookup(i keybase1.SigID) *SigHint {
 }
 
 func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
-
 	if jw == nil || jw.IsNil() {
 		return
 	}

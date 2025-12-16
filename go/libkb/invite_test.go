@@ -78,7 +78,6 @@ func checkHTTPArg(t *testing.T, arg APIArg, key, value string) {
 	if arg.Args[key].String() != value {
 		t.Errorf("%s parameter: %q, expected %q", key, arg.Args[key], value)
 	}
-
 }
 
 func checkInvitation(t *testing.T, inv *Invitation) {

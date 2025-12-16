@@ -41,7 +41,6 @@ func (e *stubAPIEngine) Get(m libkb.MetaContext, arg libkb.APIArg) (*libkb.Exter
 		return nil, err
 	}
 	return res, nil
-
 }
 
 func (e *stubAPIEngine) GetHTML(m libkb.MetaContext, arg libkb.APIArg) (*libkb.ExternalHTMLRes, error) {
@@ -133,7 +132,8 @@ func (e *stubAPIEngine) AssertCalledWith(kind libkb.XAPIResType, endpoint string
 }
 
 func (e *stubAPIEngine) getMock(arg libkb.APIArg, restype libkb.XAPIResType) (
-	*libkb.ExternalAPIRes, *libkb.ExternalHTMLRes, *libkb.ExternalTextRes, error) {
+	*libkb.ExternalAPIRes, *libkb.ExternalHTMLRes, *libkb.ExternalTextRes, error,
+) {
 	e.calls = append(e.calls, stubAPIEngineCallRecord{
 		kind:     restype,
 		endpoint: arg.Endpoint,

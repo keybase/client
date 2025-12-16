@@ -210,7 +210,6 @@ func (k *SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska
 				k.G().Log.Debug("| Skipped, doesn't match type=%s", ska.KeyType)
 			} else if !KeyMatchesQuery(key, ska.KeyQuery, ska.ExactMatch) {
 				k.G().Log.Debug("| Skipped, doesn't match query=%s", ska.KeyQuery)
-
 			} else if active != DLGSibkey {
 				k.G().Log.Debug("| Skipped, active=%d", int(active))
 			} else {

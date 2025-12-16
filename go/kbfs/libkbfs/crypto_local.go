@@ -36,7 +36,8 @@ var _ Crypto = (*CryptoLocal)(nil)
 func NewCryptoLocal(codec kbfscodec.Codec,
 	signingKey kbfscrypto.SigningKey,
 	cryptPrivateKey kbfscrypto.CryptPrivateKey,
-	blockCryptVersioner blockCryptVersioner) *CryptoLocal {
+	blockCryptVersioner blockCryptVersioner,
+) *CryptoLocal {
 	return &CryptoLocal{
 		MakeCryptoCommon(codec, blockCryptVersioner),
 		kbfscrypto.SigningKeySigner{Key: signingKey},
@@ -50,7 +51,8 @@ func NewCryptoLocal(codec kbfscodec.Codec,
 func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	publicKey kbfscrypto.TLFEphemeralPublicKey,
 	encryptedClientHalf kbfscrypto.EncryptedTLFCryptKeyClientHalf) (
-	kbfscrypto.TLFCryptKeyClientHalf, error) {
+	kbfscrypto.TLFCryptKeyClientHalf, error,
+) {
 	return kbfscrypto.DecryptTLFCryptKeyClientHalf(
 		c.cryptPrivateKey, publicKey, encryptedClientHalf)
 }
@@ -59,7 +61,8 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 // CryptoLocal.
 func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	keys []EncryptedTLFCryptKeyClientAndEphemeral, _ bool) (
-	clientHalf kbfscrypto.TLFCryptKeyClientHalf, index int, err error) {
+	clientHalf kbfscrypto.TLFCryptKeyClientHalf, index int, err error,
+) {
 	if len(keys) == 0 {
 		return kbfscrypto.TLFCryptKeyClientHalf{}, -1,
 			errors.WithStack(NoKeysError{})
@@ -69,8 +72,7 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 		clientHalf, err := c.DecryptTLFCryptKeyClientHalf(
 			ctx, k.EPubKey, k.ClientHalf)
 		if err != nil {
-			_, isDecryptionError :=
-				errors.Cause(err).(libkb.DecryptionError)
+			_, isDecryptionError := errors.Cause(err).(libkb.DecryptionError)
 			if firstNonDecryptionErr == nil && !isDecryptionError {
 				firstNonDecryptionErr = err
 			}
@@ -93,7 +95,8 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 
 func (c *CryptoLocal) pubKeyForTeamKeyGeneration(
 	teamID keybase1.TeamID, keyGen keybase1.PerTeamKeyGeneration) (
-	pubKey kbfscrypto.TLFPublicKey, err error) {
+	pubKey kbfscrypto.TLFPublicKey, err error,
+) {
 	if c.teamPrivateKeys[teamID] == nil {
 		c.teamPrivateKeys[teamID] = make(perTeamKeyPairs)
 	}
@@ -120,7 +123,8 @@ func (c *CryptoLocal) DecryptTeamMerkleLeaf(
 	ctx context.Context, teamID keybase1.TeamID,
 	publicKey kbfscrypto.TLFEphemeralPublicKey,
 	encryptedMerkleLeaf kbfscrypto.EncryptedMerkleLeaf,
-	minKeyGen keybase1.PerTeamKeyGeneration) (decryptedData []byte, err error) {
+	minKeyGen keybase1.PerTeamKeyGeneration,
+) (decryptedData []byte, err error) {
 	perTeamKeys := c.teamPrivateKeys[teamID]
 	maxKeyGen := keybase1.PerTeamKeyGeneration(len(perTeamKeys))
 	for i := minKeyGen; i <= maxKeyGen; i++ {

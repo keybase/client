@@ -19,7 +19,8 @@ import (
 )
 
 func newStatusFileNode(
-	config libkbfs.Config, log logger.Logger) *namedFileNode {
+	config libkbfs.Config, log logger.Logger,
+) *namedFileNode {
 	return &namedFileNode{
 		Node: nil,
 		log:  log,
@@ -31,7 +32,8 @@ func newStatusFileNode(
 }
 
 func newUserEditHistoryFileNode(
-	config libkbfs.Config, log logger.Logger) *namedFileNode {
+	config libkbfs.Config, log logger.Logger,
+) *namedFileNode {
 	return &namedFileNode{
 		Node: nil,
 		log:  log,
@@ -94,7 +96,8 @@ func (rfs *RootFS) Open(filename string) (f billy.File, err error) {
 
 // OpenFile implements the billy.Filesystem interface for RootFS.
 func (rfs *RootFS) OpenFile(filename string, flag int, _ os.FileMode) (
-	f billy.File, err error) {
+	f billy.File, err error,
+) {
 	if flag&os.O_CREATE != 0 {
 		return nil, errors.New("RootFS can't create files")
 	}
@@ -109,7 +112,8 @@ func (rfs *RootFS) Lstat(filename string) (fi os.FileInfo, err error) {
 	}
 	if filename == "." {
 		return &wrappedReadFileInfo{
-			"keybase", 0, rfs.config.Clock().Now(), true}, nil
+			"keybase", 0, rfs.config.Clock().Now(), true,
+		}, nil
 	}
 	if !rootWrappedNodeNames[filename] {
 		return nil, os.ErrNotExist
@@ -131,7 +135,8 @@ func (rfs *RootFS) Lstat(filename string) (fi os.FileInfo, err error) {
 		return uehfn.(*wrappedReadFile).GetInfo(), nil
 	case ProfileListDirName:
 		return &wrappedReadFileInfo{
-			filename, 0, rfs.config.Clock().Now(), true}, nil
+			filename, 0, rfs.config.Clock().Now(), true,
+		}, nil
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", filename))
 	}

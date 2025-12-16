@@ -14,11 +14,13 @@ import (
  * defined in this file.
  */
 
-var fsTableLock sync.Mutex
-var fsTable = make([]fsTableEntry, 0, 2)
-var fiTableLock sync.Mutex      // nolint
-var fiTable = map[uint32]File{} // nolint
-var fiIdx uint32                // nolint
+var (
+	fsTableLock sync.Mutex
+	fsTable     = make([]fsTableEntry, 0, 2)
+	fiTableLock sync.Mutex          // nolint
+	fiTable     = map[uint32]File{} // nolint
+	fiIdx       uint32              // nolint
+)
 
 type fsTableEntry struct {
 	fs        FileSystem
@@ -93,7 +95,7 @@ func fiTableStoreFile(global uint32, fi File) uint32 { // nolint
 
 func fiTableGetFile(file uint32) File { // nolint
 	fiTableLock.Lock()
-	var fi = fiTable[file]
+	fi := fiTable[file]
 	fiTableLock.Unlock()
 	debug("FID get", file, fi)
 	return fi

@@ -11,8 +11,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-const aliceFp string = "2373fd089f28f328916b88f99c7927c0bdfdadf9"
-const bobFp string = "91fe9b24ef6706b1f7898f2059a2a43f8b731f29"
+const (
+	aliceFp string = "2373fd089f28f328916b88f99c7927c0bdfdadf9"
+	bobFp   string = "91fe9b24ef6706b1f7898f2059a2a43f8b731f29"
+)
 
 func createUserWhoTracks(tc libkb.TestContext, trackedUsers []string, sigVersion libkb.SigVersion) *FakeUser {
 	fu := CreateAndSignupFakeUser(tc, "pull")

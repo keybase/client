@@ -294,6 +294,7 @@ func (ui *FakeIdentifyUI) DisplayKey(_ libkb.MetaContext, ik keybase1.IdentifyKe
 	ui.DisplayKeyCalls++
 	return nil
 }
+
 func (ui *FakeIdentifyUI) ReportLastTrack(_ libkb.MetaContext, summary *keybase1.TrackSummary) error {
 	ui.LastTrack = summary
 	return nil

@@ -59,7 +59,6 @@ func (c *PassphraseChange) SubConsumers() []libkb.UIConsumer {
 
 // Run the engine
 func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
-
 	m = m.WithLogTag("PPCHNG")
 
 	defer m.Trace("PassphraseChange#Run", &err)()
@@ -139,7 +138,6 @@ func (c *PassphraseChange) findUpdateDevice(m libkb.MetaContext) (ad *libkb.Acti
 }
 
 func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf libkb.LKSecClientHalf) (err error) {
-
 	defer m.Trace("PassphraseChange#forceUpdatePassphrase", &err)()
 
 	// Don't update server-synced pgp keys when recovering.
@@ -250,7 +248,6 @@ func (c *PassphraseChange) runForcedUpdate(m libkb.MetaContext) (err error) {
 
 // runStandardUpdate is for when the user knows the current password.
 func (c *PassphraseChange) runStandardUpdate(m libkb.MetaContext) (err error) {
-
 	defer m.Trace("PassphraseChange.runStandardUpdate", &err)()
 
 	var ppStream *libkb.PassphraseStream
@@ -310,7 +307,6 @@ func (c *PassphraseChange) runStandardUpdate(m libkb.MetaContext) (err error) {
 }
 
 func (c *PassphraseChange) commonArgs(_ libkb.MetaContext, oldClientHalf libkb.LKSecClientHalf, pgpKeys []libkb.GenericKey, existingGen libkb.PassphraseGeneration) (libkb.JSONPayload, error) {
-
 	salt, err := c.me.GetSalt()
 	if err != nil {
 		return nil, err
@@ -373,7 +369,6 @@ func (c *PassphraseChange) loadMe() (err error) {
 
 // findAndDecryptPrivatePGPKeys gets the user's private pgp keys if any exist and decrypts them.
 func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(m libkb.MetaContext) ([]libkb.GenericKey, error) {
-
 	var keyList []libkb.GenericKey
 
 	// Using a paper key makes TripleSec-synced keys unrecoverable
@@ -406,7 +401,6 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(m libkb.MetaContext) ([]
 // to decrypt them without prompting the user. If any fail to decrypt, they are silently not returned.
 // The second return value is the number of keys which were not decrypted.
 func (c *PassphraseChange) findAndDecryptPrivatePGPKeysLossy(m libkb.MetaContext) ([]libkb.GenericKey, int, error) {
-
 	var keyList []libkb.GenericKey
 	nLost := 0
 

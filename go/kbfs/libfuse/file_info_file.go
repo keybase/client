@@ -19,7 +19,8 @@ import (
 // representation of a file's KBFS metadata.
 func NewFileInfoFile(
 	fs *FS, dir libkbfs.Node, name string,
-	entryValid *time.Duration) *SpecialReadFile {
+	entryValid *time.Duration,
+) *SpecialReadFile {
 	*entryValid = 0
 	return &SpecialReadFile{
 		read: func(ctx context.Context) ([]byte, time.Time, error) {

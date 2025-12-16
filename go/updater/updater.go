@@ -199,7 +199,6 @@ func (u *Updater) ApplyDownloaded(ctx Context) (bool, error) {
 		return false, err
 	}
 	return applied, nil
-
 }
 
 // ApplyDownloaded will look for an previously downloaded update and attempt to apply it without prompting.
@@ -474,7 +473,7 @@ func report(ctx Context, err error, update *Update, options UpdateOptions) {
 // and will be removed after an update. The temp dir should already exist.
 func (u *Updater) tempDir() string {
 	tmpDir := util.TempPath("", "KeybaseUpdater.")
-	if err := util.MakeDirs(tmpDir, 0700, u.log); err != nil {
+	if err := util.MakeDirs(tmpDir, 0o700, u.log); err != nil {
 		u.log.Warningf("Error trying to create temp dir: %s", err)
 		return ""
 	}

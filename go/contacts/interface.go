@@ -17,15 +17,17 @@ type ContactLookupResult struct {
 	Error   string       `json:"err,omitempty"`
 }
 
-type ContactLookupKey string
-type ContactLookupResults struct {
-	Results map[ContactLookupKey]ContactLookupResult
-	// Results provided - or not provided - by this provider
-	// should are valid for the following amount of time:
-	ResolvedFreshness   time.Duration
-	UnresolvedFreshness time.Duration
-	Token               Token
-}
+type (
+	ContactLookupKey     string
+	ContactLookupResults struct {
+		Results map[ContactLookupKey]ContactLookupResult
+		// Results provided - or not provided - by this provider
+		// should are valid for the following amount of time:
+		ResolvedFreshness   time.Duration
+		UnresolvedFreshness time.Duration
+		Token               Token
+	}
+)
 
 func NewContactLookupResults() ContactLookupResults {
 	return ContactLookupResults{

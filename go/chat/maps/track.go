@@ -104,7 +104,8 @@ func (t *locationTrack) ToDisk() diskLocationTrack {
 }
 
 func newLocationTrack(convID chat1.ConversationID, msgID chat1.MessageID,
-	endTime time.Time, getCurrentPosition bool, maxCoords int, stopped bool) *locationTrack {
+	endTime time.Time, getCurrentPosition bool, maxCoords int, stopped bool,
+) *locationTrack {
 	perm := chat1.UIWatchPositionPerm_BASE
 	if !getCurrentPosition {
 		perm = chat1.UIWatchPositionPerm_ALWAYS

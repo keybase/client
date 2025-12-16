@@ -202,7 +202,6 @@ func (e *LoginProvisionedDevice) runBug3964Repairman(m libkb.MetaContext) (err e
 }
 
 func (e *LoginProvisionedDevice) passiveLoginWithUsername(m libkb.MetaContext) (ok bool, uid keybase1.UID) {
-
 	m.Debug("LoginProvisionedDevice#passiveLoginWithUsername %s", e.username)
 
 	cr := m.G().Env.GetConfig()

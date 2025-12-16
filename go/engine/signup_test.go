@@ -4,13 +4,12 @@
 package engine
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
-
-	"encoding/base64"
 
 	"github.com/keybase/client/go/bot"
 	"github.com/keybase/client/go/libkb"
@@ -413,7 +412,6 @@ func assertNoFiles(t *testing.T, dir string, files []string) {
 			}
 			for _, f := range files {
 				require.NotEqual(t, f, filepath.Base(path))
-
 			}
 			return nil
 		},

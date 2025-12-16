@@ -220,9 +220,11 @@ func testHiddenRotateRename(t *testing.T, rotateParent bool, rotateChild bool) {
 func TestHiddenRotateRenameChild(t *testing.T) {
 	testHiddenRotateRename(t, false, true)
 }
+
 func TestHiddenRotateRenameParent(t *testing.T) {
 	testHiddenRotateRename(t, true, false)
 }
+
 func TestHiddenRotateRenameParentAndChild(t *testing.T) {
 	testHiddenRotateRename(t, true, true)
 }

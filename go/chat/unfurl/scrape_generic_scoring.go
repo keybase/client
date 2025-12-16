@@ -101,8 +101,7 @@ func getOpenGraphVideo(e *colly.HTMLElement) []string {
 	}
 	mimeType := "video/mp4"
 	var height, width *int
-	heightStr, _ :=
-		e.DOM.SiblingsFiltered("meta[content][property=\"og:video:height\"]").Eq(0).Attr("content")
+	heightStr, _ := e.DOM.SiblingsFiltered("meta[content][property=\"og:video:height\"]").Eq(0).Attr("content")
 	if h, err := strconv.Atoi(heightStr); err == nil && h > 0 {
 		height = &h
 	}

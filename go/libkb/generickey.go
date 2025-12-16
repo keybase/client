@@ -14,8 +14,10 @@ type VerifyContext interface {
 	Debug(format string, args ...interface{})
 }
 
-type RawPublicKey []byte
-type RawPrivateKey []byte
+type (
+	RawPublicKey  []byte
+	RawPrivateKey []byte
+)
 
 type GenericKey interface {
 	GetKID() keybase1.KID

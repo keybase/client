@@ -307,7 +307,6 @@ func getFindNextMerkleRootAfterRemoval(t *testing.T, tc libkb.TestContext, user 
 // Check for success simply by asserting that the Merkle Root seqno bumps
 // forward after the removal went into the team sigchain.
 func pollForNextMerkleRootAfterRemovalViaLibkb(t *testing.T, tc libkb.TestContext, user *kbtest.FakeUser, teamName string) (tid keybase1.TeamID, seqno keybase1.Seqno) {
-
 	m := libkb.NewMetaContextForTest(tc)
 	team, err := GetForTestByStringName(context.TODO(), tc.G, teamName)
 	require.NoError(t, err)
@@ -615,7 +614,6 @@ func TestMemberAddNoPUK(t *testing.T) {
 	defer tc.Cleanup()
 
 	inviteNoPUK := func(username string, uid keybase1.UID, role keybase1.TeamRole) {
-
 		res, err := AddMember(context.TODO(), tc.G, name, username, role, nil)
 		if err != nil {
 			t.Fatal(err)
@@ -1066,7 +1064,6 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 
 // See CORE-6473
 func TestOnlyOwnerLeaveThenUpgradeFriend(t *testing.T) {
-
 	tc, _, otherA, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
@@ -1218,8 +1215,8 @@ func assertNoInvite(tc libkb.TestContext, name, username, typ string) {
 	if invite != nil {
 		tc.T.Fatal("invite found")
 	}
-
 }
+
 func TestImplicitAdminsKeyedForSubteam(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 3)
 	defer cleanup()
@@ -2027,7 +2024,6 @@ func TestMembersDetailsHasCorrectJoinTimes(t *testing.T) {
 		{Username: fus[charlie].Username, Role: keybase1.TeamRole_ADMIN, JoinLowerBound: removeBoBTime, JoinUpperBound: addCharlieTime},
 		{Username: fus[bob].Username, Role: keybase1.TeamRole_READER, JoinLowerBound: addCharlieTime, JoinUpperBound: secondAddBoBTime},
 	}, 3)
-
 }
 
 func TestTeamPlayerNoRoleChange(t *testing.T) {
@@ -2073,6 +2069,7 @@ var rmMaker = func(assertion string) keybase1.TeamMemberToRemove {
 		RemoveFromSubtree: false,
 	})
 }
+
 var rmRecursiveMaker = func(assertion string) keybase1.TeamMemberToRemove {
 	return keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{
 		Assertion:         assertion,

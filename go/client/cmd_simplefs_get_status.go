@@ -36,7 +36,8 @@ func NewCmdSimpleFSGetStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 
 func (c *CmdSimpleFSGetStatus) printOpProgress(
 	ui libkb.TerminalUI, progress keybase1.OpProgress,
-	files, written, first bool) (wroteFirst bool) {
+	files, written, first bool,
+) (wroteFirst bool) {
 	var n, d int64
 	var label string
 	if files {

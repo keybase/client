@@ -31,7 +31,6 @@ type LoopbackListener struct {
 // LoopbackConn implments the net.Conn interface but is used to loopback
 // from a process to itself. It is goroutine safe.
 type LoopbackConn struct {
-
 	// wMutex protects isClosed and ch to protect against
 	// double-closes, and writes after close. It protects the
 	// writer, hence the 'w'.

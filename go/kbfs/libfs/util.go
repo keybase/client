@@ -19,7 +19,8 @@ import (
 // If it's a directory, first all the items in the directory are
 // deleted recursively.
 func RecursiveDelete(
-	ctx context.Context, fs billy.Filesystem, fi os.FileInfo) error {
+	ctx context.Context, fs billy.Filesystem, fi os.FileInfo,
+) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -64,7 +65,8 @@ func stripObfuscatedConflictSuffix(s string) string {
 }
 
 func deobfuscate(
-	ctx context.Context, fs *FS, pathParts []string) (res []string, err error) {
+	ctx context.Context, fs *FS, pathParts []string,
+) (res []string, err error) {
 	if len(pathParts) == 0 {
 		return nil, nil
 	}
@@ -119,7 +121,8 @@ func deobfuscate(
 // symlink itself, followed by the target name in parentheses like
 // `/keybase/private/me/link (/etc/passwd)`.
 func Deobfuscate(
-	ctx context.Context, fs *FS, obfuscatedPath string) ([]string, error) {
+	ctx context.Context, fs *FS, obfuscatedPath string,
+) ([]string, error) {
 	s := strings.Split(obfuscatedPath, "/")
 	return deobfuscate(ctx, fs, s)
 }

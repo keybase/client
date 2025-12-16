@@ -111,18 +111,23 @@ type nullIdentifyUI struct{}
 func (c nullIdentifyUI) Start(context.Context, keybase1.StartArg) error {
 	return nil
 }
+
 func (c nullIdentifyUI) FinishWebProofCheck(context.Context, keybase1.FinishWebProofCheckArg) error {
 	return nil
 }
+
 func (c nullIdentifyUI) FinishSocialProofCheck(context.Context, keybase1.FinishSocialProofCheckArg) error {
 	return nil
 }
+
 func (c nullIdentifyUI) Confirm(context.Context, keybase1.ConfirmArg) (keybase1.ConfirmResult, error) {
 	return keybase1.ConfirmResult{}, nil
 }
+
 func (c nullIdentifyUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryptocurrencyArg) error {
 	return nil
 }
+
 func (c nullIdentifyUI) DisplayStellarAccount(context.Context, keybase1.DisplayStellarAccountArg) error {
 	return nil
 }
@@ -130,15 +135,19 @@ func (c nullIdentifyUI) DisplayKey(context.Context, keybase1.DisplayKeyArg) erro
 func (c nullIdentifyUI) ReportLastTrack(context.Context, keybase1.ReportLastTrackArg) error {
 	return nil
 }
+
 func (c nullIdentifyUI) LaunchNetworkChecks(context.Context, keybase1.LaunchNetworkChecksArg) error {
 	return nil
 }
+
 func (c nullIdentifyUI) DisplayTrackStatement(context.Context, keybase1.DisplayTrackStatementArg) error {
 	return nil
 }
+
 func (c nullIdentifyUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
 	return nil
 }
+
 func (c nullIdentifyUI) ReportTrackToken(context.Context, keybase1.ReportTrackTokenArg) error {
 	return nil
 }

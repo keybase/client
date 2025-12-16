@@ -993,8 +993,10 @@ func (a *ChatAPI) GetUnfurlSettingsV1(ctx context.Context, c Call, w io.Writer) 
 
 func (a *ChatAPI) SetUnfurlSettingsV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: methodSetUnfurlSettings,
-			err: errors.New("empty options")}
+		return ErrInvalidOptions{
+			version: 1, method: methodSetUnfurlSettings,
+			err: errors.New("empty options"),
+		}
 	}
 	var opts setUnfurlSettingsOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
@@ -1008,8 +1010,10 @@ func (a *ChatAPI) SetUnfurlSettingsV1(ctx context.Context, c Call, w io.Writer) 
 
 func (a *ChatAPI) AdvertiseCommandsV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: methodAdvertiseCommands,
-			err: errors.New("empty options")}
+		return ErrInvalidOptions{
+			version: 1, method: methodAdvertiseCommands,
+			err: errors.New("empty options"),
+		}
 	}
 	var opts advertiseCommandsOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
@@ -1036,8 +1040,10 @@ func (a *ChatAPI) ClearCommandsV1(ctx context.Context, c Call, w io.Writer) erro
 
 func (a *ChatAPI) ListCommandsV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: methodListCommands,
-			err: errors.New("empty options")}
+		return ErrInvalidOptions{
+			version: 1, method: methodListCommands,
+			err: errors.New("empty options"),
+		}
 	}
 	var opts listCommandsOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
@@ -1051,8 +1057,10 @@ func (a *ChatAPI) ListCommandsV1(ctx context.Context, c Call, w io.Writer) error
 
 func (a *ChatAPI) PinV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: methodPin,
-			err: errors.New("empty options")}
+		return ErrInvalidOptions{
+			version: 1, method: methodPin,
+			err: errors.New("empty options"),
+		}
 	}
 	var opts pinOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
@@ -1066,8 +1074,10 @@ func (a *ChatAPI) PinV1(ctx context.Context, c Call, w io.Writer) error {
 
 func (a *ChatAPI) UnpinV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: methodUnpin,
-			err: errors.New("empty options")}
+		return ErrInvalidOptions{
+			version: 1, method: methodUnpin,
+			err: errors.New("empty options"),
+		}
 	}
 	var opts unpinOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
@@ -1101,8 +1111,10 @@ func (a *ChatAPI) GetResetConvMembersV1(ctx context.Context, c Call, w io.Writer
 
 func (a *ChatAPI) AddResetConvMemberV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: methodAddResetConvMember,
-			err: errors.New("empty options")}
+		return ErrInvalidOptions{
+			version: 1, method: methodAddResetConvMember,
+			err: errors.New("empty options"),
+		}
 	}
 	var opts addResetConvMemberOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {

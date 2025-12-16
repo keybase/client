@@ -11,31 +11,35 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type keyfinderKey int
-type identifyNotifierKey int
-type chatTrace int
-type identifyModeKey int
-type upakfinderKey int
-type rateLimitKey int
-type nameInfoOverride int
-type localizerCancelableKeyTyp int
-type messageSkipsKeyTyp int
-type unboxModeKeyTyp int
-type emojiHarvesterKeyTyp int
-type ctxMutexKeyTyp int
+type (
+	keyfinderKey              int
+	identifyNotifierKey       int
+	chatTrace                 int
+	identifyModeKey           int
+	upakfinderKey             int
+	rateLimitKey              int
+	nameInfoOverride          int
+	localizerCancelableKeyTyp int
+	messageSkipsKeyTyp        int
+	unboxModeKeyTyp           int
+	emojiHarvesterKeyTyp      int
+	ctxMutexKeyTyp            int
+)
 
-var kfKey keyfinderKey
-var inKey identifyNotifierKey
-var chatTraceKey chatTrace
-var identModeKey identifyModeKey
-var upKey upakfinderKey
-var rlKey rateLimitKey
-var nameInfoOverrideKey nameInfoOverride
-var localizerCancelableKey localizerCancelableKeyTyp
-var messageSkipsKey messageSkipsKeyTyp
-var unboxModeKey unboxModeKeyTyp
-var emojiHarvesterKey emojiHarvesterKeyTyp
-var ctxMutexKey ctxMutexKeyTyp
+var (
+	kfKey                  keyfinderKey
+	inKey                  identifyNotifierKey
+	chatTraceKey           chatTrace
+	identModeKey           identifyModeKey
+	upKey                  upakfinderKey
+	rlKey                  rateLimitKey
+	nameInfoOverrideKey    nameInfoOverride
+	localizerCancelableKey localizerCancelableKeyTyp
+	messageSkipsKey        messageSkipsKeyTyp
+	unboxModeKey           unboxModeKeyTyp
+	emojiHarvesterKey      emojiHarvesterKeyTyp
+	ctxMutexKey            ctxMutexKeyTyp
+)
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
@@ -64,7 +68,8 @@ func CtxIdentifyMode(ctx context.Context) (ib keybase1.TLFIdentifyBehavior, brea
 }
 
 func CtxAddIdentifyMode(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
-	breaks *[]keybase1.TLFIdentifyFailure) context.Context {
+	breaks *[]keybase1.TLFIdentifyFailure,
+) context.Context {
 	if mode == keybase1.TLFIdentifyBehavior_UNSET {
 		mode = keybase1.TLFIdentifyBehavior_CHAT_CLI
 	}
@@ -168,7 +173,6 @@ func CtxTrace(ctx context.Context) (string, bool) {
 }
 
 func CtxAddLogTags(ctx context.Context, g *Context) context.Context {
-
 	// Add trace context value
 	trace := libkb.RandStringB64(3)
 	ctx = context.WithValue(ctx, chatTraceKey, trace)
@@ -215,7 +219,8 @@ func CtxMakeEmojiHarvester(ctx context.Context) context.Context {
 }
 
 func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
-	breaks *[]keybase1.TLFIdentifyFailure, notifier types.IdentifyNotifier) context.Context {
+	breaks *[]keybase1.TLFIdentifyFailure, notifier types.IdentifyNotifier,
+) context.Context {
 	if breaks == nil {
 		breaks = new([]keybase1.TLFIdentifyFailure)
 	}

@@ -4,11 +4,10 @@
 package libkb
 
 import (
+	"crypto/rand"
 	"sync"
 	"testing"
 	"time"
-
-	"crypto/rand"
 
 	"github.com/keybase/client/go/kex2"
 )

@@ -35,8 +35,8 @@ func makeTestSCTeamSection(team *Team) SCTeamSection {
 
 func appendSigToState(t *testing.T, team *Team, state *TeamSigChainState,
 	linkType libkb.LinkType, section SCTeamSection, me keybase1.UserVersion,
-	merkleRoot *libkb.MerkleRoot) (*TeamSigChainState, error) {
-
+	merkleRoot *libkb.MerkleRoot,
+) (*TeamSigChainState, error) {
 	if state == nil {
 		state = team.chain()
 	}

@@ -49,7 +49,8 @@ func (nfn *namedFileNode) FillCacheDuration(d *time.Duration) {
 
 func newFolderStatusFileNode(
 	config libkbfs.Config, node libkbfs.Node, fb data.FolderBranch,
-	log logger.Logger) *namedFileNode {
+	log logger.Logger,
+) *namedFileNode {
 	return &namedFileNode{
 		Node: node,
 		log:  log,
@@ -62,7 +63,8 @@ func newFolderStatusFileNode(
 
 func newMetricsFileNode(
 	config libkbfs.Config, node libkbfs.Node,
-	log logger.Logger) *namedFileNode {
+	log logger.Logger,
+) *namedFileNode {
 	return &namedFileNode{
 		Node:   node,
 		log:    log,
@@ -73,7 +75,8 @@ func newMetricsFileNode(
 
 func newErrorFileNode(
 	config libkbfs.Config, node libkbfs.Node,
-	log logger.Logger) *namedFileNode {
+	log logger.Logger,
+) *namedFileNode {
 	return &namedFileNode{
 		Node:   node,
 		log:    log,
@@ -84,7 +87,8 @@ func newErrorFileNode(
 
 func newTlfEditHistoryFileNode(
 	config libkbfs.Config, node libkbfs.Node, fb data.FolderBranch,
-	log logger.Logger) *namedFileNode {
+	log logger.Logger,
+) *namedFileNode {
 	return &namedFileNode{
 		Node: node,
 		log:  log,
@@ -97,7 +101,8 @@ func newTlfEditHistoryFileNode(
 
 func newUpdateHistoryFileNode(
 	config libkbfs.Config, node libkbfs.Node, fb data.FolderBranch,
-	start, end kbfsmd.Revision, log logger.Logger) *namedFileNode {
+	start, end kbfsmd.Revision, log logger.Logger,
+) *namedFileNode {
 	return &namedFileNode{
 		Node: node,
 		log:  log,
@@ -145,7 +150,8 @@ var _ libkbfs.Node = (*profileListNode)(nil)
 func (pln *profileListNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString,
-	data.BlockPointer) {
+	data.BlockPointer,
+) {
 	namePlain := name.Plaintext()
 
 	fs := NewProfileFS(pln.config)
@@ -201,7 +207,8 @@ func shouldBeTlfWrappedNode(name string) bool {
 }
 
 func (sfn *specialFileNode) newUpdateHistoryFileNode(
-	node libkbfs.Node, name string) *namedFileNode {
+	node libkbfs.Node, name string,
+) *namedFileNode {
 	revs := strings.TrimPrefix(name, UpdateHistoryFileName)
 	if revs == "" {
 		return newUpdateHistoryFileNode(
@@ -277,7 +284,8 @@ func parseBlockPointer(plain string) (data.BlockPointer, error) {
 func (sfn *specialFileNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString,
-	data.BlockPointer) {
+	data.BlockPointer,
+) {
 	plain := name.Plaintext()
 	if !shouldBeTlfWrappedNode(plain) {
 		return sfn.Node.ShouldCreateMissedLookup(ctx, name)
@@ -337,7 +345,6 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", name))
 	}
-
 }
 
 // WrapChild implements the Node interface for specialFileNode.

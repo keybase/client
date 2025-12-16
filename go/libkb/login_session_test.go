@@ -31,7 +31,6 @@ const fakeResponse = `{
 type FakeAPI struct{}
 
 func (a *FakeAPI) Get(mctx MetaContext, arg APIArg) (*APIRes, error) {
-
 	decoder := json.NewDecoder(bytes.NewBufferString(fakeResponse))
 	var obj interface{}
 	decoder.UseNumber()
@@ -51,7 +50,6 @@ func (a *FakeAPI) Get(mctx MetaContext, arg APIArg) (*APIRes, error) {
 
 	body := jw
 	return &APIRes{status, body, 200, nil}, err
-
 }
 
 func (a *FakeAPI) GetDecode(mctx MetaContext, arg APIArg, v APIResponseWrapper) error {

@@ -54,7 +54,8 @@ func (b *BlockServerMemory) FastForwardBackoff() {}
 func (b *BlockServerMemory) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, _ DiskBlockCacheType) (
-	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
@@ -76,7 +77,8 @@ func (b *BlockServerMemory) Get(
 	if !ok {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			kbfsblock.ServerErrorBlockNonExistent{
-				Msg: fmt.Sprintf("Block ID %s does not exist.", id)}
+				Msg: fmt.Sprintf("Block ID %s does not exist.", id),
+			}
 	}
 
 	if entry.tlfID != tlfID {
@@ -102,7 +104,8 @@ func (b *BlockServerMemory) Get(
 func (b *BlockServerMemory) GetEncodedSizes(
 	ctx context.Context, tlfID tlf.ID, ids []kbfsblock.ID,
 	contexts []kbfsblock.Context) (
-	sizes []uint32, statuses []keybase1.BlockStatus, err error) {
+	sizes []uint32, statuses []keybase1.BlockStatus, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, nil, err
 	}
@@ -154,7 +157,8 @@ func (b *BlockServerMemory) GetEncodedSizes(
 }
 
 func validateBlockPut(checkNonzeroRef bool, id kbfsblock.ID, context kbfsblock.Context,
-	buf []byte) error {
+	buf []byte,
+) error {
 	var emptyID keybase1.UserOrTeamID
 	if context.GetCreator() == emptyID {
 		return fmt.Errorf("Can't Put() a block %v with an empty UID", id)
@@ -174,7 +178,8 @@ func validateBlockPut(checkNonzeroRef bool, id kbfsblock.ID, context kbfsblock.C
 
 // doPut consolidates the put logic for implementing both the Put and PutAgain interface.
 func (b *BlockServerMemory) doPut(isRegularPut bool, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
-	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+) (err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -233,7 +238,8 @@ func (b *BlockServerMemory) Put(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	_ DiskBlockCacheType) (err error) {
+	_ DiskBlockCacheType,
+) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -248,7 +254,8 @@ func (b *BlockServerMemory) PutAgain(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	_ DiskBlockCacheType) (err error) {
+	_ DiskBlockCacheType,
+) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -260,7 +267,8 @@ func (b *BlockServerMemory) PutAgain(
 
 // AddBlockReference implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID tlf.ID,
-	id kbfsblock.ID, context kbfsblock.Context) (err error) {
+	id kbfsblock.ID, context kbfsblock.Context,
+) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -282,7 +290,8 @@ func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	if !ok {
 		return kbfsblock.ServerErrorBlockNonExistent{
 			Msg: fmt.Sprintf("Block ID %s doesn't "+
-				"exist and cannot be referenced.", id)}
+				"exist and cannot be referenced.", id),
+		}
 	}
 
 	if entry.tlfID != tlfID {
@@ -295,7 +304,8 @@ func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 
 func (b *BlockServerMemory) removeBlockReference(
 	tlfID tlf.ID, id kbfsblock.ID, contexts []kbfsblock.Context) (
-	int, error) {
+	int, error,
+) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
@@ -331,7 +341,8 @@ func (b *BlockServerMemory) removeBlockReference(
 // BlockServerMemory.
 func (b *BlockServerMemory) RemoveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
+	liveCounts map[kbfsblock.ID]int, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -353,7 +364,8 @@ func (b *BlockServerMemory) RemoveBlockReferences(ctx context.Context,
 }
 
 func (b *BlockServerMemory) archiveBlockReference(
-	tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) error {
+	tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
+) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
@@ -365,7 +377,8 @@ func (b *BlockServerMemory) archiveBlockReference(
 	if !ok {
 		return kbfsblock.ServerErrorBlockNonExistent{
 			Msg: fmt.Sprintf("Block ID %s doesn't "+
-				"exist and cannot be archived.", id)}
+				"exist and cannot be archived.", id),
+		}
 	}
 
 	if entry.tlfID != tlfID {
@@ -381,7 +394,8 @@ func (b *BlockServerMemory) archiveBlockReference(
 		return kbfsblock.ServerErrorBlockNonExistent{
 			Msg: fmt.Sprintf("Block ID %s (ref %s) "+
 				"doesn't exist and cannot be archived.",
-				id, context.GetRefNonce())}
+				id, context.GetRefNonce()),
+		}
 	}
 
 	return entry.refs.put(context, archivedBlockRef, "")
@@ -390,7 +404,8 @@ func (b *BlockServerMemory) archiveBlockReference(
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerMemory.
 func (b *BlockServerMemory) ArchiveBlockReferences(ctx context.Context,
-	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
+	tlfID tlf.ID, contexts kbfsblock.ContextMap,
+) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -417,7 +432,8 @@ func (b *BlockServerMemory) ArchiveBlockReferences(ctx context.Context,
 // BlockServerMemory.
 func (b *BlockServerMemory) GetLiveBlockReferences(
 	ctx context.Context, tlfID tlf.ID, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
+	liveCounts map[kbfsblock.ID]int, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -451,7 +467,8 @@ func (b *BlockServerMemory) GetLiveBlockReferences(
 // BlockServerMemory.
 func (b *BlockServerMemory) getAllRefsForTest(
 	ctx context.Context, tlfID tlf.ID) (
-	map[kbfsblock.ID]blockRefMap, error) {
+	map[kbfsblock.ID]blockRefMap, error,
+) {
 	res := make(map[kbfsblock.ID]blockRefMap)
 	b.lock.RLock()
 	defer b.lock.RUnlock()
@@ -477,7 +494,8 @@ func (b *BlockServerMemory) numBlocks() int {
 
 // IsUnflushed implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) IsUnflushed(ctx context.Context, tlfID tlf.ID,
-	_ kbfsblock.ID) (bool, error) {
+	_ kbfsblock.ID,
+) (bool, error) {
 	b.lock.RLock()
 	defer b.lock.RUnlock()
 
@@ -512,7 +530,8 @@ func (b *BlockServerMemory) GetUserQuotaInfo(ctx context.Context) (info *kbfsblo
 // GetTeamQuotaInfo implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) GetTeamQuotaInfo(
 	ctx context.Context, _ keybase1.TeamID) (
-	info *kbfsblock.QuotaInfo, err error) {
+	info *kbfsblock.QuotaInfo, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}

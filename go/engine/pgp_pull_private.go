@@ -76,7 +76,6 @@ func (e *PGPPullPrivate) read(m libkb.MetaContext, fs *keybase1.SimpleFSClient, 
 }
 
 func (e *PGPPullPrivate) pull(m libkb.MetaContext, fp libkb.PGPFingerprint, tty string, fs *keybase1.SimpleFSClient) error {
-
 	username := m.CurrentUsername()
 	if username.IsNil() {
 		return libkb.NewLoginRequiredError("no username found")
@@ -97,7 +96,6 @@ func (e *PGPPullPrivate) pull(m libkb.MetaContext, fp libkb.PGPFingerprint, tty 
 }
 
 func (e *PGPPullPrivate) Run(m libkb.MetaContext) (err error) {
-
 	defer m.Trace("PGPPullPrivate#Run", &err)()
 
 	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())

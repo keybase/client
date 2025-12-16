@@ -139,11 +139,15 @@ type VerifyingKey struct {
 	kidContainer
 }
 
-var _ encoding.BinaryMarshaler = VerifyingKey{}
-var _ encoding.BinaryUnmarshaler = (*VerifyingKey)(nil)
+var (
+	_ encoding.BinaryMarshaler   = VerifyingKey{}
+	_ encoding.BinaryUnmarshaler = (*VerifyingKey)(nil)
+)
 
-var _ json.Marshaler = VerifyingKey{}
-var _ json.Unmarshaler = (*VerifyingKey)(nil)
+var (
+	_ json.Marshaler   = VerifyingKey{}
+	_ json.Unmarshaler = (*VerifyingKey)(nil)
+)
 
 // MakeVerifyingKey returns a VerifyingKey containing the given KID.
 func MakeVerifyingKey(kid keybase1.KID) VerifyingKey {
@@ -203,18 +207,21 @@ type SigningKeySigner struct {
 
 // Sign implements Signer for SigningKeySigner.
 func (s SigningKeySigner) Sign(
-	ctx context.Context, data []byte) (SignatureInfo, error) {
+	ctx context.Context, data []byte,
+) (SignatureInfo, error) {
 	return s.Key.Sign(data), nil
 }
 
 // SignForKBFS implements Signer for SigningKeySigner.
 func (s SigningKeySigner) SignForKBFS(
-	ctx context.Context, data []byte) (SignatureInfo, error) {
+	ctx context.Context, data []byte,
+) (SignatureInfo, error) {
 	return s.Key.SignForKBFS(data)
 }
 
 // SignToString implements Signer for SigningKeySigner.
 func (s SigningKeySigner) SignToString(
-	ctx context.Context, data []byte) (sig string, err error) {
+	ctx context.Context, data []byte,
+) (sig string, err error) {
 	return s.Key.SignToString(data)
 }

@@ -346,7 +346,8 @@ func (i *Inbox) readConv(ctx context.Context, uid gregor1.UID, convID chat1.Conv
 }
 
 func (i *Inbox) writeConvs(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
-	withVersionCheck bool) Error {
+	withVersionCheck bool,
+) Error {
 	i.summarizeConvs(convs)
 	for _, conv := range convs {
 		if withVersionCheck {
@@ -368,7 +369,8 @@ func (i *Inbox) writeConvs(ctx context.Context, uid gregor1.UID, convs []types.R
 }
 
 func (i *Inbox) writeConv(ctx context.Context, uid gregor1.UID, conv types.RemoteConversation,
-	withVersionCheck bool) Error {
+	withVersionCheck bool,
+) Error {
 	return i.writeConvs(ctx, uid, []types.RemoteConversation{conv}, withVersionCheck)
 }
 
@@ -498,7 +500,8 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 // from the inbox, or is of greater version than what is currently stored, we write it down. Otherwise,
 // we ignore it. If the inbox is currently blank, then we write down the given inbox version.
 func (i *Inbox) Merge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convsIn []chat1.Conversation, query *chat1.GetInboxQuery) (err Error) {
+	convsIn []chat1.Conversation, query *chat1.GetInboxQuery,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "Merge")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -554,7 +557,8 @@ func (i *Inbox) Merge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers
 
 func (i *Inbox) queryNameExists(ctx context.Context, uid gregor1.UID, ibox inboxDiskIndex,
 	tlfID chat1.TLFID, membersType chat1.ConversationMembersType, topicName string,
-	topicType chat1.TopicType) bool {
+	topicType chat1.TopicType,
+) bool {
 	convs, err := i.readConvs(ctx, uid, ibox.ConversationIDs)
 	if err != nil {
 		i.Debug(ctx, "queryNameExists: unexpected miss on index conv read: %s", err)
@@ -570,8 +574,8 @@ func (i *Inbox) queryNameExists(ctx context.Context, uid gregor1.UID, ibox inbox
 }
 
 func (i *Inbox) queryExists(ctx context.Context, uid gregor1.UID, ibox inboxDiskIndex,
-	query *chat1.GetInboxQuery) bool {
-
+	query *chat1.GetInboxQuery,
+) bool {
 	// Check for a name query that is after a single conversation
 	if query != nil && query.TlfID != nil && query.TopicType != nil && query.TopicName != nil &&
 		len(query.MembersTypes) == 1 {
@@ -773,7 +777,8 @@ func (i *Inbox) handleVersion(ctx context.Context, ourvers chat1.InboxVers, upda
 }
 
 func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	conv chat1.Conversation) (err Error) {
+	conv chat1.Conversation,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "NewConversation")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -853,7 +858,8 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 
 // Return pointers into `convs` for the convs belonging to `teamID`.
 func (i *Inbox) getConvsForTeam(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID,
-	index inboxDiskIndex) (res []types.RemoteConversation) {
+	index inboxDiskIndex,
+) (res []types.RemoteConversation) {
 	tlfID, err := chat1.TeamIDToTLFID(teamID)
 	if err != nil {
 		i.Debug(ctx, "getConvsForTeam: teamIDToTLFID failed: %v", err)
@@ -942,7 +948,8 @@ func (i *Inbox) IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID, 
 }
 
 func (i *Inbox) MarkLocalRead(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID) (err Error) {
+	msgID chat1.MessageID,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "MarkLocalRead")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -962,7 +969,8 @@ func (i *Inbox) MarkLocalRead(ctx context.Context, uid gregor1.UID, convID chat1
 }
 
 func (i *Inbox) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	text *string) (modified bool, err Error) {
+	text *string,
+) (modified bool, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNuke(ctx, func() Error { return err }, uid)
@@ -984,7 +992,8 @@ func (i *Inbox) Draft(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 }
 
 func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (err Error) {
+	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "NewMessage")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1088,7 +1097,8 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 }
 
 func (i *Inbox) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msgID chat1.MessageID) (err Error) {
+	convID chat1.ConversationID, msgID chat1.MessageID,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "ReadMessage")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1136,7 +1146,8 @@ func (i *Inbox) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inb
 }
 
 func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, status chat1.ConversationStatus) (err Error) {
+	convID chat1.ConversationID, status chat1.ConversationStatus,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "SetStatus")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1182,7 +1193,8 @@ func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.Inbox
 }
 
 func (i *Inbox) SetAppNotificationSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, settings chat1.ConversationNotificationInfo) (err Error) {
+	convID chat1.ConversationID, settings chat1.ConversationNotificationInfo,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "SetAppNotificationSettings")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1233,7 +1245,8 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, uid gregor1.UID,
 // The inbox Expunge tag is kept up to date for retention but not for delete-history.
 // Does not delete any messages. Relies on separate server mechanism to delete clear max messages.
 func (i *Inbox) Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, expunge chat1.Expunge, maxMsgs []chat1.MessageSummary) (err Error) {
+	convID chat1.ConversationID, expunge chat1.Expunge, maxMsgs []chat1.MessageSummary,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "Expunge")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1286,7 +1299,8 @@ func (i *Inbox) Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVe
 }
 
 func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convIDs []chat1.ConversationID) (err Error) {
+	convIDs []chat1.ConversationID,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "SubteamRename")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1335,7 +1349,8 @@ func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.I
 }
 
 func (i *Inbox) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, policy chat1.RetentionPolicy) (err Error) {
+	convID chat1.ConversationID, policy chat1.RetentionPolicy,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "SetConvRetention")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1379,7 +1394,8 @@ func (i *Inbox) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat
 
 // Update any local conversations with this team ID.
 func (i *Inbox) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	teamID keybase1.TeamID, policy chat1.RetentionPolicy) (res []chat1.ConversationID, err Error) {
+	teamID keybase1.TeamID, policy chat1.RetentionPolicy,
+) (res []chat1.ConversationID, err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "SetTeamRetention")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1426,7 +1442,8 @@ func (i *Inbox) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat
 }
 
 func (i *Inbox) SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, convSettings *chat1.ConversationSettings) (err Error) {
+	convID chat1.ConversationID, convSettings *chat1.ConversationSettings,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "SetConvSettings")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1466,7 +1483,8 @@ func (i *Inbox) SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1
 }
 
 func (i *Inbox) UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID) (err Error) {
+	convID chat1.ConversationID,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "UpgradeKBFSToImpteam")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1505,7 +1523,8 @@ func (i *Inbox) UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers 
 }
 
 func (i *Inbox) TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, teamType chat1.TeamType, notifInfo *chat1.ConversationNotificationInfo) (err Error) {
+	convID chat1.ConversationID, teamType chat1.TeamType, notifInfo *chat1.ConversationNotificationInfo,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "TeamTypeChanged")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1547,7 +1566,8 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1
 }
 
 func (i *Inbox) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (err Error) {
+	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "TlfFinalize")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1730,7 +1750,8 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	userJoined []chat1.Conversation, userRemoved []chat1.ConversationMember,
 	othersJoined []chat1.ConversationMember, othersRemoved []chat1.ConversationMember,
 	userReset []chat1.ConversationMember, othersReset []chat1.ConversationMember,
-	teamMemberRoleUpdate *chat1.TeamMemberRoleUpdate) (roleUpdates []chat1.ConversationID, err Error) {
+	teamMemberRoleUpdate *chat1.TeamMemberRoleUpdate,
+) (roleUpdates []chat1.ConversationID, err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "MembershipUpdate")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1932,7 +1953,8 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 }
 
 func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convUpdates []chat1.ConversationUpdate) (err Error) {
+	convUpdates []chat1.ConversationUpdate,
+) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "ConversationsUpdate")()
 	defer func() { ierr = i.castInternalError(err) }()
@@ -1987,7 +2009,8 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 }
 
 func (i *Inbox) UpdateLocalMtime(ctx context.Context, uid gregor1.UID,
-	convUpdates []chat1.LocalMtimeUpdate) (err Error) {
+	convUpdates []chat1.LocalMtimeUpdate,
+) (err Error) {
 	if len(convUpdates) == 0 {
 		return nil
 	}

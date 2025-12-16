@@ -50,7 +50,8 @@ func TestBackgroundTLFUpdater(t *testing.T) {
 		return getUpgradeRes{
 			GetTLFForUpgradeRes: NewGetTLFForUpgradeResWithTlfavailable(GetTLFForUpgradeAvailableRes{
 				TlfID: refTLFID,
-			})}
+			}),
+		}
 	}
 	api.responseFn = f
 	clock := clockwork.NewFakeClock()

@@ -18,8 +18,10 @@ import (
 // TLFPseudonym is an identifier for a key in a tlf
 type TlfPseudonym [32]byte
 
-type KeyGen int
-type tlfID [16]byte
+type (
+	KeyGen int
+	tlfID  [16]byte
+)
 
 const tlfPseudonymVersion = 1
 

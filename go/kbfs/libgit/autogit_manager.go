@@ -71,7 +71,8 @@ type AutogitManager struct {
 
 // NewAutogitManager constructs a new AutogitManager instance.
 func NewAutogitManager(
-	config libkbfs.Config, browserCacheSize int) *AutogitManager {
+	config libkbfs.Config, browserCacheSize int,
+) *AutogitManager {
 	log := config.MakeLogger("")
 	browserCache, err := lru.New(browserCacheSize)
 	if err != nil {
@@ -105,7 +106,8 @@ func (am *AutogitManager) Shutdown() {
 }
 
 func (am *AutogitManager) removeOldCheckoutsForHandle(
-	ctx context.Context, h *tlfhandle.Handle, branch data.BranchName) {
+	ctx context.Context, h *tlfhandle.Handle, branch data.BranchName,
+) {
 	// Make an "unwrapped" FS, so we don't end up recursively entering
 	// the virtual autogit nodes again.
 	fs, err := libfs.NewUnwrappedFS(
@@ -195,7 +197,8 @@ func (am *AutogitManager) removeSelfCheckouts() {
 }
 
 func (am *AutogitManager) registerRepoNode(
-	nodeToWatch libkbfs.Node, rdn *repoDirNode) {
+	nodeToWatch libkbfs.Node, rdn *repoDirNode,
+) {
 	am.registryLock.Lock()
 	defer am.registryLock.Unlock()
 	am.repoNodesForWatchedIDs[nodeToWatch.GetID()] = rdn
@@ -219,13 +222,15 @@ func (am *AutogitManager) registerRepoNode(
 
 // LocalChange implements the libkbfs.Observer interface for AutogitManager.
 func (am *AutogitManager) LocalChange(
-	ctx context.Context, node libkbfs.Node, wr libkbfs.WriteRange) {
+	ctx context.Context, node libkbfs.Node, wr libkbfs.WriteRange,
+) {
 	// Do nothing.
 }
 
 func (am *AutogitManager) getNodesToInvalidate(
 	affectedNodeIDs []libkbfs.NodeID) (
-	nodes []libkbfs.Node, repoNodeIDs []libkbfs.NodeID) {
+	nodes []libkbfs.Node, repoNodeIDs []libkbfs.NodeID,
+) {
 	am.registryLock.RLock()
 	defer am.registryLock.RUnlock()
 	for _, nodeID := range affectedNodeIDs {
@@ -239,7 +244,8 @@ func (am *AutogitManager) getNodesToInvalidate(
 }
 
 func (am *AutogitManager) clearInvalidatedBrowsers(
-	repoNodeIDs []libkbfs.NodeID) {
+	repoNodeIDs []libkbfs.NodeID,
+) {
 	am.browserLock.Lock()
 	defer am.browserLock.Unlock()
 
@@ -274,7 +280,8 @@ func (am *AutogitManager) clearInvalidatedBrowsers(
 // BatchChanges implements the libkbfs.Observer interface for AutogitManager.
 func (am *AutogitManager) BatchChanges(
 	ctx context.Context, _ []libkbfs.NodeChange,
-	affectedNodeIDs []libkbfs.NodeID) {
+	affectedNodeIDs []libkbfs.NodeID,
+) {
 	nodes, repoNodeIDs := am.getNodesToInvalidate(affectedNodeIDs)
 	go am.clearInvalidatedBrowsers(repoNodeIDs)
 	for _, node := range nodes {
@@ -293,13 +300,15 @@ func (am *AutogitManager) BatchChanges(
 // TlfHandleChange implements the libkbfs.Observer interface for
 // AutogitManager.
 func (am *AutogitManager) TlfHandleChange(
-	ctx context.Context, newHandle *tlfhandle.Handle) {
+	ctx context.Context, newHandle *tlfhandle.Handle,
+) {
 	// Do nothing.
 }
 
 func (am *AutogitManager) getBrowserForRepoLocked(
 	ctx context.Context, gitFS *libfs.FS, repoName string,
-	branch plumbing.ReferenceName, subdir string) (*libfs.FS, *Browser, error) {
+	branch plumbing.ReferenceName, subdir string,
+) (*libfs.FS, *Browser, error) {
 	repoName = NormalizeRepoName(repoName)
 	key := browserCacheKey{gitFS, repoName, branch, subdir}
 	tmp, ok := am.browserCache.Get(key)
@@ -357,7 +366,8 @@ func (am *AutogitManager) getBrowserForRepoLocked(
 // `Browser` for the branch and subdir.
 func (am *AutogitManager) GetBrowserForRepo(
 	ctx context.Context, gitFS *libfs.FS, repoName string,
-	branch plumbing.ReferenceName, subdir string) (*libfs.FS, *Browser, error) {
+	branch plumbing.ReferenceName, subdir string,
+) (*libfs.FS, *Browser, error) {
 	am.browserLock.Lock()
 	defer am.browserLock.Unlock()
 	return am.getBrowserForRepoLocked(ctx, gitFS, repoName, branch, subdir)

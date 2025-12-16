@@ -25,9 +25,11 @@ const (
 	FullInboxLoad
 )
 
-const fetchInitialInterval = 3 * time.Second
-const fetchMultiplier = 1.5
-const fetchMaxAttempts = 100
+const (
+	fetchInitialInterval = 3 * time.Second
+	fetchMultiplier      = 1.5
+	fetchMaxAttempts     = 100
+)
 
 type ConversationRetry struct {
 	globals.Contextified
@@ -243,8 +245,8 @@ func (f *FetchRetrier) nextAttemptTime(attempts int, lastAttempt time.Time) time
 }
 
 func (f *FetchRetrier) spawnRetrier(ctx context.Context, uid gregor1.UID, desc types.RetryDescription,
-	control *retrierControl) {
-
+	control *retrierControl,
+) {
 	attempts := 1
 	nextTime := f.nextAttemptTime(attempts, f.clock.Now())
 	ctx = globals.BackgroundChatCtx(ctx, f.G())
@@ -360,7 +362,8 @@ func (f *FetchRetrier) Force(ctx context.Context) {
 }
 
 func (f *FetchRetrier) Rekey(ctx context.Context, name string, membersType chat1.ConversationMembersType,
-	public bool) {
+	public bool,
+) {
 	nameInfo, err := CreateNameInfoSource(ctx, f.G(), membersType).LookupID(ctx, name, public)
 	if err != nil {
 		f.Debug(ctx, "Rekey: failed to load name info for: %s msg %s", name, err)

@@ -29,7 +29,8 @@ type RPCHandler struct {
 
 // NewRPCHandlerWithCtx returns a new instance of a Git RPC handler.
 func NewRPCHandlerWithCtx(kbCtx libkbfs.Context, config libkbfs.Config,
-	kbfsInitParams *libkbfs.InitParams) (*RPCHandler, func()) {
+	kbfsInitParams *libkbfs.InitParams,
+) (*RPCHandler, func()) {
 	shutdown := StartAutogit(config, 100)
 	return &RPCHandler{
 		kbCtx:          kbCtx,
@@ -43,7 +44,8 @@ var _ keybase1.KBFSGitInterface = (*RPCHandler)(nil)
 
 func (rh *RPCHandler) waitForJournal(
 	ctx context.Context, gitConfig libkbfs.Config,
-	h *tlfhandle.Handle) error {
+	h *tlfhandle.Handle,
+) error {
 	err := CleanOldDeletedReposTimeLimited(ctx, gitConfig, h)
 	if err != nil {
 		return err
@@ -96,7 +98,8 @@ func (rh *RPCHandler) waitForJournal(
 }
 
 func (rh *RPCHandler) doShutdown(
-	ctx context.Context, gitConfig libkbfs.Config, tempDir string) {
+	ctx context.Context, gitConfig libkbfs.Config, tempDir string,
+) {
 	shutdownErr := gitConfig.Shutdown(ctx)
 	if shutdownErr != nil {
 		rh.log.CDebugf(
@@ -112,7 +115,8 @@ func (rh *RPCHandler) doShutdown(
 func (rh *RPCHandler) getHandleAndConfig(
 	ctx context.Context, folder keybase1.FolderHandle) (
 	newCtx context.Context, gitConfigRet libkbfs.Config,
-	tlfHandle *tlfhandle.Handle, tempDirRet string, err error) {
+	tlfHandle *tlfhandle.Handle, tempDirRet string, err error,
+) {
 	newCtx, gitConfig, tempDir, err := getNewConfig(
 		ctx, rh.config, rh.kbCtx, rh.kbfsInitParams, rh.log)
 	if err != nil {
@@ -140,7 +144,8 @@ func (rh *RPCHandler) getHandleAndConfig(
 // CreateRepo implements keybase1.KBFSGitInterface for KeybaseServiceBase.
 func (rh *RPCHandler) CreateRepo(
 	ctx context.Context, arg keybase1.CreateRepoArg) (
-	id keybase1.RepoID, err error) {
+	id keybase1.RepoID, err error,
+) {
 	rh.log.CDebugf(ctx, "Creating repo %s in folder %s/%s",
 		arg.Name, arg.Folder.FolderType, arg.Folder.Name)
 	defer func() {
@@ -209,7 +214,8 @@ func (rh *RPCHandler) scheduleCleaning(folder keybase1.FolderHandle) {
 
 // DeleteRepo implements keybase1.KBFSGitInterface for KeybaseServiceBase.
 func (rh *RPCHandler) DeleteRepo(
-	ctx context.Context, arg keybase1.DeleteRepoArg) (err error) {
+	ctx context.Context, arg keybase1.DeleteRepoArg,
+) (err error) {
 	rh.log.CDebugf(ctx, "Deleting repo %s from folder %s/%s",
 		arg.Name, arg.Folder.FolderType, arg.Folder.Name)
 	defer func() {
@@ -241,7 +247,8 @@ func (rh *RPCHandler) DeleteRepo(
 
 // Gc implements keybase1.KBFSGitInterface for KeybaseServiceBase.
 func (rh *RPCHandler) Gc(
-	ctx context.Context, arg keybase1.GcArg) (err error) {
+	ctx context.Context, arg keybase1.GcArg,
+) (err error) {
 	rh.log.CDebugf(ctx, "Garbage-collecting repo %s from folder %s/%s",
 		arg.Name, arg.Folder.FolderType, arg.Folder.Name)
 	defer func() {
@@ -275,7 +282,8 @@ func (rh *RPCHandler) Gc(
 //
 // TODO: Hook this up to an RPC.
 func (rh *RPCHandler) RenameRepo(ctx context.Context,
-	folder keybase1.FolderHandle, oldName, newName string) (err error) {
+	folder keybase1.FolderHandle, oldName, newName string,
+) (err error) {
 	rh.log.CDebugf(ctx, "Renaming repo %s to %s", oldName, newName)
 	defer func() {
 		rh.log.CDebugf(ctx, "Done renaming repo: %+v", err)

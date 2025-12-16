@@ -4,13 +4,14 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"sync"
+	"testing"
+	"time"
+
 	libkb "github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
-	"sync"
-	"testing"
-	"time"
 )
 
 type testUser struct {
@@ -94,15 +95,15 @@ func newTestState() *testState {
 	}
 }
 
-type userNotFoundError struct {
-}
+type userNotFoundError struct{}
 
 func (e userNotFoundError) Error() string {
 	return "user not found"
 }
 
 func (ts *testState) GetUser(_ context.Context, uid keybase1.UID) (
-	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
+	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error,
+) {
 	ts.Lock()
 	defer ts.Unlock()
 	u := ts.users[uid]
@@ -121,8 +122,10 @@ func (ts *testState) PollForChanges(_ context.Context) ([]keybase1.UID, error) {
 	return ret, nil
 }
 
-var _ UserKeyAPIer = (*testState)(nil)
-var _ engine = (*testState)(nil)
+var (
+	_ UserKeyAPIer = (*testState)(nil)
+	_ engine       = (*testState)(nil)
+)
 
 func (ts *testState) tick(d time.Duration) {
 	ts.pokeCh <- struct{}{}
@@ -274,7 +277,6 @@ func TestSimple(t *testing.T) {
 	if uid != u2.uid {
 		t.Fatalf("Got wrong eviction: wanted %s but got %s\n", u2.uid, uid)
 	}
-
 }
 
 func TestCheckUsers(t *testing.T) {

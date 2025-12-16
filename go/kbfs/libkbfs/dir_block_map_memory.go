@@ -24,13 +24,15 @@ func newDirBlockMapMemory() *dirBlockMapMemory {
 }
 
 func (dbmm *dirBlockMapMemory) putBlock(
-	_ context.Context, ptr data.BlockPointer, block *data.DirBlock) error {
+	_ context.Context, ptr data.BlockPointer, block *data.DirBlock,
+) error {
 	dbmm.blocks[ptr] = block
 	return nil
 }
 
 func (dbmm *dirBlockMapMemory) getBlock(
-	_ context.Context, ptr data.BlockPointer) (*data.DirBlock, error) {
+	_ context.Context, ptr data.BlockPointer,
+) (*data.DirBlock, error) {
 	block, ok := dbmm.blocks[ptr]
 	if !ok {
 		return nil, errors.Errorf("No such block for %s", ptr)
@@ -39,13 +41,15 @@ func (dbmm *dirBlockMapMemory) getBlock(
 }
 
 func (dbmm *dirBlockMapMemory) hasBlock(
-	_ context.Context, ptr data.BlockPointer) (bool, error) {
+	_ context.Context, ptr data.BlockPointer,
+) (bool, error) {
 	_, ok := dbmm.blocks[ptr]
 	return ok, nil
 }
 
 func (dbmm *dirBlockMapMemory) deleteBlock(
-	_ context.Context, ptr data.BlockPointer) error {
+	_ context.Context, ptr data.BlockPointer,
+) error {
 	delete(dbmm.blocks, ptr)
 	return nil
 }

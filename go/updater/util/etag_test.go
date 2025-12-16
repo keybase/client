@@ -11,7 +11,7 @@ import (
 
 func TestEtag(t *testing.T) {
 	data := []byte("test data\n")
-	path, err := WriteTempFile("TestEtag", data, 0644)
+	path, err := WriteTempFile("TestEtag", data, 0o644)
 	assert.NoError(t, err)
 	defer RemoveFileAtPath(path)
 
@@ -22,7 +22,7 @@ func TestEtag(t *testing.T) {
 
 func TestEtagNoData(t *testing.T) {
 	var data []byte
-	path, err := WriteTempFile("TestEtag", data, 0644)
+	path, err := WriteTempFile("TestEtag", data, 0o644)
 	assert.NoError(t, err)
 	defer RemoveFileAtPath(path)
 

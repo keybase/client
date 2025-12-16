@@ -54,7 +54,8 @@ func (k *LibKBFS) InitTest(ver kbfsmd.MetadataVer,
 	blockSize int64, blockChangeSize int64, batchSize int, bwKBps int,
 	opTimeout time.Duration, users []kbname.NormalizedUsername,
 	teams, implicitTeams teamMap, clock libkbfs.Clock,
-	journal bool) map[kbname.NormalizedUsername]User {
+	journal bool,
+) map[kbname.NormalizedUsername]User {
 	userMap := make(map[kbname.NormalizedUsername]User)
 	// create the first user specially
 	config := libkbfs.MakeTestConfigOrBust(k.tb, users...)
@@ -213,7 +214,8 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 func parseTlfHandle(
 	ctx context.Context, kbpki libkbfs.KBPKI, mdOps libkbfs.MDOps,
 	osg idutil.OfflineStatusGetter, tlfName string, t tlf.Type) (
-	h *tlfhandle.Handle, err error) {
+	h *tlfhandle.Handle, err error,
+) {
 	// Limit to one non-canonical name for now.
 outer:
 	for i := 0; i < 2; i++ {
@@ -254,7 +256,8 @@ func (k *LibKBFS) GetFavorites(u User, t tlf.Type) (map[string]bool, error) {
 
 func (k *LibKBFS) getRootDir(
 	u User, tlfName string, t tlf.Type, branch data.BranchName,
-	expectedCanonicalTlfName string) (dir Node, err error) {
+	expectedCanonicalTlfName string,
+) (dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
@@ -293,7 +296,8 @@ func (k *LibKBFS) getRootDir(
 // GetRootDir implements the Engine interface.
 func (k *LibKBFS) GetRootDir(
 	u User, tlfName string, t tlf.Type, expectedCanonicalTlfName string) (
-	dir Node, err error) {
+	dir Node, err error,
+) {
 	return k.getRootDir(
 		u, tlfName, t, data.MasterBranch, expectedCanonicalTlfName)
 }
@@ -301,7 +305,8 @@ func (k *LibKBFS) GetRootDir(
 // GetRootDirAtRevision implements the Engine interface.
 func (k *LibKBFS) GetRootDirAtRevision(
 	u User, tlfName string, t tlf.Type, rev kbfsmd.Revision,
-	expectedCanonicalTlfName string) (dir Node, err error) {
+	expectedCanonicalTlfName string,
+) (dir Node, err error) {
 	return k.getRootDir(
 		u, tlfName, t, data.MakeRevBranchName(rev), expectedCanonicalTlfName)
 }
@@ -309,7 +314,8 @@ func (k *LibKBFS) GetRootDirAtRevision(
 // GetRootDirAtTimeString implements the Engine interface.
 func (k *LibKBFS) GetRootDirAtTimeString(
 	u User, tlfName string, t tlf.Type, timeString string,
-	expectedCanonicalTlfName string) (dir Node, err error) {
+	expectedCanonicalTlfName string,
+) (dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	ctx, cancel := k.newContext(u)
 	defer cancel()
@@ -331,7 +337,8 @@ func (k *LibKBFS) GetRootDirAtTimeString(
 // GetRootDirAtRelTimeString implements the Engine interface.
 func (k *LibKBFS) GetRootDirAtRelTimeString(
 	u User, tlfName string, t tlf.Type, relTimeString string,
-	expectedCanonicalTlfName string) (dir Node, err error) {
+	expectedCanonicalTlfName string,
+) (dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	ctx, cancel := k.newContext(u)
 	defer cancel()
@@ -399,7 +406,8 @@ func (k *LibKBFS) CreateFileExcl(u User, parentDir Node, name string) (file Node
 
 // CreateLink implements the Engine interface.
 func (k *LibKBFS) CreateLink(
-	u User, parentDir Node, fromName, toPath string) (err error) {
+	u User, parentDir Node, fromName, toPath string,
+) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
 	ctx, cancel := k.newContext(u)
@@ -430,7 +438,8 @@ func (k *LibKBFS) RemoveEntry(u User, dir Node, name string) (err error) {
 
 // Rename implements the Engine interface.
 func (k *LibKBFS) Rename(u User, srcDir Node, srcName string,
-	dstDir Node, dstName string) (err error) {
+	dstDir Node, dstName string,
+) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
 	ctx, cancel := k.newContext(u)
 	defer cancel()
@@ -553,7 +562,8 @@ func (k *LibKBFS) SetMtime(u User, file Node, mtime time.Time) (err error) {
 
 // SyncAll implements the Engine interface.
 func (k *LibKBFS) SyncAll(
-	u User, tlfName string, t tlf.Type) (err error) {
+	u User, tlfName string, t tlf.Type,
+) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
@@ -588,7 +598,8 @@ func (k *LibKBFS) GetMtime(u User, file Node) (mtime time.Time, err error) {
 
 // GetPrevRevisions implements the Engine interface.
 func (k *LibKBFS) GetPrevRevisions(u User, file Node) (
-	revs data.PrevRevisions, err error) {
+	revs data.PrevRevisions, err error,
+) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
 	var info data.EntryInfo
@@ -610,7 +621,8 @@ func (k *LibKBFS) GetPrevRevisions(u User, file Node) (
 // getRootNode is like GetRootDir, but doesn't check the canonical TLF
 // name.
 func getRootNode(ctx context.Context, config libkbfs.Config, tlfName string,
-	t tlf.Type) (libkbfs.Node, error) {
+	t tlf.Type,
+) (libkbfs.Node, error) {
 	h, err := parseTlfHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, tlfName, t)
 	if err != nil {
@@ -850,7 +862,8 @@ func (k *LibKBFS) FlushJournal(u User, tlfName string, t tlf.Type) error {
 
 // UnflushedPaths implements the Engine interface.
 func (k *LibKBFS) UnflushedPaths(u User, tlfName string, t tlf.Type) (
-	[]string, error) {
+	[]string, error,
+) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
@@ -870,7 +883,8 @@ func (k *LibKBFS) UnflushedPaths(u User, tlfName string, t tlf.Type) (
 
 // UserEditHistory implements the Engine interface.
 func (k *LibKBFS) UserEditHistory(u User) (
-	[]keybase1.FSFolderEditHistory, error) {
+	[]keybase1.FSFolderEditHistory, error,
+) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
@@ -887,7 +901,8 @@ func (k *LibKBFS) UserEditHistory(u User) (
 
 // DirtyPaths implements the Engine interface.
 func (k *LibKBFS) DirtyPaths(u User, tlfName string, t tlf.Type) (
-	[]string, error) {
+	[]string, error,
+) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
@@ -958,8 +973,7 @@ func (k *LibKBFS) Shutdown(u User) error {
 	var userName kbname.NormalizedUsername
 	if k.journalDir != "" {
 		var err error
-		session, err :=
-			config.KBPKI().GetCurrentSession(context.Background())
+		session, err := config.KBPKI().GetCurrentSession(context.Background())
 		if err != nil {
 			return err
 		}

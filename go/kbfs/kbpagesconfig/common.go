@@ -33,7 +33,8 @@ type kbpConfigEditor struct {
 }
 
 func readConfigAndClose(from io.ReadCloser) (
-	cfg config.Config, str string, err error) {
+	cfg config.Config, str string, err error,
+) {
 	defer from.Close()
 	buf := &bytes.Buffer{}
 	if cfg, err = config.ParseConfig(io.TeeReader(from, buf)); err != nil {
@@ -78,7 +79,8 @@ func confirmAndWrite(
 	originalConfigStr string,
 	newConfig config.Config,
 	configPath string,
-	p prompter) (err error) {
+	p prompter,
+) (err error) {
 	buf := &bytes.Buffer{}
 	if err := newConfig.Encode(buf, true); err != nil {
 		return fmt.Errorf("encoding config error: %v", err)
@@ -112,7 +114,6 @@ func confirmAndWrite(
 	}
 	defer f.Close()
 	if _, err = f.WriteString(newConfigStr); err != nil {
-
 		return fmt.Errorf(
 			"writing config to file [%s] error: %v", configPath, err)
 	}

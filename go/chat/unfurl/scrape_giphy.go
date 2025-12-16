@@ -87,7 +87,6 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.
 			if width, err := strconv.Atoi(e.Attr("content")); err == nil {
 				video.Width = width
 			}
-
 		} else if attr == "og:video:height" {
 			if height, err := strconv.Atoi(e.Attr("content")); err == nil {
 				video.Height = height

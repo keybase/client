@@ -20,7 +20,8 @@ import (
 
 func setupJournalBlockServerTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
-	config *ConfigLocal, jManager *JournalManager) {
+	config *ConfigLocal, jManager *JournalManager,
+) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_block_server")
 	require.NoError(t, err)
 
@@ -70,7 +71,8 @@ func setupJournalBlockServerTest(t *testing.T) (
 
 func teardownJournalBlockServerTest(
 	ctx context.Context, t *testing.T, tempdir string,
-	cancel context.CancelFunc, config Config) {
+	cancel context.CancelFunc, config Config,
+) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
 	err := ioutil.RemoveAll(tempdir)

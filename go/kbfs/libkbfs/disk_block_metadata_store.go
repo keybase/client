@@ -57,7 +57,8 @@ type diskBlockMetadataStore struct {
 // newDiskBlockMetadataStore creates a new disk BlockMetadata storage.
 func newDiskBlockMetadataStore(
 	config diskBlockMetadataStoreConfig, mode InitMode, storageRoot string) (
-	BlockMetadataStore, error) {
+	BlockMetadataStore, error,
+) {
 	log := config.MakeLogger("BMS")
 	db, err := ldbutils.OpenVersionedLevelDb(
 		log, storageRoot, blockMetadataFolderName,
@@ -111,7 +112,8 @@ func (ErrBlockMetadataStoreShutdown) Error() string {
 
 // GetMetadata implements the BlockMetadataStore interface.
 func (s *diskBlockMetadataStore) GetMetadata(ctx context.Context,
-	blockID kbfsblock.ID) (value BlockMetadataValue, err error) {
+	blockID kbfsblock.ID,
+) (value BlockMetadataValue, err error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -139,7 +141,8 @@ func (s *diskBlockMetadataStore) GetMetadata(ctx context.Context,
 
 // UpdateMetadata implements the BlockMetadataStore interface.
 func (s *diskBlockMetadataStore) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, updater BlockMetadataUpdater) error {
+	blockID kbfsblock.ID, updater BlockMetadataUpdater,
+) error {
 	bid := blockID.Bytes()
 
 	s.lock.Lock()
@@ -199,7 +202,8 @@ var _ XattrStore = (*xattrStore)(nil)
 
 // GetXattr implements the XattrStore interface.
 func (s xattrStore) GetXattr(ctx context.Context,
-	blockID kbfsblock.ID, xattrType XattrType) ([]byte, error) {
+	blockID kbfsblock.ID, xattrType XattrType,
+) ([]byte, error) {
 	blockMetadata, err := s.store.GetMetadata(ctx, blockID)
 	switch errors.Cause(err) {
 	case ldberrors.ErrNotFound:
@@ -222,7 +226,8 @@ func (s xattrStore) GetXattr(ctx context.Context,
 
 // SetXattr implements the XattrStore interface.
 func (s xattrStore) SetXattr(ctx context.Context,
-	blockID kbfsblock.ID, xattrType XattrType, xattrValue []byte) (err error) {
+	blockID kbfsblock.ID, xattrType XattrType, xattrValue []byte,
+) (err error) {
 	if err = s.store.UpdateMetadata(ctx, blockID,
 		func(v *BlockMetadataValue) error {
 			if v.Xattr == nil {
@@ -246,13 +251,15 @@ var _ BlockMetadataStore = NoopBlockMetadataStore{}
 
 // GetMetadata always returns ldberrors.ErrNotFound.
 func (NoopBlockMetadataStore) GetMetadata(ctx context.Context,
-	blockID kbfsblock.ID) (value BlockMetadataValue, err error) {
+	blockID kbfsblock.ID,
+) (value BlockMetadataValue, err error) {
 	return BlockMetadataValue{}, ldberrors.ErrNotFound
 }
 
 // UpdateMetadata returns nil error but does nothing.
 func (NoopBlockMetadataStore) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, updater BlockMetadataUpdater) error {
+	blockID kbfsblock.ID, updater BlockMetadataUpdater,
+) error {
 	return nil
 }
 

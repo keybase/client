@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-
 	"time"
 
 	"github.com/keybase/go-crypto/openpgp"
@@ -38,7 +37,6 @@ func PGPDecryptWithBundles(g *GlobalContext, source io.Reader, sink io.Writer, k
 // PGPDecrypt only generates warnings about insecure _message_ signatures, not
 // _key_ signatures - that is handled by engine.PGPDecrypt.
 func PGPDecrypt(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
-
 	var sc StreamClassification
 	var err error
 

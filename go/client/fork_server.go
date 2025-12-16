@@ -131,7 +131,8 @@ func pingLoop(g *libkb.GlobalContext) error {
 }
 
 func makeServerCommandLine(g *libkb.GlobalContext, cl libkb.CommandLine,
-	forkType keybase1.ForkType) (arg0 string, args []string, err error) {
+	forkType keybase1.ForkType,
+) (arg0 string, args []string, err error) {
 	// ForkExec requires an absolute path to the binary. LookPath() gets this
 	// for us, or correctly leaves arg0 alone if it's already a path.
 	arg0, err = exec.LookPath(os.Args[0])

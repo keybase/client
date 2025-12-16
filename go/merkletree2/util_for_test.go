@@ -82,7 +82,8 @@ func getSampleKVPS1bit() (kvps1, kvps2, kvps3 []KeyValuePair) {
 		{Key: []byte{0x00}, Value: "key0x00Seqno1"},
 		{Key: []byte{0x01}, Value: "key0x01Seqno1"},
 		{Key: []byte{0x10}, Value: "key0x10Seqno1"},
-		{Key: []byte{0xff}, Value: "key0xffSeqno1"}}
+		{Key: []byte{0xff}, Value: "key0xffSeqno1"},
+	}
 
 	kvps2 = []KeyValuePair{
 		{Key: []byte{0x00}, Value: "key0x00Seqno2"},

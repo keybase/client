@@ -215,7 +215,6 @@ func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler
 	}
 
 	return nil
-
 }
 
 // encodeResult JSON encodes a successful result to the wr writer.

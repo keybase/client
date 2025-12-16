@@ -177,7 +177,6 @@ func (e *Kex2Provisioner) GetNetworkInstrumenter() rpc.NetworkInstrumenterStorag
 
 // GetHelloArg implements GetHelloArg in kex2.Provisioner.
 func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
-
 	// Pull the metaContext out of the this object, since we can't pass it through the
 	// kex2/provisioner interface
 	m := e.mctx
@@ -268,7 +267,6 @@ func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err 
 
 // CounterSign2 implements CounterSign in kex2.Provisioner.
 func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase1.DidCounterSign2Arg, err error) {
-
 	m := e.mctx
 
 	defer m.Trace("Kex2Provisioner#CounterSign2", &err)()
@@ -324,7 +322,6 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 // fill in. When verifying the reverse signature we fill in the values from Y
 // to check the reverse signature
 func (e *Kex2Provisioner) skeletonProof(m libkb.MetaContext) (sigBody string, err error) {
-
 	// Set the local sigchain guard to tell background tasks
 	// to stay off the sigchain while we do this.
 	// This is released at the end of Kex2Provisioner#Run

@@ -54,7 +54,8 @@ func (s *Sender) preprocess(ctx context.Context, filename string, callerPreview 
 
 func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, vis keybase1.TLFVisibility,
 	inOutboxID *chat1.OutboxID, filename, title string, md []byte, ephemeralLifetime *gregor1.DurationSec,
-	callerPreview *chat1.MakePreviewRes) (msg chat1.MessagePlaintext, outboxID chat1.OutboxID, err error) {
+	callerPreview *chat1.MakePreviewRes,
+) (msg chat1.MessagePlaintext, outboxID chat1.OutboxID, err error) {
 	if inOutboxID == nil {
 		if outboxID, err = storage.NewOutboxID(); err != nil {
 			return msg, outboxID, err
@@ -104,7 +105,8 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 func (s *Sender) PostFileAttachmentMessage(ctx context.Context, sender types.Sender,
 	convID chat1.ConversationID, tlfName string, vis keybase1.TLFVisibility, inOutboxID *chat1.OutboxID,
 	filename, title string, md []byte, clientPrev chat1.MessageID, ephemeralLifetime *gregor1.DurationSec,
-	callerPreview *chat1.MakePreviewRes) (outboxID chat1.OutboxID, msgID *chat1.MessageID, err error) {
+	callerPreview *chat1.MakePreviewRes,
+) (outboxID chat1.OutboxID, msgID *chat1.MessageID, err error) {
 	defer s.Trace(ctx, &err, "PostFileAttachmentMessage")()
 	var msg chat1.MessagePlaintext
 	if msg, outboxID, err = s.makeBaseAttachmentMessage(ctx, tlfName, vis, inOutboxID, filename, title, md,
@@ -126,7 +128,8 @@ func (s *Sender) PostFileAttachmentMessage(ctx context.Context, sender types.Sen
 func (s *Sender) PostFileAttachment(ctx context.Context, sender types.Sender, uid gregor1.UID,
 	convID chat1.ConversationID, tlfName string, vis keybase1.TLFVisibility, inOutboxID *chat1.OutboxID,
 	filename, title string, md []byte, clientPrev chat1.MessageID, ephemeralLifetime *gregor1.DurationSec,
-	callerPreview *chat1.MakePreviewRes) (outboxID chat1.OutboxID, msgID *chat1.MessageID, err error) {
+	callerPreview *chat1.MakePreviewRes,
+) (outboxID chat1.OutboxID, msgID *chat1.MessageID, err error) {
 	defer s.Trace(ctx, &err, "PostFileAttachment")()
 	var msg chat1.MessagePlaintext
 	if msg, outboxID, err = s.makeBaseAttachmentMessage(ctx, tlfName, vis, inOutboxID, filename, title, md,

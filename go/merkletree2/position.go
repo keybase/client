@@ -178,7 +178,6 @@ func (t *Config) GetKeyIntervalUnderPosition(p *Position) (minKey, maxKey Key) {
 // to firstLevel (included).
 // See TestGetDeepestPositionAtLevelAndSiblingsOnPathToKey for sample outputs.
 func (t *Config) getDeepestPositionAtLevelAndSiblingsOnPathToKey(k Key, lastLevel int, firstLevel int) (sibs []Position) {
-
 	maxLevel := t.KeysByteLength * 8 / int(t.BitsPerIndex)
 	if lastLevel > maxLevel {
 		lastLevel = maxLevel

@@ -35,8 +35,8 @@ func (n *reportTestAPIMock) Post(mctx libkb.MetaContext, arg libkb.APIArg) (*lib
 
 func (s *mockConvSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, reason chat1.GetThreadReason, customRi func() chat1.RemoteInterface,
-	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
-
+	query *chat1.GetThreadQuery, pagination *chat1.Pagination,
+) (thread chat1.ThreadView, err error) {
 	s.callsToPull++
 
 	require.Greater(s.t, pagination.Num, 0)

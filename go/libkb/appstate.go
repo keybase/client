@@ -80,7 +80,8 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
 }
 
 func (a *MobileAppState) UpdateWithCheck(state keybase1.MobileAppState,
-	check func(keybase1.MobileAppState) bool) {
+	check func(keybase1.MobileAppState) bool,
+) {
 	defer a.G().Trace(fmt.Sprintf("MobileAppState.UpdateWithCheck(%v)", state), nil)()
 	a.Lock()
 	defer a.Unlock()

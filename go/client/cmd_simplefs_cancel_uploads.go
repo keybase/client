@@ -24,14 +24,16 @@ type CmdSimpleFSCancelUploads struct {
 
 // NewCmdSimpleFSCancelUploads creates a new cli.Command.
 func NewCmdSimpleFSCancelUploads(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:         "cancel-uploads",
 		ArgumentHelp: "[path-to-folder]",
 		Usage:        "cancel all outstanding uploads in a folder",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSCancelUploads{
-				Contextified: libkb.NewContextified(g)}, "cancel-uploads", c)
+				Contextified: libkb.NewContextified(g),
+			}, "cancel-uploads", c)
 			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{

@@ -29,7 +29,8 @@ const (
 // Params returns a set of default parameters for search-related
 // operations.
 func Params(kbCtx libkbfs.Context, storageRoot string, uid keybase1.UID) (
-	params libkbfs.InitParams, err error) {
+	params libkbfs.InitParams, err error,
+) {
 	params = libkbfs.DefaultInitParams(kbCtx)
 	params.Debug = true
 	params.LogToFile = true
@@ -39,8 +40,7 @@ func Params(kbCtx libkbfs.Context, storageRoot string, uid keybase1.UID) (
 
 	// Try to balance not using too much memory vs. the time/CPU it
 	// takes to keep pulling in index blocks from the disk.
-	params.CleanBlockCacheCapacity =
-		uint64(data.MaxBlockSizeBytesDefault) * indexBlocksInCache
+	params.CleanBlockCacheCapacity = uint64(data.MaxBlockSizeBytesDefault) * indexBlocksInCache
 
 	// Make a per-user index for all the TLFs indexed locally by that
 	// user.  This means on one hand that the user can get
@@ -66,7 +66,8 @@ func Params(kbCtx libkbfs.Context, storageRoot string, uid keybase1.UID) (
 func Init(ctx context.Context, kbCtx libkbfs.Context, params libkbfs.InitParams,
 	keybaseServiceCn libkbfs.KeybaseServiceCn,
 	log logger.Logger, vlogLevel string) (
-	context.Context, libkbfs.Config, error) {
+	context.Context, libkbfs.Config, error,
+) {
 	ctx, err := libcontext.NewContextWithCancellationDelayer(
 		libcontext.NewContextReplayable(
 			ctx, func(ctx context.Context) context.Context {

@@ -84,7 +84,8 @@ func (k *KeybaseDaemonRPC) addKBFSProtocols() {
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.
 func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
-	debug bool, additionalProtocols []rpc.Protocol) *KeybaseDaemonRPC {
+	debug bool, additionalProtocols []rpc.Protocol,
+) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(config, kbCtx, log)
 	k.config = config
 	k.daemonLog = logger.New("daemon")
@@ -110,7 +111,8 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 
 // For testing.
 func newKeybaseDaemonRPCWithClient(kbCtx Context, client rpc.GenericClient,
-	log logger.Logger) *KeybaseDaemonRPC {
+	log logger.Logger,
+) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(nil, kbCtx, log)
 	k.fillClients(client)
 	// No need for a keepalive loop in this case, since this is only
@@ -248,12 +250,14 @@ func (d daemonIdentifyUI) Confirm(ctx context.Context, arg keybase1.ConfirmArg) 
 }
 
 func (d daemonIdentifyUI) DisplayTLFCreateWithInvite(ctx context.Context,
-	arg keybase1.DisplayTLFCreateWithInviteArg) (err error) {
+	arg keybase1.DisplayTLFCreateWithInviteArg,
+) (err error) {
 	return nil
 }
 
 func (d daemonIdentifyUI) Dismiss(ctx context.Context,
-	_ keybase1.DismissArg) error {
+	_ keybase1.DismissArg,
+) error {
 	return nil
 }
 
@@ -313,7 +317,8 @@ func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
 // OnConnect implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	conn *rpc.Connection, rawClient rpc.GenericClient,
-	server *rpc.Server) (err error) {
+	server *rpc.Server,
+) (err error) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 
@@ -374,7 +379,8 @@ func (k *KeybaseDaemonRPC) OnDoCommandError(err error, wait time.Duration) {
 
 // OnDisconnected implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnDisconnected(ctx context.Context,
-	status rpc.DisconnectStatus) {
+	status rpc.DisconnectStatus,
+) {
 	if status == rpc.StartingNonFirstConnection {
 		k.log.Warning("KeybaseDaemonRPC is disconnected")
 	}
@@ -439,7 +445,6 @@ func (k *KeybaseDaemonRPC) Shutdown() {
 		k.keepAliveCancel()
 	}
 	k.log.Warning("Keybase service shutdown")
-
 }
 
 // notifyServiceHandler implements keybase1.NotifyServiceInterface
@@ -472,7 +477,8 @@ func newNotifyServiceHandler(config Config, log logger.Logger) keybase1.NotifySe
 
 // FavoritesChanged implements keybase1.NotifyFavoritesClient
 func (k *KeybaseDaemonRPC) FavoritesChanged(ctx context.Context,
-	uid keybase1.UID) error {
+	uid keybase1.UID,
+) error {
 	k.log.Debug("Received FavoritesChanged RPC.")
 	k.config.KBFSOps().RefreshCachedFavorites(ctx,
 		FavoritesRefreshModeInMainFavoritesLoop)

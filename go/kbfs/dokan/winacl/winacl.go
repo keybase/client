@@ -28,8 +28,10 @@ func NewSecurityDescriptorWithBuffer(bs []byte) *SecurityDescriptor {
 	for i := range bs {
 		bs[i] = 0
 	}
-	var sd = SecurityDescriptor{bytes: bs,
-		curOffset: int(unsafe.Sizeof(selfRelativeSecurityDescriptor{}))}
+	sd := SecurityDescriptor{
+		bytes:     bs,
+		curOffset: int(unsafe.Sizeof(selfRelativeSecurityDescriptor{})),
+	}
 	if len(bs) >= sd.curOffset {
 		sd.ptr = (*selfRelativeSecurityDescriptor)(unsafe.Pointer(&bs[0]))
 		sd.ptr.Revision = 1
@@ -131,5 +133,6 @@ func bufToSlice(ptr unsafe.Pointer, nbytes int) []byte {
 	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
 		Data: uintptr(ptr),
 		Len:  nbytes,
-		Cap:  nbytes}))
+		Cap:  nbytes,
+	}))
 }

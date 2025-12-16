@@ -5,12 +5,12 @@ package systests
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
-	"net/http"
 	_ "net/http/pprof"
 
 	"github.com/keybase/client/go/externalstest"
@@ -58,9 +58,11 @@ type dumbUI struct{}
 func (d dumbUI) Printf(format string, args ...interface{}) (int, error) {
 	return 0, nil
 }
+
 func (d dumbUI) PrintfStderr(format string, args ...interface{}) (int, error) {
 	return 0, nil
 }
+
 func (d dumbUI) PrintfUnescaped(format string, args ...interface{}) (int, error) {
 	return 0, nil
 }
@@ -130,18 +132,23 @@ type nullProvisionUI struct {
 func (n nullProvisionUI) ChooseProvisioningMethod(context.Context, keybase1.ChooseProvisioningMethodArg) (ret keybase1.ProvisionMethod, err error) {
 	return ret, nil
 }
+
 func (n nullProvisionUI) ChooseGPGMethod(context.Context, keybase1.ChooseGPGMethodArg) (ret keybase1.GPGMethod, err error) {
 	return ret, nil
 }
+
 func (n nullProvisionUI) SwitchToGPGSignOK(context.Context, keybase1.SwitchToGPGSignOKArg) (bool, error) {
 	return false, nil
 }
+
 func (n nullProvisionUI) ChooseDevice(context.Context, keybase1.ChooseDeviceArg) (ret keybase1.DeviceID, err error) {
 	return ret, nil
 }
+
 func (n nullProvisionUI) ChooseDeviceType(context.Context, keybase1.ChooseDeviceTypeArg) (ret keybase1.DeviceType, err error) {
 	return ret, nil
 }
+
 func (n nullProvisionUI) DisplayAndPromptSecret(context.Context, keybase1.DisplayAndPromptSecretArg) (ret keybase1.SecretResponse, err error) {
 	return ret, nil
 }
@@ -149,9 +156,11 @@ func (n nullProvisionUI) DisplaySecretExchanged(context.Context, int) error { re
 func (n nullProvisionUI) PromptNewDeviceName(context.Context, keybase1.PromptNewDeviceNameArg) (string, error) {
 	return n.deviceName, nil
 }
+
 func (n nullProvisionUI) ProvisioneeSuccess(context.Context, keybase1.ProvisioneeSuccessArg) error {
 	return nil
 }
+
 func (n nullProvisionUI) ProvisionerSuccess(context.Context, keybase1.ProvisionerSuccessArg) error {
 	return nil
 }

@@ -348,7 +348,8 @@ type tlfJournalInfo struct {
 
 func readTLFJournalInfoFile(dir string) (
 	keybase1.UID, kbfscrypto.VerifyingKey, tlf.ID,
-	keybase1.UserOrTeamID, error) {
+	keybase1.UserOrTeamID, error,
+) {
 	var info tlfJournalInfo
 	err := ioutil.DeserializeFromJSONFile(
 		getTLFJournalInfoFilePath(dir), &info)
@@ -367,7 +368,8 @@ func readTLFJournalInfoFile(dir string) (
 
 func writeTLFJournalInfoFile(dir string, uid keybase1.UID,
 	key kbfscrypto.VerifyingKey, tlfID tlf.ID,
-	chargedTo keybase1.UserOrTeamID) error {
+	chargedTo keybase1.UserOrTeamID,
+) error {
 	info := tlfJournalInfo{uid, key, tlfID, chargedTo}
 	return ioutil.SerializeToJSONFile(info, getTLFJournalInfoFilePath(dir))
 }
@@ -378,7 +380,8 @@ func makeTLFJournal(
 	config tlfJournalConfig, delegateBlockServer BlockServer,
 	bws TLFJournalBackgroundWorkStatus, bwDelegate tlfJournalBWDelegate,
 	onBranchChange branchChangeListener, onMDFlush mdFlushListener,
-	diskLimiter DiskLimiter, overrideTlfID tlf.ID) (*tlfJournal, error) {
+	diskLimiter DiskLimiter, overrideTlfID tlf.ID,
+) (*tlfJournal, error) {
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
 	}
@@ -395,8 +398,7 @@ func makeTLFJournal(
 		return nil, errors.New("User ID required for non-team TLF")
 	}
 
-	readUID, readKey, readTlfID, readChargedTo, err :=
-		readTLFJournalInfoFile(dir)
+	readUID, readKey, readTlfID, readChargedTo, err := readTLFJournalInfoFile(dir)
 	switch {
 	case ioutil.IsNotExist(err):
 		// Info file doesn't exist, so write it.
@@ -563,7 +565,8 @@ const CtxJournalOpID = "JID"
 // doBackgroundWork whenever there is work, and can be paused and
 // resumed.
 func (j *tlfJournal) doBackgroundWorkLoop(
-	bws TLFJournalBackgroundWorkStatus, retry backoff.BackOff) {
+	bws TLFJournalBackgroundWorkStatus, retry backoff.BackOff,
+) {
 	ctx := context.Background()
 	if j.bwDelegate != nil {
 		ctx = j.bwDelegate.GetBackgroundContext()
@@ -811,7 +814,8 @@ func (j *tlfJournal) checkEnabledLocked() error {
 
 func (j *tlfJournal) getJournalEnds(ctx context.Context) (
 	blockEnd journalOrdinal, mdEnd kbfsmd.Revision, mdJournalID kbfsmd.ID,
-	err error) {
+	err error,
+) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -836,7 +840,8 @@ func (j *tlfJournal) getJournalEnds(ctx context.Context) (
 }
 
 func (j *tlfJournal) checkAndFinishSingleOpFlushLocked(
-	ctx context.Context) error {
+	ctx context.Context,
+) error {
 	switch j.singleOpMode {
 	case singleOpDisabled:
 		j.log.CDebugf(ctx, "Single op mode is disabled; cannot finish")
@@ -945,8 +950,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			blockEnd, mdEnd)
 
 		// Flush the block journal ops in parallel.
-		numFlushed, maxMDRevToFlush, converted, err :=
-			j.flushBlockEntries(ctx, blockEnd, mdJournalID)
+		numFlushed, maxMDRevToFlush, converted, err := j.flushBlockEntries(ctx, blockEnd, mdJournalID)
 		if err != nil {
 			return err
 		}
@@ -1021,7 +1025,8 @@ func (e errTLFJournalNotEmpty) Error() string {
 }
 
 func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
-	needLock *keybase1.LockID) error {
+	needLock *keybase1.LockID,
+) error {
 	durSinceCheck := j.config.Clock().Now().Sub(j.lastServerMDCheck)
 	if durSinceCheck < tlfJournalServerMDCheckInterval {
 		return nil
@@ -1077,7 +1082,8 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
 func (j *tlfJournal) getNextBlockEntriesToFlush(
 	ctx context.Context, end journalOrdinal, mdJournalID kbfsmd.ID) (
 	entries blockEntriesToFlush, bytesToFlush int64,
-	maxMDRevToFlush kbfsmd.Revision, err error) {
+	maxMDRevToFlush kbfsmd.Revision, err error,
+) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1089,7 +1095,8 @@ func (j *tlfJournal) getNextBlockEntriesToFlush(
 }
 
 func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
-	entries blockEntriesToFlush, flushEnded time.Time) error {
+	entries blockEntriesToFlush, flushEnded time.Time,
+) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1143,7 +1150,8 @@ func (j *tlfJournal) startFlush(bytesToFlush int64) {
 func (j *tlfJournal) flushBlockEntries(
 	ctx context.Context, end journalOrdinal, mdJournalID kbfsmd.ID) (
 	numFlushed int, maxMDRevToFlush kbfsmd.Revision,
-	converted bool, err error) {
+	converted bool, err error,
+) {
 	entries, bytesToFlush, maxMDRevToFlush, err := j.getNextBlockEntriesToFlush(
 		ctx, end, mdJournalID)
 	if err != nil {
@@ -1216,8 +1224,7 @@ func (j *tlfJournal) flushBlockEntries(
 				// Instead, let the current iteration of the flush
 				// finish, and then signal at the top of the next
 				// iteration.
-				convertedNow, err :=
-					j.convertMDsToBranchIfOverThreshold(groupCtx, false)
+				convertedNow, err := j.convertMDsToBranchIfOverThreshold(groupCtx, false)
 				if err != nil {
 					return err
 				}
@@ -1259,7 +1266,8 @@ func (j *tlfJournal) flushBlockEntries(
 }
 
 func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
-	end kbfsmd.Revision) (kbfsmd.ID, *RootMetadataSigned, kbfsmd.ExtraMetadata, error) {
+	end kbfsmd.Revision,
+) (kbfsmd.ID, *RootMetadataSigned, kbfsmd.ExtraMetadata, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1270,7 +1278,8 @@ func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
 }
 
 func (j *tlfJournal) convertMDsToBranchLocked(
-	ctx context.Context, bid kbfsmd.BranchID, doSignal bool) error {
+	ctx context.Context, bid kbfsmd.BranchID, doSignal bool,
+) error {
 	err := j.mdJournal.convertToBranch(
 		ctx, bid, j.config.Crypto(), j.config.Codec(), j.tlfID,
 		j.config.MDCache())
@@ -1307,7 +1316,8 @@ func (j *tlfJournal) convertMDsToBranch(ctx context.Context) error {
 }
 
 func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
-	doSignal bool) (bool, error) {
+	doSignal bool,
+) (bool, error) {
 	if j.singleOpMode == singleOpRunning {
 		// Don't squash until the single operation is complete.
 		return false, nil
@@ -1343,8 +1353,7 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 		squashByRev = true
 		j.unsquashedBytes = 0
 	case j.config.BGFlushDirOpBatchSize() == 1:
-		squashByRev, err =
-			j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashRevThreshold)
+		squashByRev, err = j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashRevThreshold)
 		if err != nil {
 			return false, err
 		}
@@ -1414,7 +1423,8 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 // we want to call blockJournal.doGC outside of journalLock.
 func (j *tlfJournal) getBlockDeferredGCRange() (
 	blockJournal *blockJournal, length int,
-	earliest, latest journalOrdinal, err error) {
+	earliest, latest journalOrdinal, err error,
+) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1428,14 +1438,14 @@ func (j *tlfJournal) getBlockDeferredGCRange() (
 }
 
 func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
-	mdID kbfsmd.ID, rmds *RootMetadataSigned) error {
+	mdID kbfsmd.ID, rmds *RootMetadataSigned,
+) error {
 	if j.onMDFlush != nil {
 		j.onMDFlush.onMDFlush(rmds.MD.TlfID(), rmds.MD.BID(),
 			rmds.MD.RevisionNumber())
 	}
 
-	blockJournal, length, earliest, latest, err :=
-		j.getBlockDeferredGCRange()
+	blockJournal, length, earliest, latest, err := j.getBlockDeferredGCRange()
 	if err != nil {
 		return err
 	}
@@ -1466,9 +1476,8 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 	}
 
 	if length != 0 {
-		clearedBlockJournal, aggregateInfo, err :=
-			j.blockJournal.clearDeferredGCRange(
-				ctx, removedBytes, removedFiles, earliest, latest)
+		clearedBlockJournal, aggregateInfo, err := j.blockJournal.clearDeferredGCRange(
+			ctx, removedBytes, removedFiles, earliest, latest)
 		if err != nil {
 			return err
 		}
@@ -1527,7 +1536,8 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 }
 
 func (j *tlfJournal) removeFlushedMDEntryLocked(ctx context.Context,
-	mdID kbfsmd.ID, rmds *RootMetadataSigned) (clearedMDJournal bool, err error) {
+	mdID kbfsmd.ID, rmds *RootMetadataSigned,
+) (clearedMDJournal bool, err error) {
 	clearedMDJournal, err = j.mdJournal.removeFlushedEntry(ctx, mdID, rmds)
 	if err != nil {
 		return false, err
@@ -1539,7 +1549,8 @@ func (j *tlfJournal) removeFlushedMDEntryLocked(ctx context.Context,
 
 func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 	maxMDRevToFlush kbfsmd.Revision, flushCtx flushContext) (
-	flushed bool, err error) {
+	flushed bool, err error,
+) {
 	if maxMDRevToFlush == kbfsmd.RevisionUninitialized {
 		// Avoid a call to `getNextMDEntryToFlush`, which
 		// would otherwise unnecessarily read an MD from disk.
@@ -1637,7 +1648,8 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 }
 
 func (j *tlfJournal) getJournalEntryCounts() (
-	blockEntryCount, mdEntryCount uint64, err error) {
+	blockEntryCount, mdEntryCount uint64, err error,
+) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1751,7 +1763,8 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 // guaranteed to not be empty.
 func (j *tlfJournal) getJournalStatusWithRange(ctx context.Context) (
 	jStatus TLFJournalStatus, unflushedPaths unflushedPathsMap,
-	ibrmds []ImmutableBareRootMetadata, complete bool, err error) {
+	ibrmds []ImmutableBareRootMetadata, complete bool, err error,
+) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	jStatus, err = j.getJournalStatusLocked()
@@ -1790,7 +1803,8 @@ func (j *tlfJournal) getJournalStatusWithRange(ctx context.Context) (
 // hold `j.journalLock`, because blocks from the journal may need to
 // be read as part of the decryption.
 func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
-	ibrmds []ImmutableBareRootMetadata) ([]unflushedPathMDInfo, error) {
+	ibrmds []ImmutableBareRootMetadata,
+) ([]unflushedPathMDInfo, error) {
 	if len(ibrmds) == 0 {
 		return nil, nil
 	}
@@ -1844,14 +1858,14 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 }
 
 func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
-	cpp chainsPathPopulator) (jStatus TLFJournalStatus, err error) {
+	cpp chainsPathPopulator,
+) (jStatus TLFJournalStatus, err error) {
 	// This loop is limited only by the lifetime of `ctx`.
 	var unflushedPaths unflushedPathsMap
 	var complete bool
 	for {
 		var ibrmds []ImmutableBareRootMetadata
-		jStatus, unflushedPaths, ibrmds, complete, err =
-			j.getJournalStatusWithRange(ctx)
+		jStatus, unflushedPaths, ibrmds, complete, err = j.getJournalStatusWithRange(ctx)
 		if err != nil {
 			return TLFJournalStatus{}, err
 		}
@@ -1924,14 +1938,14 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 	}
 
 	if !complete {
-		jStatus.UnflushedPaths =
-			append(jStatus.UnflushedPaths, incompleteUnflushedPathsMarker)
+		jStatus.UnflushedPaths = append(jStatus.UnflushedPaths, incompleteUnflushedPathsMarker)
 	}
 	return jStatus, nil
 }
 
 func (j *tlfJournal) getByteCounts() (
-	storedBytes, storedFiles, unflushedBytes int64, err error) {
+	storedBytes, storedFiles, unflushedBytes int64, err error,
+) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2034,7 +2048,8 @@ func (j *tlfJournal) enable() error {
 // support removing references for anything other than a flush (see
 // the comment in tlfJournal.removeBlockReferences).
 func (j *tlfJournal) getBlockData(ctx context.Context, id kbfsblock.ID) (
-	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error,
+) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2045,7 +2060,8 @@ func (j *tlfJournal) getBlockData(ctx context.Context, id kbfsblock.ID) (
 }
 
 func (j *tlfJournal) getBlockSize(
-	ctx context.Context, id kbfsblock.ID) (uint32, error) {
+	ctx context.Context, id kbfsblock.ID,
+) (uint32, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2104,7 +2120,8 @@ func (j *tlfJournal) checkInfoFileLocked() error {
 
 func (j *tlfJournal) putBlockData(
 	ctx context.Context, id kbfsblock.ID, blockCtx kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+) (err error) {
 	if err := j.checkWriteable(); err != nil {
 		return err
 	}
@@ -2128,10 +2145,9 @@ func (j *tlfJournal) putBlockData(
 	defer cancel()
 
 	bufLen := int64(len(buf))
-	availableBytes, availableFiles, err :=
-		j.diskLimiter.reserveWithBackpressure(
-			acquireCtx, journalLimitTrackerType, bufLen, filesPerBlockMax,
-			j.chargedTo)
+	availableBytes, availableFiles, err := j.diskLimiter.reserveWithBackpressure(
+		acquireCtx, journalLimitTrackerType, bufLen, filesPerBlockMax,
+		j.chargedTo)
 	switch errors.Cause(err) {
 	case nil:
 		// Continue.
@@ -2141,8 +2157,7 @@ func (j *tlfJournal) putBlockData(
 		// could put out-of-date limit info in the error, and it might
 		// look like there is available space.  It doesn't seem worth
 		// changing the interface of `beforeBlockPut` to fix, though.
-		usageBytes, limitBytes, usageFiles, limitFiles :=
-			j.diskLimiter.getDiskLimitInfo()
+		usageBytes, limitBytes, usageFiles, limitFiles := j.diskLimiter.getDiskLimitInfo()
 		return errors.WithStack(&ErrDiskLimitTimeout{
 			timeout, bufLen, filesPerBlockMax,
 			availableBytes, availableFiles, usageBytes, usageFiles,
@@ -2230,7 +2245,8 @@ func (j *tlfJournal) getQuotaInfo() (usedQuotaBytes, quotaBytes int64) {
 }
 
 func (j *tlfJournal) addBlockReference(
-	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context) error {
+	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context,
+) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2252,7 +2268,8 @@ func (j *tlfJournal) addBlockReference(
 }
 
 func (j *tlfJournal) isBlockUnflushed(
-	ctx context.Context, id kbfsblock.ID) (bool, error) {
+	ctx context.Context, id kbfsblock.ID,
+) (bool, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2302,7 +2319,8 @@ func (j *tlfJournal) getBranchID() (kbfsmd.BranchID, error) {
 }
 
 func (j *tlfJournal) getMDHead(
-	ctx context.Context, bid kbfsmd.BranchID) (ImmutableBareRootMetadata, error) {
+	ctx context.Context, bid kbfsmd.BranchID,
+) (ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2314,7 +2332,8 @@ func (j *tlfJournal) getMDHead(
 
 func (j *tlfJournal) getMDRange(
 	ctx context.Context, bid kbfsmd.BranchID, start, stop kbfsmd.Revision) (
-	[]ImmutableBareRootMetadata, error) {
+	[]ImmutableBareRootMetadata, error,
+) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2328,7 +2347,8 @@ func (j *tlfJournal) doPutMD(
 	ctx context.Context, rmd *RootMetadata,
 	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
 	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
-	irmd ImmutableRootMetadata, retryPut bool, err error) {
+	irmd ImmutableRootMetadata, retryPut bool, err error,
+) {
 	// Now take the lock and put the MD, merging in the unflushed
 	// paths while under the lock.
 	j.journalLock.Lock()
@@ -2402,7 +2422,8 @@ func (j *tlfJournal) doPutMD(
 // we finish this operation.
 func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 	rmd *RootMetadata,
-	f func(unflushedPathMDInfo, unflushedPathsPerRevMap) (bool, error)) error {
+	f func(unflushedPathMDInfo, unflushedPathsPerRevMap) (bool, error),
+) error {
 	mdInfo := unflushedPathMDInfo{
 		revision: rmd.Revision(),
 		kmd:      rmd,
@@ -2447,14 +2468,16 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 func (j *tlfJournal) putMD(
 	ctx context.Context, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
-	irmd ImmutableRootMetadata, err error) {
+	irmd ImmutableRootMetadata, err error,
+) {
 	if err := j.checkWriteable(); err != nil {
 		return ImmutableRootMetadata{}, err
 	}
 
 	err = j.prepAndAddRMDWithRetry(ctx, rmd,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
-			retry bool, err error) {
+			retry bool, err error,
+		) {
 			irmd, retry, err = j.doPutMD(
 				ctx, rmd, mdInfo, perRevMap, verifyingKey, bps)
 			return retry, err
@@ -2498,7 +2521,8 @@ func (j *tlfJournal) doResolveBranch(
 	rmd *RootMetadata, mdInfo unflushedPathMDInfo,
 	perRevMap unflushedPathsPerRevMap, verifyingKey kbfscrypto.VerifyingKey,
 	bps data.BlockPutState) (
-	irmd ImmutableRootMetadata, retry bool, err error) {
+	irmd ImmutableRootMetadata, retry bool, err error,
+) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2592,7 +2616,7 @@ func (j *tlfJournal) moveAway(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	err = os.MkdirAll(j.dir, 0700)
+	err = os.MkdirAll(j.dir, 0o700)
 	if err != nil {
 		return "", err
 	}
@@ -2602,7 +2626,7 @@ func (j *tlfJournal) moveAway(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	err = ioutil.WriteFile(getTLFJournalInfoFilePath(j.dir), infoData, 0600)
+	err = ioutil.WriteFile(getTLFJournalInfoFilePath(j.dir), infoData, 0o600)
 	if err != nil {
 		return "", err
 	}
@@ -2633,14 +2657,16 @@ func (j *tlfJournal) moveAway(ctx context.Context) (string, error) {
 func (j *tlfJournal) resolveBranch(ctx context.Context,
 	bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
-	irmd ImmutableRootMetadata, err error) {
+	irmd ImmutableRootMetadata, err error,
+) {
 	if err := j.checkWriteable(); err != nil {
 		return ImmutableRootMetadata{}, err
 	}
 
 	err = j.prepAndAddRMDWithRetry(ctx, rmd,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
-			retry bool, err error) {
+			retry bool, err error,
+		) {
 			irmd, retry, err = j.doResolveBranch(
 				ctx, bid, blocksToDelete, rmd, mdInfo, perRevMap, verifyingKey,
 				bps)
@@ -2694,7 +2720,8 @@ func (j *tlfJournal) waitForCompleteFlush(ctx context.Context) error {
 }
 
 func (j *tlfJournal) finishSingleOp(ctx context.Context,
-	lc *keybase1.LockContext, priority keybase1.MDPriority) error {
+	lc *keybase1.LockContext, priority keybase1.MDPriority,
+) error {
 	j.log.CDebugf(ctx, "Finishing single op")
 
 	flushCtx := flushContext{

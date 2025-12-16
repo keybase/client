@@ -71,7 +71,8 @@ type Context struct {
 // MakeFirstContext makes the initial context for a block with the
 // given creator.
 func MakeFirstContext(
-	creator keybase1.UserOrTeamID, bType keybase1.BlockType) Context {
+	creator keybase1.UserOrTeamID, bType keybase1.BlockType,
+) Context {
 	return Context{Creator: creator, BlockType: bType}
 }
 
@@ -80,7 +81,8 @@ func MakeFirstContext(
 // and the nonce is usually non-zero.
 func MakeContext(
 	creator keybase1.UserOrTeamID, writer keybase1.UserOrTeamID, nonce RefNonce,
-	bType keybase1.BlockType) Context {
+	bType keybase1.BlockType,
+) Context {
 	return Context{
 		Creator:   creator,
 		Writer:    writer,

@@ -21,7 +21,8 @@ type testJournalEntry struct {
 }
 
 func requireEqualOrdinal(t *testing.T, o journalOrdinal, err error,
-	oDisk journalOrdinal, errDisk error) {
+	oDisk journalOrdinal, errDisk error,
+) {
 	require.Equal(t, oDisk, o)
 	if ioutil.IsNotExist(err) && ioutil.IsNotExist(errDisk) {
 		return
@@ -67,7 +68,8 @@ func TestDiskJournalOrdinals(t *testing.T) {
 	}
 
 	expectRange := func(
-		expectedEarliest, expectedLatest journalOrdinal) {
+		expectedEarliest, expectedLatest journalOrdinal,
+	) {
 		earliest, err := readEarliest()
 		require.NoError(t, err)
 		require.Equal(t, expectedEarliest, earliest)

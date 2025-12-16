@@ -96,7 +96,8 @@ func (r *Runner) statsLoop(stopCh chan struct{}) error {
 
 func (r *Runner) addDbStats(
 	ctx context.Context, dbType keybase1.DbType, db *libkb.JSONLocalDb,
-	stats *keybase1.RuntimeStats) {
+	stats *keybase1.RuntimeStats,
+) {
 	var s keybase1.DbStats
 	s.Type = dbType
 	var err error

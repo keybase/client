@@ -2,14 +2,16 @@ package data
 
 import (
 	"fmt"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 func makePaths(childIndices [][]int,
-	mockBlock BlockWithPtrs) [][]ParentBlockAndChildIndex {
+	mockBlock BlockWithPtrs,
+) [][]ParentBlockAndChildIndex {
 	result := [][]ParentBlockAndChildIndex(nil)
 	for _, indexList := range childIndices {
 		Path := []ParentBlockAndChildIndex(nil)

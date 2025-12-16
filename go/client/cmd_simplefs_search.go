@@ -34,7 +34,8 @@ func NewCmdSimpleFSSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		Usage:        "[disabled] search locally-synced folders",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSSearch{
-				Contextified: libkb.NewContextified(g)}, "search", c)
+				Contextified: libkb.NewContextified(g),
+			}, "search", c)
 			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{

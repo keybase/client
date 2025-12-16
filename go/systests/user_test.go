@@ -128,13 +128,16 @@ func (n *signupTerminalUI) Prompt(pd libkb.PromptDescriptor, s string) (ret stri
 func (n *signupTerminalUI) PromptPassword(pd libkb.PromptDescriptor, _ string) (string, error) {
 	return "", nil
 }
+
 func (n *signupTerminalUI) PromptPasswordMaybeScripted(pd libkb.PromptDescriptor, _ string) (string, error) {
 	return "", nil
 }
+
 func (n *signupTerminalUI) Output(s string) error {
 	n.G().Log.Debug("Terminal Output: %s", s)
 	return nil
 }
+
 func (n *signupTerminalUI) OutputDesc(od libkb.OutputDescriptor, s string) error {
 	if od == client.OutputDescriptorPrimaryPaperKey {
 		n.info.displayedPaperKey = s
@@ -142,11 +145,13 @@ func (n *signupTerminalUI) OutputDesc(od libkb.OutputDescriptor, s string) error
 	n.G().Log.Debug("Terminal Output %d: %s", od, s)
 	return nil
 }
+
 func (n *signupTerminalUI) Printf(f string, args ...interface{}) (int, error) {
 	s := fmt.Sprintf(f, args...)
 	n.G().Log.Debug("Terminal Printf: %s", s)
 	return len(s), nil
 }
+
 func (n *signupTerminalUI) PrintfUnescaped(f string, args ...interface{}) (int, error) {
 	s := fmt.Sprintf(f, args...)
 	n.G().Log.Debug("Terminal PrintfUnescaped: %s", s)
@@ -161,9 +166,11 @@ func (n *signupTerminalUI) Write(b []byte) (int, error) {
 func (n *signupTerminalUI) OutputWriter() io.Writer {
 	return n
 }
+
 func (n *signupTerminalUI) UnescapedOutputWriter() io.Writer {
 	return n
 }
+
 func (n *signupTerminalUI) ErrorWriter() io.Writer {
 	return n
 }
@@ -435,7 +442,6 @@ func TestSignupLogout(t *testing.T) {
 		}
 	default:
 	}
-
 }
 
 // Try to elicit a race between Logout and Shutdown.

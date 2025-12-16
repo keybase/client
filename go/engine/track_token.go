@@ -204,7 +204,6 @@ func (e *TrackToken) loadMe(m libkb.MetaContext) error {
 }
 
 func (e *TrackToken) loadThem(m libkb.MetaContext, username libkb.NormalizedUsername) error {
-
 	arg := libkb.NewLoadUserArgWithMetaContext(m).WithName(username.String()).WithPublicKeyOptional()
 	them, err := libkb.LoadUser(arg)
 	if err != nil {
@@ -252,7 +251,6 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 		me,
 		sigVersion,
 	)
-
 	if err != nil {
 		return err
 	}

@@ -24,7 +24,8 @@ type WriterDeviceDateConflictRenamer struct {
 // ConflictRename implements the ConflictRename interface for
 // TimeAndWriterConflictRenamer.
 func (cr WriterDeviceDateConflictRenamer) ConflictRename(
-	ctx context.Context, op op, original string) (string, error) {
+	ctx context.Context, op op, original string,
+) (string, error) {
 	now := cr.config.Clock().Now()
 	winfo := op.getWriterInfo()
 	ui, err := cr.config.KeybaseService().LoadUserPlusKeys(
@@ -51,7 +52,8 @@ func (WriterDeviceDateConflictRenamer) ConflictRenameHelper(t time.Time, user, d
 
 func newWriterInfo(
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, revision kbfsmd.Revision,
-	offline keybase1.OfflineAvailability) writerInfo {
+	offline keybase1.OfflineAvailability,
+) writerInfo {
 	return writerInfo{
 		uid:      uid,
 		key:      key,

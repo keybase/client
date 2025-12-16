@@ -1020,7 +1020,6 @@ func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (resp s
 		return stellar1.AirdropDetails{}, err
 	}
 	return stellar1.AirdropDetails{IsPromoted: isPromoted, Details: details, Disclaimer: disclaimer}, nil
-
 }
 
 func (s *Server) AirdropRegisterLocal(ctx context.Context, arg stellar1.AirdropRegisterLocalArg) (err error) {
@@ -1205,7 +1204,6 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 		return stellar1.PaymentPathLocal{}, err
 	}
 	exchangeRateRight, err := stellar.FormatAmountDescriptionAsset(mctx, srcAmt.FloatString(7), path.SourceAsset)
-
 	if err != nil {
 		return stellar1.PaymentPathLocal{}, err
 	}

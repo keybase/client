@@ -28,7 +28,8 @@ var _ XattrHandler = NoXattrHandler{}
 
 // Getxattr implements the fs.NodeGetxattrer interface.
 func (h NoXattrHandler) Getxattr(context.Context,
-	*fuse.GetxattrRequest, *fuse.GetxattrResponse) error {
+	*fuse.GetxattrRequest, *fuse.GetxattrResponse,
+) error {
 	return fuse.ENOTSUP
 }
 

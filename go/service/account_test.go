@@ -103,9 +103,11 @@ func TestContactSettingsAPI(t *testing.T) {
 		AllowGoodTeams:       true,
 		AllowFolloweeDegrees: 2,
 		Teams: []keybase1.TeamContactSettings{
-			{TeamID: *teamID,
+			{
+				TeamID:  *teamID,
 				Enabled: true,
-			}},
+			},
+		},
 	}
 	expectedSettings := settings
 	err = handler.UserSetContactSettings(ctx, settings)

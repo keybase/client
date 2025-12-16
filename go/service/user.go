@@ -203,8 +203,8 @@ func (h *UserHandler) loadPublicKeys(ctx context.Context, larg libkb.LoadUserArg
 }
 
 func (h *UserHandler) LoadAllPublicKeysUnverified(ctx context.Context,
-	arg keybase1.LoadAllPublicKeysUnverifiedArg) (keys []keybase1.PublicKey, err error) {
-
+	arg keybase1.LoadAllPublicKeysUnverifiedArg,
+) (keys []keybase1.PublicKey, err error) {
 	u, err := libkb.LoadUserFromServer(libkb.NewMetaContext(ctx, h.G()), arg.Uid, nil)
 	if err != nil {
 		return
@@ -495,7 +495,8 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 				PickerText:    serviceType.DisplayName(),
 				PickerSubtext: subtext,
 				Metas:         metas,
-			}})
+			},
+		})
 	}
 	tracer.Stage("misc")
 	hasPGP := len(user.GetActivePGPKeys(true)) > 0

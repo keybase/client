@@ -125,6 +125,7 @@ func retryTestNTimes(t *testing.T, n int, f func(t *testing.T) bool) {
 	}
 	t.Errorf("Test did not succeed any of the %v times", n)
 }
+
 func TestHiddenLoadSucceedsIfServerDoesntCommitLinks(t *testing.T) {
 	retryTestNTimes(t, 5, testHiddenLoadSucceedsIfServerDoesntCommitLinks)
 }

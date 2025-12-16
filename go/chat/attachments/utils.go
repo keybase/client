@@ -22,7 +22,8 @@ import (
 )
 
 func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, preview bool) (res chat1.Asset, err error) {
+	msgID chat1.MessageID, preview bool,
+) (res chat1.Asset, err error) {
 	reason := chat1.GetThreadReason_GENERAL
 	msgs, err := g.ChatHelper.GetMessages(ctx, uid, convID, []chat1.MessageID{msgID}, true, &reason)
 	if err != nil {
@@ -159,7 +160,8 @@ func isKbfsPath(p string) bool {
 }
 
 func makeSimpleFSClientFromGlobalContext(
-	g *libkb.GlobalContext) (*keybase1.SimpleFSClient, error) {
+	g *libkb.GlobalContext,
+) (*keybase1.SimpleFSClient, error) {
 	xp := g.ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
 		return nil, libkb.KBFSNotRunningError{}
@@ -172,7 +174,8 @@ func makeSimpleFSClientFromGlobalContext(
 // NewKbfsReadCloseResetter creates a ReadCloseResetter that uses SimpleFS as source
 // of data. kbfsPath must start with "/keybase/<tlf-type>/".
 func NewKbfsReadCloseResetter(ctx context.Context, g *libkb.GlobalContext,
-	kbfsPath string) (ReadCloseResetter, error) {
+	kbfsPath string,
+) (ReadCloseResetter, error) {
 	if !isKbfsPath(kbfsPath) {
 		return nil, errors.New("not a kbfs path")
 	}
@@ -235,7 +238,8 @@ func (f *KbfsReadCloseResetter) Close() error {
 // NewReadCloseResetter creates a ReadCloseResetter using either on-disk file
 // or SimpleFS depending on if p is a KBFS path.
 func NewReadCloseResetter(ctx context.Context, g *libkb.GlobalContext,
-	p string) (ReadCloseResetter, error) {
+	p string,
+) (ReadCloseResetter, error) {
 	if isKbfsPath(p) {
 		return NewKbfsReadCloseResetter(ctx, g, p)
 	}
@@ -249,9 +253,9 @@ type kbfsFileInfo struct {
 func (fi kbfsFileInfo) Name() string { return fi.dirent.Name }
 func (fi kbfsFileInfo) Size() int64  { return int64(fi.dirent.Size) }
 func (fi kbfsFileInfo) Mode() (mode os.FileMode) {
-	mode |= 0400
+	mode |= 0o400
 	if fi.dirent.Writable {
-		mode |= 0200
+		mode |= 0o200
 	}
 	switch fi.dirent.DirentType {
 	case keybase1.DirentType_DIR:
@@ -259,13 +263,15 @@ func (fi kbfsFileInfo) Mode() (mode os.FileMode) {
 	case keybase1.DirentType_SYM:
 		mode |= os.ModeSymlink
 	case keybase1.DirentType_EXEC:
-		mode |= 0100
+		mode |= 0o100
 	}
 	return mode
 }
+
 func (fi kbfsFileInfo) ModTime() time.Time {
 	return keybase1.FromTime(fi.dirent.Time)
 }
+
 func (fi kbfsFileInfo) IsDir() bool {
 	return fi.dirent.DirentType == keybase1.DirentType_DIR
 }
@@ -274,7 +280,8 @@ func (fi kbfsFileInfo) Sys() interface{} { return fi.dirent }
 // StatOSOrKbfsFile stats the file located at p, using SimpleFSStat if it's a
 // KBFS path, or os.Stat if not.
 func StatOSOrKbfsFile(ctx context.Context, g *libkb.GlobalContext, p string) (
-	fi os.FileInfo, err error) {
+	fi os.FileInfo, err error,
+) {
 	if !isKbfsPath(p) {
 		return os.Stat(p)
 	}

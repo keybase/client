@@ -26,7 +26,8 @@ func NewBot(g *globals.Context) *Bot {
 }
 
 func (b *Bot) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string, replyTo *chat1.MessageID) (err error) {
+	tlfName, text string, replyTo *chat1.MessageID,
+) (err error) {
 	return errors.New("bot command cannot be executed")
 }
 
@@ -41,7 +42,8 @@ func (b *Bot) clearExtendedDisplayLocked(ctx context.Context, convID chat1.Conve
 }
 
 func (b *Bot) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) {
+	tlfName, text string,
+) {
 	defer b.Trace(ctx, nil, "Preview")()
 	b.Lock()
 	defer b.Unlock()

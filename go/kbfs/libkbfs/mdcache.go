@@ -60,7 +60,8 @@ func NewMDCacheStandard(capacity int) *MDCacheStandard {
 
 // Get implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Get(tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID) (
-	ImmutableRootMetadata, error) {
+	ImmutableRootMetadata, error,
+) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
 	key := mdCacheKey{tlf, rev, bid}
@@ -91,7 +92,8 @@ func (md *MDCacheStandard) Put(rmd ImmutableRootMetadata) error {
 
 // Delete implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Delete(tlf tlf.ID, rev kbfsmd.Revision,
-	bid kbfsmd.BranchID) {
+	bid kbfsmd.BranchID,
+) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	key := mdCacheKey{tlf, rev, bid}
@@ -100,7 +102,8 @@ func (md *MDCacheStandard) Delete(tlf tlf.ID, rev kbfsmd.Revision,
 
 // Replace implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Replace(newRmd ImmutableRootMetadata,
-	oldBID kbfsmd.BranchID) error {
+	oldBID kbfsmd.BranchID,
+) error {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	oldKey := mdCacheKey{newRmd.TlfID(), newRmd.Revision(), oldBID}
@@ -115,7 +118,8 @@ func (md *MDCacheStandard) Replace(newRmd ImmutableRootMetadata,
 // MarkPutToServer implements the MDCache interface for
 // MDCacheStandard.
 func (md *MDCacheStandard) MarkPutToServer(
-	tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID) {
+	tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID,
+) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	key := mdCacheKey{tlf, rev, bid}
@@ -161,7 +165,8 @@ func (md *MDCacheStandard) PutIDForHandle(handle *tlfhandle.Handle, id tlf.ID) e
 // ChangeHandleForID implements the MDCache interface for
 // MDCacheStandard.
 func (md *MDCacheStandard) ChangeHandleForID(
-	oldHandle *tlfhandle.Handle, newHandle *tlfhandle.Handle) {
+	oldHandle *tlfhandle.Handle, newHandle *tlfhandle.Handle,
+) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
 	oldKey := oldHandle.GetCanonicalPath()
@@ -188,7 +193,8 @@ type mdcacheNextMDVal struct {
 // GetNextMD implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) GetNextMD(tlfID tlf.ID, rootSeqno keybase1.Seqno) (
 	nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
-	nextRootSeqno keybase1.Seqno, err error) {
+	nextRootSeqno keybase1.Seqno, err error,
+) {
 	key := mdcacheNextMDKey{tlfID, rootSeqno}
 	tmp, ok := md.nextMDLRU.Get(key)
 	if !ok {
@@ -205,7 +211,8 @@ func (md *MDCacheStandard) GetNextMD(tlfID tlf.ID, rootSeqno keybase1.Seqno) (
 // PutNextMD implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) PutNextMD(
 	tlfID tlf.ID, rootSeqno keybase1.Seqno, nextKbfsRoot *kbfsmd.MerkleRoot,
-	nextMerkleNodes [][]byte, nextRootSeqno keybase1.Seqno) error {
+	nextMerkleNodes [][]byte, nextRootSeqno keybase1.Seqno,
+) error {
 	key := mdcacheNextMDKey{tlfID, rootSeqno}
 	val := mdcacheNextMDVal{nextKbfsRoot, nextMerkleNodes, nextRootSeqno}
 	md.nextMDLRU.Add(key, val)

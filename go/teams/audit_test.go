@@ -18,7 +18,6 @@ import (
 // is advertising a tail at 5, and we're only loaded through 3 (due to an unbusted cache),
 // the audit should still succeed.
 func TestAuditStaleTeam(t *testing.T) {
-
 	fus, tcs, cleanup := setupNTests(t, 5)
 	defer cleanup()
 

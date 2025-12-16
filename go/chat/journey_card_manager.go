@@ -518,7 +518,8 @@ func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, _ chat1
 // Condition: User has sent a first message OR a few days have passed since they joined the channel.
 // Condition: Less than 4 weeks have passed since the user joined the team (ish: see JoinedTime).
 func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context, conv convForJourneycard,
-	jcd journeycardData, debugDebug logFn) bool {
+	jcd journeycardData, debugDebug logFn,
+) bool {
 	otherChannelsExist := conv.GetTeamType() == chat1.TeamType_COMPLEX
 	simpleQualified := conv.IsGeneralChannel && otherChannelsExist && (jcd.Convs[conv.ConvID.ConvIDStr()].SentMessage || cc.timeSinceJoinedInRange(ctx, conv.TeamID, conv.ConvID, jcd, time.Hour*24*2, cardSinceJoinedCap))
 	if !simpleQualified {
@@ -576,7 +577,8 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 // Condition: A few days on top of POPULAR_CHANNELS have passed since the user joined the channel. In order to space it out from POPULAR_CHANNELS.
 // Condition: Less than 4 weeks have passed since the user joined the team (ish: see JoinedTime).
 func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv convForJourneycard, jcd journeycardData,
-	debugDebug logFn) bool {
+	debugDebug logFn,
+) bool {
 	if !conv.IsGeneralChannel || !conv.UntrustedTeamRole.IsAdminOrAbove() {
 		return false
 	}
@@ -657,7 +659,8 @@ func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, 
 // Condition: In a channel besides general.
 // Condition: The last visible message is old, was sent by the logged-in user, and was a long text message, and has not been reacted to.
 func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, conv convForJourneycard,
-	jcd journeycardData, thread *chat1.ThreadView, debugDebug logFn) bool {
+	jcd journeycardData, thread *chat1.ThreadView, debugDebug logFn,
+) bool {
 	if conv.IsGeneralChannel {
 		return false
 	}
@@ -735,7 +738,8 @@ func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, con
 // Condition: A card besides WELCOME has been shown in the team.
 func (cc *JourneyCardManagerSingleUser) cardChannelInactive(ctx context.Context,
 	conv convForJourneycard, jcd journeycardData, thread *chat1.ThreadView,
-	debugDebug logFn) bool {
+	debugDebug logFn,
+) bool {
 	if conv.CannotWrite || !jcd.ShownCardBesidesWelcome {
 		return false
 	}
@@ -815,7 +819,8 @@ func (cc *JourneyCardManagerSingleUser) timeSinceJoinedLE(ctx context.Context, t
 }
 
 func (cc *JourneyCardManagerSingleUser) messageSince(ctx context.Context, msgID chat1.MessageID,
-	_ convForJourneycard, thread *chat1.ThreadView, debugDebug logFn) bool {
+	_ convForJourneycard, thread *chat1.ThreadView, debugDebug logFn,
+) bool {
 	for _, msg := range thread.Messages {
 		state, err := msg.State()
 		if err != nil {

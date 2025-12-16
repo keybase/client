@@ -467,9 +467,11 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 
 type reviewButtonState string
 
-const reviewButtonSpinning = "spinning"
-const reviewButtonEnabled = "enabled"
-const reviewButtonDisabled = "disabled"
+const (
+	reviewButtonSpinning = "spinning"
+	reviewButtonEnabled  = "enabled"
+	reviewButtonDisabled = "disabled"
+)
 
 func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, arg stellar1.ReviewPaymentLocalArg) (err error) {
 	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "ReviewPaymentLocal", true)
@@ -650,7 +652,8 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 func identifyForReview(mctx libkb.MetaContext, assertion string,
 	successCh chan<- struct{},
 	trackFailCh chan<- struct{},
-	errCh chan<- error) {
+	errCh chan<- error,
+) {
 	// Goroutines that are blocked on otherwise unreachable channels are not GC'd.
 	// So use ctx to clean up.
 	sendSuccess := func() {

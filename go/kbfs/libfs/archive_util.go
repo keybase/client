@@ -39,7 +39,8 @@ func BranchNameFromArchiveRefDir(dir string) (data.BranchName, bool) {
 // parsed in MM/DD format.
 func RevFromTimeString(
 	ctx context.Context, config libkbfs.Config, h *tlfhandle.Handle,
-	timeString string) (kbfsmd.Revision, error) {
+	timeString string,
+) (kbfsmd.Revision, error) {
 	t, err := dateparse.ParseAny(timeString)
 	if err != nil {
 		return kbfsmd.RevisionUninitialized, err
@@ -53,7 +54,8 @@ func RevFromTimeString(
 // link name.  Ambiguous dates are parsed in MM/DD format.
 func LinkTargetFromTimeString(
 	ctx context.Context, config libkbfs.Config, h *tlfhandle.Handle,
-	link string) (string, bool, error) {
+	link string,
+) (string, bool, error) {
 	if !strings.HasPrefix(link, ArchivedTimeLinkPrefix) {
 		return "", false, nil
 	}
@@ -72,7 +74,8 @@ func LinkTargetFromTimeString(
 // revision number for the given TLF.
 func RevFromRelativeTimeString(
 	ctx context.Context, config libkbfs.Config, h *tlfhandle.Handle,
-	relTime string) (kbfsmd.Revision, error) {
+	relTime string,
+) (kbfsmd.Revision, error) {
 	d, err := time.ParseDuration(relTime)
 	if err != nil {
 		return 0, err
@@ -88,7 +91,8 @@ func RevFromRelativeTimeString(
 // is relative to the local clock.
 func FileDataFromRelativeTimeString(
 	ctx context.Context, config libkbfs.Config, h *tlfhandle.Handle,
-	filename string) ([]byte, bool, error) {
+	filename string,
+) ([]byte, bool, error) {
 	if !strings.HasPrefix(filename, ArchivedRelTimeFilePrefix) {
 		return nil, false, nil
 	}

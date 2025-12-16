@@ -263,7 +263,8 @@ func findRoleDowngrade(points []keybase1.UserLogPoint, role keybase1.TeamRole) *
 // then go forwards to make sure there wasn't a demotion before the specified time.
 // If there was, return a PermissionError. If no adminship was found at all, return a PermissionError.
 func (t TeamSigChainState) AssertWasRoleOrAboveAt(uv keybase1.UserVersion,
-	role keybase1.TeamRole, scl keybase1.SigChainLocation) (err error) {
+	role keybase1.TeamRole, scl keybase1.SigChainLocation,
+) (err error) {
 	mkErr := func(format string, args ...interface{}) error {
 		msg := fmt.Sprintf(format, args...)
 		if role.IsOrAbove(keybase1.TeamRole_ADMIN) {
@@ -483,7 +484,8 @@ func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite, teamSigMeta k
 }
 
 func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID,
-	cancelTeamSigMeta keybase1.TeamSignatureMetadata) {
+	cancelTeamSigMeta keybase1.TeamSignatureMetadata,
+) {
 	inviteMD, ok := t.inner.InviteMetadatas[i]
 	if !ok {
 		return
@@ -495,7 +497,8 @@ func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID,
 }
 
 func (t *TeamSigChainState) informCompletedInvite(i keybase1.TeamInviteID,
-	completeTeamSigMeta keybase1.TeamSignatureMetadata) {
+	completeTeamSigMeta keybase1.TeamSignatureMetadata,
+) {
 	inviteMD, ok := t.inner.InviteMetadatas[i]
 	if !ok {
 		return
@@ -577,8 +580,8 @@ func (t *TeamSigChainState) ListSubteams() (res []keybase1.TeamIDAndName) {
 // This is currently linear in the number of times that subteam has been renamed.
 // It should be easy to add an index if need be.
 func (t *TeamSigChainState) SubteamRenameOccurred(
-	subteamID keybase1.TeamID, newName keybase1.TeamName, seqno keybase1.Seqno) error {
-
+	subteamID keybase1.TeamID, newName keybase1.TeamName, seqno keybase1.Seqno,
+) error {
 	points := t.inner.SubteamLog[subteamID]
 	if len(points) == 0 {
 		return fmt.Errorf("subteam %v has no name log", subteamID)
@@ -655,7 +658,8 @@ func (t *TeamSigChainState) FindActiveInviteString(mctx libkb.MetaContext, name 
 // of time. We treat invite expiration times as advisory for admin clients
 // completing invites, but do not check them in the sigchain player.
 func (t *TeamSigChainState) FindActiveInviteMDByID(
-	id keybase1.TeamInviteID) (inviteMD keybase1.TeamInviteMetadata, found bool) {
+	id keybase1.TeamInviteID,
+) (inviteMD keybase1.TeamInviteMetadata, found bool) {
 	res, found := t.inner.InviteMetadatas[id]
 	if !found {
 		return inviteMD, false
@@ -714,7 +718,8 @@ func (t TeamSigChainState) TeamBotSettings() map[keybase1.UserVersion]keybase1.T
 // If `state` is nil this is the first link of the chain.
 // `signer` may be nil iff link is stubbed.
 func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state *TeamSigChainState,
-	link *ChainLinkUnpacked, signer *SignerX) (res TeamSigChainState, err error) {
+	link *ChainLinkUnpacked, signer *SignerX,
+) (res TeamSigChainState, err error) {
 	t := &teamSigchainPlayer{
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
@@ -733,7 +738,8 @@ func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase
 // InflateLink adds the full inner link for a link that has already been added in stubbed form.
 // `state` is moved into this function. There must exist no live references into it from now on.
 func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state TeamSigChainState,
-	link *ChainLinkUnpacked, signer SignerX) (res TeamSigChainState, err error) {
+	link *ChainLinkUnpacked, signer SignerX,
+) (res TeamSigChainState, err error) {
 	if link.isStubbed() {
 		return TeamSigChainState{}, NewStubbedError(link)
 	}
@@ -769,7 +775,6 @@ func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.Us
 	delete(iRes.newState.inner.StubbedLinks, link.Seqno())
 
 	return iRes.newState, nil
-
 }
 
 // Helper struct for playing sigchains.
@@ -784,8 +789,8 @@ type teamSigchainPlayer struct {
 // If `prevState` is nil this is the first chain link.
 func (t *teamSigchainPlayer) appendChainLinkHelper(
 	mctx libkb.MetaContext, prevState *TeamSigChainState, link *ChainLinkUnpacked, signer *SignerX) (
-	res TeamSigChainState, err error) {
-
+	res TeamSigChainState, err error,
+) {
 	err = t.checkOuterLink(mctx.Ctx(), prevState, link)
 	if err != nil {
 		return res, fmt.Errorf("team sigchain outer link: %s", err)
@@ -869,8 +874,8 @@ type checkInnerLinkResult struct {
 // Does not modify `prevState` but returns a new state.
 func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 	prevState *TeamSigChainState, link *ChainLinkUnpacked, signer SignerX,
-	isInflate bool) (res checkInnerLinkResult, err error) {
-
+	isInflate bool,
+) (res checkInnerLinkResult, err error) {
 	if link.inner == nil {
 		return res, NewStubbedError(link)
 	}
@@ -1116,7 +1121,8 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				TlfLegacyUpgrade:        make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
-			}}
+			},
+		}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 		if team.Invites != nil {
@@ -1502,7 +1508,8 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				InviteMetadatas:         make(map[keybase1.TeamInviteID]keybase1.TeamInviteMetadata),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
-			}}
+			},
+		}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 		if settings := team.Settings; settings != nil {
@@ -1906,7 +1913,6 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 	signer keybase1.UserVersion, signerIsExplicitOwner bool, invites SCTeamInvites, sigID keybase1.SigID,
 	options sanityCheckInvitesOptions,
 ) (additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, err error) {
-
 	type assignment struct {
 		i    SCTeamInvite
 		role keybase1.TeamRole
@@ -2154,7 +2160,6 @@ func (t *teamSigchainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 
 // Whether the roleUpdates would demote any current owner to a lesser role.
 func (t *teamSigchainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion) bool {
-
 	// It is OK to readmit an owner if the owner reset and is coming in at a lower permission
 	// level. So check that case here.
 	readmittingResetUser := func(uv keybase1.UserVersion) bool {
@@ -2193,7 +2198,6 @@ func (t *teamSigchainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, ro
 }
 
 func (t *teamSigchainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, prevState *TeamSigChainState) (res keybase1.PerTeamKey, err error) {
-
 	// Check that the new key doesn't conflict with keys we already have.
 	err = prevState.checkNewPTK(perTeamKey)
 	if err != nil {
@@ -2255,7 +2259,8 @@ func (t *teamSigchainPlayer) updateInvites(stateToUpdate *TeamSigChainState, add
 
 func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState,
 	completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm,
-	teamSigMeta keybase1.TeamSignatureMetadata) error {
+	teamSigMeta keybase1.TeamSignatureMetadata,
+) error {
 	for id := range completed {
 		inviteMD, found := stateToUpdate.FindActiveInviteMDByID(id)
 		if !found {
@@ -2472,7 +2477,6 @@ func (t *teamSigchainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 }
 
 func (t *teamSigchainPlayer) parseTeamBotSettings(bots []SCTeamBot, newState *TeamSigChainState) error {
-
 	for _, bot := range bots {
 		// Bots listed here must have the RESTRICTEDBOT role
 		role, err := newState.GetUserRole(bot.Bot.ToUserVersion())
@@ -2511,8 +2515,7 @@ func (t *teamSigchainPlayer) parseKBFSTLFUpgrade(upgrade *SCTeamKBFS, newState *
 	if upgrade.Keyset != nil {
 		if newState.inner.TlfLegacyUpgrade == nil {
 			// If an old client cached this as nil, then just make a new map here for this link
-			newState.inner.TlfLegacyUpgrade =
-				make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo)
+			newState.inner.TlfLegacyUpgrade = make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo)
 		}
 		newState.inner.TlfLegacyUpgrade[upgrade.Keyset.AppType] = keybase1.TeamLegacyTLFUpgradeChainInfo{
 			KeysetHash:       upgrade.Keyset.KeysetHash,

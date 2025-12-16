@@ -77,7 +77,6 @@ func TestSecretStoreOps(t *testing.T) {
 }
 
 func TestGetUsersWithStoredSecrets(t *testing.T) {
-
 	tc := SetupTest(t, "get users with stored secrets", 1)
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)

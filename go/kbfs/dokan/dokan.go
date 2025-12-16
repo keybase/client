@@ -22,8 +22,8 @@ func Mount(cfg *Config) (*MountHandle, error) {
 	if err != nil {
 		return nil, err
 	}
-	var ec = make(chan error, 2)
-	var slot = fsTableStore(cfg.FileSystem, ec)
+	ec := make(chan error, 2)
+	slot := fsTableStore(cfg.FileSystem, ec)
 	flags := cfg.MountFlags
 	go func() {
 		ctx := allocCtx(slot)

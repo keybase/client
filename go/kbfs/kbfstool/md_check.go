@@ -27,7 +27,8 @@ descending order, regardless of whether rev1 <= rev2 or rev1 > rev2.
 
 func checkDirBlock(ctx context.Context, config libkbfs.Config,
 	name string, kmd libkey.KeyMetadata, info data.BlockInfo,
-	verbose bool) (err error) {
+	verbose bool,
+) (err error) {
 	if verbose {
 		fmt.Printf("Checking %s (dir block %v)...\n", name, info)
 	} else {
@@ -75,7 +76,8 @@ func checkDirBlock(ctx context.Context, config libkbfs.Config,
 
 func checkFileBlock(ctx context.Context, config libkbfs.Config,
 	name string, kmd libkey.KeyMetadata, info data.BlockInfo,
-	verbose bool) (err error) {
+	verbose bool,
+) (err error) {
 	if verbose {
 		fmt.Printf("Checking %s (file block %v)...\n", name, info)
 	} else {
@@ -118,7 +120,8 @@ func checkFileBlock(ctx context.Context, config libkbfs.Config,
 // recent one is returned.
 func mdCheckChain(ctx context.Context, config libkbfs.Config,
 	reversedIRMDs []libkbfs.ImmutableRootMetadata, verbose bool) (
-	reversedIRMDsWithRoots []libkbfs.ImmutableRootMetadata) {
+	reversedIRMDsWithRoots []libkbfs.ImmutableRootMetadata,
+) {
 	fmt.Printf("Checking chain from rev %d to %d...\n",
 		reversedIRMDs[0].Revision(), reversedIRMDs[len(reversedIRMDs)-1].Revision())
 	gcUnrefs := make(map[data.BlockRef]bool)
@@ -188,9 +191,9 @@ func mdCheckChain(ctx context.Context, config libkbfs.Config,
 
 func mdCheckIRMDs(ctx context.Context, config libkbfs.Config,
 	tlfStr, branchStr string, reversedIRMDs []libkbfs.ImmutableRootMetadata,
-	verbose bool) error {
-	reversedIRMDsWithRoots :=
-		mdCheckChain(ctx, config, reversedIRMDs, verbose)
+	verbose bool,
+) error {
+	reversedIRMDsWithRoots := mdCheckChain(ctx, config, reversedIRMDs, verbose)
 
 	fmt.Printf("Retrieved %d MD objects with roots\n", len(reversedIRMDsWithRoots))
 
@@ -205,7 +208,8 @@ func mdCheckIRMDs(ctx context.Context, config libkbfs.Config,
 }
 
 func mdCheck(ctx context.Context, config libkbfs.Config, args []string) (
-	exitStatus int) {
+	exitStatus int,
+) {
 	flags := flag.NewFlagSet("kbfs md check", flag.ContinueOnError)
 	verbose := flags.Bool("v", false, "Print verbose output.")
 	err := flags.Parse(args)
@@ -227,8 +231,7 @@ func mdCheck(ctx context.Context, config libkbfs.Config, args []string) (
 			return 1
 		}
 
-		tlfID, branchID, start, stop, err :=
-			mdParseInput(ctx, config, tlfStr, branchStr, startStr, stopStr)
+		tlfID, branchID, start, stop, err := mdParseInput(ctx, config, tlfStr, branchStr, startStr, stopStr)
 		if err != nil {
 			printError("md check", err)
 			return 1

@@ -27,7 +27,7 @@ func (lfi *lfsFileInfo) Size() int64 {
 }
 
 func (lfi *lfsFileInfo) Mode() os.FileMode {
-	return 0600
+	return 0o600
 }
 
 func (lfi *lfsFileInfo) ModTime() time.Time {

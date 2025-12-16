@@ -27,7 +27,7 @@ var _ fs.Node = (*PrefetchFile)(nil)
 // Attr implements the fs.Node interface for PrefetchFile.
 func (f *PrefetchFile) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Size = 0
-	a.Mode = 0222
+	a.Mode = 0o222
 	return nil
 }
 
@@ -37,7 +37,8 @@ var _ fs.HandleWriter = (*PrefetchFile)(nil)
 
 // Write implements the fs.HandleWriter interface for PrefetchFile.
 func (f *PrefetchFile) Write(ctx context.Context, req *fuse.WriteRequest,
-	resp *fuse.WriteResponse) (err error) {
+	resp *fuse.WriteResponse,
+) (err error) {
 	f.fs.log.CDebugf(ctx, "PrefetchFile (enable: %t) Write", f.enable)
 	defer func() { err = f.fs.processError(ctx, libkbfs.WriteMode, err) }()
 	if len(req.Data) == 0 {

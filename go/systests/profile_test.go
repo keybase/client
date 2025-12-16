@@ -2,7 +2,6 @@ package systests
 
 import (
 	"context"
-
 	"io"
 	"net/http"
 	"testing"
@@ -88,7 +87,8 @@ func TestProofSuggestions(t *testing.T) {
 			ProfileText:   "Prove your Quantum Resistant Ledger",
 			PickerText:    "Quantum Resistant Ledger",
 			PickerSubtext: "theqrl.org",
-		}}}
+		}},
+	}
 	require.Equal(t, expected.ShowMore, res.ShowMore)
 	require.True(t, len(res.Suggestions) >= len(expected.Suggestions), "should be at least as many results as expected")
 	iconExempt := map[string]struct{}{

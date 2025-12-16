@@ -138,7 +138,6 @@ func TestSaltpackEncryptHideRecipients(t *testing.T) {
 				t.Fatal("receiver KID included in anonymous saltpack header")
 			}
 		}
-
 	}
 	run([]string{u1.Username, u2.Username})
 

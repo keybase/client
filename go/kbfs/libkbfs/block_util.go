@@ -29,7 +29,8 @@ func isRecoverableBlockError(err error) bool {
 func putBlockToServer(
 	ctx context.Context, bserv BlockServer, tlfID tlf.ID,
 	blockPtr data.BlockPointer, readyBlockData data.ReadyBlockData,
-	cacheType DiskBlockCacheType) error {
+	cacheType DiskBlockCacheType,
+) error {
 	var err error
 	if blockPtr.RefNonce == kbfsblock.ZeroRefNonce {
 		err = bserv.Put(ctx, tlfID, blockPtr.ID, blockPtr.Context,
@@ -49,7 +50,8 @@ func putBlockToServer(
 func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 	reporter Reporter, tlfID tlf.ID, blockPtr data.BlockPointer,
 	readyBlockData data.ReadyBlockData, tlfName tlf.CanonicalName,
-	cacheType DiskBlockCacheType) error {
+	cacheType DiskBlockCacheType,
+) error {
 	err := putBlockToServer(
 		ctx, bserv, tlfID, blockPtr, readyBlockData, cacheType)
 	switch typedErr := errors.Cause(err).(type) {
@@ -78,7 +80,8 @@ func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 	tlfID tlf.ID, tlfName tlf.CanonicalName, ptr data.BlockPointer,
 	bps blockPutState, blocksToRemoveChan chan data.BlockPointer,
-	cacheType DiskBlockCacheType) error {
+	cacheType DiskBlockCacheType,
+) error {
 	readyBlockData, err := bps.getReadyBlockData(ctx, ptr)
 	if err != nil {
 		return err
@@ -111,7 +114,8 @@ func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 func doBlockPuts(ctx context.Context, bserv BlockServer, bcache data.BlockCache,
 	reporter Reporter, log, deferLog traceLogger, tlfID tlf.ID,
 	tlfName tlf.CanonicalName, bps blockPutState,
-	cacheType DiskBlockCacheType) (blocksToRemove []data.BlockPointer, err error) {
+	cacheType DiskBlockCacheType,
+) (blocksToRemove []data.BlockPointer, err error) {
 	blockCount := bps.numBlocks()
 	log.LazyTrace(ctx, "doBlockPuts with %d blocks", blockCount)
 	defer func() {
@@ -181,7 +185,8 @@ func doAssembleBlock(
 	ctx context.Context, keyGetter blockKeyGetter, codec kbfscodec.Codec,
 	cryptoPure cryptoPure, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
 	block data.Block, buf []byte,
-	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf,
+) error {
 	tlfCryptKey, err := keyGetter.GetTLFCryptKeyForBlockDecryption(
 		ctx, kmd, blockPtr)
 	if err != nil {
@@ -194,8 +199,7 @@ func doAssembleBlock(
 		return err
 	}
 
-	if idType, blockType :=
-		blockPtr.ID.HashType(),
+	if idType, blockType := blockPtr.ID.HashType(),
 		encryptedBlock.Version.ToHashType(); idType != blockType {
 		return errors.Errorf(
 			"Block ID %s and encrypted block disagree on encryption method "+
@@ -218,7 +222,8 @@ func assembleBlockLocal(
 	ctx context.Context, keyGetter blockKeyGetter, codec kbfscodec.Codec,
 	cryptoPure cryptoPure, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
 	block data.Block, buf []byte,
-	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf,
+) error {
 	// This call only verifies the block ID if we're not running
 	// production mode, for performance reasons.
 	if err := verifyLocalBlockIDMaybe(buf, blockPtr.ID); err != nil {
@@ -234,7 +239,8 @@ func assembleBlock(
 	ctx context.Context, keyGetter blockKeyGetter, codec kbfscodec.Codec,
 	cryptoPure cryptoPure, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
 	block data.Block, buf []byte,
-	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf,
+) error {
 	if err := kbfsblock.VerifyID(buf, blockPtr.ID); err != nil {
 		return err
 	}

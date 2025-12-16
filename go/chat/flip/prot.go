@@ -5,6 +5,7 @@ package flip
 
 import (
 	"errors"
+
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -569,8 +570,7 @@ func (o GameMessageV1) DeepCopy() GameMessageV1 {
 	}
 }
 
-type FlipInterface interface {
-}
+type FlipInterface interface{}
 
 func FlipProtocol(i FlipInterface) rpc.Protocol {
 	return rpc.Protocol{

@@ -19,16 +19,22 @@ func TestCRActionsCollapseNoChange(t *testing.T) {
 	al := crActionList{
 		&copyUnmergedEntryAction{
 			testPPS("old1"), testPPS("new1"), testPPS(""), false, false,
-			data.DirEntry{}, nil},
+			data.DirEntry{},
+			nil,
+		},
 		&copyUnmergedEntryAction{
 			testPPS("old2"), testPPS("new2"), testPPS(""), false, false,
-			data.DirEntry{}, nil},
+			data.DirEntry{},
+			nil,
+		},
 		&renameUnmergedAction{
 			testPPS("old3"), testPPS("new3"), testPPS(""), 0, false,
-			data.ZeroPtr, data.ZeroPtr},
+			data.ZeroPtr, data.ZeroPtr,
+		},
 		&renameMergedAction{testPPS("old4"), testPPS("new4"), testPPS("")},
 		&copyUnmergedAttrAction{
-			testPPS("old5"), testPPS("new5"), []attrChange{mtimeAttr}, false},
+			testPPS("old5"), testPPS("new5"), []attrChange{mtimeAttr}, false,
+		},
 	}
 
 	newList := al.collapse()
@@ -40,13 +46,17 @@ func TestCRActionsCollapseNoChange(t *testing.T) {
 func TestCRActionsCollapseEntry(t *testing.T) {
 	al := crActionList{
 		&copyUnmergedAttrAction{
-			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr}, false},
+			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr}, false,
+		},
 		&copyUnmergedEntryAction{
 			testPPS("old"), testPPS("new"), testPPS(""), false, false,
-			data.DirEntry{}, nil},
+			data.DirEntry{},
+			nil,
+		},
 		&renameUnmergedAction{
 			testPPS("old"), testPPS("new"), testPPS(""), 0, false, data.ZeroPtr,
-			data.ZeroPtr},
+			data.ZeroPtr,
+		},
 	}
 
 	expected := crActionList{
@@ -78,20 +88,26 @@ func TestCRActionsCollapseEntry(t *testing.T) {
 			expected, newList)
 	}
 }
+
 func TestCRActionsCollapseAttr(t *testing.T) {
 	al := crActionList{
 		&copyUnmergedAttrAction{
-			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr}, false},
+			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr}, false,
+		},
 		&copyUnmergedAttrAction{
-			testPPS("old"), testPPS("new"), []attrChange{exAttr}, false},
+			testPPS("old"), testPPS("new"), []attrChange{exAttr}, false,
+		},
 		&copyUnmergedAttrAction{
-			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr}, false},
+			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr}, false,
+		},
 	}
 
 	expected := crActionList{
 		&copyUnmergedAttrAction{
-			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr, exAttr},
-			false},
+			testPPS("old"), testPPS("new"),
+			[]attrChange{mtimeAttr, exAttr},
+			false,
+		},
 	}
 
 	newList := al.collapse()

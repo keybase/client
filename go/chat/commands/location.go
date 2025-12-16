@@ -55,7 +55,8 @@ func (h *Location) isStop(toks []string) bool {
 }
 
 func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string, replyTo *chat1.MessageID) (err error) {
+	tlfName, text string, replyTo *chat1.MessageID,
+) (err error) {
 	defer h.Trace(ctx, &err, "Location")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
@@ -86,7 +87,8 @@ func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 }
 
 func (h *Location) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) {
+	tlfName, text string,
+) {
 	h.Lock()
 	defer h.Unlock()
 	defer h.Trace(ctx, nil, "Preview")()

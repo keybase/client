@@ -149,7 +149,6 @@ func (e *PaperKey) Run(m libkb.MetaContext) error {
 	}
 
 	return m.UIs().LoginUI.DisplayPaperKeyPhrase(m.Ctx(), keybase1.DisplayPaperKeyPhraseArg{Phrase: e.passphrase.String()})
-
 }
 
 func (e *PaperKey) Passphrase() string {

@@ -136,7 +136,6 @@ func (r *RemoteProofLinks) active() []ProofLinkWithState {
 
 	// Loop over all types of services
 	for _, list := range r.links {
-
 		// Loop over all proofs for that type, from most recent,
 		// to oldest.
 		for i := len(list) - 1; i >= 0; i-- {

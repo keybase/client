@@ -61,7 +61,8 @@ func newSentMessageListener(g *globals.Context, outboxID chat1.OutboxID) *sentMe
 }
 
 func (n *sentMessageListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
-	source chat1.ChatActivitySource) {
+	source chat1.ChatActivitySource,
+) {
 	if source != chat1.ChatActivitySource_LOCAL {
 		return
 	}
@@ -331,7 +332,8 @@ func (m *FlipManager) sortParticipants(status *chat1.UICoinFlipStatus) {
 }
 
 func (m *FlipManager) addParticipant(ctx context.Context, status *chat1.UICoinFlipStatus,
-	update flip.CommitmentUpdate) {
+	update flip.CommitmentUpdate,
+) {
 	username, deviceName, _, err := m.G().GetUPAKLoader().LookupUsernameAndDevice(ctx,
 		keybase1.UID(update.User.U.String()), keybase1.DeviceID(update.User.D.String()))
 	if err != nil {
@@ -354,7 +356,8 @@ func (m *FlipManager) addParticipant(ctx context.Context, status *chat1.UICoinFl
 }
 
 func (m *FlipManager) finalizeParticipants(ctx context.Context, status *chat1.UICoinFlipStatus,
-	cc flip.CommitmentComplete) {
+	cc flip.CommitmentComplete,
+) {
 	completeMap := make(map[string]bool)
 	mapKey := func(u, d string) string {
 		return u + "," + d
@@ -384,7 +387,8 @@ func (m *FlipManager) finalizeParticipants(ctx context.Context, status *chat1.UI
 }
 
 func (m *FlipManager) addReveal(ctx context.Context, status *chat1.UICoinFlipStatus,
-	update flip.RevealUpdate) {
+	update flip.RevealUpdate,
+) {
 	numReveals := 0
 	for index, p := range status.Participants {
 		if p.Reveal != nil {
@@ -407,7 +411,8 @@ func (m *FlipManager) cardIndex(card string) (int, error) {
 }
 
 func (m *FlipManager) addCardHandResult(ctx context.Context, status *chat1.UICoinFlipStatus,
-	result flip.Result, hmi hostMessageInfo) {
+	result flip.Result, hmi hostMessageInfo,
+) {
 	deckIndex := 0
 	numCards := len(result.Shuffle)
 	handSize := int(hmi.HandCardCount)
@@ -487,7 +492,8 @@ func (m *FlipManager) resultToText(result chat1.UICoinFlipResult) string {
 }
 
 func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus, result flip.Result,
-	convID chat1.ConversationID) {
+	convID chat1.ConversationID,
+) {
 	defer func() {
 		if status.ResultInfo != nil {
 			status.ResultText = m.resultToText(*status.ResultInfo)
@@ -574,7 +580,6 @@ func (m *FlipManager) getErrorParticipant(ctx context.Context, a flip.UserDevice
 		User:   username.String(),
 		Device: deviceName,
 	}
-
 }
 
 func (m *FlipManager) formatError(ctx context.Context, rawErr error) chat1.UICoinFlipError {
@@ -605,7 +610,8 @@ func (m *FlipManager) formatError(ctx context.Context, rawErr error) chat1.UICoi
 }
 
 func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID,
-	update *flip.GameSummary, convID chat1.ConversationID, force bool) (status chat1.UICoinFlipStatus) {
+	update *flip.GameSummary, convID chat1.ConversationID, force bool,
+) (status chat1.UICoinFlipStatus) {
 	defer m.queueDirtyGameID(ctx, gameID, force)
 	if update.Err != nil {
 		var parts []chat1.UICoinFlipParticipant
@@ -783,7 +789,8 @@ func (m *FlipManager) parseRange(arg string, nPlayersApprox int) (start flip.Sta
 }
 
 func (m *FlipManager) parseSpecials(arg string, usernames []string,
-	nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
+	nPlayersApprox int,
+) (start flip.Start, metadata flipTextMetadata, err error) {
 	switch {
 	case strings.HasPrefix(arg, "cards"):
 		deckShuffle, deckShuffleMetadata, _ := m.parseShuffle(m.deck, nPlayersApprox)
@@ -923,7 +930,8 @@ func (m *FlipManager) DescribeFlipText(ctx context.Context, text string) string 
 }
 
 func (m *FlipManager) setStartFlipSendStatus(ctx context.Context, outboxID chat1.OutboxID,
-	status types.FlipSendStatus, flipConvID *chat1.ConversationID) {
+	status types.FlipSendStatus, flipConvID *chat1.ConversationID,
+) {
 	payload := startFlipSendStatus{
 		status: status,
 	}
@@ -936,7 +944,8 @@ func (m *FlipManager) setStartFlipSendStatus(ctx context.Context, outboxID chat1
 
 // StartFlip implements the types.CoinFlipManager interface
 func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
-	tlfName, text string, inOutboxID *chat1.OutboxID) (err error) {
+	tlfName, text string, inOutboxID *chat1.OutboxID,
+) (err error) {
 	defer m.Trace(ctx, &err, "StartFlip: convID: %s", hostConvID)()
 	gameID := flip.GenerateGameID()
 	m.Debug(ctx, "StartFlip: using gameID: %s", gameID)
@@ -1048,7 +1057,8 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 }
 
 func (m *FlipManager) shouldIgnoreInject(ctx context.Context, hostConvID, flipConvID chat1.ConversationID,
-	gameID chat1.FlipGameID) bool {
+	gameID chat1.FlipGameID,
+) bool {
 	if m.dealer.IsGameActive(ctx, flipConvID, gameID) {
 		return false
 	}
@@ -1100,7 +1110,8 @@ func (m *FlipManager) recordConvParticipation(ctx context.Context, convID chat1.
 }
 
 func (m *FlipManager) injectIncomingChat(ctx context.Context, uid gregor1.UID,
-	convID, hostConvID chat1.ConversationID, gameID chat1.FlipGameID, msg chat1.MessageUnboxed) error {
+	convID, hostConvID chat1.ConversationID, gameID chat1.FlipGameID, msg chat1.MessageUnboxed,
+) error {
 	if !msg.IsValid() {
 		m.Debug(ctx, "injectIncomingChat: skipping invalid message: %d", msg.GetMessageID())
 		return errors.New("invalid message")
@@ -1128,7 +1139,8 @@ func (m *FlipManager) injectIncomingChat(ctx context.Context, uid gregor1.UID,
 }
 
 func (m *FlipManager) updateActiveGame(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	hostConvID chat1.ConversationID, nextMsg chat1.MessageUnboxed, gameID chat1.FlipGameID) (err error) {
+	hostConvID chat1.ConversationID, nextMsg chat1.MessageUnboxed, gameID chat1.FlipGameID,
+) (err error) {
 	defer func() {
 		if err == nil {
 			if err = m.injectIncomingChat(ctx, uid, convID, hostConvID, gameID, nextMsg); err != nil {
@@ -1197,7 +1209,8 @@ func (m *FlipManager) maybeInjectLoop(shutdownCh chan struct{}) {
 
 // MaybeInjectFlipMessage implements the types.CoinFlipManager interface
 func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed,
-	inboxVers chat1.InboxVers, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool {
+	inboxVers chat1.InboxVers, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType,
+) bool {
 	// earliest of outs if this isn't a dev convo, an error, or the outbox ID message
 	if topicType != chat1.TopicType_DEV || boxedMsg.GetMessageType() != chat1.MessageType_FLIP ||
 		m.isHostMessageInfoMsgID(boxedMsg.GetMessageID()) {
@@ -1382,7 +1395,8 @@ func (m *FlipManager) loadGameLoop(shutdownCh chan struct{}) {
 
 // LoadFlip implements the types.CoinFlipManager interface
 func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
-	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) (res chan chat1.UICoinFlipStatus, err chan error) {
+	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID,
+) (res chan chat1.UICoinFlipStatus, err chan error) {
 	defer m.Trace(ctx, nil, "LoadFlip")()
 	stored, ok := m.games.Get(gameID.FlipGameIDStr())
 	if ok {
@@ -1458,7 +1472,8 @@ func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error)
 
 func (m *FlipManager) sendNonblock(ctx context.Context, initiatorUID gregor1.UID,
 	convID chat1.ConversationID, text, tlfName string, outboxID chat1.OutboxID,
-	gameID chat1.FlipGameID, topicType chat1.TopicType) error {
+	gameID chat1.FlipGameID, topicType chat1.TopicType,
+) error {
 	sender := NewNonblockingSender(m.G(), NewBlockingSender(m.G(), NewBoxer(m.G()), m.ri))
 	_, _, err := sender.Send(ctx, convID, chat1.MessagePlaintext{
 		MessageBody: chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
@@ -1490,7 +1505,8 @@ func (m *FlipManager) isSentOutboxID(ctx context.Context, gameID chat1.FlipGameI
 }
 
 func (m *FlipManager) registerSentOutboxID(ctx context.Context, gameID chat1.FlipGameID,
-	outboxID chat1.OutboxID) {
+	outboxID chat1.OutboxID,
+) {
 	m.gameOutboxIDMu.Lock()
 	defer m.gameOutboxIDMu.Unlock()
 	var om map[string]bool
@@ -1505,7 +1521,8 @@ func (m *FlipManager) registerSentOutboxID(ctx context.Context, gameID chat1.Fli
 
 // SendChat implements the flip.DealersHelper interface
 func (m *FlipManager) SendChat(ctx context.Context, initatorUID gregor1.UID, convID chat1.ConversationID, gameID chat1.FlipGameID,
-	msg flip.GameMessageEncoded) (err error) {
+	msg flip.GameMessageEncoded,
+) (err error) {
 	ctx = globals.ChatCtx(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	defer m.Trace(ctx, &err, "SendChat: convID: %s", convID)()
 	uid, err := utils.AssertLoggedInUID(ctx, m.G())
@@ -1591,7 +1608,8 @@ func NewFlipVisualizer(width, height int) *FlipVisualizer {
 }
 
 func (v *FlipVisualizer) fillCell(img *image.NRGBA, x, y, cellHeight, cellWidth int, b byte,
-	palette [256]color.RGBA) {
+	palette [256]color.RGBA,
+) {
 	for i := x; i < x+cellWidth; i++ {
 		for j := y; j < y+cellHeight; j++ {
 			img.Set(i, j, palette[b])
@@ -1600,7 +1618,8 @@ func (v *FlipVisualizer) fillCell(img *image.NRGBA, x, y, cellHeight, cellWidth 
 }
 
 func (v *FlipVisualizer) fillRow(img *image.NRGBA, startY, cellHeight, cellWidth int,
-	source string, palette [256]color.RGBA) {
+	source string, palette [256]color.RGBA,
+) {
 	b, _ := hex.DecodeString(source)
 	x := 0
 	for i := 0; i < len(b); i++ {

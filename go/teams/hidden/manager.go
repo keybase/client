@@ -143,7 +143,6 @@ func (m *ChainManager) HintLatestSeqno(mctx libkb.MetaContext, id keybase1.TeamI
 				mctx.Debug("For %s: refusing to backtrack from %d -> %d", id, state.LatestSeqnoHint, q)
 			}
 			return changed, nil
-
 		},
 	})
 	return err
@@ -220,7 +219,6 @@ func (m *ChainManager) Ratchet(mctx libkb.MetaContext, id keybase1.TeamID, ratch
 }
 
 func (m *ChainManager) checkPrev(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, newData keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) (err error) {
-
 	// nothing to check if no new links
 	if len(newData.Outer) == 0 {
 		return nil

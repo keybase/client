@@ -21,7 +21,8 @@ func (e *LogoutEngine) RequiredUIs() []libkb.UIKind      { return []libkb.UIKind
 func (e *LogoutEngine) SubConsumers() []libkb.UIConsumer { return []libkb.UIConsumer{} }
 
 func (e *LogoutEngine) filterLoggedIn(accounts []keybase1.
-	ConfiguredAccount) (ret []libkb.NormalizedUsername) {
+	ConfiguredAccount,
+) (ret []libkb.NormalizedUsername) {
 	for _, acct := range accounts {
 		if acct.HasStoredSecret {
 			ret = append(ret, libkb.NewNormalizedUsername(acct.Username))

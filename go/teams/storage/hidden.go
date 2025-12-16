@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -12,26 +13,33 @@ type HiddenStorage struct {
 }
 
 // Increment to invalidate the disk cache.
-const hiddenDiskStorageVersion = 1
-const hiddenMemCacheLRUSize = 200
+const (
+	hiddenDiskStorageVersion = 1
+	hiddenMemCacheLRUSize    = 200
+)
 
 type hiddenDiskStorageItem struct {
 	Version int                       `codec:"V"`
 	State   *keybase1.HiddenTeamChain `codec:"S"`
 }
 
-var _ teamDataGeneric = (*keybase1.HiddenTeamChain)(nil)
-var _ diskItemGeneric = (*hiddenDiskStorageItem)(nil)
+var (
+	_ teamDataGeneric = (*keybase1.HiddenTeamChain)(nil)
+	_ diskItemGeneric = (*hiddenDiskStorageItem)(nil)
+)
 
 func (d *hiddenDiskStorageItem) version() int {
 	return d.Version
 }
+
 func (d *hiddenDiskStorageItem) value() teamDataGeneric {
 	return d.State
 }
+
 func (d *hiddenDiskStorageItem) setVersion(i int) {
 	d.Version = i
 }
+
 func (d *hiddenDiskStorageItem) setValue(v teamDataGeneric) error {
 	typed, ok := v.(*keybase1.HiddenTeamChain)
 	if !ok {

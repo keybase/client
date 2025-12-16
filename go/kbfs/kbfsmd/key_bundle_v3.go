@@ -61,7 +61,8 @@ func (dkimV3 DeviceKeyInfoMapV3) fillInDeviceInfos(
 	uid keybase1.UID, tlfCryptKey kbfscrypto.TLFCryptKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey, ePubIndex int,
 	updatedDeviceKeys DevicePublicKeys) (
-	serverHalves DeviceKeyServerHalves, err error) {
+	serverHalves DeviceKeyServerHalves, err error,
+) {
 	serverHalves = make(DeviceKeyServerHalves, len(updatedDeviceKeys))
 	// TODO: parallelize
 	for k := range updatedDeviceKeys {
@@ -123,7 +124,8 @@ func (udkimV3 UserDeviceKeyInfoMapV3) ToPublicKeys() UserDevicePublicKeys {
 
 func writerUDKIMV2ToV3(codec kbfscodec.Codec, udkimV2 UserDeviceKeyInfoMapV2,
 	ePubKeyCount int) (
-	UserDeviceKeyInfoMapV3, error) {
+	UserDeviceKeyInfoMapV3, error,
+) {
 	udkimV3 := make(UserDeviceKeyInfoMapV3, len(udkimV2))
 	for uid, dkimV2 := range udkimV2 {
 		dkimV3 := make(DeviceKeyInfoMapV3, len(dkimV2))
@@ -156,7 +158,8 @@ func writerUDKIMV2ToV3(codec kbfscodec.Codec, udkimV2 UserDeviceKeyInfoMapV2,
 // RemoveDevicesNotIn removes any info for any device that is not
 // contained in the given map of users and devices.
 func (udkimV3 UserDeviceKeyInfoMapV3) RemoveDevicesNotIn(
-	updatedUserKeys UserDevicePublicKeys) ServerHalfRemovalInfo {
+	updatedUserKeys UserDevicePublicKeys,
+) ServerHalfRemovalInfo {
 	removalInfo := make(ServerHalfRemovalInfo)
 	for uid, dkim := range udkimV3 {
 		userRemoved := false
@@ -202,7 +205,8 @@ func (udkimV3 UserDeviceKeyInfoMapV3) FillInUserInfos(
 	newIndex int, updatedUserKeys UserDevicePublicKeys,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (
-	serverHalves UserDeviceKeyServerHalves, err error) {
+	serverHalves UserDeviceKeyServerHalves, err error,
+) {
 	serverHalves = make(UserDeviceKeyServerHalves, len(updatedUserKeys))
 	for u, updatedDeviceKeys := range updatedUserKeys {
 		if _, ok := udkimV3[u]; !ok {
@@ -252,7 +256,8 @@ type TLFWriterKeyBundleV3 struct {
 // DeserializeTLFWriterKeyBundleV3 deserializes a TLFWriterKeyBundleV3
 // from the given path and returns it.
 func DeserializeTLFWriterKeyBundleV3(codec kbfscodec.Codec, path string) (
-	TLFWriterKeyBundleV3, error) {
+	TLFWriterKeyBundleV3, error,
+) {
 	var wkb TLFWriterKeyBundleV3
 	err := kbfscodec.DeserializeFromFile(codec, path, &wkb)
 	if err != nil {
@@ -296,7 +301,8 @@ func (wkb TLFWriterKeyBundleV3) IsWriter(user keybase1.UID, deviceKey kbfscrypto
 
 // DeepCopy creates a deep copy of this key bundle.
 func (wkb TLFWriterKeyBundleV3) DeepCopy(codec kbfscodec.Codec) (
-	TLFWriterKeyBundleV3, error) {
+	TLFWriterKeyBundleV3, error,
+) {
 	if len(wkb.Keys) == 0 {
 		return TLFWriterKeyBundleV3{}, errors.New(
 			"Writer key bundle with no keys (DeepCopy)")
@@ -313,8 +319,10 @@ type TLFWriterKeyBundleID struct {
 	h kbfshash.Hash
 }
 
-var _ encoding.BinaryMarshaler = TLFWriterKeyBundleID{}
-var _ encoding.BinaryUnmarshaler = (*TLFWriterKeyBundleID)(nil)
+var (
+	_ encoding.BinaryMarshaler   = TLFWriterKeyBundleID{}
+	_ encoding.BinaryUnmarshaler = (*TLFWriterKeyBundleID)(nil)
+)
 
 // TLFWriterKeyBundleIDFromBytes creates a new TLFWriterKeyBundleID from the given bytes.
 // If the returned error is nil, the returned TLFWriterKeyBundleID is valid.
@@ -377,7 +385,8 @@ func (h TLFWriterKeyBundleID) IsNil() bool {
 
 // MakeTLFWriterKeyBundleID hashes a TLFWriterKeyBundleV3 to create an ID.
 func MakeTLFWriterKeyBundleID(codec kbfscodec.Codec, wkb TLFWriterKeyBundleV3) (
-	TLFWriterKeyBundleID, error) {
+	TLFWriterKeyBundleID, error,
+) {
 	if len(wkb.Keys) == 0 {
 		return TLFWriterKeyBundleID{}, errors.New(
 			"Writer key bundle with no keys (MakeTLFWriterKeyBundleID)")
@@ -413,7 +422,8 @@ type TLFReaderKeyBundleV3 struct {
 // DeserializeTLFReaderKeyBundleV3 deserializes a TLFReaderKeyBundleV3
 // from the given path and returns it.
 func DeserializeTLFReaderKeyBundleV3(codec kbfscodec.Codec, path string) (
-	TLFReaderKeyBundleV3, error) {
+	TLFReaderKeyBundleV3, error,
+) {
 	var rkb TLFReaderKeyBundleV3
 	err := kbfscodec.DeserializeFromFile(codec, path, &rkb)
 	if err != nil {
@@ -450,7 +460,8 @@ func (rkb TLFReaderKeyBundleV3) IsReader(user keybase1.UID, deviceKey kbfscrypto
 
 // DeepCopy creates a deep copy of this key bundle.
 func (rkb TLFReaderKeyBundleV3) DeepCopy(codec kbfscodec.Codec) (
-	TLFReaderKeyBundleV3, error) {
+	TLFReaderKeyBundleV3, error,
+) {
 	var rkbCopy TLFReaderKeyBundleV3
 	if err := kbfscodec.Update(codec, &rkbCopy, rkb); err != nil {
 		return TLFReaderKeyBundleV3{}, err
@@ -466,8 +477,10 @@ type TLFReaderKeyBundleID struct {
 	h kbfshash.Hash
 }
 
-var _ encoding.BinaryMarshaler = TLFReaderKeyBundleID{}
-var _ encoding.BinaryUnmarshaler = (*TLFReaderKeyBundleID)(nil)
+var (
+	_ encoding.BinaryMarshaler   = TLFReaderKeyBundleID{}
+	_ encoding.BinaryUnmarshaler = (*TLFReaderKeyBundleID)(nil)
+)
 
 // TLFReaderKeyBundleIDFromBytes creates a new TLFReaderKeyBundleID from the given bytes.
 // If the returned error is nil, the returned TLFReaderKeyBundleID is valid.
@@ -523,7 +536,8 @@ func (h TLFReaderKeyBundleID) IsNil() bool {
 
 // MakeTLFReaderKeyBundleID hashes a TLFReaderKeyBundleV3 to create an ID.
 func MakeTLFReaderKeyBundleID(codec kbfscodec.Codec, rkb TLFReaderKeyBundleV3) (
-	TLFReaderKeyBundleID, error) {
+	TLFReaderKeyBundleID, error,
+) {
 	buf, err := codec.Encode(rkb)
 	if err != nil {
 		return TLFReaderKeyBundleID{}, err

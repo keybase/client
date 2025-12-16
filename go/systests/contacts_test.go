@@ -45,7 +45,8 @@ func TestLookupContactList(t *testing.T) {
 	rawPhone := keybase1.RawPhoneNumber(phone)
 	res, err := contactsCli.LookupContactList(context.Background(), keybase1.LookupContactListArg{
 		Contacts: []keybase1.Contact{
-			{Name: "It's me",
+			{
+				Name: "It's me",
 				Components: []keybase1.ContactComponent{
 					{
 						PhoneNumber: &rawPhone,
@@ -76,7 +77,8 @@ func TestLookupContactList(t *testing.T) {
 
 	res, err = contactsCli.LookupContactList(context.Background(), keybase1.LookupContactListArg{
 		Contacts: []keybase1.Contact{
-			{Name: "It's me",
+			{
+				Name: "It's me",
 				Components: []keybase1.ContactComponent{
 					{
 						Email: &emailAddr,

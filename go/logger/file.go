@@ -38,7 +38,7 @@ func SetLogFileConfig(lfc *LogFileConfig, blc *BufferedLoggerConfig) error {
 	defer globalLock.Unlock()
 
 	first := true
-	var w = currentLogFileWriter
+	w := currentLogFileWriter
 	if w != nil {
 		first = false
 		w.lock.Lock()
@@ -121,9 +121,11 @@ func (lfw *LogFileWriter) Close() error {
 	return lfw.file.Close()
 }
 
-const zeroDuration time.Duration = 0
-const oldLogFileTimeRangeTimeLayout = "20060102T150405Z0700"
-const oldLogFileTimeRangeTimeLayoutLegacy = "20060102T150405"
+const (
+	zeroDuration                        time.Duration = 0
+	oldLogFileTimeRangeTimeLayout                     = "20060102T150405Z0700"
+	oldLogFileTimeRangeTimeLayoutLegacy               = "20060102T150405"
+)
 
 func (lfw *LogFileWriter) Write(bs []byte) (int, error) {
 	lfw.lock.Lock()
@@ -221,7 +223,8 @@ func (a logFilenamesByTime) Less(i, j int) bool {
 // format of log file names. TODO: simplify this when we don't care about old
 // format any more.
 func getLogFilenamesOrderByTime(
-	baseName string, fNames []string) (names []string, err error) {
+	baseName string, fNames []string,
+) (names []string, err error) {
 	re, err := regexp.Compile(`^` + regexp.QuoteMeta(baseName) +
 		`-(\d{8}T\d{6}(?:(?:[Z\+-]\d{4})|(?:Z))?)-\d{8}T\d{6}(?:(?:[Z\+-]\d{4})|(?:Z))?$`)
 	if err != nil {

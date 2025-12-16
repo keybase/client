@@ -27,7 +27,7 @@ var _ fs.Node = (*SyncControlFile)(nil)
 // Attr implements the fs.Node interface for SyncControlFile.
 func (f *SyncControlFile) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Size = 0
-	a.Mode = 0222
+	a.Mode = 0o222
 	return nil
 }
 
@@ -37,7 +37,8 @@ var _ fs.HandleWriter = (*SyncControlFile)(nil)
 
 // Write implements the fs.HandleWriter interface for SyncControlFile.
 func (f *SyncControlFile) Write(ctx context.Context, req *fuse.WriteRequest,
-	resp *fuse.WriteResponse) (err error) {
+	resp *fuse.WriteResponse,
+) (err error) {
 	f.folder.fs.log.CDebugf(ctx, "SyncControlFile (f.action=%s) Write",
 		f.action)
 	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()

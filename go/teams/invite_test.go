@@ -302,8 +302,8 @@ func makeTestSCForInviteLink() SCTeamInvite {
 }
 
 func makeTestTeamSectionWithInviteLink(team *Team, role keybase1.TeamRole, maxUses *keybase1.TeamInviteMaxUses,
-	etime *keybase1.UnixTime) (SCTeamSection, keybase1.TeamInviteID) {
-
+	etime *keybase1.UnixTime,
+) (SCTeamSection, keybase1.TeamInviteID) {
 	teamSectionForInvite := makeTestSCTeamSection(team)
 	sectionInvite := makeTestSCForInviteLink()
 	sectionInvite.MaxUses = maxUses

@@ -55,20 +55,23 @@ func (cl *CounterLock) GetCount() int {
 }
 
 func kbfsOpsConcurInit(t *testing.T, users ...kbname.NormalizedUsername) (
-	*ConfigLocal, keybase1.UID, context.Context, context.CancelFunc) {
+	*ConfigLocal, keybase1.UID, context.Context, context.CancelFunc,
+) {
 	return kbfsOpsInitNoMocks(t, users...)
 }
 
 func kbfsConcurTestShutdown(
 	ctx context.Context, t *testing.T,
-	config *ConfigLocal, cancel context.CancelFunc) {
+	config *ConfigLocal, cancel context.CancelFunc,
+) {
 	kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 }
 
 // TODO: Get rid of all users of this.
 func kbfsConcurTestShutdownNoCheck(
 	ctx context.Context, t *testing.T,
-	config *ConfigLocal, cancel context.CancelFunc) {
+	config *ConfigLocal, cancel context.CancelFunc,
+) {
 	kbfsTestShutdownNoMocksNoCheck(ctx, t, config, cancel)
 }
 
@@ -79,8 +82,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
-	onGetStalledCh, getUnstallCh, ctxStallGetForTLF :=
-		StallMDOp(ctx, config, StallableMDGetForTLF, 1)
+	onGetStalledCh, getUnstallCh, ctxStallGetForTLF := StallMDOp(ctx, config, StallableMDGetForTLF, 1)
 
 	// Initialize the MD using a different config
 	c2 := ConfigAsUser(config, "test_user")
@@ -123,8 +125,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
-	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx := StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -161,7 +162,8 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 }
 
 func testCalcNumFileBlocks(
-	dataLen int, bsplitter *kbfsdata.BlockSplitterSimple) int {
+	dataLen int, bsplitter *kbfsdata.BlockSplitterSimple,
+) int {
 	nChildBlocks := 1 + dataLen/int(bsplitter.MaxSize())
 	nFileBlocks := nChildBlocks
 	for nChildBlocks > 1 {
@@ -178,12 +180,12 @@ func testCalcNumFileBlocks(
 
 // Test that writes can happen concurrently with a sync
 func testKBFSOpsConcurWritesDuringSync(t *testing.T,
-	initialWriteBytes int, nOneByteWrites int, nFiles int) {
+	initialWriteBytes int, nOneByteWrites int, nFiles int,
+) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
-	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx := StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
 	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -331,8 +333,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
-	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx := StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
 	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -445,10 +446,8 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %v", err)
 
-	onReadStalledCh, readUnstallCh, ctxStallRead :=
-		StallBlockOp(ctx, config, StallableBlockGet, 1)
-	onWriteStalledCh, writeUnstallCh, ctxStallWrite :=
-		StallBlockOp(ctx, config, StallableBlockGet, 1)
+	onReadStalledCh, readUnstallCh, ctxStallRead := StallBlockOp(ctx, config, StallableBlockGet, 1)
+	onWriteStalledCh, writeUnstallCh, ctxStallWrite := StallBlockOp(ctx, config, StallableBlockGet, 1)
 
 	var wg sync.WaitGroup
 
@@ -513,14 +512,16 @@ func (km *mdRecordingKeyManager) setLastKMD(kmd libkey.KeyMetadata) {
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForEncryption(
-	ctx context.Context, kmd libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+	ctx context.Context, kmd libkey.KeyMetadata,
+) (kbfscrypto.TLFCryptKey, error) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetTLFCryptKeyForEncryption(ctx, kmd)
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryption(
 	ctx context.Context, kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
-	kbfscrypto.TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error,
+) {
 	km.setLastKMD(kmdToDecrypt)
 	return km.delegate.GetTLFCryptKeyForMDDecryption(ctx,
 		kmdToDecrypt, kmdWithKeys)
@@ -528,28 +529,32 @@ func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryption(
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForBlockDecryption(
 	ctx context.Context, kmd libkey.KeyMetadata, blockPtr kbfsdata.BlockPointer) (
-	kbfscrypto.TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error,
+) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetTLFCryptKeyForBlockDecryption(ctx, kmd, blockPtr)
 }
 
 func (km *mdRecordingKeyManager) GetFirstTLFCryptKey(
 	ctx context.Context, kmd libkey.KeyMetadata) (
-	kbfscrypto.TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error,
+) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetFirstTLFCryptKey(ctx, kmd)
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyOfAllGenerations(
 	ctx context.Context, kmd libkey.KeyMetadata) (
-	keys []kbfscrypto.TLFCryptKey, err error) {
+	keys []kbfscrypto.TLFCryptKey, err error,
+) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetTLFCryptKeyOfAllGenerations(ctx, kmd)
 }
 
 func (km *mdRecordingKeyManager) Rekey(
 	ctx context.Context, md *RootMetadata, promptPaper bool) (
-	bool, *kbfscrypto.TLFCryptKey, error) {
+	bool, *kbfscrypto.TLFCryptKey, error,
+) {
 	km.setLastKMD(md)
 	return km.delegate.Rekey(ctx, md, promptPaper)
 }
@@ -591,8 +596,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 		t.Fatal("Unexpectedly not in dirty state")
 	}
 
-	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockPut, 1)
+	onSyncStalledCh, syncUnstallCh, ctxStallSync := StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	var wg sync.WaitGroup
 
@@ -674,8 +678,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 		t.Fatal("Unexpectedly not in dirty state")
 	}
 
-	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockPut, 1)
+	onSyncStalledCh, syncUnstallCh, ctxStallSync := StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	// Start the sync and wait for it to stall (on getting the dir
 	// block).
@@ -799,8 +802,7 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 
 	oldBServer := config.BlockServer()
 	defer config.SetBlockServer(oldBServer)
-	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockPut, 1)
+	onSyncStalledCh, syncUnstallCh, ctxStallSync := StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	// Start the sync and wait for it to stall (on getting the dir
 	// block).
@@ -952,8 +954,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
-	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx := StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Make the blocks small, with multiple levels of indirection, but
 	// make the unembedded size large, so we don't create thousands of
@@ -1089,7 +1090,8 @@ func (fc *stallingBServer) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, cacheType DiskBlockCacheType) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	err error) {
+	err error,
+) {
 	err = fc.maybeWaitOnChannel(ctx)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
@@ -1108,7 +1110,8 @@ func (fc *stallingBServer) Put(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	cacheType DiskBlockCacheType) (err error) {
+	cacheType DiskBlockCacheType,
+) (err error) {
 	err = fc.maybeWaitOnChannel(ctx)
 	if err != nil {
 		return err
@@ -1325,7 +1328,8 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 		Do(func(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 			context kbfsblock.Context, buf []byte,
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-			_ DiskBlockCacheType) {
+			_ DiskBlockCacheType,
+		) {
 			errPtrChan <- kbfsdata.BlockPointer{
 				ID:      id,
 				Context: context,
@@ -1338,7 +1342,8 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 		Do(func(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 			context kbfsblock.Context, buf []byte,
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-			_ DiskBlockCacheType) {
+			_ DiskBlockCacheType,
+		) {
 			<-proceedChan
 		}).After(c).Return(nil)
 	b.EXPECT().RemoveBlockReferences(gomock.Any(), gomock.Any(), gomock.Any()).
@@ -1383,8 +1388,7 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 
 	oldBServer := config.BlockServer()
 	defer config.SetBlockServer(oldBServer)
-	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockPut, 1)
+	onSyncStalledCh, syncUnstallCh, ctxStallSync := StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -1513,8 +1517,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 
 	oldBServer := config.BlockServer()
 	defer config.SetBlockServer(oldBServer)
-	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockPut, nFileBlocks)
+	onSyncStalledCh, syncUnstallCh, ctxStallSync := StallBlockOp(ctx, config, StallableBlockPut, nFileBlocks)
 	ctxStallSync, cancel2 := context.WithCancel(ctxStallSync)
 
 	t.Log("Create and write to a file: file0")
@@ -1701,8 +1704,7 @@ func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
-	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(context.Background(), config, StallableMDPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx := StallMDOp(context.Background(), config, StallableMDPut, 1)
 
 	putCtx, cancel2 := context.WithCancel(putCtx)
 
@@ -1761,8 +1763,7 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	// happen much faster. This way we can avoid time.Sleep.
 	config.SetDelayedCancellationGracePeriod(0)
 
-	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(context.Background(), config, StallableMDPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx := StallMDOp(context.Background(), config, StallableMDPut, 1)
 
 	putCtx, cancel2 := context.WithCancel(putCtx)
 
@@ -1833,8 +1834,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
-	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx := StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
 	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -1921,8 +1921,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
-	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx := StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
 	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -1965,8 +1964,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 	}
 
 	// Cancel this one after it succeeds.
-	onUnmergedPutStalledCh, unmergedPutUnstallCh, putUnmergedCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPutUnmerged, 1)
+	onUnmergedPutStalledCh, unmergedPutUnstallCh, putUnmergedCtx := StallMDOp(ctx, config, StallableMDAfterPutUnmerged, 1)
 
 	// Flush the file again, which will result in an unmerged put,
 	// which we will also cancel.
@@ -2057,8 +2055,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 
 	oldBServer := config.BlockServer()
 	defer config.SetBlockServer(oldBServer)
-	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(cancelCtx, config, StallableBlockPut, 1)
+	onSyncStalledCh, syncUnstallCh, ctxStallSync := StallBlockOp(cancelCtx, config, StallableBlockPut, 1)
 
 	go func() {
 		errChan <- kbfsOps.SyncAll(ctxStallSync, fileNode2.GetFolderBranch())
@@ -2083,7 +2080,8 @@ type blockOpsOverQuota struct {
 }
 
 func (booq *blockOpsOverQuota) Put(ctx context.Context, tlfID tlf.ID,
-	blockPtr kbfsdata.BlockPointer, readyBlockData kbfsdata.ReadyBlockData) error {
+	blockPtr kbfsdata.BlockPointer, readyBlockData kbfsdata.ReadyBlockData,
+) error {
 	return kbfsblock.ServerErrorOverQuota{
 		Throttled: true,
 	}
@@ -2116,8 +2114,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 
 	config.SetBlockOps(&blockOpsOverQuota{BlockOps: config.BlockOps()})
 
-	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockPut, 1)
+	onSyncStalledCh, syncUnstallCh, ctxStallSync := StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	// Block the Sync
 	// Sync the initial two data blocks
@@ -2204,7 +2201,8 @@ type stallingNodeCache struct {
 }
 
 func (snc *stallingNodeCache) UpdatePointer(
-	oldRef kbfsdata.BlockRef, newPtr kbfsdata.BlockPointer) NodeID {
+	oldRef kbfsdata.BlockRef, newPtr kbfsdata.BlockPointer,
+) NodeID {
 	select {
 	case <-snc.doStallUpdate:
 		<-snc.unstallUpdate
@@ -2351,8 +2349,7 @@ func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
-	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx := StallMDOp(ctx, config, StallableMDPut, 1)
 
 	// Use the smallest possible block size.
 	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -2410,8 +2407,7 @@ func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
 	err = kbfsOps.Write(ctx, fileNode, data3, 0)
 	require.NoError(t, err, "Couldn't write file: %v", err)
 
-	onPutStalledCh, putUnstallCh, putCtx =
-		StallMDOp(ctx, config, StallableMDPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx = StallMDOp(ctx, config, StallableMDPut, 1)
 
 	// Cancel it again.
 	cancelCtx, cancel = context.WithCancel(putCtx)
@@ -2471,8 +2467,7 @@ func TestKBFSOpsConcurWriteOfNonsyncedFileDuringSync(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Create a second file, but stall the SyncAll")
-	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut, 1)
+	onPutStalledCh, putUnstallCh, putCtx := StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	fileB := "b"
 	fileBNode, _, err := kbfsOps.CreateFile(

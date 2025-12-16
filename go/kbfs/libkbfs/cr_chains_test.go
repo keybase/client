@@ -25,7 +25,8 @@ import (
 
 func checkExpectedChains(t *testing.T, expected map[data.BlockPointer]data.BlockPointer,
 	expectedRenames map[data.BlockPointer]renameInfo, expectedRoot data.BlockPointer,
-	cc *crChains, checkTailPtr bool) {
+	cc *crChains, checkTailPtr bool,
+) {
 	if g, e := len(cc.byOriginal), len(expected); g != e {
 		t.Errorf("Wrong number of originals, %v vs %v", g, e)
 	}
@@ -71,7 +72,8 @@ func checkExpectedChains(t *testing.T, expected map[data.BlockPointer]data.Block
 }
 
 func testCRInitPtrs(n int) (currPtr byte, ptrs []data.BlockPointer,
-	revPtrs map[data.BlockPointer]data.BlockPointer) {
+	revPtrs map[data.BlockPointer]data.BlockPointer,
+) {
 	currPtr = byte(42)
 	revPtrs = make(map[data.BlockPointer]data.BlockPointer)
 	for i := 0; i < n; i++ {
@@ -86,7 +88,8 @@ func testCRInitPtrs(n int) (currPtr byte, ptrs []data.BlockPointer,
 func testCRFillOpPtrs(currPtr byte,
 	expected map[data.BlockPointer]data.BlockPointer,
 	revPtrs map[data.BlockPointer]data.BlockPointer,
-	affectedPtrs []data.BlockPointer, op op) (nextCurrPtr byte) {
+	affectedPtrs []data.BlockPointer, op op,
+) (nextCurrPtr byte) {
 	for _, ptr := range affectedPtrs {
 		newPtr := data.BlockPointer{ID: kbfsblock.FakeID(currPtr)}
 		currPtr++
@@ -99,7 +102,8 @@ func testCRFillOpPtrs(currPtr byte,
 
 // If one of the ops is a rename, it doesn't check for exact equality
 func testCRCheckOps(t *testing.T, cc *crChains, original data.BlockPointer,
-	expectedOps []op) {
+	expectedOps []op,
+) {
 	chain, ok := cc.byOriginal[original]
 	if !ok {
 		t.Fatalf("No chain at %v", original)
@@ -307,8 +311,10 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, data.BlockPointer) {
 	require.NoError(t, err)
 	expectedRenames[file2Ptr] = renameInfo{dir3Unref, f2, dir1Unref, f4}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
-		[]data.BlockPointer{expected[rootPtrUnref], expected[dir1Unref],
-			expected[dir3Unref]}, op3)
+		[]data.BlockPointer{
+			expected[rootPtrUnref], expected[dir1Unref],
+			expected[dir3Unref],
+		}, op3)
 	bigChainMD.AddOp(op3)
 	newChainMD = newChainMDForTest(t)
 	newChainMD.AddOp(op3)
@@ -472,8 +478,10 @@ func TestCRChainsCollapse(t *testing.T) {
 	require.NoError(t, err)
 	expectedRenames[file1Ptr] = renameInfo{dir2Unref, f1, dir1Unref, f3}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
-		[]data.BlockPointer{expected[rootPtrUnref], expected[dir1Unref],
-			expected[dir2Unref]}, op6)
+		[]data.BlockPointer{
+			expected[rootPtrUnref], expected[dir1Unref],
+			expected[dir2Unref],
+		}, op6)
 	chainMD.AddOp(op6)
 
 	// rm root/dir1/file3

@@ -46,7 +46,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	require.NoError(t, err)
 	require.Len(t, fis, 0)
 
-	err = rootFS.MkdirAll("worktree", 0600)
+	err = rootFS.MkdirAll("worktree", 0o600)
 	require.NoError(t, err)
 	worktreeFS, err := rootFS.Chroot("worktree")
 	require.NoError(t, err)
@@ -162,7 +162,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	addSymlink("foo", "symfoo")
 
 	t.Log("Add and read a second symlink in a chain.")
-	err = worktreeFS.MkdirAll("dir", 0700)
+	err = worktreeFS.MkdirAll("dir", 0o700)
 	require.NoError(t, err)
 	addSymlink("../symfoo", "dir/symfoo")
 }

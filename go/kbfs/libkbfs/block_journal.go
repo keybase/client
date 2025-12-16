@@ -144,7 +144,8 @@ type blockJournalEntry struct {
 // Get the single context stored in this entry. Only applicable to
 // blockPutOp and addRefOp.
 func (e blockJournalEntry) getSingleContext() (
-	kbfsblock.ID, kbfsblock.Context, error) {
+	kbfsblock.ID, kbfsblock.Context, error,
+) {
 	switch e.Op {
 	case blockPutOp, addRefOp:
 		if len(e.Contexts) != 1 {
@@ -188,7 +189,8 @@ func deferredGCBlockJournalDir(dir string) string {
 // directory. Any existing journal entries are read.
 func makeBlockJournal(
 	ctx context.Context, codec kbfscodec.Codec, dir string,
-	log logger.Logger, vlog *libkb.VDebugLog) (*blockJournal, error) {
+	log logger.Logger, vlog *libkb.VDebugLog,
+) (*blockJournal, error) {
 	journalPath := blockJournalDir(dir)
 	deferLog := log.CloneWithAddedDepth(1)
 	j, err := makeDiskJournal(
@@ -278,7 +280,8 @@ func saturateAdd(x *int64, delta int64) {
 }
 
 func (j *blockJournal) changeCounts(
-	deltaStoredBytes, deltaStoredFiles, deltaUnflushedBytes int64) error {
+	deltaStoredBytes, deltaStoredFiles, deltaUnflushedBytes int64,
+) error {
 	saturateAdd(&j.aggregateInfo.StoredBytes, deltaStoredBytes)
 	saturateAdd(&j.aggregateInfo.StoredFiles, deltaStoredFiles)
 	saturateAdd(&j.aggregateInfo.UnflushedBytes, deltaUnflushedBytes)
@@ -316,7 +319,8 @@ func (j *blockJournal) unstoreBlocks(bytes, files int64) error {
 // The functions below are for reading and writing journal entries.
 
 func (j *blockJournal) readJournalEntry(ordinal journalOrdinal) (
-	blockJournalEntry, error) {
+	blockJournalEntry, error,
+) {
 	entry, err := j.j.readJournalEntry(ordinal)
 	if err != nil {
 		return blockJournalEntry{}, err
@@ -327,7 +331,8 @@ func (j *blockJournal) readJournalEntry(ordinal journalOrdinal) (
 
 func (j *blockJournal) appendJournalEntry(
 	ctx context.Context, entry blockJournalEntry) (
-	journalOrdinal, error) {
+	journalOrdinal, error,
+) {
 	ordinal, err := j.j.appendJournalEntry(nil, entry)
 	if err != nil {
 		return 0, err
@@ -361,17 +366,20 @@ func (j *blockJournal) end() (journalOrdinal, error) {
 }
 
 func (j *blockJournal) hasData(
-	ctx context.Context, id kbfsblock.ID) (bool, error) {
+	ctx context.Context, id kbfsblock.ID,
+) (bool, error) {
 	return j.s.hasData(ctx, id)
 }
 
 func (j *blockJournal) isUnflushed(
-	ctx context.Context, id kbfsblock.ID) (bool, error) {
+	ctx context.Context, id kbfsblock.ID,
+) (bool, error) {
 	return j.s.isUnflushed(ctx, id)
 }
 
 func (j *blockJournal) remove(ctx context.Context, id kbfsblock.ID) (
-	removedBytes, removedFiles int64, err error) {
+	removedBytes, removedFiles int64, err error,
+) {
 	bytesToRemove, err := j.s.getDataSize(ctx, id)
 	if err != nil {
 		return 0, 0, err
@@ -398,17 +406,20 @@ func (j *blockJournal) empty() bool {
 
 func (j *blockJournal) getDataWithContext(
 	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context) (
-	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error,
+) {
 	return j.s.getDataWithContext(ctx, id, context)
 }
 
 func (j *blockJournal) getData(ctx context.Context, id kbfsblock.ID) (
-	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error,
+) {
 	return j.s.getData(ctx, id)
 }
 
 func (j *blockJournal) getDataSize(
-	ctx context.Context, id kbfsblock.ID) (int64, error) {
+	ctx context.Context, id kbfsblock.ID,
+) (int64, error) {
 	return j.s.getDataSize(ctx, id)
 }
 
@@ -429,7 +440,8 @@ func (j *blockJournal) getStoredFiles() int64 {
 func (j *blockJournal) putBlockData(
 	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (
-	putData bool, err error) {
+	putData bool, err error,
+) {
 	j.vlog.CLogf(
 		ctx, libkb.VLog1,
 		"Putting %d bytes of data for block %s with context %v",
@@ -454,7 +466,8 @@ func (j *blockJournal) putBlockData(
 // journal, and records the size for the put block.
 func (j *blockJournal) appendBlock(
 	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context,
-	bufLenToAdd int64) error {
+	bufLenToAdd int64,
+) error {
 	j.vlog.CLogf(ctx, libkb.VLog1, "Appending block %s to journal", id)
 
 	if bufLenToAdd > 0 {
@@ -484,7 +497,8 @@ func (j *blockJournal) appendBlock(
 
 func (j *blockJournal) addReference(
 	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context) (
-	err error) {
+	err error,
+) {
 	j.vlog.CLogf(
 		ctx, libkb.VLog1, "Adding reference for block %s with context %v",
 		id, context)
@@ -518,7 +532,8 @@ func (j *blockJournal) addReference(
 }
 
 func (j *blockJournal) archiveReferences(
-	ctx context.Context, contexts kbfsblock.ContextMap) (err error) {
+	ctx context.Context, contexts kbfsblock.ContextMap,
+) (err error) {
 	j.vlog.CLogf(ctx, libkb.VLog1, "Archiving references for %v", contexts)
 	defer func() {
 		if err != nil {
@@ -552,7 +567,8 @@ func (j *blockJournal) archiveReferences(
 // their respective IDs.
 func (j *blockJournal) removeReferences(
 	ctx context.Context, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
+	liveCounts map[kbfsblock.ID]int, err error,
+) {
 	j.vlog.CLogf(ctx, libkb.VLog1, "Removing references for %v", contexts)
 	defer func() {
 		if err != nil {
@@ -590,7 +606,8 @@ func (j *blockJournal) removeReferences(
 
 func (j *blockJournal) markMDRevision(ctx context.Context,
 	rev kbfsmd.Revision, journalID kbfsmd.ID, isPendingLocalSquash bool) (
-	err error) {
+	err error,
+) {
 	j.vlog.CLogf(
 		ctx, libkb.VLog1, "Marking MD revision %d in the block journal", rev)
 	defer func() {
@@ -635,7 +652,8 @@ func (be blockEntriesToFlush) flushNeeded() bool {
 }
 
 func (be blockEntriesToFlush) revIsLocalSquash(
-	rev kbfsmd.Revision, mdJournalID kbfsmd.ID) bool {
+	rev kbfsmd.Revision, mdJournalID kbfsmd.ID,
+) bool {
 	for _, entry := range be.other {
 		if !entry.ignore(mdJournalID) && entry.Op == mdRevMarkerOp &&
 			entry.Revision == rev {
@@ -667,7 +685,8 @@ func (j *blockJournal) getNextEntriesToFlush(
 	ctx context.Context, end journalOrdinal, maxToFlush int,
 	mdJournalID kbfsmd.ID) (
 	entries blockEntriesToFlush, bytesToFlush int64,
-	maxMDRevToFlush kbfsmd.Revision, err error) {
+	maxMDRevToFlush kbfsmd.Revision, err error,
+) {
 	first, err := j.j.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
 		return blockEntriesToFlush{}, 0, kbfsmd.RevisionUninitialized, nil
@@ -789,7 +808,8 @@ func (j *blockJournal) getNextEntriesToFlush(
 // parallelized via a blockPutState.
 func flushNonBPSBlockJournalEntry(
 	ctx context.Context, log logger.Logger,
-	bserver BlockServer, tlfID tlf.ID, entry blockJournalEntry) error {
+	bserver BlockServer, tlfID tlf.ID, entry blockJournalEntry,
+) error {
 	log.CDebugf(ctx, "Flushing other block op %v", entry)
 
 	switch entry.Op {
@@ -826,7 +846,8 @@ func flushNonBPSBlockJournalEntry(
 func flushBlockEntries(ctx context.Context, log, deferLog traceLogger,
 	bserver BlockServer, bcache data.BlockCache, reporter Reporter, tlfID tlf.ID,
 	tlfName tlf.CanonicalName, entries blockEntriesToFlush,
-	cacheType DiskBlockCacheType) error {
+	cacheType DiskBlockCacheType,
+) error {
 	if !entries.flushNeeded() {
 		// Avoid logging anything when there's nothing to flush.
 		return nil
@@ -874,7 +895,8 @@ func flushBlockEntries(ctx context.Context, log, deferLog traceLogger,
 
 func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 	ordinal journalOrdinal, entry blockJournalEntry) (
-	flushedBytes int64, err error) {
+	flushedBytes int64, err error,
+) {
 	earliestOrdinal, err := j.j.readEarliestOrdinal()
 	if err != nil {
 		return 0, err
@@ -938,7 +960,8 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 
 func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 	entries blockEntriesToFlush, tlfID tlf.ID, reporter Reporter) (
-	totalFlushedBytes int64, err error) {
+	totalFlushedBytes int64, err error,
+) {
 	// Remove them all!
 	for i, entry := range entries.all {
 		flushedBytes, err := j.removeFlushedEntry(
@@ -966,7 +989,8 @@ func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 
 func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 	idsToIgnore map[kbfsblock.ID]bool, rev kbfsmd.Revision,
-	dj *diskJournal) (totalIgnoredBytes int64, err error) {
+	dj *diskJournal,
+) (totalIgnoredBytes int64, err error) {
 	first, err := dj.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
 		return 0, nil
@@ -1075,7 +1099,8 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 
 func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 	blocksToIgnore []kbfsblock.ID, rev kbfsmd.Revision) (
-	totalIgnoredBytes int64, err error) {
+	totalIgnoredBytes int64, err error,
+) {
 	idsToIgnore := make(map[kbfsblock.ID]bool)
 	for _, id := range blocksToIgnore {
 		idsToIgnore[id] = true
@@ -1089,7 +1114,8 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 // deferred GC journal.  If the returned length is 0, there's no need
 // for further GC.
 func (j *blockJournal) getDeferredGCRange() (
-	len int, earliest, latest journalOrdinal, err error) {
+	len int, earliest, latest journalOrdinal, err error,
+) {
 	earliest, err = j.deferredGC.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
 		return 0, 0, 0, nil
@@ -1115,7 +1141,8 @@ func (j *blockJournal) getDeferredGCRange() (
 // use that to relax any synchronization requirements.
 func (j *blockJournal) doGC(ctx context.Context,
 	earliest, latest journalOrdinal) (
-	removedBytes, removedFiles int64, err error) {
+	removedBytes, removedFiles int64, err error,
+) {
 	// Safe to check the earliest ordinal, even if the caller is using
 	// relaxed synchronization, since this is the only function that
 	// removes items from the deferred journal.
@@ -1152,8 +1179,7 @@ func (j *blockJournal) doGC(ctx context.Context,
 			}
 			if !hasRef {
 				// Garbage-collect the old entry.
-				idRemovedBytes, idRemovedFiles, err :=
-					j.remove(ctx, id)
+				idRemovedBytes, idRemovedFiles, err := j.remove(ctx, id)
 				if err != nil {
 					return 0, 0, err
 				}
@@ -1173,7 +1199,8 @@ func (j *blockJournal) clearDeferredGCRange(
 	ctx context.Context, removedBytes, removedFiles int64,
 	earliest, latest journalOrdinal) (
 	clearedJournal bool, aggregateInfo blockAggregateInfo,
-	err error) {
+	err error,
+) {
 	for i := earliest; i <= latest; i++ {
 		_, err := j.deferredGC.removeEarliest()
 		if err != nil {
@@ -1306,7 +1333,8 @@ func (j *blockJournal) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, error)
 }
 
 func (j *blockJournal) markLatestRevMarkerAsLocalSquash(
-	mdJournalID kbfsmd.ID) error {
+	mdJournalID kbfsmd.ID,
+) error {
 	first, err := j.j.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
 		return nil

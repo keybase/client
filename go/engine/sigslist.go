@@ -134,7 +134,6 @@ func (e *SigsList) JSON() (string, error) {
 		return "", err
 	}
 	return string(j), nil
-
 }
 
 func (e *SigsList) processSigs() error {

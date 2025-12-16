@@ -16,7 +16,8 @@ import (
 // file edit history for a folder.
 func GetEncodedTlfEditHistory(ctx context.Context, config libkbfs.Config,
 	folderBranch data.FolderBranch) (
-	data []byte, t time.Time, err error) {
+	data []byte, t time.Time, err error,
+) {
 	edits, err := config.KBFSOps().GetEditHistory(ctx, folderBranch)
 	if err != nil {
 		return nil, time.Time{}, err

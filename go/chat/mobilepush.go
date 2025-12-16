@@ -22,17 +22,21 @@ type remoteNotificationSuccessHandler struct{}
 func (g *remoteNotificationSuccessHandler) HandlerName() string {
 	return "remote notification success"
 }
+
 func (g *remoteNotificationSuccessHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli rpc.GenericClient, srv *rpc.Server) error {
 	return nil
 }
+
 func (g *remoteNotificationSuccessHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
 }
+
 func (g *remoteNotificationSuccessHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
 }
 func (g *remoteNotificationSuccessHandler) OnDoCommandError(err error, nextTime time.Duration) {}
 func (g *remoteNotificationSuccessHandler) ShouldRetry(name string, err error) bool {
 	return false
 }
+
 func (g *remoteNotificationSuccessHandler) ShouldRetryOnConnect(err error) bool {
 	return false
 }
@@ -72,7 +76,8 @@ func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []strin
 }
 
 func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (res chat1.MessageUnboxed, err error) {
+	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string,
+) (res chat1.MessageUnboxed, err error) {
 	defer h.Trace(ctx, &err, "UnboxPushNotification: convID: %v", convID)()
 	// Parse the message payload
 	bMsg, err := base64.StdEncoding.DecodeString(payload)

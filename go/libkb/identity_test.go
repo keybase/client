@@ -28,22 +28,40 @@ var sampleIdentities = []struct {
 	input    string
 	expected Identity
 }{
-	{`Barb Akew <barb@example.com>`,
-		Identity{"Barb Akew", "", "barb@example.com"}},
-	{`Barb Akew (bbq) <barb@example.com>`,
-		Identity{"Barb Akew", "bbq", "barb@example.com"}},
-	{`"Barb Akew" (bbq) <barb@example.com>`,
-		Identity{"Barb Akew", "bbq", "barb@example.com"}},
-	{`Barb Akew (b"b"q) <barb@example.com>`,
-		Identity{"Barb Akew", `b"b"q`, "barb@example.com"}},
-	{`"Barb Akew (bbq)" <barb@example.com>`,
-		Identity{"Barb Akew", "bbq", "barb@example.com"}},
-	{`x/Barb <barb@example.com>`,
-		Identity{"x/Barb", "", "barb@example.com"}},
-	{`Barb Akew (co<mme>nt)`,
-		Identity{"Barb Akew", "co<mme>nt", ""}},
-	{`Barb Akew (the "new" key)`,
-		Identity{"Barb Akew", `the "new" key`, ""}},
-	{`Barb`,
-		Identity{"Barb", "", ""}},
+	{
+		`Barb Akew <barb@example.com>`,
+		Identity{"Barb Akew", "", "barb@example.com"},
+	},
+	{
+		`Barb Akew (bbq) <barb@example.com>`,
+		Identity{"Barb Akew", "bbq", "barb@example.com"},
+	},
+	{
+		`"Barb Akew" (bbq) <barb@example.com>`,
+		Identity{"Barb Akew", "bbq", "barb@example.com"},
+	},
+	{
+		`Barb Akew (b"b"q) <barb@example.com>`,
+		Identity{"Barb Akew", `b"b"q`, "barb@example.com"},
+	},
+	{
+		`"Barb Akew (bbq)" <barb@example.com>`,
+		Identity{"Barb Akew", "bbq", "barb@example.com"},
+	},
+	{
+		`x/Barb <barb@example.com>`,
+		Identity{"x/Barb", "", "barb@example.com"},
+	},
+	{
+		`Barb Akew (co<mme>nt)`,
+		Identity{"Barb Akew", "co<mme>nt", ""},
+	},
+	{
+		`Barb Akew (the "new" key)`,
+		Identity{"Barb Akew", `the "new" key`, ""},
+	},
+	{
+		`Barb`,
+		Identity{"Barb", "", ""},
+	},
 }

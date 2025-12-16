@@ -16,7 +16,8 @@ import (
 func getKeyBundlesForTesting(
 	t *testing.T, tlfByte byte, h tlf.Handle) (
 	TLFWriterKeyBundleID, *TLFWriterKeyBundleV3,
-	TLFReaderKeyBundleID, *TLFReaderKeyBundleV3) {
+	TLFReaderKeyBundleID, *TLFReaderKeyBundleV3,
+) {
 	tlfID := tlf.FakeID(tlfByte, tlf.Private)
 	rmd, err := MakeInitialRootMetadataV3(tlfID, h)
 	require.NoError(t, err)

@@ -138,7 +138,8 @@ var _ libkbfs.Node = (*repoDirNode)(nil)
 func (rdn *repoDirNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString,
-	data.BlockPointer) {
+	data.BlockPointer,
+) {
 	namePlain := name.Plaintext()
 	switch {
 	case strings.HasPrefix(namePlain, AutogitBranchPrefix):
@@ -173,7 +174,6 @@ func (rdn *repoDirNode) ShouldCreateMissedLookup(
 	default:
 		return rdn.Node.ShouldCreateMissedLookup(ctx, name)
 	}
-
 }
 
 func (rdn *repoDirNode) GetFS(ctx context.Context) libkbfs.NodeFSReadOnly {
@@ -318,7 +318,8 @@ var _ libkbfs.Node = (*rootNode)(nil)
 func (rn *rootNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString,
-	data.BlockPointer) {
+	data.BlockPointer,
+) {
 	if name.Plaintext() != AutogitRoot {
 		return rn.Node.ShouldCreateMissedLookup(ctx, name)
 	}

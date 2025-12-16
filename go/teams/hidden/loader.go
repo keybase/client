@@ -35,7 +35,8 @@ type LoaderPackage struct {
 // it loads any stored hidden team data for the team from local storage. The getter function is used to get a recent PTK
 // for this team, which is needed to poll the Merkle Tree endpoint when asking "does a hidden team chain exist for this team?"
 func NewLoaderPackage(mctx libkb.MetaContext, id keybase1.TeamID,
-	getter func() (keybase1.KID, keybase1.PerTeamKeyGeneration, keybase1.TeamRole, error)) (ret *LoaderPackage, err error) {
+	getter func() (keybase1.KID, keybase1.PerTeamKeyGeneration, keybase1.TeamRole, error),
+) (ret *LoaderPackage, err error) {
 	encKID, gen, role, err := getter()
 	if err != nil {
 		return nil, err
@@ -367,7 +368,6 @@ func (l *LoaderPackage) LastReaderKeyRotator(mctx libkb.MetaContext) *keybase1.S
 // mergeData takes the data from the update and merges it with the last load of this hidden team chain
 // from local storage. The result is just in memory, not stored to disk yet. That happens in Commit().
 func (l *LoaderPackage) mergeData(mctx libkb.MetaContext, newData *keybase1.HiddenTeamChain) (err error) {
-
 	if newData == nil && (!l.newRatchetSet.IsEmpty() || l.lastCommittedSeqno > 0) {
 		newData = keybase1.NewHiddenTeamChain(l.id)
 	}

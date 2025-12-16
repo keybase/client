@@ -718,7 +718,6 @@ func outboxStateView(state chat1.OutboxState, body string) string {
 }
 
 func newMessageViewOutbox(g *libkb.GlobalContext, opts RenderOptions, conversationID chat1.ConversationID, m chat1.OutboxRecord) (mv messageView, err error) {
-
 	body := m.Msg.MessageBody
 	typ, err := body.MessageType()
 	mv.messageType = typ
@@ -756,8 +755,8 @@ func newMessageViewOutbox(g *libkb.GlobalContext, opts RenderOptions, conversati
 }
 
 func newMessageViewError(g *libkb.GlobalContext, opts RenderOptions, conversationID chat1.ConversationID,
-	m chat1.MessageUnboxedError) (mv messageView, err error) {
-
+	m chat1.MessageUnboxedError,
+) (mv messageView, err error) {
 	mv.messageType = m.MessageType
 	mv.Renderable = true
 	mv.FromRevokedDevice = false
@@ -804,7 +803,6 @@ func newMessageView(g *libkb.GlobalContext, opts RenderOptions, conversationID c
 	default:
 		return mv, fmt.Errorf("unexpected message state: %v", state)
 	}
-
 }
 
 func FmtTime(t time.Time, opts RenderOptions) string {

@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io"
-
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -38,7 +37,6 @@ type testVector struct {
 }
 
 func TestClassifyTestVectors(t *testing.T) {
-
 	vectors := []testVector{
 		{
 			msg: `owEBPQHC/pANAwAKAZgKPw0B/gTfAcsNYgBWiR6fZm9vYmFyCokBHAQAAQoABgUCVokenwAKCRCYCj8NAf4E38UACACoF9R9FJnZX7VqhHpOFgWgQR9wn8XJQ6DI7kkrlO1sF9OH3KoShuPT1G3J8/c4HXWY4qLluDfDN0sFA1Obt6PLQ4PJxWgZzuTed+f/zJ9NiQc2XdqT/iUPSEvWFKHI+1apF04iCjBs4dJaJOPAZdq4ZZ/7LAi8GwwDY5v3FJvwur180568tTcVTQtZqg3IhFGCMVZwD/S4x6DNdRxQB796SgbyGg/B8A9/vUEjMuUv6XU2sJcNNXuRfWYX0E+gsRg0kwjQlDOHvB+mDtu/qxVAd/Zm2y7NCoEHBH2jLI50Ls2OTHf98p43oHMofoQCnzP0nRu7bu4W4lVFEIqIXZvO`,

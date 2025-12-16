@@ -62,6 +62,7 @@ type GenericChainLink struct {
 func (g *GenericChainLink) GetSigID() keybase1.SigID {
 	return g.unpacked.sigID
 }
+
 func (g *GenericChainLink) ToSigChainLocation() keybase1.SigChainLocation {
 	return g.ChainLink.ToSigChainLocation()
 }
@@ -70,9 +71,11 @@ func (g *GenericChainLink) ToDisplayString() string { return "unknown" }
 func (g *GenericChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(g)
 }
+
 func (g *GenericChainLink) markRevoked(r TypedChainLink) {
 	g.revoked = true
 }
+
 func (g *GenericChainLink) ToDebugString() string {
 	return fmt.Sprintf("uid=%s, seq=%d, link=%s", g.Parent().uid, g.unpacked.seqno, g.id)
 }
@@ -100,9 +103,11 @@ func (g *GenericChainLink) GetPGPFullHash() string { return "" }
 func (g *GenericChainLink) GetArmoredSig() string {
 	return g.unpacked.sig
 }
+
 func (g *GenericChainLink) GetUsername() string {
 	return g.unpacked.username
 }
+
 func (g *GenericChainLink) GetUID() keybase1.UID {
 	return g.unpacked.uid
 }
@@ -312,6 +317,7 @@ func (w *WebProofChainLink) Type() string { return "proof" }
 func (w *WebProofChainLink) insertIntoTable(tab *IdentityTable) {
 	remoteProofInsertIntoTable(w, tab)
 }
+
 func (w *WebProofChainLink) ToDisplayString() string {
 	return w.protocol + "://" + w.hostname
 }
@@ -339,7 +345,6 @@ func (w *WebProofChainLink) ToKeyValuePair() (string, string) {
 }
 
 func (w *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) (res TrackDiff) {
-
 	find := func(list []string) bool {
 		for _, e := range list {
 			if Cicmp(e, w.hostname) {
@@ -366,6 +371,7 @@ func (s *SocialProofChainLink) Type() string     { return "proof" }
 func (s *SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
 	remoteProofInsertIntoTable(s, tab)
 }
+
 func (s *SocialProofChainLink) ToDisplayString() string {
 	return s.username + "@" + s.service
 }
@@ -414,8 +420,10 @@ func (s *SocialProofChainLink) GetProofType() keybase1.ProofType {
 	return RemoteServiceTypes[s.service]
 }
 
-var _ RemoteProofChainLink = (*SocialProofChainLink)(nil)
-var _ RemoteProofChainLink = (*WebProofChainLink)(nil)
+var (
+	_ RemoteProofChainLink = (*SocialProofChainLink)(nil)
+	_ RemoteProofChainLink = (*WebProofChainLink)(nil)
+)
 
 func NewWebProofChainLink(b GenericChainLink, p, h, proofText string) *WebProofChainLink {
 	return &WebProofChainLink{b, p, h, proofText}
@@ -1091,6 +1099,7 @@ func (s *WalletStellarChainLink) Type() string { return string(LinkTypeWalletSte
 func (s *WalletStellarChainLink) ToDisplayString() string {
 	return fmt.Sprintf("%v %v %v %v", s.network, s.name, s.address, s.addressKID.String())
 }
+
 func (s *WalletStellarChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 	if tab.stellar == nil || tab.stellar.GetSeqno() <= s.GetSeqno() {
@@ -1203,8 +1212,8 @@ func (c CryptocurrencyChainLink) GetAddress() string {
 }
 
 func ParseCryptocurrencyChainLink(b GenericChainLink) (
-	cl *CryptocurrencyChainLink, err error) {
-
+	cl *CryptocurrencyChainLink, err error,
+) {
 	jw := b.UnmarshalPayloadJSON().AtPath("body.cryptocurrency")
 	var styp, addr string
 	var pkhash []byte
@@ -1522,7 +1531,6 @@ func isProofTypeDefunct(g *GlobalContext, typ keybase1.ProofType) bool {
 }
 
 func (idt *IdentityTable) insertRemoteProof(link RemoteProofChainLink) {
-
 	if isProofTypeDefunct(idt.G(), link.GetProofType()) {
 		idt.G().Log.Debug("Ignoring now-defunct proof: %s", link.ToDebugString())
 		return
@@ -1764,7 +1772,6 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	sid := p.GetSigID()
 
 	defer func() {
-
 		if hasPreviousTrack {
 			observedProofState := ProofErrorToState(res.err)
 			res.remoteDiff = idt.ComputeRemoteDiff(res.trackedProofState, res.tmpTrackedProofState, observedProofState)

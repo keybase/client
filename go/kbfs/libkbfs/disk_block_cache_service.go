@@ -36,7 +36,8 @@ func NewDiskBlockCacheService(config diskBlockCacheServiceConfig) *DiskBlockCach
 // GetBlock implements the DiskBlockCacheInterface interface for
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
-	arg kbgitkbfs.GetBlockArg) (kbgitkbfs.GetBlockRes, error) {
+	arg kbgitkbfs.GetBlockArg,
+) (kbgitkbfs.GetBlockRes, error) {
 	// TODO: make sure this isn't remote.
 	dbc := cache.config.DiskBlockCache()
 	if dbc == nil {
@@ -71,7 +72,8 @@ func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
 // for DiskBlockCacheService.
 func (cache *DiskBlockCacheService) GetPrefetchStatus(
 	ctx context.Context, arg kbgitkbfs.GetPrefetchStatusArg) (
-	prefetchStatus kbgitkbfs.PrefetchStatus, err error) {
+	prefetchStatus kbgitkbfs.PrefetchStatus, err error,
+) {
 	dbc := cache.config.DiskBlockCache()
 	if dbc == nil {
 		return NoPrefetch.ToProtocol(), DiskBlockCacheError{"Disk cache is nil"}
@@ -102,7 +104,8 @@ func (cache *DiskBlockCacheService) GetPrefetchStatus(
 // PutBlock implements the DiskBlockCacheInterface interface for
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) PutBlock(ctx context.Context,
-	arg kbgitkbfs.PutBlockArg) error {
+	arg kbgitkbfs.PutBlockArg,
+) error {
 	dbc := cache.config.DiskBlockCache()
 	if dbc == nil {
 		return DiskBlockCacheError{"Disk cache is nil"}
@@ -136,7 +139,8 @@ func (cache *DiskBlockCacheService) PutBlock(ctx context.Context,
 // DeleteBlocks implements the DiskBlockCacheInterface interface for
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) DeleteBlocks(ctx context.Context,
-	blockIDs [][]byte) (kbgitkbfs.DeleteBlocksRes, error) {
+	blockIDs [][]byte,
+) (kbgitkbfs.DeleteBlocksRes, error) {
 	dbc := cache.config.DiskBlockCache()
 	if dbc == nil {
 		return kbgitkbfs.DeleteBlocksRes{},
@@ -164,7 +168,8 @@ func (cache *DiskBlockCacheService) DeleteBlocks(ctx context.Context,
 // UpdateBlockMetadata implements the DiskBlockCacheInterface interface for
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) UpdateBlockMetadata(ctx context.Context,
-	arg kbgitkbfs.UpdateBlockMetadataArg) error {
+	arg kbgitkbfs.UpdateBlockMetadataArg,
+) error {
 	dbc := cache.config.DiskBlockCache()
 	if dbc == nil {
 		return DiskBlockCacheError{"Disk cache is nil"}

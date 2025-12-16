@@ -19,7 +19,8 @@ import (
 func GetEncodedUpdateHistory(
 	ctx context.Context, config libkbfs.Config,
 	folderBranch data.FolderBranch, start, end kbfsmd.Revision) (
-	data []byte, t time.Time, err error) {
+	data []byte, t time.Time, err error,
+) {
 	history, err := config.KBFSOps().GetUpdateHistory(
 		ctx, folderBranch, start, end)
 	if err != nil {

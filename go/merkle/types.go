@@ -41,12 +41,14 @@ const (
 	LeafTypeTeamv1 = 1
 )
 
-type LeafBytes []byte
-type LeafContainer struct {
-	_struct   bool      `codec:",toarray"` //nolint
-	LeafType  LeafType  // specifies structure of leafBytes
-	LeafBytes LeafBytes // msgpack deserialization implements Leaf
-}
+type (
+	LeafBytes     []byte
+	LeafContainer struct {
+		_struct   bool      `codec:",toarray"` //nolint
+		LeafType  LeafType  // specifies structure of leafBytes
+		LeafBytes LeafBytes // msgpack deserialization implements Leaf
+	}
+)
 
 func NewLeafContainer(leafType LeafType, leafBytes LeafBytes) LeafContainer {
 	return LeafContainer{LeafType: leafType, LeafBytes: leafBytes}
@@ -56,8 +58,10 @@ func (c LeafContainer) Serialize() ([]byte, error) {
 	return msgpack.EncodeCanonical(c)
 }
 
-type ID []byte
-type Revelations map[keybase1.SeqType]keybase1.Seqno
+type (
+	ID          []byte
+	Revelations map[keybase1.SeqType]keybase1.Seqno
+)
 
 type Leaf interface {
 	Serialize() ([]byte, error)
@@ -66,13 +70,15 @@ type Leaf interface {
 	GetRevelations() Revelations
 }
 
-type SigID []byte
-type Teamv1HiddenTail struct {
-	_struct bool `codec:",toarray"` //nolint
-	SigID   SigID
-	LinkID  sig3.LinkID
-	Seqno   keybase1.Seqno
-}
+type (
+	SigID            []byte
+	Teamv1HiddenTail struct {
+		_struct bool `codec:",toarray"` //nolint
+		SigID   SigID
+		LinkID  sig3.LinkID
+		Seqno   keybase1.Seqno
+	}
+)
 
 type Teamv1Leaf struct {
 	_struct bool `codec:",toarray"` //nolint
@@ -111,9 +117,11 @@ func ExportLeaf(l Leaf) (LeafContainer, error) {
 	return NewLeafContainer(l.Type(), b), nil
 }
 
-type HashMeta []byte
-type Skips map[TreeSeqno]HashMeta
-type RootHash []byte
+type (
+	HashMeta []byte
+	Skips    map[TreeSeqno]HashMeta
+	RootHash []byte
+)
 
 type RootMetadata struct {
 	_struct      bool         `codec:",toarray"` //nolint
@@ -152,14 +160,16 @@ func NewBlindedPreimage(leaf Leaf, blindedEntropy BlindedEntropy) (BlindedPreima
 	return BlindedPreimage{LeafContainer: container, BlindedEntropy: blindedEntropy}, nil
 }
 
-type Skiplist = []RootMetadata
-type Path = []merkletree.Node
-type QueryResponse struct {
-	RootMetadata    RootMetadata    `codec:"r,omitempty"`
-	Path            Path            `codec:"p,omitempty"`
-	BlindedPreimage BlindedPreimage `codec:"v,omitempty"`
-	Skiplists       []Skiplist      `codec:"s,omitempty"`
-}
+type (
+	Skiplist      = []RootMetadata
+	Path          = []merkletree.Node
+	QueryResponse struct {
+		RootMetadata    RootMetadata    `codec:"r,omitempty"`
+		Path            Path            `codec:"p,omitempty"`
+		BlindedPreimage BlindedPreimage `codec:"v,omitempty"`
+		Skiplists       []Skiplist      `codec:"s,omitempty"`
+	}
+)
 type HistoricalQueryResponse struct {
 	RootMetadata     RootMetadata      `codec:"r,omitempty"`
 	Paths            []Path            `codec:"p,omitempty"`

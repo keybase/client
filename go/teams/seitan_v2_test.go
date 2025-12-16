@@ -1,11 +1,10 @@
 package teams
 
 import (
+	"encoding/base64"
 	"errors"
 	"testing"
 	"time"
-
-	"encoding/base64"
 
 	"golang.org/x/net/context"
 
@@ -168,7 +167,6 @@ func TestSeitanBadSignatures(t *testing.T) {
 		require.NoError(t, bad.err)
 		require.Error(t, VerifySeitanSignatureMessage(SeitanPubKey(keyPair1.Public), bad.msg, sig))
 	}
-
 }
 
 // TestSeitanV2KnownSamples runs offline seitan crypto chain using known
@@ -247,7 +245,6 @@ func TestSeitanV2KnownSamples(t *testing.T) {
 // letters of the Seitan alphabet are hit by generating a sufficient number of
 // tokens. It would be bad, for instance, if we only hit 10% of the characters.
 func TestIsSeitanyAndAlphabetCoverage(t *testing.T) {
-
 	ikeyV1Gen := func() (s string, err error) {
 		ikey, err := GenerateIKey()
 		return ikey.String(), err

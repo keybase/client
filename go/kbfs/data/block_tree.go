@@ -7,9 +7,10 @@ package data
 import (
 	"context"
 	"fmt"
-	"github.com/gammazero/workerpool"
 	"sort"
 	"sync"
+
+	"github.com/gammazero/workerpool"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
@@ -90,7 +91,8 @@ func (bt *blockTree) getBlockAtOffset(ctx context.Context,
 	topBlock BlockWithPtrs, off Offset, rtype BlockReqType) (
 	ptr BlockPointer, parentBlocks []ParentBlockAndChildIndex,
 	block BlockWithPtrs, nextBlockStartOff, startOff Offset,
-	wasDirty bool, err error) {
+	wasDirty bool, err error,
+) {
 	// Find the block matching the offset, if it exists.
 	ptr = bt.rootBlockPointer()
 	block = topBlock
@@ -152,7 +154,8 @@ func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
 	pblock BlockWithPtrs, off Offset, rtype BlockReqType,
 	dirtyBcache IsDirtyProvider, parentBlocks []ParentBlockAndChildIndex) (
 	ptr BlockPointer, newParentBlocks []ParentBlockAndChildIndex,
-	block BlockWithPtrs, nextBlockStartOff, startOff Offset, err error) {
+	block BlockWithPtrs, nextBlockStartOff, startOff Offset, err error,
+) {
 	// Search along paths of dirty blocks until we find a dirty leaf
 	// block with an offset equal or greater than `off`.
 	checkedPrevBlock := false
@@ -219,9 +222,8 @@ func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
 		}
 
 		// Recurse to the next lower level.
-		ptr, newParentBlocks, block, nextBlockStartOff, startOff, err =
-			bt.getNextDirtyBlockAtOffsetAtLevel(
-				ctx, block, off, rtype, dirtyBcache, newParentBlocks)
+		ptr, newParentBlocks, block, nextBlockStartOff, startOff, err = bt.getNextDirtyBlockAtOffsetAtLevel(
+			ctx, block, off, rtype, dirtyBcache, newParentBlocks)
 		if err != nil {
 			return ZeroPtr, nil, nil, nil, nil, err
 		}
@@ -253,7 +255,8 @@ func (bt *blockTree) getNextDirtyBlockAtOffset(ctx context.Context,
 	topBlock BlockWithPtrs, off Offset, rtype BlockReqType,
 	dirtyBcache IsDirtyProvider) (
 	ptr BlockPointer, parentBlocks []ParentBlockAndChildIndex,
-	block BlockWithPtrs, nextBlockStartOff, startOff Offset, err error) {
+	block BlockWithPtrs, nextBlockStartOff, startOff Offset, err error,
+) {
 	// Find the block matching the offset, if it exists.
 	ptr = bt.rootBlockPointer()
 	if !dirtyBcache.IsDirty(bt.file.Tlf, ptr, bt.file.Branch) {
@@ -267,9 +270,8 @@ func (bt *blockTree) getNextDirtyBlockAtOffset(ctx context.Context,
 			topBlock.FirstOffset(), nil
 	}
 
-	ptr, parentBlocks, block, nextBlockStartOff, startOff, err =
-		bt.getNextDirtyBlockAtOffsetAtLevel(
-			ctx, topBlock, off, rtype, dirtyBcache, nil)
+	ptr, parentBlocks, block, nextBlockStartOff, startOff, err = bt.getNextDirtyBlockAtOffsetAtLevel(
+		ctx, topBlock, off, rtype, dirtyBcache, nil)
 	if err != nil {
 		return ZeroPtr, nil, nil, nil, nil, err
 	}
@@ -304,7 +306,8 @@ type getBlocksForOffsetRangeTask struct {
 
 func (task *getBlocksForOffsetRangeTask) subTask(
 	childPtr BlockPointer, childPath []ParentBlockAndChildIndex,
-	firstBlock bool) getBlocksForOffsetRangeTask {
+	firstBlock bool,
+) getBlocksForOffsetRangeTask {
 	subTask := *task
 	subTask.ptr = childPtr
 	subTask.pblock = nil
@@ -329,7 +332,8 @@ type getBlocksForOffsetRangeResult struct {
 func (bt *blockTree) processGetBlocksTask(ctx context.Context,
 	wg *sync.WaitGroup, wp *workerpool.WorkerPool,
 	job getBlocksForOffsetRangeTask,
-	results chan<- getBlocksForOffsetRangeResult) {
+	results chan<- getBlocksForOffsetRangeResult,
+) {
 	defer wg.Done()
 
 	select {
@@ -433,7 +437,8 @@ func (bt *blockTree) processGetBlocksTask(ctx context.Context,
 }
 
 func checkForHolesAndTruncate(
-	pathsFromRoot [][]ParentBlockAndChildIndex) [][]ParentBlockAndChildIndex {
+	pathsFromRoot [][]ParentBlockAndChildIndex,
+) [][]ParentBlockAndChildIndex {
 	var prevPath []ParentBlockAndChildIndex
 	for pathIdx, Path := range pathsFromRoot {
 		// Each path after the first must immediately follow the preceding path.
@@ -495,7 +500,8 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 	ptr BlockPointer, pblock BlockWithPtrs, startOff, endOff Offset,
 	prefixOk bool, getDirect bool) (pathsFromRoot [][]ParentBlockAndChildIndex,
 	blocks map[BlockPointer]Block, nextBlockOffset Offset,
-	err error) {
+	err error,
+) {
 	// Make a WaitGroup to keep track of whether there's still work to be done.
 	var wg sync.WaitGroup
 
@@ -602,8 +608,10 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 	return pathsFromRoot, blocks, nextBlockOffset, nil
 }
 
-type createTopBlockFn func(context.Context, Ver) (BlockWithPtrs, error)
-type makeNewBlockWithPtrs func(isIndirect bool) BlockWithPtrs
+type (
+	createTopBlockFn     func(context.Context, Ver) (BlockWithPtrs, error)
+	makeNewBlockWithPtrs func(isIndirect bool) BlockWithPtrs
+)
 
 // newRightBlock creates space for a new rightmost block, creating
 // parent blocks and a new level of indirection in the tree as needed.
@@ -622,7 +630,8 @@ type makeNewBlockWithPtrs func(isIndirect bool) BlockWithPtrs
 func (bt *blockTree) newRightBlock(
 	ctx context.Context, parentBlocks []ParentBlockAndChildIndex, off Offset,
 	dver Ver, newBlock makeNewBlockWithPtrs, topBlocker createTopBlockFn) (
-	[]ParentBlockAndChildIndex, []BlockPointer, error) {
+	[]ParentBlockAndChildIndex, []BlockPointer, error,
+) {
 	// Find the lowest block that can accommodate a new right block.
 	lowestAncestorWithRoom := -1
 	for i := len(parentBlocks) - 1; i >= 0; i-- {
@@ -749,7 +758,8 @@ func (bt *blockTree) newRightBlock(
 func (bt *blockTree) setParentOffsets(
 	ctx context.Context, newOff Offset,
 	parents []ParentBlockAndChildIndex, currIndex int) (
-	newDirtyPtrs []BlockPointer, newUnrefs []BlockInfo, err error) {
+	newDirtyPtrs []BlockPointer, newUnrefs []BlockInfo, err error,
+) {
 	for level := len(parents) - 2; level >= 0; level-- {
 		// Cache the block below this level, which was just
 		// modified.
@@ -829,7 +839,8 @@ func (bt *blockTree) String() string {
 func (bt *blockTree) shiftBlocksToFillHole(
 	ctx context.Context, parents []ParentBlockAndChildIndex) (
 	newDirtyPtrs []BlockPointer, newUnrefs []BlockInfo,
-	newlyDirtiedChildBytes int64, err error) {
+	newlyDirtiedChildBytes int64, err error,
+) {
 	// `parents` should represent the right side of the tree down to
 	// the new rightmost indirect pointer, the offset of which should
 	// match `newHoleStartOff`.  Keep swapping it with its sibling on
@@ -904,8 +915,7 @@ func (bt *blockTree) shiftBlocksToFillHole(
 				}
 
 				newParents[level+1].pblock = childBlock
-				newParents[level+1].childIndex =
-					childBlock.NumIndirectPtrs() - 1
+				newParents[level+1].childIndex = childBlock.NumIndirectPtrs() - 1
 				_, leftOff = childBlock.IndirectPtr(
 					childBlock.NumIndirectPtrs() - 1)
 			}
@@ -993,7 +1003,8 @@ func (bt *blockTree) shiftBlocksToFillHole(
 // with non-zero encoded sizes that will now need to be unreferenced.
 func (bt *blockTree) markParentsDirty(
 	ctx context.Context, parentBlocks []ParentBlockAndChildIndex) (
-	dirtyPtrs []BlockPointer, unrefs []BlockInfo, err error) {
+	dirtyPtrs []BlockPointer, unrefs []BlockInfo, err error,
+) {
 	parentPtr := bt.rootBlockPointer()
 	for _, pb := range parentBlocks {
 		dirtyPtrs = append(dirtyPtrs, parentPtr)
@@ -1019,7 +1030,8 @@ func (bt *blockTree) readyWorker(
 	bps BlockPutState, pathsFromRoot [][]ParentBlockAndChildIndex,
 	makeSync makeSyncFunc, i int, level int, lock *sync.Mutex,
 	oldPtrs map[BlockInfo]BlockPointer, donePtrs map[BlockPointer]bool,
-	hashBehavior BlockCacheHashBehavior) error {
+	hashBehavior BlockCacheHashBehavior,
+) error {
 	// Ready the dirty block.
 	pb := pathsFromRoot[i][level]
 
@@ -1086,7 +1098,8 @@ func (bt *blockTree) readyHelper(
 	rp ReadyProvider, bps BlockPutState,
 	pathsFromRoot [][]ParentBlockAndChildIndex, makeSync makeSyncFunc,
 	hashBehavior BlockCacheHashBehavior) (
-	map[BlockInfo]BlockPointer, error) {
+	map[BlockInfo]BlockPointer, error,
+) {
 	oldPtrs := make(map[BlockInfo]BlockPointer)
 	donePtrs := make(map[BlockPointer]bool)
 
@@ -1143,7 +1156,8 @@ func (bt *blockTree) ready(
 	dirtyBcache IsDirtyProvider, rp ReadyProvider, bps BlockPutState,
 	topBlock BlockWithPtrs, makeSync makeSyncFunc,
 	hashBehavior BlockCacheHashBehavior) (
-	map[BlockInfo]BlockPointer, error) {
+	map[BlockInfo]BlockPointer, error,
+) {
 	if !topBlock.IsIndirect() {
 		return nil, nil
 	}
@@ -1156,9 +1170,8 @@ func (bt *blockTree) ready(
 	// Gather all the paths to all dirty leaf blocks first.
 	off := topBlock.FirstOffset()
 	for off != nil {
-		_, parentBlocks, block, nextBlockOff, _, err :=
-			bt.getNextDirtyBlockAtOffset(
-				ctx, topBlock, off, BlockWrite, dirtyBcache)
+		_, parentBlocks, block, nextBlockOff, _, err := bt.getNextDirtyBlockAtOffset(
+			ctx, topBlock, off, BlockWrite, dirtyBcache)
 		if err != nil {
 			return nil, err
 		}
@@ -1196,7 +1209,8 @@ func (bt *blockTree) ready(
 
 func (bt *blockTree) getIndirectBlocksForOffsetRange(
 	ctx context.Context, pblock BlockWithPtrs, startOff, endOff Offset) (
-	pathsFromRoot [][]ParentBlockAndChildIndex, err error) {
+	pathsFromRoot [][]ParentBlockAndChildIndex, err error,
+) {
 	// Fetch the paths of indirect blocks, without getting the direct
 	// blocks.
 	pfr, _, _, err := bt.getBlocksForOffsetRange(
@@ -1210,7 +1224,8 @@ func (bt *blockTree) getIndirectBlocksForOffsetRange(
 }
 
 func (bt *blockTree) getIndirectBlockInfosWithTopBlock(
-	ctx context.Context, topBlock BlockWithPtrs) ([]BlockInfo, error) {
+	ctx context.Context, topBlock BlockWithPtrs,
+) ([]BlockInfo, error) {
 	if !topBlock.IsIndirect() {
 		return nil, nil
 	}
@@ -1244,7 +1259,8 @@ func (bt *blockTree) getIndirectBlockInfosWithTopBlock(
 }
 
 func (bt *blockTree) getIndirectBlockInfos(ctx context.Context) (
-	[]BlockInfo, error) {
+	[]BlockInfo, error,
+) {
 	if bt.rootBlockPointer().DirectType == DirectBlock {
 		return nil, nil
 	}

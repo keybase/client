@@ -53,8 +53,7 @@ type mdIDJournalEntry struct {
 }
 
 func makeMdIDJournal(codec kbfscodec.Codec, dir string) (mdIDJournal, error) {
-	j, err :=
-		makeDiskJournal(codec, dir, reflect.TypeOf(mdIDJournalEntry{}))
+	j, err := makeDiskJournal(codec, dir, reflect.TypeOf(mdIDJournalEntry{}))
 	if err != nil {
 		return mdIDJournal{}, err
 	}
@@ -110,7 +109,8 @@ func (j mdIDJournal) writeLatestRevision(r kbfsmd.Revision) error {
 }
 
 func (j mdIDJournal) readJournalEntry(r kbfsmd.Revision) (
-	mdIDJournalEntry, error) {
+	mdIDJournalEntry, error,
+) {
 	o, err := revisionToOrdinal(r)
 	if err != nil {
 		return mdIDJournalEntry{}, err
@@ -142,7 +142,8 @@ func (j mdIDJournal) end() (kbfsmd.Revision, error) {
 }
 
 func (j mdIDJournal) getEarliestEntry() (
-	entry mdIDJournalEntry, exists bool, err error) {
+	entry mdIDJournalEntry, exists bool, err error,
+) {
 	earliestRevision, err := j.readEarliestRevision()
 	if err != nil {
 		return mdIDJournalEntry{}, false, err
@@ -157,7 +158,8 @@ func (j mdIDJournal) getEarliestEntry() (
 }
 
 func (j mdIDJournal) getLatestEntry() (
-	entry mdIDJournalEntry, exists bool, err error) {
+	entry mdIDJournalEntry, exists bool, err error,
+) {
 	latestRevision, err := j.readLatestRevision()
 	if err != nil {
 		return mdIDJournalEntry{}, false, err
@@ -172,7 +174,8 @@ func (j mdIDJournal) getLatestEntry() (
 }
 
 func (j mdIDJournal) getEntryRange(start, stop kbfsmd.Revision) (
-	kbfsmd.Revision, []mdIDJournalEntry, error) {
+	kbfsmd.Revision, []mdIDJournalEntry, error,
+) {
 	earliestRevision, err := j.readEarliestRevision()
 	if err != nil {
 		return kbfsmd.RevisionUninitialized, nil, err

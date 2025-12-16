@@ -23,14 +23,16 @@ type CmdSimpleFSForceConflict struct {
 // it just triggers a "stuck" conflict, but maybe in the future we'll
 // want to add more types of manual conflicts.
 func NewCmdSimpleFSForceConflict(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:         "force-conflict",
 		ArgumentHelp: "<path-to-folder>",
 		Usage:        "forces a conflict in the given folder",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSForceConflict{
-				Contextified: libkb.NewContextified(g)}, "force-conflict", c)
+				Contextified: libkb.NewContextified(g),
+			}, "force-conflict", c)
 			cl.SetNoStandalone()
 		},
 	}

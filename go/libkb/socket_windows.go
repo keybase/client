@@ -43,7 +43,8 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 }
 
 func NewSocketWithFiles(
-	log logger.Logger, bindFile string, _ []string) Socket {
+	log logger.Logger, bindFile string, _ []string,
+) Socket {
 	s := `\\.\pipe\kbservice` +
 		strings.TrimPrefix(bindFile, filepath.VolumeName(bindFile))
 	return SocketInfo{

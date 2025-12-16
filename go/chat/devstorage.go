@@ -63,7 +63,8 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID, name string,
-	dest interface{}) (found bool, err error) {
+	dest interface{},
+) (found bool, err error) {
 	defer s.Trace(ctx, &err, "Get(%s)", name)()
 	un, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
 	if err != nil {

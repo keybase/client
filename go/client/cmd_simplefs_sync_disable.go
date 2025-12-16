@@ -22,14 +22,16 @@ type CmdSimpleFSSyncDisable struct {
 
 // NewCmdSimpleFSSyncDisable creates a new cli.Command.
 func NewCmdSimpleFSSyncDisable(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:         "disable",
 		ArgumentHelp: "[path-to-folder]",
 		Usage:        "Stops syncing the given folder to local storage",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSSyncDisable{
-				Contextified: libkb.NewContextified(g)}, "disable", c)
+				Contextified: libkb.NewContextified(g),
+			}, "disable", c)
 			cl.SetNoStandalone()
 		},
 	}
