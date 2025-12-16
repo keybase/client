@@ -8,7 +8,7 @@ import {OperationOutput, OutputActionsBar, SignedSender} from '../output'
 const operation = Crypto.Operations.Decrypt
 
 export const DecryptInput = () => {
-  const resetOperation = Crypto.useState(s => s.dispatch.resetOperation)
+  const resetOperation = Crypto.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (C.isMobile) {
@@ -35,7 +35,7 @@ export const DecryptInput = () => {
 }
 
 export const DecryptOutput = () => {
-  const errorMessage = Crypto.useState(s => s[operation].errorMessage.stringValue())
+  const errorMessage = Crypto.useCryptoState(s => s[operation].errorMessage.stringValue())
   const content = (
     <>
       {C.isMobile && errorMessage ? <OperationBanner key="banner" operation={operation} /> : null}

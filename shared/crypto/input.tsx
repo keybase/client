@@ -217,7 +217,7 @@ const FileInput = (props: FileProps) => {
 export const Input = (props: CommonProps & {setBlurCB?: (cb: () => void) => void}) => {
   const {operation, setBlurCB} = props
 
-  const {input: _input, inputType} = Crypto.useState(
+  const {input: _input, inputType} = Crypto.useCryptoState(
     C.useShallow(s => {
       const o = s[operation]
       const {input, inputType} = o
@@ -228,8 +228,8 @@ export const Input = (props: CommonProps & {setBlurCB?: (cb: () => void) => void
 
   const [inputValue, setInputValue] = React.useState(input)
 
-  const setInput = Crypto.useState(s => s.dispatch.setInput)
-  const clearInput = Crypto.useState(s => s.dispatch.clearInput)
+  const setInput = Crypto.useCryptoState(s => s.dispatch.setInput)
+  const clearInput = Crypto.useCryptoState(s => s.dispatch.clearInput)
 
   const onSetInput = (type: T.Crypto.InputTypes, newValue: string) => {
     setInput(operation, type, newValue)
@@ -272,8 +272,8 @@ const allowInputFolders = new Map([
 
 export const DragAndDrop = (props: DragAndDropProps) => {
   const {prompt, children, operation} = props
-  const inProgress = Crypto.useState(s => s[operation].inProgress)
-  const setInput = Crypto.useState(s => s.dispatch.setInput)
+  const inProgress = Crypto.useCryptoState(s => s[operation].inProgress)
+  const setInput = Crypto.useCryptoState(s => s.dispatch.setInput)
 
   const onAttach = (localPaths: Array<string>) => {
     const path = localPaths[0]
@@ -302,7 +302,7 @@ export const OperationBanner = (props: CommonProps) => {
   const {operation} = props
   const infoMessage = Crypto.infoMessage[operation]
 
-  const {errorMessage: _errorMessage, warningMessage: _warningMessage} = Crypto.useState(
+  const {errorMessage: _errorMessage, warningMessage: _warningMessage} = Crypto.useCryptoState(
     C.useShallow(s => {
       const {errorMessage, warningMessage} = s[operation]
       return {errorMessage, warningMessage}
@@ -339,7 +339,7 @@ export const OperationBanner = (props: CommonProps) => {
 export const InputActionsBar = (props: RunOperationProps) => {
   const {operation, children, blurCBRef} = props
   const operationTitle = capitalize(operation)
-  const runTextOperation = Crypto.useState(s => s.dispatch.runTextOperation)
+  const runTextOperation = Crypto.useCryptoState(s => s.dispatch.runTextOperation)
   const onRunOperation = () => {
     blurCBRef?.current()
     setTimeout(() => {

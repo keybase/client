@@ -9,7 +9,7 @@ import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from 
 const operation = Crypto.Operations.Sign
 
 const SignOutputBanner = () => {
-  const outputType = Crypto.useState(s => s.sign.outputType)
+  const outputType = Crypto.useCryptoState(s => s.sign.outputType)
   return (
     <OutputInfoBanner operation={operation}>
       <Kb.Text type="BodySmallSemibold" center={true}>
@@ -33,7 +33,7 @@ export const SignInput = () => {
     blurCBRef.current = cb
   }, [])
 
-  const resetOperation = Crypto.useState(s => s.dispatch.resetOperation)
+  const resetOperation = Crypto.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (C.isMobile) {

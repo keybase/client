@@ -7,62 +7,8 @@ import logger from '@/logger'
 import * as T from '../types'
 import {RPCError} from '@/util/errors'
 import {storeRegistry} from '../store-registry'
-
-export const saltpackDocumentation = 'https://saltpack.org'
-export const inputDesktopMaxHeight = {maxHeight: '30%'} as const
-export const outputDesktopMaxHeight = {maxHeight: '70%'} as const
-
-export const encryptTab = 'encryptTab'
-export const decryptTab = 'decryptTab'
-export const signTab = 'signTab'
-export const verifyTab = 'verifyTab'
-
-// Output route keys - Mobile only
-export const encryptOutput = 'encryptOutput'
-export const decryptOutput = 'decryptOutput'
-export const signOutput = 'signOutput'
-export const verifyOutput = 'verifyOutput'
-
-// Update me once Saltpack works with files on mobile.
-export const infoMessage = {
-  decrypt: isMobile
-    ? 'Decrypt messages encrypted with Saltpack.'
-    : 'Decrypt any ciphertext or .encrypted.saltpack file.',
-  encrypt: "Encrypt to anyone, even if they're not on Keybase yet.",
-  sign: 'Add your cryptographic signature to a message or file.',
-  verify: isMobile ? 'Verify a signed message.' : 'Verify any signed text or .signed.saltpack file.',
-}
-
-export const Tabs = [
-  {
-    description: infoMessage.encrypt,
-    icon: 'iconfont-lock' as const,
-    illustration: 'icon-encrypt-64' as const,
-    tab: encryptTab,
-    title: 'Encrypt',
-  },
-  {
-    description: infoMessage.decrypt,
-    icon: 'iconfont-unlock' as const,
-    illustration: 'icon-decrypt-64' as const,
-    tab: decryptTab,
-    title: 'Decrypt',
-  },
-  {
-    description: infoMessage.sign,
-    icon: 'iconfont-check' as const,
-    illustration: 'icon-sign-64' as const,
-    tab: signTab,
-    title: 'Sign',
-  },
-  {
-    description: infoMessage.verify,
-    icon: 'iconfont-verify' as const,
-    illustration: 'icon-verify-64' as const,
-    tab: verifyTab,
-    title: 'Verify',
-  },
-] as const
+import {Operations} from './util'
+export * from './util'
 
 type CommonStore = {
   bytesComplete: number
@@ -102,13 +48,6 @@ type Store = T.Immutable<{
   sign: CommonStore
   verify: CommonStore
 }>
-
-export const Operations = {
-  Decrypt: 'decrypt',
-  Encrypt: 'encrypt',
-  Sign: 'sign',
-  Verify: 'verify',
-} as const
 
 const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
@@ -205,7 +144,7 @@ const initialStore: Store = {
   verify: {...defaultCommonStore},
 }
 
-type State = Store & {
+export type State = Store & {
   dispatch: {
     clearInput: (op: T.Crypto.Operations) => void
     clearRecipients: () => void
@@ -226,7 +165,7 @@ type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useCryptoState = Z.createZustand<State>((set, get) => {
   const resetWarnings = (o: CommonStore) => {
     o.errorMessage = new HiddenString('')
     o.warningMessage = new HiddenString('')
@@ -289,7 +228,10 @@ export const useState = Z.createZustand<State>((set, get) => {
             usedUnresolvedSBS,
             unresolvedSBSAssertion,
             ciphertext: output,
-          } = await T.RPCGen.saltpackSaltpackEncryptStringRpcPromise({opts, plaintext: input}, waitingKeyCrypto)
+          } = await T.RPCGen.saltpackSaltpackEncryptStringRpcPromise(
+            {opts, plaintext: input},
+            waitingKeyCrypto
+          )
           return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
         }
         const callFile = async () => {
@@ -340,7 +282,10 @@ export const useState = Z.createZustand<State>((set, get) => {
       const input = start.input.stringValue()
       try {
         const callText = async () => {
-          const res = await T.RPCGen.saltpackSaltpackDecryptStringRpcPromise({ciphertext: input}, waitingKeyCrypto)
+          const res = await T.RPCGen.saltpackSaltpackDecryptStringRpcPromise(
+            {ciphertext: input},
+            waitingKeyCrypto
+          )
           const {plaintext: output, info, signed} = res
           const {sender} = info
           const {username, fullname} = sender
@@ -396,7 +341,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.saltpackSaltpackSignStringRpcPromise({plaintext: input}, waitingKeyCrypto)
 
         const callFile = async () =>
-          await T.RPCGen.saltpackSaltpackSignFileRpcPromise({destinationDir, filename: input}, waitingKeyCrypto)
+          await T.RPCGen.saltpackSaltpackSignFileRpcPromise(
+            {destinationDir, filename: input},
+            waitingKeyCrypto
+          )
 
         const output = await (inputType === 'text' ? callText() : callFile())
 
@@ -426,7 +374,10 @@ export const useState = Z.createZustand<State>((set, get) => {
       const input = start.input.stringValue()
       try {
         const callText = async () => {
-          const res = await T.RPCGen.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input}, waitingKeyCrypto)
+          const res = await T.RPCGen.saltpackSaltpackVerifyStringRpcPromise(
+            {signedMsg: input},
+            waitingKeyCrypto
+          )
           const {plaintext: output, sender, verified: signed} = res
           const {username, fullname} = sender
           return {fullname, output, signed, username}

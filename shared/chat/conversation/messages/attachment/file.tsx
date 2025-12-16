@@ -47,7 +47,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const {conversationIDKey, fileType, downloadPath, isEditing, progress, messageAttachmentNativeShare} = data
   const {attachmentDownload, title, transferState, transferErrMsg, fileName: _fileName} = data
 
-  const saltpackOpenFile = Crypto.useState(s => s.dispatch.onSaltpackOpenFile)
+  const saltpackOpenFile = Crypto.useCryptoState(s => s.dispatch.onSaltpackOpenFile)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSaltpackFileOpen = React.useCallback(
     (path: string, operation: T.Crypto.Operations) => {
