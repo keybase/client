@@ -99,6 +99,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   const isFocused = useIsFocused()
 
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
+  // a hack to have it check for marked as read when we mount as the focus events don't fire always
   const onNewChat = appendNewChatBuilder
   const onUntrustedInboxVisible = queueMetaToRequest
   const [lastIsFocused, setLastIsFocused] = React.useState(isFocused)

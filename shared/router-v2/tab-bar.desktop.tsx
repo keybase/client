@@ -64,6 +64,7 @@ const Header = () => {
         C.ignorePromise(dumpLogs('quitting through menu'))
       }
     }
+    // In case dump log doesn't exit for us
     hideWindow?.()
     setTimeout(() => {
       ctlQuit?.()

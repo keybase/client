@@ -125,6 +125,7 @@ const useUserData = (username: string) => {
   const _onEditAvatar = editAvatar
   const _onReload = (username: string, isYou: boolean, state: T.Tracker.DetailsState) => {
     if (state !== 'valid' && !isYou) {
+      // Might be a Keybase user or not, launch non-user profile fetch.
       loadNonUserProfile(username)
     }
     if (state !== 'notAUserYet') {

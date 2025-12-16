@@ -114,6 +114,8 @@ export const useFsPathInfo = (path: T.FS.Path, knownPathInfo: T.FS.PathInfo): T.
     if (alreadyKnown) {
       useFSState.getState().dispatch.loadedPathInfo(path, knownPathInfo)
     } else if (pathInfo === FS.emptyPathInfo) {
+      // We only need to load if it's empty. This never changes once we have
+      // it.
       useFSState.getState().dispatch.loadPathInfo(path)
     }
   }, [path, alreadyKnown, knownPathInfo, pathInfo])
@@ -133,6 +135,7 @@ export const useFsDownloadInfo = (downloadID: string): T.FS.DownloadInfo => {
     }))
   )
   React.useEffect(() => {
+    // This never changes, so simply just load it once.
     downloadID && loadDownloadInfo(downloadID)
   }, [downloadID, loadDownloadInfo])
   return info
