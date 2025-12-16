@@ -130,9 +130,10 @@ import (
 	"fmt"
 	"io"
 
+	"crypto/ed25519"
+
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
-	"github.com/keybase/go-crypto/ed25519"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 

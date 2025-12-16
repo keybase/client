@@ -7,9 +7,11 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"github.com/keybase/go-crypto/ed25519"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"crypto/ed25519"
+
+	"github.com/stretchr/testify/require"
 )
 
 type keypair struct {

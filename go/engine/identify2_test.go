@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/go-crypto/ed25519"
+	"crypto/ed25519"
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"

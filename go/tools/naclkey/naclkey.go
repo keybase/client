@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/keybase/go-crypto/ed25519"
+	"crypto/ed25519"
 )
 
 // to avoid importing all of libkb, some constants copied from

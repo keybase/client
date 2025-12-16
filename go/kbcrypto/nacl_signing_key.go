@@ -6,8 +6,9 @@ package kbcrypto
 import (
 	"encoding/base64"
 
+	"crypto/ed25519"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-crypto/ed25519"
 )
 
 type NaclSignature [ed25519.SignatureSize]byte

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/keybase/go-crypto/ed25519"
+	"crypto/ed25519"
 
 	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"

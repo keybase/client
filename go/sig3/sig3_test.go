@@ -3,11 +3,13 @@ package sig3
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"github.com/keybase/client/go/msgpack"
-	"github.com/keybase/go-crypto/ed25519"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"crypto/ed25519"
+
+	"github.com/keybase/client/go/msgpack"
+	"github.com/stretchr/testify/require"
 )
 
 func genKey(t *testing.T) (pair KeyPair) {

@@ -8,7 +8,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/keybase/go-crypto/ed25519"
+	"crypto/ed25519"
+
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/scrypt"
 
