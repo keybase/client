@@ -40,8 +40,8 @@ const AddMembersConfirm = () => {
       return {
         addMembersWizard: s.addMembersWizard,
         cancelAddMembersWizard: s.dispatch.cancelAddMembersWizard,
-        finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
         finishNewTeamWizard: s.dispatch.finishNewTeamWizard,
+        finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
         isInTeam: Teams.getRole(s, teamID) !== 'none',
         isSubteam: Teams.getTeamMeta(s, teamID).teamname.includes('.'),
         newTeamWizErr: teamID === T.Teams.newTeamWizardTeamID ? s.newTeamWizard.error : undefined,
@@ -433,11 +433,7 @@ const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRole
 
 const DefaultChannels = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
-  const {
-    addMembersWizardSetDefaultChannels,
-    addToChannels,
-    allKeybaseUsers,
-  } = useTeamsState(
+  const {addMembersWizardSetDefaultChannels, addToChannels, allKeybaseUsers} = useTeamsState(
     C.useShallow(s => ({
       addMembersWizardSetDefaultChannels: s.dispatch.addMembersWizardSetDefaultChannels,
       addToChannels: s.addMembersWizard.addToChannels,

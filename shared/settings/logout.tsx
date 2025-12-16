@@ -25,13 +25,13 @@ const LogoutContainer = () => {
     _setPassword,
   } = usePWState(
     C.useShallow(s => ({
+      _setPassword: s.dispatch.setPassword,
       hasPGPKeyOnServer: !!s.hasPGPKeyOnServer,
       hasRandomPW: s.randomPW,
       loadHasRandomPw: s.dispatch.loadHasRandomPw,
       onUpdatePGPSettings: s.dispatch.loadPgpSettings,
       setPasswordConfirm: s.dispatch.setPasswordConfirm,
       submitNewPassword: s.dispatch.submitNewPassword,
-      _setPassword: s.dispatch.setPassword,
     }))
   )
   const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)

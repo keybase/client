@@ -246,8 +246,6 @@ const Developer = () => {
       onTrace: s.dispatch.trace,
     }))
   )
-  const trace = onTrace
-  const processorProfile = onProcessorProfile
   const processorProfileInProgress = C.Waiting.useAnyWaiting(processorProfileInProgressKey)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDBNuke = () => navigateAppend('dbNukeConfirm')

@@ -20,8 +20,8 @@ export const Email = () => {
 
   const {addedEmail, addEmail, emailError, resetAddingEmail} = useSettingsEmailState(
     C.useShallow(s => ({
-      addedEmail: s.addedEmail,
       addEmail: s.dispatch.addEmail,
+      addedEmail: s.addedEmail,
       emailError: s.error,
       resetAddingEmail: s.dispatch.resetAddingEmail,
     }))
