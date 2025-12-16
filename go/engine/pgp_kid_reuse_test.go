@@ -12,9 +12,9 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 
-	"crypto/curve25519"
 
 	"github.com/keybase/go-crypto/openpgp"
+	"github.com/keybase/go-crypto/curve25519"
 	"github.com/keybase/go-crypto/openpgp/ecdh"
 	"github.com/keybase/go-crypto/openpgp/packet"
 )
