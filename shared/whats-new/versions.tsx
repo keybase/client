@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Crypto from '@/constants/crypto'
+import {encryptTab} from '@/constants/crypto/util'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {keybaseFM} from '@/constants/whats-new'
@@ -93,7 +93,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-5.2.0-crypto"
         noSeparator={true}
         onPrimaryButtonClick={() => {
-          onNavigate(C.isMobile ? settingsCryptoTab : Crypto.encryptTab)
+          onNavigate(C.isMobile ? settingsCryptoTab : encryptTab)
         }}
         primaryButtonText="Try it"
         seen={seen}

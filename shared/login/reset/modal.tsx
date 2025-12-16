@@ -10,9 +10,14 @@ const ResetModal = () => {
 }
 
 const ResetModalImpl = () => {
-  const active = AutoReset.useAutoResetState(s => s.active)
-  const endTime = AutoReset.useAutoResetState(s => s.endTime)
-  const error = AutoReset.useAutoResetState(s => s.error)
+  const {active, endTime, error, onCancelReset} = AutoReset.useAutoResetState(
+    C.useShallow(s => ({
+      active: s.active,
+      endTime: s.endTime,
+      error: s.error,
+      onCancelReset: s.dispatch.cancelReset,
+    }))
+  )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   React.useEffect(() => {
     if (!active) {
@@ -26,8 +31,6 @@ const ResetModalImpl = () => {
     timeLeft < 0
       ? 'This account is eligible to be reset.'
       : `This account will reset in ${formatDurationForAutoreset(timeLeft)}.`
-
-  const onCancelReset = AutoReset.useAutoResetState(s => s.dispatch.cancelReset)
 
   return (
     <Kb.SafeAreaView

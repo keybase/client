@@ -1,7 +1,6 @@
 import * as T from '../types'
 import {ignorePromise} from '../utils'
 import * as Router2 from '../router2'
-import * as Crypto from '../crypto'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
@@ -312,7 +311,8 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           const contactRes = _contactRes || []
           const contacts = contactRes.map(contactToUser)
           let suggestions = suggestionRes.map(interestingPersonToUser)
-          const expectingContacts = storeRegistry.getState('settings-contacts').importEnabled && includeContacts
+          const expectingContacts =
+            storeRegistry.getState('settings-contacts').importEnabled && includeContacts
           if (expectingContacts) {
             suggestions = suggestions.slice(0, 10)
           }
@@ -359,7 +359,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const {finishedTeam, namespace} = get()
       switch (namespace) {
         case 'crypto': {
-          Crypto.useState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
+          storeRegistry.getState('crypto').dispatch.onTeamBuildingFinished(finishedTeam)
           break
         }
         case 'chat2': {

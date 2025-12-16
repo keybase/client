@@ -33,7 +33,7 @@ export const SignedSender = (props: SignedSenderProps) => {
     outputSenderUsername: signedByUsername,
     outputSenderFullname: signedByFullname,
     outputStatus,
-  } = Crypto.useState(
+  } = Crypto.useCryptoState(
     C.useShallow(s => {
       const o = s[operation]
       const {outputSigned, outputSenderUsername, outputSenderFullname, outputStatus} = o
@@ -122,7 +122,7 @@ export const SignedSender = (props: SignedSenderProps) => {
 const OutputProgress = (props: OutputProgressProps) => {
   const {operation} = props
 
-  const {bytesComplete, bytesTotal, inProgress} = Crypto.useState(
+  const {bytesComplete, bytesTotal, inProgress} = Crypto.useCryptoState(
     C.useShallow(s => {
       const o = s[operation]
       const {bytesComplete, bytesTotal, inProgress} = o
@@ -143,7 +143,7 @@ const OutputProgress = (props: OutputProgressProps) => {
 export const OutputInfoBanner = (props: OutputInfoProps) => {
   const {operation} = props
 
-  const outputStatus = Crypto.useState(s => s[operation].outputStatus)
+  const outputStatus = Crypto.useCryptoState(s => s[operation].outputStatus)
   return outputStatus === 'success' ? (
     <Kb.Banner
       color="grey"
@@ -170,7 +170,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     outputType,
     outputSigned: signed,
     outputSenderUsername: signedByUsername,
-  } = Crypto.useState(
+  } = Crypto.useCryptoState(
     C.useShallow(s => {
       const o = s[operation]
       const {output, outputValid, outputStatus, outputType, outputSigned, outputSenderUsername} = o
@@ -199,8 +199,8 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     copyToClipboard(output.stringValue())
   }
 
-  const downloadSignedText = Crypto.useState(s => s.dispatch.downloadSignedText)
-  const downloadEncryptedText = Crypto.useState(s => s.dispatch.downloadEncryptedText)
+  const downloadSignedText = Crypto.useCryptoState(s => s.dispatch.downloadSignedText)
+  const downloadEncryptedText = Crypto.useCryptoState(s => s.dispatch.downloadEncryptedText)
 
   const onSaveAsText = () => {
     if (operation === Crypto.Operations.Sign) {
@@ -304,8 +304,8 @@ const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
   const {operation} = props
   const operationTitle = capitalize(operation)
 
-  const input = Crypto.useState(s => s[operation].input.stringValue())
-  const runFileOperation = Crypto.useState(s => s.dispatch.runFileOperation)
+  const input = Crypto.useCryptoState(s => s[operation].input.stringValue())
+  const runFileOperation = Crypto.useCryptoState(s => s.dispatch.runFileOperation)
 
   const onOpenFile = () => {
     const f = async () => {
@@ -359,7 +359,7 @@ export const OperationOutput = (props: OutputProps) => {
     outputValid,
     outputStatus,
     outputType,
-  } = Crypto.useState(
+  } = Crypto.useCryptoState(
     C.useShallow(s => {
       const o = s[operation]
       const {inProgress, inputType, output, outputValid, outputStatus, outputType} = o

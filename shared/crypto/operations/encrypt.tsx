@@ -10,7 +10,7 @@ import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from 
 const operation = Crypto.Operations.Encrypt
 
 const EncryptOptions = React.memo(function EncryptOptions() {
-  const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = Crypto.useState(
+  const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = Crypto.useCryptoState(
     C.useShallow(s => {
       const o = s[operation]
       const {inProgress} = o
@@ -20,7 +20,7 @@ const EncryptOptions = React.memo(function EncryptOptions() {
     })
   )
 
-  const setEncryptOptions = Crypto.useState(s => s.dispatch.setEncryptOptions)
+  const setEncryptOptions = Crypto.useCryptoState(s => s.dispatch.setEncryptOptions)
 
   const onSetOptions = (opts: {newIncludeSelf: boolean; newSign: boolean}) => {
     const {newIncludeSelf, newSign} = opts
@@ -57,7 +57,7 @@ const EncryptOptions = React.memo(function EncryptOptions() {
 })
 
 const EncryptOutputBanner = () => {
-  const {hasRecipients, includeSelf, recipients, outputType} = Crypto.useState(
+  const {hasRecipients, includeSelf, recipients, outputType} = Crypto.useCryptoState(
     C.useShallow(s => {
       const o = s[operation]
       const {recipients, outputType} = o
@@ -147,7 +147,7 @@ export const EncryptInput = () => {
     </>
   )
 
-  const resetOperation = Crypto.useState(s => s.dispatch.resetOperation)
+  const resetOperation = Crypto.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (C.isMobile) {

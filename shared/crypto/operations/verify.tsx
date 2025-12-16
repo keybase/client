@@ -8,7 +8,7 @@ import {OperationOutput, SignedSender, OutputActionsBar} from '../output'
 const operation = Crypto.Operations.Verify
 
 export const VerifyInput = () => {
-  const resetOperation = Crypto.useState(s => s.dispatch.resetOperation)
+  const resetOperation = Crypto.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (C.isMobile) {
@@ -34,7 +34,7 @@ export const VerifyInput = () => {
   )
 }
 export const VerifyOutput = () => {
-  const errorMessage = Crypto.useState(s => s[operation].errorMessage.stringValue())
+  const errorMessage = Crypto.useCryptoState(s => s[operation].errorMessage.stringValue())
   const content = (
     <>
       {C.isMobile && errorMessage ? <OperationBanner key="banner" operation={operation} /> : null}

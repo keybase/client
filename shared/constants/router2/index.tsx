@@ -416,15 +416,22 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       updateTeamBuilding()
 
       const updateFS = () => {
-        const {criticalUpdate, dispatch} = storeRegistry.getState('fs')
         // Clear critical update when we nav away from tab
-        if (criticalUpdate && prev && getTab(prev) === Tabs.fsTab && next && getTab(next) !== Tabs.fsTab) {
+        if (
+          prev &&
+          getTab(prev) === Tabs.fsTab &&
+          next &&
+          getTab(next) !== Tabs.fsTab &&
+          storeRegistry.getState('fs').criticalUpdate
+        ) {
+          const {dispatch} = storeRegistry.getState('fs')
           dispatch.setCriticalUpdate(false)
         }
         const fsRrouteNames = ['fsRoot', 'barePreview']
         const wasScreen = fsRrouteNames.includes(getVisibleScreen(prev)?.name ?? '')
         const isScreen = fsRrouteNames.includes(getVisibleScreen(next)?.name ?? '')
         if (wasScreen !== isScreen) {
+          const {dispatch} = storeRegistry.getState('fs')
           if (wasScreen) {
             dispatch.userOut()
           } else {
@@ -437,11 +444,11 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       const updateSignup = () => {
         // Clear "just signed up email" when you leave the people tab after signup
         if (
-          storeRegistry.getState('signup').justSignedUpEmail &&
           prev &&
           getTab(prev) === Tabs.peopleTab &&
           next &&
-          getTab(next) !== Tabs.peopleTab
+          getTab(next) !== Tabs.peopleTab &&
+          storeRegistry.getState('signup').justSignedUpEmail
         ) {
           storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
         }
@@ -465,11 +472,11 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       const updateSettings = () => {
         // Clear "check your inbox" in settings when you leave the settings tab
         if (
-          storeRegistry.getState('settings-email').addedEmail &&
           prev &&
           getTab(prev) === Tabs.settingsTab &&
           next &&
-          getTab(next) !== Tabs.settingsTab
+          getTab(next) !== Tabs.settingsTab &&
+          storeRegistry.getState('settings-email').addedEmail
         ) {
           storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
         }

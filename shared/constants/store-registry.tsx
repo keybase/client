@@ -11,6 +11,7 @@ import type {State as AvatarState, useAvatarState} from '@/common-adapters/avata
 import type {State as BotsState, useBotsState} from './bots'
 import type {State as ChatState, useChatState} from './chat2'
 import type {State as ConfigState, useConfigState} from './config'
+import type {State as CryptoState, useCryptoState} from './crypto'
 import type {State as CurrentUserState, useCurrentUserState} from './current-user'
 import type {State as DaemonState, useDaemonState} from './daemon'
 import type {State as DarkModeState, useDarkModeState} from './darkmode'
@@ -51,6 +52,7 @@ type StoreName =
   | 'bots'
   | 'chat'
   | 'config'
+  | 'crypto'
   | 'current-user'
   | 'daemon'
   | 'dark-mode'
@@ -91,6 +93,7 @@ type StoreStates = {
   bots: BotsState
   chat: ChatState
   config: ConfigState
+  crypto: CryptoState
   'current-user': CurrentUserState
   daemon: DaemonState
   'dark-mode': DarkModeState
@@ -132,6 +135,7 @@ type StoreHooks = {
   bots: typeof useBotsState
   chat: typeof useChatState
   config: typeof useConfigState
+  crypto: typeof useCryptoState
   'current-user': typeof useCurrentUserState
   daemon: typeof useDaemonState
   'dark-mode': typeof useDarkModeState
@@ -200,6 +204,10 @@ class StoreRegistry {
       case 'current-user': {
         const {useCurrentUserState} = require('./current-user')
         return useCurrentUserState
+      }
+      case 'crypto': {
+        const {useCryptoState} = require('./crypto')
+        return useCryptoState
       }
       case 'daemon': {
         const {useDaemonState} = require('./daemon')

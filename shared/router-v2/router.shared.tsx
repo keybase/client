@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import * as Kbfs from '@/fs/common'
+import UploadIcon from '@/fs/common/upload-icon'
 import * as React from 'react'
 import {Splash} from '../login/loading'
 import type {Theme} from '@react-navigation/native'
@@ -22,7 +22,7 @@ export const SimpleLoading = React.memo(function SimpleLoading() {
 
 export const FilesTabBadge = () => {
   const uploadIcon = useFSState(s => s.getUploadIconForFilesTab())
-  return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
+  return uploadIcon ? <UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

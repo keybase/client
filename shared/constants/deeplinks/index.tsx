@@ -1,4 +1,4 @@
-import * as Crypto from '../crypto'
+import * as Crypto from '../crypto/util'
 import * as Tabs from '../tabs'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import * as Z from '@/util/zustand'
@@ -305,8 +305,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
         )
         return
       }
-      const {onSaltpackOpenFile} = Crypto.useState.getState().dispatch
-      onSaltpackOpenFile(operation, path)
+      storeRegistry.getState('crypto').dispatch.onSaltpackOpenFile(operation, path)
       storeRegistry.getState('router').dispatch.switchTab(Tabs.cryptoTab)
     },
 
