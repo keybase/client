@@ -319,21 +319,22 @@ helpers.rootLinuxNode(env, {
                   "PATH=C:\\tools\\go\\bin;${WINDOWS_PATH}",
                 ]) {
                   sh '''
-                    # Use HOME in Git Bash which gives us Unix-style paths
-                    export GOBIN="${HOME}/go/bin"
-                    mkdir -p "${GOBIN}"
-
                     # Clear environment variables that might have Windows-style paths
                     unset GOROOT
                     unset GOTOOLCHAIN
                     unset GOPATH
                     unset GOMODCACHE
-
-                    # Remove any existing go wrapper/symlink to start fresh
-                    rm -f "${GOBIN}/go"
+                    unset GOBIN
 
                     echo "Installing go1.25.5..."
                     go install golang.org/dl/go1.25.5@latest
+
+                    # Find where Go installed it (will be in default GOPATH/bin)
+                    GOBIN=$(go env GOPATH)/bin
+                    mkdir -p "${GOBIN}"
+
+                    # Remove any existing go wrapper/symlink to start fresh
+                    rm -f "${GOBIN}/go"
 
                     echo "Downloading Go 1.25.5 SDK..."
                     "${GOBIN}/go1.25.5" download
