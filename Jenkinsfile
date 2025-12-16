@@ -178,19 +178,15 @@ helpers.rootLinuxNode(env, {
           test_linux: {
             def packagesToTest = [:]
             if (hasGoChanges || hasJenkinsfileChanges) {
-              withEnv([
-                "PATH=${env.PATH}",
-                "GOPATH=${env.GOPATH}",
-                "GOROOT=${env.GOROOT}",
-              ]) {
-                // Install gofumpt for protocol generation
-                dir("go/buildtools") {
-                  println "Installing gofumpt"
-                  retry(5) {
-                    sh 'go install mvdan.cc/gofumpt'
-                  }
+              // Install gofumpt for protocol generation
+              dir("go/buildtools") {
+                println "Installing gofumpt"
+                retry(5) {
+                  sh 'go install mvdan.cc/gofumpt'
                 }
-                // Check protocol diffs
+              }
+              // Check protocol diffs with GOPATH/bin in PATH so Makefile can find gofumpt
+              withEnv(["PATH=${env.PATH}:${env.GOPATH}/bin"]) {
                 // Clean the index first
                 sh "git add -A"
                 // Generate protocols
@@ -200,9 +196,9 @@ helpers.rootLinuxNode(env, {
                   sh "make"
                 }
                 checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
-                packagesToTest = getPackagesToTest(dependencyFiles, hasJenkinsfileChanges)
-                hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
               }
+              packagesToTest = getPackagesToTest(dependencyFiles, hasJenkinsfileChanges)
+              hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
             } else {
               // Ensure that the change target branch has been fetched,
               // since Jenkins only does a sparse checkout by default.
