@@ -89,7 +89,7 @@ helpers.rootLinuxNode(env, {
       # Capture both Go and Node environment variables
       echo "GOROOT=$(go env GOROOT)" > build_env
       echo "NODE_PATH=$(npm root -g)" >> build_env
-      echo "PATH=$(go env GOROOT)/bin:$(npm config get prefix)/bin:${PATH}" >> build_env
+      echo "PATH=$(go env GOPATH)/bin:$(go env GOROOT)/bin:$(npm config get prefix)/bin:${PATH}" >> build_env
       cat build_env
   '''
 
