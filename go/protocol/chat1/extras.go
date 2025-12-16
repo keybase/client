@@ -42,8 +42,10 @@ func (i ConvIDStr) String() string {
 	return string(i)
 }
 
-type ByUID []gregor1.UID
-type ConvIDShort = []byte
+type (
+	ByUID       []gregor1.UID
+	ConvIDShort = []byte
+)
 
 func (b ByUID) Len() int      { return len(b) }
 func (b ByUID) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
@@ -775,9 +777,11 @@ const (
 // NOTE: these values correspond to the maximum accepted values in
 // chat/boxer.go. If these values are changed, they must also be accepted
 // there.
-var MaxMessageBoxedVersion MessageBoxedVersion = MessageBoxedVersion_V4
-var MaxHeaderVersion HeaderPlaintextVersion = HeaderPlaintextVersion_V1
-var MaxBodyVersion BodyPlaintextVersion = BodyPlaintextVersion_V2
+var (
+	MaxMessageBoxedVersion MessageBoxedVersion    = MessageBoxedVersion_V4
+	MaxHeaderVersion       HeaderPlaintextVersion = HeaderPlaintextVersion_V1
+	MaxBodyVersion         BodyPlaintextVersion   = BodyPlaintextVersion_V2
+)
 
 // ParseableVersion checks if this error has a version that is now able to be
 // understood by our client.
@@ -2888,7 +2892,6 @@ func yieldStr(s *string) string {
 }
 
 func (g UnfurlGenericRaw) UnsafeDebugString() string {
-
 	publishTime := ""
 	if g.PublishTime != nil {
 		publishTime = fmt.Sprintf("%v", time.Unix(int64(*g.PublishTime), 0))
@@ -2905,7 +2908,6 @@ FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yieldStr(g.Description
 }
 
 func (g UnfurlGiphyRaw) UnsafeDebugString() string {
-
 	return fmt.Sprintf(`GIPHY SPECIAL
 FaviconUrl: %s
 ImageUrl: %s

@@ -6,6 +6,7 @@ package chat1
 import (
 	"errors"
 	"fmt"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -55,11 +56,11 @@ var ConversationCommandGroupsTypRevMap = map[ConversationCommandGroupsTyp]string
 	2: "NONE",
 }
 
-func (e ConversationCommandGroupsTyp) String() string {
-	if v, ok := ConversationCommandGroupsTypRevMap[e]; ok {
+func (o ConversationCommandGroupsTyp) String() string {
+	if v, ok := ConversationCommandGroupsTypRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ConversationBuiltinCommandTyp int
@@ -90,11 +91,11 @@ var ConversationBuiltinCommandTypRevMap = map[ConversationBuiltinCommandTyp]stri
 	4: "BIGTEAMGENERAL",
 }
 
-func (e ConversationBuiltinCommandTyp) String() string {
-	if v, ok := ConversationBuiltinCommandTypRevMap[e]; ok {
+func (o ConversationBuiltinCommandTyp) String() string {
+	if v, ok := ConversationBuiltinCommandTypRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ConversationCommandGroupsCustom struct {
@@ -186,21 +187,20 @@ func (o ConversationCommandGroups) DeepCopy() ConversationCommandGroups {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Builtin__),
 		Custom__: (func(x *ConversationCommandGroupsCustom) *ConversationCommandGroupsCustom {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Custom__),
 	}
 }
 
-type CommandsInterface interface {
-}
+type CommandsInterface interface{}
 
 func CommandsProtocol(i CommandsInterface) rpc.Protocol {
 	return rpc.Protocol{

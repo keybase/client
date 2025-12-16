@@ -4,13 +4,13 @@
 package gregor1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type CreateGregorSuperUserSessionTokenArg struct {
-}
+type CreateGregorSuperUserSessionTokenArg struct{}
 
 type AuthInternalInterface interface {
 	CreateGregorSuperUserSessionToken(context.Context) (SessionToken, error)

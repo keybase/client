@@ -4,11 +4,12 @@
 package keybase1
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type HomeScreenItemID string
@@ -39,11 +40,11 @@ var HomeScreenItemTypeRevMap = map[HomeScreenItemType]string{
 	3: "ANNOUNCEMENT",
 }
 
-func (e HomeScreenItemType) String() string {
-	if v, ok := HomeScreenItemTypeRevMap[e]; ok {
+func (o HomeScreenItemType) String() string {
+	if v, ok := HomeScreenItemTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type HomeScreenItemData struct {
@@ -138,21 +139,21 @@ func (o HomeScreenItemData) DeepCopy() HomeScreenItemData {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Todo__),
 		People__: (func(x *HomeScreenPeopleNotification) *HomeScreenPeopleNotification {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.People__),
 		Announcement__: (func(x *HomeScreenAnnouncement) *HomeScreenAnnouncement {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Announcement__),
 	}
@@ -204,7 +205,7 @@ func (o HomeScreenItemDataExt) DeepCopy() HomeScreenItemDataExt {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Todo__),
 	}
@@ -250,11 +251,11 @@ var AppLinkTypeRevMap = map[AppLinkType]string{
 	8: "TEAMS",
 }
 
-func (e AppLinkType) String() string {
-	if v, ok := AppLinkTypeRevMap[e]; ok {
+func (o AppLinkType) String() string {
+	if v, ok := AppLinkTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type HomeScreenAnnouncementID int
@@ -363,11 +364,11 @@ var HomeScreenTodoTypeRevMap = map[HomeScreenTodoType]string{
 	10000: "ANNONCEMENT_PLACEHOLDER",
 }
 
-func (e HomeScreenTodoType) String() string {
-	if v, ok := HomeScreenTodoTypeRevMap[e]; ok {
+func (o HomeScreenTodoType) String() string {
+	if v, ok := HomeScreenTodoTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 // Most of TODO items do not carry additional data, but some do. e.g. TODO
@@ -470,21 +471,21 @@ func (o HomeScreenTodo) DeepCopy() HomeScreenTodo {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.VerifyAllPhoneNumber__),
 		VerifyAllEmail__: (func(x *EmailAddress) *EmailAddress {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.VerifyAllEmail__),
 		LegacyEmailVisibility__: (func(x *EmailAddress) *EmailAddress {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.LegacyEmailVisibility__),
 	}
@@ -536,7 +537,7 @@ func (o HomeScreenTodoExt) DeepCopy() HomeScreenTodoExt {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.VerifyAllEmail__),
 	}
@@ -577,11 +578,11 @@ var HomeScreenPeopleNotificationTypeRevMap = map[HomeScreenPeopleNotificationTyp
 	4: "CONTACT_MULTI",
 }
 
-func (e HomeScreenPeopleNotificationType) String() string {
-	if v, ok := HomeScreenPeopleNotificationTypeRevMap[e]; ok {
+func (o HomeScreenPeopleNotificationType) String() string {
+	if v, ok := HomeScreenPeopleNotificationTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type HomeScreenPeopleNotificationFollowed struct {
@@ -767,28 +768,28 @@ func (o HomeScreenPeopleNotification) DeepCopy() HomeScreenPeopleNotification {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Followed__),
 		FollowedMulti__: (func(x *HomeScreenPeopleNotificationFollowedMulti) *HomeScreenPeopleNotificationFollowedMulti {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.FollowedMulti__),
 		Contact__: (func(x *HomeScreenPeopleNotificationContact) *HomeScreenPeopleNotificationContact {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Contact__),
 		ContactMulti__: (func(x *HomeScreenPeopleNotificationContactMulti) *HomeScreenPeopleNotificationContactMulti {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.ContactMulti__),
 	}
@@ -840,7 +841,7 @@ func (o HomeUserSummary) DeepCopy() HomeUserSummary {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Pics),
 	}
@@ -899,11 +900,9 @@ type HomeDismissAnnouncementArg struct {
 	I HomeScreenAnnouncementID `codec:"i" json:"i"`
 }
 
-type HomeActionTakenArg struct {
-}
+type HomeActionTakenArg struct{}
 
-type HomeMarkViewedArg struct {
-}
+type HomeMarkViewedArg struct{}
 
 type HomeInterface interface {
 	// HomeGetScreen returns the home screen for the current user.

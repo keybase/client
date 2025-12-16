@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type Reachable int
@@ -32,11 +33,11 @@ var ReachableRevMap = map[Reachable]string{
 	2: "NO",
 }
 
-func (e Reachable) String() string {
-	if v, ok := ReachableRevMap[e]; ok {
+func (o Reachable) String() string {
+	if v, ok := ReachableRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type Reachability struct {
@@ -53,11 +54,9 @@ type ReachabilityChangedArg struct {
 	Reachability Reachability `codec:"reachability" json:"reachability"`
 }
 
-type StartReachabilityArg struct {
-}
+type StartReachabilityArg struct{}
 
-type CheckReachabilityArg struct {
-}
+type CheckReachabilityArg struct{}
 
 type ReachabilityInterface interface {
 	ReachabilityChanged(context.Context, Reachability) error

@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"fmt"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -59,11 +60,11 @@ var PassphraseTypeRevMap = map[PassphraseType]string{
 	3: "VERIFY_PASS_PHRASE",
 }
 
-func (e PassphraseType) String() string {
-	if v, ok := PassphraseTypeRevMap[e]; ok {
+func (o PassphraseType) String() string {
+	if v, ok := PassphraseTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type GUIEntryArg struct {
@@ -102,8 +103,7 @@ func (o GetPassphraseRes) DeepCopy() GetPassphraseRes {
 	}
 }
 
-type PassphraseCommonInterface interface {
-}
+type PassphraseCommonInterface interface{}
 
 func PassphraseCommonProtocol(i PassphraseCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

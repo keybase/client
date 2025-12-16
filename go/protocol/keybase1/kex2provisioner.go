@@ -4,13 +4,13 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type KexStartArg struct {
-}
+type KexStartArg struct{}
 
 type Kex2ProvisionerInterface interface {
 	KexStart(context.Context) error

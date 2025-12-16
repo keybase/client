@@ -4,11 +4,12 @@
 package keybase1
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type OpID [16]byte
@@ -50,11 +51,11 @@ var KBFSArchivedTypeRevMap = map[KBFSArchivedType]string{
 	3: "REL_TIME_STRING",
 }
 
-func (e KBFSArchivedType) String() string {
-	if v, ok := KBFSArchivedTypeRevMap[e]; ok {
+func (o KBFSArchivedType) String() string {
+	if v, ok := KBFSArchivedTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type KBFSArchivedParam struct {
@@ -166,14 +167,14 @@ func (o KBFSArchivedParam) DeepCopy() KBFSArchivedParam {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Revision__),
 		Time__: (func(x *Time) *Time {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Time__),
 		TimeString__: (func(x *string) *string {
@@ -207,7 +208,7 @@ func (o KBFSArchivedPath) DeepCopy() KBFSArchivedPath {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.IdentifyBehavior),
 	}
@@ -225,7 +226,7 @@ func (o KBFSPath) DeepCopy() KBFSPath {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.IdentifyBehavior),
 	}
@@ -253,11 +254,11 @@ var PathTypeRevMap = map[PathType]string{
 	2: "KBFS_ARCHIVED",
 }
 
-func (e PathType) String() string {
-	if v, ok := PathTypeRevMap[e]; ok {
+func (o PathType) String() string {
+	if v, ok := PathTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type Path struct {
@@ -353,14 +354,14 @@ func (o Path) DeepCopy() Path {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Kbfs__),
 		KbfsArchived__: (func(x *KBFSArchivedPath) *KBFSArchivedPath {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.KbfsArchived__),
 	}
@@ -391,11 +392,11 @@ var DirentTypeRevMap = map[DirentType]string{
 	3: "EXEC",
 }
 
-func (e DirentType) String() string {
-	if v, ok := DirentTypeRevMap[e]; ok {
+func (o DirentType) String() string {
+	if v, ok := DirentTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PrefetchStatus int
@@ -420,11 +421,11 @@ var PrefetchStatusRevMap = map[PrefetchStatus]string{
 	2: "COMPLETE",
 }
 
-func (e PrefetchStatus) String() string {
-	if v, ok := PrefetchStatusRevMap[e]; ok {
+func (o PrefetchStatus) String() string {
+	if v, ok := PrefetchStatusRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PrefetchProgress struct {
@@ -500,11 +501,11 @@ var RevisionSpanTypeRevMap = map[RevisionSpanType]string{
 	1: "LAST_FIVE",
 }
 
-func (e RevisionSpanType) String() string {
-	if v, ok := RevisionSpanTypeRevMap[e]; ok {
+func (o RevisionSpanType) String() string {
+	if v, ok := RevisionSpanTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ErrorNum int
@@ -544,11 +545,11 @@ var OpenFlagsRevMap = map[OpenFlags]string{
 	16: "DIRECTORY",
 }
 
-func (e OpenFlags) String() string {
-	if v, ok := OpenFlagsRevMap[e]; ok {
+func (o OpenFlags) String() string {
+	if v, ok := OpenFlagsRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type Progress int
@@ -636,11 +637,11 @@ var AsyncOpsRevMap = map[AsyncOps]string{
 	8: "GET_REVISIONS",
 }
 
-func (e AsyncOps) String() string {
-	if v, ok := AsyncOpsRevMap[e]; ok {
+func (o AsyncOps) String() string {
+	if v, ok := AsyncOpsRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ListFilter int
@@ -665,11 +666,11 @@ var ListFilterRevMap = map[ListFilter]string{
 	2: "FILTER_SYSTEM_HIDDEN",
 }
 
-func (e ListFilter) String() string {
-	if v, ok := ListFilterRevMap[e]; ok {
+func (o ListFilter) String() string {
+	if v, ok := ListFilterRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ListArgs struct {
@@ -1016,63 +1017,63 @@ func (o OpDescription) DeepCopy() OpDescription {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.List__),
 		ListRecursive__: (func(x *ListArgs) *ListArgs {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.ListRecursive__),
 		ListRecursiveToDepth__: (func(x *ListToDepthArgs) *ListToDepthArgs {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.ListRecursiveToDepth__),
 		Read__: (func(x *ReadArgs) *ReadArgs {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Read__),
 		Write__: (func(x *WriteArgs) *WriteArgs {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Write__),
 		Copy__: (func(x *CopyArgs) *CopyArgs {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Copy__),
 		Move__: (func(x *MoveArgs) *MoveArgs {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Move__),
 		Remove__: (func(x *RemoveArgs) *RemoveArgs {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Remove__),
 		GetRevisions__: (func(x *GetRevisionsArgs) *GetRevisionsArgs {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.GetRevisions__),
 	}
@@ -1168,11 +1169,11 @@ var FolderSyncModeRevMap = map[FolderSyncMode]string{
 	2: "PARTIAL",
 }
 
-func (e FolderSyncMode) String() string {
-	if v, ok := FolderSyncModeRevMap[e]; ok {
+func (o FolderSyncMode) String() string {
+	if v, ok := FolderSyncModeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type FolderSyncConfig struct {
@@ -1283,11 +1284,11 @@ var KbfsOnlineStatusRevMap = map[KbfsOnlineStatus]string{
 	2: "ONLINE",
 }
 
-func (e KbfsOnlineStatus) String() string {
-	if v, ok := KbfsOnlineStatusRevMap[e]; ok {
+func (o KbfsOnlineStatus) String() string {
+	if v, ok := KbfsOnlineStatusRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type FSSettings struct {
@@ -1387,11 +1388,11 @@ var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
 	7: "UPLOAD_STATUS",
 }
 
-func (e SubscriptionTopic) String() string {
-	if v, ok := SubscriptionTopicRevMap[e]; ok {
+func (o SubscriptionTopic) String() string {
+	if v, ok := SubscriptionTopicRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PathSubscriptionTopic int
@@ -1413,11 +1414,11 @@ var PathSubscriptionTopicRevMap = map[PathSubscriptionTopic]string{
 	1: "STAT",
 }
 
-func (e PathSubscriptionTopic) String() string {
-	if v, ok := PathSubscriptionTopicRevMap[e]; ok {
+func (o PathSubscriptionTopic) String() string {
+	if v, ok := PathSubscriptionTopicRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type DownloadInfo struct {
@@ -1539,11 +1540,11 @@ var FilesTabBadgeRevMap = map[FilesTabBadge]string{
 	3: "UPLOADING",
 }
 
-func (e FilesTabBadge) String() string {
-	if v, ok := FilesTabBadgeRevMap[e]; ok {
+func (o FilesTabBadge) String() string {
+	if v, ok := FilesTabBadgeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type GUIViewType int
@@ -1577,11 +1578,11 @@ var GUIViewTypeRevMap = map[GUIViewType]string{
 	5: "PDF",
 }
 
-func (e GUIViewType) String() string {
-	if v, ok := GUIViewTypeRevMap[e]; ok {
+func (o GUIViewType) String() string {
+	if v, ok := GUIViewTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type GUIFileContext struct {
@@ -1689,11 +1690,11 @@ var ArchiveJobStartPathTypeRevMap = map[ArchiveJobStartPathType]string{
 	1: "GIT",
 }
 
-func (e ArchiveJobStartPathType) String() string {
-	if v, ok := ArchiveJobStartPathTypeRevMap[e]; ok {
+func (o ArchiveJobStartPathType) String() string {
+	if v, ok := ArchiveJobStartPathTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ArchiveJobStartPath struct {
@@ -1759,7 +1760,7 @@ func (o ArchiveJobStartPath) DeepCopy() ArchiveJobStartPath {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Kbfs__),
 		Git__: (func(x *string) *string {
@@ -1827,11 +1828,11 @@ var SimpleFSFileArchiveStateRevMap = map[SimpleFSFileArchiveState]string{
 	3: "Skipped",
 }
 
-func (e SimpleFSFileArchiveState) String() string {
-	if v, ok := SimpleFSFileArchiveStateRevMap[e]; ok {
+func (o SimpleFSFileArchiveState) String() string {
+	if v, ok := SimpleFSFileArchiveStateRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type SimpleFSArchiveFile struct {
@@ -1913,11 +1914,11 @@ var SimpleFSArchiveJobPhaseRevMap = map[SimpleFSArchiveJobPhase]string{
 	6: "Done",
 }
 
-func (e SimpleFSArchiveJobPhase) String() string {
-	if v, ok := SimpleFSArchiveJobPhaseRevMap[e]; ok {
+func (o SimpleFSArchiveJobPhase) String() string {
+	if v, ok := SimpleFSArchiveJobPhaseRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type SimpleFSArchiveState struct {
@@ -1985,7 +1986,7 @@ func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Error),
 	}
@@ -2229,8 +2230,7 @@ type SimpleFSReadRevisionsArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
-type SimpleFSMakeOpidArg struct {
-}
+type SimpleFSMakeOpidArg struct{}
 
 type SimpleFSCloseArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
@@ -2244,15 +2244,13 @@ type SimpleFSCheckArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
-type SimpleFSGetOpsArg struct {
-}
+type SimpleFSGetOpsArg struct{}
 
 type SimpleFSWaitArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
-type SimpleFSDumpDebuggingInfoArg struct {
-}
+type SimpleFSDumpDebuggingInfoArg struct{}
 
 type SimpleFSClearConflictStateArg struct {
 	Path Path `codec:"path" json:"path"`
@@ -2270,18 +2268,15 @@ type SimpleFSSyncStatusArg struct {
 	Filter ListFilter `codec:"filter" json:"filter"`
 }
 
-type SimpleFSUserEditHistoryArg struct {
-}
+type SimpleFSUserEditHistoryArg struct{}
 
 type SimpleFSFolderEditHistoryArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
-type SimpleFSListFavoritesArg struct {
-}
+type SimpleFSListFavoritesArg struct{}
 
-type SimpleFSGetUserQuotaUsageArg struct {
-}
+type SimpleFSGetUserQuotaUsageArg struct{}
 
 type SimpleFSGetTeamQuotaUsageArg struct {
 	TeamName TeamName `codec:"teamName" json:"teamName"`
@@ -2313,15 +2308,13 @@ type SimpleFSGetOnlineStatusArg struct {
 	ClientID string `codec:"clientID" json:"clientID"`
 }
 
-type SimpleFSCheckReachabilityArg struct {
-}
+type SimpleFSCheckReachabilityArg struct{}
 
 type SimpleFSSetDebugLevelArg struct {
 	Level string `codec:"level" json:"level"`
 }
 
-type SimpleFSSettingsArg struct {
-}
+type SimpleFSSettingsArg struct{}
 
 type SimpleFSSetNotificationThresholdArg struct {
 	Threshold int64 `codec:"threshold" json:"threshold"`
@@ -2343,8 +2336,7 @@ type SimpleFSDeobfuscatePathArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
-type SimpleFSGetStatsArg struct {
-}
+type SimpleFSGetStatsArg struct{}
 
 type SimpleFSSubscribePathArg struct {
 	IdentifyBehavior          *TLFIdentifyBehavior  `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
@@ -2378,8 +2370,7 @@ type SimpleFSGetDownloadInfoArg struct {
 	DownloadID string `codec:"downloadID" json:"downloadID"`
 }
 
-type SimpleFSGetDownloadStatusArg struct {
-}
+type SimpleFSGetDownloadStatusArg struct{}
 
 type SimpleFSCancelDownloadArg struct {
 	DownloadID string `codec:"downloadID" json:"downloadID"`
@@ -2394,16 +2385,14 @@ type SimpleFSConfigureDownloadArg struct {
 	DownloadDirOverride string `codec:"downloadDirOverride" json:"downloadDirOverride"`
 }
 
-type SimpleFSMakeTempDirForUploadArg struct {
-}
+type SimpleFSMakeTempDirForUploadArg struct{}
 
 type SimpleFSStartUploadArg struct {
 	SourceLocalPath  string   `codec:"sourceLocalPath" json:"sourceLocalPath"`
 	TargetParentPath KBFSPath `codec:"targetParentPath" json:"targetParentPath"`
 }
 
-type SimpleFSGetUploadStatusArg struct {
-}
+type SimpleFSGetUploadStatusArg struct{}
 
 type SimpleFSCancelUploadArg struct {
 	UploadID string `codec:"uploadID" json:"uploadID"`
@@ -2413,8 +2402,7 @@ type SimpleFSDismissUploadArg struct {
 	UploadID string `codec:"uploadID" json:"uploadID"`
 }
 
-type SimpleFSGetFilesTabBadgeArg struct {
-}
+type SimpleFSGetFilesTabBadgeArg struct{}
 
 type SimpleFSGetGUIFileContextArg struct {
 	Path KBFSPath `codec:"path" json:"path"`
@@ -2434,11 +2422,9 @@ type SimpleFSSearchArg struct {
 	StartingFrom int    `codec:"startingFrom" json:"startingFrom"`
 }
 
-type SimpleFSResetIndexArg struct {
-}
+type SimpleFSResetIndexArg struct{}
 
-type SimpleFSGetIndexProgressArg struct {
-}
+type SimpleFSGetIndexProgressArg struct{}
 
 type SimpleFSCancelJournalUploadsArg struct {
 	Path KBFSPath `codec:"path" json:"path"`
@@ -2454,8 +2440,7 @@ type SimpleFSArchiveCancelOrDismissJobArg struct {
 	JobID string `codec:"jobID" json:"jobID"`
 }
 
-type SimpleFSGetArchiveStatusArg struct {
-}
+type SimpleFSGetArchiveStatusArg struct{}
 
 type SimpleFSGetArchiveJobFreshnessArg struct {
 	JobID string `codec:"jobID" json:"jobID"`

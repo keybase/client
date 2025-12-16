@@ -4,22 +4,19 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type GetCurrentMountDirArg struct {
-}
+type GetCurrentMountDirArg struct{}
 
-type WaitForMountsArg struct {
-}
+type WaitForMountsArg struct{}
 
-type GetPreferredMountDirsArg struct {
-}
+type GetPreferredMountDirsArg struct{}
 
-type GetAllAvailableMountDirsArg struct {
-}
+type GetAllAvailableMountDirsArg struct{}
 
 type SetCurrentMountDirArg struct {
 	Dir string `codec:"dir" json:"dir"`

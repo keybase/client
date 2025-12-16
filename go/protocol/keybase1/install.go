@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 // Install status describes state of install for a component or service.
@@ -246,17 +247,13 @@ type FuseStatusArg struct {
 	BundleVersion string `codec:"bundleVersion" json:"bundleVersion"`
 }
 
-type InstallFuseArg struct {
-}
+type InstallFuseArg struct{}
 
-type InstallKBFSArg struct {
-}
+type InstallKBFSArg struct{}
 
-type UninstallKBFSArg struct {
-}
+type UninstallKBFSArg struct{}
 
-type InstallCommandLinePrivilegedArg struct {
-}
+type InstallCommandLinePrivilegedArg struct{}
 
 type InstallInterface interface {
 	FuseStatus(context.Context, FuseStatusArg) (FuseStatus, error)

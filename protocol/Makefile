@@ -41,7 +41,7 @@ go-build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/
 	$(AVDLC) -b -l go -m -o ../go/protocol/chat1 avdl/chat1/*.avdl
 	$(AVDLC) -b -l go -m -o ../go/protocol/stellar1 avdl/stellar1/*.avdl
 	$(AVDLC) -b -l go -m -o ../go/protocol/kbgitkbfs1 avdl/kbgitkbfs1/*.avdl
-	(cd ../go/protocol && go fmt ./...)
+	gofumpt -w ../go/protocol
 	date > $@
 
 js/rpc.js: build-stamp | config

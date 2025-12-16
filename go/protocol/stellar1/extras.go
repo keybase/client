@@ -251,7 +251,6 @@ func (t TransactionStatus) ToPaymentStatus() PaymentStatus {
 	default:
 		return PaymentStatus_UNKNOWN
 	}
-
 }
 
 func (t TransactionStatus) Details(errMsg string) (status, detail string) {

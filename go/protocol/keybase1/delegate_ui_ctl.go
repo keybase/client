@@ -4,37 +4,29 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type RegisterIdentifyUIArg struct {
-}
+type RegisterIdentifyUIArg struct{}
 
-type RegisterSecretUIArg struct {
-}
+type RegisterSecretUIArg struct{}
 
-type RegisterUpdateUIArg struct {
-}
+type RegisterUpdateUIArg struct{}
 
-type RegisterRekeyUIArg struct {
-}
+type RegisterRekeyUIArg struct{}
 
-type RegisterHomeUIArg struct {
-}
+type RegisterHomeUIArg struct{}
 
-type RegisterIdentify3UIArg struct {
-}
+type RegisterIdentify3UIArg struct{}
 
-type RegisterChatUIArg struct {
-}
+type RegisterChatUIArg struct{}
 
-type RegisterLogUIArg struct {
-}
+type RegisterLogUIArg struct{}
 
-type RegisterGregorFirehoseArg struct {
-}
+type RegisterGregorFirehoseArg struct{}
 
 type RegisterGregorFirehoseFilteredArg struct {
 	Systems []string `codec:"systems" json:"systems"`

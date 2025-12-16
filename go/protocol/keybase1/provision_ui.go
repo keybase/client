@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type ProvisionMethod int
@@ -38,11 +39,11 @@ var ProvisionMethodRevMap = map[ProvisionMethod]string{
 	4: "GPG_SIGN",
 }
 
-func (e ProvisionMethod) String() string {
-	if v, ok := ProvisionMethodRevMap[e]; ok {
+func (o ProvisionMethod) String() string {
+	if v, ok := ProvisionMethodRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type GPGMethod int
@@ -67,11 +68,11 @@ var GPGMethodRevMap = map[GPGMethod]string{
 	2: "GPG_SIGN",
 }
 
-func (e GPGMethod) String() string {
-	if v, ok := GPGMethodRevMap[e]; ok {
+func (o GPGMethod) String() string {
+	if v, ok := GPGMethodRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ChooseType int
@@ -93,11 +94,11 @@ var ChooseTypeRevMap = map[ChooseType]string{
 	1: "NEW_DEVICE",
 }
 
-func (e ChooseType) String() string {
-	if v, ok := ChooseTypeRevMap[e]; ok {
+func (o ChooseType) String() string {
+	if v, ok := ChooseTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 // SecretResponse should be returned by DisplayAndPromptSecret.  Use either secret or phrase.

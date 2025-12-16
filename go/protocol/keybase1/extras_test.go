@@ -102,22 +102,22 @@ func TestTimeConversions(t *testing.T) {
 // IsUser and co. should return false and
 // not crash on arbitrary input.
 func TestUserOrTeamIDChecking(t *testing.T) {
-	var invalidIDTestCases = [6]string{
+	invalidIDTestCases := [6]string{
 		"", "    ", "%%@#$", "223123",
 		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
-	var validUserIDTestCases = [4]string{
+	validUserIDTestCases := [4]string{
 		"bd9e818f230819d3ecc813522c71f600",
 		"bd9e818f230819d3ecc813522c71f619",
 		"2721c9d9a247028cf51efa0760af6d00",
 		"2721c9d9a247028cf51efa0760af6d19",
 	}
-	var validTeamIDTestCases = [2]string{
+	validTeamIDTestCases := [2]string{
 		"bd9e818f230819d3ecc813522c71f624",
 		"2721c9d9a247028cf51efa0760af6d24",
 	}
-	var validSubteamIDTestCases = [2]string{
+	validSubteamIDTestCases := [2]string{
 		"bd9e818f230819d3ecc813522c71f625",
 		"2721c9d9a247028cf51efa0760af6d25",
 	}
@@ -208,13 +208,15 @@ func TestRedact(t *testing.T) {
 	cmd1 := "keybase fs ls anything really here"
 	rcmd1 := fmt.Sprintf("keybase fs %s", redactedReplacer)
 	arg := ClientDetails{
-		Argv: strings.Split(cmd1, " ")}
+		Argv: strings.Split(cmd1, " "),
+	}
 	arg.Redact()
 	require.Equal(t, strings.Split(rcmd1, " "), arg.Argv)
 
 	cmd2 := "keybase whatever command paperkey --another-flag"
 	arg = ClientDetails{
-		Argv: strings.Split(cmd2, " ")}
+		Argv: strings.Split(cmd2, " "),
+	}
 	arg.Redact()
 	require.Equal(t, strings.Split(cmd2, " "), arg.Argv)
 }

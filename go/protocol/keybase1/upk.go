@@ -6,6 +6,7 @@ package keybase1
 import (
 	"errors"
 	"fmt"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -31,11 +32,11 @@ var KeyTypeRevMap = map[KeyType]string{
 	2: "PGP",
 }
 
-func (e KeyType) String() string {
-	if v, ok := KeyTypeRevMap[e]; ok {
+func (o KeyType) String() string {
+	if v, ok := KeyTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type UPK2MinorVersion int
@@ -72,11 +73,11 @@ var UPK2MinorVersionRevMap = map[UPK2MinorVersion]string{
 	6: "V6",
 }
 
-func (e UPK2MinorVersion) String() string {
-	if v, ok := UPK2MinorVersionRevMap[e]; ok {
+func (o UPK2MinorVersion) String() string {
+	if v, ok := UPK2MinorVersionRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type MerkleRootV2 struct {
@@ -155,7 +156,7 @@ func (o PublicKeyV2Base) DeepCopy() PublicKeyV2Base {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Revocation),
 	}
@@ -176,7 +177,7 @@ func (o PublicKeyV2NaCl) DeepCopy() PublicKeyV2NaCl {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Parent),
 		DeviceID:          o.DeviceID.DeepCopy(),
@@ -286,14 +287,14 @@ func (o PublicKeyV2) DeepCopy() PublicKeyV2 {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Nacl__),
 		PGP__: (func(x *PublicKeyV2PGPSummary) *PublicKeyV2PGPSummary {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.PGP__),
 	}
@@ -377,7 +378,7 @@ func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Reset),
 		Unstubbed: o.Unstubbed,
@@ -444,11 +445,11 @@ var UPAKVersionRevMap = map[UPAKVersion]string{
 	2: "V2",
 }
 
-func (e UPAKVersion) String() string {
-	if v, ok := UPAKVersionRevMap[e]; ok {
+func (o UPAKVersion) String() string {
+	if v, ok := UPAKVersionRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 // * What we're storing for each user. At first it was UPAKs, as defined
@@ -516,14 +517,14 @@ func (o UPAKVersioned) DeepCopy() UPAKVersioned {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.V1__),
 		V2__: (func(x *UserPlusKeysV2AllIncarnations) *UserPlusKeysV2AllIncarnations {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.V2__),
 	}
@@ -545,11 +546,11 @@ var UPKLiteMinorVersionRevMap = map[UPKLiteMinorVersion]string{
 	0: "V0",
 }
 
-func (e UPKLiteMinorVersion) String() string {
-	if v, ok := UPKLiteMinorVersionRevMap[e]; ok {
+func (o UPKLiteMinorVersion) String() string {
+	if v, ok := UPKLiteMinorVersionRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type UPKLiteV1 struct {
@@ -583,7 +584,7 @@ func (o UPKLiteV1) DeepCopy() UPKLiteV1 {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Reset),
 	}
@@ -626,8 +627,7 @@ func (o UPKLiteV1AllIncarnations) DeepCopy() UPKLiteV1AllIncarnations {
 	}
 }
 
-type UPKInterface interface {
-}
+type UPKInterface interface{}
 
 func UPKProtocol(i UPKInterface) rpc.Protocol {
 	return rpc.Protocol{

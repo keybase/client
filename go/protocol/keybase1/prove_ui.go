@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type PromptOverwriteType int
@@ -29,11 +30,11 @@ var PromptOverwriteTypeRevMap = map[PromptOverwriteType]string{
 	1: "SITE",
 }
 
-func (e PromptOverwriteType) String() string {
-	if v, ok := PromptOverwriteTypeRevMap[e]; ok {
+func (o PromptOverwriteType) String() string {
+	if v, ok := PromptOverwriteTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ProveParameters struct {

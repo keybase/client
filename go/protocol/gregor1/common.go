@@ -48,14 +48,14 @@ func (o InBandMessage) DeepCopy() InBandMessage {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.StateUpdate_),
 		StateSync_: (func(x *StateSyncMessage) *StateSyncMessage {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.StateSync_),
 	}
@@ -94,14 +94,14 @@ func (o StateUpdateMessage) DeepCopy() StateUpdateMessage {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Creation_),
 		Dismissal_: (func(x *Dismissal) *Dismissal {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Dismissal_),
 	}
@@ -210,14 +210,14 @@ func (o ItemAndMetadata) DeepCopy() ItemAndMetadata {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Md_),
 		Item_: (func(x *Item) *Item {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Item_),
 	}
@@ -298,14 +298,14 @@ func (o Message) DeepCopy() Message {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Oobm_),
 		Ibm_: (func(x *InBandMessage) *InBandMessage {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Ibm_),
 	}
@@ -397,8 +397,7 @@ func (o SessionToken) DeepCopy() SessionToken {
 	return o
 }
 
-type CommonInterface interface {
-}
+type CommonInterface interface{}
 
 func CommonProtocol(i CommonInterface) rpc.Protocol {
 	return rpc.Protocol{

@@ -9,4 +9,5 @@ import (
 	_ "github.com/keybase/client/go/release"
 	_ "golang.org/x/mobile/cmd/gobind"
 	_ "golang.org/x/mobile/cmd/gomobile"
+	_ "mvdan.cc/gofumpt"
 )

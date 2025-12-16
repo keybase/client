@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type AuthenticityType int
@@ -32,11 +33,11 @@ var AuthenticityTypeRevMap = map[AuthenticityType]string{
 	2: "ANONYMOUS",
 }
 
-func (e AuthenticityType) String() string {
-	if v, ok := AuthenticityTypeRevMap[e]; ok {
+func (o AuthenticityType) String() string {
+	if v, ok := AuthenticityTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type SaltpackEncryptOptions struct {

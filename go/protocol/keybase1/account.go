@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
+	"time"
+
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
-	"time"
 )
 
 type HasServerKeysRes struct {
@@ -176,8 +177,7 @@ type GuessCurrentLocationArg struct {
 	DefaultCountry string `codec:"defaultCountry" json:"defaultCountry"`
 }
 
-type UserGetContactSettingsArg struct {
-}
+type UserGetContactSettingsArg struct{}
 
 type UserSetContactSettingsArg struct {
 	Settings ContactSettings `codec:"settings" json:"settings"`

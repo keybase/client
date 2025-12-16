@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type SaltpackSenderType int
@@ -47,11 +48,11 @@ var SaltpackSenderTypeRevMap = map[SaltpackSenderType]string{
 	7: "EXPIRED",
 }
 
-func (e SaltpackSenderType) String() string {
-	if v, ok := SaltpackSenderTypeRevMap[e]; ok {
+func (o SaltpackSenderType) String() string {
+	if v, ok := SaltpackSenderTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type SaltpackSender struct {

@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"fmt"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -57,11 +58,11 @@ var ProofStateRevMap = map[ProofState]string{
 	11: "UNCHECKED",
 }
 
-func (e ProofState) String() string {
-	if v, ok := ProofStateRevMap[e]; ok {
+func (o ProofState) String() string {
+	if v, ok := ProofStateRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 // 3: It's been found in the hunt, but not proven yet
@@ -203,11 +204,11 @@ var ProofStatusRevMap = map[ProofStatus]string{
 	308: "INVALID_PVL",
 }
 
-func (e ProofStatus) String() string {
-	if v, ok := ProofStatusRevMap[e]; ok {
+func (o ProofStatus) String() string {
+	if v, ok := ProofStatusRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ProofType int
@@ -262,11 +263,11 @@ var ProofTypeRevMap = map[ProofType]string{
 	100001: "ROOTER",
 }
 
-func (e ProofType) String() string {
-	if v, ok := ProofTypeRevMap[e]; ok {
+func (o ProofType) String() string {
+	if v, ok := ProofTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type SelectorEntry struct {
@@ -404,21 +405,20 @@ func (o ExternalServiceConfig) DeepCopy() ExternalServiceConfig {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Display),
 		Config: (func(x *ParamProofServiceConfig) *ParamProofServiceConfig {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Config),
 	}
 }
 
-type ProveCommonInterface interface {
-}
+type ProveCommonInterface interface{}
 
 func ProveCommonProtocol(i ProveCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

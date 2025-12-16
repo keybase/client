@@ -35,8 +35,7 @@ func (o GPGKey) DeepCopy() GPGKey {
 	}
 }
 
-type GpgCommonInterface interface {
-}
+type GpgCommonInterface interface{}
 
 func GpgCommonProtocol(i GpgCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

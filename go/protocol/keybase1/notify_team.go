@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type TeamChangeSet struct {
@@ -48,11 +49,11 @@ var TeamChangedSourceRevMap = map[TeamChangedSource]string{
 	2: "LOCAL_RENAME",
 }
 
-func (e TeamChangedSource) String() string {
-	if v, ok := TeamChangedSourceRevMap[e]; ok {
+func (o TeamChangedSource) String() string {
+	if v, ok := TeamChangedSourceRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type AvatarUpdateType int
@@ -77,11 +78,11 @@ var AvatarUpdateTypeRevMap = map[AvatarUpdateType]string{
 	2: "TEAM",
 }
 
-func (e AvatarUpdateType) String() string {
-	if v, ok := AvatarUpdateTypeRevMap[e]; ok {
+func (o AvatarUpdateType) String() string {
+	if v, ok := AvatarUpdateTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type TeamChangedByIDArg struct {
@@ -130,8 +131,7 @@ type AvatarUpdatedArg struct {
 	Typ     AvatarUpdateType `codec:"typ" json:"typ"`
 }
 
-type TeamMetadataUpdateArg struct {
-}
+type TeamMetadataUpdateArg struct{}
 
 type TeamTreeMembershipsPartialArg struct {
 	Membership TeamTreeMembership `codec:"membership" json:"membership"`

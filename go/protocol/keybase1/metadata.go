@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type KeyHalf struct {
@@ -180,8 +181,7 @@ func (o FindNextMDResponse) DeepCopy() FindNextMDResponse {
 	}
 }
 
-type GetChallengeArg struct {
-}
+type GetChallengeArg struct{}
 
 type AuthenticateArg struct {
 	Signature string `codec:"signature" json:"signature"`
@@ -260,11 +260,9 @@ type GetFoldersForRekeyArg struct {
 	DeviceKID KID `codec:"deviceKID" json:"deviceKID"`
 }
 
-type PingArg struct {
-}
+type PingArg struct{}
 
-type Ping2Arg struct {
-}
+type Ping2Arg struct{}
 
 type GetLatestFolderHandleArg struct {
 	FolderID string `codec:"folderID" json:"folderID"`
@@ -317,8 +315,7 @@ type SetImplicitTeamModeForTestArg struct {
 	ImplicitTeamMode string `codec:"implicitTeamMode" json:"implicitTeamMode"`
 }
 
-type ForceMerkleBuildForTestArg struct {
-}
+type ForceMerkleBuildForTestArg struct{}
 
 type MetadataInterface interface {
 	GetChallenge(context.Context) (ChallengeInfo, error)

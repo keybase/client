@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type IdentifyProofBreak struct {
@@ -67,7 +68,7 @@ func (o Identify2Res) DeepCopy() Identify2Res {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.TrackBreaks),
 	}
@@ -87,7 +88,7 @@ func (o Identify2ResUPK2) DeepCopy() Identify2ResUPK2 {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.TrackBreaks),
 	}
@@ -105,7 +106,7 @@ func (o IdentifyLiteRes) DeepCopy() IdentifyLiteRes {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.TrackBreaks),
 	}

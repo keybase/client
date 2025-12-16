@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type InviteCounts struct {
@@ -66,11 +67,9 @@ type InvitePeopleArg struct {
 	Phones []PhoneNumber `codec:"phones" json:"phones"`
 }
 
-type GetInviteCountsArg struct {
-}
+type GetInviteCountsArg struct{}
 
-type RequestInviteCountsArg struct {
-}
+type RequestInviteCountsArg struct{}
 
 type InviteFriendsInterface interface {
 	InvitePeople(context.Context, InvitePeopleArg) (int, error)

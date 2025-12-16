@@ -4,10 +4,11 @@
 package kbgitkbfs1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type PrefetchStatus int
@@ -32,11 +33,11 @@ var PrefetchStatusRevMap = map[PrefetchStatus]string{
 	2: "FINISHED_PREFETCH",
 }
 
-func (e PrefetchStatus) String() string {
-	if v, ok := PrefetchStatusRevMap[e]; ok {
+func (o PrefetchStatus) String() string {
+	if v, ok := PrefetchStatusRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 // GetCachedBlockRes is the response from GetBlock.

@@ -89,7 +89,7 @@ helpers.rootLinuxNode(env, {
       # Capture both Go and Node environment variables
       echo "GOROOT=$(go env GOROOT)" > build_env
       echo "NODE_PATH=$(npm root -g)" >> build_env
-      echo "PATH=$(go env GOROOT)/bin:$(npm config get prefix)/bin:${PATH}" >> build_env
+      echo "PATH=$(go env GOPATH)/bin:$(go env GOROOT)/bin:$(npm config get prefix)/bin:${PATH}" >> build_env
       cat build_env
   '''
 
@@ -178,16 +178,25 @@ helpers.rootLinuxNode(env, {
           test_linux: {
             def packagesToTest = [:]
             if (hasGoChanges || hasJenkinsfileChanges) {
-              // Check protocol diffs
-              // Clean the index first
-              sh "git add -A"
-              // Generate protocols
-              dir ('protocol') {
-                sh "yarn --frozen-lockfile"
-                sh "make clean"
-                sh "make"
+              // Install gofumpt for protocol generation
+              dir("go/buildtools") {
+                println "Installing gofumpt"
+                retry(5) {
+                  sh 'go install mvdan.cc/gofumpt'
+                }
               }
-              checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
+              // Check protocol diffs with GOPATH/bin in PATH so Makefile can find gofumpt
+              withEnv(["PATH=${env.PATH}:${env.GOPATH}/bin"]) {
+                // Clean the index first
+                sh "git add -A"
+                // Generate protocols
+                dir ('protocol') {
+                  sh "yarn --frozen-lockfile"
+                  sh "make clean"
+                  sh "make"
+                }
+                checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
+              }
               packagesToTest = getPackagesToTest(dependencyFiles, hasJenkinsfileChanges)
               hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
             } else {

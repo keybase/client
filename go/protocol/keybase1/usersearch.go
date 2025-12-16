@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type APIUserServiceID string
@@ -132,28 +133,28 @@ func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Keybase),
 		Service: (func(x *APIUserServiceResult) *APIUserServiceResult {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Service),
 		Contact: (func(x *ProcessedContact) *ProcessedContact {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Contact),
 		Imptofu: (func(x *ImpTofuSearchResult) *ImpTofuSearchResult {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Imptofu),
 		ServicesSummary: (func(x map[APIUserServiceID]APIUserServiceSummary) map[APIUserServiceID]APIUserServiceSummary {
@@ -195,14 +196,14 @@ func (o NonUserDetails) DeepCopy() NonUserDetails {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Contact),
 		Service: (func(x *APIUserServiceResult) *APIUserServiceResult {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Service),
 		SiteIcon: (func(x []SizedImage) []SizedImage {

@@ -4,9 +4,10 @@
 package keybase1
 
 import (
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
+	"context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type BotToken string
@@ -27,11 +28,9 @@ func (o BotTokenInfo) DeepCopy() BotTokenInfo {
 	}
 }
 
-type BotTokenListArg struct {
-}
+type BotTokenListArg struct{}
 
-type BotTokenCreateArg struct {
-}
+type BotTokenCreateArg struct{}
 
 type BotTokenDeleteArg struct {
 	Token BotToken `codec:"token" json:"token"`

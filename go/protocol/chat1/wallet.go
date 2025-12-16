@@ -27,8 +27,7 @@ func (o ChatTxCandidate) DeepCopy() ChatTxCandidate {
 	}
 }
 
-type WalletInterface interface {
-}
+type WalletInterface interface{}
 
 func WalletProtocol(i WalletInterface) rpc.Protocol {
 	return rpc.Protocol{

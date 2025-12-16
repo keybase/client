@@ -5,6 +5,7 @@ package stellar1
 
 import (
 	"fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -190,11 +191,11 @@ var TransactionStatusRevMap = map[TransactionStatus]string{
 	4: "ERROR_PERMANENT",
 }
 
-func (e TransactionStatus) String() string {
-	if v, ok := TransactionStatusRevMap[e]; ok {
+func (o TransactionStatus) String() string {
+	if v, ok := TransactionStatusRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type RequestStatus int
@@ -219,11 +220,11 @@ var RequestStatusRevMap = map[RequestStatus]string{
 	2: "DONE",
 }
 
-func (e RequestStatus) String() string {
-	if v, ok := RequestStatusRevMap[e]; ok {
+func (o RequestStatus) String() string {
+	if v, ok := RequestStatusRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PaymentStrategy int
@@ -248,11 +249,11 @@ var PaymentStrategyRevMap = map[PaymentStrategy]string{
 	2: "RELAY",
 }
 
-func (e PaymentStrategy) String() string {
-	if v, ok := PaymentStrategyRevMap[e]; ok {
+func (o PaymentStrategy) String() string {
+	if v, ok := PaymentStrategyRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type RelayDirection int
@@ -274,11 +275,11 @@ var RelayDirectionRevMap = map[RelayDirection]string{
 	1: "YANK",
 }
 
-func (e RelayDirection) String() string {
-	if v, ok := RelayDirectionRevMap[e]; ok {
+func (o RelayDirection) String() string {
+	if v, ok := RelayDirectionRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PaymentResult struct {
@@ -330,7 +331,7 @@ func (o EncryptedNote) DeepCopy() EncryptedNote {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Recipient),
 	}
@@ -498,11 +499,11 @@ var AccountModeRevMap = map[AccountMode]string{
 	2: "MOBILE",
 }
 
-func (e AccountMode) String() string {
-	if v, ok := AccountModeRevMap[e]; ok {
+func (o AccountMode) String() string {
+	if v, ok := AccountModeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type Trustline struct {
@@ -549,8 +550,7 @@ func (o PaymentPath) DeepCopy() PaymentPath {
 	}
 }
 
-type CommonInterface interface {
-}
+type CommonInterface interface{}
 
 func CommonProtocol(i CommonInterface) rpc.Protocol {
 	return rpc.Protocol{

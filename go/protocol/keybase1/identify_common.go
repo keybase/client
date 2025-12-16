@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"fmt"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -66,11 +67,11 @@ var TrackDiffTypeRevMap = map[TrackDiffType]string{
 	10: "NONE_VIA_TEMPORARY",
 }
 
-func (e TrackDiffType) String() string {
-	if v, ok := TrackDiffTypeRevMap[e]; ok {
+func (o TrackDiffType) String() string {
+	if v, ok := TrackDiffTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type TrackDiff struct {
@@ -143,11 +144,11 @@ var TrackStatusRevMap = map[TrackStatus]string{
 	7: "UPDATE_BROKEN_REVOKED",
 }
 
-func (e TrackStatus) String() string {
-	if v, ok := TrackStatusRevMap[e]; ok {
+func (o TrackStatus) String() string {
+	if v, ok := TrackStatusRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type TrackOptions struct {
@@ -170,7 +171,7 @@ func (o TrackOptions) DeepCopy() TrackOptions {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.SigVersion),
 	}
@@ -213,11 +214,11 @@ var IdentifyReasonTypeRevMap = map[IdentifyReasonType]string{
 	7: "BACKGROUND",
 }
 
-func (e IdentifyReasonType) String() string {
-	if v, ok := IdentifyReasonTypeRevMap[e]; ok {
+func (o IdentifyReasonType) String() string {
+	if v, ok := IdentifyReasonTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type IdentifyReason struct {
@@ -258,7 +259,7 @@ func (o IdentifyOutcome) DeepCopy() IdentifyOutcome {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Status),
 		Warnings: (func(x []string) []string {
@@ -276,7 +277,7 @@ func (o IdentifyOutcome) DeepCopy() IdentifyOutcome {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.TrackUsed),
 		TrackStatus:       o.TrackStatus.DeepCopy(),
@@ -322,8 +323,7 @@ func (o RemoteProof) DeepCopy() RemoteProof {
 	}
 }
 
-type IdentifyCommonInterface interface {
-}
+type IdentifyCommonInterface interface{}
 
 func IdentifyCommonProtocol(i IdentifyCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

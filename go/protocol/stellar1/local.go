@@ -4,10 +4,11 @@
 package stellar1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type WalletAccountLocal struct {
@@ -118,11 +119,11 @@ var BalanceDeltaRevMap = map[BalanceDelta]string{
 	2: "DECREASE",
 }
 
-func (e BalanceDelta) String() string {
-	if v, ok := BalanceDeltaRevMap[e]; ok {
+func (o BalanceDelta) String() string {
+	if v, ok := BalanceDeltaRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PaymentStatus int
@@ -159,11 +160,11 @@ var PaymentStatusRevMap = map[PaymentStatus]string{
 	6: "CANCELED",
 }
 
-func (e PaymentStatus) String() string {
-	if v, ok := PaymentStatusRevMap[e]; ok {
+func (o PaymentStatus) String() string {
+	if v, ok := PaymentStatusRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ParticipantType int
@@ -194,11 +195,11 @@ var ParticipantTypeRevMap = map[ParticipantType]string{
 	4: "OWNACCOUNT",
 }
 
-func (e ParticipantType) String() string {
-	if v, ok := ParticipantTypeRevMap[e]; ok {
+func (o ParticipantType) String() string {
+	if v, ok := ParticipantTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PaymentOrErrorLocal struct {
@@ -212,7 +213,7 @@ func (o PaymentOrErrorLocal) DeepCopy() PaymentOrErrorLocal {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Payment),
 		Err: (func(x *string) *string {
@@ -248,14 +249,14 @@ func (o PaymentsPageLocal) DeepCopy() PaymentsPageLocal {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Cursor),
 		OldestUnread: (func(x *PaymentID) *PaymentID {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.OldestUnread),
 	}
@@ -321,7 +322,7 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.IssuerAccountID),
 		FromType:        o.FromType.DeepCopy(),
@@ -334,7 +335,7 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.ToAccountID),
 		ToAccountName:       o.ToAccountName,
@@ -375,7 +376,7 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Trustline),
 	}
@@ -545,11 +546,11 @@ var AdvancedBannerRevMap = map[AdvancedBanner]string{
 	2: "RECEIVER_BANNER",
 }
 
-func (e AdvancedBanner) String() string {
-	if v, ok := AdvancedBannerRevMap[e]; ok {
+func (o AdvancedBanner) String() string {
+	if v, ok := AdvancedBannerRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type SendBannerLocal struct {
@@ -646,14 +647,14 @@ func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Asset),
 		Currency: (func(x *OutsideCurrencyCode) *OutsideCurrencyCode {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Currency),
 		AmountDescription:  o.AmountDescription,
@@ -698,14 +699,14 @@ func (o InflationDestinationResultLocal) DeepCopy() InflationDestinationResultLo
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Destination),
 		KnownDestination: (func(x *PredefinedInflationDestination) *PredefinedInflationDestination {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.KnownDestination),
 		Self: o.Self,
@@ -876,11 +877,11 @@ var PublicNoteTypeRevMap = map[PublicNoteType]string{
 	4: "RETURN",
 }
 
-func (e PublicNoteType) String() string {
-	if v, ok := PublicNoteTypeRevMap[e]; ok {
+func (o PublicNoteType) String() string {
+	if v, ok := PublicNoteTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PaymentOrErrorCLILocal struct {
@@ -894,7 +895,7 @@ func (o PaymentOrErrorCLILocal) DeepCopy() PaymentOrErrorCLILocal {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Payment),
 		Err: (func(x *string) *string {
@@ -978,7 +979,7 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.ToStellar),
 		FromUsername: (func(x *string) *string {
@@ -1040,7 +1041,7 @@ func (o OwnAccountCLILocal) DeepCopy() OwnAccountCLILocal {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.ExchangeRate),
 		AccountMode: o.AccountMode.DeepCopy(),
@@ -1101,7 +1102,7 @@ func (o BatchPaymentResult) DeepCopy() BatchPaymentResult {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Error),
 	}
@@ -1293,7 +1294,7 @@ func (o SignXdrResult) DeepCopy() SignXdrResult {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.SubmitTxID),
 	}
@@ -1669,14 +1670,11 @@ type PaymentDetailCLILocalArg struct {
 	TxID string `codec:"txID" json:"txID"`
 }
 
-type WalletInitLocalArg struct {
-}
+type WalletInitLocalArg struct{}
 
-type WalletDumpLocalArg struct {
-}
+type WalletDumpLocalArg struct{}
 
-type WalletGetAccountsCLILocalArg struct {
-}
+type WalletGetAccountsCLILocalArg struct{}
 
 type OwnAccountLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
@@ -1701,8 +1699,7 @@ type ExchangeRateLocalArg struct {
 	Currency OutsideCurrencyCode `codec:"currency" json:"currency"`
 }
 
-type GetAvailableLocalCurrenciesArg struct {
-}
+type GetAvailableLocalCurrenciesArg struct{}
 
 type FormatLocalCurrencyStringArg struct {
 	Amount string              `codec:"amount" json:"amount"`
@@ -1762,8 +1759,7 @@ type SignTransactionXdrLocalArg struct {
 	Submit      bool       `codec:"submit" json:"submit"`
 }
 
-type GetStaticConfigLocalArg struct {
-}
+type GetStaticConfigLocalArg struct{}
 
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)

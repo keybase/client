@@ -99,7 +99,6 @@ func (b BinaryKID) Equal(c BinaryKID) bool {
 }
 
 func KIDFromStringChecked(s string) (KID, error) {
-
 	// It's OK to have a 0-length KID. That means, no such key
 	// (or NULL kid).
 	if len(s) == 0 {
@@ -1271,7 +1270,6 @@ type ToStatusAble interface {
 // ToStatusAble interface, then we'll try that. Otherwise, we'll just make a generic
 // Error type.
 func WrapError(e error) interface{} {
-
 	if e == nil {
 		return nil
 	}
@@ -2223,12 +2221,16 @@ func (t TeamName) IsNil() bool {
 }
 
 // underscores allowed, just not first or doubled
-var namePartRxx = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_]?)+$`)
-var implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", ImplicitTeamPrefix, ImplicitSuffixLengthBytes*2)
-var implicitNameRxx = regexp.MustCompile(implicitRxxString)
+var (
+	namePartRxx       = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_]?)+$`)
+	implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", ImplicitTeamPrefix, ImplicitSuffixLengthBytes*2)
+	implicitNameRxx   = regexp.MustCompile(implicitRxxString)
+)
 
-const ImplicitTeamPrefix = "__keybase_implicit_team__"
-const ImplicitSuffixLengthBytes = 16
+const (
+	ImplicitTeamPrefix        = "__keybase_implicit_team__"
+	ImplicitSuffixLengthBytes = 16
+)
 
 func stringToTeamNamePart(s string) TeamNamePart {
 	return TeamNamePart(strings.ToLower(s))
@@ -2738,8 +2740,8 @@ func formatItems(singular string, plural string, count int) string {
 // and a short description of when it was invalidated or under what conditions it can
 // be later invalidated.
 func (md TeamInviteMetadata) ComputeValidity(now time.Time,
-	userLog map[UserVersion][]UserLogPoint) (isValid bool, validityDescription string) {
-
+	userLog map[UserVersion][]UserLogPoint,
+) (isValid bool, validityDescription string) {
 	isInvalid := false
 	invalidationAction := ""
 	var invalidationTime *time.Time
@@ -2961,7 +2963,8 @@ func (r GitRepoInfo) FullName() string {
 }
 
 func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole,
-	botSettings *TeamBotSettings) error {
+	botSettings *TeamBotSettings,
+) error {
 	if !role.IsRestrictedBot() && botSettings != nil {
 		return fmt.Errorf("Unexpected botSettings for role %v", role)
 	}
@@ -3466,7 +3469,6 @@ func (d *HiddenTeamChain) LastFullPopulateIfUnset() Seqno {
 }
 
 func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err error) {
-
 	for seqno, link := range newData.Outer {
 		existing, ok := d.Outer[seqno]
 		if ok && !existing.Eq(link) {
@@ -4061,6 +4063,7 @@ func (a SearchArg) String() string {
 	// Don't leak user's query string
 	return fmt.Sprintf("Limit: %d, Offset: %d", a.Limit, a.Offset)
 }
+
 func (a SearchLocalArg) String() string {
 	// Don't leak user's query string
 	return fmt.Sprintf("Limit: %d, SkipCache: %v", a.Limit, a.SkipCache)

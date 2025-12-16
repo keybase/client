@@ -4,11 +4,12 @@
 package keybase1
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type EncryptedGitMetadata struct {
@@ -54,11 +55,11 @@ var GitLocalMetadataVersionRevMap = map[GitLocalMetadataVersion]string{
 	1: "V1",
 }
 
-func (e GitLocalMetadataVersion) String() string {
-	if v, ok := GitLocalMetadataVersionRevMap[e]; ok {
+func (o GitLocalMetadataVersion) String() string {
+	if v, ok := GitLocalMetadataVersionRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type GitLocalMetadataV1 struct {
@@ -111,7 +112,7 @@ func (o GitLocalMetadataVersioned) DeepCopy() GitLocalMetadataVersioned {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.V1__),
 	}
@@ -157,11 +158,11 @@ var GitPushTypeRevMap = map[GitPushType]string{
 	3: "RENAMEREPO",
 }
 
-func (e GitPushType) String() string {
-	if v, ok := GitPushTypeRevMap[e]; ok {
+func (o GitPushType) String() string {
+	if v, ok := GitPushTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type GitRefMetadata struct {
@@ -253,11 +254,11 @@ var GitRepoResultStateRevMap = map[GitRepoResultState]string{
 	1: "OK",
 }
 
-func (e GitRepoResultState) String() string {
-	if v, ok := GitRepoResultStateRevMap[e]; ok {
+func (o GitRepoResultState) String() string {
+	if v, ok := GitRepoResultStateRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type GitRepoResult struct {
@@ -330,7 +331,7 @@ func (o GitRepoResult) DeepCopy() GitRepoResult {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Ok__),
 	}
@@ -360,7 +361,7 @@ func (o GitRepoInfo) DeepCopy() GitRepoInfo {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.TeamRepoSettings),
 	}
@@ -400,8 +401,7 @@ type GetGitMetadataArg struct {
 	Folder FolderHandle `codec:"folder" json:"folder"`
 }
 
-type GetAllGitMetadataArg struct {
-}
+type GetAllGitMetadataArg struct{}
 
 type CreatePersonalRepoArg struct {
 	RepoName GitRepoName `codec:"repoName" json:"repoName"`

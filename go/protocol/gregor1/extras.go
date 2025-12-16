@@ -1,14 +1,13 @@
 package gregor1
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
-
-	"bytes"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/go-codec/codec"
@@ -47,6 +46,7 @@ func (t TimeOrOffset) Time() *time.Time {
 	ret := FromTime(t.Time_)
 	return &ret
 }
+
 func (t TimeOrOffset) Offset() *time.Duration {
 	if t.Offset_ == 0 {
 		return nil
@@ -54,6 +54,7 @@ func (t TimeOrOffset) Offset() *time.Duration {
 	d := time.Duration(t.Offset_) * time.Millisecond
 	return &d
 }
+
 func (t TimeOrOffset) IsZero() bool {
 	return t.Time_.IsZero() && t.Offset_ == 0
 }
@@ -75,9 +76,11 @@ func (s StateSyncMessage) Metadata() gregor.Metadata {
 func (m MsgRange) EndTime() gregor.TimeOrOffset {
 	return m.EndTime_
 }
+
 func (m MsgRange) Category() gregor.Category {
 	return m.Category_
 }
+
 func (m MsgRange) SkipMsgIDs() (res []gregor.MsgID) {
 	for _, s := range m.SkipMsgIDs_ {
 		res = append(res, s)
@@ -108,12 +111,14 @@ func (m Metadata) UID() gregor.UID {
 	}
 	return m.Uid_
 }
+
 func (m Metadata) MsgID() gregor.MsgID {
 	if m.MsgID_ == nil {
 		return nil
 	}
 	return m.MsgID_
 }
+
 func (m Metadata) DeviceID() gregor.DeviceID {
 	if m.DeviceID_ == nil {
 		return nil
@@ -133,18 +138,21 @@ func (i ItemAndMetadata) Metadata() gregor.Metadata {
 	}
 	return i.Md_
 }
+
 func (i ItemAndMetadata) Body() gregor.Body {
 	if i.Item_.Body_ == nil {
 		return nil
 	}
 	return i.Item_.Body_
 }
+
 func (i ItemAndMetadata) Category() gregor.Category {
 	if i.Item_.Category_ == "" {
 		return nil
 	}
 	return i.Item_.Category_
 }
+
 func (i ItemAndMetadata) DTime() gregor.TimeOrOffset {
 	var unset TimeOrOffset
 	if i.Item_.Dtime_ == unset {
@@ -152,6 +160,7 @@ func (i ItemAndMetadata) DTime() gregor.TimeOrOffset {
 	}
 	return i.Item_.Dtime_
 }
+
 func (i ItemAndMetadata) RemindTimes() []gregor.TimeOrOffset {
 	var ret []gregor.TimeOrOffset
 	for _, t := range i.Item_.RemindTimes_ {
@@ -177,6 +186,7 @@ func (s StateUpdateMessage) Creation() gregor.Item {
 	}
 	return ItemAndMetadata{Md_: &s.Md_, Item_: s.Creation_}
 }
+
 func (s StateUpdateMessage) Dismissal() gregor.Dismissal {
 	if s.Dismissal_ == nil {
 		return nil
@@ -248,12 +258,14 @@ func (o OutOfBandMessage) Body() gregor.Body {
 	}
 	return o.Body_
 }
+
 func (o OutOfBandMessage) System() gregor.System {
 	if o.System_ == "" {
 		return nil
 	}
 	return o.System_
 }
+
 func (o OutOfBandMessage) UID() gregor.UID {
 	if o.Uid_ == nil {
 		return nil
@@ -514,23 +526,25 @@ func UIDListMerge(list1 []UID, list2 []UID) []UID {
 	return res
 }
 
-var _ gregor.UID = UID{}
-var _ gregor.MsgID = MsgID{}
-var _ gregor.DeviceID = DeviceID{}
-var _ gregor.System = System("")
-var _ gregor.Body = Body{}
-var _ gregor.Category = Category("")
-var _ gregor.TimeOrOffset = TimeOrOffset{}
-var _ gregor.Metadata = Metadata{}
-var _ gregor.StateSyncMessage = StateSyncMessage{}
-var _ gregor.MsgRange = MsgRange{}
-var _ gregor.Dismissal = Dismissal{}
-var _ gregor.Item = ItemAndMetadata{}
-var _ gregor.Reminder = Reminder{}
-var _ gregor.StateUpdateMessage = StateUpdateMessage{}
-var _ gregor.InBandMessage = InBandMessage{}
-var _ gregor.OutOfBandMessage = OutOfBandMessage{}
-var _ gregor.Message = Message{}
-var _ gregor.State = State{}
-var _ gregor.ReminderID = ReminderID{}
-var _ gregor.ReminderSet = ReminderSet{}
+var (
+	_ gregor.UID                = UID{}
+	_ gregor.MsgID              = MsgID{}
+	_ gregor.DeviceID           = DeviceID{}
+	_ gregor.System             = System("")
+	_ gregor.Body               = Body{}
+	_ gregor.Category           = Category("")
+	_ gregor.TimeOrOffset       = TimeOrOffset{}
+	_ gregor.Metadata           = Metadata{}
+	_ gregor.StateSyncMessage   = StateSyncMessage{}
+	_ gregor.MsgRange           = MsgRange{}
+	_ gregor.Dismissal          = Dismissal{}
+	_ gregor.Item               = ItemAndMetadata{}
+	_ gregor.Reminder           = Reminder{}
+	_ gregor.StateUpdateMessage = StateUpdateMessage{}
+	_ gregor.InBandMessage      = InBandMessage{}
+	_ gregor.OutOfBandMessage   = OutOfBandMessage{}
+	_ gregor.Message            = Message{}
+	_ gregor.State              = State{}
+	_ gregor.ReminderID         = ReminderID{}
+	_ gregor.ReminderSet        = ReminderSet{}
+)

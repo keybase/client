@@ -4,10 +4,11 @@
 package keybase1
 
 import (
+	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type StatsSeverityLevel int
@@ -32,11 +33,11 @@ var StatsSeverityLevelRevMap = map[StatsSeverityLevel]string{
 	2: "SEVERE",
 }
 
-func (e StatsSeverityLevel) String() string {
-	if v, ok := StatsSeverityLevelRevMap[e]; ok {
+func (o StatsSeverityLevel) String() string {
+	if v, ok := StatsSeverityLevelRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type DbStats struct {
@@ -72,11 +73,11 @@ var ProcessTypeRevMap = map[ProcessType]string{
 	1: "KBFS",
 }
 
-func (e ProcessType) String() string {
-	if v, ok := ProcessTypeRevMap[e]; ok {
+func (o ProcessType) String() string {
+	if v, ok := ProcessTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type ProcessRuntimeStats struct {
@@ -144,11 +145,11 @@ var PerfEventTypeRevMap = map[PerfEventType]string{
 	7: "TEAMTREELOAD",
 }
 
-func (e PerfEventType) String() string {
-	if v, ok := PerfEventTypeRevMap[e]; ok {
+func (o PerfEventType) String() string {
+	if v, ok := PerfEventTypeRevMap[o]; ok {
 		return v
 	}
-	return fmt.Sprintf("%v", int(e))
+	return fmt.Sprintf("%v", int(o))
 }
 
 type PerfEvent struct {
