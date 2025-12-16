@@ -269,12 +269,14 @@ export const VerifyPhone = () => {
   ])
   const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)
 
+  // clean everything on unmount
   React.useEffect(
     () => () => {
       clearPhoneNumberAdd()
     },
     [clearPhoneNumberAdd]
   )
+  // Clear on success
   React.useEffect(() => {
     if (verificationState === 'success' && !error) {
       clearModals()

@@ -263,6 +263,7 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsEditMembership(teamID, ...members))
   const teamWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsTeam(teamID))
 
+  // We wait for the teamLoaded
   React.useEffect(() => {
     if (showingPicker && !teamWaiting) {
       setShowingPicker(false)
@@ -296,6 +297,7 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
 }
 
 const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
+  // Channels tab functions
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDelete = () => navigateAppend({props: {teamID}, selected: 'teamDeleteChannel'})
 
