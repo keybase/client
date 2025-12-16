@@ -1,0 +1,19 @@
+{
+  "name": "immer-repro",
+  "version": "1.0.0",
+  "description": "Minimal reproducer for immer bug in toggleLocalReaction",
+  "main": "store.ts",
+  "scripts": {
+    "test": "ts-node test.ts"
+  },
+  "dependencies": {
+    "immer": "^10.0.0",
+    "zustand": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}
+
