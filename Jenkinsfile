@@ -312,10 +312,31 @@ helpers.rootLinuxNode(env, {
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
+                def GOBIN_WIN="${env.USERPROFILE}\\go\\bin"
+                def GOBIN_UNIX="${env.USERPROFILE}/go/bin"
+
+                // Install Go 1.25.5 on Windows (using Git Bash for Unix-like symlink support)
+                sh """
+                  export GOBIN="${GOBIN_UNIX}"
+                  mkdir -p "\${GOBIN}"
+
+                  echo "Installing go1.25.5..."
+                  go install golang.org/dl/go1.25.5@latest
+
+                  echo "Downloading Go 1.25.5 SDK..."
+                  "\${GOBIN}/go1.25.5" download
+
+                  # Create symlink so 'go' invokes go1.25.5 (Git Bash handles .exe transparently)
+                  ln -sf "\${GOBIN}/go1.25.5" "\${GOBIN}/go"
+
+                  echo "Go 1.25.5 installed successfully"
+                  "\${GOBIN}/go" version
+                """
+
                 withEnv([
-                  'GOROOT=C:\\Program Files\\go',
+                  "GOROOT=${sh(returnStdout: true, script: "\"${GOBIN_UNIX}/go\" env GOROOT").trim()}",
                   "GOPATH=${GOPATH}",
-                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${WINDOWS_PATH}",
+                  "PATH=\"${GOBIN_WIN}\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${WINDOWS_PATH}",
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                   "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
@@ -333,6 +354,7 @@ helpers.rootLinuxNode(env, {
                     test_windows_go: {
                       // install the updater test binary
                       dir('go') {
+                        sh "go version"
                         sh "go install github.com/keybase/client/go/updater/test"
                       }
                       testGo("test_windows_go_", getPackagesToTest(dependencyFiles, hasJenkinsfileChanges), hasKBFSChanges)
