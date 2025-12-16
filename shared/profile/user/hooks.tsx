@@ -65,6 +65,8 @@ const useUserData = (username: string) => {
   }
 
   const followThem = useFollowerState(s => s.following.has(username))
+  // const followsYou = useFollowerState(s => s.followers.has(username))
+  // const mutualFollow = followThem && followsYou
 
   const isDarkMode = useColorScheme() === 'dark'
   const stateProps = (() => {
@@ -123,6 +125,11 @@ const useUserData = (username: string) => {
 
   const editAvatar = useProfileState(s => s.dispatch.editAvatar)
   const _onEditAvatar = editAvatar
+  // const _onIKnowThem = (username: string, guiID: string) => {
+  //   dispatch(
+  //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
+  //   )
+  // }
   const _onReload = (username: string, isYou: boolean, state: T.Tracker.DetailsState) => {
     if (state !== 'valid' && !isYou) {
       // Might be a Keybase user or not, launch non-user profile fetch.
