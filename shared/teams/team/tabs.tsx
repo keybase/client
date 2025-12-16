@@ -100,6 +100,20 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {selectedTab, setSelectedTab, teamID} = ownProps
+  const teamsState = Teams.useTeamsState(
+    C.useShallow(s => {
+      const teamMeta = Teams.getTeamMeta(s, teamID)
+      const resetUserCount = Teams.getTeamResetUsers(s, teamMeta.teamname).size
+      return {
+        error: s.errorInAddToTeam,
+        newTeamRequests: s.newTeamRequests,
+        resetUserCount,
+        teamDetails: s.teamDetails.get(teamID),
+        teamMeta,
+        yourOperations: Teams.getCanPerformByID(s, teamID),
+      }
+    })
+  )
   const {
     error,
     newTeamRequests,
@@ -107,19 +121,7 @@ const Container = (ownProps: OwnProps) => {
     teamDetails,
     teamMeta,
     yourOperations,
-  } = Teams.useTeamsState(
-    C.useShallow(s => {
-      const teamMeta = Teams.getTeamMeta(s, teamID)
-      return {
-        error: s.errorInAddToTeam,
-        newTeamRequests: s.newTeamRequests,
-        resetUserCount: Teams.getTeamResetUsers(s, teamMeta.teamname).size,
-        teamDetails: s.teamDetails.get(teamID),
-        teamMeta,
-        yourOperations: Teams.getCanPerformByID(s, teamID),
-      }
-    })
-  )
+  } = teamsState
 
   const admin = yourOperations.manageMembers
   const isBig = Chat.useChatState(s => Chat.isBigTeam(s, teamID))

@@ -15,13 +15,7 @@ const noTeams = new Array<T.Tracker.TeamShowcase>()
 const Container = (ownProps: OwnProps) => {
   const d = useTrackerState(s => s.getDetails(ownProps.username))
   const _isYou = useCurrentUserState(s => s.username === ownProps.username)
-  const {
-    joinTeam,
-    showTeamByName,
-    _roles,
-    _teamNameToID,
-    _youAreInTeams,
-  } = useTeamsState(
+  const teamsState = useTeamsState(
     C.useShallow(s => ({
       _roles: s.teamRoleMap.roles,
       _teamNameToID: s.teamNameToID,
@@ -30,6 +24,13 @@ const Container = (ownProps: OwnProps) => {
       showTeamByName: s.dispatch.showTeamByName,
     }))
   )
+  const {
+    joinTeam,
+    showTeamByName,
+    _roles,
+    _teamNameToID,
+    _youAreInTeams,
+  } = teamsState
   const teamShowcase = d.teamShowcase || noTeams
   const {clearModals, navigateAppend} = C.useRouterState(
     C.useShallow(s => ({

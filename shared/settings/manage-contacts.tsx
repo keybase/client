@@ -10,13 +10,7 @@ const enabledDescription = 'Your phone contacts are being synced on this device.
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
 
 const ManageContacts = () => {
-  const {
-    contactsImported,
-    editContactImportEnabled,
-    loadContactImportEnabled,
-    requestPermissions,
-    status,
-  } = useSettingsContactsState(
+  const contactsState = useSettingsContactsState(
     C.useShallow(s => ({
       contactsImported: s.importEnabled,
       editContactImportEnabled: s.dispatch.editContactImportEnabled,
@@ -25,6 +19,13 @@ const ManageContacts = () => {
       status: s.permissionStatus,
     }))
   )
+  const {
+    contactsImported,
+    editContactImportEnabled,
+    loadContactImportEnabled,
+    requestPermissions,
+    status,
+  } = contactsState
   const waiting = C.Waiting.useAnyWaiting(C.importContactsWaitingKey)
 
   if (contactsImported === undefined) {

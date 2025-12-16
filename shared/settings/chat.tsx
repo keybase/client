@@ -19,15 +19,7 @@ const Security = () => {
       notifRefresh: s.dispatch.refresh,
     }))
   )
-  const {
-    _contactSettingsEnabled,
-    _contactSettingsIndirectFollowees,
-    _contactSettingsTeams,
-    _contactSettingsTeamsEnabled,
-    contactSettingsError,
-    contactSettingsRefresh,
-    contactSettingsSaved,
-  } = useSettingsChatState(
+  const chatState = useSettingsChatState(
     C.useShallow(s => ({
       _contactSettingsEnabled: s.contactSettings.settings?.enabled,
       _contactSettingsIndirectFollowees: s.contactSettings.settings?.allowFolloweeDegrees === 2,
@@ -38,6 +30,15 @@ const Security = () => {
       contactSettingsSaved: s.dispatch.contactSettingsSaved,
     }))
   )
+  const {
+    _contactSettingsEnabled,
+    _contactSettingsIndirectFollowees,
+    _contactSettingsTeams,
+    _contactSettingsTeamsEnabled,
+    contactSettingsError,
+    contactSettingsRefresh,
+    contactSettingsSaved,
+  } = chatState
   const onContactSettingsSave = contactSettingsSaved
   const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
   const _teamMeta = Teams.useTeamsState(s => s.teamMeta)

@@ -362,16 +362,7 @@ export type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const {
-    error,
-    _loadWelcomeMessage,
-    resetErrorInSettings,
-    setPublicity,
-    teamDetails,
-    teamMeta,
-    welcomeMessage,
-    yourOperations,
-  } = Teams.useTeamsState(
+  const teamsState = Teams.useTeamsState(
     C.useShallow(s => {
       const teamMeta = Teams.getTeamMeta(s, teamID)
       const teamDetails = s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails
@@ -387,6 +378,16 @@ const Container = (ownProps: OwnProps) => {
       }
     })
   )
+  const {
+    error,
+    _loadWelcomeMessage,
+    resetErrorInSettings,
+    setPublicity,
+    teamDetails,
+    teamMeta,
+    welcomeMessage,
+    yourOperations,
+  } = teamsState
   const publicityAnyMember = teamMeta.allowPromote
   const publicityMember = teamMeta.showcasing
   const publicityTeam = teamDetails.settings.teamShowcased

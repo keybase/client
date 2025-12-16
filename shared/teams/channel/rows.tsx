@@ -41,12 +41,7 @@ const ChannelMemberRow = (props: Props) => {
     }))
   )
   const participantInfo = Chat.useConvoState(conversationIDKey, s => s.participants)
-  const {
-    channelSelectedMembers,
-    channelSetMemberSelected,
-    teamMemberInfo,
-    yourOperations,
-  } = Teams.useTeamsState(
+  const teamsState = Teams.useTeamsState(
     C.useShallow(s => ({
       channelSelectedMembers: s.channelSelectedMembers.get(conversationIDKey),
       channelSetMemberSelected: s.dispatch.channelSetMemberSelected,
@@ -54,6 +49,12 @@ const ChannelMemberRow = (props: Props) => {
       yourOperations: Teams.getCanPerformByID(s, teamID),
     }))
   )
+  const {
+    channelSelectedMembers,
+    channelSetMemberSelected,
+    teamMemberInfo,
+    yourOperations,
+  } = teamsState
   const you = useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'

@@ -92,13 +92,7 @@ const roleDisplay = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
-  const {
-    activityLevel,
-    details,
-    justFinishedAddWizard,
-    meta,
-    yourOperations,
-  } = Teams.useTeamsState(
+  const teamsState = Teams.useTeamsState(
     C.useShallow(s => ({
       activityLevel: s.activityLevels.teams.get(teamID) || 'none',
       details: s.teamDetails.get(teamID),
@@ -107,6 +101,13 @@ const HeaderTitle = (props: HeaderTitleProps) => {
       yourOperations: Teams.getCanPerformByID(s, teamID),
     }))
   )
+  const {
+    activityLevel,
+    details,
+    justFinishedAddWizard,
+    meta,
+    yourOperations,
+  } = teamsState
   useActivityLevels()
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)

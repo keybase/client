@@ -26,13 +26,7 @@ const SearchBotPopup = (props: Props) => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
-  const {
-    botSearchResults,
-    featuredBotsMap,
-    getFeaturedBots,
-    searchFeaturedAndUsers,
-    setSearchFeaturedAndUsersResults,
-  } = useBotsState(
+  const botsState = useBotsState(
     C.useShallow(s => ({
       botSearchResults: s.botSearchResults,
       featuredBotsMap: s.featuredBotsMap,
@@ -41,6 +35,13 @@ const SearchBotPopup = (props: Props) => {
       setSearchFeaturedAndUsersResults: s.dispatch.setSearchFeaturedAndUsersResults,
     }))
   )
+  const {
+    botSearchResults,
+    featuredBotsMap,
+    getFeaturedBots,
+    searchFeaturedAndUsers,
+    setSearchFeaturedAndUsersResults,
+  } = botsState
   const waiting = C.Waiting.useAnyWaiting([
     C.waitingKeyBotsSearchUsers,
     C.waitingKeyBotsSearchFeatured,

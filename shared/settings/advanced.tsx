@@ -84,16 +84,16 @@ let disableSpellCheckInitialValue: boolean | undefined
 
 const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(C.waitingKeySettingsSetLockdownMode)
-  const {hasRandomPW, loadHasRandomPw, loadRememberPassword, rememberPassword, setRememberPassword} =
-    usePWState(
-      C.useShallow(s => ({
-        hasRandomPW: !!s.randomPW,
-        loadHasRandomPw: s.dispatch.loadHasRandomPw,
-        loadRememberPassword: s.dispatch.loadRememberPassword,
-        rememberPassword: s.rememberPassword,
-        setRememberPassword: s.dispatch.setRememberPassword,
-      }))
-    )
+  const pwState = usePWState(
+    C.useShallow(s => ({
+      hasRandomPW: !!s.randomPW,
+      loadHasRandomPw: s.dispatch.loadHasRandomPw,
+      loadRememberPassword: s.dispatch.loadRememberPassword,
+      rememberPassword: s.rememberPassword,
+      setRememberPassword: s.dispatch.setRememberPassword,
+    }))
+  )
+  const {hasRandomPW, loadHasRandomPw, loadRememberPassword, rememberPassword, setRememberPassword} = pwState
   const {onSetOpenAtLogin, openAtLogin} = useConfigState(
     C.useShallow(s => ({
       onSetOpenAtLogin: s.dispatch.setOpenAtLogin,

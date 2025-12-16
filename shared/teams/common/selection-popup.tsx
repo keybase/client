@@ -129,16 +129,20 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
 const TeamSelectionPopup = (props: TeamProps) => {
   const {selectedTab, teamID} = props
 
-  const {selectedCount, setChannelSelected, setMemberSelected} = useTeamsState(
-    C.useShallow(s => ({
-      selectedCount:
+  const teamsState = useTeamsState(
+    C.useShallow(s => {
+      const selectedCount =
         selectedTab === 'teamChannels'
           ? (s.teamSelectedChannels.get(teamID)?.size ?? 0)
-          : (s.teamSelectedMembers.get(teamID)?.size ?? 0),
-      setChannelSelected: s.dispatch.setChannelSelected,
-      setMemberSelected: s.dispatch.setMemberSelected,
-    }))
+          : (s.teamSelectedMembers.get(teamID)?.size ?? 0)
+      return {
+        selectedCount,
+        setChannelSelected: s.dispatch.setChannelSelected,
+        setMemberSelected: s.dispatch.setMemberSelected,
+      }
+    })
   )
+  const {selectedCount, setChannelSelected, setMemberSelected} = teamsState
 
   const onCancel = () => {
     switch (selectedTab) {

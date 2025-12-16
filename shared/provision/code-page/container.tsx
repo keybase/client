@@ -17,16 +17,16 @@ const CodePageContainer = () => {
     }))
   )
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
-  const {error, otherDevice, provisionDeviceName, submitTextCode, textCode} = useProvisionState(
+  const provisionState = useProvisionState(
     C.useShallow(s => ({
       error: s.error,
       otherDevice: s.codePageOtherDevice,
-      // we either have a name for real or we asked on a previous screen
       provisionDeviceName: s.deviceName,
       submitTextCode: s.dispatch.dynamic.submitTextCode,
       textCode: s.codePageIncomingTextCode,
     }))
   )
+  const {error, otherDevice, provisionDeviceName, submitTextCode, textCode} = provisionState
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
   const currentDevice = Devices.useDevicesState(s => s.deviceMap.get(deviceID)) ?? Devices.emptyDevice
   const iconNumber = Devices.useDeviceIconNumber(otherDevice.id)

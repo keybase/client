@@ -88,13 +88,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const {teamname, teamID, channelname, isInChannel, ignored, fullname} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 
-  const {
-    addTeamWithChosenChannels,
-    badgeSubscribe,
-    canAddPeople,
-    manageChatChannels,
-    startAddMembersWizard,
-  } = Teams.useTeamsState(
+  const teamsState = Teams.useTeamsState(
     C.useShallow(s => ({
       addTeamWithChosenChannels: s.dispatch.addTeamWithChosenChannels,
       badgeSubscribe: !Teams.isTeamWithChosenChannels(s, teamname),
@@ -103,6 +97,13 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       startAddMembersWizard: s.dispatch.startAddMembersWizard,
     }))
   )
+  const {
+    addTeamWithChosenChannels,
+    badgeSubscribe,
+    canAddPeople,
+    manageChatChannels,
+    startAddMembersWizard,
+  } = teamsState
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)
   }, [startAddMembersWizard, teamID])

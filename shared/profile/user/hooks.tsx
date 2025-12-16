@@ -30,17 +30,20 @@ const headerBackgroundColorType = (
 const useUserData = (username: string) => {
   const myName = useCurrentUserState(s => s.username)
   const userIsYou = username === myName
-  const {d, getProofSuggestions, loadNonUserProfile, nonUserDetails, showUser, _suggestionKeys} =
-    useTrackerState(
-      C.useShallow(s => ({
-        _suggestionKeys: userIsYou ? s.proofSuggestions : undefined,
+  const trackerState = useTrackerState(
+    C.useShallow(s => {
+      const _suggestionKeys = userIsYou ? s.proofSuggestions : undefined
+      return {
+        _suggestionKeys,
         d: s.getDetails(username),
         getProofSuggestions: s.dispatch.getProofSuggestions,
         loadNonUserProfile: s.dispatch.loadNonUserProfile,
         nonUserDetails: s.getNonUserDetails(username),
         showUser: s.dispatch.showUser,
-      }))
-    )
+      }
+    })
+  )
+  const {d, getProofSuggestions, loadNonUserProfile, nonUserDetails, showUser, _suggestionKeys} = trackerState
   const notAUser = d.state === 'notAUserYet'
 
   const commonProps = {

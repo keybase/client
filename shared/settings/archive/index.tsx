@@ -9,7 +9,7 @@ import {useFSState} from '@/constants/fs'
 
 const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
   const {id, index} = p
-  const {cancel, job, pause, resume} = useArchiveState(
+  const archiveState = useArchiveState(
     C.useShallow(s => ({
       cancel: s.dispatch.cancelChat,
       job: s.chatJobs.get(id),
@@ -17,6 +17,7 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
       resume: s.dispatch.resumeChat,
     }))
   )
+  const {cancel, job, pause, resume} = archiveState
 
   const errorStr = job?.error ?? ''
 
@@ -137,12 +138,7 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
 
 const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
   const {id, index} = p
-  const {
-    cancelOrDismiss,
-    currentTLFRevision,
-    job,
-    loadKBFSJobFreshness,
-  } = useArchiveState(
+  const archiveState = useArchiveState(
     C.useShallow(s => ({
       cancelOrDismiss: s.dispatch.cancelOrDismissKBFS,
       currentTLFRevision: s.kbfsJobsFreshness.get(id) || 0,
@@ -150,6 +146,12 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
       loadKBFSJobFreshness: s.dispatch.loadKBFSJobFreshness,
     }))
   )
+  const {
+    cancelOrDismiss,
+    currentTLFRevision,
+    job,
+    loadKBFSJobFreshness,
+  } = archiveState
   C.useOnMountOnce(() => {
     loadKBFSJobFreshness(id)
   })
@@ -314,33 +316,39 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
 })
 
 const Archive = () => {
+  const archiveState = useArchiveState(
+    C.useShallow(s => {
+      let showClear = false
+      for (const job of s.chatJobs.values()) {
+        if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
+          showClear = true
+          break
+        }
+      }
+      if (!showClear) {
+        for (const job of s.kbfsJobs.values()) {
+          if (job.phase === 'Done') {
+            showClear = true
+            break
+          }
+        }
+      }
+      return {
+        chatJobMap: s.chatJobs,
+        clearCompleted: s.dispatch.clearCompleted,
+        kbfsJobMap: s.kbfsJobs,
+        load: s.dispatch.load,
+        showClear,
+      }
+    })
+  )
   const {
     chatJobMap,
     clearCompleted,
     kbfsJobMap,
     load,
     showClear,
-  } = useArchiveState(
-    C.useShallow(s => ({
-      chatJobMap: s.chatJobs,
-      clearCompleted: s.dispatch.clearCompleted,
-      kbfsJobMap: s.kbfsJobs,
-      load: s.dispatch.load,
-      showClear: (() => {
-        for (const job of s.chatJobs.values()) {
-          if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
-            return true
-          }
-        }
-        for (const job of s.kbfsJobs.values()) {
-          if (job.phase === 'Done') {
-            return true
-          }
-        }
-        return false
-      })(),
-    }))
-  )
+  } = archiveState
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   C.Router2.useSafeFocusEffect(
@@ -453,3 +461,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default Archive
+

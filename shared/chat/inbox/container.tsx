@@ -71,22 +71,15 @@ type WrapperProps = Pick<
 >
 
 const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
-  const {
-    allowShowFloatingButton,
-    inboxHasLoaded,
-    inboxNumSmallRows,
-    inboxRefresh,
-    queueMetaToRequest,
-    setInboxNumSmallRows,
-    toggleSmallTeamsExpanded,
-  } = Chat.useChatState(
+  const chatState = Chat.useChatState(
     C.useShallow(s => {
       const inboxNumSmallRows = s.inboxNumSmallRows ?? 5
       const {inboxLayout} = s
+      const allowShowFloatingButton = inboxLayout
+        ? (inboxLayout.smallTeams || []).length > inboxNumSmallRows && !!(inboxLayout.bigTeams || []).length
+        : false
       return {
-        allowShowFloatingButton: inboxLayout
-          ? (inboxLayout.smallTeams || []).length > inboxNumSmallRows && !!(inboxLayout.bigTeams || []).length
-          : false,
+        allowShowFloatingButton,
         inboxHasLoaded: s.inboxHasLoaded,
         inboxNumSmallRows,
         inboxRefresh: s.dispatch.inboxRefresh,
@@ -96,6 +89,15 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
       }
     })
   )
+  const {
+    allowShowFloatingButton,
+    inboxHasLoaded,
+    inboxNumSmallRows,
+    inboxRefresh,
+    queueMetaToRequest,
+    setInboxNumSmallRows,
+    toggleSmallTeamsExpanded,
+  } = chatState
   const isFocused = useIsFocused()
 
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)

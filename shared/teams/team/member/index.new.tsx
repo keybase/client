@@ -145,23 +145,25 @@ const TeamMember = (props: OwnProps) => {
   const username = props.username
   const teamID = props.teamID
   const isMe = username === useCurrentUserState(s => s.username)
-  const {loadTeamTree, loading} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      loadTeamTree: s.dispatch.loadTeamTree,
-      loading: (() => {
-        const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
-        if (!memberships?.expectedCount) {
-          return true
-        }
+  const teamsState = Teams.useTeamsState(
+    C.useShallow(s => {
+      const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
+      let loading = true
+      if (memberships?.expectedCount) {
         const got = memberships.memberships.length
         const want = memberships.expectedCount
         if (got > want) {
           logger.error(`got ${got} notifications for ${teamID}; only wanted ${want}`)
         }
-        return got < want
-      })(),
-    }))
+        loading = got < want
+      }
+      return {
+        loadTeamTree: s.dispatch.loadTeamTree,
+        loading,
+      }
+    })
   )
+  const {loadTeamTree, loading} = teamsState
 
   // Load up the memberships when the page is opened
   React.useEffect(() => {

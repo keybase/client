@@ -15,15 +15,7 @@ const LogoutContainer = () => {
       resetCheckPassword: s.dispatch.resetCheckPassword,
     }))
   )
-  const {
-    hasPGPKeyOnServer,
-    hasRandomPW,
-    loadHasRandomPw,
-    onUpdatePGPSettings,
-    setPasswordConfirm,
-    submitNewPassword,
-    _setPassword,
-  } = usePWState(
+  const pwState = usePWState(
     C.useShallow(s => ({
       _setPassword: s.dispatch.setPassword,
       hasPGPKeyOnServer: !!s.hasPGPKeyOnServer,
@@ -34,6 +26,15 @@ const LogoutContainer = () => {
       submitNewPassword: s.dispatch.submitNewPassword,
     }))
   )
+  const {
+    hasPGPKeyOnServer,
+    hasRandomPW,
+    loadHasRandomPw,
+    onUpdatePGPSettings,
+    setPasswordConfirm,
+    submitNewPassword,
+    _setPassword,
+  } = pwState
   const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
 
   const onBootstrap = loadHasRandomPw

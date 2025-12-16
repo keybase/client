@@ -26,6 +26,23 @@ const disabledRolesSubteam = {
 }
 
 const AddMembersConfirm = () => {
+  const teamsState = useTeamsState(
+    C.useShallow(s => {
+      const teamID = s.addMembersWizard.teamID
+      const isInTeam = Teams.getRole(s, teamID) !== 'none'
+      const isSubteam = Teams.getTeamMeta(s, teamID).teamname.includes('.')
+      const newTeamWizErr = teamID === T.Teams.newTeamWizardTeamID ? s.newTeamWizard.error : undefined
+      return {
+        addMembersWizard: s.addMembersWizard,
+        cancelAddMembersWizard: s.dispatch.cancelAddMembersWizard,
+        finishNewTeamWizard: s.dispatch.finishNewTeamWizard,
+        finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
+        isInTeam,
+        isSubteam,
+        newTeamWizErr,
+      }
+    })
+  )
   const {
     addMembersWizard,
     cancelAddMembersWizard,
@@ -34,20 +51,7 @@ const AddMembersConfirm = () => {
     isInTeam,
     isSubteam,
     newTeamWizErr,
-  } = useTeamsState(
-    C.useShallow(s => {
-      const teamID = s.addMembersWizard.teamID
-      return {
-        addMembersWizard: s.addMembersWizard,
-        cancelAddMembersWizard: s.dispatch.cancelAddMembersWizard,
-        finishNewTeamWizard: s.dispatch.finishNewTeamWizard,
-        finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
-        isInTeam: Teams.getRole(s, teamID) !== 'none',
-        isSubteam: Teams.getTeamMeta(s, teamID).teamname.includes('.'),
-        newTeamWizErr: teamID === T.Teams.newTeamWizardTeamID ? s.newTeamWizard.error : undefined,
-      }
-    })
-  )
+  } = teamsState
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = addMembersWizard
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
   const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : Chat.isBigTeam(s, teamID)))
