@@ -9,6 +9,10 @@ linters-settings:
     disabled-checks:
       - ifElseChain
       - elseif
+  staticcheck:
+    checks:
+      - "all"
+      - "-SA1019"  # Disable deprecated package warnings (will fix later)
   revive:
     rules:
       - name: unused-parameter
