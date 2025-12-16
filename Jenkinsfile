@@ -81,19 +81,29 @@ helpers.rootLinuxNode(env, {
     WINDOWS_PATH="${env.PATH}"
   }
   sh '''#!/bin/bash
-      set -euo pipefail
+      # Install and download Go 1.25.5
+      # Ensure GOBIN is set so we know where the binary goes
+      export GOBIN="${HOME}/go/bin"
+      mkdir -p "${GOBIN}"
 
-      source  ~/.gvm/scripts/gvm
-      set -x
-      GVM_DEBUG=1
-      gvm install go1.25.5 --prefer-binary && gvm use go1.25.5 --default
+      echo "Installing go1.25.5..."
+      go install golang.org/dl/go1.25.5@latest
+
+      echo "Downloading Go 1.25.5 SDK..."
+      "${GOBIN}/go1.25.5" download
+
+      # Create symlink so 'go' invokes go1.25.5
+      ln -sf "${GOBIN}/go1.25.5" "${GOBIN}/go"
+
+      # Set up Node
       source  ~/.nvm/nvm.sh
       nvm install 24 && nvm use 24 && nvm alias default 24
 
       # Capture both Go and Node environment variables
-      echo "GOROOT=$(go env GOROOT)" > build_env
+      # Put ~/go/bin first so our symlinked 'go' is used
+      echo "GOROOT=$("${GOBIN}/go1.25.5" env GOROOT)" > build_env
       echo "NODE_PATH=$(npm root -g)" >> build_env
-      echo "PATH=$(go env GOPATH)/bin:$(go env GOROOT)/bin:$(npm config get prefix)/bin:${PATH}" >> build_env
+      echo "PATH=${GOBIN}:$(npm config get prefix)/bin:${PATH}" >> build_env
       cat build_env
   '''
 
