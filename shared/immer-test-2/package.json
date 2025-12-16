@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "immer": "^10.2.0",
+    "immer": "^10.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zustand": "^5.0.9"
@@ -29,4 +29,3 @@
     "webpack-dev-server": "^5.2.2"
   }
 }
-

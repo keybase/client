@@ -62,12 +62,8 @@ export const useStore = create<State>()(
             rs.users.delete(existing)
           }
           rs.users.add({timestamp: Date.now(), username})
-          if (rs.users.size === 0) {
-            m.reactions.delete(emoji)
-          }
         }
       })
-      console.log('messageMap:', get().messageMap)
     },
   }))
 )
