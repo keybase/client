@@ -344,15 +344,20 @@ helpers.rootLinuxNode(env, {
 
                     echo "Go 1.25.5 installed successfully"
                     "${GOBIN}/go" version
+
+                    # Save paths for Jenkins to use
+                    echo "${GOBIN}" > windows_gobin_path.txt
+                    "${GOBIN}/go" env GOROOT > windows_goroot_path.txt
                   '''
                 }
 
-                // Capture GOBIN and GOROOT for use in subsequent commands
-                def GOBIN_UNIX = sh(returnStdout: true, script: 'echo $HOME/go/bin').trim()
+                // Read the paths that were captured during installation
+                def GOBIN_UNIX = readFile('windows_gobin_path.txt').trim()
+                def GOROOT_PATH = readFile('windows_goroot_path.txt').trim()
                 def GOBIN_WIN = GOBIN_UNIX.replaceAll('/', '\\\\')
 
                 withEnv([
-                  "GOROOT=${sh(returnStdout: true, script: "\"${GOBIN_UNIX}/go\" env GOROOT").trim()}",
+                  "GOROOT=${GOROOT_PATH}",
                   "GOPATH=${GOPATH}",
                   "PATH=\"${GOBIN_WIN}\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${WINDOWS_PATH}",
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
