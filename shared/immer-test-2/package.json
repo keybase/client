@@ -1,0 +1,19 @@
+{
+  "name": "immer-test-2",
+  "version": "1.0.0",
+  "description": "Test app for toggleLocalReaction logic",
+  "main": "index.tsx",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "immer": "^10.2.0",
+    "react": "^19.1.0",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "typescript": "^5.9.3"
+  }
+}
+
