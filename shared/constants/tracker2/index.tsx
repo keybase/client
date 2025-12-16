@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import * as S from '../strings'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {generateGUIID, ignorePromise} from '../utils'
 import * as Z from '@/util/zustand'
@@ -208,7 +208,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
     changeFollow: (guiID, follow) => {
       const f = async () => {
         try {
-          await T.RPCGen.identify3Identify3FollowUserRpcPromise({follow, guiID}, C.waitingKeyTracker)
+          await T.RPCGen.identify3Identify3FollowUserRpcPromise({follow, guiID}, S.waitingKeyTracker)
           get().dispatch.updateResult(guiID, 'valid', `Successfully ${follow ? 'followed' : 'unfollowed'}!`)
         } catch {
           get().dispatch.updateResult(guiID, 'error', `Failed to ${follow ? 'follow' : 'unfollow'}`)
@@ -231,7 +231,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         try {
           const {suggestions} = await T.RPCGen.userProofSuggestionsRpcPromise(
             undefined,
-            C.waitingKeyTrackerProfileLoad
+            S.waitingKeyTrackerProfileLoad
           )
           set(s => {
             s.proofSuggestions = T.castDraft(suggestions?.map(rpcSuggestionToAssertion)) ?? []
@@ -247,7 +247,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
     ignore: guiID => {
       const f = async () => {
         try {
-          await T.RPCGen.identify3Identify3IgnoreUserRpcPromise({guiID}, C.waitingKeyTracker)
+          await T.RPCGen.identify3Identify3IgnoreUserRpcPromise({guiID}, S.waitingKeyTracker)
           get().dispatch.updateResult(guiID, 'valid', `Successfully ignored`)
         } catch {
           get().dispatch.updateResult(guiID, 'error', `Failed to ignore`)
@@ -280,7 +280,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.identify3Identify3RpcListener({
             incomingCallMap: {},
             params: {assertion, guiID, ignoreCache},
-            waitingKey: C.waitingKeyTrackerProfileLoad,
+            waitingKey: S.waitingKeyTrackerProfileLoad,
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -309,7 +309,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         try {
           const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise(
             {assertion},
-            C.waitingKeyTrackerProfileLoad
+            S.waitingKeyTrackerProfileLoad
           )
           set(s => {
             const d = s.usernameToDetails.get(assertion)
@@ -335,7 +335,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         try {
           const fs = await T.RPCGen.userListTrackingRpcPromise(
             {assertion, filter: ''},
-            C.waitingKeyTrackerProfileLoad
+            S.waitingKeyTrackerProfileLoad
           )
           set(s => {
             const d = s.usernameToDetails.get(assertion)

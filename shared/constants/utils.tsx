@@ -2,7 +2,6 @@ import type * as React from 'react'
 import {useNavigation} from '@react-navigation/core'
 import {type RouteKeys} from '@/router-v2/route-params'
 import logger from '@/logger'
-import {storeRegistry} from './store-registry'
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
@@ -10,14 +9,6 @@ export const ignorePromise = (f: Promise<void> | Promise<PromiseSettledResult<vo
   f.then(() => {}).catch((e: unknown) => {
     logger.error('ignorePromise error', e)
   })
-}
-
-export const initListeners = () => {
-  const f = async () => {
-    await storeRegistry.getState('fs').dispatch.setupSubscriptions()
-    storeRegistry.getState('config').dispatch.setupSubscriptions()
-  }
-  ignorePromise(f())
 }
 
 export type PagesToParams<T> = {
@@ -63,8 +54,6 @@ export function enumKeys<T extends Record<string, string | number>>(enumeration:
   return Object.keys(enumeration).filter(key => typeof enumeration[key] === 'number') as (keyof T)[]
 }
 
-export const assertNever = (_: never) => undefined
-
 export const useNav = () => {
   const na = useNavigation()
   const {canGoBack} = na
@@ -77,6 +66,7 @@ export const useNav = () => {
   }
 }
 
+export {wrapErrors} from '@/util/debug'
 export {default as shallowEqual} from 'shallowequal'
 export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 export {useShallow, useDeep} from '@/util/zustand'

@@ -1,6 +1,7 @@
-import * as C from '@/constants'
+import type * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {TBProvider} from '@/constants/team-building'
 
 const getOptions = ({route}: OwnProps) => {
   const namespace: unknown = route.params.namespace
@@ -33,9 +34,9 @@ const Building = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof Building>
 
 const Screen = (p: OwnProps) => (
-  <C.TBProvider namespace={p.route.params.namespace}>
+  <TBProvider namespace={p.route.params.namespace}>
     <Building {...p.route.params} />
-  </C.TBProvider>
+  </TBProvider>
 )
 
 export default {

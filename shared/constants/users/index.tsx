@@ -2,9 +2,10 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import * as T from '../types'
-import * as C from '..'
 import {mapGetEnsureValue} from '@/util/map'
 import {ignorePromise} from '../utils'
+import {RPCError, isNetworkErr} from '../utils'
+import * as S from '../strings'
 
 type Store = T.Immutable<{
   blockMap: Map<string, T.Users.BlockState>
@@ -49,8 +50,8 @@ export const useUsersState = Z.createZustand<State>((set, get) => {
             get().dispatch.updates([{info: {bio: userCard.bioDecorated}, name: username}])
           }
         } catch (error) {
-          if (error instanceof C.RPCError) {
-            if (C.isNetworkErr(error.code)) {
+          if (error instanceof RPCError) {
+            if (isNetworkErr(error.code)) {
               logger.info('Network error getting userCard')
             } else {
               logger.info(error.message)
@@ -62,7 +63,7 @@ export const useUsersState = Z.createZustand<State>((set, get) => {
     },
     getBlockState: usernames => {
       const f = async () => {
-        const blocks = await T.RPCGen.userGetUserBlocksRpcPromise({usernames}, C.waitingKeyUsersGetUserBlocks)
+        const blocks = await T.RPCGen.userGetUserBlocksRpcPromise({usernames}, S.waitingKeyUsersGetUserBlocks)
         set(s => {
           blocks?.forEach(({username, chatBlocked, followBlocked}) => {
             s.blockMap.set(username.toLowerCase(), {chatBlocked, followBlocked})
@@ -116,7 +117,7 @@ export const useUsersState = Z.createZustand<State>((set, get) => {
             reason,
             username,
           },
-          C.waitingKeyUsersReportUser
+          S.waitingKeyUsersReportUser
         )
       }
       ignorePromise(f())
@@ -125,7 +126,7 @@ export const useUsersState = Z.createZustand<State>((set, get) => {
     setUserBlocks: blocks => {
       const f = async () => {
         if (blocks.length) {
-          await T.RPCGen.userSetUserBlocksRpcPromise({blocks}, C.waitingKeyUsersSetUserBlocks)
+          await T.RPCGen.userSetUserBlocksRpcPromise({blocks}, S.waitingKeyUsersSetUserBlocks)
         }
       }
       ignorePromise(f())

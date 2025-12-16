@@ -1,6 +1,6 @@
-import * as C from '..'
 import * as T from '../types'
-import {ignorePromise} from '../utils'
+import {ignorePromise, wrapErrors} from '../utils'
+import {waitingKeyRecoverPassword} from '../strings'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
@@ -89,14 +89,14 @@ export const useState = Z.createZustand<State>((set, get) => {
                       s.dispatch.dynamic.submitDeviceSelect = undefined
                     })
                   }
-                  const cancel = C.wrapErrors(() => {
+                  const cancel = wrapErrors(() => {
                     clear()
                     response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                     storeRegistry.getState('router').dispatch.navigateUp()
                   })
                   s.devices = devices
                   s.dispatch.dynamic.cancel = cancel
-                  s.dispatch.dynamic.submitDeviceSelect = C.wrapErrors((name: string) => {
+                  s.dispatch.dynamic.submitDeviceSelect = wrapErrors((name: string) => {
                     clear()
                     const d = get().devices.find(d => d.name === name)
                     if (d) {
@@ -124,7 +124,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     })
                   }
                   set(s => {
-                    s.dispatch.dynamic.submitResetPassword = C.wrapErrors(
+                    s.dispatch.dynamic.submitResetPassword = wrapErrors(
                       (action: T.RPCGen.ResetPromptResponse) => {
                         clear()
                         response.result(action)
@@ -134,7 +134,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                         storeRegistry.getState('router').dispatch.navigateUp()
                       }
                     )
-                    s.dispatch.dynamic.cancel = C.wrapErrors(() => {
+                    s.dispatch.dynamic.cancel = wrapErrors(() => {
                       clear()
                       response.result(T.RPCGen.ResetPromptResponse.nothing)
                       storeRegistry.getState('router').dispatch.navigateUp()
@@ -156,7 +156,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   }
                   set(s => {
                     s.paperKeyError = params.pinentry.retryLabel
-                    s.dispatch.dynamic.cancel = C.wrapErrors(() => {
+                    s.dispatch.dynamic.cancel = wrapErrors(() => {
                       clear()
                       response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                       get().dispatch.startRecoverPassword({
@@ -164,7 +164,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                         username: get().username,
                       })
                     })
-                    s.dispatch.dynamic.submitPaperKey = C.wrapErrors((passphrase: string) => {
+                    s.dispatch.dynamic.submitPaperKey = wrapErrors((passphrase: string) => {
                       clear()
                       response.result({passphrase, storeSecret: false})
                     })
@@ -179,14 +179,14 @@ export const useState = Z.createZustand<State>((set, get) => {
                   }
                   set(s => {
                     s.passwordError = params.pinentry.retryLabel
-                    s.dispatch.dynamic.cancel = C.wrapErrors(() => {
+                    s.dispatch.dynamic.cancel = wrapErrors(() => {
                       clear()
                       response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                     })
                   })
                   if (!params.pinentry.retryLabel) {
                     set(s => {
-                      s.dispatch.dynamic.submitPassword = C.wrapErrors((passphrase: string) => {
+                      s.dispatch.dynamic.submitPassword = wrapErrors((passphrase: string) => {
                         clear()
                         response.result({passphrase, storeSecret: true})
                       })
@@ -206,7 +206,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               },
             },
             params: {username: p.username},
-            waitingKey: C.waitingKeyRecoverPassword,
+            waitingKey: waitingKeyRecoverPassword,
           })
           console.log('Recovered account')
         } catch (error) {

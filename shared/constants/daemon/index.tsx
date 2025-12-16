@@ -1,9 +1,9 @@
-import * as C from '..'
 import logger from '@/logger'
 import {ignorePromise} from '../utils'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 import {storeRegistry} from '../store-registry'
+import {maxHandshakeTries} from '../values'
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
 // normally this wouldn't be worth it but this is startup
@@ -21,7 +21,7 @@ type Store = T.Immutable<{
 
 const initialStore: Store = {
   handshakeFailedReason: '',
-  handshakeRetriesLeft: C.maxHandshakeTries,
+  handshakeRetriesLeft: maxHandshakeTries,
   handshakeState: 'starting',
   handshakeVersion: 0,
   handshakeWaiters: new Map(),
@@ -56,7 +56,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
     get().dispatch.setState('starting')
     get().dispatch.setFailed('')
     set(s => {
-      s.handshakeRetriesLeft = C.maxHandshakeTries
+      s.handshakeRetriesLeft = maxHandshakeTries
     })
   }
 

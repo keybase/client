@@ -13,7 +13,7 @@ import openURL from '@/util/open-url'
 import {isLinux} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
 import './tab-bar.css'
-import {useSettingsState, settingsLogOutTab} from '@/constants/settings'
+import {settingsLogOutTab} from '@/constants/settings/util'
 import {useTrackerState} from '@/constants/tracker2'
 import {useFSState} from '@/constants/fs'
 import {useProfileState} from '@/constants/profile'
@@ -33,13 +33,20 @@ const FilesTabBadge = () => {
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.badgeIconUpload} /> : null
 }
 
+const stop = () => {
+  const f = async () => {
+    await T.RPCGen.ctlStopRpcPromise({exitCode: T.RPCGen.ExitCode.ok})
+  }
+  C.ignorePromise(f())
+}
+
 const Header = () => {
   const username = useCurrentUserState(s => s.username)
   const fullname = useTrackerState(s => s.getDetails(username).fullname ?? '')
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
 
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
-  const stop = useSettingsState(s => s.dispatch.stop)
+
   const onAddAccount = React.useCallback(() => {
     startProvision()
   }, [startProvision])
@@ -48,7 +55,7 @@ const Header = () => {
   const onQuit = React.useCallback(() => {
     if (!__DEV__) {
       if (isLinux) {
-        stop(T.RPCGen.ExitCode.ok)
+        stop()
       } else {
         C.ignorePromise(dumpLogs('quitting through menu'))
       }
@@ -58,7 +65,7 @@ const Header = () => {
     setTimeout(() => {
       ctlQuit?.()
     }, 2000)
-  }, [dumpLogs, stop])
+  }, [dumpLogs])
 
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSettings = React.useCallback(() => switchTab(Tabs.settingsTab), [switchTab])

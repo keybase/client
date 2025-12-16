@@ -1,6 +1,7 @@
-import * as C from '..'
 import * as T from '../types'
 import {ignorePromise, timeoutPromise} from '../utils'
+import * as S from '../strings'
+import {androidIsTestDevice, pprofDir} from '../platform'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import openURL from '@/util/open-url'
 import * as Z from '@/util/zustand'
@@ -8,53 +9,9 @@ import {RPCError} from '@/util/errors'
 import * as Tabs from '../tabs'
 import logger from '@/logger'
 import {storeRegistry} from '../store-registry'
+import {processorProfileInProgressKey, traceInProgressKey} from './util'
 
-export const traceInProgressKey = 'settings:traceInProgress'
-export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
-
-export const settingsAboutTab = 'settingsTabs.aboutTab'
-export const settingsAdvancedTab = 'settingsTabs.advancedTab'
-export const settingsArchiveTab = 'settingsTabs.archiveTab'
-export const settingsChatTab = 'settingsTabs.chatTab'
-export const settingsCryptoTab = 'settingsTabs.cryptoTab'
-export const settingsDevicesTab = 'settingsTabs.devicesTab'
-export const settingsDisplayTab = 'settingsTabs.displayTab'
-export const settingsFeedbackTab = 'settingsTabs.feedbackTab'
-export const settingsFoldersTab = 'settingsTabs.foldersTab'
-export const settingsFsTab = 'settingsTabs.fsTab'
-export const settingsGitTab = 'settingsTabs.gitTab'
-export const settingsInvitationsTab = 'settingsTabs.invitationsTab'
-export const settingsAccountTab = 'settingsTabs.accountTab'
-export const settingsNotificationsTab = 'settingsTabs.notificationsTab'
-export const settingsPasswordTab = 'settingsTabs.password'
-export const settingsScreenprotectorTab = 'settingsTabs.screenprotector'
-export const settingsLogOutTab = 'settingsTabs.logOutTab'
-export const settingsUpdatePaymentTab = 'settingsTabs.updatePaymentTab'
-export const settingsWalletsTab = 'settingsTabs.walletsTab'
-export const settingsContactsTab = 'settingsTabs.contactsTab'
-export const settingsWhatsNewTab = 'settingsTabs.whatsNewTab'
-
-export type SettingsTab =
-  | typeof settingsAccountTab
-  | typeof settingsUpdatePaymentTab
-  | typeof settingsInvitationsTab
-  | typeof settingsNotificationsTab
-  | typeof settingsAdvancedTab
-  | typeof settingsFeedbackTab
-  | typeof settingsAboutTab
-  | typeof settingsDevicesTab
-  | typeof settingsDisplayTab
-  | typeof settingsGitTab
-  | typeof settingsFoldersTab
-  | typeof settingsFsTab
-  | typeof settingsLogOutTab
-  | typeof settingsScreenprotectorTab
-  | typeof settingsPasswordTab
-  | typeof settingsWalletsTab
-  | typeof settingsChatTab
-  | typeof settingsCryptoTab
-  | typeof settingsContactsTab
-  | typeof settingsWhatsNewTab
+export * from './util'
 
 type Store = T.Immutable<{
   checkPasswordIsCorrect?: boolean
@@ -115,7 +72,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
       const f = async () => {
         const res = await T.RPCGen.accountPassphraseCheckRpcPromise(
           {passphrase},
-          C.waitingKeySettingsCheckPassword
+          S.waitingKeySettingsCheckPassword
         )
         set(s => {
           s.checkPasswordIsCorrect = res
@@ -125,7 +82,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     },
     dbNuke: () => {
       const f = async () => {
-        await T.RPCGen.ctlDbNukeRpcPromise(undefined, C.waitingKeySettingsGeneric)
+        await T.RPCGen.ctlDbNukeRpcPromise(undefined, S.waitingKeySettingsGeneric)
       }
       ignorePromise(f())
     },
@@ -137,11 +94,11 @@ export const useSettingsState = Z.createZustand<State>(set => {
           throw new Error('Unable to delete account: no username set')
         }
 
-        if (C.androidIsTestDevice) {
+        if (androidIsTestDevice) {
           return
         }
 
-        await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, C.waitingKeySettingsGeneric)
+        await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, S.waitingKeySettingsGeneric)
         storeRegistry.getState('config').dispatch.setJustDeletedSelf(username)
         storeRegistry.getState('router').dispatch.clearModals()
         storeRegistry.getState('router').dispatch.navigateAppend(Tabs.loginTab)
@@ -188,9 +145,11 @@ export const useSettingsState = Z.createZustand<State>(set => {
         try {
           const settings = await T.RPCGen.userLoadMySettingsRpcPromise(
             undefined,
-            C.waitingKeySettingsLoadSettings
+            S.waitingKeySettingsLoadSettings
           )
-          storeRegistry.getState('settings-email').dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
+          storeRegistry
+            .getState('settings-email')
+            .dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
           storeRegistry.getState('settings-phone').dispatch.setNumbers(settings.phoneNumbers ?? undefined)
           maybeLoadAppLink()
         } catch (error) {
@@ -214,7 +173,9 @@ export const useSettingsState = Z.createZustand<State>(set => {
       switch (action.type) {
         case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
           logger.info('email verified')
-          storeRegistry.getState('settings-email').dispatch.notifyEmailVerified(action.payload.params.emailAddress)
+          storeRegistry
+            .getState('settings-email')
+            .dispatch.notifyEmailVerified(action.payload.params.emailAddress)
           break
         case EngineGen.keybase1NotifyUsersPasswordChanged: {
           const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
@@ -223,7 +184,9 @@ export const useSettingsState = Z.createZustand<State>(set => {
         }
         case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
           const {list} = action.payload.params
-          storeRegistry.getState('settings-phone').dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+          storeRegistry
+            .getState('settings-phone')
+            .dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
           break
         }
         case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
@@ -237,7 +200,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     processorProfile: profileDurationSeconds => {
       const f = async () => {
         await T.RPCGen.pprofLogProcessorProfileRpcPromise({
-          logDirForMobile: C.pprofDir,
+          logDirForMobile: pprofDir,
           profileDurationSeconds,
         })
         const {decrement, increment} = storeRegistry.getState('waiting').dispatch
@@ -264,7 +227,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
           return
         }
         try {
-          await T.RPCGen.accountSetLockdownModeRpcPromise({enabled}, C.waitingKeySettingsSetLockdownMode)
+          await T.RPCGen.accountSetLockdownModeRpcPromise({enabled}, S.waitingKeySettingsSetLockdownMode)
           set(s => {
             s.lockdownModeEnabled = enabled
           })
@@ -295,7 +258,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     trace: durationSeconds => {
       const f = async () => {
         await T.RPCGen.pprofLogTraceRpcPromise({
-          logDirForMobile: C.pprofDir,
+          logDirForMobile: pprofDir,
           traceDurationSeconds: durationSeconds,
         })
         const {decrement, increment} = storeRegistry.getState('waiting').dispatch

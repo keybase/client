@@ -1,6 +1,6 @@
-import * as C from '..'
 import * as Platforms from '../platform'
 import {ignorePromise} from '../utils'
+import * as S from '../strings'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
@@ -27,7 +27,7 @@ type Store = T.Immutable<{
 }>
 
 const initialStore: Store = {
-  devicename: C.defaultDevicename,
+  devicename: S.defaultDevicename,
   devicenameError: '',
   email: '',
   emailError: '',
@@ -108,7 +108,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
             username,
             verifyEmail: true,
           },
-          waitingKey: C.waitingKeySignup,
+          waitingKey: S.waitingKeySignup,
         })
         set(s => {
           s.signupError = undefined
@@ -148,7 +148,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          await T.RPCGen.deviceCheckDeviceNameFormatRpcPromise({name: devicename}, C.waitingKeySignup)
+          await T.RPCGen.deviceCheckDeviceNameFormatRpcPromise({name: devicename}, S.waitingKeySignup)
           reallySignupOnNoErrors()
         } catch (error) {
           if (error instanceof RPCError) {
@@ -165,7 +165,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       const invitationCode = get().inviteCode
       const f = async () => {
         try {
-          await T.RPCGen.signupCheckInvitationCodeRpcPromise({invitationCode}, C.waitingKeySignup)
+          await T.RPCGen.signupCheckInvitationCodeRpcPromise({invitationCode}, S.waitingKeySignup)
           set(s => {
             s.signupError = undefined
           })
@@ -196,7 +196,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          await T.RPCGen.signupCheckUsernameAvailableRpcPromise({username}, C.waitingKeySignup)
+          await T.RPCGen.signupCheckUsernameAvailableRpcPromise({username}, S.waitingKeySignup)
           logger.info(`${username} success`)
 
           set(s => {
@@ -209,7 +209,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         } catch (error) {
           if (error instanceof RPCError) {
             logger.warn(`${username} error: ${error.message}`)
-            const msg = error.code === T.RPCGen.StatusCode.scinputerror ? C.usernameHint : error.desc
+            const msg = error.code === T.RPCGen.StatusCode.scinputerror ? S.usernameHint : error.desc
             // Don't set error if it's 'username taken', we show a banner in that case
             const usernameError = error.code === T.RPCGen.StatusCode.scbadsignupusernametaken ? '' : msg
             const usernameTaken = error.code === T.RPCGen.StatusCode.scbadsignupusernametaken ? username : ''
@@ -258,7 +258,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true})
         }
         try {
-          const inviteCode = await T.RPCGen.signupGetInvitationCodeRpcPromise(undefined, C.waitingKeySignup)
+          const inviteCode = await T.RPCGen.signupGetInvitationCodeRpcPromise(undefined, S.waitingKeySignup)
           set(s => {
             s.inviteCode = inviteCode
           })
@@ -287,7 +287,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.signupInviteRequestRpcPromise(
             {email, fullname: name, notes: 'Requested through GUI app'},
-            C.waitingKeySignup
+            S.waitingKeySignup
           )
           // C.useRouterState.getState().dispatch.navigateAppend('signupRequestInviteSuccess')
         } catch (error) {

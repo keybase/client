@@ -1,5 +1,5 @@
 import * as T from '../types'
-import * as C from '..'
+import * as S from '../strings'
 import {ignorePromise} from '../utils'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
@@ -120,7 +120,7 @@ export const useSettingsPhoneState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.phoneNumbersAddPhoneNumberRpcPromise(
             {phoneNumber, visibility},
-            C.waitingKeySettingsPhoneAddPhoneNumber
+            S.waitingKeySettingsPhoneAddPhoneNumber
           )
           logger.info('success')
           set(s => {
@@ -207,7 +207,7 @@ export const useSettingsPhoneState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.phoneNumbersResendVerificationForPhoneNumberRpcPromise(
             {phoneNumber},
-            C.waitingKeySettingsPhoneResendVerification
+            S.waitingKeySettingsPhoneResendVerification
           )
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -246,7 +246,7 @@ export const useSettingsPhoneState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.phoneNumbersVerifyPhoneNumberRpcPromise(
             {code, phoneNumber},
-            C.waitingKeySettingsPhoneVerifyPhoneNumber
+            S.waitingKeySettingsPhoneVerifyPhoneNumber
           )
           logger.info('success')
           set(s => {

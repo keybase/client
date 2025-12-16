@@ -1,6 +1,6 @@
-import * as C from '..'
 import * as Z from '@/util/zustand'
 import {ignorePromise} from '../utils'
+import * as S from '../strings'
 import * as T from '@/constants/types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
@@ -49,7 +49,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         logger.info('Cancelled autoreset from logged-in user')
         try {
-          await T.RPCGen.accountCancelResetRpcPromise(undefined, C.waitingKeyAutoresetCancel)
+          await T.RPCGen.accountCancelResetRpcPromise(undefined, S.waitingKeyAutoresetCancel)
           set(s => {
             s.active = false
           })
@@ -152,7 +152,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
               passphrase: password,
               usernameOrEmail: get().username,
             },
-            waitingKey: C.waitingKeyAutoresetEnterPipeline,
+            waitingKey: S.waitingKeyAutoresetEnterPipeline,
           })
         } catch (error) {
           if (!(error instanceof RPCError)) {

@@ -1,7 +1,10 @@
 // TODO remove useChatNavigateAppend
 // TODO remove
-import * as C from '..'
 import * as TeamsUtil from '../teams/util'
+import * as PlatformSpecific from '../platform-specific'
+import * as Router2 from '../router2'
+import {isIOS} from '../platform'
+import {updateImmer} from '../utils'
 import * as T from '../types'
 import * as Styles from '@/styles'
 import * as Common from './common'
@@ -1835,7 +1838,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             }
           })
           logger.info('Trying to save chat attachment to camera roll')
-          await C.PlatformSpecific.saveAttachmentToCameraRoll(fileName, fileType)
+          await PlatformSpecific.saveAttachmentToCameraRoll(fileName, fileType)
           set(s => {
             const m3 = s.messageMap.get(ordinal)
             if (m3?.type === 'attachment') {
@@ -1863,7 +1866,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
 
-        if (C.isIOS && message.fileName.endsWith('.pdf')) {
+        if (isIOS && message.fileName.endsWith('.pdf')) {
           storeRegistry.getState('router').dispatch.navigateAppend({
             props: {
               conversationIDKey: get().id,
@@ -1879,7 +1882,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         try {
-          await C.PlatformSpecific.showShareActionSheet({filePath, mimeType: message.fileType})
+          await PlatformSpecific.showShareActionSheet({filePath, mimeType: message.fileType})
         } catch (_e: unknown) {
           const e = _e as undefined | {message: string}
           logger.error('Failed to share attachment: ' + JSON.stringify(e?.message))
@@ -2152,10 +2155,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         // we select the chat tab and change the params
         if (Common.isSplit) {
-          C.Router2.navToThread(conversationIDKey)
+          Router2.navToThread(conversationIDKey)
           // immediately switch stack to an inbox | thread stack
         } else if (reason === 'push' || reason === 'savedLastState') {
-          C.Router2.navToThread(conversationIDKey)
+          Router2.navToThread(conversationIDKey)
           return
         } else {
           // replace if looking at the pending / waiting screen
@@ -2163,7 +2166,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             visibleRouteName === Common.threadRouteName &&
             !T.Chat.isValidConversationIDKey(visibleConvo ?? '')
           // note: we don't switch tabs on non split
-          const modalPath = C.Router2.getModalStack()
+          const modalPath = Router2.getModalStack()
           if (modalPath.length > 0) {
             storeRegistry.getState('router').dispatch.clearModals()
           }
@@ -2793,7 +2796,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const m = _m ?? Meta.makeConversationMeta()
       const wasGood = get().isMetaGood()
       set(s => {
-        C.updateImmer(s.meta, m)
+        updateImmer(s.meta, m)
       })
       const isGood = get().isMetaGood()
       if (!wasGood && isGood) {

@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import {useConfigState} from '@/constants/config'
 import type {RPCError} from '@/util/errors'
-import * as Settings from '@/constants/settings'
+import {settingsFeedbackTab} from '@/constants/settings/util'
 import {useDaemonState} from '@/constants/daemon'
 
 export type Size = 'Closed' | 'Small' | 'Big'
@@ -21,7 +21,7 @@ const useData = () => {
     setGlobalError()
     if (loggedIn) {
       clearModals()
-      navigateAppend(Settings.settingsFeedbackTab)
+      navigateAppend(settingsFeedbackTab)
     } else {
       navigateAppend('feedback')
     }

@@ -1,5 +1,6 @@
 import * as Z from '@/util/zustand'
-import * as C from '@/constants'
+import * as S from '../strings'
+import {isAndroidNewerThanN} from '../platform'
 import {ignorePromise, timeoutPromise} from '../utils'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
@@ -81,11 +82,11 @@ export const useSettingsNotifState = Z.createZustand<State>((set, get) => {
         try {
           const json = await T.RPCGen.apiserverGetWithSessionRpcPromise(
             {args: [], endpoint: 'account/subscriptions'},
-            C.refreshNotificationsWaitingKey
+            S.refreshNotificationsWaitingKey
           )
           chatGlobalSettings = await T.RPCChat.localGetGlobalAppNotificationSettingsLocalRpcPromise(
             undefined,
-            C.refreshNotificationsWaitingKey
+            S.refreshNotificationsWaitingKey
           )
           body = json.body
         } catch (error) {
@@ -129,7 +130,7 @@ export const useSettingsNotifState = Z.createZustand<State>((set, get) => {
           unsub: false,
         }
         results.notifications[soundGroup] = {
-          settings: C.isAndroidNewerThanN
+          settings: isAndroidNewerThanN
             ? []
             : [
                 {
@@ -244,11 +245,11 @@ export const useSettingsNotifState = Z.createZustand<State>((set, get) => {
             args: [],
             endpoint: 'account/subscribe',
           },
-          C.waitingKeySettingsGeneric
+          S.waitingKeySettingsGeneric
         )
         await T.RPCChat.localSetGlobalAppNotificationSettingsLocalRpcPromise(
           {settings: {...chatGlobalArg}},
-          C.waitingKeySettingsGeneric
+          S.waitingKeySettingsGeneric
         )
 
         if (

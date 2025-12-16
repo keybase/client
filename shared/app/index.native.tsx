@@ -20,6 +20,7 @@ import {darkModeSupported, guiConfig} from 'react-native-kb'
 import {install} from 'react-native-kb'
 import {useEngineState} from '@/constants/engine'
 import * as DarkMode from '@/constants/darkmode'
+import {initPlatformListener} from '@/constants/platform-specific'
 
 enableFreeze(true)
 setServiceDecoration(ServiceDecoration)
@@ -140,7 +141,7 @@ const useInit = () => {
       useEngineState.getState().dispatch.onEngineDisconnected()
     }
   })
-  C.initListeners()
+  initPlatformListener()
   eng.listenersAreReady()
 
   // On mobile there is no installer

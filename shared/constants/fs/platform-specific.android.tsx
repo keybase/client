@@ -1,6 +1,5 @@
-import * as C from '..'
 import * as T from '../types'
-import {ignorePromise} from '../utils'
+import {ignorePromise, wrapErrors} from '../utils'
 import * as FS from '@/constants/fs'
 import logger from '@/logger'
 import nativeInit from './common.native'
@@ -13,7 +12,7 @@ export default function initPlatformSpecific() {
   nativeInit()
 
   useFSState.setState(s => {
-    s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = C.wrapErrors(() => {
+    s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = wrapErrors(() => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSConfigureDownloadRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
@@ -27,7 +26,7 @@ export default function initPlatformSpecific() {
     // needs to be called, TODO could make this better
     s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged()
 
-    s.dispatch.dynamic.finishedRegularDownloadMobile = C.wrapErrors(
+    s.dispatch.dynamic.finishedRegularDownloadMobile = wrapErrors(
       (downloadID: string, mimeType: string) => {
         const f = async () => {
           // This is fired from a hook and can happen more than once per downloadID.

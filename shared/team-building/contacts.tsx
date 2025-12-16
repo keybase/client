@@ -1,8 +1,8 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
+import {useTBContext} from '@/constants/team-building'
 
 const useContactsProps = () => {
   const contactsImported = useSettingsContactsState(s => s.importEnabled)
@@ -59,7 +59,7 @@ export const ContactsBanner = (props: {
     onLoadContactsSetting,
   } = useContactsProps()
 
-  const fetchUserRecs = C.useTBContext(s => s.dispatch.fetchUserRecs)
+  const fetchUserRecs = useTBContext(s => s.dispatch.fetchUserRecs)
   const onRedoRecs = fetchUserRecs
   const prevNumContactsImportedRef = React.useRef(numContactsImported)
 

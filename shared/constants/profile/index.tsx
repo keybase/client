@@ -1,6 +1,6 @@
-import * as C from '..'
 import * as T from '../types'
-import {generateGUIID, ignorePromise} from '../utils'
+import {generateGUIID, ignorePromise, wrapErrors} from '../utils'
+import * as S from '../strings'
 import * as Validators from '@/util/simple-validators'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
@@ -8,7 +8,7 @@ import openURL from '@/util/open-url'
 import {RPCError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
 import {storeRegistry} from '../store-registry'
-import {showUserProfile} from './util'
+import {navToProfile} from '../router2'
 
 type ProveGenericParams = {
   logoBlack: T.Tracker.SiteIconSet
@@ -197,7 +197,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       try {
         await T.RPCGen.cryptocurrencyRegisterAddressRpcPromise(
           {address: get().username, force: true, wantedFamily},
-          C.waitingKeyProfile
+          S.waitingKeyProfile
         )
         set(s => {
           s.proofFound = true
@@ -293,13 +293,13 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
                   return
                 }
                 set(s => {
-                  s.dispatch.dynamic.afterCheckProof = C.wrapErrors(() => {
+                  s.dispatch.dynamic.afterCheckProof = wrapErrors(() => {
                     set(s => {
                       s.dispatch.dynamic.afterCheckProof = undefined
                     })
                     response.result()
                   })
-                  s.dispatch.dynamic.cancelAddProof = C.wrapErrors(() => {
+                  s.dispatch.dynamic.cancelAddProof = wrapErrors(() => {
                     set(s => {
                       s.dispatch.dynamic.cancelAddProof = _cancelAddProof
                     })
@@ -336,7 +336,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
                   })
                 }
                 set(s => {
-                  s.dispatch.dynamic.cancelAddProof = C.wrapErrors(() => {
+                  s.dispatch.dynamic.cancelAddProof = wrapErrors(() => {
                     clear()
                     set(s => {
                       s.dispatch.dynamic.cancelAddProof = _cancelAddProof
@@ -345,7 +345,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
                     canceled = true
                     response.error(inputCancelError)
                   })
-                  s.dispatch.dynamic.submitUsername = C.wrapErrors(() => {
+                  s.dispatch.dynamic.submitUsername = wrapErrors(() => {
                     clear()
                     set(s => {
                       updateUsername(s)
@@ -381,7 +381,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
               service: platform,
               username: '',
             },
-            waitingKey: C.waitingKeyProfile,
+            waitingKey: S.waitingKeyProfile,
           })
           set(s => {
             s.sigID = sigID
@@ -448,7 +448,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          const {found, status} = await T.RPCGen.proveCheckProofRpcPromise({sigID}, C.waitingKeyProfile)
+          const {found, status} = await T.RPCGen.proveCheckProofRpcPromise({sigID}, S.waitingKeyProfile)
           // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
           if (!found && status >= T.RPCGen.ProofStatus.baseHardError) {
             set(s => {
@@ -492,7 +492,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     },
     editProfile: (bio, fullName, location) => {
       const f = async () => {
-        await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, C.waitingKeyTracker)
+        await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, S.waitingKeyTracker)
         get().dispatch.showUserProfile(storeRegistry.getState('current-user').username)
       }
       ignorePromise(f())
@@ -523,7 +523,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         storeRegistry.getState('router').dispatch.navigateAppend('profileGenerate')
         // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
         set(s => {
-          s.dispatch.dynamic.cancelPgpGen = C.wrapErrors(() => {
+          s.dispatch.dynamic.cancelPgpGen = wrapErrors(() => {
             canceled = true
           })
         })
@@ -545,7 +545,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
                 storeRegistry.getState('router').dispatch.navigateAppend('profileFinished')
                 set(s => {
                   s.promptShouldStoreKeyOnServer = prompt
-                  s.dispatch.dynamic.finishedWithKeyGen = C.wrapErrors((shouldStoreKeyOnServer: boolean) => {
+                  s.dispatch.dynamic.finishedWithKeyGen = wrapErrors((shouldStoreKeyOnServer: boolean) => {
                     set(s => {
                       s.dispatch.dynamic.finishedWithKeyGen = undefined
                     })
@@ -581,7 +581,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
               args: [{key: 'hidden', value: hidden ? '1' : '0'}],
               endpoint: 'stellar/hidden',
             },
-            C.waitingKeyTracker
+            S.waitingKeyTracker
           )
         } catch (e) {
           logger.warn('Error setting Stellar hidden:', e)
@@ -595,8 +595,10 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         s.errorText = ''
       })
       const f = async () => {
-        await T.RPCGen.proveCheckProofRpcPromise({sigID}, C.waitingKeyProfile)
-        storeRegistry.getState('tracker2').dispatch.showUser(storeRegistry.getState('current-user').username, false)
+        await T.RPCGen.proveCheckProofRpcPromise({sigID}, S.waitingKeyProfile)
+        storeRegistry
+          .getState('tracker2')
+          .dispatch.showUser(storeRegistry.getState('current-user').username, false)
       }
       ignorePromise(f())
     },
@@ -607,7 +609,9 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         dispatch: s.dispatch,
       }))
     },
-    showUserProfile,
+    showUserProfile: username => {
+      navToProfile(username)
+    },
     submitBTCAddress: () => {
       submitCryptoAddress('bitcoin')
     },
@@ -642,14 +646,16 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     },
     submitRevokeProof: proofId => {
       const f = async () => {
-        const you = storeRegistry.getState('tracker2').getDetails(storeRegistry.getState('current-user').username)
+        const you = storeRegistry
+          .getState('tracker2')
+          .getDetails(storeRegistry.getState('current-user').username)
         if (!you.assertions) return
         const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
         if (!proof) return
 
         if (proof.type === 'pgp') {
           try {
-            await T.RPCGen.revokeRevokeKeyRpcPromise({keyID: proof.kid}, C.waitingKeyProfile)
+            await T.RPCGen.revokeRevokeKeyRpcPromise({keyID: proof.kid}, S.waitingKeyProfile)
           } catch (e) {
             logger.info('error in dropping pgp key', e)
             set(s => {
@@ -658,7 +664,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           }
         } else {
           try {
-            await T.RPCGen.revokeRevokeSigsRpcPromise({sigIDQueries: [proofId]}, C.waitingKeyProfile)
+            await T.RPCGen.revokeRevokeSigsRpcPromise({sigIDQueries: [proofId]}, S.waitingKeyProfile)
             get().dispatch.finishRevoking()
           } catch (error) {
             logger.warn(`Error when revoking proof ${proofId}`, error)
@@ -722,7 +728,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.userUploadUserAvatarRpcPromise(
             {crop: fixCrop(crop), filename},
-            C.waitingKeyProfileUploadAvatar
+            S.waitingKeyProfileUploadAvatar
           )
           storeRegistry.getState('router').dispatch.navigateUp()
         } catch (error) {

@@ -1,6 +1,6 @@
-import * as C from '..'
 import * as T from '../types'
 import {ignorePromise} from '../utils'
+import * as S from '../strings'
 import * as Z from '@/util/zustand'
 import {storeRegistry} from '../store-registry'
 
@@ -86,7 +86,7 @@ export const useSettingsChatState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.accountUserSetContactSettingsRpcPromise(
             {settings},
-            C.waitingKeySettingsChatContactSettingsSave
+            S.waitingKeySettingsChatContactSettingsSave
           )
           get().dispatch.contactSettingsRefresh()
         } catch {
@@ -106,7 +106,7 @@ export const useSettingsChatState = Z.createZustand<State>((set, get) => {
         try {
           const result = await T.RPCChat.localGetUnfurlSettingsRpcPromise(
             undefined,
-            C.waitingKeySettingsChatUnfurl
+            S.waitingKeySettingsChatUnfurl
           )
           set(s => {
             s.unfurl = {
@@ -134,7 +134,7 @@ export const useSettingsChatState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCChat.localSaveUnfurlSettingsRpcPromise(
             {mode: unfurlMode, whitelist: unfurlWhitelist},
-            C.waitingKeySettingsChatUnfurl
+            S.waitingKeySettingsChatUnfurl
           )
           get().dispatch.unfurlSettingsRefresh()
         } catch {

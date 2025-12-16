@@ -1,4 +1,3 @@
-import * as C from '..'
 import logger from '@/logger'
 import {ignorePromise, timeoutPromise} from '../utils'
 import * as T from '@/constants/types'
@@ -6,6 +5,8 @@ import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {settingsPasswordTab} from '../settings'
 import {storeRegistry} from '../store-registry'
+import {isMobile} from '../platform'
+import * as Tabs from '../tabs'
 
 type Store = T.Immutable<{
   waiters: Map<string, number>
@@ -39,10 +40,10 @@ export const useLogoutState = Z.createZustand<State>((set, get) => {
           get().dispatch.start()
           return
         } else {
-          if (C.isMobile) {
+          if (isMobile) {
             storeRegistry.getState('router').dispatch.navigateAppend(settingsPasswordTab)
           } else {
-            storeRegistry.getState('router').dispatch.navigateAppend(C.Tabs.settingsTab)
+            storeRegistry.getState('router').dispatch.navigateAppend(Tabs.settingsTab)
             storeRegistry.getState('router').dispatch.navigateAppend(settingsPasswordTab)
           }
         }

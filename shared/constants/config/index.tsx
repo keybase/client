@@ -1,6 +1,7 @@
-import * as C from '..'
 import * as T from '../types'
 import {ignorePromise, timeoutPromise} from '../utils'
+import {serverConfigFileName} from '../platform'
+import {waitingKeyConfigLogin} from '../strings'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as RemoteGen from '@/actions/remote-gen'
 import * as Stats from '@/engine/stats'
@@ -201,7 +202,6 @@ export interface State extends Store {
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
     setUserSwitching: (sw: boolean) => void
     setUseNativeFrame: (use: boolean) => void
-    setupSubscriptions: () => void
     showMain: () => void
     toggleRuntimeStats: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
@@ -418,7 +418,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
               get().dispatch.openUnlockFolders([])
             })
             .catch((e: unknown) => {
-              if (!(e instanceof C.RPCError)) return
+              if (!(e instanceof RPCError)) return
               set(s => {
                 s.unlockFoldersError = e.desc
               })
@@ -608,7 +608,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           if (get().loggedIn) {
             try {
               await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
-                serverConfigPath: C.serverConfigFileName,
+                serverConfigPath: serverConfigFileName,
               })
             } catch {}
           }
@@ -698,7 +698,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
               paperKey: '',
               username,
             },
-            waitingKey: C.waitingKeyConfigLogin,
+            waitingKey: waitingKeyConfigLogin,
           })
           logger.info('login call succeeded')
           get().dispatch.setLoggedIn(true, false)
@@ -721,7 +721,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     logoutAndTryToLogInAs: username => {
       const f = async () => {
         if (get().loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, C.waitingKeyConfigLogin)
+          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, waitingKeyConfigLogin)
         }
         get().dispatch.setDefaultUsername(username)
       }
@@ -1116,10 +1116,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.userSwitching = sw
       })
-    },
-    setupSubscriptions: () => {
-      // Kick off platform specific stuff
-      C.PlatformSpecific.initPlatformListener()
     },
     showMain: () => {
       get().dispatch.dynamic.showMainNative?.()

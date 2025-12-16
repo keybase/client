@@ -1,6 +1,6 @@
-import * as C from '..'
 import logger from '@/logger'
 import {ignorePromise} from '../utils'
+import {wrapErrors} from '@/util/debug'
 import * as T from '../types'
 import * as Styles from '@/styles'
 import * as FS from '@/constants/fs'
@@ -10,7 +10,7 @@ import {useFSState} from '.'
 
 export default function initNative() {
   useFSState.setState(s => {
-    s.dispatch.dynamic.pickAndUploadMobile = C.wrapErrors(
+    s.dispatch.dynamic.pickAndUploadMobile = wrapErrors(
       (type: T.FS.MobilePickType, parentPath: T.FS.Path) => {
         const f = async () => {
           try {
@@ -27,7 +27,7 @@ export default function initNative() {
       }
     )
 
-    s.dispatch.dynamic.finishedDownloadWithIntentMobile = C.wrapErrors(
+    s.dispatch.dynamic.finishedDownloadWithIntentMobile = wrapErrors(
       (downloadID: string, downloadIntent: T.FS.DownloadIntent, mimeType: string) => {
         const f = async () => {
           const {downloads, dispatch} = useFSState.getState()

@@ -1,6 +1,6 @@
-import * as C from '..'
 import * as T from '../types'
 import {ignorePromise} from '../utils'
+import * as Router2 from '../router2'
 import * as Crypto from '../crypto'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
@@ -291,7 +291,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       })
     },
     closeTeamBuilding: () => {
-      const modals = C.Router2.getModalStack()
+      const modals = Router2.getModalStack()
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals.at(-1)?.name
       if (routeNames.includes(routeName ?? '')) {
@@ -461,29 +461,29 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
 }
 
 type MadeStore = UseBoundStore<StoreApi<State>>
-export const stores_ = new Map<T.TB.AllowedNamespace, MadeStore>()
+export const TBstores = new Map<T.TB.AllowedNamespace, MadeStore>()
 
 registerDebugClear(() => {
-  stores_.clear()
+  TBstores.clear()
 })
 
 export const createTBStore = (namespace: T.TB.AllowedNamespace) => {
-  const existing = stores_.get(namespace)
+  const existing = TBstores.get(namespace)
   if (existing) return existing
   const next = Z.createZustand<State>(createSlice)
   next.setState({namespace})
-  stores_.set(namespace, next)
+  TBstores.set(namespace, next)
   return next
 }
 
 const Context = React.createContext<MadeStore | null>(null)
 
 type TBProviderProps = React.PropsWithChildren<{namespace: T.TB.AllowedNamespace}>
-export function TBProvider_({children, ...props}: TBProviderProps) {
+export function TBProvider({children, ...props}: TBProviderProps) {
   return <Context.Provider value={createTBStore(props.namespace)}>{children}</Context.Provider>
 }
 
-export function useContext_<T>(selector: (state: State) => T): T {
+export function useTBContext<T>(selector: (state: State) => T): T {
   const store = React.useContext(Context)
   if (!store) throw new Error('Missing TeambuildingContext.Provider in the tree')
   return useStore(store, selector)

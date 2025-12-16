@@ -1,6 +1,5 @@
 // Message related constants
 import * as T from '../types'
-import * as C from '..'
 import * as TeamsUtil from '../teams/util'
 import type * as ConvoConstants from './convostate'
 import HiddenString from '@/util/hidden-string'
@@ -9,6 +8,7 @@ import type * as MessageTypes from '../types/chat2/message'
 import type {ServiceId} from 'util/platforms'
 import {noConversationIDKey} from '../types/chat2/common'
 import invert from 'lodash/invert'
+import {isIOS, isMobile} from '../platform'
 
 const noString = new HiddenString('')
 
@@ -28,7 +28,7 @@ export const isImageViewable = (message: T.Chat.Message) => {
       // regular image
       return true
     }
-    if (message.attachmentType === 'file' && C.isIOS && isPathHEIC(message.fileName)) {
+    if (message.attachmentType === 'file' && isIOS && isPathHEIC(message.fileName)) {
       return true
     }
   }
@@ -1107,7 +1107,7 @@ const outboxUIMessagetoMessage = (
         conversationIDKey,
         decoratedText: o.decoratedTextBody ? new HiddenString(o.decoratedTextBody) : undefined,
         deviceName: currentDeviceName,
-        deviceType: C.isMobile ? 'mobile' : 'desktop',
+        deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,
         errorTyp,
         exploding: o.isEphemeral,
@@ -1213,10 +1213,12 @@ export const uiMessageToMessage = (
     case T.RPCChat.MessageUnboxedState.journeycard:
       return journeycardUIMessageToMessage(conversationIDKey, uiMessage.journeycard)
     default: // A type error here means there is an unhandled message state
-      C.assertNever(uiMessage)
+      assertNever(uiMessage)
       return
   }
 }
+
+const assertNever = (_: never) => undefined
 
 function nextFractionalOrdinal(ord: T.Chat.Ordinal) {
   // Mimic what the service does with outbox items
@@ -1246,7 +1248,7 @@ const makePendingAttachmentMessage = (
     author: currentUsername,
     conversationIDKey,
     deviceName: '',
-    deviceType: C.isMobile ? 'mobile' : 'desktop',
+    deviceType: isMobile ? 'mobile' : 'desktop',
     errorReason,
     errorTyp,
     exploding,

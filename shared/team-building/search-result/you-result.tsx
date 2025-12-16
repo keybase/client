@@ -1,11 +1,11 @@
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import * as React from 'react'
+import {useTBContext} from '@/constants/team-building'
 import * as Kb from '@/common-adapters'
 import CommonResult, {type ResultProps} from './common-result'
 
 const YouResult = React.memo(function YouResult(props: ResultProps) {
-  const cancelTeamBuilding = C.useTBContext(s => s.dispatch.cancelTeamBuilding)
+  const cancelTeamBuilding = useTBContext(s => s.dispatch.cancelTeamBuilding)
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onSelfChat = () => {
     cancelTeamBuilding()

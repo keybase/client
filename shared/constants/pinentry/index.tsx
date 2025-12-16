@@ -1,9 +1,9 @@
-import * as C from '..'
 import * as Z from '@/util/zustand'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '../types'
 import logger from '@/logger'
 import {invalidPasswordErrorString} from '@/constants/config/util'
+import {wrapErrors} from '../utils'
 
 export type Store = T.Immutable<{
   cancelLabel?: string
@@ -78,14 +78,14 @@ export const usePinentryState = Z.createZustand<State>((set, get) => {
         s.submitLabel = submitLabel
         s.type = type
         s.windowTitle = windowTitle
-        s.dispatch.dynamic.onSubmit = C.wrapErrors((password: string) => {
+        s.dispatch.dynamic.onSubmit = wrapErrors((password: string) => {
           set(s => {
             s.dispatch.dynamic.onSubmit = undefined
           })
           response.result({passphrase: password, storeSecret: false})
           get().dispatch.resetState()
         })
-        s.dispatch.dynamic.onCancel = C.wrapErrors(() => {
+        s.dispatch.dynamic.onCancel = wrapErrors(() => {
           set(s => {
             s.dispatch.dynamic.onCancel = undefined
           })

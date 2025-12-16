@@ -1,6 +1,7 @@
-import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {ignorePromise, timeoutPromise} from '../utils'
+import * as S from '../strings'
+import {requestPermissionsToWrite} from '../platform-specific'
 import * as Tabs from '../tabs'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
@@ -11,7 +12,7 @@ import {isLinux, isMobile} from '../platform'
 import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
-import {settingsFsTab} from '../settings'
+import {settingsFsTab} from '../settings/util'
 import {storeRegistry} from '../store-registry'
 
 export {makeActionForOpenPathInFilesTab} from './util'
@@ -1381,7 +1382,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
                   flags: T.RPCGen.OpenFlags.directory,
                   opID: makeUUID(),
                 },
-                C.waitingKeyFSCommitEdit
+                S.waitingKeyFSCommitEdit
               )
               get().dispatch.editSuccess(editID)
               return
@@ -1398,7 +1399,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
                 overwriteExistingFiles: false,
                 src: pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.originalName)),
               })
-              await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, C.waitingKeyFSCommitEdit)
+              await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, S.waitingKeyFSCommitEdit)
               get().dispatch.editSuccess(editID)
               return
             } catch (error) {
@@ -1462,7 +1463,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
     },
     download: (path, type) => {
       const f = async () => {
-        await C.PlatformSpecific.requestPermissionsToWrite()
+        await requestPermissionsToWrite()
         const downloadID = await T.RPCGen.SimpleFSSimpleFSStartDownloadRpcPromise({
           isRegularDownload: type === 'download',
           path: pathToRPCPath(path).kbfs,
@@ -1672,7 +1673,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             })
           }
 
-          await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, C.waitingKeyFSFolderList)
+          await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, S.waitingKeyFSFolderList)
 
           const result = await T.RPCGen.SimpleFSSimpleFSReadListRpcPromise({opID})
           const entries = result.entries || []
@@ -2059,7 +2060,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               path: pathToRPCPath(path),
               refreshSubscription: false,
             },
-            C.waitingKeyFSStat
+            S.waitingKeyFSStat
           )
 
           const pathItem = makeEntry(dirent)
@@ -2515,7 +2516,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             config: {mode: enabled ? T.RPCGen.FolderSyncMode.enabled : T.RPCGen.FolderSyncMode.disabled},
             path: pathToRPCPath(tlfPath),
           },
-          C.waitingKeyFSSyncToggle
+          S.waitingKeyFSSyncToggle
         )
         get().dispatch.loadTlfSyncConfig(tlfPath)
       }
@@ -2537,7 +2538,9 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         }
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
-      storeRegistry.getState('router').dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      storeRegistry
+        .getState('router')
+        .dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     showMoveOrCopy: initialDestinationParentPath => {
       set(s => {
@@ -2552,7 +2555,9 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
 
-      storeRegistry.getState('router').dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      storeRegistry
+        .getState('router')
+        .dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     startManualConflictResolution: tlfPath => {
       const f = async () => {
