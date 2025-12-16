@@ -1,14 +1,13 @@
 package teams
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"sort"
 	"sync"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"

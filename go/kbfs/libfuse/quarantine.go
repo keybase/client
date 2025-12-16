@@ -8,9 +8,10 @@
 package libfuse
 
 import (
+	"context"
+
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"golang.org/x/net/context"
 )
 
 // XattrHandler is an interface that includes fuse Get/Set/Remove calls for

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"path/filepath"
 	"sync"
 
@@ -16,7 +17,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
-	"golang.org/x/net/context"
 )
 
 const (

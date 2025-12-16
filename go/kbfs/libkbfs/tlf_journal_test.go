@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"math"
 	"os"
 	"reflect"
@@ -28,7 +29,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 // testBWDelegate is a delegate we pass to tlfJournal to get info

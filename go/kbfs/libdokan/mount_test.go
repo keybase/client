@@ -8,6 +8,7 @@
 package libdokan
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -31,7 +32,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type compatMount struct {

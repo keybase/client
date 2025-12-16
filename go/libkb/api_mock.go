@@ -4,11 +4,10 @@
 package libkb
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
-
-	"golang.org/x/net/context"
 )
 
 type NullMockAPI struct{}

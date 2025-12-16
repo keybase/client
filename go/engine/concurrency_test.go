@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 var runConc = flag.Bool("conc", false, "run (expensive) concurrency tests")

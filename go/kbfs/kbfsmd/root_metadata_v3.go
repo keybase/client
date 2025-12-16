@@ -5,6 +5,7 @@
 package kbfsmd
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // WriterMetadataV3 stores the metadata for a TLF that is

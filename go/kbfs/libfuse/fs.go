@@ -8,6 +8,7 @@
 package libfuse
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -20,6 +21,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
@@ -31,7 +33,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
 )
 

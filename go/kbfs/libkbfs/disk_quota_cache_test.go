@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -14,7 +15,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb/storage"
-	"golang.org/x/net/context"
 )
 
 type testDiskQuotaCacheConfig struct {

@@ -2,12 +2,11 @@ package systests
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/kbtest"

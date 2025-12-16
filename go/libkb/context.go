@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"runtime/debug"
 	"time"
@@ -8,7 +9,6 @@ import (
 	logger "github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 type APITokener interface {

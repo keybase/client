@@ -10,6 +10,7 @@
 package engine
 
 import (
+	"context"
 	"fmt"
 	insecurerand "math/rand"
 	"sync"
@@ -17,7 +18,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 // Function to run periodically.

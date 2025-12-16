@@ -5,8 +5,9 @@
 package libdokan
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/kbfs/dokan"
-	"golang.org/x/net/context"
 )
 
 // Alias is a top-level folder accessed through its non-canonical name.

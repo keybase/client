@@ -3,6 +3,7 @@ package attachments
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"image/gif"
 	"image/png"
@@ -18,7 +19,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,

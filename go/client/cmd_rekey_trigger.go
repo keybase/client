@@ -7,7 +7,7 @@
 package client
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"

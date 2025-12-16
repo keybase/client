@@ -5,6 +5,7 @@
 package simplefs
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"os"
@@ -15,7 +16,6 @@ import (
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 const (

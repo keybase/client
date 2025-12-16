@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -23,7 +24,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // PrivateMetadata contains the portion of metadata that's secret for private

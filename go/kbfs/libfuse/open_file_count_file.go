@@ -8,10 +8,9 @@
 package libfuse
 
 import (
+	"context"
 	"strconv"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 // NewOpenFileCountFile returns a special read file that contains the

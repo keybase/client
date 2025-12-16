@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"container/heap"
+	"context"
 	"io"
 	"reflect"
 	"sync"
@@ -22,7 +23,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 const (

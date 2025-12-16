@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"reflect"
 	"sync"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // FolderBranchStatus is a simple data structure describing the

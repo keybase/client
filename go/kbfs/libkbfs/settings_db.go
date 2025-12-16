@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"context"
 	"os"
 	"path"
 	"strconv"
@@ -15,7 +16,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
-	"golang.org/x/net/context"
 )
 
 const (

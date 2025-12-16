@@ -3,7 +3,7 @@
 
 package logger
 
-import "golang.org/x/net/context"
+import "context"
 
 type Null struct{}
 

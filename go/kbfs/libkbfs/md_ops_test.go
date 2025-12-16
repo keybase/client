@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -25,7 +26,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	merkle "github.com/keybase/go-merkle-tree"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type shimCrypto struct {

@@ -8,6 +8,7 @@
 package libfuse
 
 import (
+	"context"
 	"io"
 	"os"
 	"strings"
@@ -17,8 +18,6 @@ import (
 	"bazil.org/fuse/fs"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
-
-	"golang.org/x/net/context"
 )
 
 // timedProfileFile represents a file whose contents are determined by

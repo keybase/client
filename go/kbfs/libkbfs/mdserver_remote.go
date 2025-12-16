@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -20,7 +21,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 const (

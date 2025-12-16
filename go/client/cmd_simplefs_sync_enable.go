@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"strings"
@@ -12,7 +13,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // CmdSimpleFSSyncEnable is the 'fs sync enable' command.

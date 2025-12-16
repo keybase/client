@@ -1,10 +1,9 @@
 package teams
 
 import (
+	"context"
 	"errors"
 	"fmt"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"

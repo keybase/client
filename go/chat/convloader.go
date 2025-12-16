@@ -2,11 +2,11 @@ package chat
 
 import (
 	"container/list"
+	"context"
 	"errors"
 	"sync"
 	"time"
 
-	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/chat/globals"

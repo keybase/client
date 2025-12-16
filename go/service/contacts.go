@@ -4,6 +4,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"time"
@@ -13,7 +14,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type bulkLookupContactsProvider struct{}

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -21,7 +22,6 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func fbStatusTestInit(t *testing.T) (*gomock.Controller, *ConfigMock,

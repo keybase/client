@@ -1,6 +1,7 @@
 package keybase
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"regexp"
@@ -17,7 +18,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/kyokomi/emoji"
-	context "golang.org/x/net/context"
 )
 
 type Person struct {

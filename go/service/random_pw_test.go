@@ -1,12 +1,12 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"testing"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"

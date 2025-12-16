@@ -5,6 +5,7 @@
 package kbfsmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
-	"golang.org/x/net/context"
 )
 
 // WriterMetadataV2 stores the metadata for a TLF that is

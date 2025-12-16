@@ -5,10 +5,11 @@
 package libdokan
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/libkbfs"
-	"golang.org/x/net/context"
 )
 
 // SyncFromServerFile represents a write-only file when any write of

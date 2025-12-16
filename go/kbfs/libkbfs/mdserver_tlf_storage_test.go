@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -16,7 +17,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func getMDStorageLength(t *testing.T, s *mdServerTlfStorage, bid kbfsmd.BranchID) int {

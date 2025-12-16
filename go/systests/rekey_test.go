@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -14,7 +15,6 @@ import (
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 // deviceWrapper wraps a mock "device", meaning an independent running service and

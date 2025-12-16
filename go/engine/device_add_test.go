@@ -4,12 +4,11 @@
 package engine
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"sync"
 	"testing"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"crypto/rand"
 	"os"
 	"path/filepath"
@@ -16,7 +17,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb/storage"
-	"golang.org/x/net/context"
 )
 
 type testDiskMDCacheConfig struct {

@@ -4,6 +4,7 @@
 package logger
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"runtime"
@@ -12,8 +13,6 @@ import (
 	"time"
 
 	logging "github.com/keybase/go-logging"
-
-	"golang.org/x/net/context"
 )
 
 // TestLogBackend is an interface for logging to a test object (i.e.,

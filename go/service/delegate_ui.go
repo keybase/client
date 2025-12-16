@@ -4,9 +4,10 @@
 package service
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 )
 
 // DelegateUICtlHandler is the RPC handler for notify control messages

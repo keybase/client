@@ -5,13 +5,13 @@
 package libkbfs
 
 import (
+	"context"
 	"sync"
 
 	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 // EnableAdminFeature returns true if admin features should be enabled

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -12,7 +13,6 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/strkey"
-	"golang.org/x/net/context"
 )
 
 // ErrInvalidAccountID is for invalid account IDs.

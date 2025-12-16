@@ -4,8 +4,9 @@
 package logger
 
 import (
+	"context"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 // RPCLoggerAdapter is used to turn a logger complying to the rpc.LogOutput interface

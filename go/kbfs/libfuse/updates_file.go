@@ -8,13 +8,14 @@
 package libfuse
 
 import (
+	"context"
 	"errors"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
-	"golang.org/x/net/context"
 )
 
 // UpdatesFile represents a write-only file where any write of at

@@ -5,13 +5,13 @@
 package libfs
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // SyncAction enumerates all the possible actions to take on a

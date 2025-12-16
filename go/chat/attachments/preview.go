@@ -2,6 +2,7 @@ package attachments
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"image"
@@ -22,7 +23,6 @@ import (
 	"golang.org/x/image/bmp"
 	_ "golang.org/x/image/bmp" // for image decoding
 	"golang.org/x/image/tiff"
-	"golang.org/x/net/context"
 
 	"camlistore.org/pkg/images"
 )

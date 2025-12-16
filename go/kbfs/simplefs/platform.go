@@ -3,7 +3,7 @@
 
 package simplefs
 
-import "golang.org/x/net/context"
+import "context"
 
 // Quarantine is for adding the mark of the web.
 func Quarantine(ctx context.Context, path string) error {

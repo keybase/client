@@ -17,6 +17,7 @@
 package libkb
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -29,7 +30,6 @@ import (
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
-	context "golang.org/x/net/context"
 )
 
 var IsIPad bool // Set by bind's Init.

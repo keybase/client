@@ -1,12 +1,12 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	gregor "github.com/keybase/client/go/gregor"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 type nullTeamLoader struct {

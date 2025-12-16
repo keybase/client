@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"context"
 	"encoding/hex"
 	"testing"
 	"time"
@@ -8,7 +9,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 type id3FakeUIRouter struct {

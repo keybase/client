@@ -4,11 +4,12 @@
 package service
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	airdrop "github.com/keybase/client/go/stellar/airdrop"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type TestHandler struct {

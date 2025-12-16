@@ -1,10 +1,9 @@
 package engine
 
 import (
+	"context"
 	"os"
 	"testing"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"

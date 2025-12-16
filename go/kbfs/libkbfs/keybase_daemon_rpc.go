@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"os"
 	"runtime"
 	"sync"
@@ -14,7 +15,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 // KeybaseDaemonRPC implements the KeybaseService interface using RPC

@@ -6,6 +6,7 @@ package kbfscrypto
 
 import (
 	"bytes"
+	"context"
 	"encoding"
 	"encoding/hex"
 	"encoding/json"
@@ -15,8 +16,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-
-	"golang.org/x/net/context"
 )
 
 // SigVer denotes a signature version.

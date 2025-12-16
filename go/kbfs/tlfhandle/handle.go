@@ -7,6 +7,7 @@ package tlfhandle
 // This file has the type for TlfHandles and offline functionality.
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"sort"
@@ -19,7 +20,6 @@ import (
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // Handle contains all the info in a tlf.Handle as well as

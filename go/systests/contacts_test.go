@@ -4,6 +4,7 @@
 package systests
 
 import (
+	"context"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -14,7 +15,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 func TestLookupContactList(t *testing.T) {

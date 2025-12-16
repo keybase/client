@@ -2,6 +2,7 @@ package attachments
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -18,7 +19,6 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 const MB int64 = 1024 * 1024

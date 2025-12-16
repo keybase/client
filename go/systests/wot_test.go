@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/client"
@@ -8,7 +9,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 func TestWotNotifications(t *testing.T) {

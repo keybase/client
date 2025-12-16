@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -15,7 +16,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/client/go/teams"
-	context "golang.org/x/net/context"
 )
 
 func getTeamCryptKey(mctx libkb.MetaContext, team *teams.Team, generation keybase1.PerTeamKeyGeneration,

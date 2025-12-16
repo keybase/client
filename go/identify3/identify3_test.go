@@ -1,6 +1,7 @@
 package identify3
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"sync"
@@ -13,7 +14,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func SetupTest(tb libkb.TestingTB, name string) libkb.TestContext {

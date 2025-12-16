@@ -6,11 +6,11 @@ package libfs
 
 import (
 	"bytes"
+	"context"
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
-	"golang.org/x/net/context"
 )
 
 // UnstageForTesting unstages all unmerged commits and fast-forwards

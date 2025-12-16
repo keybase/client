@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha512"
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
-	"golang.org/x/net/context"
 )
 
 // Get a PTK seed and verify against the sigchain that is the correct key.

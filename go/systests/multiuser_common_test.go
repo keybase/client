@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	contextOld "context"
+
 	client "github.com/keybase/client/go/client"
 	engine "github.com/keybase/client/go/engine"
 	libkb "github.com/keybase/client/go/libkb"
@@ -18,7 +20,6 @@ import (
 	clockwork "github.com/keybase/clockwork"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
-	contextOld "golang.org/x/net/context"
 )
 
 // Tests for systests with multiuser, multidevice situations.

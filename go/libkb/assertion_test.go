@@ -4,12 +4,12 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type testAssertionContext struct{}

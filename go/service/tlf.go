@@ -4,7 +4,7 @@
 package service
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"

@@ -5,6 +5,8 @@
 package libkbfs
 
 import (
+	"context"
+
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -12,7 +14,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type FakeObserver struct {

@@ -5,9 +5,10 @@
 package libdokan
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/libkbfs"
-	"golang.org/x/net/context"
 )
 
 // Symlink represents KBFS symlinks.

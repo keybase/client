@@ -1,13 +1,13 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"io"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type teamAPIHandler struct {

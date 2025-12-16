@@ -4,11 +4,10 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"

@@ -5,11 +5,12 @@
 package libdokan
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 // File represents KBFS files.

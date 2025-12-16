@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -20,7 +21,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
-	context "golang.org/x/net/context"
 )
 
 type BlockingSender struct {

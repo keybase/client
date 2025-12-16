@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"crypto/rand"
 	"math/big"
 	"sort"
@@ -17,7 +18,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func setupCommonTest(t testing.TB, name string) kbtest.ChatTestContext {

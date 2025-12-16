@@ -1,6 +1,7 @@
 package attachments
 
 import (
+	"context"
 	"errors"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -10,7 +11,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type Sender struct {

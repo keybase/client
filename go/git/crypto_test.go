@@ -1,10 +1,10 @@
 package git
 
 import (
+	"context"
 	"testing"
 
 	"golang.org/x/crypto/nacl/secretbox"
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"

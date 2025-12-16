@@ -4,11 +4,10 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"strconv"
 	"strings"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"

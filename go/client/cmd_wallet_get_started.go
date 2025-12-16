@@ -1,13 +1,13 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 type cmdWalletGetStarted struct {

@@ -4,6 +4,7 @@
 package systests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -13,7 +14,6 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 )
 
 type delegateUI struct {

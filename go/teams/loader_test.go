@@ -2,11 +2,10 @@ package teams
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"strings"
 	"testing"
-
-	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"

@@ -4,10 +4,9 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"path/filepath"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"

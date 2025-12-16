@@ -5,6 +5,7 @@
 package libdokan
 
 import (
+	"context"
 	"errors"
 	"os"
 	"strconv"
@@ -24,7 +25,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // FS implements the newfuse FS interface for KBFS.

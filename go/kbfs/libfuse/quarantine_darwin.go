@@ -8,17 +8,18 @@
 package libfuse
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
 
 	"bazil.org/fuse"
+
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
-	"golang.org/x/net/context"
 )
 
 const quarantineXattrName = "com.apple.quarantine"

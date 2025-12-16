@@ -5,13 +5,13 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type onlineStatusTracker struct {

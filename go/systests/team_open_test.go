@@ -1,10 +1,9 @@
 package systests
 
 import (
+	"context"
 	"strings"
 	"testing"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"

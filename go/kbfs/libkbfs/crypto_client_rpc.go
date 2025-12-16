@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -12,7 +13,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 // CryptoClientRPC is an RPC based implementation for Crypto.

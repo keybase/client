@@ -4,10 +4,10 @@
 package libkb
 
 import (
+	"context"
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 func kidsToString(kids []keybase1.KID) string {

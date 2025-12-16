@@ -8,11 +8,11 @@
 package libfuse
 
 import (
+	"context"
 	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"golang.org/x/net/context"
 )
 
 // SpecialReadFile represents a file whose contents are determined by

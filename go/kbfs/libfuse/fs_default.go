@@ -8,9 +8,10 @@
 package libfuse
 
 import (
+	"context"
+
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"golang.org/x/net/context"
 )
 
 var platformRootDirs []fuse.Dirent

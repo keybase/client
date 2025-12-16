@@ -2,6 +2,7 @@ package chat
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -21,7 +22,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
-	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
 

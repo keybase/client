@@ -5,13 +5,13 @@
 package libkbfs
 
 import (
+	"context"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // ECMRCtxTagKey is the type for unique ECMR background operation IDs.

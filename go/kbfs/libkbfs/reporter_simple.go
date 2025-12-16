@@ -5,10 +5,9 @@
 package libkbfs
 
 import (
+	"context"
 	"runtime"
 	"sync"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"

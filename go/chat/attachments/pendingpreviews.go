@@ -1,6 +1,7 @@
 package attachments
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"golang.org/x/net/context"
 )
 
 type PendingPreviews struct {

@@ -2,6 +2,7 @@ package teams
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -12,7 +13,6 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
 	storage "github.com/keybase/client/go/teams/storage"
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 )

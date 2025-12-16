@@ -4,11 +4,10 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"runtime/debug"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/jsonhelpers"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"

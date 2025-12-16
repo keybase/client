@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -16,7 +17,6 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	isatty "github.com/mattn/go-isatty"
-	"golang.org/x/net/context"
 )
 
 type CmdChatDeleteHistory struct {

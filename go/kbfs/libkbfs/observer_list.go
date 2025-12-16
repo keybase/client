@@ -5,13 +5,13 @@
 package libkbfs
 
 import (
+	"context"
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // observerList is a thread-safe list of observers.

@@ -5,10 +5,9 @@
 package kbfssync
 
 import (
+	"context"
 	"sync"
 	"testing"
-
-	"golang.org/x/net/context"
 )
 
 func testRepeatedWaitGroupSimpleWait(t *testing.T, rwg *RepeatedWaitGroup) {

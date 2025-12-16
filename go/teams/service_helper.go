@@ -1,12 +1,11 @@
 package teams
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/avatars"
 	email_utils "github.com/keybase/client/go/emails"

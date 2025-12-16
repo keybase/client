@@ -4,12 +4,12 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	context "golang.org/x/net/context"
 )
 
 func PrintAccountResetWarning(g *libkb.GlobalContext) {

@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -14,7 +15,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
-	context "golang.org/x/net/context"
 )
 
 type FetchType int

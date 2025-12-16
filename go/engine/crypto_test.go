@@ -5,12 +5,12 @@ package engine
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"runtime/debug"
 	"testing"
 
 	"golang.org/x/crypto/nacl/box"
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"

@@ -5,6 +5,7 @@
 package libdokan
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 // TLF represents the root directory of a TLF. It wraps a lazy-loaded

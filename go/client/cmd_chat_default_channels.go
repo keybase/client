@@ -1,11 +1,12 @@
 package client
 
 import (
+	"context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	context "golang.org/x/net/context"
 )
 
 type CmdChatDefaultChannels struct {

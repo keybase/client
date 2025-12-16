@@ -6,7 +6,7 @@
 package teams
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )

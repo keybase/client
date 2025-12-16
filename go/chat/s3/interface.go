@@ -1,10 +1,10 @@
 package s3
 
 import (
+	"context"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 type Root interface {

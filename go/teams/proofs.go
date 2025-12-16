@@ -1,10 +1,10 @@
 package teams
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
-	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/davecgh/go-spew/spew"

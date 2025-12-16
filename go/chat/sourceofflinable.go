@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"golang.org/x/net/context"
 )
 
 // sourceOfflinable implements the chat/types.Offlinable interface.

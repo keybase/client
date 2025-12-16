@@ -5,11 +5,11 @@
 package libfs
 
 import (
+	"context"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
-	"golang.org/x/net/context"
 )
 
 // GetEncodedTlfEditHistory returns serialized JSON containing the

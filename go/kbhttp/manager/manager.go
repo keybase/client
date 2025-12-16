@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"crypto/hmac"
 	"fmt"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 type SrvTokenMode int

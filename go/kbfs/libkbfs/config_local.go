@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"flag"
 	"os"
 	"path/filepath"
@@ -31,7 +32,6 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
-	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
 )
 

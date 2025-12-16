@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"path"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // CmdSimpleFSDebugDeobfuscate is the 'fs debug deobfuscate' command.

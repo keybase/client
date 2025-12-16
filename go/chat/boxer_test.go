@@ -4,13 +4,13 @@ package chat
 // this source code is governed by the included BSD license.
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/signencrypt"

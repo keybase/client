@@ -5,6 +5,7 @@
 package libdokan
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -17,7 +18,6 @@ import (
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 type fileOpener interface {

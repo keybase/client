@@ -1,13 +1,13 @@
 package globals
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 var (

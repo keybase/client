@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -20,7 +21,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type testBlockCache struct {

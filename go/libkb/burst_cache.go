@@ -1,11 +1,11 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
-	"golang.org/x/net/context"
 )
 
 // BurstCachce is an LRU+SingleFlighter useful for absorbing short-lived bursts

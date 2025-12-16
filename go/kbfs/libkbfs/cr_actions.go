@@ -5,12 +5,12 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // copyUnmergedEntryAction says that the unmerged entry for the given

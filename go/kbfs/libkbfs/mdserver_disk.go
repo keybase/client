@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -20,7 +21,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
-	"golang.org/x/net/context"
 )
 
 type mdServerDiskShared struct {

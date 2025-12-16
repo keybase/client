@@ -4,13 +4,13 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 // TODO: These tests should really be in libkb/. However, any test

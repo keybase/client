@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/systemd"
 )
 

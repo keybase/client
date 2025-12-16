@@ -5,10 +5,10 @@
 package libdokan
 
 import (
+	"context"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/libfs"
-	"golang.org/x/net/context"
 )
 
 // NewTlfEditHistoryFile returns a special read file that contains a text

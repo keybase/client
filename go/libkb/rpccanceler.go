@@ -1,9 +1,8 @@
 package libkb
 
 import (
+	"context"
 	"sync"
-
-	"golang.org/x/net/context"
 )
 
 type RPCCancelerReason uint

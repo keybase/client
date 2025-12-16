@@ -2,13 +2,12 @@ package libkb
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"regexp"
 	"strings"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 // LogProfileContext for LogProfile

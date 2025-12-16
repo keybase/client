@@ -1,11 +1,10 @@
 package libkbfs
 
 import (
+	"context"
 	"reflect"
 	"sync"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 // CoalescingContext allows many contexts to be treated as one.  It waits on

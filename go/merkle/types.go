@@ -170,6 +170,7 @@ type (
 		Skiplists       []Skiplist      `codec:"s,omitempty"`
 	}
 )
+
 type HistoricalQueryResponse struct {
 	RootMetadata     RootMetadata      `codec:"r,omitempty"`
 	Paths            []Path            `codec:"p,omitempty"`

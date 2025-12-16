@@ -4,10 +4,9 @@
 package simplefs
 
 import (
+	"context"
 	"os"
 	"path/filepath"
-
-	"golang.org/x/net/context"
 )
 
 // Quarantine is for adding the mark of the web.

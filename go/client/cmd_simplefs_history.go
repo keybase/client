@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // CmdSimpleFSHistory is the 'fs history' command.

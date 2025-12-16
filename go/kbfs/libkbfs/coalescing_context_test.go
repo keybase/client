@@ -1,11 +1,11 @@
 package libkbfs
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type testCtxKey struct{ string }

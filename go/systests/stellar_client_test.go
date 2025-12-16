@@ -1,9 +1,10 @@
 package systests
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 )
 
 const retryCount = 5

@@ -1,13 +1,13 @@
 package encrypteddb
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-errors/errors"
 
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/secretbox"
-	"golang.org/x/net/context"
 )
 
 type (

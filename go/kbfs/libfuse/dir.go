@@ -8,6 +8,7 @@
 package libfuse
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"os"
@@ -18,6 +19,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
@@ -27,7 +29,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 // Folder represents the info shared among all nodes of a KBFS

@@ -2,6 +2,7 @@ package chat
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -29,7 +30,6 @@ import (
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/teams/opensearch"
 	"github.com/keybase/pipeliner"
-	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 )

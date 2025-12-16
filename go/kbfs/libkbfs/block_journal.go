@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"path/filepath"
@@ -22,7 +23,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // blockJournal stores a single ordered list of block operations for a

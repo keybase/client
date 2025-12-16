@@ -5,6 +5,7 @@
 package libfs
 
 import (
+	"context"
 	"strings"
 
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // TlfDoesNotExist is a shortcut error for the cases a TLF does not exist and

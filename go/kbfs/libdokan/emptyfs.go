@@ -5,11 +5,11 @@
 package libdokan
 
 import (
+	"context"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/dokan/winacl"
-	"golang.org/x/net/context"
 )
 
 // Return dokan.ErrAccessDenied by default as that is a safe default.

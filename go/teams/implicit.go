@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -9,7 +10,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type implicitTeamConflict struct {

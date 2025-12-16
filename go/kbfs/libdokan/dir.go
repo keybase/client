@@ -5,6 +5,7 @@
 package libdokan
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -18,7 +19,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // HiddenFilePrefix is the prefix for files to be hidden.

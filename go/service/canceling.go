@@ -1,9 +1,10 @@
 package service
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 func CancelingProtocol(g *libkb.GlobalContext, prot rpc.Protocol, reason libkb.RPCCancelerReason) (res rpc.Protocol) {

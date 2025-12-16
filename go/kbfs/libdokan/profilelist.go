@@ -5,11 +5,11 @@
 package libdokan
 
 import (
+	"context"
 	"runtime/pprof"
 
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/libfs"
-	"golang.org/x/net/context"
 )
 
 // TODO: Also have a file for CPU profiles.

@@ -1,6 +1,6 @@
 package teams
 
-import "golang.org/x/net/context"
+import "context"
 
 type ctxKeyType string
 

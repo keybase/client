@@ -5,11 +5,10 @@
 package idutil
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbfs/kbfscodec"

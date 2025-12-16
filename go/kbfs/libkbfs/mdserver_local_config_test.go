@@ -5,12 +5,12 @@
 package libkbfs
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
-	"golang.org/x/net/context"
 )
 
 type singleCurrentSessionGetter struct {

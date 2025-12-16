@@ -8,9 +8,8 @@
 package libfuse
 
 import (
+	"context"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbfs/libfs"
 )

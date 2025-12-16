@@ -5,6 +5,7 @@
 package kbfscrypto
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 	"sync"
@@ -15,7 +16,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // AuthTokenMinRefreshSeconds is the minimum number of seconds between refreshes.

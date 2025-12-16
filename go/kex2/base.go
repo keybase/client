@@ -4,13 +4,13 @@
 package kex2
 
 import (
+	"context"
 	"errors"
 	"net"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type LogContext interface {

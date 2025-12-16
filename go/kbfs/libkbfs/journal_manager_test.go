@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"math"
 	"os"
 	"sync"
@@ -23,7 +24,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func setupJournalManagerTest(t *testing.T) (

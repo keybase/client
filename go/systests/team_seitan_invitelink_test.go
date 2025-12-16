@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 func TestTeamInviteSeitanInvitelinkHappy(t *testing.T) {

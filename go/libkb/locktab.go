@@ -4,10 +4,9 @@
 package libkb
 
 import (
+	"context"
 	"sync"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 type NamedLock struct {
