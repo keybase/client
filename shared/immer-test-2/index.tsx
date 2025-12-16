@@ -1,13 +1,12 @@
 import * as React from 'react'
-import * as T from '../constants/types'
 import {useStore} from './store'
 
 const TestApp = () => {
   const toggleLocalReaction = useStore(s => s.toggleLocalReaction)
-  const message = useStore(s => s.messageMap.get(T.Chat.numberToOrdinal(1)))
+  const message = useStore(s => s.messageMap.get(1))
 
   const handleClick = () => {
-    const targetOrdinal = T.Chat.numberToOrdinal(1)
+    const targetOrdinal = 1
     toggleLocalReaction({
       decorated: ':+1:',
       emoji: '+1',
@@ -25,4 +24,3 @@ const TestApp = () => {
 }
 
 export default TestApp
-
