@@ -71,25 +71,32 @@ type WrapperProps = Pick<
 >
 
 const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
-  const inboxHasLoaded = Chat.useChatState(s => s.inboxHasLoaded)
-  const queueMetaToRequest = Chat.useChatState(s => s.dispatch.queueMetaToRequest)
+  const chatState = Chat.useChatState(
+    C.useShallow(s => {
+      const inboxNumSmallRows = s.inboxNumSmallRows ?? 5
+      const {inboxLayout} = s
+      const allowShowFloatingButton = inboxLayout
+        ? (inboxLayout.smallTeams || []).length > inboxNumSmallRows && !!(inboxLayout.bigTeams || []).length
+        : false
+      return {
+        allowShowFloatingButton,
+        inboxHasLoaded: s.inboxHasLoaded,
+        inboxNumSmallRows,
+        inboxRefresh: s.dispatch.inboxRefresh,
+        queueMetaToRequest: s.dispatch.queueMetaToRequest,
+        setInboxNumSmallRows: s.dispatch.setInboxNumSmallRows,
+        toggleSmallTeamsExpanded: s.dispatch.toggleSmallTeamsExpanded,
+      }
+    })
+  )
+  const {allowShowFloatingButton, inboxHasLoaded, inboxNumSmallRows, inboxRefresh} = chatState
+  const {queueMetaToRequest, setInboxNumSmallRows, toggleSmallTeamsExpanded} = chatState
   const isFocused = useIsFocused()
-  const inboxNumSmallRows = Chat.useChatState(s => s.inboxNumSmallRows ?? 5)
-  const allowShowFloatingButton = Chat.useChatState(s => {
-    const {inboxLayout} = s
-    const inboxNumSmallRows = s.inboxNumSmallRows ?? 5
-    return inboxLayout
-      ? (inboxLayout.smallTeams || []).length > inboxNumSmallRows && !!(inboxLayout.bigTeams || []).length
-      : false
-  })
 
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   // a hack to have it check for marked as read when we mount as the focus events don't fire always
   const onNewChat = appendNewChatBuilder
   const onUntrustedInboxVisible = queueMetaToRequest
-
-  const setInboxNumSmallRows = Chat.useChatState(s => s.dispatch.setInboxNumSmallRows)
-  const toggleSmallTeamsExpanded = Chat.useChatState(s => s.dispatch.toggleSmallTeamsExpanded)
   const [lastIsFocused, setLastIsFocused] = React.useState(isFocused)
 
   if (lastIsFocused !== isFocused) {
@@ -102,8 +109,6 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
       }
     }
   }
-
-  const inboxRefresh = Chat.useChatState(s => s.dispatch.inboxRefresh)
 
   C.useOnMountOnce(() => {
     if (!C.isMobile) {
@@ -139,15 +144,20 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
 const noSmallTeams = new Array<T.RPCChat.UIInboxSmallTeamRow>()
 const noBigTeams = new Array<T.RPCChat.UIInboxBigTeamRow>()
 const Connected = (ownProps: OwnProps) => {
-  const inboxLayout = Chat.useChatState(s => s.inboxLayout)
-  const inboxHasLoaded = Chat.useChatState(s => s.inboxHasLoaded)
+  const chatState = Chat.useChatState(
+    C.useShallow(s => ({
+      inboxHasLoaded: s.inboxHasLoaded,
+      inboxLayout: s.inboxLayout,
+      inboxNumSmallRows: s.inboxNumSmallRows ?? 5,
+      isSearching: !!s.inboxSearch,
+      smallTeamsExpanded: s.smallTeamsExpanded,
+    }))
+  )
+  const {inboxHasLoaded, inboxLayout: _inboxLayout, inboxNumSmallRows} = chatState
+  const {isSearching, smallTeamsExpanded} = chatState
   const {conversationIDKey} = ownProps
   const neverLoaded = !inboxHasLoaded
-  const inboxNumSmallRows = Chat.useChatState(s => s.inboxNumSmallRows ?? 5)
-  const _inboxLayout = inboxLayout
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
-  const isSearching = Chat.useChatState(s => !!s.inboxSearch)
-  const smallTeamsExpanded = Chat.useChatState(s => s.smallTeamsExpanded)
   const {navKey} = ownProps
   const bigTeams = _inboxLayout ? _inboxLayout.bigTeams || noBigTeams : noBigTeams
   const showAllSmallRows = smallTeamsExpanded || !bigTeams.length

@@ -100,22 +100,32 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {selectedTab, setSelectedTab, teamID} = ownProps
-  const teamMeta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID))
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
+  const teamsState = Teams.useTeamsState(
+    C.useShallow(s => {
+      const teamMeta = Teams.getTeamMeta(s, teamID)
+      const resetUserCount = Teams.getTeamResetUsers(s, teamMeta.teamname).size
+      return {
+        error: s.errorInAddToTeam,
+        newTeamRequests: s.newTeamRequests,
+        resetUserCount,
+        teamDetails: s.teamDetails.get(teamID),
+        teamMeta,
+        yourOperations: Teams.getCanPerformByID(s, teamID),
+      }
+    })
+  )
+  const {error, newTeamRequests, resetUserCount, teamDetails} = teamsState
+  const {teamMeta, yourOperations} = teamsState
 
   const admin = yourOperations.manageMembers
-  const error = Teams.useTeamsState(s => s.errorInAddToTeam)
   const isBig = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
   const loading = C.Waiting.useAnyWaiting([
     C.waitingKeyTeamsTeam(teamID),
     C.waitingKeyTeamsTeamTars(teamMeta.teamname),
   ])
-  const newTeamRequests = Teams.useTeamsState(s => s.newTeamRequests)
   const numInvites = teamDetails?.invites.size ?? 0
   const numRequests = teamDetails?.requests.size ?? 0
   const numSubteams = teamDetails?.subteams.size ?? 0
-  const resetUserCount = Teams.useTeamsState(s => Teams.getTeamResetUsers(s, teamMeta.teamname).size)
   const showSubteams = yourOperations.manageSubteams
   const props = {
     admin: admin,

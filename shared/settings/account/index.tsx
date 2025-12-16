@@ -159,33 +159,57 @@ const DeleteAccount = () => {
 }
 
 const AccountSettings = () => {
-  const addedEmail = useSettingsEmailState(s => s.addedEmail)
-  const addedPhone = useSettingsPhoneState(s => s.addedPhone)
-  const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
-  const clearAddedPhone = useSettingsPhoneState(s => s.dispatch.clearAddedPhone)
+  const {addedEmail, resetAddedEmail} = useSettingsEmailState(
+    C.useShallow(s => ({
+      addedEmail: s.addedEmail,
+      resetAddedEmail: s.dispatch.resetAddedEmail,
+    }))
+  )
+  const {
+    _phones,
+    addedPhone,
+    clearAddedPhone,
+    editPhone,
+  } = useSettingsPhoneState(
+    C.useShallow(s => ({
+      _phones: s.phones,
+      addedPhone: s.addedPhone,
+      clearAddedPhone: s.dispatch.clearAddedPhone,
+      editPhone: s.dispatch.editPhone,
+    }))
+  )
+  const {loadSettings} = useSettingsState(
+    C.useShallow(s => ({
+      loadSettings: s.dispatch.loadSettings,
+    }))
+  )
+  const {loadHasRandomPw, loadRememberPassword} = usePWState(
+    C.useShallow(s => ({
+      loadHasRandomPw: s.dispatch.loadHasRandomPw,
+      loadRememberPassword: s.dispatch.loadRememberPassword,
+    }))
+  )
+  const {navigateAppend, switchTab} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      switchTab: s.dispatch.switchTab,
+    }))
+  )
   const _onClearSupersededPhoneNumber = (phone: string) => {
     editPhone(phone, true)
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const resetAddedEmail = useSettingsEmailState(s => s.dispatch.resetAddedEmail)
   const onClearAddedEmail = resetAddedEmail
   const onClearAddedPhone = clearAddedPhone
-  const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
-  const loadRememberPassword = usePWState(s => s.dispatch.loadRememberPassword)
-  const loadHasRandomPw = usePWState(s => s.dispatch.loadHasRandomPw)
-
   const onReload = () => {
     loadSettings()
     loadRememberPassword()
     loadHasRandomPw()
   }
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onStartPhoneConversation = () => {
     switchTab(C.Tabs.chatTab)
     navigateAppend({props: {namespace: 'chat2'}, selected: 'chatNewChat'})
     clearAddedPhone()
   }
-  const _phones = useSettingsPhoneState(s => s.phones)
   const _supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)
   const supersededKey = _supersededPhoneNumber?.e164
   const onClearSupersededPhoneNumber = () => supersededKey && _onClearSupersededPhoneNumber(supersededKey)

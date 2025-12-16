@@ -88,10 +88,17 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const {teamname, teamID, channelname, isInChannel, ignored, fullname} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 
-  const canAddPeople = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageMembers)
-  const badgeSubscribe = Teams.useTeamsState(s => !Teams.isTeamWithChosenChannels(s, teamname))
-
-  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const teamsState = Teams.useTeamsState(
+    C.useShallow(s => ({
+      addTeamWithChosenChannels: s.dispatch.addTeamWithChosenChannels,
+      badgeSubscribe: !Teams.isTeamWithChosenChannels(s, teamname),
+      canAddPeople: Teams.getCanPerformByID(s, teamID).manageMembers,
+      manageChatChannels: s.dispatch.manageChatChannels,
+      startAddMembersWizard: s.dispatch.startAddMembersWizard,
+    }))
+  )
+  const {addTeamWithChosenChannels, badgeSubscribe, canAddPeople} = teamsState
+  const {manageChatChannels, startAddMembersWizard} = teamsState
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)
   }, [startAddMembersWizard, teamID])
@@ -114,13 +121,16 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     () => teamID && navigateAppend(() => ({props: {teamID}, selected: 'teamReallyLeaveTeam'})),
     [navigateAppend, teamID]
   )
-  const addTeamWithChosenChannels = Teams.useTeamsState(s => s.dispatch.addTeamWithChosenChannels)
-  const manageChatChannels = Teams.useTeamsState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)
   }, [manageChatChannels, addTeamWithChosenChannels, teamID])
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const {clearModals, _navigateAppend} = C.useRouterState(
+    C.useShallow(s => ({
+      _navigateAppend: s.dispatch.navigateAppend,
+      clearModals: s.dispatch.clearModals,
+    }))
+  )
   const markTeamAsRead = Chat.useChatContext(s => s.dispatch.markTeamAsRead)
   const onMarkAsRead = React.useCallback(() => {
     clearModals()
@@ -143,8 +153,6 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const onUnhideConv = React.useCallback(() => {
     hideConversation(false)
   }, [hideConversation])
-
-  const _navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   const isGeneralChannel = !!(channelname && channelname === 'general')
   const hasChannelSection = !isSmallTeam && !hasHeader

@@ -34,16 +34,27 @@ const crownIcon = (roleType: T.Teams.TeamRoleType) => {
 
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
-  const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = Chat.useConvoState(conversationIDKey, s => s.participants)
-  const teamMemberInfo = Teams.useTeamsState(
-    s => s.teamDetails.get(teamID)?.members.get(username) ?? Teams.initialMemberInfo
+  const {infoMap, setUserBlocks} = useUsersState(
+    C.useShallow(s => ({
+      infoMap: s.infoMap,
+      setUserBlocks: s.dispatch.setUserBlocks,
+    }))
   )
+  const participantInfo = Chat.useConvoState(conversationIDKey, s => s.participants)
+  const teamsState = Teams.useTeamsState(
+    C.useShallow(s => ({
+      channelSelectedMembers: s.channelSelectedMembers.get(conversationIDKey),
+      channelSetMemberSelected: s.dispatch.channelSetMemberSelected,
+      teamMemberInfo: s.teamDetails.get(teamID)?.members.get(username) ?? Teams.initialMemberInfo,
+      yourOperations: Teams.getCanPerformByID(s, teamID),
+    }))
+  )
+  const {channelSelectedMembers, channelSetMemberSelected} = teamsState
+  const {teamMemberInfo, yourOperations} = teamsState
   const you = useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const crown = React.useMemo(() => {
     const type = crownIcon(roleType)
     return active && type ? <Kb.Icon type={type} style={styles.crownIcon} fontSize={10} /> : null
@@ -65,11 +76,8 @@ const ChannelMemberRow = (props: Props) => {
   const roleLabel = !!active && Teams.typeToLabel[teamMemberInfo.type]
   const isYou = you === username
 
-  const channelSelectedMembers = Teams.useTeamsState(s => s.channelSelectedMembers.get(conversationIDKey))
   const anySelected = !!channelSelectedMembers?.size
   const memberSelected = !!channelSelectedMembers?.has(username)
-
-  const channelSetMemberSelected = Teams.useTeamsState(s => s.dispatch.channelSetMemberSelected)
 
   const onSelect = (selected: boolean) => {
     channelSetMemberSelected(conversationIDKey, username, selected)
@@ -121,7 +129,6 @@ const ChannelMemberRow = (props: Props) => {
   )
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const setUserBlocks = useUsersState(s => s.dispatch.setUserBlocks)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
