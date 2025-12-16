@@ -178,25 +178,31 @@ helpers.rootLinuxNode(env, {
           test_linux: {
             def packagesToTest = [:]
             if (hasGoChanges || hasJenkinsfileChanges) {
-              // Install gofumpt for protocol generation
-              dir("go/buildtools") {
-                println "Installing gofumpt"
-                retry(5) {
-                  sh 'go install mvdan.cc/gofumpt'
+              withEnv([
+                "PATH=${env.PATH}",
+                "GOPATH=${env.GOPATH}",
+                "GOROOT=${env.GOROOT}",
+              ]) {
+                // Install gofumpt for protocol generation
+                dir("go/buildtools") {
+                  println "Installing gofumpt"
+                  retry(5) {
+                    sh 'go install mvdan.cc/gofumpt'
+                  }
                 }
+                // Check protocol diffs
+                // Clean the index first
+                sh "git add -A"
+                // Generate protocols
+                dir ('protocol') {
+                  sh "yarn --frozen-lockfile"
+                  sh "make clean"
+                  sh "make"
+                }
+                checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
+                packagesToTest = getPackagesToTest(dependencyFiles, hasJenkinsfileChanges)
+                hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
               }
-              // Check protocol diffs
-              // Clean the index first
-              sh "git add -A"
-              // Generate protocols
-              dir ('protocol') {
-                sh "yarn --frozen-lockfile"
-                sh "make clean"
-                sh "make"
-              }
-              checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
-              packagesToTest = getPackagesToTest(dependencyFiles, hasJenkinsfileChanges)
-              hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
             } else {
               // Ensure that the change target branch has been fetched,
               // since Jenkins only does a sparse checkout by default.
