@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"strings"
 
-	"crypto/rsa"
 
 	"github.com/keybase/go-crypto/openpgp"
+	"github.com/keybase/go-crypto/rsa"
 	"github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-crypto/openpgp/packet"
 	"github.com/keybase/go-crypto/openpgp/s2k"
