@@ -32,9 +32,11 @@ const Container = (ownProps: OwnProps) => {
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1}}>
-      <Kbfs.Errs />
-      <BrowserContent {...props} />
-      <Footer path={props.path} />
+      <Kb.KeyboardAvoidingView2>
+        <Kbfs.Errs />
+        <BrowserContent {...props} />
+        <Footer path={props.path} />
+      </Kb.KeyboardAvoidingView2>
     </Kb.Box2>
   )
 }

@@ -3,7 +3,12 @@ import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input2'
 import {isIOS} from '@/constants/platform'
 import {getTextStyle} from './text'
-import {TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
+import {
+  TextInput,
+  type NativeSyntheticEvent,
+  type TextInputSelectionChangeEventData,
+  Keyboard,
+} from 'react-native'
 import {useColorScheme} from 'react-native'
 import {registerPasteImage} from 'react-native-kb'
 
@@ -121,7 +126,10 @@ export const Input2 = React.memo(
 
     React.useEffect(() => {
       if (!onPaste) return
-      const dereg = registerPasteImage(uris => onPaste(uris))
+      const dereg = registerPasteImage(uris => {
+        Keyboard.dismiss()
+        onPaste(uris)
+      })
       return () => {
         dereg()
       }
