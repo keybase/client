@@ -26,20 +26,34 @@ const SearchBotPopup = (props: Props) => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
-  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
-  const botSearchResults = useBotsState(s => s.botSearchResults)
+  const {
+    botSearchResults,
+    featuredBotsMap,
+    getFeaturedBots,
+    searchFeaturedAndUsers,
+    setSearchFeaturedAndUsersResults,
+  } = useBotsState(
+    C.useShallow(s => ({
+      botSearchResults: s.botSearchResults,
+      featuredBotsMap: s.featuredBotsMap,
+      getFeaturedBots: s.dispatch.getFeaturedBots,
+      searchFeaturedAndUsers: s.dispatch.searchFeaturedAndUsers,
+      setSearchFeaturedAndUsersResults: s.dispatch.setSearchFeaturedAndUsersResults,
+    }))
+  )
   const waiting = C.Waiting.useAnyWaiting([
     C.waitingKeyBotsSearchUsers,
     C.waitingKeyBotsSearchFeatured,
   ])
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const {clearModals, navigateAppend} = C.useRouterState(
+    C.useShallow(s => ({
+      clearModals: s.dispatch.clearModals,
+      navigateAppend: s.dispatch.navigateAppend,
+    }))
+  )
   const onClose = () => {
     clearModals()
   }
-
-  const searchFeaturedAndUsers = useBotsState(s => s.dispatch.searchFeaturedAndUsers)
-  const getFeaturedBots = useBotsState(s => s.dispatch.getFeaturedBots)
-  const setSearchFeaturedAndUsersResults = useBotsState(s => s.dispatch.setSearchFeaturedAndUsersResults)
 
   const onSearch = debounce((query: string) => {
     setLastQuery(query)
@@ -49,7 +63,6 @@ const SearchBotPopup = (props: Props) => {
       setSearchFeaturedAndUsersResults(query, undefined)
     }
   }, 200)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSelect = (username: string) => {
     navigateAppend({
       props: {botUsername: username, conversationIDKey, teamID},

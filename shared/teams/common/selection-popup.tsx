@@ -129,14 +129,16 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
 const TeamSelectionPopup = (props: TeamProps) => {
   const {selectedTab, teamID} = props
 
-  const selectedCount = useTeamsState(s =>
-    selectedTab === 'teamChannels'
-      ? (s.teamSelectedChannels.get(teamID)?.size ?? 0)
-      : (s.teamSelectedMembers.get(teamID)?.size ?? 0)
+  const {selectedCount, setChannelSelected, setMemberSelected} = useTeamsState(
+    C.useShallow(s => ({
+      selectedCount:
+        selectedTab === 'teamChannels'
+          ? (s.teamSelectedChannels.get(teamID)?.size ?? 0)
+          : (s.teamSelectedMembers.get(teamID)?.size ?? 0),
+      setChannelSelected: s.dispatch.setChannelSelected,
+      setMemberSelected: s.dispatch.setMemberSelected,
+    }))
   )
-
-  const setChannelSelected = useTeamsState(s => s.dispatch.setChannelSelected)
-  const setMemberSelected = useTeamsState(s => s.dispatch.setMemberSelected)
 
   const onCancel = () => {
     switch (selectedTab) {
@@ -246,7 +248,13 @@ function allSameOrNull<T>(arr: T[]): T | null {
   return (arr.some(r => r !== first) ? null : first) ?? null
 }
 const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: string[]}) => {
-  const teamDetails = useTeamsState(s => s.teamDetails.get(teamID))
+  const {disabledReasons, editMembership, teamDetails} = useTeamsState(
+    C.useShallow(s => ({
+      disabledReasons: Teams.getDisabledReasonsForRolePicker(s, teamID, members),
+      editMembership: s.dispatch.editMembership,
+      teamDetails: s.teamDetails.get(teamID),
+    }))
+  )
   const roles = members.map(username => teamDetails?.members.get(username)?.type)
   const currentRole = allSameOrNull(roles) ?? undefined
 
@@ -255,16 +263,13 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsEditMembership(teamID, ...members))
   const teamWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsTeam(teamID))
 
-  // We wait for the teamLoaded
   React.useEffect(() => {
     if (showingPicker && !teamWaiting) {
       setShowingPicker(false)
     }
   }, [showingPicker, teamWaiting])
 
-  const disabledReasons = useTeamsState(s => Teams.getDisabledReasonsForRolePicker(s, teamID, members))
   const disableButton = disabledReasons.admin !== undefined
-  const editMembership = useTeamsState(s => s.dispatch.editMembership)
   const onChangeRoles = (role: T.Teams.TeamRoleType) => editMembership(teamID, members, role)
 
   return (
@@ -291,7 +296,6 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
 }
 
 const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
-  // Channels tab functions
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDelete = () => navigateAppend({props: {teamID}, selected: 'teamDeleteChannel'})
 
@@ -302,10 +306,12 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
   )
 }
 const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps) => {
-  const membersSet = useTeamsState(
-    s => s.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
+  const {channelInfo, membersSet} = useTeamsState(
+    C.useShallow(s => ({
+      channelInfo: Teams.getTeamChannelInfo(s, teamID, conversationIDKey),
+      membersSet: s.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector,
+    }))
   )
-  const channelInfo = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 

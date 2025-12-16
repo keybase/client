@@ -10,20 +10,32 @@ import {useCurrentUserState} from '@/constants/current-user'
 import {type Device, useProvisionState} from '@/constants/provision'
 
 const CodePageContainer = () => {
-  const storeDeviceName = useCurrentUserState(s => s.deviceName)
+  const {deviceID, storeDeviceName} = useCurrentUserState(
+    C.useShallow(s => ({
+      deviceID: s.deviceID,
+      storeDeviceName: s.deviceName,
+    }))
+  )
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
-  // we either have a name for real or we asked on a previous screen
-  const provisionDeviceName = useProvisionState(s => s.deviceName)
+  const {
+    error,
+    otherDevice,
+    provisionDeviceName,
+    submitTextCode,
+    textCode,
+  } = useProvisionState(
+    C.useShallow(s => ({
+      error: s.error,
+      otherDevice: s.codePageOtherDevice,
+      provisionDeviceName: s.deviceName,
+      submitTextCode: s.dispatch.dynamic.submitTextCode,
+      textCode: s.codePageIncomingTextCode,
+    }))
+  )
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
-  const deviceID = useCurrentUserState(s => s.deviceID)
   const currentDevice = Devices.useDevicesState(s => s.deviceMap.get(deviceID)) ?? Devices.emptyDevice
-  const error = useProvisionState(s => s.error)
-
-  const otherDevice = useProvisionState(s => s.codePageOtherDevice)
   const iconNumber = Devices.useDeviceIconNumber(otherDevice.id)
-  const textCode = useProvisionState(s => s.codePageIncomingTextCode)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const submitTextCode = useProvisionState(s => s.dispatch.dynamic.submitTextCode)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp

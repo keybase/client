@@ -28,10 +28,20 @@ const headerBackgroundColorType = (
 // )
 
 const useUserData = (username: string) => {
-  const d = useTrackerState(s => s.getDetails(username))
   const myName = useCurrentUserState(s => s.username)
-  const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === myName
+  const {d, getProofSuggestions, loadNonUserProfile, nonUserDetails, showUser, _suggestionKeys} =
+    useTrackerState(
+      C.useShallow(s => ({
+        _suggestionKeys: userIsYou ? s.proofSuggestions : undefined,
+        d: s.getDetails(username),
+        getProofSuggestions: s.dispatch.getProofSuggestions,
+        loadNonUserProfile: s.dispatch.loadNonUserProfile,
+        nonUserDetails: s.getNonUserDetails(username),
+        showUser: s.dispatch.showUser,
+      }))
+    )
+  const notAUser = d.state === 'notAUserYet'
 
   const commonProps = {
     _assertions: undefined,
@@ -55,10 +65,6 @@ const useUserData = (username: string) => {
   }
 
   const followThem = useFollowerState(s => s.following.has(username))
-  // const followsYou = useFollowerState(s => s.followers.has(username))
-  // const mutualFollow = followThem && followsYou
-  const _suggestionKeys = useTrackerState(s => (userIsYou ? s.proofSuggestions : undefined))
-  const nonUserDetails = useTrackerState(s => s.getNonUserDetails(username))
 
   const isDarkMode = useColorScheme() === 'dark'
   const stateProps = (() => {
@@ -117,17 +123,8 @@ const useUserData = (username: string) => {
 
   const editAvatar = useProfileState(s => s.dispatch.editAvatar)
   const _onEditAvatar = editAvatar
-  // const _onIKnowThem = (username: string, guiID: string) => {
-  //   dispatch(
-  //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
-  //   )
-  // }
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  const getProofSuggestions = useTrackerState(s => s.dispatch.getProofSuggestions)
-  const loadNonUserProfile = useTrackerState(s => s.dispatch.loadNonUserProfile)
   const _onReload = (username: string, isYou: boolean, state: T.Tracker.DetailsState) => {
     if (state !== 'valid' && !isYou) {
-      // Might be a Keybase user or not, launch non-user profile fetch.
       loadNonUserProfile(username)
     }
     if (state !== 'notAUserYet') {
@@ -138,11 +135,15 @@ const useUserData = (username: string) => {
       }
     }
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const {navigateAppend, navigateUp} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      navigateUp: s.dispatch.navigateUp,
+    }))
+  )
   const onAddIdentity = () => {
     navigateAppend('profileProofsList')
   }
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

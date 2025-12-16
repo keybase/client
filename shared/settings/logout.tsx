@@ -8,13 +8,33 @@ import {useSettingsState} from '@/constants/settings'
 import {useLogoutState} from '@/constants/logout'
 
 const LogoutContainer = () => {
-  const checkPasswordIsCorrect = useSettingsState(s => s.checkPasswordIsCorrect)
-  const resetCheckPassword = useSettingsState(s => s.dispatch.resetCheckPassword)
-  const checkPassword = useSettingsState(s => s.dispatch.checkPassword)
-  const hasRandomPW = usePWState(s => s.randomPW)
+  const {checkPassword, checkPasswordIsCorrect, resetCheckPassword} = useSettingsState(
+    C.useShallow(s => ({
+      checkPassword: s.dispatch.checkPassword,
+      checkPasswordIsCorrect: s.checkPasswordIsCorrect,
+      resetCheckPassword: s.dispatch.resetCheckPassword,
+    }))
+  )
+  const {
+    hasPGPKeyOnServer,
+    hasRandomPW,
+    loadHasRandomPw,
+    onUpdatePGPSettings,
+    setPasswordConfirm,
+    submitNewPassword,
+    _setPassword,
+  } = usePWState(
+    C.useShallow(s => ({
+      hasPGPKeyOnServer: !!s.hasPGPKeyOnServer,
+      hasRandomPW: s.randomPW,
+      loadHasRandomPw: s.dispatch.loadHasRandomPw,
+      onUpdatePGPSettings: s.dispatch.loadPgpSettings,
+      setPasswordConfirm: s.dispatch.setPasswordConfirm,
+      submitNewPassword: s.dispatch.submitNewPassword,
+      _setPassword: s.dispatch.setPassword,
+    }))
+  )
   const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
-
-  const loadHasRandomPw = usePWState(s => s.dispatch.loadHasRandomPw)
 
   const onBootstrap = loadHasRandomPw
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -31,10 +51,6 @@ const LogoutContainer = () => {
     resetCheckPassword()
   }, [resetCheckPassword, requestLogout])
 
-  const submitNewPassword = usePWState(s => s.dispatch.submitNewPassword)
-  const _setPassword = usePWState(s => s.dispatch.setPassword)
-  const setPasswordConfirm = usePWState(s => s.dispatch.setPasswordConfirm)
-
   const onSavePassword = React.useCallback(
     (password: string) => {
       _setPassword(password)
@@ -45,9 +61,6 @@ const LogoutContainer = () => {
   )
 
   const onLogout = useSafeSubmit(_onLogout, false)
-
-  const onUpdatePGPSettings = usePWState(s => s.dispatch.loadPgpSettings)
-  const hasPGPKeyOnServer = usePWState(s => !!s.hasPGPKeyOnServer)
 
   const [loggingOut, setLoggingOut] = React.useState(false)
   const [password, setPassword] = React.useState('')

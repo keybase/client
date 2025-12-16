@@ -26,15 +26,26 @@ function intersperseFn<A, B>(
 }
 
 const Invites = () => {
-  const acceptedInvites = useSettingsInvitesState(s => s.acceptedInvites)
-  const error = useSettingsInvitesState(s => s.error)
-  const pendingInvites = useSettingsInvitesState(s => s.pendingInvites)
+  const {
+    acceptedInvites,
+    error,
+    loadInvites,
+    pendingInvites,
+    reclaimInvite,
+    resetError,
+    sendInvite,
+  } = useSettingsInvitesState(
+    C.useShallow(s => ({
+      acceptedInvites: s.acceptedInvites,
+      error: s.error,
+      loadInvites: s.dispatch.loadInvites,
+      pendingInvites: s.pendingInvites,
+      reclaimInvite: s.dispatch.reclaimInvite,
+      resetError: s.dispatch.resetError,
+      sendInvite: s.dispatch.sendInvite,
+    }))
+  )
   const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
-
-  const resetError = useSettingsInvitesState(s => s.dispatch.resetError)
-  const sendInvite = useSettingsInvitesState(s => s.dispatch.sendInvite)
-  const reclaimInvite = useSettingsInvitesState(s => s.dispatch.reclaimInvite)
-  const loadInvites = useSettingsInvitesState(s => s.dispatch.loadInvites)
   const onClearError = resetError
   const onGenerateInvitation = sendInvite
   const onReclaimInvitation = reclaimInvite

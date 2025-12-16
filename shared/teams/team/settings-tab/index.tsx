@@ -362,25 +362,42 @@ export type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamMeta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID)) ?? Teams.emptyTeamDetails
+  const {
+    error,
+    _loadWelcomeMessage,
+    resetErrorInSettings,
+    setPublicity,
+    teamDetails,
+    teamMeta,
+    welcomeMessage,
+    yourOperations,
+  } = Teams.useTeamsState(
+    C.useShallow(s => {
+      const teamMeta = Teams.getTeamMeta(s, teamID)
+      const teamDetails = s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails
+      return {
+        _loadWelcomeMessage: s.dispatch.loadWelcomeMessage,
+        error: s.errorInSettings,
+        resetErrorInSettings: s.dispatch.resetErrorInSettings,
+        setPublicity: s.dispatch.setPublicity,
+        teamDetails,
+        teamMeta,
+        welcomeMessage: s.teamIDToWelcomeMessage.get(teamID),
+        yourOperations: Teams.getCanPerformByID(s, teamID),
+      }
+    })
+  )
   const publicityAnyMember = teamMeta.allowPromote
   const publicityMember = teamMeta.showcasing
   const publicityTeam = teamDetails.settings.teamShowcased
   const settings = teamDetails.settings
-  const welcomeMessage = Teams.useTeamsState(s => s.teamIDToWelcomeMessage.get(teamID))
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
-  const error = Teams.useTeamsState(s => s.errorInSettings)
   const ignoreAccessRequests = teamDetails.settings.tarsDisabled
   const isBigTeam = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
   const openTeam = settings.open
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname
   const waitingForWelcomeMessage = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoadWelcomeMessage(teamID))
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
-  const _loadWelcomeMessage = Teams.useTeamsState(s => s.dispatch.loadWelcomeMessage)
-  const resetErrorInSettings = Teams.useTeamsState(s => s.dispatch.resetErrorInSettings)
-  const setPublicity = Teams.useTeamsState(s => s.dispatch.setPublicity)
   const clearError = resetErrorInSettings
   const loadWelcomeMessage = React.useCallback(() => {
     _loadWelcomeMessage(teamID)

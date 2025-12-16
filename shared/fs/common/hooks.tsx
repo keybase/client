@@ -114,8 +114,6 @@ export const useFsPathInfo = (path: T.FS.Path, knownPathInfo: T.FS.PathInfo): T.
     if (alreadyKnown) {
       useFSState.getState().dispatch.loadedPathInfo(path, knownPathInfo)
     } else if (pathInfo === FS.emptyPathInfo) {
-      // We only need to load if it's empty. This never changes once we have
-      // it.
       useFSState.getState().dispatch.loadPathInfo(path)
     }
   }, [path, alreadyKnown, knownPathInfo, pathInfo])
@@ -128,10 +126,13 @@ export const useFsSoftError = (path: T.FS.Path): T.FS.SoftError | undefined => {
 }
 
 export const useFsDownloadInfo = (downloadID: string): T.FS.DownloadInfo => {
-  const info = useFSState(s => s.downloads.info.get(downloadID) || FS.emptyDownloadInfo)
-  const loadDownloadInfo = useFSState(s => s.dispatch.loadDownloadInfo)
+  const {info, loadDownloadInfo} = useFSState(
+    C.useShallow(s => ({
+      info: s.downloads.info.get(downloadID) || FS.emptyDownloadInfo,
+      loadDownloadInfo: s.dispatch.loadDownloadInfo,
+    }))
+  )
   React.useEffect(() => {
-    // This never changes, so simply just load it once.
     downloadID && loadDownloadInfo(downloadID)
   }, [downloadID, loadDownloadInfo])
   return info
@@ -139,7 +140,11 @@ export const useFsDownloadInfo = (downloadID: string): T.FS.DownloadInfo => {
 
 export const useFsDownloadStatus = () => {
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.downloadStatus)
-  const loadDownloadStatus = useFSState(s => s.dispatch.loadDownloadStatus)
+  const {loadDownloadStatus} = useFSState(
+    C.useShallow(s => ({
+      loadDownloadStatus: s.dispatch.loadDownloadStatus,
+    }))
+  )
   React.useEffect(() => {
     loadDownloadStatus()
   }, [loadDownloadStatus])
@@ -182,7 +187,11 @@ export const useFsWatchDownloadForMobile = C.isMobile
         }))
       )
       const finished = dlState !== FS.emptyDownloadState && !FS.downloadIsOngoing(dlState)
-      const mimeType = useFSState(s => s.fileContext.get(dlInfo.path) || FS.emptyFileContext).contentType
+      const {mimeType} = useFSState(
+        C.useShallow(s => ({
+          mimeType: (s.fileContext.get(dlInfo.path) || FS.emptyFileContext).contentType,
+        }))
+      )
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
 
