@@ -696,9 +696,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (existing) {
           // found an existing reaction. remove it from our list
           rs.users.delete(existing)
+        } else {
+          // no existing reaction. add this one to the map
+          rs.users.add(Message.makeReaction({timestamp: Date.now(), username}))
         }
-        // no existing reaction. add this one to the map
-        rs.users.add(Message.makeReaction({timestamp: Date.now(), username}))
         if (rs.users.size === 0) {
           m.reactions.delete(emoji)
         }
