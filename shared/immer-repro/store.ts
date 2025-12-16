@@ -1,3 +1,5 @@
+import {enableMapSet} from 'immer'
+enableMapSet()
 import {create} from 'zustand'
 import {immer} from 'zustand/middleware/immer'
 
@@ -51,28 +53,23 @@ export class ZStore {
     this.store.getState().setMessage(ordinal, message)
   }
 
-  toggleLocalReaction(p: {
-    decorated: string
-    emoji: string
-    targetOrdinal: number
-    username: string
-  }) {
+  toggleLocalReaction(p: {decorated: string; emoji: string; targetOrdinal: number; username: string}) {
     this.store.getState().toggleLocalReaction(p)
   }
 }
 
 const createStore = () => {
   return create<Store>()(
-    immer((set) => ({
+    immer(set => ({
       messageMap: new Map(),
       setMessage: (ordinal, message) => {
-        set((s) => {
+        set(s => {
           s.messageMap.set(ordinal, message)
         })
       },
-      toggleLocalReaction: (p) => {
+      toggleLocalReaction: p => {
         const {decorated, emoji, targetOrdinal, username} = p
-        set((s) => {
+        set(s => {
           const m = s.messageMap.get(targetOrdinal)
           if (m && isMessageWithReactions(m)) {
             const rs = {
@@ -83,7 +80,7 @@ const createStore = () => {
               m.reactions = new Map()
             }
             m.reactions.set(emoji, rs)
-            const existing = [...rs.users].find((r) => r.username === username)
+            const existing = [...rs.users].find(r => r.username === username)
             if (existing) {
               rs.users.delete(existing)
             }
@@ -97,4 +94,3 @@ const createStore = () => {
     }))
   )
 }
-
