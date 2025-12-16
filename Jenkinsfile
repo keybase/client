@@ -323,6 +323,13 @@ helpers.rootLinuxNode(env, {
                     export GOBIN="${HOME}/go/bin"
                     mkdir -p "${GOBIN}"
 
+                    # Clear any stale GOROOT/GOTOOLCHAIN that might point to wrong version
+                    unset GOROOT
+                    unset GOTOOLCHAIN
+
+                    # Remove any existing go wrapper/symlink to start fresh
+                    rm -f "${GOBIN}/go"
+
                     echo "Installing go1.25.5..."
                     go install golang.org/dl/go1.25.5@latest
 
