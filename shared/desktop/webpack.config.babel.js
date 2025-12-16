@@ -16,7 +16,7 @@ const elecVersion = require('../package.json').devDependencies.electron
 // true if you want to debug unused code. This makes single chunks so you can grep for 'unused harmony' in the output in desktop/dist
 const debugUnusedChunks = false
 const enableCircularDepCheck = false
-const evalDevtools = true
+const evalDevtools = false
 
 if (enableWDYR || debugUnusedChunks || enableCircularDepCheck || evalDevtools) {
   for (let i = 0; i < 10; ++i) {
