@@ -312,31 +312,34 @@ helpers.rootLinuxNode(env, {
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
-                def GOBIN_WIN="${env.USERPROFILE}\\go\\bin"
-                def GOBIN_UNIX="${env.USERPROFILE}/go/bin"
 
                 // Install Go 1.25.5 on Windows (using Git Bash for Unix-like symlink support)
                 // Need to add existing Go to PATH first so we can run 'go install'
                 withEnv([
                   "PATH=C:\\tools\\go\\bin;${WINDOWS_PATH}",
                 ]) {
-                  sh """
-                    export GOBIN="${GOBIN_UNIX}"
-                    mkdir -p "\${GOBIN}"
+                  sh '''
+                    # Use HOME in Git Bash which gives us Unix-style paths
+                    export GOBIN="${HOME}/go/bin"
+                    mkdir -p "${GOBIN}"
 
                     echo "Installing go1.25.5..."
                     go install golang.org/dl/go1.25.5@latest
 
                     echo "Downloading Go 1.25.5 SDK..."
-                    "\${GOBIN}/go1.25.5" download
+                    "${GOBIN}/go1.25.5" download
 
                     # Create symlink so 'go' invokes go1.25.5 (Git Bash handles .exe transparently)
-                    ln -sf "\${GOBIN}/go1.25.5" "\${GOBIN}/go"
+                    ln -sf "${GOBIN}/go1.25.5" "${GOBIN}/go"
 
                     echo "Go 1.25.5 installed successfully"
-                    "\${GOBIN}/go" version
-                  """
+                    "${GOBIN}/go" version
+                  '''
                 }
+
+                // Capture GOBIN and GOROOT for use in subsequent commands
+                def GOBIN_UNIX = sh(returnStdout: true, script: 'echo $HOME/go/bin').trim()
+                def GOBIN_WIN = GOBIN_UNIX.replaceAll('/', '\\\\')
 
                 withEnv([
                   "GOROOT=${sh(returnStdout: true, script: "\"${GOBIN_UNIX}/go\" env GOROOT").trim()}",
