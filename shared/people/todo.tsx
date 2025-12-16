@@ -54,8 +54,12 @@ function makeDefaultButtons(
 }
 
 const AddEmailConnector = (props: TodoOwnProps) => {
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const {navigateAppend, switchTab} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      switchTab: s.dispatch.switchTab,
+    }))
+  )
   const onConfirm = () => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend(settingsAccountTab)
@@ -67,8 +71,12 @@ const AddEmailConnector = (props: TodoOwnProps) => {
 }
 
 const AddPhoneNumberConnector = (props: TodoOwnProps) => {
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const {navigateAppend, switchTab} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      switchTab: s.dispatch.switchTab,
+    }))
+  )
   const onConfirm = () => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend(settingsAccountTab)
@@ -166,8 +174,12 @@ const FolderConnector = (props: TodoOwnProps) => {
 }
 
 const GitRepoConnector = (props: TodoOwnProps) => {
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const {navigateAppend, switchTab} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      switchTab: s.dispatch.switchTab,
+    }))
+  )
   const onConfirm = (isTeam: boolean) => {
     if (C.isMobile) {
       navigateAppend(settingsGitTab)
@@ -204,15 +216,23 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
-  const addingEmail = useSettingsEmailState(s => s.addingEmail)
+  const {addingEmail, editEmail} = useSettingsEmailState(
+    C.useShallow(s => ({
+      addingEmail: s.addingEmail,
+      editEmail: s.dispatch.editEmail,
+    }))
+  )
   const setResentEmail = usePeopleState(s => s.dispatch.setResentEmail)
-  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
     editEmail({email, verify: true})
     setResentEmail(email)
   }
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const {navigateAppend, switchTab} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      switchTab: s.dispatch.switchTab,
+    }))
+  )
   const onManage = () => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend(settingsAccountTab)
@@ -246,12 +266,16 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
 
 const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
   const resendVerificationForPhone = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const {navigateAppend, switchTab} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      switchTab: s.dispatch.switchTab,
+    }))
+  )
   const onConfirm = (phoneNumber: string) => {
     resendVerificationForPhone(phoneNumber)
     navigateAppend('settingsVerifyPhone')
   }
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onManage = () => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend(settingsAccountTab)
@@ -280,8 +304,12 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
 
 const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
   const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const {navigateAppend, switchTab} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      switchTab: s.dispatch.switchTab,
+    }))
+  )
   const onConfirm = (email: string) => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend(settingsAccountTab)

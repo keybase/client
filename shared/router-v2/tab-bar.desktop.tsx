@@ -51,7 +51,11 @@ const Header = () => {
     startProvision()
   }, [startProvision])
   const onHelp = React.useCallback(() => openURL('https://book.keybase.io'), [])
-  const dumpLogs = useConfigState(s => s.dispatch.dumpLogs)
+  const {dumpLogs} = useConfigState(
+    C.useShallow(s => ({
+      dumpLogs: s.dispatch.dumpLogs,
+    }))
+  )
   const onQuit = React.useCallback(() => {
     if (!__DEV__) {
       if (isLinux) {
@@ -60,16 +64,19 @@ const Header = () => {
         C.ignorePromise(dumpLogs('quitting through menu'))
       }
     }
-    // In case dump log doesn't exit for us
     hideWindow?.()
     setTimeout(() => {
       ctlQuit?.()
     }, 2000)
   }, [dumpLogs])
 
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const {navigateAppend, switchTab} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      switchTab: s.dispatch.switchTab,
+    }))
+  )
   const onSettings = React.useCallback(() => switchTab(Tabs.settingsTab), [switchTab])
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSignOut = React.useCallback(() => navigateAppend(settingsLogOutTab), [navigateAppend])
 
   const makePopup = React.useCallback(
@@ -223,7 +230,11 @@ type TabProps = {
 const TabBadge = (p: {name: Tabs.Tab}) => {
   const {name} = p
   const badgeNumbers = useNotifState(s => s.navBadges)
-  const fsCriticalUpdate = useFSState(s => s.criticalUpdate)
+  const {fsCriticalUpdate} = useFSState(
+    C.useShallow(s => ({
+      fsCriticalUpdate: s.criticalUpdate,
+    }))
+  )
   const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
 }
@@ -233,8 +244,12 @@ const Tab = React.memo(function Tab(props: TabProps) {
   const isPeopleTab = index === 0
   const {label} = Tabs.desktopTabMeta[tab]
   const current = useCurrentUserState(s => s.username)
-  const setUserSwitching = useConfigState(s => s.dispatch.setUserSwitching)
-  const login = useConfigState(s => s.dispatch.login)
+  const {login, setUserSwitching} = useConfigState(
+    C.useShallow(s => ({
+      login: s.dispatch.login,
+      setUserSwitching: s.dispatch.setUserSwitching,
+    }))
+  )
   const onQuickSwitch = React.useMemo(
     () =>
       isPeopleTab

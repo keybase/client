@@ -12,22 +12,38 @@ import {useConfigState} from '@/constants/config'
 const emptyList = new Array<string>()
 
 const Security = () => {
-  const groups = useSettingsNotifState(s => s.groups)
-  const allowEdit = useSettingsNotifState(s => s.allowEdit)
-  const contactSettingsError = useSettingsChatState(s => s.contactSettings.error)
-  const contactSettingsSaved = useSettingsChatState(s => s.dispatch.contactSettingsSaved)
+  const {allowEdit, groups, notifRefresh} = useSettingsNotifState(
+    C.useShallow(s => ({
+      allowEdit: s.allowEdit,
+      groups: s.groups,
+      notifRefresh: s.dispatch.refresh,
+    }))
+  )
+  const {
+    _contactSettingsEnabled,
+    _contactSettingsIndirectFollowees,
+    _contactSettingsTeams,
+    _contactSettingsTeamsEnabled,
+    contactSettingsError,
+    contactSettingsRefresh,
+    contactSettingsSaved,
+  } = useSettingsChatState(
+    C.useShallow(s => ({
+      _contactSettingsEnabled: s.contactSettings.settings?.enabled,
+      _contactSettingsIndirectFollowees: s.contactSettings.settings?.allowFolloweeDegrees === 2,
+      _contactSettingsTeams: s.contactSettings.settings?.teams,
+      _contactSettingsTeamsEnabled: s.contactSettings.settings?.allowGoodTeams,
+      contactSettingsError: s.contactSettings.error,
+      contactSettingsRefresh: s.dispatch.contactSettingsRefresh,
+      contactSettingsSaved: s.dispatch.contactSettingsSaved,
+    }))
+  )
   const onContactSettingsSave = contactSettingsSaved
   const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
-  const _contactSettingsEnabled = useSettingsChatState(s => s.contactSettings.settings?.enabled)
   const _teamMeta = Teams.useTeamsState(s => s.teamMeta)
   const teamMeta = Teams.sortTeamsByName(_teamMeta)
 
   const [contactSettingsEnabled, setContactSettingsEnabled] = React.useState(_contactSettingsEnabled)
-  const _contactSettingsIndirectFollowees = useSettingsChatState(
-    s => s.contactSettings.settings?.allowFolloweeDegrees === 2
-  )
-  const _contactSettingsTeams = useSettingsChatState(s => s.contactSettings.settings?.teams)
-  const _contactSettingsTeamsEnabled = useSettingsChatState(s => s.contactSettings.settings?.allowGoodTeams)
   const [contactSettingsIndirectFollowees, setContactSettingsIndirectFollowees] = React.useState(
     _contactSettingsIndirectFollowees
   )
@@ -97,8 +113,6 @@ const Security = () => {
     }
   }, [_contactSettingsSelectedTeams, contactSettingsSelectedTeams])
 
-  const contactSettingsRefresh = useSettingsChatState(s => s.dispatch.contactSettingsRefresh)
-  const notifRefresh = useSettingsNotifState(s => s.dispatch.refresh)
   const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
   const onRefresh = React.useCallback(() => {
     loadSettings()
@@ -211,17 +225,20 @@ const Security = () => {
 }
 
 const Links = () => {
-  const whitelist = useSettingsChatState(s => s.unfurl.unfurlWhitelist ?? emptyList)
-  const mode = useSettingsChatState(s => s.unfurl.unfurlMode)
+  const {error, mode, onUnfurlSave, unfurlSettingsRefresh, whitelist} = useSettingsChatState(
+    C.useShallow(s => ({
+      error: s.unfurl.unfurlError,
+      mode: s.unfurl.unfurlMode,
+      onUnfurlSave: s.dispatch.unfurlSettingsSaved,
+      unfurlSettingsRefresh: s.dispatch.unfurlSettingsRefresh,
+      whitelist: s.unfurl.unfurlWhitelist ?? emptyList,
+    }))
+  )
   const [selected, setSelected] = React.useState(mode)
   const [unfurlWhitelistRemoved, setUnfurlWhitelistRemoved] = React.useState<{[K in string]: boolean}>({})
-  const error = useSettingsChatState(s => s.unfurl.unfurlError)
   const getUnfurlWhitelist = (filtered: boolean) =>
     filtered ? whitelist.filter(w => !unfurlWhitelistRemoved[w]) : whitelist
   const allowSave = mode !== selected || Object.keys(unfurlWhitelistRemoved).length > 0
-  const unfurlSettingsRefresh = useSettingsChatState(s => s.dispatch.unfurlSettingsRefresh)
-
-  const onUnfurlSave = useSettingsChatState(s => s.dispatch.unfurlSettingsSaved)
   const onSave = () => {
     const next = whitelist.filter(w => {
       return !unfurlWhitelistRemoved[w]
@@ -347,12 +364,20 @@ const Links = () => {
 }
 
 const Sound = () => {
-  const onToggleSound = useConfigState(s => s.dispatch.setNotifySound)
-  const sound = useConfigState(s => s.notifySound) // desktop
-  const allowEdit = useSettingsNotifState(s => s.allowEdit)
+  const {onToggleSound, sound} = useConfigState(
+    C.useShallow(s => ({
+      onToggleSound: s.dispatch.setNotifySound,
+      sound: s.notifySound,
+    }))
+  )
+  const {allowEdit, groups, onToggle} = useSettingsNotifState(
+    C.useShallow(s => ({
+      allowEdit: s.allowEdit,
+      groups: s.groups,
+      onToggle: s.dispatch.toggle,
+    }))
+  )
   const showDesktopSound = !C.isMobile && !C.isLinux
-  const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
-  const groups = useSettingsNotifState(s => s.groups)
   const showMobileSound = !!groups.get('sound')?.settings.length
   if (!showDesktopSound && !showMobileSound) return null
   return (
@@ -380,10 +405,14 @@ const Sound = () => {
 }
 
 const Misc = () => {
-  const allowEdit = useSettingsNotifState(s => s.allowEdit)
-  const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
+  const {allowEdit, groups, onToggle} = useSettingsNotifState(
+    C.useShallow(s => ({
+      allowEdit: s.allowEdit,
+      groups: s.groups,
+      onToggle: s.dispatch.toggle,
+    }))
+  )
   const showMisc = C.isMac || C.isIOS
-  const groups = useSettingsNotifState(s => s.groups)
   if (!showMisc) return null
   return (
     <>

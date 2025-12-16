@@ -13,8 +13,12 @@ let initialUseNativeFrame: boolean | undefined
 const showMakeIcons = __DEV__ && (false as boolean)
 
 const UseNativeFrame = () => {
-  const useNativeFrame = useConfigState(s => s.useNativeFrame)
-  const onChangeUseNativeFrame = useConfigState(s => s.dispatch.setUseNativeFrame)
+  const {onChangeUseNativeFrame, useNativeFrame} = useConfigState(
+    C.useShallow(s => ({
+      onChangeUseNativeFrame: s.dispatch.setUseNativeFrame,
+      useNativeFrame: s.useNativeFrame,
+    }))
+  )
   React.useEffect(() => {
     if (initialUseNativeFrame === undefined) {
       initialUseNativeFrame = useNativeFrame
@@ -38,8 +42,12 @@ const UseNativeFrame = () => {
 
 const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean}) => {
   const {hasRandomPW, settingLockdownMode} = p
-  const lockdownModeEnabled = useSettingsState(s => !!s.lockdownModeEnabled)
-  const setLockdownMode = useSettingsState(s => s.dispatch.setLockdownMode)
+  const {lockdownModeEnabled, setLockdownMode} = useSettingsState(
+    C.useShallow(s => ({
+      lockdownModeEnabled: !!s.lockdownModeEnabled,
+      setLockdownMode: s.dispatch.setLockdownMode,
+    }))
+  )
   const onChangeLockdownMode = setLockdownMode
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
   const checked = hasRandomPW || !!lockdownModeEnabled
@@ -76,13 +84,29 @@ let disableSpellCheckInitialValue: boolean | undefined
 
 const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(C.waitingKeySettingsSetLockdownMode)
-  const hasRandomPW = usePWState(s => !!s.randomPW)
-  const openAtLogin = useConfigState(s => s.openAtLogin)
-  const rememberPassword = usePWState(s => s.rememberPassword)
+  const {hasRandomPW, loadHasRandomPw, loadRememberPassword, rememberPassword, setRememberPassword} =
+    usePWState(
+      C.useShallow(s => ({
+        hasRandomPW: !!s.randomPW,
+        loadHasRandomPw: s.dispatch.loadHasRandomPw,
+        loadRememberPassword: s.dispatch.loadRememberPassword,
+        rememberPassword: s.rememberPassword,
+        setRememberPassword: s.dispatch.setRememberPassword,
+      }))
+    )
+  const {onSetOpenAtLogin, openAtLogin} = useConfigState(
+    C.useShallow(s => ({
+      onSetOpenAtLogin: s.dispatch.setOpenAtLogin,
+      openAtLogin: s.openAtLogin,
+    }))
+  )
+  const {loadLockdownMode} = useSettingsState(
+    C.useShallow(s => ({
+      loadLockdownMode: s.dispatch.loadLockdownMode,
+    }))
+  )
   const setLockdownModeError = C.Waiting.useAnyErrors(C.waitingKeySettingsSetLockdownMode)?.message || ''
-  const setRememberPassword = usePWState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
-  const onSetOpenAtLogin = useConfigState(s => s.dispatch.setOpenAtLogin)
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
   const loadDisableSpellcheck = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
@@ -128,10 +152,6 @@ const Advanced = () => {
       }
     )
   }
-
-  const loadHasRandomPw = usePWState(s => s.dispatch.loadHasRandomPw)
-  const loadRememberPassword = usePWState(s => s.dispatch.loadRememberPassword)
-  const loadLockdownMode = useSettingsState(s => s.dispatch.loadLockdownMode)
 
   React.useEffect(() => {
     loadHasRandomPw()
@@ -220,12 +240,15 @@ const Developer = () => {
 
   const showPprofControls = clickCount >= clickThreshold
   const traceInProgress = C.Waiting.useAnyWaiting(traceInProgressKey)
-
-  const trace = useSettingsState(s => s.dispatch.trace)
-  const processorProfile = useSettingsState(s => s.dispatch.processorProfile)
-  const onTrace = trace
+  const {onProcessorProfile, onTrace} = useSettingsState(
+    C.useShallow(s => ({
+      onProcessorProfile: s.dispatch.processorProfile,
+      onTrace: s.dispatch.trace,
+    }))
+  )
+  const trace = onTrace
+  const processorProfile = onProcessorProfile
   const processorProfileInProgress = C.Waiting.useAnyWaiting(processorProfileInProgressKey)
-  const onProcessorProfile = processorProfile
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDBNuke = () => navigateAppend('dbNukeConfirm')
   const onMakeIcons = () => navigateAppend('makeIcons')

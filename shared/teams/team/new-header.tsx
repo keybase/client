@@ -27,9 +27,13 @@ const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
 }
 type FeatureTeamCardProps = {teamID: T.Teams.TeamID}
 const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
-  const setMemberPublicity = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
+  const {setJustFinishedAddMembersWizard, setMemberPublicity} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      setJustFinishedAddMembersWizard: s.dispatch.setJustFinishedAddMembersWizard,
+      setMemberPublicity: s.dispatch.setMemberPublicity,
+    }))
+  )
   const onFeature = () => setMemberPublicity(teamID, true)
-  const setJustFinishedAddMembersWizard = Teams.useTeamsState(s => s.dispatch.setJustFinishedAddMembersWizard)
   const onNoThanks = React.useCallback(() => {
     setJustFinishedAddMembersWizard(false)
   }, [setJustFinishedAddMembersWizard])
@@ -88,12 +92,22 @@ const roleDisplay = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
-  const meta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  const details = Teams.useTeamsState(s => s.teamDetails.get(teamID))
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
-  const justFinishedAddWizard = Teams.useTeamsState(s => s.addMembersWizard.justFinished)
+  const {
+    activityLevel,
+    details,
+    justFinishedAddWizard,
+    meta,
+    yourOperations,
+  } = Teams.useTeamsState(
+    C.useShallow(s => ({
+      activityLevel: s.activityLevels.teams.get(teamID) || 'none',
+      details: s.teamDetails.get(teamID),
+      justFinishedAddWizard: s.addMembersWizard.justFinished,
+      meta: Teams.getTeamMeta(s, teamID),
+      yourOperations: Teams.getCanPerformByID(s, teamID),
+    }))
+  )
   useActivityLevels()
-  const activityLevel = Teams.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
   const makePopup = React.useCallback(
@@ -272,11 +286,20 @@ export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const nav = useSafeNavigation()
-  const meta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const {
+    addMembersWizardPushMembers,
+    meta,
+    startAddMembersWizard,
+    yourOperations,
+  } = Teams.useTeamsState(
+    C.useShallow(s => ({
+      addMembersWizardPushMembers: s.dispatch.addMembersWizardPushMembers,
+      meta: Teams.getTeamMeta(s, teamID),
+      startAddMembersWizard: s.dispatch.startAddMembersWizard,
+      yourOperations: Teams.getCanPerformByID(s, teamID),
+    }))
+  )
   const yourUsername = useCurrentUserState(s => s.username)
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
-  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const addMembersWizardPushMembers = Teams.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 
   const onAddSelf = () => {
     startAddMembersWizard(teamID)
