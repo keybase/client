@@ -2957,7 +2957,7 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 					return nil
 				}
 				return append([]byte{}, x...)
-			})(x)
+			})((*x))
 			return &tmp
 		})(o.VerificationKey),
 		SenderDeviceRevokedAt: (func(x *gregor1.Time) *gregor1.Time {
@@ -5082,7 +5082,7 @@ func (o PreviewLocation) DeepCopy() PreviewLocation {
 					return nil
 				}
 				return append([]byte{}, x...)
-			})(x)
+			})((*x))
 			return &tmp
 		})(o.Bytes__),
 	}
