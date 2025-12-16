@@ -49,12 +49,8 @@ const ChannelMemberRow = (props: Props) => {
       yourOperations: Teams.getCanPerformByID(s, teamID),
     }))
   )
-  const {
-    channelSelectedMembers,
-    channelSetMemberSelected,
-    teamMemberInfo,
-    yourOperations,
-  } = teamsState
+  const {channelSelectedMembers, channelSetMemberSelected} = teamsState
+  const {teamMemberInfo, yourOperations} = teamsState
   const you = useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'

@@ -378,16 +378,8 @@ const Container = (ownProps: OwnProps) => {
       }
     })
   )
-  const {
-    error,
-    _loadWelcomeMessage,
-    resetErrorInSettings,
-    setPublicity,
-    teamDetails,
-    teamMeta,
-    welcomeMessage,
-    yourOperations,
-  } = teamsState
+  const {error, _loadWelcomeMessage, resetErrorInSettings, setPublicity, teamDetails} = teamsState
+  const {teamMeta, welcomeMessage, yourOperations} = teamsState
   const publicityAnyMember = teamMeta.allowPromote
   const publicityMember = teamMeta.showcasing
   const publicityTeam = teamDetails.settings.teamShowcased

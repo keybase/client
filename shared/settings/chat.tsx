@@ -30,15 +30,9 @@ const Security = () => {
       contactSettingsSaved: s.dispatch.contactSettingsSaved,
     }))
   )
-  const {
-    _contactSettingsEnabled,
-    _contactSettingsIndirectFollowees,
-    _contactSettingsTeams,
-    _contactSettingsTeamsEnabled,
-    contactSettingsError,
-    contactSettingsRefresh,
-    contactSettingsSaved,
-  } = chatState
+  const {_contactSettingsEnabled, _contactSettingsIndirectFollowees, _contactSettingsTeams} = chatState
+  const {_contactSettingsTeamsEnabled, contactSettingsError, contactSettingsRefresh, contactSettingsSaved} =
+    chatState
   const onContactSettingsSave = contactSettingsSaved
   const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
   const _teamMeta = Teams.useTeamsState(s => s.teamMeta)

@@ -140,15 +140,8 @@ export const Phone = () => {
       pendingVerification: s.pendingVerification,
     }))
   )
-  const {
-    addPhoneNumber,
-    clearPhoneNumberAdd,
-    clearPhoneNumberErrors,
-    defaultCountry,
-    error,
-    loadDefaultPhoneCountry,
-    pendingVerification,
-  } = phoneState
+  const {addPhoneNumber, clearPhoneNumberAdd, clearPhoneNumberErrors, defaultCountry} = phoneState
+  const {error, loadDefaultPhoneCountry, pendingVerification} = phoneState
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneAddPhoneNumber)
 
   // clean only errors on unmount so verify screen still has info
@@ -256,14 +249,8 @@ export const VerifyPhone = () => {
       verifyPhoneNumber: s.dispatch.verifyPhoneNumber,
     }))
   )
-  const {
-    clearPhoneNumberAdd,
-    error,
-    pendingVerification,
-    resendVerificationForPhone,
-    verificationState,
-    verifyPhoneNumber,
-  } = phoneState
+  const {clearPhoneNumberAdd, error, pendingVerification} = phoneState
+  const {resendVerificationForPhone, verificationState, verifyPhoneNumber} = phoneState
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const resendWaiting = C.Waiting.useAnyWaiting([
     C.waitingKeySettingsPhoneAddPhoneNumber,

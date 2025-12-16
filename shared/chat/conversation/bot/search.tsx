@@ -35,17 +35,9 @@ const SearchBotPopup = (props: Props) => {
       setSearchFeaturedAndUsersResults: s.dispatch.setSearchFeaturedAndUsersResults,
     }))
   )
-  const {
-    botSearchResults,
-    featuredBotsMap,
-    getFeaturedBots,
-    searchFeaturedAndUsers,
-    setSearchFeaturedAndUsersResults,
-  } = botsState
-  const waiting = C.Waiting.useAnyWaiting([
-    C.waitingKeyBotsSearchUsers,
-    C.waitingKeyBotsSearchFeatured,
-  ])
+  const {botSearchResults, featuredBotsMap, getFeaturedBots} = botsState
+  const {searchFeaturedAndUsers, setSearchFeaturedAndUsersResults} = botsState
+  const waiting = C.Waiting.useAnyWaiting([C.waitingKeyBotsSearchUsers, C.waitingKeyBotsSearchFeatured])
   const {clearModals, navigateAppend} = C.useRouterState(
     C.useShallow(s => ({
       clearModals: s.dispatch.clearModals,

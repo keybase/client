@@ -97,13 +97,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       startAddMembersWizard: s.dispatch.startAddMembersWizard,
     }))
   )
-  const {
-    addTeamWithChosenChannels,
-    badgeSubscribe,
-    canAddPeople,
-    manageChatChannels,
-    startAddMembersWizard,
-  } = teamsState
+  const {addTeamWithChosenChannels, badgeSubscribe, canAddPeople} = teamsState
+  const {manageChatChannels, startAddMembersWizard} = teamsState
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)
   }, [startAddMembersWizard, teamID])

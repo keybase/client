@@ -114,14 +114,8 @@ const Container = (ownProps: OwnProps) => {
       }
     })
   )
-  const {
-    error,
-    newTeamRequests,
-    resetUserCount,
-    teamDetails,
-    teamMeta,
-    yourOperations,
-  } = teamsState
+  const {error, newTeamRequests, resetUserCount, teamDetails} = teamsState
+  const {teamMeta, yourOperations} = teamsState
 
   const admin = yourOperations.manageMembers
   const isBig = Chat.useChatState(s => Chat.isBigTeam(s, teamID))

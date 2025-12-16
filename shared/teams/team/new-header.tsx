@@ -101,13 +101,8 @@ const HeaderTitle = (props: HeaderTitleProps) => {
       yourOperations: Teams.getCanPerformByID(s, teamID),
     }))
   )
-  const {
-    activityLevel,
-    details,
-    justFinishedAddWizard,
-    meta,
-    yourOperations,
-  } = teamsState
+  const {activityLevel, details, justFinishedAddWizard} = teamsState
+  const {meta, yourOperations} = teamsState
   useActivityLevels()
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
@@ -287,12 +282,7 @@ export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const nav = useSafeNavigation()
-  const {
-    addMembersWizardPushMembers,
-    meta,
-    startAddMembersWizard,
-    yourOperations,
-  } = Teams.useTeamsState(
+  const {addMembersWizardPushMembers, meta, startAddMembersWizard, yourOperations} = Teams.useTeamsState(
     C.useShallow(s => ({
       addMembersWizardPushMembers: s.dispatch.addMembersWizardPushMembers,
       meta: Teams.getTeamMeta(s, teamID),

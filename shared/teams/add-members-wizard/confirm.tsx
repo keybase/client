@@ -43,15 +43,8 @@ const AddMembersConfirm = () => {
       }
     })
   )
-  const {
-    addMembersWizard,
-    cancelAddMembersWizard,
-    finishedAddMembersWizard,
-    finishNewTeamWizard,
-    isInTeam,
-    isSubteam,
-    newTeamWizErr,
-  } = teamsState
+  const {addMembersWizard, cancelAddMembersWizard, finishedAddMembersWizard, finishNewTeamWizard} = teamsState
+  const {isInTeam, isSubteam, newTeamWizErr} = teamsState
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = addMembersWizard
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
   const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : Chat.isBigTeam(s, teamID)))

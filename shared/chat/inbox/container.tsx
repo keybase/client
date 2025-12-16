@@ -89,15 +89,8 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
       }
     })
   )
-  const {
-    allowShowFloatingButton,
-    inboxHasLoaded,
-    inboxNumSmallRows,
-    inboxRefresh,
-    queueMetaToRequest,
-    setInboxNumSmallRows,
-    toggleSmallTeamsExpanded,
-  } = chatState
+  const {allowShowFloatingButton, inboxHasLoaded, inboxNumSmallRows, inboxRefresh} = chatState
+  const {queueMetaToRequest, setInboxNumSmallRows, toggleSmallTeamsExpanded} = chatState
   const isFocused = useIsFocused()
 
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
@@ -151,13 +144,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
 const noSmallTeams = new Array<T.RPCChat.UIInboxSmallTeamRow>()
 const noBigTeams = new Array<T.RPCChat.UIInboxBigTeamRow>()
 const Connected = (ownProps: OwnProps) => {
-  const {
-    inboxHasLoaded,
-    inboxLayout: _inboxLayout,
-    inboxNumSmallRows,
-    isSearching,
-    smallTeamsExpanded,
-  } = Chat.useChatState(
+  const chatState = Chat.useChatState(
     C.useShallow(s => ({
       inboxHasLoaded: s.inboxHasLoaded,
       inboxLayout: s.inboxLayout,
@@ -166,6 +153,8 @@ const Connected = (ownProps: OwnProps) => {
       smallTeamsExpanded: s.smallTeamsExpanded,
     }))
   )
+  const {inboxHasLoaded, inboxLayout: _inboxLayout, inboxNumSmallRows} = chatState
+  const {isSearching, smallTeamsExpanded} = chatState
   const {conversationIDKey} = ownProps
   const neverLoaded = !inboxHasLoaded
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey

@@ -37,15 +37,8 @@ const Invites = () => {
       sendInvite: s.dispatch.sendInvite,
     }))
   )
-  const {
-    acceptedInvites,
-    error,
-    loadInvites,
-    pendingInvites,
-    reclaimInvite,
-    resetError,
-    sendInvite,
-  } = invitesState
+  const {acceptedInvites, error, loadInvites, pendingInvites} = invitesState
+  const {reclaimInvite, resetError, sendInvite} = invitesState
   const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
   const onClearError = resetError
   const onGenerateInvitation = sendInvite

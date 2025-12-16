@@ -24,13 +24,8 @@ const Container = (ownProps: OwnProps) => {
       showTeamByName: s.dispatch.showTeamByName,
     }))
   )
-  const {
-    joinTeam,
-    showTeamByName,
-    _roles,
-    _teamNameToID,
-    _youAreInTeams,
-  } = teamsState
+  const {joinTeam, showTeamByName, _roles} = teamsState
+  const {_teamNameToID, _youAreInTeams} = teamsState
   const teamShowcase = d.teamShowcase || noTeams
   const {clearModals, navigateAppend} = C.useRouterState(
     C.useShallow(s => ({

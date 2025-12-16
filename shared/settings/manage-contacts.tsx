@@ -19,13 +19,8 @@ const ManageContacts = () => {
       status: s.permissionStatus,
     }))
   )
-  const {
-    contactsImported,
-    editContactImportEnabled,
-    loadContactImportEnabled,
-    requestPermissions,
-    status,
-  } = contactsState
+  const {contactsImported, editContactImportEnabled, loadContactImportEnabled} = contactsState
+  const {requestPermissions, status} = contactsState
   const waiting = C.Waiting.useAnyWaiting(C.importContactsWaitingKey)
 
   if (contactsImported === undefined) {

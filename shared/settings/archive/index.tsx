@@ -146,12 +146,8 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
       loadKBFSJobFreshness: s.dispatch.loadKBFSJobFreshness,
     }))
   )
-  const {
-    cancelOrDismiss,
-    currentTLFRevision,
-    job,
-    loadKBFSJobFreshness,
-  } = archiveState
+  const {cancelOrDismiss, currentTLFRevision} = archiveState
+  const {job, loadKBFSJobFreshness} = archiveState
   C.useOnMountOnce(() => {
     loadKBFSJobFreshness(id)
   })
@@ -342,13 +338,7 @@ const Archive = () => {
       }
     })
   )
-  const {
-    chatJobMap,
-    clearCompleted,
-    kbfsJobMap,
-    load,
-    showClear,
-  } = archiveState
+  const {chatJobMap, clearCompleted, kbfsJobMap, load, showClear} = archiveState
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   C.Router2.useSafeFocusEffect(
@@ -461,4 +451,3 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default Archive
-
