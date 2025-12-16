@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"golang.org/x/crypto/ssh/terminal"
+	"github.com/keybase/go-crypto/ssh/terminal"
 )
 
 // MinTerm is a minimal terminal interface.
