@@ -323,9 +323,11 @@ helpers.rootLinuxNode(env, {
                     export GOBIN="${HOME}/go/bin"
                     mkdir -p "${GOBIN}"
 
-                    # Clear any stale GOROOT/GOTOOLCHAIN that might point to wrong version
+                    # Clear environment variables that might have Windows-style paths
                     unset GOROOT
                     unset GOTOOLCHAIN
+                    unset GOPATH
+                    unset GOMODCACHE
 
                     # Remove any existing go wrapper/symlink to start fresh
                     rm -f "${GOBIN}/go"
