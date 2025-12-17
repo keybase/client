@@ -33,7 +33,8 @@ type copyUnmergedEntryAction struct {
 }
 
 func fixupNamesInOps(fromName string, toName string, ops []op,
-	chains *crChains) (retOps []op) {
+	chains *crChains,
+) (retOps []op) {
 	retOps = make([]op, 0, len(ops))
 	for _, uop := range ops {
 		done := false
@@ -77,7 +78,8 @@ func fixupNamesInOps(fromName string, toName string, ops []op,
 
 func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 	ctx context.Context, unmergedChains, mergedChains *crChains,
-	unmergedDir *data.DirData) (bool, data.BlockPointer, error) {
+	unmergedDir *data.DirData,
+) (bool, data.BlockPointer, error) {
 	if cuea.symPath.Plaintext() != "" {
 		return false, data.ZeroPtr, nil
 	}
@@ -129,8 +131,7 @@ func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 		parentOrig = ri.originalOldParent
 		newName = ri.oldName
 	}
-	parentMostRecent, err :=
-		mergedChains.mostRecentFromOriginalOrSame(parentOrig)
+	parentMostRecent, err := mergedChains.mostRecentFromOriginalOrSame(parentOrig)
 	if err != nil {
 		return false, data.ZeroPtr, err
 	}
@@ -140,7 +141,8 @@ func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 
 func uniquifyName(
 	ctx context.Context, dir *data.DirData, name data.PathPartString) (
-	data.PathPartString, error) {
+	data.PathPartString, error,
+) {
 	_, err := dir.Lookup(ctx, name)
 	switch errors.Cause(err).(type) {
 	case nil:
@@ -170,7 +172,8 @@ func uniquifyName(
 
 func (cuea *copyUnmergedEntryAction) do(
 	ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
-	unmergedDir, mergedDir *data.DirData) ([]data.BlockInfo, error) {
+	unmergedDir, mergedDir *data.DirData,
+) ([]data.BlockInfo, error) {
 	// Find the unmerged entry
 	unmergedEntry, err := unmergedDir.Lookup(ctx, cuea.fromName)
 	if err != nil {
@@ -232,7 +235,8 @@ func (cuea *copyUnmergedEntryAction) do(
 }
 
 func prependOpsToChain(mostRecent data.BlockPointer, chains *crChains,
-	newOps ...op) error {
+	newOps ...op,
+) error {
 	chain := chains.byMostRecent[mostRecent]
 	// Create the chain if it doesn't exist yet.
 	if chain == nil && len(newOps) > 0 {
@@ -253,7 +257,8 @@ func prependOpsToChain(mostRecent data.BlockPointer, chains *crChains,
 
 func crActionConvertSymlink(unmergedMostRecent data.BlockPointer,
 	mergedMostRecent data.BlockPointer, unmergedChain *crChain,
-	mergedChains *crChains, toName string) error {
+	mergedChains *crChains, toName string,
+) error {
 	co, err := newCreateOp(toName, mergedMostRecent, data.Sym)
 	if err != nil {
 		return err
@@ -282,7 +287,8 @@ func crActionConvertSymlink(unmergedMostRecent data.BlockPointer,
 // createOp for a new file.
 func trackSyncPtrChangesInCreate(
 	mostRecentTargetPtr data.BlockPointer, unmergedChain *crChain,
-	unmergedChains *crChains, toName string) {
+	unmergedChains *crChains, toName string,
+) {
 	targetChain, ok := unmergedChains.byMostRecent[mostRecentTargetPtr]
 	var refs, unrefs []data.BlockPointer
 	if ok && targetChain.isFile() {
@@ -327,7 +333,8 @@ func trackSyncPtrChangesInCreate(
 
 func (cuea *copyUnmergedEntryAction) trackSyncPtrChangesInCreate(
 	mostRecentTargetPtr data.BlockPointer, unmergedChain *crChain,
-	unmergedChains *crChains) {
+	unmergedChains *crChains,
+) {
 	trackSyncPtrChangesInCreate(
 		mostRecentTargetPtr, unmergedChain, unmergedChains,
 		cuea.toName.Plaintext())
@@ -336,7 +343,8 @@ func (cuea *copyUnmergedEntryAction) trackSyncPtrChangesInCreate(
 func makeLocalRenameOpForCopyAction(
 	ctx context.Context, mergedMostRecent data.BlockPointer,
 	mergedDir *data.DirData, mergedChains *crChains, fromName,
-	toName data.PathPartString) error {
+	toName data.PathPartString,
+) error {
 	newMergedEntry, err := mergedDir.Lookup(ctx, toName)
 	if err != nil {
 		return err
@@ -358,7 +366,8 @@ func makeLocalRenameOpForCopyAction(
 
 func (cuea *copyUnmergedEntryAction) updateOps(
 	ctx context.Context, unmergedMostRecent, mergedMostRecent data.BlockPointer,
-	_, mergedDir *data.DirData, unmergedChains, mergedChains *crChains) error {
+	_, mergedDir *data.DirData, unmergedChains, mergedChains *crChains,
+) error {
 	unmergedChain, ok := unmergedChains.byMostRecent[unmergedMostRecent]
 	if !ok {
 		return fmt.Errorf("Couldn't find unmerged chain for %v",
@@ -427,13 +436,15 @@ type copyUnmergedAttrAction struct {
 }
 
 func (cuaa *copyUnmergedAttrAction) swapUnmergedBlock(
-	_ context.Context, _, _ *crChains, _ *data.DirData) (bool, data.BlockPointer, error) {
+	_ context.Context, _, _ *crChains, _ *data.DirData,
+) (bool, data.BlockPointer, error) {
 	return false, data.ZeroPtr, nil
 }
 
 func (cuaa *copyUnmergedAttrAction) do(
 	ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
-	unmergedDir, mergedDir *data.DirData) ([]data.BlockInfo, error) {
+	unmergedDir, mergedDir *data.DirData,
+) ([]data.BlockInfo, error) {
 	// Find the unmerged entry
 	unmergedEntry, err := unmergedDir.Lookup(ctx, cuaa.fromName)
 	if err != nil {
@@ -462,7 +473,8 @@ func (cuaa *copyUnmergedAttrAction) do(
 
 func (cuaa *copyUnmergedAttrAction) updateOps(
 	_ context.Context, unmergedMostRecent, _ data.BlockPointer,
-	_, _ *data.DirData, unmergedChains, _ *crChains) error {
+	_, _ *data.DirData, unmergedChains, _ *crChains,
+) error {
 	unmergedChain, ok := unmergedChains.byMostRecent[unmergedMostRecent]
 	if !ok {
 		return fmt.Errorf("Couldn't find unmerged chain for %v",
@@ -493,13 +505,15 @@ type rmMergedEntryAction struct {
 }
 
 func (rmea *rmMergedEntryAction) swapUnmergedBlock(
-	_ context.Context, _, _ *crChains, _ *data.DirData) (bool, data.BlockPointer, error) {
+	_ context.Context, _, _ *crChains, _ *data.DirData,
+) (bool, data.BlockPointer, error) {
 	return false, data.ZeroPtr, nil
 }
 
 func (rmea *rmMergedEntryAction) do(
 	ctx context.Context, _, _ fileBlockDeepCopier,
-	_, mergedDir *data.DirData) ([]data.BlockInfo, error) {
+	_, mergedDir *data.DirData,
+) ([]data.BlockInfo, error) {
 	unrefs, err := mergedDir.RemoveEntry(ctx, rmea.name)
 	if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); notExists {
 		return nil, nil
@@ -510,7 +524,8 @@ func (rmea *rmMergedEntryAction) do(
 }
 
 func (rmea *rmMergedEntryAction) updateOps(
-	_ context.Context, _, _ data.BlockPointer, _, _ *data.DirData, _, _ *crChains) error {
+	_ context.Context, _, _ data.BlockPointer, _, _ *data.DirData, _, _ *crChains,
+) error {
 	return nil
 }
 
@@ -537,7 +552,8 @@ func crActionCopyFile(
 	ctx context.Context, copier fileBlockDeepCopier,
 	fromName, toName, toSymPath data.PathPartString,
 	fromDir, toDir *data.DirData) (
-	data.BlockPointer, data.PathPartString, []data.BlockInfo, error) {
+	data.BlockPointer, data.PathPartString, []data.BlockInfo, error,
+) {
 	// Find the source entry.
 	fromEntry, err := fromDir.Lookup(ctx, fromName)
 	if err != nil {
@@ -556,7 +572,8 @@ func crActionCopyFile(
 			data.Path{Path: []data.PathNode{{
 				BlockPointer: fromEntry.BlockPointer,
 				Name:         fromName,
-			}}}}
+			}}},
+		}
 	}
 
 	// Make sure the name is unique.
@@ -586,13 +603,15 @@ func crActionCopyFile(
 }
 
 func (rua *renameUnmergedAction) swapUnmergedBlock(
-	_ context.Context, _, _ *crChains, _ *data.DirData) (bool, data.BlockPointer, error) {
+	_ context.Context, _, _ *crChains, _ *data.DirData,
+) (bool, data.BlockPointer, error) {
 	return false, data.ZeroPtr, nil
 }
 
 func (rua *renameUnmergedAction) do(
 	ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
-	unmergedDir, mergedDir *data.DirData) ([]data.BlockInfo, error) {
+	unmergedDir, mergedDir *data.DirData,
+) ([]data.BlockInfo, error) {
 	_, name, unrefs, err := crActionCopyFile(
 		ctx, unmergedCopier, rua.fromName, rua.toName, rua.symPath,
 		unmergedDir, mergedDir)
@@ -604,7 +623,8 @@ func (rua *renameUnmergedAction) do(
 }
 
 func removeRmOpFromChain(
-	original data.BlockPointer, chains *crChains, oldName string) {
+	original data.BlockPointer, chains *crChains, oldName string,
+) {
 	chain := chains.byOriginal[original]
 	for i, op := range chain.ops {
 		if ro, ok := op.(*rmOp); !ok || ro.OldName != oldName {
@@ -617,7 +637,8 @@ func removeRmOpFromChain(
 func (rua *renameUnmergedAction) updateOps(
 	ctx context.Context, unmergedMostRecent, mergedMostRecent data.BlockPointer,
 	unmergedDir, mergedDir *data.DirData,
-	unmergedChains, mergedChains *crChains) error {
+	unmergedChains, mergedChains *crChains,
+) error {
 	unmergedChain, ok := unmergedChains.byMostRecent[unmergedMostRecent]
 	if !ok {
 		return fmt.Errorf("Couldn't find unmerged chain for %v",
@@ -698,8 +719,7 @@ func (rua *renameUnmergedAction) updateOps(
 			return nil
 		}
 
-		unmergedChain, ok =
-			unmergedChains.byMostRecent[rua.unmergedParentMostRecent]
+		unmergedChain, ok = unmergedChains.byMostRecent[rua.unmergedParentMostRecent]
 		if !ok {
 			// Couldn't find the parent to update.  Sigh.
 			return fmt.Errorf("Couldn't find parent %v to update "+
@@ -837,13 +857,15 @@ type renameMergedAction struct {
 }
 
 func (rma *renameMergedAction) swapUnmergedBlock(
-	_ context.Context, _, _ *crChains, _ *data.DirData) (bool, data.BlockPointer, error) {
+	_ context.Context, _, _ *crChains, _ *data.DirData,
+) (bool, data.BlockPointer, error) {
 	return false, data.ZeroPtr, nil
 }
 
 func (rma *renameMergedAction) do(
 	ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
-	unmergedDir, mergedDir *data.DirData) ([]data.BlockInfo, error) {
+	unmergedDir, mergedDir *data.DirData,
+) ([]data.BlockInfo, error) {
 	// Find the merged entry
 	mergedEntry, err := mergedDir.Lookup(ctx, rma.fromName)
 	if err != nil {
@@ -884,7 +906,8 @@ func (rma *renameMergedAction) do(
 func (rma *renameMergedAction) updateOps(
 	ctx context.Context, unmergedMostRecent, mergedMostRecent data.BlockPointer,
 	unmergedDir, mergedDir *data.DirData,
-	unmergedChains *crChains, mergedChains *crChains) error {
+	unmergedChains *crChains, mergedChains *crChains,
+) error {
 	unmergedChain, ok := unmergedChains.byMostRecent[unmergedMostRecent]
 	if !ok {
 		return fmt.Errorf("Couldn't find unmerged chain for %v",
@@ -967,19 +990,22 @@ type dropUnmergedAction struct {
 }
 
 func (dua *dropUnmergedAction) swapUnmergedBlock(
-	_ context.Context, _, _ *crChains, _ *data.DirData) (bool, data.BlockPointer, error) {
+	_ context.Context, _, _ *crChains, _ *data.DirData,
+) (bool, data.BlockPointer, error) {
 	return false, data.ZeroPtr, nil
 }
 
 func (dua *dropUnmergedAction) do(
 	_ context.Context, _, _ fileBlockDeepCopier, _, _ *data.DirData) (
-	[]data.BlockInfo, error) {
+	[]data.BlockInfo, error,
+) {
 	return nil, nil
 }
 
 func (dua *dropUnmergedAction) updateOps(
 	_ context.Context, unmergedMostRecent, mergedMostRecent data.BlockPointer,
-	_, _ *data.DirData, unmergedChains, mergedChains *crChains) error {
+	_, _ *data.DirData, unmergedChains, mergedChains *crChains,
+) error {
 	unmergedChain, ok := unmergedChains.byMostRecent[unmergedMostRecent]
 	if !ok {
 		return fmt.Errorf("Couldn't find unmerged chain for %v",
@@ -989,8 +1015,7 @@ func (dua *dropUnmergedAction) updateOps(
 	found := false
 	for i, op := range unmergedChain.ops {
 		if op == dua.op {
-			unmergedChain.ops =
-				append(unmergedChain.ops[:i], unmergedChain.ops[i+1:]...)
+			unmergedChain.ops = append(unmergedChain.ops[:i], unmergedChain.ops[i+1:]...)
 			found = true
 			break
 		}
@@ -1025,7 +1050,8 @@ type collapseActionInfo struct {
 type crActionList []crAction
 
 func setTopAction(action crAction, fromName string, index int,
-	infoMap map[string]collapseActionInfo, indicesToRemove map[int]bool) {
+	infoMap map[string]collapseActionInfo, indicesToRemove map[int]bool,
+) {
 	info, ok := infoMap[fromName]
 	if ok {
 		indicesToRemove[info.topActionIndex] = true

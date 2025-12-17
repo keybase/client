@@ -19,8 +19,10 @@ type Command interface {
 	Run() error                   // Run in client mode
 }
 
-type ForkCmd int
-type LogForward int
+type (
+	ForkCmd    int
+	LogForward int
+)
 
 const (
 	NormalFork ForkCmd = iota
@@ -63,51 +65,67 @@ func (p *CommandLine) SetSkipAccountResetCheck()  { p.skipAccountResetCheck = tr
 func (p CommandLine) GetNoAutoFork() (bool, bool) {
 	return p.GetBool("no-auto-fork", true)
 }
+
 func (p CommandLine) GetAutoFork() (bool, bool) {
 	return p.GetBool("auto-fork", true)
 }
+
 func (p CommandLine) GetHome() string {
 	return p.GetGString("home")
 }
+
 func (p CommandLine) GetMobileSharedHome() string {
 	return p.GetGString("mobile-shared-home")
 }
+
 func (p CommandLine) GetServerURI() (string, error) {
 	return p.GetGString("server"), nil
 }
+
 func (p CommandLine) GetConfigFilename() string {
 	return p.GetGString("config-file")
 }
+
 func (p CommandLine) GetGUIConfigFilename() string {
 	return p.GetGString("gui-config-file")
 }
+
 func (p CommandLine) GetUpdaterConfigFilename() string {
 	return p.GetGString("updater-config-file")
 }
+
 func (p CommandLine) GetDeviceCloneStateFilename() string {
 	return p.GetGString("device-clone-state-file")
 }
+
 func (p CommandLine) GetSessionFilename() string {
 	return p.GetGString("session-file")
 }
+
 func (p CommandLine) GetDbFilename() string {
 	return p.GetGString("db")
 }
+
 func (p CommandLine) GetChatDbFilename() string {
 	return p.GetGString("chat-db")
 }
+
 func (p CommandLine) GetPvlKitFilename() string {
 	return p.GetGString("pvl-kit")
 }
+
 func (p CommandLine) GetParamProofKitFilename() string {
 	return p.GetGString("paramproof-kit")
 }
+
 func (p CommandLine) GetExternalURLKitFilename() string {
 	return p.GetGString("externalurl-kit")
 }
+
 func (p CommandLine) GetProveBypass() (bool, bool) {
 	return p.GetBool("prove-bypass", true)
 }
+
 func (p CommandLine) GetDebug() (bool, bool) {
 	// --no-debug suppresses --debug. Note that although we don't define a
 	// separate GetNoDebug() accessor, fork_server.go still looks for
@@ -117,39 +135,51 @@ func (p CommandLine) GetDebug() (bool, bool) {
 	}
 	return p.GetBool("debug", true)
 }
+
 func (p CommandLine) GetDebugJourneycard() (bool, bool) {
 	return p.GetBool("debug-journeycard", true)
 }
+
 func (p CommandLine) GetDisplayRawUntrustedOutput() (bool, bool) {
 	return p.GetBool("display-raw-untrusted-output", true)
 }
+
 func (p CommandLine) GetVDebugSetting() string {
 	return p.GetGString("vdebug")
 }
+
 func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 	return libkb.PGPFingerprintFromHexNoError(p.GetGString("fingerprint"))
 }
+
 func (p CommandLine) GetProxy() string {
 	return p.GetGString("proxy")
 }
+
 func (p CommandLine) GetLogFile() string {
 	return p.GetGString("log-file")
 }
+
 func (p CommandLine) GetEKLogFile() string {
 	return p.GetGString("ek-log-file")
 }
+
 func (p CommandLine) GetPerfLogFile() string {
 	return p.GetGString("perf-log-file")
 }
+
 func (p CommandLine) GetGUILogFile() string {
 	return p.GetGString("gui-log-file")
 }
+
 func (p CommandLine) GetUseDefaultLogFile() (bool, bool) {
 	return p.GetBool("use-default-log-file", true)
 }
+
 func (p CommandLine) GetUseRootConfigFile() (bool, bool) {
 	return p.GetBool("use-root-config-file", true)
 }
+
 func (p CommandLine) GetLogPrefix() string {
 	return p.GetGString("log-prefix")
 }
@@ -157,12 +187,15 @@ func (p CommandLine) GetLogPrefix() string {
 func (p CommandLine) GetLogFormat() string {
 	return p.GetGString("log-format")
 }
+
 func (p CommandLine) GetGpgHome() string {
 	return p.GetGString("gpg-home")
 }
+
 func (p CommandLine) GetAPIDump() (bool, bool) {
 	return p.GetBool("api-dump-unsafe", true)
 }
+
 func (p CommandLine) GetGregorSaveInterval() (time.Duration, bool) {
 	ret, err := p.GetGDuration("push-save-interval")
 	if err != nil {
@@ -170,13 +203,16 @@ func (p CommandLine) GetGregorSaveInterval() (time.Duration, bool) {
 	}
 	return ret, true
 }
+
 func (p CommandLine) GetGregorDisabled() (bool, bool) {
 	return p.GetBool("push-disabled", true)
 }
+
 func (p CommandLine) GetSecretStorePrimingDisabled() (bool, bool) {
 	// SecretStorePrimingDisabled is only for tests
 	return false, false
 }
+
 func (p CommandLine) GetBGIdentifierDisabled() (bool, bool) {
 	return p.GetBool("bg-identifier-disabled", true)
 }
@@ -184,6 +220,7 @@ func (p CommandLine) GetBGIdentifierDisabled() (bool, bool) {
 func (p CommandLine) GetGregorURI() string {
 	return p.GetGString("push-server-uri")
 }
+
 func (p CommandLine) GetGregorPingInterval() (time.Duration, bool) {
 	ret, err := p.GetGDuration("push-ping-interval")
 	if err != nil {
@@ -191,6 +228,7 @@ func (p CommandLine) GetGregorPingInterval() (time.Duration, bool) {
 	}
 	return ret, true
 }
+
 func (p CommandLine) GetGregorPingTimeout() (time.Duration, bool) {
 	ret, err := p.GetGDuration("push-ping-timeout")
 	if err != nil {
@@ -210,48 +248,63 @@ func (p CommandLine) GetChatDelivererInterval() (time.Duration, bool) {
 func (p CommandLine) GetRunMode() (libkb.RunMode, error) {
 	return libkb.StringToRunMode(p.GetGString("run-mode"))
 }
+
 func (p CommandLine) GetFeatureFlags() (libkb.FeatureFlags, error) {
 	return libkb.StringToFeatureFlags(p.GetGString("features")), nil
 }
+
 func (p CommandLine) GetPinentry() string {
 	return p.GetGString("pinentry")
 }
+
 func (p CommandLine) GetAppType() libkb.AppType {
 	return libkb.DesktopAppType
 }
+
 func (p CommandLine) IsMobileExtension() (bool, bool) {
 	return false, false
 }
+
 func (p CommandLine) GetSlowGregorConn() (bool, bool) {
 	return p.GetBool("slow-gregor-conn", true)
 }
+
 func (p CommandLine) GetReadDeletedSigChain() (bool, bool) {
 	return p.GetBool("read-deleted-sigchain", true)
 }
+
 func (p CommandLine) GetGString(s string) string {
 	return p.ctx.GlobalString(s)
 }
+
 func (p CommandLine) GetString(s string) string {
 	return p.ctx.String(s)
 }
+
 func (p CommandLine) GetGInt(s string) int {
 	return p.ctx.GlobalInt(s)
 }
+
 func (p CommandLine) GetGDuration(s string) (time.Duration, error) {
 	return time.ParseDuration(p.GetGString(s))
 }
+
 func (p CommandLine) GetGpg() string {
 	return p.GetGString("gpg")
 }
+
 func (p CommandLine) GetSecretKeyringTemplate() string {
 	return p.GetGString("secret-keyring")
 }
+
 func (p CommandLine) GetSocketFile() string {
 	return p.GetGString("socket-file")
 }
+
 func (p CommandLine) GetPidFile() string {
 	return p.GetGString("pid-file")
 }
+
 func (p CommandLine) GetScraperTimeout() (time.Duration, bool) {
 	ret, err := p.GetGDuration("scraper-timeout")
 	if err != nil {
@@ -259,6 +312,7 @@ func (p CommandLine) GetScraperTimeout() (time.Duration, bool) {
 	}
 	return ret, true
 }
+
 func (p CommandLine) GetAPITimeout() (time.Duration, bool) {
 	ret, err := p.GetGDuration("api-timeout")
 	if err != nil {
@@ -266,6 +320,7 @@ func (p CommandLine) GetAPITimeout() (time.Duration, bool) {
 	}
 	return ret, true
 }
+
 func (p CommandLine) GetGpgOptions() []string {
 	var ret []string
 	s := p.GetGString("gpg-options")
@@ -393,6 +448,7 @@ func (p CommandLine) GetTorMode() (ret libkb.TorMode, err error) {
 func (p CommandLine) GetTorHiddenAddress() string {
 	return p.GetGString("tor-hidden-address")
 }
+
 func (p CommandLine) GetTorProxy() string {
 	return p.GetGString("tor-proxy")
 }

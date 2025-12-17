@@ -28,7 +28,8 @@ func makeDummySender() *dummySender {
 }
 
 func (s *dummySender) SendUnfurlNonblock(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID chat1.OutboxID) (chat1.OutboxID, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID chat1.OutboxID,
+) (chat1.OutboxID, error) {
 	s.ch <- msg
 	return outboxID, nil
 }
@@ -52,7 +53,8 @@ func makeDummyActivityNotifier() *dummyActivityNotifier {
 }
 
 func (d *dummyActivityNotifier) PromptUnfurl(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID, domain string) {
+	convID chat1.ConversationID, msgID chat1.MessageID, domain string,
+) {
 	d.ch <- promptNotification{
 		uid:    uid,
 		convID: convID,

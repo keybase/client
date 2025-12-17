@@ -7,7 +7,6 @@ import (
 )
 
 func TestBlindedSHA512_256v1Encoder(t *testing.T) {
-
 	tests := []struct {
 		desc string
 		enc  Encoder
@@ -18,7 +17,6 @@ func TestBlindedSHA512_256v1Encoder(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-
 			encoder := test.enc
 
 			hashLength := 32
@@ -121,7 +119,6 @@ func TestBlindedSHA512_256v1EncoderHardcodedValues(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-
 			encoder := test.enc
 
 			hashLength := 32

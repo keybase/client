@@ -62,7 +62,8 @@ var _ XattrHandler = (*QuarantineXattrHandler)(nil)
 
 // Getxattr implements the fs.NodeGetxattrer interface.
 func (h *QuarantineXattrHandler) Getxattr(ctx context.Context,
-	req *fuse.GetxattrRequest, resp *fuse.GetxattrResponse) (err error) {
+	req *fuse.GetxattrRequest, resp *fuse.GetxattrResponse,
+) (err error) {
 	ctx = h.folder.fs.config.MaybeStartTrace(ctx, "QuarantineXattrHandler.Getxattr",
 		fmt.Sprintf("%s %s", h.node.GetBasename(), req.Name))
 	defer func() { h.folder.fs.config.MaybeFinishTrace(ctx, err) }()
@@ -116,7 +117,8 @@ func (h *QuarantineXattrHandler) Getxattr(ctx context.Context,
 
 // Setxattr implements the fs.NodeSetxattrer interface.
 func (h *QuarantineXattrHandler) Setxattr(ctx context.Context,
-	req *fuse.SetxattrRequest) (err error) {
+	req *fuse.SetxattrRequest,
+) (err error) {
 	ctx = h.folder.fs.config.MaybeStartTrace(ctx, "QuarantineXattrHandler.Setxattr",
 		fmt.Sprintf("%s %s", h.node.GetBasename(), req.Name))
 	defer func() { h.folder.fs.config.MaybeFinishTrace(ctx, err) }()
@@ -136,7 +138,8 @@ func (h *QuarantineXattrHandler) Setxattr(ctx context.Context,
 
 // Removexattr implements the fs.NodeRemovexattrer interface.
 func (h *QuarantineXattrHandler) Removexattr(
-	ctx context.Context, req *fuse.RemovexattrRequest) error {
+	ctx context.Context, req *fuse.RemovexattrRequest,
+) error {
 	if req.Name != quarantineXattrName {
 		// The request is not about quarantine. Let the OS fallback to ._ file
 		// based method.

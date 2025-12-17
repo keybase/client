@@ -60,7 +60,8 @@ func (a JournalAction) String() string {
 // given TLF.
 func (a JournalAction) Execute(
 	ctx context.Context, jManager *libkbfs.JournalManager,
-	tlfID tlf.ID, h *tlfhandle.Handle) error {
+	tlfID tlf.ID, h *tlfhandle.Handle,
+) error {
 	// These actions don't require TLF IDs.
 	switch a {
 	case JournalEnableAuto:

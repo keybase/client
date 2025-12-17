@@ -124,7 +124,7 @@ func openTempFile(prefix string, suffix string, mode os.FileMode) (string, *os.F
 	}
 	flags := os.O_WRONLY | os.O_CREATE | os.O_EXCL
 	if mode == 0 {
-		mode = 0600
+		mode = 0o600
 	}
 	file, err := os.OpenFile(filename, flags, mode)
 	return filename, file, err
@@ -249,7 +249,7 @@ func MoveFile(sourcePath string, destinationPath string, tmpDir string, log Log)
 		}
 	}
 
-	if err := MakeParentDirs(destinationPath, 0700, log); err != nil {
+	if err := MakeParentDirs(destinationPath, 0o700, log); err != nil {
 		return err
 	}
 
@@ -276,7 +276,7 @@ func CopyFile(sourcePath string, destinationPath string, log Log) error {
 		}
 	}
 
-	if makeDirErr := MakeParentDirs(destinationPath, 0700, log); makeDirErr != nil {
+	if makeDirErr := MakeParentDirs(destinationPath, 0o700, log); makeDirErr != nil {
 		return makeDirErr
 	}
 
@@ -342,7 +342,7 @@ func PathFromURL(u *url.URL) string {
 
 // Touch a file, updating its modification time
 func Touch(path string) error {
-	f, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	f, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	Close(f)
 	return err
 }

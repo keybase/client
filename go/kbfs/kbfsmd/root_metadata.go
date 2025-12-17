@@ -313,7 +313,8 @@ type MutableRootMetadata interface {
 // separately.
 func MakeInitialRootMetadata(
 	ver MetadataVer, tlfID tlf.ID, h tlf.Handle) (
-	MutableRootMetadata, error) {
+	MutableRootMetadata, error,
+) {
 	if ver < FirstValidMetadataVer {
 		return nil, InvalidMetadataVersionError{tlfID, ver}
 	}
@@ -335,7 +336,8 @@ func MakeInitialRootMetadata(
 }
 
 func makeMutableRootMetadataForDecode(codec kbfscodec.Codec, tlf tlf.ID,
-	ver, max MetadataVer, buf []byte) (MutableRootMetadata, error) {
+	ver, max MetadataVer, buf []byte,
+) (MutableRootMetadata, error) {
 	if ver < FirstValidMetadataVer {
 		return nil, InvalidMetadataVersionError{TlfID: tlf, MetadataVer: ver}
 	} else if ver > max {
@@ -354,7 +356,8 @@ func makeMutableRootMetadataForDecode(codec kbfscodec.Codec, tlf tlf.ID,
 // DecodeRootMetadata deserializes a metadata block into the specified
 // versioned structure.
 func DecodeRootMetadata(codec kbfscodec.Codec, tlfID tlf.ID,
-	ver, max MetadataVer, buf []byte) (MutableRootMetadata, error) {
+	ver, max MetadataVer, buf []byte,
+) (MutableRootMetadata, error) {
 	rmd, err := makeMutableRootMetadataForDecode(codec, tlfID, ver, max, buf)
 	if err != nil {
 		return nil, err
@@ -384,7 +387,8 @@ func DumpConfig() *spew.ConfigState {
 // DumpRootMetadata returns a detailed dump of the given
 // RootMetadata's contents.
 func DumpRootMetadata(
-	codec kbfscodec.Codec, rmd RootMetadata) (string, error) {
+	codec kbfscodec.Codec, rmd RootMetadata,
+) (string, error) {
 	serializedRMD, err := codec.Encode(rmd)
 	if err != nil {
 		return "", err

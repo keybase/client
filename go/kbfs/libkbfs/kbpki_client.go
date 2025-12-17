@@ -42,7 +42,8 @@ var _ KBPKI = (*KBPKIClient)(nil)
 
 // NewKBPKIClient returns a new KBPKIClient with the given service.
 func NewKBPKIClient(
-	serviceOwner keybaseServiceOwner, log logger.Logger) *KBPKIClient {
+	serviceOwner keybaseServiceOwner, log logger.Logger,
+) *KBPKIClient {
 	cache, err := lru.New(idToUserCacheSize)
 	if err != nil {
 		cache = nil
@@ -54,7 +55,8 @@ func NewKBPKIClient(
 
 // GetCurrentSession implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCurrentSession(ctx context.Context) (
-	idutil.SessionInfo, error) {
+	idutil.SessionInfo, error,
+) {
 	const sessionID = 0
 	return k.serviceOwner.KeybaseService().CurrentSession(ctx, sessionID)
 }
@@ -63,7 +65,8 @@ func (k *KBPKIClient) GetCurrentSession(ctx context.Context) (
 func (k *KBPKIClient) Resolve(
 	ctx context.Context, assertion string,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	return k.serviceOwner.KeybaseService().Resolve(ctx, assertion, offline)
 }
 
@@ -71,14 +74,16 @@ func (k *KBPKIClient) Resolve(
 func (k *KBPKIClient) Identify(
 	ctx context.Context, assertion, reason string,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	return k.serviceOwner.KeybaseService().Identify(
 		ctx, assertion, reason, offline)
 }
 
 // NormalizeSocialAssertion implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) NormalizeSocialAssertion(
-	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	ctx context.Context, assertion string,
+) (keybase1.SocialAssertion, error) {
 	return k.serviceOwner.KeybaseService().NormalizeSocialAssertion(ctx, assertion)
 }
 
@@ -86,7 +91,8 @@ func (k *KBPKIClient) NormalizeSocialAssertion(
 func (k *KBPKIClient) ResolveImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
 	offline keybase1.OfflineAvailability) (
-	idutil.ImplicitTeamInfo, error) {
+	idutil.ImplicitTeamInfo, error,
+) {
 	return k.serviceOwner.KeybaseService().ResolveIdentifyImplicitTeam(
 		ctx, assertions, suffix, tlfType, false, "", offline)
 }
@@ -95,7 +101,8 @@ func (k *KBPKIClient) ResolveImplicitTeam(
 func (k *KBPKIClient) ResolveImplicitTeamByID(
 	ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type,
 	offline keybase1.OfflineAvailability) (
-	idutil.ImplicitTeamInfo, error) {
+	idutil.ImplicitTeamInfo, error,
+) {
 	name, err := k.serviceOwner.KeybaseService().ResolveImplicitTeamByID(
 		ctx, teamID)
 	if err != nil {
@@ -114,7 +121,8 @@ func (k *KBPKIClient) ResolveImplicitTeamByID(
 // ResolveTeamTLFID implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) ResolveTeamTLFID(
 	ctx context.Context, teamID keybase1.TeamID,
-	offline keybase1.OfflineAvailability) (tlf.ID, error) {
+	offline keybase1.OfflineAvailability,
+) (tlf.ID, error) {
 	settings, err := k.serviceOwner.KeybaseService().GetTeamSettings(
 		ctx, teamID, offline)
 	if err != nil {
@@ -135,7 +143,8 @@ func (k *KBPKIClient) ResolveTeamTLFID(
 func (k *KBPKIClient) IdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
 	reason string, offline keybase1.OfflineAvailability) (
-	idutil.ImplicitTeamInfo, error) {
+	idutil.ImplicitTeamInfo, error,
+) {
 	return k.serviceOwner.KeybaseService().ResolveIdentifyImplicitTeam(
 		ctx, assertions, suffix, tlfType, true, reason, offline)
 }
@@ -145,7 +154,8 @@ func (k *KBPKIClient) IdentifyImplicitTeam(
 func (k *KBPKIClient) GetNormalizedUsername(
 	ctx context.Context, id keybase1.UserOrTeamID,
 	offline keybase1.OfflineAvailability) (
-	username kbname.NormalizedUsername, err error) {
+	username kbname.NormalizedUsername, err error,
+) {
 	if k.idToUserCache != nil {
 		tmp, ok := k.idToUserCache.Get(id)
 		if ok {
@@ -173,7 +183,8 @@ func (k *KBPKIClient) GetNormalizedUsername(
 func (k *KBPKIClient) hasVerifyingKey(
 	ctx context.Context, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
 	atServerTime time.Time, offline keybase1.OfflineAvailability) (
-	bool, error) {
+	bool, error,
+) {
 	userInfo, err := k.loadUserPlusKeys(ctx, uid, verifyingKey.KID(), offline)
 	if err != nil {
 		return false, err
@@ -214,7 +225,8 @@ func (k *KBPKIClient) hasVerifyingKey(
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) HasVerifyingKey(
 	ctx context.Context, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
-	atServerTime time.Time, offline keybase1.OfflineAvailability) error {
+	atServerTime time.Time, offline keybase1.OfflineAvailability,
+) error {
 	ok, err := k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime, offline)
 	if err != nil {
 		return err
@@ -240,7 +252,8 @@ func (k *KBPKIClient) HasVerifyingKey(
 
 func (k *KBPKIClient) loadUserPlusKeys(ctx context.Context,
 	uid keybase1.UID, pollForKID keybase1.KID,
-	offline keybase1.OfflineAvailability) (idutil.UserInfo, error) {
+	offline keybase1.OfflineAvailability,
+) (idutil.UserInfo, error) {
 	return k.serviceOwner.KeybaseService().LoadUserPlusKeys(
 		ctx, uid, pollForKID, offline)
 }
@@ -249,7 +262,8 @@ func (k *KBPKIClient) loadUserPlusKeys(ctx context.Context,
 func (k *KBPKIClient) GetCryptPublicKeys(
 	ctx context.Context, uid keybase1.UID,
 	offline keybase1.OfflineAvailability) (
-	keys []kbfscrypto.CryptPublicKey, err error) {
+	keys []kbfscrypto.CryptPublicKey, err error,
+) {
 	userInfo, err := k.loadUserPlusKeys(ctx, uid, "", offline)
 	if err != nil {
 		return nil, err
@@ -261,7 +275,8 @@ func (k *KBPKIClient) GetCryptPublicKeys(
 func (k *KBPKIClient) GetTeamTLFCryptKeys(
 	ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen,
 	offline keybase1.OfflineAvailability) (
-	map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error) {
+	map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error,
+) {
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
 		ctx, tid, tlf.Unknown, desiredKeyGen, keybase1.UserVersion{},
 		kbfscrypto.VerifyingKey{}, keybase1.TeamRole_NONE, offline)
@@ -273,14 +288,16 @@ func (k *KBPKIClient) GetTeamTLFCryptKeys(
 
 // GetCurrentMerkleRoot implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCurrentMerkleRoot(ctx context.Context) (
-	keybase1.MerkleRootV2, time.Time, error) {
+	keybase1.MerkleRootV2, time.Time, error,
+) {
 	return k.serviceOwner.KeybaseService().GetCurrentMerkleRoot(ctx)
 }
 
 // VerifyMerkleRoot implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) VerifyMerkleRoot(
 	ctx context.Context, root keybase1.MerkleRootV2,
-	kbfsRoot keybase1.KBFSRoot) error {
+	kbfsRoot keybase1.KBFSRoot,
+) error {
 	return k.serviceOwner.KeybaseService().VerifyMerkleRoot(
 		ctx, root, kbfsRoot)
 }
@@ -289,7 +306,8 @@ func (k *KBPKIClient) VerifyMerkleRoot(
 func (k *KBPKIClient) IsTeamWriter(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
 	verifyingKey kbfscrypto.VerifyingKey,
-	offline keybase1.OfflineAvailability) (bool, error) {
+	offline keybase1.OfflineAvailability,
+) (bool, error) {
 	if uid.IsNil() || verifyingKey.IsNil() {
 		// A sessionless user can never be a writer.
 		return false, nil
@@ -350,7 +368,8 @@ func (k *KBPKIClient) IsTeamWriter(
 func (k *KBPKIClient) NoLongerTeamWriter(
 	ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type,
 	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
-	offline keybase1.OfflineAvailability) (keybase1.MerkleRootV2, error) {
+	offline keybase1.OfflineAvailability,
+) (keybase1.MerkleRootV2, error) {
 	if uid.IsNil() || verifyingKey.IsNil() {
 		// A sessionless user can never be a writer.
 		return keybase1.MerkleRootV2{}, nil
@@ -374,7 +393,8 @@ func (k *KBPKIClient) NoLongerTeamWriter(
 // IsTeamReader implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) IsTeamReader(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
-	offline keybase1.OfflineAvailability) (bool, error) {
+	offline keybase1.OfflineAvailability,
+) (bool, error) {
 	desiredUser := keybase1.UserVersion{Uid: uid}
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
 		ctx, tid, tlf.Unknown, kbfsmd.UnspecifiedKeyGen, desiredUser,
@@ -388,7 +408,8 @@ func (k *KBPKIClient) IsTeamReader(
 // GetTeamRootID implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetTeamRootID(
 	ctx context.Context, tid keybase1.TeamID,
-	offline keybase1.OfflineAvailability) (keybase1.TeamID, error) {
+	offline keybase1.OfflineAvailability,
+) (keybase1.TeamID, error) {
 	if !tid.IsSubTeam() {
 		return tid, nil
 	}
@@ -404,7 +425,8 @@ func (k *KBPKIClient) GetTeamRootID(
 
 // CreateTeamTLF implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) CreateTeamTLF(
-	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) error {
+	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID,
+) error {
 	return k.serviceOwner.KeybaseService().CreateTeamTLF(ctx, teamID, tlfID)
 }
 
@@ -420,7 +442,8 @@ func (k *KBPKIClient) FavoriteDelete(ctx context.Context, folder keybase1.Folder
 
 // FavoriteList implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteList(ctx context.Context) (
-	keybase1.FavoritesResult, error) {
+	keybase1.FavoritesResult, error,
+) {
 	const sessionID = 0
 	return k.serviceOwner.KeybaseService().FavoriteList(ctx, sessionID)
 }
@@ -432,14 +455,16 @@ func (k *KBPKIClient) Notify(ctx context.Context, notification *keybase1.FSNotif
 
 // NotifyPathUpdated implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) NotifyPathUpdated(
-	ctx context.Context, path string) error {
+	ctx context.Context, path string,
+) error {
 	return k.serviceOwner.KeybaseService().NotifyPathUpdated(ctx, path)
 }
 
 // PutGitMetadata implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) PutGitMetadata(
 	ctx context.Context, folder keybase1.FolderHandle, repoID keybase1.RepoID,
-	metadata keybase1.GitLocalMetadata) error {
+	metadata keybase1.GitLocalMetadata,
+) error {
 	return k.serviceOwner.KeybaseService().PutGitMetadata(
 		ctx, folder, repoID, metadata)
 }

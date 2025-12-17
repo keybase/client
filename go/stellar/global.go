@@ -571,7 +571,8 @@ func (s *Stellar) stopBuildPayment(mctx libkb.MetaContext, bid stellar1.BuildPay
 // `mctx` can also be used if err!=nil.
 // Callers should `release` soon after their context is canceled.
 func (s *Stellar) acquireBuildPayment(mctx1 libkb.MetaContext, bid stellar1.BuildPaymentID, sessionID int) (
-	mctx libkb.MetaContext, data *buildPaymentData, release func(), err error) {
+	mctx libkb.MetaContext, data *buildPaymentData, release func(), err error,
+) {
 	mctx = mctx1
 	mctx.Debug("Stellar.acquireBuildPayment(%v)", bid)
 	release = func() {}

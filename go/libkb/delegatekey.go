@@ -83,7 +83,6 @@ func (d Delegator) IsEldest() bool { return d.DelegationType == DelegationTypeEl
 func (d Delegator) GetMerkleTriple() MerkleTriple { return d.merkleTriple }
 
 func (d *Delegator) CheckArgs(m MetaContext) (err error) {
-
 	defer m.Trace("Delegator#CheckArgs", &err)()
 
 	if d.DelegationType == "" {

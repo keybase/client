@@ -118,11 +118,15 @@ type Hash struct {
 	h string
 }
 
-var _ encoding.BinaryMarshaler = Hash{}
-var _ encoding.BinaryUnmarshaler = (*Hash)(nil)
+var (
+	_ encoding.BinaryMarshaler   = Hash{}
+	_ encoding.BinaryUnmarshaler = (*Hash)(nil)
+)
 
-var _ encoding.TextMarshaler = Hash{}
-var _ encoding.TextUnmarshaler = (*Hash)(nil)
+var (
+	_ encoding.TextMarshaler   = Hash{}
+	_ encoding.TextUnmarshaler = (*Hash)(nil)
+)
 
 // HashFromRaw creates a hash from a type and raw hash data. If the
 // returned error is nil, the returned Hash is valid.
@@ -293,11 +297,15 @@ type HMAC struct {
 	h Hash
 }
 
-var _ encoding.BinaryMarshaler = HMAC{}
-var _ encoding.BinaryUnmarshaler = (*HMAC)(nil)
+var (
+	_ encoding.BinaryMarshaler   = HMAC{}
+	_ encoding.BinaryUnmarshaler = (*HMAC)(nil)
+)
 
-var _ encoding.TextMarshaler = HMAC{}
-var _ encoding.TextUnmarshaler = (*HMAC)(nil)
+var (
+	_ encoding.TextMarshaler   = HMAC{}
+	_ encoding.TextUnmarshaler = (*HMAC)(nil)
+)
 
 // DefaultHMAC computes the HMAC with the given key of the given data
 // using the default hash.

@@ -15,8 +15,10 @@ import (
 
 const LoginSessionMemoryTimeout time.Duration = time.Minute * 5
 
-var ErrLoginSessionNotLoaded = errors.New("LoginSession not loaded")
-var ErrLoginSessionCleared = errors.New("LoginSession already cleared")
+var (
+	ErrLoginSessionNotLoaded = errors.New("LoginSession not loaded")
+	ErrLoginSessionCleared   = errors.New("LoginSession already cleared")
+)
 
 type LoginSession struct {
 	sessionFor      string // set by constructor

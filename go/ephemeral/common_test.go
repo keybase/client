@@ -39,7 +39,8 @@ func verifyUserEK(t *testing.T, metadata keybase1.UserEkMetadata, ek keybase1.Us
 }
 
 func verifyTeamEK(t *testing.T, teamEKMetadata keybase1.TeamEkMetadata,
-	ek keybase1.TeamEphemeralKey) {
+	ek keybase1.TeamEphemeralKey,
+) {
 	typ, err := ek.KeyType()
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamEphemeralKeyType_TEAM, typ)

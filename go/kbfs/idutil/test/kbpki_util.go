@@ -24,7 +24,8 @@ type DaemonKBPKI struct {
 // GetCurrentSession implements the idutil.DaemonLocal interface for
 // DaemonKBPKI.
 func (d *DaemonKBPKI) GetCurrentSession(ctx context.Context) (
-	idutil.SessionInfo, error) {
+	idutil.SessionInfo, error,
+) {
 	const sessionID = 0
 	return d.Daemon.CurrentSession(ctx, sessionID)
 }
@@ -34,7 +35,8 @@ func (d *DaemonKBPKI) GetCurrentSession(ctx context.Context) (
 func (d *DaemonKBPKI) Resolve(
 	ctx context.Context, assertion string,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	return d.Daemon.Resolve(ctx, assertion, offline)
 }
 
@@ -42,7 +44,8 @@ func (d *DaemonKBPKI) Resolve(
 // interface for DaemonKBPKI.
 func (d *DaemonKBPKI) NormalizeSocialAssertion(
 	ctx context.Context, assertion string) (
-	keybase1.SocialAssertion, error) {
+	keybase1.SocialAssertion, error,
+) {
 	return d.Daemon.NormalizeSocialAssertion(ctx, assertion)
 }
 
@@ -51,7 +54,8 @@ func (d *DaemonKBPKI) NormalizeSocialAssertion(
 func (d *DaemonKBPKI) Identify(
 	ctx context.Context, assertion, reason string,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	return d.Daemon.Identify(ctx, assertion, reason, offline)
 }
 
@@ -60,7 +64,8 @@ func (d *DaemonKBPKI) Identify(
 func (d *DaemonKBPKI) ResolveImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
 	offline keybase1.OfflineAvailability) (
-	idutil.ImplicitTeamInfo, error) {
+	idutil.ImplicitTeamInfo, error,
+) {
 	return d.Daemon.ResolveIdentifyImplicitTeam(
 		ctx, assertions, suffix, tlfType, false, "", offline)
 }
@@ -69,7 +74,8 @@ func (d *DaemonKBPKI) ResolveImplicitTeam(
 // for DaemonKBPKI.
 func (d *DaemonKBPKI) GetNormalizedUsername(
 	ctx context.Context, id keybase1.UserOrTeamID,
-	offline keybase1.OfflineAvailability) (kbname.NormalizedUsername, error) {
+	offline keybase1.OfflineAvailability,
+) (kbname.NormalizedUsername, error) {
 	asUser, err := id.AsUser()
 	if err != nil {
 		return kbname.NormalizedUsername(""), err
@@ -86,7 +92,8 @@ func (d *DaemonKBPKI) GetNormalizedUsername(
 // DaemonKBPKI.
 func (d *DaemonKBPKI) ResolveTeamTLFID(
 	ctx context.Context, teamID keybase1.TeamID,
-	offline keybase1.OfflineAvailability) (tlf.ID, error) {
+	offline keybase1.OfflineAvailability,
+) (tlf.ID, error) {
 	settings, err := d.Daemon.GetTeamSettings(ctx, teamID, offline)
 	if err != nil {
 		return tlf.NullID, err
@@ -125,7 +132,8 @@ func (ik *IdentifyCountingKBPKI) GetIdentifyCalls() int {
 func (ik *IdentifyCountingKBPKI) Identify(
 	ctx context.Context, assertion, reason string,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	ik.addIdentifyCall()
 	return ik.KBPKI.Identify(ctx, assertion, reason, offline)
 }

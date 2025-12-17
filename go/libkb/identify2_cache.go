@@ -26,8 +26,10 @@ type Identify2Cacher interface {
 	UseDiskCache() bool
 }
 
-type GetCheckTimeFunc func(keybase1.Identify2ResUPK2) keybase1.Time
-type GetCacheDurationFunc func(keybase1.Identify2ResUPK2) time.Duration
+type (
+	GetCheckTimeFunc     func(keybase1.Identify2ResUPK2) keybase1.Time
+	GetCacheDurationFunc func(keybase1.Identify2ResUPK2) time.Duration
+)
 
 // NewIdentify2Cache creates a Identify2Cache and sets the object max age to
 // maxAge.  Once a user is inserted, after maxAge duration passes,

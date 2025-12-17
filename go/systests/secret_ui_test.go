@@ -127,30 +127,39 @@ var _ libkb.LoginUI = (*loginUI)(nil)
 func (u *loginUI) DisplayPaperKeyPhrase(context.Context, keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
+
 func (u *loginUI) DisplayPrimaryPaperKey(context.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
+
 func (u *loginUI) PromptRevokePaperKeys(context.Context, keybase1.PromptRevokePaperKeysArg) (bool, error) {
 	return false, nil
 }
+
 func (u *loginUI) GetEmailOrUsername(context.Context, int) (string, error) {
 	return "t_alice", nil
 }
+
 func (u *loginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
 	return keybase1.ResetPromptResponse_NOTHING, nil
 }
+
 func (u *loginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
 }
+
 func (u *loginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
 	return nil
 }
+
 func (u *loginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
 }
+
 func (u *loginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
 	return "", nil
 }
+
 func (u *loginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
 	return nil
 }
@@ -162,30 +171,39 @@ type provisionUI struct {
 func (u *provisionUI) ChooseProvisioningMethod(context.Context, keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
 	panic("deprecated")
 }
+
 func (u *provisionUI) ChooseGPGMethod(context.Context, keybase1.ChooseGPGMethodArg) (keybase1.GPGMethod, error) {
 	return keybase1.GPGMethod_GPG_IMPORT, nil
 }
+
 func (u *provisionUI) SwitchToGPGSignOK(context.Context, keybase1.SwitchToGPGSignOKArg) (bool, error) {
 	return true, nil
 }
+
 func (u *provisionUI) ChooseDevice(context.Context, keybase1.ChooseDeviceArg) (r keybase1.DeviceID, e error) {
 	return
 }
+
 func (u *provisionUI) ChooseDeviceType(context.Context, keybase1.ChooseDeviceTypeArg) (r keybase1.DeviceType, e error) {
 	return
 }
+
 func (u *provisionUI) DisplayAndPromptSecret(context.Context, keybase1.DisplayAndPromptSecretArg) (r keybase1.SecretResponse, e error) {
 	return
 }
+
 func (u *provisionUI) DisplaySecretExchanged(context.Context, int) error {
 	return nil
 }
+
 func (u *provisionUI) PromptNewDeviceName(context.Context, keybase1.PromptNewDeviceNameArg) (string, error) {
 	return "", nil
 }
+
 func (u *provisionUI) ProvisioneeSuccess(context.Context, keybase1.ProvisioneeSuccessArg) error {
 	return nil
 }
+
 func (u *provisionUI) ProvisionerSuccess(context.Context, keybase1.ProvisionerSuccessArg) error {
 	return nil
 }

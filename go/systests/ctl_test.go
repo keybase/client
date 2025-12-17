@@ -58,7 +58,6 @@ func (v *versionUI) checkVersionOutput(t *testing.T) {
 }
 
 func TestVersionAndStop(t *testing.T) {
-
 	tc := setupTest(t, "stop")
 
 	defer tc.Cleanup()

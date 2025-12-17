@@ -35,7 +35,8 @@ func HandleNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generati
 // not have access. All team members are notified and race to publish the
 // requested key.
 func HandleTeambotEKNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
-	generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration) (err error) {
+	generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration,
+) (err error) {
 	defer mctx.Trace("HandleTeambotEKNeeded", &err)()
 	defer func() {
 		mctx.G().NotifyRouter.HandleTeambotEKNeeded(mctx.Ctx(), teamID, botUID, generation, forceCreateGen)

@@ -194,7 +194,6 @@ func (t *TeamRoleMapManager) load(mctx libkb.MetaContext, retryOnFailBackoff tim
 	}
 
 	err = mctx.G().API.GetDecode(mctx, arg, &apiRes)
-
 	if err != nil {
 		mctx.Debug("failed to TeamRoleMap from server: %s", err)
 		go t.loadDelayedRetry(mctx.BackgroundWithLogTags(), retryOnFailBackoff)

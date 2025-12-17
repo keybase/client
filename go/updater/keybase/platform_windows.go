@@ -59,7 +59,6 @@ func coTaskMemFree(pv uintptr) (err error) {
 }
 
 func getDataDir(id guid) (folder string, err error) {
-
 	var pszPath uintptr
 	r0, _, _ := procSHGetKnownFolderPath.Call(uintptr(unsafe.Pointer(&id)), uintptr(0), uintptr(0), uintptr(unsafe.Pointer(&pszPath)))
 	if r0 != 0 {
@@ -173,7 +172,7 @@ func (c context) UpdatePrompt(update updater.Update, options updater.UpdateOptio
 	}
 
 	if promptOptions.OutPath == "" {
-		promptOptions.OutPath, err = util.WriteTempFile("updatePrompt", []byte{}, 0700)
+		promptOptions.OutPath, err = util.WriteTempFile("updatePrompt", []byte{}, 0o700)
 		if err != nil {
 			return nil, err
 		}

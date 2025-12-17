@@ -121,7 +121,6 @@ HTngZWUk8Tjn6Q8zrnnoB92G1G+rZHAiChgBFQCaYDBsWa0Pia6Vm+10OAIulGGj
 		wse.Operation != "decrypt" {
 		t.Fatalf("Bad error: %v", wse)
 	}
-
 }
 
 type testDecryptSaltpackUI struct {

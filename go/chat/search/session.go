@@ -36,7 +36,8 @@ type searchSession struct {
 
 func newSearchSession(query, origQuery string, uid gregor1.UID,
 	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus,
-	indexer *Indexer, opts chat1.SearchOpts) *searchSession {
+	indexer *Indexer, opts chat1.SearchOpts,
+) *searchSession {
 	if opts.MaxHits > MaxAllowedSearchHits || opts.MaxHits < 0 {
 		opts.MaxHits = MaxAllowedSearchHits
 	}
@@ -108,7 +109,8 @@ func (s *searchSession) searchConv(ctx context.Context, convID chat1.Conversatio
 }
 
 func (s *searchSession) getMsgsAndIDSet(ctx context.Context, convID chat1.ConversationID,
-	msgIDs []chat1.MessageID) (mapset.Set, []chat1.MessageUnboxed, error) {
+	msgIDs []chat1.MessageID,
+) (mapset.Set, []chat1.MessageUnboxed, error) {
 	idSet := mapset.NewThreadUnsafeSet()
 	idSetWithContext := mapset.NewThreadUnsafeSet()
 	// Best effort attempt to get surrounding context. We filter out
@@ -160,7 +162,8 @@ func (s *searchSession) getMsgsAndIDSet(ctx context.Context, convID chat1.Conver
 // messages) and match info (for UI highlighting). Results are ordered desc by
 // msg id.
 func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteConversation,
-	msgIDs []chat1.MessageID) (convHits *chat1.ChatSearchInboxHit, err error) {
+	msgIDs []chat1.MessageID,
+) (convHits *chat1.ChatSearchInboxHit, err error) {
 	convID := conv.GetConvID()
 	defer s.indexer.Trace(ctx, &err,
 		"searchHitsFromMsgIDs convID: %s msgIDs: %d", convID, len(msgIDs))()
@@ -199,7 +202,8 @@ func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.Rem
 }
 
 func (s *searchSession) searchHitBatch(ctx context.Context, convID chat1.ConversationID, msgIDs []chat1.MessageID,
-	hits []chat1.ChatSearchHit) (res []chat1.ChatSearchHit, err error) {
+	hits []chat1.ChatSearchHit,
+) (res []chat1.ChatSearchHit, err error) {
 	idSet, msgs, err := s.getMsgsAndIDSet(ctx, convID, msgIDs)
 	if err != nil {
 		return nil, err

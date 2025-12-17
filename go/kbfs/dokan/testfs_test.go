@@ -192,7 +192,6 @@ func testReaddir(t *testing.T) {
 	if st.Size() != int64(len(helloStr)) {
 		t.Fatal("Size returned wrong size:", st.Size(), "vs", len(helloStr))
 	}
-
 }
 
 func testPlaceHolderRemoveRename(t *testing.T) {
@@ -235,10 +234,12 @@ func (t emptyFile) GetFileSecurity(ctx context.Context, fi *FileInfo, si winacl.
 	debug("emptyFS.GetFileSecurity")
 	return nil
 }
+
 func (t emptyFile) SetFileSecurity(ctx context.Context, fi *FileInfo, si winacl.SecurityInformation, sd *winacl.SecurityDescriptor) error {
 	debug("emptyFS.SetFileSecurity")
 	return nil
 }
+
 func (t emptyFile) Cleanup(ctx context.Context, fi *FileInfo) {
 	debug("emptyFS.Cleanup")
 }
@@ -272,30 +273,38 @@ func (t emptyFS) CreateFile(ctx context.Context, fi *FileInfo, cd *CreateData) (
 	debug("emptyFS.CreateFile")
 	return emptyFile{}, ExistingDir, nil
 }
+
 func (t emptyFile) CanDeleteFile(ctx context.Context, fi *FileInfo) error {
 	return ErrAccessDenied
 }
+
 func (t emptyFile) CanDeleteDirectory(ctx context.Context, fi *FileInfo) error {
 	return ErrAccessDenied
 }
+
 func (t emptyFile) SetEndOfFile(ctx context.Context, fi *FileInfo, length int64) error {
 	debug("emptyFile.SetEndOfFile")
 	return nil
 }
+
 func (t emptyFile) SetAllocationSize(ctx context.Context, fi *FileInfo, length int64) error {
 	debug("emptyFile.SetAllocationSize")
 	return nil
 }
+
 func (t emptyFS) MoveFile(ctx context.Context, src File, sourceFI *FileInfo, targetPath string, replaceExisting bool) error {
 	debug("emptyFS.MoveFile")
 	return nil
 }
+
 func (t emptyFile) ReadFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error) {
 	return len(bs), nil
 }
+
 func (t emptyFile) WriteFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error) {
 	return len(bs), nil
 }
+
 func (t emptyFile) FlushFileBuffers(ctx context.Context, fi *FileInfo) error {
 	debug("emptyFS.FlushFileBuffers")
 	return nil
@@ -309,14 +318,17 @@ func (t emptyFile) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat,
 	st.FileAttributes = FileAttributeNormal
 	return &st, nil
 }
+
 func (t emptyFile) FindFiles(context.Context, *FileInfo, string, func(*NamedStat) error) error {
 	debug("emptyFile.FindFiles")
 	return nil
 }
+
 func (t emptyFile) SetFileTime(context.Context, *FileInfo, time.Time, time.Time, time.Time) error {
 	debug("emptyFile.SetFileTime")
 	return nil
 }
+
 func (t emptyFile) SetFileAttributes(ctx context.Context, fi *FileInfo, fileAttributes FileAttribute) error {
 	debug("emptyFile.SetFileAttributes")
 	return nil
@@ -326,6 +338,7 @@ func (t emptyFile) LockFile(ctx context.Context, fi *FileInfo, offset int64, len
 	debug("emptyFile.LockFile")
 	return nil
 }
+
 func (t emptyFile) UnlockFile(ctx context.Context, fi *FileInfo, offset int64, length int64) error {
 	debug("emptyFile.UnlockFile")
 	return nil
@@ -359,6 +372,7 @@ func (t *testFS) CreateFile(ctx context.Context, fi *FileInfo, cd *CreateData) (
 	}
 	return nil, 0, ErrObjectNameNotFound
 }
+
 func (t *testFS) GetDiskFreeSpace(ctx context.Context) (FreeSpace, error) {
 	debug("testFS.GetDiskFreeSpace")
 	return FreeSpace{
@@ -389,6 +403,7 @@ func (t testDir) FindFiles(ctx context.Context, fi *FileInfo, p string, cb func(
 	st.FileSize = int64(len(helloStr))
 	return cb(&st)
 }
+
 func (t testDir) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, error) {
 	debug("testDir.GetFileInformation")
 	return &Stat{
@@ -406,6 +421,7 @@ func (t testFile) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, 
 		FileSize: int64(len(helloStr)),
 	}, nil
 }
+
 func (t testFile) ReadFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error) {
 	debug("testFile.ReadFile")
 	rd := strings.NewReader(helloStr)
@@ -463,6 +479,7 @@ func (r *ramFile) WriteFile(ctx context.Context, fi *FileInfo, bs []byte, offset
 	n := copy(r.contents[int(offset):], bs)
 	return n, nil
 }
+
 func (r *ramFile) SetFileTime(ctx context.Context, fi *FileInfo, creationTime time.Time, lastReadTime time.Time, lastWriteTime time.Time) error {
 	debug("ramFile.SetFileTime")
 	r.lock.Lock()
@@ -472,6 +489,7 @@ func (r *ramFile) SetFileTime(ctx context.Context, fi *FileInfo, creationTime ti
 	}
 	return nil
 }
+
 func (r *ramFile) SetEndOfFile(ctx context.Context, fi *FileInfo, length int64) error {
 	debug("ramFile.SetEndOfFile")
 	r.lock.Lock()
@@ -485,6 +503,7 @@ func (r *ramFile) SetEndOfFile(ctx context.Context, fi *FileInfo, length int64) 
 	}
 	return nil
 }
+
 func (r *ramFile) SetAllocationSize(ctx context.Context, fi *FileInfo, length int64) error {
 	debug("ramFile.SetAllocationSize")
 	r.lock.Lock()

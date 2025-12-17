@@ -219,6 +219,7 @@ func (t timeOrOffset) Offset() *time.Duration { return nil }
 func (t timeOrOffset) Before(t2 time.Time) bool {
 	return time.Time(t).Before(t2)
 }
+
 func (t timeOrOffset) IsZero() bool {
 	return time.Time(t).IsZero()
 }

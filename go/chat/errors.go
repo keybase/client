@@ -17,9 +17,11 @@ import (
 	"golang.org/x/net/context"
 )
 
-var ErrChatServerTimeout = errors.New("timeout calling chat server")
-var ErrDuplicateConnection = errors.New("error calling chat server")
-var ErrKeyServerTimeout = errors.New("timeout calling into key server")
+var (
+	ErrChatServerTimeout   = errors.New("timeout calling chat server")
+	ErrDuplicateConnection = errors.New("error calling chat server")
+	ErrKeyServerTimeout    = errors.New("timeout calling into key server")
+)
 
 func NewPermanentUnboxingError(inner error) types.UnboxingError {
 	return PermanentUnboxingError{inner}
@@ -209,7 +211,8 @@ func (e PublicTeamEphemeralKeyError) Error() string {
 type NotAuthenticatedForThisDeviceError struct{ inner ephemeral.EphemeralKeyError }
 
 func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, memberCtime *keybase1.Time,
-	contentCtime gregor1.Time) NotAuthenticatedForThisDeviceError {
+	contentCtime gregor1.Time,
+) NotAuthenticatedForThisDeviceError {
 	inner := ephemeral.NewNotAuthenticatedForThisDeviceError(mctx, memberCtime, contentCtime)
 	return NotAuthenticatedForThisDeviceError{inner: inner}
 }
@@ -391,7 +394,8 @@ func NewMessageBoxedVersionError(version chat1.MessageBoxedVersion) VersionError
 }
 
 func NewHeaderVersionError(version chat1.HeaderPlaintextVersion,
-	defaultHeader chat1.HeaderPlaintextUnsupported) VersionError {
+	defaultHeader chat1.HeaderPlaintextUnsupported,
+) VersionError {
 	return VersionError{
 		Kind:     string(chat1.VersionErrorHeader),
 		Version:  int(version),
@@ -425,23 +429,23 @@ func NewHeaderMismatchError(field string) HeaderMismatchError {
 
 // =============================================================================
 
-type OfflineError struct {
-}
+type OfflineError struct{}
 
 func (e OfflineError) Error() string {
 	return "operation failed: no connection to chat server"
 }
 
-type OfflineClient struct {
-}
+type OfflineClient struct{}
 
 func (e OfflineClient) Call(ctx context.Context, method string, arg interface{},
-	res interface{}, timeout time.Duration) error {
+	res interface{}, timeout time.Duration,
+) error {
 	return OfflineError{}
 }
 
 func (e OfflineClient) CallCompressed(ctx context.Context, method string, arg interface{},
-	res interface{}, ctype rpc.CompressionType, timeout time.Duration) error {
+	res interface{}, ctype rpc.CompressionType, timeout time.Duration,
+) error {
 	return OfflineError{}
 }
 
@@ -510,8 +514,7 @@ func (e AttachmentUploadError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 
 // =============================================================================
 
-type SenderTestImmediateFailError struct {
-}
+type SenderTestImmediateFailError struct{}
 
 func (e SenderTestImmediateFailError) Error() string {
 	return "sender test immediate fail error"

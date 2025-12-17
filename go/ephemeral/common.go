@@ -39,7 +39,6 @@ func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
 		return seed, err
 	}
 	return libkb.MakeByte32(bs), nil
-
 }
 
 func deriveDHKey(k keybase1.Bytes32, reason libkb.DeriveReason) *libkb.NaclDHKeyPair {

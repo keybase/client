@@ -143,7 +143,8 @@ type RootMetadataV2 struct {
 // and handle. Note that if the given ID/handle are private, rekeying
 // must be done separately.
 func MakeInitialRootMetadataV2(tlfID tlf.ID, h tlf.Handle) (
-	*RootMetadataV2, error) {
+	*RootMetadataV2, error,
+) {
 	if tlfID.Type() != h.Type() {
 		return nil, errors.New("TlfID and TlfHandle disagree on TLF type")
 	}
@@ -223,7 +224,8 @@ func (md *RootMetadataV2) LatestKeyGeneration() KeyGen {
 
 func (md *RootMetadataV2) haveOnlyUserRKeysChanged(
 	codec kbfscodec.Codec, prevMD *RootMetadataV2,
-	user keybase1.UID) (bool, error) {
+	user keybase1.UID,
+) (bool, error) {
 	// Require the same number of generations
 	if len(md.RKeys) != len(prevMD.RKeys) {
 		return false, nil
@@ -236,8 +238,7 @@ func (md *RootMetadataV2) haveOnlyUserRKeysChanged(
 		for u, keys := range gen.RKeys {
 			if u != user {
 				prevKeys := prevMDGen.RKeys[u]
-				keysEqual, err :=
-					kbfscodec.Equal(codec, keys, prevKeys)
+				keysEqual, err := kbfscodec.Equal(codec, keys, prevKeys)
 				if err != nil {
 					return false, err
 				}
@@ -253,7 +254,8 @@ func (md *RootMetadataV2) haveOnlyUserRKeysChanged(
 // IsValidRekeyRequest implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) IsValidRekeyRequest(
 	codec kbfscodec.Codec, prevBareMd RootMetadata,
-	user keybase1.UID, _, _ ExtraMetadata) (bool, error) {
+	user keybase1.UID, _, _ ExtraMetadata,
+) (bool, error) {
 	if !md.IsWriterMetadataCopiedSet() {
 		// Not a copy.
 		return false, nil
@@ -320,7 +322,8 @@ func (md *RootMetadataV2) IsFinal() bool {
 func (md *RootMetadataV2) IsWriter(
 	_ context.Context, user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey,
 	_ kbfscrypto.VerifyingKey, _ TeamMembershipChecker, _ ExtraMetadata,
-	_ keybase1.OfflineAvailability) (bool, error) {
+	_ keybase1.OfflineAvailability,
+) (bool, error) {
 	if md.ID.Type() != tlf.Private {
 		for _, w := range md.Writers {
 			if w == user.AsUserOrTeam() {
@@ -336,7 +339,8 @@ func (md *RootMetadataV2) IsWriter(
 func (md *RootMetadataV2) IsReader(
 	_ context.Context, user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey,
 	_ TeamMembershipChecker, _ ExtraMetadata,
-	_ keybase1.OfflineAvailability) (bool, error) {
+	_ keybase1.OfflineAvailability,
+) (bool, error) {
 	switch md.ID.Type() {
 	case tlf.Public:
 		return true, nil
@@ -351,7 +355,8 @@ func (md *RootMetadataV2) IsReader(
 }
 
 func (md *RootMetadataV2) deepCopy(
-	codec kbfscodec.Codec) (*RootMetadataV2, error) {
+	codec kbfscodec.Codec,
+) (*RootMetadataV2, error) {
 	var newMd RootMetadataV2
 	if err := kbfscodec.Update(codec, &newMd, md); err != nil {
 		return nil, err
@@ -361,7 +366,8 @@ func (md *RootMetadataV2) deepCopy(
 
 // DeepCopy implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) DeepCopy(
-	codec kbfscodec.Codec) (MutableRootMetadata, error) {
+	codec kbfscodec.Codec,
+) (MutableRootMetadata, error) {
 	return md.deepCopy(codec)
 }
 
@@ -370,8 +376,8 @@ func (md *RootMetadataV2) MakeSuccessorCopy(
 	codec kbfscodec.Codec, extra ExtraMetadata, latestMDVer MetadataVer,
 	tlfCryptKeyGetter func() ([]kbfscrypto.TLFCryptKey, error),
 	isReadableAndWriter bool) (
-	MutableRootMetadata, ExtraMetadata, error) {
-
+	MutableRootMetadata, ExtraMetadata, error,
+) {
 	if !isReadableAndWriter || (latestMDVer < SegregatedKeyBundlesVer) {
 		// Continue with the current version.  If we're just a reader,
 		// or can't decrypt the MD, we have to continue with v2
@@ -391,7 +397,8 @@ func (md *RootMetadataV2) MakeSuccessorCopy(
 
 func (md *RootMetadataV2) makeSuccessorCopyV2(
 	codec kbfscodec.Codec, isReadableAndWriter bool) (
-	*RootMetadataV2, error) {
+	*RootMetadataV2, error,
+) {
 	mdCopy, err := md.deepCopy(codec)
 	if err != nil {
 		return nil, err
@@ -405,7 +412,8 @@ func (md *RootMetadataV2) makeSuccessorCopyV2(
 func (md *RootMetadataV2) makeSuccessorCopyV3(
 	codec kbfscodec.Codec,
 	tlfCryptKeyGetter func() ([]kbfscrypto.TLFCryptKey, error)) (
-	*RootMetadataV3, ExtraMetadata, error) {
+	*RootMetadataV3, ExtraMetadata, error,
+) {
 	mdV3 := &RootMetadataV3{}
 
 	// Fill out the writer metadata.
@@ -422,8 +430,7 @@ func (md *RootMetadataV2) makeSuccessorCopyV3(
 			return nil, nil, err
 		}
 
-		mdV3.WriterMetadata.WKeyBundleID, err =
-			MakeTLFWriterKeyBundleID(codec, wkbV3)
+		mdV3.WriterMetadata.WKeyBundleID, err = MakeTLFWriterKeyBundleID(codec, wkbV3)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -435,8 +442,7 @@ func (md *RootMetadataV2) makeSuccessorCopyV3(
 		if err != nil {
 			return nil, nil, err
 		}
-		mdV3.RKeyBundleID, err =
-			MakeTLFReaderKeyBundleID(codec, rkbV3)
+		mdV3.RKeyBundleID, err = MakeTLFReaderKeyBundleID(codec, rkbV3)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -467,7 +473,8 @@ func (md *RootMetadataV2) makeSuccessorCopyV3(
 
 // CheckValidSuccessor implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) CheckValidSuccessor(
-	currID ID, nextMd RootMetadata) error {
+	currID ID, nextMd RootMetadata,
+) error {
 	// (1) Verify current metadata is non-final.
 	if md.IsFinal() {
 		return MetadataIsFinalError{}
@@ -539,7 +546,8 @@ func (md *RootMetadataV2) CheckValidSuccessor(
 
 // CheckValidSuccessorForServer implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) CheckValidSuccessorForServer(
-	currID ID, nextMd RootMetadata) error {
+	currID ID, nextMd RootMetadata,
+) error {
 	err := md.CheckValidSuccessor(currID, nextMd)
 	switch err := err.(type) {
 	case nil:
@@ -572,7 +580,8 @@ func (md *RootMetadataV2) CheckValidSuccessorForServer(
 
 // MakeBareTlfHandle implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) MakeBareTlfHandle(_ ExtraMetadata) (
-	tlf.Handle, error) {
+	tlf.Handle, error,
+) {
 	var writers, readers []keybase1.UserOrTeamID
 	if md.ID.Type() == tlf.Private {
 		if len(md.WKeys) == 0 {
@@ -615,7 +624,8 @@ func (md *RootMetadataV2) MakeBareTlfHandle(_ ExtraMetadata) (
 
 // TlfHandleExtensions implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) TlfHandleExtensions() (
-	extensions []tlf.HandleExtension) {
+	extensions []tlf.HandleExtension,
+) {
 	if md.ConflictInfo != nil {
 		extensions = append(extensions, *md.ConflictInfo)
 	}
@@ -629,7 +639,8 @@ func (md *RootMetadataV2) TlfHandleExtensions() (
 // RootMetadataV2.
 func (md *RootMetadataV2) PromoteReaders(
 	readersToPromote map[keybase1.UID]bool,
-	_ ExtraMetadata) error {
+	_ ExtraMetadata,
+) error {
 	if md.TlfID().Type() != tlf.Private {
 		return InvalidNonPrivateTLFOperation{md.TlfID(), "PromoteReaders", md.Version()}
 	}
@@ -659,10 +670,12 @@ func (md *RootMetadataV2) PromoteReaders(
 // RootMetadataV2.
 func (md *RootMetadataV2) RevokeRemovedDevices(
 	updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
-	_ ExtraMetadata) (ServerHalfRemovalInfo, error) {
+	_ ExtraMetadata,
+) (ServerHalfRemovalInfo, error) {
 	if md.TlfID().Type() != tlf.Private {
 		return nil, InvalidNonPrivateTLFOperation{
-			md.TlfID(), "RevokeRemovedDevices", md.Version()}
+			md.TlfID(), "RevokeRemovedDevices", md.Version(),
+		}
 	}
 
 	var wRemovalInfo ServerHalfRemovalInfo
@@ -699,7 +712,8 @@ func (md *RootMetadataV2) RevokeRemovedDevices(
 // bundle, if they only have a Keybase username with no device keys
 // yet.
 func (md *RootMetadataV2) getTLFKeyBundles(keyGen KeyGen) (
-	*TLFWriterKeyBundleV2, *TLFReaderKeyBundleV2, error) {
+	*TLFWriterKeyBundleV2, *TLFReaderKeyBundleV2, error,
+) {
 	if md.ID.Type() != tlf.Private {
 		return nil, nil, InvalidNonPrivateTLFOperation{md.ID, "getTLFKeyBundles", md.Version()}
 	}
@@ -717,10 +731,12 @@ func (md *RootMetadataV2) getTLFKeyBundles(keyGen KeyGen) (
 // GetUserDevicePublicKeys implements the RootMetadata interface
 // for RootMetadataV2.
 func (md *RootMetadataV2) GetUserDevicePublicKeys(_ ExtraMetadata) (
-	writerDeviceKeys, readerDeviceKeys UserDevicePublicKeys, err error) {
+	writerDeviceKeys, readerDeviceKeys UserDevicePublicKeys, err error,
+) {
 	if md.TlfID().Type() != tlf.Private {
 		return nil, nil, InvalidNonPrivateTLFOperation{
-			md.TlfID(), "GetUserDevicePublicKeys", md.Version()}
+			md.TlfID(), "GetUserDevicePublicKeys", md.Version(),
+		}
 	}
 
 	if len(md.WKeys) == 0 || len(md.RKeys) == 0 {
@@ -739,7 +755,8 @@ func (md *RootMetadataV2) GetTLFCryptKeyParams(
 	keyGen KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey,
 	_ ExtraMetadata) (
 	kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.EncryptedTLFCryptKeyClientHalf,
-	kbfscrypto.TLFCryptKeyServerHalfID, bool, error) {
+	kbfscrypto.TLFCryptKeyServerHalfID, bool, error,
+) {
 	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
 	if err != nil {
 		return kbfscrypto.TLFEphemeralPublicKey{},
@@ -777,7 +794,8 @@ func (md *RootMetadataV2) GetTLFCryptKeyParams(
 func (md *RootMetadataV2) IsValidAndSigned(
 	_ context.Context, codec kbfscodec.Codec,
 	_ TeamMembershipChecker, extra ExtraMetadata,
-	_ kbfscrypto.VerifyingKey, _ keybase1.OfflineAvailability) error {
+	_ kbfscrypto.VerifyingKey, _ keybase1.OfflineAvailability,
+) error {
 	// Optimization -- if the WriterMetadata signature is nil, it
 	// will fail verification.
 	if md.WriterMetadataSigInfo.IsNil() {
@@ -859,7 +877,8 @@ func (md *RootMetadataV2) IsValidAndSigned(
 // IsLastModifiedBy implements the RootMetadata interface for
 // RootMetadataV2.
 func (md *RootMetadataV2) IsLastModifiedBy(
-	uid keybase1.UID, key kbfscrypto.VerifyingKey) error {
+	uid keybase1.UID, key kbfscrypto.VerifyingKey,
+) error {
 	// Verify the user and device are the writer.
 	writer := md.LastModifyingWriter()
 	if !md.IsWriterMetadataCopiedSet() {
@@ -1024,14 +1043,16 @@ func (md *RootMetadataV2) SetSerializedPrivateMetadata(spmd []byte) {
 
 // GetSerializedWriterMetadata implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) GetSerializedWriterMetadata(
-	codec kbfscodec.Codec) ([]byte, error) {
+	codec kbfscodec.Codec,
+) ([]byte, error) {
 	return codec.Encode(md.WriterMetadataV2)
 }
 
 // SignWriterMetadataInternally implements the MutableRootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) SignWriterMetadataInternally(
 	ctx context.Context, codec kbfscodec.Codec,
-	signer kbfscrypto.Signer) error {
+	signer kbfscrypto.Signer,
+) error {
 	buf, err := codec.Encode(md.WriterMetadataV2)
 	if err != nil {
 		return err
@@ -1136,7 +1157,8 @@ func (md *RootMetadataV2) Version() MetadataVer {
 // GetCurrentTLFPublicKey implements the RootMetadata interface
 // for RootMetadataV2.
 func (md *RootMetadataV2) GetCurrentTLFPublicKey(
-	_ ExtraMetadata) (kbfscrypto.TLFPublicKey, error) {
+	_ ExtraMetadata,
+) (kbfscrypto.TLFPublicKey, error) {
 	if len(md.WKeys) == 0 {
 		return kbfscrypto.TLFPublicKey{}, errors.New(
 			"No key generations in GetCurrentTLFPublicKey")
@@ -1160,7 +1182,8 @@ func (md *RootMetadataV2) updateKeyGenerationForReaderRekey(
 	updatedReaderKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
-	tlfCryptKey kbfscrypto.TLFCryptKey) (UserDeviceKeyServerHalves, error) {
+	tlfCryptKey kbfscrypto.TLFCryptKey,
+) (UserDeviceKeyServerHalves, error) {
 	if len(updatedReaderKeys) != 1 {
 		return nil, fmt.Errorf("Expected updatedReaderKeys to have only one entry, got %d",
 			len(updatedReaderKeys))
@@ -1197,7 +1220,8 @@ func (md *RootMetadataV2) updateKeyGeneration(
 	updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
-	tlfCryptKey kbfscrypto.TLFCryptKey) (UserDeviceKeyServerHalves, error) {
+	tlfCryptKey kbfscrypto.TLFCryptKey,
+) (UserDeviceKeyServerHalves, error) {
 	if len(updatedWriterKeys) == 0 {
 		return nil, errors.New(
 			"updatedWriterKeys unexpectedly non-empty")
@@ -1230,8 +1254,7 @@ func (md *RootMetadataV2) updateKeyGeneration(
 	// If we didn't fill in any new user infos, don't add a new
 	// ephemeral key.
 	if len(serverHalves) > 0 {
-		wkb.TLFEphemeralPublicKeys =
-			append(wkb.TLFEphemeralPublicKeys, ePubKey)
+		wkb.TLFEphemeralPublicKeys = append(wkb.TLFEphemeralPublicKeys, ePubKey)
 	}
 
 	return serverHalves, nil
@@ -1247,10 +1270,12 @@ func (md *RootMetadataV2) AddKeyGeneration(
 	pubKey kbfscrypto.TLFPublicKey,
 	currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey) (
 	nextExtra ExtraMetadata,
-	serverHalves UserDeviceKeyServerHalves, err error) {
+	serverHalves UserDeviceKeyServerHalves, err error,
+) {
 	if md.TlfID().Type() != tlf.Private {
 		return nil, nil, InvalidNonPrivateTLFOperation{
-			md.TlfID(), "AddKeyGeneration", md.Version()}
+			md.TlfID(), "AddKeyGeneration", md.Version(),
+		}
 	}
 
 	if len(updatedWriterKeys) == 0 {
@@ -1269,16 +1294,14 @@ func (md *RootMetadataV2) AddKeyGeneration(
 	}
 
 	if len(md.WKeys) > 0 {
-		existingWriterKeys :=
-			md.WKeys[len(md.WKeys)-1].WKeys.ToPublicKeys()
+		existingWriterKeys := md.WKeys[len(md.WKeys)-1].WKeys.ToPublicKeys()
 		if !existingWriterKeys.Equals(updatedWriterKeys) {
 			return nil, nil, fmt.Errorf(
 				"existingWriterKeys=%+v != updatedWriterKeys=%+v",
 				existingWriterKeys, updatedWriterKeys)
 		}
 
-		existingReaderKeys :=
-			md.RKeys[len(md.RKeys)-1].RKeys.ToPublicKeys()
+		existingReaderKeys := md.RKeys[len(md.RKeys)-1].RKeys.ToPublicKeys()
 		if !existingReaderKeys.Equals(updatedReaderKeys) {
 			return nil, nil, fmt.Errorf(
 				"existingReaderKeys=%+v != updatedReaderKeys=%+v",
@@ -1321,10 +1344,12 @@ func (md *RootMetadataV2) UpdateKeyBundles(codec kbfscodec.Codec,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKeys []kbfscrypto.TLFCryptKey) (
-	[]UserDeviceKeyServerHalves, error) {
+	[]UserDeviceKeyServerHalves, error,
+) {
 	if md.TlfID().Type() != tlf.Private {
 		return nil, InvalidNonPrivateTLFOperation{
-			md.TlfID(), "UpdateKeyBundles", md.Version()}
+			md.TlfID(), "UpdateKeyBundles", md.Version(),
+		}
 	}
 
 	expectedTLFCryptKeyCount := int(
@@ -1340,11 +1365,10 @@ func (md *RootMetadataV2) UpdateKeyBundles(codec kbfscodec.Codec,
 		// Reader rekey case.
 
 		for keyGen := FirstValidKeyGen; keyGen <= md.LatestKeyGeneration(); keyGen++ {
-			serverHalvesGen, err :=
-				md.updateKeyGenerationForReaderRekey(codec,
-					keyGen, updatedReaderKeys,
-					ePubKey, ePrivKey,
-					tlfCryptKeys[keyGen-FirstValidKeyGen])
+			serverHalvesGen, err := md.updateKeyGenerationForReaderRekey(codec,
+				keyGen, updatedReaderKeys,
+				ePubKey, ePrivKey,
+				tlfCryptKeys[keyGen-FirstValidKeyGen])
 			if err != nil {
 				return nil, err
 			}
@@ -1369,7 +1393,6 @@ func (md *RootMetadataV2) UpdateKeyBundles(codec kbfscodec.Codec,
 		serverHalves[keyGen-FirstValidKeyGen] = serverHalvesGen
 	}
 	return serverHalves, nil
-
 }
 
 // GetTLFWriterKeyBundleID implements the RootMetadata interface for RootMetadataV2.
@@ -1386,7 +1409,8 @@ func (md *RootMetadataV2) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
 
 // FinalizeRekey implements the MutableRootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) FinalizeRekey(
-	_ kbfscodec.Codec, _ ExtraMetadata) error {
+	_ kbfscodec.Codec, _ ExtraMetadata,
+) error {
 	// Nothing to do.
 	return nil
 }
@@ -1400,7 +1424,8 @@ func (md *RootMetadataV2) StoresHistoricTLFCryptKeys() bool {
 // GetHistoricTLFCryptKey implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) GetHistoricTLFCryptKey(
 	_ kbfscodec.Codec, _ KeyGen, _ kbfscrypto.TLFCryptKey, _ ExtraMetadata) (
-	kbfscrypto.TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error,
+) {
 	return kbfscrypto.TLFCryptKey{}, errors.New(
 		"TLF crypt key not symmetrically encrypted")
 }

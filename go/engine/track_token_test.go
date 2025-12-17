@@ -450,7 +450,8 @@ func (d *FakeGregorState) State(ctx context.Context) (gregor.State, error) {
 }
 
 func (d *FakeGregorState) UpdateCategory(ctx context.Context, cat string, body []byte,
-	dtime gregor1.TimeOrOffset) (res gregor1.MsgID, err error) {
+	dtime gregor1.TimeOrOffset,
+) (res gregor1.MsgID, err error) {
 	return gregor1.MsgID{}, nil
 }
 

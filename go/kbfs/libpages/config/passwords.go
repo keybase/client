@@ -27,19 +27,24 @@ const (
 	passwordTypeSHA256
 )
 
-const passwordHashDivider = ":"
-const sha256PasswordHashPrefix = "sha256"
-const saltSize = 12
+const (
+	passwordHashDivider      = ":"
+	sha256PasswordHashPrefix = "sha256"
+	saltSize                 = 12
+)
 
 var sha256PasswordHashLength = len(sha256PasswordHashPrefix) +
 	len(passwordHashDivider) +
 	hex.EncodedLen(saltSize) +
 	len(passwordHashDivider) +
 	hex.EncodedLen(sha256.Size)
+
 var sha256PasswordHashSaltIndex = len(sha256PasswordHashPrefix) +
 	len(passwordHashDivider)
+
 var sha256PasswordHashSaltEnd = sha256PasswordHashSaltIndex +
 	hex.EncodedLen(saltSize)
+
 var sha256PasswordHashSHA256Index = sha256PasswordHashSaltEnd +
 	len(passwordHashDivider)
 
@@ -66,7 +71,8 @@ type sha256Password struct {
 var _ password = (*sha256Password)(nil)
 
 func (p *sha256Password) check(_ context.Context, _ *rate.Limiter,
-	cleartext string) (match bool, err error) {
+	cleartext string,
+) (match bool, err error) {
 	sum := sha256.New()
 	if _, err = sum.Write(p.salt[:]); err != nil {
 		return false, fmt.Errorf("calculating sha256 error: %v", err)
@@ -107,7 +113,8 @@ func (p *bcryptCachingPassword) passwordType() passwordType {
 }
 
 func (p *bcryptCachingPassword) check(ctx context.Context,
-	limiter *rate.Limiter, cleartext string) (bool, error) {
+	limiter *rate.Limiter, cleartext string,
+) (bool, error) {
 	cachedCleartext := p.getCachedCleartext()
 	if len(cachedCleartext) > 0 {
 		return cachedCleartext == cleartext, nil

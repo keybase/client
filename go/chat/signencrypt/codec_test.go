@@ -2,6 +2,7 @@ package signencrypt
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"encoding/hex"
 	"errors"
 	"io"
@@ -9,8 +10,6 @@ import (
 	"testing"
 
 	"golang.org/x/crypto/nacl/secretbox"
-
-	"crypto/ed25519"
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/stretchr/testify/require"

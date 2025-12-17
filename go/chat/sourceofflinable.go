@@ -118,5 +118,4 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 // 1 should be all that is required).
 func makeConnectedChan() chan bool {
 	return make(chan bool, 10)
-
 }

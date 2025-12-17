@@ -40,6 +40,7 @@ const (
 	// definition and checker from V1.
 	Version2
 )
+
 const (
 	// VersionUnknownStr is the string representation of VUnknown.
 	VersionUnknownStr string = "unknown"
@@ -58,7 +59,6 @@ func (v Version) String() string {
 	default:
 		return VersionUnknownStr
 	}
-
 }
 
 func parseVersion(s string) (Version, error) {

@@ -33,7 +33,7 @@ func (bfi *browserFileInfo) Mode() os.FileMode {
 		panic(err)
 	}
 	// Make it read-only.
-	return mode &^ 0222
+	return mode &^ 0o222
 }
 
 func (bfi *browserFileInfo) ModTime() time.Time {

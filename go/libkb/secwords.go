@@ -36,7 +36,6 @@ func secWordListN(n int) ([]string, error) {
 }
 
 func validPhrase(p string, entropies []int) error {
-
 	lens := make(map[int]bool)
 	for _, e := range entropies {
 		lens[secWordCount(e)] = true

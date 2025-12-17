@@ -67,7 +67,8 @@ func (f *ReplyFiller) SetLocalOnlyReplyFill(enabled bool) {
 
 func (f *ReplyFiller) localFetcher(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, _ *chat1.GetThreadReason, _ func() chat1.RemoteInterface,
-	_ bool) (res []chat1.MessageUnboxed, err error) {
+	_ bool,
+) (res []chat1.MessageUnboxed, err error) {
 	msgs, err := storage.New(f.G(), nil).FetchMessages(ctx, convID, uid, msgIDs)
 	if err != nil {
 		return nil, err
@@ -104,7 +105,8 @@ func (f *ReplyFiller) getReplyTo(msg chat1.MessageUnboxed) *chat1.MessageID {
 }
 
 func (f *ReplyFiller) FillSingle(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msg chat1.MessageUnboxed) (res chat1.MessageUnboxed, err error) {
+	msg chat1.MessageUnboxed,
+) (res chat1.MessageUnboxed, err error) {
 	msgs, err := f.Fill(ctx, uid, convID, []chat1.MessageUnboxed{msg})
 	if err != nil {
 		return res, err
@@ -116,7 +118,8 @@ func (f *ReplyFiller) FillSingle(ctx context.Context, uid gregor1.UID, convID ch
 }
 
 func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err error) {
+	msgs []chat1.MessageUnboxed,
+) (res []chat1.MessageUnboxed, err error) {
 	defer f.Trace(ctx, &err, "Fill: %s", convID)()
 	// Gather up the message IDs we need
 	repliedToMsgIDsLocal := newFillerReplyMsgs(f.localFetcher)

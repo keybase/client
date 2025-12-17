@@ -21,7 +21,8 @@ const (
 
 // SplitExtension separates any extension suffix from the assertions.
 func SplitExtension(name string) (
-	assertions, extensionSuffix string, err error) {
+	assertions, extensionSuffix string, err error,
+) {
 	names := strings.SplitN(name, HandleExtensionSep, 2)
 	if len(names) > 2 {
 		return "", "", BadNameError{name}
@@ -34,7 +35,8 @@ func SplitExtension(name string) (
 
 // SplitName splits a TLF name into components.
 func SplitName(name string) (writerNames, readerNames []string,
-	extensionSuffix string, err error) {
+	extensionSuffix string, err error,
+) {
 	assertions, extensionSuffix, err := SplitExtension(name)
 	if err != nil {
 		return nil, nil, "", err
@@ -57,7 +59,8 @@ type CanonicalName string
 
 func getSortedNames(
 	resolved []kbname.NormalizedUsername,
-	unresolved []keybase1.SocialAssertion) []string {
+	unresolved []keybase1.SocialAssertion,
+) []string {
 	var names []string
 	for _, name := range resolved {
 		names = append(names, name.String())
@@ -73,7 +76,8 @@ func makeCanonicalName(resolvedWriters []kbname.NormalizedUsername,
 	unresolvedWriters []keybase1.SocialAssertion,
 	resolvedReaders []kbname.NormalizedUsername,
 	unresolvedReaders []keybase1.SocialAssertion,
-	extensions []HandleExtension, isBackedByTeam bool) CanonicalName {
+	extensions []HandleExtension, isBackedByTeam bool,
+) CanonicalName {
 	writerNames := getSortedNames(resolvedWriters, unresolvedWriters)
 	canonicalName := strings.Join(writerNames, ",")
 	if len(resolvedReaders)+len(unresolvedReaders) > 0 {
@@ -97,7 +101,8 @@ func MakeCanonicalName(resolvedWriters []kbname.NormalizedUsername,
 	unresolvedWriters []keybase1.SocialAssertion,
 	resolvedReaders []kbname.NormalizedUsername,
 	unresolvedReaders []keybase1.SocialAssertion,
-	extensions []HandleExtension) CanonicalName {
+	extensions []HandleExtension,
+) CanonicalName {
 	return makeCanonicalName(
 		resolvedWriters, unresolvedWriters, resolvedReaders, unresolvedReaders,
 		extensions, false)
@@ -108,7 +113,8 @@ func MakeCanonicalNameForTeam(resolvedWriters []kbname.NormalizedUsername,
 	unresolvedWriters []keybase1.SocialAssertion,
 	resolvedReaders []kbname.NormalizedUsername,
 	unresolvedReaders []keybase1.SocialAssertion,
-	extensions []HandleExtension) CanonicalName {
+	extensions []HandleExtension,
+) CanonicalName {
 	return makeCanonicalName(
 		resolvedWriters, unresolvedWriters, resolvedReaders, unresolvedReaders,
 		extensions, true)
@@ -134,7 +140,8 @@ func putUserFirst(uname string, users []string) []string {
 // canonical name and a username. The username may be empty, and
 // results in the canonical name being being returned unmodified.
 func CanonicalToPreferredName(username kbname.NormalizedUsername,
-	canon CanonicalName) (PreferredName, error) {
+	canon CanonicalName,
+) (PreferredName, error) {
 	tlfname := string(canon)
 	if len(username) == 0 {
 		return PreferredName(tlfname), nil

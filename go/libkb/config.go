@@ -98,8 +98,10 @@ func (f *JSONConfigFile) getUserConfigWithLock() (ret *UserConfig, err error) {
 	} else if ret != nil {
 		f.userConfigWrapper.userConfig = ret
 	} else {
-		err = ConfigError{f.filename,
-			fmt.Sprintf("Didn't find a UserConfig for %s", s)}
+		err = ConfigError{
+			f.filename,
+			fmt.Sprintf("Didn't find a UserConfig for %s", s),
+		}
 	}
 	return
 }
@@ -374,7 +376,6 @@ func (f *JSONConfigFile) SetUserConfig(u *UserConfig, overwrite bool) error {
 }
 
 func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) error {
-
 	if u == nil {
 		f.G().Log.Debug("| SetUserConfig(nil)")
 		err := f.jw.DeleteKey("current_user")
@@ -853,8 +854,10 @@ func (f *JSONConfigFile) GetProxyCACerts() (ret []string, err error) {
 		for i := 0; i < l; i++ {
 			s, e2 := jw.AtIndex(i).GetString()
 			if e2 != nil {
-				err = ConfigError{f.filename,
-					fmt.Sprintf("Error reading proxy CA file @ index %d: %s", i, e2)}
+				err = ConfigError{
+					f.filename,
+					fmt.Sprintf("Error reading proxy CA file @ index %d: %s", i, e2),
+				}
 				return
 			}
 

@@ -24,7 +24,8 @@ func NewCmdSimpleFSResetIndex(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		Usage: "[disabled] delete all local index storage, and resets the indexer",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSResetIndex{
-				Contextified: libkb.NewContextified(g)}, "reset-index", c)
+				Contextified: libkb.NewContextified(g),
+			}, "reset-index", c)
 			cl.SetNoStandalone()
 		},
 	}

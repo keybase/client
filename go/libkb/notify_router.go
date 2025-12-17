@@ -144,28 +144,34 @@ func (n *NoopNotifyListener) FSEditListRequest(arg keybase1.FSEditListRequest)  
 func (n *NoopNotifyListener) FavoritesChanged(uid keybase1.UID)                             {}
 func (n *NoopNotifyListener) FSSubscriptionNotify(arg keybase1.FSSubscriptionNotifyArg) {
 }
+
 func (n *NoopNotifyListener) FSSubscriptionNotifyPath(arg keybase1.FSSubscriptionNotifyPathArg) {
 }
+
 func (n *NoopNotifyListener) SimpleFSArchiveStatusChanged(status keybase1.SimpleFSArchiveStatus) {
 }
+
 func (n *NoopNotifyListener) PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
 }
 func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID) {}
 func (n *NoopNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
 	source chat1.ChatActivitySource) {
 }
+
 func (n *NoopNotifyListener) NewChatKBFSFileEditActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 }
 func (n *NoopNotifyListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
 func (n *NoopNotifyListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID,
 	finalizeInfo chat1.ConversationFinalizeInfo) {
 }
+
 func (n *NoopNotifyListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID,
 	resolveInfo chat1.ConversationResolveInfo) {
 }
 func (n *NoopNotifyListener) ChatInboxStale(uid keybase1.UID) {}
 func (n *NoopNotifyListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
 }
+
 func (n *NoopNotifyListener) ChatInboxSynced(uid keybase1.UID, topicType chat1.TopicType,
 	syncRes chat1.ChatSyncResult) {
 }
@@ -183,28 +189,37 @@ func (n *NoopNotifyListener) ChatSetConvSettings(uid keybase1.UID, convID chat1.
 func (n *NoopNotifyListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1.ConversationID)  {}
 func (n *NoopNotifyListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {
 }
+
 func (n *NoopNotifyListener) ChatAttachmentUploadStart(uid keybase1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID) {
 }
+
 func (n *NoopNotifyListener) ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
 }
+
 func (n *NoopNotifyListener) ChatAttachmentDownloadProgress(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, bytesComplete, bytesTotal int64) {
 }
+
 func (n *NoopNotifyListener) ChatAttachmentDownloadComplete(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID) {
 }
+
 func (n *NoopNotifyListener) ChatArchiveProgress(jobID chat1.ArchiveJobID, messagesComplete, messagesTotal int64) {
 }
+
 func (n *NoopNotifyListener) ChatArchiveComplete(jobID chat1.ArchiveJobID) {
 }
+
 func (n *NoopNotifyListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, info chat1.UIPaymentInfo) {
 }
+
 func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, info chat1.UIRequestInfo) {
 }
+
 func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, domain string) {
 }
@@ -219,6 +234,7 @@ func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
 func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability) {}
 func (n *NoopNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno, source keybase1.TeamChangedSource) {
 }
+
 func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno, source keybase1.TeamChangedSource) {
 }
 func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                                    {}
@@ -229,8 +245,10 @@ func (n *NoopNotifyListener) NewTeambotEK(teamID keybase1.TeamID, generation key
 func (n *NoopNotifyListener) TeambotEKNeeded(teamID keybase1.TeamID, botUID keybase1.UID,
 	generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration) {
 }
+
 func (n *NoopNotifyListener) NewTeambotKey(teamID keybase1.TeamID, generation keybase1.TeambotKeyGeneration) {
 }
+
 func (n *NoopNotifyListener) TeambotKeyNeeded(teamID keybase1.TeamID, botUID keybase1.UID,
 	generation keybase1.TeambotKeyGeneration) {
 }
@@ -239,6 +257,7 @@ func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.Avata
 func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                      {}
 func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 }
+
 func (n *NoopNotifyListener) WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 }
 func (n *NoopNotifyListener) WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID) {}
@@ -247,6 +266,7 @@ func (n *NoopNotifyListener) WalletAccountDetailsUpdate(accountID stellar1.Accou
 func (n *NoopNotifyListener) WalletAccountsUpdate(accounts []stellar1.WalletAccountLocal) {}
 func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal) {
 }
+
 func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
 }
 func (n *NoopNotifyListener) TeamMetadataUpdate()                   {}
@@ -269,10 +289,13 @@ func (n *NoopNotifyListener) UserBlocked(keybase1.UserBlockedBody)              
 func (n *NoopNotifyListener) FeaturedBotsUpdate(bots []keybase1.FeaturedBot, limit, offset int) {}
 func (n *NoopNotifyListener) SaltpackOperationStart(opType keybase1.SaltpackOperationType, filename string) {
 }
+
 func (n *NoopNotifyListener) SaltpackOperationProgress(opType keybase1.SaltpackOperationType, filename string, bytesComplete, bytesTotal int64) {
 }
+
 func (n *NoopNotifyListener) SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string) {
 }
+
 func (n *NoopNotifyListener) UpdateInviteCounts(keybase1.InviteCounts) {
 }
 func (n *NoopNotifyListener) TeamTreeMembershipsPartial(keybase1.TeamTreeMembership)         {}
@@ -1021,7 +1044,8 @@ func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType cha
 }
 
 func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.UID,
-	topicType chat1.TopicType, activity *chat1.ChatActivity, source chat1.ChatActivitySource, canSkip bool) {
+	topicType chat1.TopicType, activity *chat1.ChatActivity, source chat1.ChatActivitySource, canSkip bool,
+) {
 	if n == nil {
 		return
 	}
@@ -1083,7 +1107,8 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 
 func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID,
 	convID chat1.ConversationID, topicType chat1.TopicType, finalizeInfo chat1.ConversationFinalizeInfo,
-	conv *chat1.InboxUIItem) {
+	conv *chat1.InboxUIItem,
+) {
 	if n == nil {
 		return
 	}
@@ -1115,7 +1140,8 @@ func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.U
 }
 
 func (n *NotifyRouter) HandleChatTLFResolve(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, topicType chat1.TopicType, resolveInfo chat1.ConversationResolveInfo) {
+	convID chat1.ConversationID, topicType chat1.TopicType, resolveInfo chat1.ConversationResolveInfo,
+) {
 	if n == nil {
 		return
 	}
@@ -1172,7 +1198,8 @@ func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UI
 }
 
 func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.UID,
-	updates []chat1.ConversationStaleUpdate) {
+	updates []chat1.ConversationStaleUpdate,
+) {
 	if n == nil {
 		return
 	}
@@ -1202,7 +1229,8 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 }
 
 func (n *NotifyRouter) HandleChatInboxSynced(ctx context.Context, uid keybase1.UID,
-	topicType chat1.TopicType, syncRes chat1.ChatSyncResult) {
+	topicType chat1.TopicType, syncRes chat1.ChatSyncResult,
+) {
 	if n == nil {
 		return
 	}
@@ -1283,7 +1311,8 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 }
 
 func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem,
+) {
 	if n == nil {
 		return
 	}
@@ -1314,7 +1343,8 @@ func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid key
 }
 
 func (n *NotifyRouter) HandleChatLeftConversation(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, topicType chat1.TopicType) {
+	convID chat1.ConversationID, topicType chat1.TopicType,
+) {
 	if n == nil {
 		return
 	}
@@ -1343,7 +1373,8 @@ func (n *NotifyRouter) HandleChatLeftConversation(ctx context.Context, uid keyba
 }
 
 func (n *NotifyRouter) HandleChatResetConversation(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, topicType chat1.TopicType) {
+	convID chat1.ConversationID, topicType chat1.TopicType,
+) {
 	if n == nil {
 		return
 	}
@@ -1373,7 +1404,8 @@ func (n *NotifyRouter) HandleChatResetConversation(ctx context.Context, uid keyb
 }
 
 func (n *NotifyRouter) HandleChatKBFSToImpteamUpgrade(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, topicType chat1.TopicType) {
+	convID chat1.ConversationID, topicType chat1.TopicType,
+) {
 	if n == nil {
 		return
 	}
@@ -1403,7 +1435,8 @@ func (n *NotifyRouter) HandleChatKBFSToImpteamUpgrade(ctx context.Context, uid k
 }
 
 func (n *NotifyRouter) HandleChatAttachmentUploadStart(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, outboxID chat1.OutboxID) {
+	convID chat1.ConversationID, outboxID chat1.OutboxID,
+) {
 	if n == nil {
 		return
 	}
@@ -1434,7 +1467,8 @@ func (n *NotifyRouter) HandleChatAttachmentUploadStart(ctx context.Context, uid 
 }
 
 func (n *NotifyRouter) HandleChatAttachmentUploadProgress(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
+	convID chat1.ConversationID, outboxID chat1.OutboxID, bytesComplete, bytesTotal int64,
+) {
 	if n == nil {
 		return
 	}
@@ -1467,7 +1501,8 @@ func (n *NotifyRouter) HandleChatAttachmentUploadProgress(ctx context.Context, u
 }
 
 func (n *NotifyRouter) HandleChatAttachmentDownloadProgress(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID, bytesComplete, bytesTotal int64) {
+	convID chat1.ConversationID, msgID chat1.MessageID, bytesComplete, bytesTotal int64,
+) {
 	if n == nil {
 		return
 	}
@@ -1500,7 +1535,8 @@ func (n *NotifyRouter) HandleChatAttachmentDownloadProgress(ctx context.Context,
 }
 
 func (n *NotifyRouter) HandleChatAttachmentDownloadComplete(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID) {
+	convID chat1.ConversationID, msgID chat1.MessageID,
+) {
 	if n == nil {
 		return
 	}
@@ -1589,7 +1625,8 @@ func (n *NotifyRouter) HandleChatArchiveComplete(ctx context.Context, jobID chat
 }
 
 func (n *NotifyRouter) HandleChatSetConvRetention(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem,
+) {
 	n.notifyChatCommon(ctx, "ChatSetConvRetention", topicType,
 		func(ctx context.Context, cli *chat1.NotifyChatClient) {
 			_ = cli.ChatSetConvRetention(ctx, chat1.ChatSetConvRetentionArg{
@@ -1603,7 +1640,8 @@ func (n *NotifyRouter) HandleChatSetConvRetention(ctx context.Context, uid keyba
 }
 
 func (n *NotifyRouter) HandleChatSetTeamRetention(ctx context.Context, uid keybase1.UID,
-	teamID keybase1.TeamID, topicType chat1.TopicType, convs []chat1.InboxUIItem) {
+	teamID keybase1.TeamID, topicType chat1.TopicType, convs []chat1.InboxUIItem,
+) {
 	n.notifyChatCommon(ctx, "ChatSetTeamRetention", topicType,
 		func(ctx context.Context, cli *chat1.NotifyChatClient) {
 			_ = cli.ChatSetTeamRetention(ctx, chat1.ChatSetTeamRetentionArg{
@@ -1617,7 +1655,8 @@ func (n *NotifyRouter) HandleChatSetTeamRetention(ctx context.Context, uid keyba
 }
 
 func (n *NotifyRouter) HandleChatSetConvSettings(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem,
+) {
 	n.notifyChatCommon(ctx, "ChatSetConvSettings", topicType,
 		func(ctx context.Context, cli *chat1.NotifyChatClient) {
 			_ = cli.ChatSetConvSettings(ctx, chat1.ChatSetConvSettingsArg{
@@ -1631,7 +1670,8 @@ func (n *NotifyRouter) HandleChatSetConvSettings(ctx context.Context, uid keybas
 }
 
 func (n *NotifyRouter) HandleChatSubteamRename(ctx context.Context, uid keybase1.UID,
-	convIDs []chat1.ConversationID, topicType chat1.TopicType, convs []chat1.InboxUIItem) {
+	convIDs []chat1.ConversationID, topicType chat1.TopicType, convs []chat1.InboxUIItem,
+) {
 	n.notifyChatCommon(ctx, "ChatSubteamRename", topicType,
 		func(ctx context.Context, cli *chat1.NotifyChatClient) {
 			_ = cli.ChatSubteamRename(ctx, chat1.ChatSubteamRenameArg{
@@ -1644,7 +1684,8 @@ func (n *NotifyRouter) HandleChatSubteamRename(ctx context.Context, uid keybase1
 }
 
 func (n *NotifyRouter) HandleChatPromptUnfurl(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID, domain string) {
+	convID chat1.ConversationID, msgID chat1.MessageID, domain string,
+) {
 	n.notifyChatCommon(ctx, "ChatPromptUnfurl", chat1.TopicType_CHAT,
 		func(ctx context.Context, cli *chat1.NotifyChatClient) {
 			_ = cli.ChatPromptUnfurl(ctx, chat1.ChatPromptUnfurlArg{
@@ -1659,7 +1700,8 @@ func (n *NotifyRouter) HandleChatPromptUnfurl(ctx context.Context, uid keybase1.
 }
 
 func (n *NotifyRouter) HandleChatConvUpdate(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem,
+) {
 	n.notifyChatCommon(ctx, "ChatConvUpdate", topicType,
 		func(ctx context.Context, cli *chat1.NotifyChatClient) {
 			_ = cli.ChatConvUpdate(ctx, chat1.ChatConvUpdateArg{
@@ -1673,7 +1715,8 @@ func (n *NotifyRouter) HandleChatConvUpdate(ctx context.Context, uid keybase1.UI
 }
 
 func (n *NotifyRouter) HandleChatWelcomeMessageLoaded(ctx context.Context,
-	teamID keybase1.TeamID, message chat1.WelcomeMessageDisplay) {
+	teamID keybase1.TeamID, message chat1.WelcomeMessageDisplay,
+) {
 	if n == nil {
 		return
 	}
@@ -1697,7 +1740,8 @@ func (n *NotifyRouter) HandleChatWelcomeMessageLoaded(ctx context.Context,
 }
 
 func (n *NotifyRouter) HandleChatParticipantsInfo(ctx context.Context,
-	participants map[chat1.ConvIDStr][]chat1.UIParticipant) {
+	participants map[chat1.ConvIDStr][]chat1.UIParticipant,
+) {
 	if n == nil {
 		return
 	}
@@ -1717,11 +1761,14 @@ func (n *NotifyRouter) HandleChatParticipantsInfo(ctx context.Context,
 	})
 }
 
-type notifyChatFn1 func(context.Context, *chat1.NotifyChatClient)
-type notifyChatFn2 func(context.Context, NotifyListener)
+type (
+	notifyChatFn1 func(context.Context, *chat1.NotifyChatClient)
+	notifyChatFn2 func(context.Context, NotifyListener)
+)
 
 func (n *NotifyRouter) notifyChatCommon(ctx context.Context, debugLabel string, topicType chat1.TopicType,
-	fn1 notifyChatFn1, fn2 notifyChatFn2) {
+	fn1 notifyChatFn1, fn2 notifyChatFn2,
+) {
 	if n == nil {
 		return
 	}
@@ -2106,16 +2153,16 @@ func (n *NotifyRouter) HandleReachability(r keybase1.Reachability) {
 // teamID and teamName are not necessarily the same team
 func (n *NotifyRouter) HandleTeamChangedByBothKeys(ctx context.Context,
 	teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet,
-	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno, source keybase1.TeamChangedSource) {
-
+	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno, source keybase1.TeamChangedSource,
+) {
 	n.HandleTeamChangedByID(ctx, teamID, latestSeqno, implicitTeam, changes, latestHiddenSeqno, latestOffchainSeqno, source)
 	n.HandleTeamChangedByName(ctx, teamName, latestSeqno, implicitTeam, changes, latestHiddenSeqno, latestOffchainSeqno, source)
 }
 
 func (n *NotifyRouter) HandleTeamChangedByID(ctx context.Context,
 	teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet,
-	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno, source keybase1.TeamChangedSource) {
-
+	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno, source keybase1.TeamChangedSource,
+) {
 	if n == nil {
 		return
 	}
@@ -2155,8 +2202,8 @@ func (n *NotifyRouter) HandleTeamChangedByID(ctx context.Context,
 
 func (n *NotifyRouter) HandleTeamChangedByName(ctx context.Context,
 	teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet,
-	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno, source keybase1.TeamChangedSource) {
-
+	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno, source keybase1.TeamChangedSource,
+) {
 	if n == nil {
 		return
 	}
@@ -2418,7 +2465,8 @@ func (n *NotifyRouter) HandleNewlyAddedToTeam(ctx context.Context, teamID keybas
 }
 
 func (n *NotifyRouter) HandleNewTeamEK(ctx context.Context, teamID keybase1.TeamID,
-	generation keybase1.EkGeneration) {
+	generation keybase1.EkGeneration,
+) {
 	if n == nil {
 		return
 	}
@@ -2451,7 +2499,8 @@ func (n *NotifyRouter) HandleNewTeamEK(ctx context.Context, teamID keybase1.Team
 }
 
 func (n *NotifyRouter) HandleNewTeambotEK(ctx context.Context, teamID keybase1.TeamID,
-	generation keybase1.EkGeneration) {
+	generation keybase1.EkGeneration,
+) {
 	if n == nil {
 		return
 	}
@@ -2484,7 +2533,8 @@ func (n *NotifyRouter) HandleNewTeambotEK(ctx context.Context, teamID keybase1.T
 }
 
 func (n *NotifyRouter) HandleTeambotEKNeeded(ctx context.Context, teamID keybase1.TeamID,
-	botUID keybase1.UID, generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration) {
+	botUID keybase1.UID, generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration,
+) {
 	if n == nil {
 		return
 	}
@@ -2519,7 +2569,8 @@ func (n *NotifyRouter) HandleTeambotEKNeeded(ctx context.Context, teamID keybase
 }
 
 func (n *NotifyRouter) HandleNewTeambotKey(ctx context.Context, teamID keybase1.TeamID,
-	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) {
+	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration,
+) {
 	if n == nil {
 		return
 	}
@@ -2553,7 +2604,8 @@ func (n *NotifyRouter) HandleNewTeambotKey(ctx context.Context, teamID keybase1.
 }
 
 func (n *NotifyRouter) HandleTeambotKeyNeeded(ctx context.Context, teamID keybase1.TeamID,
-	botUID keybase1.UID, app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) {
+	botUID keybase1.UID, app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration,
+) {
 	if n == nil {
 		return
 	}
@@ -2588,7 +2640,8 @@ func (n *NotifyRouter) HandleTeambotKeyNeeded(ctx context.Context, teamID keybas
 }
 
 func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, formats []keybase1.AvatarFormat,
-	typ keybase1.AvatarUpdateType) {
+	typ keybase1.AvatarUpdateType,
+) {
 	if n == nil {
 		return
 	}
@@ -3012,8 +3065,8 @@ func (n *NotifyRouter) HandleUpdateInviteCounts(ctx context.Context, counts keyb
 }
 
 func (n *NotifyRouter) HandleTeamTreeMembershipsPartial(ctx context.Context,
-	result keybase1.TeamTreeMembership) {
-
+	result keybase1.TeamTreeMembership,
+) {
 	if n == nil {
 		return
 	}

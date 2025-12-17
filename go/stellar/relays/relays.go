@@ -51,7 +51,8 @@ func GetKey(mctx libkb.MetaContext, recipient stellarcommon.Recipient) (key keyb
 }
 
 func getKeyForDecryption(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
+	generation keybase1.PerTeamKeyGeneration,
+) (res keybase1.TeamApplicationKey, err error) {
 	arg := keybase1.FastTeamLoadArg{
 		ID:                   teamID,
 		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_STELLAR_RELAY},

@@ -21,14 +21,16 @@ type CmdSimpleFSFinishResolvingConflicts struct {
 
 // NewCmdSimpleFSFinishResolvingConflicts creates a new cli.Command.
 func NewCmdSimpleFSFinishResolvingConflicts(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:         "finish-resolving-conflicts",
 		ArgumentHelp: "<path-to-folder>",
 		Usage:        "indicate that a conflict has been resolved and its local state may be cleaned",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSFinishResolvingConflicts{
-				Contextified: libkb.NewContextified(g)}, "finish-resolving-conflicts", c)
+				Contextified: libkb.NewContextified(g),
+			}, "finish-resolving-conflicts", c)
 			cl.SetNoStandalone()
 		},
 	}

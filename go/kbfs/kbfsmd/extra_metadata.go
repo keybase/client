@@ -22,7 +22,8 @@ type ExtraMetadata interface {
 // DumpExtraMetadata returns a detailed dump of the given
 // ExtraMetadata's contents.
 func DumpExtraMetadata(
-	codec kbfscodec.Codec, extra ExtraMetadata) (string, error) {
+	codec kbfscodec.Codec, extra ExtraMetadata,
+) (string, error) {
 	var s string
 	if extra, ok := extra.(*ExtraMetadataV3); ok {
 		serializedWKB, err := codec.Encode(extra.GetWriterKeyBundle())

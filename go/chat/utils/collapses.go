@@ -53,7 +53,8 @@ func (c *Collapses) rangeKey(uid gregor1.UID, convID chat1.ConversationID) libkb
 }
 
 func (c *Collapses) ToggleSingle(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, collapsed bool) error {
+	msgID chat1.MessageID, collapsed bool,
+) error {
 	key := c.singleKey(uid, convID, msgID)
 	return c.G().GetKVStore().PutObj(key, nil, singleCollapseRecord{
 		Collapsed: collapsed,
@@ -62,7 +63,8 @@ func (c *Collapses) ToggleSingle(ctx context.Context, uid gregor1.UID, convID ch
 }
 
 func (c *Collapses) ToggleRange(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, collapsed bool) error {
+	msgID chat1.MessageID, collapsed bool,
+) error {
 	key := c.rangeKey(uid, convID)
 	return c.G().GetKVStore().PutObj(key, nil, rangeCollapseRecord{
 		Collapsed: collapsed,
@@ -72,7 +74,8 @@ func (c *Collapses) ToggleRange(ctx context.Context, uid gregor1.UID, convID cha
 }
 
 func (c *Collapses) IsCollapsed(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, msgType chat1.MessageType) bool {
+	msgID chat1.MessageID, msgType chat1.MessageType,
+) bool {
 	if !IsCollapsibleMessageType(msgType) {
 		return false
 	}

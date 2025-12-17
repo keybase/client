@@ -17,7 +17,8 @@ const gitRenameUsageStr = `Usage:
 `
 
 func doGitRename(ctx context.Context,
-	rpcHandler *libgit.RPCHandler, tlfStr, oldName, newName string) error {
+	rpcHandler *libgit.RPCHandler, tlfStr, oldName, newName string,
+) error {
 	p, err := fsrpc.NewPath(tlfStr)
 	if err != nil {
 		return err

@@ -381,7 +381,6 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 }
 
 func configureLogging(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error {
-
 	g.Log.Debug("+ configureLogging")
 	defer func() {
 		g.Log.Debug("- configureLogging")

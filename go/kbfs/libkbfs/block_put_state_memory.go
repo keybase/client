@@ -40,9 +40,11 @@ func newBlockPutStateMemory(length int) *blockPutStateMemory {
 // error).
 func (bps *blockPutStateMemory) AddNewBlock(
 	_ context.Context, blockPtr data.BlockPointer, block data.Block,
-	readyBlockData data.ReadyBlockData, syncedCb func() error) error {
+	readyBlockData data.ReadyBlockData, syncedCb func() error,
+) error {
 	bps.blockStates[blockPtr] = blockState{
-		block, readyBlockData, syncedCb, data.ZeroPtr}
+		block, readyBlockData, syncedCb, data.ZeroPtr,
+	}
 	bps.lastBlock = blockPtr
 	return nil
 }
@@ -50,7 +52,8 @@ func (bps *blockPutStateMemory) AddNewBlock(
 // SaveOldPtr stores the given BlockPointer as the old (pre-readied)
 // pointer for the most recent blockState.
 func (bps *blockPutStateMemory) SaveOldPtr(
-	_ context.Context, oldPtr data.BlockPointer) error {
+	_ context.Context, oldPtr data.BlockPointer,
+) error {
 	if bps.lastBlock == data.ZeroPtr {
 		return errors.New("No blocks have been added")
 	}
@@ -64,7 +67,8 @@ func (bps *blockPutStateMemory) SaveOldPtr(
 }
 
 func (bps *blockPutStateMemory) oldPtr(
-	_ context.Context, blockPtr data.BlockPointer) (data.BlockPointer, error) {
+	_ context.Context, blockPtr data.BlockPointer,
+) (data.BlockPointer, error) {
 	bs, ok := bps.blockStates[blockPtr]
 	if ok {
 		return bs.oldPtr, nil
@@ -74,7 +78,8 @@ func (bps *blockPutStateMemory) oldPtr(
 }
 
 func (bps *blockPutStateMemory) mergeOtherBps(
-	_ context.Context, other blockPutStateCopiable) error {
+	_ context.Context, other blockPutStateCopiable,
+) error {
 	otherMem, ok := other.(*blockPutStateMemory)
 	if !ok {
 		return errors.Errorf("Cannot remove other bps of type %T", other)
@@ -87,7 +92,8 @@ func (bps *blockPutStateMemory) mergeOtherBps(
 }
 
 func (bps *blockPutStateMemory) removeOtherBps(
-	ctx context.Context, other blockPutStateCopiable) error {
+	ctx context.Context, other blockPutStateCopiable,
+) error {
 	otherMem, ok := other.(*blockPutStateMemory)
 	if !ok {
 		return errors.Errorf("Cannot remove other bps of type %T", other)
@@ -126,7 +132,8 @@ func (bps *blockPutStateMemory) Ptrs() []data.BlockPointer {
 }
 
 func (bps *blockPutStateMemory) GetBlock(
-	_ context.Context, blockPtr data.BlockPointer) (data.Block, error) {
+	_ context.Context, blockPtr data.BlockPointer,
+) (data.Block, error) {
 	bs, ok := bps.blockStates[blockPtr]
 	if ok {
 		return bs.block, nil
@@ -135,7 +142,8 @@ func (bps *blockPutStateMemory) GetBlock(
 }
 
 func (bps *blockPutStateMemory) getReadyBlockData(
-	_ context.Context, blockPtr data.BlockPointer) (data.ReadyBlockData, error) {
+	_ context.Context, blockPtr data.BlockPointer,
+) (data.ReadyBlockData, error) {
 	bs, ok := bps.blockStates[blockPtr]
 	if ok {
 		return bs.readyBlockData, nil
@@ -157,7 +165,8 @@ func (bps *blockPutStateMemory) numBlocks() int {
 }
 
 func (bps *blockPutStateMemory) deepCopy(
-	_ context.Context) (blockPutStateCopiable, error) {
+	_ context.Context,
+) (blockPutStateCopiable, error) {
 	newBps := &blockPutStateMemory{}
 	newBps.blockStates = make(map[data.BlockPointer]blockState, len(bps.blockStates))
 	for ptr, bs := range bps.blockStates {
@@ -168,7 +177,8 @@ func (bps *blockPutStateMemory) deepCopy(
 
 func (bps *blockPutStateMemory) deepCopyWithBlacklist(
 	_ context.Context, blacklist map[data.BlockPointer]bool) (
-	blockPutStateCopiable, error) {
+	blockPutStateCopiable, error,
+) {
 	newBps := &blockPutStateMemory{}
 	newLen := len(bps.blockStates) - len(blacklist)
 	if newLen < 0 {

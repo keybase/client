@@ -27,7 +27,8 @@ func newLoadKeyCache() *loadKeyCache {
 }
 
 func (c *loadKeyCache) loadKeyV2(mctx libkb.MetaContext, uid keybase1.UID, kid keybase1.KID) (
-	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error) {
+	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error,
+) {
 	mctx, tbs := mctx.WithTimeBuckets()
 	defer tbs.Record("loadKeyCache.loadKeyV2")()
 

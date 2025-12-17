@@ -8,8 +8,10 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type Feature string
-type FeatureFlags []Feature
+type (
+	Feature      string
+	FeatureFlags []Feature
+)
 
 const (
 	EnvironmentFeatureAllowHighSkips   = Feature("env_allow_high_skips")
@@ -85,7 +87,8 @@ func getInitialFeatures() []Feature {
 		ExperimentalGenericProofs,
 		FeatureCheckForHiddenChainSupport,
 		FeatureJourneycardPreview,
-		FeatureJourneycard}
+		FeatureJourneycard,
+	}
 }
 
 // NewFeatureFlagSet makes a new set of feature flags.

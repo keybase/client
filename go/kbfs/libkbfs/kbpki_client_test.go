@@ -31,7 +31,8 @@ func (o keybaseServiceSelfOwner) KeybaseService() KeybaseService {
 
 func makeTestKBPKIClient(t *testing.T) (
 	client *KBPKIClient, currentUID keybase1.UID, users []idutil.LocalUser,
-	teams []idutil.TeamInfo) {
+	teams []idutil.TeamInfo,
+) {
 	currentUID = keybase1.MakeTestUID(1)
 	names := []kbname.NormalizedUsername{"test_name1", "test_name2"}
 	users = idutil.MakeLocalUsers(names)
@@ -44,7 +45,8 @@ func makeTestKBPKIClient(t *testing.T) (
 }
 
 func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
-	client *KBPKIClient, currentUID keybase1.UID, users []idutil.LocalUser) {
+	client *KBPKIClient, currentUID keybase1.UID, users []idutil.LocalUser,
+) {
 	currentUID = keybase1.MakeTestUID(1)
 	names := []kbname.NormalizedUsername{"test_name1", "test_name2"}
 	users = idutil.MakeLocalUsers(names)
@@ -53,10 +55,9 @@ func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 		index := 99
 		keySalt := keySaltForUserDevice(user.Name, index)
 		newVerifyingKey := idutil.MakeLocalUserVerifyingKeyOrBust(keySalt)
-		user.RevokedVerifyingKeys =
-			map[kbfscrypto.VerifyingKey]idutil.RevokedKeyInfo{
-				newVerifyingKey: {Time: keybase1.ToTime(revokeTime)},
-			}
+		user.RevokedVerifyingKeys = map[kbfscrypto.VerifyingKey]idutil.RevokedKeyInfo{
+			newVerifyingKey: {Time: keybase1.ToTime(revokeTime)},
+		}
 		users[i] = user
 	}
 	codec := kbfscodec.NewMsgpack()

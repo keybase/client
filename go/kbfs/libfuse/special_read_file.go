@@ -39,7 +39,7 @@ func (f *SpecialReadFile) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Size = uint64(len(data))
 	a.Mtime = t
 	a.Ctime = t
-	a.Mode = 0444
+	a.Mode = 0o444
 	return nil
 }
 
@@ -47,7 +47,8 @@ var _ fs.NodeOpener = (*SpecialReadFile)(nil)
 
 // Open implements the fs.NodeOpener interface for SpecialReadFile.
 func (f *SpecialReadFile) Open(ctx context.Context, req *fuse.OpenRequest,
-	resp *fuse.OpenResponse) (fs.Handle, error) {
+	resp *fuse.OpenResponse,
+) (fs.Handle, error) {
 	data, _, err := f.read(ctx)
 	if err != nil {
 		return nil, err

@@ -44,7 +44,8 @@ func (t *testDealersHelper) Me() UserDevice {
 }
 
 func (t *testDealersHelper) SendChat(ctx context.Context, initiatorUID gregor1.UID, conversationID chat1.ConversationID,
-	gameID chat1.FlipGameID, msg GameMessageEncoded) error {
+	gameID chat1.FlipGameID, msg GameMessageEncoded,
+) error {
 	t.ch <- GameMessageWrappedEncoded{Body: msg, GameID: gameID, Sender: t.me}
 	return nil
 }

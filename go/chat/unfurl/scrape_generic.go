@@ -47,7 +47,8 @@ func (s *Scraper) setAndParsePubTime(ctx context.Context, content string, generi
 }
 
 func (s *Scraper) setAttr(ctx context.Context, attr, hostname, domain string, generic *scoredGenericRaw,
-	e *colly.HTMLElement) {
+	e *colly.HTMLElement,
+) {
 	ranker, ok := attrRankMap[attr]
 	if !ok { // invalid attribute, ignore
 		return
@@ -120,7 +121,8 @@ func (s *Scraper) tryAppleTouchIcon(ctx context.Context, generic *scoredGenericR
 }
 
 func (s *Scraper) addGenericScraperToCollector(ctx context.Context, c *colly.Collector,
-	generic *scoredGenericRaw, uri, domain string) error {
+	generic *scoredGenericRaw, uri, domain string,
+) error {
 	// default favicon location as a fallback
 	defaultFaviconURL, err := GetDefaultFaviconURL(uri)
 	if err != nil {

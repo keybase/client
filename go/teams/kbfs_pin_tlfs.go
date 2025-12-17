@@ -10,7 +10,6 @@ import (
 )
 
 func getUnpinnedTLF(m libkb.MetaContext) (res *unpinnedTLF, err error) {
-
 	arg := libkb.NewAPIArg("kbfs/unpinned")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
@@ -121,7 +120,6 @@ type backgroundTLFPinner struct {
 }
 
 func newBackgroundTLFPinner() *backgroundTLFPinner {
-
 	// We can override this members for the purposes of testing.
 	return &backgroundTLFPinner{
 		timer:          defaultPinLoopTimer{},

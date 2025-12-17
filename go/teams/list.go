@@ -21,7 +21,8 @@ func (r *statusList) GetAppStatus() *libkb.AppStatus {
 }
 
 func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool,
-	countMembers bool, includeImplicitTeams bool, rootTeamID keybase1.TeamID) ([]keybase1.MemberInfo, error) {
+	countMembers bool, includeImplicitTeams bool, rootTeamID keybase1.TeamID,
+) ([]keybase1.MemberInfo, error) {
 	var endpoint string
 	if all {
 		endpoint = "team/teammates_for_user"
@@ -61,7 +62,8 @@ func memberNeedAdmin(member keybase1.MemberInfo, meUID keybase1.UID) bool {
 // NONE, in this context it means that user has implied membership in
 // the team and no role given in sigchain.
 func verifyMemberRoleInTeam(ctx context.Context, userID keybase1.UID, expectedRole keybase1.TeamRole,
-	team *Team) (res keybase1.UserVersion, err error) {
+	team *Team,
+) (res keybase1.UserVersion, err error) {
 	if expectedRole == keybase1.TeamRole_NONE {
 		return res, nil
 	}
@@ -96,7 +98,8 @@ func newLocalLoadedTeams(g *libkb.GlobalContext) localLoadedTeams {
 // contain member with correct role as set in MemberInfo. It might
 // trigger a reload with ForceRepoll if cached state does not match.
 func (l *localLoadedTeams) getTeamForMember(ctx context.Context, member keybase1.MemberInfo,
-	needAdmin bool) (team *Team, uv keybase1.UserVersion, err error) {
+	needAdmin bool,
+) (team *Team, uv keybase1.UserVersion, err error) {
 	teamID := member.TeamID
 	team = l.teams[teamID]
 	if team == nil {
@@ -139,7 +142,8 @@ func (l *localLoadedTeams) getTeamForMember(ctx context.Context, member keybase1
 }
 
 func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext,
-	uid keybase1.UID) (username libkb.NormalizedUsername, fullName string, err error) {
+	uid keybase1.UID,
+) (username libkb.NormalizedUsername, fullName string, err error) {
 	username, err = g.GetUPAKLoader().LookupUsername(ctx, uid)
 	if err != nil {
 		return "", "", err
@@ -153,7 +157,8 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext,
 }
 
 func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
-	arg keybase1.TeamListVerifiedArg) (*keybase1.AnnotatedTeamList, error) {
+	arg keybase1.TeamListVerifiedArg,
+) (*keybase1.AnnotatedTeamList, error) {
 	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsVerified", true)
 	defer tracer.Finish()
 	m := libkb.NewMetaContext(ctx, g)
@@ -369,7 +374,8 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 }
 
 func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext,
-	parentTeamName string, forceRepoll bool) (res []keybase1.TeamIDAndName, err error) {
+	parentTeamName string, forceRepoll bool,
+) (res []keybase1.TeamIDAndName, err error) {
 	parent, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        parentTeamName,
 		NeedAdmin:   true,
@@ -490,7 +496,6 @@ func annotateTeamUsedInviteLogPoints(points []keybase1.TeamUsedInviteLogPoint, n
 // collecting them together in the UI.
 func GetAnnotatedInvitesAndMembersForUI(mctx libkb.MetaContext, team *Team,
 ) (members []keybase1.TeamMemberDetails, annotatedInvites []keybase1.AnnotatedTeamInvite, err error) {
-
 	allAnnotatedInvites, err := getAnnotatedInvites(mctx, team)
 	if err != nil {
 		return nil, nil, err

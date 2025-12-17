@@ -61,7 +61,8 @@ func (o verboseOp) String() string {
 // DumpPrivateMetadata returns a detailed dump of the given
 // PrivateMetadata's contents.
 func DumpPrivateMetadata(
-	codec kbfscodec.Codec, serializedPMDLength int, pmd PrivateMetadata) (string, error) {
+	codec kbfscodec.Codec, serializedPMDLength int, pmd PrivateMetadata,
+) (string, error) {
 	s := fmt.Sprintf("Size: %d bytes\n", serializedPMDLength)
 
 	eq, err := kbfscodec.Equal(codec, pmd, PrivateMetadata{})
@@ -134,7 +135,8 @@ var _ libkey.KeyMetadata = (*RootMetadata)(nil)
 // makeRootMetadata makes a RootMetadata object from the given
 // parameters.
 func makeRootMetadata(bareMd kbfsmd.MutableRootMetadata,
-	extra kbfsmd.ExtraMetadata, handle *tlfhandle.Handle) *RootMetadata {
+	extra kbfsmd.ExtraMetadata, handle *tlfhandle.Handle,
+) *RootMetadata {
 	if bareMd == nil {
 		panic("nil kbfsmd.MutableRootMetadata")
 	}
@@ -154,7 +156,8 @@ func makeRootMetadata(bareMd kbfsmd.MutableRootMetadata,
 // and handle. Note that if the given ID/handle are private, rekeying
 // must be done separately.
 func makeInitialRootMetadata(
-	ver kbfsmd.MetadataVer, tlfID tlf.ID, h *tlfhandle.Handle) (*RootMetadata, error) {
+	ver kbfsmd.MetadataVer, tlfID tlf.ID, h *tlfhandle.Handle,
+) (*RootMetadata, error) {
 	bh, err := h.ToBareHandle()
 	if err != nil {
 		return nil, err
@@ -244,7 +247,8 @@ func (md *RootMetadata) MakeSuccessor(
 	ctx context.Context, latestMDVer kbfsmd.MetadataVer, codec kbfscodec.Codec,
 	keyManager KeyManager, merkleGetter idutil.MerkleRootGetter,
 	teamKeyer teamKeysGetter, osg idutil.OfflineStatusGetter, mdID kbfsmd.ID,
-	isWriter bool) (*RootMetadata, error) {
+	isWriter bool,
+) (*RootMetadata, error) {
 	if mdID == (kbfsmd.ID{}) {
 		return nil, errors.New("Empty MdID in MakeSuccessor")
 	}
@@ -316,7 +320,8 @@ func (md *RootMetadata) MakeSuccessorWithNewHandle(
 	codec kbfscodec.Codec, keyManager KeyManager,
 	merkleGetter idutil.MerkleRootGetter, teamKeyer teamKeysGetter,
 	osg idutil.OfflineStatusGetter, mdID kbfsmd.ID, isWriter bool) (
-	*RootMetadata, error) {
+	*RootMetadata, error,
+) {
 	mdCopy, err := md.deepCopy(codec)
 	if err != nil {
 		return nil, err
@@ -486,7 +491,8 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *tlfhandle.Handle) error {
 // Possibly copies the MD, returns the copy if so, and whether copied.
 func (md *RootMetadata) loadCachedBlockChanges(
 	ctx context.Context, bps data.BlockPutState, log logger.Logger,
-	vlog *libkb.VDebugLog, codec kbfscodec.Codec) (*RootMetadata, error) {
+	vlog *libkb.VDebugLog, codec kbfscodec.Codec,
+) (*RootMetadata, error) {
 	if md.data.Changes.Ops != nil || len(md.data.cachedChanges.Ops) == 0 {
 		return md, nil
 	}
@@ -495,8 +501,7 @@ func (md *RootMetadata) loadCachedBlockChanges(
 		return nil, err
 	}
 
-	md.data.Changes, md.data.cachedChanges =
-		md.data.cachedChanges, md.data.Changes
+	md.data.Changes, md.data.cachedChanges = md.data.cachedChanges, md.data.Changes
 
 	// We always add the ref blocks to the first operation in the MD
 	// update.  Most MD updates will only have one op anyway, and for
@@ -526,7 +531,8 @@ func (md *RootMetadata) loadCachedBlockChanges(
 	var id keybase1.UserOrTeamID
 	file := data.Path{
 		FolderBranch: data.FolderBranch{
-			Tlf: md.TlfID(), Branch: data.MasterBranch},
+			Tlf: md.TlfID(), Branch: data.MasterBranch,
+		},
 		Path: []data.PathNode{{
 			BlockPointer: md.data.cachedChanges.Info.BlockPointer,
 			Name: data.NewPathPartString(
@@ -535,7 +541,8 @@ func (md *RootMetadata) loadCachedBlockChanges(
 	}
 	fd := data.NewFileData(file, id, nil, md.ReadOnly(),
 		func(_ context.Context, _ libkey.KeyMetadata, ptr data.BlockPointer,
-			_ data.Path, _ data.BlockReqType) (*data.FileBlock, bool, error) {
+			_ data.Path, _ data.BlockReqType,
+		) (*data.FileBlock, bool, error) {
 			fblock, ok := fileBlocks[ptr]
 			if !ok {
 				return nil, false, fmt.Errorf(
@@ -562,7 +569,8 @@ func (md *RootMetadata) loadCachedBlockChanges(
 func (md *RootMetadata) GetTLFCryptKeyParams(
 	keyGen kbfsmd.KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (
 	kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.EncryptedTLFCryptKeyClientHalf,
-	kbfscrypto.TLFCryptKeyServerHalfID, bool, error) {
+	kbfscrypto.TLFCryptKeyServerHalfID, bool, error,
+) {
 	return md.bareMd.GetTLFCryptKeyParams(keyGen, user, key, md.extra)
 }
 
@@ -739,7 +747,8 @@ func (md *RootMetadata) GetSerializedPrivateMetadata() []byte {
 
 // GetSerializedWriterMetadata wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) GetSerializedWriterMetadata(
-	codec kbfscodec.Codec) ([]byte, error) {
+	codec kbfscodec.Codec,
+) ([]byte, error) {
 	return md.bareMd.GetSerializedWriterMetadata(codec)
 }
 
@@ -815,7 +824,8 @@ func (md *RootMetadata) SetTlfID(tlf tlf.ID) {
 
 // HasKeyForUser wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) HasKeyForUser(user keybase1.UID) (
-	bool, error) {
+	bool, error,
+) {
 	writers, readers, err := md.bareMd.GetUserDevicePublicKeys(md.extra)
 	if err != nil {
 		return false, err
@@ -846,7 +856,8 @@ func (md *RootMetadata) AddKeyGeneration(codec kbfscodec.Codec,
 	pubKey kbfscrypto.TLFPublicKey,
 	privKey kbfscrypto.TLFPrivateKey,
 	currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey) (
-	serverHalves kbfsmd.UserDeviceKeyServerHalves, err error) {
+	serverHalves kbfsmd.UserDeviceKeyServerHalves, err error,
+) {
 	nextExtra, serverHalves, err := md.bareMd.AddKeyGeneration(
 		codec, md.extra, wKeys, rKeys, ePubKey, ePrivKey,
 		pubKey, currCryptKey, nextCryptKey)
@@ -859,13 +870,15 @@ func (md *RootMetadata) AddKeyGeneration(codec kbfscodec.Codec,
 }
 
 func (md *RootMetadata) promoteReaders(
-	readersToPromote map[keybase1.UID]bool) error {
+	readersToPromote map[keybase1.UID]bool,
+) error {
 	return md.bareMd.PromoteReaders(readersToPromote, md.extra)
 }
 
 func (md *RootMetadata) revokeRemovedDevices(
 	wKeys, rKeys kbfsmd.UserDevicePublicKeys) (
-	kbfsmd.ServerHalfRemovalInfo, error) {
+	kbfsmd.ServerHalfRemovalInfo, error,
+) {
 	return md.bareMd.RevokeRemovedDevices(wKeys, rKeys, md.extra)
 }
 
@@ -874,7 +887,8 @@ func (md *RootMetadata) updateKeyBundles(
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKeys []kbfscrypto.TLFCryptKey) (
-	[]kbfsmd.UserDeviceKeyServerHalves, error) {
+	[]kbfsmd.UserDeviceKeyServerHalves, error,
+) {
 	return md.bareMd.UpdateKeyBundles(codec, md.extra,
 		wKeys, rKeys, ePubKey, ePrivKey, tlfCryptKeys)
 }
@@ -884,7 +898,8 @@ func (md *RootMetadata) finalizeRekey(codec kbfscodec.Codec) error {
 }
 
 func (md *RootMetadata) getUserDevicePublicKeys() (
-	writers, readers kbfsmd.UserDevicePublicKeys, err error) {
+	writers, readers kbfsmd.UserDevicePublicKeys, err error,
+) {
 	return md.bareMd.GetUserDevicePublicKeys(md.extra)
 }
 
@@ -910,7 +925,8 @@ func (md *RootMetadata) StoresHistoricTLFCryptKeys() bool {
 // GetHistoricTLFCryptKey implements the KeyMetadata interface for RootMetadata.
 func (md *RootMetadata) GetHistoricTLFCryptKey(
 	codec kbfscodec.Codec, keyGen kbfsmd.KeyGen,
-	currentKey kbfscrypto.TLFCryptKey) (kbfscrypto.TLFCryptKey, error) {
+	currentKey kbfscrypto.TLFCryptKey,
+) (kbfscrypto.TLFCryptKey, error) {
 	return md.bareMd.GetHistoricTLFCryptKey(
 		codec, keyGen, currentKey, md.extra)
 }
@@ -920,7 +936,8 @@ func (md *RootMetadata) GetHistoricTLFCryptKey(
 func (md *RootMetadata) IsWriter(
 	ctx context.Context, checker kbfsmd.TeamMembershipChecker,
 	osg idutil.OfflineStatusGetter, uid keybase1.UID,
-	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+	verifyingKey kbfscrypto.VerifyingKey,
+) (bool, error) {
 	h := md.GetTlfHandle()
 	return IsWriterFromHandle(ctx, h, checker, osg, uid, verifyingKey)
 }
@@ -929,7 +946,8 @@ func (md *RootMetadata) IsWriter(
 // right now.
 func (md *RootMetadata) IsReader(
 	ctx context.Context, checker kbfsmd.TeamMembershipChecker,
-	osg idutil.OfflineStatusGetter, uid keybase1.UID) (bool, error) {
+	osg idutil.OfflineStatusGetter, uid keybase1.UID,
+) (bool, error) {
 	h := md.GetTlfHandle()
 	return isReaderFromHandle(ctx, h, checker, osg, uid)
 }
@@ -952,7 +970,8 @@ type ReadOnlyRootMetadata struct {
 // CheckValidSuccessor makes sure the given ReadOnlyRootMetadata is a
 // valid successor to the current one, and returns an error otherwise.
 func (md ReadOnlyRootMetadata) CheckValidSuccessor(
-	currID kbfsmd.ID, nextMd ReadOnlyRootMetadata) error {
+	currID kbfsmd.ID, nextMd ReadOnlyRootMetadata,
+) error {
 	return md.bareMd.CheckValidSuccessor(currID, nextMd.bareMd)
 }
 
@@ -992,7 +1011,8 @@ type ImmutableRootMetadata struct {
 func MakeImmutableRootMetadata(
 	rmd *RootMetadata, writerVerifyingKey kbfscrypto.VerifyingKey,
 	mdID kbfsmd.ID, localTimestamp time.Time,
-	putToServer bool) ImmutableRootMetadata {
+	putToServer bool,
+) ImmutableRootMetadata {
 	if writerVerifyingKey == (kbfscrypto.VerifyingKey{}) {
 		panic("zero writerVerifyingKey passed to MakeImmutableRootMetadata")
 	}
@@ -1013,7 +1033,8 @@ func MakeImmutableRootMetadata(
 		}
 	}
 	return ImmutableRootMetadata{
-		rmd.ReadOnly(), mdID, writerVerifyingKey, localTimestamp, putToServer}
+		rmd.ReadOnly(), mdID, writerVerifyingKey, localTimestamp, putToServer,
+	}
 }
 
 // MdID returns the pre-computed MdID of the contained RootMetadata
@@ -1047,7 +1068,8 @@ type RootMetadataSigned struct {
 // given info. If md stores the writer signature info internally, it
 // must match the given one.
 func makeRootMetadataSigned(rmds *kbfsmd.RootMetadataSigned,
-	untrustedServerTimestamp time.Time) *RootMetadataSigned {
+	untrustedServerTimestamp time.Time,
+) *RootMetadataSigned {
 	return &RootMetadataSigned{
 		RootMetadataSigned:       *rmds,
 		untrustedServerTimestamp: untrustedServerTimestamp,
@@ -1061,7 +1083,8 @@ func SignBareRootMetadata(
 	ctx context.Context, codec kbfscodec.Codec,
 	rootMetadataSigner, writerMetadataSigner kbfscrypto.Signer,
 	md kbfsmd.RootMetadata, untrustedServerTimestamp time.Time) (
-	*RootMetadataSigned, error) {
+	*RootMetadataSigned, error,
+) {
 	rmds, err := kbfsmd.SignRootMetadata(ctx, codec, rootMetadataSigner, writerMetadataSigner, md)
 	if err != nil {
 		return nil, err
@@ -1073,7 +1096,8 @@ func SignBareRootMetadata(
 // with the revision incremented and the final bit set.
 func (rmds *RootMetadataSigned) MakeFinalCopy(
 	codec kbfscodec.Codec, now time.Time,
-	finalizedInfo *tlf.HandleExtension) (*RootMetadataSigned, error) {
+	finalizedInfo *tlf.HandleExtension,
+) (*RootMetadataSigned, error) {
 	rmdsCopy, err := rmds.RootMetadataSigned.MakeFinalCopy(codec, finalizedInfo)
 	if err != nil {
 		return nil, err
@@ -1086,7 +1110,8 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(
 func DecodeRootMetadataSigned(
 	codec kbfscodec.Codec, tlf tlf.ID, ver, max kbfsmd.MetadataVer, buf []byte,
 	untrustedServerTimestamp time.Time) (
-	*RootMetadataSigned, error) {
+	*RootMetadataSigned, error,
+) {
 	rmds, err := kbfsmd.DecodeRootMetadataSigned(codec, tlf, ver, max, buf)
 	if err != nil {
 		return nil, err

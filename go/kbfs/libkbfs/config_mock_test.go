@@ -22,13 +22,15 @@ type FakeObserver struct {
 }
 
 func (fn *FakeObserver) LocalChange(ctx context.Context,
-	node Node, write WriteRange) {
+	node Node, write WriteRange,
+) {
 	fn.localChange = node
 	fn.ctx = ctx
 }
 
 func (fn *FakeObserver) BatchChanges(
-	ctx context.Context, nodeChanges []NodeChange, _ []NodeID) {
+	ctx context.Context, nodeChanges []NodeChange, _ []NodeID,
+) {
 	fn.batchChanges = nodeChanges
 	fn.ctx = ctx
 }

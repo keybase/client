@@ -73,8 +73,8 @@ func PurgeResolverTeamID(ctx context.Context, g *libkb.GlobalContext, teamID key
 // Into "alice,bob#char (conflicted copy 2017-03-04 #1)"
 // The input can contain compound assertions, but if compound assertions are left unresolved, an error will be returned.
 func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
-	name string, public bool) (res keybase1.ImplicitTeamDisplayName, err error) {
-
+	name string, public bool,
+) (res keybase1.ImplicitTeamDisplayName, err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("ResolveImplicitTeamDisplayName(%v, public:%v)", name, public), &err)()
 
 	split1 := strings.SplitN(name, " ", 2) // split1: [assertions, ?conflict]
@@ -145,8 +145,8 @@ func shouldPreventTeamCreation(err error) bool {
 //	If they resolve, add the username to `resSet` and the assertion to `resolvedAssertions`.
 //	If they don't resolve, add the SocialAssertion to `resSet`, but nothing to `resolvedAssertions`.
 func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext,
-	sourceAssertions []libkb.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]libkb.ResolvedAssertion) error {
-
+	sourceAssertions []libkb.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]libkb.ResolvedAssertion,
+) error {
 	m := libkb.NewMetaContext(ctx, g)
 
 	for _, expr := range sourceAssertions {
@@ -162,8 +162,10 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 				// Could not convert to a social assertion.
 				// This could be because it is a compound assertion, which we do not support when SBS.
 				// Or it could be because it's a team assertion or something weird like that.
-				return libkb.ResolutionError{Input: expr.String(), Msg: "unknown user assertion",
-					Kind: libkb.ResolutionErrorNotFound}
+				return libkb.ResolutionError{
+					Input: expr.String(), Msg: "unknown user assertion",
+					Kind: libkb.ResolutionErrorNotFound,
+				}
 			}
 			resSet.UnresolvedUsers = append(resSet.UnresolvedUsers, sa)
 		} else {
@@ -182,7 +184,6 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 
 // Verify using Identify that a UID matches an assertion.
 func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAssertion libkb.ResolvedAssertion) (err error) {
-
 	defer g.CTrace(ctx, fmt.Sprintf("verifyResolveResult ID user [%s] %s", resolvedAssertion.UID, resolvedAssertion.Assertion.String()),
 		&err)()
 

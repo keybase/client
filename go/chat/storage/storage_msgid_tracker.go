@@ -31,8 +31,8 @@ func (t *msgIDTracker) makeDbKey(convID chat1.ConversationID, uid gregor1.UID) l
 }
 
 func (t *msgIDTracker) bumpMaxMessageID(
-	ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) Error {
-
+	ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID,
+) Error {
 	// No need to use transaction here since the Storage class takes lock.
 
 	maxMsgIDKey := t.makeDbKey(convID, uid)
@@ -63,8 +63,8 @@ func (t *msgIDTracker) bumpMaxMessageID(
 }
 
 func (t *msgIDTracker) getMaxMessageID(
-	ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (chat1.MessageID, Error) {
-
+	ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+) (chat1.MessageID, Error) {
 	maxMsgIDKey := t.makeDbKey(convID, uid)
 
 	raw, found, err := t.G().LocalChatDb.GetRaw(maxMsgIDKey)

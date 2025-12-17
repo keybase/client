@@ -42,7 +42,6 @@ func (t *CmdBotTokenList) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (t *CmdBotTokenList) Run() (err error) {
-
 	bcli, err := GetBotClient(t.G())
 	if err != nil {
 		return err

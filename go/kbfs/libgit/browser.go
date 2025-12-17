@@ -64,7 +64,8 @@ var _ billy.Filesystem = (*Browser)(nil)
 func NewBrowser(
 	repoFS *libfs.FS, clock libkbfs.Clock,
 	gitBranchName plumbing.ReferenceName,
-	sharedCache sharedInBrowserCache) (*Browser, error) {
+	sharedCache sharedInBrowserCache,
+) (*Browser, error) {
 	var storage storage.Storer
 	storage, err := NewGitConfigWithoutRemotesStorer(repoFS)
 	if err != nil {
@@ -140,7 +141,8 @@ func NewBrowser(
 }
 
 func (b *Browser) getCommitFile(
-	ctx context.Context, hash plumbing.Hash) (*diffFile, error) {
+	ctx context.Context, hash plumbing.Hash,
+) (*diffFile, error) {
 	if b.repo == nil {
 		return nil, errors.New("Empty repo")
 	}
@@ -240,7 +242,8 @@ func (b *Browser) Open(filename string) (f billy.File, err error) {
 
 // OpenFile implements the billy.Filesystem interface for Browser.
 func (b *Browser) OpenFile(filename string, flag int, _ os.FileMode) (
-	f billy.File, err error) {
+	f billy.File, err error,
+) {
 	if b.tree == nil {
 		return nil, errors.New("Empty repo")
 	}
@@ -254,7 +257,8 @@ func (b *Browser) OpenFile(filename string, flag int, _ os.FileMode) (
 
 func (b *Browser) fileInfoForLFS(
 	filename string, oidLine string, fi os.FileInfo) (
-	newFi os.FileInfo, err error) {
+	newFi os.FileInfo, err error,
+) {
 	fields := strings.Fields(oidLine)
 	// An OID line looks like:
 	//     oid sha256:588b3683...
@@ -274,7 +278,8 @@ func (b *Browser) fileInfoForLFS(
 		return nil, err
 	}
 	return &lfsFileInfo{
-		filename, oid, lfsFI.Size(), b.mtime}, nil
+		filename, oid, lfsFI.Size(), b.mtime,
+	}, nil
 }
 
 // Lstat implements the billy.Filesystem interface for Browser.

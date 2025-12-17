@@ -93,7 +93,8 @@ func (u SocialAssertionList) Swap(i, j int) {
 func MakeHandle(
 	writers, readers []keybase1.UserOrTeamID,
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
-	extensions []HandleExtension) (Handle, error) {
+	extensions []HandleExtension,
+) (Handle, error) {
 	if len(writers) == 0 {
 		if len(unresolvedWriters) == 1 {
 			return Handle{}, errors.Errorf(
@@ -207,7 +208,8 @@ func (h Handle) TypeForKeying() KeyingType {
 }
 
 func (h Handle) findUserInList(user keybase1.UserOrTeamID,
-	users []keybase1.UserOrTeamID) bool {
+	users []keybase1.UserOrTeamID,
+) bool {
 	for _, u := range users {
 		if u == user {
 			return true
@@ -282,7 +284,8 @@ func assertionSliceToSet(s []keybase1.SocialAssertion) map[keybase1.SocialAssert
 func resolveAssertions(
 	assertions map[keybase1.SocialAssertion]keybase1.UID,
 	unresolved []keybase1.SocialAssertion, resolved []keybase1.UserOrTeamID) (
-	map[keybase1.UserOrTeamID]bool, []keybase1.SocialAssertion) {
+	map[keybase1.UserOrTeamID]bool, []keybase1.SocialAssertion,
+) {
 	resolvedMap := uidSliceToSet(resolved)
 	unresolvedMap := assertionSliceToSet(unresolved)
 	for a, u := range assertions {
@@ -295,7 +298,8 @@ func resolveAssertions(
 }
 
 func uidSetToSlice(m map[keybase1.UserOrTeamID]bool) (
-	s []keybase1.UserOrTeamID) {
+	s []keybase1.UserOrTeamID,
+) {
 	for u := range m {
 		s = append(s, u)
 	}
@@ -312,7 +316,8 @@ func assertionSetToSlice(m map[keybase1.SocialAssertion]bool) (s []keybase1.Soci
 // ResolveAssertions creates a new Handle given an existing one with
 // while resolving the passed assertions.
 func (h Handle) ResolveAssertions(
-	assertions map[keybase1.SocialAssertion]keybase1.UID) Handle {
+	assertions map[keybase1.SocialAssertion]keybase1.UID,
+) Handle {
 	if len(assertions) == 0 || (len(h.UnresolvedWriters) == 0 && len(h.UnresolvedReaders) == 0) || h.IsFinal() {
 		return h
 	}
@@ -442,7 +447,8 @@ func checkUIDEquality(a, b []keybase1.UserOrTeamID) bool {
 // ResolvedUsersEqual checks whether the resolved users of this TLF
 // matches the provided lists of writers and readers.
 func (h *Handle) ResolvedUsersEqual(
-	writers []keybase1.UserOrTeamID, readers []keybase1.UserOrTeamID) bool {
+	writers []keybase1.UserOrTeamID, readers []keybase1.UserOrTeamID,
+) bool {
 	return checkUIDEquality(h.Writers, writers) &&
 		checkUIDEquality(h.Readers, readers)
 }

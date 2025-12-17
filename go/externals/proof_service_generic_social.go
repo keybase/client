@@ -12,10 +12,12 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-const kbUsernameKey = "%{kb_username}"
-const remoteUsernameKey = "%{username}"
-const sigHashKey = "%{sig_hash}"
-const kbUaKey = "%{kb_ua}"
+const (
+	kbUsernameKey     = "%{kb_username}"
+	remoteUsernameKey = "%{username}"
+	sigHashKey        = "%{sig_hash}"
+	kbUaKey           = "%{kb_ua}"
+)
 
 // =============================================================================
 
@@ -174,7 +176,8 @@ func (rc *GenericSocialProofChecker) castInternalError(ierr libkb.ProofError) er
 }
 
 func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb.SigHint, _ libkb.ProofCheckerMode,
-	pvlU keybase1.MerkleStoreEntry) (_ *libkb.SigHint, retErr libkb.ProofError) {
+	pvlU keybase1.MerkleStoreEntry,
+) (_ *libkb.SigHint, retErr libkb.ProofError) {
 	mctx = mctx.WithLogTag("PCS")
 	var err error
 	defer mctx.Trace("GenericSocialProofChecker.CheckStatus", &err)()
@@ -320,7 +323,8 @@ func (t *GenericSocialProofServiceType) CheckProofText(text string, id keybase1.
 }
 
 func (t *GenericSocialProofServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes,
-	kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error) {
+	kbUsername, remoteUsername string, sigID keybase1.SigID,
+) (string, error) {
 	return t.config.prefillURLWithValues(kbUsername, remoteUsername, sigID)
 }
 

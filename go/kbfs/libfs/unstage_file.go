@@ -27,7 +27,8 @@ import (
 // unstage succeeds by consulting .kbfs_status.
 func UnstageForTesting(ctx context.Context, log logger.Logger,
 	config libkbfs.Config, fb data.FolderBranch,
-	data []byte) (int, error) {
+	data []byte,
+) (int, error) {
 	log.CDebugf(ctx, "UnstageForTesting(%v, %v)", fb, data)
 	if len(data) == 0 {
 		return 0, nil

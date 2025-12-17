@@ -116,7 +116,6 @@ func newDelegateID3UI(g *libkb.GlobalContext, t *testing.T) *delegateID3UI {
 // if we just checked all 3 bools, but there's a race because of Notify() use,
 // since we don't get a guarantee of when the Notify()s go out.
 func (d *delegateID3UI) checkSuccess() {
-
 	check := func() bool {
 		d.Lock()
 		defer d.Unlock()

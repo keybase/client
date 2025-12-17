@@ -4,9 +4,8 @@
 package kbcrypto
 
 import (
-	"encoding/base64"
-
 	"crypto/ed25519"
+	"encoding/base64"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )

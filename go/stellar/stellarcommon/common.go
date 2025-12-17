@@ -57,7 +57,6 @@ func (r Recipient) Memo() (*stellarnet.Memo, error) {
 	default:
 		return nil, errors.New("invalid federation memo type")
 	}
-
 }
 
 type User struct {

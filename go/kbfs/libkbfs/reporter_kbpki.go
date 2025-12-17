@@ -41,8 +41,10 @@ const (
 	errorModeWrite = "write"
 )
 
-const connectionStatusConnected keybase1.FSStatusCode = keybase1.FSStatusCode_START
-const connectionStatusDisconnected keybase1.FSStatusCode = keybase1.FSStatusCode_ERROR
+const (
+	connectionStatusConnected    keybase1.FSStatusCode = keybase1.FSStatusCode_START
+	connectionStatusDisconnected keybase1.FSStatusCode = keybase1.FSStatusCode_ERROR
+)
 
 // ReporterKBPKI implements the Notify function of the Reporter
 // interface in addition to embedding ReporterSimple for error
@@ -92,7 +94,8 @@ func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 
 // ReportErr implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) ReportErr(ctx context.Context,
-	tlfName tlf.CanonicalName, t tlf.Type, mode ErrorModeType, err error) {
+	tlfName tlf.CanonicalName, t tlf.Type, mode ErrorModeType, err error,
+) {
 	r.ReporterSimple.ReportErr(ctx, tlfName, t, mode, err)
 
 	// Fire off error popups
@@ -142,11 +145,9 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		}
 		code = keybase1.FSErrorType_DISK_LIMIT_REACHED
 		params[errorParamUsageBytes] = strconv.FormatInt(e.usageBytes, 10)
-		params[errorParamLimitBytes] =
-			strconv.FormatFloat(e.limitBytes, 'f', 0, 64)
+		params[errorParamLimitBytes] = strconv.FormatFloat(e.limitBytes, 'f', 0, 64)
 		params[errorParamUsageFiles] = strconv.FormatInt(e.usageFiles, 10)
-		params[errorParamLimitFiles] =
-			strconv.FormatFloat(e.limitFiles, 'f', 0, 64)
+		params[errorParamLimitFiles] = strconv.FormatFloat(e.limitFiles, 'f', 0, 64)
 	case idutil.NoSigChainError:
 		code = keybase1.FSErrorType_NO_SIG_CHAIN
 		params[errorParamUsername] = e.User.String()
@@ -272,7 +273,8 @@ func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
 //	them in the notifyBuffer as well so that send() can put
 //	them back in its context.
 func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
-	status *keybase1.FSPathSyncStatus) {
+	status *keybase1.FSPathSyncStatus,
+) {
 	r.shutdownLock.RLock()
 	defer r.shutdownLock.RUnlock()
 	if r.isShutdown {
@@ -308,7 +310,8 @@ func (r *ReporterKBPKI) NotifyFavoritesChanged(ctx context.Context) {
 
 // NotifyOverallSyncStatus implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) NotifyOverallSyncStatus(
-	ctx context.Context, status keybase1.FolderSyncStatus) {
+	ctx context.Context, status keybase1.FolderSyncStatus,
+) {
 	r.shutdownLock.RLock()
 	defer r.shutdownLock.RUnlock()
 	if r.isShutdown {
@@ -531,7 +534,8 @@ func baseNotification(file data.Path, finish bool) *keybase1.FSNotification {
 // errorNotification creates FSNotifications for errors.
 func errorNotification(err error, errType keybase1.FSErrorType,
 	tlfName tlf.CanonicalName, t tlf.Type, mode ErrorModeType,
-	filename string, params map[string]string) *keybase1.FSNotification {
+	filename string, params map[string]string,
+) *keybase1.FSNotification {
 	if tlfName != "" {
 		params[errorParamTlf] = string(tlfName)
 	}
@@ -566,7 +570,8 @@ func errorNotification(err error, errType keybase1.FSErrorType,
 }
 
 func mdReadSuccessNotification(handle *tlfhandle.Handle,
-	public bool) *keybase1.FSNotification {
+	public bool,
+) *keybase1.FSNotification {
 	params := make(map[string]string)
 	if handle != nil {
 		params[errorParamTlf] = string(handle.GetCanonicalName())
@@ -581,7 +586,8 @@ func mdReadSuccessNotification(handle *tlfhandle.Handle,
 }
 
 func syncConfigChangeNotification(handle *tlfhandle.Handle,
-	fsc keybase1.FolderSyncConfig) *keybase1.FSNotification {
+	fsc keybase1.FolderSyncConfig,
+) *keybase1.FSNotification {
 	params := map[string]string{
 		"syncMode": fsc.Mode.String(),
 	}

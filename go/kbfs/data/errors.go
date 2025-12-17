@@ -22,8 +22,7 @@ func (e NameExistsError) Error() string {
 }
 
 // BadSplitError indicates that the BlockSplitter has an error.
-type BadSplitError struct {
-}
+type BadSplitError struct{}
 
 // Error implements the error interface for BadSplitError
 func (e BadSplitError) Error() string {
@@ -53,8 +52,7 @@ func (e NoSuchBlockError) Error() string {
 // NotDirectFileBlockError indicates that a direct file block was
 // expected, but something else (e.g., an indirect file block) was
 // given instead.
-type NotDirectFileBlockError struct {
-}
+type NotDirectFileBlockError struct{}
 
 func (e NotDirectFileBlockError) Error() string {
 	return "Unexpected block type; expected a direct file block"
@@ -72,8 +70,7 @@ func (e CachePutCacheFullError) Error() string {
 }
 
 // ShutdownHappenedError indicates that shutdown has happened.
-type ShutdownHappenedError struct {
-}
+type ShutdownHappenedError struct{}
 
 // Error implements the error interface for ShutdownHappenedError.
 func (e ShutdownHappenedError) Error() string {

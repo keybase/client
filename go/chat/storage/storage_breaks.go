@@ -31,7 +31,8 @@ func (b *breakTracker) makeDbKey(tlfID chat1.TLFID) libkb.DbKey {
 }
 
 func (b *breakTracker) UpdateTLF(ctx context.Context, tlfID chat1.TLFID,
-	breaks []keybase1.TLFIdentifyFailure) (err error) {
+	breaks []keybase1.TLFIdentifyFailure,
+) (err error) {
 	defer b.Trace(ctx, &err, "UpdateTLF(%s)", tlfID)()
 	key := b.makeDbKey(tlfID)
 

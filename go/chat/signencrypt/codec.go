@@ -125,28 +125,31 @@ package signencrypt
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"crypto/sha512"
 	"encoding/binary"
 	"fmt"
 	"io"
-
-	"crypto/ed25519"
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
-type Nonce *[NonceSize]byte
-type SecretboxKey *[SecretboxKeySize]byte
-type SecretboxNonce *[SecretboxNonceSize]byte
-type SignKey *[ed25519.PrivateKeySize]byte
-type VerifyKey *[ed25519.PublicKeySize]byte
+type (
+	Nonce          *[NonceSize]byte
+	SecretboxKey   *[SecretboxKeySize]byte
+	SecretboxNonce *[SecretboxNonceSize]byte
+	SignKey        *[ed25519.PrivateKeySize]byte
+	VerifyKey      *[ed25519.PublicKeySize]byte
+)
 
-const NonceSize = 16
-const SecretboxKeySize = 32
-const SecretboxNonceSize = 24
-const DefaultPlaintextChunkLength int64 = 1 << 20
+const (
+	NonceSize                         = 16
+	SecretboxKeySize                  = 32
+	SecretboxNonceSize                = 24
+	DefaultPlaintextChunkLength int64 = 1 << 20
+)
 
 // ===================================
 // single packet encoding and decoding
@@ -407,8 +410,10 @@ func (s *encoderCodecShim) Finish() ([]byte, error) {
 	return s.Encoder.Finish(), nil
 }
 
-var _ codec = (*Decoder)(nil)
-var _ codec = (*encoderCodecShim)(nil)
+var (
+	_ codec = (*Decoder)(nil)
+	_ codec = (*encoderCodecShim)(nil)
+)
 
 type codecReadWrapper struct {
 	codec       codec

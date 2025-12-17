@@ -121,7 +121,8 @@ func (df *DirtyFile) UpdateNotYetSyncingBytes(newBytes int64) {
 // (because it isn't yet), and whether or not the block is currently
 // part of a sync in progress.
 func (df *DirtyFile) SetBlockDirty(ptr BlockPointer) (
-	needsCaching bool, isSyncing bool) {
+	needsCaching bool, isSyncing bool,
+) {
 	df.lock.Lock()
 	defer df.lock.Unlock()
 
@@ -134,7 +135,8 @@ func (df *DirtyFile) SetBlockDirty(ptr BlockPointer) (
 }
 
 func (df *DirtyFile) setBlockNotDirty(ptr BlockPointer) (
-	needsCaching bool, isSyncing bool) {
+	needsCaching bool, isSyncing bool,
+) {
 	df.lock.Lock()
 	defer df.lock.Unlock()
 	state := df.fileBlockStates[ptr]
@@ -154,7 +156,8 @@ func (df *DirtyFile) IsBlockOrphaned(ptr BlockPointer) bool {
 // SetBlockSyncing is called to indicate that the block pointed to by
 // `ptr` is currently being synced.
 func (df *DirtyFile) SetBlockSyncing(
-	ctx context.Context, ptr BlockPointer) error {
+	ctx context.Context, ptr BlockPointer,
+) error {
 	df.lock.Lock()
 	defer df.lock.Unlock()
 	state := df.fileBlockStates[ptr]

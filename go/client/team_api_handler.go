@@ -472,7 +472,6 @@ func (t *teamAPIHandler) requireOptionsV1(c Call) error {
 		}
 	}
 	return nil
-
 }
 
 func (t *teamAPIHandler) encodeResult(call Call, result interface{}, w io.Writer) error {
@@ -500,7 +499,6 @@ func mapRole(srole string) (keybase1.TeamRole, error) {
 	}
 
 	return role, nil
-
 }
 
 func checkSubteam(name string) error {

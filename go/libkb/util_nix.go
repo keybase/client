@@ -33,7 +33,7 @@ func canExec(s string) error {
 		return DirExecError{Path: s}
 	}
 
-	if mode&0111 == 0 {
+	if mode&0o111 == 0 {
 		return FileExecError{Path: s}
 	}
 

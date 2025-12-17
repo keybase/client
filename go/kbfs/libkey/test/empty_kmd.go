@@ -53,7 +53,8 @@ func (kmd EmptyKeyMetadata) GetTlfHandle() *tlfhandle.Handle {
 // IsWriter no-ops the `libkey.KeyMetadata` interface for EmptyKeyMetadata.
 func (kmd EmptyKeyMetadata) IsWriter(
 	_ context.Context, _ kbfsmd.TeamMembershipChecker, _ idutil.OfflineStatusGetter,
-	_ keybase1.UID, _ kbfscrypto.VerifyingKey) (bool, error) {
+	_ keybase1.UID, _ kbfscrypto.VerifyingKey,
+) (bool, error) {
 	return false, nil
 }
 
@@ -74,7 +75,8 @@ func (kmd EmptyKeyMetadata) HasKeyForUser(user keybase1.UID) (bool, error) {
 func (kmd EmptyKeyMetadata) GetTLFCryptKeyParams(
 	keyGen kbfsmd.KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (
 	kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.EncryptedTLFCryptKeyClientHalf,
-	kbfscrypto.TLFCryptKeyServerHalfID, bool, error) {
+	kbfscrypto.TLFCryptKeyServerHalfID, bool, error,
+) {
 	return kbfscrypto.TLFEphemeralPublicKey{},
 		kbfscrypto.EncryptedTLFCryptKeyClientHalf{},
 		kbfscrypto.TLFCryptKeyServerHalfID{}, false, nil
@@ -90,6 +92,7 @@ func (kmd EmptyKeyMetadata) StoresHistoricTLFCryptKeys() bool {
 // for EmptyKeyMetadata.
 func (kmd EmptyKeyMetadata) GetHistoricTLFCryptKey(
 	codec kbfscodec.Codec, keyGen kbfsmd.KeyGen, key kbfscrypto.TLFCryptKey) (
-	kbfscrypto.TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error,
+) {
 	return kbfscrypto.TLFCryptKey{}, nil
 }

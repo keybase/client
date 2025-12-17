@@ -23,11 +23,14 @@ import (
 	"go.uber.org/zap"
 )
 
-const defaultTestDSN = "root@unix(/tmp/mysql.sock)/kbp_test?parseTime=true"
-const TestDSNEnvName = "TEST_DB_DSN"
+const (
+	defaultTestDSN = "root@unix(/tmp/mysql.sock)/kbp_test?parseTime=true"
+	TestDSNEnvName = "TEST_DB_DSN"
+)
 
 func makeMySQLActivityStatsStorerForTest(t *testing.T) (
-	*mysqlActivityStatsStorer, *clocktest.TestClock) {
+	*mysqlActivityStatsStorer, *clocktest.TestClock,
+) {
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err)
 	dsn := os.Getenv(TestDSNEnvName)

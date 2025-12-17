@@ -57,7 +57,8 @@ type Token struct {
 
 func NewToken(uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.KID,
 	server, challenge string, now int64, expireIn int,
-	clientName, clientVersion string) *Token {
+	clientName, clientVersion string,
+) *Token {
 	return &Token{
 		Body: TokenBody{
 			Auth: TokenAuth{

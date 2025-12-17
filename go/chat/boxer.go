@@ -5,6 +5,7 @@ package chat
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -21,8 +22,6 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
-
-	"crypto/ed25519"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/signencrypt"
@@ -95,7 +94,8 @@ func (b *Boxer) log() logger.Logger {
 func (b *Boxer) makeErrorMessageFromPieces(ctx context.Context, err types.UnboxingError,
 	msgID chat1.MessageID, msgType chat1.MessageType, ctime gregor1.Time,
 	sender gregor1.UID, senderDevice gregor1.DeviceID, botUID *gregor1.UID,
-	isEphemeral bool, explodedBy *string, etime gregor1.Time) chat1.MessageUnboxed {
+	isEphemeral bool, explodedBy *string, etime gregor1.Time,
+) chat1.MessageUnboxed {
 	e := chat1.MessageUnboxedError{
 		ErrType:        err.ExportType(),
 		ErrMsg:         err.Error(),
@@ -195,7 +195,8 @@ var _ types.UnboxConversationInfo = (*basicUnboxConversationInfo)(nil)
 
 func newBasicUnboxConversationInfo(convID chat1.ConversationID,
 	membersType chat1.ConversationMembersType, finalizeInfo *chat1.ConversationFinalizeInfo,
-	visibility keybase1.TLFVisibility) *basicUnboxConversationInfo {
+	visibility keybase1.TLFVisibility,
+) *basicUnboxConversationInfo {
 	return &basicUnboxConversationInfo{
 		convID:       convID,
 		membersType:  membersType,
@@ -241,7 +242,8 @@ type extraInboxUnboxConversationInfo struct {
 var _ types.UnboxConversationInfo = (*extraInboxUnboxConversationInfo)(nil)
 
 func newExtraInboxUnboxConverstionInfo(convID chat1.ConversationID, membersType chat1.ConversationMembersType,
-	visibility keybase1.TLFVisibility) *extraInboxUnboxConversationInfo {
+	visibility keybase1.TLFVisibility,
+) *extraInboxUnboxConversationInfo {
 	return &extraInboxUnboxConversationInfo{
 		convID:      convID,
 		membersType: membersType,
@@ -278,7 +280,8 @@ func (p *extraInboxUnboxConversationInfo) GetMaxMessage(chat1.MessageType) (chat
 }
 
 func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.MessageBoxed,
-	convMembersType chat1.ConversationMembersType) chat1.ConversationMembersType {
+	convMembersType chat1.ConversationMembersType,
+) chat1.ConversationMembersType {
 	switch convMembersType {
 	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		if boxed.KBFSEncrypted() {
@@ -323,7 +326,8 @@ func (b *Boxer) castInternalError(ierr types.UnboxingError) error {
 // Permanent errors can be cached and must be treated as a value to deal with,
 // whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo,
-	info *types.BoxerEncryptionInfo) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
+	info *types.BoxerEncryptionInfo,
+) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
 	ctx = libkb.WithLogTag(ctx, "CHTUNBOX")
 	var err error
 	defer b.Trace(ctx, &err, "UnboxMessage(%s, %d)", conv.GetConvID(),
@@ -484,7 +488,8 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 
 func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed,
 	conv types.UnboxConversationInfo, encryptionKey types.CryptKey,
-	ephemeralKey types.EphemeralCryptKey) (*chat1.MessageUnboxedValid, types.UnboxingError) {
+	ephemeralKey types.EphemeralCryptKey,
+) (*chat1.MessageUnboxedValid, types.UnboxingError) {
 	switch boxed.Version {
 	case chat1.MessageBoxedVersion_VNONE, chat1.MessageBoxedVersion_V1:
 		res, err := b.unboxV1(ctx, boxed, conv, encryptionKey)
@@ -510,7 +515,8 @@ func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed,
 }
 
 func (b *Boxer) headerUnsupported(ctx context.Context, headerVersion chat1.HeaderPlaintextVersion,
-	header chat1.HeaderPlaintext) chat1.HeaderPlaintextUnsupported {
+	header chat1.HeaderPlaintext,
+) chat1.HeaderPlaintextUnsupported {
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V2:
 		return header.V2()
@@ -541,7 +547,8 @@ func (b *Boxer) headerUnsupported(ctx context.Context, headerVersion chat1.Heade
 }
 
 func (b *Boxer) bodyUnsupported(ctx context.Context, bodyVersion chat1.BodyPlaintextVersion,
-	body chat1.BodyPlaintext) chat1.BodyPlaintextUnsupported {
+	body chat1.BodyPlaintext,
+) chat1.BodyPlaintextUnsupported {
 	switch bodyVersion {
 	case chat1.BodyPlaintextVersion_V3:
 		return body.V3()
@@ -572,7 +579,8 @@ func (b *Boxer) bodyUnsupported(ctx context.Context, bodyVersion chat1.BodyPlain
 // unboxV1 unboxes a chat1.MessageBoxed into a keybase1.Message given
 // a keybase1.CryptKey.
 func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
-	conv types.UnboxConversationInfo, encryptionKey types.CryptKey) (*chat1.MessageUnboxedValid, types.UnboxingError) {
+	conv types.UnboxConversationInfo, encryptionKey types.CryptKey,
+) (*chat1.MessageUnboxedValid, types.UnboxingError) {
 	var err error
 	if boxed.ServerHeader == nil {
 		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
@@ -699,8 +707,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 	}
 
 	// Get at mention usernames
-	atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions :=
-		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, clientHeader.Conv.TopicType, conv, body)
+	atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions := b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, clientHeader.Conv.TopicType, conv, body)
 
 	ierr = b.compareHeadersMBV1(ctx, boxed.ClientHeader, clientHeader)
 	if ierr != nil {
@@ -744,7 +751,8 @@ func (b *Boxer) memberCtime(mctx libkb.MetaContext, conv types.UnboxConversation
 }
 
 func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxed,
-	conv types.UnboxConversationInfo, headerHash chat1.Hash) (senderKey []byte, err error) {
+	conv types.UnboxConversationInfo, headerHash chat1.Hash,
+) (senderKey []byte, err error) {
 	defer b.Trace(ctx, &err, "validatePairwiseMAC")()
 
 	// First, find a MAC that matches our receiving device encryption KID.
@@ -846,7 +854,8 @@ func (b *Boxer) ResolveSkippedUnboxeds(ctx context.Context, msgs []chat1.Message
 
 func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	conv types.UnboxConversationInfo, baseEncryptionKey types.CryptKey,
-	ephemeralKey types.EphemeralCryptKey) (*chat1.MessageUnboxedValid, types.UnboxingError) {
+	ephemeralKey types.EphemeralCryptKey,
+) (*chat1.MessageUnboxedValid, types.UnboxingError) {
 	if boxed.ServerHeader == nil {
 		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
 	}
@@ -993,8 +1002,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		ctx, clientHeader.Sender, clientHeader.SenderDevice)
 
 	// Get at mention usernames
-	atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions :=
-		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, clientHeader.Conv.TopicType, conv, body)
+	atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions := b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, clientHeader.Conv.TopicType, conv, body)
 
 	clientHeader.HasPairwiseMacs = len(boxed.ClientHeader.PairwiseMacs) > 0
 
@@ -1235,7 +1243,6 @@ func (b *Boxer) makeBodyHash(bodyCiphertext chat1.EncryptedData) (chat1.Hash, ty
 
 // unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
 func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, conv types.UnboxConversationInfo) (thread chat1.ThreadView, err error) {
-
 	thread = chat1.ThreadView{
 		Pagination: boxed.Pagination,
 	}
@@ -1324,7 +1331,8 @@ func (b *Boxer) getEmojis(ctx context.Context, topicType chat1.TopicType, body c
 }
 
 func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicType chat1.TopicType,
-	conv types.UnboxConversationInfo, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, maybeRes []chat1.MaybeMention, chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) {
+	conv types.UnboxConversationInfo, body chat1.MessageBody,
+) (atMentions []gregor1.UID, atMentionUsernames []string, maybeRes []chat1.MaybeMention, chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) {
 	if topicType != chat1.TopicType_CHAT {
 		// only care about chat conversations for these mentions
 		return atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions
@@ -1453,8 +1461,10 @@ func (b *Boxer) latestMerkleRoot(ctx context.Context) (*chat1.MerkleRoot, error)
 	return &merkleRoot, nil
 }
 
-var dummySigningKeyPtr *libkb.NaclSigningKeyPair
-var dummySigningKeyOnce sync.Once
+var (
+	dummySigningKeyPtr  *libkb.NaclSigningKeyPair
+	dummySigningKeyOnce sync.Once
+)
 
 // We use this constant key when we already have pairwiseMACs providing
 // authentication. Creating a keypair requires a curve multiply, so we cache it
@@ -1472,8 +1482,8 @@ func dummySigningKey() libkb.NaclSigningKeyPair {
 }
 
 func (b *Boxer) GetEncryptionInfo(ctx context.Context, msg *chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, signingKeyPair libkb.NaclSigningKeyPair) (res types.BoxerEncryptionInfo, err error) {
-
+	membersType chat1.ConversationMembersType, signingKeyPair libkb.NaclSigningKeyPair,
+) (res types.BoxerEncryptionInfo, err error) {
 	tlfName := msg.ClientHeader.TlfName
 	version, err := b.GetBoxedVersion(*msg)
 	if err != nil {
@@ -1566,7 +1576,8 @@ func (b *Boxer) GetBoxedVersion(msg chat1.MessagePlaintext) (chat1.MessageBoxedV
 // finds the most recent key for the TLF.
 func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	membersType chat1.ConversationMembersType,
-	signingKeyPair libkb.NaclSigningKeyPair, info *types.BoxerEncryptionInfo) (res chat1.MessageBoxed, err error) {
+	signingKeyPair libkb.NaclSigningKeyPair, info *types.BoxerEncryptionInfo,
+) (res chat1.MessageBoxed, err error) {
 	defer b.Trace(ctx, &err, "BoxMessage")()
 	tlfName := msg.ClientHeader.TlfName
 	if len(tlfName) == 0 {
@@ -1652,7 +1663,8 @@ func (b *Boxer) preBoxCheck(ctx context.Context, messagePlaintext chat1.MessageP
 
 func (b *Boxer) box(ctx context.Context, messagePlaintext chat1.MessagePlaintext, encryptionKey types.CryptKey,
 	ephemeralKey types.EphemeralCryptKey, signingKeyPair libkb.NaclSigningKeyPair, version chat1.MessageBoxedVersion,
-	pairwiseMACRecipients []keybase1.KID) (res chat1.MessageBoxed, err error) {
+	pairwiseMACRecipients []keybase1.KID,
+) (res chat1.MessageBoxed, err error) {
 	if err = b.preBoxCheck(ctx, messagePlaintext); err != nil {
 		return res, err
 	}
@@ -1680,8 +1692,8 @@ func (b *Boxer) box(ctx context.Context, messagePlaintext chat1.MessagePlaintext
 // boxMessageWithKeys encrypts and signs a keybase1.MessagePlaintext into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
 func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key types.CryptKey,
-	signingKeyPair libkb.NaclSigningKeyPair) (res chat1.MessageBoxed, err error) {
-
+	signingKeyPair libkb.NaclSigningKeyPair,
+) (res chat1.MessageBoxed, err error) {
 	body := chat1.BodyPlaintextV1{
 		MessageBody: messagePlaintext.MessageBody,
 	}
@@ -1786,8 +1798,8 @@ func (b *Boxer) versionBody(ctx context.Context, messagePlaintext chat1.MessageP
 // signs with the zero key when pairwise MACs are included.
 func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.MessagePlaintext,
 	baseEncryptionKey types.CryptKey, ephemeralKey types.EphemeralCryptKey, signingKeyPair libkb.NaclSigningKeyPair,
-	version chat1.MessageBoxedVersion, pairwiseMACRecipients []keybase1.KID) (res chat1.MessageBoxed, err error) {
-
+	version chat1.MessageBoxedVersion, pairwiseMACRecipients []keybase1.KID,
+) (res chat1.MessageBoxed, err error) {
 	if messagePlaintext.ClientHeader.MerkleRoot == nil {
 		return res, NewBoxingError("cannot send message without merkle root", false)
 	}
@@ -1929,7 +1941,8 @@ func (b *Boxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefi
 // signEncryptMarshal signencrypts data given an encryption and signing key, returning a chat1.SignEncryptedData.
 // It marshals data before signing.
 func (b *Boxer) signEncryptMarshal(data interface{}, encryptionKey libkb.NaclSecretBoxKey,
-	signingKeyPair libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix) (chat1.SignEncryptedData, error) {
+	signingKeyPair libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix,
+) (chat1.SignEncryptedData, error) {
 	encoded, err := b.marshal(data)
 	if err != nil {
 		return chat1.SignEncryptedData{}, err
@@ -1960,7 +1973,8 @@ func (b *Boxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix kbcrypto.Si
 
 // signEncrypt signencrypts msg.
 func (b *Boxer) signEncrypt(msg []byte, encryptionKey libkb.NaclSecretBoxKey,
-	signingKeyPair libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix) (chat1.SignEncryptedData, error) {
+	signingKeyPair libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix,
+) (chat1.SignEncryptedData, error) {
 	if signingKeyPair.Private == nil {
 		return chat1.SignEncryptedData{}, libkb.NoSecretKeyError{}
 	}
@@ -1991,7 +2005,8 @@ func (b *Boxer) signEncrypt(msg []byte, encryptionKey libkb.NaclSecretBoxKey,
 
 // signEncryptOpen opens and verifies chat1.SignEncryptedData.
 func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey libkb.NaclSecretBoxKey,
-	verifyKID []byte, prefix kbcrypto.SignaturePrefix) ([]byte, error) {
+	verifyKID []byte, prefix kbcrypto.SignaturePrefix,
+) ([]byte, error) {
 	var encKey [signencrypt.SecretboxKeySize]byte = encryptionKey
 
 	verifyKey := kbcrypto.KIDToNaclSigningKeyPublic(verifyKID)
@@ -2251,7 +2266,8 @@ func (b *Boxer) compareHeadersMBV1(ctx context.Context, hServer chat1.MessageCli
 }
 
 func (b *Boxer) CompareTlfNames(ctx context.Context, tlfName1, tlfName2 string,
-	membersType chat1.ConversationMembersType, tlfPublic bool) (bool, error) {
+	membersType chat1.ConversationMembersType, tlfPublic bool,
+) (bool, error) {
 	get1 := func(tlfName string, tlfPublic bool) (string, error) {
 		nameInfo, err := CreateNameInfoSource(ctx, b.G(), membersType).LookupID(ctx, tlfName,
 			tlfPublic)

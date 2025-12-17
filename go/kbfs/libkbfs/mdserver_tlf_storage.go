@@ -77,7 +77,8 @@ type mdServerTlfStorage struct {
 
 func makeMDServerTlfStorage(tlfID tlf.ID, codec kbfscodec.Codec,
 	clock Clock, teamMemChecker kbfsmd.TeamMembershipChecker,
-	mdVer kbfsmd.MetadataVer, dir string) *mdServerTlfStorage {
+	mdVer kbfsmd.MetadataVer, dir string,
+) *mdServerTlfStorage {
 	journal := &mdServerTlfStorage{
 		tlfID:          tlfID,
 		codec:          codec,
@@ -101,12 +102,14 @@ func (s *mdServerTlfStorage) mdsPath() string {
 }
 
 func (s *mdServerTlfStorage) writerKeyBundleV3Path(
-	id kbfsmd.TLFWriterKeyBundleID) string {
+	id kbfsmd.TLFWriterKeyBundleID,
+) string {
 	return filepath.Join(s.dir, "wkbv3", id.String())
 }
 
 func (s *mdServerTlfStorage) readerKeyBundleV3Path(
-	id kbfsmd.TLFReaderKeyBundleID) string {
+	id kbfsmd.TLFReaderKeyBundleID,
+) string {
 	return filepath.Join(s.dir, "rkbv3", id.String())
 }
 
@@ -127,7 +130,8 @@ type serializedRMDS struct {
 //
 // TODO: Verify signature?
 func (s *mdServerTlfStorage) getMDReadLocked(id kbfsmd.ID) (
-	*RootMetadataSigned, error) {
+	*RootMetadataSigned, error,
+) {
 	// Read file.
 
 	var srmds serializedRMDS
@@ -160,7 +164,8 @@ func (s *mdServerTlfStorage) getMDReadLocked(id kbfsmd.ID) (
 }
 
 func (s *mdServerTlfStorage) putMDLocked(
-	rmds *RootMetadataSigned) (kbfsmd.ID, error) {
+	rmds *RootMetadataSigned,
+) (kbfsmd.ID, error) {
 	id, err := kbfsmd.MakeID(s.codec, rmds.MD)
 	if err != nil {
 		return kbfsmd.ID{}, err
@@ -199,14 +204,15 @@ func (s *mdServerTlfStorage) putMDLocked(
 }
 
 func (s *mdServerTlfStorage) getOrCreateBranchJournalLocked(
-	bid kbfsmd.BranchID) (mdIDJournal, error) {
+	bid kbfsmd.BranchID,
+) (mdIDJournal, error) {
 	j, ok := s.branchJournals[bid]
 	if ok {
 		return j, nil
 	}
 
 	dir := filepath.Join(s.branchJournalsPath(), bid.String())
-	err := ioutil.MkdirAll(dir, 0700)
+	err := ioutil.MkdirAll(dir, 0o700)
 	if err != nil {
 		return mdIDJournal{}, err
 	}
@@ -220,7 +226,8 @@ func (s *mdServerTlfStorage) getOrCreateBranchJournalLocked(
 }
 
 func (s *mdServerTlfStorage) getHeadForTLFReadLocked(bid kbfsmd.BranchID) (
-	rmds *RootMetadataSigned, err error) {
+	rmds *RootMetadataSigned, err error,
+) {
 	j, err := s.getOrCreateBranchJournalLocked(bid)
 	if err != nil {
 		return nil, err
@@ -236,7 +243,8 @@ func (s *mdServerTlfStorage) getHeadForTLFReadLocked(bid kbfsmd.BranchID) (
 }
 
 func (s *mdServerTlfStorage) checkGetParamsReadLocked(
-	ctx context.Context, currentUID keybase1.UID, bid kbfsmd.BranchID) error {
+	ctx context.Context, currentUID keybase1.UID, bid kbfsmd.BranchID,
+) error {
 	mergedMasterHead, err := s.getHeadForTLFReadLocked(kbfsmd.NullBranchID)
 	if err != nil {
 		return kbfsmd.ServerError{Err: err}
@@ -264,7 +272,8 @@ func (s *mdServerTlfStorage) checkGetParamsReadLocked(
 func (s *mdServerTlfStorage) getRangeReadLocked(
 	ctx context.Context, currentUID keybase1.UID, bid kbfsmd.BranchID,
 	start, stop kbfsmd.Revision) (
-	[]*RootMetadataSigned, error) {
+	[]*RootMetadataSigned, error,
+) {
 	err := s.checkGetParamsReadLocked(ctx, currentUID, bid)
 	if err != nil {
 		return nil, err
@@ -297,7 +306,8 @@ func (s *mdServerTlfStorage) getRangeReadLocked(
 }
 
 func (s *mdServerTlfStorage) putExtraMetadataLocked(rmds *RootMetadataSigned,
-	extra kbfsmd.ExtraMetadata) error {
+	extra kbfsmd.ExtraMetadata,
+) error {
 	if extra == nil {
 		return nil
 	}
@@ -366,7 +376,8 @@ func (s *mdServerTlfStorage) journalLength(bid kbfsmd.BranchID) (uint64, error) 
 
 func (s *mdServerTlfStorage) getForTLF(
 	ctx context.Context, currentUID keybase1.UID, bid kbfsmd.BranchID) (
-	*RootMetadataSigned, error) {
+	*RootMetadataSigned, error,
+) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	err := s.checkShutdownReadLocked()
@@ -389,7 +400,8 @@ func (s *mdServerTlfStorage) getForTLF(
 func (s *mdServerTlfStorage) getRange(
 	ctx context.Context, currentUID keybase1.UID, bid kbfsmd.BranchID,
 	start, stop kbfsmd.Revision) (
-	[]*RootMetadataSigned, error) {
+	[]*RootMetadataSigned, error,
+) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	err := s.checkShutdownReadLocked()
@@ -403,7 +415,8 @@ func (s *mdServerTlfStorage) getRange(
 func (s *mdServerTlfStorage) put(ctx context.Context,
 	currentUID keybase1.UID, currentVerifyingKey kbfscrypto.VerifyingKey,
 	rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata) (
-	recordBranchID bool, err error) {
+	recordBranchID bool, err error,
+) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	err = s.checkShutdownReadLocked()
@@ -512,7 +525,8 @@ func (s *mdServerTlfStorage) put(ctx context.Context,
 
 func (s *mdServerTlfStorage) getKeyBundlesReadLocked(tlfID tlf.ID,
 	wkbID kbfsmd.TLFWriterKeyBundleID, rkbID kbfsmd.TLFReaderKeyBundleID) (
-	*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error) {
+	*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error,
+) {
 	err := s.checkShutdownReadLocked()
 	if err != nil {
 		return nil, nil, err
@@ -553,11 +567,11 @@ func (s *mdServerTlfStorage) getKeyBundlesReadLocked(tlfID tlf.ID,
 
 func (s *mdServerTlfStorage) getKeyBundles(tlfID tlf.ID,
 	wkbID kbfsmd.TLFWriterKeyBundleID, rkbID kbfsmd.TLFReaderKeyBundleID) (
-	*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error) {
+	*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error,
+) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	return s.getKeyBundlesReadLocked(tlfID, wkbID, rkbID)
-
 }
 
 func (s *mdServerTlfStorage) shutdown() {

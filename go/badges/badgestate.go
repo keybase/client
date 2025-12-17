@@ -87,8 +87,7 @@ func (b *BadgeState) Export(ctx context.Context) (keybase1.BadgeState, error) {
 	for _, info := range b.chatUnreadMap {
 		b.state.Conversations = append(b.state.Conversations, info)
 	}
-	b.state.Conversations, b.state.SmallTeamBadgeCount, b.state.BigTeamBadgeCount =
-		b.localChatState.ApplyLocalChatState(ctx, b.state.Conversations)
+	b.state.Conversations, b.state.SmallTeamBadgeCount, b.state.BigTeamBadgeCount = b.localChatState.ApplyLocalChatState(ctx, b.state.Conversations)
 	b.state.InboxVers = int(b.inboxVers)
 
 	b.state.UnreadWalletAccounts = []keybase1.WalletAccountInfo{}
@@ -417,7 +416,8 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 }
 
 func (b *BadgeState) UpdateWithChat(ctx context.Context, update chat1.UnreadUpdate,
-	inboxVers chat1.InboxVers, isMobile bool) {
+	inboxVers chat1.InboxVers, isMobile bool,
+) {
 	b.Lock()
 	defer b.Unlock()
 

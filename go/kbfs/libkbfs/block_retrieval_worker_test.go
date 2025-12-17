@@ -47,7 +47,8 @@ func newFakeBlockGetter(respectCancel bool) *fakeBlockGetter {
 // BlockPointer. Returns a writeable channel that getBlock will wait on, to
 // allow synchronization of tests.
 func (bg *fakeBlockGetter) setBlockToReturn(blockPtr data.BlockPointer,
-	block data.Block) (startCh <-chan struct{}, continueCh chan<- error) {
+	block data.Block,
+) (startCh <-chan struct{}, continueCh chan<- error) {
 	bg.mtx.Lock()
 	defer bg.mtx.Unlock()
 	sCh, cCh := make(chan struct{}), make(chan error)
@@ -62,7 +63,8 @@ func (bg *fakeBlockGetter) setBlockToReturn(blockPtr data.BlockPointer,
 // getBlock implements the interface for realBlockGetter.
 func (bg *fakeBlockGetter) getBlock(
 	ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
-	block data.Block, _ DiskBlockCacheType) error {
+	block data.Block, _ DiskBlockCacheType,
+) error {
 	bg.mtx.RLock()
 	defer bg.mtx.RUnlock()
 	source, ok := bg.blockMap[blockPtr]
@@ -94,7 +96,8 @@ func (bg *fakeBlockGetter) getBlock(
 
 func (bg *fakeBlockGetter) assembleBlock(ctx context.Context,
 	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+) error {
 	bg.mtx.RLock()
 	defer bg.mtx.RUnlock()
 	source, ok := bg.blockMap[ptr]
@@ -107,7 +110,8 @@ func (bg *fakeBlockGetter) assembleBlock(ctx context.Context,
 
 func (bg *fakeBlockGetter) assembleBlockLocal(ctx context.Context,
 	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+) error {
 	return bg.assembleBlock(ctx, kmd, ptr, block, buf, serverHalf)
 }
 

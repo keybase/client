@@ -55,7 +55,8 @@ var _ KeyServer = (*KeyServerLocal)(nil)
 
 func newKeyServerLocal(
 	config KeyServerConfig, log logger.Logger, storage storage.Storage,
-	shutdownFunc func(logger.Logger)) (ks *KeyServerLocal, err error) {
+	shutdownFunc func(logger.Logger),
+) (ks *KeyServerLocal, err error) {
 	defer func() {
 		if err != nil {
 			_ = storage.Close()
@@ -68,20 +69,23 @@ func newKeyServerLocal(
 	}
 	kops := &KeyServerLocal{
 		config, storage.Close, db, log, &sync.RWMutex{}, new(bool),
-		shutdownFunc}
+		shutdownFunc,
+	}
 	return kops, nil
 }
 
 // NewKeyServerMemory returns a KeyServerLocal with an in-memory leveldb
 // instance.
 func NewKeyServerMemory(config KeyServerConfig, log logger.Logger) (
-	*KeyServerLocal, error) {
+	*KeyServerLocal, error,
+) {
 	return newKeyServerLocal(config, log, storage.NewMemStorage(), nil)
 }
 
 func newKeyServerDisk(
 	config KeyServerConfig, log logger.Logger, dirPath string,
-	shutdownFunc func(logger.Logger)) (*KeyServerLocal, error) {
+	shutdownFunc func(logger.Logger),
+) (*KeyServerLocal, error) {
 	keyPath := filepath.Join(dirPath, "keys")
 	storage, err := storage.OpenFile(keyPath, false)
 	if err != nil {
@@ -94,14 +98,16 @@ func newKeyServerDisk(
 // data in the given directory.
 func NewKeyServerDir(
 	config KeyServerConfig, log logger.Logger, dirPath string) (
-	*KeyServerLocal, error) {
+	*KeyServerLocal, error,
+) {
 	return newKeyServerDisk(config, log, dirPath, nil)
 }
 
 // NewKeyServerTempDir constructs a new KeyServerLocal that stores its
 // data in a temp directory which is cleaned up on shutdown.
 func NewKeyServerTempDir(
-	config KeyServerConfig, log logger.Logger) (*KeyServerLocal, error) {
+	config KeyServerConfig, log logger.Logger,
+) (*KeyServerLocal, error) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_keyserver_tmp")
 	if err != nil {
 		return nil, err
@@ -119,7 +125,8 @@ func NewKeyServerTempDir(
 func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(
 	ctx context.Context, serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
 	key kbfscrypto.CryptPublicKey) (
-	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
+	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
@@ -158,7 +165,8 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(
 // PutTLFCryptKeyServerHalves implements the KeyServer interface for
 // KeyServerLocal.
 func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
-	keyServerHalves kbfsmd.UserDeviceKeyServerHalves) error {
+	keyServerHalves kbfsmd.UserDeviceKeyServerHalves,
+) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -192,7 +200,8 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 // KeyServerLocal.
 func (ks *KeyServerLocal) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 	_ keybase1.UID, _ kbfscrypto.CryptPublicKey,
-	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error {
+	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
+) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -211,10 +220,12 @@ func (ks *KeyServerLocal) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 // CopyWithConfigAndLogger copies a key server but swaps the config
 // and the logger.
 func (ks *KeyServerLocal) CopyWithConfigAndLogger(
-	config KeyServerConfig, log logger.Logger) *KeyServerLocal {
+	config KeyServerConfig, log logger.Logger,
+) *KeyServerLocal {
 	return &KeyServerLocal{
 		config, ks.storCloser, ks.db, log, ks.shutdownLock, ks.shutdown,
-		ks.shutdownFunc}
+		ks.shutdownFunc,
+	}
 }
 
 // Shutdown implements the KeyServer interface for KeyServerLocal.

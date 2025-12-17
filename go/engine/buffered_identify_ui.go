@@ -65,7 +65,6 @@ func (b *bufferedIdentifyUI) Start(m libkb.MetaContext, s string, r keybase1.Ide
 }
 
 func (b *bufferedIdentifyUI) flush(m libkb.MetaContext, trackingBroke bool) (err error) {
-
 	// Look up the calling function for debugging purposes
 	pc := make([]uintptr, 10) // at least 1 entry needed
 	runtime.Callers(2, pc)

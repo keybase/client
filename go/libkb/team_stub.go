@@ -145,18 +145,23 @@ func (n nullTeamBoxAuditor) AssertUnjailedOrReaudit(m MetaContext, id keybase1.T
 func (n nullTeamBoxAuditor) IsInJail(m MetaContext, id keybase1.TeamID) (bool, error) {
 	return false, errNullBoxAuditor
 }
+
 func (n nullTeamBoxAuditor) RetryNextBoxAudit(m MetaContext) (*keybase1.BoxAuditAttempt, error) {
 	return attemptNullBoxAuditor(), errNullBoxAuditor
 }
+
 func (n nullTeamBoxAuditor) BoxAuditRandomTeam(m MetaContext) (*keybase1.BoxAuditAttempt, error) {
 	return attemptNullBoxAuditor(), errNullBoxAuditor
 }
+
 func (n nullTeamBoxAuditor) BoxAuditTeam(m MetaContext, id keybase1.TeamID) (*keybase1.BoxAuditAttempt, error) {
 	return attemptNullBoxAuditor(), errNullBoxAuditor
 }
+
 func (n nullTeamBoxAuditor) Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt {
 	return *attemptNullBoxAuditor()
 }
+
 func (n nullTeamBoxAuditor) MaybeScheduleDelayedBoxAuditTeam(mctx MetaContext, teamID keybase1.TeamID) {
 }
 
@@ -173,18 +178,23 @@ func (n nullHiddenTeamChainManager) Tail(mctx MetaContext, id keybase1.TeamID) (
 func (n nullHiddenTeamChainManager) Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchetSet) error {
 	return nil
 }
+
 func (n nullHiddenTeamChainManager) Advance(MetaContext, keybase1.HiddenTeamChain, *keybase1.LinkTriple) error {
 	return nil
 }
+
 func (n nullHiddenTeamChainManager) Load(MetaContext, keybase1.TeamID) (*keybase1.HiddenTeamChain, error) {
 	return nil, fmt.Errorf("null hidden team chain manager")
 }
+
 func (n nullHiddenTeamChainManager) Tombstone(MetaContext, keybase1.TeamID) error {
 	return nil
 }
+
 func (n nullHiddenTeamChainManager) Freeze(MetaContext, keybase1.TeamID) error {
 	return nil
 }
+
 func (n nullHiddenTeamChainManager) HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error {
 	return nil
 }
@@ -211,6 +221,7 @@ func newNullTeamRoleMapManager() nullTeamRoleMapManager {
 func (n nullTeamRoleMapManager) Get(m MetaContext, retryOnFail bool) (res keybase1.TeamRoleMapAndVersion, err error) {
 	return res, nil
 }
+
 func (n nullTeamRoleMapManager) Update(m MetaContext, version keybase1.UserTeamVersion) (err error) {
 	return nil
 }

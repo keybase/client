@@ -72,8 +72,9 @@ func kbfsLibdokanCreateFile(
 	ShareAccess C.ULONG, //nolint
 	cCreateDisposition C.ULONG,
 	CreateOptions C.ULONG, //nolint
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
-	var cd = CreateData{
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
+	cd := CreateData{
 		DesiredAccess:     uint32(DesiredAccess),
 		FileAttributes:    FileAttribute(FileAttributes),
 		ShareAccess:       uint32(ShareAccess),
@@ -112,6 +113,7 @@ func (cd CreateDisposition) isSignalExisting() bool {
 func globalContext() context.Context {
 	return context.Background()
 }
+
 func getContext(pfi C.PDOKAN_FILE_INFO) (context.Context, context.CancelFunc) {
 	return getfs(pfi).WithContext(globalContext())
 }
@@ -145,7 +147,8 @@ func kbfsLibdokanReadFile(
 	NumberOfBytesToRead C.DWORD, //nolint
 	NumberOfBytesRead C.LPDWORD, //nolint
 	Offset C.LONGLONG, //nolint
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("ReadFile '%v' %d bytes @ %d %v", d16{fname}, NumberOfBytesToRead, Offset, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -172,7 +175,8 @@ func kbfsLibdokanWriteFile(
 	NumberOfBytesToWrite C.DWORD, //nolint
 	NumberOfBytesWritten C.LPDWORD, //nolint
 	Offset C.LONGLONG, //nolint
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("WriteFile '%v' %d bytes @ %d %v", d16{fname}, NumberOfBytesToWrite, Offset, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -191,7 +195,8 @@ func kbfsLibdokanWriteFile(
 //export kbfsLibdokanFlushFileBuffers
 func kbfsLibdokanFlushFileBuffers(
 	fname C.LPCWSTR,
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("FlushFileBuffers '%v' %v", d16{fname}, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -212,7 +217,8 @@ func u32zeroToOne(u uint32) uint32 {
 func kbfsLibdokanGetFileInformation(
 	fname C.LPCWSTR,
 	sbuf C.LPBY_HANDLE_FILE_INFORMATION,
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("GetFileInformation '%v' %v", d16{fname}, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -241,7 +247,8 @@ var errFindNoSpace = errors.New("Find out of space")
 func kbfsLibdokanFindFiles(
 	PathName C.LPCWSTR, //nolint
 	FindData C.PFillFindData, //nolint call this function with PWIN32_FIND_DATAW
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("FindFiles '%v' %v", d16{PathName}, *pfi)
 	return kbfsLibdokanFindFilesImpl(PathName, "", FindData, pfi)
 }
@@ -251,7 +258,8 @@ func kbfsLibdokanFindFilesWithPattern(
 	PathName C.LPCWSTR, //nolint
 	SearchPattern C.LPCWSTR, //nolint
 	FindData C.PFillFindData, //nolint call this function with PWIN32_FIND_DATAW
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	pattern := lpcwstrToString(SearchPattern)
 	debugf("FindFilesWithPattern '%v' %v %q", d16{PathName}, *pfi, pattern)
 	return kbfsLibdokanFindFilesImpl(PathName, pattern, FindData, pfi)
@@ -261,7 +269,8 @@ func kbfsLibdokanFindFilesImpl(
 	PathName C.LPCWSTR, //nolint
 	pattern string,
 	FindData C.PFillFindData, //nolint
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("FindFiles '%v' %v", d16{PathName}, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -299,7 +308,8 @@ func kbfsLibdokanFindFilesImpl(
 func kbfsLibdokanSetFileAttributes(
 	fname C.LPCWSTR,
 	fileAttributes C.DWORD,
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("SetFileAttributes '%v' %X %v", d16{fname}, fileAttributes, pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -315,7 +325,8 @@ func kbfsLibdokanSetFileTime(
 	creation *C.FILETIME,
 	lastAccess *C.FILETIME,
 	lastWrite *C.FILETIME,
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("SetFileTime '%v' %v", d16{fname}, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -338,7 +349,8 @@ func kbfsLibdokanSetFileTime(
 //export kbfsLibdokanDeleteFile
 func kbfsLibdokanDeleteFile(
 	fname C.LPCWSTR,
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("DeleteFile '%v' %v", d16{fname}, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -351,7 +363,8 @@ func kbfsLibdokanDeleteFile(
 //export kbfsLibdokanDeleteDirectory
 func kbfsLibdokanDeleteDirectory(
 	fname C.LPCWSTR,
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("DeleteDirectory '%v' %v", d16{fname}, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -366,7 +379,8 @@ func kbfsLibdokanMoveFile(
 	oldFName C.LPCWSTR,
 	newFName C.LPCWSTR,
 	replaceExisiting C.BOOL,
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	newPath := lpcwstrToString(newFName)
 	debugf("MoveFile '%v' %v target %v", d16{oldFName}, *pfi, newPath)
 	ctx, cancel := getContext(pfi)
@@ -383,7 +397,8 @@ func kbfsLibdokanMoveFile(
 func kbfsLibdokanSetEndOfFile(
 	fname C.LPCWSTR,
 	length C.LONGLONG,
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("SetEndOfFile '%v' %d %v", d16{fname}, length, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -397,7 +412,8 @@ func kbfsLibdokanSetEndOfFile(
 func kbfsLibdokanSetAllocationSize(
 	fname C.LPCWSTR,
 	length C.LONGLONG,
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("SetAllocationSize '%v' %d %v", d16{fname}, length, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -412,7 +428,8 @@ func kbfsLibdokanLockFile(
 	fname C.LPCWSTR,
 	offset C.LONGLONG,
 	length C.LONGLONG,
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("LockFile '%v' %v", d16{fname}, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -428,7 +445,8 @@ func kbfsLibdokanUnlockFile(
 	fname C.LPCWSTR,
 	offset C.LONGLONG,
 	length C.LONGLONG,
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debugf("UnlockFile '%v' %v", d16{fname}, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
@@ -443,7 +461,8 @@ func kbfsLibdokanGetDiskFreeSpace(
 	FreeBytesAvailable *C.ULONGLONG, //nolint
 	TotalNumberOfBytes *C.ULONGLONG, //nolint
 	TotalNumberOfFreeBytes *C.ULONGLONG, //nolint
-	FileInfo C.PDOKAN_FILE_INFO) C.NTSTATUS { //nolint
+	FileInfo C.PDOKAN_FILE_INFO,
+) C.NTSTATUS { //nolint
 	debug("GetDiskFreeSpace", *FileInfo)
 	fs := getfs(FileInfo)
 	ctx, cancel := fs.WithContext(globalContext())
@@ -476,7 +495,8 @@ func kbfsLibdokanGetVolumeInformation(
 	FileSystemFlags C.LPDWORD, //nolint
 	FileSystemNameBuffer C.LPWSTR, //nolint
 	FileSystemNameSize C.DWORD, //nolint in num of chars
-	FileInfo C.PDOKAN_FILE_INFO) C.NTSTATUS { //nolint
+	FileInfo C.PDOKAN_FILE_INFO,
+) C.NTSTATUS { //nolint
 	debug("GetVolumeInformation", VolumeNameSize, MaximumComponentLength, FileSystemNameSize, *FileInfo)
 	fs := getfs(FileInfo)
 	ctx, cancel := fs.WithContext(globalContext())
@@ -519,13 +539,14 @@ func kbfsLibdokanMounted(pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 //export kbfsLibdokanGetFileSecurity
 func kbfsLibdokanGetFileSecurity(
 	fname C.LPCWSTR,
-	//A pointer to SECURITY_INFORMATION value being requested
+	// A pointer to SECURITY_INFORMATION value being requested
 	input C.PSECURITY_INFORMATION,
 	// A pointer to SECURITY_DESCRIPTOR buffer to be filled
 	output C.PSECURITY_DESCRIPTOR,
 	outlen C.ULONG, // length of Security descriptor buffer
 	LengthNeeded *C.ULONG, //nolint
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	var si winacl.SecurityInformation
 	if input != nil {
 		si = winacl.SecurityInformation(*input)
@@ -560,7 +581,8 @@ func kbfsLibdokanSetFileSecurity(
 	SecurityInformation C.PSECURITY_INFORMATION, //nolint
 	SecurityDescriptor C.PSECURITY_DESCRIPTOR, //nolint
 	SecurityDescriptorLength C.ULONG, //nolint
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pfi C.PDOKAN_FILE_INFO,
+) C.NTSTATUS {
 	debug("SetFileSecurity TODO")
 	return ntstatusOk
 }
@@ -594,6 +616,7 @@ func packTime(t time.Time) C.FILETIME {
 	ft := syscall.NsecToFiletime(t.UnixNano())
 	return C.FILETIME{dwLowDateTime: C.DWORD(ft.LowDateTime), dwHighDateTime: C.DWORD(ft.HighDateTime)}
 }
+
 func unpackTime(c C.FILETIME) time.Time {
 	// Zero means ignore. Sometimes -1 is passed for ignore too.
 	if c == (C.FILETIME{}) || c == (C.FILETIME{0xFFFFffff, 0xFFFFffff}) {
@@ -758,7 +781,7 @@ func lpcwstrToString(ptr C.LPCWSTR) string {
 	if ptr == nil {
 		return ""
 	}
-	var len = 0
+	len := 0
 	for tmp := ptr; *tmp != 0; tmp = (C.LPCWSTR)(unsafe.Pointer((uintptr(unsafe.Pointer(tmp)) + 2))) {
 		len++
 	}
@@ -771,6 +794,7 @@ func lpcwstrToString(ptr C.LPCWSTR) string {
 func stringToUtf16Buffer(s string, ptr C.LPWSTR, blenUcs2 C.DWORD) bool {
 	return stringToUtf16BufferPtr(s, unsafe.Pointer(ptr), blenUcs2)
 }
+
 func stringToUtf16BufferPtr(s string, ptr unsafe.Pointer, blenUcs2 C.DWORD) bool {
 	if ptr == nil || blenUcs2 == 0 {
 		return false
@@ -799,7 +823,8 @@ func ptrUcs2Slice(ptr unsafe.Pointer, lenUcs2 int) []uint16 {
 	return *(*[]uint16)(unsafe.Pointer(&reflect.SliceHeader{
 		Data: uintptr(ptr),
 		Len:  lenUcs2,
-		Cap:  lenUcs2}))
+		Cap:  lenUcs2,
+	}))
 }
 
 // d16 wraps C wide string pointers to a struct with nice printing

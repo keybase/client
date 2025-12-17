@@ -205,7 +205,8 @@ func TestDecryptPrivateMetadata(t *testing.T) {
 
 func makeFakeBlockCryptKey(t *testing.T) (
 	kbfscrypto.TLFCryptKey, kbfscrypto.BlockCryptKeyServerHalf,
-	kbfscrypto.BlockCryptKey) {
+	kbfscrypto.BlockCryptKey,
+) {
 	tlfCryptKey, err := kbfscrypto.MakeRandomTLFCryptKey()
 	require.NoError(t, err)
 	blockServerHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()

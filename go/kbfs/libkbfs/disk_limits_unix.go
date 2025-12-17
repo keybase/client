@@ -17,7 +17,8 @@ import (
 // getDiskLimits gets the disk limits for the logical disk containing
 // the given path.
 func getDiskLimits(path string) (
-	availableBytes, totalBytes, availableFiles, totalFiles uint64, err error) {
+	availableBytes, totalBytes, availableFiles, totalFiles uint64, err error,
+) {
 	// Notably we are using syscall rather than golang.org/x/sys/unix here.
 	// The latter is broken on iOS with go1.11.8 (and likely earlier versions)
 	// and always gives us 0 as available storage space. go1.12.3 is known to

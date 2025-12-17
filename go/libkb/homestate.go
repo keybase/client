@@ -4,8 +4,10 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type HomeTodoMap map[keybase1.HomeScreenTodoType]int
-type HomeItemMap map[keybase1.HomeScreenItemType]HomeTodoMap
+type (
+	HomeTodoMap map[keybase1.HomeScreenTodoType]int
+	HomeItemMap map[keybase1.HomeScreenItemType]HomeTodoMap
+)
 
 type HomeStateBody struct {
 	Version              int           `json:"version"`

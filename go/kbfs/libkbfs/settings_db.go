@@ -158,15 +158,13 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 	}
 
 	var notificationThreshold int64
-	notificationThresholdBytes, err :=
-		db.Get(getSettingsDbKey(uid, spaceAvailableNotificationThresholdKey), nil)
+	notificationThresholdBytes, err := db.Get(getSettingsDbKey(uid, spaceAvailableNotificationThresholdKey), nil)
 	switch errors.Cause(err) {
 	case leveldb.ErrNotFound:
 		db.vlogger.CLogf(ctx, libkb.VLog1,
 			"notificationThreshold not set; using default value")
 	case nil:
-		notificationThreshold, err =
-			strconv.ParseInt(string(notificationThresholdBytes), 10, 64)
+		notificationThreshold, err = strconv.ParseInt(string(notificationThresholdBytes), 10, 64)
 		if err != nil {
 			return keybase1.FSSettings{}, err
 		}
@@ -177,15 +175,13 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 	}
 
 	var sfmiBannerDismissed bool
-	sfmiBannerDismissedBytes, err :=
-		db.Get(getSettingsDbKey(uid, sfmiBannerDismissedKey), nil)
+	sfmiBannerDismissedBytes, err := db.Get(getSettingsDbKey(uid, sfmiBannerDismissedKey), nil)
 	switch errors.Cause(err) {
 	case leveldb.ErrNotFound:
 		db.vlogger.CLogf(ctx, libkb.VLog1,
 			"sfmiBannerDismissed not set; using default value")
 	case nil:
-		sfmiBannerDismissed, err =
-			strconv.ParseBool(string(sfmiBannerDismissedBytes))
+		sfmiBannerDismissed, err = strconv.ParseBool(string(sfmiBannerDismissedBytes))
 		if err != nil {
 			return keybase1.FSSettings{}, err
 		}
@@ -196,8 +192,7 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 	}
 
 	var syncOnCellular bool
-	syncOnCellularBytes, err :=
-		db.Get(getSettingsDbKey(uid, syncOnCellularKey), nil)
+	syncOnCellularBytes, err := db.Get(getSettingsDbKey(uid, syncOnCellularKey), nil)
 	switch errors.Cause(err) {
 	case leveldb.ErrNotFound:
 		db.vlogger.CLogf(ctx, libkb.VLog1,
@@ -223,7 +218,8 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 // SetNotificationThreshold sets the notification threshold setting for the
 // logged-in user.
 func (db *SettingsDB) SetNotificationThreshold(
-	ctx context.Context, threshold int64) error {
+	ctx context.Context, threshold int64,
+) error {
 	uid := db.getUID(ctx)
 	if uid == keybase1.UID("") {
 		return errNoSession
@@ -234,7 +230,8 @@ func (db *SettingsDB) SetNotificationThreshold(
 
 // SetSfmiBannerDismissed sets whether the smfi banner has been dismissed.
 func (db *SettingsDB) SetSfmiBannerDismissed(
-	ctx context.Context, dismissed bool) error {
+	ctx context.Context, dismissed bool,
+) error {
 	uid := db.getUID(ctx)
 	if uid == keybase1.UID("") {
 		return errNoSession
@@ -246,7 +243,8 @@ func (db *SettingsDB) SetSfmiBannerDismissed(
 // SetSyncOnCellular sets whether we should do TLF syncing on a
 // cellular network.
 func (db *SettingsDB) SetSyncOnCellular(
-	ctx context.Context, syncOnCellular bool) error {
+	ctx context.Context, syncOnCellular bool,
+) error {
 	uid := db.getUID(ctx)
 	if uid == keybase1.UID("") {
 		return errNoSession

@@ -68,7 +68,6 @@ func TestEmptyTree(t *testing.T) {
 			require.EqualValues(t, 1, s)
 		})
 	}
-
 }
 
 func TestBuildTreeAndGetKeyValuePair(t *testing.T) {
@@ -194,7 +193,6 @@ func TestBuildTreeAndGetKeyValuePair(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestBuildTreeAndGetKeyValuePairWithProof(t *testing.T) {
@@ -364,10 +362,8 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 			require.NoError(t, err)
 			require.Nil(t, eVal)
 			require.NoError(t, verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), kvp.Key, &proof, rootHash1))
-
 		})
 	}
-
 }
 
 func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
@@ -468,7 +464,6 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestSomeMaliciousInclusionProofsFail(t *testing.T) {
@@ -688,7 +683,6 @@ func TestExclProofOnEmptyTree(t *testing.T) {
 }
 
 func TestVerifyInclusionProofFailureBranches(t *testing.T) {
-
 	cfg, err := NewConfig(IdentityHasherBlinded{}, true, 2, 4, 2, ConstructStringValueContainer)
 	require.NoError(t, err)
 	defaultStep := 2
@@ -766,7 +760,6 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 }
 
 func TestTreeWithoutInternalNodes(t *testing.T) {
-
 	tests := []struct {
 		step int
 	}{
@@ -778,7 +771,6 @@ func TestTreeWithoutInternalNodes(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("Empy tree with %v step", test.step), func(t *testing.T) {
-
 			cfg, err := NewConfig(IdentityHasherBlinded{}, true, 2, 4, 2, ConstructStringValueContainer)
 			require.NoError(t, err)
 			tree, err := NewTree(cfg, test.step, NewInMemoryStorageEngine(cfg), RootVersionV1)
@@ -871,7 +863,6 @@ func TestGetLatestRoot(t *testing.T) {
 			require.False(t, rootHash1.Equal(rootHash2))
 		})
 	}
-
 }
 
 func TestNodeEncodingBasic(t *testing.T) {
@@ -1242,7 +1233,6 @@ func TestInclusionExtensionProofsFailureBranches(t *testing.T) {
 	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &fakeIEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "expected rootHash does not match the computed one")
-
 }
 
 func NewLoggerContextTodoForTesting(t *testing.T) logger.ContextInterface {

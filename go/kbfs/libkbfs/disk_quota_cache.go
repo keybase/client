@@ -103,7 +103,8 @@ type DiskQuotaCacheStatus struct {
 // cache.
 func newDiskQuotaCacheLocalFromStorage(
 	config diskQuotaCacheConfig, quotaStorage storage.Storage, mode InitMode) (
-	cache *DiskQuotaCacheLocal, err error) {
+	cache *DiskQuotaCacheLocal, err error,
+) {
 	log := config.MakeLogger("DQC")
 	closers := make([]io.Closer, 0, 1)
 	closer := func() {
@@ -166,7 +167,8 @@ func newDiskQuotaCacheLocalFromStorage(
 // specified directory on the filesystem as storage.
 func newDiskQuotaCacheLocal(
 	config diskBlockCacheConfig, dirPath string, mode InitMode) (
-	cache *DiskQuotaCacheLocal, err error) {
+	cache *DiskQuotaCacheLocal, err error,
+) {
 	log := config.MakeLogger("DQC")
 	defer func() {
 		if err != nil {
@@ -231,7 +233,8 @@ func (cache *DiskQuotaCacheLocal) syncQuotaCountsFromDb() error {
 // otherwise.
 func (cache *DiskQuotaCacheLocal) getQuotaLocked(
 	id keybase1.UserOrTeamID, metered bool) (
-	info kbfsblock.QuotaInfo, err error) {
+	info kbfsblock.QuotaInfo, err error,
+) {
 	var hitMeter, missMeter *ldbutils.CountMeter
 	if ldbutils.Metered {
 		hitMeter = cache.hitMeter
@@ -252,7 +255,8 @@ func (cache *DiskQuotaCacheLocal) getQuotaLocked(
 
 // checkAndLockCache checks whether the cache is started.
 func (cache *DiskQuotaCacheLocal) checkCacheLocked(
-	ctx context.Context, method string) error {
+	ctx context.Context, method string,
+) error {
 	// First see if the context has expired since we began.
 	select {
 	case <-ctx.Done():
@@ -286,7 +290,8 @@ func (cache *DiskQuotaCacheLocal) checkCacheLocked(
 // Get implements the DiskQuotaCache interface for DiskQuotaCacheLocal.
 func (cache *DiskQuotaCacheLocal) Get(
 	ctx context.Context, id keybase1.UserOrTeamID) (
-	info kbfsblock.QuotaInfo, err error) {
+	info kbfsblock.QuotaInfo, err error,
+) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	err = cache.checkCacheLocked(ctx, "Quota(Get)")
@@ -300,7 +305,8 @@ func (cache *DiskQuotaCacheLocal) Get(
 // Put implements the DiskQuotaCache interface for DiskQuotaCacheLocal.
 func (cache *DiskQuotaCacheLocal) Put(
 	ctx context.Context, id keybase1.UserOrTeamID,
-	info kbfsblock.QuotaInfo) (err error) {
+	info kbfsblock.QuotaInfo,
+) (err error) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 	err = cache.checkCacheLocked(ctx, "Quota(Put)")
@@ -325,7 +331,8 @@ func (cache *DiskQuotaCacheLocal) Put(
 
 // Status implements the DiskQuotaCache interface for DiskQuotaCacheLocal.
 func (cache *DiskQuotaCacheLocal) Status(
-	ctx context.Context) DiskQuotaCacheStatus {
+	ctx context.Context,
+) DiskQuotaCacheStatus {
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:

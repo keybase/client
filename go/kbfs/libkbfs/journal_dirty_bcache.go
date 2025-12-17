@@ -22,7 +22,8 @@ var _ data.DirtyBlockCache = journalDirtyBlockCache{}
 
 func (j journalDirtyBlockCache) Get(
 	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
-	branch data.BranchName) (data.Block, error) {
+	branch data.BranchName,
+) (data.Block, error) {
 	if j.jManager.hasTLFJournal(tlfID) {
 		return j.journalCache.Get(ctx, tlfID, ptr, branch)
 	}
@@ -32,7 +33,8 @@ func (j journalDirtyBlockCache) Get(
 
 func (j journalDirtyBlockCache) Put(
 	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
-	branch data.BranchName, block data.Block) error {
+	branch data.BranchName, block data.Block,
+) error {
 	if j.jManager.hasTLFJournal(tlfID) {
 		return j.journalCache.Put(ctx, tlfID, ptr, branch, block)
 	}
@@ -41,7 +43,8 @@ func (j journalDirtyBlockCache) Put(
 }
 
 func (j journalDirtyBlockCache) Delete(tlfID tlf.ID, ptr data.BlockPointer,
-	branch data.BranchName) error {
+	branch data.BranchName,
+) error {
 	if j.jManager.hasTLFJournal(tlfID) {
 		return j.journalCache.Delete(tlfID, ptr, branch)
 	}
@@ -50,7 +53,8 @@ func (j journalDirtyBlockCache) Delete(tlfID tlf.ID, ptr data.BlockPointer,
 }
 
 func (j journalDirtyBlockCache) IsDirty(tlfID tlf.ID, ptr data.BlockPointer,
-	branch data.BranchName) bool {
+	branch data.BranchName,
+) bool {
 	if j.jManager.hasTLFJournal(tlfID) {
 		return j.journalCache.IsDirty(tlfID, ptr, branch)
 	}
@@ -63,7 +67,8 @@ func (j journalDirtyBlockCache) IsAnyDirty(tlfID tlf.ID) bool {
 }
 
 func (j journalDirtyBlockCache) RequestPermissionToDirty(ctx context.Context,
-	tlfID tlf.ID, estimatedDirtyBytes int64) (data.DirtyPermChan, error) {
+	tlfID tlf.ID, estimatedDirtyBytes int64,
+) (data.DirtyPermChan, error) {
 	if j.jManager.hasTLFJournal(tlfID) {
 		return j.journalCache.RequestPermissionToDirty(ctx, tlfID,
 			estimatedDirtyBytes)
@@ -73,7 +78,8 @@ func (j journalDirtyBlockCache) RequestPermissionToDirty(ctx context.Context,
 }
 
 func (j journalDirtyBlockCache) UpdateUnsyncedBytes(tlfID tlf.ID,
-	newUnsyncedBytes int64, wasSyncing bool) {
+	newUnsyncedBytes int64, wasSyncing bool,
+) {
 	if j.jManager.hasTLFJournal(tlfID) {
 		j.journalCache.UpdateUnsyncedBytes(tlfID, newUnsyncedBytes, wasSyncing)
 	} else {

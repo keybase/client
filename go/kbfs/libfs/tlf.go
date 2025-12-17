@@ -27,7 +27,8 @@ func (TlfDoesNotExist) Error() string { return "TLF does not exist" }
 // trying to create a TLF should result in showing the user an empty
 // folder (exitEarly == true), or not.
 func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, name tlf.CanonicalName) (
-	exitEarly bool, retErr error) {
+	exitEarly bool, retErr error,
+) {
 	switch err := errors.Cause(err).(type) {
 	case nil:
 		// No error.

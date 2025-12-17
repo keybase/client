@@ -37,7 +37,8 @@ type mockAttachmentRemoteStore struct {
 }
 
 func (m mockAttachmentRemoteStore) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader,
-	asset chat1.Asset, progress types.ProgressReporter) error {
+	asset chat1.Asset, progress types.ProgressReporter,
+) error {
 	if m.decryptCh != nil {
 		m.decryptCh <- struct{}{}
 	}
@@ -46,32 +47,38 @@ func (m mockAttachmentRemoteStore) DecryptAsset(ctx context.Context, w io.Writer
 }
 
 func (m mockAttachmentRemoteStore) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer,
-	assets []chat1.Asset) error {
+	assets []chat1.Asset,
+) error {
 	return nil
 }
 
 func (m mockAttachmentRemoteStore) DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer,
-	asset chat1.Asset) error {
+	asset chat1.Asset,
+) error {
 	return nil
 }
 
 func (m mockAttachmentRemoteStore) DownloadAsset(ctx context.Context, params chat1.S3Params,
-	asset chat1.Asset, w io.Writer, signer s3.Signer, progress types.ProgressReporter) error {
+	asset chat1.Asset, w io.Writer, signer s3.Signer, progress types.ProgressReporter,
+) error {
 	return errors.New("not implemented")
 }
 
 func (m mockAttachmentRemoteStore) UploadAsset(ctx context.Context, task *attachments.UploadTask,
-	encryptedOut io.Writer) (chat1.Asset, error) {
+	encryptedOut io.Writer,
+) (chat1.Asset, error) {
 	return chat1.Asset{}, errors.New("not implemented")
 }
 
 func (m mockAttachmentRemoteStore) StreamAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
-	signer s3.Signer) (io.ReadSeeker, error) {
+	signer s3.Signer,
+) (io.ReadSeeker, error) {
 	return nil, errors.New("not implemented")
 }
 
 func (m mockAttachmentRemoteStore) GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
-	signer s3.Signer) (io.ReadCloser, error) {
+	signer s3.Signer,
+) (io.ReadCloser, error) {
 	if m.assetReaderCh != nil {
 		m.assetReaderCh <- struct{}{}
 	}

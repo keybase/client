@@ -4,12 +4,11 @@
 package kbcrypto
 
 import (
+	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"testing"
-
-	"crypto/ed25519"
 
 	"github.com/stretchr/testify/require"
 )

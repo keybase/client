@@ -50,7 +50,6 @@ func (t *Table) NumInserts() int {
 }
 
 func (t *Table) breakOnLineBreaks() error {
-
 	// so that there's no need to resize if there's no line break
 	broken := make([]Row, 0, len(t.rows))
 

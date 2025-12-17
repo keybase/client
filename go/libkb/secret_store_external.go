@@ -66,9 +66,11 @@ func (w TypeSafeExternalKeyStoreProxy) SetupKeyStore(serviceName string, key str
 }
 
 // externalKeyStore is the reference to some external key store
-var externalKeyStore ExternalKeyStore
-var externalKeyStoreInitialized bool
-var externalKeyStoreMu sync.Mutex
+var (
+	externalKeyStore            ExternalKeyStore
+	externalKeyStoreInitialized bool
+	externalKeyStoreMu          sync.Mutex
+)
 
 // SetGlobalExternalKeyStore is called by Android to register Android's KeyStore with Go
 func SetGlobalExternalKeyStore(s UnsafeExternalKeyStore) {

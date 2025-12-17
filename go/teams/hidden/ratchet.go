@@ -219,7 +219,6 @@ func (r *RatchetBlind) check(tail sig3.Tail) (err error) {
 // compute combines the internal ratchet blinding key and in the input sig3.Tail to
 // make a blinded ratchet, as we would post into sigchain links.
 func (r *RatchetBlind) compute(tail sig3.Tail) (ret SCTeamRatchet, err error) {
-
 	b, err := msgpack.Encode(tail)
 	if err != nil {
 		return ret, err

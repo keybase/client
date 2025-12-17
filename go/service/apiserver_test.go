@@ -52,7 +52,6 @@ func TestAPIServerGet(t *testing.T) {
 }
 
 func TestAPIServerPost(t *testing.T) {
-
 	tc := libkb.SetupTest(t, "apiserver", 2)
 	defer tc.Cleanup()
 	tc.G.SetService()
@@ -95,7 +94,6 @@ func TestAPIServerPost(t *testing.T) {
 }
 
 func TestAPIServerPostJSON(t *testing.T) {
-
 	tc := libkb.SetupTest(t, "apiserver", 2)
 	defer tc.Cleanup()
 	tc.G.SetService()

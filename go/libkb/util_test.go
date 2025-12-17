@@ -53,7 +53,6 @@ func TestCombineErrors(t *testing.T) {
 }
 
 func TestWhitespaceNormalize(t *testing.T) {
-
 	data := []struct {
 		in, out string
 	}{
@@ -73,7 +72,6 @@ func TestWhitespaceNormalize(t *testing.T) {
 			t.Errorf("Failed on test %d: %s != %s", i, out, p.out)
 		}
 	}
-
 }
 
 func TestMakeByte24(t *testing.T) {
@@ -191,7 +189,7 @@ func TestDecodeHexFixed(t *testing.T) {
 }
 
 func TestDownloadGetFilenames(t *testing.T) {
-	var tests = map[string]string{
+	tests := map[string]string{
 		"abc.def":       "abc.def",
 		"文件.def":        "文件.def",
 		"abc.\u202edef": "abc.%E2%80%AEdef",
@@ -206,7 +204,7 @@ func TestDownloadGetFilenames(t *testing.T) {
 func TestSecureRandomRndRange(t *testing.T) {
 	s := SecureRandom{}
 
-	var tests = []struct {
+	tests := []struct {
 		lo        int64
 		hi        int64
 		shouldErr bool

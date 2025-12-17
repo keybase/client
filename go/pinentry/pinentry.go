@@ -75,7 +75,6 @@ func (pe *Pinentry) FindProgram() (error, error) {
 }
 
 func (pe *Pinentry) Get(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
-
 	pe.log.Debug("+ Pinentry::Get()")
 
 	// Do a lazy initialization
@@ -141,7 +140,6 @@ func (pi *pinentryInstance) Init() (err error) {
 
 	pi.br = bufio.NewReader(pi.stdout)
 	lineb, _, err := pi.br.ReadLine()
-
 	if err != nil {
 		err = fmt.Errorf("Failed to get getpin greeting: %s", err)
 		return
@@ -184,7 +182,6 @@ func resDecode(s string) string {
 }
 
 func (pi *pinentryInstance) Run(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
-
 	pi.Set("SETPROMPT", arg.Prompt, &err)
 	pi.Set("SETDESC", descEncode(arg.Desc), &err)
 	pi.Set("SETOK", arg.Ok, &err)

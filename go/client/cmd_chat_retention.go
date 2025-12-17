@@ -278,10 +278,7 @@ func (c *CmdChatSetRetention) parseEphemeralAgeLimited(s string) (gregor1.Durati
 	var d time.Duration
 	var err error
 	switch s {
-	case "30s",
-		"5m",
-		"1h",
-		"6h":
+	case "30s", "5m", "1h", "6h":
 		d, err = time.ParseDuration(s)
 	case "1d", "24h":
 		d = 24 * time.Hour

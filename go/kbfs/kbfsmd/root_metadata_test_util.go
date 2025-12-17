@@ -18,7 +18,8 @@ import (
 // TlfHandle from until the first rekey. pubKey is non-empty only for
 // server-side tests.
 func FakeInitialRekey(md MutableRootMetadata,
-	h tlf.Handle, pubKey kbfscrypto.TLFPublicKey) ExtraMetadata {
+	h tlf.Handle, pubKey kbfscrypto.TLFPublicKey,
+) ExtraMetadata {
 	if md.LatestKeyGeneration() >= FirstValidKeyGen {
 		panic(fmt.Errorf("FakeInitialRekey called on MD with existing key generations"))
 	}

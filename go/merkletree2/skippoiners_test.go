@@ -8,7 +8,6 @@ import (
 )
 
 func TestSkipPointersForSeqno(t *testing.T) {
-
 	tests := []struct {
 		s        Seqno
 		pointers []Seqno
@@ -31,11 +30,9 @@ func TestSkipPointersForSeqno(t *testing.T) {
 			require.EqualValues(t, test.pointers, skips)
 		})
 	}
-
 }
 
 func TestSkipPointersPath(t *testing.T) {
-
 	tests := []struct {
 		s        Seqno
 		e        Seqno
@@ -69,7 +66,6 @@ func TestSkipPointersPath(t *testing.T) {
 }
 
 func TestComputeRootHashesNeededInExtensionProof(t *testing.T) {
-
 	tests := []struct {
 		s        Seqno
 		e        Seqno

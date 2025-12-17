@@ -29,7 +29,8 @@ var _ io.ReadSeeker = (*decodingReadSeeker)(nil)
 
 func NewDecodingReadSeeker(ctx context.Context, g *globals.Context, source io.ReadSeeker, size int64,
 	encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix kbcrypto.SignaturePrefix, nonce Nonce,
-	c *lru.Cache) io.ReadSeeker {
+	c *lru.Cache,
+) io.ReadSeeker {
 	if c == nil {
 		// If the caller didn't give us a cache, then let's just make one
 		c, _ = lru.New(20)

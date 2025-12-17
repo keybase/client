@@ -73,7 +73,8 @@ func MakeFakeTLFCryptKeyOrBust(seed string) TLFCryptKey {
 // MakeEncryptedTLFCryptKeyClientHalfForTest returns an
 // EncryptedTLFCryptKeyClientHalf with copies of the given data.
 func MakeEncryptedTLFCryptKeyClientHalfForTest(
-	version EncryptionVer, encodedClientHalf, nonce []byte) EncryptedTLFCryptKeyClientHalf {
+	version EncryptionVer, encodedClientHalf, nonce []byte,
+) EncryptedTLFCryptKeyClientHalf {
 	clientHalfCopy := make([]byte, len(encodedClientHalf))
 	nonceCopy := make([]byte, len(nonce))
 	copy(clientHalfCopy, encodedClientHalf)

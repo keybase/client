@@ -28,7 +28,8 @@ func NewCmdSimpleFSUploads(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		Usage: "list current uploads",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSUploads{
-				Contextified: libkb.NewContextified(g)}, "uploads", c)
+				Contextified: libkb.NewContextified(g),
+			}, "uploads", c)
 			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{
@@ -42,7 +43,8 @@ func NewCmdSimpleFSUploads(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 
 func printUploads(
 	g *libkb.GlobalContext, filter keybase1.ListFilter, mustHavePrefix string) (
-	areUploads bool, err error) {
+	areUploads bool, err error,
+) {
 	cli, err := GetSimpleFSClient(g)
 	if err != nil {
 		return false, err

@@ -69,13 +69,13 @@ func (d DirentFileInfo) Size() int64 {
 func (d DirentFileInfo) Mode() os.FileMode {
 	switch d.Entry.DirentType {
 	case keybase1.DirentType_FILE:
-		return 0664
+		return 0o664
 	case keybase1.DirentType_DIR:
-		return os.ModeDir | 0664
+		return os.ModeDir | 0o664
 	case keybase1.DirentType_SYM:
-		return os.ModeSymlink | 0664
+		return os.ModeSymlink | 0o664
 	case keybase1.DirentType_EXEC:
-		return 0773
+		return 0o773
 	}
 	return 0
 }
@@ -228,38 +228,27 @@ func getColorFromBsdCode(code string) string {
 func parseLsColors(lsColors string) {
 	for i := 0; i < len(lsColors); i += 2 {
 		if i == 0 {
-			colorMap["directory"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+			colorMap["directory"] = getColorFromBsdCode(lsColors[i : i+2])
 		} else if i == 2 {
-			colorMap["symlink"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+			colorMap["symlink"] = getColorFromBsdCode(lsColors[i : i+2])
 		} else if i == 4 {
-			colorMap["socket"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+			colorMap["socket"] = getColorFromBsdCode(lsColors[i : i+2])
 		} else if i == 6 {
-			colorMap["pipe"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+			colorMap["pipe"] = getColorFromBsdCode(lsColors[i : i+2])
 		} else if i == 8 {
-			colorMap["executable"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+			colorMap["executable"] = getColorFromBsdCode(lsColors[i : i+2])
 		} else if i == 10 {
-			colorMap["block"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+			colorMap["block"] = getColorFromBsdCode(lsColors[i : i+2])
 		} else if i == 12 {
-			colorMap["character"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+			colorMap["character"] = getColorFromBsdCode(lsColors[i : i+2])
 		} else if i == 14 {
-			colorMap["executable_suid"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+			colorMap["executable_suid"] = getColorFromBsdCode(lsColors[i : i+2])
 		} else if i == 16 {
-			colorMap["executable_sgid"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+			colorMap["executable_sgid"] = getColorFromBsdCode(lsColors[i : i+2])
 		} else if i == 18 {
-			colorMap["directory_o+w_sticky"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+			colorMap["directory_o+w_sticky"] = getColorFromBsdCode(lsColors[i : i+2])
 		} else if i == 20 {
-			colorMap["directory_o+w"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+			colorMap["directory_o+w"] = getColorFromBsdCode(lsColors[i : i+2])
 		}
 	}
 }
@@ -267,7 +256,6 @@ func parseLsColors(lsColors string) {
 // Write the given Listing's name to the output buffer, with the appropriate
 // formatting based on the current options.
 func (c *CmdSimpleFSList) writeListingName(outputBuffer *bytes.Buffer, l Listing) {
-
 	if c.options.color {
 		appliedColor := false
 
@@ -363,27 +351,23 @@ func (c *CmdSimpleFSList) createListing(dirname string, fip FileInfoPath) (Listi
 	} else if currentListing.permissions[0] == 'D' {
 		currentListing.permissions = currentListing.permissions[1:]
 	} else if currentListing.permissions[0:2] == "ug" {
-		currentListing.permissions =
-			strings.Replace(currentListing.permissions, "ug", "-", 1)
+		currentListing.permissions = strings.Replace(currentListing.permissions, "ug", "-", 1)
 		currentListing.permissions = fmt.Sprintf("%ss%ss%s",
 			currentListing.permissions[0:3],
 			currentListing.permissions[4:6],
 			currentListing.permissions[7:])
 	} else if currentListing.permissions[0] == 'u' {
-		currentListing.permissions =
-			strings.Replace(currentListing.permissions, "u", "-", 1)
+		currentListing.permissions = strings.Replace(currentListing.permissions, "u", "-", 1)
 		currentListing.permissions = fmt.Sprintf("%ss%s",
 			currentListing.permissions[0:3],
 			currentListing.permissions[4:])
 	} else if currentListing.permissions[0] == 'g' {
-		currentListing.permissions =
-			strings.Replace(currentListing.permissions, "g", "-", 1)
+		currentListing.permissions = strings.Replace(currentListing.permissions, "g", "-", 1)
 		currentListing.permissions = fmt.Sprintf("%ss%s",
 			currentListing.permissions[0:6],
 			currentListing.permissions[7:])
 	} else if currentListing.permissions[0:2] == "dt" {
-		currentListing.permissions =
-			strings.Replace(currentListing.permissions, "dt", "d", 1)
+		currentListing.permissions = strings.Replace(currentListing.permissions, "dt", "d", 1)
 		currentListing.permissions = fmt.Sprintf("%st",
 			currentListing.permissions[0:len(currentListing.permissions)-1])
 	}
@@ -560,8 +544,8 @@ func sortListings(listings Listings, options ListOptions) {
 // the current program arguments and terminal width as necessary.
 func (c *CmdSimpleFSList) writeListingsToBuffer(outputBuffer *bytes.Buffer,
 	listings []Listing,
-	terminalWidth int) {
-
+	terminalWidth int,
+) {
 	if len(listings) == 0 {
 		return
 	}

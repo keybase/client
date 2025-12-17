@@ -16,7 +16,8 @@ import (
 )
 
 func mustMerge(t testing.TB, chatStorage *storage.Storage,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) storage.MergeResult {
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed,
+) storage.MergeResult {
 	conv, err := storage.NewInbox(chatStorage.G()).GetConversation(context.Background(), uid, convID)
 	switch err.(type) {
 	case nil:

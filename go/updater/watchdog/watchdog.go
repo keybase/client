@@ -24,8 +24,10 @@ const (
 	ExitAllOnSuccess ExitOn = "all"
 )
 
-const terminationDelay = 200 * time.Millisecond
-const heartbealDelay = 1 * time.Hour
+const (
+	terminationDelay = 200 * time.Millisecond
+	heartbealDelay   = 1 * time.Hour
+)
 
 // Program is a program at path with arguments
 type Program struct {

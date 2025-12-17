@@ -2,10 +2,11 @@ package lru
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"testing"
 )
 
 type obj struct {

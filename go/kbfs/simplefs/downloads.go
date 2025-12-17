@@ -101,7 +101,8 @@ const monitorDownloadTickerInterval = time.Second
 
 func (m *downloadManager) monitorDownload(
 	ctx context.Context, opid keybase1.OpID, downloadID string,
-	done func(error)) {
+	done func(error),
+) {
 	ticker := time.NewTicker(monitorDownloadTickerInterval)
 	defer ticker.Stop()
 	for {
@@ -145,16 +146,18 @@ func (m *downloadManager) getDownloadDir() string {
 }
 
 func (m *downloadManager) getFilenames(
-	kbfsPath keybase1.KBFSPath) (filename, safeFilename string) {
+	kbfsPath keybase1.KBFSPath,
+) (filename, safeFilename string) {
 	_, filename = path.Split(path.Clean(kbfsPath.Path))
 	return filename, libkb.GetSafeFilename(filename)
 }
 
 func (m *downloadManager) getDownloadPath(
 	ctx context.Context, filename, downloadID string) (
-	downloadPath string, err error) {
+	downloadPath string, err error,
+) {
 	parentDir := filepath.Join(m.getCacheDir(), "simplefsdownload")
-	if err = os.MkdirAll(parentDir, 0700); err != nil {
+	if err = os.MkdirAll(parentDir, 0o700); err != nil {
 		return "", err
 	}
 	downloadPath = filepath.Join(parentDir, downloadID+path.Ext(filename))
@@ -162,7 +165,8 @@ func (m *downloadManager) getDownloadPath(
 }
 
 func (m *downloadManager) moveToDownloadFolder(
-	ctx context.Context, srcPath string, filename string) (localPath string, err error) {
+	ctx context.Context, srcPath string, filename string,
+) (localPath string, err error) {
 	// There's no download on iOS; just saving to the photos library and
 	// sharing to other apps, both of which are handled in JS after the
 	// download (to the cache dir) finishes.
@@ -170,7 +174,7 @@ func (m *downloadManager) moveToDownloadFolder(
 		return "", errors.New("MoveToDownloadFolder is not supported on iOS")
 	}
 	parentDir := m.getDownloadDir()
-	if err = os.MkdirAll(parentDir, 0700); err != nil {
+	if err = os.MkdirAll(parentDir, 0o700); err != nil {
 		return "", err
 	}
 	filename = limitFilenameLengthForWindowsDownloads(filename)
@@ -212,7 +216,8 @@ func (m *downloadManager) moveToDownloadFolder(
 }
 
 func (m *downloadManager) waitForDownload(ctx context.Context,
-	downloadID string, downloadPath string, done func(error)) {
+	downloadID string, downloadPath string, done func(error),
+) {
 	d, err := m.getDownload(downloadID)
 	if err != nil {
 		done(err)
@@ -244,7 +249,8 @@ func (m *downloadManager) waitForDownload(ctx context.Context,
 
 func (m *downloadManager) startDownload(
 	ctx context.Context, arg keybase1.SimpleFSStartDownloadArg) (
-	downloadID string, err error) {
+	downloadID string, err error,
+) {
 	opid, err := m.k.SimpleFSMakeOpid(ctx)
 	if err != nil {
 		return "", err
@@ -313,7 +319,8 @@ func (m *downloadManager) startDownload(
 }
 
 func (m *downloadManager) getDownloadStatus(ctx context.Context) (
-	status keybase1.DownloadStatus) {
+	status keybase1.DownloadStatus,
+) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	for _, download := range m.downloads {
@@ -338,7 +345,8 @@ func (m *downloadManager) getDownloadStatus(ctx context.Context) (
 }
 
 func (m *downloadManager) cancelDownload(
-	ctx context.Context, downloadID string) error {
+	ctx context.Context, downloadID string,
+) error {
 	d, err := m.getDownload(downloadID)
 	if err != nil {
 		return err
@@ -347,7 +355,8 @@ func (m *downloadManager) cancelDownload(
 }
 
 func (m *downloadManager) dismissDownload(
-	ctx context.Context, downloadID string) {
+	ctx context.Context, downloadID string,
+) {
 	// make sure it's canceled, but don't error if it's already dismissed.
 	_ = m.cancelDownload(ctx, downloadID)
 	defer m.publisher.PublishChange(keybase1.SubscriptionTopic_DOWNLOAD_STATUS)

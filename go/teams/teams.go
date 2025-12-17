@@ -569,12 +569,14 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 }
 
 func (t *Team) ApplicationKeyAtGeneration(ctx context.Context,
-	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
+	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration,
+) (res keybase1.TeamApplicationKey, err error) {
 	return ApplicationKeyAtGeneration(t.MetaContext(ctx), t, application, generation)
 }
 
 func (t *Team) ApplicationKeyAtGenerationWithKBFS(ctx context.Context,
-	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
+	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration,
+) (res keybase1.TeamApplicationKey, err error) {
 	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t, application, generation)
 }
 
@@ -761,11 +763,9 @@ func teamAdminToSig3ChainLocation(admin *SCTeamAdmin) (*sig3.ChainLocation, erro
 		Seqno:     admin.Seqno,
 		ChainType: admin.SeqType,
 	}, nil
-
 }
 
 func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section SCTeamSection, mr *libkb.MerkleRoot) (ret *libkb.SigMultiItem, ratchets *keybase1.HiddenTeamChainRatchetSet, err error) {
-
 	currentSeqno := t.CurrentSeqno()
 	lastLinkID := t.chain().GetLatestLinkID()
 
@@ -834,7 +834,6 @@ func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {
 }
 
 func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []keybase1.UID, err error) {
-
 	for _, member := range ms.None {
 		// Load member first to check if their eldest_seqno has not changed.
 		// If it did, the member was nuked and we do not need to lease.
@@ -1746,8 +1745,8 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 }
 
 func (t *Team) changeItemsPayload(ctx context.Context, sections []teamSectionWithLinkType,
-	merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (libkb.JSONPayload, keybase1.Seqno, error) {
-
+	merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs,
+) (libkb.JSONPayload, keybase1.Seqno, error) {
 	var readySigs []libkb.SigMultiItem
 	nextSeqno := t.NextSeqno()
 	latestLinkID := t.chain().GetLatestLinkID()
@@ -1772,7 +1771,8 @@ func (t *Team) changeItemsPayload(ctx context.Context, sections []teamSectionWit
 }
 
 func (t *Team) changeItemPayload(ctx context.Context, section SCTeamSection, linkType libkb.LinkType,
-	merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (libkb.JSONPayload, keybase1.Seqno, error) {
+	merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs,
+) (libkb.JSONPayload, keybase1.Seqno, error) {
 	// create the change item
 	sigMultiItem, latestSeqno, err := t.sigTeamItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
@@ -1929,8 +1929,8 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 
 func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRotation bool) (
 	*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes,
-	*SCPerTeamKey, *teamEKPayload, error) {
-
+	*SCPerTeamKey, *teamEKPayload, error,
+) {
 	// get device key
 	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
 	if err != nil {
@@ -2373,7 +2373,8 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 }
 
 func (t *Team) botSettingsSection(ctx context.Context, bots map[keybase1.UserVersion]keybase1.TeamBotSettings,
-	ratchet *hidden.Ratchet, merkleRoot *libkb.MerkleRoot) (SCTeamSection, *hidden.Ratchet, error) {
+	ratchet *hidden.Ratchet, merkleRoot *libkb.MerkleRoot,
+) (SCTeamSection, *hidden.Ratchet, error) {
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return SCTeamSection{}, nil, err
 	}
@@ -2406,7 +2407,6 @@ func (t *Team) botSettingsSection(ctx context.Context, bots map[keybase1.UserVer
 }
 
 func (t *Team) PostTeamBotSettings(ctx context.Context, bots map[keybase1.UserVersion]keybase1.TeamBotSettings) error {
-
 	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
@@ -2506,8 +2506,8 @@ func (t *Team) marshal(incoming interface{}) ([]byte, error) {
 }
 
 func (t *Team) boxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicationKey,
-	kbfsKeys []keybase1.CryptKey) (string, keybase1.TeamEncryptedKBFSKeysetHash, error) {
-
+	kbfsKeys []keybase1.CryptKey,
+) (string, keybase1.TeamEncryptedKBFSKeysetHash, error) {
 	marshaledKeys, err := t.marshal(kbfsKeys)
 	if err != nil {
 		return "", "", err
@@ -2537,7 +2537,8 @@ func (t *Team) boxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicatio
 }
 
 func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
-	cryptKeys []keybase1.CryptKey, appType keybase1.TeamApplication) (err error) {
+	cryptKeys []keybase1.CryptKey, appType keybase1.TeamApplication,
+) (err error) {
 	m := t.MetaContext(ctx)
 	defer m.Trace("Team.AssociateWithTLFKeyset", &err)()
 
@@ -2739,7 +2740,8 @@ func (t *Team) refreshUIDMapper(ctx context.Context, g *libkb.GlobalContext) {
 }
 
 func UpgradeTLFIDToImpteam(ctx context.Context, g *libkb.GlobalContext, tlfName string, tlfID keybase1.TLFID,
-	public bool, appType keybase1.TeamApplication, cryptKeys []keybase1.CryptKey) (err error) {
+	public bool, appType keybase1.TeamApplication, cryptKeys []keybase1.CryptKey,
+) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("UpgradeTLFIDToImpteam(%s)", tlfID), &err)()
 
 	var team *Team

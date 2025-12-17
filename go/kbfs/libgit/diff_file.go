@@ -30,7 +30,8 @@ var _ billy.File = (*diffFile)(nil)
 
 func newDiffFile(
 	ctx context.Context, from, to *object.Commit, header, name string) (
-	*diffFile, error) {
+	*diffFile, error,
+) {
 	s := header
 	patch, err := from.PatchContext(ctx, to)
 	if err != nil {
@@ -105,7 +106,8 @@ func (df *diffFile) GetInfo() *diffFileInfo {
 }
 
 func newCommitFile(
-	ctx context.Context, commit *object.Commit) (*diffFile, error) {
+	ctx context.Context, commit *object.Commit,
+) (*diffFile, error) {
 	header := commit.String()
 	name := AutogitCommitPrefix + commit.Hash.String()
 	// We can't get the patch for the initial commit, go-git doesn't

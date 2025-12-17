@@ -19,7 +19,6 @@ import (
 
 func TestChatSearchConvRegexp(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-
 		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
 		// with using Pagination Next/Prev and we don't need to triple test
 		// here.
@@ -60,7 +59,8 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		}
 
 		verifyHit := func(beforeMsgIDs []chat1.MessageID, hitMessageID chat1.MessageID, afterMsgIDs []chat1.MessageID,
-			matches []chat1.ChatSearchMatch, searchHit chat1.ChatSearchHit) {
+			matches []chat1.ChatSearchMatch, searchHit chat1.ChatSearchHit,
+		) {
 			_verifyHit := func(searchHit chat1.ChatSearchHit) {
 				if beforeMsgIDs == nil {
 					require.Nil(t, searchHit.BeforeMessages)
@@ -86,7 +86,6 @@ func TestChatSearchConvRegexp(t *testing.T) {
 						require.Equal(t, msgID, msg.GetMessageID())
 					}
 				}
-
 			}
 			_verifyHit(searchHit)
 			select {
@@ -441,7 +440,6 @@ func TestChatSearchRemoveMsg(t *testing.T) {
 
 func TestChatSearchInbox(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-
 		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
 		// with using Pagination Next/Prev and we don't need to triple test
 		// here.
@@ -539,7 +537,8 @@ func TestChatSearchInbox(t *testing.T) {
 		}
 
 		verifyHit := func(_ chat1.ConversationID, beforeMsgIDs []chat1.MessageID, hitMessageID chat1.MessageID,
-			afterMsgIDs []chat1.MessageID, matches []chat1.ChatSearchMatch, searchHit chat1.ChatSearchHit) {
+			afterMsgIDs []chat1.MessageID, matches []chat1.ChatSearchMatch, searchHit chat1.ChatSearchHit,
+		) {
 			if beforeMsgIDs == nil {
 				require.Nil(t, searchHit.BeforeMessages)
 			} else {

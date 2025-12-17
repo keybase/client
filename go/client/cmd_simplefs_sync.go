@@ -12,7 +12,8 @@ import (
 // NewCmdSimpleFSSync creates the sync command, which is just a holder
 // for subcommands.
 func NewCmdSimpleFSSync(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:  "sync",
 		Usage: "Manages the per-folder syncing state",

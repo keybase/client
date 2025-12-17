@@ -25,8 +25,7 @@ func (e NoSuchNameError) Error() string {
 
 // HandleFinalizedError is returned when something attempts to modify
 // a finalized TLF handle.
-type HandleFinalizedError struct {
-}
+type HandleFinalizedError struct{}
 
 // Error implements the error interface for HandleFinalizedError.
 func (e HandleFinalizedError) Error() string {

@@ -1,15 +1,16 @@
 package uidmap
 
 import (
+	"strings"
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
 )
 
 func TestFindAndCheck(t *testing.T) {
-	var findTests = []struct {
+	findTests := []struct {
 		uid      string
 		username string
 	}{
@@ -50,7 +51,7 @@ func TestFindAndCheck(t *testing.T) {
 }
 
 func TestCheck(t *testing.T) {
-	var checkTests = []struct {
+	checkTests := []struct {
 		uid      string
 		username string
 	}{
@@ -98,7 +99,7 @@ func TestUsernameSort(t *testing.T) {
 func TestFindHardcodedUsernames(t *testing.T) {
 	initUsernameSort()
 
-	var findTests = []struct {
+	findTests := []struct {
 		uid      string
 		username string
 	}{

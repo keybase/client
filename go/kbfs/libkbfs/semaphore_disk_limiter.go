@@ -20,7 +20,8 @@ type quotaSimpleTracker struct {
 }
 
 func (qst *quotaSimpleTracker) getQuotaInfo() (
-	usedQuotaBytes, quotaBytes int64) {
+	usedQuotaBytes, quotaBytes int64,
+) {
 	qst.quotaLock.RLock()
 	defer qst.quotaLock.RUnlock()
 	usedQuotaBytes = qst.unflushedBytes
@@ -41,7 +42,8 @@ func (qst *quotaSimpleTracker) onJournalDisable(unflushedBytes int64) {
 }
 
 func (qst *quotaSimpleTracker) afterBlockPut(
-	blockBytes int64, putData bool) {
+	blockBytes int64, putData bool,
+) {
 	qst.quotaLock.Lock()
 	defer qst.quotaLock.Unlock()
 	if putData {
@@ -68,7 +70,8 @@ type semaphoreDiskLimiter struct {
 var _ DiskLimiter = semaphoreDiskLimiter{}
 
 func newSemaphoreDiskLimiter(
-	byteLimit, fileLimit, quotaLimit int64) semaphoreDiskLimiter {
+	byteLimit, fileLimit, quotaLimit int64,
+) semaphoreDiskLimiter {
 	byteSemaphore := kbfssync.NewSemaphore()
 	byteSemaphore.Release(byteLimit)
 	fileSemaphore := kbfssync.NewSemaphore()
@@ -85,7 +88,8 @@ func (sdl semaphoreDiskLimiter) onJournalEnable(
 	ctx context.Context,
 	journalStoredBytes, journalUnflushedBytes, journalFiles int64,
 	_ keybase1.UserOrTeamID) (
-	availableBytes, availableFiles int64) {
+	availableBytes, availableFiles int64,
+) {
 	if journalStoredBytes != 0 {
 		availableBytes = sdl.byteSemaphore.ForceAcquire(journalStoredBytes)
 	} else {
@@ -105,7 +109,8 @@ func (sdl semaphoreDiskLimiter) onJournalEnable(
 func (sdl semaphoreDiskLimiter) onJournalDisable(
 	ctx context.Context,
 	journalStoredBytes, journalUnflushedBytes, journalFiles int64,
-	_ keybase1.UserOrTeamID) {
+	_ keybase1.UserOrTeamID,
+) {
 	if journalStoredBytes != 0 {
 		sdl.byteSemaphore.Release(journalStoredBytes)
 	}
@@ -118,14 +123,16 @@ func (sdl semaphoreDiskLimiter) onJournalDisable(
 }
 
 func (sdl semaphoreDiskLimiter) onSimpleByteTrackerEnable(
-	ctx context.Context, typ diskLimitTrackerType, diskCacheBytes int64) {
+	ctx context.Context, typ diskLimitTrackerType, diskCacheBytes int64,
+) {
 	if diskCacheBytes != 0 {
 		sdl.byteSemaphore.ForceAcquire(diskCacheBytes)
 	}
 }
 
 func (sdl semaphoreDiskLimiter) onSimpleByteTrackerDisable(
-	ctx context.Context, typ diskLimitTrackerType, diskCacheBytes int64) {
+	ctx context.Context, typ diskLimitTrackerType, diskCacheBytes int64,
+) {
 	if diskCacheBytes != 0 {
 		sdl.byteSemaphore.Release(diskCacheBytes)
 	}
@@ -133,7 +140,8 @@ func (sdl semaphoreDiskLimiter) onSimpleByteTrackerDisable(
 
 func (sdl semaphoreDiskLimiter) reserveWithBackpressure(
 	ctx context.Context, typ diskLimitTrackerType, blockBytes, blockFiles int64,
-	_ keybase1.UserOrTeamID) (availableBytes, availableFiles int64, err error) {
+	_ keybase1.UserOrTeamID,
+) (availableBytes, availableFiles int64, err error) {
 	// Better to return an error than to panic in Acquire.
 	if blockBytes == 0 {
 		return sdl.byteSemaphore.Count(), sdl.fileSemaphore.Count(), errors.New(
@@ -161,7 +169,8 @@ func (sdl semaphoreDiskLimiter) reserveWithBackpressure(
 
 func (sdl semaphoreDiskLimiter) commitOrRollback(ctx context.Context,
 	typ diskLimitTrackerType, blockBytes, blockFiles int64, putData bool,
-	_ keybase1.UserOrTeamID) {
+	_ keybase1.UserOrTeamID,
+) {
 	if !putData {
 		sdl.byteSemaphore.Release(blockBytes)
 		sdl.fileSemaphore.Release(blockFiles)
@@ -170,12 +179,14 @@ func (sdl semaphoreDiskLimiter) commitOrRollback(ctx context.Context,
 }
 
 func (sdl semaphoreDiskLimiter) onBlocksFlush(
-	ctx context.Context, blockBytes int64, _ keybase1.UserOrTeamID) {
+	ctx context.Context, blockBytes int64, _ keybase1.UserOrTeamID,
+) {
 	sdl.quotaTracker.onBlocksFlush(blockBytes)
 }
 
 func (sdl semaphoreDiskLimiter) release(ctx context.Context,
-	typ diskLimitTrackerType, blockBytes, blockFiles int64) {
+	typ diskLimitTrackerType, blockBytes, blockFiles int64,
+) {
 	if blockBytes != 0 {
 		sdl.byteSemaphore.Release(blockBytes)
 	}
@@ -186,7 +197,8 @@ func (sdl semaphoreDiskLimiter) release(ctx context.Context,
 
 func (sdl semaphoreDiskLimiter) reserveBytes(ctx context.Context,
 	typ diskLimitTrackerType, blockBytes int64) (availableBytes int64,
-	err error) {
+	err error,
+) {
 	if blockBytes == 0 {
 		return 0, errors.New("semaphoreDiskLimiter.beforeDiskBlockCachePut" +
 			" called with 0 blockBytes")
@@ -195,12 +207,14 @@ func (sdl semaphoreDiskLimiter) reserveBytes(ctx context.Context,
 }
 
 func (sdl semaphoreDiskLimiter) getQuotaInfo(_ keybase1.UserOrTeamID) (
-	usedQuotaBytes, quotaBytes int64) {
+	usedQuotaBytes, quotaBytes int64,
+) {
 	return sdl.quotaTracker.getQuotaInfo()
 }
 
 func (sdl semaphoreDiskLimiter) getDiskLimitInfo() (
-	usedBytes int64, limitBytes float64, usedFiles int64, limitFiles float64) {
+	usedBytes int64, limitBytes float64, usedFiles int64, limitFiles float64,
+) {
 	return sdl.byteSemaphore.Count(), float64(sdl.byteLimit),
 		sdl.fileSemaphore.Count(), float64(sdl.fileLimit)
 }
@@ -223,7 +237,8 @@ type semaphoreDiskLimiterStatus struct {
 }
 
 func (sdl semaphoreDiskLimiter) getStatus(
-	_ context.Context, _ keybase1.UserOrTeamID) interface{} {
+	_ context.Context, _ keybase1.UserOrTeamID,
+) interface{} {
 	byteFree := sdl.byteSemaphore.Count()
 	fileFree := sdl.fileSemaphore.Count()
 	usedQuotaBytes, quotaBytes := sdl.quotaTracker.getQuotaInfo()

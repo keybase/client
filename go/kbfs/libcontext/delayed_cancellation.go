@@ -103,7 +103,8 @@ func (e ContextAlreadyHasCancellationDelayerError) Error() string {
 // (with NewContextReplayable) if any delayed cancellation is used, e.g.
 // through EnableDelayedCancellationWithGracePeriod,
 func NewContextReplayable(
-	ctx context.Context, change CtxReplayFunc) context.Context {
+	ctx context.Context, change CtxReplayFunc,
+) context.Context {
 	ctx = change(ctx)
 	replays, _ := ctx.Value(CtxReplayKey).([]CtxReplayFunc)
 	replays = append(replays, change)
@@ -157,7 +158,8 @@ func newCancellationDelayer() *cancellationDelayer {
 // when operations associated with the context is done. Otherwise it leaks go
 // routines!
 func NewContextWithCancellationDelayer(
-	ctx context.Context) (newCtx context.Context, err error) {
+	ctx context.Context,
+) (newCtx context.Context, err error) {
 	v := ctx.Value(CtxCancellationDelayerKey)
 	if v != nil {
 		if _, ok := v.(*cancellationDelayer); ok {

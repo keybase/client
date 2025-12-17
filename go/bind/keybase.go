@@ -12,14 +12,13 @@ import (
 	"runtime"
 	"runtime/debug"
 	"runtime/trace"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/status"
 	"golang.org/x/sync/errgroup"
-
-	"strings"
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbfs/env"
@@ -37,20 +36,26 @@ import (
 	context "golang.org/x/net/context"
 )
 
-var kbCtx *libkb.GlobalContext
-var kbChatCtx *globals.ChatContext
-var kbSvc *service.Service
-var conn net.Conn
-var startOnce sync.Once
-var logSendContext status.LogSendContext
+var (
+	kbCtx          *libkb.GlobalContext
+	kbChatCtx      *globals.ChatContext
+	kbSvc          *service.Service
+	conn           net.Conn
+	startOnce      sync.Once
+	logSendContext status.LogSendContext
+)
 
-var initMutex sync.Mutex
-var initComplete bool
+var (
+	initMutex    sync.Mutex
+	initComplete bool
+)
 
 // JS readiness synchronization
-var jsReadyOnce sync.Once
-var jsReadyCh = make(chan struct{})
-var connMutex sync.Mutex // Protects conn operations
+var (
+	jsReadyOnce sync.Once
+	jsReadyCh   = make(chan struct{})
+	connMutex   sync.Mutex // Protects conn operations
+)
 
 // log writes to kbCtx.Log if available, otherwise falls back to fmt.Printf
 func log(format string, args ...interface{}) {
@@ -165,7 +170,8 @@ func setInited() {
 // InitOnce runs the Keybase services (only runs one time)
 func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
-	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool) {
+	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool,
+) {
 	startOnce.Do(func() {
 		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
@@ -176,8 +182,8 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 // Init runs the Keybase services
 func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
-	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool) (err error) {
-
+	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool,
+) (err error) {
 	// better crash logging
 	os.Setenv("GOTRACEBACK", "crash")
 	debug.SetTraceback("all")
@@ -543,6 +549,7 @@ func SetAppStateForeground() {
 	defer kbCtx.Trace("SetAppStateForeground", nil)()
 	kbCtx.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 }
+
 func SetAppStateBackground() {
 	if !isInited() {
 		return
@@ -550,6 +557,7 @@ func SetAppStateBackground() {
 	defer kbCtx.Trace("SetAppStateBackground", nil)()
 	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 }
+
 func SetAppStateInactive() {
 	if !isInited() {
 		return
@@ -557,6 +565,7 @@ func SetAppStateInactive() {
 	defer kbCtx.Trace("SetAppStateInactive", nil)()
 	kbCtx.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
 }
+
 func SetAppStateBackgroundActive() {
 	if !isInited() {
 		return

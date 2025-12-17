@@ -80,6 +80,7 @@ func (p PgpUI) OutputSignatureNonKeybase(ctx context.Context, arg keybase1.Outpu
 
 	return nil
 }
+
 func (p PgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedArg) error {
 	return nil
 }

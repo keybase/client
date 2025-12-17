@@ -11,8 +11,8 @@ import (
 )
 
 func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailAddress,
-	phoneNumberContacts []keybase1.RawPhoneNumber, token Token) (res ContactLookupResults, err error) {
-
+	phoneNumberContacts []keybase1.RawPhoneNumber, token Token,
+) (res ContactLookupResults, err error) {
 	type lookupArg struct {
 		Email       string `json:"e,omitempty"`
 		PhoneNumber string `json:"p,omitempty"`

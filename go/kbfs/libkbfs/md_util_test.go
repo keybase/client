@@ -32,7 +32,8 @@ func (c testBlockCache) Get(ptr data.BlockPointer) (data.Block, error) {
 }
 
 func (testBlockCache) Put(ptr data.BlockPointer, tlf tlf.ID, block data.Block,
-	lifetime data.BlockCacheLifetime, _ data.BlockCacheHashBehavior) error {
+	lifetime data.BlockCacheLifetime, _ data.BlockCacheHashBehavior,
+) error {
 	return errors.New("Shouldn't be called")
 }
 

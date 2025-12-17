@@ -1252,7 +1252,8 @@ func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter,
 // The balance of the relay account can be claimed by either party.
 func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
-	secretNote string, publicMemo *stellarnet.Memo, quickReturn bool, senderEntryPrimary bool, baseFee uint64) (res SendPaymentResult, err error) {
+	secretNote string, publicMemo *stellarnet.Memo, quickReturn bool, senderEntryPrimary bool, baseFee uint64,
+) (res SendPaymentResult, err error) {
 	defer mctx.Trace("Stellar.sendRelayPayment", &err)()
 	appKey, teamID, err := relays.GetKey(mctx, recipient)
 	if err != nil {
@@ -1348,7 +1349,8 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 // If `dir` is nil the direction is inferred.
 func Claim(mctx libkb.MetaContext, walletState *WalletState,
 	txID string, into stellar1.AccountID, dir *stellar1.RelayDirection,
-	autoClaimToken *string) (res stellar1.RelayClaimResult, err error) {
+	autoClaimToken *string,
+) (res stellar1.RelayClaimResult, err error) {
 	defer mctx.Trace("Stellar.Claim", &err)()
 	mctx.Debug("Stellar.Claim(txID:%v, into:%v, dir:%v, autoClaimToken:%v)", txID, into, dir, autoClaimToken)
 	details, err := walletState.PaymentDetailsGeneric(mctx.Ctx(), txID)
@@ -1382,7 +1384,8 @@ func Claim(mctx libkb.MetaContext, walletState *WalletState,
 
 // If `dir` is nil the direction is inferred.
 func claimPaymentWithDetail(mctx libkb.MetaContext, walletState *WalletState,
-	p stellar1.PaymentSummaryRelay, into stellar1.AccountID, dir *stellar1.RelayDirection) (res stellar1.RelayClaimResult, err error) {
+	p stellar1.PaymentSummaryRelay, into stellar1.AccountID, dir *stellar1.RelayDirection,
+) (res stellar1.RelayClaimResult, err error) {
 	if p.Claim != nil && p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 		recipient, _, err := mctx.G().GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(mctx.Ctx(), mctx.G(), p.Claim.To.Uid))
 		if err != nil || recipient == nil {

@@ -50,7 +50,6 @@ func (c *CmdSimpleFSUpgrade) Run() error {
 }
 
 func (c *CmdSimpleFSUpgrade) ParseArgv(ctx *cli.Context) error {
-
 	if len(ctx.Args()) == 0 {
 		return errors.New("must specify a TLF name")
 	}

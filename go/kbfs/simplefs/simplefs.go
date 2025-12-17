@@ -83,14 +83,16 @@ func (e simpleFSError) ToStatus() keybase1.Status {
 	}
 }
 
-var errOnlyRemotePathSupported = simpleFSError{reason: "Only remote paths are supported for this operation"}
-var errInvalidRemotePath = simpleFSError{reason: "Invalid remote path"}
-var errNoSuchHandle = simpleFSError{reason: "No such handle"}
-var errNoResult = simpleFSError{reason: "Async result not found"}
-var errNameExists = simpleFSError{code: keybase1.StatusCode_SCSimpleFSNameExists, reason: "name exists"}
-var errDirNotEmpty = simpleFSError{code: keybase1.StatusCode_SCSimpleFSDirNotEmpty, reason: "dir not empty"}
-var errNotExist = simpleFSError{code: keybase1.StatusCode_SCSimpleFSNotExist, reason: "file or folder does not exist"}
-var errNoAccess = simpleFSError{code: keybase1.StatusCode_SCSimpleFSNoAccess, reason: "no access to this file or folder"}
+var (
+	errOnlyRemotePathSupported = simpleFSError{reason: "Only remote paths are supported for this operation"}
+	errInvalidRemotePath       = simpleFSError{reason: "Invalid remote path"}
+	errNoSuchHandle            = simpleFSError{reason: "No such handle"}
+	errNoResult                = simpleFSError{reason: "Async result not found"}
+	errNameExists              = simpleFSError{code: keybase1.StatusCode_SCSimpleFSNameExists, reason: "name exists"}
+	errDirNotEmpty             = simpleFSError{code: keybase1.StatusCode_SCSimpleFSDirNotEmpty, reason: "dir not empty"}
+	errNotExist                = simpleFSError{code: keybase1.StatusCode_SCSimpleFSNotExist, reason: "file or folder does not exist"}
+	errNoAccess                = simpleFSError{code: keybase1.StatusCode_SCSimpleFSNoAccess, reason: "no access to this file or folder"}
+)
 
 func translateErr(err error) error {
 	cause := errors.Cause(err)
@@ -123,7 +125,8 @@ type newFSFunc func(
 func defaultNewFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *tlfhandle.Handle, branch data.BranchName, subdir string,
 	create bool) (
-	billy.Filesystem, error) {
+	billy.Filesystem, error,
+) {
 	maker := libfs.NewFS
 	if !create {
 		maker = libfs.NewFSIfExists
@@ -201,7 +204,8 @@ func (k *SimpleFS) getIndexer() *search.Indexer {
 
 // ResetForLogin (partially) resets simplefs state when user logs out.
 func (k *SimpleFS) ResetForLogin(ctx context.Context,
-	username libkb.NormalizedUsername) (err error) {
+	username libkb.NormalizedUsername,
+) (err error) {
 	k.log.CDebugf(ctx, "+ SimpleFS.ResetForLogin username=%s", username)
 	defer func() { k.log.CDebugf(ctx, "- SimpleFS.ResetForLogin err=%v", err) }()
 
@@ -261,7 +265,8 @@ var _ libkbfs.SubscriptionNotifier = subscriptionNotifier{}
 func (s subscriptionNotifier) OnPathChange(
 	clientID libkbfs.SubscriptionManagerClientID,
 	subscriptionIDs []libkbfs.SubscriptionID,
-	path string, topics []keybase1.PathSubscriptionTopic) {
+	path string, topics []keybase1.PathSubscriptionTopic,
+) {
 	ks := s.config.KeybaseService()
 	if ks == nil {
 		return
@@ -273,7 +278,8 @@ func (s subscriptionNotifier) OnPathChange(
 func (s subscriptionNotifier) OnNonPathChange(
 	clientID libkbfs.SubscriptionManagerClientID,
 	subscriptionIDs []libkbfs.SubscriptionID,
-	topic keybase1.SubscriptionTopic) {
+	topic keybase1.SubscriptionTopic,
+) {
 	ks := s.config.KeybaseService()
 	if ks == nil {
 		return
@@ -329,7 +335,8 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 func NewSimpleFS(
 	appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 	iface *SimpleFS,
-	shutdownFn func(context.Context) error) {
+	shutdownFn func(context.Context) error,
+) {
 	simpleFS := newSimpleFS(appStateUpdater, config)
 	return simpleFS, simpleFS.Shutdown
 }
@@ -421,7 +428,8 @@ func splitPathFromKbfsPath(path keybase1.Path) ([]string, error) {
 
 // remoteTlfAndPath decodes a remote path for us.
 func remoteTlfAndPath(path keybase1.Path) (
-	t tlf.Type, tlfName, middlePath, finalElem string, err error) {
+	t tlf.Type, tlfName, middlePath, finalElem string, err error,
+) {
 	ps, err := splitPathFromKbfsPath(path)
 	if err != nil {
 		return tlf.Private, "", "", "", err
@@ -447,7 +455,8 @@ func remoteTlfAndPath(path keybase1.Path) (
 
 func (k *SimpleFS) branchNameFromPath(
 	ctx context.Context, tlfHandle *tlfhandle.Handle, path keybase1.Path) (
-	data.BranchName, error) {
+	data.BranchName, error,
+) {
 	pt, err := path.PathType()
 	if err != nil {
 		return "", err
@@ -521,7 +530,8 @@ func (k *SimpleFS) getKBPKI(ctx context.Context) (libkbfs.KBPKI, error) {
 
 func (k *SimpleFS) getFSWithMaybeCreate(
 	ctx context.Context, path keybase1.Path, create bool) (
-	fs billy.Filesystem, finalElem string, err error) {
+	fs billy.Filesystem, finalElem string, err error,
+) {
 	pt, err := path.PathType()
 	if err != nil {
 		return nil, "", err
@@ -590,13 +600,15 @@ func (k *SimpleFS) getFSWithMaybeCreate(
 
 func (k *SimpleFS) getFS(
 	ctx context.Context, path keybase1.Path) (
-	fs billy.Filesystem, finalElem string, err error) {
+	fs billy.Filesystem, finalElem string, err error,
+) {
 	return k.getFSWithMaybeCreate(ctx, path, true)
 }
 
 func (k *SimpleFS) getFSIfExists(
 	ctx context.Context, path keybase1.Path) (
-	fs billy.Filesystem, finalElem string, err error) {
+	fs billy.Filesystem, finalElem string, err error,
+) {
 	return k.getFSWithMaybeCreate(ctx, path, false)
 }
 
@@ -666,7 +678,8 @@ func (k *SimpleFS) favoriteList(ctx context.Context, t tlf.Type) ([]keybase1.Dir
 }
 
 func (k *SimpleFS) setStat(
-	de *keybase1.Dirent, fi os.FileInfo, linkFS billy.Filesystem) error {
+	de *keybase1.Dirent, fi os.FileInfo, linkFS billy.Filesystem,
+) error {
 	de.Time = keybase1.ToTime(fi.ModTime())
 	de.Size = int(fi.Size()) // TODO: FIX protocol
 
@@ -674,7 +687,7 @@ func (k *SimpleFS) setStat(
 	switch {
 	case fi.IsDir():
 		t = data.Dir
-	case fi.Mode()&0100 != 0:
+	case fi.Mode()&0o100 != 0:
 		t = data.Exec
 	case fi.Mode()&os.ModeSymlink != 0:
 		t = data.Sym
@@ -686,7 +699,7 @@ func (k *SimpleFS) setStat(
 		de.SymlinkTarget = link
 	}
 	de.DirentType = deTy2Ty(t)
-	de.Writable = (fi.Mode()&0222 != 0)
+	de.Writable = (fi.Mode()&0o222 != 0)
 
 	if lwg, ok := fi.Sys().(libfs.KBFSMetadataForSimpleFSGetter); ok {
 		md, err := lwg.KBFSMetadataForSimpleFS()
@@ -710,7 +723,8 @@ func (k *SimpleFS) setResult(opid keybase1.OpID, val interface{}) {
 
 func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
 	opType keybase1.AsyncOps, desc keybase1.OpDescription) (
-	_ context.Context, w *inprogress, err error) {
+	_ context.Context, w *inprogress, err error,
+) {
 	ctx = k.makeContext(ctx)
 	ctx, cancel := context.WithCancel(ctx)
 	w = &inprogress{
@@ -752,7 +766,8 @@ func (k *SimpleFS) startAsync(
 	desc keybase1.OpDescription,
 	path1ForIdentifyBehavior *keybase1.Path,
 	path2ForIdentifyBehavior *keybase1.Path,
-	callback func(context.Context) error) (err error) {
+	callback func(context.Context) error,
+) (err error) {
 	ctxAsync, w, e0 := k.startOp(context.Background(), opid, opType, desc)
 	if e0 != nil {
 		return e0
@@ -785,7 +800,8 @@ func (k *SimpleFS) startAsync(
 }
 
 func (k *SimpleFS) setProgressTotals(
-	opid keybase1.OpID, totalBytes, totalFiles int64) {
+	opid keybase1.OpID, totalBytes, totalFiles int64,
+) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	w, ok := k.inProgress[opid]
@@ -798,7 +814,8 @@ func (k *SimpleFS) setProgressTotals(
 }
 
 func (k *SimpleFS) updateReadProgress(
-	opid keybase1.OpID, readBytes, readFiles int64) {
+	opid keybase1.OpID, readBytes, readFiles int64,
+) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	w, ok := k.inProgress[opid]
@@ -818,7 +835,8 @@ func (k *SimpleFS) updateReadProgress(
 }
 
 func (k *SimpleFS) updateWriteProgress(
-	opid keybase1.OpID, wroteBytes, wroteFiles int64) {
+	opid keybase1.OpID, wroteBytes, wroteFiles int64,
+) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	w, ok := k.inProgress[opid]
@@ -866,7 +884,8 @@ func isFiltered(filter keybase1.ListFilter, name string) bool {
 
 func (k *SimpleFS) getFolderBranchFromPath(
 	ctx context.Context, path keybase1.Path) (
-	data.FolderBranch, string, error) {
+	data.FolderBranch, string, error,
+) {
 	t, tlfName, _, _, err := remoteTlfAndPath(path)
 	if err != nil {
 		return data.FolderBranch{}, "", err
@@ -894,7 +913,8 @@ func (k *SimpleFS) getFolderBranchFromPath(
 }
 
 func (k *SimpleFS) refreshSubscriptionLocked(
-	ctx context.Context, path keybase1.Path, tlfPathFromGUI string) error {
+	ctx context.Context, path keybase1.Path, tlfPathFromGUI string,
+) error {
 	// TODO: when favorites caching is ready, handle folder-list paths
 	// like `/keybase/private` here.
 
@@ -954,7 +974,8 @@ func tlfNameFromPath(path keybase1.Path) (string, error) {
 }
 
 func (k *SimpleFS) refreshSubscription(
-	ctx context.Context, path keybase1.Path) error {
+	ctx context.Context, path keybase1.Path,
+) error {
 	tlfPathFromGUI, err := tlfNameFromPath(path)
 	if err != nil {
 		return err
@@ -970,7 +991,8 @@ func (k *SimpleFS) refreshSubscription(
 }
 
 func (k *SimpleFS) checkEmptySubscription(
-	ctx context.Context, path keybase1.Path) error {
+	ctx context.Context, path keybase1.Path,
+) error {
 	k.subscribeLock.Lock()
 	defer k.subscribeLock.Unlock()
 	if k.subscribeToEmptyTlf == "" {
@@ -1101,7 +1123,8 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 // TODO: refactor SimpleFSList to use this too (finalDepth = 0)
 func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 	path keybase1.Path, filter keybase1.ListFilter,
-	finalDepth int, refreshSubscription bool) func(context.Context) error {
+	finalDepth int, refreshSubscription bool,
+) func(context.Context) error {
 	return func(ctx context.Context) (err error) {
 		defer func() { err = translateErr(err) }()
 		// A stack of paths to process - ordering does not matter.
@@ -1204,7 +1227,8 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 // SimpleFSListRecursiveToDepth - Begin recursive list of items in directory at
 // path up to a given depth.
 func (k *SimpleFS) SimpleFSListRecursiveToDepth(
-	ctx context.Context, arg keybase1.SimpleFSListRecursiveToDepthArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSListRecursiveToDepthArg,
+) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST_RECURSIVE_TO_DEPTH,
 		keybase1.NewOpDescriptionWithListRecursiveToDepth(
 			keybase1.ListToDepthArgs{
@@ -1217,7 +1241,8 @@ func (k *SimpleFS) SimpleFSListRecursiveToDepth(
 
 // SimpleFSListRecursive - Begin recursive list of items in directory at path
 func (k *SimpleFS) SimpleFSListRecursive(
-	ctx context.Context, arg keybase1.SimpleFSListRecursiveArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSListRecursiveArg,
+) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST_RECURSIVE,
 		keybase1.NewOpDescriptionWithListRecursive(
 			keybase1.ListArgs{
@@ -1253,7 +1278,8 @@ func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keyb
 // getting its data from the KBFS Favorites cache. If the cache is stale,
 // this will trigger a network request.
 func (k *SimpleFS) SimpleFSListFavorites(ctx context.Context) (
-	keybase1.FavoritesResult, error) {
+	keybase1.FavoritesResult, error,
+) {
 	kbpki, err := k.getKBPKI(ctx)
 	if err != nil {
 		return keybase1.FavoritesResult{}, err
@@ -1271,7 +1297,8 @@ func (k *SimpleFS) SimpleFSListFavorites(ctx context.Context) (
 }
 
 func recursiveByteAndFileCount(fs billy.Filesystem) (
-	bytes, files int64, err error) {
+	bytes, files int64, err error,
+) {
 	fileInfos, err := fs.ReadDir("/")
 	if err != nil {
 		return 0, 0, err
@@ -1355,7 +1382,8 @@ func (k *SimpleFS) doCopyFromSource(
 	ctx context.Context, opID keybase1.OpID,
 	srcFS billy.Filesystem, srcFI os.FileInfo,
 	dstPath keybase1.Path, dstFS billy.Filesystem,
-	finalDstElem string, overwriteExistingFiles bool) (err error) {
+	finalDstElem string, overwriteExistingFiles bool,
+) (err error) {
 	defer func() {
 		if err == nil {
 			k.updateReadProgress(opID, 0, 1)
@@ -1364,7 +1392,7 @@ func (k *SimpleFS) doCopyFromSource(
 	}()
 
 	if srcFI.IsDir() {
-		return dstFS.MkdirAll(finalDstElem, 0755)
+		return dstFS.MkdirAll(finalDstElem, 0o755)
 	}
 
 	src, err := srcFS.Open(srcFI.Name())
@@ -1377,7 +1405,7 @@ func (k *SimpleFS) doCopyFromSource(
 	if overwriteExistingFiles {
 		mode = os.O_RDWR | os.O_CREATE | os.O_TRUNC
 	}
-	dst, err := dstFS.OpenFile(finalDstElem, mode, 0600)
+	dst, err := dstFS.OpenFile(finalDstElem, mode, 0o600)
 	if err != nil {
 		return err
 	}
@@ -1402,7 +1430,8 @@ func (k *SimpleFS) doCopyFromSource(
 
 func (k *SimpleFS) doCopy(
 	ctx context.Context, opID keybase1.OpID,
-	srcPath, destPath keybase1.Path, overwriteExistingFiles bool) (err error) {
+	srcPath, destPath keybase1.Path, overwriteExistingFiles bool,
+) (err error) {
 	// Note this is also used by move, so if this changes update SimpleFSMove
 	// code also.
 	srcFS, finalSrcElem, err := k.getFS(ctx, srcPath)
@@ -1430,7 +1459,8 @@ func (k *SimpleFS) doCopy(
 
 // SimpleFSCopy - Begin copy of file or directory
 func (k *SimpleFS) SimpleFSCopy(
-	ctx context.Context, arg keybase1.SimpleFSCopyArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSCopyArg,
+) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_COPY,
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
 		&arg.Src, &arg.Dest,
@@ -1442,7 +1472,8 @@ func (k *SimpleFS) SimpleFSCopy(
 
 // SimpleFSSymlink starts making a symlink of a file or directory
 func (k *SimpleFS) SimpleFSSymlink(
-	ctx context.Context, arg keybase1.SimpleFSSymlinkArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSSymlinkArg,
+) (err error) {
 	// This is not async.
 	ctx, err = k.startSyncOp(ctx, "Symlink", arg, &arg.Link, nil)
 	if err != nil {
@@ -1468,14 +1499,14 @@ type copyNode struct {
 func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 	switch {
 	case p.Local__ != nil:
-		var s = stdpath.Join(*p.Local__, leaf)
+		s := stdpath.Join(*p.Local__, leaf)
 		p.Local__ = &s
 	case p.Kbfs__ != nil:
-		var s = stdpath.Join(p.Kbfs__.Path, leaf)
+		s := stdpath.Join(p.Kbfs__.Path, leaf)
 		p = p.DeepCopy()
 		p.Kbfs__.Path = s
 	case p.KbfsArchived__ != nil:
-		var s = stdpath.Join(p.KbfsArchived__.Path, leaf)
+		s := stdpath.Join(p.KbfsArchived__.Path, leaf)
 		p = p.DeepCopy()
 		p.KbfsArchived__.Path = s
 	}
@@ -1483,7 +1514,8 @@ func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 }
 
 func (k *SimpleFS) doCopyRecursive(ctx context.Context,
-	opID keybase1.OpID, src, dest keybase1.Path, overwriteExistingFiles bool) error {
+	opID keybase1.OpID, src, dest keybase1.Path, overwriteExistingFiles bool,
+) error {
 	// Get the full byte/file count.
 	srcFS, finalSrcElem, err := k.getFSIfExists(ctx, src)
 	if err != nil {
@@ -1514,7 +1546,7 @@ func (k *SimpleFS) doCopyRecursive(ctx context.Context,
 		return err
 	}
 
-	var nodes = []copyNode{{
+	nodes := []copyNode{{
 		dest:          dest,
 		srcFS:         srcFS,
 		destFS:        destFS,
@@ -1577,7 +1609,8 @@ func (k *SimpleFS) doCopyRecursive(ctx context.Context,
 
 // SimpleFSCopyRecursive - Begin recursive copy of directory
 func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
-	arg keybase1.SimpleFSCopyRecursiveArg) (err error) {
+	arg keybase1.SimpleFSCopyRecursiveArg,
+) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_COPY,
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
 		&arg.Src, &arg.Dest,
@@ -1588,7 +1621,8 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 }
 
 func (k *SimpleFS) doRemove(
-	ctx context.Context, path keybase1.Path, recursive bool) error {
+	ctx context.Context, path keybase1.Path, recursive bool,
+) error {
 	fs, finalElem, err := k.getFS(ctx, path)
 	if err != nil {
 		return err
@@ -1618,7 +1652,8 @@ func (k *SimpleFS) doRemove(
 func (k *SimpleFS) pathsForSameTlfMove(
 	ctx context.Context, src, dest keybase1.Path) (
 	sameTlf bool, srcPath, destPath string, tlfHandle *tlfhandle.Handle,
-	err error) {
+	err error,
+) {
 	srcType, err := src.PathType()
 	if err != nil {
 		return false, "", "", nil, err
@@ -1664,7 +1699,8 @@ func (k *SimpleFS) pathsForSameTlfMove(
 
 // SimpleFSMove - Begin move of file or directory, from/to KBFS only
 func (k *SimpleFS) SimpleFSMove(
-	ctx context.Context, arg keybase1.SimpleFSMoveArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSMoveArg,
+) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_MOVE,
 		keybase1.NewOpDescriptionWithMove(keybase1.MoveArgs(arg)),
 		&arg.Src, &arg.Dest,
@@ -1698,7 +1734,7 @@ func (k *SimpleFS) SimpleFSMove(
 					}
 					if !fi.IsDir() {
 						if f, err := fs.OpenFile(destPath,
-							os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600); err != nil {
+							os.O_RDWR|os.O_CREATE|os.O_EXCL, 0o600); err != nil {
 							return err
 						} else if err = f.Close(); err != nil {
 							return err
@@ -1731,6 +1767,7 @@ func (k *SimpleFS) startSyncOp(
 	k.vlog.CLogf(ctx, libkb.VLog1, "start sync %s %v", name, logarg)
 	return k.startOpWrapContext(ctx)
 }
+
 func (k *SimpleFS) startOpWrapContext(outer context.Context) (context.Context, error) {
 	return libcontext.NewContextWithCancellationDelayer(libcontext.NewContextReplayable(
 		outer, func(c context.Context) context.Context {
@@ -1750,7 +1787,8 @@ func (k *SimpleFS) doneSyncOp(ctx context.Context, err error) {
 
 // SimpleFSRename - Rename file or directory, KBFS side only
 func (k *SimpleFS) SimpleFSRename(
-	ctx context.Context, arg keybase1.SimpleFSRenameArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSRenameArg,
+) (err error) {
 	// This is not async.
 	ctx, err = k.startSyncOp(ctx, "Rename", arg, &arg.Src, &arg.Dest)
 	if err != nil {
@@ -1779,8 +1817,7 @@ func (k *SimpleFS) SimpleFSRename(
 	}
 
 	// Make sure src and dest share the same TLF.
-	tDest, tlfNameDest, restOfDestPath, finalDestElem, err :=
-		remoteTlfAndPath(arg.Dest)
+	tDest, tlfNameDest, restOfDestPath, finalDestElem, err := remoteTlfAndPath(arg.Dest)
 	if err != nil {
 		return err
 	}
@@ -1798,7 +1835,8 @@ func (k *SimpleFS) SimpleFSRename(
 // or create a directory
 // Files must be closed afterwards.
 func (k *SimpleFS) SimpleFSOpen(
-	ctx context.Context, arg keybase1.SimpleFSOpenArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSOpenArg,
+) (err error) {
 	ctx, err = k.startSyncOp(ctx, "Open", arg, &arg.Dest, nil)
 	if err != nil {
 		return err
@@ -1813,10 +1851,10 @@ func (k *SimpleFS) SimpleFSOpen(
 	// Make a directory if needed.  This will return `nil` if the
 	// directory already exists.
 	if arg.Flags&keybase1.OpenFlags_DIRECTORY != 0 {
-		return fs.MkdirAll(finalElem, 0755)
+		return fs.MkdirAll(finalElem, 0o755)
 	}
 
-	var cflags = os.O_RDONLY
+	cflags := os.O_RDONLY
 	// This must be first since it writes the flag, not just ORs into it.
 	if arg.Flags&keybase1.OpenFlags_WRITE != 0 {
 		cflags = os.O_RDWR
@@ -1842,7 +1880,7 @@ func (k *SimpleFS) SimpleFSOpen(
 		fs = libfs
 	}
 
-	f, err := fs.OpenFile(finalElem, cflags, 0644)
+	f, err := fs.OpenFile(finalElem, cflags, 0o644)
 	if err != nil {
 		return err
 	}
@@ -1856,7 +1894,8 @@ func (k *SimpleFS) SimpleFSOpen(
 
 // SimpleFSSetStat - Set/clear file bits - only executable for now
 func (k *SimpleFS) SimpleFSSetStat(
-	ctx context.Context, arg keybase1.SimpleFSSetStatArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSSetStatArg,
+) (err error) {
 	ctx, err = k.startSyncOp(ctx, "SetStat", arg, &arg.Dest, nil)
 	if err != nil {
 		return err
@@ -1875,9 +1914,9 @@ func (k *SimpleFS) SimpleFSSetStat(
 	mode := fi.Mode()
 	switch arg.Flag {
 	case keybase1.DirentType_EXEC:
-		mode |= 0100
+		mode |= 0o100
 	case keybase1.DirentType_FILE:
-		mode &= 0677
+		mode &= 0o677
 	default:
 		return nil
 	}
@@ -1892,7 +1931,8 @@ func (k *SimpleFS) SimpleFSSetStat(
 
 func (k *SimpleFS) startReadWriteOp(
 	ctx context.Context, opid keybase1.OpID, opType keybase1.AsyncOps,
-	desc keybase1.OpDescription) (context.Context, error) {
+	desc keybase1.OpDescription,
+) (context.Context, error) {
 	ctx, err := k.startSyncOp(ctx, desc.AsyncOp__.String(), desc, nil, nil)
 	if err != nil {
 		return nil, err
@@ -1928,7 +1968,8 @@ func (k *SimpleFS) doneReadWriteOp(ctx context.Context, opID keybase1.OpID, err 
 // Repeat until zero bytes are returned or error.
 // If size is zero, read an arbitrary amount.
 func (k *SimpleFS) SimpleFSRead(ctx context.Context,
-	arg keybase1.SimpleFSReadArg) (_ keybase1.FileContent, err error) {
+	arg keybase1.SimpleFSReadArg,
+) (_ keybase1.FileContent, err error) {
 	ctx = k.makeContext(ctx)
 	k.lock.RLock()
 	h, ok := k.handles[arg.OpID]
@@ -1981,7 +2022,8 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 // SimpleFSWrite - Append content to opened file.
 // May be repeated until OpID is closed.
 func (k *SimpleFS) SimpleFSWrite(
-	ctx context.Context, arg keybase1.SimpleFSWriteArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSWriteArg,
+) (err error) {
 	ctx = k.makeContext(ctx)
 	k.lock.RLock()
 	h, ok := k.handles[arg.OpID]
@@ -2024,7 +2066,8 @@ func (k *SimpleFS) SimpleFSWrite(
 
 // SimpleFSRemove - Remove file or directory from filesystem
 func (k *SimpleFS) SimpleFSRemove(ctx context.Context,
-	arg keybase1.SimpleFSRemoveArg) (err error) {
+	arg keybase1.SimpleFSRemoveArg,
+) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_REMOVE,
 		keybase1.NewOpDescriptionWithRemove(keybase1.RemoveArgs(arg)),
 		&arg.Path,
@@ -2080,7 +2123,8 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 
 func (k *SimpleFS) getRevisionsFromPath(
 	ctx context.Context, path keybase1.Path) (
-	billy.Filesystem, os.FileInfo, data.PrevRevisions, error) {
+	billy.Filesystem, os.FileInfo, data.PrevRevisions, error,
+) {
 	fs, finalElem, err := k.getFSIfExists(ctx, path)
 	if err != nil {
 		k.log.CDebugf(ctx, "Trouble getting fs for path: %+v", err)
@@ -2103,7 +2147,8 @@ func (k *SimpleFS) getRevisionsFromPath(
 func (k *SimpleFS) doGetRevisions(
 	ctx context.Context, opID keybase1.OpID, path keybase1.Path,
 	spanType keybase1.RevisionSpanType) (
-	revs []keybase1.DirentWithRevision, err error) {
+	revs []keybase1.DirentWithRevision, err error,
+) {
 	k.vlog.CLogf(ctx, libkb.VLog1, "Getting revisions for path %s, spanType=%s",
 		path, spanType)
 
@@ -2288,7 +2333,8 @@ func (k *SimpleFS) doGetRevisions(
 
 // SimpleFSGetRevisions - Get revisions for a file
 func (k *SimpleFS) SimpleFSGetRevisions(
-	ctx context.Context, arg keybase1.SimpleFSGetRevisionsArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSGetRevisionsArg,
+) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_GET_REVISIONS,
 		keybase1.NewOpDescriptionWithGetRevisions(
 			keybase1.GetRevisionsArgs(arg)),
@@ -2312,7 +2358,8 @@ func (k *SimpleFS) SimpleFSGetRevisions(
 // indicate status of pending to get more revisions.
 func (k *SimpleFS) SimpleFSReadRevisions(
 	_ context.Context, opid keybase1.OpID) (
-	keybase1.GetRevisionsResult, error) {
+	keybase1.GetRevisionsResult, error,
+) {
 	k.lock.Lock()
 	res := k.handles[opid]
 	var x interface{}
@@ -2383,7 +2430,8 @@ func (k *SimpleFS) SimpleFSCancel(_ context.Context, opid keybase1.OpID) error {
 // Progress variable is still TBD.
 // Return errNoResult if no operation found.
 func (k *SimpleFS) SimpleFSCheck(
-	ctx context.Context, opid keybase1.OpID) (keybase1.OpProgress, error) {
+	ctx context.Context, opid keybase1.OpID,
+) (keybase1.OpProgress, error) {
 	k.lock.RLock()
 	defer k.lock.RUnlock()
 	if p, ok := k.inProgress[opid]; ok {
@@ -2406,8 +2454,7 @@ func (k *SimpleFS) SimpleFSCheck(
 			timeRunning := k.config.Clock().Now().Sub(start)
 			fracDone := float64(n) / float64(d)
 			totalTimeEstimate := time.Duration(float64(timeRunning) / fracDone)
-			progress.EndEstimate =
-				keybase1.ToTime(start.Add(totalTimeEstimate))
+			progress.EndEstimate = keybase1.ToTime(start.Add(totalTimeEstimate))
 			k.log.CDebugf(ctx, "Start=%s, n=%d, d=%d, fracDone=%f, End=%s",
 				start, n, d, fracDone, start.Add(totalTimeEstimate))
 		}
@@ -2512,7 +2559,8 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 
 // SimpleFSUserEditHistory returns the edit history for the logged-in user.
 func (k *SimpleFS) SimpleFSUserEditHistory(ctx context.Context) (
-	res []keybase1.FSFolderEditHistory, err error) {
+	res []keybase1.FSFolderEditHistory, err error,
+) {
 	kbpki, err := k.getKBPKI(ctx)
 	if err != nil {
 		return nil, err
@@ -2528,7 +2576,8 @@ func (k *SimpleFS) SimpleFSUserEditHistory(ctx context.Context) (
 // SimpleFSFolderEditHistory returns the edit history for the given TLF.
 func (k *SimpleFS) SimpleFSFolderEditHistory(
 	ctx context.Context, path keybase1.Path) (
-	res keybase1.FSFolderEditHistory, err error) {
+	res keybase1.FSFolderEditHistory, err error,
+) {
 	ctx = k.makeContext(ctx)
 	fb, _, err := k.getFolderBranchFromPath(ctx, path)
 	if err != nil {
@@ -2544,7 +2593,8 @@ func (k *SimpleFS) SimpleFSFolderEditHistory(
 
 // SimpleFSReset resets the given TLF.
 func (k *SimpleFS) SimpleFSReset(
-	ctx context.Context, arg keybase1.SimpleFSResetArg) error {
+	ctx context.Context, arg keybase1.SimpleFSResetArg,
+) error {
 	t, tlfName, _, _, err := remoteTlfAndPath(arg.Path)
 	if err != nil {
 		return err
@@ -2575,7 +2625,8 @@ var _ libkbfs.Observer = (*SimpleFS)(nil)
 
 // LocalChange implements the libkbfs.Observer interface for SimpleFS.
 func (k *SimpleFS) LocalChange(
-	ctx context.Context, node libkbfs.Node, _ libkbfs.WriteRange) {
+	ctx context.Context, node libkbfs.Node, _ libkbfs.WriteRange,
+) {
 	k.subscribeLock.RLock()
 	defer k.subscribeLock.RUnlock()
 	if node.GetFolderBranch() == k.subscribeCurrFB {
@@ -2585,7 +2636,8 @@ func (k *SimpleFS) LocalChange(
 
 // BatchChanges implements the libkbfs.Observer interface for SimpleFS.
 func (k *SimpleFS) BatchChanges(
-	ctx context.Context, changes []libkbfs.NodeChange, _ []libkbfs.NodeID) {
+	ctx context.Context, changes []libkbfs.NodeChange, _ []libkbfs.NodeID,
+) {
 	// Don't take any locks while processing these notifications,
 	// since it risks deadlock.
 	fbs := make(map[data.FolderBranch]bool, 1)
@@ -2610,7 +2662,8 @@ func (k *SimpleFS) TlfHandleChange(_ context.Context, _ *tlfhandle.Handle) {
 // SimpleFSGetUserQuotaUsage returns the quota usage information for
 // the logged-in user.
 func (k *SimpleFS) SimpleFSGetUserQuotaUsage(ctx context.Context) (
-	res keybase1.SimpleFSQuotaUsage, err error) {
+	res keybase1.SimpleFSQuotaUsage, err error,
+) {
 	ctx = k.makeContext(ctx)
 	status, _, err := k.config.KBFSOps().Status(ctx)
 	if err != nil {
@@ -2629,7 +2682,8 @@ func (k *SimpleFS) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 // the given team.
 func (k *SimpleFS) SimpleFSGetTeamQuotaUsage(
 	ctx context.Context, teamName keybase1.TeamName) (
-	res keybase1.SimpleFSQuotaUsage, err error) {
+	res keybase1.SimpleFSQuotaUsage, err error,
+) {
 	ctx = k.makeContext(ctx)
 	path := keybase1.NewPathWithKbfsPath(
 		fmt.Sprintf("team/%s", teamName.String()))
@@ -2657,7 +2711,8 @@ func (k *SimpleFS) SimpleFSGetTeamQuotaUsage(
 
 func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 	tlfID tlf.ID, config keybase1.FolderSyncConfig,
-	err error) {
+	err error,
+) {
 	t, tlfName, _, _, err := remoteTlfAndPath(path)
 	if err != nil {
 		return tlf.NullID, keybase1.FolderSyncConfig{}, err
@@ -2687,7 +2742,8 @@ func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 }
 
 func (k *SimpleFS) filterEmptyErr(
-	ctx context.Context, path string, err error) error {
+	ctx context.Context, path string, err error,
+) error {
 	exitEarly, _ := libfs.FilterTLFEarlyExitError(
 		ctx, err, k.log, tlf.CanonicalName(path) /* just for logging */)
 	if exitEarly {
@@ -2699,7 +2755,8 @@ func (k *SimpleFS) filterEmptyErr(
 // SimpleFSFolderSyncConfigAndStatus gets the given folder's sync config.
 func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	ctx context.Context, path keybase1.Path) (
-	_ keybase1.FolderSyncConfigAndStatus, err error) {
+	_ keybase1.FolderSyncConfigAndStatus, err error,
+) {
 	defer func() {
 		err = k.filterEmptyErr(ctx, path.String(), err)
 	}()
@@ -2732,8 +2789,7 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 				return keybase1.FolderSyncConfigAndStatus{}, err
 			}
 			res.Status.PrefetchStatus = metadata.PrefetchStatus
-			res.Status.PrefetchProgress =
-				metadata.PrefetchProgress.ToProtocolProgress(k.config.Clock())
+			res.Status.PrefetchProgress = metadata.PrefetchProgress.ToProtocolProgress(k.config.Clock())
 
 			libfs, ok := fs.(*libfs.FS)
 			if dbc != nil && ok {
@@ -2758,7 +2814,8 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 
 // SimpleFSSetFolderSyncConfig implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
-	ctx context.Context, arg keybase1.SimpleFSSetFolderSyncConfigArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSSetFolderSyncConfigArg,
+) (err error) {
 	ctx = k.makeContext(ctx)
 	ctx, err = populateIdentifyBehaviorIfNeeded(ctx, &arg.Path, nil)
 	if err != nil {
@@ -2776,7 +2833,8 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 // SimpleFSGetFolder implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetFolder(
 	ctx context.Context, kbfsPath keybase1.KBFSPath) (
-	res keybase1.FolderWithFavFlags, err error) {
+	res keybase1.FolderWithFavFlags, err error,
+) {
 	defer func() { err = translateErr(err) }()
 	ctx, err = k.makeContextWithIdentifyBehavior(ctx, kbfsPath.IdentifyBehavior)
 	if err != nil {
@@ -2800,7 +2858,8 @@ func (k *SimpleFS) SimpleFSGetFolder(
 
 func (k *SimpleFS) getFolder(
 	ctx context.Context, tlfID tlf.ID, md libkbfs.SyncedTlfMD,
-	session idutil.SessionInfo) (keybase1.Folder, error) {
+	session idutil.SessionInfo,
+) (keybase1.Folder, error) {
 	return keybase1.Folder{
 		Name:       string(md.Handle.GetPreferredFormat(session.Name)),
 		FolderType: tlfID.Type().FolderType(),
@@ -2811,7 +2870,8 @@ func (k *SimpleFS) getFolder(
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 	identifyBehavior *keybase1.TLFIdentifyBehavior) (
-	res keybase1.SyncConfigAndStatusRes, err error) {
+	res keybase1.SyncConfigAndStatusRes, err error,
+) {
 	ctx, err = k.makeContextWithIdentifyBehavior(ctx, identifyBehavior)
 	if err != nil {
 		return keybase1.SyncConfigAndStatusRes{}, err
@@ -2865,8 +2925,7 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 			allNotStarted = false
 		}
 		if md.MD.PrefetchProgress != nil {
-			res.Folders[i].Status.PrefetchProgress =
-				md.MD.PrefetchProgress.ToProtocolProgress(k.config.Clock())
+			res.Folders[i].Status.PrefetchProgress = md.MD.PrefetchProgress.ToProtocolProgress(k.config.Clock())
 		}
 		res.Folders[i].Status.LocalDiskBytesAvailable = bytesAvail
 		res.Folders[i].Status.LocalDiskBytesTotal = bytesTotal
@@ -2897,8 +2956,7 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 		res.OverallStatus.PrefetchProgress = p.ToProtocolProgress(
 			k.config.Clock())
 		if allNotStarted {
-			res.OverallStatus.PrefetchStatus =
-				keybase1.PrefetchStatus_NOT_STARTED
+			res.OverallStatus.PrefetchStatus = keybase1.PrefetchStatus_NOT_STARTED
 		} else {
 			res.OverallStatus.PrefetchStatus = p.ToProtocolStatus()
 		}
@@ -2924,7 +2982,8 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 
 // SimpleFSClearConflictState implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
-	path keybase1.Path) (err error) {
+	path keybase1.Path,
+) (err error) {
 	ctx, err = populateIdentifyBehaviorIfNeeded(ctx, &path, nil)
 	if err != nil {
 		return err
@@ -2958,7 +3017,8 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 
 // SimpleFSFinishResolvingConflict implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSFinishResolvingConflict(ctx context.Context,
-	path keybase1.Path) (err error) {
+	path keybase1.Path,
+) (err error) {
 	ctx, err = populateIdentifyBehaviorIfNeeded(ctx, &path, nil)
 	if err != nil {
 		return err
@@ -2999,7 +3059,8 @@ func (k *SimpleFS) SimpleFSFinishResolvingConflict(ctx context.Context,
 
 // SimpleFSForceStuckConflict implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSForceStuckConflict(
-	ctx context.Context, path keybase1.Path) (err error) {
+	ctx context.Context, path keybase1.Path,
+) (err error) {
 	ctx, err = populateIdentifyBehaviorIfNeeded(ctx, &path, nil)
 	if err != nil {
 		return err
@@ -3033,7 +3094,8 @@ func (k *SimpleFS) SimpleFSForceStuckConflict(
 
 // SimpleFSGetOnlineStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetOnlineStatus(
-	ctx context.Context, clientID string) (keybase1.KbfsOnlineStatus, error) {
+	ctx context.Context, clientID string,
+) (keybase1.KbfsOnlineStatus, error) {
 	return k.subscriptionManager(clientID).OnlineStatusTracker().GetOnlineStatus(), nil
 }
 
@@ -3063,7 +3125,8 @@ func (k *SimpleFS) SimpleFSCheckReachability(ctx context.Context) error {
 
 // SimpleFSSetDebugLevel implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSetDebugLevel(
-	_ context.Context, level string) error {
+	_ context.Context, level string,
+) error {
 	k.config.SetVLogLevel(level)
 	return nil
 }
@@ -3098,7 +3161,8 @@ func (k *SimpleFS) SimpleFSSetNotificationThreshold(ctx context.Context, thresho
 
 // SimpleFSObfuscatePath implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSObfuscatePath(
-	ctx context.Context, path keybase1.Path) (res string, err error) {
+	ctx context.Context, path keybase1.Path,
+) (res string, err error) {
 	ctx, err = k.startOpWrapContext(k.makeContext(ctx))
 	if err != nil {
 		return "", err
@@ -3142,7 +3206,8 @@ func (k *SimpleFS) SimpleFSObfuscatePath(
 
 // SimpleFSDeobfuscatePath implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSDeobfuscatePath(
-	ctx context.Context, path keybase1.Path) (res []string, err error) {
+	ctx context.Context, path keybase1.Path,
+) (res []string, err error) {
 	ctx, err = k.startOpWrapContext(k.makeContext(ctx))
 	if err != nil {
 		return nil, err
@@ -3195,7 +3260,8 @@ func (k *SimpleFS) SimpleFSDeobfuscatePath(
 
 // SimpleFSGetStats implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
-	res keybase1.SimpleFSStats, err error) {
+	res keybase1.SimpleFSStats, err error,
+) {
 	ctx = k.makeContext(ctx)
 	dbc := k.config.DiskBlockCache()
 	if dbc == nil {
@@ -3240,7 +3306,8 @@ func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
 }
 
 func (k *SimpleFS) subscriptionManager(
-	clientID string) libkbfs.SubscriptionManager {
+	clientID string,
+) libkbfs.SubscriptionManager {
 	return k.config.SubscriptionManager(
 		libkbfs.SubscriptionManagerClientID(clientID), true,
 		k.subscriptionNotifier)
@@ -3248,7 +3315,8 @@ func (k *SimpleFS) subscriptionManager(
 
 // SimpleFSSubscribePath implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSubscribePath(
-	ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSSubscribePathArg,
+) (err error) {
 	defer func() {
 		err = k.filterEmptyErr(ctx, arg.KbfsPath, err)
 		err = translateErr(err)
@@ -3265,7 +3333,8 @@ func (k *SimpleFS) SimpleFSSubscribePath(
 
 // SimpleFSSubscribeNonPath implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSubscribeNonPath(
-	ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg,
+) (err error) {
 	ctx, err = k.makeContextWithIdentifyBehavior(ctx, arg.IdentifyBehavior)
 	if err != nil {
 		return err
@@ -3277,7 +3346,8 @@ func (k *SimpleFS) SimpleFSSubscribeNonPath(
 
 // SimpleFSUnsubscribe implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSUnsubscribe(
-	ctx context.Context, arg keybase1.SimpleFSUnsubscribeArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSUnsubscribeArg,
+) (err error) {
 	ctx, err = k.makeContextWithIdentifyBehavior(ctx, arg.IdentifyBehavior)
 	if err != nil {
 		return err
@@ -3290,25 +3360,29 @@ func (k *SimpleFS) SimpleFSUnsubscribe(
 // SimpleFSStartDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSStartDownload(
 	ctx context.Context, arg keybase1.SimpleFSStartDownloadArg) (
-	downloadID string, err error) {
+	downloadID string, err error,
+) {
 	return k.getDownloadManager().startDownload(ctx, arg)
 }
 
 // SimpleFSGetDownloadStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetDownloadStatus(ctx context.Context) (
-	status keybase1.DownloadStatus, err error) {
+	status keybase1.DownloadStatus, err error,
+) {
 	return k.getDownloadManager().getDownloadStatus(ctx), nil
 }
 
 // SimpleFSCancelDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSCancelDownload(
-	ctx context.Context, downloadID string) (err error) {
+	ctx context.Context, downloadID string,
+) (err error) {
 	return k.getDownloadManager().cancelDownload(ctx, downloadID)
 }
 
 // SimpleFSDismissDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSDismissDownload(
-	ctx context.Context, downloadID string) (err error) {
+	ctx context.Context, downloadID string,
+) (err error) {
 	k.getDownloadManager().dismissDownload(ctx, downloadID)
 	return nil
 }
@@ -3316,13 +3390,15 @@ func (k *SimpleFS) SimpleFSDismissDownload(
 // SimpleFSGetDownloadInfo implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetDownloadInfo(
 	ctx context.Context, downloadID string) (
-	downloadInfo keybase1.DownloadInfo, err error) {
+	downloadInfo keybase1.DownloadInfo, err error,
+) {
 	return k.getDownloadManager().getDownloadInfo(downloadID)
 }
 
 // SimpleFSConfigureDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSConfigureDownload(
-	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg,
+) (err error) {
 	k.getDownloadManager().configureDownload(arg.CacheDirOverride, arg.DownloadDirOverride)
 	return nil
 }
@@ -3337,7 +3413,8 @@ const sniffLen = 512
 // check in libhttpserver happens right before writing the content, using the
 // real HTTP headers from the http package.
 func (k *SimpleFS) getContentType(ctx context.Context, kbfsPath keybase1.KBFSPath) (
-	contentType string, err error) {
+	contentType string, err error,
+) {
 	contentType = mime.TypeByExtension(filepath.Ext(kbfsPath.Path))
 	if len(contentType) > 0 {
 		return contentType, nil
@@ -3347,7 +3424,7 @@ func (k *SimpleFS) getContentType(ctx context.Context, kbfsPath keybase1.KBFSPat
 	if err != nil {
 		return "", err
 	}
-	f, err := fs.OpenFile(finalElem, os.O_RDONLY, 0644)
+	f, err := fs.OpenFile(finalElem, os.O_RDONLY, 0o644)
 	if err != nil {
 		return "", err
 	}
@@ -3358,7 +3435,8 @@ func (k *SimpleFS) getContentType(ctx context.Context, kbfsPath keybase1.KBFSPat
 
 // SimpleFSGetGUIFileContext implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
-	kbfsPath keybase1.KBFSPath) (resource keybase1.GUIFileContext, err error) {
+	kbfsPath keybase1.KBFSPath,
+) (resource keybase1.GUIFileContext, err error) {
 	wrappedPath := keybase1.NewPathWithKbfs(kbfsPath)
 	ctx, err = k.startSyncOp(ctx, "GetGUIFileContext", "", &wrappedPath, nil)
 	if err != nil {
@@ -3402,8 +3480,10 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 	}, nil
 }
 
-const kbfsOpsWaitDuration = 200 * time.Millisecond
-const kbfsOpsWaitTimeout = 4 * time.Second
+const (
+	kbfsOpsWaitDuration = 200 * time.Millisecond
+	kbfsOpsWaitTimeout  = 4 * time.Second
+)
 
 func (k *SimpleFS) waitForKBFSOps(ctx context.Context) error {
 	for {
@@ -3421,7 +3501,8 @@ func (k *SimpleFS) waitForKBFSOps(ctx context.Context) error {
 
 // SimpleFSGetFilesTabBadge implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetFilesTabBadge(ctx context.Context) (
-	keybase1.FilesTabBadge, error) {
+	keybase1.FilesTabBadge, error,
+) {
 	ctx, cancel := context.WithTimeout(ctx, kbfsOpsWaitTimeout)
 	defer cancel()
 	if err := k.waitForKBFSOps(ctx); err != nil {
@@ -3432,7 +3513,8 @@ func (k *SimpleFS) SimpleFSGetFilesTabBadge(ctx context.Context) (
 
 // SimpleFSSetSfmiBannerDismissed implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSetSfmiBannerDismissed(
-	ctx context.Context, dismissed bool) (err error) {
+	ctx context.Context, dismissed bool,
+) (err error) {
 	defer func() {
 		k.log.CDebugf(ctx, "SimpleFSSetSfmiBannerDismissed err=%+v", err)
 	}()
@@ -3449,7 +3531,8 @@ func (k *SimpleFS) SimpleFSSetSfmiBannerDismissed(
 
 // SimpleFSSetSyncOnCellular implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSetSyncOnCellular(
-	ctx context.Context, syncOnCellular bool) (err error) {
+	ctx context.Context, syncOnCellular bool,
+) (err error) {
 	defer func() {
 		k.log.CDebugf(ctx, "SimpleFSSetSyncOnCellular err=%+v", err)
 	}()
@@ -3468,7 +3551,8 @@ func (k *SimpleFS) SimpleFSSetSyncOnCellular(
 // SimpleFSSearch implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSearch(
 	ctx context.Context, arg keybase1.SimpleFSSearchArg) (
-	res keybase1.SimpleFSSearchResults, err error) {
+	res keybase1.SimpleFSSearchResults, err error,
+) {
 	if k.getIndexer() == nil {
 		return keybase1.SimpleFSSearchResults{},
 			errors.New("Indexing not enabled")
@@ -3499,7 +3583,8 @@ func (k *SimpleFS) SimpleFSResetIndex(ctx context.Context) error {
 
 // SimpleFSGetIndexProgress implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetIndexProgress(
-	ctx context.Context) (res keybase1.SimpleFSIndexProgress, err error) {
+	ctx context.Context,
+) (res keybase1.SimpleFSIndexProgress, err error) {
 	if k.getIndexer() == nil {
 		return keybase1.SimpleFSIndexProgress{}, errors.New(
 			"Indexing not enabled")
@@ -3557,37 +3642,43 @@ func (k *SimpleFS) SimpleFSGetIndexProgress(
 
 // SimpleFSMakeTempDirForUpload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSMakeTempDirForUpload(
-	ctx context.Context) (dirPath string, err error) {
+	ctx context.Context,
+) (dirPath string, err error) {
 	return k.getUploadManager().makeTempDir()
 }
 
 // SimpleFSStartUpload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSStartUpload(ctx context.Context,
-	arg keybase1.SimpleFSStartUploadArg) (uploadID string, err error) {
+	arg keybase1.SimpleFSStartUploadArg,
+) (uploadID string, err error) {
 	return k.getUploadManager().start(ctx, arg.SourceLocalPath, arg.TargetParentPath)
 }
 
 // SimpleFSGetUploadStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetUploadStatus(
-	ctx context.Context) (status []keybase1.UploadState, err error) {
+	ctx context.Context,
+) (status []keybase1.UploadState, err error) {
 	return k.getUploadManager().getUploads(), nil
 }
 
 // SimpleFSCancelUpload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSCancelUpload(
-	ctx context.Context, uploadID string) (err error) {
+	ctx context.Context, uploadID string,
+) (err error) {
 	return k.getUploadManager().cancel(ctx, uploadID)
 }
 
 // SimpleFSDismissUpload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSDismissUpload(
-	ctx context.Context, uploadID string) (err error) {
+	ctx context.Context, uploadID string,
+) (err error) {
 	return k.getUploadManager().dismiss(uploadID)
 }
 
 // SimpleFSCancelJournalUploads implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSCancelJournalUploads(
-	ctx context.Context, path keybase1.KBFSPath) (err error) {
+	ctx context.Context, path keybase1.KBFSPath,
+) (err error) {
 	wrappedPath := keybase1.NewPathWithKbfs(path)
 	ctx, err = populateIdentifyBehaviorIfNeeded(ctx, &wrappedPath, nil)
 	if err != nil {
@@ -3677,7 +3768,8 @@ func parseKbfsPathForGitRepo(kbfsPath keybase1.KBFSPath) (gitRepo string, repoNa
 
 // SimpleFSArchiveStart implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
-	arg keybase1.SimpleFSArchiveStartArg) (jobDesc keybase1.SimpleFSArchiveJobDesc, err error) {
+	arg keybase1.SimpleFSArchiveStartArg,
+) (jobDesc keybase1.SimpleFSArchiveJobDesc, err error) {
 	ctx = k.makeContext(ctx)
 
 	desc := keybase1.SimpleFSArchiveJobDesc{
@@ -3771,14 +3863,16 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 
 // SimpleFSArchiveCancelOrDismissJob implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSArchiveCancelOrDismissJob(ctx context.Context,
-	jobID string) (err error) {
+	jobID string,
+) (err error) {
 	ctx = k.makeContext(ctx)
 	return k.getArchiveManager().cancelOrDismissJob(ctx, jobID)
 }
 
 func (k *SimpleFS) getCurrentTLFRevision(
 	ctx context.Context, kbfsPath keybase1.KBFSPath) (
-	keybase1.KBFSRevision, error) {
+	keybase1.KBFSRevision, error,
+) {
 	fb, _, err := k.getFolderBranchFromPath(ctx,
 		keybase1.NewPathWithKbfs(kbfsPath))
 	if err != nil {
@@ -3796,7 +3890,8 @@ func (k *SimpleFS) getCurrentTLFRevision(
 
 // SimpleFSArchiveCheckArchive implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSArchiveCheckArchive(ctx context.Context,
-	archiveZipFilePath string) (result keybase1.SimpleFSArchiveCheckArchiveResult, err error) {
+	archiveZipFilePath string,
+) (result keybase1.SimpleFSArchiveCheckArchiveResult, err error) {
 	ctx = k.makeContext(ctx)
 	result.Desc, result.PathsWithIssues, err = k.getArchiveManager().checkArchive(ctx, archiveZipFilePath)
 	if err != nil {
@@ -3812,7 +3907,8 @@ func (k *SimpleFS) SimpleFSArchiveCheckArchive(ctx context.Context,
 
 func (k *SimpleFS) archiveStateToStatus(ctx context.Context,
 	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) (
-	status keybase1.SimpleFSArchiveStatus, err error) {
+	status keybase1.SimpleFSArchiveStatus, err error,
+) {
 	status = keybase1.SimpleFSArchiveStatus{
 		LastUpdated: state.LastUpdated,
 		Jobs:        make([]keybase1.SimpleFSArchiveJobStatus, 0, len(state.Jobs)),
@@ -3854,7 +3950,8 @@ func (k *SimpleFS) archiveStateToStatus(ctx context.Context,
 
 // SimpleFSGetArchiveStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
-	status keybase1.SimpleFSArchiveStatus, err error) {
+	status keybase1.SimpleFSArchiveStatus, err error,
+) {
 	ctx = k.makeContext(ctx)
 	state, errorStates := k.getArchiveManager().getCurrentState(ctx)
 	return k.archiveStateToStatus(ctx, state, errorStates)
@@ -3881,7 +3978,8 @@ func (k *SimpleFS) SimpleFSGetArchiveJobFreshness(ctx context.Context, jobID str
 // SimpleFSArchiveAllFiles implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSArchiveAllFiles(
 	ctx context.Context, arg keybase1.SimpleFSArchiveAllFilesArg) (
-	res keybase1.SimpleFSArchiveAllFilesResult, err error) {
+	res keybase1.SimpleFSArchiveAllFilesResult, err error,
+) {
 	var startArgs []keybase1.SimpleFSArchiveStartArg
 	{
 		fl, err := k.favoriteList(ctx, tlf.Private)
@@ -3969,7 +4067,8 @@ func (k *SimpleFS) getAllGitMetadata(ctx context.Context) (res []keybase1.GitRep
 // SimpleFSArchiveAllGitRepos implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSArchiveAllGitRepos(
 	ctx context.Context, arg keybase1.SimpleFSArchiveAllGitReposArg) (
-	res keybase1.SimpleFSArchiveAllGitReposResult, err error) {
+	res keybase1.SimpleFSArchiveAllGitReposResult, err error,
+) {
 	allGitMetadataResult, err := k.getAllGitMetadata(ctx)
 	if err != nil {
 		return keybase1.SimpleFSArchiveAllGitReposResult{}, err
@@ -4027,7 +4126,8 @@ func (k *SimpleFS) SimpleFSArchiveAllGitRepos(
 }
 
 func (k *SimpleFS) notifyUIArchiveStateChange(ctx context.Context,
-	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) {
+	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState,
+) {
 	ks := k.config.KeybaseService()
 	if ks == nil {
 		k.log.CWarningf(ctx,

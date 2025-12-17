@@ -1,10 +1,11 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestLoginOneshot(t *testing.T) {
@@ -63,7 +64,6 @@ func TestLoginOneshot(t *testing.T) {
 	err = m.LogoutAndDeprovisionIfRevoked()
 	require.NoError(t, err)
 	testSign(t, tc2)
-
 }
 
 // Test for the case that we hit, where a user has a regular keybase service + electron running,

@@ -46,7 +46,6 @@ func (c context) promptInput(update updater.Update, options updater.UpdateOption
 }
 
 func (c context) updatePrompt(promptProgram command.Program, update updater.Update, options updater.UpdateOptions, promptOptions updater.UpdatePromptOptions, timeout time.Duration) (*updater.UpdatePromptResponse, error) {
-
 	promptJSONInput, err := c.promptInput(update, options, promptOptions)
 	if err != nil {
 		return nil, fmt.Errorf("Error generating input: %s", err)

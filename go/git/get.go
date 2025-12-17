@@ -89,7 +89,6 @@ func folderFromTeamIDNamed(ctx context.Context, g *libkb.GlobalContext, teamID k
 
 // folderFromTeamIDImplicit converts from a teamID for implicit teams
 func folderFromTeamIDImplicit(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (keybase1.FolderHandle, error) {
-
 	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
 		ID:     teamID,
 		Public: teamID.IsPublic(),
@@ -207,8 +206,8 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 
 // if skip is true the other return values are nil
 func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
-	folder *keybase1.FolderHandle, responseRepo ServerResponseRepo) (info *keybase1.GitRepoInfo, skip bool, err error) {
-
+	folder *keybase1.FolderHandle, responseRepo ServerResponseRepo,
+) (info *keybase1.GitRepoInfo, skip bool, err error) {
 	cryptoer := NewCrypto(g)
 
 	// If the folder was passed in, use it. Otherwise, load the team to

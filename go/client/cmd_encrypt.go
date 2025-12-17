@@ -66,7 +66,8 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		cli.BoolFlag{
 			Name: "no-self-encrypt",
 			Usage: `Don't encrypt for yourself. This flag is ignored if encrypting
-	for teams, where we don't encrypt for self by default.`},
+	for teams, where we don't encrypt for self by default.`,
+		},
 		cli.BoolFlag{
 			Name: "include-device-keys",
 			Usage: `Use the device keys of all the user recipients and members of
@@ -83,7 +84,8 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		cli.BoolFlag{
 			Name: "include-self-encrypt",
 			Usage: `Do encrypt for yourself. This flag is accepted if encrypting for
-	teams, where we don't encrypt for self by default.`},
+	teams, where we don't encrypt for self by default.`,
+		},
 		cli.StringFlag{
 			Name:  "auth-type",
 			Value: "signed",

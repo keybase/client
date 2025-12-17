@@ -74,7 +74,8 @@ var testMetadataVers = []kbfsmd.MetadataVer{
 // runTestOverMetadataVers runs the given test function over all
 // metadata versions to test.
 func runTestOverMetadataVers(
-	t *testing.T, f func(t *testing.T, ver kbfsmd.MetadataVer)) {
+	t *testing.T, f func(t *testing.T, ver kbfsmd.MetadataVer),
+) {
 	for _, ver := range testMetadataVers {
 		ver := ver // capture range variable.
 		t.Run(ver.String(), func(t *testing.T) {
@@ -88,7 +89,8 @@ func runTestOverMetadataVers(
 // runBenchmarkOverMetadataVers runs the given benchmark function over
 // all metadata versions to test.
 func runBenchmarkOverMetadataVers(
-	b *testing.B, f func(b *testing.B, ver kbfsmd.MetadataVer)) {
+	b *testing.B, f func(b *testing.B, ver kbfsmd.MetadataVer),
+) {
 	for _, ver := range testMetadataVers {
 		ver := ver // capture range variable.
 		b.Run(ver.String(), func(b *testing.B) {
@@ -98,7 +100,8 @@ func runBenchmarkOverMetadataVers(
 }
 
 func runOneTestOrBenchmark(
-	tb testing.TB, ver kbfsmd.MetadataVer, actions ...optionOp) {
+	tb testing.TB, ver kbfsmd.MetadataVer, actions ...optionOp,
+) {
 	o := &opt{
 		ver:    ver,
 		tb:     tb,
@@ -185,7 +188,8 @@ func (o *opt) runInitOnce() {
 }
 
 func (o *opt) makeStallers() (
-	stallers map[kbname.NormalizedUsername]*libkbfs.NaïveStaller) {
+	stallers map[kbname.NormalizedUsername]*libkbfs.NaïveStaller,
+) {
 	stallers = make(map[kbname.NormalizedUsername]*libkbfs.NaïveStaller)
 	for username, user := range o.users {
 		stallers[username] = o.engine.MakeNaïveStaller(user)
@@ -263,7 +267,8 @@ func users(ns ...username) optionOp {
 }
 
 func team(teamName kbname.NormalizedUsername, writers string,
-	readers string) optionOp {
+	readers string,
+) optionOp {
 	return func(o *opt) {
 		if o.ver < kbfsmd.SegregatedKeyBundlesVer {
 			o.tb.Skip("mdv2 doesn't support teams")
@@ -312,8 +317,7 @@ func implicitTeam(writers string, readers string) optionOp {
 			teamName = tlf.MakeCanonicalName(
 				writerNames, nil, readerNames, nil, nil)
 		}
-		o.implicitTeams[kbname.NormalizedUsername(teamName)] =
-			teamMembers{writerNames, readerNames}
+		o.implicitTeams[kbname.NormalizedUsername(teamName)] = teamMembers{writerNames, readerNames}
 	}
 }
 
@@ -408,8 +412,7 @@ func addNewAssertion(oldAssertion, newAssertion string) optionOp {
 
 func changeTeamName(oldName, newName string) optionOp {
 	return func(o *opt) {
-		o.teams[kbname.NormalizedUsername(newName)] =
-			o.teams[kbname.NormalizedUsername(oldName)]
+		o.teams[kbname.NormalizedUsername(newName)] = o.teams[kbname.NormalizedUsername(oldName)]
 		delete(o.teams, kbname.NormalizedUsername(oldName))
 		o.tb.Logf("changeTeamName: %q -> %q", oldName, newName)
 		for _, u := range o.users {
@@ -683,6 +686,7 @@ func truncate(name string, size uint64) fileOp {
 func read(name string, contents string) fileOp {
 	return preadBS(name, []byte(contents), 0)
 }
+
 func preadBS(name string, contents []byte, at int64) fileOp {
 	return fileOp{func(c *ctx) error {
 		file, _, err := c.getNode(name, noCreate, resolveAllSyms)
@@ -709,6 +713,7 @@ func exists(filename string) fileOp {
 		return err
 	}, Defaults, fmt.Sprintf("exists(%s)", filename)}
 }
+
 func notExists(filename string) fileOp {
 	return fileOp{func(c *ctx) error {
 		_, _, err := c.getNode(filename, noCreate, resolveAllSyms)
@@ -1062,7 +1067,8 @@ type expectedEdit struct {
 }
 
 func checkUserEditHistoryWithSort(
-	expectedEdits []expectedEdit, doSort bool) fileOp {
+	expectedEdits []expectedEdit, doSort bool,
+) fileOp {
 	return fileOp{func(c *ctx) error {
 		history, err := c.engine.UserEditHistory(c.user)
 		if err != nil {
@@ -1251,7 +1257,8 @@ const (
 )
 
 func (c *ctx) getNode(filepath string, create createType, sym symBehavior) (
-	Node, bool, error) {
+	Node, bool, error,
+) {
 	if filepath == "" || filepath == "/" {
 		return c.rootNode, false, nil
 	}

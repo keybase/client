@@ -230,7 +230,8 @@ func (sm *subscriptionManager) unregisterForChangesLocked(fb data.FolderBranch) 
 
 func (sm *subscriptionManager) preparePathNotification(
 	ref pathSubscriptionRef) (sids []SubscriptionID,
-	paths []string, topics []keybase1.PathSubscriptionTopic) {
+	paths []string, topics []keybase1.PathSubscriptionTopic,
+) {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
 
@@ -256,7 +257,8 @@ func (sm *subscriptionManager) preparePathNotification(
 }
 
 func (sm *subscriptionManager) makePathSubscriptionDebouncedNotify(
-	ref pathSubscriptionRef, limit rate.Limit) *debouncedNotify {
+	ref pathSubscriptionRef, limit rate.Limit,
+) *debouncedNotify {
 	return debounce(func() {
 		sids, paths, topics := sm.preparePathNotification(ref)
 
@@ -267,7 +269,8 @@ func (sm *subscriptionManager) makePathSubscriptionDebouncedNotify(
 }
 
 func (sm *subscriptionManager) prepareNonPathNotification(
-	topic keybase1.SubscriptionTopic) (sids []SubscriptionID) {
+	topic keybase1.SubscriptionTopic,
+) (sids []SubscriptionID) {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
 	nps, ok := sm.nonPathSubscriptions[topic]
@@ -282,7 +285,8 @@ func (sm *subscriptionManager) prepareNonPathNotification(
 }
 
 func (sm *subscriptionManager) makeNonPathSubscriptionDebouncedNotify(
-	topic keybase1.SubscriptionTopic, limit rate.Limit) *debouncedNotify {
+	topic keybase1.SubscriptionTopic, limit rate.Limit,
+) *debouncedNotify {
 	return debounce(func() {
 		sids := sm.prepareNonPathNotification(topic)
 		sm.notifier.OnNonPathChange(sm.clientID, sids, topic)
@@ -298,7 +302,8 @@ type subscribePathRequest struct {
 
 func (sm *subscriptionManager) subscribePathWithFolderBranchLocked(
 	req subscribePathRequest,
-	parsedPath *parsedPath, fb data.FolderBranch) error {
+	parsedPath *parsedPath, fb data.FolderBranch,
+) error {
 	nitp := getCleanInTlfPath(parsedPath)
 	ref := pathSubscriptionRef{
 		folderBranch: fb,
@@ -339,7 +344,8 @@ func (sm *subscriptionManager) subscribePathWithFolderBranchLocked(
 }
 
 func (sm *subscriptionManager) cancelAndDeleteFolderBranchPollerLocked(
-	sid SubscriptionID) (deleted bool) {
+	sid SubscriptionID,
+) (deleted bool) {
 	if cancel, ok := sm.folderBranchPollerCancelers[sid]; ok {
 		cancel()
 		delete(sm.folderBranchPollerCancelers, sid)
@@ -349,14 +355,16 @@ func (sm *subscriptionManager) cancelAndDeleteFolderBranchPollerLocked(
 }
 
 func (sm *subscriptionManager) cancelAndDeleteFolderBranchPoller(
-	sid SubscriptionID) (deleted bool) {
+	sid SubscriptionID,
+) (deleted bool) {
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
 	return sm.cancelAndDeleteFolderBranchPollerLocked(sid)
 }
 
 func (sm *subscriptionManager) pollOnFolderBranchForSubscribePathRequest(
-	ctx context.Context, req subscribePathRequest, parsedPath *parsedPath) {
+	ctx context.Context, req subscribePathRequest, parsedPath *parsedPath,
+) {
 	ticker := time.NewTicker(folderBranchPollingInterval)
 	for {
 		select {
@@ -407,7 +415,8 @@ func (sm *subscriptionManager) pollOnFolderBranchForSubscribePathRequest(
 }
 
 func (sm *subscriptionManager) subscribePathWithoutFolderBranchLocked(
-	req subscribePathRequest, parsedPath *parsedPath) {
+	req subscribePathRequest, parsedPath *parsedPath,
+) {
 	ctx, cancel := context.WithCancel(context.Background())
 	sm.folderBranchPollerCancelers[req.sid] = cancel
 	go sm.pollOnFolderBranchForSubscribePathRequest(ctx, req, parsedPath)
@@ -416,7 +425,8 @@ func (sm *subscriptionManager) subscribePathWithoutFolderBranchLocked(
 // SubscribePath implements the SubscriptionManager interface.
 func (sm *subscriptionManager) SubscribePath(ctx context.Context,
 	sid SubscriptionID, path string, topic keybase1.PathSubscriptionTopic,
-	deduplicateInterval *time.Duration) error {
+	deduplicateInterval *time.Duration,
+) error {
 	parsedPath, err := parsePath(userPath(path))
 	if err != nil {
 		return err
@@ -458,7 +468,8 @@ func (sm *subscriptionManager) SubscribePath(ctx context.Context,
 // SubscribeNonPath implements the SubscriptionManager interface.
 func (sm *subscriptionManager) SubscribeNonPath(
 	ctx context.Context, sid SubscriptionID, topic keybase1.SubscriptionTopic,
-	deduplicateInterval *time.Duration) error {
+	deduplicateInterval *time.Duration,
+) error {
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
 	subscriptionIDSetter, err := sm.checkSubscriptionIDLocked(sid)
@@ -492,7 +503,8 @@ func (sm *subscriptionManager) SubscribeNonPath(
 }
 
 func (sm *subscriptionManager) unsubscribePathLocked(
-	ctx context.Context, subscriptionID SubscriptionID) {
+	ctx context.Context, subscriptionID SubscriptionID,
+) {
 	// First check if this is a subscription we don't yet have a folderBranch
 	// for.
 	if sm.cancelAndDeleteFolderBranchPollerLocked(subscriptionID) {
@@ -520,7 +532,8 @@ func (sm *subscriptionManager) unsubscribePathLocked(
 }
 
 func (sm *subscriptionManager) unsubscribeNonPathLocked(
-	ctx context.Context, subscriptionID SubscriptionID) {
+	ctx context.Context, subscriptionID SubscriptionID,
+) {
 	topic, ok := sm.nonPathSubscriptionIDToTopic[subscriptionID]
 	if !ok {
 		return
@@ -613,7 +626,8 @@ var _ Observer = (*subscriptionManager)(nil)
 
 // LocalChange implements the Observer interface.
 func (sm *subscriptionManager) LocalChange(ctx context.Context,
-	node Node, write WriteRange) {
+	node Node, write WriteRange,
+) {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
 	// TODO HOTPOT-416: check topics
@@ -622,7 +636,8 @@ func (sm *subscriptionManager) LocalChange(ctx context.Context,
 
 // BatchChanges implements the Observer interface.
 func (sm *subscriptionManager) BatchChanges(ctx context.Context,
-	changes []NodeChange, allAffectedNodeIDs []NodeID) {
+	changes []NodeChange, allAffectedNodeIDs []NodeID,
+) {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
 	// TODO HOTPOT-416: check topics
@@ -664,7 +679,8 @@ func (smm *subscriptionManagerManager) Shutdown(ctx context.Context) {
 
 func (smm *subscriptionManagerManager) get(
 	clientID SubscriptionManagerClientID, purgeable bool,
-	notifier SubscriptionNotifier) *subscriptionManager {
+	notifier SubscriptionNotifier,
+) *subscriptionManager {
 	smm.lock.RLock()
 	sm, ok := smm.subscriptionManagers[clientID]
 	smm.lock.RUnlock()

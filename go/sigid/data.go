@@ -5726,6 +5726,7 @@ var legacyHashPrefixes16 = [...]uint16{
 	0xfff6,
 	0xfffb,
 }
+
 var legacyHashPrefixes24 = [...]byte{
 	0x00, 0x02, 0x12,
 	0x00, 0x07, 0x47,
@@ -15793,6 +15794,7 @@ var legacyHashPrefixes24 = [...]byte{
 	0xff, 0xfd, 0xff,
 	0xff, 0xfe, 0x3c,
 }
+
 var legacyHashPrefixes32 = [...]uint32{
 	0x018a815b,
 	0x0231d775,

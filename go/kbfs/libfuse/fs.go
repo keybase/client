@@ -84,7 +84,8 @@ func makeTraceHandler(renderFn func(http.ResponseWriter, *http.Request, bool)) f
 // NewFS creates an FS. Note that this isn't the only constructor; see
 // makeFS in libfuse/mount_test.go.
 func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool,
-	platformParams PlatformParams) *FS {
+	platformParams PlatformParams,
+) *FS {
 	log := config.MakeLogger("kbfsfuse")
 	// We need extra depth for errors, so that we can report the line
 	// number for the caller of processError, not processError itself.
@@ -213,8 +214,7 @@ func (f *FS) enableDebugServer(ctx context.Context, port uint16) error {
 	}
 
 	f.debugServer.Addr = addr
-	f.debugServerListener =
-		tcpKeepAliveListener{listener.(*net.TCPListener)}
+	f.debugServerListener = tcpKeepAliveListener{listener.(*net.TCPListener)}
 
 	// This seems racy because the spawned goroutine may be
 	// scheduled to run after disableDebugServer is called. But
@@ -321,9 +321,7 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 			}
 
 			return ctx
-
 		}))
-
 	if err != nil {
 		panic(err) // this should never happen
 	}
@@ -361,7 +359,8 @@ var _ fs.FS = (*FS)(nil)
 var _ fs.FSStatfser = (*FS)(nil)
 
 func (f *FS) processError(ctx context.Context,
-	mode libkbfs.ErrorModeType, err error) error {
+	mode libkbfs.ErrorModeType, err error,
+) error {
 	if err == nil {
 		f.errVlog.CLogf(ctx, libkb.VLog1, "Request complete")
 		return nil
@@ -465,7 +464,7 @@ func (*Root) Access(ctx context.Context, r *fuse.AccessRequest) error {
 		return fuse.EPERM
 	}
 
-	if r.Mask&02 != 0 {
+	if r.Mask&0o2 != 0 {
 		return fuse.EPERM
 	}
 
@@ -476,7 +475,7 @@ var _ fs.Node = (*Root)(nil)
 
 // Attr implements the fs.Node interface for Root.
 func (*Root) Attr(ctx context.Context, a *fuse.Attr) error {
-	a.Mode = os.ModeDir | 0500
+	a.Mode = os.ModeDir | 0o500
 	a.Inode = 1
 	return nil
 }
@@ -596,7 +595,8 @@ var _ fs.NodeSymlinker = (*Root)(nil)
 
 // Symlink implements the fs.NodeSymlinker interface for Root.
 func (r *Root) Symlink(
-	_ context.Context, _ *fuse.SymlinkRequest) (fs.Node, error) {
+	_ context.Context, _ *fuse.SymlinkRequest,
+) (fs.Node, error) {
 	return nil, fuse.ENOTSUP
 }
 
@@ -604,13 +604,15 @@ var _ fs.NodeLinker = (*Root)(nil)
 
 // Link implements the fs.NodeLinker interface for Root.
 func (r *Root) Link(
-	_ context.Context, _ *fuse.LinkRequest, _ fs.Node) (fs.Node, error) {
+	_ context.Context, _ *fuse.LinkRequest, _ fs.Node,
+) (fs.Node, error) {
 	return nil, fuse.ENOTSUP
 }
 
 func (r *Root) log() logger.Logger {
 	return r.private.fs.log
 }
+
 func (r *Root) openFileCount() (ret int64) {
 	ret += r.private.openFileCount()
 	ret += r.public.openFileCount()

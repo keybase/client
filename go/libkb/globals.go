@@ -554,7 +554,6 @@ func (g *GlobalContext) ConfigureAPI() error {
 // in them. It can be called from either configureMemCachesLocked (via logout or flush),
 // or via Shutdown. In either case, callers must hold g.cacheMu.
 func (g *GlobalContext) shutdownCachesLocked() {
-
 	// shutdown and nil out any existing caches.
 	if g.trackCache != nil {
 		g.trackCache.Shutdown()
@@ -595,7 +594,6 @@ func (g *GlobalContext) LinkCache() *LinkCache {
 }
 
 func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
-
 	g.shutdownCachesLocked()
 
 	g.IDLocktab = NewLockTable()

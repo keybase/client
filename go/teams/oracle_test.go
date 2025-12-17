@@ -12,7 +12,8 @@ import (
 )
 
 func encryptWithTeamKey(t *testing.T, team *Team, data []byte, nonce [24]byte,
-	gen keybase1.PerTeamKeyGeneration) (ciphertext []byte, pubkey libkb.NaclDHKeyPublic) {
+	gen keybase1.PerTeamKeyGeneration,
+) (ciphertext []byte, pubkey libkb.NaclDHKeyPublic) {
 	kp, err := team.encryptionKeyAtGen(context.Background(), gen)
 	require.NoError(t, err)
 	ciphertext = box.Seal(nil, data, &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(kp.Private))

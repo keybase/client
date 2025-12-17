@@ -14,6 +14,7 @@ var _ libkb.ChatUI = (*NullChatUI)(nil)
 func (u NullChatUI) ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error {
 	return nil
 }
+
 func (u NullChatUI) ChatInboxConversation(context.Context, chat1.ChatInboxConversationArg) error {
 	return nil
 }
@@ -34,6 +35,7 @@ func (u NullChatUI) ChatSearchInboxStart(context.Context) error { return nil }
 func (u NullChatUI) ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error {
 	return nil
 }
+
 func (u NullChatUI) ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error {
 	return nil
 }
@@ -44,14 +46,17 @@ func (u NullChatUI) ChatStellarShowConfirm(context.Context) error               
 func (u NullChatUI) ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error) {
 	return false, nil
 }
+
 func (u NullChatUI) ChatStellarDataError(context.Context, keybase1.Status) (bool, error) {
 	return false, nil
 }
 func (u NullChatUI) ChatStellarDone(context.Context, bool) error { return nil }
 func (u NullChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
-	results chat1.GiphySearchResults) error {
+	results chat1.GiphySearchResults,
+) error {
 	return nil
 }
+
 func (u NullChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show, clearInput bool) error {
 	return nil
 }
@@ -60,6 +65,7 @@ func (u NullChatUI) ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus
 func (u NullChatUI) ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error {
 	return nil
 }
+
 func (u NullChatUI) ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error {
 	return nil
 }
@@ -69,9 +75,11 @@ func (u NullChatUI) ChatWatchPosition(context.Context, chat1.ConversationID, cha
 }
 func (u NullChatUI) ChatClearWatch(context.Context, chat1.LocationWatchID) error { return nil }
 func (u NullChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string, chat1.UICommandStatusDisplayTyp,
-	[]chat1.UICommandStatusActionTyp) error {
+	[]chat1.UICommandStatusActionTyp,
+) error {
 	return nil
 }
+
 func (u NullChatUI) ChatBotCommandsUpdateStatus(context.Context, chat1.ConversationID, chat1.UIBotCommandsUpdateStatus) error {
 	return nil
 }

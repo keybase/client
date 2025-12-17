@@ -123,17 +123,21 @@ type ChainLinkUnpacked struct {
 }
 
 // A template for some of the reasons in badChainLinks below.
-const badAkalin = "Link %d of akalin's sigchain, which was accidentally added by an old client in development on 23 Mar 2015 20:02 GMT."
-const badJamGregory = "Link %d of jamgregory's sigchain, which had a bad PGP keypin"
-const badDens = "Link 8 of dens's sigchain, which signs in a revoked PGP key"
-const badAjar = "Link 98 of ajar's sigchain allowed a PGP update with a broken PGP key"
-const badJaccarmac = "Link 46 of jaccarmac's sigchain, which signs in a revoked PGP key (key later removed in link 46)"
+const (
+	badAkalin     = "Link %d of akalin's sigchain, which was accidentally added by an old client in development on 23 Mar 2015 20:02 GMT."
+	badJamGregory = "Link %d of jamgregory's sigchain, which had a bad PGP keypin"
+	badDens       = "Link 8 of dens's sigchain, which signs in a revoked PGP key"
+	badAjar       = "Link 98 of ajar's sigchain allowed a PGP update with a broken PGP key"
+	badJaccarmac  = "Link 46 of jaccarmac's sigchain, which signs in a revoked PGP key (key later removed in link 46)"
+)
 
-const akalin = keybase1.UID("ebbe1d99410ab70123262cf8dfc87900")
-const jamGregory = keybase1.UID("e8767e19a3ed9c7350847b7b040de319")
-const dens = keybase1.UID("ca9e948f6f7a4a19e02058ad626f6c19")
-const ajar = keybase1.UID("d1d94b3131e493dfee738802843f7719")
-const jaccarmac = keybase1.UID("bfd01fc0a2d5ee0462aaa3c598210b00")
+const (
+	akalin     = keybase1.UID("ebbe1d99410ab70123262cf8dfc87900")
+	jamGregory = keybase1.UID("e8767e19a3ed9c7350847b7b040de319")
+	dens       = keybase1.UID("ca9e948f6f7a4a19e02058ad626f6c19")
+	ajar       = keybase1.UID("d1d94b3131e493dfee738802843f7719")
+	jaccarmac  = keybase1.UID("bfd01fc0a2d5ee0462aaa3c598210b00")
+)
 
 type SpecialChainLink struct {
 	UID    keybase1.UID
@@ -632,7 +636,6 @@ func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSki
 }
 
 func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte, linkID LinkID) error {
-
 	if !isJSONObject(payload, linkID) {
 		return ChainLinkError{"chain link is not a valid JSON object as expected; found leading junk"}
 	}
@@ -1012,7 +1015,6 @@ func (tmp *ChainLinkUnpacked) assertPayloadSigVersionMatchesHint(payload []byte)
 }
 
 func (c *ChainLink) CheckNameAndID(s NormalizedUsername, i keybase1.UID) error {
-
 	// We can't check name and ID if we have compacted chain link with no
 	// payload JSON
 	if c.IsStubbed() {
@@ -1030,7 +1032,6 @@ func (c *ChainLink) CheckNameAndID(s NormalizedUsername, i keybase1.UID) error {
 				c.unpacked.username, s, c.id))
 	}
 	return nil
-
 }
 
 func ComputeLinkID(d []byte) LinkID {
@@ -1152,7 +1153,6 @@ func isJSONObject(payload []byte, linkID LinkID) bool {
 }
 
 func inferSigVersion(payload []byte, linkID LinkID) SigVersion {
-
 	// Version 1 payloads are JSON and must start with an opening '{'
 	if isJSONObject(payload, linkID) {
 		return KeybaseSignatureV1
@@ -1201,7 +1201,6 @@ func (c *ChainLink) getSigPayload() ([]byte, error) {
 }
 
 func (c *ChainLink) verifyPayloadV2() error {
-
 	if c.payloadVerified {
 		return nil
 	}
@@ -1487,7 +1486,6 @@ func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret key
 }
 
 func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
-
 	m.VLogf(VLog1, "| Storing Link %s...", c.id)
 	if c.storedLocally && !c.dirty {
 		m.VLogf(VLog1, "| Bailed on link %s since wasn't dirty...", c.id)
@@ -1525,6 +1523,7 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 func (c *ChainLink) GetPGPFingerprint() *PGPFingerprint {
 	return c.unpacked.pgpFingerprint
 }
+
 func (c *ChainLink) GetKID() keybase1.KID {
 	return c.unpacked.kid
 }

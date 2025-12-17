@@ -107,9 +107,9 @@ func ProofUserAgent() string {
 }
 
 const (
-	PermFile          os.FileMode = 0600
-	PermDir           os.FileMode = 0700
-	UmaskablePermFile os.FileMode = 0666
+	PermFile          os.FileMode = 0o600
+	PermDir           os.FileMode = 0o700
+	UmaskablePermFile os.FileMode = 0o666
 )
 
 const (
@@ -172,10 +172,12 @@ var MerkleProdKIDs = []string{
 	"010159baae6c7d43c66adf8fb7bb2b8b4cbe408c062cfc369e693ccb18f85631dbcd0a",
 	"01209ec31411b9b287f62630c2486005af27548ba62a59bbc802e656b888991a20230a",
 }
+
 var MerkleTestKIDs = []string{
 	"0101be58b6c82db64f6ccabb05088db443c69f87d5d48857d709ed6f73948dabe67d0a",
 	"0120328031cf9d2a6108036408aeb3646b8985f7f8ff1a8e635e829d248a48b1014d0a",
 }
+
 var MerkleStagingKIDs = []string{
 	"0101bed85ce72cc315828367c28b41af585b6b7d95646a62ca829691d70f49184fa70a",
 	"01202e045e19e8d68ddd3d1582113bfd397f244f0529025ad8ccad7f0397e13d69c60a",
@@ -189,8 +191,11 @@ var CodeSigningProdKIDs = []string{
 	"0120f2f55c76151b3eaf91d20dfb673d8591d8b49fd5cb210a10f6e0dd8724bf34f30a", // mike (lisa-5k-redux)
 	"0120deaa8ae7d06ea9aa49cc678ec49f2b1e1dddb63683e384db539a8649c47925f90a", // winbot (device)
 }
-var CodeSigningTestKIDs = []string{}
-var CodeSigningStagingKIDs = []string{}
+
+var (
+	CodeSigningTestKIDs    = []string{}
+	CodeSigningStagingKIDs = []string{}
+)
 
 // SigVersion describes how the signature is computed. In signatures v1, the payload is a JSON
 // blob. In Signature V2, it's a Msgpack wrapper that points via SHA256 to the V1 blob.
@@ -391,8 +396,10 @@ const (
 	MerkleTreeLeaf = 2
 )
 
-type LinkType string
-type DelegationType LinkType
+type (
+	LinkType       string
+	DelegationType LinkType
+)
 
 const (
 	LinkTypeAuthentication    LinkType = "auth"
@@ -729,17 +736,21 @@ const noiseFileLen = 1024 * 1024 * 2
 
 // NOTE if you change these values you should change them in
 // go/chatbase/storage/ephemeral.go as well.
-const MaxEphemeralContentLifetime = time.Hour * 24 * 7
-const MinEphemeralContentLifetime = time.Second * 30
+const (
+	MaxEphemeralContentLifetime = time.Hour * 24 * 7
+	MinEphemeralContentLifetime = time.Second * 30
+)
 
 // NOTE: If you change this value you should change it in lib/constants.iced
 // and go/ekreaperd/reaper.go as well.
 // Devices are considered stale and not included in new keys after this interval
-const MaxEphemeralKeyStaleness = time.Hour * 24 * 38 // 1.25 months
-// Everyday we want to generate a new key if possible
-const EphemeralKeyGenInterval = time.Hour * 24 // one day
-// Our keys must last at least this long.
-const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInterval
+const (
+	MaxEphemeralKeyStaleness = time.Hour * 24 * 38 // 1.25 months
+	// Everyday we want to generate a new key if possible
+	EphemeralKeyGenInterval = time.Hour * 24 // one day
+	// Our keys must last at least this long.
+	MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInterval
+)
 
 const MaxTeamMembersForPairwiseMAC = 100
 

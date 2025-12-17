@@ -1229,7 +1229,8 @@ func TestLoaderCORE_10487(t *testing.T) {
 				keybase1.PerTeamKeyGeneration(1): {
 					keybase1.TeamApplication_KBFS,
 				},
-			}}, true)
+			},
+		}, true)
 	// When the bug was in place, this produced:
 	// "You don't have access to KBFS for this team libkb.KeyMaskNotFoundError"
 	require.NoError(t, err)

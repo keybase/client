@@ -85,7 +85,6 @@ func ShortCA(raw string) string {
 func genClientConfigForInternalAPI(g *GlobalContext) (*ClientConfig, error) {
 	e := g.Env
 	serverURI, err := e.GetServerURI()
-
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +276,8 @@ type InstrumentedBody struct {
 var _ io.ReadCloser = (*InstrumentedBody)(nil)
 
 func NewInstrumentedBody(mctx MetaContext, record *rpc.NetworkInstrumenter, body io.ReadCloser, uncompressed bool,
-	gzipGetter func(io.Writer) (*gzip.Writer, func())) *InstrumentedBody {
+	gzipGetter func(io.Writer) (*gzip.Writer, func()),
+) *InstrumentedBody {
 	return &InstrumentedBody{
 		MetaContextified: NewMetaContextified(mctx),
 		record:           record,

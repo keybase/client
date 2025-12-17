@@ -39,7 +39,6 @@ func getEnv(k string) (val string, err error) {
 }
 
 func unTriplesec(key []byte, ciphertext []byte) (ret []byte, err error) {
-
 	if len(ciphertext) < 28 {
 		return nil, fmt.Errorf("encrypted data must be at least 28 bytes long")
 	}

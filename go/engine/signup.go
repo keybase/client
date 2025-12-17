@@ -195,7 +195,6 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 }
 
 func (s *SignupEngine) doGPG(m libkb.MetaContext) error {
-
 	if s.arg.SkipGPG {
 		return nil
 	}

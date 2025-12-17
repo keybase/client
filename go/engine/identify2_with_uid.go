@@ -271,8 +271,10 @@ type Identify2WithUID struct {
 	trackBreaks *keybase1.IdentifyTrackBreaks
 }
 
-var _ (Engine2) = (*Identify2WithUID)(nil)
-var _ (libkb.CheckCompletedListener) = (*Identify2WithUID)(nil)
+var (
+	_ (Engine2)                      = (*Identify2WithUID)(nil)
+	_ (libkb.CheckCompletedListener) = (*Identify2WithUID)(nil)
+)
 
 // Name is the unique engine name.
 func (e *Identify2WithUID) Name() string {
@@ -296,7 +298,6 @@ func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
 }
 
 func (e *Identify2WithUID) resetError(m libkb.MetaContext, inErr error) (outErr error) {
-
 	defer m.Trace(fmt.Sprintf("Identify2WithUID#resetError(%s)", libkb.ErrToOk(inErr)), &outErr)()
 
 	if inErr == nil {
@@ -319,7 +320,6 @@ func (e *Identify2WithUID) resetError(m libkb.MetaContext, inErr error) (outErr 
 
 // Run then engine
 func (e *Identify2WithUID) Run(m libkb.MetaContext) (err error) {
-
 	m = m.WithLogTag("ID2")
 
 	n := fmt.Sprintf("Identify2WithUID#Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
@@ -402,7 +402,6 @@ func (e *Identify2WithUID) run(m libkb.MetaContext) {
 }
 
 func (e *Identify2WithUID) hitFastCache(m libkb.MetaContext) bool {
-
 	if !e.allowCaching() {
 		m.Debug("| missed fast cache: no caching allowed")
 		return false
@@ -423,7 +422,6 @@ func (e *Identify2WithUID) hitFastCache(m libkb.MetaContext) bool {
 }
 
 func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
-
 	defer m.Trace("Identify2WithUID#untrackedFastPath", nil)()
 
 	if !e.arg.IdentifyBehavior.CanUseUntrackedFastPath() {
@@ -480,7 +478,6 @@ func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 }
 
 func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
-
 	m.Debug("+ acquire singleflight lock for %s", e.arg.Uid)
 	lock, err := m.G().IDLocktab.AcquireOnNameWithContext(m.Ctx(), m.G(), e.arg.Uid.String())
 	if err != nil {
@@ -634,7 +631,6 @@ func (e *Identify2WithUID) exportToResult(m libkb.MetaContext) (*keybase1.Identi
 }
 
 func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
-
 	isOK := e.state.Result().IsOK()
 	canCacheFailures := e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks()
 
@@ -793,7 +789,6 @@ func (e *Identify2WithUID) useRemoteAssertions() bool {
 }
 
 func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
-
 	keyDiffDisplayHook := func(k keybase1.IdentifyKey) error {
 		e.identifyKeys = append(e.identifyKeys, k)
 		return nil
@@ -1009,7 +1004,6 @@ func (e *Identify2WithUID) loadUserOpts(arg libkb.LoadUserArg) libkb.LoadUserArg
 }
 
 func (e *Identify2WithUID) loadMe(m libkb.MetaContext, uid keybase1.UID) (err error) {
-
 	// Short circuit loadMe for testing
 	if e.testArgs != nil && e.testArgs.noMe {
 		return nil
@@ -1097,7 +1091,6 @@ func (e *Identify2WithUID) checkFastCacheHit(m libkb.MetaContext) (hit bool) {
 		return libkb.Identify2CacheShortTimeout
 	}
 	u, err := e.getCache().Get(e.arg.Uid, fn, dfn, e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks())
-
 	if err != nil {
 		m.Debug("| fast cache error for %s: %s", e.arg.Uid, err)
 	}

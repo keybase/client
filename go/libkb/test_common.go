@@ -133,7 +133,6 @@ func (tc *TestContext) Logout() error {
 }
 
 func (tc TestContext) MoveGpgKeyringTo(dst TestContext) error {
-
 	mv := func(f string) (err error) {
 		return os.Rename(path.Join(tc.Tp.GPGHome, f), filepath.Join(dst.Tp.GPGHome, f))
 	}
@@ -409,42 +408,55 @@ func (n *nullui) GetDumbOutputUI() DumbOutputUI {
 func (n *nullui) GetIdentifyUI() IdentifyUI {
 	return nil
 }
+
 func (n *nullui) GetIdentifyTrackUI() IdentifyUI {
 	return nil
 }
+
 func (n *nullui) GetLoginUI() LoginUI {
 	return nil
 }
+
 func (n *nullui) GetTerminalUI() TerminalUI {
 	return nil
 }
+
 func (n *nullui) GetSecretUI() SecretUI {
 	return nil
 }
+
 func (n *nullui) GetProveUI() ProveUI {
 	return nil
 }
+
 func (n *nullui) GetGPGUI() GPGUI {
 	return nil
 }
+
 func (n *nullui) GetLogUI() LogUI {
 	return n.gctx.Log
 }
+
 func (n *nullui) GetPgpUI() PgpUI {
 	return nil
 }
+
 func (n *nullui) GetProvisionUI(KexRole) ProvisionUI {
 	return nil
 }
+
 func (n *nullui) Prompt(string, bool, Checker) (string, error) {
 	return "", nil
 }
+
 func (n *nullui) PromptForConfirmation(prompt string) error {
 	return nil
 }
+
 func (n *nullui) Configure() error {
 	return nil
 }
+
 func (n *nullui) Shutdown() error {
 	return nil
 }
@@ -556,7 +568,8 @@ func (f *FakeGregorState) State(_ context.Context) (gregor.State, error) {
 }
 
 func (f *FakeGregorState) UpdateCategory(ctx context.Context, cat string, body []byte,
-	dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
+	dtime gregor1.TimeOrOffset,
+) (gregor1.MsgID, error) {
 	return gregor1.MsgID{}, nil
 }
 
@@ -627,7 +640,6 @@ func (t TestUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g UIDMappe
 }
 
 func (t TestUIDMapper) SetTestingNoCachingMode(enabled bool) {
-
 }
 
 func (t TestUIDMapper) MapUIDsToUsernamePackagesOffline(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration) ([]UsernamePackage, error) {
@@ -714,7 +726,7 @@ func CreateReadOnlySecretStoreDir(tc TestContext) (string, func()) {
 	fi, err := os.Stat(td)
 	require.NoError(tc.T, err)
 	oldMode := fi.Mode()
-	_ = os.Chmod(td, 0400)
+	_ = os.Chmod(td, 0o400)
 
 	cleanup := func() {
 		_ = os.Chmod(td, oldMode)

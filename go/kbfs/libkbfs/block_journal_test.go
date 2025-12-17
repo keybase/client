@@ -95,7 +95,8 @@ func TestSaturateAdd(t *testing.T) {
 
 func setupBlockJournalTest(t *testing.T) (
 	ctx context.Context, cancel context.CancelFunc, tempdir string,
-	log logger.Logger, j *blockJournal) {
+	log logger.Logger, j *blockJournal,
+) {
 	codec := kbfscodec.NewMsgpack()
 	log = logger.NewTestLogger(t)
 
@@ -130,7 +131,8 @@ func setupBlockJournalTest(t *testing.T) (
 }
 
 func teardownBlockJournalTest(ctx context.Context, t *testing.T,
-	cancel context.CancelFunc, tempdir string, j *blockJournal) {
+	cancel context.CancelFunc, tempdir string, j *blockJournal,
+) {
 	cancel()
 
 	err := j.checkInSyncForTest()
@@ -142,7 +144,8 @@ func teardownBlockJournalTest(ctx context.Context, t *testing.T,
 
 func putBlockData(
 	ctx context.Context, t *testing.T, j *blockJournal, data []byte) (
-	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
+	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf,
+) {
 	oldLength := j.length()
 
 	bID, err := kbfsblock.MakePermanentID(
@@ -168,7 +171,8 @@ func putBlockData(
 
 func addBlockRef(
 	ctx context.Context, t *testing.T, j *blockJournal,
-	bID kbfsblock.ID) kbfsblock.Context {
+	bID kbfsblock.ID,
+) kbfsblock.Context {
 	oldLength := j.length()
 
 	nonce, err := kbfsblock.MakeRefNonce()
@@ -187,7 +191,8 @@ func addBlockRef(
 
 func getAndCheckBlockData(ctx context.Context, t *testing.T, j *blockJournal,
 	bID kbfsblock.ID, bCtx kbfsblock.Context, expectedData []byte,
-	expectedServerHalf kbfscrypto.BlockCryptKeyServerHalf) {
+	expectedServerHalf kbfscrypto.BlockCryptKeyServerHalf,
+) {
 	data, serverHalf, err := j.getDataWithContext(ctx, bID, bCtx)
 	require.NoError(t, err)
 	require.Equal(t, expectedData, data)
@@ -413,7 +418,8 @@ func testBlockJournalGCd(t *testing.T, j *blockJournal) {
 }
 
 func goGCForTest(ctx context.Context, t *testing.T, j *blockJournal) (
-	int64, int64) {
+	int64, int64,
+) {
 	length, earliest, latest, err := j.getDeferredGCRange()
 	require.NoError(t, err)
 	if length == 0 {
@@ -549,7 +555,8 @@ func TestBlockJournalFlush(t *testing.T) {
 func flushBlockJournalOne(ctx context.Context, t *testing.T,
 	j *blockJournal, blockServer BlockServer,
 	bcache kbfsdata.BlockCache, reporter Reporter, tlfID tlf.ID) (
-	flushedBytes, removedFiles, removedBytes int64) {
+	flushedBytes, removedFiles, removedBytes int64,
+) {
 	first, err := j.j.readEarliestOrdinal()
 	require.NoError(t, err)
 	entries, b, _, err := j.getNextEntriesToFlush(ctx, first+1,
@@ -1158,7 +1165,8 @@ func TestBlockJournalUnflushedBytesIgnore(t *testing.T) {
 	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	requireCounts := func(expectedStoredBytes, expectedUnflushedBytes,
-		expectedStoredFiles int) {
+		expectedStoredFiles int,
+	) {
 		require.Equal(t, int64(expectedStoredBytes), j.getStoredBytes())
 		require.Equal(t, int64(expectedUnflushedBytes),
 			j.getUnflushedBytes())

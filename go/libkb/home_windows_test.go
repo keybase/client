@@ -13,7 +13,6 @@ import (
 )
 
 func doDirectoryTest(t *testing.T, d string, description string, suffix string) {
-
 	if len(d) == 0 {
 		t.Errorf("Bad %s dir", description)
 	}
@@ -61,5 +60,4 @@ func TestWindows(t *testing.T) {
 	if !exists(fromTemp) {
 		t.Errorf("%s does not exist", fromTemp)
 	}
-
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func TestNameEncoding(t *testing.T) {
-	var fixture = [][2]string{
+	fixture := [][2]string{
 		{`foo`, `foo`},
 		{`foo\bar`, `foo‰5cbar`},
 		{`foo‰bar`, `foo‰2030bar`},

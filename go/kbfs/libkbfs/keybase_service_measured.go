@@ -111,7 +111,8 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 func (k KeybaseServiceMeasured) Resolve(
 	ctx context.Context, assertion string,
 	offline keybase1.OfflineAvailability) (
-	name kbname.NormalizedUsername, uid keybase1.UserOrTeamID, err error) {
+	name kbname.NormalizedUsername, uid keybase1.UserOrTeamID, err error,
+) {
 	k.resolveTimer.Time(func() {
 		name, uid, err = k.delegate.Resolve(ctx, assertion, offline)
 	})
@@ -122,7 +123,8 @@ func (k KeybaseServiceMeasured) Resolve(
 func (k KeybaseServiceMeasured) Identify(
 	ctx context.Context, assertion, reason string,
 	offline keybase1.OfflineAvailability) (
-	name kbname.NormalizedUsername, id keybase1.UserOrTeamID, err error) {
+	name kbname.NormalizedUsername, id keybase1.UserOrTeamID, err error,
+) {
 	k.identifyTimer.Time(func() {
 		name, id, err = k.delegate.Identify(ctx, assertion, reason, offline)
 	})
@@ -132,7 +134,8 @@ func (k KeybaseServiceMeasured) Identify(
 // NormalizeSocialAssertion implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) NormalizeSocialAssertion(
-	ctx context.Context, assertion string) (res keybase1.SocialAssertion, err error) {
+	ctx context.Context, assertion string,
+) (res keybase1.SocialAssertion, err error) {
 	k.normalizeSocialAssertionTimer.Time(func() {
 		res, err = k.delegate.NormalizeSocialAssertion(
 			ctx, assertion)
@@ -145,7 +148,8 @@ func (k KeybaseServiceMeasured) NormalizeSocialAssertion(
 func (k KeybaseServiceMeasured) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
 	doIdentifies bool, reason string, offline keybase1.OfflineAvailability) (
-	info idutil.ImplicitTeamInfo, err error) {
+	info idutil.ImplicitTeamInfo, err error,
+) {
 	k.resolveIdentifyImplicitTeamTimer.Time(func() {
 		info, err = k.delegate.ResolveIdentifyImplicitTeam(
 			ctx, assertions, suffix, tlfType, doIdentifies, reason, offline)
@@ -156,7 +160,8 @@ func (k KeybaseServiceMeasured) ResolveIdentifyImplicitTeam(
 // ResolveImplicitTeamByID implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) ResolveImplicitTeamByID(
-	ctx context.Context, teamID keybase1.TeamID) (name string, err error) {
+	ctx context.Context, teamID keybase1.TeamID,
+) (name string, err error) {
 	k.resolveImplicitTeamByIDTimer.Time(func() {
 		name, err = k.delegate.ResolveImplicitTeamByID(ctx, teamID)
 	})
@@ -166,7 +171,8 @@ func (k KeybaseServiceMeasured) ResolveImplicitTeamByID(
 // LoadUserPlusKeys implements the KeybaseService interface for KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) LoadUserPlusKeys(
 	ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID,
-	offline keybase1.OfflineAvailability) (userInfo idutil.UserInfo, err error) {
+	offline keybase1.OfflineAvailability,
+) (userInfo idutil.UserInfo, err error) {
 	k.loadUserPlusKeysTimer.Time(func() {
 		userInfo, err = k.delegate.LoadUserPlusKeys(
 			ctx, uid, pollForKID, offline)
@@ -179,7 +185,8 @@ func (k KeybaseServiceMeasured) LoadTeamPlusKeys(ctx context.Context,
 	tid keybase1.TeamID, tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen,
 	desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey,
 	desiredRole keybase1.TeamRole, offline keybase1.OfflineAvailability) (
-	teamInfo idutil.TeamInfo, err error) {
+	teamInfo idutil.TeamInfo, err error,
+) {
 	k.loadTeamPlusKeysTimer.Time(func() {
 		teamInfo, err = k.delegate.LoadTeamPlusKeys(
 			ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey,
@@ -191,7 +198,8 @@ func (k KeybaseServiceMeasured) LoadTeamPlusKeys(ctx context.Context,
 // CreateTeamTLF implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) CreateTeamTLF(
-	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) (err error) {
+	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID,
+) (err error) {
 	k.createTeamTLFTimer.Time(func() {
 		err = k.delegate.CreateTeamTLF(ctx, teamID, tlfID)
 	})
@@ -203,7 +211,8 @@ func (k KeybaseServiceMeasured) CreateTeamTLF(
 func (k KeybaseServiceMeasured) GetTeamSettings(
 	ctx context.Context, teamID keybase1.TeamID,
 	offline keybase1.OfflineAvailability) (
-	settings keybase1.KBFSTeamSettings, err error) {
+	settings keybase1.KBFSTeamSettings, err error,
+) {
 	k.getTeamSettingsTimer.Time(func() {
 		settings, err = k.delegate.GetTeamSettings(ctx, teamID, offline)
 	})
@@ -213,7 +222,8 @@ func (k KeybaseServiceMeasured) GetTeamSettings(
 // GetCurrentMerkleRoot implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) GetCurrentMerkleRoot(ctx context.Context) (
-	root keybase1.MerkleRootV2, updateTime time.Time, err error) {
+	root keybase1.MerkleRootV2, updateTime time.Time, err error,
+) {
 	k.getCurrentMerkleRootTimer.Time(func() {
 		root, updateTime, err = k.delegate.GetCurrentMerkleRoot(ctx)
 	})
@@ -224,7 +234,8 @@ func (k KeybaseServiceMeasured) GetCurrentMerkleRoot(ctx context.Context) (
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) VerifyMerkleRoot(
 	ctx context.Context, root keybase1.MerkleRootV2,
-	kbfsRoot keybase1.KBFSRoot) (err error) {
+	kbfsRoot keybase1.KBFSRoot,
+) (err error) {
 	k.verifyMerkleRootTimer.Time(func() {
 		err = k.delegate.VerifyMerkleRoot(ctx, root, kbfsRoot)
 	})
@@ -234,7 +245,8 @@ func (k KeybaseServiceMeasured) VerifyMerkleRoot(
 // CurrentSession implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) CurrentSession(ctx context.Context, sessionID int) (
-	sessionInfo idutil.SessionInfo, err error) {
+	sessionInfo idutil.SessionInfo, err error,
+) {
 	k.currentSessionTimer.Time(func() {
 		sessionInfo, err = k.delegate.CurrentSession(ctx, sessionID)
 	})
@@ -262,7 +274,8 @@ func (k KeybaseServiceMeasured) FavoriteDelete(ctx context.Context, folder keyba
 // FavoriteList implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) FavoriteList(ctx context.Context, sessionID int) (
-	favorites keybase1.FavoritesResult, err error) {
+	favorites keybase1.FavoritesResult, err error,
+) {
 	k.favoriteListTimer.Time(func() {
 		favorites, err = k.delegate.FavoriteList(ctx, sessionID)
 	})
@@ -272,7 +285,8 @@ func (k KeybaseServiceMeasured) FavoriteList(ctx context.Context, sessionID int)
 // EncryptFavorites implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) EncryptFavorites(ctx context.Context,
-	dataIn []byte) (dataOut []byte, err error) {
+	dataIn []byte,
+) (dataOut []byte, err error) {
 	k.favoriteListTimer.Time(func() {
 		dataOut, err = k.delegate.EncryptFavorites(ctx, dataIn)
 	})
@@ -282,7 +296,8 @@ func (k KeybaseServiceMeasured) EncryptFavorites(ctx context.Context,
 // DecryptFavorites implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) DecryptFavorites(ctx context.Context,
-	dataIn []byte) (dataOut []byte, err error) {
+	dataIn []byte,
+) (dataOut []byte, err error) {
 	k.favoriteListTimer.Time(func() {
 		dataOut, err = k.delegate.DecryptFavorites(ctx, dataIn)
 	})
@@ -292,7 +307,8 @@ func (k KeybaseServiceMeasured) DecryptFavorites(ctx context.Context,
 // NotifyOnlineStatusChanged implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) NotifyOnlineStatusChanged(
-	ctx context.Context, online bool) (err error) {
+	ctx context.Context, online bool,
+) (err error) {
 	k.notifyTimer.Time(func() {
 		err = k.delegate.NotifyOnlineStatusChanged(ctx, online)
 	})
@@ -310,7 +326,8 @@ func (k KeybaseServiceMeasured) Notify(ctx context.Context, notification *keybas
 // NotifyPathUpdated implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) NotifyPathUpdated(
-	ctx context.Context, path string) (err error) {
+	ctx context.Context, path string,
+) (err error) {
 	k.notifyPathUpdatedTimer.Time(func() {
 		err = k.delegate.NotifyPathUpdated(ctx, path)
 	})
@@ -320,7 +337,8 @@ func (k KeybaseServiceMeasured) NotifyPathUpdated(
 // NotifySyncStatus implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) NotifySyncStatus(ctx context.Context,
-	status *keybase1.FSPathSyncStatus) (err error) {
+	status *keybase1.FSPathSyncStatus,
+) (err error) {
 	k.notifyTimer.Time(func() {
 		err = k.delegate.NotifySyncStatus(ctx, status)
 	})
@@ -330,7 +348,8 @@ func (k KeybaseServiceMeasured) NotifySyncStatus(ctx context.Context,
 // NotifyOverallSyncStatus implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) NotifyOverallSyncStatus(
-	ctx context.Context, status keybase1.FolderSyncStatus) (err error) {
+	ctx context.Context, status keybase1.FolderSyncStatus,
+) (err error) {
 	k.notifyTimer.Time(func() {
 		err = k.delegate.NotifyOverallSyncStatus(ctx, status)
 	})
@@ -340,7 +359,8 @@ func (k KeybaseServiceMeasured) NotifyOverallSyncStatus(
 // NotifyFavoritesChanged implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) NotifyFavoritesChanged(
-	ctx context.Context) (err error) {
+	ctx context.Context,
+) (err error) {
 	k.notifyTimer.Time(func() {
 		err = k.delegate.NotifyFavoritesChanged(ctx)
 	})
@@ -350,7 +370,8 @@ func (k KeybaseServiceMeasured) NotifyFavoritesChanged(
 // FlushUserFromLocalCache implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) FlushUserFromLocalCache(
-	ctx context.Context, uid keybase1.UID) {
+	ctx context.Context, uid keybase1.UID,
+) {
 	k.delegate.FlushUserFromLocalCache(ctx, uid)
 }
 
@@ -369,7 +390,8 @@ func (k KeybaseServiceMeasured) EstablishMountDir(ctx context.Context) (string, 
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) PutGitMetadata(
 	ctx context.Context, folder keybase1.FolderHandle, repoID keybase1.RepoID,
-	metadata keybase1.GitLocalMetadata) (err error) {
+	metadata keybase1.GitLocalMetadata,
+) (err error) {
 	k.putGitMetadataTimer.Time(func() {
 		err = k.delegate.PutGitMetadata(ctx, folder, repoID, metadata)
 	})
@@ -378,7 +400,8 @@ func (k KeybaseServiceMeasured) PutGitMetadata(
 
 // OnPathChange implements the SubscriptionNotifier interface.
 func (k KeybaseServiceMeasured) OnPathChange(clientID SubscriptionManagerClientID,
-	subscriptionIDs []SubscriptionID, path string, topics []keybase1.PathSubscriptionTopic) {
+	subscriptionIDs []SubscriptionID, path string, topics []keybase1.PathSubscriptionTopic,
+) {
 	k.onPathChangeTimer.Time(func() {
 		k.delegate.OnPathChange(clientID, subscriptionIDs, path, topics)
 	})
@@ -387,7 +410,8 @@ func (k KeybaseServiceMeasured) OnPathChange(clientID SubscriptionManagerClientI
 // OnNonPathChange implements the SubscriptionNotifier interface.
 func (k KeybaseServiceMeasured) OnNonPathChange(
 	clientID SubscriptionManagerClientID,
-	subscriptionIDs []SubscriptionID, topic keybase1.SubscriptionTopic) {
+	subscriptionIDs []SubscriptionID, topic keybase1.SubscriptionTopic,
+) {
 	k.onChangeTimer.Time(func() {
 		k.delegate.OnNonPathChange(clientID, subscriptionIDs, topic)
 	})

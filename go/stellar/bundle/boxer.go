@@ -493,6 +493,7 @@ func decrypt(encBundle stellar1.EncryptedAccountBundle, puk libkb.PerUserKeySeed
 	}
 	return bver, nil
 }
+
 func convertVisibleAccounts(in []stellar1.BundleVisibleEntryV2) []stellar1.BundleEntry {
 	out := make([]stellar1.BundleEntry, len(in))
 	for i, e := range in {

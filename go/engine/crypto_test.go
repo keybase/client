@@ -147,7 +147,6 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 		Nonce:            nonce,
 		PeersPublicKey:   peersPublicKey,
 	})
-
 	if err != nil {
 		t.Fatal(err)
 	}

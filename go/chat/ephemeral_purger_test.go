@@ -42,7 +42,8 @@ func newMockAssetDeleter() *mockAssetDeleter {
 }
 
 func (d mockAssetDeleter) DeleteAssets(ctx context.Context, convID chat1.ConversationID, assets []chat1.Asset,
-	ri func() chat1.RemoteInterface, signer s3.Signer) error {
+	ri func() chat1.RemoteInterface, signer s3.Signer,
+) error {
 	if len(assets) > 0 {
 		d.delCh <- struct{}{}
 	}
@@ -104,7 +105,8 @@ func TestBackgroundPurge(t *testing.T) {
 	}
 
 	sendEphemeral := func(convID chat1.ConversationID, trip chat1.ConversationIDTriple,
-		lifetime gregor1.DurationSec, body chat1.MessageBody) chat1.MessageUnboxed {
+		lifetime gregor1.DurationSec, body chat1.MessageBody,
+	) chat1.MessageUnboxed {
 		typ, err := body.MessageType()
 		require.NoError(t, err)
 		_, _, err = baseSender.Send(ctx, convID, chat1.MessagePlaintext{
@@ -429,5 +431,4 @@ func TestQueueState(t *testing.T) {
 	require.NotNil(t, queueItem)
 	require.Zero(t, queueItem.index)
 	require.Equal(t, purgeInfo3, queueItem.purgeInfo)
-
 }

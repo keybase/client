@@ -26,14 +26,16 @@ func NewCmdSimpleFSIndexProgress(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 		Usage: "[disabled] print the current progress of the indexer",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSIndexProgress{
-				Contextified: libkb.NewContextified(g)}, "index-progress", c)
+				Contextified: libkb.NewContextified(g),
+			}, "index-progress", c)
 			cl.SetNoStandalone()
 		},
 	}
 }
 
 func printIndexProgress(
-	ui libkb.TerminalUI, p keybase1.IndexProgressRecord) {
+	ui libkb.TerminalUI, p keybase1.IndexProgressRecord,
+) {
 	ui.Printf("\t%s/%s (%.2f%%)\n",
 		humanizeBytes(p.BytesSoFar, false),
 		humanizeBytes(p.BytesTotal, false),

@@ -39,7 +39,8 @@ func (m *mockUIDMapper) getUser(uid gregor1.UID) string {
 
 func (m *mockUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext,
 	uids []keybase1.UID, fullNameFreshness, networkTimeBudget time.Duration,
-	forceNetworkForFullNames bool) (res []libkb.UsernamePackage, err error) {
+	forceNetworkForFullNames bool,
+) (res []libkb.UsernamePackage, err error) {
 	for _, uid := range uids {
 		res = append(res, libkb.UsernamePackage{
 			NormalizedUsername: libkb.NewNormalizedUsername(m.getUser(uid.ToBytes())),
@@ -54,7 +55,8 @@ type mockParticipantsSource struct {
 }
 
 func (m *mockParticipantsSource) Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	dataSource types.InboxSourceDataSourceTyp) ([]gregor1.UID, error) {
+	dataSource types.InboxSourceDataSourceTyp,
+) ([]gregor1.UID, error) {
 	return m.partsFn(), nil
 }
 
@@ -65,7 +67,8 @@ type mockInboxSource struct {
 }
 
 func (m *mockInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
-	dataSource types.InboxSourceDataSourceTyp, query *chat1.GetInboxQuery) (types.Inbox, error) {
+	dataSource types.InboxSourceDataSourceTyp, query *chat1.GetInboxQuery,
+) (types.Inbox, error) {
 	return types.Inbox{
 		ConvsUnverified: []types.RemoteConversation{{
 			Conv: chat1.Conversation{
@@ -157,7 +160,8 @@ func TestStellarSender(t *testing.T) {
 	testCase := func(body string, expected []paymentRes, senderUID gregor1.UID,
 		partsFn func() []gregor1.UID, typFn func() chat1.ConversationMembersType,
 		miniFn func([]libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error),
-		nameFn func() string) {
+		nameFn func() string,
+	) {
 		mi.membersTypFn = typFn
 		mi.tlfNameFn = nameFn
 		mp.partsFn = partsFn
@@ -216,5 +220,4 @@ func TestStellarSender(t *testing.T) {
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+10USD@max",
 	}}, mikeUID, allFn, teamFn, successFn(nil, patrickUID, maxUID), teamNameFn)
-
 }

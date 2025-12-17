@@ -449,7 +449,6 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 				}
 			} else {
 				dui.Printf("  Welcome message:          unset (default)\n")
-
 			}
 		}
 	}

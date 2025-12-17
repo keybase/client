@@ -15,7 +15,8 @@ import (
 // GetEncodedUserEditHistory returns serialized JSON containing the
 // file edit history for the user.
 func GetEncodedUserEditHistory(ctx context.Context, config libkbfs.Config) (
-	data []byte, t time.Time, err error) {
+	data []byte, t time.Time, err error,
+) {
 	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, config.KBPKI(), true)
 	if err != nil {

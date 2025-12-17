@@ -331,8 +331,8 @@ func Logout(tc libkb.TestContext) {
 // data into it when told to and reads data out from it.
 func testEngineWithSecretStore(
 	t *testing.T,
-	runEngine func(libkb.TestContext, *FakeUser, libkb.SecretUI)) {
-
+	runEngine func(libkb.TestContext, *FakeUser, libkb.SecretUI),
+) {
 	tc := SetupEngineTest(t, "wss")
 	defer tc.Cleanup()
 
@@ -426,6 +426,7 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 func NewMetaContextForTest(tc libkb.TestContext) libkb.MetaContext {
 	return libkb.NewMetaContextForTest(tc)
 }
+
 func NewMetaContextForTestWithLogUI(tc libkb.TestContext) libkb.MetaContext {
 	return libkb.NewMetaContextForTestWithLogUI(tc)
 }

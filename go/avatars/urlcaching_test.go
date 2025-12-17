@@ -10,11 +10,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type apiHandlerFn func(libkb.MetaContext, libkb.APIArg, libkb.APIResponseWrapper) error
-type avatarMockAPI struct {
-	libkb.API
-	handler apiHandlerFn
-}
+type (
+	apiHandlerFn  func(libkb.MetaContext, libkb.APIArg, libkb.APIResponseWrapper) error
+	avatarMockAPI struct {
+		libkb.API
+		handler apiHandlerFn
+	}
+)
 
 func (a *avatarMockAPI) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, res libkb.APIResponseWrapper) error {
 	return a.handler(mctx, arg, res)

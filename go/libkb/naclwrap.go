@@ -5,14 +5,13 @@ package libkb
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"io"
-
-	"crypto/ed25519"
 
 	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -47,8 +46,10 @@ type NaclSigningKeyPair struct {
 
 var _ GenericKey = NaclSigningKeyPair{}
 
-type NaclDHKeyPublic [NaclDHKeysize]byte
-type NaclDHKeyPrivate [NaclDHKeysize]byte
+type (
+	NaclDHKeyPublic  [NaclDHKeysize]byte
+	NaclDHKeyPrivate [NaclDHKeysize]byte
+)
 
 type NaclDHKeyPair struct {
 	Public  NaclDHKeyPublic
@@ -241,6 +242,7 @@ func (k NaclDHKeyPair) ToShortIDString() string {
 func (k NaclSigningKeyPair) VerboseDescription() string {
 	return fmt.Sprintf("255-bit EdDSA signing key (%s)", k.ToShortIDString())
 }
+
 func (k NaclDHKeyPair) VerboseDescription() string {
 	return fmt.Sprintf("255-bit Curve25519 DH key (%s)", k.ToShortIDString())
 }
@@ -252,6 +254,7 @@ func (k NaclSigningKeyPair) GetFingerprintP() *PGPFingerprint {
 func (k NaclDHKeyPair) GetKID() keybase1.KID {
 	return k.Public.GetKID()
 }
+
 func (k NaclDHKeyPair) GetBinaryKID() (ret keybase1.BinaryKID) {
 	return k.Public.GetBinaryKID()
 }
@@ -620,7 +623,7 @@ func (k NaclDHKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBo
 // For deriving from a shared encryption key, this output is too close
 // to something that might be used as a public authenticator.
 func deriveSymmetricKeyFromAsymmetric(inKey NaclDHKeyPrivate, reason EncryptionReason) (NaclSecretBoxKey, error) {
-	var outKey = [32]byte{}
+	outKey := [32]byte{}
 	if len(reason) < encryptionReasonMinLength {
 		return outKey, KeyGenError{Msg: "reason must be at least 8 bytes"}
 	}
@@ -644,7 +647,7 @@ func deriveSymmetricKeyFromAsymmetric(inKey NaclDHKeyPrivate, reason EncryptionR
 // Note the message and data are swapped as inputs to HMAC because that is less
 // likely to be accidentally used for another purpose such as authentication.
 func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSecretBoxKey, error) {
-	var outKey = [32]byte{}
+	outKey := [32]byte{}
 	if len(reason) < encryptionReasonMinLength {
 		return outKey, KeyGenError{Msg: "reason must be at least 8 bytes"}
 	}

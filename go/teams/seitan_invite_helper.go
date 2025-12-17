@@ -9,8 +9,8 @@ import (
 )
 
 func ParseAndAcceptSeitanToken(mctx libkb.MetaContext, ui keybase1.TeamsUiInterface,
-	tok string) (wasSeitan bool, err error) {
-
+	tok string,
+) (wasSeitan bool, err error) {
 	seitanVersion, err := DeriveSeitanVersionFromToken(tok)
 	if err != nil {
 		return false, err
@@ -145,7 +145,6 @@ func parseAndAcceptSeitanTokenV2(mctx libkb.MetaContext, tok string) (wasSeitan 
 	}
 	err = postSeitanV2(mctx, acpt)
 	return true, err
-
 }
 
 // Seitan V3 (Seitan Invite Link):
@@ -223,8 +222,8 @@ func presentInviteLinkInUI(mctx libkb.MetaContext, ui keybase1.TeamsUiInterface,
 }
 
 func parseAndAcceptSeitanTokenInvitelink(mctx libkb.MetaContext, ui keybase1.TeamsUiInterface,
-	tok string) (wasSeitan bool, err error) {
-
+	tok string,
+) (wasSeitan bool, err error) {
 	seitan, err := ParseIKeyInvitelinkFromString(tok)
 	if err != nil {
 		mctx.Debug("ParseIKeyInvitelinkFromString error: %s", err)

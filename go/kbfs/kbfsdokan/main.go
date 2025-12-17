@@ -9,6 +9,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/libdokan"
@@ -16,8 +19,6 @@ import (
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	"os"
-	"strconv"
 )
 
 func getDefaultMountFlags() int64 {
@@ -29,13 +30,15 @@ func getDefaultMountFlags() int64 {
 	return int64(iv)
 }
 
-var runtimeDir = flag.String("runtime-dir", os.Getenv("KEYBASE_RUNTIME_DIR"), "runtime directory")
-var label = flag.String("label", os.Getenv("KEYBASE_LABEL"), "label to help identify if running as a service")
-var mountType = flag.String("mount-type", defaultMountType, "mount type: default, force, none")
-var version = flag.Bool("version", false, "Print version")
-var mountFlags = flag.Int64("mount-flags", getDefaultMountFlags(), "Dokan mount flags")
-var dokandll = flag.String("dokan-dll", "", "Absolute path of dokan dll to load")
-var servicemount = flag.Bool("mount-from-service", false, "get mount path from service")
+var (
+	runtimeDir   = flag.String("runtime-dir", os.Getenv("KEYBASE_RUNTIME_DIR"), "runtime directory")
+	label        = flag.String("label", os.Getenv("KEYBASE_LABEL"), "label to help identify if running as a service")
+	mountType    = flag.String("mount-type", defaultMountType, "mount type: default, force, none")
+	version      = flag.Bool("version", false, "Print version")
+	mountFlags   = flag.Int64("mount-flags", getDefaultMountFlags(), "Dokan mount flags")
+	dokandll     = flag.String("dokan-dll", "", "Absolute path of dokan dll to load")
+	servicemount = flag.Bool("mount-from-service", false, "get mount path from service")
+)
 
 const usageFormatStr = `Usage:
   kbfsdokan -version

@@ -204,7 +204,8 @@ func NewCommonBlock() Block {
 // NewCommonBlockForTesting returns a common block with some of the
 // internal state set, which is useful for testing.
 func NewCommonBlockForTesting(
-	isInd bool, cachedEncodedSize uint32) CommonBlock {
+	isInd bool, cachedEncodedSize uint32,
+) CommonBlock {
 	return CommonBlock{
 		IsInd:             isInd,
 		cachedEncodedSize: cachedEncodedSize,
@@ -408,7 +409,8 @@ func (db *DirBlock) SetIndirectPtrInfo(i int, info BlockInfo) {
 // TotalPlainSizeEstimate returns an estimate of the plaintext size of
 // this directory block.
 func (db *DirBlock) TotalPlainSizeEstimate(
-	plainSize int, bsplit BlockSplitter) int {
+	plainSize int, bsplit BlockSplitter,
+) int {
 	if !db.IsIndirect() || len(db.IPtrs) == 0 {
 		return plainSize
 	}

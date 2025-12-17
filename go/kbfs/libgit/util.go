@@ -23,7 +23,8 @@ const (
 // local clock.
 func commonTime(
 	ctx context.Context, mdserver libkbfs.MDServer, clock libkbfs.Clock,
-	log logger.Logger) time.Time {
+	log logger.Logger,
+) time.Time {
 	offset, haveOffset := mdserver.OffsetFromServerTime()
 	if !haveOffset {
 		log.CDebugf(ctx, "No offset, cannot use common time; "+
@@ -40,7 +41,8 @@ func commonTime(
 func canDoWork(
 	ctx context.Context, mdserver libkbfs.MDServer, clock libkbfs.Clock,
 	fs *libfs.FS, workingFileName string, workLimit time.Duration,
-	log logger.Logger) (bool, error) {
+	log logger.Logger,
+) (bool, error) {
 	fi, err := fs.Stat(workingFileName)
 	currCommonTime := commonTime(ctx, mdserver, clock, log)
 	switch {

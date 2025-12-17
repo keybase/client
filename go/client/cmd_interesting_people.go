@@ -41,6 +41,7 @@ func (c *CmdInterestingPeople) Run() error {
 
 	return nil
 }
+
 func NewCmdInterestingPeopleRunner(g *libkb.GlobalContext) *CmdInterestingPeople {
 	return &CmdInterestingPeople{Contextified: libkb.NewContextified(g)}
 }

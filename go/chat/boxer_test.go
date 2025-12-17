@@ -908,7 +908,6 @@ func TestChatMessagePublic(t *testing.T) {
 // This prevents one kind of misattribution within a tlf.
 // Device mismatches are probably tolerated.
 func TestChatMessageSenderMismatch(t *testing.T) {
-
 	var allUIDs []keybase1.UID
 
 	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {

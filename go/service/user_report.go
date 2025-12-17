@@ -20,8 +20,8 @@ import (
 // pullTranscript uses chat transcript functions to pull transcript and encode
 // it to postArgs.
 func pullTranscript(mctx libkb.MetaContext, postArgs libkb.HTTPArgs, convSource types.ConversationSource,
-	convID chat1.ConvIDStr, usernames []kbun.NormalizedUsername) (err error) {
-
+	convID chat1.ConvIDStr, usernames []kbun.NormalizedUsername,
+) (err error) {
 	config := chat.PullTranscriptConfigDefault()
 	transcript, err := chat.PullTranscript(mctx, convSource, convID, usernames, config)
 	if err != nil {

@@ -36,7 +36,8 @@ func NewChatCLINotifications(g *libkb.GlobalContext) *ChatCLINotifications {
 }
 
 func (n *ChatCLINotifications) ChatAttachmentUploadStart(ctx context.Context,
-	arg chat1.ChatAttachmentUploadStartArg) error {
+	arg chat1.ChatAttachmentUploadStartArg,
+) error {
 	if n.noOutput {
 		return nil
 	}
@@ -46,7 +47,8 @@ func (n *ChatCLINotifications) ChatAttachmentUploadStart(ctx context.Context,
 }
 
 func (n *ChatCLINotifications) ChatAttachmentUploadProgress(ctx context.Context,
-	arg chat1.ChatAttachmentUploadProgressArg) error {
+	arg chat1.ChatAttachmentUploadProgressArg,
+) error {
 	if n.noOutput {
 		return nil
 	}
@@ -61,7 +63,8 @@ func (n *ChatCLINotifications) ChatAttachmentUploadProgress(ctx context.Context,
 }
 
 func (n *ChatCLINotifications) ChatAttachmentDownloadComplete(ctx context.Context,
-	arg chat1.ChatAttachmentDownloadCompleteArg) error {
+	arg chat1.ChatAttachmentDownloadCompleteArg,
+) error {
 	if n.noOutput {
 		return nil
 	}
@@ -71,7 +74,8 @@ func (n *ChatCLINotifications) ChatAttachmentDownloadComplete(ctx context.Contex
 }
 
 func (n *ChatCLINotifications) ChatAttachmentDownloadProgress(ctx context.Context,
-	arg chat1.ChatAttachmentDownloadProgressArg) error {
+	arg chat1.ChatAttachmentDownloadProgressArg,
+) error {
 	if n.noOutput {
 		return nil
 	}
@@ -86,7 +90,8 @@ func (n *ChatCLINotifications) ChatAttachmentDownloadProgress(ctx context.Contex
 }
 
 func (n *ChatCLINotifications) ChatArchiveComplete(ctx context.Context,
-	arg chat1.ArchiveJobID) error {
+	arg chat1.ArchiveJobID,
+) error {
 	if n.noOutput {
 		return nil
 	}
@@ -96,7 +101,8 @@ func (n *ChatCLINotifications) ChatArchiveComplete(ctx context.Context,
 }
 
 func (n *ChatCLINotifications) ChatArchiveProgress(ctx context.Context,
-	arg chat1.ChatArchiveProgressArg) error {
+	arg chat1.ChatArchiveProgressArg,
+) error {
 	if n.noOutput {
 		return nil
 	}

@@ -186,7 +186,8 @@ func (c *CodecMsgpack) RegisterType(rt reflect.Type, code ExtCode) {
 
 // RegisterIfaceSliceType implements the Codec interface for CodecMsgpack
 func (c *CodecMsgpack) RegisterIfaceSliceType(
-	rt reflect.Type, code ExtCode, typer func(interface{}) reflect.Value) {
+	rt reflect.Type, code ExtCode, typer func(interface{}) reflect.Value,
+) {
 	err := c.h.(*codec.MsgpackHandle).SetBytesExt(
 		rt, uint64(code), extSlice{c, typer})
 	if err != nil {

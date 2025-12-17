@@ -40,7 +40,8 @@ func TestProveRooterWithSecretStore(t *testing.T) {
 
 func _testProveRooterWithSecretStore(t *testing.T, sigVersion libkb.SigVersion) {
 	testEngineWithSecretStore(t, func(
-		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI,
+	) {
 		_, _, err := proveRooterWithSecretUI(tc.G, fu, secretUI, sigVersion)
 		require.NoError(t, err)
 	})

@@ -50,7 +50,8 @@ var _ data.DirtyBlockCacheSimple = (*DirtyBlockCacheDisk)(nil)
 func newDirtyBlockCacheDisk(
 	config dirtyBlockCacheDiskConfig,
 	diskCache *DiskBlockCacheLocal, kmd libkey.KeyMetadata,
-	branch data.BranchName) *DirtyBlockCacheDisk {
+	branch data.BranchName,
+) *DirtyBlockCacheDisk {
 	return &DirtyBlockCacheDisk{
 		config:    config,
 		diskCache: diskCache,
@@ -61,7 +62,8 @@ func newDirtyBlockCacheDisk(
 }
 
 func (d *DirtyBlockCacheDisk) getInfo(ptr data.BlockPointer) (
-	dirtyBlockCacheDiskInfo, bool) {
+	dirtyBlockCacheDiskInfo, bool,
+) {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 	info, ok := d.blocks[ptr]
@@ -69,7 +71,8 @@ func (d *DirtyBlockCacheDisk) getInfo(ptr data.BlockPointer) (
 }
 
 func (d *DirtyBlockCacheDisk) saveInfo(
-	ptr data.BlockPointer, info dirtyBlockCacheDiskInfo) {
+	ptr data.BlockPointer, info dirtyBlockCacheDiskInfo,
+) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	d.blocks[ptr] = info
@@ -79,7 +82,8 @@ func (d *DirtyBlockCacheDisk) saveInfo(
 // DirtyBlockCacheDisk.
 func (d *DirtyBlockCacheDisk) Get(
 	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer, branch data.BranchName) (
-	data.Block, error) {
+	data.Block, error,
+) {
 	if branch != d.branch {
 		return nil, errors.Errorf(
 			"Branch %s doesn't match branch %s", branch, d.branch)
@@ -113,7 +117,8 @@ func (d *DirtyBlockCacheDisk) Get(
 // to be reflected in the next `Get` call for that block pointer.
 func (d *DirtyBlockCacheDisk) Put(
 	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
-	branch data.BranchName, block data.Block) error {
+	branch data.BranchName, block data.Block,
+) error {
 	if branch != d.branch {
 		return errors.Errorf(
 			"Branch %s doesn't match branch %s", branch, d.branch)

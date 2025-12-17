@@ -12,10 +12,12 @@ import (
 	"github.com/buger/jsonparser"
 )
 
-var howMany int
-var destination string
-var bin string
-var home string
+var (
+	howMany     int
+	destination string
+	bin         string
+	home        string
+)
 
 func main() {
 	flag.IntVar(&howMany, "n", 5, "number of accounts to create to fund base account")

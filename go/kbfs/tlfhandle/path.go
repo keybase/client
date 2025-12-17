@@ -82,7 +82,8 @@ func BuildCanonicalPathForTlf(tlf tlf.ID, paths ...string) string {
 // BuildProtocolPathForTlfName builds a `keybase1.Path` for the given
 // TLF type and name.
 func BuildProtocolPathForTlfName(
-	t tlf.Type, tlfName tlf.CanonicalName) keybase1.Path {
+	t tlf.Type, tlfName tlf.CanonicalName,
+) keybase1.Path {
 	var pathType PathType
 	switch t {
 	case tlf.Private:

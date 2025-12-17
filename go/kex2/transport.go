@@ -49,7 +49,6 @@ func (s SessionID) Eq(s2 SessionID) bool {
 // MessageRouter is a stateful message router that will be implemented by
 // JSON/REST calls to the Keybase API server.
 type MessageRouter interface {
-
 	// Post a message. Message will always be non-nil and non-empty.
 	// Even for an EOF, the empty buffer is encrypted via SecretBox,
 	// so the buffer posted to the server will have data.
@@ -379,7 +378,6 @@ func (c *Conn) readBufferedMsgsIntoBytes(out []byte) (int, error) {
 }
 
 func (c *Conn) pollLoop(poll time.Duration) (msgs [][]byte, err error) {
-
 	var totalWaitTime time.Duration
 
 	c.setPollLoopRunning(true)
@@ -406,7 +404,6 @@ func (c *Conn) pollLoop(poll time.Duration) (msgs [][]byte, err error) {
 // cryptographic checks passed. Obeys the `net.Conn` interface.
 // Returns the number of bytes read into the output buffer.
 func (c *Conn) Read(out []byte) (n int, err error) {
-
 	c.readMutex.Lock()
 	defer c.readMutex.Unlock()
 
@@ -435,7 +432,6 @@ func (c *Conn) Read(out []byte) (n int, err error) {
 
 	var msgs [][]byte
 	msgs, err = c.pollLoop(poll)
-
 	if err != nil {
 		return 0, c.setReadError(err)
 	}
@@ -506,7 +502,6 @@ func (c *Conn) nextWriteSeqno() Seqno {
 // Write data to the connection, encrypting and MAC'ing along the way.
 // Obeys the `net.Conn` interface
 func (c *Conn) Write(buf []byte) (n int, err error) {
-
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
 
@@ -522,7 +517,6 @@ func (c *Conn) Write(buf []byte) (n int, err error) {
 }
 
 func (c *Conn) writeWithLock(buf []byte) (n int, err error) {
-
 	var ctext []byte
 
 	// The first error kills the whole stream
@@ -546,7 +540,6 @@ func (c *Conn) writeWithLock(buf []byte) (n int, err error) {
 // Close the connection to the server, sending an empty buffer via POST
 // through the `MessageRouter`. Fulfills the `net.Conn` interface
 func (c *Conn) Close() error {
-
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
 

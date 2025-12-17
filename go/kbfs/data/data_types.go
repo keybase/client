@@ -300,7 +300,7 @@ func EntryInfoFromFileInfo(fi os.FileInfo) EntryInfo {
 		t = Dir
 	case fi.Mode()&os.ModeSymlink != 0:
 		t = Sym
-	case fi.Mode()&0100 != 0:
+	case fi.Mode()&0o100 != 0:
 		t = Exec
 	}
 	mtime := fi.ModTime().UnixNano()
@@ -404,7 +404,8 @@ func MakeRevBranchName(rev kbfsmd.Revision) BranchName {
 // MakeConflictBranchNameFromExtension returns a branch name
 // specifying a conflict date, if possible.
 func MakeConflictBranchNameFromExtension(
-	ext *tlf.HandleExtension) BranchName {
+	ext *tlf.HandleExtension,
+) BranchName {
 	return BranchName(branchLocalConflictPrefix + ext.String())
 }
 

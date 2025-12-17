@@ -76,17 +76,21 @@ func (m MetaContext) VLogf(lev VDebugLevel, msg string, args ...interface{}) {
 func (m MetaContext) Trace(msg string, err *error) func() {
 	return CTrace(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, err, m.G().Clock())
 }
+
 func (m MetaContext) VTrace(lev VDebugLevel, msg string, err *error) func() {
 	return m.g.CVTrace(m.ctx, lev, msg, err)
 }
+
 func (m MetaContext) PerfTrace(msg string, err *error) func() {
 	return CTrace(m.ctx, m.g.PerfLog.CloneWithAddedDepth(1), msg, err, m.G().Clock())
 }
+
 func (m MetaContext) TimeBuckets() (MetaContext, *profiling.TimeBuckets) {
 	var ret *profiling.TimeBuckets
 	m.ctx, ret = m.G().CTimeBuckets(m.ctx)
 	return m, ret
 }
+
 func (m MetaContext) TimeTracer(label string, enabled bool) profiling.TimeTracer {
 	return m.G().CTimeTracer(m.Ctx(), label, enabled)
 }
@@ -94,15 +98,19 @@ func (m MetaContext) TimeTracer(label string, enabled bool) profiling.TimeTracer
 func (m MetaContext) Debug(f string, args ...interface{}) {
 	m.g.Log.CloneWithAddedDepth(1).CDebugf(m.ctx, f, args...)
 }
+
 func (m MetaContext) PerfDebug(f string, args ...interface{}) {
 	m.g.PerfLog.CloneWithAddedDepth(1).CDebugf(m.ctx, f, args...)
 }
+
 func (m MetaContext) Warning(f string, args ...interface{}) {
 	m.g.Log.CloneWithAddedDepth(1).CWarningf(m.ctx, f, args...)
 }
+
 func (m MetaContext) Error(f string, args ...interface{}) {
 	m.g.Log.CloneWithAddedDepth(1).CErrorf(m.ctx, f, args...)
 }
+
 func (m MetaContext) Info(f string, args ...interface{}) {
 	m.g.Log.CloneWithAddedDepth(1).CInfof(m.ctx, f, args...)
 }
@@ -131,6 +139,7 @@ func (m MetaContext) NIST() (*NIST, error) {
 func NewMetaContextTODO(g *GlobalContext) MetaContext {
 	return MetaContext{ctx: context.TODO(), g: g}
 }
+
 func NewMetaContextBackground(g *GlobalContext) MetaContext {
 	return MetaContext{ctx: context.Background(), g: g}
 }
@@ -417,7 +426,6 @@ func (m MetaContext) SwitchUser(n NormalizedUsername) error {
 }
 
 func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDevice) (err error) {
-
 	defer m.Trace(fmt.Sprintf("MetaContext#SwitchUserToActiveDevice(%s,ActiveDevice:%v)", n.String(), (ad != nil)), &err)()
 
 	g := m.G()
@@ -519,7 +527,8 @@ func (m MetaContext) SwitchUserLoggedOut() (err error) {
 // `current_user` in the config file, or edit the global config file in any
 // way.
 func (m MetaContext) SetActiveDevice(uv keybase1.UserVersion, deviceID keybase1.DeviceID,
-	sigKey, encKey GenericKey, deviceName string, keychainMode KeychainMode) error {
+	sigKey, encKey GenericKey, deviceName string, keychainMode KeychainMode,
+) error {
 	g := m.G()
 	defer g.switchUserMu.Acquire(m, "SetActiveDevice")()
 	if !g.Env.GetUID().Equal(uv.Uid) {

@@ -294,7 +294,6 @@ func (r *ChatArchiveRegistry) Stop(ctx context.Context) chan struct{} {
 		close(ch)
 	}
 	return ch
-
 }
 
 func (r *ChatArchiveRegistry) OnDbNuke(mctx libkb.MetaContext) (err error) {
@@ -477,8 +476,10 @@ func (r *ChatArchiveRegistry) Resume(ctx context.Context, jobID chat1.ArchiveJob
 
 var _ types.ChatArchiveRegistry = (*ChatArchiveRegistry)(nil)
 
-const defaultPageSizeDesktop = 1000
-const defaultPageSizeMobile = 300
+const (
+	defaultPageSizeDesktop = 1000
+	defaultPageSizeMobile  = 300
+)
 
 // Fullfil an archive query
 type ChatArchiver struct {

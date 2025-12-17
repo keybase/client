@@ -141,7 +141,7 @@ func (hfs httpFileSystem) Open(filename string) (entry http.File, err error) {
 		}
 	}()
 
-	n, ei, err := hfs.fs.lookupOrCreateEntry(filename, os.O_RDONLY, 0600)
+	n, ei, err := hfs.fs.lookupOrCreateEntry(filename, os.O_RDONLY, 0o600)
 	if err != nil {
 		return fileOrDir{}, err
 	}

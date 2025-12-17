@@ -55,14 +55,16 @@ func (n *ArchiveCompleteWaiter) Done() chan struct{} {
 }
 
 func (n *ArchiveCompleteWaiter) ChatArchiveComplete(ctx context.Context,
-	arg chat1.ArchiveJobID) error {
+	arg chat1.ArchiveJobID,
+) error {
 	err := n.cli.ChatArchiveComplete(ctx, arg)
 	close(n.ch)
 	return err
 }
 
 func (n *ArchiveCompleteWaiter) ChatArchiveProgress(ctx context.Context,
-	arg chat1.ChatArchiveProgressArg) error {
+	arg chat1.ChatArchiveProgressArg,
+) error {
 	return n.cli.ChatArchiveProgress(ctx, arg)
 }
 

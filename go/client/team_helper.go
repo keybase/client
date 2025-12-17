@@ -112,7 +112,8 @@ func ParseBotSettings(ctx *cli.Context) *keybase1.TeamBotSettings {
 }
 
 func ValidateBotSettingsConvs(g *libkb.GlobalContext, tlfName string,
-	mt chat1.ConversationMembersType, botSettings *keybase1.TeamBotSettings) error {
+	mt chat1.ConversationMembersType, botSettings *keybase1.TeamBotSettings,
+) error {
 	if botSettings == nil {
 		return nil
 	}
@@ -130,7 +131,8 @@ func ValidateBotSettingsConvs(g *libkb.GlobalContext, tlfName string,
 }
 
 func lookupConvIDsByTopicName(g *libkb.GlobalContext, tlfName string,
-	mt chat1.ConversationMembersType, convs []string) (convIDs []chat1.ConvIDStr, err error) {
+	mt chat1.ConversationMembersType, convs []string,
+) (convIDs []chat1.ConvIDStr, err error) {
 	resolver, err := newChatConversationResolver(g)
 	if err != nil {
 		return nil, err

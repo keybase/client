@@ -311,7 +311,8 @@ func (rkbf tlfReaderKeyBundleV3Future) ToCurrentStruct() kbfscodec.CurrentStruct
 }
 
 func makeFakeTLFReaderKeyBundleV3Future(
-	t *testing.T) tlfReaderKeyBundleV3Future {
+	t *testing.T,
+) tlfReaderKeyBundleV3Future {
 	rkb := TLFReaderKeyBundleV3{
 		nil,
 		kbfscrypto.TLFEphemeralPublicKeys{

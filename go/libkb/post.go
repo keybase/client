@@ -209,7 +209,8 @@ func checkPostedMaybeBustProofCache(mctx MetaContext, sigID keybase1.SigID, foun
 
 func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType keybase1.DeviceTypeV2, serverHalf LKSecServerHalf,
 	ppGen PassphraseGeneration,
-	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
+	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID,
+) error {
 	m.Debug("| PostDeviceLKS: %s", deviceID)
 	if serverHalf.IsNil() {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")

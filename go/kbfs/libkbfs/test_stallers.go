@@ -90,7 +90,8 @@ func NewNaïveStaller(config Config) *NaïveStaller {
 }
 
 func (s *NaïveStaller) getNaïveStallInfoForBlockOpOrBust(
-	stalledOp StallableBlockOp) *naïveStallInfo {
+	stalledOp StallableBlockOp,
+) *naïveStallInfo {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	info, ok := s.blockOpsStalls[stalledOp]
@@ -102,7 +103,8 @@ func (s *NaïveStaller) getNaïveStallInfoForBlockOpOrBust(
 }
 
 func (s *NaïveStaller) getNaïveStallInfoForMDOpOrBust(
-	stalledOp StallableMDOp) *naïveStallInfo {
+	stalledOp StallableMDOp,
+) *naïveStallInfo {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	info, ok := s.mdOpsStalls[stalledOp]
@@ -145,7 +147,8 @@ func (s *NaïveStaller) StallBlockOp(stalledOp StallableBlockOp, maxStalls int) 
 // StallMDOp wraps the internal MDOps so that all subsequent stalledOp
 // will be stalled. This can be undone by calling UndoStallMDOp.
 func (s *NaïveStaller) StallMDOp(stalledOp StallableMDOp, maxStalls int,
-	stallDelegate bool) {
+	stallDelegate bool,
+) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.mdStalled {
@@ -250,7 +253,8 @@ func (s *NaïveStaller) UndoStallMDOp(stalledOp StallableMDOp) {
 // Op.
 func StallBlockOp(ctx context.Context, config Config,
 	stalledOp StallableBlockOp, maxStalls int) (
-	onStalled <-chan struct{}, unstall chan<- struct{}, newCtx context.Context) {
+	onStalled <-chan struct{}, unstall chan<- struct{}, newCtx context.Context,
+) {
 	onStalledCh := make(chan struct{}, maxStalls)
 	unstallCh := make(chan struct{})
 	stallKey := newStallKey()
@@ -276,7 +280,8 @@ func StallBlockOp(ctx context.Context, config Config,
 // unstall an Op.
 func StallMDOp(ctx context.Context, config Config, stalledOp StallableMDOp,
 	maxStalls int) (
-	onStalled <-chan struct{}, unstall chan<- struct{}, newCtx context.Context) {
+	onStalled <-chan struct{}, unstall chan<- struct{}, newCtx context.Context,
+) {
 	onStalledCh := make(chan struct{}, maxStalls)
 	unstallCh := make(chan struct{})
 	stallKey := newStallKey()
@@ -313,7 +318,8 @@ type staller struct {
 
 func maybeStall(ctx context.Context, opName stallableOp,
 	stallOpName stallableOp, stallKey stallKeyType,
-	staller staller) {
+	staller staller,
+) {
 	if opName != stallOpName {
 		return
 	}
@@ -373,7 +379,8 @@ func (f *stallingBlockServer) maybeStall(ctx context.Context, opName StallableBl
 func (f *stallingBlockServer) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	bctx kbfsblock.Context, cacheType DiskBlockCacheType) (
-	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error,
+) {
 	f.maybeStall(ctx, StallableBlockGet)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGet error
@@ -388,7 +395,8 @@ func (f *stallingBlockServer) Put(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	bctx kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	cacheType DiskBlockCacheType) error {
+	cacheType DiskBlockCacheType,
+) error {
 	f.maybeStall(ctx, StallableBlockPut)
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
 		return f.BlockServer.Put(
@@ -418,12 +426,14 @@ func (m *stallingMDOps) maybeStall(ctx context.Context, opName StallableMDOp) {
 }
 
 func (m *stallingMDOps) GetIDForHandle(
-	ctx context.Context, handle *tlfhandle.Handle) (tlfID tlf.ID, err error) {
+	ctx context.Context, handle *tlfhandle.Handle,
+) (tlfID tlf.ID, err error) {
 	return m.delegate.GetIDForHandle(ctx, handle)
 }
 
 func (m *stallingMDOps) GetForTLF(ctx context.Context, id tlf.ID,
-	lockBeforeGet *keybase1.LockID) (md ImmutableRootMetadata, err error) {
+	lockBeforeGet *keybase1.LockID,
+) (md ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetForTLF)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetForTLF error
@@ -435,7 +445,8 @@ func (m *stallingMDOps) GetForTLF(ctx context.Context, id tlf.ID,
 
 func (m *stallingMDOps) GetForTLFByTime(
 	ctx context.Context, id tlf.ID, serverTime time.Time) (
-	md ImmutableRootMetadata, err error) {
+	md ImmutableRootMetadata, err error,
+) {
 	m.maybeStall(ctx, StallableMDGetForTLFByTime)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetForTLF error
@@ -446,7 +457,8 @@ func (m *stallingMDOps) GetForTLFByTime(
 }
 
 func (m *stallingMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-	h tlf.Handle, err error) {
+	h tlf.Handle, err error,
+) {
 	m.maybeStall(ctx, StallableMDGetLatestHandleForTLF)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetLatestHandleForTLF error
@@ -458,19 +470,20 @@ func (m *stallingMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 }
 
 func (m *stallingMDOps) ValidateLatestHandleNotFinal(
-	ctx context.Context, h *tlfhandle.Handle) (b bool, err error) {
+	ctx context.Context, h *tlfhandle.Handle,
+) (b bool, err error) {
 	m.maybeStall(ctx, StallableMDValidateLatestHandleNotFinal)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errValidateLatestHandleNotFinal error
-		b, errValidateLatestHandleNotFinal =
-			m.delegate.ValidateLatestHandleNotFinal(ctx, h)
+		b, errValidateLatestHandleNotFinal = m.delegate.ValidateLatestHandleNotFinal(ctx, h)
 		return errValidateLatestHandleNotFinal
 	})
 	return b, err
 }
 
 func (m *stallingMDOps) GetUnmergedForTLF(ctx context.Context, id tlf.ID,
-	bid kbfsmd.BranchID) (md ImmutableRootMetadata, err error) {
+	bid kbfsmd.BranchID,
+) (md ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetUnmergedForTLF)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetUnmergedForTLF error
@@ -482,7 +495,8 @@ func (m *stallingMDOps) GetUnmergedForTLF(ctx context.Context, id tlf.ID,
 
 func (m *stallingMDOps) GetRange(ctx context.Context, id tlf.ID,
 	start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
-	mds []ImmutableRootMetadata, err error) {
+	mds []ImmutableRootMetadata, err error,
+) {
 	m.maybeStall(ctx, StallableMDGetRange)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetRange error
@@ -495,7 +509,8 @@ func (m *stallingMDOps) GetRange(ctx context.Context, id tlf.ID,
 }
 
 func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID,
-	bid kbfsmd.BranchID, start, stop kbfsmd.Revision) (mds []ImmutableRootMetadata, err error) {
+	bid kbfsmd.BranchID, start, stop kbfsmd.Revision,
+) (mds []ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetUnmergedRange)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetUnmergedRange error
@@ -509,7 +524,8 @@ func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID,
 func (m *stallingMDOps) Put(
 	ctx context.Context, md *RootMetadata, verifyingKey kbfscrypto.VerifyingKey,
 	lockContext *keybase1.LockContext, priority keybase1.MDPriority,
-	bps data.BlockPutState) (irmd ImmutableRootMetadata, err error) {
+	bps data.BlockPutState,
+) (irmd ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDPut)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		irmd, err = m.delegate.Put(
@@ -523,7 +539,8 @@ func (m *stallingMDOps) Put(
 func (m *stallingMDOps) PutUnmerged(
 	ctx context.Context, md *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
-	irmd ImmutableRootMetadata, err error) {
+	irmd ImmutableRootMetadata, err error,
+) {
 	m.maybeStall(ctx, StallableMDPutUnmerged)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		irmd, err = m.delegate.PutUnmerged(ctx, md, verifyingKey, bps)
@@ -534,7 +551,8 @@ func (m *stallingMDOps) PutUnmerged(
 }
 
 func (m *stallingMDOps) PruneBranch(
-	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error {
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
+) error {
 	m.maybeStall(ctx, StallableMDPruneBranch)
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
 		return m.delegate.PruneBranch(ctx, id, bid)
@@ -545,7 +563,8 @@ func (m *stallingMDOps) ResolveBranch(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
 	blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
-	irmd ImmutableRootMetadata, err error) {
+	irmd ImmutableRootMetadata, err error,
+) {
 	m.maybeStall(ctx, StallableMDResolveBranch)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		irmd, err = m.delegate.ResolveBranch(

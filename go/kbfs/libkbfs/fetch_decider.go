@@ -38,7 +38,8 @@ type fetchDecider struct {
 func newFetchDecider(
 	log logger.Logger, vlog *libkb.VDebugLog,
 	fetcher func(ctx context.Context) error, tagKey interface{}, tagName string,
-	clock clockGetter) *fetchDecider {
+	clock clockGetter,
+) *fetchDecider {
 	return &fetchDecider{
 		log:         log,
 		vlog:        vlog,
@@ -50,7 +51,8 @@ func newFetchDecider(
 }
 
 func (fd *fetchDecider) launchBackgroundFetch(ctx context.Context) (
-	readyCh <-chan struct{}, errPtr *error) {
+	readyCh <-chan struct{}, errPtr *error,
+) {
 	fd.lock.Lock()
 	defer fd.lock.Unlock()
 
@@ -113,7 +115,8 @@ func (fd *fetchDecider) launchBackgroundFetch(ctx context.Context) (
 // 3) Otherwise, it returns immediately
 func (fd *fetchDecider) Do(
 	ctx context.Context, bgTolerance, blockTolerance time.Duration,
-	cachedTimestamp time.Time) (err error) {
+	cachedTimestamp time.Time,
+) (err error) {
 	past := fd.Clock().Now().Sub(cachedTimestamp)
 	switch {
 	case past > blockTolerance || cachedTimestamp.IsZero():

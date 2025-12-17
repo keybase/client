@@ -92,7 +92,8 @@ var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
 func NewMDServerRemote(kbCtx Context, config Config, srvRemote rpc.Remote,
-	rpcLogFactory rpc.LogFactory) *MDServerRemote {
+	rpcLogFactory rpc.LogFactory,
+) *MDServerRemote {
 	log := config.MakeLogger("")
 	deferLog := log.CloneWithAddedDepth(1)
 	mdServer := &MDServerRemote{
@@ -209,8 +210,8 @@ func (*MDServerRemote) HandlerName() string {
 // OnConnect implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnConnect(ctx context.Context,
 	conn *rpc.Connection, client rpc.GenericClient,
-	server *rpc.Server) (err error) {
-
+	server *rpc.Server,
+) (err error) {
 	defer func() {
 		md.config.Reporter().OnlineStatusChanged(ctx, err == nil)
 		if err == nil {
@@ -261,7 +262,8 @@ const (
 // idutil.NoCurrentSessionError, the caller should treat this as a
 // logged-out user.
 func (md *MDServerRemote) resetAuth(
-	ctx context.Context, c keybase1.MetadataClient) (int, error) {
+	ctx context.Context, c keybase1.MetadataClient,
+) (int, error) {
 	ctx = context.WithValue(ctx, ctxMDServerResetKey, "1")
 
 	isAuthenticated := false
@@ -380,8 +382,7 @@ func (md *MDServerRemote) pingOnce(ctx context.Context) {
 		return
 	}
 
-	serverTimeNow :=
-		keybase1.FromTime(resp.Timestamp).Add(pingLatency / 2)
+	serverTimeNow := keybase1.FromTime(resp.Timestamp).Add(pingLatency / 2)
 	func() {
 		md.serverOffsetMu.Lock()
 		defer md.serverOffsetMu.Unlock()
@@ -424,7 +425,8 @@ func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 
 // OnDisconnected implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnDisconnected(ctx context.Context,
-	status rpc.DisconnectStatus) {
+	status rpc.DisconnectStatus,
+) {
 	if status == rpc.StartingNonFirstConnection {
 		md.log.CWarningf(ctx, "MDServerRemote is disconnected")
 		md.config.Reporter().Notify(ctx,
@@ -530,7 +532,8 @@ func (md *MDServerRemote) signalObserverLocked(observerChan chan<- error, id tlf
 }
 
 func (md *MDServerRemote) getLatestFromCache(
-	ctx context.Context, tlfID tlf.ID) (*RootMetadataSigned, error) {
+	ctx context.Context, tlfID tlf.ID,
+) (*RootMetadataSigned, error) {
 	if md.config.DiskMDCache() == nil {
 		return nil, nil
 	}
@@ -546,7 +549,8 @@ func (md *MDServerRemote) getLatestFromCache(
 
 // Helper used to retrieve metadata blocks from the MD server.
 func (md *MDServerRemote) get(ctx context.Context, arg keybase1.GetMetadataArg) (
-	tlfID tlf.ID, rmdses []*RootMetadataSigned, err error) {
+	tlfID tlf.ID, rmdses []*RootMetadataSigned, err error,
+) {
 	// request
 	response, err := md.getClient().GetMetadata(ctx, arg)
 	if err != nil {
@@ -587,7 +591,8 @@ func (md *MDServerRemote) get(ctx context.Context, arg keybase1.GetMetadataArg) 
 // GetForHandle implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForHandle(ctx context.Context,
 	handle tlf.Handle, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
-	tlfID tlf.ID, rmds *RootMetadataSigned, err error) {
+	tlfID tlf.ID, rmds *RootMetadataSigned, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	// TODO: Ideally, *tlf.Handle would have a nicer String() function.
 	md.log.LazyTrace(ctx, "MDServer: GetForHandle %+v %s", handle, mStatus)
@@ -622,7 +627,8 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context,
 
 // GetForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
-	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (rmds *RootMetadataSigned, err error) {
+	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID,
+) (rmds *RootMetadataSigned, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetForTLF %s %s %s", id, bid, mStatus)
 	defer func() {
@@ -680,7 +686,8 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 // GetForTLFByTime implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForTLFByTime(
 	ctx context.Context, id tlf.ID, serverTime time.Time) (
-	rmds *RootMetadataSigned, err error) {
+	rmds *RootMetadataSigned, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetForTLFByTime %s %s", id, serverTime)
 	defer func() {
@@ -715,7 +722,8 @@ func (md *MDServerRemote) GetForTLFByTime(
 func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
 	start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
-	rmdses []*RootMetadataSigned, err error) {
+	rmdses []*RootMetadataSigned, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetRange %s %s %s %d-%d", id, bid, mStatus, start, stop)
 	defer func() {
@@ -738,7 +746,8 @@ func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
 // Put implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 	extra kbfsmd.ExtraMetadata, lockContext *keybase1.LockContext,
-	priority keybase1.MDPriority) (err error) {
+	priority keybase1.MDPriority,
+) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: Put %s %d", rmds.MD.TlfID(), rmds.MD.RevisionNumber())
 	defer func() {
@@ -828,7 +837,8 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 
 // Lock implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) Lock(ctx context.Context,
-	tlfID tlf.ID, lockID keybase1.LockID) error {
+	tlfID tlf.ID, lockID keybase1.LockID,
+) error {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: Lock %s %s", tlfID, lockID)
 	defer func() {
@@ -842,7 +852,8 @@ func (md *MDServerRemote) Lock(ctx context.Context,
 
 // ReleaseLock implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) ReleaseLock(ctx context.Context,
-	tlfID tlf.ID, lockID keybase1.LockID) error {
+	tlfID tlf.ID, lockID keybase1.LockID,
+) error {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: ReleaseLock %s %s", tlfID, lockID)
 	defer func() {
@@ -856,7 +867,8 @@ func (md *MDServerRemote) ReleaseLock(ctx context.Context,
 
 // StartImplicitTeamMigration implements the MDServer interface.
 func (md *MDServerRemote) StartImplicitTeamMigration(
-	ctx context.Context, id tlf.ID) (err error) {
+	ctx context.Context, id tlf.ID,
+) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx,
 		"MDServer: StartImplicitTeamMigration %s", id)
@@ -870,7 +882,8 @@ func (md *MDServerRemote) StartImplicitTeamMigration(
 
 // PruneBranch implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) PruneBranch(
-	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) (err error) {
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
+) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: PruneBranch %s %s", id, bid)
 	defer func() {
@@ -907,7 +920,8 @@ func (md *MDServerRemote) MetadataUpdate(_ context.Context, arg keybase1.Metadat
 
 // FoldersNeedRekey implements the MetadataUpdateProtocol interface.
 func (md *MDServerRemote) FoldersNeedRekey(ctx context.Context,
-	requests []keybase1.RekeyRequest) error {
+	requests []keybase1.RekeyRequest,
+) error {
 	if md.squelchRekey {
 		md.log.CDebugf(ctx, "MDServerRemote: rekey updates squelched for testing")
 		return nil
@@ -929,7 +943,8 @@ func (md *MDServerRemote) FoldersNeedRekey(ctx context.Context,
 
 // FolderNeedsRekey implements the MetadataUpdateProtocol interface.
 func (md *MDServerRemote) FolderNeedsRekey(ctx context.Context,
-	arg keybase1.FolderNeedsRekeyArg) error {
+	arg keybase1.FolderNeedsRekeyArg,
+) error {
 	id, err := tlf.ParseID(arg.FolderID)
 	if err != nil {
 		return err
@@ -955,7 +970,8 @@ func (md *MDServerRemote) getConn() *rpc.Connection {
 
 // RegisterForUpdate implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
-	currHead kbfsmd.Revision) (<-chan error, error) {
+	currHead kbfsmd.Revision,
+) (<-chan error, error) {
 	arg := keybase1.RegisterForUpdatesArg{
 		FolderID:     id.String(),
 		CurrRevision: currHead.Number(),
@@ -1026,7 +1042,8 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
 
 // TruncateLock implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) TruncateLock(ctx context.Context, id tlf.ID) (
-	locked bool, err error) {
+	locked bool, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: TruncateLock %s", id)
 	defer func() {
@@ -1037,7 +1054,8 @@ func (md *MDServerRemote) TruncateLock(ctx context.Context, id tlf.ID) (
 
 // TruncateUnlock implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id tlf.ID) (
-	unlocked bool, err error) {
+	unlocked bool, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: TruncateUnlock %s", id)
 	defer func() {
@@ -1047,7 +1065,8 @@ func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id tlf.ID) (
 }
 
 func (md *MDServerRemote) getLatestHandleFromCache(
-	ctx context.Context, id tlf.ID) (handle tlf.Handle, err error) {
+	ctx context.Context, id tlf.ID,
+) (handle tlf.Handle, err error) {
 	rmds, err := md.getLatestFromCache(ctx, id)
 	if err != nil {
 		return tlf.Handle{}, err
@@ -1066,7 +1085,8 @@ func (md *MDServerRemote) getLatestHandleFromCache(
 
 // GetLatestHandleForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-	handle tlf.Handle, err error) {
+	handle tlf.Handle, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetLatestHandle %s", id)
 	defer func() {
@@ -1156,7 +1176,8 @@ func (md *MDServerRemote) CheckForRekeys(ctx context.Context) <-chan error {
 
 // getFoldersForRekey registers to receive updates about folders needing rekey actions.
 func (md *MDServerRemote) getFoldersForRekey(ctx context.Context,
-	client keybase1.MetadataClient) error {
+	client keybase1.MetadataClient,
+) error {
 	// get this device's crypt public key
 	session, err := md.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
@@ -1201,7 +1222,8 @@ func (md *MDServerRemote) IsConnected() bool {
 func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
 	cryptKey kbfscrypto.CryptPublicKey) (
-	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
+	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: GetTLFCryptKeyServerHalf %s", serverHalfID)
 	defer func() {
@@ -1236,7 +1258,8 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 
 // PutTLFCryptKeyServerHalves is an implementation of the KeyServer interface.
 func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
-	keyServerHalves kbfsmd.UserDeviceKeyServerHalves) (err error) {
+	keyServerHalves kbfsmd.UserDeviceKeyServerHalves,
+) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: PutTLFCryptKeyServerHalves %v", keyServerHalves)
 	defer func() {
@@ -1270,7 +1293,8 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 // DeleteTLFCryptKeyServerHalf is an implementation of the KeyServer interface.
 func (md *MDServerRemote) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.CryptPublicKey,
-	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) (err error) {
+	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
+) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: DeleteTLFCryptKeyServerHalf %s %s", uid, serverHalfID)
 	defer func() {
@@ -1345,7 +1369,8 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 // GetKeyBundles implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 	tlf tlf.ID, wkbID kbfsmd.TLFWriterKeyBundleID, rkbID kbfsmd.TLFReaderKeyBundleID) (
-	wkb *kbfsmd.TLFWriterKeyBundleV3, rkb *kbfsmd.TLFReaderKeyBundleV3, err error) {
+	wkb *kbfsmd.TLFWriterKeyBundleV3, rkb *kbfsmd.TLFReaderKeyBundleV3, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: GetKeyBundles %s %s %s", tlf, wkbID, rkbID)
 	defer func() {
@@ -1423,7 +1448,8 @@ func (md *MDServerRemote) FastForwardBackoff() {
 func (md *MDServerRemote) FindNextMD(
 	ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (
 	nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
-	nextRootSeqno keybase1.Seqno, err error) {
+	nextRootSeqno keybase1.Seqno, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: FindNextMD %s %d", tlfID, rootSeqno)
 	md.log.CDebugf(ctx, "KeyServer: FindNextMD %s %d", tlfID, rootSeqno)
@@ -1489,7 +1515,8 @@ func (md *MDServerRemote) FindNextMD(
 // GetMerkleRootLatest implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetMerkleRootLatest(
 	ctx context.Context, treeID keybase1.MerkleTreeID) (
-	root *kbfsmd.MerkleRoot, err error) {
+	root *kbfsmd.MerkleRoot, err error,
+) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: GetMerkleRootLatest %d", treeID)
 	md.log.CDebugf(ctx, "KeyServer: GetMerkleRootLatest %d", treeID)

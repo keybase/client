@@ -61,7 +61,8 @@ func (p *Progress) tlfUnqueue(id tlf.ID) {
 }
 
 func (p *Progress) startIndex(
-	id tlf.ID, sizeEstimate uint64, t indexType) error {
+	id tlf.ID, sizeEstimate uint64, t indexType,
+) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
@@ -119,7 +120,8 @@ func (p *Progress) finishIndex(id tlf.ID) error {
 }
 
 func (p *Progress) fillInProgressRecord(
-	total, soFar uint64, rate float64, rec *keybase1.IndexProgressRecord) {
+	total, soFar uint64, rate float64, rec *keybase1.IndexProgressRecord,
+) {
 	if rate > 0 {
 		bytesLeft := total - soFar
 		timeLeft := time.Duration(
@@ -133,7 +135,8 @@ func (p *Progress) fillInProgressRecord(
 // GetStatus returns the current progress status.
 func (p *Progress) GetStatus() (
 	currProgress, overallProgress keybase1.IndexProgressRecord,
-	currTlf tlf.ID, queuedTlfs []tlf.ID) {
+	currTlf tlf.ID, queuedTlfs []tlf.ID,
+) {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
 

@@ -75,7 +75,8 @@ func (bldbr *bleveLevelDBReader) Get(key []byte) ([]byte, error) {
 
 // MultiGet implements the store.KVReader interface for bleveLevelDBReader.
 func (bldbr *bleveLevelDBReader) MultiGet(keys [][]byte) (
-	values [][]byte, err error) {
+	values [][]byte, err error,
+) {
 	return store.MultiGet(bldbr, keys)
 }
 
@@ -91,7 +92,8 @@ func (bldbr *bleveLevelDBReader) PrefixIterator(prefix []byte) store.KVIterator 
 
 // RangeIterator implements the store.KVReader interface for bleveLevelDBReader.
 func (bldbr *bleveLevelDBReader) RangeIterator(
-	start, end []byte) store.KVIterator {
+	start, end []byte,
+) store.KVIterator {
 	i := &bleveLevelDBIterator{
 		iter: bldbr.snap.NewIterator(&util.Range{
 			Start: start,
@@ -114,7 +116,8 @@ type bleveLevelDBBatch struct {
 }
 
 func newbleveLevelDBBatch(
-	totalBytes int, mo store.MergeOperator) *bleveLevelDBBatch {
+	totalBytes int, mo store.MergeOperator,
+) *bleveLevelDBBatch {
 	return &bleveLevelDBBatch{
 		b: leveldb.MakeBatch(totalBytes),
 		m: store.NewEmulatedMerge(mo),
@@ -162,7 +165,8 @@ func (bldbw *bleveLevelDBWriter) NewBatch() store.KVBatch {
 
 // NewBatchEx implements the store.KVReader interface for bleveLevelDBWriter.
 func (bldbw *bleveLevelDBWriter) NewBatchEx(opts store.KVBatchOptions) (
-	[]byte, store.KVBatch, error) {
+	[]byte, store.KVBatch, error,
+) {
 	return make([]byte, opts.TotalBytes),
 		newbleveLevelDBBatch(opts.TotalBytes, bldbw.mo), nil
 }
@@ -210,7 +214,8 @@ var _ store.KVStore = (*bleveLevelDBStore)(nil)
 
 func newBleveLevelDBStore(
 	bfs billy.Filesystem, readOnly bool, mo store.MergeOperator) (
-	*bleveLevelDBStore, error) {
+	*bleveLevelDBStore, error,
+) {
 	s, err := libfs.OpenLevelDBStorage(bfs, readOnly)
 	if err != nil {
 		return nil, err

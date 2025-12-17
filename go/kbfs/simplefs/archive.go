@@ -52,7 +52,7 @@ func loadArchiveStateFromJsonGz(ctx context.Context, simpleFS *SimpleFS, filePat
 }
 
 func writeArchiveStateIntoJsonGz(ctx context.Context, simpleFS *SimpleFS, filePath string, s *keybase1.SimpleFSArchiveState) error {
-	err := os.MkdirAll(filepath.Dir(filePath), 0755)
+	err := os.MkdirAll(filepath.Dir(filePath), 0o755)
 	if err != nil {
 		simpleFS.log.CErrorf(ctx, "writeArchiveStateIntoJsonGz: os.MkdirAll error: %v", err)
 		return err
@@ -189,7 +189,8 @@ func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArch
 }
 
 func (m *archiveManager) cancelOrDismissJob(ctx context.Context,
-	jobID string) (err error) {
+	jobID string,
+) (err error) {
 	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.cancelOrDismissJob")
 	defer m.simpleFS.log.CDebugf(ctx, "- archiveManager.cancelOrDismissJob %s", jobID)
 	m.mu.Lock()
@@ -217,7 +218,8 @@ func (m *archiveManager) cancelOrDismissJob(ctx context.Context,
 }
 
 func (m *archiveManager) getCurrentStateLocked(ctx context.Context) (
-	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) {
+	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState,
+) {
 	errorStates = make(map[string]errorState)
 	for jobID, errState := range m.errors {
 		errorStates[jobID] = errState
@@ -226,7 +228,8 @@ func (m *archiveManager) getCurrentStateLocked(ctx context.Context) (
 }
 
 func (m *archiveManager) getCurrentState(ctx context.Context) (
-	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) {
+	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState,
+) {
 	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.getCurrentState")
 	defer m.simpleFS.log.CDebugf(ctx, "- archiveManager.getCurrentState")
 	m.mu.Lock()
@@ -237,7 +240,8 @@ func (m *archiveManager) getCurrentState(ctx context.Context) (
 func (m *archiveManager) checkArchive(
 	ctx context.Context, archiveZipFilePath string) (
 	desc keybase1.SimpleFSArchiveJobDesc, pathsWithIssues map[string]string,
-	err error) {
+	err error,
+) {
 	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.checkArchive %q", archiveZipFilePath)
 	defer m.simpleFS.log.CDebugf(ctx, "- archiveManager.checkArchive %q", archiveZipFilePath)
 
@@ -294,7 +298,7 @@ loopManifest:
 				}
 				continue loopManifest
 			case keybase1.DirentType_FILE:
-				if fstat.IsDir() || fstat.Mode()&os.ModeSymlink != 0 || fstat.Mode()&0111 != 0 {
+				if fstat.IsDir() || fstat.Mode()&os.ModeSymlink != 0 || fstat.Mode()&0o111 != 0 {
 					errDesc := fmt.Sprintf(
 						"%q is a normal file with no exec bit in manifest but not in archive (mode=%v)", itemPath, fstat.Mode())
 					m.simpleFS.log.CWarningf(ctx, errDesc)
@@ -311,7 +315,7 @@ loopManifest:
 				}
 				continue loopManifest
 			case keybase1.DirentType_EXEC:
-				if fstat.IsDir() || fstat.Mode()&os.ModeSymlink != 0 || fstat.Mode()&0111 == 0 {
+				if fstat.IsDir() || fstat.Mode()&os.ModeSymlink != 0 || fstat.Mode()&0o111 == 0 {
 					errDesc := fmt.Sprintf(
 						"%q is a normal file with exec bit in manifest but not in archive (mode=%v)", itemPath, fstat.Mode())
 					m.simpleFS.log.CWarningf(ctx, errDesc)
@@ -343,7 +347,8 @@ loopManifest:
 }
 
 func (m *archiveManager) changeJobPhaseLocked(ctx context.Context,
-	jobID string, newPhase keybase1.SimpleFSArchiveJobPhase) {
+	jobID string, newPhase keybase1.SimpleFSArchiveJobPhase,
+) {
 	copy, ok := m.state.Jobs[jobID]
 	if !ok {
 		m.simpleFS.log.CWarningf(ctx, "job %s not found. it might have been canceled", jobID)
@@ -353,8 +358,10 @@ func (m *archiveManager) changeJobPhaseLocked(ctx context.Context,
 	m.state.Jobs[jobID] = copy
 	m.signal(m.notifyUIStateChangeSignal)
 }
+
 func (m *archiveManager) changeJobPhase(ctx context.Context,
-	jobID string, newPhase keybase1.SimpleFSArchiveJobPhase) {
+	jobID string, newPhase keybase1.SimpleFSArchiveJobPhase,
+) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.changeJobPhaseLocked(ctx, jobID, newPhase)
@@ -362,7 +369,8 @@ func (m *archiveManager) changeJobPhase(ctx context.Context,
 
 func (m *archiveManager) startWorkerTask(ctx context.Context,
 	eligiblePhase keybase1.SimpleFSArchiveJobPhase,
-	newPhase keybase1.SimpleFSArchiveJobPhase) (jobID string, jobCtx context.Context, ok bool) {
+	newPhase keybase1.SimpleFSArchiveJobPhase,
+) (jobID string, jobCtx context.Context, ok bool) {
 	jobCtx, cancel := context.WithCancel(ctx)
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -379,7 +387,8 @@ func (m *archiveManager) startWorkerTask(ctx context.Context,
 const archiveErrorRetryDuration = time.Minute
 
 func (m *archiveManager) setJobError(
-	ctx context.Context, jobID string, err error) {
+	ctx context.Context, jobID string, err error,
+) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	nextRetry := time.Now().Add(archiveErrorRetryDuration)
@@ -538,7 +547,8 @@ type bytesUpdaterFunc = func(delta int64)
 
 func ctxAwareCopy(
 	ctx context.Context, to io.Writer, from io.Reader,
-	bytesUpdater bytesUpdaterFunc) error {
+	bytesUpdater bytesUpdaterFunc,
+) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -561,7 +571,8 @@ func ctxAwareCopy(
 func (m *archiveManager) copyFileFromBeginning(ctx context.Context,
 	srcDirFS billy.Filesystem, entryPathWithinJob string,
 	localPath string, mode os.FileMode,
-	bytesCopiedUpdater bytesUpdaterFunc) (sha256Sum []byte, err error) {
+	bytesCopiedUpdater bytesUpdaterFunc,
+) (sha256Sum []byte, err error) {
 	m.simpleFS.log.CDebugf(ctx, "+ copyFileFromBeginning %s", entryPathWithinJob)
 	defer func() { m.simpleFS.log.CDebugf(ctx, "- copyFileFromBeginning %s err: %v", entryPathWithinJob, err) }()
 
@@ -592,7 +603,8 @@ func (m *archiveManager) copyFileFromBeginning(ctx context.Context,
 func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 	srcDirFS billy.Filesystem, entryPathWithinJob string,
 	localPath string, srcSeekOffset int64, mode os.FileMode,
-	bytesCopiedUpdater bytesUpdaterFunc) (sha256Sum []byte, err error) {
+	bytesCopiedUpdater bytesUpdaterFunc,
+) (sha256Sum []byte, err error) {
 	m.simpleFS.log.CDebugf(ctx, "+ copyFilePickupPrevious %s", entryPathWithinJob)
 	defer func() { m.simpleFS.log.CDebugf(ctx, "- copyFilePickupPrevious %s err: %v", entryPathWithinJob, err) }()
 
@@ -672,7 +684,8 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 func (m *archiveManager) copyFile(ctx context.Context,
 	srcDirFS billy.Filesystem, entryPathWithinJob string,
 	localPath string, srcSeekOffset int64, mode os.FileMode,
-	bytesCopiedUpdater bytesUpdaterFunc) (sha256Sum []byte, err error) {
+	bytesCopiedUpdater bytesUpdaterFunc,
+) (sha256Sum []byte, err error) {
 	if srcSeekOffset == 0 {
 		return m.copyFileFromBeginning(ctx, srcDirFS, entryPathWithinJob, localPath, mode, bytesCopiedUpdater)
 	}
@@ -730,7 +743,7 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 	}
 	dstBase := filepath.Join(getWorkspaceDir(desc), desc.TargetName)
 
-	err = os.MkdirAll(dstBase, 0755)
+	err = os.MkdirAll(dstBase, 0o755)
 	if err != nil {
 		return fmt.Errorf("os.MkdirAll(%s) error: %v", dstBase, err)
 	}
@@ -755,7 +768,7 @@ loopEntryPaths:
 		}
 		switch {
 		case srcFI.IsDir():
-			err = os.MkdirAll(localPath, 0755)
+			err = os.MkdirAll(localPath, 0o755)
 			if err != nil {
 				return fmt.Errorf("os.MkdirAll(%s) error: %v", localPath, err)
 			}
@@ -766,7 +779,7 @@ loopEntryPaths:
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry
 		case srcFI.Mode()&os.ModeSymlink != 0: // symlink
-			err = os.MkdirAll(filepath.Dir(localPath), 0755)
+			err = os.MkdirAll(filepath.Dir(localPath), 0o755)
 			if err != nil {
 				return fmt.Errorf("os.MkdirAll(filepath.Dir(%s)) error: %v", localPath, err)
 			}
@@ -794,14 +807,14 @@ loopEntryPaths:
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry
 		default:
-			err = os.MkdirAll(filepath.Dir(localPath), 0755)
+			err = os.MkdirAll(filepath.Dir(localPath), 0o755)
 			if err != nil {
 				return fmt.Errorf("os.MkdirAll(filepath.Dir(%s)) error: %v", localPath, err)
 			}
 
-			var mode os.FileMode = 0644
-			if srcFI.Mode()&0100 != 0 {
-				mode = 0755
+			var mode os.FileMode = 0o644
+			if srcFI.Mode()&0o100 != 0 {
+				mode = 0o755
 			}
 
 			seek := int64(0)
@@ -886,7 +899,8 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 // not on a version with this function yet, and 2) Go's AddFS doesn't support
 // symlinks; 3) we need bytesZippedUpdater here and we need to use CopyN for it.
 func zipWriterAddDir(ctx context.Context,
-	w *zip.Writer, dirPath string, bytesZippedUpdater bytesUpdaterFunc) error {
+	w *zip.Writer, dirPath string, bytesZippedUpdater bytesUpdaterFunc,
+) error {
 	fsys := os.DirFS(dirPath)
 	return fs.WalkDir(fsys, ".", func(name string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -980,7 +994,7 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 
 	workspaceDir := getWorkspaceDir(jobDesc)
 
-	err = os.MkdirAll(filepath.Dir(jobDesc.ZipFilePath), 0755)
+	err = os.MkdirAll(filepath.Dir(jobDesc.ZipFilePath), 0o755)
 	if err != nil {
 		m.simpleFS.log.CErrorf(ctx, "os.MkdirAll error: %v", err)
 		return err
@@ -991,7 +1005,7 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 		if jobDesc.OverwriteZip {
 			flag = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 		}
-		zipFile, err := os.OpenFile(jobDesc.ZipFilePath, flag, 0666)
+		zipFile, err := os.OpenFile(jobDesc.ZipFilePath, flag, 0o666)
 		if err != nil {
 			return fmt.Errorf("os.Create(%s) error: %v", jobDesc.ZipFilePath, err)
 		}
@@ -1223,7 +1237,8 @@ func (m *archiveManager) resetInterruptedPhasesLocked(ctx context.Context) {
 }
 
 func newArchiveManager(simpleFS *SimpleFS, username libkb.NormalizedUsername) (
-	m *archiveManager, err error) {
+	m *archiveManager, err error,
+) {
 	ctx := context.Background()
 	simpleFS.log.CDebugf(ctx, "+ newArchiveManager")
 	defer simpleFS.log.CDebugf(ctx, "- newArchiveManager")

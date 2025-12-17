@@ -32,7 +32,8 @@ type mdRange struct {
 
 func makeRekeyReadErrorHelper(
 	err error, kmd libkey.KeyMetadata, resolvedHandle *tlfhandle.Handle,
-	uid keybase1.UID, username kbname.NormalizedUsername) error {
+	uid keybase1.UID, username kbname.NormalizedUsername,
+) error {
 	if resolvedHandle.Type() == tlf.Public {
 		panic("makeRekeyReadError called on public folder")
 	}
@@ -55,7 +56,8 @@ func makeRekeyReadErrorHelper(
 func makeRekeyReadError(
 	ctx context.Context, err error, kbpki KBPKI,
 	syncGetter syncedTlfGetterSetter, kmd libkey.KeyMetadata,
-	uid keybase1.UID, username kbname.NormalizedUsername) error {
+	uid keybase1.UID, username kbname.NormalizedUsername,
+) error {
 	h := kmd.GetTlfHandle()
 	resolvedHandle, resolveErr := h.ResolveAgain(ctx, kbpki, nil, syncGetter)
 	if resolveErr != nil {
@@ -70,7 +72,8 @@ func makeRekeyReadError(
 // the current user. Otherwise an appropriate read access error is returned.
 func isReadableOrError(
 	ctx context.Context, kbpki KBPKI, syncGetter syncedTlfGetterSetter,
-	md ReadOnlyRootMetadata) error {
+	md ReadOnlyRootMetadata,
+) error {
 	if !md.IsInitialized() || md.IsReadable() {
 		return nil
 	}
@@ -88,7 +91,8 @@ func isReadableOrError(
 
 func getMDRange(ctx context.Context, config Config, id tlf.ID, bid kbfsmd.BranchID,
 	start kbfsmd.Revision, end kbfsmd.Revision, mStatus kbfsmd.MergeStatus,
-	lockBeforeGet *keybase1.LockID) (rmds []ImmutableRootMetadata, err error) {
+	lockBeforeGet *keybase1.LockID,
+) (rmds []ImmutableRootMetadata, err error) {
 	// The range is invalid.  Don't treat as an error though; it just
 	// indicates that we don't yet know about any revisions.
 	if start < kbfsmd.RevisionInitial || end < kbfsmd.RevisionInitial {
@@ -178,7 +182,8 @@ func getMDRange(ctx context.Context, config Config, id tlf.ID, bid kbfsmd.Branch
 func GetSingleMD(
 	ctx context.Context, config Config, id tlf.ID, bid kbfsmd.BranchID,
 	rev kbfsmd.Revision, mStatus kbfsmd.MergeStatus,
-	lockBeforeGet *keybase1.LockID) (ImmutableRootMetadata, error) {
+	lockBeforeGet *keybase1.LockID,
+) (ImmutableRootMetadata, error) {
 	rmds, err := getMDRange(
 		ctx, config, id, bid, rev, rev, mStatus, lockBeforeGet)
 	if err != nil {
@@ -197,7 +202,8 @@ func GetSingleMD(
 func MakeCopyWithDecryptedPrivateData(
 	ctx context.Context, config Config,
 	irmdToDecrypt, irmdWithKeys ImmutableRootMetadata, uid keybase1.UID) (
-	rmdDecrypted ImmutableRootMetadata, err error) {
+	rmdDecrypted ImmutableRootMetadata, err error,
+) {
 	pmd, err := decryptMDPrivateData(
 		ctx, config.Codec(), config.Crypto(),
 		config.BlockCache(), config.BlockOps(),
@@ -223,7 +229,8 @@ func MakeCopyWithDecryptedPrivateData(
 func getMergedMDUpdatesWithEnd(ctx context.Context, config Config, id tlf.ID,
 	startRev kbfsmd.Revision, endRev kbfsmd.Revision,
 	lockBeforeGet *keybase1.LockID) (
-	mergedRmds []ImmutableRootMetadata, err error) {
+	mergedRmds []ImmutableRootMetadata, err error,
+) {
 	// We don't yet know about any revisions yet, so there's no range
 	// to get.
 	if startRev < kbfsmd.RevisionInitial {
@@ -314,7 +321,8 @@ func getMergedMDUpdatesWithEnd(ctx context.Context, config Config, id tlf.ID,
 // instead of the cached versions.
 func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 	startRev kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
-	mergedRmds []ImmutableRootMetadata, err error) {
+	mergedRmds []ImmutableRootMetadata, err error,
+) {
 	return getMergedMDUpdatesWithEnd(
 		ctx, config, id, startRev, kbfsmd.RevisionUninitialized, lockBeforeGet)
 }
@@ -330,7 +338,8 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 func getUnmergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 	bid kbfsmd.BranchID, startRev kbfsmd.Revision) (
 	currHead kbfsmd.Revision, unmergedRmds []ImmutableRootMetadata,
-	err error) {
+	err error,
+) {
 	if bid == kbfsmd.NullBranchID {
 		// We're not really unmerged, so there's nothing to do.
 		// TODO: require the caller to avoid making this call if the
@@ -397,7 +406,8 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 // `serverTime`.
 func GetMDRevisionByTime(
 	ctx context.Context, config Config, handle *tlfhandle.Handle,
-	serverTime time.Time) (kbfsmd.Revision, error) {
+	serverTime time.Time,
+) (kbfsmd.Revision, error) {
 	id := handle.TlfID()
 	if id == tlf.NullID {
 		return kbfsmd.RevisionUninitialized, errors.Errorf(
@@ -419,7 +429,8 @@ func GetMDRevisionByTime(
 func encryptMDPrivateData(
 	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
 	signer kbfscrypto.Signer, ekg encryptionKeyGetter, me keybase1.UID,
-	rmd *RootMetadata) error {
+	rmd *RootMetadata,
+) error {
 	err := rmd.data.checkValid()
 	if err != nil {
 		return err
@@ -475,7 +486,8 @@ func encryptMDPrivateData(
 func getFileBlockForMD(
 	ctx context.Context, bcache data.BlockCacheSimple, bops BlockOps,
 	ptr data.BlockPointer, tlfID tlf.ID, rmdWithKeys libkey.KeyMetadata) (
-	*data.FileBlock, error) {
+	*data.FileBlock, error,
+) {
 	// We don't have a convenient way to fetch the block from here via
 	// folderBlockOps, so just go directly via the
 	// BlockCache/BlockOps.  No locking around the blocks is needed
@@ -506,7 +518,8 @@ func getFileBlockForMD(
 func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 	bcache data.BlockCacheSimple, bops BlockOps, mode InitMode, tlfID tlf.ID,
 	pmd *PrivateMetadata, rmdWithKeys libkey.KeyMetadata,
-	log logger.Logger) error {
+	log logger.Logger,
+) error {
 	info := pmd.Changes.Info
 	if info.BlockPointer == data.ZeroPtr {
 		return nil
@@ -537,7 +550,8 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 		}},
 	}
 	getter := func(ctx context.Context, kmd libkey.KeyMetadata, ptr data.BlockPointer,
-		p data.Path, rtype data.BlockReqType) (*data.FileBlock, bool, error) {
+		p data.Path, rtype data.BlockReqType,
+	) (*data.FileBlock, bool, error) {
 		block, err := getFileBlockForMD(ctx, bcache, bops, ptr, tlfID, kmd)
 		if err != nil {
 			return nil, false, err
@@ -591,7 +605,8 @@ func reembedBlockChangesIntoCopyIfNeeded(
 	ctx context.Context, codec kbfscodec.Codec,
 	bcache data.BlockCacheSimple, bops BlockOps, mode InitMode,
 	rmd ImmutableRootMetadata, log logger.Logger) (
-	ImmutableRootMetadata, error) {
+	ImmutableRootMetadata, error,
+) {
 	if rmd.data.Changes.Ops != nil {
 		return rmd, nil
 	}
@@ -619,7 +634,8 @@ func reembedBlockChangesIntoCopyIfNeeded(
 
 func getMDObfuscationSecret(
 	ctx context.Context, keyGetter mdDecryptionKeyGetter,
-	kmd libkey.KeyMetadata) (data.NodeObfuscatorSecret, error) {
+	kmd libkey.KeyMetadata,
+) (data.NodeObfuscatorSecret, error) {
 	if kmd.TlfID().Type() == tlf.Public {
 		return nil, nil
 	}
@@ -635,7 +651,8 @@ func getMDObfuscationSecret(
 }
 
 func makeMDObfuscatorFromSecret(
-	secret data.NodeObfuscatorSecret, mode InitMode) data.Obfuscator {
+	secret data.NodeObfuscatorSecret, mode InitMode,
+) data.Obfuscator {
 	if !mode.DoLogObfuscation() {
 		return nil
 	}
@@ -652,7 +669,8 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	keyGetter mdDecryptionKeyGetter, teamChecker kbfsmd.TeamMembershipChecker,
 	osg idutil.OfflineStatusGetter, mode InitMode, uid keybase1.UID,
 	serializedPrivateMetadata []byte, rmdToDecrypt, rmdWithKeys libkey.KeyMetadata,
-	log logger.Logger) (PrivateMetadata, error) {
+	log logger.Logger,
+) (PrivateMetadata, error) {
 	handle := rmdToDecrypt.GetTlfHandle()
 
 	var pmd PrivateMetadata
@@ -829,7 +847,8 @@ func (ci ChangeItem) String() string {
 func GetChangesBetweenRevisions(
 	ctx context.Context, config Config, id tlf.ID,
 	oldRev, newRev kbfsmd.Revision) (
-	changes []*ChangeItem, refSize uint64, err error) {
+	changes []*ChangeItem, refSize uint64, err error,
+) {
 	if newRev <= oldRev {
 		return nil, 0, errors.Errorf(
 			"Can't get changes between %d and %d", oldRev, newRev)

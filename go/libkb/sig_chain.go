@@ -88,7 +88,6 @@ func (c ChainLinks) EldestSeqno() keybase1.Seqno {
 }
 
 func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.SigID, signingKid keybase1.KID, isSibkey bool, mhm keybase1.HashMeta, fau keybase1.Seqno) (err error) {
-
 	sc.G().Log.Debug("SigChain#LocalDelegate(key: %s, sigID: %s, signingKid: %s, isSibkey: %v)", key.GetKID(), sigID, signingKid, isSibkey)
 
 	cki := sc.localCki
@@ -116,7 +115,6 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 }
 
 func (sc *SigChain) LocalDelegatePerUserKey(perUserKey keybase1.PerUserKey) error {
-
 	cki := sc.localCki
 	l := sc.GetLastLink()
 	if cki == nil && l != nil && l.cki != nil {
@@ -294,7 +292,6 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 	// sigchain. Otherwise you can ignore it.
 	var val int64
 	val, err = jsonparserw.GetInt(body, "status", "code")
-
 	// Server should always reply with a valid status code
 	if err != nil {
 		return nil, err
@@ -320,7 +317,6 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 	var linkErr error
 
 	_, travErr = jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
-
 		var link *ChainLink
 		var tmpErr error
 
@@ -591,7 +587,6 @@ func (sc *SigChain) Store(m MetaContext) (err error) {
 }
 
 func (sc *SigChain) checkUnstubs(low int, unstubs map[keybase1.Seqno]LinkID) error {
-
 	if unstubs == nil {
 		return nil
 	}
@@ -745,7 +740,6 @@ func (sc *SigChain) Dump(w io.Writer) {
 // on whether or not it's well-formed, and also yields ComputedKeyInfos for
 // all keys found in the process, including those that are now retired.
 func verifySubchain(m MetaContext, un NormalizedUsername, kf KeyFamily, links ChainLinks) (cached bool, cki *ComputedKeyInfos, err error) {
-
 	m.Debug("+ verifySubchain")
 	defer func() {
 		m.Debug("- verifySubchain -> %v, %s", cached, ErrToOk(err))
@@ -886,7 +880,6 @@ func verifySubchain(m MetaContext, un NormalizedUsername, kf KeyFamily, links Ch
 }
 
 func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily, uid keybase1.UID) (cached bool, linksConsumed int, err error) {
-
 	cached = false
 	m.Debug("+ verifySigsAndComputeKeysCurrent for user %s (eldest = %s)", sc.uid, eldest)
 	defer func() {
@@ -996,7 +989,6 @@ func (sc *SigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID,
 }
 
 func verifySigsAndComputeKeysHistorical(m MetaContext, uid keybase1.UID, username NormalizedUsername, allLinks ChainLinks, kf KeyFamily) (allCached bool, prevSubchains []ChainLinks, err error) {
-
 	defer m.Trace("verifySigsAndComputeKeysHistorical", &err)()
 	var cached bool
 
@@ -1232,7 +1224,6 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 // and (b) there are some stubs found. But it won't totally throw the stubs away; instead, it will put them
 // in map to check that server eventually unstubs the right values (by mapping Seqno -> LinkID).
 func (l *SigChainLoader) maybeDiscardStubbedLinks() {
-
 	if l.stubMode == StubModeStubbed {
 		return
 	}
@@ -1401,7 +1392,6 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 	srv := l.GetMerkleTriple()
 
 	l.dirtyTail, err = l.chain.LoadFromServer(l.M(), srv, l.selfUID(), l.stubMode, l.unstubs)
-
 	if err != nil {
 		return err
 	}

@@ -20,10 +20,12 @@ func normalizeIconKey(key string) string {
 	}
 }
 
-const ProofIconTypeSmall = "logo_black"
-const ProofIconTypeSmallDarkmode = "logo_white"
-const ProofIconTypeFull = "logo_full"
-const ProofIconTypeFullDarkmode = "logo_full_darkmode"
+const (
+	ProofIconTypeSmall         = "logo_black"
+	ProofIconTypeSmallDarkmode = "logo_white"
+	ProofIconTypeFull          = "logo_full"
+	ProofIconTypeFullDarkmode  = "logo_full_darkmode"
+)
 
 func MakeProofIcons(mctx MetaContext, serviceKey, iconType string, size int) (res []keybase1.SizedImage) {
 	for _, factor := range []int{1, 2} {
@@ -38,7 +40,8 @@ func MakeProofIcons(mctx MetaContext, serviceKey, iconType string, size int) (re
 		}
 
 		res = append(res, keybase1.SizedImage{
-			Path: strings.Join([]string{site,
+			Path: strings.Join([]string{
+				site,
 				"images/paramproofs/services",
 				normalizeIconKey(serviceKey),
 				// The 'c' query parameter is just for cache busting. It's ignored by the server.

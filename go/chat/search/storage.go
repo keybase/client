@@ -120,7 +120,8 @@ type diskStore struct {
 
 func newDiskStore(g *globals.Context, uid gregor1.UID,
 	keyFn func(ctx context.Context) ([32]byte, error), edb *encrypteddb.EncryptedDB,
-	mdb *libkb.JSONLocalDb) *diskStore {
+	mdb *libkb.JSONLocalDb,
+) *diskStore {
 	return &diskStore{
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Search.diskStore", false),
 		uid:          uid,
@@ -131,7 +132,8 @@ func newDiskStore(g *globals.Context, uid gregor1.UID,
 }
 
 func (d *diskStore) GetTokenEntry(ctx context.Context, convID chat1.ConversationID,
-	token string) (res *tokenEntry, err error) {
+	token string,
+) (res *tokenEntry, err error) {
 	key, err := tokenKey(ctx, d.uid, convID, token, d.keyFn)
 	if err != nil {
 		return nil, err
@@ -148,7 +150,8 @@ func (d *diskStore) GetTokenEntry(ctx context.Context, convID chat1.Conversation
 }
 
 func (d *diskStore) PutTokenEntry(ctx context.Context, convID chat1.ConversationID,
-	token string, te *tokenEntry) (err error) {
+	token string, te *tokenEntry,
+) (err error) {
 	key, err := tokenKey(ctx, d.uid, convID, token, d.keyFn)
 	if err != nil {
 		return err
@@ -157,7 +160,8 @@ func (d *diskStore) PutTokenEntry(ctx context.Context, convID chat1.Conversation
 }
 
 func (d *diskStore) RemoveTokenEntry(ctx context.Context, convID chat1.ConversationID,
-	token string) {
+	token string,
+) {
 	key, err := tokenKey(ctx, d.uid, convID, token, d.keyFn)
 	if err != nil {
 		d.Debug(ctx, "RemoveTokenEntry: failed to get tokenkey: %s", err)
@@ -317,12 +321,14 @@ func metadataKeyWithVersion(uid gregor1.UID, convID chat1.ConversationID, versio
 }
 
 func tokenKey(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, dat string,
-	keyFn func(ctx context.Context) ([32]byte, error)) (res libkb.DbKey, err error) {
+	keyFn func(ctx context.Context) ([32]byte, error),
+) (res libkb.DbKey, err error) {
 	return tokenKeyWithVersion(ctx, uid, convID, dat, tokenDiskVersion, keyFn)
 }
 
 func tokenKeyWithVersion(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, dat string, version int, keyFn func(ctx context.Context) ([32]byte, error)) (res libkb.DbKey, err error) {
+	convID chat1.ConversationID, dat string, version int, keyFn func(ctx context.Context) ([32]byte, error),
+) (res libkb.DbKey, err error) {
 	var key string
 	switch version {
 	case 1:
@@ -358,12 +364,14 @@ func tokenKeyWithVersion(ctx context.Context, uid gregor1.UID,
 }
 
 func aliasKey(ctx context.Context, dat string,
-	keyFn func(ctx context.Context) ([32]byte, error)) (res libkb.DbKey, err error) {
+	keyFn func(ctx context.Context) ([32]byte, error),
+) (res libkb.DbKey, err error) {
 	return aliasKeyWithVersion(ctx, dat, aliasDiskVersion, keyFn)
 }
 
 func aliasKeyWithVersion(ctx context.Context, dat string, version int,
-	keyFn func(ctx context.Context) ([32]byte, error)) (res libkb.DbKey, err error) {
+	keyFn func(ctx context.Context) ([32]byte, error),
+) (res libkb.DbKey, err error) {
 	var key string
 	switch version {
 	case 1:
@@ -497,7 +505,8 @@ func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntr
 }
 
 func (s *store) putTokenEntry(ctx context.Context, convID chat1.ConversationID,
-	token string, te *tokenEntry) (err error) {
+	token string, te *tokenEntry,
+) (err error) {
 	cacheKey := s.tokenCacheKey(convID, token)
 	s.tokenCache.Add(cacheKey, te)
 
@@ -526,7 +535,8 @@ func (s *store) putMetadata(ctx context.Context, convID chat1.ConversationID, md
 }
 
 func (s *store) deleteTokenEntry(ctx context.Context, convID chat1.ConversationID,
-	token string) {
+	token string,
+) {
 	cacheKey := s.tokenCacheKey(convID, token)
 
 	s.tokenCache.Remove(cacheKey)
@@ -555,7 +565,8 @@ func (s *store) deleteAliasEntry(ctx context.Context, alias string) {
 // id, when ingesting EDIT messages the msgID is of the superseded msg but the
 // tokens are from the EDIT itself.
 func (s *store) addTokens(ctx context.Context,
-	convID chat1.ConversationID, tokens tokenMap, msgID chat1.MessageID) error {
+	convID chat1.ConversationID, tokens tokenMap, msgID chat1.MessageID,
+) error {
 	for token, aliases := range tokens {
 		// Update the token entry with the msg ID hit
 		te, err := s.getTokenEntry(ctx, convID, token)
@@ -583,13 +594,15 @@ func (s *store) addTokens(ctx context.Context,
 }
 
 func (s *store) addMsg(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessageUnboxed) error {
+	msg chat1.MessageUnboxed,
+) error {
 	tokens := tokensFromMsg(msg)
 	return s.addTokens(ctx, convID, tokens, msg.GetMessageID())
 }
 
 func (s *store) removeMsg(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessageUnboxed) error {
+	msg chat1.MessageUnboxed,
+) error {
 	// find the msgID that the index stores
 	var msgID chat1.MessageID
 	switch msg.GetMessageType() {
@@ -657,7 +670,8 @@ func (s *store) GetMetadata(ctx context.Context, convID chat1.ConversationID) (r
 }
 
 func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
-	msgs []chat1.MessageUnboxed) (err error) {
+	msgs []chat1.MessageUnboxed,
+) (err error) {
 	defer s.Trace(ctx, &err, "Add")()
 	s.Lock()
 	defer s.Unlock()
@@ -739,7 +753,8 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 
 // Remove tokenizes the message content and updates/removes index keys for each token.
 func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
-	msgs []chat1.MessageUnboxed) (err error) {
+	msgs []chat1.MessageUnboxed,
+) (err error) {
 	defer s.Trace(ctx, &err, "Remove")()
 	s.Lock()
 	defer s.Unlock()

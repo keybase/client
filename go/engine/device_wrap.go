@@ -175,7 +175,6 @@ func (e *DeviceWrap) SwitchConfigAndActiveDevice(m libkb.MetaContext) (err error
 
 // Run starts the engine.
 func (e *DeviceWrap) Run(m libkb.MetaContext) (err error) {
-
 	defer m.Trace("DeviceWrap#Run", &err)()
 
 	if err = e.registerDevice(m); err != nil {

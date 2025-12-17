@@ -39,7 +39,6 @@ func NewSpecialKeyRing(v []keybase1.KID, g *GlobalContext) *SpecialKeyRing {
 		ret.validKIDs[kid] = true
 	}
 	return ret
-
 }
 
 // IsValidKID returns if this KID is valid (blessed) according to this Keyring

@@ -22,7 +22,7 @@ func (f *LockPIDFile) Lock() (err error) {
 		return nil
 	}
 
-	if f.file, err = os.OpenFile(f.name, os.O_CREATE|os.O_RDWR, 0600); err != nil {
+	if f.file, err = os.OpenFile(f.name, os.O_CREATE|os.O_RDWR, 0o600); err != nil {
 		return PIDFileLockError{f.name}
 	}
 

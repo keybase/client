@@ -228,7 +228,6 @@ func TestNaclDecryptFromIced(t *testing.T) {
 
 // In V2, Nacl sigs are prefixed....
 func TestNaclPrefixedSigs(t *testing.T) {
-
 	keyPair, err := GenerateNaclSigningKeyPair()
 	if err != nil {
 		t.Fatal(err)

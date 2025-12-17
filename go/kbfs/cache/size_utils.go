@@ -98,7 +98,8 @@ func mapKeyOrValueSizeWithIndirectPointerOverhead(rawSize int) int {
 // itself, etc.). If needed, dynamic sized stuff (slice/map content, pointer
 // content should be calculated separately by caller.
 func StaticSizeOfMap(
-	zeroValueKey, zeroValueValue interface{}, count int) (bytes int) {
+	zeroValueKey, zeroValueValue interface{}, count int,
+) (bytes int) {
 	return StaticSizeOfMapWithSize(int(reflect.TypeOf(zeroValueKey).Size()),
 		int(reflect.TypeOf(zeroValueValue).Size()), count)
 }
@@ -107,7 +108,8 @@ func StaticSizeOfMap(
 // StaticSizeOfMap for when the caller knows the static size of key and value
 // without having to use `reflect`.
 func StaticSizeOfMapWithSize(
-	keyStaticSize, valueStaticSize int, count int) (bytes int) {
+	keyStaticSize, valueStaticSize int, count int,
+) (bytes int) {
 	keySize := mapKeyOrValueSizeWithIndirectPointerOverhead(keyStaticSize)
 	valueSize := mapKeyOrValueSizeWithIndirectPointerOverhead(valueStaticSize)
 

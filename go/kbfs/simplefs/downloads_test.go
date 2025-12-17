@@ -6,7 +6,6 @@ package simplefs
 
 import (
 	"fmt"
-
 	"os"
 	"path/filepath"
 	"strings"

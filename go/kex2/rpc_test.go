@@ -40,8 +40,7 @@ func newMockProvisioner(t *testing.T) *mockProvisioner {
 	}
 }
 
-type nullLogOutput struct {
-}
+type nullLogOutput struct{}
 
 func (n *nullLogOutput) Error(_ string, _ ...interface{})   {}
 func (n *nullLogOutput) Warning(_ string, _ ...interface{}) {}
@@ -100,6 +99,7 @@ func (mp *mockProvisioner) GetHelloArg() (res keybase1.HelloArg, err error) {
 	res.Uid = mp.uid
 	return res, err
 }
+
 func (mp *mockProvisioner) GetHello2Arg() (res keybase1.Hello2Arg, err error) {
 	res.Uid = mp.uid
 	return res, err
@@ -113,9 +113,11 @@ func (mp *mockProvisionee) GetNetworkInstrumenter() rpc.NetworkInstrumenterStora
 	return &rpc.DummyInstrumentationStorage{}
 }
 
-var ErrHandleHello = errors.New("handle hello failure")
-var ErrHandleDidCounterSign = errors.New("handle didCounterSign failure")
-var testTimeout = time.Duration(500) * time.Millisecond
+var (
+	ErrHandleHello          = errors.New("handle hello failure")
+	ErrHandleDidCounterSign = errors.New("handle didCounterSign failure")
+	testTimeout             = time.Duration(500) * time.Millisecond
+)
 
 func (mp *mockProvisionee) HandleHello2(ctx context.Context, arg2 keybase1.Hello2Arg) (res keybase1.Hello2Res, err error) {
 	arg1 := keybase1.HelloArg{
@@ -153,7 +155,6 @@ func (mp *mockProvisionee) HandleDidCounterSign2(ctx context.Context, arg keybas
 }
 
 func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [2]error) {
-
 	timeout := testTimeout
 	router := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, timeout)
 
@@ -283,7 +284,6 @@ func TestFullProtocolXProvisioneeSlowHelloWithCancel(t *testing.T) {
 }
 
 func TestFullProtocolY(t *testing.T) {
-
 	timeout := time.Duration(60) * time.Second
 	router := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, timeout)
 
@@ -338,5 +338,4 @@ func TestFullProtocolY(t *testing.T) {
 			t.Fatalf("Unexpected error (receive %d): %v", i, e)
 		}
 	}
-
 }

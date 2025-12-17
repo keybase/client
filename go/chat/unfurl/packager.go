@@ -37,7 +37,8 @@ type Packager struct {
 }
 
 func NewPackager(g *globals.Context, store attachments.Store, s3signer s3.Signer,
-	ri func() chat1.RemoteInterface) *Packager {
+	ri func() chat1.RemoteInterface,
+) *Packager {
 	return &Packager{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Packager", false),
@@ -76,7 +77,8 @@ func (p *Packager) assetBodyAndLength(ctx context.Context, url string) (body io.
 }
 
 func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID,
-	convID chat1.ConversationID, usePreview bool) (res chat1.Asset, err error) {
+	convID chat1.ConversationID, usePreview bool,
+) (res chat1.Asset, err error) {
 	body, contentLength, err := p.assetBodyAndLength(ctx, url)
 	if err != nil {
 		return res, err
@@ -85,7 +87,8 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 }
 
 func (p *Packager) uploadAsset(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	src *attachments.BufReadResetter, filename string, size int64, md chat1.AssetMetadata, contentType string) (res chat1.Asset, err error) {
+	src *attachments.BufReadResetter, filename string, size int64, md chat1.AssetMetadata, contentType string,
+) (res chat1.Asset, err error) {
 	atyp, err := md.AssetType()
 	if err != nil {
 		return res, err
@@ -124,7 +127,8 @@ func (p *Packager) uploadAsset(ctx context.Context, uid gregor1.UID, convID chat
 }
 
 func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser, contentLength int64,
-	url string, uid gregor1.UID, convID chat1.ConversationID, usePreview bool) (res chat1.Asset, err error) {
+	url string, uid gregor1.UID, convID chat1.ConversationID, usePreview bool,
+) (res chat1.Asset, err error) {
 	defer body.Close()
 	if contentLength > 0 && contentLength > p.maxAssetSize {
 		return res, fmt.Errorf("asset too large: %d > %d", contentLength, p.maxAssetSize)
@@ -169,7 +173,8 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 }
 
 func (p *Packager) uploadVideo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	video chat1.UnfurlVideo) (res chat1.Asset, err error) {
+	video chat1.UnfurlVideo,
+) (res chat1.Asset, err error) {
 	body, size, err := p.assetBodyAndLength(ctx, video.Url)
 	if err != nil {
 		return res, err
@@ -179,7 +184,8 @@ func (p *Packager) uploadVideo(ctx context.Context, uid gregor1.UID, convID chat
 }
 
 func (p *Packager) uploadVideoWithBody(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body io.ReadCloser, size int64, video chat1.UnfurlVideo) (res chat1.Asset, err error) {
+	body io.ReadCloser, size int64, video chat1.UnfurlVideo,
+) (res chat1.Asset, err error) {
 	dat, err := io.ReadAll(body)
 	if err != nil {
 		return res, err
@@ -193,7 +199,8 @@ func (p *Packager) uploadVideoWithBody(ctx context.Context, uid gregor1.UID, con
 }
 
 func (p *Packager) packageGeneric(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
+	raw chat1.UnfurlRaw,
+) (res chat1.Unfurl, err error) {
 	g := chat1.UnfurlGeneric{
 		Title:       raw.Generic().Title,
 		Url:         raw.Generic().Url,
@@ -228,7 +235,8 @@ func (p *Packager) packageGeneric(ctx context.Context, uid gregor1.UID, convID c
 }
 
 func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
+	raw chat1.UnfurlRaw,
+) (res chat1.Unfurl, err error) {
 	var g chat1.UnfurlGiphy
 	var imgBody io.ReadCloser
 	var imgLength int64
@@ -285,7 +293,8 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 }
 
 func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
+	raw chat1.UnfurlRaw,
+) (res chat1.Unfurl, err error) {
 	mapsRaw := raw.Maps()
 	g := chat1.UnfurlGeneric{
 		Title:       mapsRaw.Title,
@@ -356,7 +365,8 @@ func (p *Packager) cacheKey(uid gregor1.UID, convID chat1.ConversationID, raw ch
 }
 
 func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
+	raw chat1.UnfurlRaw,
+) (res chat1.Unfurl, err error) {
 	defer p.Trace(ctx, &err, "Package")()
 
 	cacheKey := p.cacheKey(uid, convID, raw)

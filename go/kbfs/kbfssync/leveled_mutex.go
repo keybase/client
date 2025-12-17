@@ -131,7 +131,8 @@ func (e levelViolationError) Error() string {
 }
 
 func (state *LockState) doLock(
-	level MutexLevel, exclusionType exclusionType, lock sync.Locker) error {
+	level MutexLevel, exclusionType exclusionType, lock sync.Locker,
+) error {
 	state.exclusionStatesLock.lock()
 	defer state.exclusionStatesLock.unlock()
 
@@ -181,7 +182,8 @@ func (e mismatchedUnlockError) Error() string {
 }
 
 func (state *LockState) doUnlock(
-	level MutexLevel, exclusionType exclusionType, lock sync.Locker) error {
+	level MutexLevel, exclusionType exclusionType, lock sync.Locker,
+) error {
 	state.exclusionStatesLock.lock()
 	defer state.exclusionStatesLock.unlock()
 

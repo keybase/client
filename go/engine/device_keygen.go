@@ -114,7 +114,6 @@ func (e *DeviceKeygen) SigningKeyPublic() (kbcrypto.NaclSigningKeyPublic, error)
 		return kbcrypto.NaclSigningKeyPublic{}, kbcrypto.BadKeyError{Msg: fmt.Sprintf("invalid key type %T", e.naclSignGen.GetKeyPair())}
 	}
 	return s.Public, nil
-
 }
 
 func (e *DeviceKeygen) SigningKey() libkb.NaclKeyPair {
@@ -135,7 +134,7 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) (e
 
 	m.Debug("DeviceKeygen#Push PUK(upgrade:%v)", m.G().Env.GetUpgradePerUserKey())
 
-	var pukBoxes = []keybase1.PerUserKeyBox{}
+	pukBoxes := []keybase1.PerUserKeyBox{}
 	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
 		if e.perUserKeySeed == nil {
 			return errors.New("missing new per user key")
@@ -258,7 +257,6 @@ func (e *DeviceKeygen) generate(m libkb.MetaContext) {
 		}
 		e.perUserKeySeed = &seed
 	}
-
 }
 
 func (e *DeviceKeygen) localSave(m libkb.MetaContext) {

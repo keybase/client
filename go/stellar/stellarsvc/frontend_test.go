@@ -2856,7 +2856,6 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 		t.Fatalf("received request notification on second load: %+v", info)
 	case <-time.After(100 * time.Millisecond):
 	}
-
 }
 
 func TestSetMobileOnly(t *testing.T) {

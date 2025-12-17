@@ -23,11 +23,12 @@ import (
 // could lead to a corrupted file, though in practice this seems much
 // more rare than os.WriteFile() leaving behind an empty file.
 func WriteSerializedFile(
-	filename string, data []byte, perm os.FileMode) (err error) {
+	filename string, data []byte, perm os.FileMode,
+) (err error) {
 	// Don't use os.WriteFile because it truncates the file first,
 	// and if there's a crash it will leave the file in an unknown
 	// state.
-	f, err := OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
+	f, err := OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0o600)
 	if err != nil {
 		return err
 	}

@@ -10,8 +10,10 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const settingsModeName = "__unfurl_settings_mode"
-const settingsWhitelistName = "__unfurl_settings_whitelist"
+const (
+	settingsModeName      = "__unfurl_settings_mode"
+	settingsWhitelistName = "__unfurl_settings_whitelist"
+)
 
 type modeRecord struct {
 	Mode chat1.UnfurlMode

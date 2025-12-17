@@ -79,7 +79,6 @@ func TestPGPPurgeRemove(t *testing.T) {
 	if len(eng.KeyFiles()) != 0 {
 		t.Fatalf("number of exported key files: %d, expected 0", len(eng.KeyFiles()))
 	}
-
 }
 
 // Create a user with a synced PGP key.  PGPPurge shouldn't touch it.

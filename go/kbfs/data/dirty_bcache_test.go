@@ -19,7 +19,8 @@ import (
 
 func testDirtyBcachePut(
 	ctx context.Context, t *testing.T, id kbfsblock.ID,
-	dirtyBcache DirtyBlockCache) {
+	dirtyBcache DirtyBlockCache,
+) {
 	block := NewFileBlock()
 	ptr := BlockPointer{ID: id}
 	branch := MasterBranch
@@ -45,7 +46,8 @@ func testDirtyBcachePut(
 
 func testExpectedMissingDirty(
 	ctx context.Context, t *testing.T, id kbfsblock.ID,
-	dirtyBcache DirtyBlockCache) {
+	dirtyBcache DirtyBlockCache,
+) {
 	expectedErr := NoSuchBlockError{id}
 	ptr := BlockPointer{ID: id}
 	tlfID := tlf.FakeID(1, tlf.Private)
@@ -57,7 +59,8 @@ func testExpectedMissingDirty(
 }
 
 func testDirtyBcacheShutdown(
-	t *testing.T, dirtyBcache *DirtyBlockCacheStandard) {
+	t *testing.T, dirtyBcache *DirtyBlockCacheStandard,
+) {
 	err := dirtyBcache.Shutdown()
 	require.NoError(t, err)
 }

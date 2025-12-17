@@ -134,7 +134,8 @@ func (fs CacheableFS) Use() (*libfs.FS, error) {
 // Caller must call Use() to get a usable FS.
 func (r *Root) MakeFS(
 	ctx context.Context, log *zap.Logger, kbfsConfig libkbfs.Config) (
-	fs CacheableFS, tlfID tlf.ID, shutdown func(), err error) {
+	fs CacheableFS, tlfID tlf.ID, shutdown func(), err error,
+) {
 	fsCtx, cancel := context.WithCancel(context.Background())
 	defer func() {
 		zapFields := []zapcore.Field{
@@ -210,11 +211,13 @@ func (r *Root) MakeFS(
 	}
 }
 
-const gitPrefix = "git@keybase:"
-const kbfsPrefix = "/keybase/"
-const privatePrefix = "private/"
-const publicPrefix = "public/"
-const teamPrefix = "team/"
+const (
+	gitPrefix     = "git@keybase:"
+	kbfsPrefix    = "/keybase/"
+	privatePrefix = "private/"
+	publicPrefix  = "public/"
+	teamPrefix    = "team/"
+)
 
 func setRootTlfNameAndPath(root *Root, str string) {
 	parts := strings.SplitN(str, "/", 2)

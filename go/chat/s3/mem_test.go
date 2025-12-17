@@ -3,9 +3,10 @@ package s3
 import (
 	"bytes"
 	"crypto/sha256"
-	"github.com/keybase/client/go/libkb"
 	"strings"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 
 	"golang.org/x/net/context"
 )

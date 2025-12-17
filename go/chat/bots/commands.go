@@ -76,7 +76,8 @@ type CachingBotCommandManager struct {
 }
 
 func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInterface,
-	nameInfoSource nameInfoSourceFn) *CachingBotCommandManager {
+	nameInfoSource nameInfoSourceFn,
+) *CachingBotCommandManager {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return storage.GetSecretBoxKey(ctx, g.ExternalG())
 	}
@@ -137,7 +138,8 @@ func (b *CachingBotCommandManager) getMyUsername(ctx context.Context) (string, e
 }
 
 func (b *CachingBotCommandManager) createConv(ctx context.Context, typ chat1.BotCommandsAdvertisementTyp,
-	teamName *string, convID *chat1.ConversationID) (res chat1.ConversationLocal, err error) {
+	teamName *string, convID *chat1.ConversationID,
+) (res chat1.ConversationLocal, err error) {
 	username, err := b.getMyUsername(ctx)
 	if err != nil {
 		return res, err
@@ -202,7 +204,8 @@ func (b *CachingBotCommandManager) PublicCommandsConv(ctx context.Context, usern
 }
 
 func (b *CachingBotCommandManager) Advertise(ctx context.Context, alias *string,
-	ads []chat1.AdvertiseCommandsParam) (err error) {
+	ads []chat1.AdvertiseCommandsParam,
+) (err error) {
 	defer b.Trace(ctx, &err, "Advertise")()
 	remotes := make([]chat1.RemoteBotCommandsAdvertisement, 0, len(ads))
 	for _, ad := range ads {
@@ -355,7 +358,8 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 }
 
 func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID,
-	info *chat1.BotInfo) (completeCh chan error, err error) {
+	info *chat1.BotInfo,
+) (completeCh chan error, err error) {
 	defer b.Trace(ctx, &err, "UpdateCommands")()
 	completeCh = make(chan error, 1)
 	uiCh := make(chan uiResult, 1)
@@ -466,7 +470,8 @@ func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job *commandU
 }
 
 func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, convID chat1.ConversationID,
-	botUID gregor1.UID, untrustedTeamRole keybase1.TeamRole, typ chat1.BotCommandsAdvertisementTyp) (res *storageCommandAdvertisement) {
+	botUID gregor1.UID, untrustedTeamRole keybase1.TeamRole, typ chat1.BotCommandsAdvertisementTyp,
+) (res *storageCommandAdvertisement) {
 	b.Debug(ctx, "getConvAdvertisement: reading commands from: %s for uid: %s", convID, botUID)
 	tv, err := b.G().ConvSource.Pull(ctx, convID, b.uid, chat1.GetThreadReason_BOTCOMMANDS, nil,
 		&chat1.GetThreadQuery{

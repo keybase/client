@@ -68,8 +68,10 @@ const (
 
 // Maps a string to an enum. Used to list the different types of supported proxies and to convert
 // config options into the enum
-var ProxyTypeStrToEnum = map[string]ProxyType{"socks": Socks, "http_connect": HTTPConnect}
-var ProxyTypeEnumToStr = map[ProxyType]string{Socks: "socks", HTTPConnect: "http_connect", NoProxy: "no_proxy"}
+var (
+	ProxyTypeStrToEnum = map[string]ProxyType{"socks": Socks, "http_connect": HTTPConnect}
+	ProxyTypeEnumToStr = map[ProxyType]string{Socks: "socks", HTTPConnect: "http_connect", NoProxy: "no_proxy"}
+)
 
 func GetCommaSeparatedListOfProxyTypes() string {
 	var proxyTypes []string
@@ -220,8 +222,10 @@ func (s *httpConnectProxy) Dial(network string, addr string) (net.Conn, error) {
 	return proxyConn, nil
 }
 
-var registerLock = sync.Mutex{}
-var hasBeenRegistered = false
+var (
+	registerLock      = sync.Mutex{}
+	hasBeenRegistered = false
+)
 
 // Must be called in order for the proxy library to support HTTP connect proxies. The proxy library uses a map to store
 // this information which can lead to a `fatal error: concurrent map writes` so we use a lock to serialize it and a

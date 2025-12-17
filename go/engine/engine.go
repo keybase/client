@@ -11,8 +11,10 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type Prereqs = libkb.EnginePrereqs
-type Engine2 = libkb.Engine2
+type (
+	Prereqs = libkb.EnginePrereqs
+	Engine2 = libkb.Engine2
+)
 
 type UIDelegateWanter interface {
 	WantDelegate(libkb.UIKind) bool
@@ -101,7 +103,6 @@ func runPrereqs(m libkb.MetaContext, e Engine2) error {
 	}
 
 	return nil
-
 }
 
 func RunEngine2(m libkb.MetaContext, e Engine2) (err error) {

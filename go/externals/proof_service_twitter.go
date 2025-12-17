@@ -29,7 +29,8 @@ func NewTwitterChecker(p libkb.RemoteProofChainLink) (*TwitterChecker, libkb.Pro
 func (rc *TwitterChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *TwitterChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode,
-	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
+	pvlU keybase1.MerkleStoreEntry,
+) (*libkb.SigHint, libkb.ProofError) {
 	// TODO CORE-8951 see if we can populate verifiedHint with anything useful.
 	return nil, CheckProofPvl(mctx, keybase1.ProofType_TWITTER, rc.proof, h, pvlU)
 }

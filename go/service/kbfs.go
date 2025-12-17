@@ -77,7 +77,8 @@ func (h *KBFSHandler) FSSyncEvent(ctx context.Context, arg keybase1.FSPathSyncSt
 }
 
 func (h *KBFSHandler) FSOverallSyncEvent(
-	_ context.Context, arg keybase1.FolderSyncStatus) (err error) {
+	_ context.Context, arg keybase1.FolderSyncStatus,
+) (err error) {
 	h.G().NotifyRouter.HandleFSOverallSyncStatusChanged(arg)
 	return nil
 }
@@ -178,13 +179,15 @@ func (h *KBFSHandler) getKeyFn() func(context.Context) ([32]byte, error) {
 
 // EncryptFavorites encrypts cached favorites to store on disk.
 func (h *KBFSHandler) EncryptFavorites(ctx context.Context,
-	dataToDecrypt []byte) (res []byte, err error) {
+	dataToDecrypt []byte,
+) (res []byte, err error) {
 	return encrypteddb.EncodeBox(ctx, dataToDecrypt, h.getKeyFn())
 }
 
 // DecryptFavorites decrypts cached favorites stored on disk.
 func (h *KBFSHandler) DecryptFavorites(ctx context.Context,
-	dataToEncrypt []byte) (res []byte, err error) {
+	dataToEncrypt []byte,
+) (res []byte, err error) {
 	err = encrypteddb.DecodeBox(ctx, dataToEncrypt, h.getKeyFn(), &res)
 	return res, err
 }

@@ -46,7 +46,8 @@ var testMetadataVers = []kbfsmd.MetadataVer{
 //		...
 //	}
 func runTestOverMetadataVers(
-	t *testing.T, f func(t *testing.T, ver kbfsmd.MetadataVer)) {
+	t *testing.T, f func(t *testing.T, ver kbfsmd.MetadataVer),
+) {
 	for _, ver := range testMetadataVers {
 		ver := ver // capture range variable.
 		t.Run(ver.String(), func(t *testing.T) {
@@ -70,7 +71,8 @@ func runTestOverMetadataVers(
 //		runTestsOverMetadataVers(t, "testFoo", tests)
 //	}
 func runTestsOverMetadataVers(t *testing.T, prefix string,
-	fs []func(t *testing.T, ver kbfsmd.MetadataVer)) {
+	fs []func(t *testing.T, ver kbfsmd.MetadataVer),
+) {
 	for _, f := range fs {
 		f := f // capture range variable.
 		name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
@@ -100,7 +102,8 @@ func runTestsOverMetadataVers(t *testing.T, prefix string,
 //		...
 //	}
 func runBenchmarkOverMetadataVers(
-	b *testing.B, f func(b *testing.B, ver kbfsmd.MetadataVer)) {
+	b *testing.B, f func(b *testing.B, ver kbfsmd.MetadataVer),
+) {
 	for _, ver := range testMetadataVers {
 		ver := ver // capture range variable.
 		b.Run(ver.String(), func(b *testing.B) {
@@ -179,7 +182,8 @@ func TestPrivateMetadataUnknownFields(t *testing.T) {
 // makeFakeTlfHandle should only be used in this file.
 func makeFakeTlfHandle(
 	t *testing.T, x uint32, ty tlf.Type,
-	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion) *tlfhandle.Handle {
+	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
+) *tlfhandle.Handle {
 	id := keybase1.MakeTestUID(x).AsUserOrTeam()
 	return tlfhandle.NewHandle(
 		ty, map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
@@ -364,7 +368,8 @@ func testRootMetadataFinalIsFinal(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func getAllUsersKeysForTest(
-	t *testing.T, config Config, rmd *RootMetadata, un string) []kbfscrypto.TLFCryptKey {
+	t *testing.T, config Config, rmd *RootMetadata, un string,
+) []kbfscrypto.TLFCryptKey {
 	var keys []kbfscrypto.TLFCryptKey
 	for keyGen := kbfsmd.FirstValidKeyGen; keyGen <= rmd.LatestKeyGeneration(); keyGen++ {
 		key, err := config.KeyManager().(*KeyManagerStandard).getTLFCryptKeyUsingCurrentDevice(
@@ -376,8 +381,7 @@ func getAllUsersKeysForTest(
 }
 
 // We always want misses for the tests below.
-type dummyNoKeyCache struct {
-}
+type dummyNoKeyCache struct{}
 
 func (kc *dummyNoKeyCache) GetTLFCryptKey(_ tlf.ID, _ kbfsmd.KeyGen) (kbfscrypto.TLFCryptKey, error) {
 	return kbfscrypto.TLFCryptKey{}, KeyCacheMissError{}
@@ -619,8 +623,7 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 	require.NotNil(t, h.ConflictInfo())
 
 	// set some dummy numbers
-	diskUsage, refBytes, unrefBytes :=
-		uint64(12345), uint64(4321), uint64(1234)
+	diskUsage, refBytes, unrefBytes := uint64(12345), uint64(4321), uint64(1234)
 	rmd.SetDiskUsage(diskUsage)
 	rmd.SetRefBytes(refBytes)
 	rmd.SetUnrefBytes(unrefBytes)
@@ -832,7 +835,8 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 
 	// No user should be able to read this yet.
 	checkWriter := func(uid keybase1.UID, key kbfscrypto.VerifyingKey,
-		expectedIsWriter bool) {
+		expectedIsWriter bool,
+	) {
 		isWriter, err := rmd.IsWriter(ctx, config.KBPKI(), config, uid, key)
 		require.NoError(t, err)
 		require.Equal(t, expectedIsWriter, isWriter)

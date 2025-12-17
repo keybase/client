@@ -54,7 +54,8 @@ func NewHandle(
 	ty tlf.Type,
 	resolvedWriters map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
-	name tlf.CanonicalName, tlfID tlf.ID) *Handle {
+	name tlf.CanonicalName, tlfID tlf.ID,
+) *Handle {
 	return &Handle{
 		tlfType:           ty,
 		resolvedWriters:   resolvedWriters,
@@ -230,7 +231,8 @@ func (h Handle) recomputeNameWithExtensions() tlf.CanonicalName {
 // also be nil.) Otherwise, the given conflict info must match the existing
 // one.
 func (h Handle) WithUpdatedConflictInfo(
-	codec kbfscodec.Codec, info *tlf.HandleExtension) (*Handle, error) {
+	codec kbfscodec.Codec, info *tlf.HandleExtension,
+) (*Handle, error) {
 	newHandle := h.DeepCopy()
 	if newHandle.conflictInfo == nil {
 		if info == nil {
@@ -288,7 +290,8 @@ func (h *Handle) SetName(name tlf.CanonicalName) {
 // SetResolvedWriter resolves the given `id` to the given `name`.
 // Useful for testing.
 func (h *Handle) SetResolvedWriter(
-	id keybase1.UserOrTeamID, name kbname.NormalizedUsername) {
+	id keybase1.UserOrTeamID, name kbname.NormalizedUsername,
+) {
 	h.resolvedWriters[id] = name
 }
 
@@ -325,7 +328,8 @@ func init() {
 
 // EqualsIgnoreName returns whether h and other contain the same info ignoring the name.
 func (h Handle) EqualsIgnoreName(
-	codec kbfscodec.Codec, other Handle) (bool, error) {
+	codec kbfscodec.Codec, other Handle,
+) (bool, error) {
 	if h.tlfType != other.tlfType {
 		return false, nil
 	}
@@ -366,7 +370,8 @@ func (h Handle) EqualsIgnoreName(
 
 // Equals returns whether h and other contain the same info.
 func (h Handle) Equals(
-	codec kbfscodec.Codec, other Handle) (bool, error) {
+	codec kbfscodec.Codec, other Handle,
+) (bool, error) {
 	eq, err := h.EqualsIgnoreName(codec, other)
 	if err != nil {
 		return false, err
@@ -385,7 +390,8 @@ func (h Handle) ToBareHandle() (tlf.Handle, error) {
 	switch h.TypeForKeying() {
 	case tlf.PublicKeying:
 		readers = []keybase1.UserOrTeamID{
-			keybase1.UserOrTeamID(keybase1.PUBLIC_UID)}
+			keybase1.UserOrTeamID(keybase1.PUBLIC_UID),
+		}
 	case tlf.TeamKeying:
 		// Leave readers blank.
 	default:
@@ -500,7 +506,8 @@ func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase
 // CheckHandleOffline does light checks whether a TLF handle looks ok,
 // it avoids all network calls.
 func CheckHandleOffline(
-	ctx context.Context, name string, t tlf.Type) error {
+	ctx context.Context, name string, t tlf.Type,
+) error {
 	_, _, _, err := idutil.SplitAndNormalizeTLFName(name, t)
 	return err
 }
@@ -531,7 +538,8 @@ func (h Handle) IsLocalConflict() bool {
 // tlf name which will be reordered into the preferred format.
 // An empty username is allowed here and results in the canonical ordering.
 func (h Handle) GetPreferredFormat(
-	username kbname.NormalizedUsername) tlf.PreferredName {
+	username kbname.NormalizedUsername,
+) tlf.PreferredName {
 	s, err := tlf.CanonicalToPreferredName(username, h.GetCanonicalName())
 	if err != nil {
 		panic("TlfHandle.GetPreferredFormat: Parsing canonical username failed!")

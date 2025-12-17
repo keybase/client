@@ -107,7 +107,8 @@ type Indexer struct {
 
 func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn,
 	kvstoreName string) (
-	*Indexer, error) {
+	*Indexer, error,
+) {
 	log := config.MakeLogger("search")
 	i := &Indexer{
 		config:        config,
@@ -177,7 +178,8 @@ func defaultInitConfig(
 	ctx context.Context, config libkbfs.Config, session idutil.SessionInfo,
 	log logger.Logger) (
 	newCtx context.Context, newConfig libkbfs.Config,
-	shutdownFn func(context.Context) error, err error) {
+	shutdownFn func(context.Context) error, err error,
+) {
 	kbCtx := config.KbContext()
 	params, err := Params(kbCtx, config.StorageRoot(), session.UID)
 	if err != nil {
@@ -248,7 +250,7 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	err = fs.MkdirAll(fsIndexStorageDir, 0400)
+	err = fs.MkdirAll(fsIndexStorageDir, 0o400)
 	if err != nil {
 		return err
 	}
@@ -264,7 +266,8 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 	i.once.Do(func() {
 		kvstoreConstructor := func(
 			mo store.MergeOperator, _ map[string]interface{}) (
-			s store.KVStore, err error) {
+			s store.KVStore, err error,
+		) {
 			return newBleveLevelDBStore(i.fs, false, mo)
 		}
 		registry.RegisterKVStore(i.kvstoreName, kvstoreConstructor)
@@ -316,7 +319,7 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 		return err
 	}
 
-	err = fs.MkdirAll(docDbDir, 0600)
+	err = fs.MkdirAll(docDbDir, 0o600)
 	if err != nil {
 		return err
 	}
@@ -348,7 +351,8 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 
 // UserChanged implements the libfs.RemoteStatusUpdater for Indexer.
 func (i *Indexer) UserChanged(
-	ctx context.Context, oldName, newName kbname.NormalizedUsername) {
+	ctx context.Context, oldName, newName kbname.NormalizedUsername,
+) {
 	select {
 	case i.userChangedCh <- struct{}{}:
 	default:
@@ -360,13 +364,15 @@ var _ libfs.RemoteStatusUpdater = (*Indexer)(nil)
 
 func (i *Indexer) getMDForRev(
 	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) (
-	md libkbfs.ImmutableRootMetadata, err error) {
+	md libkbfs.ImmutableRootMetadata, err error,
+) {
 	return libkbfs.GetSingleMD(
 		ctx, i.config, tlfID, kbfsmd.NullBranchID, rev, kbfsmd.Merged, nil)
 }
 
 func (i *Indexer) tlfQueueForProgress(
-	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
+) error {
 	md, err := i.getMDForRev(ctx, tlfID, rev)
 	if err != nil {
 		return err
@@ -384,7 +390,8 @@ func (i *Indexer) tlfQueueForProgress(
 // for Indexer.
 func (i *Indexer) FullSyncStarted(
 	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
-	waitCh <-chan struct{}) {
+	waitCh <-chan struct{},
+) {
 	i.log.CDebugf(ctx, "Sync started for %s/%d", tlfID, rev)
 	i.indexWG.Add(1)
 	go func() {
@@ -420,7 +427,8 @@ func (i *Indexer) FullSyncStarted(
 // SyncModeChanged implements the libkbfs.SyncedTlfObserver interface
 // for Indexer.
 func (i *Indexer) SyncModeChanged(
-	ctx context.Context, tlfID tlf.ID, newMode keybase1.FolderSyncMode) {
+	ctx context.Context, tlfID tlf.ID, newMode keybase1.FolderSyncMode,
+) {
 	i.log.CDebugf(ctx, "Sync mode changed for %s to %s", tlfID, newMode)
 	i.indexWG.Add(1)
 
@@ -444,7 +452,8 @@ var _ libkbfs.SyncedTlfObserver = (*Indexer)(nil)
 func (i *Indexer) getCurrentPtrAndNode(
 	ctx context.Context, parentNode libkbfs.Node,
 	childName data.PathPartString) (
-	ptr data.BlockPointer, n libkbfs.Node, ei data.EntryInfo, err error) {
+	ptr data.BlockPointer, n libkbfs.Node, ei data.EntryInfo, err error,
+) {
 	n, ei, err = i.config.KBFSOps().Lookup(ctx, parentNode, childName)
 	if err != nil {
 		return data.ZeroPtr, nil, data.EntryInfo{}, err
@@ -568,7 +577,8 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
 	childName data.PathPartString, oldPtr, newPtr data.BlockPointer,
 	n libkbfs.Node, ei data.EntryInfo, nextDocID string,
-	revision kbfsmd.Revision) (dirDoneFn func() error, err error) {
+	revision kbfsmd.Revision,
+) (dirDoneFn func() error, err error) {
 	if i.blocksDb == nil {
 		return nil, errors.New("No indexed blocks db")
 	}
@@ -719,7 +729,8 @@ func (i *Indexer) indexChildWithPtrAndNode(
 func (i *Indexer) indexChild(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
 	childName data.PathPartString, nextDocID string,
-	revision kbfsmd.Revision) (dirDoneFn func() error, err error) {
+	revision kbfsmd.Revision,
+) (dirDoneFn func() error, err error) {
 	ptr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
 	if err != nil {
 		return nil, err
@@ -739,7 +750,8 @@ func (i *Indexer) indexChild(
 func (i *Indexer) updateChild(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
 	childName data.PathPartString, oldPtr data.BlockPointer,
-	revision kbfsmd.Revision) (dirDoneFn func() error, err error) {
+	revision kbfsmd.Revision,
+) (dirDoneFn func() error, err error) {
 	newPtr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
 	if err != nil {
 		return nil, err
@@ -757,7 +769,8 @@ func (i *Indexer) updateChild(
 
 func (i *Indexer) renameChild(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
-	childName data.PathPartString, revision kbfsmd.Revision) (err error) {
+	childName data.PathPartString, revision kbfsmd.Revision,
+) (err error) {
 	ptr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
 	if err != nil {
 		return err
@@ -808,7 +821,8 @@ func (i *Indexer) renameChild(
 }
 
 func (i *Indexer) deleteFromUnrefs(
-	ctx context.Context, tlfID tlf.ID, unrefs []data.BlockPointer) (err error) {
+	ctx context.Context, tlfID tlf.ID, unrefs []data.BlockPointer,
+) (err error) {
 	if i.blocksDb == nil {
 		return errors.New("No indexed blocks db")
 	}
@@ -857,7 +871,8 @@ unrefLoop:
 }
 
 func (i *Indexer) fsForRev(
-	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) (*libfs.FS, error) {
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
+) (*libfs.FS, error) {
 	if rev == kbfsmd.RevisionUninitialized {
 		return nil, errors.New("No revision provided")
 	}
@@ -875,7 +890,8 @@ func (i *Indexer) fsForRev(
 
 func (i *Indexer) indexNewlySyncedTlfDir(
 	ctx context.Context, dir libkbfs.Node,
-	dirDocID string, rev kbfsmd.Revision) error {
+	dirDocID string, rev kbfsmd.Revision,
+) error {
 	err := i.checkDone(ctx)
 	if err != nil {
 		return err
@@ -928,7 +944,8 @@ func (i *Indexer) indexNewlySyncedTlfDir(
 
 func (i *Indexer) recordUpdatedNodePtr(
 	ctx context.Context, node libkbfs.Node, rev kbfsmd.Revision, docID string,
-	oldPtr data.BlockPointer) (dirDoneFn func() error, err error) {
+	oldPtr data.BlockPointer,
+) (dirDoneFn func() error, err error) {
 	md, err := i.config.KBFSOps().GetNodeMetadata(ctx, node)
 	if err != nil {
 		return nil, err
@@ -967,7 +984,8 @@ func (i *Indexer) recordUpdatedNodePtr(
 }
 
 func (i *Indexer) indexNewlySyncedTlf(
-	ctx context.Context, fs *libfs.FS, rev kbfsmd.Revision) (err error) {
+	ctx context.Context, fs *libfs.FS, rev kbfsmd.Revision,
+) (err error) {
 	root := fs.RootNode()
 
 	ids, err := i.blocksDb.GetNextDocIDs(1)
@@ -1014,7 +1032,8 @@ func (i *Indexer) indexNewlySyncedTlf(
 }
 
 func (i *Indexer) doFullIndex(
-	ctx context.Context, m tlfMessage, rev kbfsmd.Revision) (err error) {
+	ctx context.Context, m tlfMessage, rev kbfsmd.Revision,
+) (err error) {
 	i.log.CDebugf(ctx, "Doing full index of %s at rev %d", m.tlfID, rev)
 	defer func() {
 		i.log.CDebugf(
@@ -1078,7 +1097,8 @@ func (i *Indexer) doFullIndex(
 
 func (i *Indexer) doIncrementalIndex(
 	ctx context.Context, m tlfMessage, indexedRev, newRev kbfsmd.Revision) (
-	err error) {
+	err error,
+) {
 	i.log.CDebugf(
 		ctx, "Incremental index %s: %d -> %d", m.tlfID, indexedRev, newRev)
 	defer func() {
@@ -1455,7 +1475,8 @@ func (i *Indexer) waitForSyncs(ctx context.Context) error {
 // there are no more results.
 func (i *Indexer) Search(
 	ctx context.Context, query string, numResults, startingResult int) (
-	results []Result, nextResult int, err error) {
+	results []Result, nextResult int, err error,
+) {
 	if numResults == 0 {
 		return nil, 0, nil
 	}

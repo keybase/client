@@ -31,8 +31,8 @@ const (
 
 func SplitAndNormalizeTLFName(mctx libkb.MetaContext, name string, public bool) (
 	writerNames, readerNames []string,
-	extensionSuffix string, err error) {
-
+	extensionSuffix string, err error,
+) {
 	names := strings.SplitN(name, TlfHandleExtensionSep, 2)
 	if len(names) > 2 {
 		return nil, nil, "", BadTLFNameError{name}
@@ -73,7 +73,8 @@ func SplitAndNormalizeTLFName(mctx libkb.MetaContext, name string, public bool) 
 // resolutions or identify calls, normalizes all elements of the
 // name. It then returns the normalized name.
 func NormalizeNamesInTLF(mctx libkb.MetaContext, writerNames, readerNames []string,
-	extensionSuffix string) (string, error) {
+	extensionSuffix string,
+) (string, error) {
 	sortedWriterNames := make([]string, len(writerNames))
 	var err error
 	for i, w := range writerNames {

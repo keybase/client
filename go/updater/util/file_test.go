@@ -21,7 +21,7 @@ func TestNewFile(t *testing.T) {
 	filename := filepath.Join(os.TempDir(), "TestNewFile")
 	defer RemoveFileAtPath(filename)
 
-	f := NewFile(filename, []byte("somedata"), 0600)
+	f := NewFile(filename, []byte("somedata"), 0o600)
 	err := f.Save(testLog)
 	assert.NoError(t, err)
 
@@ -30,7 +30,7 @@ func TestNewFile(t *testing.T) {
 	assert.False(t, fileInfo.IsDir())
 
 	if runtime.GOOS != "windows" {
-		assert.EqualValues(t, 0600, fileInfo.Mode().Perm())
+		assert.EqualValues(t, 0o600, fileInfo.Mode().Perm())
 	}
 }
 
@@ -41,7 +41,7 @@ func TestMakeParentDirs(t *testing.T) {
 	file := filepath.Join(dir, "testfile")
 	defer RemoveFileAtPath(file)
 
-	err := MakeParentDirs(file, 0700, testLog)
+	err := MakeParentDirs(file, 0o700, testLog)
 	assert.NoError(t, err)
 
 	exists, err := FileExists(dir)
@@ -52,16 +52,16 @@ func TestMakeParentDirs(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, fileInfo.IsDir())
 	if runtime.GOOS != "windows" {
-		assert.EqualValues(t, 0700, fileInfo.Mode().Perm())
+		assert.EqualValues(t, 0o700, fileInfo.Mode().Perm())
 	}
 
 	// Test making dir that already exists
-	err = MakeParentDirs(file, 0700, testLog)
+	err = MakeParentDirs(file, 0o700, testLog)
 	assert.NoError(t, err)
 }
 
 func TestMakeParentDirsInvalid(t *testing.T) {
-	err := MakeParentDirs("\\\\invalid", 0700, testLog)
+	err := MakeParentDirs("\\\\invalid", 0o700, testLog)
 	if runtime.GOOS != "windows" {
 		assert.EqualError(t, err, "No base directory")
 	} else {
@@ -122,7 +122,7 @@ func TestMoveFileValid(t *testing.T) {
 	destinationPath := filepath.Join(TempPath("", "TestMoveFileDestination"), "TestMoveFileDestinationSubdir")
 	defer RemoveFileAtPath(destinationPath)
 
-	sourcePath, err := WriteTempFile("TestMoveFile", []byte("test"), 0600)
+	sourcePath, err := WriteTempFile("TestMoveFile", []byte("test"), 0o600)
 	defer RemoveFileAtPath(sourcePath)
 	assert.NoError(t, err)
 
@@ -139,7 +139,7 @@ func TestMoveFileValid(t *testing.T) {
 	assert.False(t, srcExists)
 
 	// Move again with different source data, and overwrite
-	sourcePath2, err := WriteTempFile("TestMoveFile", []byte("test2"), 0600)
+	sourcePath2, err := WriteTempFile("TestMoveFile", []byte("test2"), 0o600)
 	assert.NoError(t, err)
 	err = MoveFile(sourcePath2, destinationPath, "", testLog)
 	assert.NoError(t, err)
@@ -158,7 +158,7 @@ func TestMoveFileDirValid(t *testing.T) {
 	destinationPath := filepath.Join(TempPath("", "TestMoveFileDestination"), "TestMoveFileDestinationSubdir")
 	defer RemoveFileAtPath(destinationPath)
 
-	sourcePath, err := MakeTempDir("TestMoveDir", 0700)
+	sourcePath, err := MakeTempDir("TestMoveDir", 0o700)
 	defer RemoveFileAtPath(sourcePath)
 	assert.NoError(t, err)
 
@@ -169,7 +169,7 @@ func TestMoveFileDirValid(t *testing.T) {
 	assert.True(t, exists)
 
 	// Move again with different source data, and overwrite
-	sourcePath2, err := MakeTempDir("TestMoveDir2", 0700)
+	sourcePath2, err := MakeTempDir("TestMoveDir2", 0o700)
 	assert.NoError(t, err)
 	defer RemoveFileAtPath(sourcePath2)
 	err = MoveFile(sourcePath2, destinationPath, "", testLog)
@@ -205,7 +205,7 @@ func TestCopyFileValid(t *testing.T) {
 	destinationPath := filepath.Join(TempPath("", "TestCopyFileDestination"), "TestCopyFileDestinationSubdir")
 	defer RemoveFileAtPath(destinationPath)
 
-	sourcePath, err := WriteTempFile("TestCopyFile", []byte("test"), 0600)
+	sourcePath, err := WriteTempFile("TestCopyFile", []byte("test"), 0o600)
 	defer RemoveFileAtPath(sourcePath)
 	assert.NoError(t, err)
 
@@ -219,7 +219,7 @@ func TestCopyFileValid(t *testing.T) {
 	assert.Equal(t, []byte("test"), data)
 
 	// Move again with different source data, and overwrite
-	sourcePath2, err := WriteTempFile("TestCopyFile", []byte("test2"), 0600)
+	sourcePath2, err := WriteTempFile("TestCopyFile", []byte("test2"), 0o600)
 	assert.NoError(t, err)
 	err = CopyFile(sourcePath2, destinationPath, testLog)
 	assert.NoError(t, err)
@@ -277,7 +277,7 @@ func TestFileExists(t *testing.T) {
 
 func TestReadFile(t *testing.T) {
 	dataIn := []byte("test")
-	sourcePath, err := WriteTempFile("TestReadFile", dataIn, 0600)
+	sourcePath, err := WriteTempFile("TestReadFile", dataIn, 0o600)
 	require.NoError(t, err)
 
 	dataOut, err := ReadFile(sourcePath)

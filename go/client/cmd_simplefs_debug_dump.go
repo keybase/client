@@ -23,7 +23,8 @@ func NewCmdSimpleFSDebugDump(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		Usage: "Dump debugging info to the file system log",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSDebugDump{
-				Contextified: libkb.NewContextified(g)}, "dump", c)
+				Contextified: libkb.NewContextified(g),
+			}, "dump", c)
 			cl.SetNoStandalone()
 		},
 	}

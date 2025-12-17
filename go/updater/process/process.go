@@ -21,8 +21,10 @@ type Log interface {
 	Errorf(s string, args ...interface{})
 }
 
-type processesFn func() ([]ps.Process, error)
-type breakFn func([]ps.Process) bool
+type (
+	processesFn func() ([]ps.Process, error)
+	breakFn     func([]ps.Process) bool
+)
 
 // FindProcesses returns processes containing string matching process path
 func FindProcesses(matcher Matcher, wait time.Duration, delay time.Duration, log Log) ([]ps.Process, error) {

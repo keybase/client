@@ -78,7 +78,6 @@ func (h *AccountHandler) HasServerKeys(ctx context.Context, sessionID int) (res 
 }
 
 func (h *AccountHandler) ResetAccount(ctx context.Context, arg keybase1.ResetAccountArg) (err error) {
-
 	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
 		return errors.New("ResetAccount only supported in devel run mode")
 	}

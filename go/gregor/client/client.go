@@ -50,7 +50,8 @@ type Client struct {
 }
 
 func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.StateMachine,
-	storage LocalStorageEngine, incomingClient func() gregor1.IncomingInterface, log logger.Logger, clock clockwork.Clock) *Client {
+	storage LocalStorageEngine, incomingClient func() gregor1.IncomingInterface, log logger.Logger, clock clockwork.Clock,
+) *Client {
 	c := &Client{
 		User:           user,
 		Device:         device,
@@ -181,8 +182,8 @@ func (e ErrHashMismatch) Error() string {
 }
 
 func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface, t *time.Time,
-	syncResult *gregor1.SyncResult) (msgs []gregor.InBandMessage, err error) {
-
+	syncResult *gregor1.SyncResult,
+) (msgs []gregor.InBandMessage, err error) {
 	ctx, _ = context.WithTimeout(ctx, time.Second)
 	arg := gregor1.SyncArg{
 		Uid:      gregor1.UID(c.User.Bytes()),
@@ -240,7 +241,6 @@ func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface
 }
 
 func (c *Client) freshSync(ctx context.Context, cli gregor1.IncomingInterface, state *gregor.State) ([]gregor.InBandMessage, error) {
-
 	var msgs []gregor.InBandMessage
 	var err error
 
@@ -268,7 +268,8 @@ func (c *Client) freshSync(ctx context.Context, cli gregor1.IncomingInterface, s
 }
 
 func (c *Client) Sync(ctx context.Context, cli gregor1.IncomingInterface,
-	syncRes *chat1.SyncAllNotificationRes) (res []gregor.InBandMessage, err error) {
+	syncRes *chat1.SyncAllNotificationRes,
+) (res []gregor.InBandMessage, err error) {
 	defer func() {
 		if err == nil {
 			c.Log.CDebugf(ctx, "Sync(): sync success!")
@@ -459,7 +460,8 @@ func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State, t 
 }
 
 func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset,
-	applyLocalState bool) (gregor.State, error) {
+	applyLocalState bool,
+) (gregor.State, error) {
 	st, err := c.Sm.State(ctx, c.User, c.Device, t)
 	if err != nil {
 		return st, err

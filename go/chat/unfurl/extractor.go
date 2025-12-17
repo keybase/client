@@ -76,7 +76,8 @@ func (e *Extractor) isAutoWhitelistFromHit(ctx context.Context, hit string) bool
 }
 
 func (e *Extractor) isWhitelistHit(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	hit string, whitelist map[string]bool, exemptions *WhitelistExemptionList) bool {
+	hit string, whitelist map[string]bool, exemptions *WhitelistExemptionList,
+) bool {
 	domain, err := GetDomain(hit)
 	if err != nil {
 		e.Debug(ctx, "isWhitelistHit: failed to get domain: %s", err)
@@ -94,7 +95,8 @@ func (e *Extractor) isWhitelistHit(ctx context.Context, convID chat1.Conversatio
 }
 
 func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, body string, userSettings *Settings) (res []ExtractorHit, err error) {
+	msgID chat1.MessageID, body string, userSettings *Settings,
+) (res []ExtractorHit, err error) {
 	defer e.Trace(ctx, &err, "Extract")()
 	body = e.quoteRegexp.ReplaceAllString(body, "")
 	hits := e.urlRegexp.FindAllString(body, -1)
@@ -134,7 +136,8 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.C
 }
 
 func (e *Extractor) AddWhitelistExemption(ctx context.Context, uid gregor1.UID,
-	exemption types.WhitelistExemption) {
+	exemption types.WhitelistExemption,
+) {
 	defer e.Trace(ctx, nil, "AddWhitelistExemption")()
 	e.getExemptionList(uid).Add(exemption)
 }

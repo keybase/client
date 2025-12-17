@@ -72,7 +72,6 @@ func (t *ServertrustTrackerSyncer) getLoadedVersion() int {
 }
 
 func (t *ServertrustTrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceReload bool) (err error) {
-
 	defer m.Trace(fmt.Sprintf("syncFromServer(%s)", uid), &err)()
 
 	hargs := HTTPArgs{

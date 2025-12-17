@@ -32,7 +32,7 @@ func (w *whitelistPath) Install(u User, app AppManifest) error {
 	}
 
 	// Write the file
-	fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
 	if err != nil {
 		return wrapWriteErr(err, jsonPath)
 	}

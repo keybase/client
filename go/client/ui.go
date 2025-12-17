@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"text/tabwriter"
 	"time"
 
@@ -17,8 +18,6 @@ import (
 	isatty "github.com/mattn/go-isatty"
 
 	"golang.org/x/net/context"
-
-	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -152,7 +151,6 @@ type IdentifyTrackUI struct {
 }
 
 func (ui *IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
-
 	ignorePrompt := ""
 	inputChecker := libkb.CheckMember{Set: []string{"A", "C"}}
 
@@ -399,7 +397,6 @@ func (w LinkCheckResultWrapper) GetCachedMsg() string {
 	}
 	if len(msg) > 0 {
 		msg = "[" + msg + "]"
-
 	}
 	return msg
 }
@@ -821,7 +818,8 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 }
 
 func (l LoginUI) PromptResetAccount(ctx context.Context,
-	arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	arg keybase1.PromptResetAccountArg,
+) (keybase1.ResetPromptResponse, error) {
 	var msg string
 	kind, err := arg.Prompt.T()
 	if err != nil {
@@ -1025,7 +1023,6 @@ func (ui SecretUI) GetPassphrase(pin keybase1.GUIEntryArg, term *keybase1.Secret
 }
 
 func (ui SecretUI) passphrasePrompt(arg libkb.PromptArg) (text string, storeSecret bool, err error) {
-
 	first := true
 	var res *keybase1.SecretEntryRes
 
@@ -1127,7 +1124,6 @@ func PromptWithChecker(pd libkb.PromptDescriptor, ui libkb.TerminalUI, prompt st
 }
 
 func (ui *UI) PromptForConfirmation(prompt string) error {
-
 	if ui.Terminal == nil {
 		return NoTerminalError{}
 	}
@@ -1140,7 +1136,6 @@ func (ui *UI) PromptForConfirmation(prompt string) error {
 		return NotConfirmedError{}
 	}
 	return nil
-
 }
 
 func sentencePunctuate(s string) string {

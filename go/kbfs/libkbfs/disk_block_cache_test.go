@@ -62,7 +62,8 @@ func (c testDiskBlockCacheConfig) BlockCache() data.BlockCache {
 }
 
 func newDiskBlockCacheForTest(config *testDiskBlockCacheConfig,
-	maxBytes int64) (*diskBlockCacheWrapped, error) {
+	maxBytes int64,
+) (*diskBlockCacheWrapped, error) {
 	maxFiles := int64(10000)
 	workingSetCache, err := newDiskBlockCacheLocalForTest(config,
 		workingSetCacheLimitTrackerType)
@@ -102,7 +103,8 @@ func newDiskBlockCacheForTest(config *testDiskBlockCacheConfig,
 			return freeBytes, maxFiles, nil
 		},
 		quotaFn: func(
-			context.Context, keybase1.UserOrTeamID) (int64, int64) {
+			context.Context, keybase1.UserOrTeamID,
+		) (int64, int64) {
 			return 0, math.MaxInt64
 		},
 	}
@@ -120,7 +122,8 @@ func newDiskBlockCacheForTest(config *testDiskBlockCacheConfig,
 }
 
 func initDiskBlockCacheTest(t *testing.T) (*diskBlockCacheWrapped,
-	*testDiskBlockCacheConfig) {
+	*testDiskBlockCacheConfig,
+) {
 	config := newTestDiskBlockCacheConfig(t)
 	cache, err := newDiskBlockCacheForTest(config,
 		testDiskBlockCacheMaxBytes)
@@ -140,7 +143,8 @@ func (dbcg *testDiskBlockCacheGetter) DiskBlockCache() DiskBlockCache {
 }
 
 func newTestDiskBlockCacheGetter(t *testing.T,
-	cache DiskBlockCache) *testDiskBlockCacheGetter {
+	cache DiskBlockCache,
+) *testDiskBlockCacheGetter {
 	return &testDiskBlockCacheGetter{cache: cache}
 }
 
@@ -149,7 +153,8 @@ func shutdownDiskBlockCacheTest(cache DiskBlockCache) {
 }
 
 func setupRealBlockForDiskCache(t *testing.T, ptr data.BlockPointer, block data.Block,
-	config diskBlockCacheConfig) ([]byte, kbfscrypto.BlockCryptKeyServerHalf) {
+	config diskBlockCacheConfig,
+) ([]byte, kbfscrypto.BlockCryptKeyServerHalf) {
 	blockEncoded, err := config.Codec().Encode(block)
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
@@ -158,11 +163,11 @@ func setupRealBlockForDiskCache(t *testing.T, ptr data.BlockPointer, block data.
 }
 
 func setupBlockForDiskCache(t *testing.T, config diskBlockCacheConfig) (
-	data.BlockPointer, data.Block, []byte, kbfscrypto.BlockCryptKeyServerHalf) {
+	data.BlockPointer, data.Block, []byte, kbfscrypto.BlockCryptKeyServerHalf,
+) {
 	ptr := makeRandomBlockPointer(t)
 	block := makeFakeFileBlock(t, true)
-	blockEncoded, serverHalf :=
-		setupRealBlockForDiskCache(t, ptr, block, config)
+	blockEncoded, serverHalf := setupRealBlockForDiskCache(t, ptr, block, config)
 	return ptr, block, blockEncoded, serverHalf
 }
 
@@ -579,7 +584,8 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 
 func seedDiskBlockCacheForTest(ctx context.Context, t *testing.T,
 	cache *diskBlockCacheWrapped, config diskBlockCacheConfig, numTlfs,
-	numBlocksPerTlf int) {
+	numBlocksPerTlf int,
+) {
 	t.Log("Seed the cache with some blocks.")
 	clock := config.Clock().(*clocktest.TestClock)
 	for i := byte(0); int(i) < numTlfs; i++ {
@@ -598,7 +604,8 @@ func seedDiskBlockCacheForTest(ctx context.Context, t *testing.T,
 
 func testPutBlockWhenSyncCacheFull(
 	ctx context.Context, t *testing.T, putCache *DiskBlockCacheLocal,
-	cache *diskBlockCacheWrapped, config *testDiskBlockCacheConfig) {
+	cache *diskBlockCacheWrapped, config *testDiskBlockCacheConfig,
+) {
 	numTlfs := 10
 	numBlocksPerTlf := 5
 	numBlocks := numTlfs * numBlocksPerTlf
@@ -794,7 +801,8 @@ func TestDiskBlockCacheMoveBlock(t *testing.T) {
 // because that makes TLFs filled first more likely to face eviction.
 func seedTlf(ctx context.Context, t *testing.T,
 	cache *diskBlockCacheWrapped, config diskBlockCacheConfig, tlfID tlf.ID,
-	numBlocksPerTlf int) {
+	numBlocksPerTlf int,
+) {
 	for j := 0; j < numBlocksPerTlf; j++ {
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
@@ -803,7 +811,6 @@ func seedTlf(ctx context.Context, t *testing.T,
 			DiskBlockSyncCache)
 		require.NoError(t, err)
 	}
-
 }
 
 func TestDiskBlockCacheHomeDirPriorities(t *testing.T) {

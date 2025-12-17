@@ -42,7 +42,8 @@ func NewCmdSimpleFSArchiveStart(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 		Usage: "start archiving a KBFS path or git repo",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSArchiveStart{
-				Contextified: libkb.NewContextified(g)}, "start", c)
+				Contextified: libkb.NewContextified(g),
+			}, "start", c)
 			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{
@@ -66,6 +67,7 @@ func NewCmdSimpleFSArchiveStart(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 		ArgumentHelp: "<archiving target>",
 	}
 }
+
 func revisionExtendedDescription(currentTLFRevision keybase1.KBFSRevision, desc *keybase1.SimpleFSArchiveJobDesc) string {
 	if currentTLFRevision == 0 {
 		return ""
@@ -90,7 +92,6 @@ func printSimpleFSArchiveJobDesc(ui libkb.TerminalUI, desc *keybase1.SimpleFSArc
 	ui.Printf("Started: %s\n", desc.StartTime.Time())
 	ui.Printf("Staging Path: %s\n", desc.StagingPath)
 	ui.Printf("Zip File Path: %s\n", desc.ZipFilePath)
-
 }
 
 // Run runs the command in client/server mode.
@@ -155,7 +156,8 @@ func NewCmdSimpleFSArchiveCancelOrDismiss(cl *libcmdline.CommandLine, g *libkb.G
 		Usage:   "cancel or dismiss a KBFS archiving job",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSArchiveCancelOrDismiss{
-				Contextified: libkb.NewContextified(g)}, "dismiss", c)
+				Contextified: libkb.NewContextified(g),
+			}, "dismiss", c)
 			cl.SetNoStandalone()
 		},
 		ArgumentHelp: "<job ID>...",
@@ -206,7 +208,8 @@ func NewCmdSimpleFSArchiveStatus(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 		Usage: "display the status of all archiving activities",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSArchiveStatus{
-				Contextified: libkb.NewContextified(g)}, "status", c)
+				Contextified: libkb.NewContextified(g),
+			}, "status", c)
 			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{},
@@ -315,7 +318,8 @@ func NewCmdSimpleFSArchiveCheckArchive(cl *libcmdline.CommandLine, g *libkb.Glob
 		Usage:   "check one or more previously created KBFS archive(s)",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSArchiveCheckArchive{
-				Contextified: libkb.NewContextified(g)}, "check", c)
+				Contextified: libkb.NewContextified(g),
+			}, "check", c)
 			cl.SetNoStandalone()
 		},
 		ArgumentHelp: "<KBFS archive zip file path>...",

@@ -53,7 +53,7 @@ func (*FolderList) Access(ctx context.Context, r *fuse.AccessRequest) error {
 		return fuse.EPERM
 	}
 
-	if r.Mask&02 != 0 {
+	if r.Mask&0o2 != 0 {
 		return fuse.EPERM
 	}
 
@@ -64,7 +64,7 @@ var _ fs.Node = (*FolderList)(nil)
 
 // Attr implements the fs.Node interface.
 func (fl *FolderList) Attr(ctx context.Context, a *fuse.Attr) error {
-	a.Mode = os.ModeDir | 0500
+	a.Mode = os.ModeDir | 0o500
 	a.Uid = uint32(os.Getuid())
 	a.Inode = fl.inode
 	return nil
@@ -73,7 +73,8 @@ func (fl *FolderList) Attr(ctx context.Context, a *fuse.Attr) error {
 var _ fs.NodeRequestLookuper = (*FolderList)(nil)
 
 func (fl *FolderList) processError(ctx context.Context,
-	mode libkbfs.ErrorModeType, tlfName tlf.CanonicalName, err error) error {
+	mode libkbfs.ErrorModeType, tlfName tlf.CanonicalName, err error,
+) error {
 	if err == nil {
 		fl.fs.errLog.CDebugf(ctx, "Request complete")
 		return nil
@@ -285,7 +286,8 @@ var _ fs.NodeSymlinker = (*FolderList)(nil)
 
 // Symlink implements the fs.NodeSymlinker interface for FolderList.
 func (fl *FolderList) Symlink(
-	_ context.Context, _ *fuse.SymlinkRequest) (fs.Node, error) {
+	_ context.Context, _ *fuse.SymlinkRequest,
+) (fs.Node, error) {
 	return nil, fuse.ENOTSUP
 }
 
@@ -293,12 +295,14 @@ var _ fs.NodeLinker = (*FolderList)(nil)
 
 // Link implements the fs.NodeLinker interface for FolderList.
 func (fl *FolderList) Link(
-	_ context.Context, _ *fuse.LinkRequest, _ fs.Node) (fs.Node, error) {
+	_ context.Context, _ *fuse.LinkRequest, _ fs.Node,
+) (fs.Node, error) {
 	return nil, fuse.ENOTSUP
 }
 
 func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
-	newName string) {
+	newName string,
+) {
 	ok := func() bool {
 		fl.mu.Lock()
 		defer fl.mu.Unlock()

@@ -5,10 +5,9 @@ package engine
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"errors"
 	"fmt"
-
-	"crypto/ed25519"
 
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/scrypt"

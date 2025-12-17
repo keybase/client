@@ -29,8 +29,10 @@ func MakeMerkleHash(codec kbfscodec.Codec, md *RootMetadataSigned) (MerkleHash, 
 	return MerkleHash{h}, nil
 }
 
-var _ encoding.BinaryMarshaler = MerkleHash{}
-var _ encoding.BinaryUnmarshaler = (*MerkleHash)(nil)
+var (
+	_ encoding.BinaryMarshaler   = MerkleHash{}
+	_ encoding.BinaryUnmarshaler = (*MerkleHash)(nil)
+)
 
 // Bytes returns the bytes of the MerkleHash.
 func (h MerkleHash) Bytes() []byte {

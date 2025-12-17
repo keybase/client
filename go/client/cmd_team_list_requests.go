@@ -69,7 +69,6 @@ func (c *CmdTeamListRequests) Run() error {
 	}
 
 	return c.outputTerminal(reqs)
-
 }
 
 func (c *CmdTeamListRequests) outputJSON(reqs []keybase1.TeamJoinRequest) error {

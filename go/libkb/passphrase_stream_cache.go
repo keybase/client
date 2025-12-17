@@ -87,7 +87,6 @@ func (s *PassphraseStreamCache) TriplesecAndGeneration() (Triplesec, PassphraseG
 }
 
 func (s *PassphraseStreamCache) PassphraseStreamAndTriplesec() (pps *PassphraseStream, tsec Triplesec) {
-
 	if s == nil {
 		return nil, nil
 	}

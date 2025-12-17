@@ -46,7 +46,8 @@ func (easu EmptyAppStateUpdater) NextAppStateUpdate(lastState *keybase1.MobileAp
 
 // NextNetworkStateUpdate implements AppStateUpdater.
 func (easu EmptyAppStateUpdater) NextNetworkStateUpdate(
-	lastState *keybase1.MobileNetworkState) <-chan keybase1.MobileNetworkState {
+	lastState *keybase1.MobileNetworkState,
+) <-chan keybase1.MobileNetworkState {
 	// Receiving on a nil channel blocks forever.
 	return nil
 }
@@ -179,7 +180,8 @@ func (c *KBFSContext) NextAppStateUpdate(lastState *keybase1.MobileAppState) <-c
 
 // NextNetworkStateUpdate implements AppStateUpdater.
 func (c *KBFSContext) NextNetworkStateUpdate(
-	lastState *keybase1.MobileNetworkState) <-chan keybase1.MobileNetworkState {
+	lastState *keybase1.MobileNetworkState,
+) <-chan keybase1.MobileNetworkState {
 	if c.g.MobileNetState == nil {
 		return nil
 	}
@@ -217,7 +219,8 @@ func (c *KBFSContext) CheckService() error {
 
 // GetSocket returns a socket
 func (c *KBFSContext) GetSocket(clearError bool) (
-	net.Conn, rpc.Transporter, bool, error) {
+	net.Conn, rpc.Transporter, bool, error,
+) {
 	return c.g.GetSocket(clearError)
 }
 
@@ -262,7 +265,8 @@ func (c *KBFSContext) newTransportFromSocket(s net.Conn) rpc.Transporter {
 // GetKBFSSocket dials the socket configured in `c.kbfsSocket`.
 // Adapted from github.com/keybase/client/go/libkb.GlobalContext.GetSocket.
 func (c *KBFSContext) GetKBFSSocket(clearError bool) (
-	net.Conn, rpc.Transporter, bool, error) {
+	net.Conn, rpc.Transporter, bool, error,
+) {
 	var err error
 	c.g.Trace("GetSocket", &err)()
 

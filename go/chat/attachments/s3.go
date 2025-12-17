@@ -64,8 +64,10 @@ func (s *s3UploadPipeliner) Complete() {
 
 var s3UploadPipeline = &s3UploadPipeliner{}
 
-const minMultiSize = 5 * 1024 * 1024 // can't use Multi API with parts less than 5MB
-const blockSize = 5 * 1024 * 1024    // 5MB is the minimum Multi part size
+const (
+	minMultiSize = 5 * 1024 * 1024 // can't use Multi API with parts less than 5MB
+	blockSize    = 5 * 1024 * 1024 // 5MB is the minimum Multi part size
+)
 
 // ErrAbortOnPartMismatch is returned when there is a mismatch between a current
 // part and a previous attempt part.  If ErrAbortOnPartMismatch is returned,
@@ -121,7 +123,8 @@ func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Uplo
 // used for anything less than 5MB.  It can be used for anything up
 // to 5GB, but putMultiPipeline best for anything over 5MB.
 func (a *S3Store) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params,
-	b s3.BucketInt, progressReporter types.ProgressReporter) (err error) {
+	b s3.BucketInt, progressReporter types.ProgressReporter,
+) (err error) {
 	defer a.Trace(ctx, &err, "putSingle(size=%d)", size)()
 
 	progWriter := progress.NewProgressWriter(progressReporter, size)

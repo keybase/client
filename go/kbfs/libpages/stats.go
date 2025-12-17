@@ -78,7 +78,8 @@ func NewMultiStatReporter(reporters ...StatsReporter) StatsReporter {
 
 // ReportServedRequest implements the StatsReporter interface.
 func (m multiStatReporter) ReportServedRequest(
-	r *ServedRequestInfo) {
+	r *ServedRequestInfo,
+) {
 	for _, reporter := range m {
 		reporter.ReportServedRequest(r)
 	}

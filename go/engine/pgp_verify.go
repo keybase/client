@@ -70,7 +70,6 @@ func (e *PGPVerify) Run(m libkb.MetaContext) error {
 	defer m.Trace("PGPVerify#Run", &err)()
 	var sc libkb.StreamClassification
 	sc, e.source, err = libkb.ClassifyStream(e.arg.Source)
-
 	// For a Detached signature, we'll be expecting an UnknownStreamError
 	if err != nil {
 		if _, ok := err.(libkb.UnknownStreamError); !ok || len(e.arg.Signature) == 0 {

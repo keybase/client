@@ -34,7 +34,8 @@ type PrevRevisions []PrevRevisionAndCount
 // accomodate the new entry, and with increased counts.  Any existing
 // revisions smaller than or equal to minRev will be removed.
 func (pr PrevRevisions) AddRevision(
-	r, minRev kbfsmd.Revision) (ret PrevRevisions) {
+	r, minRev kbfsmd.Revision,
+) (ret PrevRevisions) {
 	newLength := len(pr)
 	if newLength < len(minPrevRevisionSlotCounts) {
 		newLength++

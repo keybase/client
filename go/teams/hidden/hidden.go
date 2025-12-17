@@ -93,7 +93,6 @@ type GenerateKeyRotationParams struct {
 // GenerateKeyRotation generates and signs a new sig3 KeyRotation. The result can be passed to
 // sig/multi.json and stored along with other sig1, sig2 or sig3 signatures in an atomic transaction.
 func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *libkb.SigMultiItem, ratchets *keybase1.HiddenTeamChainRatchetSet, err error) {
-
 	s3, ratchets, err := generateKeyRotationSig3(mctx, p)
 	if err != nil {
 		return nil, nil, err
@@ -120,7 +119,6 @@ func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (r
 }
 
 func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *sig3.ExportJSON, ratchets *keybase1.HiddenTeamChainRatchetSet, err error) {
-
 	outer := sig3.OuterLink{}
 	if p.HiddenPrev != nil {
 		outer.Seqno = p.HiddenPrev.Seqno + 1

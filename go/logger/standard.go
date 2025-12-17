@@ -17,7 +17,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-const permDir os.FileMode = 0700
+const permDir os.FileMode = 0o700
 
 // Map from module name to whether SetLevel() has been called for that
 // module.
@@ -44,7 +44,8 @@ type CtxLogTags map[interface{}]string
 // NewContext returns a new Context that carries adds the given log
 // tag mappings (context key -> display string).
 func NewContextWithLogTags(
-	ctx context.Context, logTagsToAdd CtxLogTags) context.Context {
+	ctx context.Context, logTagsToAdd CtxLogTags,
+) context.Context {
 	currTags, _ := LogTagsFromContext(ctx)
 	newTags := make(CtxLogTags)
 	// Make a copy to avoid races
@@ -142,7 +143,8 @@ func (log *Standard) setLogLevelInfo() {
 }
 
 func prepareString(
-	ctx context.Context, fmts string) string {
+	ctx context.Context, fmts string,
+) string {
 	if ctx == nil {
 		return fmts
 	}
@@ -167,7 +169,8 @@ func (log *Standard) Debug(fmt string, arg ...interface{}) {
 }
 
 func (log *Standard) CDebugf(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	if log.internal.IsEnabledFor(logging.DEBUG) {
 		log.CloneWithAddedDepth(1).Debug(prepareString(ctx, fmt), arg...)
 	}
@@ -181,7 +184,8 @@ func (log *Standard) Info(fmt string, arg ...interface{}) {
 }
 
 func (log *Standard) CInfof(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	if log.internal.IsEnabledFor(logging.INFO) {
 		log.CloneWithAddedDepth(1).Info(prepareString(ctx, fmt), arg...)
 	}
@@ -195,7 +199,8 @@ func (log *Standard) Notice(fmt string, arg ...interface{}) {
 }
 
 func (log *Standard) CNoticef(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	if log.internal.IsEnabledFor(logging.NOTICE) {
 		log.CloneWithAddedDepth(1).Notice(prepareString(ctx, fmt), arg...)
 	}
@@ -209,7 +214,8 @@ func (log *Standard) Warning(fmt string, arg ...interface{}) {
 }
 
 func (log *Standard) CWarningf(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	if log.internal.IsEnabledFor(logging.WARNING) {
 		log.CloneWithAddedDepth(1).Warning(prepareString(ctx, fmt), arg...)
 	}
@@ -227,7 +233,8 @@ func (log *Standard) Errorf(fmt string, arg ...interface{}) {
 }
 
 func (log *Standard) CErrorf(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	if log.internal.IsEnabledFor(logging.ERROR) {
 		log.CloneWithAddedDepth(1).Error(prepareString(ctx, fmt), arg...)
 	}
@@ -241,7 +248,8 @@ func (log *Standard) Critical(fmt string, arg ...interface{}) {
 }
 
 func (log *Standard) CCriticalf(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	if log.internal.IsEnabledFor(logging.CRITICAL) {
 		log.CloneWithAddedDepth(1).Critical(prepareString(ctx, fmt), arg...)
 	}
@@ -255,7 +263,8 @@ func (log *Standard) Fatalf(fmt string, arg ...interface{}) {
 }
 
 func (log *Standard) CFatalf(ctx context.Context, fmt string,
-	arg ...interface{}) {
+	arg ...interface{},
+) {
 	log.CloneWithAddedDepth(1).Fatalf(prepareString(ctx, fmt), arg...)
 }
 
@@ -307,7 +316,6 @@ func (log *Standard) Configure(style string, debug bool, filename string) {
 	}
 
 	logging.SetFormatter(logging.MustStringFormatter(logfmt))
-
 }
 
 func OpenLogFile(filename string) (name string, file *os.File, err error) {
@@ -315,7 +323,7 @@ func OpenLogFile(filename string) (name string, file *os.File, err error) {
 	if err = MakeParentDirs(name); err != nil {
 		return
 	}
-	file, err = os.OpenFile(name, (os.O_APPEND | os.O_WRONLY | os.O_CREATE), 0600)
+	file, err = os.OpenFile(name, (os.O_APPEND | os.O_WRONLY | os.O_CREATE), 0o600)
 	if err != nil {
 		return
 	}

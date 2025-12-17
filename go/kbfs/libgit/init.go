@@ -36,7 +36,8 @@ const (
 // after the git work is complete.
 func Params(kbCtx libkbfs.Context,
 	storageRoot string, paramsBase *libkbfs.InitParams) (
-	params libkbfs.InitParams, tempDir string, err error) {
+	params libkbfs.InitParams, tempDir string, err error,
+) {
 	tempDir, err = os.MkdirTemp(storageRoot, libkbfs.GitStorageRootPrefix)
 	if err != nil {
 		return libkbfs.InitParams{}, "", err
@@ -60,8 +61,7 @@ func Params(kbCtx libkbfs.Context,
 	params.DiskCacheMode = libkbfs.DiskCacheModeRemote
 	params.StorageRoot = tempDir
 	params.Mode = libkbfs.InitSingleOpString
-	params.TLFJournalBackgroundWorkStatus =
-		libkbfs.TLFJournalSingleOpBackgroundWorkEnabled
+	params.TLFJournalBackgroundWorkStatus = libkbfs.TLFJournalSingleOpBackgroundWorkEnabled
 
 	if baddr := os.Getenv(paramKeybaseGitBServerAddr); len(baddr) > 0 {
 		params.BServerAddr = baddr
@@ -78,7 +78,8 @@ func Params(kbCtx libkbfs.Context,
 func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 	kbCtx libkbfs.Context, keybaseServiceCn libkbfs.KeybaseServiceCn,
 	defaultLogPath string, vlogLevel string) (
-	context.Context, libkbfs.Config, error) {
+	context.Context, libkbfs.Config, error,
+) {
 	log, err := libkbfs.InitLogWithPrefix(
 		gitKBFSParams, kbCtx, "git", defaultLogPath)
 	if err != nil {
@@ -118,7 +119,8 @@ func getNewConfig(
 	ctx context.Context, config libkbfs.Config, kbCtx libkbfs.Context,
 	kbfsInitParams *libkbfs.InitParams, log logger.Logger) (
 	newCtx context.Context, gitConfig libkbfs.Config,
-	tempDir string, err error) {
+	tempDir string, err error,
+) {
 	// Initialize libgit.
 	params, tempDir, err := Params(kbCtx, config.StorageRoot(), kbfsInitParams)
 	if err != nil {

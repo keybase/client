@@ -27,7 +27,7 @@ type updaterPromptInput struct {
 }
 
 func main() {
-	var testLog = &logging.Logger{Module: "test"}
+	testLog := &logging.Logger{Module: "test"}
 
 	exePathName, _ := osext.Executable()
 	pathName, _ := filepath.Split(exePathName)

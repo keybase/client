@@ -25,7 +25,6 @@ func (v *CmdPGPPullPrivate) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (v *CmdPGPPullPrivate) Run() (err error) {
-
 	if !v.force {
 		dui := v.G().UI.GetDumbOutputUI()
 		dui.Printf(

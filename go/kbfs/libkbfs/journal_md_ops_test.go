@@ -20,7 +20,8 @@ import (
 
 func setupJournalMDOpsTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
-	config *ConfigLocal, oldMDOps MDOps, jManager *JournalManager) {
+	config *ConfigLocal, oldMDOps MDOps, jManager *JournalManager,
+) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_md_ops")
 	require.NoError(t, err)
 
@@ -75,7 +76,8 @@ func setupJournalMDOpsTest(t *testing.T) (
 
 func teardownJournalMDOpsTest(
 	ctx context.Context, t *testing.T, tempdir string,
-	cancel context.CancelFunc, config Config) {
+	cancel context.CancelFunc, config Config,
+) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
 	err := ioutil.RemoveAll(tempdir)
@@ -84,7 +86,8 @@ func teardownJournalMDOpsTest(
 
 func makeMDForJournalMDOpsTest(
 	t *testing.T, config Config, tlfID tlf.ID, h *tlfhandle.Handle,
-	revision kbfsmd.Revision) *RootMetadata {
+	revision kbfsmd.Revision,
+) *RootMetadata {
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
 	rmd.SetRevision(revision)

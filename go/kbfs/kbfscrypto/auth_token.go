@@ -41,7 +41,8 @@ type AuthToken struct {
 
 // NewAuthToken creates a new authentication token.
 func NewAuthToken(signer Signer, tokenType string, expireIn int,
-	submoduleName, version string, rh AuthTokenRefreshHandler) *AuthToken {
+	submoduleName, version string, rh AuthTokenRefreshHandler,
+) *AuthToken {
 	clientName := fmt.Sprintf("go %s %s %s",
 		submoduleName, libkb.GetPlatformString(), runtime.GOARCH)
 	authToken := &AuthToken{
@@ -58,7 +59,8 @@ func NewAuthToken(signer Signer, tokenType string, expireIn int,
 // Sign is called to create a new signed authentication token.
 func (a *AuthToken) signWithUserAndKeyInfo(ctx context.Context,
 	challengeInfo keybase1.ChallengeInfo, uid keybase1.UID,
-	username kbname.NormalizedUsername, key VerifyingKey) (string, error) {
+	username kbname.NormalizedUsername, key VerifyingKey,
+) (string, error) {
 	// create the token
 	token := auth.NewToken(uid, username, key.KID(), a.tokenType,
 		challengeInfo.Challenge, challengeInfo.Now, a.expireIn,
@@ -85,7 +87,8 @@ func (a *AuthToken) signWithUserAndKeyInfo(ctx context.Context,
 func (a *AuthToken) Sign(ctx context.Context,
 	currentUsername kbname.NormalizedUsername, currentUID keybase1.UID,
 	currentVerifyingKey VerifyingKey,
-	challengeInfo keybase1.ChallengeInfo) (string, error) {
+	challengeInfo keybase1.ChallengeInfo,
+) (string, error) {
 	// make sure we're being asked to sign a legit challenge
 	if !auth.IsValidChallenge(challengeInfo.Challenge) {
 		return "", errors.New("Invalid challenge")
@@ -102,7 +105,8 @@ func (a *AuthToken) Sign(ctx context.Context,
 // clocks are roughly synchronized.
 func (a *AuthToken) SignUserless(
 	ctx context.Context, key VerifyingKey) (
-	string, error) {
+	string, error,
+) {
 	// Pass in a reserved, meaningless UID.
 	return a.signWithUserAndKeyInfo(ctx,
 		keybase1.ChallengeInfo{Now: time.Now().Unix()},

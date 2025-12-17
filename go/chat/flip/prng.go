@@ -76,7 +76,6 @@ func (p *PRNG) Read(out []byte) int {
 }
 
 func (p *PRNG) Big(modulus *big.Int) *big.Int {
-
 	sign := modulus.Sign()
 	// For moduli of 0, the sign will be 0. Just return it, since there's
 	// nothing we can really do.

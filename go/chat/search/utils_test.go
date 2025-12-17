@@ -258,5 +258,4 @@ func TestUpgradeSearchOptsFromQuery(t *testing.T) {
 	require.Equal(t, expectedTime, opts.SentBefore)
 	require.Equal(t, expectedTime, opts.SentBefore)
 	require.True(t, opts.IsRegex)
-
 }

@@ -34,7 +34,8 @@ func (o *OneTimeWhitelistExemption) Use() bool {
 }
 
 func (o *OneTimeWhitelistExemption) Matches(convID chat1.ConversationID, msgID chat1.MessageID,
-	domain string) bool {
+	domain string,
+) bool {
 	return o.convID.Eq(convID) && o.msgID == msgID && o.domain == domain
 }
 
@@ -68,7 +69,8 @@ func (o *SingleMessageWhitelistExemption) Use() bool {
 }
 
 func (o *SingleMessageWhitelistExemption) Matches(convID chat1.ConversationID, msgID chat1.MessageID,
-	domain string) bool {
+	domain string,
+) bool {
 	return o.convID.Eq(convID) && o.msgID == msgID && o.domain == domain
 }
 

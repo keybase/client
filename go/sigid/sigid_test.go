@@ -25,8 +25,7 @@ func testOne(t *testing.T, sig string, sigID string) {
 }
 
 func TestSignatures(t *testing.T) {
-
-	var tests = []struct {
+	tests := []struct {
 		username string
 		seqno    int
 		sig      string

@@ -27,7 +27,7 @@ var _ fs.Node = (*JournalControlFile)(nil)
 // Attr implements the fs.Node interface for JournalControlFile.
 func (f *JournalControlFile) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Size = 0
-	a.Mode = 0222
+	a.Mode = 0o222
 	return nil
 }
 
@@ -37,7 +37,8 @@ var _ fs.HandleWriter = (*JournalControlFile)(nil)
 
 // Write implements the fs.HandleWriter interface for JournalControlFile.
 func (f *JournalControlFile) Write(ctx context.Context, req *fuse.WriteRequest,
-	resp *fuse.WriteResponse) (err error) {
+	resp *fuse.WriteResponse,
+) (err error) {
 	f.folder.fs.log.CDebugf(ctx, "JournalControlFile (f.action=%s) Write",
 		f.action)
 	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()

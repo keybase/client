@@ -1,14 +1,13 @@
 package chat
 
 import (
+	"encoding/hex"
 	"fmt"
 	"sort"
 	"strings"
 	"sync"
 	"testing"
 	"time"
-
-	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
@@ -55,6 +54,7 @@ var _ libkb.NotifyListener = (*chatListener)(nil)
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
 }
+
 func (n *chatListener) ChatInboxStale(_ keybase1.UID) {
 	select {
 	case n.inboxStale <- struct{}{}:
@@ -62,6 +62,7 @@ func (n *chatListener) ChatInboxStale(_ keybase1.UID) {
 		panic("timeout on the inbox stale channel")
 	}
 }
+
 func (n *chatListener) ChatConvUpdate(_ keybase1.UID, convID chat1.ConversationID) {
 	select {
 	case n.convUpdate <- convID:
@@ -69,6 +70,7 @@ func (n *chatListener) ChatConvUpdate(_ keybase1.UID, convID chat1.ConversationI
 		panic("timeout on the threads stale channel")
 	}
 }
+
 func (n *chatListener) ChatThreadsStale(_ keybase1.UID, updates []chat1.ConversationStaleUpdate) {
 	select {
 	case n.threadsStale <- updates:
@@ -76,8 +78,10 @@ func (n *chatListener) ChatThreadsStale(_ keybase1.UID, updates []chat1.Conversa
 		panic("timeout on the threads stale channel")
 	}
 }
+
 func (n *chatListener) ChatInboxSynced(_ keybase1.UID, topicType chat1.TopicType,
-	syncRes chat1.ChatSyncResult) {
+	syncRes chat1.ChatSyncResult,
+) {
 	switch topicType {
 	case chat1.TopicType_CHAT, chat1.TopicType_NONE:
 		select {
@@ -87,6 +91,7 @@ func (n *chatListener) ChatInboxSynced(_ keybase1.UID, topicType chat1.TopicType
 		}
 	}
 }
+
 func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 	select {
 	case n.typingUpdate <- updates:
@@ -96,7 +101,8 @@ func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 }
 
 func (n *chatListener) NewChatActivity(_ keybase1.UID, activity chat1.ChatActivity,
-	source chat1.ChatActivitySource) {
+	source chat1.ChatActivitySource,
+) {
 	n.Lock()
 	defer n.Unlock()
 	typ, err := activity.ActivityType()
@@ -164,7 +170,8 @@ func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext
 }
 
 func newConvTripleWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
-	username string, membersType chat1.ConversationMembersType) chat1.ConversationIDTriple {
+	username string, membersType chat1.ConversationMembersType,
+) chat1.ConversationIDTriple {
 	nameInfo, err := CreateNameInfoSource(ctx, tc.Context(), membersType).LookupID(ctx, username, false)
 	require.NoError(t, err)
 	topicID, err := utils.NewChatTopicID()
@@ -538,20 +545,21 @@ func TestNonblockTimer(t *testing.T) {
 	}
 }
 
-type FailingSender struct {
-}
+type FailingSender struct{}
 
 var _ types.Sender = (*FailingSender)(nil)
 
 func (f FailingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
-	sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (chat1.OutboxID, *chat1.MessageBoxed, error) {
+	sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions,
+) (chat1.OutboxID, *chat1.MessageBoxed, error) {
 	return chat1.OutboxID{}, nil, fmt.Errorf("I always fail!!!!")
 }
 
 func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
 	membersType chat1.ConversationMembersType, conv *chat1.ConversationLocal,
-	opts *chat1.SenderPrepareOptions) (types.SenderPrepareResult, error) {
+	opts *chat1.SenderPrepareOptions,
+) (types.SenderPrepareResult, error) {
 	return types.SenderPrepareResult{}, nil
 }
 
@@ -563,7 +571,6 @@ func recordCompare(t *testing.T, obids []chat1.OutboxID, obrs []chat1.OutboxReco
 }
 
 func TestFailingSender(t *testing.T) {
-
 	ctx, world, ri, sender, _, listener := setupTest(t, 1)
 	defer world.Cleanup()
 

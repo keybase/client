@@ -28,7 +28,7 @@ func (cfi *wrappedReadFileInfo) Size() int64 {
 
 func (cfi *wrappedReadFileInfo) Mode() os.FileMode {
 	// Make it read-only.
-	return 0600
+	return 0o600
 }
 
 func (cfi *wrappedReadFileInfo) ModTime() time.Time {

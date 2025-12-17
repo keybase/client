@@ -256,7 +256,8 @@ func (p Path) Join(childName string) (childPath Path, err error) {
 func ParseTlfHandle(
 	ctx context.Context, kbpki libkbfs.KBPKI, mdOps libkbfs.MDOps,
 	osg idutil.OfflineStatusGetter, name string, t tlf.Type) (
-	*tlfhandle.Handle, error) {
+	*tlfhandle.Handle, error,
+) {
 	var tlfHandle *tlfhandle.Handle
 outer:
 	for {

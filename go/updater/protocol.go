@@ -47,7 +47,6 @@ type Update struct {
 
 func (u Update) missingAsset() bool {
 	return u.Asset == nil || u.Asset.URL == ""
-
 }
 
 // UpdateOptions are options used to find an update

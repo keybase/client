@@ -84,7 +84,8 @@ var spoileRegexp = regexp.MustCompile(`!>(.*?)<!`)
 
 func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
 	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
-	pusher PushNotifier, showIfStale bool) (err error) {
+	pusher PushNotifier, showIfStale bool,
+) (err error) {
 	if err := waitForInit(10 * time.Second); err != nil {
 		return err
 	}
@@ -159,8 +160,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 				if err != nil {
 					return err
 				}
-				chatNotification.Message.Plaintext =
-					emoji.Sprintf("Reacted to your message with %v", reaction)
+				chatNotification.Message.Plaintext = emoji.Sprintf("Reacted to your message with %v", reaction)
 			default:
 				kbCtx.Log.CDebugf(ctx, "unboxNotification: Unknown message type: %v",
 					msgUnboxed.GetMessageType())

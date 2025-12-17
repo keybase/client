@@ -11,8 +11,10 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
-type BodyHashChecker func(bodyHash chat1.Hash, uniqueMsgID chat1.MessageID, uniqueConvID chat1.ConversationID) error
-type PrevChecker func(msgID chat1.MessageID, convID chat1.ConversationID, uniqueHeaderHash chat1.Hash) error
+type (
+	BodyHashChecker func(bodyHash chat1.Hash, uniqueMsgID chat1.MessageID, uniqueConvID chat1.ConversationID) error
+	PrevChecker     func(msgID chat1.MessageID, convID chat1.ConversationID, uniqueHeaderHash chat1.Hash) error
+)
 
 // These are globally unique. They don't include the UID.
 func makeBodyHashIndexKey(bodyHash chat1.Hash) libkb.DbKey {

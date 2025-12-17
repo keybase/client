@@ -17,14 +17,16 @@ type testPair struct {
 	username string
 }
 
-const mikemUID = keybase1.UID("95e88f2087e480cae28f08d81554bc00")
-const maxUID = keybase1.UID("dbb165b7879fe7b1174df73bed0b9500")
+const (
+	mikemUID = keybase1.UID("95e88f2087e480cae28f08d81554bc00")
+	maxUID   = keybase1.UID("dbb165b7879fe7b1174df73bed0b9500")
+)
 
 func TestLookupUsernameOnly(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestLookup", 1)
 	defer tc.Cleanup()
 
-	var seed = []testPair{
+	seed := []testPair{
 		{"afb5eda3154bc13c1df0189ce93ba119", "t_bob"},
 		{"00000000000000000000000000000119", ""},
 		{"295a7eea607af32040647123732bc819", "t_alice"},
@@ -75,7 +77,7 @@ func TestLookupUsernameConcurrent(t *testing.T) {
 	batchSize = 7
 
 	testStuff := func() {
-		var seed = []testPair{
+		seed := []testPair{
 			{"afb5eda3154bc13c1df0189ce93ba119", "t_bob"},
 			{"00000000000000000000000000000119", ""},
 			{"295a7eea607af32040647123732bc819", "t_alice"},

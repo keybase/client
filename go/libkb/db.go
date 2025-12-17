@@ -217,6 +217,7 @@ func jsonLocalDbPut(ops LocalDbOps, id DbKey, aliases []DbKey, val *jsonw.Wrappe
 	}
 	return err
 }
+
 func jsonLocalDbGet(ops LocalDbOps, id DbKey) (*jsonw.Wrapper, error) {
 	bytes, found, err := ops.Get(id)
 	var ret *jsonw.Wrapper
@@ -299,6 +300,7 @@ func (j *JSONLocalDb) Stats() string          { return j.engine.Stats() }
 func (j *JSONLocalDb) CompactionStats() (bool, bool, error) {
 	return j.engine.CompactionStats()
 }
+
 func (j *JSONLocalDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
 	return j.engine.KeysWithPrefixes(prefixes...)
 }

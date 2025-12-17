@@ -13,7 +13,8 @@ import (
 
 func checkRevRevisions(
 	t *testing.T, pr PrevRevisions, minRev kbfsmd.Revision,
-	maxRev kbfsmd.Revision, numRevisions int) {
+	maxRev kbfsmd.Revision, numRevisions int,
+) {
 	// Make sure the revisions are in descending order, and the counts
 	// are in increasing order.
 	maxMin := kbfsmd.Revision(

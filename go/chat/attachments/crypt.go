@@ -1,11 +1,10 @@
 package attachments
 
 import (
+	"crypto/ed25519"
 	"crypto/rand"
 	"errors"
 	"io"
-
-	"crypto/ed25519"
 
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/kbcrypto"

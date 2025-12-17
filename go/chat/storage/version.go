@@ -64,7 +64,8 @@ func (s *ServerVersions) Fetch(ctx context.Context) (chat1.ServerCacheVers, erro
 }
 
 func (s *ServerVersions) matchLocked(ctx context.Context, vers int,
-	versFunc func(chat1.ServerCacheVers) int) (int, error) {
+	versFunc func(chat1.ServerCacheVers) int,
+) (int, error) {
 	srvVers, err := s.fetchLocked(ctx)
 	if err != nil {
 		return 0, err

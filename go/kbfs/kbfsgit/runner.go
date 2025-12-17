@@ -176,7 +176,8 @@ func ParseRepo(repo string) (tlfType tlf.Type, tlfName string, repoName string, 
 func newRunnerWithType(ctx context.Context, config libkbfs.Config,
 	remote, repo, gitDir string, input io.Reader, output, errput io.Writer,
 	processType runnerProcessType) (
-	*runner, error) {
+	*runner, error,
+) {
 	tlfType, tlfName, repoName, err := ParseRepo(repo)
 	if err != nil {
 		return nil, err
@@ -221,7 +222,8 @@ func newRunnerWithType(ctx context.Context, config libkbfs.Config,
 // on-disk repo.
 func newRunner(ctx context.Context, config libkbfs.Config,
 	remote, repo, gitDir string, input io.Reader, output, errput io.Writer) (
-	*runner, error) {
+	*runner, error,
+) {
 	return newRunnerWithType(
 		ctx, config, remote, repo, gitDir, input, output, errput, processGit)
 }
@@ -254,7 +256,8 @@ func (r *runner) handleCapabilities() error {
 // location of a memory profile taken at the end of the phase.
 func (r *runner) getElapsedStr(
 	ctx context.Context, startTime time.Time, profName string,
-	cpuProfFullPath string) string {
+	cpuProfFullPath string,
+) string {
 	if r.verbosity < 2 {
 		return ""
 	}
@@ -286,7 +289,8 @@ func (r *runner) getElapsedStr(
 }
 
 func (r *runner) printDoneOrErr(
-	ctx context.Context, err error, startTime time.Time) {
+	ctx context.Context, err error, startTime time.Time,
+) {
 	if r.verbosity < 1 {
 		return
 	}
@@ -339,7 +343,8 @@ func (r *runner) makeFS(ctx context.Context) (fs *libfs.FS, err error) {
 }
 
 func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
-	repo *gogit.Repository, fs *libfs.FS, err error) {
+	repo *gogit.Repository, fs *libfs.FS, err error,
+) {
 	// This function might be called multiple times per function, but
 	// the subsequent calls will use the local cache.  So only print
 	// these messages once.
@@ -476,7 +481,8 @@ func (r *runner) printStageEndIfNeeded(ctx context.Context) {
 }
 
 func (r *runner) printStageStart(ctx context.Context,
-	toPrint []byte, memProfName, cpuProfName string) {
+	toPrint []byte, memProfName, cpuProfName string,
+) {
 	if len(toPrint) == 0 {
 		return
 	}
@@ -526,7 +532,8 @@ func (r *runner) printGitJournalStart(ctx context.Context) {
 }
 
 func (r *runner) printGitJournalMessage(
-	ctx context.Context, lastByteCount int, totalSize, sizeLeft int64) int {
+	ctx context.Context, lastByteCount int, totalSize, sizeLeft int64,
+) int {
 	const bytesFmt string = "(%.2f%%) %s... "
 	eraseStr := strings.Repeat("\b", lastByteCount)
 	flushed := totalSize - sizeLeft
@@ -550,7 +557,8 @@ func (r *runner) printJournalStatus(
 	ctx context.Context, jManager *libkbfs.JournalManager, tlfID tlf.ID,
 	doneCh <-chan struct{}, printStart func(context.Context),
 	printProgress func(context.Context, int, int64, int64) int,
-	printEnd func(context.Context)) {
+	printEnd func(context.Context),
+) {
 	printEnd(ctx)
 	// Note: the "first" status here gets us the number of unflushed
 	// bytes left at the time we started printing.  However, we don't
@@ -602,7 +610,8 @@ func (r *runner) printJournalStatus(
 func (r *runner) waitForJournalWithPrinters(
 	ctx context.Context, printStart func(context.Context),
 	printProgress func(context.Context, int, int64, int64) int,
-	printEnd func(context.Context)) error {
+	printEnd func(context.Context),
+) error {
 	// See if there are any deleted repos to clean up before we flush
 	// the journal.
 	err := libgit.CleanOldDeletedReposTimeLimited(ctx, r.config, r.h)
@@ -796,7 +805,8 @@ func humanizeObjects(n int, d int) string {
 }
 
 func (r *runner) printJournalStatusUntilFlushed(
-	ctx context.Context, doneCh <-chan struct{}) {
+	ctx context.Context, doneCh <-chan struct{},
+) {
 	rootNode, _, err := r.config.KBFSOps().GetOrCreateRootNode(
 		ctx, r.h, data.MasterBranch)
 	if err != nil {
@@ -822,7 +832,8 @@ func (r *runner) printJournalStatusUntilFlushed(
 }
 
 func (r *runner) processGogitStatus(ctx context.Context,
-	statusChan <-chan plumbing.StatusUpdate, fsEvents <-chan libfs.FSEvent) {
+	statusChan <-chan plumbing.StatusUpdate, fsEvents <-chan libfs.FSEvent,
+) {
 	if r.h.Type() == tlf.Public {
 		gogitStagesToStatus[plumbing.StatusFetch] = "Preparing and signing: "
 	}
@@ -920,7 +931,8 @@ func (r *runner) processGogitStatus(ctx context.Context,
 // overwriting the text on the next update.
 func (r *runner) recursiveByteCount(
 	ctx context.Context, fs billy.Filesystem, totalSoFar int64, toErase int) (
-	bytes int64, toEraseRet int, err error) {
+	bytes int64, toEraseRet int, err error,
+) {
 	fileInfos, err := fs.ReadDir("/")
 	if err != nil {
 		return 0, 0, err
@@ -993,7 +1005,8 @@ func (sw *statusWriter) Write(p []byte) (n int, err error) {
 
 func (r *runner) copyFile(
 	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
-	name string, sw *statusWriter) (err error) {
+	name string, sw *statusWriter,
+) (err error) {
 	f, err := from.Open(name)
 	if err != nil {
 		return err
@@ -1018,7 +1031,8 @@ func (r *runner) copyFile(
 
 func (r *runner) copyFileWithCount(
 	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
-	name, countingText, countingProf, copyingText, copyingProf string) error {
+	name, countingText, countingProf, copyingText, copyingProf string,
+) error {
 	var sw *statusWriter
 	if r.verbosity >= 1 {
 		// Get the total number of bytes we expect to fetch, for the
@@ -1077,7 +1091,8 @@ func (r *runner) copyFileWithCount(
 // `localFS`.
 func (r *runner) recursiveCopy(
 	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
-	sw *statusWriter) (err error) {
+	sw *statusWriter,
+) (err error) {
 	fileInfos, err := from.ReadDir("")
 	if err != nil {
 		return err
@@ -1088,7 +1103,7 @@ func (r *runner) recursiveCopy(
 			if fi.Name() == "." {
 				continue
 			}
-			err := to.MkdirAll(fi.Name(), 0775)
+			err := to.MkdirAll(fi.Name(), 0o775)
 			if err != nil {
 				return err
 			}
@@ -1116,7 +1131,8 @@ func (r *runner) recursiveCopy(
 
 func (r *runner) recursiveCopyWithCounts(
 	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
-	countingText, countingProf, copyingText, copyingProf string) error {
+	countingText, countingProf, copyingText, copyingProf string,
+) error {
 	var sw *statusWriter
 	if r.verbosity >= 1 {
 		// Get the total number of bytes we expect to fetch, for the
@@ -1290,7 +1306,7 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 	}
 
 	localObjectsPath := filepath.Join(r.gitDir, "objects")
-	err = os.MkdirAll(localObjectsPath, 0775)
+	err = os.MkdirAll(localObjectsPath, 0o775)
 	if err != nil {
 		return err
 	}
@@ -1326,7 +1342,8 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 // GIT_DIR/objects/pack which is keeping a pack until refs can be
 // suitably updated.
 func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
-	err error) {
+	err error,
+) {
 	repo, _, err := r.initRepoIfNeeded(ctx, gitCmdFetch)
 	if err != nil {
 		return err
@@ -1410,7 +1427,8 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 // --all/--mirror).
 func (r *runner) canPushAll(
 	ctx context.Context, repo *gogit.Repository, args [][]string) (
-	canPushAll, kbfsRepoEmpty bool, err error) {
+	canPushAll, kbfsRepoEmpty bool, err error,
+) {
 	refs, err := repo.References()
 	if err != nil {
 		return false, false, err
@@ -1573,8 +1591,8 @@ func dstNameFromRefString(refStr string) plumbing.ReferenceName {
 // not in `remoteStorer`.
 func (r *runner) parentCommitsForRef(ctx context.Context,
 	localStorer gogitstor.Storer, remoteStorer gogitstor.Storer,
-	refs map[gogitcfg.RefSpec]bool) (libgit.RefDataByName, error) {
-
+	refs map[gogitcfg.RefSpec]bool,
+) (libgit.RefDataByName, error) {
 	commitsByRef := make(libgit.RefDataByName, len(refs))
 	haves := make(map[plumbing.Hash]bool)
 
@@ -1631,17 +1649,15 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 			if toVisit == 0 {
 				// Append a sentinel value to communicate that there would be
 				// more commits.
-				commitsByRef[dstRefName].Commits =
-					append(commitsByRef[dstRefName].Commits,
-						libgit.CommitSentinelValue)
+				commitsByRef[dstRefName].Commits = append(commitsByRef[dstRefName].Commits,
+					libgit.CommitSentinelValue)
 				return gogitstor.ErrStop
 			}
 			hasEncodedObjectErr := remoteStorer.HasEncodedObject(c.Hash)
 			if hasEncodedObjectErr == nil {
 				return gogitstor.ErrStop
 			}
-			commitsByRef[dstRefName].Commits =
-				append(commitsByRef[dstRefName].Commits, c)
+			commitsByRef[dstRefName].Commits = append(commitsByRef[dstRefName].Commits, c)
 			return nil
 		})
 		if err != nil {
@@ -1653,7 +1669,8 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 
 func (r *runner) pushSome(
 	ctx context.Context, repo *gogit.Repository, fs *libfs.FS, args [][]string,
-	kbfsRepoEmpty bool) (map[string]error, error) {
+	kbfsRepoEmpty bool,
+) (map[string]error, error) {
 	r.log.CDebugf(ctx, "Pushing %d refs into %s", len(args), r.gitDir)
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
@@ -1769,7 +1786,8 @@ func (r *runner) pushSome(
 // option field <why> may be quoted in a C style string if it contains
 // an LF.
 func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
-	commits libgit.RefDataByName, err error) {
+	commits libgit.RefDataByName, err error,
+) {
 	repo, fs, err := r.initRepoIfNeeded(ctx, gitCmdPush)
 	if err != nil {
 		return nil, err
@@ -2011,7 +2029,8 @@ func (lpw *lfsProgressWriter) Write(p []byte) (n int, err error) {
 }
 
 func (lpw *lfsProgressWriter) printOne(
-	ctx context.Context, _ int, totalSize, sizeLeft int64) int {
+	ctx context.Context, _ int, totalSize, sizeLeft int64,
+) int {
 	if lpw.r.processType == processLFSNoProgress {
 		return 0
 	}
@@ -2037,7 +2056,8 @@ func (lpw *lfsProgressWriter) printOne(
 func (r *runner) copyFileLFS(
 	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
 	fromName, toName, oid string, totalSize int,
-	progressScale float64) (err error) {
+	progressScale float64,
+) (err error) {
 	f, err := from.Open(fromName)
 	if err != nil {
 		return err
@@ -2063,12 +2083,13 @@ func (r *runner) copyFileLFS(
 }
 
 func (r *runner) handleLFSUpload(
-	ctx context.Context, oid string, localPath string, size int) (err error) {
+	ctx context.Context, oid string, localPath string, size int,
+) (err error) {
 	fs, err := r.makeFS(ctx)
 	if err != nil {
 		return err
 	}
-	err = fs.MkdirAll(libgit.LFSSubdir, 0600)
+	err = fs.MkdirAll(libgit.LFSSubdir, 0o600)
 	if err != nil {
 		return err
 	}
@@ -2103,12 +2124,13 @@ func (r *runner) handleLFSUpload(
 }
 
 func (r *runner) handleLFSDownload(
-	ctx context.Context, oid string, size int) (localPath string, err error) {
+	ctx context.Context, oid string, size int,
+) (localPath string, err error) {
 	fs, err := r.makeFS(ctx)
 	if err != nil {
 		return "", err
 	}
-	err = fs.MkdirAll(libgit.LFSSubdir, 0600)
+	err = fs.MkdirAll(libgit.LFSSubdir, 0o600)
 	if err != nil {
 		return "", err
 	}
@@ -2131,7 +2153,8 @@ func (r *runner) handleLFSDownload(
 }
 
 func (r *runner) processCommand(
-	ctx context.Context, commandChan <-chan string) (err error) {
+	ctx context.Context, commandChan <-chan string,
+) (err error) {
 	var fetchBatch, pushBatch [][]string
 	for {
 		select {
@@ -2225,7 +2248,8 @@ type lfsResponse struct {
 }
 
 func (r *runner) processCommandLFS(
-	ctx context.Context, commandChan <-chan string) (err error) {
+	ctx context.Context, commandChan <-chan string,
+) (err error) {
 lfsLoop:
 	for {
 		select {

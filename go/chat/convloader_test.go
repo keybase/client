@@ -15,7 +15,8 @@ import (
 )
 
 func setupLoaderTest(t *testing.T) (context.Context, *kbtest.ChatTestContext, *kbtest.ChatMockWorld,
-	func() chat1.RemoteInterface, types.Sender, *chatListener, chat1.NewConversationRemoteRes) {
+	func() chat1.RemoteInterface, types.Sender, *chatListener, chat1.NewConversationRemoteRes,
+) {
 	ctx, world, ri, _, baseSender, listener := setupTest(t, 1)
 
 	u := world.GetUsers()[0]
@@ -285,7 +286,8 @@ func TestConvLoaderJobQueue(t *testing.T) {
 	convID1 := chat1.ConversationID([]byte{1, 2, 3})
 	convID2 := chat1.ConversationID([]byte{1, 2, 3, 4})
 	newTask := func(convID chat1.ConversationID, p types.ConvLoaderPriority,
-		u types.ConvLoaderUniqueness) clTask {
+		u types.ConvLoaderUniqueness,
+	) clTask {
 		job := types.NewConvLoaderJob(convID, nil, p, u, nil)
 		return clTask{job: job}
 	}
@@ -316,8 +318,10 @@ func TestConvLoaderJobQueue(t *testing.T) {
 	require.Zero(t, j.queue.Len())
 
 	t.Logf("test priority")
-	order := []types.ConvLoaderPriority{types.ConvLoaderPriorityHigh, types.ConvLoaderPriorityMedium,
-		types.ConvLoaderPriorityLow, types.ConvLoaderPriorityLow}
+	order := []types.ConvLoaderPriority{
+		types.ConvLoaderPriorityHigh, types.ConvLoaderPriorityMedium,
+		types.ConvLoaderPriorityLow, types.ConvLoaderPriorityLow,
+	}
 	for i := len(order) - 1; i >= 0; i-- {
 		_, err = j.Push(newTask(convID1, order[i], types.ConvLoaderUnique))
 		require.NoError(t, err)

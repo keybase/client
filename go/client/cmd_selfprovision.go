@@ -37,7 +37,6 @@ func NewCmdSelfProvisionRunner(g *libkb.GlobalContext) *CmdSelfProvision {
 }
 
 func (c *CmdSelfProvision) Run() (err error) {
-
 	client, err := GetSelfProvisionClient(c.G())
 	if err != nil {
 		return err

@@ -54,7 +54,8 @@ func setupStorageTest(t testing.TB, name string) (kbtest.ChatTestContext, *Stora
 }
 
 func mustMerge(t testing.TB, storage *Storage,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) MergeResult {
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed,
+) MergeResult {
 	conv, err := NewInbox(storage.G()).GetConversation(context.Background(), uid, convID)
 	switch err.(type) {
 	case nil:
@@ -209,7 +210,6 @@ func TestStorageLargeList(t *testing.T) {
 	res := fetchRes.Thread
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
 	require.Equal(t, utils.PluckMUMessageIDs(msgs), utils.PluckMUMessageIDs(res.Messages))
-
 }
 
 func TestStorageBlockBoundary(t *testing.T) {
@@ -625,7 +625,6 @@ func TestStorageMiss(t *testing.T) {
 }
 
 func TestStoragePagination(t *testing.T) {
-
 	tc, storage, uid := setupStorageTest(t, "basic")
 	defer tc.Cleanup()
 
@@ -722,7 +721,6 @@ func TestStorageTypeFilter(t *testing.T) {
 	for i := 0; i < len(restexts); i++ {
 		require.Equal(t, textmsgs[i].GetMessageID(), restexts[i].GetMessageID(), "msg mismatch")
 	}
-
 }
 
 func TestStorageLocalMax(t *testing.T) {

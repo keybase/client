@@ -34,7 +34,8 @@ type ExtendedIdentify struct {
 // completed, and may (or may not) contain breaks.
 func (ei *ExtendedIdentify) UserBreak(
 	ctx context.Context, username kbname.NormalizedUsername, uid keybase1.UID,
-	breaks *keybase1.IdentifyTrackBreaks) {
+	breaks *keybase1.IdentifyTrackBreaks,
+) {
 	if ei.userBreaks == nil {
 		return
 	}
@@ -55,7 +56,8 @@ func (ei *ExtendedIdentify) UserBreak(
 // completed, and may (or may not) contain breaks.
 func (ei *ExtendedIdentify) TeamBreak(
 	ctx context.Context, teamID keybase1.TeamID,
-	breaks *keybase1.IdentifyTrackBreaks) {
+	breaks *keybase1.IdentifyTrackBreaks,
+) {
 	if ei.userBreaks == nil {
 		return
 	}
@@ -94,7 +96,8 @@ func (ei *ExtendedIdentify) OnError(ctx context.Context) {
 }
 
 func (ei *ExtendedIdentify) makeTlfBreaksIfNeeded(
-	ctx context.Context, numUserInTlf int) error {
+	ctx context.Context, numUserInTlf int,
+) error {
 	if ei.userBreaks == nil {
 		return nil
 	}
@@ -167,7 +170,8 @@ func (e ExtendedIdentifyAlreadyExists) Error() string {
 
 // MakeExtendedIdentify populates a context with an ExtendedIdentify directive.
 func MakeExtendedIdentify(ctx context.Context,
-	behavior keybase1.TLFIdentifyBehavior) (context.Context, error) {
+	behavior keybase1.TLFIdentifyBehavior,
+) (context.Context, error) {
 	if _, ok := ctx.Value(ctxExtendedIdentifyKey).(*ExtendedIdentify); ok {
 		return nil, ExtendedIdentifyAlreadyExists{}
 	}
@@ -208,7 +212,8 @@ func GetExtendedIdentify(ctx context.Context) (ei *ExtendedIdentify) {
 // used only if the username is not known - as e.g. when rekeying.
 func identifyUID(ctx context.Context, nug idutil.NormalizedUsernameGetter,
 	identifier idutil.Identifier, id keybase1.UserOrTeamID, t tlf.Type,
-	offline keybase1.OfflineAvailability) error {
+	offline keybase1.OfflineAvailability,
+) error {
 	name, err := nug.GetNormalizedUsername(ctx, id, offline)
 	if err != nil {
 		return err
@@ -220,7 +225,8 @@ func identifyUID(ctx context.Context, nug idutil.NormalizedUsernameGetter,
 func identifyUser(ctx context.Context, nug idutil.NormalizedUsernameGetter,
 	identifier idutil.Identifier, name kbname.NormalizedUsername,
 	id keybase1.UserOrTeamID, t tlf.Type,
-	offline keybase1.OfflineAvailability) error {
+	offline keybase1.OfflineAvailability,
+) error {
 	// Check to see if identify should be skipped altogether.
 	ei := GetExtendedIdentify(ctx)
 	if ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
@@ -266,8 +272,7 @@ func identifyUser(ctx context.Context, nug idutil.NormalizedUsernameGetter,
 		resultID = iteamInfo.TID.AsUserOrTeam()
 	} else {
 		var err error
-		resultName, resultID, err =
-			identifier.Identify(ctx, nameAssertion, reason, offline)
+		resultName, resultID, err = identifier.Identify(ctx, nameAssertion, reason, offline)
 		if err != nil {
 			// Convert libkb.NoSigChainError into one we can report.  (See
 			// KBFS-1252).
@@ -295,7 +300,8 @@ func identifyUsers(
 	ctx context.Context, nug idutil.NormalizedUsernameGetter,
 	identifier idutil.Identifier,
 	names map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
-	t tlf.Type, offline keybase1.OfflineAvailability) error {
+	t tlf.Type, offline keybase1.OfflineAvailability,
+) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// TODO: limit the number of concurrent identifies?
@@ -315,7 +321,8 @@ func identifyUsers(
 // this when the usernames are not known - like when rekeying.
 func IdentifyUserList(ctx context.Context, nug idutil.NormalizedUsernameGetter,
 	identifier idutil.Identifier, ids []keybase1.UserOrTeamID, t tlf.Type,
-	offline keybase1.OfflineAvailability) error {
+	offline keybase1.OfflineAvailability,
+) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// TODO: limit the number of concurrent identifies?
@@ -337,7 +344,8 @@ func identifyUsersForTLF(
 	ctx context.Context, nug idutil.NormalizedUsernameGetter,
 	identifier idutil.Identifier,
 	names map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
-	t tlf.Type, offline keybase1.OfflineAvailability) error {
+	t tlf.Type, offline keybase1.OfflineAvailability,
+) error {
 	ei := GetExtendedIdentify(ctx)
 	if ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
 		return nil
@@ -360,7 +368,8 @@ func identifyUsersForTLF(
 func IdentifyHandle(
 	ctx context.Context, nug idutil.NormalizedUsernameGetter,
 	identifier idutil.Identifier, osg idutil.OfflineStatusGetter,
-	h *Handle) error {
+	h *Handle,
+) error {
 	offline := keybase1.OfflineAvailability_NONE
 	if osg != nil {
 		offline = osg.OfflineAvailabilityForID(h.tlfID)
@@ -375,7 +384,8 @@ func IdentifyHandle(
 func IdentifySingleAssertion(
 	ctx context.Context, assertion, reason string, identifier idutil.Identifier,
 	offline keybase1.OfflineAvailability) (
-	name kbname.NormalizedUsername, err error) {
+	name kbname.NormalizedUsername, err error,
+) {
 	ei := GetExtendedIdentify(ctx)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

@@ -11,7 +11,7 @@ import (
 
 func TestDigest(t *testing.T) {
 	data := []byte("test data\n")
-	path, err := WriteTempFile("TestDigest", data, 0644)
+	path, err := WriteTempFile("TestDigest", data, 0o644)
 	assert.NoError(t, err)
 	defer RemoveFileAtPath(path)
 

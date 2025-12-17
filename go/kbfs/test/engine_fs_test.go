@@ -156,7 +156,8 @@ func (e *fsEngine) GetRootDir(user User, tlfName string, t tlf.Type, expectedCan
 // GetRootDirAtRevision implements the Engine interface.
 func (e *fsEngine) GetRootDirAtRevision(
 	u User, tlfName string, t tlf.Type, rev kbfsmd.Revision,
-	expectedCanonicalTlfName string) (dir Node, err error) {
+	expectedCanonicalTlfName string,
+) (dir Node, err error) {
 	d, err := e.GetRootDir(u, tlfName, t, expectedCanonicalTlfName)
 	if err != nil {
 		return nil, err
@@ -169,7 +170,8 @@ func (e *fsEngine) GetRootDirAtRevision(
 // GetRootDirAtTimeString implements the Engine interface.
 func (e *fsEngine) GetRootDirAtTimeString(
 	u User, tlfName string, t tlf.Type, timeString string,
-	expectedCanonicalTlfName string) (dir Node, err error) {
+	expectedCanonicalTlfName string,
+) (dir Node, err error) {
 	d, err := e.GetRootDir(u, tlfName, t, expectedCanonicalTlfName)
 	if err != nil {
 		return nil, err
@@ -182,7 +184,8 @@ func (e *fsEngine) GetRootDirAtTimeString(
 // GetRootDirAtRelTimeString implements the Engine interface.
 func (e *fsEngine) GetRootDirAtRelTimeString(
 	u User, tlfName string, t tlf.Type, relTimeString string,
-	expectedCanonicalTlfName string) (dir Node, err error) {
+	expectedCanonicalTlfName string,
+) (dir Node, err error) {
 	d, err := e.GetRootDir(u, tlfName, t, expectedCanonicalTlfName)
 	if err != nil {
 		return nil, err
@@ -202,7 +205,7 @@ func (e *fsEngine) GetRootDirAtRelTimeString(
 func (*fsEngine) CreateDir(u User, parentDir Node, name string) (dir Node, err error) {
 	p := parentDir.(fsNode)
 	path := filepath.Join(p.path, name)
-	err = ioutil.Mkdir(path, 0755)
+	err = ioutil.Mkdir(path, 0o755)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +230,7 @@ func (*fsEngine) CreateFile(u User, parentDir Node, name string) (file Node, err
 // O_RDWR|O_CREATE|O_EXCL.
 func (*fsEngine) CreateFileExcl(u User, parentDir Node, name string) (file Node, err error) {
 	p := parentDir.(fsNode).path
-	f, err := os.OpenFile(filepath.Join(p, name), os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
+	f, err := os.OpenFile(filepath.Join(p, name), os.O_RDWR|os.O_CREATE|os.O_EXCL, 0o666)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +241,7 @@ func (*fsEngine) CreateFileExcl(u User, parentDir Node, name string) (file Node,
 // WriteFile is called by the test harness to write to the given file as the given user.
 func (*fsEngine) WriteFile(u User, file Node, data []byte, off int64, sync bool) (err error) {
 	n := file.(fsNode)
-	f, err := os.OpenFile(n.path, os.O_RDWR|os.O_CREATE, 0644)
+	f, err := os.OpenFile(n.path, os.O_RDWR|os.O_CREATE, 0o644)
 	if err != nil {
 		return err
 	}
@@ -260,7 +263,7 @@ func (*fsEngine) WriteFile(u User, file Node, data []byte, off int64, sync bool)
 // TruncateFile is called by the test harness to truncate the given file as the given user to the given size.
 func (*fsEngine) TruncateFile(u User, file Node, size uint64, sync bool) (err error) {
 	n := file.(fsNode)
-	f, err := os.OpenFile(n.path, os.O_RDWR|os.O_CREATE, 0644)
+	f, err := os.OpenFile(n.path, os.O_RDWR|os.O_CREATE, 0o644)
 	if err != nil {
 		return err
 	}
@@ -332,7 +335,7 @@ func (*fsEngine) DisableUpdatesForTesting(user User, tlfName string, t tlf.Type)
 	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.DisableUpdatesFileName),
-		[]byte("off"), 0644)
+		[]byte("off"), 0o644)
 }
 
 // MakeNaïveStaller implements the Engine interface.
@@ -347,7 +350,7 @@ func (*fsEngine) ReenableUpdates(user User, tlfName string, t tlf.Type) (err err
 	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.EnableUpdatesFileName),
-		[]byte("on"), 0644)
+		[]byte("on"), 0o644)
 }
 
 // SyncFromServer is called by the test harness as the given user to
@@ -357,7 +360,7 @@ func (e *fsEngine) SyncFromServer(user User, tlfName string, t tlf.Type) (err er
 	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.SyncFromServerFileName),
-		[]byte("x"), 0644)
+		[]byte("x"), 0o644)
 }
 
 // ForceQuotaReclamation implements the Engine interface.
@@ -366,7 +369,7 @@ func (*fsEngine) ForceQuotaReclamation(user User, tlfName string, t tlf.Type) (e
 	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.ReclaimQuotaFileName),
-		[]byte("x"), 0644)
+		[]byte("x"), 0o644)
 }
 
 // AddNewAssertion implements the Engine interface.
@@ -387,56 +390,61 @@ func (*fsEngine) Rekey(user User, tlfName string, t tlf.Type) error {
 	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.RekeyFileName),
-		[]byte("x"), 0644)
+		[]byte("x"), 0o644)
 }
 
 // EnableJournal is called by the test harness as the given user to
 // enable journaling.
 func (*fsEngine) EnableJournal(user User, tlfName string,
-	t tlf.Type) (err error) {
+	t tlf.Type,
+) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.EnableJournalFileName),
-		[]byte("on"), 0644)
+		[]byte("on"), 0o644)
 }
 
 // PauseJournal is called by the test harness as the given user to
 // pause journaling.
 func (*fsEngine) PauseJournal(user User, tlfName string,
-	t tlf.Type) (err error) {
+	t tlf.Type,
+) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.PauseJournalBackgroundWorkFileName),
-		[]byte("on"), 0644)
+		[]byte("on"), 0o644)
 }
 
 // ResumeJournal is called by the test harness as the given user to
 // resume journaling.
 func (*fsEngine) ResumeJournal(user User, tlfName string,
-	t tlf.Type) (err error) {
+	t tlf.Type,
+) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.ResumeJournalBackgroundWorkFileName),
-		[]byte("on"), 0644)
+		[]byte("on"), 0o644)
 }
 
 // FlushJournal is called by the test harness as the given user to
 // wait for the journal to flush, if enabled.
 func (*fsEngine) FlushJournal(user User, tlfName string,
-	t tlf.Type) (err error) {
+	t tlf.Type,
+) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.FlushJournalFileName),
-		[]byte("on"), 0644)
+		[]byte("on"), 0o644)
 }
 
 // UnflushedPaths implements the Engine interface.
 func (*fsEngine) UnflushedPaths(user User, tlfName string, t tlf.Type) (
-	[]string, error) {
+	[]string, error,
+) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
 	buf, err := ioutil.ReadFile(filepath.Join(path, libfs.StatusFileName))
@@ -455,7 +463,8 @@ func (*fsEngine) UnflushedPaths(user User, tlfName string, t tlf.Type) (
 
 // UserEditHistory implements the Engine interface.
 func (*fsEngine) UserEditHistory(user User) (
-	history []keybase1.FSFolderEditHistory, err error) {
+	history []keybase1.FSFolderEditHistory, err error,
+) {
 	u := user.(*fsUser)
 	buf, err := ioutil.ReadFile(
 		filepath.Join(u.mntDir, libfs.EditHistoryName))
@@ -473,7 +482,8 @@ func (*fsEngine) UserEditHistory(user User) (
 
 // DirtyPaths implements the Engine interface.
 func (*fsEngine) DirtyPaths(user User, tlfName string, t tlf.Type) (
-	[]string, error) {
+	[]string, error,
+) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
 	buf, err := ioutil.ReadFile(filepath.Join(path, libfs.StatusFileName))
@@ -499,7 +509,7 @@ func (*fsEngine) TogglePrefetch(user User, enable bool) error {
 	}
 	return ioutil.WriteFile(
 		filepath.Join(u.mntDir, filename),
-		[]byte("1"), 0644)
+		[]byte("1"), 0o644)
 }
 
 // ForceConflict implements the Engine interface.
@@ -554,8 +564,7 @@ func (e *fsEngine) Shutdown(user User) error {
 	// Get the user name before shutting everything down.
 	var userName kbname.NormalizedUsername
 	if e.journalDir != "" {
-		session, err :=
-			u.config.KBPKI().GetCurrentSession(context.Background())
+		session, err := u.config.KBPKI().GetCurrentSession(context.Background())
 		if err != nil {
 			return err
 		}
@@ -616,9 +625,9 @@ func (e *fsEngine) Lookup(u User, parentDir Node, name string) (file Node, symPa
 // given file.
 func (*fsEngine) SetEx(u User, file Node, ex bool) (err error) {
 	n := file.(fsNode)
-	var mode os.FileMode = 0644
+	var mode os.FileMode = 0o644
 	if ex {
-		mode = 0755
+		mode = 0o755
 	}
 	return os.Chmod(n.path, mode)
 }
@@ -648,7 +657,8 @@ type prevRevisions struct { // nolint
 
 // GetPrevRevisions implements the Engine interface.
 func (*fsEngine) GetPrevRevisions(u User, file Node) (
-	revs data.PrevRevisions, err error) {
+	revs data.PrevRevisions, err error,
+) {
 	n := file.(fsNode)
 	d, f := filepath.Split(n.path)
 	fullPath := filepath.Join(d, libfs.FileInfoPrefix+f)
@@ -666,7 +676,8 @@ func (*fsEngine) GetPrevRevisions(u User, file Node) (
 
 // SyncAll implements the Engine interface.
 func (e *fsEngine) SyncAll(
-	user User, tlfName string, t tlf.Type) (err error) {
+	user User, tlfName string, t tlf.Type,
+) (err error) {
 	u := user.(*fsUser)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -692,7 +703,7 @@ func fiTypeString(fi os.FileInfo) string { // nolint
 	switch {
 	case m&os.ModeSymlink != 0:
 		return "SYM"
-	case m.IsRegular() && m&0100 == 0100:
+	case m.IsRegular() && m&0o100 == 0o100:
 		return "EXEC"
 	case m.IsRegular():
 		return "FILE"
@@ -706,7 +717,8 @@ func (e *fsEngine) InitTest(ver kbfsmd.MetadataVer,
 	blockSize int64, blockChangeSize int64, batchSize int, bwKBps int,
 	opTimeout time.Duration, users []kbname.NormalizedUsername,
 	teams, implicitTeams teamMap, clock libkbfs.Clock,
-	journal bool) map[kbname.NormalizedUsername]User {
+	journal bool,
+) map[kbname.NormalizedUsername]User {
 	res := map[kbname.NormalizedUsername]User{}
 	initSuccess := false
 	defer func() {

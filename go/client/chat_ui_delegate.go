@@ -220,7 +220,8 @@ func (c *DelegateChatUI) ChatGiphySearchResults(ctx context.Context, arg chat1.C
 }
 
 func (c *DelegateChatUI) ChatGiphyToggleResultWindow(ctx context.Context,
-	arg chat1.ChatGiphyToggleResultWindowArg) error {
+	arg chat1.ChatGiphyToggleResultWindowArg,
+) error {
 	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
 		return (*chatUI).ChatGiphyToggleResultWindow(ctx, arg)
 	}

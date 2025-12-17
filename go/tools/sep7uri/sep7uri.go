@@ -9,17 +9,19 @@ import (
 	"github.com/keybase/stellarnet"
 )
 
-var destination string
-var amount string
-var assetCode string
-var assetIssuer string
-var key string
-var domain string
-var message string
-var xdr string
-var memo string
-var memoType string
-var callbackURL string
+var (
+	destination string
+	amount      string
+	assetCode   string
+	assetIssuer string
+	key         string
+	domain      string
+	message     string
+	xdr         string
+	memo        string
+	memoType    string
+	callbackURL string
+)
 
 func main() {
 	parseFlags()

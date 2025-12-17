@@ -320,7 +320,6 @@ func testProvisionAfterSwitch(t *testing.T, shouldItWork bool) {
 
 	// after provisioning, the secret should be stored
 	assertSecretStored(tcY, userX.Username)
-
 }
 
 func TestProvisionDesktop(t *testing.T) {
@@ -1111,7 +1110,6 @@ func testSign(t *testing.T, tc libkb.TestContext) {
 }
 
 func testTrack(t *testing.T, tc libkb.TestContext, sigVersion libkb.SigVersion, whom string) {
-
 	if sigVersion == libkb.KeybaseNullSigVersion {
 		sigVersion = libkb.GetDefaultSigVersion(tc.G)
 	}
@@ -1248,7 +1246,6 @@ func TestProvisionPaperOnly(t *testing.T) {
 }
 
 func simulateServiceRestart(t *testing.T, tc libkb.TestContext, fu *FakeUser) {
-
 	// Simulate restarting the service by wiping out the
 	// passphrase stream cache and cached secret keys
 	tc.SimulateServiceRestart()
@@ -1401,7 +1398,6 @@ func TestSelfProvisionFailDuplicateName(t *testing.T) {
 }
 
 func testFailSelfProvision(t *testing.T, fn func(tc libkb.TestContext, m libkb.MetaContext) string) {
-
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -2338,7 +2334,6 @@ func TestProvisionPaperFailures(t *testing.T) {
 	if retrySecUI.index != len(retrySecUI.Passphrases) {
 		t.Errorf("retry sec ui index: %d, expected %d", retrySecUI.index, len(retrySecUI.Passphrases))
 	}
-
 }
 
 // After kex provisioning, try using a synced pgp key to sign
@@ -3673,6 +3668,7 @@ func TestLoginEmailOnProvisionedDevice(t *testing.T) {
 	require.IsType(t, libkb.BadUsernameError{}, err)
 	require.Contains(t, err.Error(), "not supported")
 }
+
 func TestBeforeResetDeviceName(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -4189,8 +4185,7 @@ func (t *testRetrySecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keyb
 	}, nil
 }
 
-type testNoPromptSecretUI struct {
-}
+type testNoPromptSecretUI struct{}
 
 func (t *testNoPromptSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	err = errors.New("GetPassphrase called on testNoPromptSecretUI")

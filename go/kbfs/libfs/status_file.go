@@ -17,7 +17,8 @@ import (
 // for a folder
 func GetEncodedFolderStatus(ctx context.Context, config libkbfs.Config,
 	folderBranch data.FolderBranch) (
-	data []byte, t time.Time, err error) {
+	data []byte, t time.Time, err error,
+) {
 	var status libkbfs.FolderBranchStatus
 	status, _, err = config.KBFSOps().FolderStatus(ctx, folderBranch)
 	if err != nil {
@@ -31,7 +32,8 @@ func GetEncodedFolderStatus(ctx context.Context, config libkbfs.Config,
 // GetEncodedStatus returns serialized JSON containing top-level KBFS status
 // information
 func GetEncodedStatus(ctx context.Context, config libkbfs.Config) (
-	data []byte, t time.Time, err error) {
+	data []byte, t time.Time, err error,
+) {
 	status, _, err := config.KBFSOps().Status(ctx)
 	if err != nil {
 		config.Reporter().ReportErr(ctx, "", tlf.Private, libkbfs.ReadMode, err)

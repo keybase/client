@@ -161,7 +161,8 @@ func (p Path) ParentPath() *Path {
 // ChildPath returns a new Path with the addition of a new entry
 // with the given name and BlockPointer.
 func (p Path) ChildPath(
-	name PathPartString, ptr BlockPointer, childObfuscator Obfuscator) Path {
+	name PathPartString, ptr BlockPointer, childObfuscator Obfuscator,
+) Path {
 	child := Path{
 		FolderBranch:    p.FolderBranch,
 		Path:            make([]PathNode, len(p.Path), len(p.Path)+1),
@@ -175,7 +176,8 @@ func (p Path) ChildPath(
 // ChildPathNoPtr returns a new Path with the addition of a new entry
 // with the given name.  That final PathNode will have no BlockPointer.
 func (p Path) ChildPathNoPtr(
-	name PathPartString, childObfuscator Obfuscator) Path {
+	name PathPartString, childObfuscator Obfuscator,
+) Path {
 	return p.ChildPath(name, BlockPointer{}, childObfuscator)
 }
 

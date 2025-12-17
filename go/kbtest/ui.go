@@ -149,42 +149,53 @@ func (ui *FakeIdentifyUI) DisplayKey(_ libkb.MetaContext, ik keybase1.IdentifyKe
 	ui.DisplayKeyCalls++
 	return nil
 }
+
 func (ui *FakeIdentifyUI) ReportLastTrack(libkb.MetaContext, *keybase1.TrackSummary) error {
 	return nil
 }
+
 func (ui *FakeIdentifyUI) Start(_ libkb.MetaContext, username string, _ keybase1.IdentifyReason, forceDisplay bool) error {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.StartCount++
 	return nil
 }
+
 func (ui *FakeIdentifyUI) Cancel(_ libkb.MetaContext) error {
 	return nil
 }
+
 func (ui *FakeIdentifyUI) Finish(_ libkb.MetaContext) error {
 	return nil
 }
+
 func (ui *FakeIdentifyUI) Dismiss(_ libkb.MetaContext, _ string, _ keybase1.DismissReason) error {
 	return nil
 }
+
 func (ui *FakeIdentifyUI) LaunchNetworkChecks(_ libkb.MetaContext, id *keybase1.Identity, user *keybase1.User) error {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.User = user
 	return nil
 }
+
 func (ui *FakeIdentifyUI) DisplayTrackStatement(libkb.MetaContext, string) error {
 	return nil
 }
+
 func (ui *FakeIdentifyUI) DisplayUserCard(libkb.MetaContext, keybase1.UserCard) error {
 	return nil
 }
+
 func (ui *FakeIdentifyUI) ReportTrackToken(_ libkb.MetaContext, tok keybase1.TrackToken) error {
 	ui.Token = tok
 	return nil
 }
+
 func (ui *FakeIdentifyUI) SetStrict(b bool) {
 }
+
 func (ui *FakeIdentifyUI) DisplayTLFCreateWithInvite(_ libkb.MetaContext, arg keybase1.DisplayTLFCreateWithInviteArg) error {
 	ui.DisplayTLFCount++
 	ui.DisplayTLFArg = arg

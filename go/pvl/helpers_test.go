@@ -22,7 +22,7 @@ func check(err error) {
 func sampleState() scriptState {
 	sigBody := []byte{1, 2, 3, 4, 5}
 
-	var sampleState = scriptState{
+	sampleState := scriptState{
 		WhichScript: 0,
 		PC:          0,
 		Service:     keybase1.ProofType_TWITTER,
@@ -78,38 +78,66 @@ var substituteTests = []struct {
 	service     keybase1.ProofType
 	a, b        string
 }{
-	{true, true, keybase1.ProofType_TWITTER,
-		"%{username_service}", "kronk"},
-	{true, true, keybase1.ProofType_GENERIC_WEB_SITE,
-		"%{hostname}", "%\\{sig_id_medium\\}"},
-	{true, true, keybase1.ProofType_TWITTER,
-		"x%{username_service}y%{sig_id_short}z", "xkronky000z"},
-	{true, true, keybase1.ProofType_TWITTER,
-		"http://git(?:hub)?%{username_service}/%20%%{sig_id_short}}{}", "http://git(?:hub)?kronk/%20%000}{}"},
-	{true, true, keybase1.ProofType_DNS,
-		"^%{hostname}/(?:.well-known/keybase.txt|keybase.txt)$", "^%\\{sig_id_medium\\}/(?:.well-known/keybase.txt|keybase.txt)$"},
-	{true, true, keybase1.ProofType_TWITTER,
-		"^.*%{sig_id_short}.*$", "^.*000.*$"},
-	{true, true, keybase1.ProofType_TWITTER,
-		"^keybase-site-verification=%{sig_id_short}$", "^keybase-site-verification=000$"},
-	{true, true, keybase1.ProofType_TWITTER,
-		"^%{sig_id_medium}$", "^sig%\\{sig_id_medium\\}\\.\\*\\$\\(\\^\\)\\\\/$"},
-	{true, true, keybase1.ProofType_TWITTER,
-		"%{username_keybase}:%{sig}", "kronk_on_kb:AQIDBAU="},
+	{
+		true, true, keybase1.ProofType_TWITTER,
+		"%{username_service}", "kronk",
+	},
+	{
+		true, true, keybase1.ProofType_GENERIC_WEB_SITE,
+		"%{hostname}", "%\\{sig_id_medium\\}",
+	},
+	{
+		true, true, keybase1.ProofType_TWITTER,
+		"x%{username_service}y%{sig_id_short}z", "xkronky000z",
+	},
+	{
+		true, true, keybase1.ProofType_TWITTER,
+		"http://git(?:hub)?%{username_service}/%20%%{sig_id_short}}{}", "http://git(?:hub)?kronk/%20%000}{}",
+	},
+	{
+		true, true, keybase1.ProofType_DNS,
+		"^%{hostname}/(?:.well-known/keybase.txt|keybase.txt)$", "^%\\{sig_id_medium\\}/(?:.well-known/keybase.txt|keybase.txt)$",
+	},
+	{
+		true, true, keybase1.ProofType_TWITTER,
+		"^.*%{sig_id_short}.*$", "^.*000.*$",
+	},
+	{
+		true, true, keybase1.ProofType_TWITTER,
+		"^keybase-site-verification=%{sig_id_short}$", "^keybase-site-verification=000$",
+	},
+	{
+		true, true, keybase1.ProofType_TWITTER,
+		"^%{sig_id_medium}$", "^sig%\\{sig_id_medium\\}\\.\\*\\$\\(\\^\\)\\\\/$",
+	},
+	{
+		true, true, keybase1.ProofType_TWITTER,
+		"%{username_keybase}:%{sig}", "kronk_on_kb:AQIDBAU=",
+	},
 
-	{false, true, keybase1.ProofType_TWITTER,
-		"%{}", "%{}"},
-	{false, true, keybase1.ProofType_TWITTER,
-		"%{unset}", ""},
+	{
+		false, true, keybase1.ProofType_TWITTER,
+		"%{}", "%{}",
+	},
+	{
+		false, true, keybase1.ProofType_TWITTER,
+		"%{unset}", "",
+	},
 
-	{false, true, keybase1.ProofType_TWITTER,
-		"%{banned}", ""},
+	{
+		false, true, keybase1.ProofType_TWITTER,
+		"%{banned}", "",
+	},
 
 	// regex escape
-	{true, true, keybase1.ProofType_TWITTER,
-		"%{restuff}", "\\[\\(x\\)\\]"},
-	{true, false, keybase1.ProofType_TWITTER,
-		"%{restuff}", "[(x)]"},
+	{
+		true, true, keybase1.ProofType_TWITTER,
+		"%{restuff}", "\\[\\(x\\)\\]",
+	},
+	{
+		true, false, keybase1.ProofType_TWITTER,
+		"%{restuff}", "[(x)]",
+	},
 }
 
 func TestSubstitute(t *testing.T) {

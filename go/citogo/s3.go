@@ -60,7 +60,6 @@ func awsStringSign4(key string, date string, region string, service string, toSi
 	keySigning := mac(keyService, []byte("aws4_request"))
 	signedString := mac(keySigning, []byte(toSign))
 	return hex.EncodeToString(signedString)
-
 }
 
 func s3put(src io.Reader, bucket string, name string) (string, error) {

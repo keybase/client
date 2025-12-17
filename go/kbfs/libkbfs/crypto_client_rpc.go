@@ -63,7 +63,8 @@ func (CryptoClientRPC) HandlerName() string {
 
 // OnConnect implements the ConnectionHandler interface.
 func (c *CryptoClientRPC) OnConnect(ctx context.Context, conn *rpc.Connection,
-	_ rpc.GenericClient, server *rpc.Server) error {
+	_ rpc.GenericClient, server *rpc.Server,
+) error {
 	c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, nil)
 	return nil
 }
@@ -84,7 +85,8 @@ func (c *CryptoClientRPC) OnDoCommandError(err error, wait time.Duration) {
 
 // OnDisconnected implements the ConnectionHandler interface.
 func (c *CryptoClientRPC) OnDisconnected(_ context.Context,
-	status rpc.DisconnectStatus) {
+	status rpc.DisconnectStatus,
+) {
 	if status == rpc.StartingNonFirstConnection {
 		c.log.Warning("CryptoClient is disconnected")
 		c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, errDisconnected{})

@@ -37,7 +37,7 @@ func makeParentDirs(filename string) error {
 	}
 
 	if !exists {
-		err = os.MkdirAll(dir, 0755)
+		err = os.MkdirAll(dir, 0o755)
 		if err != nil {
 			return err
 		}

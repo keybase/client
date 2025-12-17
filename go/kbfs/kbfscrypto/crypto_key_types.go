@@ -25,14 +25,18 @@ type kidContainer struct {
 	kid keybase1.KID
 }
 
-var _ encoding.BinaryMarshaler = kidContainer{}
-var _ encoding.BinaryUnmarshaler = (*kidContainer)(nil)
+var (
+	_ encoding.BinaryMarshaler   = kidContainer{}
+	_ encoding.BinaryUnmarshaler = (*kidContainer)(nil)
+)
 
 // TODO: Make keybase1.KID implement {Binary,Text}{M,Unm}arshaler
 // directly.
 
-var _ json.Marshaler = kidContainer{}
-var _ json.Unmarshaler = (*kidContainer)(nil)
+var (
+	_ json.Marshaler   = kidContainer{}
+	_ json.Unmarshaler = (*kidContainer)(nil)
+)
 
 func (k kidContainer) MarshalBinary() (data []byte, err error) {
 	if k.kid.IsNil() {
@@ -94,11 +98,15 @@ type publicByte32Container struct {
 	data [32]byte
 }
 
-var _ encoding.BinaryMarshaler = publicByte32Container{}
-var _ encoding.BinaryUnmarshaler = (*publicByte32Container)(nil)
+var (
+	_ encoding.BinaryMarshaler   = publicByte32Container{}
+	_ encoding.BinaryUnmarshaler = (*publicByte32Container)(nil)
+)
 
-var _ encoding.TextMarshaler = publicByte32Container{}
-var _ encoding.TextUnmarshaler = (*publicByte32Container)(nil)
+var (
+	_ encoding.TextMarshaler   = publicByte32Container{}
+	_ encoding.TextUnmarshaler = (*publicByte32Container)(nil)
+)
 
 func (c publicByte32Container) Data() [32]byte {
 	return c.data
@@ -143,11 +151,15 @@ type privateByte32Container struct {
 	data [32]byte
 }
 
-var _ encoding.BinaryMarshaler = privateByte32Container{}
-var _ encoding.BinaryUnmarshaler = (*privateByte32Container)(nil)
+var (
+	_ encoding.BinaryMarshaler   = privateByte32Container{}
+	_ encoding.BinaryUnmarshaler = (*privateByte32Container)(nil)
+)
 
-var _ encoding.TextMarshaler = privateByte32Container{}
-var _ encoding.TextUnmarshaler = (*privateByte32Container)(nil)
+var (
+	_ encoding.TextMarshaler   = privateByte32Container{}
+	_ encoding.TextUnmarshaler = (*privateByte32Container)(nil)
+)
 
 func (c privateByte32Container) Data() [32]byte {
 	return c.data
@@ -192,8 +204,10 @@ func (c privateByte64Container) Data() [64]byte {
 	return c.data
 }
 
-var _ encoding.TextMarshaler = privateByte64Container{}
-var _ encoding.TextUnmarshaler = (*privateByte64Container)(nil)
+var (
+	_ encoding.TextMarshaler   = privateByte64Container{}
+	_ encoding.TextUnmarshaler = (*privateByte64Container)(nil)
+)
 
 func (c privateByte64Container) MarshalText() ([]byte, error) {
 	return nil, errors.New("Cannot marshal private 64 bytes to text")
@@ -216,11 +230,15 @@ type TLFPrivateKey struct {
 	privateByte32Container
 }
 
-var _ encoding.BinaryMarshaler = TLFPrivateKey{}
-var _ encoding.BinaryUnmarshaler = (*TLFPrivateKey)(nil)
+var (
+	_ encoding.BinaryMarshaler   = TLFPrivateKey{}
+	_ encoding.BinaryUnmarshaler = (*TLFPrivateKey)(nil)
+)
 
-var _ encoding.TextMarshaler = TLFPrivateKey{}
-var _ encoding.TextUnmarshaler = (*TLFPrivateKey)(nil)
+var (
+	_ encoding.TextMarshaler   = TLFPrivateKey{}
+	_ encoding.TextUnmarshaler = (*TLFPrivateKey)(nil)
+)
 
 // MakeTLFPrivateKey returns a TLFPrivateKey containing the given
 // data.
@@ -243,11 +261,15 @@ func (TLFPublicKey) Size() int {
 	return 32
 }
 
-var _ encoding.BinaryMarshaler = TLFPublicKey{}
-var _ encoding.BinaryUnmarshaler = (*TLFPublicKey)(nil)
+var (
+	_ encoding.BinaryMarshaler   = TLFPublicKey{}
+	_ encoding.BinaryUnmarshaler = (*TLFPublicKey)(nil)
+)
 
-var _ encoding.TextMarshaler = TLFPublicKey{}
-var _ encoding.TextUnmarshaler = (*TLFPublicKey)(nil)
+var (
+	_ encoding.TextMarshaler   = TLFPublicKey{}
+	_ encoding.TextUnmarshaler = (*TLFPublicKey)(nil)
+)
 
 // MakeTLFPublicKey returns a TLFPublicKey containing the given
 // data.
@@ -267,11 +289,15 @@ type TLFEphemeralPrivateKey struct {
 	privateByte32Container
 }
 
-var _ encoding.BinaryMarshaler = TLFEphemeralPrivateKey{}
-var _ encoding.BinaryUnmarshaler = (*TLFEphemeralPrivateKey)(nil)
+var (
+	_ encoding.BinaryMarshaler   = TLFEphemeralPrivateKey{}
+	_ encoding.BinaryUnmarshaler = (*TLFEphemeralPrivateKey)(nil)
+)
 
-var _ encoding.TextMarshaler = TLFEphemeralPrivateKey{}
-var _ encoding.TextUnmarshaler = (*TLFEphemeralPrivateKey)(nil)
+var (
+	_ encoding.TextMarshaler   = TLFEphemeralPrivateKey{}
+	_ encoding.TextUnmarshaler = (*TLFEphemeralPrivateKey)(nil)
+)
 
 // MakeTLFEphemeralPrivateKey returns a TLFEphemeralPrivateKey
 // containing the given data.
@@ -282,7 +308,8 @@ func MakeTLFEphemeralPrivateKey(data [32]byte) TLFEphemeralPrivateKey {
 // MakeRandomTLFEphemeralKeys generates ephemeral keys using a CSPRNG
 // for a TLF. These keys can then be used to key/rekey the TLF.
 func MakeRandomTLFEphemeralKeys() (
-	TLFEphemeralPublicKey, TLFEphemeralPrivateKey, error) {
+	TLFEphemeralPublicKey, TLFEphemeralPrivateKey, error,
+) {
 	keyPair, err := libkb.GenerateNaclDHKeyPair()
 	if err != nil {
 		return TLFEphemeralPublicKey{}, TLFEphemeralPrivateKey{},
@@ -333,11 +360,15 @@ type CryptPublicKey struct {
 	kidContainer
 }
 
-var _ encoding.BinaryMarshaler = CryptPublicKey{}
-var _ encoding.BinaryUnmarshaler = (*CryptPublicKey)(nil)
+var (
+	_ encoding.BinaryMarshaler   = CryptPublicKey{}
+	_ encoding.BinaryUnmarshaler = (*CryptPublicKey)(nil)
+)
 
-var _ json.Marshaler = CryptPublicKey{}
-var _ json.Unmarshaler = (*CryptPublicKey)(nil)
+var (
+	_ json.Marshaler   = CryptPublicKey{}
+	_ json.Unmarshaler = (*CryptPublicKey)(nil)
+)
 
 // MakeCryptPublicKey returns a CryptPublicKey containing the given KID.
 func MakeCryptPublicKey(kid keybase1.KID) CryptPublicKey {
@@ -355,11 +386,15 @@ type TLFEphemeralPublicKey struct {
 	publicByte32Container
 }
 
-var _ encoding.BinaryMarshaler = TLFEphemeralPublicKey{}
-var _ encoding.BinaryUnmarshaler = (*TLFEphemeralPublicKey)(nil)
+var (
+	_ encoding.BinaryMarshaler   = TLFEphemeralPublicKey{}
+	_ encoding.BinaryUnmarshaler = (*TLFEphemeralPublicKey)(nil)
+)
 
-var _ encoding.TextMarshaler = TLFEphemeralPublicKey{}
-var _ encoding.TextUnmarshaler = (*TLFEphemeralPublicKey)(nil)
+var (
+	_ encoding.TextMarshaler   = TLFEphemeralPublicKey{}
+	_ encoding.TextUnmarshaler = (*TLFEphemeralPublicKey)(nil)
+)
 
 // MakeTLFEphemeralPublicKey returns a TLFEphemeralPublicKey
 // containing the given data.
@@ -387,11 +422,15 @@ type TLFCryptKeyServerHalf struct {
 	publicByte32Container
 }
 
-var _ encoding.BinaryMarshaler = TLFCryptKeyServerHalf{}
-var _ encoding.BinaryUnmarshaler = (*TLFCryptKeyServerHalf)(nil)
+var (
+	_ encoding.BinaryMarshaler   = TLFCryptKeyServerHalf{}
+	_ encoding.BinaryUnmarshaler = (*TLFCryptKeyServerHalf)(nil)
+)
 
-var _ encoding.TextMarshaler = TLFCryptKeyServerHalf{}
-var _ encoding.TextUnmarshaler = (*TLFCryptKeyServerHalf)(nil)
+var (
+	_ encoding.TextMarshaler   = TLFCryptKeyServerHalf{}
+	_ encoding.TextUnmarshaler = (*TLFCryptKeyServerHalf)(nil)
+)
 
 // MakeTLFCryptKeyServerHalf returns a TLFCryptKeyServerHalf
 // containing the given data.
@@ -402,7 +441,8 @@ func MakeTLFCryptKeyServerHalf(data [32]byte) TLFCryptKeyServerHalf {
 // MakeRandomTLFCryptKeyServerHalf generates the server-side of a
 // top-level folder crypt key.
 func MakeRandomTLFCryptKeyServerHalf() (
-	serverHalf TLFCryptKeyServerHalf, err error) {
+	serverHalf TLFCryptKeyServerHalf, err error,
+) {
 	var data [32]byte
 	err = RandRead(data[:])
 	if err != nil {
@@ -427,7 +467,8 @@ func (id TLFCryptKeyServerHalfID) String() string {
 func MakeTLFCryptKeyServerHalfID(
 	user keybase1.UID, devicePubKey CryptPublicKey,
 	serverHalf TLFCryptKeyServerHalf) (
-	TLFCryptKeyServerHalfID, error) {
+	TLFCryptKeyServerHalfID, error,
+) {
 	key, err := serverHalf.MarshalBinary()
 	if err != nil {
 		return TLFCryptKeyServerHalfID{}, err
@@ -446,7 +487,8 @@ func MakeTLFCryptKeyServerHalfID(
 func VerifyTLFCryptKeyServerHalfID(
 	serverHalfID TLFCryptKeyServerHalfID,
 	user keybase1.UID, devicePubKey CryptPublicKey,
-	serverHalf TLFCryptKeyServerHalf) error {
+	serverHalf TLFCryptKeyServerHalf,
+) error {
 	key, err := serverHalf.MarshalBinary()
 	if err != nil {
 		return err
@@ -466,11 +508,15 @@ type TLFCryptKeyClientHalf struct {
 	publicByte32Container
 }
 
-var _ encoding.BinaryMarshaler = TLFCryptKeyClientHalf{}
-var _ encoding.BinaryUnmarshaler = (*TLFCryptKeyClientHalf)(nil)
+var (
+	_ encoding.BinaryMarshaler   = TLFCryptKeyClientHalf{}
+	_ encoding.BinaryUnmarshaler = (*TLFCryptKeyClientHalf)(nil)
+)
 
-var _ encoding.TextMarshaler = TLFCryptKeyClientHalf{}
-var _ encoding.TextUnmarshaler = (*TLFCryptKeyClientHalf)(nil)
+var (
+	_ encoding.TextMarshaler   = TLFCryptKeyClientHalf{}
+	_ encoding.TextUnmarshaler = (*TLFCryptKeyClientHalf)(nil)
+)
 
 // MakeTLFCryptKeyClientHalf returns a TLFCryptKeyClientHalf
 // containing the given data.
@@ -480,10 +526,12 @@ func MakeTLFCryptKeyClientHalf(data [32]byte) TLFCryptKeyClientHalf {
 
 func prepareTLFCryptKeyClientHalf(
 	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
-	nonce [24]byte, err error) {
+	nonce [24]byte, err error,
+) {
 	if encryptedClientHalf.Version != EncryptionSecretbox {
 		return [24]byte{}, errors.WithStack(UnknownEncryptionVer{
-			Ver: encryptedClientHalf.Version})
+			Ver: encryptedClientHalf.Version,
+		})
 	}
 
 	// This check isn't strictly needed, but parallels the
@@ -498,7 +546,8 @@ func prepareTLFCryptKeyClientHalf(
 
 	if len(encryptedClientHalf.Nonce) != len(nonce) {
 		return [24]byte{}, errors.WithStack(InvalidNonceError{
-			Nonce: encryptedClientHalf.Nonce})
+			Nonce: encryptedClientHalf.Nonce,
+		})
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
 	return nonce, nil
@@ -510,7 +559,8 @@ func prepareTLFCryptKeyClientHalf(
 func DecryptTLFCryptKeyClientHalf(
 	privateKey CryptPrivateKey, publicKey TLFEphemeralPublicKey,
 	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
-	TLFCryptKeyClientHalf, error) {
+	TLFCryptKeyClientHalf, error,
+) {
 	nonce, err := prepareTLFCryptKeyClientHalf(encryptedClientHalf)
 	if err != nil {
 		return TLFCryptKeyClientHalf{}, err
@@ -547,11 +597,15 @@ type TLFCryptKey struct {
 	privateByte32Container
 }
 
-var _ encoding.BinaryMarshaler = TLFCryptKey{}
-var _ encoding.BinaryUnmarshaler = (*TLFCryptKey)(nil)
+var (
+	_ encoding.BinaryMarshaler   = TLFCryptKey{}
+	_ encoding.BinaryUnmarshaler = (*TLFCryptKey)(nil)
+)
 
-var _ encoding.TextMarshaler = TLFCryptKey{}
-var _ encoding.TextUnmarshaler = (*TLFCryptKey)(nil)
+var (
+	_ encoding.TextMarshaler   = TLFCryptKey{}
+	_ encoding.TextUnmarshaler = (*TLFCryptKey)(nil)
+)
 
 // MakeTLFCryptKey returns a TLFCryptKey containing the given data.
 func MakeTLFCryptKey(data [32]byte) TLFCryptKey {
@@ -570,7 +624,8 @@ func MakeRandomTLFCryptKey() (TLFCryptKey, error) {
 
 // DeriveSecret derives symmetric key data from this key, given a `reason`.
 func (tck TLFCryptKey) DeriveSecret(
-	reason libkb.EncryptionReason) ([]byte, error) {
+	reason libkb.EncryptionReason,
+) ([]byte, error) {
 	// Use libkb's secret derivation to make a key from this key and a
 	// given reason.
 	asNacl := libkb.NaclSecretBoxKey(tck.Data())
@@ -602,11 +657,15 @@ type BlockCryptKeyServerHalf struct {
 	publicByte32Container
 }
 
-var _ encoding.BinaryMarshaler = BlockCryptKeyServerHalf{}
-var _ encoding.BinaryUnmarshaler = (*BlockCryptKeyServerHalf)(nil)
+var (
+	_ encoding.BinaryMarshaler   = BlockCryptKeyServerHalf{}
+	_ encoding.BinaryUnmarshaler = (*BlockCryptKeyServerHalf)(nil)
+)
 
-var _ encoding.TextMarshaler = BlockCryptKeyServerHalf{}
-var _ encoding.TextUnmarshaler = (*BlockCryptKeyServerHalf)(nil)
+var (
+	_ encoding.TextMarshaler   = BlockCryptKeyServerHalf{}
+	_ encoding.TextUnmarshaler = (*BlockCryptKeyServerHalf)(nil)
+)
 
 // MakeBlockCryptKeyServerHalf returns a BlockCryptKeyServerHalf
 // containing the given data.
@@ -617,7 +676,8 @@ func MakeBlockCryptKeyServerHalf(data [32]byte) BlockCryptKeyServerHalf {
 // MakeRandomBlockCryptKeyServerHalf generates the server-side of a
 // block crypt key.
 func MakeRandomBlockCryptKeyServerHalf() (
-	serverHalf BlockCryptKeyServerHalf, err error) {
+	serverHalf BlockCryptKeyServerHalf, err error,
+) {
 	var data [32]byte
 	err = RandRead(data[:])
 	if err != nil {
@@ -648,11 +708,15 @@ type BlockCryptKey struct {
 	privateByte32Container
 }
 
-var _ encoding.BinaryMarshaler = BlockCryptKey{}
-var _ encoding.BinaryUnmarshaler = (*BlockCryptKey)(nil)
+var (
+	_ encoding.BinaryMarshaler   = BlockCryptKey{}
+	_ encoding.BinaryUnmarshaler = (*BlockCryptKey)(nil)
+)
 
-var _ encoding.TextMarshaler = BlockCryptKey{}
-var _ encoding.TextUnmarshaler = (*BlockCryptKey)(nil)
+var (
+	_ encoding.TextMarshaler   = BlockCryptKey{}
+	_ encoding.TextUnmarshaler = (*BlockCryptKey)(nil)
+)
 
 // MakeBlockCryptKey returns a BlockCryptKey containing the given
 // data.
@@ -673,19 +737,22 @@ func xorKeys(x, y [32]byte) [32]byte {
 // MaskTLFCryptKey returns the client side of a top-level folder crypt
 // key.
 func MaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf,
-	key TLFCryptKey) TLFCryptKeyClientHalf {
+	key TLFCryptKey,
+) TLFCryptKeyClientHalf {
 	return MakeTLFCryptKeyClientHalf(xorKeys(serverHalf.data, key.data))
 }
 
 // UnmaskTLFCryptKey returns the top-level folder crypt key.
 func UnmaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf,
-	clientHalf TLFCryptKeyClientHalf) TLFCryptKey {
+	clientHalf TLFCryptKeyClientHalf,
+) TLFCryptKey {
 	return MakeTLFCryptKey(xorKeys(serverHalf.data, clientHalf.data))
 }
 
 // UnmaskBlockCryptKey returns the block crypt key.
 func UnmaskBlockCryptKey(serverHalf BlockCryptKeyServerHalf,
-	tlfCryptKey TLFCryptKey) BlockCryptKey {
+	tlfCryptKey TLFCryptKey,
+) BlockCryptKey {
 	return MakeBlockCryptKey(xorKeys(serverHalf.data, tlfCryptKey.data))
 }
 
@@ -698,7 +765,8 @@ type BlockHashKey struct {
 // MakeBlockHashKey makes a key used for encryption and decryption for
 // the v2 block encryption scheme.
 func MakeBlockHashKey(
-	serverHalf BlockCryptKeyServerHalf, key TLFCryptKey) BlockHashKey {
+	serverHalf BlockCryptKeyServerHalf, key TLFCryptKey,
+) BlockHashKey {
 	mac := hmac.New(sha512.New, key.Bytes())
 	_, _ = mac.Write(serverHalf.Bytes())
 	hash := mac.Sum(nil)

@@ -21,7 +21,8 @@ func mustAppend(t *testing.T, a keybase1.TeamName, b string) keybase1.TeamName {
 }
 
 func mustCreateSubteam(t *testing.T, tc *libkb.TestContext,
-	name keybase1.TeamName) keybase1.TeamID {
+	name keybase1.TeamName,
+) keybase1.TeamID {
 	parent, err := name.Parent()
 	require.NoError(t, err)
 	id, err := teams.CreateSubteam(context.TODO(), tc.G, name.LastPart().String(),
@@ -32,7 +33,8 @@ func mustCreateSubteam(t *testing.T, tc *libkb.TestContext,
 
 func loadTeamTree(t *testing.T, tmctx libkb.MetaContext, notifications *teamNotifyHandler,
 	teamID keybase1.TeamID, username string, failureTeamIDs []keybase1.TeamID,
-	teamFailures []string) ([]keybase1.TeamTreeMembership, error) {
+	teamFailures []string,
+) ([]keybase1.TeamTreeMembership, error) {
 	var err error
 
 	guid := rand.Int()
@@ -85,7 +87,8 @@ loop:
 }
 
 func checkTeamTreeResults(t *testing.T, expected map[string]keybase1.TeamRole,
-	failureTeamNames []string, hiddenTeamNames []string, results []keybase1.TeamTreeMembership) {
+	failureTeamNames []string, hiddenTeamNames []string, results []keybase1.TeamTreeMembership,
+) {
 	require.Equal(t, len(expected)+len(failureTeamNames)+len(hiddenTeamNames),
 		len(results), "got right number of results back")
 	m := make(map[string]struct{})
@@ -122,7 +125,8 @@ type mockConverter struct {
 }
 
 func (m mockConverter) ProcessSigchainState(mctx libkb.MetaContext,
-	teamName keybase1.TeamName, s *keybase1.TeamSigChainState) keybase1.TeamTreeMembershipResult {
+	teamName keybase1.TeamName, s *keybase1.TeamSigChainState,
+) keybase1.TeamTreeMembershipResult {
 	for _, failureTeamID := range m.failureTeamIDs {
 		if failureTeamID == s.Id {
 			return m.loader.NewErrorResult(fmt.Errorf("mock failure"), teamName)

@@ -29,9 +29,7 @@ import (
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
-var (
-	errReadOnly = errors.New("leveldb/storage: storage is read-only")
-)
+var errReadOnly = errors.New("leveldb/storage: storage is read-only")
 
 type levelDBStorageLock struct {
 	fs *levelDBStorage
@@ -80,8 +78,9 @@ var _ storage.Storage = (*levelDBStorage)(nil)
 // a file lock, so any subsequent attempt to open the same path will
 // fail.
 func OpenLevelDBStorage(bfs billy.Filesystem, readOnly bool) (
-	s storage.Storage, err error) {
-	flock, err := bfs.OpenFile("LOCK", os.O_CREATE|os.O_TRUNC, 0600)
+	s storage.Storage, err error,
+) {
+	flock, err := bfs.OpenFile("LOCK", os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +99,7 @@ func OpenLevelDBStorage(bfs billy.Filesystem, readOnly bool) (
 		logSize int64
 	)
 	if !readOnly {
-		logw, err = bfs.OpenFile("LOG", os.O_WRONLY|os.O_CREATE, 0644)
+		logw, err = bfs.OpenFile("LOG", os.O_WRONLY|os.O_CREATE, 0o644)
 		if err != nil {
 			return nil, err
 		}
@@ -123,7 +122,8 @@ func OpenLevelDBStorage(bfs billy.Filesystem, readOnly bool) (
 }
 
 func (fs *levelDBStorage) writeFileSyncedRLocked(
-	filename string, data []byte, perm os.FileMode) error {
+	filename string, data []byte, perm os.FileMode,
+) error {
 	f, err := fs.fs.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
 		return err
@@ -195,7 +195,7 @@ func (fs *levelDBStorage) doLogRLocked(t time.Time, str string) {
 	}
 	if fs.logw == nil {
 		var err error
-		fs.logw, err = fs.fs.OpenFile("LOG", os.O_WRONLY|os.O_CREATE, 0644)
+		fs.logw, err = fs.fs.OpenFile("LOG", os.O_WRONLY|os.O_CREATE, 0o644)
 		if err != nil {
 			return
 		}
@@ -253,7 +253,7 @@ func (fs *levelDBStorage) syncLocked() (err error) {
 	// Force a sync with a lock/unlock cycle, since the billy
 	// interface doesn't have an explicit sync call.
 	const syncLockName = "sync.lock"
-	f, err := fs.fs.OpenFile(syncLockName, os.O_CREATE|os.O_TRUNC, 0600)
+	f, err := fs.fs.OpenFile(syncLockName, os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return err
 	}
@@ -298,7 +298,7 @@ func (fs *levelDBStorage) setMetaRLocked(fd storage.FileDesc) error {
 			return nil
 		}
 		if err := fs.writeFileSyncedRLocked(
-			currentPath+".bak", b, 0644); err != nil {
+			currentPath+".bak", b, 0o644); err != nil {
 			fs.logRLocked(fmt.Sprintf("backup CURRENT: %v", err))
 			return err
 		}
@@ -307,7 +307,7 @@ func (fs *levelDBStorage) setMetaRLocked(fd storage.FileDesc) error {
 	}
 	path := fmt.Sprintf("CURRENT.%d", fd.Num)
 	if err := fs.writeFileSyncedRLocked(
-		path, []byte(content), 0644); err != nil {
+		path, []byte(content), 0o644); err != nil {
 		fs.logRLocked(fmt.Sprintf("create CURRENT.%d: %v", fd.Num, err))
 		return err
 	}
@@ -559,7 +559,7 @@ func (fs *levelDBStorage) Create(fd storage.FileDesc) (storage.Writer, error) {
 	if fs.open < 0 {
 		return nil, storage.ErrClosed
 	}
-	of, err := fs.fs.OpenFile(fsGenName(fd), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	of, err := fs.fs.OpenFile(fsGenName(fd), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return nil, err
 	}

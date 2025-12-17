@@ -12,7 +12,6 @@ import (
 
 // See Issue #40: https://github.com/keybase/client/issues/40
 func TestPGPGetPrimaryUID(t *testing.T) {
-
 	armored := `
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Comment: GPGTools - https://gpgtools.org
@@ -84,7 +83,6 @@ func TestOpenPGPMultipleArmored(t *testing.T) {
 }
 
 func TestMultipleArmored(t *testing.T) {
-
 	// ReadOneKeyFromString will return the public key for issue454Keys
 	b1, _, err := ReadOneKeyFromString(issue454Keys)
 	if err != nil {
@@ -266,7 +264,6 @@ LpRtxqDTDVA6H/R+dqEhg/ni2jAapEr4VzIbew==
 -----END PGP PRIVATE KEY BLOCK-----`
 
 func TestReadOneKeyFromBytes(t *testing.T) {
-
 	t.Log("If this test panics for you, then you need to update github.com/keybase/go-crypto/openpgp")
 	// found by go-fuzz:
 	// (errors are ok, panics are not...these all caused panics with an older version of
@@ -286,7 +283,6 @@ func TestReadOneKeyFromBytes(t *testing.T) {
 }
 
 func TestPGPSubkeyWarning(t *testing.T) {
-
 	const missingCrossSignatureKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 Charset: UTF-8
 

@@ -17,7 +17,8 @@ import (
 // handleCommonSpecialFile handles special files that are present both
 // within a TLF and outside a TLF.
 func handleCommonSpecialFile(
-	name string, fs *FS, entryValid *time.Duration) fs.Node {
+	name string, fs *FS, entryValid *time.Duration,
+) fs.Node {
 	if name == libfs.ResetCachesFileName {
 		return &ResetCachesFile{fs}
 	}
@@ -28,7 +29,8 @@ func handleCommonSpecialFile(
 // handleNonTLFSpecialFile handles special files that are outside a TLF,
 // i.e. /keybase, /keybase/private, and /keybase/public.
 func handleNonTLFSpecialFile(
-	name string, fs *FS, entryValid *time.Duration) fs.Node {
+	name string, fs *FS, entryValid *time.Duration,
+) fs.Node {
 	specialNode := handleCommonSpecialFile(name, fs, entryValid)
 	if specialNode != nil {
 		return specialNode
@@ -81,7 +83,8 @@ func handleNonTLFSpecialFile(
 
 // handleTLFSpecialFile handles special files that are within a TLF.
 func handleTLFSpecialFile(
-	name string, folder *Folder, entryValid *time.Duration) fs.Node {
+	name string, folder *Folder, entryValid *time.Duration,
+) fs.Node {
 	specialNode := handleCommonSpecialFile(name, folder.fs, entryValid)
 	if specialNode != nil {
 		return specialNode

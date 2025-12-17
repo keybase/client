@@ -125,7 +125,6 @@ func (c *teamMembersRenderer) outputInvites(annotatedInvites []keybase1.Annotate
 }
 
 func (c *teamMembersRenderer) outputTeams(list keybase1.AnnotatedTeamList, showAll bool) error {
-
 	sort.Slice(list.Teams, func(i, j int) bool {
 		if list.Teams[i].FqName == list.Teams[j].FqName {
 			return list.Teams[i].Username < list.Teams[j].Username

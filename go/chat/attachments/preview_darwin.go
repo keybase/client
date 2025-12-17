@@ -110,6 +110,7 @@ int HEICToJPEG(const char* inFilename) {
 #endif
 */
 import "C"
+
 import (
 	"bytes"
 	"errors"
@@ -122,7 +123,8 @@ import (
 )
 
 func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
-	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
+	basename string, nvh types.NativeVideoHelper,
+) (res *PreviewRes, err error) {
 	defer log.Trace(ctx, &err, "previewVideo")()
 	cbasename := C.CString(basename)
 	defer C.free(unsafe.Pointer(cbasename))

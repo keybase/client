@@ -51,9 +51,8 @@ func (f *UpdatesFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, bs []by
 		if f.folder.updateChan != nil {
 			return 0, errors.New("Updates are already disabled")
 		}
-		f.folder.updateChan, err =
-			libkbfs.DisableUpdatesForTesting(f.folder.fs.config,
-				f.folder.getFolderBranch())
+		f.folder.updateChan, err = libkbfs.DisableUpdatesForTesting(f.folder.fs.config,
+			f.folder.getFolderBranch())
 		if err != nil {
 			return 0, err
 		}

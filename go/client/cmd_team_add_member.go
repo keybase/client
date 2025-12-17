@@ -6,6 +6,7 @@ package client
 import (
 	"context"
 	"errors"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"

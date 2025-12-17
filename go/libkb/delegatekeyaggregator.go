@@ -18,7 +18,8 @@ type AggSigProducer func() (JSONPayload, keybase1.Seqno, LinkID, error)
 // don't need any state (yet) `extra` is optional and adds an extra sig,
 // produced by something other than a Delegator, after the others.
 func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
-	pukBoxes []keybase1.PerUserKeyBox, pukPrev *PerUserKeyPrev, userEKReboxArg *keybase1.UserEkReboxArg) (err error) {
+	pukBoxes []keybase1.PerUserKeyBox, pukPrev *PerUserKeyPrev, userEKReboxArg *keybase1.UserEkReboxArg,
+) (err error) {
 	if len(ds) == 0 {
 		return errors.New("Empty delegators to aggregator")
 	}
@@ -31,7 +32,7 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 
 	for i := range ds {
 		// Mutate the original and not a copy from range
-		var d = &ds[i]
+		d := &ds[i]
 
 		d.Aggregated = true
 		if err := d.Run(m); err != nil {
@@ -68,8 +69,8 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 	AddUserEKReBoxServerArg(payload, userEKReboxArg)
 
 	// Adopt most parameters from the first item
-	var apiArgBase = ds[0]
-	var apiArg = apiArgBase.postArg
+	apiArgBase := ds[0]
+	apiArg := apiArgBase.postArg
 	apiArg.Args = nil
 	apiArg.uArgs = nil
 	apiArg.Endpoint = "key/multi"
@@ -90,7 +91,8 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 // `pukPrev` is optional.
 // Modifies `serverArg`.
 func AddPerUserKeyServerArg(serverArg JSONPayload, generation keybase1.PerUserKeyGeneration,
-	pukBoxes []keybase1.PerUserKeyBox, pukPrev *PerUserKeyPrev) {
+	pukBoxes []keybase1.PerUserKeyBox, pukPrev *PerUserKeyPrev,
+) {
 	section := make(JSONPayload)
 	section["boxes"] = pukBoxes
 	section["generation"] = generation

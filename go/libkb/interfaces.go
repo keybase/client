@@ -133,8 +133,7 @@ type CommandLine interface {
 	GetBool(string, bool) (bool, bool)
 }
 
-type Server interface {
-}
+type Server interface{}
 
 type DBKeySet map[DbKey]struct{}
 
@@ -463,8 +462,10 @@ const (
 	PromptDefaultNeither
 )
 
-type PromptDescriptor int
-type OutputDescriptor int
+type (
+	PromptDescriptor int
+	OutputDescriptor int
+)
 
 type TerminalUI interface {
 	// The ErrorWriter is not escaped: it should not be used to show unescaped user-originated data.
@@ -1039,11 +1040,13 @@ type UIDMapper interface {
 		uids []keybase1.UID, fullNameFreshness time.Duration) ([]UsernamePackage, error)
 }
 
-type UserServiceSummary map[string]string // service -> username
-type UserServiceSummaryPackage struct {
-	CachedAt   keybase1.Time
-	ServiceMap UserServiceSummary
-}
+type (
+	UserServiceSummary        map[string]string // service -> username
+	UserServiceSummaryPackage struct {
+		CachedAt   keybase1.Time
+		ServiceMap UserServiceSummary
+	}
+)
 
 type ServiceSummaryMapper interface {
 	MapUIDsToServiceSummaries(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, freshness time.Duration,

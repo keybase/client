@@ -131,5 +131,4 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	require.Equal(t, len(upk1.Resets), 1)
 	require.Equal(t, upk1.Resets[0].EldestSeqno, keybase1.Seqno(1))
 	require.Equal(t, upk1.Resets[0].Type, keybase1.ResetType_RESET)
-
 }

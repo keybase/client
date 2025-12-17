@@ -12,7 +12,8 @@ import (
 )
 
 func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keybase1.Time,
-	application keybase1.TeamApplication, includeKBFSKeys bool) (ret keybase1.TeamPlusApplicationKeys, err error) {
+	application keybase1.TeamApplication, includeKBFSKeys bool,
+) (ret keybase1.TeamPlusApplicationKeys, err error) {
 	loadKeys := true
 	if t.IsPublic() {
 		// If it's a public team, only try to load application keys if

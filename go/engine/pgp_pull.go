@@ -171,7 +171,6 @@ func (e *PGPPullEngine) processUserWithIdentify(m libkb.MetaContext, u string) e
 }
 
 func (e *PGPPullEngine) Run(m libkb.MetaContext) error {
-
 	e.gpgClient = libkb.NewGpgCLI(m.G(), m.UIs().LogUI)
 	err := e.gpgClient.Configure(m)
 	if err != nil {

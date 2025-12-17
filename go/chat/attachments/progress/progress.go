@@ -7,8 +7,10 @@ import (
 )
 
 // desktop requested 1 update per second:
-const durationBetweenUpdates = 1 * time.Second
-const maxDurationBetweenUpdates = 1 * time.Second
+const (
+	durationBetweenUpdates    = 1 * time.Second
+	maxDurationBetweenUpdates = 1 * time.Second
+)
 
 type ProgressWriter struct {
 	complete       int64

@@ -98,7 +98,8 @@ type Warninger interface {
 // CtxWithRandomIDReplayable returns a replayable context with a
 // random id associated with the given log key.
 func CtxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
-	tagName string, log Warninger) context.Context {
+	tagName string, log Warninger,
+) context.Context {
 	ctx = logger.ConvertRPCTagsToLogTags(ctx)
 
 	id, err := MakeRandomRequestID()
@@ -119,7 +120,8 @@ func CtxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
 // checkDataVersion validates that the data version for a
 // block pointer is valid for the given version validator
 func checkDataVersion(
-	versioner data.Versioner, p data.Path, ptr data.BlockPointer) error {
+	versioner data.Versioner, p data.Path, ptr data.BlockPointer,
+) error {
 	if ptr.DataVer < data.FirstValidVer {
 		return errors.WithStack(InvalidDataVersionError{ptr.DataVer})
 	}
@@ -141,7 +143,8 @@ func checkContext(ctx context.Context) error {
 func chargedToForTLF(
 	ctx context.Context, sessionGetter idutil.CurrentSessionGetter,
 	rootIDGetter teamRootIDGetter, osg idutil.OfflineStatusGetter,
-	handle *tlfhandle.Handle) (keybase1.UserOrTeamID, error) {
+	handle *tlfhandle.Handle,
+) (keybase1.UserOrTeamID, error) {
 	if handle.Type() == tlf.SingleTeam {
 		chargedTo := handle.FirstResolvedWriter()
 		if tid := chargedTo.AsTeamOrBust(); tid.IsSubTeam() {
@@ -173,7 +176,8 @@ func chargedToForTLF(
 func GetHandleFromFolderNameAndType(
 	ctx context.Context, kbpki KBPKI, idGetter tlfhandle.IDGetter,
 	syncGetter syncedTlfGetterSetter, tlfName string,
-	t tlf.Type) (*tlfhandle.Handle, error) {
+	t tlf.Type,
+) (*tlfhandle.Handle, error) {
 	for {
 		tlfHandle, err := tlfhandle.ParseHandle(
 			ctx, kbpki, idGetter, syncGetter, tlfName, t)
@@ -193,7 +197,8 @@ func GetHandleFromFolderNameAndType(
 func getHandleFromFolderName(
 	ctx context.Context, kbpki KBPKI, idGetter tlfhandle.IDGetter,
 	syncGetter syncedTlfGetterSetter, tlfName string,
-	public bool) (*tlfhandle.Handle, error) {
+	public bool,
+) (*tlfhandle.Handle, error) {
 	// TODO(KBFS-2185): update the protocol to support requests
 	// for single-team TLFs.
 	t := tlf.Private
@@ -210,7 +215,8 @@ func getHandleFromFolderName(
 func IsWriterFromHandle(
 	ctx context.Context, h *tlfhandle.Handle, checker kbfsmd.TeamMembershipChecker,
 	osg idutil.OfflineStatusGetter, uid keybase1.UID,
-	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+	verifyingKey kbfscrypto.VerifyingKey,
+) (bool, error) {
 	if h.TypeForKeying() != tlf.TeamKeying {
 		return h.IsWriter(uid), nil
 	}
@@ -231,7 +237,8 @@ func IsWriterFromHandle(
 
 func isReaderFromHandle(
 	ctx context.Context, h *tlfhandle.Handle, checker kbfsmd.TeamMembershipChecker,
-	osg idutil.OfflineStatusGetter, uid keybase1.UID) (bool, error) {
+	osg idutil.OfflineStatusGetter, uid keybase1.UID,
+) (bool, error) {
 	if h.TypeForKeying() != tlf.TeamKeying {
 		return h.IsReader(uid), nil
 	}
@@ -267,7 +274,8 @@ func tlfToMerkleTreeID(id tlf.ID) keybase1.MerkleTreeID {
 // is a non-team TLF, and the currently logged-in user is the only writer for
 // the TLF.  In case of any error false is returned.
 func IsOnlyWriterInNonTeamTlf(ctx context.Context, kbpki KBPKI,
-	h *tlfhandle.Handle) bool {
+	h *tlfhandle.Handle,
+) bool {
 	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, kbpki, h.Type() == tlf.Public)
 	if err != nil {
@@ -340,7 +348,8 @@ func cleanOldTempStorageRoots(config Config) {
 // GetLocalDiskStats returns the local disk stats, according to the
 // disk block cache.
 func GetLocalDiskStats(ctx context.Context, dbc DiskBlockCache) (
-	bytesAvail, bytesTotal int64) {
+	bytesAvail, bytesTotal int64,
+) {
 	if dbc == nil {
 		return 0, 0
 	}
@@ -357,14 +366,14 @@ func GetLocalDiskStats(ctx context.Context, dbc DiskBlockCache) (
 // prefetchStatus, and local disk space fields of the given status.
 func FillInDiskSpaceStatus(
 	ctx context.Context, status *keybase1.FolderSyncStatus,
-	prefetchStatus keybase1.PrefetchStatus, dbc DiskBlockCache) {
+	prefetchStatus keybase1.PrefetchStatus, dbc DiskBlockCache,
+) {
 	status.PrefetchStatus = prefetchStatus
 	if dbc == nil {
 		return
 	}
 
-	status.LocalDiskBytesAvailable, status.LocalDiskBytesTotal =
-		GetLocalDiskStats(ctx, dbc)
+	status.LocalDiskBytesAvailable, status.LocalDiskBytesTotal = GetLocalDiskStats(ctx, dbc)
 
 	if prefetchStatus == keybase1.PrefetchStatus_COMPLETE {
 		return
@@ -397,21 +406,24 @@ var _ KeybaseServiceCn = KeybaseServicePassthrough{}
 // KeybaseServicePassthrough.
 func (ksp KeybaseServicePassthrough) NewKeybaseService(
 	_ Config, _ InitParams, _ Context, _ logger.Logger) (
-	KeybaseService, error) {
+	KeybaseService, error,
+) {
 	return ksp.config.KeybaseService(), nil
 }
 
 // NewCrypto implements the KeybaseServiceCn for
 // KeybaseServicePassthrough.
 func (ksp KeybaseServicePassthrough) NewCrypto(
-	_ Config, _ InitParams, _ Context, _ logger.Logger) (Crypto, error) {
+	_ Config, _ InitParams, _ Context, _ logger.Logger,
+) (Crypto, error) {
 	return ksp.config.Crypto(), nil
 }
 
 // NewChat implements the KeybaseServiceCn for
 // KeybaseServicePassthrough.
 func (ksp KeybaseServicePassthrough) NewChat(
-	_ Config, _ InitParams, _ Context, _ logger.Logger) (Chat, error) {
+	_ Config, _ InitParams, _ Context, _ logger.Logger,
+) (Chat, error) {
 	return ksp.config.Chat(), nil
 }
 
@@ -430,7 +442,8 @@ func MakeDiskBlockServer(config Config, serverRootDir string) BlockServer {
 
 func cacheHashBehavior(
 	bsGetter blockServerGetter, modeGetter initModeGetter,
-	id tlf.ID) data.BlockCacheHashBehavior {
+	id tlf.ID,
+) data.BlockCacheHashBehavior {
 	if modeGetter.Mode().IsSingleOp() || TLFJournalEnabled(bsGetter, id) {
 		// If the journal is enabled, or single-op mode is enabled
 		// (which implies either local or journal writes), then skip

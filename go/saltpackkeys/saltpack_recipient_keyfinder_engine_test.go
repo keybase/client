@@ -38,7 +38,6 @@ func SetupKeyfinderEngineTest(tb libkb.TestingTB, name string) (tc libkb.TestCon
 	InstallInsecureTriplesec(tc.G)
 
 	return tc
-
 }
 
 func TestSaltpackRecipientKeyfinderPUKs(t *testing.T) {
@@ -94,7 +93,6 @@ func TestSaltpackRecipientKeyfinderPUKs(t *testing.T) {
 	if len(symKeys) != 0 {
 		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
-
 }
 
 func TestSaltpackRecipientKeyfinderFailsOnNonExistingUserWithoutLogin(t *testing.T) {
@@ -196,7 +194,6 @@ func TestSaltpackRecipientKeyfinderPUKSelfEncrypt(t *testing.T) {
 	if len(symKeys) != 0 {
 		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
-
 }
 
 func TestSaltpackRecipientKeyfinderPUKNoSelfEncrypt(t *testing.T) {
@@ -247,7 +244,6 @@ func TestSaltpackRecipientKeyfinderPUKNoSelfEncrypt(t *testing.T) {
 	if len(symKeys) != 0 {
 		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
-
 }
 
 func TestSaltpackRecipientKeyfinderCreatesImplicitTeamIfUserHasNoPUK(t *testing.T) {
@@ -415,7 +411,6 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 	if len(symKeys) != 0 {
 		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
-
 }
 
 func TestSaltpackRecipientKeyfinderSkipsMissingKeys(t *testing.T) {
@@ -483,7 +478,6 @@ func TestSaltpackRecipientKeyfinderSkipsMissingKeys(t *testing.T) {
 	if len(symKeys) != 0 {
 		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
-
 }
 
 func selectOneActivePaperDeviceID(u *libkb.User) (keybase1.DeviceID, error) {
@@ -677,7 +671,6 @@ func TestSaltpackRecipientKeyfinderExistingUserAssertions(t *testing.T) {
 	if len(symKeys) != 0 {
 		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
-
 }
 
 func createTeam(tc libkb.TestContext) (keybase1.TeamID, string) {
@@ -826,7 +819,6 @@ func TestSaltpackRecipientKeyfinderTeamBasic(t *testing.T) {
 		t.Errorf("number of symmetric keys found: %d, expected 1", len(symKeys))
 	}
 	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
-
 }
 
 func TestSaltpackRecipientKeyfinderTeamWithDeletedUser(t *testing.T) {

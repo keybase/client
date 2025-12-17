@@ -57,7 +57,6 @@ func (f *Field) Clear() string {
 }
 
 func (p *Prompter) ReadField(f *Field) (err error) {
-
 	done := false
 	first := true
 

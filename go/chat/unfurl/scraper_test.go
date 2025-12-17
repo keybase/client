@@ -106,7 +106,8 @@ func TestScraper(t *testing.T) {
 	forceGiphy := new(chat1.UnfurlType)
 	*forceGiphy = chat1.UnfurlType_GIPHY
 	testCase := func(name string, expected chat1.UnfurlRaw, success bool, contentType *string,
-		forceTyp *chat1.UnfurlType) {
+		forceTyp *chat1.UnfurlType,
+	) {
 		uri := fmt.Sprintf("http://%s/?name=%s", addr, name)
 		if contentType != nil {
 			uri += fmt.Sprintf("&content_type=%s", *contentType)
@@ -303,7 +304,6 @@ func TestScraper(t *testing.T) {
 	}), true, strPtr("image/jpeg"), nil)
 	srv.shouldServeAppleTouchIcon = true
 	testCase("slim.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{}), false, nil, nil)
-
 }
 
 func TestGiphySearchScrape(t *testing.T) {

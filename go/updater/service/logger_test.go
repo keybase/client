@@ -30,7 +30,7 @@ func TestLoggerFile(t *testing.T) {
 	require.NoError(t, err)
 	if exists, _ := util.FileExists(dir); !exists {
 		t.Logf("Creating %s", dir)
-		dirErr := util.MakeDirs(dir, 0700, testLog)
+		dirErr := util.MakeDirs(dir, 0o700, testLog)
 		require.NoError(t, dirErr)
 		defer util.RemoveFileAtPath(dir)
 	}

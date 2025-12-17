@@ -689,13 +689,11 @@ func TestOpsCollapseWriteRange(t *testing.T) {
 				wrExpected = append(wrExpected, WriteRange{Off: uint64(j)})
 			} else if inWrite && !file[j] {
 				inWrite = false
-				wrExpected[len(wrExpected)-1].Len =
-					uint64(j) - wrExpected[len(wrExpected)-1].Off
+				wrExpected[len(wrExpected)-1].Len = uint64(j) - wrExpected[len(wrExpected)-1].Off
 			}
 		}
 		if inWrite {
-			wrExpected[len(wrExpected)-1].Len =
-				lastByte - wrExpected[len(wrExpected)-1].Off
+			wrExpected[len(wrExpected)-1].Len = lastByte - wrExpected[len(wrExpected)-1].Off
 		}
 		if lastByteIsTruncate {
 			wrExpected = append(wrExpected, WriteRange{Off: lastByte})
@@ -726,14 +724,20 @@ func TestCollapseWriteRangeWithLaterTruncate(t *testing.T) {
 
 func ExamplecoalesceWrites() {
 	fmt.Println(coalesceWrites(
-		[]WriteRange{{Off: 7, Len: 5}, {Off: 18, Len: 10},
-			{Off: 98, Len: 10}}, WriteRange{Off: 5, Len: 100}))
+		[]WriteRange{
+			{Off: 7, Len: 5},
+			{Off: 18, Len: 10},
+			{Off: 98, Len: 10},
+		}, WriteRange{Off: 5, Len: 100}))
 	// Output: [{5 103 {{map[]}}}]
 }
 
 func ExamplecoalesceWrites_withOldTruncate() {
 	fmt.Println(coalesceWrites(
-		[]WriteRange{{Off: 7, Len: 5}, {Off: 18, Len: 10},
-			{Off: 98, Len: 0}}, WriteRange{Off: 5, Len: 100}))
+		[]WriteRange{
+			{Off: 7, Len: 5},
+			{Off: 18, Len: 10},
+			{Off: 98, Len: 0},
+		}, WriteRange{Off: 5, Len: 100}))
 	// Output: [{5 100 {{map[]}}} {105 0 {{map[]}}}]
 }

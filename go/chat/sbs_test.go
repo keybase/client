@@ -299,7 +299,6 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 			}
 		})
 	})
-
 }
 
 func TestChatSrvSBSRooter(t *testing.T) {

@@ -27,7 +27,8 @@ func randBytes(t *testing.T, n int) []byte {
 
 func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, ph *PushHandler,
 	sender types.Sender, conv chat1.Conversation, user *kbtest.FakeUser,
-	iboxXform func(chat1.InboxVers) chat1.InboxVers) {
+	iboxXform func(chat1.InboxVers) chat1.InboxVers,
+) {
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 	convID := conv.GetConvID()
 	outboxID := chat1.OutboxID(randBytes(t, 8))
@@ -184,7 +185,6 @@ func TestPushAppState(t *testing.T) {
 }
 
 func makeTypingNotification(t *testing.T, uid gregor1.UID, convID chat1.ConversationID, typing bool) gregor.OutOfBandMessage {
-
 	nm := chat1.RemoteUserTypingUpdate{
 		Uid:    uid,
 		ConvID: convID,

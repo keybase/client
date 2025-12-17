@@ -434,7 +434,8 @@ type expectedRekeyInfoV3 struct {
 // must all match expectedTLFCryptKey.
 func checkGetTLFCryptKeyV3(t *testing.T, expected expectedRekeyInfoV3,
 	expectedTLFCryptKey kbfscrypto.TLFCryptKey,
-	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3) {
+	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3,
+) {
 	for uid, privKeys := range expected.writerPrivKeys {
 		for privKey := range privKeys {
 			pubKey := privKey.GetPublicKey()
@@ -488,7 +489,8 @@ func userDeviceKeyInfoMapV3ToPublicKeys(udkimV3 UserDeviceKeyInfoMapV3) UserDevi
 func checkKeyBundlesV3(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV3,
 	expectedTLFCryptKey kbfscrypto.TLFCryptKey,
 	expectedPubKey kbfscrypto.TLFPublicKey,
-	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3) {
+	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3,
+) {
 	expectedWriterPubKeys := make(UserDevicePublicKeys)
 	expectedReaderPubKeys := make(UserDevicePublicKeys)
 	var expectedWriterEPublicKeys,

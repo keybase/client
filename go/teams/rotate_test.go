@@ -422,7 +422,8 @@ func testRotateTeamSweeping(t *testing.T, open bool) {
 				Uid:               otherA.User.GetUID(),
 				UserEldestSeqno:   keybase1.Seqno(0),
 				MemberEldestSeqno: keybase1.Seqno(1),
-			}}
+			},
+		}
 	}
 	err = HandleRotateRequest(context.Background(), tc.G, params)
 	require.NoError(t, err)
@@ -632,7 +633,8 @@ func TestRotateResetSweepWithWriter(t *testing.T) {
 				Uid:               otherB.User.GetUID(),
 				UserEldestSeqno:   keybase1.Seqno(0),
 				MemberEldestSeqno: keybase1.Seqno(1),
-			}},
+			},
+		},
 	}
 	err = HandleRotateRequest(context.Background(), tc.G, params)
 	require.NoError(t, err)
@@ -868,7 +870,8 @@ func TestOpenSweepHandler(t *testing.T) {
 				Uid:               otherB.User.GetUID(),
 				UserEldestSeqno:   keybase1.Seqno(0),
 				MemberEldestSeqno: otherBUV.EldestSeqno,
-			}},
+			},
+		},
 	}
 	err = HandleOpenTeamSweepRequest(context.Background(), tc.G, params)
 	require.Error(t, err)

@@ -63,7 +63,8 @@ func newChatConversationResolver(g *libkb.GlobalContext) (c *chatConversationRes
 }
 
 func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
-	ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.GetInboxAndUnboxLocalArg, error) {
+	ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior,
+) (chat1.GetInboxAndUnboxLocalArg, error) {
 	var nameQuery *chat1.NameQuery
 	if len(req.TlfName) > 0 {
 		nameQuery = &chat1.NameQuery{
@@ -87,7 +88,6 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 }
 
 func (r *chatConversationResolver) resolveWithService(ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior) ([]chat1.ConversationLocal, error) {
-
 	arg, err := r.makeGetInboxAndUnboxLocalArg(ctx, req, identifyBehavior)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,8 @@ func (r *chatConversationResolver) resolveWithService(ctx context.Context, req c
 }
 
 func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Context, req chatConversationResolvingRequest, conversations []chat1.ConversationLocal) (
-	conversation *chat1.ConversationLocal, userChosen bool, err error) {
+	conversation *chat1.ConversationLocal, userChosen bool, err error,
+) {
 	switch len(conversations) {
 	case 0:
 		fallthrough
@@ -150,8 +151,8 @@ func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Con
 }
 
 func (r *chatConversationResolver) create(ctx context.Context, req chatConversationResolvingRequest) (
-	conversationInfo *chat1.ConversationLocal, err error) {
-
+	conversationInfo *chat1.ConversationLocal, err error,
+) {
 	if len(req.TlfName) == 0 {
 		return nil, errors.New("Cannot create a new conversation without more information")
 	}
@@ -189,7 +190,8 @@ func formatConversationName(req chatConversationResolvingRequest) string {
 }
 
 func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversationResolvingRequest, behavior chatConversationResolvingBehavior) (
-	conversation *chat1.ConversationLocal, userChosen bool, err error) {
+	conversation *chat1.ConversationLocal, userChosen bool, err error,
+) {
 	conversations, err := r.resolveWithService(ctx, req, behavior.IdentifyBehavior)
 	if err != nil {
 		return nil, false, err

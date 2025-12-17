@@ -240,6 +240,7 @@ func TestInstallIDHeaders(t *testing.T) {
 		t.Fatalf("expected install ID to be reflected back, got %s", res.Body.MarshalPretty())
 	}
 }
+
 func TestInstallIDHeadersAnon(t *testing.T) {
 	tc := SetupTest(t, "test", 1)
 	defer tc.Cleanup()

@@ -15,7 +15,8 @@ import (
 // getDiskLimits gets the disk limits for the logical disk containing
 // the given path.
 func getDiskLimits(path string) (
-	availableBytes, totalBytes, availableFiles, totalFiles uint64, err error) {
+	availableBytes, totalBytes, availableFiles, totalFiles uint64, err error,
+) {
 	pathPtr, err := windows.UTF16PtrFromString(path)
 	if err != nil {
 		return 0, 0, 0, 0, errors.WithStack(err)

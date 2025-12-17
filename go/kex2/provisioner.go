@@ -99,7 +99,6 @@ func (p *provisioner) setDeviceID() (err error) {
 }
 
 func (p *provisioner) pickFirstConnection() (err error) {
-
 	// This connection is auto-closed at the end of this function, so if
 	// you don't want it to close, then set it to nil.  See the first
 	// case in the select below.

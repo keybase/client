@@ -5,6 +5,7 @@ package update
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -18,8 +19,6 @@ import (
 	"github.com/alecthomas/template"
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/release/version"
-
-	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -154,7 +153,7 @@ func WriteHTML(bucketName string, prefixes string, suffix string, outPath string
 		if err != nil {
 			return err
 		}
-		err = os.WriteFile(outPath, buf.Bytes(), 0644)
+		err = os.WriteFile(outPath, buf.Bytes(), 0o644)
 		if err != nil {
 			return err
 		}
@@ -249,11 +248,13 @@ const (
 	PlatformTypeWindows = "windows"
 )
 
-var platformDarwin = Platform{Name: PlatformTypeDarwin, Prefix: "darwin/", PrefixSupport: "darwin-support/", LatestName: "Keybase.dmg"}
-var platformDarwinArm64 = Platform{Name: PlatformTypeDarwinArm64, Prefix: "darwin-arm64/", PrefixSupport: "darwin-arm64-support/", LatestName: "Keybase-arm64.dmg"}
-var platformLinuxDeb = Platform{Name: "deb", Prefix: "linux_binaries/deb/", Suffix: "_amd64.deb", LatestName: "keybase_amd64.deb"}
-var platformLinuxRPM = Platform{Name: "rpm", Prefix: "linux_binaries/rpm/", Suffix: ".x86_64.rpm", LatestName: "keybase_amd64.rpm"}
-var platformWindows = Platform{Name: PlatformTypeWindows, Prefix: "windows/", PrefixSupport: "windows-support/", LatestName: "keybase_setup_amd64.msi"}
+var (
+	platformDarwin      = Platform{Name: PlatformTypeDarwin, Prefix: "darwin/", PrefixSupport: "darwin-support/", LatestName: "Keybase.dmg"}
+	platformDarwinArm64 = Platform{Name: PlatformTypeDarwinArm64, Prefix: "darwin-arm64/", PrefixSupport: "darwin-arm64-support/", LatestName: "Keybase-arm64.dmg"}
+	platformLinuxDeb    = Platform{Name: "deb", Prefix: "linux_binaries/deb/", Suffix: "_amd64.deb", LatestName: "keybase_amd64.deb"}
+	platformLinuxRPM    = Platform{Name: "rpm", Prefix: "linux_binaries/rpm/", Suffix: ".x86_64.rpm", LatestName: "keybase_amd64.rpm"}
+	platformWindows     = Platform{Name: PlatformTypeWindows, Prefix: "windows/", PrefixSupport: "windows-support/", LatestName: "keybase_setup_amd64.msi"}
+)
 
 var platformsAll = []Platform{
 	platformDarwin,
@@ -620,7 +621,6 @@ func (c *Client) PromoteRelease(bucketName string, delay time.Duration, beforeHo
 		CacheControl: aws.String(defaultCacheControl),
 		ACL:          types.ObjectCannedACLPublicRead,
 	})
-
 	if err != nil {
 		return nil, err
 	}

@@ -76,7 +76,6 @@ func (e *PGPKeyfinder) loadUsers(m libkb.MetaContext) {
 		}
 		e.addUser(user, false)
 	}
-
 }
 
 func (e *PGPKeyfinder) loadKeys(m libkb.MetaContext) {

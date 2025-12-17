@@ -35,17 +35,20 @@ type shimCrypto struct {
 }
 
 func (c shimCrypto) Sign(
-	ctx context.Context, data []byte) (kbfscrypto.SignatureInfo, error) {
+	ctx context.Context, data []byte,
+) (kbfscrypto.SignatureInfo, error) {
 	return c.key.Sign(data), nil
 }
 
 func (c shimCrypto) SignForKBFS(
-	ctx context.Context, data []byte) (kbfscrypto.SignatureInfo, error) {
+	ctx context.Context, data []byte,
+) (kbfscrypto.SignatureInfo, error) {
 	return c.key.SignForKBFS(data)
 }
 
 func (c shimCrypto) Verify(
-	msg []byte, sigInfo kbfscrypto.SignatureInfo) (err error) {
+	msg []byte, sigInfo kbfscrypto.SignatureInfo,
+) (err error) {
 	return kbfscrypto.Verify(msg, sigInfo)
 }
 
@@ -60,7 +63,8 @@ func injectShimCrypto(config Config) {
 }
 
 func mdOpsInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Controller,
-	config *ConfigMock, ctx context.Context) {
+	config *ConfigMock, ctx context.Context,
+) {
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
@@ -97,7 +101,8 @@ func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 
 func addPrivateDataToRMD(t *testing.T,
 	codec kbfscodec.Codec, rmd *RootMetadata, h *tlfhandle.Handle,
-	pmd PrivateMetadata) {
+	pmd PrivateMetadata,
+) {
 	rmd.SetRevision(kbfsmd.Revision(1))
 	// TODO: Will have to change this for private folders if we
 	// un-mock out those tests.
@@ -112,12 +117,14 @@ func addPrivateDataToRMD(t *testing.T,
 }
 
 func addFakeRMDData(t *testing.T,
-	codec kbfscodec.Codec, rmd *RootMetadata, h *tlfhandle.Handle) {
+	codec kbfscodec.Codec, rmd *RootMetadata, h *tlfhandle.Handle,
+) {
 	addPrivateDataToRMD(t, codec, rmd, h, PrivateMetadata{})
 }
 
 func newRMDS(t *testing.T, config Config, h *tlfhandle.Handle) (
-	*RootMetadataSigned, kbfsmd.ExtraMetadata) {
+	*RootMetadataSigned, kbfsmd.ExtraMetadata,
+) {
 	id := h.TlfID()
 	if id == tlf.NullID {
 		id = tlf.FakeID(1, h.Type())
@@ -141,7 +148,8 @@ func newRMDS(t *testing.T, config Config, h *tlfhandle.Handle) (
 }
 
 func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
-	hasVerifyingKeyErr error) {
+	hasVerifyingKeyErr error,
+) {
 	config.mockKbpki.EXPECT().HasVerifyingKey(
 		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		AnyTimes().Return(hasVerifyingKeyErr)
@@ -176,7 +184,8 @@ func expectGetTLFCryptKeyForEncryption(config *ConfigMock, kmd libkey.KeyMetadat
 }
 
 func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
-	kmd libkey.KeyMetadata) {
+	kmd libkey.KeyMetadata,
+) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
 		kmdMatcher{kmd}, kmdMatcher{kmd}).MaxTimes(1).Return(
 		kbfscrypto.TLFCryptKey{}, nil)
@@ -184,7 +193,8 @@ func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
 
 func verifyMDForPrivateHelper(
 	config *ConfigMock, rmds *RootMetadataSigned, minTimes, maxTimes int,
-	forceFinal bool) {
+	forceFinal bool,
+) {
 	mdCopy, err := rmds.MD.DeepCopy(config.Codec())
 	if err != nil {
 		panic(err)
@@ -207,7 +217,8 @@ func verifyMDForPrivateHelper(
 }
 
 func verifyMDForPrivate(
-	config *ConfigMock, rmds *RootMetadataSigned) {
+	config *ConfigMock, rmds *RootMetadataSigned,
+) {
 	verifyMDForPrivateHelper(config, rmds, 1, 1, false)
 }
 
@@ -223,7 +234,8 @@ func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
 }
 
 func testMDOpsGetIDForHandlePublicSuccess(
-	t *testing.T, ver kbfsmd.MetadataVer) {
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -253,7 +265,8 @@ func expectGetKeyBundles(ctx context.Context, config *ConfigMock, extra kbfsmd.E
 }
 
 func testMDOpsGetIDForHandlePrivateSuccess(
-	t *testing.T, ver kbfsmd.MetadataVer) {
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -274,7 +287,8 @@ func testMDOpsGetIDForHandlePrivateSuccess(
 }
 
 func testMDOpsGetIDForUnresolvedHandlePublicSuccess(
-	t *testing.T, ver kbfsmd.MetadataVer) {
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -312,7 +326,8 @@ func testMDOpsGetIDForUnresolvedHandlePublicSuccess(
 }
 
 func testMDOpsGetIDForUnresolvedMdHandlePublicSuccess(
-	t *testing.T, ver kbfsmd.MetadataVer) {
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -381,7 +396,8 @@ func testMDOpsGetIDForUnresolvedMdHandlePublicSuccess(
 }
 
 func testMDOpsGetIDForUnresolvedHandlePublicFailure(
-	t *testing.T, ver kbfsmd.MetadataVer) {
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -410,7 +426,8 @@ func testMDOpsGetIDForUnresolvedHandlePublicFailure(
 }
 
 func testMDOpsGetIDForHandlePublicFailFindKey(
-	t *testing.T, ver kbfsmd.MetadataVer) {
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -432,7 +449,8 @@ func testMDOpsGetIDForHandlePublicFailFindKey(
 }
 
 func testMDOpsGetIDForHandlePublicFailVerify(
-	t *testing.T, ver kbfsmd.MetadataVer) {
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -471,7 +489,8 @@ func testMDOpsGetIDForHandleFailGet(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testMDOpsGetIDForHandleFailHandleCheck(
-	t *testing.T, ver kbfsmd.MetadataVer) {
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -571,7 +590,8 @@ func testMDOpsGetFailIDCheck(t *testing.T, ver kbfsmd.MetadataVer) {
 
 func makeRMDSRange(t *testing.T, config Config,
 	start kbfsmd.Revision, count int, prevID kbfsmd.ID) (
-	rmdses []*RootMetadataSigned, extras []kbfsmd.ExtraMetadata) {
+	rmdses []*RootMetadataSigned, extras []kbfsmd.ExtraMetadata,
+) {
 	id := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id)
 	for i := 0; i < count; i++ {
@@ -626,21 +646,24 @@ func makeKeyBundleMDServer(mdServer MDServer) *keyBundleMDServer {
 }
 
 func (mds *keyBundleMDServer) putWKB(
-	id kbfsmd.TLFWriterKeyBundleID, wkb kbfsmd.TLFWriterKeyBundleV3) {
+	id kbfsmd.TLFWriterKeyBundleID, wkb kbfsmd.TLFWriterKeyBundleV3,
+) {
 	mds.lock.Lock()
 	defer mds.lock.Unlock()
 	mds.wkbs[id] = wkb
 }
 
 func (mds *keyBundleMDServer) putRKB(
-	id kbfsmd.TLFReaderKeyBundleID, rkb kbfsmd.TLFReaderKeyBundleV3) {
+	id kbfsmd.TLFReaderKeyBundleID, rkb kbfsmd.TLFReaderKeyBundleV3,
+) {
 	mds.lock.Lock()
 	defer mds.lock.Unlock()
 	mds.rkbs[id] = rkb
 }
 
 func (mds *keyBundleMDServer) processRMDSes(
-	rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata) {
+	rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata,
+) {
 	if extraV3, ok := extra.(*kbfsmd.ExtraMetadataV3); ok {
 		mds.putWKB(rmds.MD.GetTLFWriterKeyBundleID(), extraV3.GetWriterKeyBundle())
 		mds.putRKB(rmds.MD.GetTLFReaderKeyBundleID(), extraV3.GetReaderKeyBundle())
@@ -649,7 +672,8 @@ func (mds *keyBundleMDServer) processRMDSes(
 
 func (mds *keyBundleMDServer) GetForTLF(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, _ *keybase1.LockID) (
-	*RootMetadataSigned, error) {
+	*RootMetadataSigned, error,
+) {
 	rmd := mds.nextHead
 	mds.nextHead = nil
 	return rmd, nil
@@ -657,7 +681,8 @@ func (mds *keyBundleMDServer) GetForTLF(ctx context.Context, id tlf.ID,
 
 func (mds *keyBundleMDServer) GetRange(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision,
-	_ *keybase1.LockID) ([]*RootMetadataSigned, error) {
+	_ *keybase1.LockID,
+) ([]*RootMetadataSigned, error) {
 	rmdses := mds.nextGetRange
 	mds.nextGetRange = nil
 	return rmdses, nil
@@ -665,7 +690,8 @@ func (mds *keyBundleMDServer) GetRange(ctx context.Context, id tlf.ID,
 
 func (mds *keyBundleMDServer) GetKeyBundles(ctx context.Context, tlfID tlf.ID,
 	wkbID kbfsmd.TLFWriterKeyBundleID, rkbID kbfsmd.TLFReaderKeyBundleID) (
-	*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error) {
+	*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error,
+) {
 	mds.lock.RLock()
 	defer mds.lock.RUnlock()
 	wkb := mds.wkbs[wkbID]
@@ -676,7 +702,8 @@ func (mds *keyBundleMDServer) GetKeyBundles(ctx context.Context, tlfID tlf.ID,
 func (mds *keyBundleMDServer) FindNextMD(
 	ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (
 	nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
-	nextRootSeqno keybase1.Seqno, err error) {
+	nextRootSeqno keybase1.Seqno, err error,
+) {
 	nextKbfsRoot = mds.nextMerkleRoot
 	nextMerkleNodes = mds.nextMerkleNodes
 	nextRootSeqno = mds.nextMerkleRootSeqno
@@ -688,7 +715,8 @@ func (mds *keyBundleMDServer) FindNextMD(
 }
 
 func testMDOpsGetRangeSuccessHelper(
-	t *testing.T, ver kbfsmd.MetadataVer, fromStart bool) {
+	t *testing.T, ver kbfsmd.MetadataVer, fromStart bool,
+) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -770,7 +798,8 @@ type fakeMDServerPut struct {
 }
 
 func (s *fakeMDServerPut) Put(ctx context.Context, rmds *RootMetadataSigned,
-	_ kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
+	_ kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority,
+) error {
 	s.lastRmdsLock.Lock()
 	defer s.lastRmdsLock.Unlock()
 	s.lastRmds = rmds
@@ -787,7 +816,8 @@ func (s *fakeMDServerPut) Shutdown() {}
 
 func validatePutPublicRMDS(
 	ctx context.Context, t *testing.T, ver kbfsmd.MetadataVer, config Config,
-	inputRmd kbfsmd.RootMetadata, rmds *RootMetadataSigned) {
+	inputRmd kbfsmd.RootMetadata, rmds *RootMetadataSigned,
+) {
 	// TODO: Handle private RMDS, too.
 
 	// Verify LastModifying* fields.
@@ -820,8 +850,7 @@ func validatePutPublicRMDS(
 	expectedRmd.SetLastModifyingWriter(rmds.MD.LastModifyingWriter())
 	expectedRmd.SetLastModifyingUser(rmds.MD.GetLastModifyingUser())
 	if ver < kbfsmd.SegregatedKeyBundlesVer {
-		expectedRmd.(*kbfsmd.RootMetadataV2).WriterMetadataSigInfo =
-			rmds.MD.(*kbfsmd.RootMetadataV2).WriterMetadataSigInfo
+		expectedRmd.(*kbfsmd.RootMetadataV2).WriterMetadataSigInfo = rmds.MD.(*kbfsmd.RootMetadataV2).WriterMetadataSigInfo
 	}
 	expectedRmd.SetSerializedPrivateMetadata(rmds.MD.GetSerializedPrivateMetadata())
 
@@ -982,7 +1011,8 @@ func testMDOpsGetFinalSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 
 func makeRealInitialRMDForTesting(
 	ctx context.Context, t *testing.T, config Config, h *tlfhandle.Handle,
-	id tlf.ID) (*RootMetadata, *RootMetadataSigned) {
+	id tlf.ID,
+) (*RootMetadata, *RootMetadataSigned) {
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 	if h.TypeForKeying() == tlf.TeamKeying {
@@ -1013,7 +1043,8 @@ func makeRealInitialRMDForTesting(
 func makeSuccessorRMDForTesting(
 	ctx context.Context, t *testing.T, config Config, currRMD *RootMetadata,
 	deviceToRevoke int) (
-	*RootMetadata, *RootMetadataSigned) {
+	*RootMetadata, *RootMetadataSigned,
+) {
 	mdID, err := kbfsmd.MakeID(config.Codec(), currRMD.bareMd)
 	require.NoError(t, err)
 
@@ -1051,7 +1082,8 @@ func makeSuccessorRMDForTesting(
 func makeEncryptedMerkleLeafForTesting(
 	t *testing.T, config Config, rmd *RootMetadata) (
 	root *kbfsmd.MerkleRoot, rootNodeBytes []byte,
-	mLeaf kbfsmd.MerkleLeaf, leafBytes []byte) {
+	mLeaf kbfsmd.MerkleLeaf, leafBytes []byte,
+) {
 	ePubKey, ePrivKey, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 	var nonce [24]byte
@@ -1392,7 +1424,6 @@ func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdServer.nextMerkleRootSeqno = 100
 	_, err = mdOps.processMetadata(ctx, h, rmds, rmd.extra, nil)
 	require.Error(t, err)
-
 }
 
 func TestMDOps(t *testing.T) {

@@ -211,7 +211,6 @@ type ErrorUnwrapper struct {
 
 func NewContextifiedErrorUnwrapper(g *GlobalContext) ErrorUnwrapper {
 	return ErrorUnwrapper{NewContextified(g)}
-
 }
 
 func (c ErrorUnwrapper) MakeArg() interface{} {
@@ -228,8 +227,10 @@ func (c ErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchEr
 	return
 }
 
-var _ rpc.ErrorUnwrapper = NewContextifiedErrorUnwrapper(nil)
-var _ rpc.ErrorUnwrapper = ErrorUnwrapper{}
+var (
+	_ rpc.ErrorUnwrapper = NewContextifiedErrorUnwrapper(nil)
+	_ rpc.ErrorUnwrapper = ErrorUnwrapper{}
+)
 
 // =============================================================================
 
@@ -1325,13 +1326,13 @@ func (l perUserKeyList) Len() int { return len(l) }
 func (l perUserKeyList) Less(i, j int) bool {
 	return l[i].Gen < l[j].Gen
 }
+
 func (l perUserKeyList) Swap(i, j int) {
 	l[i], l[j] = l[j], l[i]
 }
 
 // ExportPerUserKeys exports the per-user public KIDs.
 func (ckf ComputedKeyFamily) ExportPerUserKeys() (ret []keybase1.PerUserKey) {
-
 	for _, k := range ckf.cki.PerUserKeys {
 		ret = append(ret, k)
 	}
@@ -1439,7 +1440,6 @@ func (p PerUserKeysList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p PerUserKeysList) Less(i, j int) bool { return p[i].Gen < p[j].Gen }
 
 func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username string, eldestSeqno keybase1.Seqno, kf *KeyFamily, status keybase1.StatusCode, reset *keybase1.ResetSummary) keybase1.UserPlusKeysV2 {
-
 	var perUserKeysList PerUserKeysList
 	if cki != nil {
 		for _, puk := range cki.PerUserKeys {

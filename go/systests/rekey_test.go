@@ -298,7 +298,6 @@ func (rkt *rekeyTester) makeFullyKeyedHomeTLF() {
 }
 
 func (rkt *rekeyTester) changeKeysOnHomeTLF(kids []keybase1.KID) {
-
 	rkt.log.Debug("+ changeKeysOnHomeTLF(%v)", kids)
 	defer rkt.log.Debug("- changeKeysOnHomeTLF")
 
@@ -329,7 +328,6 @@ func (rkt *rekeyTester) changeKeysOnHomeTLF(kids []keybase1.KID) {
 }
 
 func (rkt *rekeyTester) bumpTLF(kid keybase1.KID) {
-
 	rkt.log.Debug("+ bumpTLF(%s)", kid)
 	defer rkt.log.Debug("- bumpTLF")
 
@@ -353,7 +351,6 @@ func (rkt *rekeyTester) bumpTLF(kid keybase1.KID) {
 }
 
 func (rkt *rekeyTester) kickRekeyd() {
-
 	// Use the global context from the service for making API calls
 	// to the API server.
 	g := rkt.primaryContext()
@@ -436,7 +433,6 @@ func (rkt *rekeyTester) snoozeRekeyWindow(dw *deviceWrapper) {
 }
 
 func (rkt *rekeyTester) confirmSnoozeContiues(dw *deviceWrapper) {
-
 	rkt.log.Debug("+ -------- confirmSnoozeContiues ---------")
 	defer rkt.log.Debug("- -------- confirmSnoozeContiues ---------")
 
@@ -446,7 +442,6 @@ func (rkt *rekeyTester) confirmSnoozeContiues(dw *deviceWrapper) {
 }
 
 func (rkt *rekeyTester) confirmRekeyWakesUp(dw *deviceWrapper) {
-
 	rkt.log.Debug("+ -------- confirmRekeyWakesUp ---------")
 	defer rkt.log.Debug("- -------- confirmRekeyWakesUp ---------")
 
@@ -479,12 +474,15 @@ func (u *rekeyBackupKeyUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1
 	u.secret = arg.Phrase
 	return nil
 }
+
 func (u *rekeyBackupKeyUI) DisplayPrimaryPaperKey(context.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
+
 func (u *rekeyBackupKeyUI) PromptRevokePaperKeys(context.Context, keybase1.PromptRevokePaperKeysArg) (bool, error) {
 	return false, nil
 }
+
 func (u *rekeyBackupKeyUI) GetEmailOrUsername(context.Context, int) (string, error) {
 	return "", nil
 }
@@ -582,7 +580,6 @@ func (rkt *rekeyTester) generateNewBackupKey(dw *deviceWrapper) {
 }
 
 func (rkt *rekeyTester) expectAlreadyKeyedNoop(dw *deviceWrapper) {
-
 	rkt.log.Debug("+ ----------- expectAlreadyKeyedNoop ------------")
 	defer rkt.log.Debug("- ----------- expectAlreadyKeyedNoop ------------")
 
@@ -617,64 +614,84 @@ var _ libkb.LoginUI = (*rekeyProvisionUI)(nil)
 func (r *rekeyProvisionUI) GetEmailOrUsername(context.Context, int) (string, error) {
 	return r.username, nil
 }
+
 func (r *rekeyProvisionUI) PromptRevokePaperKeys(context.Context, keybase1.PromptRevokePaperKeysArg) (ret bool, err error) {
 	return false, nil
 }
+
 func (r *rekeyProvisionUI) DisplayPaperKeyPhrase(context.Context, keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
+
 func (r *rekeyProvisionUI) DisplayPrimaryPaperKey(context.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
+
 func (r *rekeyProvisionUI) ChooseProvisioningMethod(context.Context, keybase1.ChooseProvisioningMethodArg) (ret keybase1.ProvisionMethod, err error) {
 	return ret, nil
 }
+
 func (r *rekeyProvisionUI) ChooseGPGMethod(context.Context, keybase1.ChooseGPGMethodArg) (ret keybase1.GPGMethod, err error) {
 	return ret, nil
 }
+
 func (r *rekeyProvisionUI) SwitchToGPGSignOK(context.Context, keybase1.SwitchToGPGSignOKArg) (ret bool, err error) {
 	return ret, nil
 }
+
 func (r *rekeyProvisionUI) ChooseDeviceType(context.Context, keybase1.ChooseDeviceTypeArg) (ret keybase1.DeviceType, err error) {
 	return ret, nil
 }
+
 func (r *rekeyProvisionUI) DisplayAndPromptSecret(context.Context, keybase1.DisplayAndPromptSecretArg) (ret keybase1.SecretResponse, err error) {
 	return ret, nil
 }
+
 func (r *rekeyProvisionUI) DisplaySecretExchanged(context.Context, int) error {
 	return nil
 }
+
 func (r *rekeyProvisionUI) PromptNewDeviceName(context.Context, keybase1.PromptNewDeviceNameArg) (ret string, err error) {
 	return "taco tsar", nil
 }
+
 func (r *rekeyProvisionUI) ProvisioneeSuccess(context.Context, keybase1.ProvisioneeSuccessArg) error {
 	return nil
 }
+
 func (r *rekeyProvisionUI) ProvisionerSuccess(context.Context, keybase1.ProvisionerSuccessArg) error {
 	return nil
 }
+
 func (r *rekeyProvisionUI) ChooseDevice(context.Context, keybase1.ChooseDeviceArg) (ret keybase1.DeviceID, err error) {
 	return r.backupKey.deviceID, nil
 }
+
 func (r *rekeyProvisionUI) GetPassphrase(context.Context, keybase1.GetPassphraseArg) (ret keybase1.GetPassphraseRes, err error) {
 	ret.Passphrase = r.backupKey.secret
 	return ret, nil
 }
+
 func (r *rekeyProvisionUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
 	return keybase1.ResetPromptResponse_NOTHING, nil
 }
+
 func (r *rekeyProvisionUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
 }
+
 func (r *rekeyProvisionUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
 	return nil
 }
+
 func (r *rekeyProvisionUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
 }
+
 func (r *rekeyProvisionUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
 	return "", nil
 }
+
 func (r *rekeyProvisionUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
 	return nil
 }
@@ -744,7 +761,6 @@ func (rkt *rekeyTester) provisionNewDevice() *deviceWrapper {
 }
 
 func (rkt *rekeyTester) bumpTLFAndAssertRekeyWindowPushed(dw *deviceWrapper) {
-
 	rkt.log.Debug("+ -------- bumpTLFAndAssertRekeyWindowPushed ------------")
 	defer rkt.log.Debug("- -------- bumpTLFAndAssertRekeyWindowPushed ------------")
 

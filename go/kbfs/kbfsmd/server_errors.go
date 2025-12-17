@@ -183,8 +183,7 @@ func (e ServerErrorConflictDiskUsage) Error() string {
 }
 
 // ServerErrorLocked is returned when the folder truncation lock is acquired by someone else.
-type ServerErrorLocked struct {
-}
+type ServerErrorLocked struct{}
 
 // Error implements the Error interface for ServerErrorLocked.
 func (e ServerErrorLocked) Error() string {

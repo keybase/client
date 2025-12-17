@@ -100,7 +100,8 @@ func (r DummyChatUI) ChatGiphySearchResults(ctx context.Context, arg chat1.ChatG
 }
 
 func (r DummyChatUI) ChatGiphyToggleResultWindow(ctx context.Context,
-	arg chat1.ChatGiphyToggleResultWindowArg) error {
+	arg chat1.ChatGiphyToggleResultWindowArg,
+) error {
 	return nil
 }
 
@@ -155,9 +156,11 @@ func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.N
 func (d DummyChatNotifications) ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatTLFFinalize(context.Context, chat1.ChatTLFFinalizeArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatTLFResolve(context.Context, chat1.ChatTLFResolveArg) error {
 	return nil
 }
@@ -165,73 +168,97 @@ func (d DummyChatNotifications) ChatInboxStale(context.Context, keybase1.UID) er
 func (d DummyChatNotifications) ChatThreadsStale(context.Context, chat1.ChatThreadsStaleArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatTypingUpdate(context.Context, []chat1.ConvTypingUpdate) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatJoinedConversation(context.Context, chat1.ChatJoinedConversationArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatLeftConversation(context.Context, chat1.ChatLeftConversationArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatResetConversation(context.Context, chat1.ChatResetConversationArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatInboxSyncStarted(context.Context, keybase1.UID) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatInboxSynced(context.Context, chat1.ChatInboxSyncedArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatSetConvRetention(context.Context, chat1.ChatSetConvRetentionArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatSetTeamRetention(context.Context, chat1.ChatSetTeamRetentionArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatSetConvSettings(context.Context, chat1.ChatSetConvSettingsArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatSubteamRename(context.Context, chat1.ChatSubteamRenameArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatKBFSToImpteamUpgrade(context.Context, chat1.ChatKBFSToImpteamUpgradeArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatAttachmentUploadStart(context.Context, chat1.ChatAttachmentUploadStartArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatAttachmentDownloadProgress(context.Context, chat1.ChatAttachmentDownloadProgressArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatAttachmentDownloadComplete(context.Context, chat1.ChatAttachmentDownloadCompleteArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatArchiveProgress(context.Context, chat1.ChatArchiveProgressArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatArchiveComplete(context.Context, chat1.ArchiveJobID) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatPaymentInfo(context.Context, chat1.ChatPaymentInfoArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatRequestInfo(context.Context, chat1.ChatRequestInfoArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatPromptUnfurl(context.Context, chat1.ChatPromptUnfurlArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatConvUpdate(context.Context, chat1.ChatConvUpdateArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatWelcomeMessageLoaded(context.Context, chat1.ChatWelcomeMessageLoadedArg) error {
 	return nil
 }
+
 func (d DummyChatNotifications) ChatParticipantsInfo(context.Context,
-	map[chat1.ConvIDStr][]chat1.UIParticipant) error {
+	map[chat1.ConvIDStr][]chat1.UIParticipant,
+) error {
 	return nil
 }

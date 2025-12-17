@@ -378,6 +378,5 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, chat1.UnfurlMode_NEVER, settings.Mode)
 		require.Equal(t, []string{"cnn.com", "nytimes.com"}, settings.Whitelist)
-
 	})
 }

@@ -177,7 +177,8 @@ func (r *teamHandler) gotForceRepoll(ctx context.Context, cli gregor1.IncomingIn
 }
 
 func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, category string,
-	item gregor.Item, changes keybase1.TeamChangeSet) error {
+	item gregor.Item, changes keybase1.TeamChangeSet,
+) error {
 	var rows []keybase1.TeamChangeRow
 	r.G().Log.CDebugf(ctx, "teamHandler: changeTeam received")
 	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
@@ -234,7 +235,6 @@ func (r *teamHandler) userTeamVersion(ctx context.Context, cli gregor1.IncomingI
 		return err
 	}
 	return r.G().GetTeamRoleMapManager().Update(mctx, obj.Version)
-
 }
 
 func (r *teamHandler) newlyAddedToTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {

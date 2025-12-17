@@ -13,14 +13,14 @@ import (
 
 func mdForceQROne(
 	ctx context.Context, config libkbfs.Config,
-	replacements replacementMap, input string, dryRun bool) error {
+	replacements replacementMap, input string, dryRun bool,
+) error {
 	tlfStr, branchStr, startStr, stopStr, err := mdSplitInput(input)
 	if err != nil {
 		return err
 	}
 
-	_, branchID, start, stop, err :=
-		mdParseInput(ctx, config, tlfStr, branchStr, startStr, stopStr)
+	_, branchID, start, stop, err := mdParseInput(ctx, config, tlfStr, branchStr, startStr, stopStr)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,8 @@ const mdForceQRUsageStr = `Usage:
 `
 
 func mdForceQR(ctx context.Context, config libkbfs.Config,
-	args []string) (exitStatus int) {
+	args []string,
+) (exitStatus int) {
 	flags := flag.NewFlagSet("kbfs md forceQR", flag.ContinueOnError)
 	dryRun := flags.Bool("d", false, "Dry run: don't actually do anything.")
 	err := flags.Parse(args)

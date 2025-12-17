@@ -217,7 +217,8 @@ func DetectMIMEType(ctx context.Context, src ReadResetter, filename string) (res
 }
 
 func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src ReadResetter, filename string,
-	nvh types.NativeVideoHelper, callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
+	nvh types.NativeVideoHelper, callerPreview *chat1.MakePreviewRes,
+) (p Preprocess, err error) {
 	if callerPreview != nil && callerPreview.Location != nil {
 		log.Debug(ctx, "preprocessAsset: caller provided preview, using that")
 		if p, err = processCallerPreview(ctx, g, *callerPreview); err != nil {

@@ -131,7 +131,7 @@ func TestUnzipOverCorrupted(t *testing.T) {
 
 func tempDir(t *testing.T) string {
 	tmpDir := TempPath("", "TestUnzipOver")
-	err := MakeDirs(tmpDir, 0700, testLog)
+	err := MakeDirs(tmpDir, 0o700, testLog)
 	require.NoError(t, err)
 	return tmpDir
 }

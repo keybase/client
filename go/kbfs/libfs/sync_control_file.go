@@ -39,7 +39,8 @@ func (a SyncAction) String() string {
 // given TLF.
 func (a SyncAction) Execute(
 	ctx context.Context, c libkbfs.Config, fb data.FolderBranch,
-	h *tlfhandle.Handle) (err error) {
+	h *tlfhandle.Handle,
+) (err error) {
 	if fb == (data.FolderBranch{}) {
 		panic("zero fb in SyncAction.Execute")
 	}

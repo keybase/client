@@ -15,8 +15,7 @@ type baseBox struct {
 	encryptedDB *encrypteddb.EncryptedDB
 }
 
-type SecretUI struct {
-}
+type SecretUI struct{}
 
 func (d SecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	return keybase1.GetPassphraseRes{}, fmt.Errorf("no secret UI available")

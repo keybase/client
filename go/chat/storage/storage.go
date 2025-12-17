@@ -63,7 +63,6 @@ type DummyAssetDeleter struct{}
 
 func (d DummyAssetDeleter) DeleteAssets(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	assets []chat1.Asset) {
-
 }
 
 func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
@@ -332,7 +331,8 @@ func (s *Storage) Nuke(ctx context.Context, convID chat1.ConversationID, uid gre
 }
 
 func (s *Storage) maybeNukeLocked(ctx context.Context, force bool, err Error, convID chat1.ConversationID,
-	uid gregor1.UID) Error {
+	uid gregor1.UID,
+) Error {
 	// Clear index
 	if force || err.ShouldClear() {
 		s.Debug(ctx, "chat local storage corrupted: clearing")
@@ -354,7 +354,8 @@ func (s *Storage) maybeNukeLocked(ctx context.Context, force bool, err Error, co
 }
 
 func (s *Storage) SetMaxMsgID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgID chat1.MessageID) (err Error) {
+	msgID chat1.MessageID,
+) (err Error) {
 	var ierr error
 	defer s.Trace(ctx, &ierr, "SetMaxMsgID")()
 	defer func() { ierr = s.castInternalError(err) }()
@@ -396,7 +397,8 @@ type FetchResult struct {
 
 // Merge requires msgs to be sorted by descending message ID
 func (s *Storage) Merge(ctx context.Context,
-	conv types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed) (res MergeResult, err Error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed,
+) (res MergeResult, err Error) {
 	var ierr error
 	defer s.Trace(ctx, &ierr, "Merge")()
 	defer func() { ierr = s.castInternalError(err) }()
@@ -404,7 +406,8 @@ func (s *Storage) Merge(ctx context.Context,
 }
 
 func (s *Storage) Expunge(ctx context.Context,
-	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) (res MergeResult, err Error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge,
+) (res MergeResult, err Error) {
 	var ierr error
 	defer s.Trace(ctx, &ierr, "Expunge")()
 	defer func() { ierr = s.castInternalError(err) }()
@@ -415,7 +418,8 @@ func (s *Storage) Expunge(ctx context.Context,
 // MergeHelper requires msgs to be sorted by descending message ID
 // expunge is optional
 func (s *Storage) MergeHelper(ctx context.Context,
-	conv types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (res MergeResult, err Error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge,
+) (res MergeResult, err Error) {
 	var ierr error
 	defer s.Trace(ctx, &ierr, "MergeHelper")()
 	defer func() { ierr = s.castInternalError(err) }()
@@ -503,7 +507,8 @@ func (s *Storage) isReply(msg chat1.MessageUnboxed) *chat1.MessageID {
 }
 
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, inMsgs []chat1.MessageUnboxed) (res updateAllSupersededByRes, err Error) {
+	uid gregor1.UID, inMsgs []chat1.MessageUnboxed,
+) (res updateAllSupersededByRes, err Error) {
 	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(inMsgs))
 	// Do a pass over all the messages and update supersededBy pointers
 
@@ -589,8 +594,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 					var reactionUpdate bool
 					// reactions don't update SupersededBy, instead they rely
 					// on ReactionIDs
-					mvalid.ServerHeader.ReactionIDs, reactionUpdate =
-						s.updateReactionIDs(mvalid.ServerHeader.ReactionIDs, msgid)
+					mvalid.ServerHeader.ReactionIDs, reactionUpdate = s.updateReactionIDs(mvalid.ServerHeader.ReactionIDs, msgid)
 					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 					newMsgMap[newMsg.GetMessageID()] = newMsg
 					if reactionUpdate {
@@ -684,8 +688,8 @@ func (s *Storage) flatten(m map[chat1.MessageID]chat1.MessageUnboxed) (res []cha
 }
 
 func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
-
+	uid gregor1.UID, msgs []chat1.MessageUnboxed,
+) Error {
 	de := func(format string, args ...interface{}) {
 		s.Debug(ctx, "updateMinDeletableMessage: "+fmt.Sprintf(format, args...))
 	}
@@ -739,8 +743,8 @@ func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.Co
 //
 //	and the DeleteHistory-type messages.
 func (s *Storage) handleDeleteHistory(ctx context.Context, conv types.UnboxConversationInfo,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed, expungeExplicit *chat1.Expunge) (*chat1.Expunge, Error) {
-
+	uid gregor1.UID, msgs []chat1.MessageUnboxed, expungeExplicit *chat1.Expunge,
+) (*chat1.Expunge, Error) {
 	de := func(format string, args ...interface{}) {
 		s.Debug(ctx, "handleDeleteHistory: "+fmt.Sprintf(format, args...))
 	}
@@ -820,8 +824,8 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, conv types.UnboxConve
 // Returns a non-nil expunge if deletes happened.
 // Always runs through local messages.
 func (s *Storage) applyExpunge(ctx context.Context, conv types.UnboxConversationInfo,
-	uid gregor1.UID, expunge chat1.Expunge) (*chat1.Expunge, Error) {
-
+	uid gregor1.UID, expunge chat1.Expunge,
+) (*chat1.Expunge, Error) {
 	convID := conv.GetConvID()
 	s.Debug(ctx, "applyExpunge(%v, %v, %v)", convID, uid, expunge.Upto)
 
@@ -911,7 +915,8 @@ func (s *Storage) applyExpunge(ctx context.Context, conv types.UnboxConversation
 
 // clearUpthrough clears up to the given message ID, inclusive
 func (s *Storage) clearUpthrough(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	upthrough chat1.MessageID) (err Error) {
+	upthrough chat1.MessageID,
+) (err Error) {
 	var ierr error
 	defer s.Trace(ctx, &ierr, "clearUpthrough")()
 	defer func() { ierr = s.castInternalError(err) }()
@@ -933,7 +938,8 @@ func (s *Storage) clearUpthrough(ctx context.Context, convID chat1.ConversationI
 
 // ClearBefore clears all messages up to (but not including) the upto messageID
 func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	upto chat1.MessageID) (err Error) {
+	upto chat1.MessageID,
+) (err Error) {
 	var ierr error
 	defer s.Trace(ctx, &ierr, "ClearBefore: convID: %s, uid: %s, msgID: %d", convID, uid, upto)()
 	defer func() { ierr = s.castInternalError(err) }()
@@ -961,7 +967,8 @@ func (s *Storage) ClearAll(ctx context.Context, convID chat1.ConversationID, uid
 }
 
 func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.GetThreadQuery,
-	pagination *chat1.Pagination) ResultCollector {
+	pagination *chat1.Pagination,
+) ResultCollector {
 	var num int
 	if pagination != nil {
 		num = pagination.Num
@@ -978,8 +985,8 @@ func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.Get
 
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery,
-	pagination *chat1.Pagination) (res FetchResult, err Error) {
-
+	pagination *chat1.Pagination,
+) (res FetchResult, err Error) {
 	if err = isAbortedRequest(ctx); err != nil {
 		return res, err
 	}
@@ -1077,7 +1084,8 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 
 func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, rc ResultCollector, iboxMaxMsgID chat1.MessageID,
-	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res FetchResult, err Error) {
+	query *chat1.GetThreadQuery, pagination *chat1.Pagination,
+) (res FetchResult, err Error) {
 	var ierr error
 	defer s.Trace(ctx, &ierr, "FetchUpToLocalMaxMsgID")()
 	defer func() { ierr = s.castInternalError(err) }()
@@ -1099,7 +1107,8 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res FetchResult, err Error) {
+	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
+) (res FetchResult, err Error) {
 	var ierr error
 	defer s.Trace(ctx, &ierr, "Fetch")()
 	defer func() { ierr = s.castInternalError(err) }()
@@ -1111,7 +1120,8 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 }
 
 func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgIDs []chat1.MessageID) (res []*chat1.MessageUnboxed, err Error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID,
+) (res []*chat1.MessageUnboxed, err Error) {
 	var ierr error
 	defer s.Trace(ctx, &ierr, "FetchMessages")()
 	defer func() { ierr = s.castInternalError(err) }()
@@ -1174,7 +1184,8 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 }
 
 func (s *Storage) FetchUnreadlineID(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, readMsgID chat1.MessageID) (msgID *chat1.MessageID, err Error) {
+	uid gregor1.UID, readMsgID chat1.MessageID,
+) (msgID *chat1.MessageID, err Error) {
 	var ierr error
 	defer s.Trace(ctx, &ierr, "FetchUnreadlineID")()
 	defer func() { ierr = s.castInternalError(err) }()
@@ -1215,7 +1226,8 @@ func (s *Storage) FetchUnreadlineID(ctx context.Context, convID chat1.Conversati
 }
 
 func (s *Storage) UpdateTLFIdentifyBreak(ctx context.Context, tlfID chat1.TLFID,
-	breaks []keybase1.TLFIdentifyFailure) error {
+	breaks []keybase1.TLFIdentifyFailure,
+) error {
 	return s.breakTracker.UpdateTLF(ctx, tlfID, breaks)
 }
 
@@ -1245,7 +1257,8 @@ func (s *Storage) getMessage(ctx context.Context, convID chat1.ConversationID, u
 }
 
 func (s *Storage) updateUnfurlTargetOnDelete(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, unfurlMsg chat1.MessageUnboxed) (res chat1.MessageUnboxed, err error) {
+	uid gregor1.UID, unfurlMsg chat1.MessageUnboxed,
+) (res chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, &err, "updateUnfurlTargetOnDelete(%d)",
 		unfurlMsg.GetMessageID())()
 	if unfurlMsg.Valid().MessageBody.IsNil() {
@@ -1267,7 +1280,8 @@ func (s *Storage) updateUnfurlTargetOnDelete(ctx context.Context, convID chat1.C
 }
 
 func (s *Storage) updateRepliesAffected(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	replies []chat1.MessageID, replyMap map[chat1.MessageID]chat1.MessageUnboxed) {
+	replies []chat1.MessageID, replyMap map[chat1.MessageID]chat1.MessageUnboxed,
+) {
 	if len(replies) == 0 {
 		return
 	}
@@ -1286,7 +1300,8 @@ func (s *Storage) updateRepliesAffected(ctx context.Context, convID chat1.Conver
 }
 
 func (s *Storage) GetExplodedReplies(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	exploded []chat1.MessageUnboxed) []chat1.MessageUnboxed {
+	exploded []chat1.MessageUnboxed,
+) []chat1.MessageUnboxed {
 	if len(exploded) == 0 {
 		return nil
 	}
@@ -1317,7 +1332,8 @@ func (s *Storage) updateReactionIDs(reactionIDs []chat1.MessageID, msgid chat1.M
 // updateReactionTargetOnDelete modifies the reaction's target message when the
 // reaction itself is deleted
 func (s *Storage) updateReactionTargetOnDelete(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, reactionMsg *chat1.MessageUnboxed) (*chat1.MessageUnboxed, bool, Error) {
+	uid gregor1.UID, reactionMsg *chat1.MessageUnboxed,
+) (*chat1.MessageUnboxed, bool, Error) {
 	s.Debug(ctx, "updateReactionTargetOnDelete: reationMsg: %v", reactionMsg)
 
 	if reactionMsg.Valid().MessageBody.IsNil() {

@@ -25,8 +25,10 @@ type deviceEKCacheItem struct {
 	Err      error
 }
 
-type deviceEKCache map[keybase1.EkGeneration]deviceEKCacheItem
-type DeviceEKMap map[keybase1.EkGeneration]keybase1.DeviceEk
+type (
+	deviceEKCache map[keybase1.EkGeneration]deviceEKCacheItem
+	DeviceEKMap   map[keybase1.EkGeneration]keybase1.DeviceEk
+)
 
 type DeviceEKStorage struct {
 	sync.Mutex
@@ -283,14 +285,16 @@ func (s *DeviceEKStorage) get(mctx libkb.MetaContext, generation keybase1.EkGene
 }
 
 func (s *DeviceEKStorage) Delete(mctx libkb.MetaContext, generation keybase1.EkGeneration,
-	reason string, args ...interface{}) (err error) {
+	reason string, args ...interface{},
+) (err error) {
 	s.Lock()
 	defer s.Unlock()
 	return s.delete(mctx, generation, reason, args...)
 }
 
 func (s *DeviceEKStorage) delete(mctx libkb.MetaContext, generation keybase1.EkGeneration,
-	reason string, args ...interface{}) (err error) {
+	reason string, args ...interface{},
+) (err error) {
 	defer s.ekLogCTrace(mctx, fmt.Sprintf("DeviceEKStorage#delete: generation:%v reason: %s", generation, fmt.Sprintf(reason, args...)), &err)()
 
 	// clear the cache

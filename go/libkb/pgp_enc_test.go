@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"io"
-
 	"strings"
 	"testing"
 	"testing/quick"

@@ -44,7 +44,8 @@ type IndexedTlfDb struct {
 // passed-in storage.Storage interfaces as a storage layers for the db.
 func newIndexedTlfDbFromStorage(
 	config libkbfs.Config, tlfStorage storage.Storage) (
-	db *IndexedTlfDb, err error) {
+	db *IndexedTlfDb, err error,
+) {
 	log := config.MakeLogger("ITD")
 	closers := make([]io.Closer, 0, 1)
 	closer := func() {
@@ -80,7 +81,8 @@ func newIndexedTlfDbFromStorage(
 // newIndexedTlfDb creates a new *IndexedTlfDb with a
 // specified directory on the filesystem as storage.
 func newIndexedTlfDb(config libkbfs.Config, dirPath string) (
-	db *IndexedTlfDb, err error) {
+	db *IndexedTlfDb, err error,
+) {
 	log := config.MakeLogger("ITD")
 	defer func() {
 		if err != nil {
@@ -115,7 +117,8 @@ type tlfMD struct {
 // getMetadataLocked retrieves the metadata for a block in the db, or
 // returns leveldb.ErrNotFound and a zero-valued metadata otherwise.
 func (db *IndexedTlfDb) getMetadataLocked(tlfID tlf.ID) (
-	metadata tlfMD, err error) {
+	metadata tlfMD, err error,
+) {
 	metadataBytes, err := db.tlfDb.Get(tlfID.Bytes(), nil)
 	if err != nil {
 		return tlfMD{}, err
@@ -129,7 +132,8 @@ func (db *IndexedTlfDb) getMetadataLocked(tlfID tlf.ID) (
 
 // checkAndLockDb checks whether the db is started.
 func (db *IndexedTlfDb) checkDbLocked(
-	ctx context.Context, method string) error {
+	ctx context.Context, method string,
+) error {
 	// First see if the context has expired since we began.
 	select {
 	case <-ctx.Done():
@@ -152,7 +156,8 @@ func (db *IndexedTlfDb) checkDbLocked(
 // Get returns the revisions for the given TLF.
 func (db *IndexedTlfDb) Get(
 	ctx context.Context, tlfID tlf.ID) (
-	indexedRev, startedRev kbfsmd.Revision, err error) {
+	indexedRev, startedRev kbfsmd.Revision, err error,
+) {
 	db.lock.RLock()
 	defer db.lock.RUnlock()
 	err = db.checkDbLocked(ctx, "ITD(Get)")
@@ -170,7 +175,8 @@ func (db *IndexedTlfDb) Get(
 // Put saves the revisions for the given TLF.
 func (db *IndexedTlfDb) Put(
 	ctx context.Context, tlfID tlf.ID,
-	indexedRev, startedRev kbfsmd.Revision) error {
+	indexedRev, startedRev kbfsmd.Revision,
+) error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 	err := db.checkDbLocked(ctx, "ITD(Put)")
@@ -192,7 +198,8 @@ func (db *IndexedTlfDb) Put(
 
 // Delete removes the metadata for the TLF from the DB.
 func (db *IndexedTlfDb) Delete(
-	ctx context.Context, tlfID tlf.ID) error {
+	ctx context.Context, tlfID tlf.ID,
+) error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 	err := db.checkDbLocked(ctx, "ITD(Delete)")

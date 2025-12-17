@@ -27,7 +27,7 @@ var _ fs.Node = (*UnstageFile)(nil)
 // Attr implements the fs.Node interface for UnstageFile.
 func (f *UnstageFile) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Size = 0
-	a.Mode = 0222
+	a.Mode = 0o222
 	return nil
 }
 
@@ -37,7 +37,8 @@ var _ fs.HandleWriter = (*UnstageFile)(nil)
 
 // Write implements the fs.HandleWriter interface for UnstageFile.
 func (f *UnstageFile) Write(ctx context.Context, req *fuse.WriteRequest,
-	resp *fuse.WriteResponse) (err error) {
+	resp *fuse.WriteResponse,
+) (err error) {
 	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 	size, err := libfs.UnstageForTesting(
 		ctx, f.folder.fs.log, f.folder.fs.config,

@@ -101,7 +101,7 @@ func TestComputeValidity(t *testing.T) {
 		return &t
 	}
 
-	var tests = []struct {
+	tests := []struct {
 		desc string
 
 		now time.Time

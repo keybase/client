@@ -13,8 +13,10 @@ const escapeSacrificeForWindows = '‰'
 
 const disallowedRunesOnWindows = "<>:\"/\\|?*"
 
-var kbfsNameToWindowsReplaceSequence [][2]string
-var windowsNameToKbfsReplaceSequence [][2]string
+var (
+	kbfsNameToWindowsReplaceSequence [][2]string
+	windowsNameToKbfsReplaceSequence [][2]string
+)
 
 func init() {
 	makeEscapePair := func(r rune) [2]string {

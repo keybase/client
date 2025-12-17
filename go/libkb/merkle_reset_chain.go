@@ -91,7 +91,6 @@ type MerkleResets struct {
 }
 
 func (mr *MerkleResets) verifyAndLoad(m MetaContext, urc unverifiedResetChain) (err error) {
-
 	// Don't even bother to do a CVTrace if the user hasn't reset at all
 	if mr == nil {
 		return nil

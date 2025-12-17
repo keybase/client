@@ -15,9 +15,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-var uid = flag.String("uid", "", "uid of sigchain owner")
-var username = flag.String("username", "", "username of sigchain owner")
-var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var (
+	uid        = flag.String("uid", "", "uid of sigchain owner")
+	username   = flag.String("username", "", "username of sigchain owner")
+	cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+)
 
 func errout(msg string) {
 	fmt.Fprintf(os.Stderr, "%s", msg+"\n")

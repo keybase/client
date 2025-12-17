@@ -79,7 +79,7 @@ func Update(c Codec, dstPtr interface{}, src interface{}) error {
 // SerializeToFile serializes the given object and writes it to the
 // given file, making its parent directory first if necessary.
 func SerializeToFile(c Codec, obj interface{}, path string) error {
-	err := ioutil.MkdirAll(filepath.Dir(path), 0700)
+	err := ioutil.MkdirAll(filepath.Dir(path), 0o700)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func SerializeToFile(c Codec, obj interface{}, path string) error {
 		return err
 	}
 
-	return ioutil.WriteSerializedFile(path, buf, 0600)
+	return ioutil.WriteSerializedFile(path, buf, 0o600)
 }
 
 // SerializeToFileIfNotExist is like SerializeToFile, but does nothing

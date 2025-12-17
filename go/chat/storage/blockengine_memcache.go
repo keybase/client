@@ -52,7 +52,8 @@ func (b *blockEngineMemCacheImpl) key(uid gregor1.UID, convID chat1.Conversation
 }
 
 func (b *blockEngineMemCacheImpl) getBlock(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, id int) (block, bool) {
+	convID chat1.ConversationID, id int,
+) (block, bool) {
 	key := b.key(uid, convID, id)
 	lock := b.lockTab.AcquireOnName(ctx, b.logContext, key)
 	defer lock.Release(ctx)
@@ -71,7 +72,8 @@ func (b *blockEngineMemCacheImpl) getBlock(ctx context.Context, uid gregor1.UID,
 }
 
 func (b *blockEngineMemCacheImpl) writeBlock(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, bl block) {
+	convID chat1.ConversationID, bl block,
+) {
 	key := b.key(uid, convID, bl.BlockID)
 	lock := b.lockTab.AcquireOnName(ctx, b.logContext, key)
 	defer lock.Release(ctx)

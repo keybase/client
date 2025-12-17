@@ -41,7 +41,8 @@ func NewKeyServerMeasured(delegate KeyServer, r metrics.Registry) KeyServerMeasu
 // KeyServerMeasured.
 func (b KeyServerMeasured) GetTLFCryptKeyServerHalf(ctx context.Context,
 	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID, key kbfscrypto.CryptPublicKey) (
-	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
+	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error,
+) {
 	b.getTimer.Time(func() {
 		serverHalf, err = b.delegate.GetTLFCryptKeyServerHalf(ctx, serverHalfID, key)
 	})
@@ -51,7 +52,8 @@ func (b KeyServerMeasured) GetTLFCryptKeyServerHalf(ctx context.Context,
 // PutTLFCryptKeyServerHalves implements the KeyServer interface for
 // KeyServerMeasured.
 func (b KeyServerMeasured) PutTLFCryptKeyServerHalves(ctx context.Context,
-	keyServerHalves kbfsmd.UserDeviceKeyServerHalves) (err error) {
+	keyServerHalves kbfsmd.UserDeviceKeyServerHalves,
+) (err error) {
 	b.putTimer.Time(func() {
 		err = b.delegate.PutTLFCryptKeyServerHalves(ctx, keyServerHalves)
 	})
@@ -62,7 +64,8 @@ func (b KeyServerMeasured) PutTLFCryptKeyServerHalves(ctx context.Context,
 // KeyServerMeasured.
 func (b KeyServerMeasured) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.CryptPublicKey,
-	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) (err error) {
+	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
+) (err error) {
 	b.deleteTimer.Time(func() {
 		err = b.delegate.DeleteTLFCryptKeyServerHalf(
 			ctx, uid, key, serverHalfID)

@@ -11,7 +11,8 @@ import (
 )
 
 func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, team,
-	user string, membersType chat1.ConversationMembersType, role keybase1.TeamRole) (err error) {
+	user string, membersType chat1.ConversationMembersType, role keybase1.TeamRole,
+) (err error) {
 	if team == "" && !teamID.IsNil() {
 		teamname, err := ResolveIDToName(ctx, g, teamID)
 		if err != nil {
@@ -43,8 +44,8 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 }
 
 func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, team string,
-	category keybase1.TeamInviteCategory, inviter, invitee keybase1.UID, role keybase1.TeamRole) (res bool) {
-
+	category keybase1.TeamInviteCategory, inviter, invitee keybase1.UID, role keybase1.TeamRole,
+) (res bool) {
 	if !g.Env.SendSystemChatMessages() {
 		g.Log.CDebugf(ctx, "Skipping SentChatInviteWelcomeMessage via environment flag")
 		return false
@@ -84,8 +85,8 @@ func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, t
 
 func SendChatSBSResolutionMessage(ctx context.Context, g *libkb.GlobalContext,
 	team, assertionUser, assertionService string,
-	prover keybase1.UID) (res bool) {
-
+	prover keybase1.UID,
+) (res bool) {
 	if !g.Env.SendSystemChatMessages() {
 		g.Log.CDebugf(ctx, "Skipping SentChatInviteWelcomeMessage via environment flag")
 		return false

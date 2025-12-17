@@ -62,16 +62,14 @@ func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public
 			pres, err = t.PublicCanonicalTLFNameAndID(ctx, tlfName)
 			res.CanonicalName = pres.CanonicalName.String()
 			res.ID = chat1.TLFID(pres.TlfID.ToBytes())
-			keys[chat1.ConversationMembersType_KBFS] =
-				append(keys[chat1.ConversationMembersType_KBFS], publicCryptKey)
+			keys[chat1.ConversationMembersType_KBFS] = append(keys[chat1.ConversationMembersType_KBFS], publicCryptKey)
 		} else {
 			var cres keybase1.GetTLFCryptKeysRes
 			cres, err = t.CryptKeys(ctx, tlfName)
 			res.CanonicalName = cres.NameIDBreaks.CanonicalName.String()
 			res.ID = chat1.TLFID(cres.NameIDBreaks.TlfID.ToBytes())
 			for _, key := range cres.CryptKeys {
-				keys[chat1.ConversationMembersType_KBFS] =
-					append(keys[chat1.ConversationMembersType_KBFS], key)
+				keys[chat1.ConversationMembersType_KBFS] = append(keys[chat1.ConversationMembersType_KBFS], key)
 			}
 		}
 		if err != nil {
@@ -96,12 +94,14 @@ func (t *KBFSNameInfoSource) LookupID(ctx context.Context, tlfName string, publi
 }
 
 func (t *KBFSNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool,
-	unverifiedTLFName string) (res types.NameInfo, err error) {
+	unverifiedTLFName string,
+) (res types.NameInfo, err error) {
 	return res, fmt.Errorf("LookupName not implemented for KBFSNameInfoSource")
 }
 
 func (t *KBFSNameInfoSource) TeamBotSettings(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (map[keybase1.UserVersion]keybase1.TeamBotSettings, error) {
+	membersType chat1.ConversationMembersType, public bool,
+) (map[keybase1.UserVersion]keybase1.TeamBotSettings, error) {
 	return nil, errors.New("TeamBotSettings not implemented for KBFSNameInfoSource")
 }
 
@@ -112,7 +112,8 @@ func (t *KBFSNameInfoSource) AllCryptKeys(ctx context.Context, tlfName string, p
 }
 
 func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (res types.CryptKey, ni types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+) (res types.CryptKey, ni types.NameInfo, err error) {
 	defer t.Trace(ctx, &err, "EncryptionKey(%s,%v)", tlfName, public)()
 	if botUID != nil {
 		return res, ni, fmt.Errorf("TeambotKeys not supported by KBFS")
@@ -130,7 +131,8 @@ func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, 
 
 func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID) (res types.CryptKey, err error) {
+	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID,
+) (res types.CryptKey, err error) {
 	defer t.Trace(ctx, &err, "DecryptionKey(%s,%v)", tlfName, public)()
 
 	if botUID != nil {
@@ -163,18 +165,21 @@ func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, 
 }
 
 func (t *KBFSNameInfoSource) EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (teamEK types.EphemeralCryptKey, err error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+) (teamEK types.EphemeralCryptKey, err error) {
 	return teamEK, fmt.Errorf("KBFSNameInfoSource doesn't support ephemeral keys")
 }
 
 func (t *KBFSNameInfoSource) EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
-	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK types.EphemeralCryptKey, err error) {
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time,
+) (teamEK types.EphemeralCryptKey, err error) {
 	return teamEK, fmt.Errorf("KBFSNameInfoSource doesn't support ephemeral keys")
 }
 
 func (t *KBFSNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
+	membersType chat1.ConversationMembersType, public bool,
+) (bool, []keybase1.KID, error) {
 	return false, nil, nil
 }
 

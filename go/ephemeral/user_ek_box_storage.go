@@ -45,9 +45,11 @@ func (c userEKBoxCacheItem) Error() error {
 	return nil
 }
 
-type userEKBoxCache map[keybase1.EkGeneration]userEKBoxCacheItem
-type UserEKBoxMap map[keybase1.EkGeneration]keybase1.UserEkBoxed
-type UserEKUnboxedMap map[keybase1.EkGeneration]keybase1.UserEk
+type (
+	userEKBoxCache   map[keybase1.EkGeneration]userEKBoxCacheItem
+	UserEKBoxMap     map[keybase1.EkGeneration]keybase1.UserEkBoxed
+	UserEKUnboxedMap map[keybase1.EkGeneration]keybase1.UserEk
+)
 
 // We cache UserEKBoxes from the server in memory and a persist to a local
 // KVStore.
@@ -90,7 +92,8 @@ func (s *UserEKBoxStorage) getCache(mctx libkb.MetaContext) (cache userEKBoxCach
 }
 
 func (s *UserEKBoxStorage) Get(mctx libkb.MetaContext, generation keybase1.EkGeneration,
-	contentCtime *gregor1.Time) (userEK keybase1.UserEk, err error) {
+	contentCtime *gregor1.Time,
+) (userEK keybase1.UserEk, err error) {
 	defer mctx.Trace(fmt.Sprintf("UserEKBoxStorage#Get: generation:%v", generation), &err)()
 
 	s.Lock()
@@ -222,7 +225,8 @@ func (s *UserEKBoxStorage) Put(mctx libkb.MetaContext, generation keybase1.EkGen
 }
 
 func (s *UserEKBoxStorage) putLocked(mctx libkb.MetaContext, generation keybase1.EkGeneration,
-	userEKBoxed keybase1.UserEkBoxed, ekErr error) (err error) {
+	userEKBoxed keybase1.UserEkBoxed, ekErr error,
+) (err error) {
 	defer mctx.Trace(fmt.Sprintf("UserEKBoxStorage#putLocked: generation:%v", generation), &err)()
 
 	// sanity check that we got the right generation
@@ -243,7 +247,8 @@ func (s *UserEKBoxStorage) putLocked(mctx libkb.MetaContext, generation keybase1
 }
 
 func (s *UserEKBoxStorage) unbox(mctx libkb.MetaContext, userEKGeneration keybase1.EkGeneration,
-	userEKBoxed keybase1.UserEkBoxed, contentCtime *gregor1.Time) (userEK keybase1.UserEk, err error) {
+	userEKBoxed keybase1.UserEkBoxed, contentCtime *gregor1.Time,
+) (userEK keybase1.UserEk, err error) {
 	defer mctx.Trace(fmt.Sprintf("UserEKBoxStorage#unbox: generation:%v", userEKGeneration), &err)()
 
 	deviceEKStorage := mctx.G().GetDeviceEKStorage()

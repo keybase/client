@@ -48,8 +48,10 @@ type Server struct {
 	server     *kbhttp.Srv
 }
 
-const tokenByteSize = 32
-const tokenValidTime = 10 * time.Minute
+const (
+	tokenByteSize  = 32
+	tokenValidTime = 10 * time.Minute
+)
 
 // CurrentToken returns the currently valid token that a HTTP client can use to
 // load content from the server.
@@ -118,7 +120,8 @@ func (e obsoleteTrackingFS) isObsolete() bool {
 }
 
 func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
-	toStrip string, fs http.FileSystem, err error) {
+	toStrip string, fs http.FileSystem, err error,
+) {
 	fields := strings.Split(requestPath, "/")
 	if len(fields) < 2 {
 		return "", libfs.NewRootFS(s.config).ToHTTPFileSystem(ctx), nil
@@ -208,9 +211,11 @@ func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 	http.StripPrefix(toStrip, http.FileServer(fs)).ServeHTTP(wrappedW, req)
 }
 
-const portStart = 16723
-const portEnd = 60000
-const requestPathRoot = "/files/"
+const (
+	portStart       = 16723
+	portEnd         = 60000
+	requestPathRoot = "/files/"
+)
 
 func (s *Server) restart() (err error) {
 	s.serverLock.Lock()
@@ -264,7 +269,8 @@ func (s *Server) monitorAppState(ctx context.Context) {
 
 // New creates and starts a new server.
 func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
-	s *Server, err error) {
+	s *Server, err error,
+) {
 	logger := config.MakeLogger("HTTP")
 	s = &Server{
 		appStateUpdater: appStateUpdater,

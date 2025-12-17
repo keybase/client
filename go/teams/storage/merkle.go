@@ -2,11 +2,12 @@ package storage
 
 import (
 	"fmt"
+	"log"
+	"sync"
+
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"log"
-	"sync"
 )
 
 // Merkle stores when a team last polled merkle. Threadsafe.
@@ -16,8 +17,10 @@ type Merkle struct {
 }
 
 // Increment to invalidate the disk cache.
-const merkleDiskStorageVersion = 1
-const merkleMemCacheLRUSize = 2000
+const (
+	merkleDiskStorageVersion = 1
+	merkleMemCacheLRUSize    = 2000
+)
 
 type merkleDiskStorageItem struct {
 	Version  int           `codec:"V"`

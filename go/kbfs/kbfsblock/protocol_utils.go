@@ -54,7 +54,8 @@ func MakeGetBlockArg(tlfID tlf.ID, id ID, context Context) keybase1.GetBlockArg 
 // given params.
 func MakeGetBlockSizesArg(
 	tlfID tlf.ID, ids []ID, contexts []Context) (
-	keybase1.GetBlockSizesArg, error) {
+	keybase1.GetBlockSizesArg, error,
+) {
 	if len(ids) != len(contexts) {
 		return keybase1.GetBlockSizesArg{}, fmt.Errorf(
 			"MakeGetBlockSizesArg: %d IDs but %d contexts",
@@ -73,7 +74,8 @@ func MakeGetBlockSizesArg(
 // ParseGetBlockRes parses the given keybase1.GetBlockRes into its
 // components.
 func ParseGetBlockRes(res keybase1.GetBlockRes, resErr error) (
-	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error,
+) {
 	if resErr != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, resErr
 	}
@@ -87,7 +89,8 @@ func ParseGetBlockRes(res keybase1.GetBlockRes, resErr error) (
 // MakePutBlockArg builds a keybase1.PutBlockArg from the given params.
 func MakePutBlockArg(tlfID tlf.ID, id ID,
 	bContext Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) keybase1.PutBlockArg {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+) keybase1.PutBlockArg {
 	return keybase1.PutBlockArg{
 		Bid: makeIDCombo(id, bContext),
 		// BlockKey is misnamed -- it contains just the server
@@ -101,7 +104,8 @@ func MakePutBlockArg(tlfID tlf.ID, id ID,
 // MakePutBlockAgainArg builds a keybase1.PutBlockAgainArg from the
 // given params.
 func MakePutBlockAgainArg(tlfID tlf.ID, id ID,
-	bContext Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) keybase1.PutBlockAgainArg {
+	bContext Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+) keybase1.PutBlockAgainArg {
 	return keybase1.PutBlockAgainArg{
 		Ref: makeReference(id, bContext),
 		// BlockKey is misnamed -- it contains just the server
@@ -124,7 +128,8 @@ func MakeAddReferenceArg(tlfID tlf.ID, id ID, context Context) keybase1.AddRefer
 // getNotDone returns the set of block references in "all" that do not
 // yet appear in "results"
 func getNotDone(all ContextMap, doneRefs map[ID]map[RefNonce]int) (
-	notDone []keybase1.BlockReference) {
+	notDone []keybase1.BlockReference,
+) {
 	for id, idContexts := range all {
 		for _, context := range idContexts {
 			if _, ok := doneRefs[id]; ok {
@@ -144,7 +149,8 @@ func getNotDone(all ContextMap, doneRefs map[ID]map[RefNonce]int) (
 func BatchDowngradeReferences(ctx context.Context, log logger.Logger,
 	tlfID tlf.ID, contexts ContextMap, archive bool,
 	server keybase1.BlockInterface) (
-	doneRefs map[ID]map[RefNonce]int, finalError error) {
+	doneRefs map[ID]map[RefNonce]int, finalError error,
+) {
 	doneRefs = make(map[ID]map[RefNonce]int)
 	notDone := getNotDone(contexts, doneRefs)
 
@@ -242,7 +248,8 @@ func GetLiveCounts(doneRefs map[ID]map[RefNonce]int) map[ID]int {
 // ParseGetQuotaInfoRes parses the given quota result into a
 // *QuotaInfo.
 func ParseGetQuotaInfoRes(codec kbfscodec.Codec, res []byte, resErr error) (
-	info *QuotaInfo, err error) {
+	info *QuotaInfo, err error,
+) {
 	if resErr != nil {
 		return nil, resErr
 	}
@@ -254,7 +261,8 @@ func ParseGetQuotaInfoRes(codec kbfscodec.Codec, res []byte, resErr error) (
 func GetReferenceCount(
 	ctx context.Context, tlfID tlf.ID, contexts ContextMap,
 	refStatus keybase1.BlockStatus, server keybase1.BlockInterface) (
-	liveCounts map[ID]int, err error) {
+	liveCounts map[ID]int, err error,
+) {
 	arg := keybase1.GetReferenceCountArg{
 		Ids:    make([]keybase1.BlockIdCombo, 0, len(contexts)),
 		Folder: tlfID.String(),

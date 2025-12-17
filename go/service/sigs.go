@@ -42,7 +42,6 @@ func (h *SigsHandler) SigListJSON(ctx context.Context, arg keybase1.SigListJSONA
 }
 
 func (h *SigsHandler) run(ctx context.Context, args keybase1.SigListArgs) (*engine.SigsList, error) {
-
 	ea := engine.SigsListArgs{
 		Username: args.Username,
 		Filterx:  args.Filterx,

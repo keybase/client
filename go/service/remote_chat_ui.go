@@ -140,7 +140,8 @@ func (r *RemoteChatUI) ChatStellarDone(ctx context.Context, canceled bool) error
 }
 
 func (r *RemoteChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
-	results chat1.GiphySearchResults) error {
+	results chat1.GiphySearchResults,
+) error {
 	return r.cli.ChatGiphySearchResults(ctx, chat1.ChatGiphySearchResultsArg{
 		SessionID: r.sessionID,
 		ConvID:    convID.ConvIDStr(),
@@ -149,7 +150,8 @@ func (r *RemoteChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.
 }
 
 func (r *RemoteChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID,
-	show, clearInput bool) error {
+	show, clearInput bool,
+) error {
 	return r.cli.ChatGiphyToggleResultWindow(ctx, chat1.ChatGiphyToggleResultWindowArg{
 		SessionID:  r.sessionID,
 		ConvID:     convID.ConvIDStr(),
@@ -173,7 +175,8 @@ func (r *RemoteChatUI) ChatCoinFlipStatus(ctx context.Context, statuses []chat1.
 }
 
 func (r *RemoteChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.ConversationID,
-	md *chat1.UICommandMarkdown) error {
+	md *chat1.UICommandMarkdown,
+) error {
 	return r.cli.ChatCommandMarkdown(ctx, chat1.ChatCommandMarkdownArg{
 		SessionID: r.sessionID,
 		ConvID:    convID.ConvIDStr(),
@@ -182,7 +185,8 @@ func (r *RemoteChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.Con
 }
 
 func (r *RemoteChatUI) ChatMaybeMentionUpdate(ctx context.Context, teamName, channel string,
-	info chat1.UIMaybeMentionInfo) error {
+	info chat1.UIMaybeMentionInfo,
+) error {
 	return r.cli.ChatMaybeMentionUpdate(ctx, chat1.ChatMaybeMentionUpdateArg{
 		SessionID: r.sessionID,
 		TeamName:  teamName,
@@ -199,7 +203,8 @@ func (r *RemoteChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessa
 }
 
 func (r *RemoteChatUI) ChatWatchPosition(ctx context.Context, convID chat1.ConversationID,
-	perm chat1.UIWatchPositionPerm) (chat1.LocationWatchID, error) {
+	perm chat1.UIWatchPositionPerm,
+) (chat1.LocationWatchID, error) {
 	return r.cli.ChatWatchPosition(ctx, chat1.ChatWatchPositionArg{
 		SessionID: r.sessionID,
 		ConvID:    convID,
@@ -215,7 +220,8 @@ func (r *RemoteChatUI) ChatClearWatch(ctx context.Context, watchID chat1.Locatio
 }
 
 func (r *RemoteChatUI) ChatCommandStatus(ctx context.Context, convID chat1.ConversationID, displayText string,
-	typ chat1.UICommandStatusDisplayTyp, actions []chat1.UICommandStatusActionTyp) error {
+	typ chat1.UICommandStatusDisplayTyp, actions []chat1.UICommandStatusActionTyp,
+) error {
 	return r.cli.ChatCommandStatus(ctx, chat1.ChatCommandStatusArg{
 		SessionID:   r.sessionID,
 		ConvID:      convID.ConvIDStr(),
@@ -226,7 +232,8 @@ func (r *RemoteChatUI) ChatCommandStatus(ctx context.Context, convID chat1.Conve
 }
 
 func (r *RemoteChatUI) ChatBotCommandsUpdateStatus(ctx context.Context, convID chat1.ConversationID,
-	status chat1.UIBotCommandsUpdateStatus) error {
+	status chat1.UIBotCommandsUpdateStatus,
+) error {
 	return r.cli.ChatBotCommandsUpdateStatus(ctx, chat1.ChatBotCommandsUpdateStatusArg{
 		SessionID: r.sessionID,
 		ConvID:    convID.ConvIDStr(),

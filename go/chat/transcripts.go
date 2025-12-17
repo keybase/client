@@ -36,8 +36,8 @@ func PullTranscriptConfigDefault() PullTranscriptConfig {
 }
 
 func PullTranscript(mctx libkb.MetaContext, convSource types.ConversationSource, convID chat1.ConvIDStr,
-	usernames []kbun.NormalizedUsername, config PullTranscriptConfig) (res ConvTranscript, err error) {
-
+	usernames []kbun.NormalizedUsername, config PullTranscriptConfig,
+) (res ConvTranscript, err error) {
 	convIDBytes, err := chat1.MakeConvID(convID.String())
 	if err != nil {
 		return res, err

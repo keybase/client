@@ -53,42 +53,53 @@ func (p *ProvisionalLoginContext) LoggedInLoad() (bool, error) {
 	}
 	return false, nil
 }
+
 func (p *ProvisionalLoginContext) CreateStreamCache(tsec Triplesec, pps *PassphraseStream) {
 	p.streamCache = NewPassphraseStreamCache(tsec, pps)
 }
+
 func (p *ProvisionalLoginContext) SetStreamCache(c *PassphraseStreamCache) {
 	p.streamCache = c
 }
+
 func (p *ProvisionalLoginContext) PassphraseStreamCache() *PassphraseStreamCache {
 	return p.streamCache
 }
+
 func (p *ProvisionalLoginContext) PassphraseStream() *PassphraseStream {
 	if p.PassphraseStreamCache() == nil {
 		return nil
 	}
 	return p.PassphraseStreamCache().PassphraseStream()
 }
+
 func (p *ProvisionalLoginContext) CreateLoginSessionWithSalt(emailOrUsername string, salt []byte) error {
 	if salt != nil {
 		p.salt = append([]byte{}, salt...)
 	}
 	return nil
 }
+
 func (p *ProvisionalLoginContext) LoginSession() *LoginSession {
 	return p.loginSession
 }
+
 func (p *ProvisionalLoginContext) SetLoginSession(l *LoginSession) {
 	p.loginSession = l
 }
+
 func (p *ProvisionalLoginContext) LocalSession() *Session {
 	return p.localSession.Clone()
 }
+
 func (p *ProvisionalLoginContext) GetUID() keybase1.UID {
 	return p.uv.Uid
 }
+
 func (p *ProvisionalLoginContext) GetUserVersion() keybase1.UserVersion {
 	return p.uv
 }
+
 func (p *ProvisionalLoginContext) GetUsername() NormalizedUsername {
 	return p.username
 }
@@ -136,12 +147,15 @@ func (p *ProvisionalLoginContext) Keyring(m MetaContext) (ret *SKBKeyringFile, e
 	p.skbKeyring = ret
 	return ret, nil
 }
+
 func (p *ProvisionalLoginContext) ClearKeyring() {
 	p.skbKeyring = nil
 }
+
 func (p *ProvisionalLoginContext) SecretSyncer() *SecretSyncer {
 	return p.secretSyncer
 }
+
 func (p *ProvisionalLoginContext) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
 	if uid.IsNil() {
 		uid = p.GetUID()
@@ -149,12 +163,15 @@ func (p *ProvisionalLoginContext) RunSecretSyncer(m MetaContext, uid keybase1.UI
 	m = m.WithLoginContext(p)
 	return RunSyncer(m, p.secretSyncer, uid, (p.localSession != nil), false /* forceReload */)
 }
+
 func (p *ProvisionalLoginContext) GetUnlockedPaperEncKey() GenericKey {
 	return nil
 }
+
 func (p *ProvisionalLoginContext) GetUnlockedPaperSigKey() GenericKey {
 	return nil
 }
+
 func (p *ProvisionalLoginContext) Salt() []byte {
 	if len(p.salt) > 0 {
 		return p.salt

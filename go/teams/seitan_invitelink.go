@@ -13,8 +13,10 @@ import (
 )
 
 // documented in go/teams/seitan.go
-const SeitanEncodedIKeyInvitelinkLength = 28
-const seitanEncodedIKeyInvitelinkPlusOffset = 7
+const (
+	SeitanEncodedIKeyInvitelinkLength     = 28
+	seitanEncodedIKeyInvitelinkPlusOffset = 7
+)
 
 func GenerateSeitanIKeyInvitelink() (ikey keybase1.SeitanIKeyInvitelink, err error) {
 	str, err := generateIKey(SeitanEncodedIKeyInvitelinkLength, seitanEncodedIKeyInvitelinkPlusOffset)
@@ -65,7 +67,8 @@ func (sikey SeitanSIKeyInvitelink) GenerateShortTeamInviteID() (id SCTeamInviteI
 
 func generatePackedEncryptedKeyWithSecretKeyInvitelink(ikey keybase1.SeitanIKeyInvitelink,
 	secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce,
-	label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
+	label keybase1.SeitanKeyLabel,
+) (pkey SeitanPKey, encoded string, err error) {
 	var keyAndLabel keybase1.SeitanKeyAndLabelInvitelink
 	keyAndLabel.I = ikey
 	keyAndLabel.L = label
@@ -78,7 +81,8 @@ func generatePackedEncryptedKeyWithSecretKeyInvitelink(ikey keybase1.SeitanIKeyI
 }
 
 func GeneratePackedEncryptedKeyInvitelink(ctx context.Context, ikey keybase1.SeitanIKeyInvitelink,
-	team *Team, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
+	team *Team, label keybase1.SeitanKeyLabel,
+) (pkey SeitanPKey, encoded string, err error) {
 	appKey, err := team.SeitanInviteTokenKeyLatest(ctx)
 	if err != nil {
 		return pkey, encoded, err

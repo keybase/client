@@ -5,10 +5,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
-
-	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
@@ -73,7 +72,8 @@ func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid grego
 }
 
 func (g *gregorMessageOrderer) addToWaitersLocked(ctx context.Context, uid gregor1.UID, storedVers,
-	msgVers chat1.InboxVers) (res []messageWaiterEntry) {
+	msgVers chat1.InboxVers,
+) (res []messageWaiterEntry) {
 	for i := storedVers + 1; i < msgVers; i++ {
 		entry := messageWaiterEntry{
 			vers: msgVers,
@@ -87,7 +87,8 @@ func (g *gregorMessageOrderer) addToWaitersLocked(ctx context.Context, uid grego
 }
 
 func (g *gregorMessageOrderer) waitOnWaiters(ctx context.Context, vers chat1.InboxVers,
-	waiters []messageWaiterEntry) (res chan struct{}) {
+	waiters []messageWaiterEntry,
+) (res chan struct{}) {
 	res = make(chan struct{})
 	go func(ctx context.Context) {
 		for _, w := range waiters {
@@ -121,7 +122,8 @@ func (g *gregorMessageOrderer) cleanupAfterTimeoutLocked(uid gregor1.UID, vers c
 }
 
 func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
-	newVers chat1.InboxVers) (res chan struct{}) {
+	newVers chat1.InboxVers,
+) (res chan struct{}) {
 	res = make(chan struct{})
 	// Out of order update, we are going to wait a fixed amount of time for the correctly
 	// ordered update
@@ -378,7 +380,8 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 // large (> chat1.MaxChanMentionConvSize member) team. The server drives this
 // for mobile push notifications, client checks this for desktop notifications
 func (g *PushHandler) squashChanMention(_ context.Context, conv *chat1.ConversationLocal,
-	_ chat1.MessageUnboxedValid, untrustedTeamRole keybase1.TeamRole) (bool, error) {
+	_ chat1.MessageUnboxedValid, untrustedTeamRole keybase1.TeamRole,
+) (bool, error) {
 	// Verify the chanMention is for a TEAM that is larger than
 	// MaxChanMentionConvSize
 	if conv == nil ||
@@ -394,8 +397,8 @@ func (g *PushHandler) squashChanMention(_ context.Context, conv *chat1.Conversat
 
 func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 	uid gregor1.UID, conv *chat1.ConversationLocal,
-	msg chat1.MessageUnboxed, untrustedTeamRole keybase1.TeamRole) bool {
-
+	msg chat1.MessageUnboxed, untrustedTeamRole keybase1.TeamRole,
+) bool {
 	if conv == nil || conv.Notifications == nil {
 		return false
 	}
@@ -467,7 +470,8 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 }
 
 func (g *PushHandler) presentUIItem(ctx context.Context, conv *chat1.ConversationLocal, uid gregor1.UID,
-	partMode utils.PresentParticipantsMode) (res *chat1.InboxUIItem) {
+	partMode utils.PresentParticipantsMode,
+) (res *chat1.InboxUIItem) {
 	if conv != nil {
 		return PresentConversationLocalWithFetchRetry(ctx, g.G(), uid, *conv, partMode)
 	}
@@ -475,7 +479,8 @@ func (g *PushHandler) presentUIItem(ctx context.Context, conv *chat1.Conversatio
 }
 
 func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID,
-	conv *chat1.ConversationLocal, msg chat1.MessageUnboxed) (res *chat1.UIMessage) {
+	conv *chat1.ConversationLocal, msg chat1.MessageUnboxed,
+) (res *chat1.UIMessage) {
 	if !msg.IsValid() || conv == nil {
 		return nil
 	}
@@ -503,7 +508,8 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID,
 }
 
 func (g *PushHandler) getReplyMessage(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
-	msg chat1.MessageUnboxed) (chat1.MessageUnboxed, error) {
+	msg chat1.MessageUnboxed,
+) (chat1.MessageUnboxed, error) {
 	if conv == nil {
 		return msg, nil
 	}
@@ -827,12 +833,14 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 }
 
 func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor1.UID,
-	topicType chat1.TopicType, activity *chat1.ChatActivity) {
+	topicType chat1.TopicType, activity *chat1.ChatActivity,
+) {
 	g.G().ActivityNotifier.Activity(ctx, uid, topicType, activity, chat1.ChatActivitySource_REMOTE)
 }
 
 func (g *PushHandler) notifyConvUpdates(ctx context.Context, uid gregor1.UID,
-	convs []chat1.ConversationLocal) {
+	convs []chat1.ConversationLocal,
+) {
 	for _, conv := range convs {
 		g.G().ActivityNotifier.ConvUpdate(ctx, uid, conv.GetConvID(),
 			conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid, utils.PresentParticipantsModeInclude))
@@ -840,23 +848,27 @@ func (g *PushHandler) notifyConvUpdates(ctx context.Context, uid gregor1.UID,
 }
 
 func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
-	conv chat1.ConversationLocal) {
+	conv chat1.ConversationLocal,
+) {
 	g.G().ActivityNotifier.JoinedConversation(ctx, uid, conv.GetConvID(),
 		conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid, utils.PresentParticipantsModeInclude))
 }
 
 func (g *PushHandler) notifyLeftChannel(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, topicType chat1.TopicType) {
+	convID chat1.ConversationID, topicType chat1.TopicType,
+) {
 	g.G().ActivityNotifier.LeftConversation(ctx, uid, convID, topicType)
 }
 
 func (g *PushHandler) notifyReset(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, topicType chat1.TopicType) {
+	convID chat1.ConversationID, topicType chat1.TopicType,
+) {
 	g.G().ActivityNotifier.ResetConversation(ctx, uid, convID, topicType)
 }
 
 func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
-	membersRes types.MembershipUpdateRes) {
+	membersRes types.MembershipUpdateRes,
+) {
 	// Build a map of uid -> username for this update
 	var uids []keybase1.UID
 	for _, uid := range membersRes.AllOtherUsers() {
@@ -903,7 +915,8 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 }
 
 func (g *PushHandler) notifyConversationsStale(ctx context.Context, uid gregor1.UID,
-	updates []chat1.ConversationUpdate) {
+	updates []chat1.ConversationUpdate,
+) {
 	var supdate []chat1.ConversationStaleUpdate
 	for _, update := range updates {
 		supdate = append(supdate, chat1.ConversationStaleUpdate{

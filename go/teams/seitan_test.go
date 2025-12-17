@@ -1,10 +1,9 @@
 package teams
 
 import (
+	"encoding/base64"
 	"testing"
 	"time"
-
-	"encoding/base64"
 
 	"golang.org/x/net/context"
 
@@ -164,7 +163,7 @@ func TestSeitanParams(t *testing.T) {
 }
 
 func TestIsSeitanyNoMatches(t *testing.T) {
-	var noMatches = []string{
+	noMatches := []string{
 		"team.aaa.bb.cc",
 		"aanbbjejjeff",
 		"a+b",
@@ -189,12 +188,10 @@ func TestParseSeitanTokenFromPaste(t *testing.T) {
 			`aazaaa0a+aaaaaaaaa`,
 			true,
 		}, {
-
 			`aazaaa0aaaaaaaaaa`,
 			`aazaaa0aaaaaaaaaa`,
 			false,
 		}, {
-
 			`team1`,
 			`team1`,
 			false,

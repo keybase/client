@@ -29,7 +29,8 @@ type fileBlockMapDisk struct {
 var _ fileBlockMap = (*fileBlockMapDisk)(nil)
 
 func newFileBlockMapDisk(
-	dirtyBcache *DirtyBlockCacheDisk, kmd libkey.KeyMetadata) *fileBlockMapDisk {
+	dirtyBcache *DirtyBlockCacheDisk, kmd libkey.KeyMetadata,
+) *fileBlockMapDisk {
 	return &fileBlockMapDisk{
 		dirtyBcache: dirtyBcache,
 		kmd:         kmd,
@@ -39,7 +40,8 @@ func newFileBlockMapDisk(
 
 func (fbmd *fileBlockMapDisk) putTopBlock(
 	ctx context.Context, parentPtr data.BlockPointer,
-	childName data.PathPartString, topBlock *data.FileBlock) error {
+	childName data.PathPartString, topBlock *data.FileBlock,
+) error {
 	// To reuse the DirtyBlockCacheDisk code, we need to assign a
 	// random BlockPointer to this block.
 	id, err := kbfsblock.MakeTemporaryID()
@@ -66,7 +68,8 @@ func (fbmd *fileBlockMapDisk) putTopBlock(
 
 func (fbmd *fileBlockMapDisk) GetTopBlock(
 	ctx context.Context, parentPtr data.BlockPointer,
-	childName data.PathPartString) (*data.FileBlock, error) {
+	childName data.PathPartString,
+) (*data.FileBlock, error) {
 	ptrMap, ok := fbmd.ptrs[parentPtr]
 	if !ok {
 		return nil, errors.Errorf("No such parent %s", parentPtr)
@@ -91,7 +94,8 @@ func (fbmd *fileBlockMapDisk) GetTopBlock(
 
 func (fbmd *fileBlockMapDisk) getFilenames(
 	_ context.Context, parentPtr data.BlockPointer) (
-	names []data.PathPartString, err error) {
+	names []data.PathPartString, err error,
+) {
 	ptrMap, ok := fbmd.ptrs[parentPtr]
 	if !ok {
 		return nil, nil

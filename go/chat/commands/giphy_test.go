@@ -25,7 +25,8 @@ func newTestGiphySearcher() *testGiphySearcher {
 }
 
 func (d *testGiphySearcher) Search(mctx libkb.MetaContext, apiKeySource types.ExternalAPIKeySource,
-	query *string, limit int, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
+	query *string, limit int, urlsrv types.AttachmentURLSrv,
+) ([]chat1.GiphySearchResult, error) {
 	if d.waitForCancel {
 		if d.waitingCh != nil {
 			close(d.waitingCh)

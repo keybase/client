@@ -10,7 +10,8 @@ import (
 )
 
 func getGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface) (
-	res chat1.GlobalAppNotificationSettings, err error) {
+	res chat1.GlobalAppNotificationSettings, err error,
+) {
 	settings, err := ri().GetGlobalAppNotificationSettings(ctx)
 	if err != nil {
 		return res, err
@@ -30,8 +31,8 @@ func getGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, r
 }
 
 func setGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface,
-	strSettings map[string]bool) error {
-
+	strSettings map[string]bool,
+) error {
 	var settings chat1.GlobalAppNotificationSettings
 	settings.Settings = make(map[chat1.GlobalAppNotificationSetting]bool)
 	for k, v := range strSettings {

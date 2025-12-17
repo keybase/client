@@ -705,7 +705,6 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 
 	// Unpack signed transaction and checks if Payment matches transaction.
 	unpackedTx, txIDPrecalc, err := unpackTx(post.SignedTransaction)
-
 	if err != nil {
 		return res, err
 	}

@@ -792,6 +792,7 @@ var errFakeNetworkTimeout = errors.New("fake network timeout in test")
 func (r *timeoutAPI) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
 	return libkb.APINetError{Err: errFakeNetworkTimeout}
 }
+
 func (r *timeoutAPI) PostDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
 	return libkb.APINetError{Err: errFakeNetworkTimeout}
 }

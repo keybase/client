@@ -2,9 +2,8 @@ package chat
 
 import (
 	"fmt"
-	"testing"
-
 	"sync"
+	"testing"
 
 	context "golang.org/x/net/context"
 

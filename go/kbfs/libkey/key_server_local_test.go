@@ -114,20 +114,16 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	err = ko1.PutTLFCryptKeyServerHalves(ctx, keyHalves)
 	require.NoError(t, err)
 
-	serverHalfID1, err :=
-		kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf1)
+	serverHalfID1, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf1)
 	require.NoError(t, err)
 
-	serverHalfID2, err :=
-		kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf2)
+	serverHalfID2, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf2)
 	require.NoError(t, err)
 
-	serverHalfID3, err :=
-		kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf3)
+	serverHalfID3, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf3)
 	require.NoError(t, err)
 
-	serverHalfID4, err :=
-		kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, publicKey2, serverHalf4)
+	serverHalfID4, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, publicKey2, serverHalf4)
 	require.NoError(t, err)
 
 	half1, err := ko1.GetTLFCryptKeyServerHalf(ctx, serverHalfID1, publicKey1)

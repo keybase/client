@@ -10,7 +10,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-
 	"os"
 	"os/exec"
 	"os/user"
@@ -334,7 +333,7 @@ func (s Service) savePlist(p Plist) error {
 	plist := p.plistXML()
 
 	s.log.Info("Saving %s", plistDest)
-	file := libkb.NewFile(plistDest, []byte(plist), 0644)
+	file := libkb.NewFile(plistDest, []byte(plist), 0o644)
 	return file.Save(s.log)
 }
 
@@ -701,5 +700,5 @@ func otherWritable(path string) bool {
 	if err != nil {
 		return false
 	}
-	return (fi.Mode() & 0002) != 0
+	return (fi.Mode() & 0o002) != 0
 }

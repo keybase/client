@@ -199,7 +199,6 @@ func (c *CmdStress) trackSomeone() {
 	_, err = tcli.Track(context.TODO(), keybase1.TrackArg{UserAssertion: username, Options: options})
 	if err != nil {
 		c.G().Log.Warning("follow %s error: %s", username, err)
-
 	}
 	if libkb.RandIntn(2) == 0 {
 		return
@@ -294,15 +293,19 @@ func (c *CmdStress) gpgUIProtocol() rpc.Protocol {
 func (c *CmdStress) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (string, error) {
 	return "", nil
 }
+
 func (c *CmdStress) SelectKeyAndPushOption(_ context.Context, arg keybase1.SelectKeyAndPushOptionArg) (res keybase1.SelectKeyRes, err error) {
 	return
 }
+
 func (c *CmdStress) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
+
 func (c *CmdStress) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
+
 func (c *CmdStress) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
@@ -314,9 +317,11 @@ func (c *CmdStress) secretUIProtocol() rpc.Protocol {
 func (c *CmdStress) GetPassphrase(_ context.Context, arg keybase1.GetPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	return
 }
+
 func (c *CmdStress) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
 	return "", nil
 }
+
 func (c *CmdStress) GetTTY(_ context.Context) (string, error) {
 	return "", nil
 }

@@ -19,7 +19,8 @@ import (
 // returned. If it is false all errors are returned.
 func GetCurrentSessionIfPossible(
 	ctx context.Context, kbpki CurrentSessionGetter, sessionNotRequired bool) (
-	SessionInfo, error) {
+	SessionInfo, error,
+) {
 	session, err := kbpki.GetCurrentSession(ctx)
 	if err == nil {
 		return session, nil

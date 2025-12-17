@@ -27,7 +27,8 @@ type mysqlActivityStatsStorer struct {
 }
 
 func newMySQLActivityStatsStorerNoStart(clock libkbfs.Clock,
-	db *sql.DB, logger *zap.Logger) *mysqlActivityStatsStorer {
+	db *sql.DB, logger *zap.Logger,
+) *mysqlActivityStatsStorer {
 	return &mysqlActivityStatsStorer{
 		logger: logger,
 		db:     db,
@@ -40,7 +41,8 @@ func newMySQLActivityStatsStorerNoStart(clock libkbfs.Clock,
 // NewMySQLActivityStatsStorer creates an ActivityStatsStorer that stores
 // activities on a MySQL database.
 func NewMySQLActivityStatsStorer(
-	db *sql.DB, logger *zap.Logger) ActivityStatsStorer {
+	db *sql.DB, logger *zap.Logger,
+) ActivityStatsStorer {
 	s := newMySQLActivityStatsStorerNoStart(data.WallClock{}, db, logger)
 	// TODO shutdown()
 	go s.insertLoop(context.Background())
@@ -48,7 +50,8 @@ func NewMySQLActivityStatsStorer(
 }
 
 func (s *mysqlActivityStatsStorer) createTablesIfNotExists(
-	ctx context.Context) (err error) {
+	ctx context.Context,
+) (err error) {
 	if _, err = s.db.ExecContext(ctx, `
         CREATE TABLE IF NOT EXISTS stats_tlf (
           id          bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -116,7 +119,8 @@ func (s *mysqlActivityStatsStorer) flushInserts() {
 }
 
 func (s *mysqlActivityStatsStorer) getActiveTlfs(
-	ctx context.Context, since time.Time) (int, error) {
+	ctx context.Context, since time.Time,
+) (int, error) {
 	var count int
 	if err := s.db.QueryRowContext(ctx,
 		"SELECT COUNT(*) FROM stats_tlf where active_time > ?",
@@ -128,7 +132,8 @@ func (s *mysqlActivityStatsStorer) getActiveTlfs(
 }
 
 func (s *mysqlActivityStatsStorer) getActiveHosts(
-	ctx context.Context, since time.Time) (int, error) {
+	ctx context.Context, since time.Time,
+) (int, error) {
 	var count int
 	if err := s.db.QueryRowContext(ctx,
 		"SELECT COUNT(*) FROM stats_host where active_time > ?",
@@ -169,7 +174,8 @@ const mysqlGetActivesTimeout = 4 * time.Second
 
 // RecordActives implement the ActivesGetter interface.
 func (s *mysqlActivityStatsStorer) GetActives(dur time.Duration) (
-	activeTlfs int, activeHosts int, err error) {
+	activeTlfs int, activeHosts int, err error,
+) {
 	ctx, cancel := context.WithTimeout(context.Background(), mysqlGetActivesTimeout)
 	defer cancel()
 	since := s.clock.Now().Add(-dur)

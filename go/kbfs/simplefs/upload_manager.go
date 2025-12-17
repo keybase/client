@@ -106,7 +106,6 @@ func (m *uploadManager) waitForCopy(uploadID string) {
 		if err := os.RemoveAll(*upload.dirToDelete); err != nil {
 			m.k.log.CDebugf(m.makeContext(), "remove temp dir error %s", err)
 		}
-
 	}()
 
 	err := m.k.SimpleFSWait(m.makeContext(), upload.opid)
@@ -134,7 +133,8 @@ func (m *uploadManager) waitForCopy(uploadID string) {
 const uploadSuffixMax = 1024
 
 func (m *uploadManager) doStart(ctx context.Context,
-	sourceLocalPath string, dstParentPath string) (opid keybase1.OpID, dstPath keybase1.KBFSPath, err error) {
+	sourceLocalPath string, dstParentPath string,
+) (opid keybase1.OpID, dstPath keybase1.KBFSPath, err error) {
 	opid, err = m.k.SimpleFSMakeOpid(ctx)
 	if err != nil {
 		return keybase1.OpID{}, keybase1.KBFSPath{}, err
@@ -185,7 +185,8 @@ renameLoop:
 }
 
 func (m *uploadManager) start(ctx context.Context, sourceLocalPath string,
-	targetParentPath keybase1.KBFSPath) (uploadID string, err error) {
+	targetParentPath keybase1.KBFSPath,
+) (uploadID string, err error) {
 	opid, dstPath, err := m.doStart(ctx, sourceLocalPath, targetParentPath.Path)
 	if err != nil {
 		return "", err

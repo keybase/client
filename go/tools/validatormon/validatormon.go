@@ -21,8 +21,10 @@ var nodes = map[string]string{
 	"sdf3":     "GABMKJM6I25XI4K7U6XWMULOUQIQ27BCTMLS6BYYSOWKTBUXVRJSXHYQ",
 }
 
-var kbNodes = []string{"keybase1", "keybase2", "keybase3"}
-var cmpNodes = []string{"sdf1", "sdf2", "sdf3"}
+var (
+	kbNodes  = []string{"keybase1", "keybase2", "keybase3"}
+	cmpNodes = []string{"sdf1", "sdf2", "sdf3"}
+)
 
 type Status struct {
 	Node    string

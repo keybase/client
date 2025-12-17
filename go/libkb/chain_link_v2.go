@@ -69,7 +69,6 @@ const (
 // NOTE when modifying this function ensure that web/sig.iced#_allow_stubbing
 // is updated as well.
 func (t SigchainV2Type) AllowStubbing() bool {
-
 	// Unsupported types don't need signatures. Otherwise we can't
 	// make code forwards-compatible.
 	if !t.IsSupportedUserType() {
@@ -255,8 +254,10 @@ type OuterLinkV2WithMetadata struct {
 
 var _ codec.Selfer = (*OuterLinkV2WithMetadata)(nil)
 
-var errCodecEncodeSelf = errors.New("Unexpected call to OuterLinkV2WithMetadata.CodecEncodeSelf")
-var errCodecDecodeSelf = errors.New("Unexpected call to OuterLinkV2WithMetadata.CodecDecodeSelf")
+var (
+	errCodecEncodeSelf = errors.New("Unexpected call to OuterLinkV2WithMetadata.CodecEncodeSelf")
+	errCodecDecodeSelf = errors.New("Unexpected call to OuterLinkV2WithMetadata.CodecDecodeSelf")
+)
 
 func (o *OuterLinkV2WithMetadata) CodecEncodeSelf(e *codec.Encoder) {
 	panic(errCodecEncodeSelf)
@@ -266,8 +267,10 @@ func (o *OuterLinkV2WithMetadata) CodecDecodeSelf(d *codec.Decoder) {
 	panic(errCodecDecodeSelf)
 }
 
-type SigIgnoreIfUnsupported bool
-type SigHasRevokes bool
+type (
+	SigIgnoreIfUnsupported bool
+	SigHasRevokes          bool
+)
 
 func (b SigIgnoreIfUnsupported) Bool() bool { return bool(b) }
 
@@ -314,7 +317,6 @@ func encodeOuterLinkWithLinkID(
 	highSkipSeqno *keybase1.Seqno,
 	highSkipHash *LinkID,
 ) ([]byte, error) {
-
 	var encodedOuterLink []byte
 	var err error
 
@@ -369,7 +371,6 @@ func MakeSigchainV2OuterSig(
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
 	highSkip *HighSkip,
 ) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
-
 	encodedOuterLink, err := encodeOuterLink(m, v1LinkType, seqno, innerLinkJSON, prevLinkID, hasRevokes, seqType, ignoreIfUnsupported, highSkip)
 	if err != nil {
 		return sig, sigid, linkID, err
@@ -435,7 +436,6 @@ func (o OuterLinkV2) EncodePartial(numFields int) ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("Cannot encode sig2 partial with %d fields", numFields)
 	}
-
 }
 
 func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, error) {
@@ -514,7 +514,6 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 }
 
 func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevokes, ignoreIfUnsupported SigIgnoreIfUnsupported) (ret SigchainV2Type, err error) {
-
 	switch s {
 	case "eldest":
 		ret = SigchainV2TypeEldest

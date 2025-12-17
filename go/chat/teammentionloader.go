@@ -66,7 +66,8 @@ func (l *TeamMentionLoader) Stop(ctx context.Context) chan struct{} {
 }
 
 func (l *TeamMentionLoader) IsTeamMention(ctx context.Context, uid gregor1.UID,
-	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) bool {
+	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention,
+) bool {
 	teamName, err := keybase1.TeamNameFromString(maybeMention.Name)
 	if err != nil {
 		return false
@@ -86,7 +87,8 @@ func (l *TeamMentionLoader) IsTeamMention(ctx context.Context, uid gregor1.UID,
 }
 
 func (l *TeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
-	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention, forceRemote bool) (err error) {
+	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention, forceRemote bool,
+) (err error) {
 	defer l.Trace(ctx, &err, "LoadTeamMention")()
 	select {
 	case l.jobCh <- teamMentionJob{
@@ -130,7 +132,8 @@ func (l *TeamMentionLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error)
 
 func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention,
-	forceRemote bool) (err error) {
+	forceRemote bool,
+) (err error) {
 	defer l.Trace(ctx, &err, "loadTeamMention: name: %s", maybeMention.Name)()
 	ui, err := l.getChatUI(ctx)
 	if err != nil {

@@ -25,7 +25,8 @@ type PaperProvisionEngine struct {
 }
 
 func NewPaperProvisionEngine(g *libkb.GlobalContext, username, deviceName,
-	paperKey string) *PaperProvisionEngine {
+	paperKey string,
+) *PaperProvisionEngine {
 	return &PaperProvisionEngine{
 		Contextified: libkb.NewContextified(g),
 		Username:     username,
@@ -126,7 +127,6 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 	e.sendNotification(m)
 	return nil
-
 }
 
 // copied more or less from loginProvision.paper()

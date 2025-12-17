@@ -19,13 +19,15 @@ var _ IDGetter = ConstIDGetter{}
 
 // GetIDForHandle implements the IDGetter interface for ConstIDGetter.
 func (c ConstIDGetter) GetIDForHandle(_ context.Context, _ *Handle) (
-	tlf.ID, error) {
+	tlf.ID, error,
+) {
 	return c.ID, nil
 }
 
 // ValidateLatestHandleNotFinal implements the IDGetter interface for
 // ConstIDGetter.
 func (c ConstIDGetter) ValidateLatestHandleNotFinal(
-	_ context.Context, _ *Handle) (bool, error) {
+	_ context.Context, _ *Handle,
+) (bool, error) {
 	return true, nil
 }

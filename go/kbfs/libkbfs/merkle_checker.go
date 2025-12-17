@@ -26,17 +26,20 @@ type merkleChecker struct {
 var _ merkle.StorageEngine = (*merkleChecker)(nil)
 
 func (mc *merkleChecker) StoreNode(
-	_ context.Context, _ merkle.Hash, _ []byte) error {
+	_ context.Context, _ merkle.Hash, _ []byte,
+) error {
 	return errors.New("merkleChecker can't store nodes")
 }
 
 func (mc *merkleChecker) CommitRoot(
-	_ context.Context, _ merkle.Hash, _ merkle.Hash, _ merkle.TxInfo) error {
+	_ context.Context, _ merkle.Hash, _ merkle.Hash, _ merkle.TxInfo,
+) error {
 	return errors.New("merkleChecker can't commit roots")
 }
 
 func (mc *merkleChecker) LookupNode(
-	_ context.Context, h merkle.Hash) ([]byte, error) {
+	_ context.Context, h merkle.Hash,
+) ([]byte, error) {
 	// Assume the hash refers to the next node in the list; if not,
 	// the tree will fail when verifying.
 	if mc.nextNode >= len(mc.nodes) {
@@ -50,13 +53,15 @@ func (mc *merkleChecker) LookupNode(
 }
 
 func (mc *merkleChecker) LookupRoot(_ context.Context) (
-	h merkle.Hash, err error) {
+	h merkle.Hash, err error,
+) {
 	return mc.root.Hash, nil
 }
 
 func verifyMerkleNodes(
 	ctx context.Context, kbfsRoot *kbfsmd.MerkleRoot, nodes [][]byte,
-	tlfID tlf.ID) error {
+	tlfID tlf.ID,
+) error {
 	// Verify the merkle nodes by pretending to look up the nodes
 	// using a merkle.Tree, which verifies all the nodes along the
 	// path of the lookup.

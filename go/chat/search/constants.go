@@ -2,8 +2,10 @@ package search
 
 import "time"
 
-const defaultPageSize = 300
-const MaxAllowedSearchHits = 10000
+const (
+	defaultPageSize      = 300
+	MaxAllowedSearchHits = 10000
+)
 
 // Only used by RegexpSearcher
 const MaxAllowedSearchMessages = 100000

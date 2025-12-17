@@ -42,8 +42,8 @@ func serviceMapDBKey(u keybase1.UID) libkb.DbKey {
 }
 
 func (s *ServiceSummaryMap) findServiceSummaryLocally(ctx context.Context, g libkb.UIDMapperContext,
-	uid keybase1.UID, freshness time.Duration) (res libkb.UserServiceSummaryPackage, found bool, err error) {
-
+	uid keybase1.UID, freshness time.Duration,
+) (res libkb.UserServiceSummaryPackage, found bool, err error) {
 	voidp, ok := s.memCache.Get(uid)
 	if ok {
 		tmp, ok := voidp.(libkb.UserServiceSummaryPackage)
@@ -101,8 +101,8 @@ func (s *ServiceSummaryMap) findServiceSummaryLocally(ctx context.Context, g lib
 // This function does not return errors, but it might not return any requested
 // values if neither cache nor API connection is available.
 func (s *ServiceSummaryMap) MapUIDsToServiceSummaries(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID,
-	freshness time.Duration, networkTimeBudget time.Duration) (res map[keybase1.UID]libkb.UserServiceSummaryPackage) {
-
+	freshness time.Duration, networkTimeBudget time.Duration,
+) (res map[keybase1.UID]libkb.UserServiceSummaryPackage) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -182,8 +182,8 @@ func lookupServiceSummariesFromServer(ctx context.Context, g libkb.UIDMapperCont
 }
 
 func (s *ServiceSummaryMap) InformOfServiceSummary(ctx context.Context, g libkb.UIDMapperContext,
-	uid keybase1.UID, summary libkb.UserServiceSummary) error {
-
+	uid keybase1.UID, summary libkb.UserServiceSummary,
+) error {
 	pkg := libkb.UserServiceSummaryPackage{
 		CachedAt:   keybase1.ToTime(g.GetClock().Now()),
 		ServiceMap: summary,
@@ -202,13 +202,15 @@ func NewOfflineServiceSummaryMap() *OfflineServiceSummaryMap {
 }
 
 func (s *OfflineServiceSummaryMap) MapUIDsToServiceSummaries(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID,
-	freshness time.Duration, networkTimeBudget time.Duration) (res map[keybase1.UID]libkb.UserServiceSummaryPackage) {
+	freshness time.Duration, networkTimeBudget time.Duration,
+) (res map[keybase1.UID]libkb.UserServiceSummaryPackage) {
 	// Return empty map.
 	return make(map[keybase1.UID]libkb.UserServiceSummaryPackage)
 }
 
 func (s *OfflineServiceSummaryMap) InformOfServiceSummary(ctx context.Context, g libkb.UIDMapperContext,
-	uid keybase1.UID, summary libkb.UserServiceSummary) error {
+	uid keybase1.UID, summary libkb.UserServiceSummary,
+) error {
 	// Do nothing, successfully.
 	return nil
 }

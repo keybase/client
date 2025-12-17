@@ -52,7 +52,6 @@ func (e *PGPKeyGen) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
-
 	// generate a new pgp key with defaults (and no push)
 	var genArg libkb.PGPGenArg
 	if e.genArg != nil {

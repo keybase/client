@@ -329,7 +329,6 @@ func (u *User) LoadSigChains(m MetaContext, f *MerkleUserLeaf, self bool, stubMo
 }
 
 func (u *User) Store(m MetaContext) error {
-
 	m.Debug("+ Store user %s", u.name)
 
 	// These might be dirty, in which case we can write it back
@@ -358,7 +357,6 @@ func (u *User) Store(m MetaContext) error {
 }
 
 func (u *User) StoreTopLevel(m MetaContext) error {
-
 	jw := jsonw.NewDictionary()
 	err := jw.SetKey("id", UIDWrapper(u.id))
 	if err != nil {
@@ -560,7 +558,6 @@ func (u *User) GetHighLinkSeqnos(mctx MetaContext) (res []keybase1.Seqno, err er
 }
 
 func (u *User) VerifySelfSig() error {
-
 	u.G().Log.Debug("+ VerifySelfSig for user %s", u.name)
 
 	if u.IDTable().VerifySelfSig(u.GetNormalizedName(), u.id) {
@@ -636,7 +633,6 @@ func (u *User) TrackChainLinkFor(m MetaContext, username NormalizedUsername, uid
 }
 
 func TrackChainLinkFor(m MetaContext, me keybase1.UID, them keybase1.UID, remote *TrackChainLink, remoteErr error) (*TrackChainLink, error) {
-
 	local, e2 := LocalTrackChainLinkFor(m, me, them)
 
 	m.Debug("| Load remote -> %v", (remote != nil))
@@ -709,7 +705,6 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybas
 }
 
 func (u *User) localDelegatePerUserKey(perUserKey keybase1.PerUserKey) error {
-
 	// Don't update the u.keyFamily. It doesn't manage per-user-keys.
 
 	// Update sigchain which will update ckf/cki

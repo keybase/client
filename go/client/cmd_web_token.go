@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"

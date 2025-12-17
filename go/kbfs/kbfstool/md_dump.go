@@ -12,7 +12,8 @@ import (
 
 func mdDumpImmutableRMD(ctx context.Context, config libkbfs.Config,
 	replacements replacementMap,
-	irmd libkbfs.ImmutableRootMetadata) error {
+	irmd libkbfs.ImmutableRootMetadata,
+) error {
 	err := mdDumpFillReplacements(
 		ctx, config.Codec(), config.KeybaseService(), config, "md dump",
 		irmd.GetBareRootMetadata(), irmd.Extra(), replacements)
@@ -36,7 +37,8 @@ func mdDumpImmutableRMD(ctx context.Context, config libkbfs.Config,
 func mdDumpChunk(ctx context.Context, config libkbfs.Config,
 	replacements replacementMap, tlfStr, branchStr string,
 	tlfID tlf.ID, branchID kbfsmd.BranchID,
-	start, stop kbfsmd.Revision) error {
+	start, stop kbfsmd.Revision,
+) error {
 	min := start
 	max := stop
 	reversed := false
@@ -70,14 +72,14 @@ func mdDumpChunk(ctx context.Context, config libkbfs.Config,
 }
 
 func mdDumpInput(ctx context.Context, config libkbfs.Config,
-	replacements replacementMap, input string) error {
+	replacements replacementMap, input string,
+) error {
 	tlfStr, branchStr, startStr, stopStr, err := mdSplitInput(input)
 	if err != nil {
 		return err
 	}
 
-	tlfID, branchID, start, stop, err :=
-		mdParseInput(ctx, config, tlfStr, branchStr, startStr, stopStr)
+	tlfID, branchID, start, stop, err := mdParseInput(ctx, config, tlfStr, branchStr, startStr, stopStr)
 	if err != nil {
 		return err
 	}

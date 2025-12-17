@@ -47,7 +47,8 @@ func (m *mockChatUI) ChatClearWatch(ctx context.Context, watchID chat1.LocationW
 }
 
 func (m *mockChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string,
-	chat1.UICommandStatusDisplayTyp, []chat1.UICommandStatusActionTyp) error {
+	chat1.UICommandStatusDisplayTyp, []chat1.UICommandStatusActionTyp,
+) error {
 	return nil
 }
 
@@ -74,12 +75,14 @@ func newMockUnfurler(g *globals.Context, t *testing.T) *mockUnfurler {
 }
 
 func (m *mockUnfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgText string) int {
+	msgText string,
+) int {
 	return 0
 }
 
 func (m *mockUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msg chat1.MessageUnboxed) {
+	msg chat1.MessageUnboxed,
+) {
 	require.True(m.t, msg.IsValid())
 	body := msg.Valid().MessageBody
 	require.True(m.t, body.IsType(chat1.MessageType_TEXT))
@@ -112,7 +115,8 @@ func (m *mockUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convI
 					Lat: lat,
 					Lon: lon,
 				},
-			}}
+			},
+		}
 	}
 	if !shouldNotify {
 		return
@@ -141,7 +145,8 @@ func checkCoords(t *testing.T, unfurler *mockUnfurler, refcoords []chat1.Coordin
 }
 
 func updateCoords(t *testing.T, livelocation *maps.LiveLocationTracker, coords []chat1.Coordinate,
-	allCoords []chat1.Coordinate, coordsCh chan struct{}) []chat1.Coordinate {
+	allCoords []chat1.Coordinate, coordsCh chan struct{},
+) []chat1.Coordinate {
 	for _, c := range coords {
 		livelocation.LocationUpdate(context.TODO(), c)
 		allCoords = append(allCoords, c)

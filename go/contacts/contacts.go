@@ -44,8 +44,8 @@ func AssertionFromComponent(actx libkb.AssertionContext, c keybase1.ContactCompo
 // - follow status (are we following the user or not),
 // - service summaries.
 func fillResolvedUserInfo(mctx libkb.MetaContext, provider ContactsProvider, uidSet map[keybase1.UID]struct{},
-	contacts []keybase1.ProcessedContact) {
-
+	contacts []keybase1.ProcessedContact,
+) {
 	uidList := make([]keybase1.UID, 0, len(uidSet))
 	for uid := range uidSet {
 		uidList = append(uidList, uid)
@@ -95,7 +95,6 @@ func fillResolvedUserInfo(mctx libkb.MetaContext, provider ContactsProvider, uid
 // ResolveContacts resolves contacts with cache for UI. See API documentation
 // in phone_numbers.avdl
 func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (res []keybase1.ProcessedContact, err error) {
-
 	if len(contacts) == 0 {
 		mctx.Debug("`contacts` is empty, nothing to resolve")
 		return res, nil
@@ -153,7 +152,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 	}
 
 	for contactIndex, contact := range contacts {
-		var addLabel = len(contact.Components) > 1
+		addLabel := len(contact.Components) > 1
 		for _, component := range contact.Components {
 			assertion, err := AssertionFromComponent(actx, component, "")
 			if err != nil {

@@ -12,13 +12,17 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-var offsets []uint32
-var usernames []byte
-var once sync.Once
+var (
+	offsets   []uint32
+	usernames []byte
+	once      sync.Once
+)
 
 // Map of sorted location -> unsorted location, so we can binary search the usernames
-var usernameSortOrder []uint16
-var usoOnce sync.Once
+var (
+	usernameSortOrder []uint16
+	usoOnce           sync.Once
+)
 
 func findInit() {
 	once.Do(func() {

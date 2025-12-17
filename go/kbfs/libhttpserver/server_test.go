@@ -21,7 +21,8 @@ import (
 )
 
 func makeTestKBFSConfig(t *testing.T) (
-	kbfsConfig libkbfs.Config, shutdown func()) {
+	kbfsConfig libkbfs.Config, shutdown func(),
+) {
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	cfg := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "alice", "bob")

@@ -45,7 +45,7 @@ func procPath(t *testing.T, name string) string {
 	srcPath, destPath := procTestPath(name)
 	err := util.CopyFile(srcPath, destPath, testLog)
 	require.NoError(t, err)
-	err = os.Chmod(destPath, 0777)
+	err = os.Chmod(destPath, 0o777)
 	require.NoError(t, err)
 	// Temp dir might have symlinks in which case we need the eval'ed path
 	destPath, err = filepath.EvalSymlinks(destPath)

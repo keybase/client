@@ -40,7 +40,8 @@ func createEngine(tb testing.TB) Engine {
 }
 
 func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
-	opTimeout time.Duration) *fsUser {
+	opTimeout time.Duration,
+) *fsUser {
 	libfs.AddRootWrapper(config)
 	filesys := libfuse.NewFS(config, nil, false, libfuse.PlatformParams{})
 	fn := func(mnt *fstestutil.Mount) fs.FS {

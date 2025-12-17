@@ -89,8 +89,8 @@ func (s *SecretStoreImp) GetOptions(mctx MetaContext) *SecretStoreOptions {
 		return s.store.GetOptions(mctx)
 	}
 	return nil
-
 }
+
 func (s *SecretStoreImp) SetOptions(mctx MetaContext, options *SecretStoreOptions) {
 	if s.store != nil {
 		s.store.SetOptions(mctx, options)
@@ -300,7 +300,6 @@ func (s *SecretStoreLocked) StoreSecret(m MetaContext, username NormalizedUserna
 }
 
 func (s *SecretStoreLocked) ClearSecret(m MetaContext, username NormalizedUsername) error {
-
 	if username.IsNil() {
 		m.Debug("NOOPing SecretStoreLocked#ClearSecret for empty username")
 		return nil
@@ -386,6 +385,7 @@ func (s *SecretStoreLocked) GetOptions(mctx MetaContext) *SecretStoreOptions {
 	}
 	return nil
 }
+
 func (s *SecretStoreLocked) SetOptions(mctx MetaContext, options *SecretStoreOptions) {
 	if s.disk != nil {
 		s.disk.SetOptions(mctx, options)

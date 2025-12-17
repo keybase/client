@@ -58,7 +58,8 @@ func (c *cmdWalletSetInflation) ParseArgv(ctx *cli.Context) error {
 }
 
 func getInflationDestinationAddrFromString(cli stellar1.LocalClient, accountID stellar1.AccountID,
-	destination string) (res stellar1.AccountID, err error) {
+	destination string,
+) (res stellar1.AccountID, err error) {
 	inputAcc, err := libkb.ParseStellarAccountID(destination)
 	if err == nil {
 		// User passed destination AccountID

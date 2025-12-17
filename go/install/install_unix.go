@@ -85,7 +85,7 @@ func ToggleAutostart(context Context, on bool, forAutoinstall bool) error {
 		// to do that to add in the KEYBASE_AUTOSTART variable.
 	}
 
-	err := os.MkdirAll(autostartDir(context), 0755)
+	err := os.MkdirAll(autostartDir(context), 0o755)
 	if err != nil {
 		return err
 	}
@@ -101,13 +101,13 @@ func ToggleAutostart(context Context, on bool, forAutoinstall bool) error {
 		fmt.Println(`Installing autostart file. Manage autostart settings with ` + backtick + `keybase ctl autostart` + backtick + `.`)
 	}
 
-	err = os.WriteFile(autostartFilePath(context), []byte(text), 0644)
+	err = os.WriteFile(autostartFilePath(context), []byte(text), 0o644)
 	if err != nil {
 		return err
 	}
 
 	if forAutoinstall {
-		err = os.WriteFile(sentinelFilePath(context), []byte(sentinelFileText), 0644)
+		err = os.WriteFile(sentinelFilePath(context), []byte(sentinelFileText), 0o644)
 		if err != nil {
 			return err
 		}
@@ -129,7 +129,7 @@ func GetAutostart(context Context) keybase1.OnLoginStartupStatus {
 
 // AutoInstall installs auto start on unix
 func AutoInstall(context Context, _ string, _ bool, timeout time.Duration, log Log) (newProc bool, err error) {
-	err = os.MkdirAll(context.GetConfigDir(), 0755)
+	err = os.MkdirAll(context.GetConfigDir(), 0o755)
 	if err != nil {
 		return false, err
 	}

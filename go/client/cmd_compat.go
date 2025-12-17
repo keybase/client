@@ -42,6 +42,7 @@ func (c *cmdCompat) Run() error {
 	c.G().UI.GetTerminalUI().Printf("%s\n", c.msg)
 	return nil
 }
+
 func (c *cmdCompat) ParseArgv(ctx *cli.Context) error {
 	return nil
 }

@@ -59,7 +59,8 @@ func postNewUserEK(mctx libkb.MetaContext, sig string, boxes []keybase1.UserEkBo
 // steps common to both cases.
 func prepareNewUserEK(mctx libkb.MetaContext, merkleRoot libkb.MerkleRoot,
 	pukSigning *libkb.NaclSigningKeyPair) (sig string, boxes []keybase1.UserEkBoxMetadata,
-	newMetadata keybase1.UserEkMetadata, myBox *keybase1.UserEkBoxed, err error) {
+	newMetadata keybase1.UserEkMetadata, myBox *keybase1.UserEkBoxed, err error,
+) {
 	defer mctx.Trace("prepareNewUserEK", &err)()
 
 	seed, err := newUserEphemeralSeed()
@@ -117,7 +118,8 @@ func prepareNewUserEK(mctx libkb.MetaContext, merkleRoot libkb.MerkleRoot,
 
 // Create a new userEK and upload it. Add our box to the local box store.
 func publishNewUserEK(mctx libkb.MetaContext, merkleRoot libkb.MerkleRoot) (
-	metadata keybase1.UserEkMetadata, err error) {
+	metadata keybase1.UserEkMetadata, err error,
+) {
 	defer mctx.Trace("publishNewUserEK", &err)()
 
 	// Sign the statement blob with the latest PUK.
@@ -162,7 +164,8 @@ func ForcePublishNewUserEKForTesting(mctx libkb.MetaContext, merkleRoot libkb.Me
 
 func boxUserEKForDevices(mctx libkb.MetaContext, merkleRoot libkb.MerkleRoot,
 	seed UserEKSeed, userMetadata keybase1.UserEkMetadata) (boxes []keybase1.UserEkBoxMetadata,
-	myUserEKBoxed *keybase1.UserEkBoxed, err error) {
+	myUserEKBoxed *keybase1.UserEkBoxed, err error,
+) {
 	defer mctx.Trace("boxUserEKForDevices", &err)()
 
 	devicesMetadata, err := allActiveDeviceEKMetadata(mctx, merkleRoot)
@@ -209,7 +212,8 @@ type userEKStatementResponse struct {
 // transitional thing, and eventually when all "reasonably up to date" clients
 // in the wild have EK support, we will make that case an error.
 func fetchUserEKStatements(mctx libkb.MetaContext, uids []keybase1.UID) (
-	statements map[keybase1.UID]*keybase1.UserEkStatement, err error) {
+	statements map[keybase1.UID]*keybase1.UserEkStatement, err error,
+) {
 	defer mctx.Trace(fmt.Sprintf("fetchUserEKStatements: numUids: %v", len(uids)), &err)()
 
 	apiArg := libkb.APIArg{
@@ -282,7 +286,8 @@ func fetchUserEKStatements(mctx libkb.MetaContext, uids []keybase1.UID) (
 // correct generation number but not include the statement when generating a
 // new userEK.
 func fetchUserEKStatement(mctx libkb.MetaContext, uid keybase1.UID) (
-	statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
+	statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error,
+) {
 	defer mctx.Trace("fetchUserEKStatement", &err)()
 
 	apiArg := libkb.APIArg{
@@ -356,7 +361,8 @@ func extractUserEKStatementFromSig(sig string) (signerKey *kbcrypto.NaclSigningK
 // callers can use this value to generate a new key even if `wrongKID` is set.
 func verifySigWithLatestPUK(mctx libkb.MetaContext, uid keybase1.UID,
 	latestPUK *keybase1.PerUserKey, sig string) (
-	statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
+	statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error,
+) {
 	defer mctx.Trace("verifySigWithLatestPUK", &err)()
 
 	// Parse the statement before we verify the signing key. Even if the
@@ -397,7 +403,8 @@ func verifySigWithLatestPUK(mctx libkb.MetaContext, uid keybase1.UID,
 }
 
 func filterStaleUserEKStatements(mctx libkb.MetaContext, statementMap map[keybase1.UID]*keybase1.UserEkStatement,
-	merkleRoot libkb.MerkleRoot) (activeMap map[keybase1.UID]keybase1.UserEkStatement, err error) {
+	merkleRoot libkb.MerkleRoot,
+) (activeMap map[keybase1.UID]keybase1.UserEkStatement, err error) {
 	defer mctx.Trace(fmt.Sprintf("filterStaleUserEKStatements: numStatements: %v", len(statementMap)), &err)()
 
 	activeMap = make(map[keybase1.UID]keybase1.UserEkStatement)
@@ -418,7 +425,8 @@ func filterStaleUserEKStatements(mctx libkb.MetaContext, statementMap map[keybas
 }
 
 func activeUserEKMetadata(mctx libkb.MetaContext, statementMap map[keybase1.UID]*keybase1.UserEkStatement,
-	merkleRoot libkb.MerkleRoot) (activeMetadata map[keybase1.UID]keybase1.UserEkMetadata, err error) {
+	merkleRoot libkb.MerkleRoot,
+) (activeMetadata map[keybase1.UID]keybase1.UserEkMetadata, err error) {
 	activeMap, err := filterStaleUserEKStatements(mctx, statementMap, merkleRoot)
 	if err != nil {
 		return nil, err

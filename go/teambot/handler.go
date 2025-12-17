@@ -11,7 +11,8 @@ import (
 // HandleNewTeambotKey checks that the bot's team cache has at least up to the
 // generation just created.
 func HandleNewTeambotKey(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) (err error) {
+	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration,
+) (err error) {
 	defer mctx.Trace("HandleNewTeambotKey", &err)()
 	defer func() {
 		mctx.G().NotifyRouter.HandleNewTeambotKey(mctx.Ctx(), teamID, app, generation)
@@ -43,7 +44,8 @@ func HandleNewTeambotKey(mctx libkb.MetaContext, teamID keybase1.TeamID,
 // not have access. All team members are notified and race to publish the
 // requested key.
 func HandleTeambotKeyNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
-	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) (err error) {
+	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration,
+) (err error) {
 	defer mctx.Trace("HandleTeambotKeyNeeded", &err)()
 	defer func() {
 		mctx.G().NotifyRouter.HandleTeambotKeyNeeded(mctx.Ctx(), teamID, botUID, app, generation)

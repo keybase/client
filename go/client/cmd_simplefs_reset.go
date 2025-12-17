@@ -22,14 +22,16 @@ type CmdSimpleFSReset struct {
 
 // NewCmdSimpleFSReset creates a new cli.Command.
 func NewCmdSimpleFSReset(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:         "reset",
 		ArgumentHelp: "[path-to-folder]",
 		Usage:        "resets the given TLF after asking for confirmation",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSReset{
-				Contextified: libkb.NewContextified(g)}, "reset", c)
+				Contextified: libkb.NewContextified(g),
+			}, "reset", c)
 			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{

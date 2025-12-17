@@ -25,7 +25,7 @@ func main() {
 	flag.StringVar(&f.out, "out", "", "Output")
 	flag.StringVar(&f.outPath, "outPath", "", "Output path")
 	flag.Parse()
-	var arg = flag.Arg(0)
+	arg := flag.Arg(0)
 
 	switch arg {
 	case "noexit":
@@ -74,7 +74,7 @@ func echo(s string) {
 }
 
 func writeToFile(s string, path string) {
-	err := os.WriteFile(path, []byte(s), 0700)
+	err := os.WriteFile(path, []byte(s), 0o700)
 	if err != nil {
 		log.Fatalf("Error writing to file: %s", err)
 	}
@@ -87,7 +87,7 @@ func copyFakeLayout(dst string) {
 		log.Fatalf("Error reading winlayout.log: %s", err)
 	}
 	// Write data to dst
-	err = os.WriteFile(dst, data, 0644)
+	err = os.WriteFile(dst, data, 0o644)
 	if err != nil {
 		log.Fatalf("Error writing to %s: %s", dst, err)
 	}

@@ -23,22 +23,25 @@ import (
 // For more information about the Google Maps Static API, head here:
 // https://developers.google.com/maps/documentation/maps-static/dev-guide
 
-const MapsProxy = "maps-proxy.core.keybaseapi.com"
-const mapsHost = "maps.googleapis.com"
-const scale = 2
-const locationMapWidth = 640
-const locationMapHeight = 350
-const liveMapWidth = 640
-const liveMapHeight = 350
-const liveMapWidthScaled = liveMapWidth / scale
-const liveMapHeightScaled = liveMapHeight / scale
+const (
+	MapsProxy           = "maps-proxy.core.keybaseapi.com"
+	mapsHost            = "maps.googleapis.com"
+	scale               = 2
+	locationMapWidth    = 640
+	locationMapHeight   = 350
+	liveMapWidth        = 640
+	liveMapHeight       = 350
+	liveMapWidthScaled  = liveMapWidth / scale
+	liveMapHeightScaled = liveMapHeight / scale
+)
 
 func GetMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, lat, lon float64) (string, error) {
 	return GetCustomMapURL(ctx, apiKeySource, lat, lon, locationMapWidth, locationMapHeight)
 }
 
 func GetCustomMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, lat, lon float64,
-	width, height int) (string, error) {
+	width, height int,
+) (string, error) {
 	key, err := apiKeySource.GetKey(ctx, chat1.ExternalAPIKeyTyp_GOOGLEMAPS)
 	if err != nil {
 		return "", err
@@ -49,7 +52,6 @@ func GetCustomMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySourc
 		"https://%s/maps/api/staticmap?zoom=18&center=%f,%f&size=%dx%d&scale=%d&key=%s",
 		MapsProxy, lat, lon, widthScaled, heightScaled, scale,
 		key.Googlemaps()), nil
-
 }
 
 func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, coords []chat1.Coordinate) (string, error) {

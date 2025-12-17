@@ -118,7 +118,6 @@ func (t *Terminal) GetSize() (int, int) {
 }
 
 func (t *Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
-
 	if err := t.open(); err != nil {
 		return nil, err
 	}

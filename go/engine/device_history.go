@@ -62,7 +62,6 @@ func (e *DeviceHistory) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *DeviceHistory) Run(m libkb.MetaContext) error {
-
 	arg := e.loadUserArg(m)
 	err := m.G().GetFullSelfer().WithUser(arg, func(u *libkb.User) error {
 		return e.loadDevices(m, u)

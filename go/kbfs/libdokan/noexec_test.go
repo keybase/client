@@ -22,8 +22,10 @@ import (
 )
 
 func findGoExe() (string, error) {
-	for _, path := range []string{"go.exe",
-		os.Getenv("GOBIN") + "/go.exe", os.Getenv("GOROOT") + "/bin/go.exe"} {
+	for _, path := range []string{
+		"go.exe",
+		os.Getenv("GOBIN") + "/go.exe", os.Getenv("GOROOT") + "/bin/go.exe",
+	} {
 		exe, err := exec.LookPath(path)
 		if err == nil {
 			return exe, err
@@ -88,8 +90,8 @@ func testNoExec(t *testing.T, users []string) error {
 	}
 
 	return exec.Command(targetPath, "version").Run()
-
 }
+
 func TestNoExec(t *testing.T) {
 	err := testNoExec(t, []string{"jdoe", "janedoe"})
 	if err == nil {

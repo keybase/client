@@ -38,6 +38,7 @@ var noop = func() {}
 
 func wrapCtxWithShorterTimeoutForUnmount(
 	ctx context.Context, _ logger.Logger, _ int) (
-	newCtx context.Context, maybeUnmounting bool, cancel context.CancelFunc) {
+	newCtx context.Context, maybeUnmounting bool, cancel context.CancelFunc,
+) {
 	return ctx, false, noop
 }

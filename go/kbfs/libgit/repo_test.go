@@ -24,7 +24,8 @@ import (
 
 func initConfig(t *testing.T) (
 	ctx context.Context, cancel context.CancelFunc,
-	config *libkbfs.ConfigLocal, tempdir string) {
+	config *libkbfs.ConfigLocal, tempdir string,
+) {
 	ctx = libcontext.BackgroundContextWithCancellationDelayer()
 	config = libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1", "user2")

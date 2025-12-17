@@ -122,6 +122,7 @@ func TestSendTextByName(t *testing.T) {
 		}
 	})
 }
+
 func TestTopicNameRace(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		switch mt {

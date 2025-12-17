@@ -312,7 +312,8 @@ func (oc *OpCommon) stringWithRefs(indent string) string {
 // ToEditNotification implements the op interface for OpCommon.
 func (oc *OpCommon) ToEditNotification(
 	_ kbfsmd.Revision, _ time.Time, _ kbfscrypto.VerifyingKey,
-	_ keybase1.UID, _ tlf.ID) *kbfsedits.NotificationMessage {
+	_ keybase1.UID, _ tlf.ID,
+) *kbfsedits.NotificationMessage {
 	// Ops embedding this that can be converted should override this.
 	return nil
 }
@@ -436,7 +437,8 @@ func (co *createOp) StringWithRefs(indent string) string {
 
 func (co *createOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
-	isFile bool) (crAction, error) {
+	isFile bool,
+) (crAction, error) {
 	if realMergedOp, ok := mergedOp.(*createOp); ok {
 		// Conflicts if this creates the same name and one of them
 		// isn't creating a directory.
@@ -517,7 +519,8 @@ func (co *createOp) getDefaultAction(mergedPath data.Path) crAction {
 func makeBaseEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
 	uid keybase1.UID, tlfID tlf.ID,
-	et data.EntryType) kbfsedits.NotificationMessage {
+	et data.EntryType,
+) kbfsedits.NotificationMessage {
 	var t kbfsedits.EntryType
 	switch et {
 	case data.File, data.Exec:
@@ -540,7 +543,8 @@ func makeBaseEditNotification(
 
 func (co *createOp) ToEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
-	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
+	uid keybase1.UID, tlfID tlf.ID,
+) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(rev, revTime, device, uid, tlfID, co.Type)
 	n.Filename = co.getFinalPath().ChildPathNoPtr(co.obfuscatedNewName(), nil).
 		CanonicalPathPlaintext()
@@ -561,7 +565,8 @@ type rmOp struct {
 }
 
 func newRmOp(name string, oldDir data.BlockPointer, removedType data.EntryType) (
-	*rmOp, error) {
+	*rmOp, error,
+) {
 	ro := &rmOp{
 		OldName:     name,
 		RemovedType: removedType,
@@ -635,7 +640,8 @@ func (ro *rmOp) StringWithRefs(indent string) string {
 
 func (ro *rmOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
-	isFile bool) (crAction, error) {
+	isFile bool,
+) (crAction, error) {
 	switch realMergedOp := mergedOp.(type) {
 	case *createOp:
 		if realMergedOp.NewName == ro.OldName {
@@ -663,7 +669,8 @@ func (ro *rmOp) getDefaultAction(mergedPath data.Path) crAction {
 
 func (ro *rmOp) ToEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
-	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
+	uid keybase1.UID, tlfID tlf.ID,
+) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(
 		rev, revTime, device, uid, tlfID, ro.RemovedType)
 	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.obfuscatedOldName(), nil).
@@ -694,7 +701,8 @@ type renameOp struct {
 
 func newRenameOp(oldName string, oldOldDir data.BlockPointer,
 	newName string, oldNewDir data.BlockPointer, renamed data.BlockPointer,
-	renamedType data.EntryType) (*renameOp, error) {
+	renamedType data.EntryType,
+) (*renameOp, error) {
 	ro := &renameOp{
 		OldName:     oldName,
 		NewName:     newName,
@@ -810,7 +818,8 @@ func (ro *renameOp) StringWithRefs(indent string) string {
 
 func (ro *renameOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
-	isFile bool) (crAction, error) {
+	isFile bool,
+) (crAction, error) {
 	return nil, errors.Errorf("Unexpected conflict check on a rename op: %s", ro)
 }
 
@@ -820,7 +829,8 @@ func (ro *renameOp) getDefaultAction(mergedPath data.Path) crAction {
 
 func (ro *renameOp) ToEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
-	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
+	uid keybase1.UID, tlfID tlf.ID,
+) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(
 		rev, revTime, device, uid, tlfID, ro.RenamedType)
 	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.obfuscatedNewName(), nil).
@@ -982,7 +992,8 @@ func (so *syncOp) StringWithRefs(indent string) string {
 
 func (so *syncOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
-	isFile bool) (crAction, error) {
+	isFile bool,
+) (crAction, error) {
 	switch mergedOp.(type) {
 	case *syncOp:
 		// Any sync on the same file is a conflict.  (TODO: add
@@ -1027,7 +1038,8 @@ func (so *syncOp) getDefaultAction(mergedPath data.Path) crAction {
 
 func (so *syncOp) ToEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
-	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
+	uid keybase1.UID, tlfID tlf.ID,
+) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(rev, revTime, device, uid, tlfID, data.File)
 	n.Filename = so.getFinalPath().CanonicalPathPlaintext()
 	n.Type = kbfsedits.NotificationModify
@@ -1081,7 +1093,8 @@ func coalesceWrites(existingWrites []WriteRange, wNew WriteRange) []WriteRange {
 // non-overlapping writes with strictly increasing Off, and maybe a
 // trailing truncate (with strictly greater Off).
 func addToCollapsedWriteRange(writes []WriteRange,
-	wNew WriteRange) []WriteRange {
+	wNew WriteRange,
+) []WriteRange {
 	// Form three regions: head, mid, and tail: head is the maximal prefix
 	// of writes less than (with respect to Off) and unaffected by wNew,
 	// tail is the maximal suffix of writes greater than (with respect to
@@ -1158,7 +1171,8 @@ func addToCollapsedWriteRange(writes []WriteRange,
 // folderBranchOps, but in the future we may have bona fide truncate
 // WriteRanges past a file's end.
 func (so *syncOp) collapseWriteRange(writes []WriteRange) (
-	newWrites []WriteRange) {
+	newWrites []WriteRange,
+) {
 	newWrites = writes
 	for _, wNew := range so.Writes {
 		newWrites = addToCollapsedWriteRange(newWrites, wNew)
@@ -1203,7 +1217,8 @@ type setAttrOp struct {
 }
 
 func newSetAttrOp(name string, oldDir data.BlockPointer,
-	attr attrChange, file data.BlockPointer) (*setAttrOp, error) {
+	attr attrChange, file data.BlockPointer,
+) (*setAttrOp, error) {
 	sao := &setAttrOp{
 		Name: name,
 	}
@@ -1280,7 +1295,8 @@ func (sao *setAttrOp) StringWithRefs(indent string) string {
 
 func (sao *setAttrOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
-	isFile bool) (crAction, error) {
+	isFile bool,
+) (crAction, error) {
 	if realMergedOp, ok := mergedOp.(*setAttrOp); ok &&
 		realMergedOp.Attr == sao.Attr {
 		var symPath string
@@ -1404,7 +1420,8 @@ func (ro *resolutionOp) CommittedUnrefs() []data.BlockPointer {
 
 func (ro *resolutionOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
-	isFile bool) (crAction, error) {
+	isFile bool,
+) (crAction, error) {
 	return nil, nil
 }
 
@@ -1456,7 +1473,8 @@ func (ro *rekeyOp) StringWithRefs(indent string) string {
 
 func (ro *rekeyOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
-	isFile bool) (crAction, error) {
+	isFile bool,
+) (crAction, error) {
 	return nil, nil
 }
 
@@ -1524,7 +1542,8 @@ func (gco *GCOp) StringWithRefs(indent string) string {
 // checkConflict implements op.
 func (gco *GCOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
-	isFile bool) (crAction, error) {
+	isFile bool,
+) (crAction, error) {
 	return nil, nil
 }
 

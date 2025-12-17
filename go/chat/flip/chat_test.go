@@ -34,8 +34,10 @@ type chatClient struct {
 	deliver    func(m GameMessageWrappedEncoded)
 }
 
-var _ DealersHelper = (*chatClient)(nil)
-var _ ReplayHelper = (*chatClient)(nil)
+var (
+	_ DealersHelper = (*chatClient)(nil)
+	_ ReplayHelper  = (*chatClient)(nil)
+)
 
 func (c *chatClient) Clock() clockwork.Clock {
 	if c.clock != nil {
@@ -63,7 +65,8 @@ func (c *chatClient) Me() UserDevice {
 }
 
 func (c *chatClient) SendChat(ctx context.Context, initiatorUID gregor1.UID, conversationID chat1.ConversationID,
-	gameID chat1.FlipGameID, msg GameMessageEncoded) error {
+	gameID chat1.FlipGameID, msg GameMessageEncoded,
+) error {
 	c.server.inputCh <- GameMessageWrappedEncoded{Body: msg, GameID: gameID, Sender: c.me}
 	return nil
 }
@@ -565,7 +568,6 @@ func testBadLeader(t *testing.T, nTotal int) {
 }
 
 func TestRepeatedGame(t *testing.T) {
-
 	srv := newChatServer()
 	ctx := context.Background()
 	go srv.run(ctx)
@@ -588,7 +590,6 @@ func genConversationID() chat1.ConversationID {
 }
 
 func testLeaderClockSkew(t *testing.T, skew time.Duration) {
-
 	srv := newChatServer()
 	ctx := context.Background()
 	go srv.run(ctx)

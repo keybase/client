@@ -9,38 +9,40 @@ import (
 // and expanded with data at github.com/keybase/client/go/client:color.go
 type EscapeCode []byte
 
-var keyEscape byte = 27
-var vt100EscapeCodes = []EscapeCode{
-	// Foreground colors
-	{keyEscape, '[', '3', '0', 'm'},
-	{keyEscape, '[', '3', '1', 'm'},
-	{keyEscape, '[', '3', '2', 'm'},
-	{keyEscape, '[', '3', '3', 'm'},
-	{keyEscape, '[', '3', '4', 'm'},
-	{keyEscape, '[', '3', '5', 'm'},
-	{keyEscape, '[', '3', '6', 'm'},
-	{keyEscape, '[', '3', '7', 'm'},
-	{keyEscape, '[', '9', '0', 'm'},
-	// Reset foreground color
-	{keyEscape, '[', '3', '9', 'm'},
-	// Bold
-	{keyEscape, '[', '1', 'm'},
-	// Italic
-	{keyEscape, '[', '3', 'm'},
-	// Underline
-	{keyEscape, '[', '4', 'm'},
-	// Reset bold (or doubly underline according to ECMA-48; fallback is code [22m)
-	// See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
-	{keyEscape, '[', '2', '1', 'm'},
-	// Normal intensity
-	{keyEscape, '[', '2', '2', 'm'},
-	// Reset italic
-	{keyEscape, '[', '2', '3', 'm'},
-	// Reset underline
-	{keyEscape, '[', '2', '4', 'm'},
-	// Reset all formatting
-	{keyEscape, '[', '0', 'm'},
-}
+var (
+	keyEscape        byte = 27
+	vt100EscapeCodes      = []EscapeCode{
+		// Foreground colors
+		{keyEscape, '[', '3', '0', 'm'},
+		{keyEscape, '[', '3', '1', 'm'},
+		{keyEscape, '[', '3', '2', 'm'},
+		{keyEscape, '[', '3', '3', 'm'},
+		{keyEscape, '[', '3', '4', 'm'},
+		{keyEscape, '[', '3', '5', 'm'},
+		{keyEscape, '[', '3', '6', 'm'},
+		{keyEscape, '[', '3', '7', 'm'},
+		{keyEscape, '[', '9', '0', 'm'},
+		// Reset foreground color
+		{keyEscape, '[', '3', '9', 'm'},
+		// Bold
+		{keyEscape, '[', '1', 'm'},
+		// Italic
+		{keyEscape, '[', '3', 'm'},
+		// Underline
+		{keyEscape, '[', '4', 'm'},
+		// Reset bold (or doubly underline according to ECMA-48; fallback is code [22m)
+		// See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
+		{keyEscape, '[', '2', '1', 'm'},
+		// Normal intensity
+		{keyEscape, '[', '2', '2', 'm'},
+		// Reset italic
+		{keyEscape, '[', '2', '3', 'm'},
+		// Reset underline
+		{keyEscape, '[', '2', '4', 'm'},
+		// Reset all formatting
+		{keyEscape, '[', '0', 'm'},
+	}
+)
 
 // Clean escapes the UTF8 encoded string provided as input so it is safe to print on a unix terminal.
 // It removes non printing characters and substitutes the vt100 escape character 0x1b with '^['.

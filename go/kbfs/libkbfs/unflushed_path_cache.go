@@ -26,8 +26,10 @@ const (
 	upcInitialized
 )
 
-type unflushedPathsPerRevMap map[string]bool
-type unflushedPathsMap map[kbfsmd.Revision]unflushedPathsPerRevMap
+type (
+	unflushedPathsPerRevMap map[string]bool
+	unflushedPathsMap       map[kbfsmd.Revision]unflushedPathsPerRevMap
+)
 
 type upcQueuedOpType int
 
@@ -83,7 +85,8 @@ func (upc *unflushedPathCache) getUnflushedPaths() unflushedPathsMap {
 }
 
 func (upc *unflushedPathCache) doStartInitialization() (
-	bool, <-chan struct{}) {
+	bool, <-chan struct{},
+) {
 	upc.lock.Lock()
 	defer upc.lock.Unlock()
 	switch upc.state {
@@ -109,7 +112,8 @@ func (upc *unflushedPathCache) doStartInitialization() (
 // initialized when it returns).  It may block for an extended period
 // of time during while another caller is initializing.
 func (upc *unflushedPathCache) startInitializeOrWait(ctx context.Context) (
-	bool, error) {
+	bool, error,
+) {
 	// Retry in case the original initializer has to abort due to
 	// error; limit the number of retries by the lifetime of `ctx`.
 	for {
@@ -156,7 +160,8 @@ func addUnflushedPaths(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
 	log logger.Logger, osg idutil.OfflineStatusGetter,
 	mdInfos []unflushedPathMDInfo, cpp chainsPathPopulator,
-	unflushedPaths unflushedPathsMap) error {
+	unflushedPaths unflushedPathsMap,
+) error {
 	// Make chains over the entire range to get the unflushed files.
 	chains := newCRChainsEmpty(cpp.obfuscatorMaker())
 	if len(mdInfos) > 0 {
@@ -240,7 +245,8 @@ func addUnflushedPaths(ctx context.Context,
 func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
 	log logger.Logger, osg idutil.OfflineStatusGetter, mdInfo unflushedPathMDInfo) (
-	unflushedPathsPerRevMap, error) {
+	unflushedPathsPerRevMap, error,
+) {
 	cpp := func() chainsPathPopulator {
 		upc.lock.Lock()
 		defer upc.lock.Unlock()
@@ -277,7 +283,8 @@ func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
 // appendToCache returns true when successful, and false if it needs
 // to be retried after the per-revision map is recomputed.
 func (upc *unflushedPathCache) appendToCache(mdInfo unflushedPathMDInfo,
-	perRevMap unflushedPathsPerRevMap) bool {
+	perRevMap unflushedPathsPerRevMap,
+) bool {
 	upc.lock.Lock()
 	defer upc.lock.Unlock()
 	switch upc.state {
@@ -324,7 +331,8 @@ func (upc *unflushedPathCache) removeFromCache(rev kbfsmd.Revision) {
 }
 
 func (upc *unflushedPathCache) setCacheIfPossible(cache unflushedPathsMap,
-	cpp chainsPathPopulator) []upcQueuedOp {
+	cpp chainsPathPopulator,
+) []upcQueuedOp {
 	upc.lock.Lock()
 	defer upc.lock.Unlock()
 	if len(upc.queue) > 0 {
@@ -346,7 +354,8 @@ func (upc *unflushedPathCache) setCacheIfPossible(cache unflushedPathsMap,
 
 func reinitUpcCache(revision kbfsmd.Revision,
 	unflushedPaths unflushedPathsMap, perRevMap unflushedPathsPerRevMap,
-	isLocalSquash bool) {
+	isLocalSquash bool,
+) {
 	// Remove all entries equal or bigger to this revision.  Keep
 	// earlier revisions (likely preserved local squashes).
 	for rev := range unflushedPaths {
@@ -370,7 +379,8 @@ func reinitUpcCache(revision kbfsmd.Revision,
 func (upc *unflushedPathCache) initialize(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
 	log logger.Logger, osg idutil.OfflineStatusGetter, cpp chainsPathPopulator,
-	mdInfos []unflushedPathMDInfo) (unflushedPathsMap, bool, error) {
+	mdInfos []unflushedPathMDInfo,
+) (unflushedPathsMap, bool, error) {
 	// First get all the paths for the given range.  On the first try
 	unflushedPaths := make(unflushedPathsMap)
 	log.CDebugf(ctx, "Initializing unflushed path cache with %d revisions",
@@ -459,7 +469,8 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 // if it needs to be retried after the per-revision map is recomputed.
 func (upc *unflushedPathCache) reinitializeWithResolution(
 	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
-	isLocalSquash bool) bool {
+	isLocalSquash bool,
+) bool {
 	upc.lock.Lock()
 	defer upc.lock.Unlock()
 

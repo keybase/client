@@ -173,7 +173,8 @@ func (b *BackgroundTLFUpdater) getTLFToUpgrade(ctx context.Context, appType keyb
 }
 
 func (b *BackgroundTLFUpdater) upgradeTLF(ctx context.Context, tlfName string, tlfID keybase1.TLFID,
-	public bool, appType keybase1.TeamApplication) {
+	public bool, appType keybase1.TeamApplication,
+) {
 	switch appType {
 	case keybase1.TeamApplication_CHAT:
 		b.upgradeTLFForChat(ctx, tlfName, tlfID, public)
@@ -187,7 +188,8 @@ func (b *BackgroundTLFUpdater) upgradeTLF(ctx context.Context, tlfName string, t
 }
 
 func (b *BackgroundTLFUpdater) upgradeTLFForChat(ctx context.Context, tlfName string, tlfID keybase1.TLFID,
-	public bool) {
+	public bool,
+) {
 	defer func() {
 		if b.upgradeCh != nil {
 			*b.upgradeCh <- tlfID

@@ -530,7 +530,6 @@ func computeCriticalClockSkew(g *GlobalContext, s string) time.Duration {
 		return ret
 	}
 	serverNow, err := time.Parse(time.RFC1123, s)
-
 	if err != nil {
 		g.Log.Warning("Failed to parse server time: %s", err)
 		return ret
@@ -547,7 +546,6 @@ func computeCriticalClockSkew(g *GlobalContext, s string) time.Duration {
 // clock, we'll get 0.  Otherwise, we set the skew accordingly. Safe
 // to set this every time.
 func (a *InternalAPIEngine) updateCriticalClockSkewWarning(resp *http.Response) {
-
 	g := a.G()
 	g.oodiMu.RLock()
 	criticalClockSkew := int64(computeCriticalClockSkew(a.G(), resp.Header.Get("Date")))
@@ -620,7 +618,6 @@ func (a *InternalAPIEngine) consumeHeaders(m MetaContext, resp *http.Response, n
 }
 
 func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Request, nist *NIST) error {
-
 	if nist != nil {
 		req.Header.Set("X-Keybase-Session", nist.Token().String())
 	} else if arg.SessionType != APISessionTypeNONE {
@@ -958,8 +955,8 @@ func (api *ExternalAPIEngine) isExternal() bool { return true }
 
 func (api *ExternalAPIEngine) DoRequest(m MetaContext,
 	arg APIArg, req *http.Request, restype XAPIResType) (
-	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error) {
-
+	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error,
+) {
 	m = m.EnsureCtx().WithLogTag("API")
 
 	var resp *http.Response
@@ -996,8 +993,8 @@ func (api *ExternalAPIEngine) DoRequest(m MetaContext,
 }
 
 func (api *ExternalAPIEngine) getCommon(m MetaContext, arg APIArg, restype XAPIResType) (
-	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error) {
-
+	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error,
+) {
 	url1, err := url.Parse(arg.Endpoint)
 	if err != nil {
 		return nil, nil, nil, err
@@ -1040,12 +1037,11 @@ func (api *ExternalAPIEngine) GetText(m MetaContext, arg APIArg) (res *ExternalT
 }
 
 func (api *ExternalAPIEngine) postCommon(m MetaContext, arg APIArg, restype XAPIResType) (
-	ar *ExternalAPIRes, hr *ExternalHTMLRes, err error) {
-
+	ar *ExternalAPIRes, hr *ExternalHTMLRes, err error,
+) {
 	var url1 *url.URL
 	var req *http.Request
 	url1, err = url1.Parse(arg.Endpoint)
-
 	if err != nil {
 		return
 	}

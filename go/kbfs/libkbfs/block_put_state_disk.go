@@ -32,7 +32,8 @@ var _ blockPutState = (*blockPutStateDisk)(nil)
 
 func newBlockPutStateDisk(
 	length int, config blockPutStateDiskConfig,
-	diskCache *DiskBlockCacheLocal, kmd libkey.KeyMetadata) *blockPutStateDisk {
+	diskCache *DiskBlockCacheLocal, kmd libkey.KeyMetadata,
+) *blockPutStateDisk {
 	return &blockPutStateDisk{
 		blockPutStateMemory: newBlockPutStateMemory(length),
 		config:              config,
@@ -45,7 +46,8 @@ func newBlockPutStateDisk(
 // AddNewBlock implements the blockPutState interface for blockPutStateDisk.
 func (bps *blockPutStateDisk) AddNewBlock(
 	ctx context.Context, blockPtr data.BlockPointer, block data.Block,
-	readyBlockData data.ReadyBlockData, syncedCb func() error) error {
+	readyBlockData data.ReadyBlockData, syncedCb func() error,
+) error {
 	// Add the pointer and the cb to the memory-based put state, and
 	// put the ready data directly into the disk cache.
 	err := bps.diskCache.Put(
@@ -64,7 +66,8 @@ func (bps *blockPutStateDisk) AddNewBlock(
 }
 
 func (bps *blockPutStateDisk) GetBlock(
-	ctx context.Context, blockPtr data.BlockPointer) (data.Block, error) {
+	ctx context.Context, blockPtr data.BlockPointer,
+) (data.Block, error) {
 	blockData, serverHalf, _, err := bps.diskCache.Get(
 		ctx, bps.kmd.TlfID(), blockPtr.ID)
 	if err != nil {
@@ -88,7 +91,8 @@ func (bps *blockPutStateDisk) GetBlock(
 }
 
 func (bps *blockPutStateDisk) getReadyBlockData(
-	ctx context.Context, blockPtr data.BlockPointer) (data.ReadyBlockData, error) {
+	ctx context.Context, blockPtr data.BlockPointer,
+) (data.ReadyBlockData, error) {
 	blockData, serverHalf, _, err := bps.diskCache.Get(
 		ctx, bps.kmd.TlfID(), blockPtr.ID)
 	if err != nil {

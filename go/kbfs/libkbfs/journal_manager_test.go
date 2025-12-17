@@ -29,7 +29,8 @@ import (
 func setupJournalManagerTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
 	config *ConfigLocal, quotaUsage *EventuallyConsistentQuotaUsage,
-	jManager *JournalManager) {
+	jManager *JournalManager,
+) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 
@@ -80,7 +81,8 @@ func setupJournalManagerTest(t *testing.T) (
 
 func teardownJournalManagerTest(
 	ctx context.Context, t *testing.T, tempdir string,
-	cancel context.CancelFunc, config Config) {
+	cancel context.CancelFunc, config Config,
+) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
 	err := ioutil.RemoveAll(tempdir)
@@ -96,7 +98,8 @@ type quotaBlockServer struct {
 }
 
 func (qbs *quotaBlockServer) setUserQuotaInfo(
-	remoteUsageBytes, limitBytes, remoteGitUsageBytes, gitLimitBytes int64) {
+	remoteUsageBytes, limitBytes, remoteGitUsageBytes, gitLimitBytes int64,
+) {
 	qbs.quotaInfoLock.Lock()
 	defer qbs.quotaInfoLock.Unlock()
 	qbs.userQuotaInfo.Limit = limitBytes
@@ -110,7 +113,8 @@ func (qbs *quotaBlockServer) setUserQuotaInfo(
 }
 
 func (qbs *quotaBlockServer) setTeamQuotaInfo(
-	tid keybase1.TeamID, remoteUsageBytes, limitBytes int64) {
+	tid keybase1.TeamID, remoteUsageBytes, limitBytes int64,
+) {
 	qbs.quotaInfoLock.Lock()
 	defer qbs.quotaInfoLock.Unlock()
 	if qbs.teamQuotaInfo == nil {
@@ -127,7 +131,8 @@ func (qbs *quotaBlockServer) setTeamQuotaInfo(
 }
 
 func (qbs *quotaBlockServer) GetUserQuotaInfo(ctx context.Context) (
-	info *kbfsblock.QuotaInfo, err error) {
+	info *kbfsblock.QuotaInfo, err error,
+) {
 	qbs.quotaInfoLock.Lock()
 	defer qbs.quotaInfoLock.Unlock()
 	infoCopy := qbs.userQuotaInfo
@@ -136,7 +141,8 @@ func (qbs *quotaBlockServer) GetUserQuotaInfo(ctx context.Context) (
 
 func (qbs *quotaBlockServer) GetTeamQuotaInfo(
 	ctx context.Context, tid keybase1.TeamID) (
-	info *kbfsblock.QuotaInfo, err error) {
+	info *kbfsblock.QuotaInfo, err error,
+) {
 	qbs.quotaInfoLock.Lock()
 	defer qbs.quotaInfoLock.Unlock()
 	infoCopy := qbs.teamQuotaInfo[tid]
@@ -144,8 +150,7 @@ func (qbs *quotaBlockServer) GetTeamQuotaInfo(
 }
 
 func TestJournalManagerOverQuotaError(t *testing.T) {
-	tempdir, ctx, cancel, config, quotaUsage, jManager :=
-		setupJournalManagerTest(t)
+	tempdir, ctx, cancel, config, quotaUsage, jManager := setupJournalManagerTest(t)
 	defer teardownJournalManagerTest(ctx, t, tempdir, cancel, config)
 
 	name := kbname.NormalizedUsername("t1")
@@ -277,8 +282,7 @@ func (c tlfJournalConfigWithDiskLimitTimeout) diskLimitTimeout() time.Duration {
 }
 
 func TestJournalManagerOverDiskLimitError(t *testing.T) {
-	tempdir, ctx, cancel, config, quotaUsage, jManager :=
-		setupJournalManagerTest(t)
+	tempdir, ctx, cancel, config, quotaUsage, jManager := setupJournalManagerTest(t)
 	defer teardownJournalManagerTest(ctx, t, tempdir, cancel, config)
 
 	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
@@ -328,8 +332,7 @@ func TestJournalManagerOverDiskLimitError(t *testing.T) {
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
-	usageBytes, limitBytes, usageFiles, limitFiles :=
-		tj.diskLimiter.getDiskLimitInfo()
+	usageBytes, limitBytes, usageFiles, limitFiles := tj.diskLimiter.getDiskLimitInfo()
 	putCtx := context.Background() // rely on default disk limit timeout
 	err = blockServer.Put(
 		putCtx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)

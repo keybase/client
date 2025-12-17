@@ -55,7 +55,6 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 		// available. This may be the case when user does not have lock screen
 		// or pin code set up.
 		return SecretStoreFallbackBehaviorOnError
-
 	}
 	return NewSecretStoreUpgradeable(secAndroid, secFile, "android secret store", "file-based secret store",
 		shouldUpgradeOpportunistically, shouldStoreInFallback)

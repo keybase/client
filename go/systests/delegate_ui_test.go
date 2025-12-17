@@ -64,6 +64,7 @@ func (d *delegateUI) DelegateIdentifyUI(context.Context) (int, error) {
 	d.delegated = true
 	return 1, nil
 }
+
 func (d *delegateUI) Start(context.Context, keybase1.StartArg) error {
 	if err := d.checkDelegated(); err != nil {
 		return err
@@ -75,9 +76,11 @@ func (d *delegateUI) Start(context.Context, keybase1.StartArg) error {
 func (d *delegateUI) DisplayKey(context.Context, keybase1.DisplayKeyArg) error {
 	return d.checkStarted()
 }
+
 func (d *delegateUI) ReportLastTrack(context.Context, keybase1.ReportLastTrackArg) error {
 	return d.checkStarted()
 }
+
 func (d *delegateUI) LaunchNetworkChecks(_ context.Context, arg keybase1.LaunchNetworkChecksArg) error {
 	if err := d.checkStarted(); err != nil {
 		return err
@@ -92,15 +95,19 @@ func (d *delegateUI) LaunchNetworkChecks(_ context.Context, arg keybase1.LaunchN
 	}
 	return nil
 }
+
 func (d *delegateUI) DisplayTrackStatement(context.Context, keybase1.DisplayTrackStatementArg) error {
 	return d.checkStarted()
 }
+
 func (d *delegateUI) ReportTrackToken(context.Context, keybase1.ReportTrackTokenArg) error {
 	return d.checkStarted()
 }
+
 func (d *delegateUI) FinishWebProofCheck(context.Context, keybase1.FinishWebProofCheckArg) error {
 	return d.checkStarted()
 }
+
 func (d *delegateUI) FinishSocialProofCheck(_ context.Context, arg keybase1.FinishSocialProofCheckArg) error {
 	if err := d.checkStarted(); err != nil {
 		return err
@@ -113,15 +120,19 @@ func (d *delegateUI) FinishSocialProofCheck(_ context.Context, arg keybase1.Fini
 	}
 	return nil
 }
+
 func (d *delegateUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryptocurrencyArg) error {
 	return d.checkStarted()
 }
+
 func (d *delegateUI) DisplayStellarAccount(context.Context, keybase1.DisplayStellarAccountArg) error {
 	return d.checkStarted()
 }
+
 func (d *delegateUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
 	return d.checkStarted()
 }
+
 func (d *delegateUI) Confirm(context.Context, keybase1.ConfirmArg) (res keybase1.ConfirmResult, err error) {
 	if err = d.checkStarted(); err != nil {
 		return res, err
@@ -130,11 +141,13 @@ func (d *delegateUI) Confirm(context.Context, keybase1.ConfirmArg) (res keybase1
 	res.RemoteConfirmed = true
 	return res, nil
 }
+
 func (d *delegateUI) Cancel(context.Context, int) error {
 	close(d.ch)
 	d.canceled = true
 	return nil
 }
+
 func (d *delegateUI) Finish(context.Context, int) error {
 	if err := d.checkStarted(); err != nil {
 		return err
@@ -142,6 +155,7 @@ func (d *delegateUI) Finish(context.Context, int) error {
 	d.finished = true
 	return nil
 }
+
 func (d *delegateUI) Dismiss(context.Context, keybase1.DismissArg) error {
 	return d.checkStarted()
 }

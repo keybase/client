@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"bytes"
-
 	"os"
 	"path/filepath"
 	"runtime"

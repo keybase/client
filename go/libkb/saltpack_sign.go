@@ -4,10 +4,9 @@
 package libkb
 
 import (
+	"crypto/ed25519"
 	"fmt"
 	"io"
-
-	"crypto/ed25519"
 
 	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"

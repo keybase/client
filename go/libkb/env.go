@@ -74,6 +74,7 @@ func (n NullConfiguration) GetProxyCACerts() ([]string, error)                  
 func (n NullConfiguration) GetUsernameForUID(u keybase1.UID) NormalizedUsername {
 	return NormalizedUsername("")
 }
+
 func (n NullConfiguration) GetUIDForUsername(u NormalizedUsername) keybase1.UID {
 	return keybase1.UID("")
 }
@@ -154,6 +155,7 @@ func (n NullConfiguration) GetBool(string, bool) (bool, bool) { return false, fa
 func (n NullConfiguration) GetAllUsernames() (NormalizedUsername, []NormalizedUsername, error) {
 	return NormalizedUsername(""), nil, nil
 }
+
 func (n NullConfiguration) GetAllUserConfigs() (*UserConfig, []UserConfig, error) {
 	return nil, nil, nil
 }
@@ -163,12 +165,15 @@ func (n NullConfiguration) GetDebugJourneycard() (bool, bool) { return false, fa
 func (n NullConfiguration) GetDisplayRawUntrustedOutput() (bool, bool) {
 	return false, false
 }
+
 func (n NullConfiguration) GetLogFormat() string {
 	return ""
 }
+
 func (n NullConfiguration) GetAPIDump() (bool, bool) {
 	return false, false
 }
+
 func (n NullConfiguration) GetNoPinentry() (bool, bool) {
 	return false, false
 }
@@ -176,6 +181,7 @@ func (n NullConfiguration) GetNoPinentry() (bool, bool) {
 func (n NullConfiguration) GetStringAtPath(string) (string, bool) {
 	return "", false
 }
+
 func (n NullConfiguration) GetInterfaceAtPath(string) (interface{}, error) {
 	return nil, nil
 }
@@ -1152,7 +1158,7 @@ func (e *Env) GetProxyType() ProxyType {
 		// Tor mode is enabled. Tor mode is implemented via a socks proxy
 		return Socks
 	}
-	var proxyTypeStr = e.GetString(
+	proxyTypeStr := e.GetString(
 		func() string { return e.cmd.GetProxyType() },
 		func() string { return os.Getenv("PROXY_TYPE") },
 		func() string { return e.GetConfig().GetProxyType() },
@@ -1224,7 +1230,6 @@ func (e *Env) GetPinentry() string {
 }
 
 func (e *Env) GetNoPinentry() bool {
-
 	isno := func(s string) (bool, bool) {
 		s = strings.ToLower(s)
 		if s == "0" || s == "no" || s == "n" || s == "none" {
@@ -1284,6 +1289,7 @@ func (e *Env) GetLocalTrackMaxAge() time.Duration {
 		func() (time.Duration, bool) { return e.GetConfig().GetLocalTrackMaxAge() },
 	)
 }
+
 func (e *Env) GetProofCacheSize() int {
 	return e.GetInt(ProofCacheSize,
 		e.cmd.GetProofCacheSize,
@@ -1724,7 +1730,7 @@ func (e *Env) GetTorProxy() string {
 }
 
 func (e *Env) GetStoredSecretAccessGroup() string {
-	var override = e.GetBool(
+	override := e.GetBool(
 		false,
 		func() (bool, bool) { return e.GetConfig().GetSecurityAccessGroupOverride() },
 	)
@@ -2098,6 +2104,7 @@ func (e *Env) GetLogFileConfig(filename string) *logger.LogFileConfig {
 		MaxKeepFiles: maxKeepFiles,
 	}
 }
+
 func (e *Env) GetForceLinuxKeyring() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetForceLinuxKeyring() },

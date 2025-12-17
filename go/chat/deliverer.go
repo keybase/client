@@ -21,8 +21,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const deliverMaxAttempts = 180           // fifteen minutes in default mode
-const deliverDisconnectLimitMinutes = 10 // need to be offline for at least 10 minutes before auto failing a send
+const (
+	deliverMaxAttempts            = 180 // fifteen minutes in default mode
+	deliverDisconnectLimitMinutes = 10  // need to be offline for at least 10 minutes before auto failing a send
+)
 
 type DelivererInfoError interface {
 	IsImmediateFail() (chat1.OutboxErrorType, bool)
@@ -233,7 +235,8 @@ func (s *Deliverer) IsDelivering() bool {
 
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 	outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions,
-	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
+	identifyBehavior keybase1.TLFIdentifyBehavior,
+) (obr chat1.OutboxRecord, err error) {
 	defer s.Trace(ctx, &err, "Queue")()
 
 	// KBFSFILEEDIT msgs skip the traditional outbox
@@ -364,7 +367,8 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 }
 
 func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
-	oserr chat1.OutboxStateError) (err error) {
+	oserr chat1.OutboxStateError,
+) (err error) {
 	var marked []chat1.OutboxRecord
 	uid := s.outbox.GetUID()
 	convID := obr.ConvID
@@ -426,9 +430,11 @@ func (e delivererBackgroundTaskError) IsImmediateFail() (chat1.OutboxErrorType, 
 	return chat1.OutboxErrorType_MISC, false
 }
 
-var errDelivererUploadInProgress = delivererBackgroundTaskError{Typ: "attachment upload"}
-var errDelivererUnfurlInProgress = delivererBackgroundTaskError{Typ: "unfurl"}
-var errDelivererFlipConvCreationInProgress = delivererBackgroundTaskError{Typ: "flip"}
+var (
+	errDelivererUploadInProgress           = delivererBackgroundTaskError{Typ: "attachment upload"}
+	errDelivererUnfurlInProgress           = delivererBackgroundTaskError{Typ: "unfurl"}
+	errDelivererFlipConvCreationInProgress = delivererBackgroundTaskError{Typ: "flip"}
+)
 
 func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsAttachment() {

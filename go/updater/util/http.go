@@ -201,11 +201,11 @@ func downloadURL(urlString string, destinationPath string, options DownloadURLOp
 		}
 	}
 
-	if err := MakeParentDirs(savePath, 0700, log); err != nil {
+	if err := MakeParentDirs(savePath, 0o700, log); err != nil {
 		return cached, err
 	}
 
-	if err := SaveHTTPResponse(resp, savePath, 0600, log); err != nil {
+	if err := SaveHTTPResponse(resp, savePath, 0o600, log); err != nil {
 		return cached, err
 	}
 

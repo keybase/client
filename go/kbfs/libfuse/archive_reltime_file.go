@@ -20,7 +20,8 @@ import (
 // time string for the given folder.
 func NewArchiveRelTimeFile(
 	fs *FS, handle *tlfhandle.Handle, filename string,
-	entryValid *time.Duration) *SpecialReadFile {
+	entryValid *time.Duration,
+) *SpecialReadFile {
 	*entryValid = 0
 	return &SpecialReadFile{
 		read: func(ctx context.Context) ([]byte, time.Time, error) {

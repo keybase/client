@@ -27,15 +27,19 @@ import (
 //
 
 // If we're within 26 hours of expiration, generate a new NIST;
-const nistExpirationMargin = 26 * time.Hour // I.e., half of the lifetime
-const nistLifetime = 52 * time.Hour         // A little longer than 2 days.
-const nistSessionIDLength = 16
-const nistShortHashLen = 19
-const nistWebAuthTokenLifetime = 24 * time.Hour // website tokens expire in a day
+const (
+	nistExpirationMargin     = 26 * time.Hour // I.e., half of the lifetime
+	nistLifetime             = 52 * time.Hour // A little longer than 2 days.
+	nistSessionIDLength      = 16
+	nistShortHashLen         = 19
+	nistWebAuthTokenLifetime = 24 * time.Hour // website tokens expire in a day
+)
 
-type nistType int
-type nistMode int
-type sessionVersion int
+type (
+	nistType       int
+	nistMode       int
+	sessionVersion int
+)
 
 const (
 	nistVersion             sessionVersion = 34
@@ -95,6 +99,7 @@ func (n NISTToken) Hash() []byte {
 	tmp := sha256.Sum256(n.Bytes())
 	return tmp[:]
 }
+
 func (n NISTToken) ShortHash() []byte {
 	return n.Hash()[0:nistShortHashLen]
 }

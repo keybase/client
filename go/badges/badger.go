@@ -18,8 +18,7 @@ type InboxVersionSource interface {
 	GetInboxVersion(context.Context, gregor1.UID) (chat1.InboxVers, error)
 }
 
-type nullInboxVersionSource struct {
-}
+type nullInboxVersionSource struct{}
 
 func (n nullInboxVersionSource) GetInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
 	return chat1.InboxVers(0), nil

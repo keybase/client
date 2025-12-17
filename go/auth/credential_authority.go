@@ -422,7 +422,8 @@ func (u *user) check(ca checkArg) {
 // getUserFromServer runs the UserKeyAPIer GetUser() API call while paying
 // attention to any shutdown events that might interrupt it.
 func (v *CredentialAuthority) getUserFromServer(uid keybase1.UID) (
-	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, deleted bool, err error) {
+	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, deleted bool, err error,
+) {
 	err = v.runWithCancel(func(ctx context.Context) error {
 		var err error
 		un, sibkeys, subkeys, deleted, err = v.api.GetUser(ctx, uid)
@@ -479,7 +480,8 @@ func (u *user) checkKeyRLocked(kid keybase1.KID) error {
 // extracted from a signed authentication statement. It returns an error if the
 // check fails, and nil otherwise. If username or kid are nil they aren't checked.
 func (v *CredentialAuthority) CheckUserKey(ctx context.Context, uid keybase1.UID,
-	username *libkb.NormalizedUsername, kid *keybase1.KID, loadDeleted bool) (err error) {
+	username *libkb.NormalizedUsername, kid *keybase1.KID, loadDeleted bool,
+) (err error) {
 	v.log.Debug("CheckUserKey uid %s, kid %s", uid, kid)
 	retCh := make(chan error, 1) // buffered in case the ctx is canceled
 	v.checkCh <- checkArg{uid: uid, username: username, kid: kid, loadDeleted: loadDeleted, retCh: retCh}
@@ -507,7 +509,8 @@ func (v *CredentialAuthority) CheckUsers(ctx context.Context, users []keybase1.U
 // CompareUserKeys compares the passed sets to the sets known by the API server.
 // It returns true if the sets are equal.
 func (v *CredentialAuthority) CompareUserKeys(ctx context.Context, uid keybase1.UID, sibkeys, subkeys []keybase1.KID) (
-	err error) {
+	err error,
+) {
 	retCh := make(chan error, 1) // buffered in case the ctx is canceled
 	v.checkCh <- checkArg{uid: uid, sibkeys: sibkeys, subkeys: subkeys, retCh: retCh}
 	select {

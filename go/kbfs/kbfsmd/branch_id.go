@@ -25,8 +25,10 @@ type BranchID struct {
 	id [BranchIDByteLen]byte
 }
 
-var _ encoding.BinaryMarshaler = (*BranchID)(nil)
-var _ encoding.BinaryUnmarshaler = (*BranchID)(nil)
+var (
+	_ encoding.BinaryMarshaler   = (*BranchID)(nil)
+	_ encoding.BinaryUnmarshaler = (*BranchID)(nil)
+)
 
 // NullBranchID is an empty BranchID
 var NullBranchID = BranchID{}
@@ -34,7 +36,8 @@ var NullBranchID = BranchID{}
 // PendingLocalSquashBranchID indicates a local branch that is not in known
 // conflict with the master branch, but just needs to be squashed locally.
 var PendingLocalSquashBranchID = BranchID{
-	[BranchIDByteLen]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
+	[BranchIDByteLen]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+}
 
 // Bytes returns the bytes of the BranchID.
 func (id BranchID) Bytes() []byte {

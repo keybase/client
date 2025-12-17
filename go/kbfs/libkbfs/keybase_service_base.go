@@ -74,12 +74,14 @@ type keybaseServiceMerkleGetter struct {
 var _ idutil.MerkleRootGetter = (*keybaseServiceMerkleGetter)(nil)
 
 func (k *keybaseServiceMerkleGetter) GetCurrentMerkleRoot(
-	ctx context.Context) (keybase1.MerkleRootV2, time.Time, error) {
+	ctx context.Context,
+) (keybase1.MerkleRootV2, time.Time, error) {
 	return k.k.getCurrentMerkleRoot(ctx)
 }
 
 func (k *keybaseServiceMerkleGetter) VerifyMerkleRoot(
-	_ context.Context, _ keybase1.MerkleRootV2, _ keybase1.KBFSRoot) error {
+	_ context.Context, _ keybase1.MerkleRootV2, _ keybase1.KBFSRoot,
+) error {
 	panic("constMerkleRootGetter doesn't verify merkle roots")
 }
 
@@ -109,7 +111,8 @@ func (k *KeybaseServiceBase) FillClients(
 	favoriteClient keybase1.FavoriteInterface,
 	kbfsClient keybase1.KbfsInterface,
 	kbfsMountClient keybase1.KbfsMountInterface,
-	gitClient keybase1.GitInterface, kvstoreClient keybase1.KvstoreClient) {
+	gitClient keybase1.GitInterface, kvstoreClient keybase1.KvstoreClient,
+) {
 	k.identifyClient = identifyClient
 	k.userClient = userClient
 	k.teamsClient = teamsClient
@@ -122,8 +125,10 @@ func (k *KeybaseServiceBase) FillClients(
 	k.kvstoreClient = kvstoreClient
 }
 
-type addVerifyingKeyFunc func(kbfscrypto.VerifyingKey)
-type addCryptPublicKeyFunc func(kbfscrypto.CryptPublicKey)
+type (
+	addVerifyingKeyFunc   func(kbfscrypto.VerifyingKey)
+	addCryptPublicKeyFunc func(kbfscrypto.CryptPublicKey)
+)
 
 // processKey adds the given public key to the appropriate verifying
 // or crypt list (as return values), and also updates the given name
@@ -132,7 +137,8 @@ func processKey(publicKey keybase1.PublicKeyV2NaCl,
 	addVerifyingKey addVerifyingKeyFunc,
 	addCryptPublicKey addCryptPublicKeyFunc,
 	kidNames map[keybase1.KID]string,
-	parents map[keybase1.KID]keybase1.KID) error {
+	parents map[keybase1.KID]keybase1.KID,
+) error {
 	// Import the KID to validate it.
 	key, err := libkb.ImportKeypairFromKID(publicKey.Base.Kid)
 	if err != nil {
@@ -156,7 +162,8 @@ func processKey(publicKey keybase1.PublicKeyV2NaCl,
 // updateKIDNamesFromParents sets the name of each KID without a name
 // that has a a parent with a name, to that parent's name.
 func updateKIDNamesFromParents(kidNames map[keybase1.KID]string,
-	parents map[keybase1.KID]keybase1.KID) {
+	parents map[keybase1.KID]keybase1.KID,
+) {
 	for kid, parent := range parents {
 		if _, ok := kidNames[kid]; ok {
 			continue
@@ -170,7 +177,8 @@ func updateKIDNamesFromParents(kidNames map[keybase1.KID]string,
 func filterKeys(keys map[keybase1.KID]keybase1.PublicKeyV2NaCl) (
 	verifyingKeys []kbfscrypto.VerifyingKey,
 	cryptPublicKeys []kbfscrypto.CryptPublicKey,
-	kidNames map[keybase1.KID]string, err error) {
+	kidNames map[keybase1.KID]string, err error,
+) {
 	kidNames = make(map[keybase1.KID]string, len(keys))
 	parents := make(map[keybase1.KID]keybase1.KID, len(keys))
 
@@ -203,12 +211,13 @@ func (k *KeybaseServiceBase) filterRevokedKeys(
 	reset *keybase1.ResetSummary) (
 	map[kbfscrypto.VerifyingKey]idutil.RevokedKeyInfo,
 	map[kbfscrypto.CryptPublicKey]idutil.RevokedKeyInfo,
-	map[keybase1.KID]string, error) {
+	map[keybase1.KID]string, error,
+) {
 	verifyingKeys := make(map[kbfscrypto.VerifyingKey]idutil.RevokedKeyInfo)
 	cryptPublicKeys := make(
 		map[kbfscrypto.CryptPublicKey]idutil.RevokedKeyInfo)
-	var kidNames = map[keybase1.KID]string{}
-	var parents = map[keybase1.KID]keybase1.KID{}
+	kidNames := map[keybase1.KID]string{}
+	parents := map[keybase1.KID]keybase1.KID{}
 
 	for _, key := range keys {
 		var info idutil.RevokedKeyInfo
@@ -247,7 +256,6 @@ func (k *KeybaseServiceBase) filterRevokedKeys(
 	}
 	updateKIDNamesFromParents(kidNames, parents)
 	return verifyingKeys, cryptPublicKeys, kidNames, nil
-
 }
 
 func (k *KeybaseServiceBase) getCachedCurrentSession() idutil.SessionInfo {
@@ -263,14 +271,16 @@ func (k *KeybaseServiceBase) setCachedCurrentSession(s idutil.SessionInfo) {
 }
 
 func (k *KeybaseServiceBase) getCachedUserInfo(
-	uid keybase1.UID) idutil.UserInfo {
+	uid keybase1.UID,
+) idutil.UserInfo {
 	k.userCacheLock.RLock()
 	defer k.userCacheLock.RUnlock()
 	return k.userCache[uid]
 }
 
 func (k *KeybaseServiceBase) setCachedUserInfo(
-	uid keybase1.UID, info idutil.UserInfo) {
+	uid keybase1.UID, info idutil.UserInfo,
+) {
 	k.userCacheLock.Lock()
 	defer k.userCacheLock.Unlock()
 	if info.Name == kbname.NormalizedUsername("") {
@@ -281,14 +291,16 @@ func (k *KeybaseServiceBase) setCachedUserInfo(
 }
 
 func (k *KeybaseServiceBase) getCachedTeamInfo(
-	tid keybase1.TeamID) idutil.TeamInfo {
+	tid keybase1.TeamID,
+) idutil.TeamInfo {
 	k.teamCacheLock.RLock()
 	defer k.teamCacheLock.RUnlock()
 	return k.teamCache[tid]
 }
 
 func (k *KeybaseServiceBase) setCachedTeamInfo(
-	tid keybase1.TeamID, info idutil.TeamInfo) {
+	tid keybase1.TeamID, info idutil.TeamInfo,
+) {
 	k.teamCacheLock.Lock()
 	defer k.teamCacheLock.Unlock()
 	if info.Name == kbname.NormalizedUsername("") {
@@ -300,7 +312,8 @@ func (k *KeybaseServiceBase) setCachedTeamInfo(
 }
 
 func (k *KeybaseServiceBase) getCachedNotWriter(
-	tid keybase1.TeamID, uid keybase1.UID) (notWriter bool) {
+	tid keybase1.TeamID, uid keybase1.UID,
+) (notWriter bool) {
 	// Full write lock because of the delete-after-expiration code
 	// below.
 	k.teamCacheLock.Lock()
@@ -318,7 +331,8 @@ func (k *KeybaseServiceBase) getCachedNotWriter(
 }
 
 func (k *KeybaseServiceBase) setCachedNotWriter(
-	tid keybase1.TeamID, uid keybase1.UID) {
+	tid keybase1.TeamID, uid keybase1.UID,
+) {
 	k.teamCacheLock.Lock()
 	defer k.teamCacheLock.Unlock()
 	teamMap := k.notWriterCache[tid]
@@ -380,7 +394,8 @@ func (k *KeybaseServiceBase) LoggedOut(ctx context.Context) error {
 
 // KeyfamilyChanged implements keybase1.NotifyKeyfamilyInterface.
 func (k *KeybaseServiceBase) KeyfamilyChanged(ctx context.Context,
-	uid keybase1.UID) error {
+	uid keybase1.UID,
+) error {
 	k.log.CDebugf(ctx, "Key family for user %s changed", uid)
 	k.setCachedUserInfo(uid, idutil.UserInfo{})
 
@@ -398,7 +413,8 @@ func (k *KeybaseServiceBase) KeyfamilyChanged(ctx context.Context,
 
 // ReachabilityChanged implements keybase1.ReachabiltyInterface.
 func (k *KeybaseServiceBase) ReachabilityChanged(ctx context.Context,
-	reachability keybase1.Reachability) error {
+	reachability keybase1.Reachability,
+) error {
 	k.log.CDebugf(ctx, "CheckReachability invoked: %v", reachability)
 	if reachability.Reachable == keybase1.Reachable_YES {
 		k.config.KBFSOps().PushConnectionStatusChange(GregorServiceName, nil)
@@ -430,7 +446,8 @@ func (k *KeybaseServiceBase) CheckReachability(ctx context.Context) (res keybase
 
 // PaperKeyCached implements keybase1.NotifyPaperKeyInterface.
 func (k *KeybaseServiceBase) PaperKeyCached(ctx context.Context,
-	arg keybase1.PaperKeyCachedArg) error {
+	arg keybase1.PaperKeyCachedArg,
+) error {
 	k.log.CDebugf(ctx, "Paper key for %s cached", arg.Uid)
 
 	if k.getCachedCurrentSession().UID == arg.Uid {
@@ -455,14 +472,16 @@ func (k *KeybaseServiceBase) PaperKeyCached(ctx context.Context,
 
 // ClientOutOfDate implements keybase1.NotifySessionInterface.
 func (k *KeybaseServiceBase) ClientOutOfDate(ctx context.Context,
-	arg keybase1.ClientOutOfDateArg) error {
+	arg keybase1.ClientOutOfDateArg,
+) error {
 	k.log.CDebugf(ctx, "Client out of date: %v", arg)
 	return nil
 }
 
 // RootAuditError implements keybase1.NotifyAuditInterface.
 func (k *KeybaseServiceBase) RootAuditError(ctx context.Context,
-	arg keybase1.RootAuditErrorArg) error {
+	arg keybase1.RootAuditErrorArg,
+) error {
 	k.log.CDebugf(ctx, "Merkle tree audit error: %v", arg.Message)
 	return nil
 }
@@ -482,7 +501,8 @@ func ConvertIdentifyError(assertion string, err error) error {
 func (k *KeybaseServiceBase) Resolve(
 	ctx context.Context, assertion string,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	res, err := k.identifyClient.Resolve3(
 		ctx, keybase1.Resolve3Arg{
 			Assertion: assertion,
@@ -499,7 +519,8 @@ func (k *KeybaseServiceBase) Resolve(
 func (k *KeybaseServiceBase) Identify(
 	ctx context.Context, assertion, reason string,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	// setting UseDelegateUI to true here will cause daemon to use
 	// registered identify ui providers instead of terminal if any
 	// are available.  If not, then it will use the terminal UI.
@@ -562,7 +583,8 @@ func (k *KeybaseServiceBase) Identify(
 // NormalizeSocialAssertion implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) NormalizeSocialAssertion(
-	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	ctx context.Context, assertion string,
+) (keybase1.SocialAssertion, error) {
 	return k.identifyClient.NormalizeSocialAssertion(ctx, assertion)
 }
 
@@ -571,7 +593,8 @@ func (k *KeybaseServiceBase) NormalizeSocialAssertion(
 func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
 	doIdentifies bool, reason string,
-	offline keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
+	offline keybase1.OfflineAvailability,
+) (idutil.ImplicitTeamInfo, error) {
 	if tlfType != tlf.Private && tlfType != tlf.Public {
 		return idutil.ImplicitTeamInfo{}, fmt.Errorf(
 			"Invalid implicit team TLF type: %s", tlfType)
@@ -633,7 +656,8 @@ func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 // ResolveImplicitTeamByID implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) ResolveImplicitTeamByID(
-	ctx context.Context, teamID keybase1.TeamID) (name string, err error) {
+	ctx context.Context, teamID keybase1.TeamID,
+) (name string, err error) {
 	arg := keybase1.ResolveImplicitTeamArg{
 		Id: teamID,
 	}
@@ -647,7 +671,8 @@ func (k *KeybaseServiceBase) ResolveImplicitTeamByID(
 
 func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 	ctx context.Context, currUserInfo idutil.UserInfo, kid keybase1.KID) (
-	newUserInfo idutil.UserInfo, exists bool, err error) {
+	newUserInfo idutil.UserInfo, exists bool, err error,
+) {
 	newUserInfo = currUserInfo
 	for key, info := range currUserInfo.RevokedVerifyingKeys {
 		if !key.KID().Equal(kid) {
@@ -712,7 +737,8 @@ func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadUserPlusKeys(
 	ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID,
-	offline keybase1.OfflineAvailability) (idutil.UserInfo, error) {
+	offline keybase1.OfflineAvailability,
+) (idutil.UserInfo, error) {
 	cachedUserInfo := k.getCachedUserInfo(uid)
 	if cachedUserInfo.Name != kbname.NormalizedUsername("") {
 		if pollForKID == keybase1.KID("") {
@@ -768,7 +794,8 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(
 func (k *KeybaseServiceBase) getLastWriterInfo(
 	ctx context.Context, teamInfo idutil.TeamInfo, tlfType tlf.Type,
 	user keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
-	idutil.TeamInfo, error) {
+	idutil.TeamInfo, error,
+) {
 	if _, ok := teamInfo.LastWriters[verifyingKey]; ok {
 		// Already cached, nothing to do.
 		return teamInfo, nil
@@ -809,7 +836,8 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type,
 	desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion,
 	desiredKey kbfscrypto.VerifyingKey, desiredRole keybase1.TeamRole,
-	offline keybase1.OfflineAvailability) (idutil.TeamInfo, error) {
+	offline keybase1.OfflineAvailability,
+) (idutil.TeamInfo, error) {
 	if !allowedLoadTeamRoles[desiredRole] {
 		panic(fmt.Sprintf("Disallowed team role: %v", desiredRole))
 	}
@@ -875,12 +903,11 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	}
 
 	if desiredKeyGen >= kbfsmd.FirstValidKeyGen {
-		arg.Refreshers.NeedApplicationsAtGenerationsWithKBFS =
-			map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				keybase1.PerTeamKeyGeneration(desiredKeyGen): {
-					keybase1.TeamApplication_KBFS,
-				},
-			}
+		arg.Refreshers.NeedApplicationsAtGenerationsWithKBFS = map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
+			keybase1.PerTeamKeyGeneration(desiredKeyGen): {
+				keybase1.TeamApplication_KBFS,
+			},
+		}
 	}
 
 	if desiredUser.Uid.Exists() && desiredKey.IsNil() {
@@ -908,8 +935,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	}
 	for _, key := range res.ApplicationKeys {
 		keyGen := kbfsmd.KeyGen(key.KeyGeneration)
-		info.CryptKeys[keyGen] =
-			kbfscrypto.MakeTLFCryptKey(key.Key)
+		info.CryptKeys[keyGen] = kbfscrypto.MakeTLFCryptKey(key.Key)
 		if keyGen > info.LatestKeyGen {
 			info.LatestKeyGen = keyGen
 		}
@@ -958,7 +984,8 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 // CreateTeamTLF implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) CreateTeamTLF(
-	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) (err error) {
+	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID,
+) (err error) {
 	return k.kbfsClient.CreateTLF(ctx, keybase1.CreateTLFArg{
 		TeamID: teamID,
 		TlfID:  keybase1.TLFID(tlfID.String()),
@@ -970,7 +997,8 @@ func (k *KeybaseServiceBase) CreateTeamTLF(
 func (k *KeybaseServiceBase) GetTeamSettings(
 	ctx context.Context, teamID keybase1.TeamID,
 	offline keybase1.OfflineAvailability) (
-	keybase1.KBFSTeamSettings, error) {
+	keybase1.KBFSTeamSettings, error,
+) {
 	// TODO: get invalidations from the server and cache the settings?
 	return k.kbfsClient.GetKBFSTeamSettings(
 		ctx, keybase1.GetKBFSTeamSettingsArg{
@@ -980,7 +1008,8 @@ func (k *KeybaseServiceBase) GetTeamSettings(
 }
 
 func (k *KeybaseServiceBase) getCurrentMerkleRoot(ctx context.Context) (
-	keybase1.MerkleRootV2, time.Time, error) {
+	keybase1.MerkleRootV2, time.Time, error,
+) {
 	const merkleFreshnessMs = int(time.Second * 60 / time.Millisecond)
 	res, err := k.merkleClient.GetCurrentMerkleRoot(ctx, merkleFreshnessMs)
 	if err != nil {
@@ -993,7 +1022,8 @@ func (k *KeybaseServiceBase) getCurrentMerkleRoot(ctx context.Context) (
 // GetCurrentMerkleRoot implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetCurrentMerkleRoot(ctx context.Context) (
-	keybase1.MerkleRootV2, time.Time, error) {
+	keybase1.MerkleRootV2, time.Time, error,
+) {
 	// Refresh the cached value in the background if the cached value
 	// is older than 30s; if our cached value is more than 60s old,
 	// block.
@@ -1005,7 +1035,8 @@ func (k *KeybaseServiceBase) GetCurrentMerkleRoot(ctx context.Context) (
 // VerifyMerkleRoot implements the KBPKI interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) VerifyMerkleRoot(
 	ctx context.Context, root keybase1.MerkleRootV2,
-	kbfsRoot keybase1.KBFSRoot) error {
+	kbfsRoot keybase1.KBFSRoot,
+) error {
 	return k.merkleClient.VerifyMerkleRootAndKBFS(ctx,
 		keybase1.VerifyMerkleRootAndKBFSArg{
 			Root:             root,
@@ -1015,16 +1046,16 @@ func (k *KeybaseServiceBase) VerifyMerkleRoot(
 
 func (k *KeybaseServiceBase) processUserPlusKeys(
 	ctx context.Context, upk keybase1.UserPlusKeysV2AllIncarnations) (
-	idutil.UserInfo, error) {
+	idutil.UserInfo, error,
+) {
 	verifyingKeys, cryptPublicKeys, kidNames, err := filterKeys(
 		upk.Current.DeviceKeys)
 	if err != nil {
 		return idutil.UserInfo{}, err
 	}
 
-	revokedVerifyingKeys, revokedCryptPublicKeys, revokedKidNames, err :=
-		k.filterRevokedKeys(
-			ctx, upk.Current.Uid, upk.Current.DeviceKeys, upk.Current.Reset)
+	revokedVerifyingKeys, revokedCryptPublicKeys, revokedKidNames, err := k.filterRevokedKeys(
+		ctx, upk.Current.Uid, upk.Current.DeviceKeys, upk.Current.Reset)
 	if err != nil {
 		return idutil.UserInfo{}, err
 	}
@@ -1037,9 +1068,8 @@ func (k *KeybaseServiceBase) processUserPlusKeys(
 
 	for _, incarnation := range upk.PastIncarnations {
 		revokedVerifyingKeysPast, revokedCryptPublicKeysPast,
-			revokedKidNames, err :=
-			k.filterRevokedKeys(
-				ctx, incarnation.Uid, incarnation.DeviceKeys, incarnation.Reset)
+			revokedKidNames, err := k.filterRevokedKeys(
+			ctx, incarnation.Uid, incarnation.DeviceKeys, incarnation.Reset)
 		if err != nil {
 			return idutil.UserInfo{}, err
 		}
@@ -1075,7 +1105,8 @@ func (k *KeybaseServiceBase) processUserPlusKeys(
 }
 
 func (k *KeybaseServiceBase) getCachedCurrentSessionOrInProgressCh() (
-	cachedSession idutil.SessionInfo, inProgressCh chan struct{}, doRPC bool) {
+	cachedSession idutil.SessionInfo, inProgressCh chan struct{}, doRPC bool,
+) {
 	k.sessionCacheLock.Lock()
 	defer k.sessionCacheLock.Unlock()
 
@@ -1094,7 +1125,8 @@ func (k *KeybaseServiceBase) getCachedCurrentSessionOrInProgressCh() (
 }
 
 func (k *KeybaseServiceBase) getCurrentSession(
-	ctx context.Context, sessionID int) (idutil.SessionInfo, bool, error) {
+	ctx context.Context, sessionID int,
+) (idutil.SessionInfo, bool, error) {
 	var cachedCurrentSession idutil.SessionInfo
 	var inProgressCh chan struct{}
 	doRPC := false
@@ -1103,8 +1135,7 @@ func (k *KeybaseServiceBase) getCurrentSession(
 	// session cache lock during the RPC, since that can result in a
 	// deadlock if the RPC results in a call to `ClearCaches()`.
 	for !doRPC {
-		cachedCurrentSession, inProgressCh, doRPC =
-			k.getCachedCurrentSessionOrInProgressCh()
+		cachedCurrentSession, inProgressCh, doRPC = k.getCachedCurrentSessionOrInProgressCh()
 		if cachedCurrentSession != (idutil.SessionInfo{}) {
 			return cachedCurrentSession, false, nil
 		}
@@ -1151,7 +1182,8 @@ func (k *KeybaseServiceBase) getCurrentSession(
 // CurrentSession implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) CurrentSession(
 	ctx context.Context, sessionID int) (
-	idutil.SessionInfo, error) {
+	idutil.SessionInfo, error,
+) {
 	ctx = CtxWithRandomIDReplayable(
 		ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID, k.log)
 
@@ -1181,7 +1213,8 @@ func (k *KeybaseServiceBase) FavoriteDelete(ctx context.Context, folder keybase1
 
 // FavoriteList implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) FavoriteList(ctx context.Context,
-	sessionID int) (keybase1.FavoritesResult, error) {
+	sessionID int,
+) (keybase1.FavoritesResult, error) {
 	return k.favoriteClient.GetFavorites(ctx, sessionID)
 }
 
@@ -1198,7 +1231,8 @@ func (k *KeybaseServiceBase) DecryptFavorites(ctx context.Context, dataToEncrypt
 // NotifyOnlineStatusChanged implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) NotifyOnlineStatusChanged(ctx context.Context,
-	online bool) error {
+	online bool,
+) error {
 	k.log.CDebugf(ctx, "Sending notification for onlineStatus: online=%v", online)
 	return k.kbfsClient.FSOnlineStatusChangedEvent(ctx, online)
 }
@@ -1211,21 +1245,24 @@ func (k *KeybaseServiceBase) Notify(ctx context.Context, notification *keybase1.
 // NotifyPathUpdated implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) NotifyPathUpdated(
-	ctx context.Context, path string) error {
+	ctx context.Context, path string,
+) error {
 	return k.kbfsClient.FSPathUpdate(ctx, path)
 }
 
 // NotifySyncStatus implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) NotifySyncStatus(ctx context.Context,
-	status *keybase1.FSPathSyncStatus) error {
+	status *keybase1.FSPathSyncStatus,
+) error {
 	return k.kbfsClient.FSSyncEvent(ctx, *status)
 }
 
 // NotifyOverallSyncStatus implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) NotifyOverallSyncStatus(
-	ctx context.Context, status keybase1.FolderSyncStatus) error {
+	ctx context.Context, status keybase1.FolderSyncStatus,
+) error {
 	return k.kbfsClient.FSOverallSyncEvent(ctx, status)
 }
 
@@ -1239,7 +1276,8 @@ func (k *KeybaseServiceBase) NotifyFavoritesChanged(ctx context.Context) error {
 func (k *KeybaseServiceBase) OnPathChange(
 	clientID SubscriptionManagerClientID,
 	subscriptionIDs []SubscriptionID, path string,
-	topics []keybase1.PathSubscriptionTopic) {
+	topics []keybase1.PathSubscriptionTopic,
+) {
 	subscriptionIDStrings := make([]string, 0, len(subscriptionIDs))
 	for _, sid := range subscriptionIDs {
 		subscriptionIDStrings = append(subscriptionIDStrings, string(sid))
@@ -1260,7 +1298,8 @@ func (k *KeybaseServiceBase) OnPathChange(
 // OnNonPathChange implements the SubscriptionNotifier interface.
 func (k *KeybaseServiceBase) OnNonPathChange(
 	clientID SubscriptionManagerClientID,
-	subscriptionIDs []SubscriptionID, topic keybase1.SubscriptionTopic) {
+	subscriptionIDs []SubscriptionID, topic keybase1.SubscriptionTopic,
+) {
 	subscriptionIDStrings := make([]string, 0, len(subscriptionIDs))
 	for _, sid := range subscriptionIDs {
 		subscriptionIDStrings = append(subscriptionIDStrings, string(sid))
@@ -1281,7 +1320,8 @@ func (k *KeybaseServiceBase) OnNonPathChange(
 // FlushUserFromLocalCache implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FlushUserFromLocalCache(ctx context.Context,
-	uid keybase1.UID) {
+	uid keybase1.UID,
+) {
 	k.log.CDebugf(ctx, "Flushing cache for user %s", uid)
 	k.setCachedUserInfo(uid, idutil.UserInfo{})
 }
@@ -1303,7 +1343,8 @@ const CtxKeybaseServiceOpID = "KSID"
 // FSEditListRequest implements keybase1.NotifyFSRequestInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
-	req keybase1.FSEditListRequest) (err error) {
+	req keybase1.FSEditListRequest,
+) (err error) {
 	ctx = CtxWithRandomIDReplayable(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
 		k.log)
 	k.log.CDebugf(ctx, "Edit list request for %s (public: %t)",
@@ -1340,7 +1381,8 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 // FSSyncStatusRequest implements keybase1.NotifyFSRequestInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FSSyncStatusRequest(ctx context.Context,
-	req keybase1.FSSyncStatusRequest) (err error) {
+	req keybase1.FSSyncStatusRequest,
+) (err error) {
 	k.log.CDebugf(ctx, "Got sync status request: %v", req)
 
 	resp := keybase1.FSSyncStatusArg{RequestID: req.RequestID}
@@ -1362,7 +1404,8 @@ func (k *KeybaseServiceBase) FSSyncStatusRequest(ctx context.Context,
 // TeamChangedByID implements keybase1.NotifyTeamInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) TeamChangedByID(ctx context.Context,
-	arg keybase1.TeamChangedByIDArg) error {
+	arg keybase1.TeamChangedByIDArg,
+) error {
 	k.log.CDebugf(ctx, "Flushing cache for team %s "+
 		"(membershipChange=%t, keyRotated=%t, renamed=%t)",
 		arg.TeamID, arg.Changes.MembershipChanged,
@@ -1378,7 +1421,8 @@ func (k *KeybaseServiceBase) TeamChangedByID(ctx context.Context,
 // TeamChangedByName implements keybase1.NotifyTeamInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) TeamChangedByName(ctx context.Context,
-	arg keybase1.TeamChangedByNameArg) error {
+	arg keybase1.TeamChangedByNameArg,
+) error {
 	// ignore
 	return nil
 }
@@ -1386,7 +1430,8 @@ func (k *KeybaseServiceBase) TeamChangedByName(ctx context.Context,
 // TeamDeleted implements keybase1.NotifyTeamInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) TeamDeleted(ctx context.Context,
-	teamID keybase1.TeamID) error {
+	teamID keybase1.TeamID,
+) error {
 	return nil
 }
 
@@ -1414,7 +1459,8 @@ func (k *KeybaseDaemonRPC) TeamMetadataUpdate(context.Context) error {
 
 // TeamAbandoned implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
 func (k *KeybaseDaemonRPC) TeamAbandoned(
-	ctx context.Context, tid keybase1.TeamID) error {
+	ctx context.Context, tid keybase1.TeamID,
+) error {
 	k.log.CDebugf(ctx, "Implicit team %s abandoned", tid)
 	k.setCachedTeamInfo(tid, idutil.TeamInfo{})
 	k.config.KBFSOps().TeamAbandoned(ctx, tid)
@@ -1423,26 +1469,30 @@ func (k *KeybaseDaemonRPC) TeamAbandoned(
 
 // AvatarUpdated implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
 func (k *KeybaseDaemonRPC) AvatarUpdated(ctx context.Context,
-	arg keybase1.AvatarUpdatedArg) error {
+	arg keybase1.AvatarUpdatedArg,
+) error {
 	return nil
 }
 
 // TeamTreeMembershipsPartial implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
 func (k *KeybaseDaemonRPC) TeamTreeMembershipsPartial(context.Context,
-	keybase1.TeamTreeMembership) error {
+	keybase1.TeamTreeMembership,
+) error {
 	return nil
 }
 
 // TeamTreeMembershipsDone implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
 func (k *KeybaseDaemonRPC) TeamTreeMembershipsDone(context.Context,
-	keybase1.TeamTreeMembershipsDoneResult) error {
+	keybase1.TeamTreeMembershipsDoneResult,
+) error {
 	return nil
 }
 
 // StartMigration implements keybase1.ImplicitTeamMigrationInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
-	folder keybase1.Folder) (err error) {
+	folder keybase1.Folder,
+) (err error) {
 	mdServer := k.config.MDServer()
 	if mdServer == nil {
 		return errors.New("no mdserver")
@@ -1469,7 +1519,8 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 // FinalizeMigration implements keybase1.ImplicitTeamMigrationInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
-	folder keybase1.Folder) (err error) {
+	folder keybase1.Folder,
+) (err error) {
 	fav := favorites.NewFolderFromProtocol(folder)
 	handle, err := GetHandleFromFolderNameAndType(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
@@ -1497,7 +1548,8 @@ func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
 // GetTLFCryptKeys implements the TlfKeysInterface interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
-	query keybase1.TLFQuery) (res keybase1.GetTLFCryptKeysRes, err error) {
+	query keybase1.TLFQuery,
+) (res keybase1.GetTLFCryptKeysRes, err error) {
 	if ctx, err = tlfhandle.MakeExtendedIdentify(
 		CtxWithRandomIDReplayable(ctx,
 			CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID, k.log),
@@ -1540,7 +1592,8 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 	ctx context.Context, query keybase1.TLFQuery) (
-	res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+	res keybase1.CanonicalTLFNameAndIDWithBreaks, err error,
+) {
 	if ctx, err = tlfhandle.MakeExtendedIdentify(
 		CtxWithRandomIDReplayable(ctx,
 			CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID, k.log),
@@ -1574,7 +1627,8 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 
 // EstablishMountDir asks the service for the current mount path
 func (k *KeybaseServiceBase) EstablishMountDir(ctx context.Context) (
-	string, error) {
+	string, error,
+) {
 	dir, err := k.kbfsMountClient.GetCurrentMountDir(ctx)
 	if err != nil {
 		k.log.CInfof(ctx, "GetCurrentMountDir fails - ", err)
@@ -1605,7 +1659,8 @@ func (k *KeybaseServiceBase) EstablishMountDir(ctx context.Context) (
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) PutGitMetadata(
 	ctx context.Context, folder keybase1.FolderHandle, repoID keybase1.RepoID,
-	metadata keybase1.GitLocalMetadata) error {
+	metadata keybase1.GitLocalMetadata,
+) error {
 	return k.gitClient.PutGitMetadata(ctx, keybase1.PutGitMetadataArg{
 		Folder:   folder,
 		RepoID:   repoID,

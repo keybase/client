@@ -197,8 +197,8 @@ func (s *Identify3State) OnLogout() {
 }
 
 func (s *Identify3State) runExpireThread(g *GlobalContext, expireCh <-chan struct{},
-	shutdownCh chan struct{}) error {
-
+	shutdownCh chan struct{},
+) error {
 	mctx := NewMetaContextBackground(g)
 	wait := s.defaultWaitTime
 

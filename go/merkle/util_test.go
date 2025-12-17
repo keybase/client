@@ -7,7 +7,7 @@ import (
 )
 
 func TestComputeSkipPointers(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		in  TreeSeqno
 		out []TreeSeqno
 	}{

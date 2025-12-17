@@ -41,7 +41,8 @@ func getMaxDirEntriesPerBlock() (int, error) {
 // round-up padding we do.
 func NewBlockSplitterSimple(desiredBlockSize int64,
 	blockChangeEmbedMaxSize uint64, codec kbfscodec.Codec) (
-	*BlockSplitterSimple, error) {
+	*BlockSplitterSimple, error,
+) {
 	// If the desired block size is exactly a power of 2, subtract one
 	// from it to account for the padding we will do, which rounds up
 	// when the encoded size is exactly a power of 2.
@@ -117,7 +118,8 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 // max block size set to an exact value.
 func NewBlockSplitterSimpleExact(
 	maxSize int64, maxPtrsPerBlock int, blockChangeEmbedMaxSize uint64) (
-	*BlockSplitterSimple, error) {
+	*BlockSplitterSimple, error,
+) {
 	maxDirEntriesPerBlock, err := getMaxDirEntriesPerBlock()
 	if err != nil {
 		return nil, err
@@ -135,7 +137,8 @@ func NewBlockSplitterSimpleExact(
 // the `KEYBASE_BSPLIT_MAX_DIR_ENTRIES` is set, this function does
 // nothing.
 func (b *BlockSplitterSimple) SetMaxDirEntriesByBlockSize(
-	codec kbfscodec.Codec) error {
+	codec kbfscodec.Codec,
+) error {
 	dirEnv := os.Getenv("KEYBASE_BSPLIT_MAX_DIR_ENTRIES")
 	if len(dirEnv) > 0 {
 		// Don't override the environment variable.
@@ -179,7 +182,8 @@ func (b *BlockSplitterSimple) SetMaxDirEntriesByBlockSize(
 // CopyUntilSplit implements the BlockSplitter interface for
 // BlockSplitterSimple.
 func (b *BlockSplitterSimple) CopyUntilSplit(
-	block *FileBlock, lastBlock bool, data []byte, off int64) int64 {
+	block *FileBlock, lastBlock bool, data []byte, off int64,
+) int64 {
 	n := int64(len(data))
 	currLen := int64(len(block.Contents))
 	// lastBlock is irrelevant since we only copy fixed sizes
@@ -236,7 +240,8 @@ func (b *BlockSplitterSimple) ShouldEmbedData(size uint64) bool {
 // SplitDirIfNeeded implements the BlockSplitter interface for
 // BlockSplitterSimple.
 func (b *BlockSplitterSimple) SplitDirIfNeeded(block *DirBlock) (
-	[]*DirBlock, *StringOffset) {
+	[]*DirBlock, *StringOffset,
+) {
 	if block.IsIndirect() {
 		panic("SplitDirIfNeeded must be given only a direct block")
 	}
@@ -274,7 +279,8 @@ func (b *BlockSplitterSimple) MaxSize() int64 {
 // change embeds, which is useful for testing.  It is not
 // goroutine-safe.
 func (b *BlockSplitterSimple) SetBlockChangeEmbedMaxSizeForTesting(
-	newSize uint64) {
+	newSize uint64,
+) {
 	b.blockChangeEmbedMaxSize = newSize
 }
 

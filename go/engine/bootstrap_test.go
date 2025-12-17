@@ -121,8 +121,7 @@ func TestBootstrapAfterSignup(t *testing.T) {
 	}
 }
 
-type OfflineConnectivityMonitor struct {
-}
+type OfflineConnectivityMonitor struct{}
 
 func (s OfflineConnectivityMonitor) IsConnected(ctx context.Context) libkb.ConnectivityMonitorResult {
 	return libkb.ConnectivityMonitorNo

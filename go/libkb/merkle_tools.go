@@ -136,7 +136,6 @@ func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparat
 // parameter arg.Prev to figure out where to start looking and then keeps
 // searching forward until finding a leaf that matches arg.Loc.
 func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRootAfterRevokeArg) (res keybase1.NextMerkleRootRes, err error) {
-
 	defer m.Trace(fmt.Sprintf("FindNextMerkleRootAfterRevoke(%+v)", arg), &err)()
 
 	var u *User
@@ -234,7 +233,6 @@ func FindNextMerkleRootAfterTeamRemoval(m MetaContext, arg keybase1.FindNextMerk
 }
 
 func VerifyMerkleRootAndKBFS(m MetaContext, arg keybase1.VerifyMerkleRootAndKBFSArg) (err error) {
-
 	defer m.Trace(fmt.Sprintf("VerifyMerkleRootAndKBFS(%+v)", arg), &err)()
 
 	var mr *MerkleRoot
@@ -278,7 +276,8 @@ func VerifyMerkleRootAndKBFS(m MetaContext, arg keybase1.VerifyMerkleRootAndKBFS
 // Verify that the given link has been posted to the merkle tree.
 // Used to detect a malicious server silently dropping sigchain link posts.
 func MerkleCheckPostedUserSig(mctx MetaContext, uid keybase1.UID,
-	seqno keybase1.Seqno, linkID LinkID) (err error) {
+	seqno keybase1.Seqno, linkID LinkID,
+) (err error) {
 	defer mctx.Trace(fmt.Sprintf("MerkleCheckPostedUserSig(%v, %v, %v)", uid, seqno, linkID.String()), &err)()
 	for _, forcePoll := range []bool{false, true} {
 		upak, _, err := mctx.G().GetUPAKLoader().LoadV2(

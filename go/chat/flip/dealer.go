@@ -50,9 +50,11 @@ func (g GameMetadata) check() bool {
 	return g.Initiator.check() && !g.ConversationID.IsNil() && g.GameID.Check()
 }
 
-type GameKey string
-type GameIDKey string
-type UserDeviceKey string
+type (
+	GameKey       string
+	GameIDKey     string
+	UserDeviceKey string
+)
 
 func (u UserDevice) ToKey() UserDeviceKey {
 	return UserDeviceKey(strings.Join([]string{u.U.String(), u.D.String()}, ","))
@@ -185,7 +187,6 @@ func (d *Dealer) run(ctx context.Context, game *Game) {
 
 	if err != nil {
 		d.dh.CLogf(ctx, "[%s] Error running game %s: %s", d.dh.Me(), key, err.Error())
-
 	} else {
 		d.dh.CLogf(ctx, "Game %s ended cleanly", key)
 	}
@@ -354,7 +355,6 @@ func (g *Game) handleCommitment(ctx context.Context, sender UserDevice, now time
 }
 
 func (g *Game) maybeReveal(ctx context.Context) (err error) {
-
 	if !g.gotCommitmentComplete {
 		return nil
 	}
@@ -383,7 +383,6 @@ func (g *Game) maybeReveal(ctx context.Context) (err error) {
 }
 
 func (g *Game) handleCommitmentCompletePlayer(ctx context.Context, u UserDeviceCommitment) (err error) {
-
 	ps := g.getPlayerState(u.Ud)
 	if ps.leaderCommitment != nil {
 		return DuplicateCommitmentCompleteError{G: g.md, U: u.Ud}
@@ -405,7 +404,6 @@ func (g *Game) handleCommitmentCompletePlayer(ctx context.Context, u UserDeviceC
 }
 
 func (g *Game) handleCommitmentComplete(ctx context.Context, sender UserDevice, now time.Time, cc CommitmentComplete) (err error) {
-
 	if !sender.Eq(g.md.Initiator) {
 		return WrongSenderError{G: g.md, Expected: g.md.Initiator, Actual: sender}
 	}
@@ -452,7 +450,6 @@ func errToOk(err error) string {
 }
 
 func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now time.Time) (err error) {
-
 	msgID := g.msgID
 	g.msgID++
 
@@ -861,7 +858,8 @@ func (d *Dealer) startFlip(ctx context.Context, start Start, conversationID chat
 }
 
 func (d *Dealer) startFlipWithGameID(ctx context.Context, start Start, conversationID chat1.ConversationID,
-	gameID chat1.FlipGameID) (pc *playerControl, err error) {
+	gameID chat1.FlipGameID,
+) (pc *playerControl, err error) {
 	md := GameMetadata{
 		Initiator:      d.dh.Me(),
 		ConversationID: conversationID,
@@ -891,7 +889,6 @@ func (d *Dealer) sendOutgoingChat(ctx context.Context, md GameMetadata, me *play
 }
 
 func (d *Dealer) sendOutgoingChatWithFirst(ctx context.Context, md GameMetadata, me *playerControl, body GameMessageBody, firstInConversation bool) error {
-
 	gmw := GameMessageWrapped{
 		Sender:              d.dh.Me(),
 		Me:                  me,
@@ -911,10 +908,12 @@ func (d *Dealer) sendOutgoingChatWithFirst(ctx context.Context, md GameMetadata,
 	return nil
 }
 
-var DefaultCommitmentWindowMsec int64 = 3 * 1000
-var DefaultRevealWindowMsec int64 = 30 * 1000
-var DefaultCommitmentCompleteWindowMsec int64 = 15 * 1000
-var DefaultSlackMsec int64 = 1 * 1000
+var (
+	DefaultCommitmentWindowMsec         int64 = 3 * 1000
+	DefaultRevealWindowMsec             int64 = 30 * 1000
+	DefaultCommitmentCompleteWindowMsec int64 = 15 * 1000
+	DefaultSlackMsec                    int64 = 1 * 1000
+)
 
 // For bigger groups, everything is slower, like the time to digest all required messages. So we're
 // going to inflate our timeouts.

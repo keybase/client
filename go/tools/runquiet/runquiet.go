@@ -80,7 +80,7 @@ func makeCmdLine(args []string) string {
 }
 
 func CreateProcessWithTokenW(hToken syscall.Token, argv []string, attr *syscall.ProcAttr) (pid int, handle uintptr, err error) {
-	var sys = attr.Sys
+	sys := attr.Sys
 
 	var cmdline string
 	// Windows CreateProcess takes the command line as a single string:

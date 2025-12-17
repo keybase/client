@@ -31,7 +31,8 @@ func favToAddToKBFolder(toAdd favorites.ToAdd) keybase1.Folder {
 }
 
 func favTestInit(t *testing.T, testingDiskCache bool) (
-	mockCtrl *gomock.Controller, config *ConfigMock, ctx context.Context) {
+	mockCtrl *gomock.Controller, config *ConfigMock, ctx context.Context,
+) {
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
@@ -51,7 +52,8 @@ func favTestInit(t *testing.T, testingDiskCache bool) (
 }
 
 func favTestShutdown(t *testing.T, mockCtrl *gomock.Controller,
-	config *ConfigMock, f *Favorites) {
+	config *ConfigMock, f *Favorites,
+) {
 	if err := f.Shutdown(); err != nil {
 		t.Errorf("Couldn't shut down favorites: %v", err)
 	}
@@ -310,7 +312,8 @@ func TestFavoritesControlUserHistory(t *testing.T) {
 			Name: tlfName,
 			Type: tlfType,
 		},
-		Created: true})
+		Created: true,
+	})
 	require.NoError(t, err)
 
 	// Put a thing in user history.
@@ -424,7 +427,8 @@ func TestFavoritesDiskCache(t *testing.T) {
 		FavoriteFolders: []keybase1.Folder{favToAddToKBFolder(fav1Add)},
 	}, nil)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Do(func(
-		f favoritesCacheForDisk) {
+		f favoritesCacheForDisk,
+	) {
 		decodedData = f
 	}).Return(
 		encodedData,
@@ -432,7 +436,8 @@ func TestFavoritesDiskCache(t *testing.T) {
 	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
 		encodedData).Return(encryptedData, nil)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Do(func(
-		f favoritesCacheEncryptedForDisk) {
+		f favoritesCacheEncryptedForDisk,
+	) {
 		decodedDataFromDisk = f
 	}).Return(
 		diskData,

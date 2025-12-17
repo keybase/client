@@ -21,7 +21,8 @@ func NewJoin(g *globals.Context) *Join {
 }
 
 func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string, replyTo *chat1.MessageID) (err error) {
+	tlfName, text string, replyTo *chat1.MessageID,
+) (err error) {
 	defer h.Trace(ctx, &err, "Join")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand

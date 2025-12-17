@@ -11,5 +11,7 @@ package libdokan
 
 func isNewFolderName(name string) bool { return false }
 
-var newFolderName, newFolderAltName string
-var newFolderNameErr error
+var (
+	newFolderName, newFolderAltName string
+	newFolderNameErr                error
+)

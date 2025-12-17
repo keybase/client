@@ -84,7 +84,6 @@ func namedPipeClient(sendSocket Socket, t *testing.T) {
 }
 
 func TestWindowsPipeOwner(t *testing.T) {
-
 	if os.Getenv("JENKINS_URL") != "" {
 		t.Skip("Skipping pipeowner test - doesn't work on CI, works locally")
 	}

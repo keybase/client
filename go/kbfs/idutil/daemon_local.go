@@ -81,7 +81,8 @@ func (dl *DaemonLocal) SetCurrentUID(uid keybase1.UID) {
 }
 
 func (dl *DaemonLocal) assertionToIDLocked(ctx context.Context,
-	assertion string) (id keybase1.UserOrTeamID, err error) {
+	assertion string,
+) (id keybase1.UserOrTeamID, err error) {
 	expr, err := externals.AssertionParseAndOnlyStatic(ctx, assertion)
 	if err != nil {
 		return keybase1.UserOrTeamID(""), err
@@ -122,7 +123,8 @@ func (dl *DaemonLocal) assertionToIDLocked(ctx context.Context,
 // Resolve implements the KeybaseService interface for DaemonLocal.
 func (dl *DaemonLocal) Resolve(
 	ctx context.Context, assertion string, _ keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 	}
@@ -163,7 +165,8 @@ func (dl *DaemonLocal) Resolve(
 func (dl *DaemonLocal) Identify(
 	ctx context.Context, assertion, _ string,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
+) {
 	// The local daemon doesn't need to distinguish resolves from
 	// identifies.
 	return dl.Resolve(ctx, assertion, offline)
@@ -172,7 +175,8 @@ func (dl *DaemonLocal) Identify(
 // NormalizeSocialAssertion implements the KeybaseService interface
 // for DaemonLocal.
 func (dl *DaemonLocal) NormalizeSocialAssertion(
-	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	ctx context.Context, assertion string,
+) (keybase1.SocialAssertion, error) {
 	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(ctx, assertion)
 	if !isSocialAssertion {
 		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
@@ -184,7 +188,8 @@ func (dl *DaemonLocal) resolveForImplicitTeam(
 	ctx context.Context, name string, r []kbname.NormalizedUsername,
 	ur []keybase1.SocialAssertion,
 	resolvedIDs map[kbname.NormalizedUsername]keybase1.UserOrTeamID) (
-	[]kbname.NormalizedUsername, []keybase1.SocialAssertion, error) {
+	[]kbname.NormalizedUsername, []keybase1.SocialAssertion, error,
+) {
 	id, err := dl.assertionToIDLocked(ctx, name)
 	if err == nil {
 		u, err := dl.localUsers.getLocalUser(id.AsUserOrBust())
@@ -208,7 +213,8 @@ func (dl *DaemonLocal) resolveForImplicitTeam(
 func (dl *DaemonLocal) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
 	doIdentifies bool, reason string, _ keybase1.OfflineAvailability) (
-	ImplicitTeamInfo, error) {
+	ImplicitTeamInfo, error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return ImplicitTeamInfo{}, err
 	}
@@ -222,8 +228,7 @@ func (dl *DaemonLocal) ResolveIdentifyImplicitTeam(
 	defer dl.lock.Unlock()
 
 	// Canonicalize the name.
-	writerNames, readerNames, _, err :=
-		SplitAndNormalizeTLFName(assertions, tlfType)
+	writerNames, readerNames, _, err := SplitAndNormalizeTLFName(assertions, tlfType)
 	if err != nil {
 		return ImplicitTeamInfo{}, err
 	}
@@ -285,7 +290,6 @@ func (dl *DaemonLocal) ResolveIdentifyImplicitTeam(
 			if !ok {
 				return ImplicitTeamInfo{}, fmt.Errorf(
 					"No resolved reader %s", r)
-
 			}
 			info.Readers[id.AsUserOrBust()] = true
 		}
@@ -312,7 +316,8 @@ func (dl *DaemonLocal) ResolveIdentifyImplicitTeam(
 // ResolveImplicitTeamByID implements the KeybaseService interface
 // for DaemonLocal.
 func (dl *DaemonLocal) ResolveImplicitTeamByID(
-	ctx context.Context, teamID keybase1.TeamID) (name string, err error) {
+	ctx context.Context, teamID keybase1.TeamID,
+) (name string, err error) {
 	if err := checkContext(ctx); err != nil {
 		return "", err
 	}
@@ -331,7 +336,8 @@ func (dl *DaemonLocal) ResolveImplicitTeamByID(
 // DaemonLocal.
 func (dl *DaemonLocal) LoadUserPlusKeys(
 	ctx context.Context, uid keybase1.UID, _ keybase1.KID,
-	_ keybase1.OfflineAvailability) (UserInfo, error) {
+	_ keybase1.OfflineAvailability,
+) (UserInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return UserInfo{}, err
 	}
@@ -355,7 +361,8 @@ func (dl *DaemonLocal) LoadUserPlusKeys(
 func (dl *DaemonLocal) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID, _ tlf.Type, _ kbfsmd.KeyGen,
 	_ keybase1.UserVersion, _ kbfscrypto.VerifyingKey,
-	_ keybase1.TeamRole, _ keybase1.OfflineAvailability) (TeamInfo, error) {
+	_ keybase1.TeamRole, _ keybase1.OfflineAvailability,
+) (TeamInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return TeamInfo{}, err
 	}
@@ -378,7 +385,8 @@ func (dl *DaemonLocal) LoadTeamPlusKeys(
 // CreateTeamTLF implements the KeybaseService interface for
 // DaemonLocal.
 func (dl *DaemonLocal) CreateTeamTLF(
-	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) (err error) {
+	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID,
+) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -397,7 +405,8 @@ func (dl *DaemonLocal) CreateTeamTLF(
 		return NoSuchTeamError{teamID.String()}
 	}
 	dl.localTeamSettings[teamID] = keybase1.KBFSTeamSettings{
-		TlfID: keybase1.TLFID(tlfID.String())}
+		TlfID: keybase1.TLFID(tlfID.String()),
+	}
 	return nil
 }
 
@@ -406,7 +415,8 @@ func (dl *DaemonLocal) CreateTeamTLF(
 func (dl *DaemonLocal) GetTeamSettings(
 	ctx context.Context, teamID keybase1.TeamID,
 	_ keybase1.OfflineAvailability) (
-	settings keybase1.KBFSTeamSettings, err error) {
+	settings keybase1.KBFSTeamSettings, err error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return keybase1.KBFSTeamSettings{}, err
 	}
@@ -419,7 +429,8 @@ func (dl *DaemonLocal) GetTeamSettings(
 // GetCurrentMerkleRoot implements the MerkleRootGetter interface for
 // DaemonLocal.
 func (dl *DaemonLocal) GetCurrentMerkleRoot(ctx context.Context) (
-	keybase1.MerkleRootV2, time.Time, error) {
+	keybase1.MerkleRootV2, time.Time, error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return keybase1.MerkleRootV2{}, time.Time{}, err
 	}
@@ -432,14 +443,16 @@ func (dl *DaemonLocal) GetCurrentMerkleRoot(ctx context.Context) (
 // VerifyMerkleRoot implements the MerkleRootGetter interface for
 // DaemonLocal.
 func (dl *DaemonLocal) VerifyMerkleRoot(
-	_ context.Context, _ keybase1.MerkleRootV2, _ keybase1.KBFSRoot) error {
+	_ context.Context, _ keybase1.MerkleRootV2, _ keybase1.KBFSRoot,
+) error {
 	return nil
 }
 
 // SetCurrentMerkleRoot is a helper function, useful for tests, to set
 // the current Merkle root.
 func (dl *DaemonLocal) SetCurrentMerkleRoot(
-	root keybase1.MerkleRootV2, rootTime time.Time) {
+	root keybase1.MerkleRootV2, rootTime time.Time,
+) {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 	dl.merkleRoot = root
@@ -449,7 +462,8 @@ func (dl *DaemonLocal) SetCurrentMerkleRoot(
 // CurrentSession implements the KeybaseService interface for
 // DaemonLocal.
 func (dl *DaemonLocal) CurrentSession(ctx context.Context, sessionID int) (
-	SessionInfo, error) {
+	SessionInfo, error,
+) {
 	if err := checkContext(ctx); err != nil {
 		return SessionInfo{}, err
 	}
@@ -474,7 +488,8 @@ func (dl *DaemonLocal) CurrentSession(ctx context.Context, sessionID int) (
 // that does already resolve to something.  It returns the UID of the
 // user associated with the given assertions.
 func (dl *DaemonLocal) AddNewAssertionForTest(
-	oldAssertion, newAssertion string) (keybase1.UID, error) {
+	oldAssertion, newAssertion string,
+) (keybase1.UID, error) {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 	id, err := dl.assertionToIDLocked(context.Background(), oldAssertion)
@@ -496,7 +511,8 @@ func (dl *DaemonLocal) AddNewAssertionForTest(
 // AddNewAssertionForTestOrBust is like AddNewAssertionForTest, but
 // panics if there's an error.
 func (dl *DaemonLocal) AddNewAssertionForTestOrBust(
-	oldAssertion, newAssertion string) keybase1.UID {
+	oldAssertion, newAssertion string,
+) keybase1.UID {
 	uid, err := dl.AddNewAssertionForTest(oldAssertion, newAssertion)
 	if err != nil {
 		panic(err)
@@ -506,7 +522,8 @@ func (dl *DaemonLocal) AddNewAssertionForTestOrBust(
 
 // ChangeTeamNameForTest updates the name of an existing team.
 func (dl *DaemonLocal) ChangeTeamNameForTest(
-	oldName, newName string) (keybase1.TeamID, error) {
+	oldName, newName string,
+) (keybase1.TeamID, error) {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 	oldAssert := oldName + "@team"
@@ -547,7 +564,8 @@ func (dl *DaemonLocal) RemoveAssertionForTest(assertion string) {
 // by tests.
 func (dl *DaemonLocal) AddTeamWriterForTest(
 	tid keybase1.TeamID, uid keybase1.UID) (
-	username kbname.NormalizedUsername, isImplicit bool, err error) {
+	username kbname.NormalizedUsername, isImplicit bool, err error,
+) {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 	t, err := dl.localTeams.getLocalTeam(tid)
@@ -568,7 +586,8 @@ func (dl *DaemonLocal) AddTeamWriterForTest(
 // RemoveTeamWriterForTest removes a writer from a team.  Should only
 // be used by tests.
 func (dl *DaemonLocal) RemoveTeamWriterForTest(
-	tid keybase1.TeamID, uid keybase1.UID) (kbname.NormalizedUsername, error) {
+	tid keybase1.TeamID, uid keybase1.UID,
+) (kbname.NormalizedUsername, error) {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 	t, err := dl.localTeams.getLocalTeam(tid)
@@ -601,7 +620,8 @@ func (dl *DaemonLocal) RemoveTeamWriterForTest(
 // AddTeamReaderForTest adds a reader to a team.  Should only be used
 // by tests.
 func (dl *DaemonLocal) AddTeamReaderForTest(
-	tid keybase1.TeamID, uid keybase1.UID) (kbname.NormalizedUsername, error) {
+	tid keybase1.TeamID, uid keybase1.UID,
+) (kbname.NormalizedUsername, error) {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 	t, err := dl.localTeams.getLocalTeam(tid)
@@ -626,7 +646,8 @@ func (dl *DaemonLocal) AddTeamReaderForTest(
 // tests.
 func (dl *DaemonLocal) AddTeamKeyForTest(
 	tid keybase1.TeamID, newKeyGen kbfsmd.KeyGen,
-	newKey kbfscrypto.TLFCryptKey) error {
+	newKey kbfscrypto.TLFCryptKey,
+) error {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 	t, err := dl.localTeams.getLocalTeam(tid)
@@ -676,7 +697,8 @@ func (dl *DaemonLocal) SetLocalUser(uid keybase1.UID, user LocalUser) {
 // GetIDForAssertion returns the UID associated with the given
 // assertion.
 func (dl *DaemonLocal) GetIDForAssertion(assertion string) (
-	keybase1.UserOrTeamID, bool) {
+	keybase1.UserOrTeamID, bool,
+) {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 	id, ok := dl.asserts[assertion]
@@ -697,7 +719,8 @@ func (dl *DaemonLocal) GetLocalUsers() (res []LocalUser) {
 // the given users and teams.
 func NewDaemonLocal(
 	currentUID keybase1.UID, users []LocalUser,
-	teams []TeamInfo, codec kbfscodec.Codec) *DaemonLocal {
+	teams []TeamInfo, codec kbfscodec.Codec,
+) *DaemonLocal {
 	localUserMap := make(localUserMap)
 	asserts := make(map[string]keybase1.UserOrTeamID)
 	for _, u := range users {

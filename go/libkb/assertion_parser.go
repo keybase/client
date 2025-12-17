@@ -72,13 +72,17 @@ type Lexer struct {
 // Parens: '(' ')'
 
 // URL:
-var lexerURLCharsRxx = `([^ \n\t&|()\[\],+#]+)` // anything but control chars
-var lexerURLSquareRxx = `(\[[^ \n\t#\[\]]*\])`  // square bracket syntax, allows pretty much anything in
-// URL has a character group and optionally square bracket groups
-var lexerURLRxx = `((` + lexerURLCharsRxx + lexerURLSquareRxx + `?)|(` + lexerURLSquareRxx + `?` + lexerURLCharsRxx + `))`
+var (
+	lexerURLCharsRxx  = `([^ \n\t&|()\[\],+#]+)` // anything but control chars
+	lexerURLSquareRxx = `(\[[^ \n\t#\[\]]*\])`   // square bracket syntax, allows pretty much anything in
+	// URL has a character group and optionally square bracket groups
+	lexerURLRxx = `((` + lexerURLCharsRxx + lexerURLSquareRxx + `?)|(` + lexerURLSquareRxx + `?` + lexerURLCharsRxx + `))`
+)
 
-var lexerItemRxx = regexp.MustCompile(`^((\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|` + lexerURLRxx + `)`)
-var lexerWhitespaceRxx = regexp.MustCompile(`^([\n\t ]+)`)
+var (
+	lexerItemRxx       = regexp.MustCompile(`^((\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|` + lexerURLRxx + `)`)
+	lexerWhitespaceRxx = regexp.MustCompile(`^([\n\t ]+)`)
+)
 
 func NewLexer(s string) *Lexer {
 	l := &Lexer{buffer: []byte(s)}

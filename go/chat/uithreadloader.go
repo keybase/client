@@ -88,7 +88,8 @@ func (t *UIThreadLoader) IsOffline(ctx context.Context) bool {
 }
 
 func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tv chat1.ThreadView, dataSource types.InboxSourceDataSourceTyp) (res chat1.ThreadView, err error) {
+	tv chat1.ThreadView, dataSource types.InboxSourceDataSourceTyp,
+) (res chat1.ThreadView, err error) {
 	// The following messages are consolidated for presentation
 	groupers := []msgGrouper{
 		newJoinLeaveGrouper(t.G(), uid, convID, dataSource),
@@ -104,7 +105,8 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, c
 }
 
 func (t *UIThreadLoader) applyPagerModeIncoming(ctx context.Context, convID chat1.ConversationID,
-	pagination *chat1.Pagination, pgmode chat1.GetThreadNonblockPgMode) (res *chat1.Pagination) {
+	pagination *chat1.Pagination, pgmode chat1.GetThreadNonblockPgMode,
+) (res *chat1.Pagination) {
 	defer func() {
 		t.Debug(ctx, "applyPagerModeIncoming: mode: %v convID: %s xform: %s -> %s", pgmode, convID,
 			pagination, res)
@@ -134,7 +136,8 @@ func (t *UIThreadLoader) applyPagerModeIncoming(ctx context.Context, convID chat
 }
 
 func (t *UIThreadLoader) applyPagerModeOutgoing(ctx context.Context, convID chat1.ConversationID,
-	pagination *chat1.Pagination, incoming *chat1.Pagination, pgmode chat1.GetThreadNonblockPgMode) {
+	pagination *chat1.Pagination, incoming *chat1.Pagination, pgmode chat1.GetThreadNonblockPgMode,
+) {
 	switch pgmode {
 	case chat1.GetThreadNonblockPgMode_SERVER:
 		if pagination == nil {
@@ -163,7 +166,8 @@ func (t *UIThreadLoader) applyPagerModeOutgoing(ctx context.Context, convID chat
 }
 
 func (t *UIThreadLoader) messageIDControlToPagination(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgIDControl chat1.MessageIDControl) *chat1.Pagination {
+	convID chat1.ConversationID, msgIDControl chat1.MessageIDControl,
+) *chat1.Pagination {
 	var mcconv *types.RemoteConversation
 	conv, err := utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
 	if err != nil {
@@ -192,7 +196,8 @@ func (t *UIThreadLoader) isConsolidateMsg(msg chat1.MessageUnboxed) bool {
 }
 
 func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThread,
-	localThread *chat1.ThreadView, mode chat1.GetThreadNonblockCbMode) (res chat1.ThreadView, err error) {
+	localThread *chat1.ThreadView, mode chat1.GetThreadNonblockCbMode,
+) (res chat1.ThreadView, err error) {
 	defer func() {
 		if err != nil || localThread == nil {
 			return
@@ -282,7 +287,8 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 }
 
 func (t *UIThreadLoader) dispatchOldPagesJob(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, pagination *chat1.Pagination, resultPagination *chat1.Pagination) {
+	convID chat1.ConversationID, pagination *chat1.Pagination, resultPagination *chat1.Pagination,
+) {
 	// Fire off pageback background jobs if we fetched the first page
 	num := 50
 	count := 3
@@ -305,7 +311,8 @@ func (t *UIThreadLoader) dispatchOldPagesJob(ctx context.Context, uid gregor1.UI
 }
 
 func (t *UIThreadLoader) setUIStatus(ctx context.Context, chatUI libkb.ChatUI,
-	status chat1.UIChatThreadStatus, delay time.Duration) (cancelStatusFn func() bool) {
+	status chat1.UIChatThreadStatus, delay time.Duration,
+) (cancelStatusFn func() bool) {
 	resCh := make(chan bool, 1)
 	ctx, cancelFn := context.WithCancel(ctx)
 	t.Debug(ctx, "setUIStatus: delaying: %v", delay)
@@ -356,7 +363,8 @@ func (t *UIThreadLoader) shouldIgnoreError(err error) bool {
 func (t *UIThreadLoader) noopCancel() {}
 
 func (t *UIThreadLoader) singleFlightConv(ctx context.Context, convID chat1.ConversationID,
-	reason chat1.GetThreadReason) (context.Context, context.CancelFunc) {
+	reason chat1.GetThreadReason,
+) (context.Context, context.CancelFunc) {
 	t.activeConvLoadsMu.Lock()
 	defer t.activeConvLoadsMu.Unlock()
 	convIDStr := convID.ConvIDStr()
@@ -409,7 +417,8 @@ type knownRemoteInterface struct {
 }
 
 func newKnownRemoteInterface(log logger.Logger, ri chat1.RemoteInterface,
-	conv types.RemoteConversation, knownMap map[chat1.MessageID]chat1.MessageBoxed) *knownRemoteInterface {
+	conv types.RemoteConversation, knownMap map[chat1.MessageID]chat1.MessageBoxed,
+) *knownRemoteInterface {
 	return &knownRemoteInterface{
 		knownMap:        knownMap,
 		log:             log,
@@ -452,7 +461,8 @@ func (i *knownRemoteInterface) GetMessagesRemote(ctx context.Context, arg chat1.
 }
 
 func (t *UIThreadLoader) makeRi(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	knownRemotes []string) func() chat1.RemoteInterface {
+	knownRemotes []string,
+) func() chat1.RemoteInterface {
 	if len(knownRemotes) == 0 {
 		t.Debug(ctx, "makeRi: no known remotes")
 		return t.ri
@@ -487,7 +497,8 @@ func (t *UIThreadLoader) makeRi(ctx context.Context, uid gregor1.UID, convID cha
 func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
 	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
 	cbmode chat1.GetThreadNonblockCbMode, knownRemotes []string, query *chat1.GetThreadQuery,
-	uipagination *chat1.UIPagination) (err error) {
+	uipagination *chat1.UIPagination,
+) (err error) {
 	var pagination, resultPagination *chat1.Pagination
 	var fullErr error
 	defer t.Trace(ctx, &err, "LoadNonblock")()
@@ -682,8 +693,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		if fullErr != nil {
 			return
 		}
-		if rthread, fullErr =
-			t.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, cbmode); fullErr != nil {
+		if rthread, fullErr = t.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, cbmode); fullErr != nil {
 			return
 		}
 		t.Debug(ctx, "LoadNonblock: presenting full response: messages: %d pager: %s",
@@ -820,7 +830,8 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 }
 
 func (t *UIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	reason chat1.GetThreadReason, knownRemotes []string, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res chat1.ThreadView, err error) {
+	reason chat1.GetThreadReason, knownRemotes []string, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
+) (res chat1.ThreadView, err error) {
 	defer t.Trace(ctx, &err, "Load")()
 	// Xlate pager control into pagination if given
 	if query != nil && query.MessageIDControl != nil {

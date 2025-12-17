@@ -133,7 +133,8 @@ func (t *contactSettingsAPIHandler) set(ctx context.Context, c Call, w io.Writer
 		}
 		args.Teams[i] = keybase1.TeamContactSettings{
 			TeamID:  tid,
-			Enabled: team.Enabled}
+			Enabled: team.Enabled,
+		}
 	}
 	err := t.accountClient.UserSetContactSettings(ctx, args)
 	if err != nil {

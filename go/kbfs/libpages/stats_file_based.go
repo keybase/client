@@ -7,7 +7,6 @@ package libpages
 import (
 	"context"
 	"database/sql"
-
 	"os"
 	"path/filepath"
 	"sort"
@@ -77,12 +76,13 @@ func (s *fileBasedActivityStatsStorer) processLoop() {
 // NOTE that this is meant to be for development and
 // testing only and does not scale well.
 func NewFileBasedActivityStatsStorer(
-	rootPath string, logger *zap.Logger) (ActivityStatsStorer, error) {
-	err := os.MkdirAll(filepath.Join(rootPath, dirnameTlfStamps), os.ModeDir|0700)
+	rootPath string, logger *zap.Logger,
+) (ActivityStatsStorer, error) {
+	err := os.MkdirAll(filepath.Join(rootPath, dirnameTlfStamps), os.ModeDir|0o700)
 	if err != nil {
 		return nil, err
 	}
-	err = os.MkdirAll(filepath.Join(rootPath, dirnameHostStamps), os.ModeDir|0700)
+	err = os.MkdirAll(filepath.Join(rootPath, dirnameHostStamps), os.ModeDir|0o700)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,8 @@ type fileinfoActivesGetter struct {
 }
 
 func (g *fileinfoActivesGetter) GetActives(
-	dur time.Duration) (tlfs, hosts int, err error) {
+	dur time.Duration,
+) (tlfs, hosts int, err error) {
 	if !g.sorted {
 		// Sort in decreasing order by time.
 		sort.Slice(g.tlfs, func(i int, j int) bool {
@@ -132,7 +133,8 @@ func (g *fileinfoActivesGetter) GetActives(
 
 // GetActivesGetter implement the ActivityStatsStorer interface.
 func (s *fileBasedActivityStatsStorer) GetActivesGetter() (
-	getter ActivesGetter, err error) {
+	getter ActivesGetter, err error,
+) {
 	tlfStamps, err := ioutil.ReadDir(filepath.Join(s.root, dirnameTlfStamps))
 	if err != nil {
 		return nil, err
@@ -150,7 +152,8 @@ func (s *fileBasedActivityStatsStorer) GetActivesGetter() (
 // MigrateActivityStatsStorerFromFileBasedToMySQL should only be used as part
 // of a commandline tool.
 func MigrateActivityStatsStorerFromFileBasedToMySQL(
-	logger *zap.Logger, fbRootDir string, mysqlDSN string) {
+	logger *zap.Logger, fbRootDir string, mysqlDSN string,
+) {
 	logger.Info("open mysql", zap.String("dsn", mysqlDSN))
 	db, err := sql.Open("mysql", mysqlDSN)
 	if err != nil {

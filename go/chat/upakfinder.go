@@ -75,7 +75,8 @@ func (u *CachingUPAKFinder) lookupCheckKidKey(key string) (checkKidStoredRes, bo
 }
 
 func (u *CachingUPAKFinder) writeCheckKidKey(key string, found bool, revokedAt *keybase1.KeybaseTime,
-	deleted bool) {
+	deleted bool,
+) {
 	u.checkKidLock.Lock()
 	defer u.checkKidLock.Unlock()
 	u.checkKidCache[key] = checkKidStoredRes{

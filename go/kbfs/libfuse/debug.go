@@ -20,7 +20,8 @@ var statfsOrAccessRegexp = regexp.MustCompile(`^(<-|->).* (Statfs|Access)`)
 // MakeFuseDebugFn returns a function that logs its argument to the
 // given log, suitable to assign to fuse.Debug.
 func MakeFuseDebugFn(
-	log logger.Logger, superVerbose bool) func(msg interface{}) {
+	log logger.Logger, superVerbose bool,
+) func(msg interface{}) {
 	return func(msg interface{}) {
 		str := fmt.Sprintf("%s", msg)
 		// If superVerbose is not set, filter out Statfs and
@@ -38,7 +39,8 @@ func MakeFuseDebugFn(
 // MakeFuseVDebugFn returns a function that logs its argument to the
 // given vlog at level 1, suitable to assign to fuse.Debug.
 func MakeFuseVDebugFn(
-	vlog *libkb.VDebugLog, superVerbose bool) func(msg interface{}) {
+	vlog *libkb.VDebugLog, superVerbose bool,
+) func(msg interface{}) {
 	return func(msg interface{}) {
 		str := fmt.Sprintf("%s", msg)
 		// If superVerbose is not set, filter out Statfs and

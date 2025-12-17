@@ -1186,15 +1186,15 @@ func (n *teamNotifyHandler) TeamRoleMapChanged(ctx context.Context, version keyb
 }
 
 func (n *teamNotifyHandler) TeamTreeMembershipsPartial(ctx context.Context,
-	arg keybase1.TeamTreeMembership) error {
-
+	arg keybase1.TeamTreeMembership,
+) error {
 	n.teamTreeMembershipsPartialCh <- arg
 	return nil
 }
 
 func (n *teamNotifyHandler) TeamTreeMembershipsDone(ctx context.Context,
-	arg keybase1.TeamTreeMembershipsDoneResult) error {
-
+	arg keybase1.TeamTreeMembershipsDoneResult,
+) error {
 	n.teamTreeMembershipsDoneCh <- arg
 	return nil
 }

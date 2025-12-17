@@ -2,7 +2,6 @@ package service
 
 import (
 	"archive/zip"
-
 	"io"
 	"os"
 	"path/filepath"

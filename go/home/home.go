@@ -59,7 +59,8 @@ func homeRetry(a libkb.APIArg) libkb.APIArg {
 }
 
 func decodeContactNotifications(mctx libkb.MetaContext, home keybase1.
-	HomeScreen) (decoded keybase1.HomeScreen, err error) {
+	HomeScreen,
+) (decoded keybase1.HomeScreen, err error) {
 	items := home.Items
 	for i, item := range items {
 		t, err := item.Data.T()
@@ -439,7 +440,6 @@ func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 }
 
 func (h *Home) handleUpdateWithVersions(ctx context.Context, homeVersion int, announcementsVersion int, refreshHome bool) {
-
 	h.Lock()
 	defer func() {
 		if refreshHome {

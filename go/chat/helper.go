@@ -40,14 +40,16 @@ func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 
 func (h *Helper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility) (chat1.ConversationLocal, bool, error) {
+	vis keybase1.TLFVisibility,
+) (chat1.ConversationLocal, bool, error) {
 	return NewConversation(ctx, h.G(), uid, tlfName, topicName,
 		topicType, membersType, vis, nil, h.ri, NewConvFindExistingNormal)
 }
 
 func (h *Helper) NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility) (chat1.ConversationLocal, bool, error) {
+	vis keybase1.TLFVisibility,
+) (chat1.ConversationLocal, bool, error) {
 	return NewConversation(ctx, h.G(), uid, tlfName, topicName,
 		topicType, membersType, vis, nil, h.ri, NewConvFindExistingSkip)
 }
@@ -55,20 +57,23 @@ func (h *Helper) NewConversationSkipFindExisting(ctx context.Context, uid gregor
 func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, retentionPolicy *chat1.RetentionPolicy,
-	memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
+	memberSourceConv *chat1.ConversationID,
+) (chat1.ConversationLocal, bool, error) {
 	return NewConversationWithMemberSourceConv(ctx, h.G(), uid, tlfName, topicName,
 		topicType, membersType, vis, nil, h.ri, NewConvFindExistingNormal, retentionPolicy, memberSourceConv)
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, text string, vis keybase1.TLFVisibility) error {
+	tlfName string, text string, vis keybase1.TLFVisibility,
+) error {
 	return h.SendMsgByID(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
 	}), chat1.MessageType_TEXT, vis)
 }
 
 func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, tlfName string,
-	body chat1.MessageBody, msgType chat1.MessageType, vis keybase1.TLFVisibility) error {
+	body chat1.MessageBody, msgType chat1.MessageType, vis keybase1.TLFVisibility,
+) error {
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	public := vis == keybase1.TLFVisibility_PUBLIC
@@ -85,7 +90,8 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, t
 }
 
 func (h *Helper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID) (chat1.OutboxID, error) {
+	tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID,
+) (chat1.OutboxID, error) {
 	return h.SendMsgByIDNonblock(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
 	}), chat1.MessageType_TEXT, outboxID, replyTo)
@@ -93,7 +99,8 @@ func (h *Helper) SendTextByIDNonblock(ctx context.Context, convID chat1.Conversa
 
 func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
 	tlfName string, body chat1.MessageBody, msgType chat1.MessageType, inOutboxID *chat1.OutboxID,
-	replyTo *chat1.MessageID) (chat1.OutboxID, error) {
+	replyTo *chat1.MessageID,
+) (chat1.OutboxID, error) {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
@@ -112,7 +119,8 @@ func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.Conversat
 }
 
 func (h *Helper) DeleteMsg(ctx context.Context, convID chat1.ConversationID, tlfName string,
-	msgID chat1.MessageID) error {
+	msgID chat1.MessageID,
+) error {
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	msg := chat1.MessagePlaintext{
@@ -127,7 +135,8 @@ func (h *Helper) DeleteMsg(ctx context.Context, convID chat1.ConversationID, tlf
 }
 
 func (h *Helper) DeleteMsgNonblock(ctx context.Context, convID chat1.ConversationID, tlfName string,
-	msgID chat1.MessageID) error {
+	msgID chat1.MessageID,
+) error {
 	boxer := NewBoxer(h.G())
 	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), boxer, h.ri))
 	msg := chat1.MessagePlaintext{
@@ -142,7 +151,8 @@ func (h *Helper) DeleteMsgNonblock(ctx context.Context, convID chat1.Conversatio
 }
 
 func (h *Helper) SendTextByName(ctx context.Context, name string, topicName *string,
-	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error {
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string,
+) error {
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	helper := newSendHelper(h.G(), name, topicName, membersType, ident, sender, h.ri)
@@ -152,7 +162,8 @@ func (h *Helper) SendTextByName(ctx context.Context, name string, topicName *str
 
 func (h *Helper) SendMsgByName(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
-	msgType chat1.MessageType) error {
+	msgType chat1.MessageType,
+) error {
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	helper := newSendHelper(h.G(), name, topicName, membersType, ident, sender, h.ri)
@@ -162,7 +173,8 @@ func (h *Helper) SendMsgByName(ctx context.Context, name string, topicName *stri
 
 func (h *Helper) SendTextByNameNonblock(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string,
-	inOutboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	inOutboxID *chat1.OutboxID,
+) (chat1.OutboxID, error) {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
@@ -173,7 +185,8 @@ func (h *Helper) SendTextByNameNonblock(ctx context.Context, name string, topicN
 
 func (h *Helper) SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
-	msgType chat1.MessageType, inOutboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	msgType chat1.MessageType, inOutboxID *chat1.OutboxID,
+) (chat1.OutboxID, error) {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
@@ -184,7 +197,8 @@ func (h *Helper) SendMsgByNameNonblock(ctx context.Context, name string, topicNa
 
 func (h *Helper) FindConversations(ctx context.Context,
 	name string, topicName *string,
-	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
+	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
+) ([]chat1.ConversationLocal, error) {
 	kuid, err := CurrentUID(h.G())
 	if err != nil {
 		return nil, err
@@ -220,7 +234,8 @@ func (h *Helper) FindConversationsByID(ctx context.Context, convIDs []chat1.Conv
 
 // GetChannelTopicName gets the name of a team channel even if it's not in the inbox.
 func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID,
-	topicType chat1.TopicType, convID chat1.ConversationID) (topicName string, err error) {
+	topicType chat1.TopicType, convID chat1.ConversationID,
+) (topicName string, err error) {
 	defer h.Trace(ctx, &err, "ChatHelper.GetChannelTopicName")()
 	h.Debug(ctx, "for teamID:%v convID:%v", teamID.String(), convID.String())
 	kuid, err := CurrentUID(h.G())
@@ -281,12 +296,14 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 }
 
 func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
+	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason,
+) ([]chat1.MessageUnboxed, error) {
 	return h.G().ConvSource.GetMessages(ctx, convID, uid, msgIDs, reason, nil, resolveSupersedes)
 }
 
 func (h *Helper) GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
+	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason,
+) (chat1.MessageUnboxed, error) {
 	return h.G().ConvSource.GetMessage(ctx, convID, uid, msgID, reason, nil, resolveSupersedes)
 }
 
@@ -351,7 +368,8 @@ type sendHelper struct {
 
 func newSendHelper(g *globals.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, sender types.Sender,
-	ri func() chat1.RemoteInterface) *sendHelper {
+	ri func() chat1.RemoteInterface,
+) *sendHelper {
 	return &sendHelper{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "sendHelper", false),
@@ -370,7 +388,8 @@ func (s *sendHelper) SendText(ctx context.Context, text string, outboxID *chat1.
 }
 
 func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType,
-	outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error) {
+	outboxID *chat1.OutboxID,
+) (chat1.OutboxID, *chat1.MessageBoxed, error) {
 	ctx = globals.ChatCtx(ctx, s.G(), s.ident, nil, NewCachingIdentifyNotifier(s.G()))
 	if err := s.conversation(ctx); err != nil {
 		return chat1.OutboxID{}, nil, err
@@ -397,7 +416,8 @@ func (s *sendHelper) conversation(ctx context.Context) error {
 }
 
 func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType,
-	outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error) {
+	outboxID *chat1.OutboxID,
+) (chat1.OutboxID, *chat1.MessageBoxed, error) {
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        s.triple,
@@ -486,7 +506,8 @@ func RecentConversationParticipants(ctx context.Context, g *globals.Context, myU
 }
 
 func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Context,
-	uid gregor1.UID, conv chat1.ConversationLocal, partMode utils.PresentParticipantsMode) (pc *chat1.InboxUIItem) {
+	uid gregor1.UID, conv chat1.ConversationLocal, partMode utils.PresentParticipantsMode,
+) (pc *chat1.InboxUIItem) {
 	shouldPresent := true
 	if conv.Error != nil {
 		// If we get a transient failure, add this to the retrier queue
@@ -508,8 +529,8 @@ func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Cont
 func GetTopicNameState(ctx context.Context, _ *globals.Context, debugger utils.DebugLabeler,
 	convs []chat1.ConversationLocal,
 	uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType) (res chat1.TopicNameState, err error) {
-
+	membersType chat1.ConversationMembersType,
+) (res chat1.TopicNameState, err error) {
 	var pairs chat1.ConversationIDMessageIDPairs
 	sort.Sort(utils.ConvLocalByConvID(convs))
 	for _, conv := range convs {
@@ -536,8 +557,8 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 	dataSource types.InboxSourceDataSourceTyp, ri func() chat1.RemoteInterface, uid gregor1.UID,
 	tlfName string, topicType chat1.TopicType,
 	membersTypeIn chat1.ConversationMembersType, vis keybase1.TLFVisibility, topicName string,
-	oneChatPerTLF *bool) (res []chat1.ConversationLocal, err error) {
-
+	oneChatPerTLF *bool,
+) (res []chat1.ConversationLocal, err error) {
 	findConvosWithMembersType := func(membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, err error) {
 		// Don't look for KBFS conversations anymore, they have mostly been converted, and it is better
 		// to just not search for them than to create a double conversation. Make an exception for
@@ -735,7 +756,8 @@ L:
 // Post a join or leave message. Must be called when the user is in the conv.
 // Uses a blocking sender.
 func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID,
-	convID chat1.ConversationID, body chat1.MessageBody) (err error) {
+	convID chat1.ConversationID, body chat1.MessageBody,
+) (err error) {
 	typ, err := body.MessageType()
 	if err != nil {
 		return fmt.Errorf("message type for postJoinLeave: %v", err)
@@ -795,7 +817,8 @@ func (h *Helper) JoinConversationByID(ctx context.Context, uid gregor1.UID, conv
 }
 
 func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID,
+) (err error) {
 	if err := g.ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
 		return err
 	}
@@ -832,14 +855,16 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 }
 
 func (h *Helper) JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName, topicName string,
-	topicType chat1.TopicType, vis keybase1.TLFVisibility) (err error) {
+	topicType chat1.TopicType, vis keybase1.TLFVisibility,
+) (err error) {
 	defer h.Trace(ctx, &err, "ChatHelper.JoinConversationByName")()
 	return JoinConversationByName(ctx, h.G(), h.DebugLabeler, h.ri, uid, tlfName, topicName, topicType, vis)
 }
 
 func JoinConversationByName(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName, topicName string, topicType chat1.TopicType,
-	vis keybase1.TLFVisibility) (err error) {
+	vis keybase1.TLFVisibility,
+) (err error) {
 	// Fetch the TLF ID from specified name
 	nameInfo, err := CreateNameInfoSource(ctx, g, chat1.ConversationMembersType_TEAM).LookupID(ctx,
 		tlfName, vis == keybase1.TLFVisibility_PUBLIC)
@@ -875,7 +900,8 @@ func (h *Helper) LeaveConversation(ctx context.Context, uid gregor1.UID, convID 
 }
 
 func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID,
+) (err error) {
 	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
 	if err != nil {
 		debugger.Debug(ctx, "LeaveConversation: IsMember err: %s", err.Error())
@@ -903,7 +929,8 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 }
 
 func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (res chat1.ConversationLocal, err error) {
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID,
+) (res chat1.ConversationLocal, err error) {
 	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
 	if err != nil {
 		debugger.Debug(ctx, "PreviewConversation: IsMember err: %s", err.Error())
@@ -923,7 +950,8 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 }
 
 func RemoveFromConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, convID chat1.ConversationID, usernames []string) (err error) {
+	ri func() chat1.RemoteInterface, convID chat1.ConversationID, usernames []string,
+) (err error) {
 	users := make([]gregor1.UID, len(usernames))
 	for i, username := range usernames {
 		uid, err := g.GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(username))
@@ -950,7 +978,8 @@ const (
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, knownTopicID *chat1.TopicID, ri func() chat1.RemoteInterface,
-	findExistingMode NewConvFindExistingMode) (chat1.ConversationLocal, bool, error) {
+	findExistingMode NewConvFindExistingMode,
+) (chat1.ConversationLocal, bool, error) {
 	return NewConversationWithMemberSourceConv(ctx, g, uid, tlfName, topicName, topicType, membersType, vis,
 		knownTopicID, ri, findExistingMode, nil, nil)
 }
@@ -959,7 +988,8 @@ func NewConversationWithMemberSourceConv(ctx context.Context, g *globals.Context
 	tlfName string, topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, knownTopicID *chat1.TopicID, ri func() chat1.RemoteInterface,
 	findExistingMode NewConvFindExistingMode, retentionPolicy *chat1.RetentionPolicy,
-	memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
+	memberSourceConv *chat1.ConversationID,
+) (chat1.ConversationLocal, bool, error) {
 	defer utils.SuspendComponent(ctx, g, g.ConvLoader)()
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis,
 		ri, findExistingMode, retentionPolicy, memberSourceConv, knownTopicID)
@@ -987,7 +1017,8 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
 	ri func() chat1.RemoteInterface, findExistingMode NewConvFindExistingMode,
 	retentionPolicy *chat1.RetentionPolicy, memberSourceConv *chat1.ConversationID,
-	knownTopicID *chat1.TopicID) *newConversationHelper {
+	knownTopicID *chat1.TopicID,
+) *newConversationHelper {
 	return &newConversationHelper{
 		Contextified:     globals.NewContextified(g),
 		DebugLabeler:     utils.NewDebugLabeler(g.ExternalG(), "newConversationHelper", false),
@@ -1006,7 +1037,8 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 }
 
 func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TLFID, topicName string,
-	dataSource types.InboxSourceDataSourceTyp) (res []chat1.ConversationLocal, err error) {
+	dataSource types.InboxSourceDataSourceTyp,
+) (res []chat1.ConversationLocal, err error) {
 	switch n.findExistingMode {
 	case NewConvFindExistingNormal:
 		ib, _, err := n.G().InboxSource.Read(ctx, n.uid, types.ConversationLocalizerBlocking,
@@ -1338,7 +1370,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,
 	tlfName string, membersType chat1.ConversationMembersType, tlfVisibility keybase1.TLFVisibility,
-	topicName *string) (*chat1.MessageBoxed, *chat1.TopicNameState, error) {
+	topicName *string,
+) (*chat1.MessageBoxed, *chat1.TopicNameState, error) {
 	var msg chat1.MessagePlaintext
 	if topicName != nil {
 		msg = chat1.MessagePlaintext{

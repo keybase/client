@@ -19,8 +19,8 @@ import (
 )
 
 func genKeyWithMaterial(uid *packet.UserId, currentTime time.Time, signingPriv *ecdsa.PrivateKey,
-	encryptPriv *ecdh.PrivateKey) *openpgp.Entity {
-
+	encryptPriv *ecdh.PrivateKey,
+) *openpgp.Entity {
 	// We will be manipulating key creation time while keeping the eddsa
 	// private key bytes same. This will yield different PGP fingerprint
 	// every time (and different full hash), but same Keybase KID.

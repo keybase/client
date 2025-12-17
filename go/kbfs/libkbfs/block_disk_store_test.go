@@ -36,7 +36,8 @@ func teardownBlockDiskStoreTest(t *testing.T, tempdir string) {
 
 func putBlockDisk(
 	ctx context.Context, t *testing.T, s *blockDiskStore, data []byte) (
-	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
+	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf,
+) {
 	bID, err := kbfsblock.MakePermanentID(
 		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(t, err)
@@ -58,7 +59,8 @@ func putBlockDisk(
 
 func addBlockDiskRef(
 	ctx context.Context, t *testing.T, s *blockDiskStore,
-	bID kbfsblock.ID) kbfsblock.Context {
+	bID kbfsblock.ID,
+) kbfsblock.Context {
 	nonce, err := kbfsblock.MakeRefNonce()
 	require.NoError(t, err)
 
@@ -75,7 +77,8 @@ func addBlockDiskRef(
 func getAndCheckBlockDiskData(
 	ctx context.Context, t *testing.T, s *blockDiskStore,
 	bID kbfsblock.ID, bCtx kbfsblock.Context, expectedData []byte,
-	expectedServerHalf kbfscrypto.BlockCryptKeyServerHalf) {
+	expectedServerHalf kbfscrypto.BlockCryptKeyServerHalf,
+) {
 	data, serverHalf, err := s.getDataWithContext(ctx, bID, bCtx)
 	require.NoError(t, err)
 	require.Equal(t, expectedData, data)

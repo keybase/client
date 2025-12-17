@@ -110,7 +110,8 @@ type FutureStruct interface {
 // unknown fields.
 func TestStructUnknownFields(t require.TestingT,
 	cFuture, cCurrent, cCurrentKnownOnly Codec,
-	sFuture FutureStruct) {
+	sFuture FutureStruct,
+) {
 	s := sFuture.ToCurrentStruct()
 
 	buf, err := cFuture.Encode(sFuture)

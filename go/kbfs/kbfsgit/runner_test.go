@@ -61,7 +61,8 @@ func TestRunnerCapabilities(t *testing.T) {
 }
 
 func initConfigForRunner(t *testing.T) (
-	ctx context.Context, config *libkbfs.ConfigLocal, tempdir string) {
+	ctx context.Context, config *libkbfs.ConfigLocal, tempdir string,
+) {
 	ctx = libcontext.BackgroundContextWithCancellationDelayer()
 	config = libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1", "user2")
@@ -145,10 +146,11 @@ func gitExec(t *testing.T, gitDir, workTree string, command ...string) {
 }
 
 func makeLocalRepoWithOneFileCustomCommitMsg(t *testing.T,
-	gitDir, filename, contents, branch, msg string) {
+	gitDir, filename, contents, branch, msg string,
+) {
 	t.Logf("Make a new repo in %s with one file", gitDir)
 	err := os.WriteFile(
-		filepath.Join(gitDir, filename), []byte(contents), 0600)
+		filepath.Join(gitDir, filename), []byte(contents), 0o600)
 	require.NoError(t, err)
 	dotgit := filepath.Join(gitDir, ".git")
 	gitExec(t, dotgit, gitDir, "init")
@@ -163,16 +165,18 @@ func makeLocalRepoWithOneFileCustomCommitMsg(t *testing.T,
 }
 
 func makeLocalRepoWithOneFile(t *testing.T,
-	gitDir, filename, contents, branch string) {
+	gitDir, filename, contents, branch string,
+) {
 	makeLocalRepoWithOneFileCustomCommitMsg(
 		t, gitDir, filename, contents, branch, "foo")
 }
 
 func addOneFileToRepoCustomCommitMsg(t *testing.T, gitDir,
-	filename, contents, msg string) {
+	filename, contents, msg string,
+) {
 	t.Logf("Add a new file to %s", gitDir)
 	err := os.WriteFile(
-		filepath.Join(gitDir, filename), []byte(contents), 0600)
+		filepath.Join(gitDir, filename), []byte(contents), 0o600)
 	require.NoError(t, err)
 	dotgit := filepath.Join(gitDir, ".git")
 
@@ -188,7 +192,8 @@ func addOneFileToRepo(t *testing.T, gitDir, filename, contents string) {
 
 func testPushWithTemplate(ctx context.Context, t *testing.T,
 	config libkbfs.Config, gitDir string, refspecs []string,
-	outputTemplate, tlfName string) {
+	outputTemplate, tlfName string,
+) {
 	// Use the runner to push the local data into the KBFS repo.
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
@@ -230,14 +235,16 @@ func testPushWithTemplate(ctx context.Context, t *testing.T,
 }
 
 func testPush(ctx context.Context, t *testing.T, config libkbfs.Config,
-	gitDir, refspec string) {
+	gitDir, refspec string,
+) {
 	testPushWithTemplate(ctx, t, config, gitDir, []string{refspec},
 		"ok %s\n\n", "user1")
 }
 
 func testListAndGetHeadsWithNameWithPush(
 	ctx context.Context, t *testing.T, config libkbfs.Config, gitDir string,
-	expectedRefs []string, tlfName string, forPush bool) (heads []string) {
+	expectedRefs []string, tlfName string, forPush bool,
+) (heads []string) {
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
 	go func() {
@@ -278,14 +285,16 @@ func testListAndGetHeadsWithNameWithPush(
 
 func testListAndGetHeadsWithName(ctx context.Context, t *testing.T,
 	config libkbfs.Config, gitDir string, expectedRefs []string,
-	tlfName string) (heads []string) {
+	tlfName string,
+) (heads []string) {
 	return testListAndGetHeadsWithNameWithPush(
 		ctx, t, config, gitDir, expectedRefs, tlfName, false)
 }
 
 func testListAndGetHeads(ctx context.Context, t *testing.T,
 	config libkbfs.Config, gitDir string, expectedRefs []string) (
-	heads []string) {
+	heads []string,
+) {
 	return testListAndGetHeadsWithName(
 		ctx, t, config, gitDir, expectedRefs, "user1")
 }
@@ -594,7 +603,8 @@ func TestPushSomeWithPackedRefs(t *testing.T) {
 
 func testCloneIntoNewLocalRepo(
 	ctx context.Context, t *testing.T, config libkbfs.Config,
-	tlfName string) string {
+	tlfName string,
+) string {
 	git, err := os.MkdirTemp(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
 	success := false
@@ -1017,7 +1027,8 @@ func TestRepackObjects(t *testing.T) {
 }
 
 func testHandlePushBatch(ctx context.Context, t *testing.T,
-	config libkbfs.Config, git, refspec, tlfName string) libgit.RefDataByName {
+	config libkbfs.Config, git, refspec, tlfName string,
+) libgit.RefDataByName {
 	var input bytes.Buffer
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin",

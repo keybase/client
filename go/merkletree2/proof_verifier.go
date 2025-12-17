@@ -309,7 +309,6 @@ func (m *MerkleProofVerifier) VerifyExtensionProof(ctx logger.ContextInterface, 
 	// For exmaple, if finalSeqno = 30, then skipsHash will be the expected
 	// SkipPointersHash of the root at seqno 30 (i.e. SHA512([H16, H24, H28,
 	// H29]) where Hi is the hash of the RootMetadata at seqno i)
-
 	if err != nil {
 		return err
 	}

@@ -214,7 +214,8 @@ func (u *QuotaInfo) ToProtocol() (res keybase1.BlockQuotaInfo) {
 
 // QuotaInfoDecode decodes b into a QuotaInfo
 func QuotaInfoDecode(b []byte, codec kbfscodec.Codec) (
-	*QuotaInfo, error) {
+	*QuotaInfo, error,
+) {
 	var info QuotaInfo
 	err := codec.Decode(b, &info)
 	if err != nil {

@@ -49,7 +49,8 @@ func (t EPubKeyLocationV2) String() string {
 func GetEphemeralPublicKeyInfoV2(info TLFCryptKeyInfo,
 	wkb TLFWriterKeyBundleV2, rkb TLFReaderKeyBundleV2) (
 	keyLocation EPubKeyLocationV2, index int,
-	ePubKey kbfscrypto.TLFEphemeralPublicKey, err error) {
+	ePubKey kbfscrypto.TLFEphemeralPublicKey, err error,
+) {
 	var publicKeys kbfscrypto.TLFEphemeralPublicKeys
 	if info.EPubKeyIndex >= 0 {
 		index = info.EPubKeyIndex
@@ -80,7 +81,8 @@ func (dkimV2 DeviceKeyInfoMapV2) fillInDeviceInfos(
 	uid keybase1.UID, tlfCryptKey kbfscrypto.TLFCryptKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey, ePubIndex int,
 	updatedDeviceKeys DevicePublicKeys) (
-	serverHalves DeviceKeyServerHalves, err error) {
+	serverHalves DeviceKeyServerHalves, err error,
+) {
 	serverHalves = make(DeviceKeyServerHalves, len(updatedDeviceKeys))
 	// TODO: parallelize
 	for k := range updatedDeviceKeys {
@@ -126,7 +128,8 @@ func (udkimV2 UserDeviceKeyInfoMapV2) ToPublicKeys() UserDevicePublicKeys {
 // RemoveDevicesNotIn removes any info for any device that is not
 // contained in the given map of users and devices.
 func (udkimV2 UserDeviceKeyInfoMapV2) RemoveDevicesNotIn(
-	updatedUserKeys UserDevicePublicKeys) ServerHalfRemovalInfo {
+	updatedUserKeys UserDevicePublicKeys,
+) ServerHalfRemovalInfo {
 	removalInfo := make(ServerHalfRemovalInfo)
 	for uid, dkim := range udkimV2 {
 		userRemoved := false
@@ -174,7 +177,8 @@ func (udkimV2 UserDeviceKeyInfoMapV2) FillInUserInfos(
 	newIndex int, updatedUserKeys UserDevicePublicKeys,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (
-	serverHalves UserDeviceKeyServerHalves, err error) {
+	serverHalves UserDeviceKeyServerHalves, err error,
+) {
 	serverHalves = make(UserDeviceKeyServerHalves, len(updatedUserKeys))
 	for u, updatedDeviceKeys := range updatedUserKeys {
 		if _, ok := udkimV2[u]; !ok {
@@ -246,7 +250,8 @@ func (wkg TLFWriterKeyGenerationsV2) IsWriter(user keybase1.UID, deviceKey kbfsc
 func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
 	codec kbfscodec.Codec,
 	tlfCryptKeyGetter func() ([]kbfscrypto.TLFCryptKey, error)) (
-	TLFWriterKeyBundleV2, TLFWriterKeyBundleV3, error) {
+	TLFWriterKeyBundleV2, TLFWriterKeyBundleV3, error,
+) {
 	keyGen := wkg.LatestKeyGeneration()
 	if keyGen < FirstValidKeyGen {
 		return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{},
@@ -339,7 +344,8 @@ func (rkg TLFReaderKeyGenerationsV2) IsReader(user keybase1.UID, deviceKey kbfsc
 // ToTLFReaderKeyBundleV3 converts a TLFReaderKeyGenerationsV2 to a TLFReaderkeyBundleV3.
 func (rkg TLFReaderKeyGenerationsV2) ToTLFReaderKeyBundleV3(
 	codec kbfscodec.Codec, wkb TLFWriterKeyBundleV2) (
-	TLFReaderKeyBundleV3, error) {
+	TLFReaderKeyBundleV3, error,
+) {
 	keyGen := rkg.LatestKeyGeneration()
 	if keyGen < FirstValidKeyGen {
 		return TLFReaderKeyBundleV3{}, errors.New("No key generations to convert")
@@ -374,8 +380,7 @@ func (rkg TLFReaderKeyGenerationsV2) ToTLFReaderKeyBundleV3(
 				return TLFReaderKeyBundleV3{}, err
 			}
 
-			keyLocation, index, ePubKey, err :=
-				GetEphemeralPublicKeyInfoV2(info, wkb, rkb)
+			keyLocation, index, ePubKey, err := GetEphemeralPublicKeyInfoV2(info, wkb, rkb)
 			if err != nil {
 				return TLFReaderKeyBundleV3{}, err
 			}
@@ -386,8 +391,7 @@ func (rkg TLFReaderKeyGenerationsV2) ToTLFReaderKeyBundleV3(
 				// at the end of the reader list.
 				newIndex, ok := pubKeyIndicesMap[index]
 				if !ok {
-					rkbV3.TLFEphemeralPublicKeys =
-						append(rkbV3.TLFEphemeralPublicKeys, ePubKey)
+					rkbV3.TLFEphemeralPublicKeys = append(rkbV3.TLFEphemeralPublicKeys, ePubKey)
 					// TODO: This index depends on
 					// map iteration order, which
 					// varies. Impose a consistent

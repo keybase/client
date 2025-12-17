@@ -145,7 +145,8 @@ func searchMatches(msg chat1.MessageUnboxed, queryRe *regexp.Regexp) (validMatch
 
 // Order messages ascending by ID for presentation
 func getUIMsgs(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) (uiMsgs []chat1.UIMessage) {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed,
+) (uiMsgs []chat1.UIMessage) {
 	for i := len(msgs) - 1; i >= 0; i-- {
 		msg := msgs[i]
 		uiMsg := utils.PresentMessageUnboxed(ctx, g, msg, uid, convID)
@@ -154,13 +155,16 @@ func getUIMsgs(ctx context.Context, g *globals.Context, convID chat1.Conversatio
 	return uiMsgs
 }
 
-const beforeFilter = "before:"
-const afterFilter = "after:"
-const fromFilter = "from:"
-const toFilter = "to:"
+const (
+	beforeFilter = "before:"
+	afterFilter  = "after:"
+	fromFilter   = "from:"
+	toFilter     = "to:"
+)
 
 var senderRegex = regexp.MustCompile(fmt.Sprintf(
 	"(%s|%s)(@?[a-z0-9][a-z0-9_]+)", fromFilter, toFilter))
+
 var dateRangeRegex = regexp.MustCompile(fmt.Sprintf(
 	`(%s|%s)(\d{1,4}[-/\.]+\d{1,2}[-/\.]+\d{1,4})`, beforeFilter, afterFilter))
 

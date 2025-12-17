@@ -98,7 +98,8 @@ func publishNewDeviceEK(mctx libkb.MetaContext, merkleRoot libkb.MerkleRoot) (me
 }
 
 func signAndPostDeviceEK(mctx libkb.MetaContext, generation keybase1.EkGeneration,
-	seed DeviceEKSeed, merkleRoot libkb.MerkleRoot) (metadata keybase1.DeviceEkMetadata, err error) {
+	seed DeviceEKSeed, merkleRoot libkb.MerkleRoot,
+) (metadata keybase1.DeviceEkMetadata, err error) {
 	defer mctx.Trace("signAndPostDeviceEK", &err)()
 
 	storage := mctx.G().GetDeviceEKStorage()

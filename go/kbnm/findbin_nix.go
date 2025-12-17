@@ -7,8 +7,10 @@ import (
 	"path/filepath"
 )
 
-const kbnmBinary = "kbnm"
-const keybaseBinary = "keybase"
+const (
+	kbnmBinary    = "kbnm"
+	keybaseBinary = "keybase"
+)
 
 // guessKeybasePath makes a platform-specific guess to where the binary might
 // be. This is only checked as a last-ditch effort when we can't find the

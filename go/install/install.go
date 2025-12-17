@@ -335,5 +335,4 @@ func LastModifiedMatchingFile(filePattern string, fileContentMatch string) (file
 		}
 	}
 	return nil, nil
-
 }

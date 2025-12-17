@@ -1284,6 +1284,7 @@ type DummyMerkleStore struct {
 func (dm DummyMerkleStore) GetLatestEntry(m libkb.MetaContext) (e keybase1.MerkleStoreEntry, err error) {
 	return dm.Entry, nil
 }
+
 func (dm DummyMerkleStore) GetLatestEntryWithKnown(m libkb.MetaContext, mskh *keybase1.MerkleStoreKitHash) (entry *keybase1.MerkleStoreEntry, err error) {
 	return nil, nil
 }

@@ -20,6 +20,7 @@ void quarantineFile(const char* inFilename) {
 }
 */
 import "C"
+
 import (
 	"unsafe"
 

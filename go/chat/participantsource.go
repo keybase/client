@@ -71,7 +71,8 @@ func NewCachingParticipantSource(g *globals.Context, ri func() chat1.RemoteInter
 }
 
 func (s *CachingParticipantSource) Get(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res []gregor1.UID, err error) {
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp,
+) (res []gregor1.UID, err error) {
 	defer s.Trace(ctx, &err, "Get")()
 	ch := s.GetNonblock(ctx, uid, convID, dataSource)
 	for r := range ch {
@@ -91,7 +92,8 @@ func (s *CachingParticipantSource) dbKey(uid gregor1.UID, convID chat1.Conversat
 }
 
 func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (resCh chan types.ParticipantResult) {
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp,
+) (resCh chan types.ParticipantResult) {
 	resCh = make(chan types.ParticipantResult, 1)
 	go func(ctx context.Context) {
 		defer s.Trace(ctx, nil, "GetNonblock")()
@@ -163,7 +165,8 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 }
 
 func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) {
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp,
+) {
 	go func(ctx context.Context) {
 		_ = s.sema.Acquire(ctx, 1)
 		defer s.sema.Release(1)

@@ -32,7 +32,8 @@ type TLF struct {
 }
 
 func newTLF(fl *FolderList, h *tlfhandle.Handle,
-	name tlf.PreferredName) *TLF {
+	name tlf.PreferredName,
+) *TLF {
 	folder := newFolder(fl, h, name)
 	tlf := &TLF{
 		folder: folder,
@@ -49,7 +50,8 @@ func (tlf *TLF) getStoredDir() *Dir {
 
 func (tlf *TLF) loadDirHelper(ctx context.Context, info string,
 	mode libkbfs.ErrorModeType, branch data.BranchName, filterErr bool) (
-	dir *Dir, exitEarly bool, err error) {
+	dir *Dir, exitEarly bool, err error,
+) {
 	dir = tlf.getStoredDir()
 	if dir != nil {
 		return dir, false, nil
@@ -82,8 +84,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string,
 	}
 
 	if branch == data.MasterBranch {
-		conflictBranch, isLocalConflictBranch :=
-			data.MakeConflictBranchName(handle)
+		conflictBranch, isLocalConflictBranch := data.MakeConflictBranchName(handle)
 		if isLocalConflictBranch {
 			branch = conflictBranch
 		}
@@ -133,14 +134,16 @@ func (tlf *TLF) loadDir(ctx context.Context, info string) (*Dir, error) {
 // indicates that the calling function should pretend it's an empty
 // folder.
 func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context, info string) (
-	*Dir, bool, error) {
+	*Dir, bool, error,
+) {
 	return tlf.loadDirHelper(
 		ctx, info, libkbfs.ReadMode, data.MasterBranch, true)
 }
 
 func (tlf *TLF) loadArchivedDir(
 	ctx context.Context, info string, branch data.BranchName) (
-	*Dir, bool, error) {
+	*Dir, bool, error,
+) {
 	// Always filter errors for archive TLF directories, so that we
 	// don't try to initialize them.
 	return tlf.loadDirHelper(ctx, info, libkbfs.ReadMode, branch, true)
@@ -179,7 +182,8 @@ func (tlf *TLF) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (st 
 
 // open tries to open a file.
 func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (
-	dokan.File, dokan.CreateStatus, error) {
+	dokan.File, dokan.CreateStatus, error,
+) {
 	if len(path) == 0 {
 		if err := oc.ReturningDirAllowed(); err != nil {
 			return nil, 0, err
@@ -193,9 +197,8 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (
 		mode = libkbfs.WriteMode
 	}
 	// If it is a creation then we need the dir for real.
-	dir, exitEarly, err :=
-		tlf.loadDirHelper(
-			ctx, "open", mode, data.MasterBranch, !oc.isCreation())
+	dir, exitEarly, err := tlf.loadDirHelper(
+		ctx, "open", mode, data.MasterBranch, !oc.isCreation())
 	if err != nil {
 		return nil, 0, err
 	}

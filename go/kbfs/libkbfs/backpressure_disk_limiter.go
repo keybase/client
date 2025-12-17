@@ -64,7 +64,8 @@ type backpressureTracker struct {
 }
 
 func newBackpressureTracker(minThreshold, maxThreshold, limitFrac float64,
-	limit, initialFree int64) (*backpressureTracker, error) {
+	limit, initialFree int64,
+) (*backpressureTracker, error) {
 	if minThreshold < 0.0 {
 		return nil, errors.Errorf("minThreshold=%f < 0.0",
 			minThreshold)
@@ -154,7 +155,8 @@ func (bt *backpressureTracker) updateSemaphoreMax() {
 }
 
 func (bt *backpressureTracker) onEnable(usedResources int64) (
-	availableResources int64) {
+	availableResources int64,
+) {
 	bt.used += usedResources
 	bt.updateSemaphoreMax()
 	if usedResources == 0 {
@@ -178,7 +180,8 @@ func (bt *backpressureTracker) updateFree(freeResources int64) {
 
 func (bt *backpressureTracker) reserve(
 	ctx context.Context, blockResources int64) (
-	availableResources int64, err error) {
+	availableResources int64, err error,
+) {
 	return bt.semaphore.Acquire(ctx, blockResources)
 }
 
@@ -192,7 +195,8 @@ func (bt *backpressureTracker) rollback(blockResources int64) {
 }
 
 func (bt *backpressureTracker) commitOrRollback(
-	blockResources int64, shouldCommit bool) {
+	blockResources int64, shouldCommit bool,
+) {
 	if shouldCommit {
 		bt.commit(blockResources)
 	} else {
@@ -212,7 +216,8 @@ func (bt *backpressureTracker) release(blockResources int64) {
 }
 
 func (bt *backpressureTracker) tryReserve(blockResources int64) (
-	availableResources int64) {
+	availableResources int64,
+) {
 	return bt.semaphore.TryAcquire(blockResources)
 }
 
@@ -282,7 +287,8 @@ type quotaBackpressureTracker struct {
 }
 
 func newQuotaBackpressureTracker(minThreshold, maxThreshold float64) (
-	*quotaBackpressureTracker, error) {
+	*quotaBackpressureTracker, error,
+) {
 	if minThreshold < 0.0 {
 		return nil, errors.Errorf("minThreshold=%f < 0.0",
 			minThreshold)
@@ -318,7 +324,8 @@ func (qbt quotaBackpressureTracker) delayScale() float64 {
 }
 
 func (qbt quotaBackpressureTracker) getQuotaInfo() (
-	usedQuotaBytes, quotaBytes int64) {
+	usedQuotaBytes, quotaBytes int64,
+) {
 	usedQuotaBytes = qbt.unflushedBytes + qbt.remoteUsedBytes
 	quotaBytes = qbt.quotaBytes
 	return usedQuotaBytes, quotaBytes
@@ -333,13 +340,15 @@ func (qbt *quotaBackpressureTracker) onJournalDisable(unflushedBytes int64) {
 }
 
 func (qbt *quotaBackpressureTracker) updateRemote(
-	remoteUsedBytes, quotaBytes int64) {
+	remoteUsedBytes, quotaBytes int64,
+) {
 	qbt.remoteUsedBytes = remoteUsedBytes
 	qbt.quotaBytes = quotaBytes
 }
 
 func (qbt *quotaBackpressureTracker) afterBlockPut(
-	blockBytes int64, putData bool) {
+	blockBytes int64, putData bool,
+) {
 	if putData {
 		qbt.unflushedBytes += blockBytes
 	}
@@ -391,7 +400,8 @@ type journalTracker struct {
 func newJournalTracker(
 	minThreshold, maxThreshold, quotaMinThreshold, quotaMaxThreshold, journalFrac float64,
 	byteLimit, fileLimit, freeBytes, freeFiles int64) (
-	journalTracker, error) {
+	journalTracker, error,
+) {
 	// byteLimit and fileLimit must be scaled by the proportion of
 	// the limit that the journal should consume. Add 0.5 to round
 	// up.
@@ -432,7 +442,8 @@ func newJournalTracker(
 }
 
 func (jt journalTracker) getQuotaTracker(
-	chargedTo keybase1.UserOrTeamID) *quotaBackpressureTracker {
+	chargedTo keybase1.UserOrTeamID,
+) *quotaBackpressureTracker {
 	quota, ok := jt.quota[chargedTo]
 	if !ok {
 		var err error
@@ -456,20 +467,25 @@ type jtSnapshot struct {
 }
 
 func (jt journalTracker) getSnapshotsForTest(chargedTo keybase1.UserOrTeamID) (
-	byteSnapshot, fileSnapshot, quotaSnapshot jtSnapshot) {
-	byteSnapshot = jtSnapshot{jt.byte.used, jt.byte.free,
-		jt.byte.semaphoreMax, jt.byte.semaphore.Count()}
-	fileSnapshot = jtSnapshot{jt.file.used, jt.file.free,
-		jt.file.semaphoreMax, jt.file.semaphore.Count()}
+	byteSnapshot, fileSnapshot, quotaSnapshot jtSnapshot,
+) {
+	byteSnapshot = jtSnapshot{
+		jt.byte.used, jt.byte.free,
+		jt.byte.semaphoreMax, jt.byte.semaphore.Count(),
+	}
+	fileSnapshot = jtSnapshot{
+		jt.file.used, jt.file.free,
+		jt.file.semaphoreMax, jt.file.semaphore.Count(),
+	}
 	usedQuotaBytes, quotaBytes := jt.getQuotaTracker(chargedTo).getQuotaInfo()
 	free := quotaBytes - usedQuotaBytes
 	quotaSnapshot = jtSnapshot{usedQuotaBytes, free, 0, 0}
 	return byteSnapshot, fileSnapshot, quotaSnapshot
-
 }
 
 func (jt journalTracker) onEnable(storedBytes, unflushedBytes, files int64,
-	chargedTo keybase1.UserOrTeamID) (availableBytes, availableFiles int64) {
+	chargedTo keybase1.UserOrTeamID,
+) (availableBytes, availableFiles int64) {
 	// storedBytes should be >= unflushedBytes. But it's not too
 	// bad to let it go through.
 	availableBytes = jt.byte.onEnable(storedBytes)
@@ -479,7 +495,8 @@ func (jt journalTracker) onEnable(storedBytes, unflushedBytes, files int64,
 }
 
 func (jt journalTracker) onDisable(storedBytes, unflushedBytes, files int64,
-	chargedTo keybase1.UserOrTeamID) {
+	chargedTo keybase1.UserOrTeamID,
+) {
 	// As above, storedBytes should be >= unflushedBytes. Let it
 	// go through here, too.
 	jt.byte.onDisable(storedBytes)
@@ -488,7 +505,8 @@ func (jt journalTracker) onDisable(storedBytes, unflushedBytes, files int64,
 }
 
 func (jt journalTracker) getDelayScale(
-	chargedTo keybase1.UserOrTeamID) float64 {
+	chargedTo keybase1.UserOrTeamID,
+) float64 {
 	byteDelayScale := jt.byte.delayScale()
 	fileDelayScale := jt.file.delayScale()
 	quotaDelayScale := jt.getQuotaTracker(chargedTo).delayScale()
@@ -498,7 +516,8 @@ func (jt journalTracker) getDelayScale(
 }
 
 func (jt journalTracker) updateFree(
-	freeBytes, overallUsedBytes, freeFiles int64) {
+	freeBytes, overallUsedBytes, freeFiles int64,
+) {
 	// We calculate the total free bytes by adding the reported free bytes and
 	// the non-journal used bytes.
 	jt.byte.updateFree(freeBytes + overallUsedBytes - jt.byte.used)
@@ -506,7 +525,8 @@ func (jt journalTracker) updateFree(
 }
 
 func (jt journalTracker) updateRemote(remoteUsedBytes, quotaBytes int64,
-	chargedTo keybase1.UserOrTeamID) {
+	chargedTo keybase1.UserOrTeamID,
+) {
 	jt.getQuotaTracker(chargedTo).updateRemote(remoteUsedBytes, quotaBytes)
 }
 
@@ -516,7 +536,8 @@ func (jt journalTracker) getSemaphoreCounts() (byteCount, fileCount int64) {
 
 func (jt journalTracker) reserve(
 	ctx context.Context, blockBytes, blockFiles int64) (
-	availableBytes, availableFiles int64, err error) {
+	availableBytes, availableFiles int64, err error,
+) {
 	availableBytes, err = jt.byte.reserve(ctx, blockBytes)
 	if err != nil {
 		return availableBytes, jt.file.semaphore.Count(), err
@@ -538,14 +559,16 @@ func (jt journalTracker) reserve(
 
 func (jt journalTracker) commitOrRollback(
 	blockBytes, blockFiles int64, putData bool,
-	chargedTo keybase1.UserOrTeamID) {
+	chargedTo keybase1.UserOrTeamID,
+) {
 	jt.byte.commitOrRollback(blockBytes, putData)
 	jt.file.commitOrRollback(blockFiles, putData)
 	jt.getQuotaTracker(chargedTo).afterBlockPut(blockBytes, putData)
 }
 
 func (jt journalTracker) onBlocksFlush(
-	blockBytes int64, chargedTo keybase1.UserOrTeamID) {
+	blockBytes int64, chargedTo keybase1.UserOrTeamID,
+) {
 	jt.getQuotaTracker(chargedTo).onBlocksFlush(blockBytes)
 }
 
@@ -566,12 +589,14 @@ func (jt journalTracker) getStatusLine(chargedTo keybase1.UserOrTeamID) string {
 }
 
 func (jt journalTracker) getQuotaInfo(chargedTo keybase1.UserOrTeamID) (
-	usedQuotaBytes, quotaBytes int64) {
+	usedQuotaBytes, quotaBytes int64,
+) {
 	return jt.getQuotaTracker(chargedTo).getQuotaInfo()
 }
 
 func (jt journalTracker) getDiskLimitInfo() (
-	usedBytes int64, limitBytes float64, usedFiles int64, limitFiles float64) {
+	usedBytes int64, limitBytes float64, usedFiles int64, limitFiles float64,
+) {
 	usedBytes, limitBytes = jt.byte.getLimitInfo()
 	usedFiles, limitFiles = jt.file.getLimitInfo()
 	return usedBytes, limitBytes, usedFiles, limitFiles
@@ -584,7 +609,8 @@ type journalTrackerStatus struct {
 }
 
 func (jt journalTracker) getStatus(
-	chargedTo keybase1.UserOrTeamID) journalTrackerStatus {
+	chargedTo keybase1.UserOrTeamID,
+) journalTrackerStatus {
 	return journalTrackerStatus{
 		ByteStatus:  jt.byte.getStatus(),
 		FileStatus:  jt.file.getStatus(),
@@ -681,7 +707,8 @@ type quotaUsageGetter func(
 
 func makeDefaultBackpressureDiskLimiterParams(
 	storageRoot string,
-	quotaUsage quotaUsageGetter, diskCacheFrac float64, syncCacheFrac float64) backpressureDiskLimiterParams {
+	quotaUsage quotaUsageGetter, diskCacheFrac float64, syncCacheFrac float64,
+) backpressureDiskLimiterParams {
 	return backpressureDiskLimiterParams{
 		// Start backpressure when 50% of free bytes or files
 		// are used...
@@ -714,9 +741,9 @@ func makeDefaultBackpressureDiskLimiterParams(
 			return defaultGetFreeBytesAndFiles(storageRoot)
 		},
 		quotaFn: func(ctx context.Context, chargedTo keybase1.UserOrTeamID) (
-			int64, int64) {
-			timestamp, usageBytes, _, limitBytes, err :=
-				quotaUsage(chargedTo).Get(ctx, 1*time.Minute, math.MaxInt64)
+			int64, int64,
+		) {
+			timestamp, usageBytes, _, limitBytes, err := quotaUsage(chargedTo).Get(ctx, 1*time.Minute, math.MaxInt64)
 			if err != nil {
 				return 0, math.MaxInt64
 			}
@@ -734,7 +761,8 @@ func makeDefaultBackpressureDiskLimiterParams(
 // with the given params.
 func newBackpressureDiskLimiter(
 	log logger.Logger, params backpressureDiskLimiterParams) (
-	*backpressureDiskLimiter, error) {
+	*backpressureDiskLimiter, error,
+) {
 	freeBytes, freeFiles, err := params.freeBytesAndFilesFn()
 	if err != nil {
 		return nil, err
@@ -822,7 +850,8 @@ func defaultGetFreeBytesAndFiles(path string) (int64, int64, error) {
 }
 
 func (bdl *backpressureDiskLimiter) simpleByteTrackerFromType(typ diskLimitTrackerType) (
-	tracker simpleResourceTracker, err error) {
+	tracker simpleResourceTracker, err error,
+) {
 	switch typ {
 	case workingSetCacheLimitTrackerType:
 		return bdl.diskCacheByteTracker, nil
@@ -835,7 +864,8 @@ func (bdl *backpressureDiskLimiter) simpleByteTrackerFromType(typ diskLimitTrack
 
 func (bdl *backpressureDiskLimiter) getJournalSnapshotsForTest(
 	chargedTo keybase1.UserOrTeamID) (
-	byteSnapshot, fileSnapshot, quotaSnapshot jtSnapshot) {
+	byteSnapshot, fileSnapshot, quotaSnapshot jtSnapshot,
+) {
 	bdl.lock.RLock()
 	defer bdl.lock.RUnlock()
 	return bdl.journalTracker.getSnapshotsForTest(chargedTo)
@@ -845,7 +875,8 @@ func (bdl *backpressureDiskLimiter) onJournalEnable(
 	ctx context.Context,
 	journalStoredBytes, journalUnflushedBytes, journalFiles int64,
 	chargedTo keybase1.UserOrTeamID) (
-	availableBytes, availableFiles int64) {
+	availableBytes, availableFiles int64,
+) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	bdl.overallByteTracker.onEnable(journalStoredBytes)
@@ -856,7 +887,8 @@ func (bdl *backpressureDiskLimiter) onJournalEnable(
 func (bdl *backpressureDiskLimiter) onJournalDisable(
 	ctx context.Context,
 	journalStoredBytes, journalUnflushedBytes, journalFiles int64,
-	chargedTo keybase1.UserOrTeamID) {
+	chargedTo keybase1.UserOrTeamID,
+) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	bdl.journalTracker.onDisable(
@@ -865,7 +897,8 @@ func (bdl *backpressureDiskLimiter) onJournalDisable(
 }
 
 func (bdl *backpressureDiskLimiter) onSimpleByteTrackerEnable(ctx context.Context,
-	typ diskLimitTrackerType, diskCacheBytes int64) {
+	typ diskLimitTrackerType, diskCacheBytes int64,
+) {
 	tracker, err := bdl.simpleByteTrackerFromType(typ)
 	if err != nil {
 		panic("Invalid tracker type passed to onByteTrackerEnable")
@@ -879,7 +912,8 @@ func (bdl *backpressureDiskLimiter) onSimpleByteTrackerEnable(ctx context.Contex
 }
 
 func (bdl *backpressureDiskLimiter) onSimpleByteTrackerDisable(ctx context.Context,
-	typ diskLimitTrackerType, diskCacheBytes int64) {
+	typ diskLimitTrackerType, diskCacheBytes int64,
+) {
 	tracker, err := bdl.simpleByteTrackerFromType(typ)
 	if err != nil {
 		panic("Invalid tracker type passed to onByteTrackerDisable")
@@ -894,7 +928,8 @@ func (bdl *backpressureDiskLimiter) onSimpleByteTrackerDisable(ctx context.Conte
 
 func (bdl *backpressureDiskLimiter) getDelayLocked(
 	ctx context.Context, now time.Time,
-	chargedTo keybase1.UserOrTeamID) time.Duration {
+	chargedTo keybase1.UserOrTeamID,
+) time.Duration {
 	delayScale := bdl.journalTracker.getDelayScale(chargedTo)
 
 	// Set maxDelay to min(bdl.maxDelay, time until deadline - 1s).
@@ -911,18 +946,19 @@ func (bdl *backpressureDiskLimiter) getDelayLocked(
 }
 
 func (bdl *backpressureDiskLimiter) reserveError(err error) (
-	availableBytes, availableFiles int64, _ error) {
+	availableBytes, availableFiles int64, _ error,
+) {
 	bdl.lock.RLock()
 	defer bdl.lock.RUnlock()
-	availableBytes, availableFiles =
-		bdl.journalTracker.getSemaphoreCounts()
+	availableBytes, availableFiles = bdl.journalTracker.getSemaphoreCounts()
 	return availableBytes, availableFiles, err
 }
 
 func (bdl *backpressureDiskLimiter) reserveWithBackpressure(
 	ctx context.Context, typ diskLimitTrackerType, blockBytes, blockFiles int64,
 	chargedTo keybase1.UserOrTeamID) (availableBytes, availableFiles int64,
-	err error) {
+	err error,
+) {
 	// TODO: if other backpressure consumers are introduced, remove this check.
 	if typ != journalLimitTrackerType {
 		return bdl.reserveError(errors.New(
@@ -991,7 +1027,8 @@ func (bdl *backpressureDiskLimiter) reserveWithBackpressure(
 
 func (bdl *backpressureDiskLimiter) commitOrRollback(ctx context.Context,
 	typ diskLimitTrackerType, blockBytes, blockFiles int64, shouldCommit bool,
-	chargedTo keybase1.UserOrTeamID) {
+	chargedTo keybase1.UserOrTeamID,
+) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	switch typ {
@@ -1011,14 +1048,16 @@ func (bdl *backpressureDiskLimiter) commitOrRollback(ctx context.Context,
 }
 
 func (bdl *backpressureDiskLimiter) onBlocksFlush(
-	ctx context.Context, blockBytes int64, chargedTo keybase1.UserOrTeamID) {
+	ctx context.Context, blockBytes int64, chargedTo keybase1.UserOrTeamID,
+) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	bdl.journalTracker.onBlocksFlush(blockBytes, chargedTo)
 }
 
 func (bdl *backpressureDiskLimiter) release(ctx context.Context,
-	typ diskLimitTrackerType, blockBytes, blockFiles int64) {
+	typ diskLimitTrackerType, blockBytes, blockFiles int64,
+) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	switch typ {
@@ -1038,7 +1077,8 @@ func (bdl *backpressureDiskLimiter) release(ctx context.Context,
 
 func (bdl *backpressureDiskLimiter) reserveBytes(
 	ctx context.Context, typ diskLimitTrackerType, blockBytes int64) (
-	availableBytes int64, err error) {
+	availableBytes int64, err error,
+) {
 	if blockBytes == 0 {
 		// Better to return an error than to panic in ForceAcquire.
 		return 0, errors.New("reserve called with 0 blockBytes")
@@ -1081,14 +1121,16 @@ func (bdl *backpressureDiskLimiter) reserveBytes(
 }
 
 func (bdl *backpressureDiskLimiter) getQuotaInfo(
-	chargedTo keybase1.UserOrTeamID) (usedQuotaBytes, quotaBytes int64) {
+	chargedTo keybase1.UserOrTeamID,
+) (usedQuotaBytes, quotaBytes int64) {
 	bdl.lock.RLock()
 	defer bdl.lock.RUnlock()
 	return bdl.journalTracker.getQuotaInfo(chargedTo)
 }
 
 func (bdl *backpressureDiskLimiter) getDiskLimitInfo() (
-	usedBytes int64, limitBytes float64, usedFiles int64, limitFiles float64) {
+	usedBytes int64, limitBytes float64, usedFiles int64, limitFiles float64,
+) {
 	bdl.lock.RLock()
 	defer bdl.lock.RUnlock()
 	return bdl.journalTracker.getDiskLimitInfo()
@@ -1106,7 +1148,8 @@ type backpressureDiskLimiterStatus struct {
 }
 
 func (bdl *backpressureDiskLimiter) getStatus(
-	ctx context.Context, chargedTo keybase1.UserOrTeamID) interface{} {
+	ctx context.Context, chargedTo keybase1.UserOrTeamID,
+) interface{} {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 

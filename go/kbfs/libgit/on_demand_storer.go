@@ -20,8 +20,10 @@ type OnDemandStorer struct {
 	recentCache *lru.Cache
 }
 
-var _ storage.Storer = (*OnDemandStorer)(nil)
-var _ storer.DeltaObjectStorer = (*OnDemandStorer)(nil)
+var (
+	_ storage.Storer           = (*OnDemandStorer)(nil)
+	_ storer.DeltaObjectStorer = (*OnDemandStorer)(nil)
+)
 
 // NewOnDemandStorer constructs an on-demand storage layer on top of
 // an existing `Storer`.
@@ -56,7 +58,8 @@ func NewOnDemandStorer(s storage.Storer) (*OnDemandStorer, error) {
 // EncodedObject implements the storage.Storer interface for OnDemandStorer.
 func (ods *OnDemandStorer) EncodedObject(
 	ot plumbing.ObjectType, hash plumbing.Hash) (
-	plumbing.EncodedObject, error) {
+	plumbing.EncodedObject, error,
+) {
 	o := &onDemandObject{
 		s:           ods.Storer,
 		hash:        hash,
@@ -81,7 +84,8 @@ func (ods *OnDemandStorer) EncodedObject(
 // OnDemandStorer.
 func (ods *OnDemandStorer) DeltaObject(
 	ot plumbing.ObjectType, hash plumbing.Hash) (
-	plumbing.EncodedObject, error) {
+	plumbing.EncodedObject, error,
+) {
 	edos, ok := ods.Storer.(storer.DeltaObjectStorer)
 	if !ok {
 		return nil, errors.New("Not a delta storer")

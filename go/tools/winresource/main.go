@@ -18,9 +18,8 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
-	"time"
-
 	"strconv"
+	"time"
 
 	"github.com/akavel/rsrc/binutil"
 	"github.com/akavel/rsrc/coff"
@@ -38,7 +37,6 @@ func getBuildName() string {
 	}
 
 	return fmt.Sprintf("%d%02d%02d%02d%02d%02d+%s", time.Now().Year(), time.Now().Month(), time.Now().Day(), time.Now().Hour(), time.Now().Minute(), time.Now().Second(), gitHash)
-
 }
 
 // kbWriteSyso creates a resource file from the version info and optionally an icon.
@@ -46,7 +44,6 @@ func getBuildName() string {
 // Note this is partially lifted from josephspurrier/goversioninfo, which we
 // extend here to write multiple icons.
 func kbWriteSyso(vi *goversioninfo.VersionInfo, filename string, arch string, icons []string) error {
-
 	// Channel for generating IDs
 	newID := make(chan uint16)
 	go func() {
@@ -129,7 +126,6 @@ func writeCoffTo(w io.WriteCloser, coff *coff.Coff) error {
 
 // Create the syso and custom build file
 func main() {
-
 	outPtr := flag.String("o", "rsrc_windows.syso", "resource output pathname")
 	printverPtr := flag.Bool("v", false, "print version to console (no .syso output)")
 	printCustomVerPtr := flag.Bool("cv", false, "print custom version to console (no .syso output)")
@@ -221,5 +217,4 @@ func main() {
 		log.Printf("Error writing %s: %v", *outPtr, err)
 		os.Exit(3)
 	}
-
 }

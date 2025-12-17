@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
 	"os"
 	"path"
 	"path/filepath"
@@ -70,8 +69,8 @@ func checkPendingOp(ctx context.Context,
 	expectedOp keybase1.AsyncOps,
 	src keybase1.Path,
 	dest keybase1.Path,
-	pending bool) {
-
+	pending bool,
+) {
 	// TODO: what do we expect the progress to be?
 	_, err := sfs.SimpleFSCheck(ctx, opid)
 	if pending {
@@ -130,7 +129,8 @@ func checkPendingOp(ctx context.Context,
 
 func testListWithFilterAndUsername(
 	ctx context.Context, t *testing.T, sfs *SimpleFS, path keybase1.Path,
-	filter keybase1.ListFilter, username string, expectedEntries ...string) {
+	filter keybase1.ListFilter, username string, expectedEntries ...string,
+) {
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
@@ -167,7 +167,8 @@ func testListWithFilterAndUsername(
 
 func testList(
 	ctx context.Context, t *testing.T, sfs *SimpleFS, path keybase1.Path,
-	expectedEntries ...string) {
+	expectedEntries ...string,
+) {
 	testListWithFilterAndUsername(
 		ctx, t, sfs, path, keybase1.ListFilter_NO_FILTER, "jdoe",
 		expectedEntries...)
@@ -549,10 +550,10 @@ func TestCopyRecursive(t *testing.T) {
 
 	// Populate local starting directory.
 	err = os.WriteFile(
-		filepath.Join(tempdir, "testdir", "test1.txt"), []byte("foo"), 0600)
+		filepath.Join(tempdir, "testdir", "test1.txt"), []byte("foo"), 0o600)
 	require.NoError(t, err)
 	err = os.WriteFile(
-		filepath.Join(tempdir, "testdir", "test2.txt"), []byte("bar"), 0600)
+		filepath.Join(tempdir, "testdir", "test2.txt"), []byte("bar"), 0o600)
 	require.NoError(t, err)
 
 	opid, err = sfs.SimpleFSMakeOpid(ctx)
@@ -651,7 +652,7 @@ func TestCopyToRemote(t *testing.T) {
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(tempdir)
 	defer deleteTempLocalPath(path1)
-	err = os.WriteFile(filepath.Join(path1.Local(), "test1.txt"), []byte("foo"), 0644)
+	err = os.WriteFile(filepath.Join(path1.Local(), "test1.txt"), []byte("foo"), 0o644)
 	require.NoError(t, err)
 
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
@@ -769,7 +770,8 @@ type fsBlocker struct {
 var _ billy.Filesystem = (*fsBlocker)(nil)
 
 func (fs *fsBlocker) OpenFile(filename string, flag int, perm os.FileMode) (
-	f billy.File, err error) {
+	f billy.File, err error,
+) {
 	fs.signalCh <- struct{}{}
 	<-fs.unblockCh
 	return fs.FS.OpenFile(filename, flag, perm)
@@ -815,7 +817,8 @@ type fsBlockerMaker struct {
 func (maker fsBlockerMaker) makeNewBlocker(
 	ctx context.Context, config libkbfs.Config,
 	tlfHandle *tlfhandle.Handle, branch data.BranchName, subdir string,
-	create bool) (billy.Filesystem, error) {
+	create bool,
+) (billy.Filesystem, error) {
 	fsMaker := libfs.NewFS
 	if !create {
 		fsMaker = libfs.NewFSIfExists
@@ -852,13 +855,13 @@ func TestCopyProgress(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 
 	// Make local starting directory.
-	err = os.Mkdir(filepath.Join(tempdir, "testdir"), 0700)
+	err = os.Mkdir(filepath.Join(tempdir, "testdir"), 0o700)
 	require.NoError(t, err)
 	err = os.WriteFile(
-		filepath.Join(tempdir, "testdir", "test1.txt"), []byte("foo"), 0600)
+		filepath.Join(tempdir, "testdir", "test1.txt"), []byte("foo"), 0o600)
 	require.NoError(t, err)
 	err = os.WriteFile(
-		filepath.Join(tempdir, "testdir", "test2.txt"), []byte("bar"), 0600)
+		filepath.Join(tempdir, "testdir", "test2.txt"), []byte("bar"), 0o600)
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(
 		filepath.ToSlash(filepath.Join(tempdir, "testdir")))
@@ -1218,7 +1221,8 @@ type subscriptionReporter struct {
 }
 
 func (sr *subscriptionReporter) NotifyPathUpdated(
-	_ context.Context, path string) {
+	_ context.Context, path string,
+) {
 	sr.lastPathMtx.Lock()
 	defer sr.lastPathMtx.Unlock()
 	sr.lastPath = path
@@ -1361,7 +1365,8 @@ func TestGetRevisions(t *testing.T) {
 	filePath := pathAppend(path, `test1.txt`)
 
 	getRevisions := func(
-		spanType keybase1.RevisionSpanType) keybase1.GetRevisionsResult {
+		spanType keybase1.RevisionSpanType,
+	) keybase1.GetRevisionsResult {
 		opid, err := sfs.SimpleFSMakeOpid(ctx)
 		require.NoError(t, err)
 		err = sfs.SimpleFSGetRevisions(ctx, keybase1.SimpleFSGetRevisionsArg{
@@ -1381,7 +1386,8 @@ func TestGetRevisions(t *testing.T) {
 
 	gcJump := config.Mode().QuotaReclamationMinUnrefAge() + 1*time.Second
 	checkRevisions := func(
-		numExpected, newestRev int, spanType keybase1.RevisionSpanType) {
+		numExpected, newestRev int, spanType keybase1.RevisionSpanType,
+	) {
 		res := getRevisions(spanType)
 		require.Len(t, res.Revisions, numExpected)
 

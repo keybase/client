@@ -372,7 +372,8 @@ func (e *RevokeEngine) getDeviceSecretKeys(m libkb.MetaContext, me *libkb.User) 
 
 func (e *RevokeEngine) makeRevokeSig(m libkb.MetaContext, me *libkb.User, sigKey libkb.GenericKey,
 	kidsToRevoke []keybase1.KID, deviceID keybase1.DeviceID,
-	merkleRoot *libkb.MerkleRoot) (libkb.JSONPayload, keybase1.Seqno, libkb.LinkID, error) {
+	merkleRoot *libkb.MerkleRoot,
+) (libkb.JSONPayload, keybase1.Seqno, libkb.LinkID, error) {
 	proof, err := me.RevokeKeysProof(m, sigKey, kidsToRevoke, deviceID, merkleRoot)
 	if err != nil {
 		return nil, 0, nil, err

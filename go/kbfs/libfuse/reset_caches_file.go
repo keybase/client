@@ -30,7 +30,7 @@ var _ fs.Node = (*ResetCachesFile)(nil)
 // Attr implements the fs.Node interface for ResetCachesFile.
 func (f *ResetCachesFile) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Size = 0
-	a.Mode = 0222
+	a.Mode = 0o222
 	return nil
 }
 
@@ -40,7 +40,8 @@ var _ fs.HandleWriter = (*ResetCachesFile)(nil)
 
 // Write implements the fs.HandleWriter interface for ResetCachesFile.
 func (f *ResetCachesFile) Write(ctx context.Context, req *fuse.WriteRequest,
-	resp *fuse.WriteResponse) (err error) {
+	resp *fuse.WriteResponse,
+) (err error) {
 	f.fs.log.CDebugf(ctx, "ResetCachesFile Write")
 	defer func() { err = f.fs.processError(ctx, libkbfs.WriteMode, err) }()
 	if len(req.Data) == 0 {

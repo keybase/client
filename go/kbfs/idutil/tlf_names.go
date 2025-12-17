@@ -81,7 +81,8 @@ func normalizeNames(names []string, t tlf.Type) (changesMade bool, err error) {
 // This modifies the slices passed as arguments.
 func NormalizeNamesInTLF(writerNames, readerNames []string,
 	t tlf.Type, extensionSuffix string) (normalizedName string,
-	changesMade bool, err error) {
+	changesMade bool, err error,
+) {
 	changesMade, err = normalizeNames(writerNames, t)
 	if err != nil {
 		return "", false, err
@@ -116,7 +117,8 @@ func NormalizeNamesInTLF(writerNames, readerNames []string,
 // being returned.
 func SplitAndNormalizeTLFName(name string, t tlf.Type) (
 	writerNames, readerNames []string,
-	extensionSuffix string, err error) {
+	extensionSuffix string, err error,
+) {
 	writerNames, readerNames, extensionSuffix, err = tlf.SplitName(name)
 	if err != nil {
 		return nil, nil, "", err

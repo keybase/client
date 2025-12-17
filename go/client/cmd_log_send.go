@@ -6,9 +6,8 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"time"
-
 	"os"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"

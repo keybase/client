@@ -3,10 +3,9 @@ package chat
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
-
-	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -14,8 +13,10 @@ import (
 	"github.com/keybase/clockwork"
 )
 
-const typingTimeout = 10 * time.Second
-const maxExtensions = 50
+const (
+	typingTimeout = 10 * time.Second
+	maxExtensions = 50
+)
 
 type typingControlChans struct {
 	typer chat1.TyperInfo
@@ -92,8 +93,8 @@ func (t *TypingMonitor) notifyConvUpdateLocked(ctx context.Context, convID chat1
 }
 
 func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convID chat1.ConversationID,
-	teamType chat1.TeamType, typing bool) {
-
+	teamType chat1.TeamType, typing bool,
+) {
 	// If this is about ourselves, then don't bother
 	cuid := t.G().Env.GetUID()
 	cdid := t.G().Env.GetDeviceID()
@@ -140,7 +141,8 @@ func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convI
 }
 
 func (t *TypingMonitor) insertIntoTypers(ctx context.Context, key string, chans *typingControlChans,
-	convID chat1.ConversationID) {
+	convID chat1.ConversationID,
+) {
 	t.Lock()
 	defer t.Unlock()
 	t.typers[key] = chans
@@ -155,7 +157,8 @@ func (t *TypingMonitor) removeFromTypers(ctx context.Context, key string, convID
 }
 
 func (t *TypingMonitor) waitOnTyper(ctx context.Context, chans *typingControlChans,
-	convID chat1.ConversationID) {
+	convID chat1.ConversationID,
+) {
 	key := t.key(chans.typer, convID)
 	ctx = globals.BackgroundChatCtx(ctx, t.G())
 	deadline := t.clock.Now().Add(t.timeout)

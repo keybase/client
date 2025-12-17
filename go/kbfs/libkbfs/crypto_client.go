@@ -32,7 +32,8 @@ const cryptoWarningTime = 2 * time.Minute
 var _ Crypto = (*CryptoClient)(nil)
 
 func (c *CryptoClient) logAboutTooLongUnlessCancelled(ctx context.Context,
-	method string) *time.Timer {
+	method string,
+) *time.Timer {
 	return time.AfterFunc(cryptoWarningTime, func() {
 		log := c.log.CloneWithAddedDepth(2)
 		log.CInfof(ctx, "%s call took more than %s", method,
@@ -42,7 +43,8 @@ func (c *CryptoClient) logAboutTooLongUnlessCancelled(ctx context.Context,
 
 // Sign implements the Crypto interface for CryptoClient.
 func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
-	sigInfo kbfscrypto.SignatureInfo, err error) {
+	sigInfo kbfscrypto.SignatureInfo, err error,
+) {
 	c.log.CDebugf(ctx, "Signing %d-byte message", len(msg))
 	defer func() {
 		c.deferLog.CDebugf(ctx, "Signed %d-byte message with %s: err=%+v", len(msg),
@@ -68,7 +70,8 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 
 // SignForKBFS implements the Crypto interface for CryptoClient.
 func (c *CryptoClient) SignForKBFS(ctx context.Context, msg []byte) (
-	sigInfo kbfscrypto.SignatureInfo, err error) {
+	sigInfo kbfscrypto.SignatureInfo, err error,
+) {
 	c.log.CDebugf(ctx, "Signing %d-byte message", len(msg))
 	defer func() {
 		c.deferLog.CDebugf(ctx, "Signed %d-byte message with %s: err=%+v", len(msg),
@@ -94,7 +97,8 @@ func (c *CryptoClient) SignForKBFS(ctx context.Context, msg []byte) (
 
 // SignToString implements the Crypto interface for CryptoClient.
 func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
-	signature string, err error) {
+	signature string, err error,
+) {
 	c.log.CDebugf(ctx, "Signing %d-byte message to string", len(msg))
 	defer func() {
 		c.deferLog.CDebugf(ctx, "Signed %d-byte message: err=%+v", len(msg), err)
@@ -115,11 +119,13 @@ func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 func (c *CryptoClient) prepareTLFCryptKeyClientHalf(
 	encryptedClientHalf kbfscrypto.EncryptedTLFCryptKeyClientHalf) (
 	encryptedData keybase1.EncryptedBytes32, nonce keybase1.BoxNonce,
-	err error) {
+	err error,
+) {
 	if encryptedClientHalf.Version != kbfscrypto.EncryptionSecretbox {
 		return keybase1.EncryptedBytes32{}, keybase1.BoxNonce{},
 			errors.WithStack(kbfscrypto.UnknownEncryptionVer{
-				Ver: encryptedClientHalf.Version})
+				Ver: encryptedClientHalf.Version,
+			})
 	}
 
 	if len(encryptedClientHalf.EncryptedData) != len(encryptedData) {
@@ -133,7 +139,8 @@ func (c *CryptoClient) prepareTLFCryptKeyClientHalf(
 	if len(encryptedClientHalf.Nonce) != len(nonce) {
 		return keybase1.EncryptedBytes32{}, keybase1.BoxNonce{},
 			errors.WithStack(kbfscrypto.InvalidNonceError{
-				Nonce: encryptedClientHalf.Nonce})
+				Nonce: encryptedClientHalf.Nonce,
+			})
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
 	return encryptedData, nonce, nil
@@ -144,7 +151,8 @@ func (c *CryptoClient) prepareTLFCryptKeyClientHalf(
 func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	publicKey kbfscrypto.TLFEphemeralPublicKey,
 	encryptedClientHalf kbfscrypto.EncryptedTLFCryptKeyClientHalf) (
-	clientHalf kbfscrypto.TLFCryptKeyClientHalf, err error) {
+	clientHalf kbfscrypto.TLFCryptKeyClientHalf, err error,
+) {
 	c.log.CDebugf(ctx, "Decrypting TLF client key half")
 	defer func() {
 		c.deferLog.CDebugf(ctx, "Decrypted TLF client key half: %+v",
@@ -175,7 +183,8 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 // CryptoClient.
 func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	keys []EncryptedTLFCryptKeyClientAndEphemeral, promptPaper bool) (
-	clientHalf kbfscrypto.TLFCryptKeyClientHalf, index int, err error) {
+	clientHalf kbfscrypto.TLFCryptKeyClientHalf, index int, err error,
+) {
 	c.log.CDebugf(ctx, "Decrypting TLF client key half with any key")
 	defer func() {
 		c.deferLog.CDebugf(ctx,
@@ -190,8 +199,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	prepErrs := make([]error, 0, len(keys))
 	indexLookup := make([]int, 0, len(keys))
 	for i, k := range keys {
-		encryptedData, nonce, prepErr :=
-			c.prepareTLFCryptKeyClientHalf(k.ClientHalf)
+		encryptedData, nonce, prepErr := c.prepareTLFCryptKeyClientHalf(k.ClientHalf)
 		if err != nil {
 			prepErrs = append(prepErrs, prepErr)
 		} else {
@@ -228,7 +236,8 @@ func (c *CryptoClient) DecryptTeamMerkleLeaf(
 	ctx context.Context, teamID keybase1.TeamID,
 	publicKey kbfscrypto.TLFEphemeralPublicKey,
 	encryptedMerkleLeaf kbfscrypto.EncryptedMerkleLeaf,
-	minKeyGen keybase1.PerTeamKeyGeneration) (decryptedData []byte, err error) {
+	minKeyGen keybase1.PerTeamKeyGeneration,
+) (decryptedData []byte, err error) {
 	c.log.CDebugf(ctx, "Decrypting team Merkle leaf")
 	defer func() {
 		c.deferLog.CDebugf(ctx, "Decrypted team Merkle leaf: %+v", err)

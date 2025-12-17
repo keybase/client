@@ -40,21 +40,21 @@ func NewMockLoaderContext(t *testing.T, g *libkb.GlobalContext, unit TestCase) *
 
 func (l *MockLoaderContext) getNewLinksFromServer(ctx context.Context,
 	teamID keybase1.TeamID, lows getLinksLows,
-	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
-
+	readSubteamID *keybase1.TeamID,
+) (*rawTeam, error) {
 	return l.getLinksFromServerCommon(ctx, teamID, lows, nil, readSubteamID)
 }
 
 func (l *MockLoaderContext) getLinksFromServer(ctx context.Context,
-	teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
-
+	teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID,
+) (*rawTeam, error) {
 	return l.getLinksFromServerCommon(ctx, teamID, getLinksLows{}, requestSeqnos, readSubteamID)
 }
 
 func (l *MockLoaderContext) getLinksFromServerCommon(ctx context.Context,
 	teamID keybase1.TeamID, lows getLinksLows,
-	requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
-
+	requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID,
+) (*rawTeam, error) {
 	_ = readSubteamID // Allow all access.
 
 	name := l.defaultTeamName
@@ -271,8 +271,8 @@ func (l *MockLoaderContext) merkleLookup(ctx context.Context, teamID keybase1.Te
 }
 
 func (l *MockLoaderContext) merkleLookupTripleInPast(ctx context.Context,
-	isPublic bool, leafID keybase1.UserOrTeamID, root keybase1.MerkleRootV2) (triple *libkb.MerkleTriple, err error) {
-
+	isPublic bool, leafID keybase1.UserOrTeamID, root keybase1.MerkleRootV2,
+) (triple *libkb.MerkleTriple, err error) {
 	hm := root.HashMeta
 	key := fmt.Sprintf("%s-%s", leafID, hm)
 	triple1, ok := l.unit.MerkleTriples[key]
@@ -296,8 +296,8 @@ func (l *MockLoaderContext) forceLinkMapRefreshForUser(ctx context.Context, uid 
 
 func (l *MockLoaderContext) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID, _lkc *loadKeyCache) (
 	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT,
-	err error) {
-
+	err error,
+) {
 	defer func() {
 		l.t.Logf("MockLoaderContext#loadKeyV2(%v, %v) -> %v", uid, kid, err)
 	}()

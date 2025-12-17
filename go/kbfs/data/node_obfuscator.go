@@ -54,7 +54,8 @@ func NewNodeObfuscator(secret NodeObfuscatorSecret) *NodeObfuscator {
 }
 
 func (no *NodeObfuscator) checkCacheIfExistsLocked(
-	plaintext string) (string, bool) {
+	plaintext string,
+) (string, bool) {
 	if no.obsCache == nil {
 		return "", false
 	}
@@ -70,7 +71,8 @@ func (no *NodeObfuscator) checkCacheIfExists(plaintext string) (string, bool) {
 }
 
 func (no *NodeObfuscator) obfuscateWithHasher(
-	plaintext string, hasher func(string) []byte) string {
+	plaintext string, hasher func(string) []byte,
+) string {
 	obs, ok := no.checkCacheIfExists(plaintext)
 	if ok {
 		return obs

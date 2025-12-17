@@ -80,7 +80,6 @@ func (s *CmdBotSignup) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (s *CmdBotSignup) Run() (err error) {
-
 	if err = s.initClient(); err != nil {
 		return err
 	}

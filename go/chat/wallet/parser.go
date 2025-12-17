@@ -24,9 +24,11 @@ var txPattern = regexp.MustCompile(
 		`(?:[\s)\]}:;.,!?"']|\z)`,
 )
 
-var maxAmountLength = 100
-var maxUsernameLength = 16
-var maxTxsPerMessage = 3000
+var (
+	maxAmountLength   = 100
+	maxUsernameLength = 16
+	maxTxsPerMessage  = 3000
+)
 
 type ChatTxCandidate struct {
 	Amount       string

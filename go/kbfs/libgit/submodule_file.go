@@ -30,7 +30,8 @@ const (
 var _ billy.File = (*submoduleFile)(nil)
 
 func newSubmoduleFile(
-	h plumbing.Hash, name string, mtime time.Time) *submoduleFile {
+	h plumbing.Hash, name string, mtime time.Time,
+) *submoduleFile {
 	data := []byte(submodulePrefix + h.String() + "\n")
 	return &submoduleFile{
 		name:  name,

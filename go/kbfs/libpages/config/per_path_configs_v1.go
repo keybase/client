@@ -62,7 +62,8 @@ func parsePermissionsV1(permsStr string) (permissionsV1, error) {
 			perms.list = true
 		default:
 			return permissionsV1{}, ErrInvalidPermissions{
-				permissions: permsStr}
+				permissions: permsStr,
+			}
 		}
 	}
 	return perms, nil
@@ -120,7 +121,8 @@ func checkCustomPagePath(p string) (cleaned string, err error) {
 // in WhitelistAdditionalPermissions is defined.
 func makePerPathConfigV1Internal(
 	a *PerPathConfigV1, users map[string]string, p string) (
-	ac *perPathConfigV1, err error) {
+	ac *perPathConfigV1, err error,
+) {
 	if a == nil {
 		return nil, errors.New("nil PerPathConfigV1")
 	}
@@ -221,7 +223,8 @@ func cleanPathAndSplit2(p string) (elems []string) {
 // along the children field recursively.  If a specifically defined one exists,
 // it's returned. Otherwise the parent's (parentAC) is returned.
 func (c *perPathConfigsReaderV1) getPerPathConfig(
-	parentAC *perPathConfigV1, p string) (ac *perPathConfigV1) {
+	parentAC *perPathConfigV1, p string,
+) (ac *perPathConfigV1) {
 	effectiveAC := c.ac
 	if c.ac == nil {
 		// If c.ac == nil, it means user didn't specify a config for the
@@ -257,7 +260,8 @@ func (c *perPathConfigsReaderV1) getPerPathConfig(
 // getPermissions returns the permissions that username has on p. This method
 // should only be called on the root perPathConfigsReaderV1.
 func (c *perPathConfigsReaderV1) getPermissions(p string, username *string) (
-	permissions permissionsV1, max permissionsV1, effectivePath string) {
+	permissions permissionsV1, max permissionsV1, effectivePath string,
+) {
 	// This is only called on the root perPathConfigsReaderV1, and c.ac is always
 	// populated here. So even if no other path shows up in the per-path
 	// configs, any path will get root's *perPathConfigV1 as the last resort.
@@ -283,7 +287,8 @@ func (c *perPathConfigsReaderV1) getSetAccessControlAllowOrigin(p string) (setti
 // *perPathConfigsReaderV1 so that each defined path has a corresponding
 // checker, and all intermediate nodes have a checker populated.
 func makePerPathConfigsReaderV1(configs map[string]PerPathConfigV1,
-	users map[string]string) (*perPathConfigsReaderV1, error) {
+	users map[string]string,
+) (*perPathConfigsReaderV1, error) {
 	root := &perPathConfigsReaderV1{ac: emptyPerPathConfigV1InternalForRoot()}
 	if configs == nil {
 		return root, nil

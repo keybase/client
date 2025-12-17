@@ -54,7 +54,8 @@ func (s *baseConversationSource) Sign(payload []byte) ([]byte, error) {
 
 // DeleteAssets implements github.com/keybase/go/chat/storage/storage.AssetDeleter interface.
 func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, assets []chat1.Asset) {
+	convID chat1.ConversationID, assets []chat1.Asset,
+) {
 	if len(assets) == 0 {
 		return
 	}
@@ -89,7 +90,8 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 }
 
 func (s *baseConversationSource) addConversationCards(ctx context.Context, uid gregor1.UID, reason chat1.GetThreadReason,
-	convID chat1.ConversationID, convOptional *chat1.ConversationLocal, thread *chat1.ThreadView) {
+	convID chat1.ConversationID, convOptional *chat1.ConversationLocal, thread *chat1.ThreadView,
+) {
 	ctxShort, ctxShortCancel := context.WithTimeout(ctx, 2*time.Second)
 	defer ctxShortCancel()
 	if journeycardShouldNotRunOnReason[reason] {
@@ -130,7 +132,8 @@ func (s *baseConversationSource) getRi(customRi func() chat1.RemoteInterface) ch
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID, reason chat1.GetThreadReason,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
 	superXform types.SupersedesTransform, replyFiller types.ReplyFiller, checkPrev bool,
-	patchPagination bool, verifiedConv *chat1.ConversationLocal) (err error) {
+	patchPagination bool, verifiedConv *chat1.ConversationLocal,
+) (err error) {
 	if q != nil && q.DisablePostProcessThread {
 		return nil
 	}
@@ -193,7 +196,8 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 func (s *baseConversationSource) TransformSupersedes(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed,
 	q *chat1.GetThreadQuery, superXform types.SupersedesTransform, replyFiller types.ReplyFiller,
-	maxDeletedUpTo *chat1.MessageID) (res []chat1.MessageUnboxed, err error) {
+	maxDeletedUpTo *chat1.MessageID,
+) (res []chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, &err, "TransformSupersedes")()
 	if q == nil || !q.DisableResolveSupersedes {
 		deletePlaceholders := q != nil && q.EnableDeletePlaceholders
@@ -216,7 +220,8 @@ func (s *baseConversationSource) TransformSupersedes(ctx context.Context,
 
 // patchPaginationLast turns on page.Last if the messages are before InboxSource's view of Expunge.
 func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv types.UnboxConversationInfo, uid gregor1.UID,
-	page *chat1.Pagination, msgs []chat1.MessageUnboxed) {
+	page *chat1.Pagination, msgs []chat1.MessageUnboxed,
+) {
 	if page == nil || page.Last {
 		return
 	}
@@ -241,7 +246,8 @@ func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv t
 
 func (s *baseConversationSource) GetMessage(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgID chat1.MessageID, reason *chat1.GetThreadReason, ri func() chat1.RemoteInterface,
-	resolveSupersedes bool) (chat1.MessageUnboxed, error) {
+	resolveSupersedes bool,
+) (chat1.MessageUnboxed, error) {
 	msgs, err := s.G().ConvSource.GetMessages(ctx, convID, uid, []chat1.MessageID{msgID},
 		reason, s.ri, resolveSupersedes)
 	if err != nil {
@@ -254,7 +260,8 @@ func (s *baseConversationSource) GetMessage(ctx context.Context, convID chat1.Co
 }
 
 func (s *baseConversationSource) PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
-	query *chat1.GetThreadQuery, maxPages *int) (res chat1.ThreadView, err error) {
+	query *chat1.GetThreadQuery, maxPages *int,
+) (res chat1.ThreadView, err error) {
 	ctx = libkb.WithLogTag(ctx, "PUL")
 	pagination := &chat1.Pagination{
 		Num: 300,
@@ -278,7 +285,8 @@ func (s *baseConversationSource) PullFull(ctx context.Context, convID chat1.Conv
 }
 
 func (s *baseConversationSource) getUnreadlineRemote(ctx context.Context, convID chat1.ConversationID,
-	readMsgID chat1.MessageID) (*chat1.MessageID, error) {
+	readMsgID chat1.MessageID,
+) (*chat1.MessageID, error) {
 	res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
 		ConvID:    convID,
 		ReadMsgID: readMsgID,
@@ -304,7 +312,8 @@ func NewRemoteConversationSource(g *globals.Context, b *Boxer, ri func() chat1.R
 }
 
 func (s *RemoteConversationSource) AcquireConversationLock(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) error {
+	convID chat1.ConversationID,
+) error {
 	return nil
 }
 
@@ -313,7 +322,8 @@ func (s *RemoteConversationSource) ReleaseConversationLock(ctx context.Context, 
 }
 
 func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error) {
+	uid gregor1.UID, msg chat1.MessageBoxed,
+) (chat1.MessageUnboxed, bool, error) {
 	// Do nothing here, we don't care about pushed messages
 
 	// The bool param here is to indicate the update given is continuous to our current state,
@@ -322,13 +332,15 @@ func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.Conver
 }
 
 func (s *RemoteConversationSource) PushUnboxed(ctx context.Context, conv types.UnboxConversationInfo,
-	uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+	uid gregor1.UID, msg []chat1.MessageUnboxed,
+) error {
 	return nil
 }
 
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, reason chat1.GetThreadReason, customRi func() chat1.RemoteInterface,
-	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	query *chat1.GetThreadQuery, pagination *chat1.Pagination,
+) (chat1.ThreadView, error) {
 	ctx = libkb.WithLogTag(ctx, "PUL")
 
 	if convID.IsNil() {
@@ -367,7 +379,8 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 }
 
 func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error) {
+	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int,
+) (chat1.ThreadView, error) {
 	return chat1.ThreadView{}, storage.MissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
 }
 
@@ -377,7 +390,8 @@ func (s *RemoteConversationSource) Clear(ctx context.Context, convID chat1.Conve
 
 func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason,
-	customRi func() chat1.RemoteInterface, resolveSupersedes bool) (res []chat1.MessageUnboxed, err error) {
+	customRi func() chat1.RemoteInterface, resolveSupersedes bool,
+) (res []chat1.MessageUnboxed, err error) {
 	defer func() {
 		// unless arg says not to, transform the superseded messages
 		if !resolveSupersedes {
@@ -405,22 +419,26 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error) {
+	conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageBoxed,
+) ([]chat1.MessageUnboxed, error) {
 	return s.boxer.UnboxMessages(ctx, msgs, conv)
 }
 
 func (s *RemoteConversationSource) GetUnreadline(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (*chat1.MessageID, error) {
+	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID,
+) (*chat1.MessageID, error) {
 	return s.getUnreadlineRemote(ctx, convID, readMsgID)
 }
 
 func (s *RemoteConversationSource) Expunge(ctx context.Context,
-	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) error {
+	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge,
+) error {
 	return nil
 }
 
 func (s *RemoteConversationSource) EphemeralPurge(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (*chat1.EphemeralPurgeInfo, []chat1.MessageUnboxed, error) {
+	uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo,
+) (*chat1.EphemeralPurgeInfo, []chat1.MessageUnboxed, error) {
 	return nil, nil, nil
 }
 
@@ -440,7 +458,8 @@ type HybridConversationSource struct {
 var _ types.ConversationSource = (*HybridConversationSource)(nil)
 
 func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.Storage,
-	ri func() chat1.RemoteInterface) *HybridConversationSource {
+	ri func() chat1.RemoteInterface,
+) *HybridConversationSource {
 	return &HybridConversationSource{
 		Contextified:           globals.NewContextified(g),
 		DebugLabeler:           utils.NewDebugLabeler(g.ExternalG(), "HybridConversationSource", false),
@@ -453,18 +472,21 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 }
 
 func (s *HybridConversationSource) AcquireConversationLock(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) error {
+	convID chat1.ConversationID,
+) error {
 	_, err := s.lockTab.Acquire(ctx, uid, convID)
 	return err
 }
 
 func (s *HybridConversationSource) ReleaseConversationLock(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) {
+	convID chat1.ConversationID,
+) {
 	s.lockTab.Release(ctx, uid, convID)
 }
 
 func (s *HybridConversationSource) isContinuousPush(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgID chat1.MessageID) (continuousUpdate bool, err error) {
+	uid gregor1.UID, msgID chat1.MessageID,
+) (continuousUpdate bool, err error) {
 	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
 	switch err.(type) {
 	case storage.MissError:
@@ -520,7 +542,8 @@ func (s *HybridConversationSource) maybeNuke(ctx context.Context, convID chat1.C
 }
 
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
+	uid gregor1.UID, msg chat1.MessageBoxed,
+) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, &err, "Push")()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return decmsg, continuousUpdate, err
@@ -575,7 +598,8 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 }
 
 func (s *HybridConversationSource) PushUnboxed(ctx context.Context, conv types.UnboxConversationInfo,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) (err error) {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed,
+) (err error) {
 	defer s.Trace(ctx, &err, "PushUnboxed")()
 	convID := conv.GetConvID()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
@@ -600,7 +624,8 @@ func (s *HybridConversationSource) PushUnboxed(ctx context.Context, conv types.U
 
 func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1.UID,
 	thread *chat1.ThreadView, conv chat1.Conversation, reason chat1.GetThreadReason,
-	customRi func() chat1.RemoteInterface) (err error) {
+	customRi func() chat1.RemoteInterface,
+) (err error) {
 	defer s.Trace(ctx, &err, "resolveHoles")()
 	var msgIDs []chat1.MessageID
 	// Gather all placeholder messages so we can go fetch them
@@ -642,7 +667,8 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 }
 
 func (s *HybridConversationSource) getConvForPull(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) (res types.RemoteConversation, err error) {
+	convID chat1.ConversationID,
+) (res types.RemoteConversation, err error) {
 	rconv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return res, err
@@ -661,7 +687,8 @@ var maxHolesForPull = 50
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, reason chat1.GetThreadReason, customRi func() chat1.RemoteInterface,
-	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
+	query *chat1.GetThreadQuery, pagination *chat1.Pagination,
+) (thread chat1.ThreadView, err error) {
 	ctx = libkb.WithLogTag(ctx, "PUL")
 	defer s.Trace(ctx, &err, "Pull(%s)", convID)()
 	if convID.IsNil() {
@@ -800,7 +827,8 @@ func newPullLocalResultCollector(baseRC storage.ResultCollector) *pullLocalResul
 }
 
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (tv chat1.ThreadView, err error) {
+	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int,
+) (tv chat1.ThreadView, err error) {
 	ctx = libkb.WithLogTag(ctx, "PUL")
 	defer s.Trace(ctx, &err, "PullLocalOnly")()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
@@ -815,7 +843,8 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 			superXform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
 			superXform.SetMessagesFunc(func(ctx context.Context, convID chat1.ConversationID,
 				uid gregor1.UID, msgIDs []chat1.MessageID,
-				_ *chat1.GetThreadReason, _ func() chat1.RemoteInterface, _ bool) (res []chat1.MessageUnboxed, err error) {
+				_ *chat1.GetThreadReason, _ func() chat1.RemoteInterface, _ bool,
+			) (res []chat1.MessageUnboxed, err error) {
 				msgs, err := storage.New(s.G(), s).FetchMessages(ctx, convID, uid, msgIDs)
 				if err != nil {
 					return nil, err
@@ -873,7 +902,8 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 }
 
 func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	opts *types.ClearOpts) (err error) {
+	opts *types.ClearOpts,
+) (err error) {
 	defer s.Trace(ctx, &err, "Clear(%v,%v)", uid, convID)()
 	defer s.PerfTrace(ctx, &err, "Clear(%v,%v)", uid, convID)()
 	start := time.Now()
@@ -907,7 +937,8 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 
 func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason,
-	customRi func() chat1.RemoteInterface, resolveSupersedes bool) (res []chat1.MessageUnboxed, err error) {
+	customRi func() chat1.RemoteInterface, resolveSupersedes bool,
+) (res []chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, &err, "GetMessages: convID: %s msgIDs: %d",
 		convID, len(msgIDs))()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
@@ -988,7 +1019,6 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 						customRi, resolveSupersedes); err != nil {
 						s.Debug(ctx, "GetMessages: error loading UnboxQuickMode cache misses: ", err)
 					}
-
 				})); err != nil {
 				s.Debug(ctx, "GetMessages: error queuing conv loader job: %+v", err)
 			}
@@ -1007,7 +1037,8 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageBoxed) (res []chat1.MessageUnboxed, err error) {
+	conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageBoxed,
+) (res []chat1.MessageUnboxed, err error) {
 	convID := conv.GetConvID()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return nil, err
@@ -1058,7 +1089,8 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 }
 
 func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
+	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID,
+) (unreadlineID *chat1.MessageID, err error) {
 	defer s.Trace(ctx, &err, "GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID)()
 	defer s.maybeNuke(ctx, convID, uid, &err)
 
@@ -1083,7 +1115,8 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 }
 
 func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, mergeRes storage.MergeResult) {
+	convID chat1.ConversationID, mergeRes storage.MergeResult,
+) {
 	if mergeRes.Expunged != nil {
 		topicType := chat1.TopicType_NONE
 		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
@@ -1102,7 +1135,8 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 }
 
 func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
+	convID chat1.ConversationID, msgs []chat1.MessageUnboxed,
+) {
 	if len(msgs) == 0 {
 		s.Debug(ctx, "notifyUpdated: nothing to do")
 		return
@@ -1137,7 +1171,8 @@ func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor
 
 // notifyReactionUpdates notifies the GUI after reactions are received
 func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
+	convID chat1.ConversationID, msgs []chat1.MessageUnboxed,
+) {
 	s.Debug(ctx, "notifyReactionUpdates: %d msgs to update", len(msgs))
 	if len(msgs) > 0 {
 		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
@@ -1200,7 +1235,8 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 
 // Expunge from storage and maybe notify the gui of staleness
 func (s *HybridConversationSource) Expunge(ctx context.Context,
-	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) (err error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge,
+) (err error) {
 	defer s.Trace(ctx, &err, "Expunge")()
 	convID := conv.GetConvID()
 	defer s.maybeNuke(ctx, convID, uid, &err)
@@ -1224,7 +1260,8 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 
 // Merge with storage and maybe notify the gui of staleness
 func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
-	conv types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed, reason chat1.GetThreadReason) error {
+	conv types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed, reason chat1.GetThreadReason,
+) error {
 	convID := conv.GetConvID()
 	switch globals.CtxUnboxMode(ctx) {
 	case types.UnboxModeFull:
@@ -1263,8 +1300,8 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 
 func (s *HybridConversationSource) fetchMaybeNotify(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, rc storage.ResultCollector, maxMsgID chat1.MessageID, query *chat1.GetThreadQuery,
-	pagination *chat1.Pagination) (tv chat1.ThreadView, err error) {
-
+	pagination *chat1.Pagination,
+) (tv chat1.ThreadView, err error) {
 	fetchRes, err := s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, rc, maxMsgID,
 		query, pagination)
 	if err != nil {
@@ -1275,7 +1312,8 @@ func (s *HybridConversationSource) fetchMaybeNotify(ctx context.Context, convID 
 }
 
 func (s *HybridConversationSource) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	purgeInfo *chat1.EphemeralPurgeInfo) (newPurgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err error) {
+	purgeInfo *chat1.EphemeralPurgeInfo,
+) (newPurgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, &err, "EphemeralPurge")()
 	defer s.maybeNuke(ctx, convID, uid, &err)
 	if newPurgeInfo, explodedMsgs, err = s.storage.EphemeralPurge(ctx, convID, uid, purgeInfo); err != nil {
@@ -1286,7 +1324,8 @@ func (s *HybridConversationSource) EphemeralPurge(ctx context.Context, convID ch
 }
 
 func NewConversationSource(g *globals.Context, typ string, boxer *Boxer, storage *storage.Storage,
-	ri func() chat1.RemoteInterface) types.ConversationSource {
+	ri func() chat1.RemoteInterface,
+) types.ConversationSource {
 	if typ == "hybrid" {
 		return NewHybridConversationSource(g, boxer, storage, ri)
 	}

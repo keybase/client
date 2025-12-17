@@ -36,7 +36,8 @@ func NewGallery(g *globals.Context) *Gallery {
 }
 
 func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, typMap map[chat1.MessageType]bool,
-	assetMap map[chat1.AssetMetadataType]bool, unfurlMap map[chat1.UnfurlType]bool) bool {
+	assetMap map[chat1.AssetMetadataType]bool, unfurlMap map[chat1.UnfurlType]bool,
+) bool {
 	if !msg.IsValid() {
 		return false
 	}
@@ -74,7 +75,8 @@ func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, typMap map[chat1
 var linkRegexp = xurls.Strict()
 
 func (g *Gallery) searchForLinks(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, num int, uiCh chan chat1.UIMessage) (res []chat1.MessageUnboxed, last bool, err error) {
+	msgID chat1.MessageID, num int, uiCh chan chat1.UIMessage,
+) (res []chat1.MessageUnboxed, last bool, err error) {
 	var hitCh chan chat1.ChatSearchHit
 	if uiCh != nil {
 		hitCh = make(chan chat1.ChatSearchHit)
@@ -101,7 +103,8 @@ func (g *Gallery) searchForLinks(ctx context.Context, uid gregor1.UID, convID ch
 }
 
 func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID, opts NextMessageOptions) (res *chat1.MessageUnboxed, last bool, err error) {
+	convID chat1.ConversationID, msgID chat1.MessageID, opts NextMessageOptions,
+) (res *chat1.MessageUnboxed, last bool, err error) {
 	msgs, last, err := g.NextMessages(ctx, uid, convID, msgID, 1, opts, nil)
 	if err != nil {
 		return res, false, err
@@ -113,7 +116,8 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 }
 
 func (g *Gallery) makeMaps(opts NextMessageOptions) (typMap map[chat1.MessageType]bool,
-	assetMap map[chat1.AssetMetadataType]bool, unfurlMap map[chat1.UnfurlType]bool) {
+	assetMap map[chat1.AssetMetadataType]bool, unfurlMap map[chat1.UnfurlType]bool,
+) {
 	typMap = make(map[chat1.MessageType]bool)
 	assetMap = make(map[chat1.AssetMetadataType]bool)
 	unfurlMap = make(map[chat1.UnfurlType]bool)
@@ -128,7 +132,8 @@ func (g *Gallery) makeMaps(opts NextMessageOptions) (typMap map[chat1.MessageTyp
 }
 
 func (g *Gallery) getUnfurlHost(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msg chat1.MessageUnboxed) (res chat1.MessageUnboxed, err error) {
+	msg chat1.MessageUnboxed,
+) (res chat1.MessageUnboxed, err error) {
 	if !msg.IsValid() {
 		return msg, nil
 	}
@@ -141,7 +146,8 @@ func (g *Gallery) getUnfurlHost(ctx context.Context, uid gregor1.UID, convID cha
 
 func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, num int, opts NextMessageOptions,
-	uiCh chan chat1.UIMessage) (res []chat1.MessageUnboxed, last bool, err error) {
+	uiCh chan chat1.UIMessage,
+) (res []chat1.MessageUnboxed, last bool, err error) {
 	defer g.Trace(ctx, &err, "NextMessages")()
 	defer func() {
 		if uiCh != nil {

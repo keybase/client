@@ -170,7 +170,8 @@ func (pfs ProfileFS) Readlink(_ string) (string, error) {
 
 func (pfs ProfileFS) openTimedProfile(
 	ctx context.Context, durationStr string, prof timedProfile) (
-	[]byte, error) {
+	[]byte, error,
+) {
 	duration, err := time.ParseDuration(durationStr)
 	if err != nil {
 		return nil, err
@@ -204,7 +205,8 @@ func (pfs ProfileFS) openTimedProfile(
 
 // OpenWithContext opens a profile, with a custom context.
 func (pfs ProfileFS) OpenWithContext(
-	ctx context.Context, filename string) (billy.File, error) {
+	ctx context.Context, filename string,
+) (billy.File, error) {
 	var durationStr string
 	var prof timedProfile
 	if strings.HasPrefix(filename, CPUProfilePrefix) {
@@ -228,7 +230,8 @@ func (pfs ProfileFS) OpenWithContext(
 				return b, now, nil
 			},
 			pfs.config.MakeLogger(""),
-			0}, nil
+			0,
+		}, nil
 	}
 
 	if !IsSupportedProfileName(filename) {
@@ -249,7 +252,8 @@ func (pfs ProfileFS) Open(filename string) (billy.File, error) {
 
 // OpenFile implements the libkbfs.NodeFSReadOnly interface.
 func (pfs ProfileFS) OpenFile(
-	filename string, flag int, _ os.FileMode) (billy.File, error) {
+	filename string, flag int, _ os.FileMode,
+) (billy.File, error) {
 	if flag&os.O_CREATE != 0 {
 		return nil, errors.New("read-only filesystem")
 	}

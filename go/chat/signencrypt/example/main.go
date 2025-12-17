@@ -1,13 +1,12 @@
 package main
 
 import (
+	"crypto/ed25519"
 	"encoding/hex"
 	"io"
 	"log"
 	"os"
 	"strconv"
-
-	"crypto/ed25519"
 
 	docopt "github.com/docopt/docopt-go"
 	"github.com/keybase/client/go/chat/signencrypt"

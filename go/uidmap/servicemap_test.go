@@ -24,8 +24,10 @@ func (n *timeoutAPIMock) PostDecodeCtx(context.Context, libkb.APIArg, libkb.APIR
 	return libkb.APINetError{Err: errors.New("timeoutAPIMock")}
 }
 
-const tTracy = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
-const tAlice = keybase1.UID("295a7eea607af32040647123732bc819")
+const (
+	tTracy = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
+	tAlice = keybase1.UID("295a7eea607af32040647123732bc819")
+)
 
 func TestServiceMapLookupKnown(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestLookup", 1)

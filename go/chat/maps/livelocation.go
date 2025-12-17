@@ -143,7 +143,8 @@ func newUnfurlNotifyListener(g *globals.Context, outboxID chat1.OutboxID, doneCh
 }
 
 func (n *unfurlNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
-	source chat1.ChatActivitySource) {
+	source chat1.ChatActivitySource,
+) {
 	ctx := context.Background()
 	st, err := activity.ActivityType()
 	if err != nil {
@@ -343,7 +344,8 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 }
 
 func (l *LiveLocationTracker) GetCurrentPosition(ctx context.Context, convID chat1.ConversationID,
-	msgID chat1.MessageID) {
+	msgID chat1.MessageID,
+) {
 	defer l.Trace(ctx, nil, "GetCurrentPosition")()
 	l.Lock()
 	defer l.Unlock()
@@ -356,7 +358,8 @@ func (l *LiveLocationTracker) GetCurrentPosition(ctx context.Context, convID cha
 }
 
 func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.ConversationID,
-	msgID chat1.MessageID, endTime time.Time) {
+	msgID chat1.MessageID, endTime time.Time,
+) {
 	defer l.Trace(ctx, nil, "StartTracking")()
 	l.Lock()
 	defer l.Unlock()

@@ -21,7 +21,8 @@ import (
 )
 
 func waitForCall(t *testing.T, timeout time.Duration) (
-	waiter func(), done func(args ...interface{})) {
+	waiter func(), done func(args ...interface{}),
+) {
 	ch := make(chan struct{})
 	return func() {
 			select {
@@ -38,7 +39,8 @@ const testSubscriptionManagerClientID SubscriptionManagerClientID = "test"
 
 func initSubscriptionManagerTest(t *testing.T) (config Config,
 	sm SubscriptionManager, notifier *MockSubscriptionNotifier,
-	finish func()) {
+	finish func(),
+) {
 	ctl := gomock.NewController(t)
 	config = MakeTestConfigOrBust(t, "jdoe")
 	notifier = NewMockSubscriptionNotifier(ctl)
@@ -138,7 +140,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 			keybase1.PathSubscriptionTopic_CHILDREN,
 		}}).Do(func(
 		clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
-		path string, topics []keybase1.PathSubscriptionTopic) {
+		path string, topics []keybase1.PathSubscriptionTopic,
+	) {
 		done0()
 		done1()
 	})
@@ -159,7 +162,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 		[]SubscriptionID{sid2}, "/keybase/private/jdoe",
 		[]keybase1.PathSubscriptionTopic{keybase1.PathSubscriptionTopic_STAT}).Do(func(
 		clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
-		path string, topics []keybase1.PathSubscriptionTopic) {
+		path string, topics []keybase1.PathSubscriptionTopic,
+	) {
 		done2()
 	})
 
@@ -180,7 +184,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 		[]SubscriptionID{sid1}, "/keybase/private/jdoe/dir1/../file",
 		[]keybase1.PathSubscriptionTopic{keybase1.PathSubscriptionTopic_STAT}).Do(func(
 		clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
-		path string, topics []keybase1.PathSubscriptionTopic) {
+		path string, topics []keybase1.PathSubscriptionTopic,
+	) {
 		done3()
 	})
 	err = config.KBFSOps().Write(ctx, fileNode, []byte("hello"), 0)
@@ -207,7 +212,8 @@ func TestSubscriptionManagerFavoritesChange(t *testing.T) {
 		[]SubscriptionID{sid1}, keybase1.SubscriptionTopic_FAVORITES).Do(
 		func(
 			clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
-			topic keybase1.SubscriptionTopic) {
+			topic keybase1.SubscriptionTopic,
+		) {
 			done1()
 		})
 	err = config.KBFSOps().AddFavorite(ctx,
@@ -249,7 +255,8 @@ func TestSubscriptionManagerSubscribePathNoFolderBranch(t *testing.T) {
 		[]keybase1.PathSubscriptionTopic{keybase1.PathSubscriptionTopic_CHILDREN}).AnyTimes().Do(
 		func(
 			clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
-			path string, topics []keybase1.PathSubscriptionTopic) {
+			path string, topics []keybase1.PathSubscriptionTopic,
+		) {
 			done0()
 		})
 

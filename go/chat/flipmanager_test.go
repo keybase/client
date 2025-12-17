@@ -19,7 +19,8 @@ import (
 )
 
 func consumeFlipToResult(t *testing.T, ui *kbtest.ChatUI, listener *serverChatListener,
-	gameID chat1.FlipGameIDStr, numUsers int) string {
+	gameID chat1.FlipGameIDStr, numUsers int,
+) string {
 	timeout := 20 * time.Second
 	consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP) // host msg
 	for {
@@ -42,6 +43,7 @@ func consumeFlipToResult(t *testing.T, ui *kbtest.ChatUI, listener *serverChatLi
 		}
 	}
 }
+
 func assertNoFlip(t *testing.T, ui *kbtest.ChatUI) {
 	select {
 	case <-ui.CoinFlipUpdates:
@@ -555,5 +557,4 @@ func TestFlipManagerRateLimit(t *testing.T) {
 	res1 = consumeFlipToResult(t, ui1, listener1, gameID, 2)
 	require.Equal(t, res, res1)
 	close(stopCh)
-
 }

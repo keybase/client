@@ -493,7 +493,8 @@ type KVStoreTestBoxer struct {
 }
 
 func (b *KVStoreTestBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartextValue string) (ciphertext string,
-	teamKeyGen keybase1.PerTeamKeyGeneration, ciphertextVersion int, err error) {
+	teamKeyGen keybase1.PerTeamKeyGeneration, ciphertextVersion int, err error,
+) {
 	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
 	if b.BoxMutateRevision != nil {
 		revision = b.BoxMutateRevision(revision)
@@ -502,7 +503,8 @@ func (b *KVStoreTestBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 }
 
 func (b *KVStoreTestBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, ciphertext string, teamKeyGen keybase1.PerTeamKeyGeneration,
-	formatVersion int, senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID) (cleartext string, err error) {
+	formatVersion int, senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID,
+) (cleartext string, err error) {
 	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
 	if b.UnboxMutateTeamGen != nil {
 		teamKeyGen = b.UnboxMutateTeamGen(teamKeyGen)

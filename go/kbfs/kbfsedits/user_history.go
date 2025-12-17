@@ -56,7 +56,8 @@ func NewUserHistory(log logger.Logger, vlog *libkb.VDebugLog) *UserHistory {
 // given TLF gets new information.
 func (uh *UserHistory) UpdateHistory(
 	tlfName tlf.CanonicalName, tlfType tlf.Type, tlfHistory *TlfHistory,
-	loggedInUser string) {
+	loggedInUser string,
+) {
 	uh.vlog.CLogf(
 		context.TODO(), libkb.VLog1, "Updating user history for TLF %s, "+
 			"user %s", tlfName, loggedInUser)
@@ -70,7 +71,8 @@ func (uh *UserHistory) UpdateHistory(
 
 func (uh *UserHistory) getTlfHistoryLocked(
 	tlfName tlf.CanonicalName, tlfType tlf.Type) (
-	history keybase1.FSFolderEditHistory) {
+	history keybase1.FSFolderEditHistory,
+) {
 	key := tlfKey{tlfName, tlfType}
 	tlfHistory, ok := uh.histories[key]
 	if !ok {
@@ -103,11 +105,9 @@ func (uh *UserHistory) getTlfHistoryLocked(
 			history.History[i].Edits[j].ServerTime = keybase1.ToTime(n.Time)
 			switch n.Type {
 			case NotificationCreate:
-				history.History[i].Edits[j].NotificationType =
-					keybase1.FSNotificationType_FILE_CREATED
+				history.History[i].Edits[j].NotificationType = keybase1.FSNotificationType_FILE_CREATED
 			case NotificationModify:
-				history.History[i].Edits[j].NotificationType =
-					keybase1.FSNotificationType_FILE_MODIFIED
+				history.History[i].Edits[j].NotificationType = keybase1.FSNotificationType_FILE_MODIFIED
 			default:
 				panic(fmt.Sprintf("Unknown notification type %s", n.Type))
 			}
@@ -118,8 +118,7 @@ func (uh *UserHistory) getTlfHistoryLocked(
 		for j, n := range wn.deletes {
 			history.History[i].Deletes[j].Filename = n.Filename
 			history.History[i].Deletes[j].ServerTime = keybase1.ToTime(n.Time)
-			history.History[i].Deletes[j].NotificationType =
-				keybase1.FSNotificationType_FILE_DELETED
+			history.History[i].Deletes[j].NotificationType = keybase1.FSNotificationType_FILE_DELETED
 		}
 	}
 	return history
@@ -129,7 +128,8 @@ func (uh *UserHistory) getTlfHistoryLocked(
 // keybase1 protocol structs.
 func (uh *UserHistory) GetTlfHistory(
 	tlfName tlf.CanonicalName, tlfType tlf.Type) (
-	history keybase1.FSFolderEditHistory) {
+	history keybase1.FSFolderEditHistory,
+) {
 	uh.lock.RLock()
 	defer uh.lock.RUnlock()
 	return uh.getTlfHistoryLocked(tlfName, tlfType)
@@ -165,7 +165,8 @@ func (hc historyClusters) Swap(i, j int) {
 // Get returns the full edit history for the user, converted to
 // keybase1 protocol structs.
 func (uh *UserHistory) Get(loggedInUser string) (
-	history []keybase1.FSFolderEditHistory) {
+	history []keybase1.FSFolderEditHistory,
+) {
 	uh.lock.RLock()
 	defer uh.lock.RUnlock()
 	uh.vlog.CLogf(
