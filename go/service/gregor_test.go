@@ -1,13 +1,12 @@
 package service
 
 import (
+	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
 	"testing"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"

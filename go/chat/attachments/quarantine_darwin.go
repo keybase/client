@@ -20,9 +20,8 @@ void quarantineFile(const char* inFilename) {
 import "C"
 
 import (
+	"context"
 	"unsafe"
-
-	"golang.org/x/net/context"
 )
 
 func Quarantine(ctx context.Context, path string) error {

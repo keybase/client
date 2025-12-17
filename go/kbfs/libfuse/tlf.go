@@ -8,6 +8,7 @@
 package libfuse
 
 import (
+	"context"
 	"os"
 	"sync"
 	"time"
@@ -21,7 +22,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	"golang.org/x/net/context"
 )
 
 // TLF represents the root directory of a TLF. It wraps a lazy-loaded

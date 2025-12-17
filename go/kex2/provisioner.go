@@ -4,11 +4,10 @@
 package kex2
 
 import (
+	"context"
 	"net"
 	"strings"
 	"time"
-
-	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"

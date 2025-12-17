@@ -5,6 +5,7 @@
 package data
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -19,7 +20,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (

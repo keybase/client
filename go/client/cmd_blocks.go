@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"text/tabwriter"
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 func NewCmdBlocks(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {

@@ -4,6 +4,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"

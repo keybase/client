@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -16,7 +17,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-codec/codec"
-	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
 

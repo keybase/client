@@ -1,10 +1,11 @@
 package encrypteddb
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 func GetSecretBoxKey(ctx context.Context, g *libkb.GlobalContext,

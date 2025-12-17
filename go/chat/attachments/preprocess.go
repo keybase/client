@@ -1,6 +1,7 @@
 package attachments
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -16,7 +17,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 
 	"github.com/keybase/client/go/protocol/chat1"
-	"golang.org/x/net/context"
 )
 
 type Dimension struct {

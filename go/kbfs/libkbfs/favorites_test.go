@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"reflect"
 	"testing"
 	"time"
@@ -17,7 +18,6 @@ import (
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func favToAddToKBFolder(toAdd favorites.ToAdd) keybase1.Folder {

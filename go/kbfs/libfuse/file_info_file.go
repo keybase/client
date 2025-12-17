@@ -8,11 +8,11 @@
 package libfuse
 
 import (
+	"context"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
-	"golang.org/x/net/context"
 )
 
 // NewFileInfoFile returns a special file that contains a text

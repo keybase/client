@@ -5,6 +5,7 @@
 package fsrpc
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -15,7 +16,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 const (

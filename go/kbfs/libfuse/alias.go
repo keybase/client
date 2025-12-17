@@ -8,11 +8,11 @@
 package libfuse
 
 import (
+	"context"
 	"os"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"golang.org/x/net/context"
 )
 
 // Alias represents an alias. A use case for it is a top-level folder accessed

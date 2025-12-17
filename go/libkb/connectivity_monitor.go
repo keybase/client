@@ -1,7 +1,7 @@
 package libkb
 
 import (
-	context "golang.org/x/net/context"
+	"context"
 )
 
 type NullConnectivityMonitor struct{}

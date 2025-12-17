@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // TODO: Have the functions below wrap their errors.

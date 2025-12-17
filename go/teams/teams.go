@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/go-codec/codec"
 
 	"golang.org/x/crypto/nacl/secretbox"
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"

@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strings"
@@ -16,7 +17,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type CmdPing struct {

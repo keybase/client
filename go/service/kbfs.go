@@ -4,12 +4,11 @@
 package service
 
 import (
+	"context"
 	"path/filepath"
 	"strings"
 
 	"github.com/keybase/client/go/encrypteddb"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"

@@ -8,11 +8,13 @@
 package libfuse
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
 
 	"bazil.org/fuse"
+
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -22,7 +24,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 // StartOptions are options for starting up

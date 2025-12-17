@@ -5,10 +5,9 @@ package libkb
 
 import (
 	"bufio"
+	"context"
 	"io"
 	"sync"
-
-	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )

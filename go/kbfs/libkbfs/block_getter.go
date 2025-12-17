@@ -5,10 +5,11 @@
 package libkbfs
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/libkey"
-	"golang.org/x/net/context"
 )
 
 // blockGetter provides the API for the block retrieval worker to obtain blocks.

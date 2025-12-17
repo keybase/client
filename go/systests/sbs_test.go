@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/teams"
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/client/go/phonenumbers"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 func assertionFromKV(t *testing.T, key, value string) libkb.AssertionURL {

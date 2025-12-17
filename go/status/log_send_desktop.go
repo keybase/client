@@ -7,14 +7,13 @@
 package status
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"regexp"
 	"runtime"
 	"time"
-
-	context "golang.org/x/net/context"
 
 	ps "github.com/keybase/go-ps"
 )

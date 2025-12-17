@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"io"
 	"os"
 	"regexp"
@@ -14,7 +15,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
-	context "golang.org/x/net/context"
 )
 
 type Offlinable interface {

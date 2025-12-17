@@ -5,11 +5,10 @@ package client
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"

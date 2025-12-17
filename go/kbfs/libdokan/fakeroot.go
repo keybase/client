@@ -5,9 +5,10 @@
 package libdokan
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 type fakeRoot struct {

@@ -5,6 +5,7 @@
 package data
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func testDirtyBcachePut(

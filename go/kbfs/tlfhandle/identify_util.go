@@ -5,6 +5,7 @@
 package tlfhandle
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sync"
@@ -15,7 +16,6 @@ import (
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
 

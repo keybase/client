@@ -1,6 +1,7 @@
 package uidmap
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"testing"
@@ -11,7 +12,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type timeoutAPIMock struct {

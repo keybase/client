@@ -4,6 +4,7 @@
 package libkbfs
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"testing"
@@ -15,7 +16,6 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 // blockReturner contains a block value to copy into requested blocks, and a

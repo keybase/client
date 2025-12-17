@@ -1,9 +1,8 @@
 package systests
 
 import (
+	"context"
 	"testing"
-
-	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 

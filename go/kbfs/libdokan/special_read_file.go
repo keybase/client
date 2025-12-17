@@ -5,10 +5,10 @@
 package libdokan
 
 import (
+	"context"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/dokan"
-	"golang.org/x/net/context"
 )
 
 // SpecialReadFile represents a file whose contents are determined by

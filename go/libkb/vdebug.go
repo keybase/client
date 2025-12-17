@@ -4,12 +4,12 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
-	"golang.org/x/net/context"
 )
 
 // VDebugLog is a "Verbose" debug logger; enable it if you really

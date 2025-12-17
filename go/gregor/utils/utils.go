@@ -1,10 +1,11 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"golang.org/x/net/context"
 )
 
 func NewGregorMsgID() (gregor1.MsgID, error) {

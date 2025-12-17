@@ -5,6 +5,7 @@
 package data
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	"golang.org/x/net/context"
 )
 
 type dirtyBlockID struct {

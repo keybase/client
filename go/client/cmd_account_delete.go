@@ -4,12 +4,11 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"

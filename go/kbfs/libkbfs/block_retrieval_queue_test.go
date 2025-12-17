@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"io"
 	"testing"
 	"time"
@@ -21,7 +22,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type testBlockRetrievalConfig struct {

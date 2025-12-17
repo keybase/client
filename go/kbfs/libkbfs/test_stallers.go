@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"math/rand"
 	"sync"
 	"time"
@@ -17,7 +18,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type stallableOp string

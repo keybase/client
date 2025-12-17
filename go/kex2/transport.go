@@ -4,6 +4,7 @@
 package kex2
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -16,7 +17,6 @@ import (
 
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/crypto/nacl/secretbox"
-	"golang.org/x/net/context"
 )
 
 // DeviceID is a 16-byte identifier that each side of key exchange has. It's

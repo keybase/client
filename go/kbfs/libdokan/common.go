@@ -5,6 +5,7 @@
 package libdokan
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
-	"golang.org/x/net/context"
 )
 
 const (

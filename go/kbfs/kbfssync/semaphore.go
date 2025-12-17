@@ -5,12 +5,12 @@
 package kbfssync
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"sync"
 
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // Semaphore implements a counting semaphore; it maintains a resource

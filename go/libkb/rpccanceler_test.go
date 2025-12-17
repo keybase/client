@@ -1,10 +1,10 @@
 package libkb
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func TestRPCCanceler(t *testing.T) {

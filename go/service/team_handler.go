@@ -6,12 +6,11 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/gregor"

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
@@ -17,7 +18,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func waitForCall(t *testing.T, timeout time.Duration) (

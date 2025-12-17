@@ -1,13 +1,13 @@
 package teams
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/teams/hidden"
 
 	"github.com/keybase/clockwork"
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"

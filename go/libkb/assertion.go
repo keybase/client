@@ -327,6 +327,7 @@ type (
 		uid keybase1.UID
 	}
 )
+
 type AssertionTeamID struct {
 	AssertionURLBase
 	tid keybase1.TeamID

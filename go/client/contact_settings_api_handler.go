@@ -1,12 +1,12 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type contactSettingsAPIHandler struct {

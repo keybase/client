@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"

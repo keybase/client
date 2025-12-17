@@ -5,8 +5,7 @@ package client
 
 import (
 	"bytes"
-
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"

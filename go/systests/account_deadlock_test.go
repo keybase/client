@@ -6,6 +6,7 @@ package systests
 // Test various RPCs that are used mainly in other clients but not by the CLI.
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
-	context "golang.org/x/net/context"
 )
 
 func TestAccountDeadlock(t *testing.T) {

@@ -2,6 +2,7 @@ package lru
 
 import (
 	"container/list"
+	"context"
 	json "encoding/json"
 	"errors"
 	"fmt"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	context "golang.org/x/net/context"
 )
 
 type Pathable struct {

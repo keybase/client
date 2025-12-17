@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"os"
 
 	"github.com/keybase/cli"
@@ -9,7 +10,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	isatty "github.com/mattn/go-isatty"
-	context "golang.org/x/net/context"
 )
 
 type CmdChatMarkAsRead struct {

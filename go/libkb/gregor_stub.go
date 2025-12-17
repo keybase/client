@@ -1,9 +1,10 @@
 package libkb
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/gregor1"
-	context "golang.org/x/net/context"
 )
 
 type nullGregorState struct{}

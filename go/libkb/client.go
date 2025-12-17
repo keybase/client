@@ -6,6 +6,7 @@ package libkb
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -22,7 +23,6 @@ import (
 
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
-	"golang.org/x/net/context"
 )
 
 type ClientConfig struct {

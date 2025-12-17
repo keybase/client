@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"math"
 	"math/rand"
 	"os"
@@ -24,7 +25,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	"golang.org/x/net/context"
 )
 
 const (

@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"reflect"
 	"runtime"
@@ -25,7 +26,6 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 var testMetadataVers = []kbfsmd.MetadataVer{

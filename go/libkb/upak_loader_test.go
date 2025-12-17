@@ -6,10 +6,9 @@
 package libkb
 
 import (
+	"context"
 	"testing"
 	"time"
-
-	context "golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"

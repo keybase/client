@@ -5,11 +5,11 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/tlf"
-	"golang.org/x/net/context"
 )
 
 type journalDirtyBlockCache struct {

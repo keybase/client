@@ -4,9 +4,8 @@
 package client
 
 import (
+	"context"
 	"io"
-
-	"golang.org/x/net/context"
 )
 
 type ChatAPIVersionHandler struct {

@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"encoding/hex"
 	"sort"
 	"sync"
@@ -15,7 +16,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
-	"golang.org/x/net/context"
 )
 
 type Syncer struct {

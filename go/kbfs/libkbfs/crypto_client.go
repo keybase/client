@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"time"
 
 	"github.com/keybase/client/go/kbcrypto"
@@ -12,7 +13,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // CryptoClient is a keybase1.CryptoInterface based implementation for Crypto.

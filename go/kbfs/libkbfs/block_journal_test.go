@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"math"
 	"os"
 	"testing"
@@ -22,7 +23,6 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type blockJournalEntryFuture struct {

@@ -1,12 +1,11 @@
 package systests
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/client"

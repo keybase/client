@@ -5,12 +5,12 @@
 package libkbfs
 
 import (
+	"context"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	"golang.org/x/net/context"
 )
 
 const (

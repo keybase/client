@@ -4,10 +4,10 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
-	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/engine"

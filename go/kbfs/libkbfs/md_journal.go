@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"path/filepath"
 	"time"
 
@@ -18,7 +19,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // ImmutableBareRootMetadata is a thin wrapper around a

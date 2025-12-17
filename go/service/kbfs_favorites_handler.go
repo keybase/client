@@ -6,12 +6,11 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"

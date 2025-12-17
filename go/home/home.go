@@ -4,6 +4,7 @@
 package home
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -17,7 +18,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type homeCache struct {

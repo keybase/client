@@ -1,6 +1,7 @@
 package lru
 
 import (
+	"context"
 	"os"
 	"testing"
 	"time"
@@ -8,7 +9,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func TestDiskLRUBasic(t *testing.T) {

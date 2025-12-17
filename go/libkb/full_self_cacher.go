@@ -1,12 +1,12 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 type FullSelfer interface {

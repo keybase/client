@@ -5,8 +5,9 @@
 package libdokan
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/kbfs/dokan"
-	"golang.org/x/net/context"
 )
 
 // EmptyFolder represents an empty, read-only KBFS TLF that has not

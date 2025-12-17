@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 func getHome(t *testing.T, u *userPlusDevice, markViewed bool) keybase1.HomeScreen {

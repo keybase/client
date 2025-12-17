@@ -5,12 +5,12 @@
 package libfs
 
 import (
+	"context"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
-	"golang.org/x/net/context"
 )
 
 // GetEncodedFolderStatus returns serialized JSON containing status information

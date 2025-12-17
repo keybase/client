@@ -1,11 +1,11 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/logger"
-	"golang.org/x/net/context"
 )
 
 type withLogTagKey string

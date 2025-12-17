@@ -5,11 +5,12 @@
 package libkbfs
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 type journalBlockServer struct {

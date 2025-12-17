@@ -1,8 +1,9 @@
 package git
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // Teamer handles teams for use with the Git index

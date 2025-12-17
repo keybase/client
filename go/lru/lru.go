@@ -1,6 +1,7 @@
 package lru
 
 import (
+	"context"
 	json "encoding/json"
 	"reflect"
 	"sync"
@@ -9,7 +10,6 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
-	context "golang.org/x/net/context"
 )
 
 type Cache struct {

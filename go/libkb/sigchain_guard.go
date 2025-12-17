@@ -1,9 +1,8 @@
 package libkb
 
 import (
+	"context"
 	"sync"
-
-	"golang.org/x/net/context"
 )
 
 // A guard used to tell background tasks to stay off the sigchain

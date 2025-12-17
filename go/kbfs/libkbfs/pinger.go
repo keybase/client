@@ -5,11 +5,11 @@
 package libkbfs
 
 import (
+	"context"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/logger"
-	"golang.org/x/net/context"
 )
 
 // pinger is a helper type that calls a given function periodically.

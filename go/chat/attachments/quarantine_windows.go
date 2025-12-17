@@ -4,9 +4,8 @@
 package attachments
 
 import (
+	"context"
 	"os"
-
-	"golang.org/x/net/context"
 )
 
 func Quarantine(ctx context.Context, path string) error {

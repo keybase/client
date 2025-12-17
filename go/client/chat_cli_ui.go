@@ -4,11 +4,10 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chatrender"
 	"github.com/keybase/client/go/libkb"

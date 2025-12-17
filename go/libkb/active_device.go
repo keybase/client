@@ -1,12 +1,12 @@
 package libkb
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 type ActiveDevice struct {

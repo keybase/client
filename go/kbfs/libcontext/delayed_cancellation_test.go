@@ -5,10 +5,9 @@
 package libcontext
 
 import (
+	"context"
 	"testing"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 type testDCKeyType int

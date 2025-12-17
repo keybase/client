@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
@@ -21,7 +22,6 @@ import (
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func readAndCompareData(ctx context.Context, t *testing.T, config Config,

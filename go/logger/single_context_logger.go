@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"golang.org/x/net/context"
+	"context"
 )
 
 // SingleContextLogger logs everything in the same context. Useful for adding context-logging

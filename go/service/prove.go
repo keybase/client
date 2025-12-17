@@ -4,6 +4,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 // ProveHandler is the service side of proving ownership of social media accounts

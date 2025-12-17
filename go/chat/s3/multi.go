@@ -2,6 +2,7 @@ package s3
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
@@ -10,8 +11,6 @@ import (
 	"io"
 	"sort"
 	"strconv"
-
-	"golang.org/x/net/context"
 )
 
 // Multi represents an unfinished multipart upload.

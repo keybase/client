@@ -5,14 +5,13 @@
 package libkb
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 
 	"github.com/keybase/go-codec/codec"
-
-	context "golang.org/x/net/context"
 )
 
 // TLFPseudonym is an identifier for a key in a tlf

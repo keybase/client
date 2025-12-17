@@ -6,6 +6,7 @@ package systests
 // Test various RPCs that are used mainly in other clients but not by the CLI.
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"sort"
@@ -23,7 +24,6 @@ import (
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 type fakeConnectivityMonitor struct {

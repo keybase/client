@@ -1,9 +1,10 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	context "golang.org/x/net/context"
 )
 
 // For a given conversation, purge all ephemeral messages from

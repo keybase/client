@@ -1,11 +1,10 @@
 package chat
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"testing"
-
-	context "golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"

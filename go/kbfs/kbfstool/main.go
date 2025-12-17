@@ -5,11 +5,10 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/libkbfs"

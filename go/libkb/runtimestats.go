@@ -1,8 +1,9 @@
 package libkb
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 type DummyRuntimeStats struct{}

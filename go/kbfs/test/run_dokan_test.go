@@ -8,6 +8,7 @@
 package test
 
 import (
+	"context"
 	"sync"
 	"testing"
 	"time"
@@ -16,7 +17,6 @@ import (
 	"github.com/keybase/client/go/kbfs/libdokan"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
-	"golang.org/x/net/context"
 )
 
 type dokanEngine struct {

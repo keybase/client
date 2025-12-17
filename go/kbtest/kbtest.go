@@ -4,6 +4,7 @@
 package kbtest
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -13,8 +14,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kex2"

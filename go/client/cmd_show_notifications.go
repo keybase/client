@@ -4,10 +4,9 @@
 package client
 
 import (
+	"context"
 	"encoding/base64"
 	"time"
-
-	"golang.org/x/net/context"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/cli"

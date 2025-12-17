@@ -2,6 +2,7 @@ package s3
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -10,8 +11,6 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
-
-	"golang.org/x/net/context"
 )
 
 type Mem struct {

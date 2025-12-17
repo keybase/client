@@ -1,10 +1,10 @@
 package git
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 // For errors that expect, replace them with nice strings for the user. The GUI

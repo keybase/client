@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/idutil"
@@ -15,7 +16,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	metrics "github.com/rcrowley/go-metrics"
-	"golang.org/x/net/context"
 )
 
 // KeybaseServiceMeasured delegates to another KeybaseService instance

@@ -6,11 +6,11 @@ package libfs
 
 import (
 	"bytes"
+	"context"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/metricsutil"
-	"golang.org/x/net/context"
 )
 
 // GetEncodedMetrics returns metrics encoded as bytes for metrics file.

@@ -4,13 +4,12 @@
 package systests
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"testing"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/engine"

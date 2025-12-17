@@ -5,11 +5,12 @@
 package libkey
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/protocol/keybase1"
 	metrics "github.com/rcrowley/go-metrics"
-	"golang.org/x/net/context"
 )
 
 // KeyServerMeasured delegates to another KeyServer instance but

@@ -1,10 +1,10 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type diskLimitTrackerType int

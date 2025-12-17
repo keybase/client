@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 func TestLoadingUserCachesServiceMap(t *testing.T) {

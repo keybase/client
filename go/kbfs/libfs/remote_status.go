@@ -5,6 +5,7 @@
 package libfs
 
 import (
+	"context"
 	"runtime"
 	"strings"
 	"sync"
@@ -14,7 +15,6 @@ import (
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	"golang.org/x/net/context"
 )
 
 // Special files in root directory.

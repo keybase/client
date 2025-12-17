@@ -1,10 +1,10 @@
 package encrypteddb
 
 import (
+	"context"
 	"os"
 
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 type EncryptedFile struct {

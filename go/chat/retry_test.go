@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"testing"
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type errorClient struct{}

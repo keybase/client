@@ -8,13 +8,13 @@
 package libfuse
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/ioutil"
-	"golang.org/x/net/context"
 )
 
 func newExternalFile(path string) (*SpecialReadFile, error) { // nolint

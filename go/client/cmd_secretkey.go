@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type CmdSecretKey struct {

@@ -1,13 +1,13 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
-	context "golang.org/x/net/context"
 
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"

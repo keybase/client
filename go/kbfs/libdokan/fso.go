@@ -5,12 +5,12 @@
 package libdokan
 
 import (
+	"context"
 	"sync/atomic"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/libkbfs"
-	"golang.org/x/net/context"
 )
 
 // FSO is a common type for file system objects, i.e. Dirs or Files.

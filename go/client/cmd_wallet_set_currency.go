@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"golang.org/x/net/context"
 )
 
 type cmdWalletSetCurrency struct {

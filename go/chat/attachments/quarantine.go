@@ -3,7 +3,7 @@
 
 package attachments
 
-import "golang.org/x/net/context"
+import "context"
 
 func Quarantine(ctx context.Context, path string) error {
 	return nil

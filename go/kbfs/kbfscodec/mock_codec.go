@@ -4,9 +4,8 @@
 package kbfscodec
 
 import (
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // Mock of Codec interface

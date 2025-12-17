@@ -1,12 +1,12 @@
 package engine
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func TestNIST(t *testing.T) {

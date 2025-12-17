@@ -5,12 +5,11 @@
 package libfs
 
 import (
+	"context"
 	"sync"
 
 	"github.com/eapache/channels"
 	"github.com/keybase/client/go/logger"
-
-	"golang.org/x/net/context"
 )
 
 // FSNotifications processes notifications (arbitrary functions,

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"math/rand"
@@ -36,7 +37,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // mdReadType indicates whether a read needs identifies.

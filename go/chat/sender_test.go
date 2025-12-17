@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"sort"
@@ -25,7 +26,6 @@ import (
 	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 type chatListener struct {

@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -8,7 +9,6 @@ import (
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 func TestRevokeDevices(t *testing.T) {

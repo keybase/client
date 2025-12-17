@@ -1,11 +1,11 @@
 package teams
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func TestSetTarsDisabled(t *testing.T) {

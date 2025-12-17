@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"path/filepath"
 	"sync"
 	"time"
@@ -16,7 +17,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // mdServerTlfStorage stores an ordered list of metadata IDs for each

@@ -5,6 +5,7 @@ package kex2
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"io"
 	"net"
@@ -15,7 +16,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type message struct {

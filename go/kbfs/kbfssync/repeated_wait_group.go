@@ -5,9 +5,8 @@
 package kbfssync
 
 import (
+	"context"
 	"sync"
-
-	"golang.org/x/net/context"
 )
 
 // RepeatedWaitGroup can be used in place of a sync.WaitGroup when

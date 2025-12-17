@@ -5,6 +5,7 @@ package chat
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
@@ -23,8 +24,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/chat/bots"
 	"github.com/keybase/client/go/kbhttp/manager"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"

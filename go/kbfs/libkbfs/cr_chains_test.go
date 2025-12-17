@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"reflect"
 	"testing"
 	"time"
@@ -20,7 +21,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func checkExpectedChains(t *testing.T, expected map[data.BlockPointer]data.BlockPointer,

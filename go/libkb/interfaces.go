@@ -13,11 +13,10 @@ package libkb
  */
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/PuerkitoBio/goquery"
 	gregor "github.com/keybase/client/go/gregor"

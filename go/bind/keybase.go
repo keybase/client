@@ -4,6 +4,7 @@
 package keybase
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -33,7 +34,6 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 )
 
 var (

@@ -1,11 +1,11 @@
 package libkb
 
 import (
+	"context"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 	"golang.org/x/time/rate"
 )
 

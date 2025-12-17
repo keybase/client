@@ -1,11 +1,10 @@
 package engine
 
 import (
+	"context"
 	"os"
 	"testing"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/clockwork"

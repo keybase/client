@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/keybase/client/go/saltpackkeystest"
 	"github.com/keybase/saltpack"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type fakeSaltpackUI struct{}

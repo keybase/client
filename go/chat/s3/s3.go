@@ -13,6 +13,7 @@ package s3
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/xml"
@@ -28,8 +29,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-
-	"golang.org/x/net/context"
 )
 
 const debug = false

@@ -7,9 +7,10 @@
 package service
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/install"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 func (c *CtlHandler) SetOnLoginStartup(_ context.Context, enabled bool) (err error) {

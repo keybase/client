@@ -4,11 +4,11 @@
 package engine
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 const (

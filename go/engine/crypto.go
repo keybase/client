@@ -4,13 +4,13 @@
 package engine
 
 import (
+	"context"
 	"sync"
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/box"
-	"golang.org/x/net/context"
 )
 
 // getKeyMu synchronizes all accesses to the need to pull in pinentries/secret keys
