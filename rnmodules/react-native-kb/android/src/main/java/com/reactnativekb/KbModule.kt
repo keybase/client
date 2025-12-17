@@ -59,6 +59,7 @@ import keybase.Keybase.readArr
 import keybase.Keybase.version
 import keybase.Keybase.writeArr
 import com.facebook.react.common.annotations.FrameworkAPI
+import io.keybase.ossifrage.MainActivity
 
 @OptIn(FrameworkAPI::class)
 class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
@@ -520,9 +521,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     @ReactMethod
     override fun getInitialNotification(promise: Promise) {
-        val bundle = io.keybase.ossifrage.MainActivity.getInitialNotificationBundle()
+        val bundle = MainActivity.getInitialNotificationBundle()
         if (bundle != null) {
-            val payload = Arguments.fromBundle(bundle)
+            val payload: WritableMap = Arguments.fromBundle(bundle)
             promise.resolve(payload)
         } else {
             promise.resolve(null)
@@ -531,7 +532,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     fun emitPushNotification(notification: Bundle) {
         if (reactContext.hasActiveCatalystInstance()) {
-            val payload = Arguments.fromBundle(notification)
+            val payload: WritableMap = Arguments.fromBundle(notification)
             reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
                 .emit("onPushNotification", payload)
@@ -564,7 +565,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             notificationManager.createNotificationChannel(channel)
         }
 
-        val notification = android.app.NotificationCompat.Builder(reactContext, channelId)
+        val notification = NotificationCompat.Builder(reactContext, channelId)
             .setContentText(body)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .build()
