@@ -5,9 +5,9 @@ import KBCommon
 import UIKit
 import UserNotifications
 import AVFoundation
-import RNCPushNotificationIOS
 import ExpoModulesCore
 import Keybasego
+import Kb
 
 class KeyboardWindow: UIWindow {
   override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
@@ -207,11 +207,12 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
   
   func application(_ application: UIApplication, didRegister notificationSettings: UIUserNotificationSettings) {
-      RNCPushNotificationIOS.didRegister(notificationSettings)
-    }
+  }
   
   public override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-    RNCPushNotificationIOS.didRegisterForRemoteNotifications(withDeviceToken: deviceToken)
+    let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
+    let token = tokenParts.joined()
+    Kb.setDeviceToken(token)
   }
   
   public override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
@@ -237,18 +238,42 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
         NSLog("Remote notification handle finished...")
       }
     } else {
-      RNCPushNotificationIOS.didReceiveRemoteNotification(notification)
+      Kb.emitPushNotification(notification as [String: Any])
       completionHandler(.newData)
     }
   }
   
   public override func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-    RNCPushNotificationIOS.didFailToRegisterForRemoteNotificationsWithError(error)
   }
   
   public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-    RNCPushNotificationIOS.didReceive(response)
+    let userInfo = response.notification.request.content.userInfo
+    var notificationData: [String: Any] = [:]
+    
+    if let data = userInfo["data"] as? [String: Any] {
+      notificationData = data
+    } else {
+      notificationData = userInfo as [String: Any]
+    }
+    
+    Kb.emitPushNotification(notificationData)
+    Kb.setInitialNotification(notificationData)
+    
     completionHandler()
+  }
+  
+  public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+    let userInfo = notification.request.content.userInfo
+    var notificationData: [String: Any] = [:]
+    
+    if let data = userInfo["data"] as? [String: Any] {
+      notificationData = data
+    } else {
+      notificationData = userInfo as [String: Any]
+    }
+    
+    Kb.emitPushNotification(notificationData)
+    completionHandler([])
   }
   
   public func userNotificationCenter(

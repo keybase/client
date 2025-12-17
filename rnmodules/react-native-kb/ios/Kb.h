@@ -17,3 +17,9 @@
 @property(nonatomic, retain) NSDictionary *fsPaths;
 + (instancetype)sharedFsPathsHolder;
 @end
+
+@interface Kb (PushNotifications)
++ (void)setDeviceToken:(NSString *)token;
++ (void)setInitialNotification:(NSDictionary *)notification;
++ (void)emitPushNotification:(NSDictionary *)notification;
+@end

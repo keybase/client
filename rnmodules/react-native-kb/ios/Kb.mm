@@ -70,6 +70,8 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 static __weak Kb *kbSharedInstance = nil;
 static BOOL kbPasteImageEnabled = NO;
+static NSString *kbStoredDeviceToken = nil;
+static NSDictionary *kbInitialNotification = nil;
 
 @interface RCTBridge (JSIRuntime)
 - (void *)runtime;
@@ -169,7 +171,7 @@ RCT_EXPORT_MODULE()
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-return @[ metaEventName, @"hardwareKeyPressed", @"onPasteImage" ];
+return @[ metaEventName, @"hardwareKeyPressed", @"onPasteImage", @"onPushNotification" ];
 }
 
 RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
@@ -422,6 +424,91 @@ RCT_EXPORT_METHOD(iosGetHasShownPushPrompt: (RCTPromiseResolveBlock)resolve reje
     resolve(@TRUE);
     return;
   }];
+}
+
+RCT_EXPORT_METHOD(checkPushPermissions: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
+  UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
+  [current getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings *_Nonnull settings) {
+    BOOL hasPermission = settings.authorizationStatus == UNAuthorizationStatusAuthorized;
+    resolve(@(hasPermission));
+  }];
+}
+
+RCT_EXPORT_METHOD(requestPushPermissions: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
+  UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
+  UNAuthorizationOptions options = UNAuthorizationOptionAlert | UNAuthorizationOptionBadge | UNAuthorizationOptionSound;
+  [current requestAuthorizationWithOptions:options completionHandler:^(BOOL granted, NSError * _Nullable error) {
+    if (error) {
+      reject(@"permission_error", error.localizedDescription, error);
+    } else {
+      resolve(@(granted));
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(getRegistrationToken: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
+  if (kbStoredDeviceToken) {
+    resolve(kbStoredDeviceToken);
+  } else {
+    reject(@"no_token", @"Device token not yet registered", nil);
+  }
+}
+
+RCT_EXPORT_METHOD(setApplicationIconBadgeNumber: (double)badgeNumber) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [UIApplication sharedApplication].applicationIconBadgeNumber = (NSInteger)badgeNumber;
+  });
+}
+
+RCT_EXPORT_METHOD(getInitialNotification: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
+  if (kbInitialNotification) {
+    resolve(kbInitialNotification);
+  } else {
+    resolve([NSNull null]);
+  }
+}
+
+RCT_EXPORT_METHOD(removeAllPendingNotificationRequests) {
+  UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
+  [current removeAllPendingNotificationRequests];
+}
+
+RCT_EXPORT_METHOD(addNotificationRequest: (NSDictionary *)config resolve: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
+  NSString *body = config[@"body"];
+  NSString *identifier = config[@"id"];
+  
+  if (!body || !identifier) {
+    reject(@"invalid_config", @"body and id are required", nil);
+    return;
+  }
+  
+  UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+  content.body = body;
+  
+  UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:identifier content:content trigger:nil];
+  
+  UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
+  [current addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
+    if (error) {
+      reject(@"notification_error", error.localizedDescription, error);
+    } else {
+      resolve(@YES);
+    }
+  }];
+}
+
++ (void)setDeviceToken:(NSString *)token {
+  kbStoredDeviceToken = token;
+}
+
++ (void)setInitialNotification:(NSDictionary *)notification {
+  kbInitialNotification = notification;
+}
+
++ (void)emitPushNotification:(NSDictionary *)notification {
+  if (kbSharedInstance) {
+    [kbSharedInstance sendEventWithName:@"onPushNotification" body:notification];
+  }
 }
 
 - (void)handleHardwareKeyPressed:(NSNotification *)notification {

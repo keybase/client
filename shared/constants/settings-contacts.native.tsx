@@ -3,7 +3,7 @@ import * as Contacts from 'expo-contacts'
 import {ignorePromise} from './utils'
 import * as T from './types'
 import * as Z from '@/util/zustand'
-import PushNotificationIOS from '@react-native-community/push-notification-ios'
+import {addNotificationRequest} from 'react-native-kb'
 import logger from '@/logger'
 import type {Store, State} from './settings-contacts'
 import {RPCError} from '@/util/errors'
@@ -214,11 +214,10 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
             s.userCountryCode = defaultCountryCode
           })
           if (newlyResolved?.length) {
-            isIOS &&
-              PushNotificationIOS.addNotificationRequest({
-                body: makeContactsResolvedMessage(newlyResolved),
-                id: Math.floor(Math.random() * 2 ** 32).toString(),
-              })
+            addNotificationRequest({
+              body: makeContactsResolvedMessage(newlyResolved),
+              id: Math.floor(Math.random() * 2 ** 32).toString(),
+            }).catch(() => {})
           }
           if (get().waitingToShowJoinedModal && resolved) {
             set(s => {

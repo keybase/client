@@ -1,22 +1,15 @@
 import * as T from '../types'
 import {ignorePromise, timeoutPromise} from '../utils'
-import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '@/logger'
 import {isIOS, isAndroid} from '../platform'
 import {
-  androidGetRegistrationToken,
-  androidSetApplicationIconBadgeNumber,
+  getRegistrationToken,
+  setApplicationIconBadgeNumber,
   getNativeEmitter,
+  getInitialNotification,
+  removeAllPendingNotificationRequests,
 } from 'react-native-kb'
 import {storeRegistry} from '../store-registry'
-
-const setApplicationIconBadgeNumber = (n: number) => {
-  if (isIOS) {
-    PushNotificationIOS.setApplicationIconBadgeNumber(n)
-  } else {
-    androidSetApplicationIconBadgeNumber(n)
-  }
-}
 
 type DataCommon = {
   userInteraction: boolean
@@ -150,7 +143,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
 // If the intent is available and react isn't inited we'll stash it and emit when react is alive
 
 const listenForNativeAndroidIntentNotifications = async () => {
-  const pushToken = await androidGetRegistrationToken()
+  const pushToken = await getRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
 
   storeRegistry.getState('push').dispatch.setPushToken(pushToken)
@@ -178,11 +171,10 @@ const listenForNativeAndroidIntentNotifications = async () => {
   })
 }
 
-const iosListenForPushNotificationsFromJS = () => {
-  const onRegister = (token: string) => {
-    logger.debug('[PushToken] received new token: ', token)
-    storeRegistry.getState('push').dispatch.setPushToken(token)
-  }
+const iosListenForPushNotificationsFromJS = async () => {
+  const pushToken = await getRegistrationToken()
+  logger.debug('[PushToken] received new token: ', pushToken)
+  storeRegistry.getState('push').dispatch.setPushToken(pushToken)
 
   const onNotification = (n: object) => {
     logger.debug('[onNotification]: ', n)
@@ -194,9 +186,8 @@ const iosListenForPushNotificationsFromJS = () => {
     storeRegistry.getState('push').dispatch.handlePush(notification)
   }
 
-  isIOS && PushNotificationIOS.addEventListener('notification', onNotification)
-  isIOS && PushNotificationIOS.addEventListener('localNotification', onNotification)
-  isIOS && PushNotificationIOS.addEventListener('register', onRegister)
+  const RNEmitter = getNativeEmitter()
+  RNEmitter.addListener('onPushNotification', onNotification)
 }
 
 const getStartupDetailsFromInitialPush = async () => {
@@ -223,7 +214,7 @@ const getStartupDetailsFromInitialPush = async () => {
 
 const getInitialPushiOS = async () => {
   if (!isIOS) return undefined
-  const n = await PushNotificationIOS.getInitialNotification()
+  const n = await getInitialNotification()
   return n ? normalizePush(n) : undefined
 }
 
@@ -257,8 +248,8 @@ export const initPushListener = () => {
     const count = s.badgeState.bigTeamBadgeCount + s.badgeState.smallTeamBadgeCount
     setApplicationIconBadgeNumber(count)
     // Only do this native call if the count actually changed, not over and over if its zero
-    if (isIOS && count === 0 && lastCount !== 0) {
-      PushNotificationIOS.removeAllPendingNotificationRequests()
+    if (count === 0 && lastCount !== 0) {
+      removeAllPendingNotificationRequests()
     }
     lastCount = count
   })
@@ -271,7 +262,9 @@ export const initPushListener = () => {
         await listenForNativeAndroidIntentNotifications()
       } catch {}
     } else {
-      iosListenForPushNotificationsFromJS()
+      try {
+        await iosListenForPushNotificationsFromJS()
+      } catch {}
     }
   }
   ignorePromise(listenNative())

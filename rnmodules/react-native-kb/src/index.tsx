@@ -80,25 +80,6 @@ export const androidShare = (text: string, mimeType: string): Promise<boolean> =
   return Promise.resolve(false)
 }
 
-export const androidCheckPushPermissions = (): Promise<boolean> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidCheckPushPermissions()
-  }
-  return Promise.resolve(false)
-}
-export const androidRequestPushPermissions = (): Promise<boolean> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidRequestPushPermissions()
-  }
-  return Promise.resolve(false)
-}
-export const androidGetRegistrationToken = (): Promise<string> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetRegistrationToken()
-  }
-  return Promise.resolve('')
-}
-
 export const androidUnlink = (path: string): Promise<void> => {
   if (Platform.OS === 'android') {
     return Kb.androidUnlink(path)
@@ -125,10 +106,32 @@ export const androidAppColorSchemeChanged = (mode: 'system' | 'alwaysDark' | 'al
   }
 }
 
-export const androidSetApplicationIconBadgeNumber = (n: number): void => {
-  if (Platform.OS === 'android') {
-    Kb.androidSetApplicationIconBadgeNumber(n)
-  }
+export const checkPushPermissions = (): Promise<boolean> => {
+  return Kb.checkPushPermissions()
+}
+
+export const requestPushPermissions = (): Promise<boolean> => {
+  return Kb.requestPushPermissions()
+}
+
+export const getRegistrationToken = (): Promise<string> => {
+  return Kb.getRegistrationToken()
+}
+
+export const setApplicationIconBadgeNumber = (n: number): void => {
+  Kb.setApplicationIconBadgeNumber(n)
+}
+
+export const getInitialNotification = (): Promise<object | null> => {
+  return Kb.getInitialNotification()
+}
+
+export const removeAllPendingNotificationRequests = (): void => {
+  Kb.removeAllPendingNotificationRequests()
+}
+
+export const addNotificationRequest = (config: {body: string; id: string}): Promise<void> => {
+  return Kb.addNotificationRequest(config)
 }
 
 // Hardware keyboard events

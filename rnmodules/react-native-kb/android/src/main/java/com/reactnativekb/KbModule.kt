@@ -17,6 +17,7 @@ import android.text.format.DateFormat
 import android.util.Log
 import android.view.Window
 import android.view.WindowManager
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import com.facebook.react.bridge.Arguments
@@ -305,15 +306,15 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     // Push
     @ReactMethod
-    override fun androidCheckPushPermissions(promise: Promise) {
+    fun checkPushPermissions(promise: Promise) {
         val managerCompat: NotificationManagerCompat = NotificationManagerCompat.from(reactContext)
         promise.resolve(managerCompat.areNotificationsEnabled())
     }
 
     @ReactMethod
-    override fun androidRequestPushPermissions(promise: Promise) {
+    fun requestPushPermissions(promise: Promise) {
         ensureFirebase()
-        androidCheckPushPermissions(promise)
+        checkPushPermissions(promise)
     }
 
     private fun ensureFirebase() {
@@ -330,7 +331,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     }
 
     @ReactMethod
-    override fun androidGetRegistrationToken(promise: Promise) {
+    fun getRegistrationToken(promise: Promise) {
         ensureFirebase()
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(OnCompleteListener { task ->
@@ -507,8 +508,48 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     // Badging
     @ReactMethod
-    override fun androidSetApplicationIconBadgeNumber(badge: Double) {
+    fun setApplicationIconBadgeNumber(badge: Double) {
         ShortcutBadger.applyCount(reactContext, badge.toInt())
+    }
+
+    @ReactMethod
+    fun getInitialNotification(promise: Promise) {
+        promise.resolve(null)
+    }
+
+    @ReactMethod
+    fun removeAllPendingNotificationRequests() {
+    }
+
+    @ReactMethod
+    fun addNotificationRequest(config: ReadableMap, promise: Promise) {
+        val body = config.getString("body")
+        val id = config.getString("id")
+        
+        if (body == null || id == null) {
+            promise.reject("invalid_config", "body and id are required")
+            return
+        }
+        
+        val notificationManager = reactContext.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        val channelId = "keybase_notifications"
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel(
+                channelId,
+                "Keybase Notifications",
+                android.app.NotificationManager.IMPORTANCE_DEFAULT
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+        
+        val notification = android.app.NotificationCompat.Builder(reactContext, channelId)
+            .setContentText(body)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .build()
+        
+        notificationManager.notify(id.hashCode(), notification)
+        promise.resolve(null)
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)

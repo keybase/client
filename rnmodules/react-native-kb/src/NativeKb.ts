@@ -32,9 +32,6 @@ export interface Spec extends TurboModule {
   androidGetSecureFlagSetting(): Promise<boolean>
   androidShareText(text: string, mimeType: string): Promise<boolean>
   androidShare(text: string, mimeType: string): Promise<boolean>
-  androidCheckPushPermissions(): Promise<boolean>
-  androidRequestPushPermissions(): Promise<boolean>
-  androidGetRegistrationToken(): Promise<string>
   androidUnlink(path: string): Promise<void>
   androidAddCompleteDownload(o: {
     description: string
@@ -44,7 +41,13 @@ export interface Spec extends TurboModule {
     title: string
   }): Promise<void>
   androidAppColorSchemeChanged(mode: string /*'system' | 'alwaysDark' | 'alwaysLight' | ''*/): void
-  androidSetApplicationIconBadgeNumber(n: number): void
+  checkPushPermissions(): Promise<boolean>
+  requestPushPermissions(): Promise<boolean>
+  getRegistrationToken(): Promise<string>
+  setApplicationIconBadgeNumber(n: number): void
+  getInitialNotification(): Promise<object | null>
+  removeAllPendingNotificationRequests(): void
+  addNotificationRequest(config: {body: string; id: string}): Promise<void>
   engineReset(): void
   notifyJSReady(): void
   shareListenersRegistered(): void
