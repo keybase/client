@@ -140,25 +140,30 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
                     if (dontNotify && (!goProcessingSucceeded || !isReactNativeRunning)) {
                         NativeLogger.info("KeybasePushNotificationListenerService silent notification but React Native not running or Go failed, displaying fallback")
-                        if (n.serverMessageBody.isNotEmpty()) {
-                            try {
-                                val chatNotif = keybase.ChatNotification()
-                                chatNotif.convID = n.convID
-                                chatNotif.message.serverMessage = n.serverMessageBody
-                                chatNotif.message.from.keybaseUsername = n.sender ?: ""
-                                chatNotif.isPlaintext = false
-                                chatNotif.soundName = n.soundName ?: "default"
-                                chatNotif.message.at = n.unixTime
-                                NativeLogger.info("KeybasePushNotificationListenerService calling notifier.displayChatNotification for silent fallback")
-                                notifier.displayChatNotification(chatNotif)
-                                seenChatNotifications.add(n.convID + n.messageId)
-                                NativeLogger.info("KeybasePushNotificationListenerService silent fallback notification displayed successfully")
-                            } catch (e: Exception) {
-                                NativeLogger.error("Failed to display silent notification fallback: " + e.message)
-                                NativeLogger.error("Silent fallback exception stack: " + e.stackTraceToString())
+                        NativeLogger.info("KeybasePushNotificationListenerService serverMessageBody: '${n.serverMessageBody}', sender: '${n.sender}'")
+                        try {
+                            val chatNotif = keybase.ChatNotification()
+                            chatNotif.convID = n.convID
+                            chatNotif.message.serverMessage = if (n.serverMessageBody.isNotEmpty()) {
+                                n.serverMessageBody
+                            } else {
+                                if (n.sender != null && n.sender.isNotEmpty()) {
+                                    "New message from ${n.sender}"
+                                } else {
+                                    "New message"
+                                }
                             }
-                        } else {
-                            NativeLogger.info("KeybasePushNotificationListenerService silent notification has no server message body, skipping display")
+                            chatNotif.message.from.keybaseUsername = n.sender ?: ""
+                            chatNotif.isPlaintext = false
+                            chatNotif.soundName = n.soundName ?: "default"
+                            chatNotif.message.at = n.unixTime
+                            NativeLogger.info("KeybasePushNotificationListenerService calling notifier.displayChatNotification for silent fallback with message: '${chatNotif.message.serverMessage}'")
+                            notifier.displayChatNotification(chatNotif)
+                            seenChatNotifications.add(n.convID + n.messageId)
+                            NativeLogger.info("KeybasePushNotificationListenerService silent fallback notification displayed successfully")
+                        } catch (e: Exception) {
+                            NativeLogger.error("Failed to display silent notification fallback: " + e.message)
+                            NativeLogger.error("Silent fallback exception stack: " + e.stackTraceToString())
                         }
                     } else if (!goProcessingSucceeded && type == "chat.newmessage") {
                         NativeLogger.info("KeybasePushNotificationListenerService attempting fallback notification display")
