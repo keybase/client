@@ -7,7 +7,12 @@ import logger from '@/logger'
 import * as T from './types'
 import {isDevApplePushToken} from '@/local-debug'
 import {isIOS} from './platform'
-import {iosGetHasShownPushPrompt, checkPushPermissions, requestPushPermissions} from 'react-native-kb'
+import {
+  iosGetHasShownPushPrompt,
+  checkPushPermissions,
+  requestPushPermissions,
+  removeAllPendingNotificationRequests,
+} from 'react-native-kb'
 import {type Store, type State} from './push'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
@@ -137,7 +142,6 @@ export const usePushState = Z.createZustand<State>((set, get) => {
             case 'chat.readmessage':
               logger.info('[Push] read message')
               if (notification.badges === 0) {
-                const {removeAllPendingNotificationRequests} = await import('react-native-kb')
                 removeAllPendingNotificationRequests()
               }
               break
