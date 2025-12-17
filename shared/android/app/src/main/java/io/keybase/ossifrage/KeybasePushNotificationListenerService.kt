@@ -48,6 +48,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
+        NativeLogger.info("KeybasePushNotificationListenerService.onMessageReceived START")
         val bundle = Bundle()
         for ((key, value) in message.data) {
             bundle.putString(key, value)
@@ -71,13 +72,14 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                 ShortcutBadger.applyCount(this, badge)
             }
         }
-        NativeLogger.info("KeybasePushNotificationListenerService.onMessageReceived")
         try {
             val type = bundle.getString("type")
+            NativeLogger.info("KeybasePushNotificationListenerService.onMessageReceived type: $type")
             val payload = bundle.getString("m")
             val notifier = KBPushNotifier(applicationContext, bundle.clone() as Bundle)
             when (type) {
                 "chat.newmessage", "chat.newmessageSilent_2" -> {
+                    NativeLogger.info("KeybasePushNotificationListenerService processing chat notification")
                     val n = NotificationData(type, bundle)
 
                     // Blow the cache if we aren't displaying plaintext
@@ -94,28 +96,37 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     // We'll get the non-silent version with a servermessagebody that we can display
                     // later.
                     val dontNotify = type == "chat.newmessageSilent_2" && !n.displayPlaintext
+                    NativeLogger.info("KeybasePushNotificationListenerService dontNotify: $dontNotify, type: $type, displayPlaintext: ${n.displayPlaintext}")
+                    NativeLogger.info("KeybasePushNotificationListenerService convID: ${n.convID}, messageId: ${n.messageId}")
                     notifier.setMsgCache(msgCache[n.convID])
 
                     try {
+                        NativeLogger.info("KeybasePushNotificationListenerService calling withBackgroundActive.whileActive")
                         val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
                             override fun task() {
                                 try {
+                                    NativeLogger.info("KeybasePushNotificationListenerService calling Keybase.handleBackgroundNotification")
                                     Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
                                             n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
                                             n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true)
+                                    NativeLogger.info("KeybasePushNotificationListenerService Keybase.handleBackgroundNotification succeeded")
                                     if (!dontNotify) {
                                         seenChatNotifications.add(n.convID + n.messageId)
                                     }
                                 } catch (ex: Exception) {
                                     NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
+                                    NativeLogger.error("Go exception stack: " + ex.stackTraceToString())
                                     throw ex
                                 }
                             }
                         }
                         withBackgroundActive.whileActive(applicationContext)
+                        NativeLogger.info("KeybasePushNotificationListenerService withBackgroundActive.whileActive completed")
                     } catch (ex: Exception) {
                         NativeLogger.error("Failed to process notification (app may not be running): " + ex.message)
+                        NativeLogger.error("Exception stack: " + ex.stackTraceToString())
                         if (!dontNotify && type == "chat.newmessage") {
+                            NativeLogger.info("KeybasePushNotificationListenerService attempting fallback notification display")
                             try {
                                 val chatNotif = keybase.ChatNotification()
                                 chatNotif.convID = n.convID
@@ -124,14 +135,20 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                                 chatNotif.isPlaintext = n.displayPlaintext
                                 chatNotif.soundName = n.soundName ?: "default"
                                 chatNotif.message.at = n.unixTime
+                                NativeLogger.info("KeybasePushNotificationListenerService calling notifier.displayChatNotification")
                                 notifier.displayChatNotification(chatNotif)
                                 seenChatNotifications.add(n.convID + n.messageId)
+                                NativeLogger.info("KeybasePushNotificationListenerService fallback notification displayed successfully")
                             } catch (e: Exception) {
                                 NativeLogger.error("Failed to display notification fallback: " + e.message)
+                                NativeLogger.error("Fallback exception stack: " + e.stackTraceToString())
                             }
+                        } else {
+                            NativeLogger.info("KeybasePushNotificationListenerService skipping fallback: dontNotify=$dontNotify, type=$type")
                         }
                     }
                     if (type == "chat.newmessage") {
+                        NativeLogger.info("KeybasePushNotificationListenerService emitting onPushNotification event")
                         val emitBundle = bundle.clone() as Bundle
                         emitBundle.putBoolean("userInteraction", false)
                         KbModule.emitPushNotification(emitBundle)
@@ -139,17 +156,22 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                 }
 
                 "follow" -> {
+                    NativeLogger.info("KeybasePushNotificationListenerService processing follow notification")
                     val username = bundle.getString("username")
                     val m = bundle.getString("message")
                     if (username != null && m != null) {
+                        NativeLogger.info("KeybasePushNotificationListenerService displaying follow notification for: $username")
                         notifier.followNotification(username, m)
                         val emitBundle = bundle.clone() as Bundle
                         emitBundle.putBoolean("userInteraction", false)
                         KbModule.emitPushNotification(emitBundle)
+                    } else {
+                        NativeLogger.error("KeybasePushNotificationListenerService follow notification missing username or message")
                     }
                 }
 
                 "device.revoked", "device.new" -> {
+                    NativeLogger.info("KeybasePushNotificationListenerService processing device notification: $type")
                     notifier.deviceNotification()
                     val emitBundle = bundle.clone() as Bundle
                     emitBundle.putBoolean("userInteraction", false)
@@ -157,6 +179,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                 }
 
                 "chat.readmessage" -> {
+                    NativeLogger.info("KeybasePushNotificationListenerService processing readmessage notification")
                     val convID = bundle.getString("c")
                     // Clear the cache of msgs for this conv id
                     if (msgCache.containsKey(convID)) {
@@ -170,14 +193,17 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                 }
 
                 else -> {
+                    NativeLogger.info("KeybasePushNotificationListenerService processing general notification: $type")
                     notifier.generalNotification()
                     val emitBundle = bundle.clone() as Bundle
                     emitBundle.putBoolean("userInteraction", false)
                     KbModule.emitPushNotification(emitBundle)
                 }
             }
+            NativeLogger.info("KeybasePushNotificationListenerService.onMessageReceived END successfully")
         } catch (ex: Exception) {
             NativeLogger.error("Couldn't handle background notification: " + ex.message)
+            NativeLogger.error("Exception stack: " + ex.stackTraceToString())
         }
     }
 
@@ -320,24 +346,42 @@ internal interface WithBackgroundActive {
 
     @Throws(Exception::class)
     fun whileActive(context: Context?) {
-        // We are foreground don't show anything
-        if (Keybase.isAppStateForeground()) {
-            return
-        } else {
-            Keybase.setAppStateBackgroundActive()
-            task()
-
-            // Check if we are foreground now for some reason. In that case we don't want to go background again
-            if (Keybase.isAppStateForeground()) {
+        try {
+            // We are foreground don't show anything
+            val isForeground = Keybase.isAppStateForeground()
+            NativeLogger.info("WithBackgroundActive.whileActive isForeground: $isForeground")
+            if (isForeground) {
+                NativeLogger.info("WithBackgroundActive.whileActive app is foreground, returning early")
                 return
-            }
-            if (Keybase.appDidEnterBackground()) {
-                if (context != null) {
-                    Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(context, Bundle()))
-                }
             } else {
-                Keybase.setAppStateBackground()
+                NativeLogger.info("WithBackgroundActive.whileActive setting background active and calling task")
+                Keybase.setAppStateBackgroundActive()
+                task()
+                NativeLogger.info("WithBackgroundActive.whileActive task completed")
+
+                // Check if we are foreground now for some reason. In that case we don't want to go background again
+                val isForegroundNow = Keybase.isAppStateForeground()
+                NativeLogger.info("WithBackgroundActive.whileActive isForegroundNow: $isForegroundNow")
+                if (isForegroundNow) {
+                    NativeLogger.info("WithBackgroundActive.whileActive app became foreground, returning")
+                    return
+                }
+                val didEnterBackground = Keybase.appDidEnterBackground()
+                NativeLogger.info("WithBackgroundActive.whileActive didEnterBackground: $didEnterBackground")
+                if (didEnterBackground) {
+                    if (context != null) {
+                        NativeLogger.info("WithBackgroundActive.whileActive beginning background task")
+                        Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(context, Bundle()))
+                    }
+                } else {
+                    NativeLogger.info("WithBackgroundActive.whileActive setting app state to background")
+                    Keybase.setAppStateBackground()
+                }
             }
+        } catch (ex: Exception) {
+            NativeLogger.error("WithBackgroundActive.whileActive exception: " + ex.message)
+            NativeLogger.error("WithBackgroundActive exception stack: " + ex.stackTraceToString())
+            throw ex
         }
     }
 }

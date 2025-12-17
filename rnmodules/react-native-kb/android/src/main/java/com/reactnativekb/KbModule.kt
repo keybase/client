@@ -535,15 +535,20 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     }
 
     private fun emitPushNotificationInternal(notification: Bundle) {
+        android.util.Log.d("KbModule", "emitPushNotificationInternal called")
         if (reactContext.hasActiveCatalystInstance()) {
+            android.util.Log.d("KbModule", "emitPushNotificationInternal has active catalyst instance, emitting event")
             try {
                 val payload = Arguments.fromBundle(notification)
                 reactContext
                     .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
                     .emit("onPushNotification", payload)
+                android.util.Log.d("KbModule", "emitPushNotificationInternal event emitted successfully")
             } catch (e: Exception) {
-                // Ignore if we can't emit
+                android.util.Log.e("KbModule", "emitPushNotificationInternal failed to emit: " + e.message)
             }
+        } else {
+            android.util.Log.w("KbModule", "emitPushNotificationInternal no active catalyst instance")
         }
     }
 
@@ -752,6 +757,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
         @JvmStatic
         fun emitPushNotification(notification: Bundle) {
+            if (instance == null) {
+                android.util.Log.w("KbModule", "emitPushNotification called but instance is null (app may not be running)")
+                return
+            }
+            android.util.Log.d("KbModule", "emitPushNotification called, instance exists")
             instance?.emitPushNotificationInternal(notification)
         }
 
