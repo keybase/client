@@ -534,7 +534,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         }
     }
 
-    fun emitPushNotification(notification: Bundle) {
+    private fun emitPushNotificationInternal(notification: Bundle) {
         if (reactContext.hasActiveCatalystInstance()) {
             try {
                 val payload = Arguments.fromBundle(notification)
@@ -752,7 +752,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
         @JvmStatic
         fun emitPushNotification(notification: Bundle) {
-            instance?.emitPushNotification(notification)
+            instance?.emitPushNotificationInternal(notification)
         }
 
         // Is this a robot controlled test device? (i.e. pre-launch report?)
