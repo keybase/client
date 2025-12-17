@@ -52,13 +52,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     
     if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
       let notificationDict = Dictionary(uniqueKeysWithValues: remoteNotification.map { (String(describing: $0.key), $0.value) })
-      var notificationData: [String: Any] = [:]
-      if let data = notificationDict["data"] as? [String: Any] {
-        notificationData = ["data": data, "message": notificationDict["message"] as? String ?? notificationDict["alert"] as? String ?? ""]
-      } else {
-        notificationData = notificationDict
-      }
-      KbSetInitialNotification(notificationData)
+      KbSetInitialNotification(notificationDict)
     }
     
     NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] notification in
@@ -248,56 +242,26 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
         NSLog("Remote notification handle finished...")
       }
     } else {
-      let notificationDict = Dictionary(uniqueKeysWithValues: notification.map { (String(describing: $0.key), $0.value) })
-      var notificationData: [String: Any] = [:]
-      if let data = notificationDict["data"] as? [String: Any] {
-        var dataWithInteraction = data
-        dataWithInteraction["userInteraction"] = false
-        notificationData = ["data": dataWithInteraction, "message": notificationDict["message"] as? String ?? notificationDict["alert"] as? String ?? ""]
-      } else {
-        var dictWithInteraction = notificationDict
-        dictWithInteraction["userInteraction"] = false
-        notificationData = ["data": dictWithInteraction, "message": notificationDict["message"] as? String ?? notificationDict["alert"] as? String ?? ""]
-      }
-      KbEmitPushNotification(notificationData)
+      var notificationDict = Dictionary(uniqueKeysWithValues: notification.map { (String(describing: $0.key), $0.value) })
+      notificationDict["userInteraction"] = false
+      KbEmitPushNotification(notificationDict)
       completionHandler(.newData)
     }
   }
   
   public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
     let userInfo = response.notification.request.content.userInfo
-    let notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
-    
-    var notificationData: [String: Any] = [:]
-    if let data = notificationDict["data"] as? [String: Any] {
-      var dataWithInteraction = data
-      dataWithInteraction["userInteraction"] = true
-      notificationData = ["data": dataWithInteraction, "message": response.notification.request.content.body ?? ""]
-    } else {
-      notificationData = notificationDict
-      notificationData["userInteraction"] = true
-    }
-    
-    KbEmitPushNotification(notificationData)
-    
+    var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
+    notificationDict["userInteraction"] = true
+    KbEmitPushNotification(notificationDict)
     completionHandler()
   }
   
   public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
     let userInfo = notification.request.content.userInfo
-    let notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
-    
-    var notificationData: [String: Any] = [:]
-    if let data = notificationDict["data"] as? [String: Any] {
-      var dataWithInteraction = data
-      dataWithInteraction["userInteraction"] = false
-      notificationData = ["data": dataWithInteraction, "message": notification.request.content.body ?? ""]
-    } else {
-      notificationData = notificationDict
-      notificationData["userInteraction"] = false
-    }
-    
-    KbEmitPushNotification(notificationData)
+    var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
+    notificationDict["userInteraction"] = false
+    KbEmitPushNotification(notificationDict)
     completionHandler([])
   }
   

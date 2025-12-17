@@ -40,11 +40,9 @@ type DataChatExtension = DataCommon & {
 }
 type Data = DataReadMessage | DataNewMessage | DataNewMessageSilent2 | DataFollow | DataChatExtension
 
-type PushN = {
-  data?: Data
-  _data?: Data
-  message: string
-} & Data
+type PushN = Data & {
+  message?: string
+}
 
 const anyToConversationMembersType = (a: string | number): T.RPCChat.ConversationMembersType | undefined => {
   const membersTypeNumber: T.RPCChat.ConversationMembersType =
@@ -69,7 +67,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
     }
 
     const n = _n as PushN
-    const data = isIOS ? n.data || n._data : n
+    const data = n
     if (!data) {
       return undefined
     }
