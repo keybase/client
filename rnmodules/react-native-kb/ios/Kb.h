@@ -10,6 +10,8 @@
 #import <React/RCTCallInvokerModule.h>
 @interface Kb : RCTEventEmitter <NativeKbSpec,RCTCallInvokerModule>
 @end
+#else
+@class Kb;
 #endif // RCT_NEW_ARCH_ENABLED
 
 // Singleton to get the paths
@@ -18,8 +20,7 @@
 + (instancetype)sharedFsPathsHolder;
 @end
 
-@interface Kb (PushNotifications)
-+ (void)setDeviceToken:(NSString *)token;
-+ (void)setInitialNotification:(NSDictionary *)notification;
-+ (void)emitPushNotification:(NSDictionary *)notification;
-@end
+// Push notification helpers - can be called from AppDelegate
+FOUNDATION_EXPORT void KbSetDeviceToken(NSString *token);
+FOUNDATION_EXPORT void KbSetInitialNotification(NSDictionary *notification);
+FOUNDATION_EXPORT void KbEmitPushNotification(NSDictionary *notification);

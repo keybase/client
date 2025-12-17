@@ -510,6 +510,19 @@ RCT_EXPORT_METHOD(addNotificationRequest: (NSDictionary *)config resolve: (RCTPr
     [kbSharedInstance sendEventWithName:@"onPushNotification" body:notification];
   }
 }
+@end
+
+void KbSetDeviceToken(NSString *token) {
+  [Kb setDeviceToken:token];
+}
+
+void KbSetInitialNotification(NSDictionary *notification) {
+  [Kb setInitialNotification:notification];
+}
+
+void KbEmitPushNotification(NSDictionary *notification) {
+  [Kb emitPushNotification:notification];
+}
 
 - (void)handleHardwareKeyPressed:(NSNotification *)notification {
   NSString *keyName = notification.userInfo[@"pressedKey"];

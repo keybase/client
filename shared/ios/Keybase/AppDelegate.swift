@@ -7,7 +7,6 @@ import UserNotifications
 import AVFoundation
 import ExpoModulesCore
 import Keybasego
-import Kb
 
 class KeyboardWindow: UIWindow {
   override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
@@ -212,7 +211,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   public override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
     let token = tokenParts.joined()
-    Kb.setDeviceToken(token)
+    KbSetDeviceToken(token)
   }
   
   public override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
@@ -238,7 +237,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
         NSLog("Remote notification handle finished...")
       }
     } else {
-      Kb.emitPushNotification(notification as [String: Any])
+      KbEmitPushNotification(notification as [String: Any])
       completionHandler(.newData)
     }
   }
@@ -256,8 +255,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       notificationData = userInfo as [String: Any]
     }
     
-    Kb.emitPushNotification(notificationData)
-    Kb.setInitialNotification(notificationData)
+    KbEmitPushNotification(notificationData)
+    KbSetInitialNotification(notificationData)
     
     completionHandler()
   }
@@ -272,7 +271,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       notificationData = userInfo as [String: Any]
     }
     
-    Kb.emitPushNotification(notificationData)
+    KbEmitPushNotification(notificationData)
     completionHandler([])
   }
   
