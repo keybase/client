@@ -9,7 +9,6 @@ import type {Store, State} from './settings-contacts'
 import {RPCError} from '@/util/errors'
 import {getDefaultCountryCode} from 'react-native-kb'
 import {getE164} from './settings-phone'
-import {isIOS} from './platform'
 import {pluralize} from '@/util/string'
 import {storeRegistry} from './store-registry'
 

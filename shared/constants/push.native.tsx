@@ -7,11 +7,7 @@ import logger from '@/logger'
 import * as T from './types'
 import {isDevApplePushToken} from '@/local-debug'
 import {isIOS} from './platform'
-import {
-  iosGetHasShownPushPrompt,
-  checkPushPermissions,
-  requestPushPermissions,
-} from 'react-native-kb'
+import {iosGetHasShownPushPrompt, checkPushPermissions, requestPushPermissions} from 'react-native-kb'
 import {type Store, type State} from './push'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
@@ -39,11 +35,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     new Promise<{alert?: boolean; badge?: boolean; sound?: boolean}>((resolve, reject) => {
       checkPushPermissions()
         .then(on => {
-          if (isIOS) {
-            resolve({alert: on, badge: on, sound: on})
-          } else {
-            resolve({alert: on, badge: on, sound: on})
-          }
+          resolve({alert: on, badge: on, sound: on})
         })
         .catch(() => reject(new Error('')))
     })

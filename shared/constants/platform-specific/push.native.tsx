@@ -1,7 +1,7 @@
 import * as T from '../types'
 import {ignorePromise, timeoutPromise} from '../utils'
 import logger from '@/logger'
-import {isIOS, isAndroid} from '../platform'
+import {isAndroid} from '../platform'
 import {
   getRegistrationToken,
   setApplicationIconBadgeNumber,
