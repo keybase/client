@@ -66,11 +66,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
       return undefined
     }
 
-    const n = _n as PushN
-    const data = n
-    if (!data) {
-      return undefined
-    }
+    const data = _n as PushN
     const userInteraction = !!data.userInteraction
 
     switch (data.type) {
@@ -120,9 +116,12 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
             }
           : undefined
       default:
-        if (typeof n.message === 'string' && n.message.startsWith('Your contact') && userInteraction) {
-          return {
-            type: 'settings.contacts',
+        {
+          const unk = data as any
+          if (typeof unk.message === 'string' && unk.message.startsWith('Your contact') && userInteraction) {
+            return {
+              type: 'settings.contacts',
+            }
           }
         }
 
@@ -134,60 +133,11 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
   }
 }
 
-// Push notifications on android are simple.
-// 1. KeybasePushNotificationListenerService.java is our listening service. (https://firebase.google.com/docs/cloud-messaging/android/receive)
-// 2. When a notification comes in it is handled only on Go/Java side (native only)
-// That's it.
-// If the intent is available and react isn't inited we'll stash it and emit when react is alive
-
-const listenForNativeAndroidIntentNotifications = async () => {
-  const pushToken = await getRegistrationToken()
-  logger.debug('[PushToken] received new token: ', pushToken)
-
-  storeRegistry.getState('push').dispatch.setPushToken(pushToken)
-
-  const RNEmitter = getNativeEmitter()
-  RNEmitter.addListener('initialIntentFromNotification', (evt?: object) => {
-    const notification = evt && normalizePush(evt)
-    if (notification) {
-      storeRegistry.getState('push').dispatch.handlePush(notification)
-    }
-  })
-
-  RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
-    logger.debug('[ShareDataIntent]', evt)
-    const {setAndroidShare} = storeRegistry.getState('config').dispatch
-
-    const text = evt.text
-    const urls = evt.localPaths
-
-    if (urls) {
-      setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
-    } else if (text) {
-      setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
-    }
-  })
+const getInitialPushiOS = async () => {
+  if (!isIOS) return undefined
+  const n = await getInitialNotification()
+  return n ? normalizePush(n) : undefined
 }
-
-const iosListenForPushNotificationsFromJS = async () => {
-  const pushToken = await getRegistrationToken()
-  logger.debug('[PushToken] received new token: ', pushToken)
-  storeRegistry.getState('push').dispatch.setPushToken(pushToken)
-
-  const onNotification = (n: object) => {
-    logger.debug('[onNotification]: ', n)
-    const notification = normalizePush(n)
-    if (!notification) {
-      return
-    }
-
-    storeRegistry.getState('push').dispatch.handlePush(notification)
-  }
-
-  const RNEmitter = getNativeEmitter()
-  RNEmitter.addListener('onPushNotification', onNotification)
-}
-
 const getStartupDetailsFromInitialPush = async () => {
   const notification = await Promise.race([isAndroid ? null : getInitialPushiOS(), timeoutPromise(10)])
   if (!notification) {
@@ -208,12 +158,6 @@ const getStartupDetailsFromInitialPush = async () => {
   }
 
   return
-}
-
-const getInitialPushiOS = async () => {
-  if (!isIOS) return undefined
-  const n = await getInitialNotification()
-  return n ? normalizePush(n) : undefined
 }
 
 export const initPushListener = () => {
@@ -255,13 +199,53 @@ export const initPushListener = () => {
   storeRegistry.getState('push').dispatch.initialPermissionsCheck()
 
   const listenNative = async () => {
+    const pushToken = await getRegistrationToken()
+    logger.debug('[PushToken] received new token: ', pushToken)
+    storeRegistry.getState('push').dispatch.setPushToken(pushToken)
+    const RNEmitter = getNativeEmitter()
+
     if (isAndroid) {
       try {
-        await listenForNativeAndroidIntentNotifications()
+        // Push notifications on android are simple.
+        // 1. KeybasePushNotificationListenerService.java is our listening service. (https://firebase.google.com/docs/cloud-messaging/android/receive)
+        // 2. When a notification comes in it is handled only on Go/Java side (native only)
+        // That's it.
+        // If the intent is available and react isn't inited we'll stash it and emit when react is alive
+
+        RNEmitter.addListener('initialIntentFromNotification', (evt?: object) => {
+          const notification = evt && normalizePush(evt)
+          if (notification) {
+            storeRegistry.getState('push').dispatch.handlePush(notification)
+          }
+        })
+
+        RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
+          logger.debug('[ShareDataIntent]', evt)
+          const {setAndroidShare} = storeRegistry.getState('config').dispatch
+
+          const text = evt.text
+          const urls = evt.localPaths
+
+          if (urls) {
+            setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
+          } else if (text) {
+            setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
+          }
+        })
       } catch {}
     } else {
       try {
-        await iosListenForPushNotificationsFromJS()
+        const onNotification = (n: object) => {
+          logger.debug('[onNotification]: ', n)
+          const notification = normalizePush(n)
+          if (!notification) {
+            return
+          }
+
+          storeRegistry.getState('push').dispatch.handlePush(notification)
+        }
+
+        RNEmitter.addListener('onPushNotification', onNotification)
       } catch {}
     }
   }
