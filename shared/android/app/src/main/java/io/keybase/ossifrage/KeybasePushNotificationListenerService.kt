@@ -17,6 +17,7 @@ import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
 import me.leolin.shortcutbadger.ShortcutBadger
+import com.reactnativekb.KbModule
 import org.json.JSONArray
 import org.json.JSONObject
 import android.util.Log
@@ -109,6 +110,11 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         }
                     }
                     withBackgroundActive.whileActive(applicationContext)
+                    if (type == "chat.newmessage") {
+                        val emitBundle = bundle.clone() as Bundle
+                        emitBundle.putBoolean("userInteraction", false)
+                        KbModule.emitPushNotification(emitBundle)
+                    }
                 }
 
                 "follow" -> {
@@ -116,11 +122,17 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     val m = bundle.getString("message")
                     if (username != null && m != null) {
                         notifier.followNotification(username, m)
+                        val emitBundle = bundle.clone() as Bundle
+                        emitBundle.putBoolean("userInteraction", false)
+                        KbModule.emitPushNotification(emitBundle)
                     }
                 }
 
                 "device.revoked", "device.new" -> {
                     notifier.deviceNotification()
+                    val emitBundle = bundle.clone() as Bundle
+                    emitBundle.putBoolean("userInteraction", false)
+                    KbModule.emitPushNotification(emitBundle)
                 }
 
                 "chat.readmessage" -> {
@@ -132,9 +144,16 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     // Cancel any push notifications.
                     val notificationManager = NotificationManagerCompat.from(applicationContext)
                     notificationManager.cancelAll()
+                    val emitBundle = bundle.clone() as Bundle
+                    KbModule.emitPushNotification(emitBundle)
                 }
 
-                else -> notifier.generalNotification()
+                else -> {
+                    notifier.generalNotification()
+                    val emitBundle = bundle.clone() as Bundle
+                    emitBundle.putBoolean("userInteraction", false)
+                    KbModule.emitPushNotification(emitBundle)
+                }
             }
         } catch (ex: Exception) {
             NativeLogger.error("Couldn't handle background notification: " + ex.message)

@@ -514,7 +514,22 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     @ReactMethod
     fun getInitialNotification(promise: Promise) {
-        promise.resolve(null)
+        val bundle = io.keybase.ossifrage.MainActivity.getInitialNotificationBundle()
+        if (bundle != null) {
+            val payload = Arguments.fromBundle(bundle)
+            promise.resolve(payload)
+        } else {
+            promise.resolve(null)
+        }
+    }
+
+    fun emitPushNotification(notification: Bundle) {
+        if (reactContext.hasActiveCatalystInstance()) {
+            val payload = Arguments.fromBundle(notification)
+            reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                .emit("onPushNotification", payload)
+        }
     }
 
     @ReactMethod
@@ -706,11 +721,16 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         private val LINE_SEPARATOR: String? = System.getProperty("line.separator")
         private const val HW_KEY_EVENT: String = "hardwareKeyPressed"
 
-        private var instance: KbModule? = null
+        var instance: KbModule? = null
 
         @JvmStatic
         fun keyPressed(keyName: String) {
             instance?.sendHardwareKeyEvent(keyName)
+        }
+
+        @JvmStatic
+        fun emitPushNotification(notification: Bundle) {
+            instance?.emitPushNotification(notification)
         }
 
         // Is this a robot controlled test device? (i.e. pre-launch report?)

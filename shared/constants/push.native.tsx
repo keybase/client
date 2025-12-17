@@ -138,7 +138,6 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     },
     handlePush: notification => {
       const f = async () => {
-        // on iOS the go side handles a lot of push details
         try {
           logger.info('[Push]: ' + notification.type || 'unknown')
 
@@ -151,7 +150,6 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               }
               break
             case 'chat.newmessageSilent_2':
-              // entirely handled by go on ios and in onNotification on Android
               break
             case 'chat.newmessage':
               await handleLoudMessage(notification)

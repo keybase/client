@@ -65,6 +65,10 @@ class MainActivity : ReactActivity() {
         NativeLogger.info("Activity onCreate")
         setupKBRuntime(this, true)
         cachedIntent = intent
+        val bundleFromNotification = intent.getBundleExtra("notification")
+        if (bundleFromNotification != null) {
+            setInitialNotificationBundle(bundleFromNotification.clone() as Bundle)
+        }
 
         super.onCreate(null)
         Handler(Looper.getMainLooper()).postDelayed({
@@ -212,6 +216,10 @@ class MainActivity : ReactActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         cachedIntent = intent
+        val bundleFromNotification = intent.getBundleExtra("notification")
+        if (bundleFromNotification != null) {
+            setInitialNotificationBundle(bundleFromNotification.clone() as Bundle)
+        }
         handleIntent()
     }
 
@@ -272,6 +280,10 @@ class MainActivity : ReactActivity() {
             var payload = Arguments.fromBundle(bundleFromNotification)
             emitter.emit(
                 "initialIntentFromNotification",
+                payload
+            )
+            emitter.emit(
+                "onPushNotification",
                 payload
             )
         }
@@ -352,6 +364,19 @@ class MainActivity : ReactActivity() {
 
     companion object {
         private const val TAG = "ossifrage"
+        @JvmStatic
+        private var initialNotificationBundle: Bundle? = null
+
+        @JvmStatic
+        fun getInitialNotificationBundle(): Bundle? {
+            return initialNotificationBundle
+        }
+
+        @JvmStatic
+        fun setInitialNotificationBundle(bundle: Bundle?) {
+            initialNotificationBundle = bundle
+        }
+
         private fun createDummyFile(context: Context) {
             val dummyFile = File(context.filesDir, "dummy.txt")
             try {

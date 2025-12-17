@@ -133,13 +133,12 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
   }
 }
 
-const getInitialPushiOS = async () => {
-  if (!isIOS) return undefined
+const getInitialPush = async () => {
   const n = await getInitialNotification()
   return n ? normalizePush(n) : undefined
 }
 const getStartupDetailsFromInitialPush = async () => {
-  const notification = await Promise.race([isAndroid ? null : getInitialPushiOS(), timeoutPromise(10)])
+  const notification = await Promise.race([getInitialPush(), timeoutPromise(10)])
   if (!notification) {
     return
   }
@@ -204,21 +203,23 @@ export const initPushListener = () => {
     storeRegistry.getState('push').dispatch.setPushToken(pushToken)
     const RNEmitter = getNativeEmitter()
 
-    if (isAndroid) {
-      try {
-        // Push notifications on android are simple.
-        // 1. KeybasePushNotificationListenerService.java is our listening service. (https://firebase.google.com/docs/cloud-messaging/android/receive)
-        // 2. When a notification comes in it is handled only on Go/Java side (native only)
-        // That's it.
-        // If the intent is available and react isn't inited we'll stash it and emit when react is alive
+    try {
+      // Unified push notification handling for both iOS and Android
+      // Silent notifications (chat.newmessageSilent_2) are handled entirely natively
+      // Other notification types are handled natively first, then emitted to JS via onPushNotification
+      const onNotification = (n: object) => {
+        logger.debug('[onNotification]: ', n)
+        const notification = normalizePush(n)
+        if (!notification) {
+          return
+        }
 
-        RNEmitter.addListener('initialIntentFromNotification', (evt?: object) => {
-          const notification = evt && normalizePush(evt)
-          if (notification) {
-            storeRegistry.getState('push').dispatch.handlePush(notification)
-          }
-        })
+        storeRegistry.getState('push').dispatch.handlePush(notification)
+      }
 
+      RNEmitter.addListener('onPushNotification', onNotification)
+
+      if (isAndroid) {
         RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
           logger.debug('[ShareDataIntent]', evt)
           const {setAndroidShare} = storeRegistry.getState('config').dispatch
@@ -232,22 +233,8 @@ export const initPushListener = () => {
             setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
           }
         })
-      } catch {}
-    } else {
-      try {
-        const onNotification = (n: object) => {
-          logger.debug('[onNotification]: ', n)
-          const notification = normalizePush(n)
-          if (!notification) {
-            return
-          }
-
-          storeRegistry.getState('push').dispatch.handlePush(notification)
-        }
-
-        RNEmitter.addListener('onPushNotification', onNotification)
-      } catch {}
-    }
+      }
+    } catch {}
   }
   ignorePromise(listenNative())
 }
