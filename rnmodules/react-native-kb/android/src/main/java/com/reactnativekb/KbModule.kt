@@ -756,6 +756,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         }
 
         @JvmStatic
+        fun isReactNativeRunning(): Boolean {
+            return instance != null
+        }
+
+        @JvmStatic
         fun emitPushNotification(notification: Bundle) {
             if (instance == null) {
                 android.util.Log.w("KbModule", "emitPushNotification called but instance is null (app may not be running)")
