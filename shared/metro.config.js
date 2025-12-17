@@ -17,11 +17,6 @@ config.resolver = {
     return acc
   }, {}),
   unstable_enablePackageExports: false,
-  unstable_enableSymlinks: true,
 }
-config.watchFolders = [
-  ...(defaultConfigExpo.watchFolders || []),
-  path.resolve(__dirname, '../rnmodules/react-native-kb'),
-]
 
 module.exports = config
