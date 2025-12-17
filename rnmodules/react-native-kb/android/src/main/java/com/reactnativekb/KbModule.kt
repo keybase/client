@@ -520,10 +520,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     @ReactMethod
     override fun getInitialNotification(promise: Promise) {
-        val bundle = companion.initialNotificationBundle
+        val bundle = KbModule.initialNotificationBundle
         if (bundle != null) {
             try {
-                val payload = Arguments.fromBundle(bundle)
+                @Suppress("UNCHECKED_CAST")
+                val payload: WritableMap = Arguments.fromBundle(bundle) as WritableMap
                 promise.resolve(payload)
             } catch (e: Exception) {
                 promise.resolve(null)
@@ -737,8 +738,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
         var instance: KbModule? = null
         @JvmStatic
-        var initialNotificationBundle: Bundle? = null
-            private set
+        internal var initialNotificationBundle: Bundle? = null
 
         @JvmStatic
         fun keyPressed(keyName: String) {
