@@ -83,6 +83,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     override fun removeListeners(count: Double) {
     }
 
+
+    @ReactMethod
+    override fun setEnablePasteImage(enabled: Boolean) {
+        // not used
+    }
+
+
     /**
      * Gets a field from the project's BuildConfig. This is useful when, for example, flavors
      * are used at the project level to set custom fields.
@@ -540,15 +547,15 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     fun addNotificationRequest(config: ReadableMap, promise: Promise) {
         val body = config.getString("body")
         val id = config.getString("id")
-        
+
         if (body == null || id == null) {
             promise.reject("invalid_config", "body and id are required")
             return
         }
-        
+
         val notificationManager = reactContext.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
         val channelId = "keybase_notifications"
-        
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = android.app.NotificationChannel(
                 channelId,
@@ -557,12 +564,12 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             )
             notificationManager.createNotificationChannel(channel)
         }
-        
+
         val notification = android.app.NotificationCompat.Builder(reactContext, channelId)
             .setContentText(body)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .build()
-        
+
         notificationManager.notify(id.hashCode(), notification)
         promise.resolve(null)
     }
