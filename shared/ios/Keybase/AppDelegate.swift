@@ -237,7 +237,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
         NSLog("Remote notification handle finished...")
       }
     } else {
-      KbEmitPushNotification(notification as [String: Any])
+      let notificationDict = Dictionary(uniqueKeysWithValues: notification.map { (String(describing: $0.key), $0.value) })
+      KbEmitPushNotification(notificationDict)
       completionHandler(.newData)
     }
   }
@@ -252,7 +253,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     if let data = userInfo["data"] as? [String: Any] {
       notificationData = data
     } else {
-      notificationData = userInfo as [String: Any]
+      notificationData = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
     }
     
     KbEmitPushNotification(notificationData)
@@ -268,7 +269,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     if let data = userInfo["data"] as? [String: Any] {
       notificationData = data
     } else {
-      notificationData = userInfo as [String: Any]
+      notificationData = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
     }
     
     KbEmitPushNotification(notificationData)
