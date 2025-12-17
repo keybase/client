@@ -11,7 +11,6 @@
 @interface Kb : RCTEventEmitter <NativeKbSpec,RCTCallInvokerModule>
 @end
 #else
-@class Kb;
 #endif // RCT_NEW_ARCH_ENABLED
 
 // Singleton to get the paths
