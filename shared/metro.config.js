@@ -17,6 +17,7 @@ config.resolver = {
     return acc
   }, {}),
   unstable_enablePackageExports: false,
+  unstable_enableSymlinks: true,
 }
 
 module.exports = config
