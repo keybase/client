@@ -67,7 +67,7 @@ class MainActivity : ReactActivity() {
         cachedIntent = intent
         val bundleFromNotification = intent.getBundleExtra("notification")
         if (bundleFromNotification != null) {
-            setInitialNotificationBundle(bundleFromNotification.clone() as Bundle)
+            KbModule.setInitialNotification(bundleFromNotification.clone() as Bundle)
         }
 
         super.onCreate(null)
@@ -218,7 +218,7 @@ class MainActivity : ReactActivity() {
         cachedIntent = intent
         val bundleFromNotification = intent.getBundleExtra("notification")
         if (bundleFromNotification != null) {
-            setInitialNotificationBundle(bundleFromNotification.clone() as Bundle)
+            KbModule.setInitialNotification(bundleFromNotification.clone() as Bundle)
         }
         handleIntent()
     }
@@ -364,18 +364,6 @@ class MainActivity : ReactActivity() {
 
     companion object {
         private const val TAG = "ossifrage"
-        @JvmStatic
-        private var initialNotificationBundle: Bundle? = null
-
-        @JvmStatic
-        fun getInitialNotificationBundle(): Bundle? {
-            return initialNotificationBundle
-        }
-
-        @JvmStatic
-        fun setInitialNotificationBundle(bundle: Bundle?) {
-            initialNotificationBundle = bundle
-        }
 
         private fun createDummyFile(context: Context) {
             val dummyFile = File(context.filesDir, "dummy.txt")

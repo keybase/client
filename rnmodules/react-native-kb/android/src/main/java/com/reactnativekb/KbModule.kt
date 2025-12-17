@@ -59,7 +59,6 @@ import keybase.Keybase.readArr
 import keybase.Keybase.version
 import keybase.Keybase.writeArr
 import com.facebook.react.common.annotations.FrameworkAPI
-import io.keybase.ossifrage.MainActivity
 
 @OptIn(FrameworkAPI::class)
 class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
@@ -521,10 +520,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     @ReactMethod
     override fun getInitialNotification(promise: Promise) {
-        val bundle = MainActivity.getInitialNotificationBundle()
+        val bundle = companion.initialNotificationBundle
         if (bundle != null) {
-            val payload: WritableMap = Arguments.fromBundle(bundle)
-            promise.resolve(payload)
+            try {
+                val payload = Arguments.fromBundle(bundle)
+                promise.resolve(payload)
+            } catch (e: Exception) {
+                promise.resolve(null)
+            }
         } else {
             promise.resolve(null)
         }
@@ -532,10 +535,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     fun emitPushNotification(notification: Bundle) {
         if (reactContext.hasActiveCatalystInstance()) {
-            val payload: WritableMap = Arguments.fromBundle(notification)
-            reactContext
-                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                .emit("onPushNotification", payload)
+            try {
+                val payload = Arguments.fromBundle(notification)
+                reactContext
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                    .emit("onPushNotification", payload)
+            } catch (e: Exception) {
+                // Ignore if we can't emit
+            }
         }
     }
 
@@ -729,10 +736,18 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         private const val HW_KEY_EVENT: String = "hardwareKeyPressed"
 
         var instance: KbModule? = null
+        @JvmStatic
+        var initialNotificationBundle: Bundle? = null
+            private set
 
         @JvmStatic
         fun keyPressed(keyName: String) {
             instance?.sendHardwareKeyEvent(keyName)
+        }
+
+        @JvmStatic
+        fun setInitialNotification(bundle: Bundle?) {
+            initialNotificationBundle = bundle
         }
 
         @JvmStatic
