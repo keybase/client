@@ -313,13 +313,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     // Push
     @ReactMethod
-    fun checkPushPermissions(promise: Promise) {
+    override fun checkPushPermissions(promise: Promise) {
         val managerCompat: NotificationManagerCompat = NotificationManagerCompat.from(reactContext)
         promise.resolve(managerCompat.areNotificationsEnabled())
     }
 
     @ReactMethod
-    fun requestPushPermissions(promise: Promise) {
+    override fun requestPushPermissions(promise: Promise) {
         ensureFirebase()
         checkPushPermissions(promise)
     }
@@ -338,7 +338,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     }
 
     @ReactMethod
-    fun getRegistrationToken(promise: Promise) {
+    override fun getRegistrationToken(promise: Promise) {
         ensureFirebase()
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(OnCompleteListener { task ->
@@ -513,14 +513,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         }
     }
 
-    // Badging
     @ReactMethod
-    fun setApplicationIconBadgeNumber(badge: Double) {
+    override fun setApplicationIconBadgeNumber(badge: Double) {
         ShortcutBadger.applyCount(reactContext, badge.toInt())
     }
 
     @ReactMethod
-    fun getInitialNotification(promise: Promise) {
+    override fun getInitialNotification(promise: Promise) {
         val bundle = io.keybase.ossifrage.MainActivity.getInitialNotificationBundle()
         if (bundle != null) {
             val payload = Arguments.fromBundle(bundle)
@@ -540,11 +539,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     }
 
     @ReactMethod
-    fun removeAllPendingNotificationRequests() {
+    override fun removeAllPendingNotificationRequests() {
     }
 
     @ReactMethod
-    fun addNotificationRequest(config: ReadableMap, promise: Promise) {
+    override fun addNotificationRequest(config: ReadableMap, promise: Promise) {
         val body = config.getString("body")
         val id = config.getString("id")
 
