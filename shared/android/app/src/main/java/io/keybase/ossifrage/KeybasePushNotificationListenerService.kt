@@ -16,6 +16,7 @@ import com.google.firebase.messaging.RemoteMessage
 import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
+import keybase.ChatNotification
 import me.leolin.shortcutbadger.ShortcutBadger
 import com.reactnativekb.KbModule
 import org.json.JSONArray
@@ -95,21 +96,41 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     val dontNotify = type == "chat.newmessageSilent_2" && !n.displayPlaintext
                     notifier.setMsgCache(msgCache[n.convID])
 
-                    val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
-                        override fun task() {
-                            try {
-                                Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
-                                        n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
-                                        n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true)
-                                if (!dontNotify) {
-                                    seenChatNotifications.add(n.convID + n.messageId)
+                    try {
+                        val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
+                            override fun task() {
+                                try {
+                                    Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
+                                            n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
+                                            n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true)
+                                    if (!dontNotify) {
+                                        seenChatNotifications.add(n.convID + n.messageId)
+                                    }
+                                } catch (ex: Exception) {
+                                    NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
+                                    throw ex
                                 }
-                            } catch (ex: Exception) {
-                                NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
+                            }
+                        }
+                        withBackgroundActive.whileActive(applicationContext)
+                    } catch (ex: Exception) {
+                        NativeLogger.error("Failed to process notification (app may not be running): " + ex.message)
+                        if (!dontNotify && type == "chat.newmessage") {
+                            try {
+                                val chatNotif = keybase.ChatNotification()
+                                chatNotif.convID = n.convID
+                                chatNotif.message.serverMessage = n.serverMessageBody
+                                chatNotif.message.from.keybaseUsername = n.sender ?: ""
+                                chatNotif.isPlaintext = n.displayPlaintext
+                                chatNotif.soundName = n.soundName ?: "default"
+                                chatNotif.message.at = n.unixTime
+                                notifier.displayChatNotification(chatNotif)
+                                seenChatNotifications.add(n.convID + n.messageId)
+                            } catch (e: Exception) {
+                                NativeLogger.error("Failed to display notification fallback: " + e.message)
                             }
                         }
                     }
-                    withBackgroundActive.whileActive(applicationContext)
                     if (type == "chat.newmessage") {
                         val emitBundle = bundle.clone() as Bundle
                         emitBundle.putBoolean("userInteraction", false)
