@@ -50,6 +50,11 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   ) -> Bool {
     self.didLaunchSetupBefore()
     
+    if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
+      let notificationDict = Dictionary(uniqueKeysWithValues: remoteNotification.map { (String(describing: $0.key), $0.value) })
+      KbSetInitialNotification(notificationDict)
+    }
+    
     NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] notification in
       NSLog("Memory warning received - deferring GC during React Native initialization")
       // see if this helps avoid this crash
@@ -237,7 +242,10 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
         NSLog("Remote notification handle finished...")
       }
     } else {
-      let notificationDict = Dictionary(uniqueKeysWithValues: notification.map { (String(describing: $0.key), $0.value) })
+      var notificationDict: [String: Any] = Dictionary(uniqueKeysWithValues: notification.map { (String(describing: $0.key), $0.value) })
+      if let data = notificationDict["data"] as? [String: Any] {
+        notificationDict = ["data": data, "message": notificationDict["message"] as? String ?? ""]
+      }
       KbEmitPushNotification(notificationDict)
       completionHandler(.newData)
     }
@@ -248,30 +256,33 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   
   public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
     let userInfo = response.notification.request.content.userInfo
-    var notificationData: [String: Any] = [:]
+    let notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
     
-    if let data = userInfo["data"] as? [String: Any] {
-      notificationData = data
+    var notificationData: [String: Any] = [:]
+    if let data = notificationDict["data"] as? [String: Any] {
+      notificationData = ["data": data, "message": response.notification.request.content.body ?? ""]
     } else {
-      notificationData = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
+      notificationData = notificationDict
     }
     
+    notificationData["userInteraction"] = true
     KbEmitPushNotification(notificationData)
-    KbSetInitialNotification(notificationData)
     
     completionHandler()
   }
   
   public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
     let userInfo = notification.request.content.userInfo
-    var notificationData: [String: Any] = [:]
+    let notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
     
-    if let data = userInfo["data"] as? [String: Any] {
-      notificationData = data
+    var notificationData: [String: Any] = [:]
+    if let data = notificationDict["data"] as? [String: Any] {
+      notificationData = ["data": data, "message": notification.request.content.body ?? ""]
     } else {
-      notificationData = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
+      notificationData = notificationDict
     }
     
+    notificationData["userInteraction"] = false
     KbEmitPushNotification(notificationData)
     completionHandler([])
   }
