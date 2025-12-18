@@ -193,22 +193,18 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                 }
 
                 "follow" -> {
-                    NativeLogger.info("KeybasePushNotificationListenerService processing follow notification")
                     val username = bundle.getString("username")
                     val m = bundle.getString("message")
                     if (username != null && m != null) {
-                        NativeLogger.info("KeybasePushNotificationListenerService displaying follow notification for: $username")
                         notifier.followNotification(username, m)
                         val emitBundle = bundle.clone() as Bundle
                         emitBundle.putBoolean("userInteraction", false)
                         KbModule.emitPushNotification(emitBundle)
                     } else {
-                        NativeLogger.error("KeybasePushNotificationListenerService follow notification missing username or message")
                     }
                 }
 
                 "device.revoked", "device.new" -> {
-                    NativeLogger.info("KeybasePushNotificationListenerService processing device notification: $type")
                     notifier.deviceNotification()
                     val emitBundle = bundle.clone() as Bundle
                     emitBundle.putBoolean("userInteraction", false)
@@ -216,7 +212,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                 }
 
                 "chat.readmessage" -> {
-                    NativeLogger.info("KeybasePushNotificationListenerService processing readmessage notification")
                     val convID = bundle.getString("c")
                     // Clear the cache of msgs for this conv id
                     if (msgCache.containsKey(convID)) {
@@ -230,17 +225,14 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                 }
 
                 else -> {
-                    NativeLogger.info("KeybasePushNotificationListenerService processing general notification: $type")
                     notifier.generalNotification()
                     val emitBundle = bundle.clone() as Bundle
                     emitBundle.putBoolean("userInteraction", false)
                     KbModule.emitPushNotification(emitBundle)
                 }
             }
-            NativeLogger.info("KeybasePushNotificationListenerService.onMessageReceived END successfully")
         } catch (ex: Exception) {
             NativeLogger.error("Couldn't handle background notification: " + ex.message)
-            NativeLogger.error("Exception stack: " + ex.stackTraceToString())
         }
     }
 

@@ -106,17 +106,13 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         // needs to be in the background since we make network calls
         thread(start = true) {
             try {
-                io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification starting in background thread")
                 displayChatNotification2(chatNotification)
-                io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification completed successfully")
             } catch (e: Exception) {
                 io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification failed: " + e.message)
-                io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier exception stack: " + e.stackTraceToString())
             }
         }
     }
     private fun displayChatNotification2(chatNotification: ChatNotification) {
-        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 START convID: ${chatNotification.convID}, message: '${chatNotification.message.serverMessage}'")
         try {
             KeybasePushNotificationListenerService.createNotificationChannel(context)
             bundle.putBoolean("userInteraction", true)
@@ -169,18 +165,14 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         builder.setStyle(style)
         val notificationManager = NotificationManagerCompat.from(context)
         val areNotificationsEnabled = notificationManager.areNotificationsEnabled()
-        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 notifications enabled: $areNotificationsEnabled")
         if (!areNotificationsEnabled) {
             io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification2 notifications are disabled!")
             return
         }
         val notification = builder.build()
-        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 about to notify, convID: ${chatNotification.convID}")
         notificationManager.notify(chatNotification.convID, 0, notification)
-        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 notification.notify() called successfully")
         } catch (e: Exception) {
             io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification2 exception: " + e.message)
-            io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification2 exception stack: " + e.stackTraceToString())
         }
     }
 
