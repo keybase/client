@@ -166,6 +166,9 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             chatNotif.message = message
                             chatNotif.isPlaintext = false
                             chatNotif.soundName = n.soundName ?: "default"
+                            chatNotif.conversationName = ""
+                            chatNotif.isGroupConversation = false
+                            chatNotif.tlfName = ""
                             
                             NativeLogger.info("KeybasePushNotificationListenerService calling notifier.displayChatNotification for silent fallback with message: '$serverMsg'")
                             notifier.displayChatNotification(chatNotif)
@@ -175,7 +178,8 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             NativeLogger.error("Failed to display silent notification fallback: " + e.message)
                             NativeLogger.error("Silent fallback exception stack: " + e.stackTraceToString())
                         }
-                    } else if (!goProcessingSucceeded && type == "chat.newmessage") {
+                    } else if ((!goProcessingSucceeded || !isReactNativeRunning) && type == "chat.newmessage") {
+                        NativeLogger.info("KeybasePushNotificationListenerService goProcessingSucceeded: $goProcessingSucceeded, isReactNativeRunning: $isReactNativeRunning")
                         NativeLogger.info("KeybasePushNotificationListenerService attempting fallback notification display")
                         try {
                             val chatNotif = keybase.ChatNotification()
@@ -193,6 +197,9 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             chatNotif.message = message
                             chatNotif.isPlaintext = n.displayPlaintext
                             chatNotif.soundName = n.soundName ?: "default"
+                            chatNotif.conversationName = ""
+                            chatNotif.isGroupConversation = false
+                            chatNotif.tlfName = ""
                             
                             NativeLogger.info("KeybasePushNotificationListenerService calling notifier.displayChatNotification with message: '${n.serverMessageBody}'")
                             notifier.displayChatNotification(chatNotif)

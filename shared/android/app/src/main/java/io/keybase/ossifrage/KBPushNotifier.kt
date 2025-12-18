@@ -105,10 +105,18 @@ class KBPushNotifier internal constructor(private val context: Context, private 
 
         // needs to be in the background since we make network calls
         thread(start = true) {
-            displayChatNotification2(chatNotification)
+            try {
+                io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification starting in background thread")
+                displayChatNotification2(chatNotification)
+                io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification completed successfully")
+            } catch (e: Exception) {
+                io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification failed: " + e.message)
+                io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier exception stack: " + e.stackTraceToString())
+            }
         }
     }
     private fun displayChatNotification2(chatNotification: ChatNotification) {
+        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 convID: ${chatNotification.convID}, message: '${chatNotification.message.serverMessage}'")
         bundle.putBoolean("userInteraction", true)
         bundle.putString("type", "chat.newmessage")
         bundle.putString("convID", chatNotification.convID)
@@ -156,7 +164,10 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         style.setGroupConversation(chatNotification.isGroupConversation)
         builder.setStyle(style)
         val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.notify(chatNotification.convID, 0, builder.build())
+        val notification = builder.build()
+        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 about to notify, convID: ${chatNotification.convID}")
+        notificationManager.notify(chatNotification.convID, 0, notification)
+        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 notification.notify() called")
     }
 
     // Return the resource name of the specified file (i.e. name and no extension),
