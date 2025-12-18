@@ -144,7 +144,9 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         try {
                             val chatNotif = keybase.ChatNotification()
                             chatNotif.convID = n.convID
-                            chatNotif.message.serverMessage = if (n.serverMessageBody.isNotEmpty()) {
+                            
+                            val message = keybase.Message()
+                            val serverMsg = if (n.serverMessageBody.isNotEmpty()) {
                                 n.serverMessageBody
                             } else {
                                 if (n.sender != null && n.sender.isNotEmpty()) {
@@ -153,11 +155,19 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                                     "New message"
                                 }
                             }
-                            chatNotif.message.from.keybaseUsername = n.sender ?: ""
+                            message.serverMessage = serverMsg
+                            message.at = n.unixTime
+                            message.id = n.messageId
+                            
+                            val person = keybase.Person()
+                            person.keybaseUsername = n.sender ?: ""
+                            message.from = person
+                            
+                            chatNotif.message = message
                             chatNotif.isPlaintext = false
                             chatNotif.soundName = n.soundName ?: "default"
-                            chatNotif.message.at = n.unixTime
-                            NativeLogger.info("KeybasePushNotificationListenerService calling notifier.displayChatNotification for silent fallback with message: '${chatNotif.message.serverMessage}'")
+                            
+                            NativeLogger.info("KeybasePushNotificationListenerService calling notifier.displayChatNotification for silent fallback with message: '$serverMsg'")
                             notifier.displayChatNotification(chatNotif)
                             seenChatNotifications.add(n.convID + n.messageId)
                             NativeLogger.info("KeybasePushNotificationListenerService silent fallback notification displayed successfully")
@@ -170,12 +180,21 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         try {
                             val chatNotif = keybase.ChatNotification()
                             chatNotif.convID = n.convID
-                            chatNotif.message.serverMessage = n.serverMessageBody
-                            chatNotif.message.from.keybaseUsername = n.sender ?: ""
+                            
+                            val message = keybase.Message()
+                            message.serverMessage = n.serverMessageBody
+                            message.at = n.unixTime
+                            message.id = n.messageId
+                            
+                            val person = keybase.Person()
+                            person.keybaseUsername = n.sender ?: ""
+                            message.from = person
+                            
+                            chatNotif.message = message
                             chatNotif.isPlaintext = n.displayPlaintext
                             chatNotif.soundName = n.soundName ?: "default"
-                            chatNotif.message.at = n.unixTime
-                            NativeLogger.info("KeybasePushNotificationListenerService calling notifier.displayChatNotification")
+                            
+                            NativeLogger.info("KeybasePushNotificationListenerService calling notifier.displayChatNotification with message: '${n.serverMessageBody}'")
                             notifier.displayChatNotification(chatNotif)
                             seenChatNotifications.add(n.convID + n.messageId)
                             NativeLogger.info("KeybasePushNotificationListenerService fallback notification displayed successfully")
