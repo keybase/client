@@ -549,7 +549,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     }
   } else if (prefix == "test_windows_go_") {
     dir("keybase") {
-      sh "go build -o keybase_production -ldflags \"-s -w\" --tags=production"
+      sh "go build -buildmode=exe -o keybase_production -ldflags \"-s -w\" --tags=production"
     }
   }
 
@@ -893,9 +893,10 @@ def testGoTestSuite(prefix, packagesToTest) {
           if (isUnix()) {
             sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
           } else {
-            // Windows: Add -x for verbose build output and check for errors
+            // Windows: Use -buildmode=exe (not pie) because PIE is not supported on Windows
+            // Add -x for verbose build output and check for errors
             def compileResult = sh(
-              script: "go test -vet=off -c -x ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}",
+              script: "go test -vet=off -c -x -buildmode=exe ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}",
               returnStatus: true
             )
             if (compileResult != 0) {
