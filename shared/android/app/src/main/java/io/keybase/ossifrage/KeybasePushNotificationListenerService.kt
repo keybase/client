@@ -87,17 +87,25 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         msgCache[n.convID] = SmallMsgRingBuffer()
                     }
 
-                    // We've shown this notification already
-                    if (seenChatNotifications.contains(n.convID + n.messageId)) {
-                        return
-                    }
-
-                    // If we aren't displaying the plain text version in a silent notif drop this.
-                    // We'll get the non-silent version with a servermessagebody that we can display
-                    // later.
-                    val dontNotify = type == "chat.newmessageSilent_2" && !n.displayPlaintext
+                    // Silent notifications should never display - we'll get the non-silent version
+                    // (chat.newmessage) with a servermessagebody that we can display later.
+                    val dontNotify = type == "chat.newmessageSilent_2"
                     NativeLogger.info("KeybasePushNotificationListenerService dontNotify: $dontNotify, type: $type, displayPlaintext: ${n.displayPlaintext}")
                     NativeLogger.info("KeybasePushNotificationListenerService convID: ${n.convID}, messageId: ${n.messageId}")
+                    
+                    // Only check for duplicates on non-silent notifications that will be displayed
+                    // Silent notifications are processed but not marked as seen, allowing the non-silent one to display
+                    if (!dontNotify) {
+                        val notificationKey = n.convID + n.messageId
+                        if (seenChatNotifications.contains(notificationKey)) {
+                            NativeLogger.info("KeybasePushNotificationListenerService skipping duplicate notification: $notificationKey")
+                            return
+                        }
+                        // Mark as seen immediately to prevent duplicate processing
+                        seenChatNotifications.add(notificationKey)
+                        NativeLogger.info("KeybasePushNotificationListenerService marked notification as seen: $notificationKey")
+                    }
+                    
                     notifier.setMsgCache(msgCache[n.convID])
 
                     var goProcessingSucceeded = false
