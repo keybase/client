@@ -116,13 +116,15 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         }
     }
     private fun displayChatNotification2(chatNotification: ChatNotification) {
-        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 convID: ${chatNotification.convID}, message: '${chatNotification.message.serverMessage}'")
-        bundle.putBoolean("userInteraction", true)
-        bundle.putString("type", "chat.newmessage")
-        bundle.putString("convID", chatNotification.convID)
-        val pending_intent = buildPendingIntent(bundle)
-        val convData = ConvData(chatNotification.convID, chatNotification.tlfName, chatNotification.message.id)
-        val builder = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
+        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 START convID: ${chatNotification.convID}, message: '${chatNotification.message.serverMessage}'")
+        try {
+            KeybasePushNotificationListenerService.createNotificationChannel(context)
+            bundle.putBoolean("userInteraction", true)
+            bundle.putString("type", "chat.newmessage")
+            bundle.putString("convID", chatNotification.convID)
+            val pending_intent = buildPendingIntent(bundle)
+            val convData = ConvData(chatNotification.convID, chatNotification.tlfName ?: "", chatNotification.message.id)
+            val builder = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notif)
                 .setContentIntent(pending_intent)
                 .setAutoCancel(true)
@@ -144,12 +146,14 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         val msg = chatNotification.message
         val from = msg.from
         val personBuilder = Person.Builder()
-                .setName(from.keybaseUsername)
-                .setBot(from.isBot)
-        val avatarUri = chatNotification.message.from.keybaseAvatar
-        val icon = getKeybaseAvatar(avatarUri)
-        if (icon != null) {
-            personBuilder.setIcon(icon)
+                .setName(from?.keybaseUsername ?: "")
+                .setBot(from?.isBot ?: false)
+        val avatarUri = chatNotification.message.from?.keybaseAvatar
+        if (avatarUri != null && avatarUri.isNotEmpty()) {
+            val icon = getKeybaseAvatar(avatarUri)
+            if (icon != null) {
+                personBuilder.setIcon(icon)
+            }
         }
         val fromPerson = personBuilder.build()
         if (convMsgCache != null) {
@@ -160,14 +164,24 @@ class KBPushNotifier internal constructor(private val context: Context, private 
             convMsgCache!!.add(NotificationCompat.MessagingStyle.Message(msgText, msg.at, fromPerson))
         }
         val style = buildStyle(fromPerson)
-        style.setConversationTitle(chatNotification.conversationName)
+        style.setConversationTitle(chatNotification.conversationName ?: "")
         style.setGroupConversation(chatNotification.isGroupConversation)
         builder.setStyle(style)
         val notificationManager = NotificationManagerCompat.from(context)
+        val areNotificationsEnabled = notificationManager.areNotificationsEnabled()
+        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 notifications enabled: $areNotificationsEnabled")
+        if (!areNotificationsEnabled) {
+            io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification2 notifications are disabled!")
+            return
+        }
         val notification = builder.build()
         io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 about to notify, convID: ${chatNotification.convID}")
         notificationManager.notify(chatNotification.convID, 0, notification)
-        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 notification.notify() called")
+        io.keybase.ossifrage.modules.NativeLogger.info("KBPushNotifier.displayChatNotification2 notification.notify() called successfully")
+        } catch (e: Exception) {
+            io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification2 exception: " + e.message)
+            io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification2 exception stack: " + e.stackTraceToString())
+        }
     }
 
     // Return the resource name of the specified file (i.e. name and no extension),
