@@ -157,47 +157,12 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     // Don't show notifications if app is foreground - user is already looking at the app
                     if (isForeground) {
                         NativeLogger.info("KeybasePushNotificationListenerService app is foreground, skipping notification display")
-                    } else if (dontNotify && (!goProcessingSucceeded || !isReactNativeRunning)) {
-                        NativeLogger.info("KeybasePushNotificationListenerService silent notification but React Native not running or Go failed, displaying fallback")
-                        NativeLogger.info("KeybasePushNotificationListenerService serverMessageBody: '${n.serverMessageBody}', sender: '${n.sender}'")
-                        try {
-                            val chatNotif = keybase.ChatNotification()
-                            chatNotif.convID = n.convID
-                            
-                            val message = keybase.Message()
-                            val serverMsg = if (n.serverMessageBody.isNotEmpty()) {
-                                n.serverMessageBody
-                            } else {
-                                if (n.sender.isNotEmpty()) {
-                                    "New message from ${n.sender}"
-                                } else {
-                                    "New message"
-                                }
-                            }
-                            message.serverMessage = serverMsg
-                            message.at = n.unixTime
-                            message.id = n.messageId.toLong()
-                            
-                            val person = keybase.Person()
-                            person.keybaseUsername = n.sender ?: ""
-                            message.from = person
-                            
-                            chatNotif.message = message
-                            chatNotif.isPlaintext = false
-                            chatNotif.soundName = n.soundName ?: "default"
-                            chatNotif.conversationName = ""
-                            chatNotif.isGroupConversation = false
-                            chatNotif.tlfName = ""
-                            
-                            NativeLogger.info("KeybasePushNotificationListenerService calling notifier.displayChatNotification for silent fallback with message: '$serverMsg'")
-                            notifier.displayChatNotification(chatNotif)
-                            seenChatNotifications.add(n.convID + n.messageId)
-                            NativeLogger.info("KeybasePushNotificationListenerService silent fallback notification displayed successfully")
-                        } catch (e: Exception) {
-                            NativeLogger.error("Failed to display silent notification fallback: " + e.message)
-                            NativeLogger.error("Silent fallback exception stack: " + e.stackTraceToString())
-                        }
-                    } else if (!isForeground && (!goProcessingSucceeded || !isReactNativeRunning) && type == "chat.newmessage") {
+                    } else if (dontNotify) {
+                        // Silent notifications should never display - they're processed by Go but no notification shown
+                        NativeLogger.info("KeybasePushNotificationListenerService silent notification processed, no display needed")
+                    } else if (!goProcessingSucceeded && type == "chat.newmessage") {
+                        // Only show fallback if Go processing failed AND it's a non-silent notification
+                        // If Go succeeded, it already displayed the notification (via notifier parameter)
                         NativeLogger.info("KeybasePushNotificationListenerService goProcessingSucceeded: $goProcessingSucceeded, isReactNativeRunning: $isReactNativeRunning")
                         NativeLogger.info("KeybasePushNotificationListenerService attempting fallback notification display")
                         try {
