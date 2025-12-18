@@ -277,14 +277,15 @@ class MainActivity : ReactActivity() {
 
         // If there are any other bundle sources we care about, emit them here
         if (bundleFromNotification != null) {
-            var payload = Arguments.fromBundle(bundleFromNotification)
+            var payload1 = Arguments.fromBundle(bundleFromNotification)
             emitter.emit(
                 "initialIntentFromNotification",
-                payload
+                payload1
             )
+            var payload2 = Arguments.fromBundle(bundleFromNotification)
             emitter.emit(
                 "onPushNotification",
-                payload
+                payload2
             )
         }
         if (filePaths.size != 0) {
