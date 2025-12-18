@@ -198,28 +198,28 @@ export const initPushListener = () => {
   storeRegistry.getState('push').dispatch.initialPermissionsCheck()
 
   const listenNative = async () => {
-    const pushToken = await getRegistrationToken()
-    logger.debug('[PushToken] received new token: ', pushToken)
-    storeRegistry.getState('push').dispatch.setPushToken(pushToken)
     const RNEmitter = getNativeEmitter()
+
+    // Set up listener immediately, before waiting for token
+    // This ensures notifications aren't lost if they arrive before token is ready
+    const onNotification = (n: object) => {
+      logger.debug('[onNotification]: ', n)
+      const notification = normalizePush(n)
+      if (!notification) {
+        logger.warn('[onNotification]: normalized notification is null/undefined')
+        return
+      }
+
+      logger.info(`[onNotification]: received notification type=${notification.type}, userInteraction=${(notification as any).userInteraction}, conversationIDKey=${(notification as any).conversationIDKey}`)
+      storeRegistry.getState('push').dispatch.handlePush(notification)
+    }
 
     try {
       // Unified push notification handling for both iOS and Android
       // Silent notifications (chat.newmessageSilent_2) are handled entirely natively
       // Other notification types are handled natively first, then emitted to JS via onPushNotification
-      const onNotification = (n: object) => {
-        logger.debug('[onNotification]: ', n)
-        const notification = normalizePush(n)
-        if (!notification) {
-          logger.warn('[onNotification]: normalized notification is null/undefined')
-          return
-        }
-
-        logger.info(`[onNotification]: received notification type=${notification.type}, userInteraction=${notification.userInteraction}, conversationIDKey=${notification.conversationIDKey}`)
-        storeRegistry.getState('push').dispatch.handlePush(notification)
-      }
-
       RNEmitter.addListener('onPushNotification', onNotification)
+      logger.info('[Push] onPushNotification listener registered')
 
       if (isAndroid) {
         RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
@@ -236,7 +236,19 @@ export const initPushListener = () => {
           }
         })
       }
-    } catch {}
+    } catch (e) {
+      logger.error('[Push] failed to set up listeners: ', e)
+    }
+
+    // Get token after listener is set up (may fail if not ready yet, but listener is already active)
+    try {
+      const pushToken = await getRegistrationToken()
+      logger.debug('[PushToken] received new token: ', pushToken)
+      storeRegistry.getState('push').dispatch.setPushToken(pushToken)
+    } catch (e) {
+      logger.warn('[PushToken] failed to get token (will retry later): ', e)
+      // Token will be retrieved later when permissions are checked
+    }
   }
   ignorePromise(listenNative())
 }
