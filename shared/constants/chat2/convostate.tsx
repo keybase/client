@@ -1564,13 +1564,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             logger.info('loadMoreMessages: bail: we are reset')
             return
           }
-        logger.info(
-          `loadMoreMessages: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
-        )
+          logger.info(
+            `loadMoreMessages: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
+          )
 
-        const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
-        const convID = get().getConvID()
-        const onGotThread = (thread: string, why: string) => {
+          const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
+          const convID = get().getConvID()
+          const onGotThread = (thread: string, why: string) => {
           if (!thread) {
             return
           }
@@ -1630,57 +1630,58 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
 
-        const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
-        try {
-          const results = await T.RPCChat.localGetThreadNonblockRpcListener({
-            incomingCallMap: {
-              'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || '', 'cached'),
-              'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || '', 'full'),
-              'chat.1.chatUi.chatThreadStatus': p => {
-                logger.info(
-                  `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
-                )
-                set(s => {
-                  s.threadLoadStatus = p.status.typ
-                })
+          const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
+          try {
+            const results = await T.RPCChat.localGetThreadNonblockRpcListener({
+              incomingCallMap: {
+                'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || '', 'cached'),
+                'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || '', 'full'),
+                'chat.1.chatUi.chatThreadStatus': p => {
+                  logger.info(
+                    `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
+                  )
+                  set(s => {
+                    s.threadLoadStatus = p.status.typ
+                  })
+                },
               },
-            },
-            params: {
-              cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
-              conversationID: convID,
-              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-              knownRemotes,
-              pagination,
-              pgmode: T.RPCChat.GetThreadNonblockPgMode.server,
-              query: {
-                disablePostProcessThread: false,
-                disableResolveSupersedes: false,
-                enableDeletePlaceholders: true,
-                markAsRead: false,
-                messageIDControl,
-                messageTypes: loadThreadMessageTypes,
+              params: {
+                cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
+                conversationID: convID,
+                identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+                knownRemotes,
+                pagination,
+                pgmode: T.RPCChat.GetThreadNonblockPgMode.server,
+                query: {
+                  disablePostProcessThread: false,
+                  disableResolveSupersedes: false,
+                  enableDeletePlaceholders: true,
+                  markAsRead: false,
+                  messageIDControl,
+                  messageTypes: loadThreadMessageTypes,
+                },
+                reason: reasonToRPCReason(reason),
               },
-              reason: reasonToRPCReason(reason),
-            },
-            waitingKey: loadingKey,
-          })
-          if (get().isMetaGood()) {
-            set(s => {
-              s.meta.offline = results.offline
+              waitingKey: loadingKey,
             })
-          }
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.warn(`loadMoreMessages: error: ${error.desc}`)
-            // no longer in team
-            if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
-              const {inboxRefresh, navigateToInbox} = storeRegistry.getState('chat').dispatch
-              inboxRefresh('maybeKickedFromTeam')
-              navigateToInbox()
+            if (get().isMetaGood()) {
+              set(s => {
+                s.meta.offline = results.offline
+              })
             }
-            if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
-              // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
-              throw error
+          } catch (error) {
+            if (error instanceof RPCError) {
+              logger.warn(`loadMoreMessages: error: ${error.desc}`)
+              // no longer in team
+              if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
+                const {inboxRefresh, navigateToInbox} = storeRegistry.getState('chat').dispatch
+                inboxRefresh('maybeKickedFromTeam')
+                navigateToInbox()
+              }
+              if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
+                // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
+                throw error
+              }
             }
           }
         } finally {
@@ -2915,7 +2916,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
                 if (message) {
                   set(s => {
-                    s.threadSearchInfo.hits.push(T.castDraft(message))
+                    // Only add if not already present (idempotent - safe for out-of-order callbacks)
+                    if (!s.threadSearchInfo.hits.find(h => h.id === message.id)) {
+                      s.threadSearchInfo.hits.push(T.castDraft(message))
+                    }
                   })
                 }
               },
