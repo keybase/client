@@ -551,7 +551,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             const old = s.messageMap.get(mapOrdinal)
             if (old && old.type !== 'placeholder') {
               // ignore it
-              return
+              continue
             }
           }
 
@@ -1033,6 +1033,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const meta = get().meta
       const tlfName = meta.tlfname
       const clientPrev = getClientPrev()
+      const convID = get().getConvID()
 
       // disable sending exploding messages if flag is false
       const ephemeralLifetime = get().explodingMode
@@ -1059,7 +1060,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             ...ephemeralData,
             body: text,
             clientPrev,
-            conversationID: get().getConvID(),
+            conversationID: convID,
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             outboxID: undefined,
             replyTo,
@@ -1416,6 +1417,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const f = async () => {
         const {id: conversationIDKey} = get()
+        const convID = get().getConvID()
         try {
           const res = await T.RPCChat.localLoadGalleryRpcListener({
             incomingCallMap: {
@@ -1453,7 +1455,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               },
             },
             params: {
-              convID: get().getConvID(),
+              convID,
               fromMsgID,
               num: 50,
               typ: viewType,
@@ -1558,6 +1560,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         )
 
         const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
+        const convID = get().getConvID()
         const onGotThread = (thread: string, why: string) => {
           if (!thread) {
             return
@@ -1635,7 +1638,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
             params: {
               cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
-              conversationID: get().getConvID(),
+              conversationID: convID,
               identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
               knownRemotes,
               pagination,
