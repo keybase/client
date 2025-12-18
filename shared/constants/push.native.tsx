@@ -56,18 +56,20 @@ export const usePushState = Z.createZustand<State>((set, get) => {
   }
 
   const handleLoudMessage = async (notification: T.Push.PushNotification) => {
+    logger.info(`[Push] handleLoudMessage: type=${notification.type}, userInteraction=${notification.userInteraction}`)
     if (notification.type !== 'chat.newmessage') {
+      logger.warn(`[Push] handleLoudMessage: wrong type, expected chat.newmessage, got ${notification.type}`)
       return
     }
     // We only care if the user clicked while in session
     if (!notification.userInteraction) {
-      logger.warn('push ignore non userInteraction')
+      logger.warn('[Push] handleLoudMessage: ignore non userInteraction')
       return
     }
 
     const {conversationIDKey, unboxPayload, membersType} = notification
 
-    logger.warn('push selecting ', conversationIDKey)
+    logger.info(`[Push] handleLoudMessage: navigating to conversationIDKey=${conversationIDKey}`)
     storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('push', undefined, unboxPayload)
     if (unboxPayload && membersType && !isIOS) {
       logger.info('[Push] unboxing message')
@@ -136,7 +138,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     handlePush: notification => {
       const f = async () => {
         try {
-          logger.info('[Push]: ' + notification.type || 'unknown')
+          logger.info(`[Push] handlePush: type=${notification.type || 'unknown'}, userInteraction=${notification.userInteraction}, conversationIDKey=${notification.conversationIDKey}`)
 
           switch (notification.type) {
             case 'chat.readmessage':
@@ -146,8 +148,10 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               }
               break
             case 'chat.newmessageSilent_2':
+              logger.info('[Push] silent message, skipping')
               break
             case 'chat.newmessage':
+              logger.info(`[Push] newmessage: calling handleLoudMessage, userInteraction=${notification.userInteraction}`)
               await handleLoudMessage(notification)
               break
             case 'follow':

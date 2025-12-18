@@ -254,12 +254,18 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
     notificationDict["userInteraction"] = true
     
+    let type = notificationDict["type"] as? String ?? "unknown"
+    let convID = notificationDict["convID"] as? String ?? notificationDict["c"] as? String ?? "unknown"
+    NSLog("userNotificationCenter didReceive: type=%@, convID=%@, userInteraction=true", type, convID)
+    
     // Store the notification so it can be processed when app becomes active
     // This ensures navigation works even if React Native isn't ready yet
     KbSetInitialNotification(notificationDict)
+    NSLog("userNotificationCenter didReceive: stored notification in initialNotification")
     
     // Also emit immediately in case React Native is ready
     KbEmitPushNotification(notificationDict)
+    NSLog("userNotificationCenter didReceive: emitted notification immediately")
     completionHandler()
   }
   
@@ -339,10 +345,19 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     // This handles the case where app was backgrounded and notification was clicked
     // but React Native wasn't ready yet
     if let storedNotification = KbGetAndClearInitialNotification() {
-      if let userInteraction = storedNotification["userInteraction"] as? Bool, userInteraction {
-        NSLog("applicationDidBecomeActive: found stored notification with userInteraction, emitting")
+      let type = storedNotification["type"] as? String ?? "unknown"
+      let convID = storedNotification["convID"] as? String ?? storedNotification["c"] as? String ?? "unknown"
+      let userInteraction = storedNotification["userInteraction"] as? Bool ?? false
+      NSLog("applicationDidBecomeActive: found stored notification: type=%@, convID=%@, userInteraction=%@", type, convID, userInteraction ? "true" : "false")
+      
+      if userInteraction {
+        NSLog("applicationDidBecomeActive: stored notification has userInteraction=true, emitting")
         KbEmitPushNotification(storedNotification)
+      } else {
+        NSLog("applicationDidBecomeActive: stored notification has userInteraction=false, skipping")
       }
+    } else {
+      NSLog("applicationDidBecomeActive: no stored notification found")
     }
   }
   

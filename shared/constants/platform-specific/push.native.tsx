@@ -211,9 +211,11 @@ export const initPushListener = () => {
         logger.debug('[onNotification]: ', n)
         const notification = normalizePush(n)
         if (!notification) {
+          logger.warn('[onNotification]: normalized notification is null/undefined')
           return
         }
 
+        logger.info(`[onNotification]: received notification type=${notification.type}, userInteraction=${notification.userInteraction}, conversationIDKey=${notification.conversationIDKey}`)
         storeRegistry.getState('push').dispatch.handlePush(notification)
       }
 

@@ -506,8 +506,16 @@ RCT_EXPORT_METHOD(addNotificationRequest: (NSDictionary *)config resolve: (RCTPr
 }
 
 + (void)emitPushNotification:(NSDictionary *)notification {
+  NSString *type = notification[@"type"] ?: @"unknown";
+  NSString *convID = notification[@"convID"] ?: notification[@"c"] ?: @"unknown";
+  NSNumber *userInteraction = notification[@"userInteraction"];
+  NSLog(@"Kb.emitPushNotification: type=%@, convID=%@, userInteraction=%@, kbSharedInstance=%@", type, convID, userInteraction ?: @"nil", kbSharedInstance ? @"exists" : @"nil");
+  
   if (kbSharedInstance) {
     [kbSharedInstance sendEventWithName:@"onPushNotification" body:notification];
+    NSLog(@"Kb.emitPushNotification: sent event 'onPushNotification' to JS");
+  } else {
+    NSLog(@"Kb.emitPushNotification: WARNING - kbSharedInstance is nil, event not sent");
   }
 }
 
