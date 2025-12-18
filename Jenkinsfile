@@ -512,9 +512,22 @@ def testGo(prefix, packagesToTest, hasKBFSChanges) {
     "KEYBASE_LOG_SETUPTEST_FUNCS=1",
     "KEYBASE_RUN_CI=1",
   ].plus(isUnix() ? [] : [
+    'CGO_ENABLED=1',
     'CC=C:\\cygwin64\\bin\\x86_64-w64-mingw32-gcc.exe',
     'CPATH=C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include;C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include\\ddk',
   ])) {
+  // Debug info for Windows builds
+  if (!isUnix()) {
+    println "Windows build environment debug info:"
+    sh 'go version'
+    sh 'go env CGO_ENABLED'
+    sh 'go env GOARCH'
+    sh 'go env CC'
+    sh 'echo "CC: $CC"'
+    sh 'echo "CGO_ENABLED: $CGO_ENABLED"'
+    sh 'which x86_64-w64-mingw32-gcc || echo "x86_64-w64-mingw32-gcc not found in PATH"'
+    sh 'test -f "$CC" && echo "CC compiler exists" || echo "WARNING: CC compiler not found at $CC"'
+  }
   parallel (
     test_go_builds: {
       testGoBuilds(prefix, packagesToTest, hasKBFSChanges)
@@ -843,6 +856,14 @@ def testGoTestSuite(prefix, packagesToTest) {
       packageTestCompileList.add([
         closure: {
           sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
+          // Debug: Show compiled binary information
+          if (isUnix()) {
+            sh "ls -lh ${testSpec.dirPath}/${testSpec.testBinary} || echo 'Test binary not found'"
+            sh "file ${testSpec.dirPath}/${testSpec.testBinary} || echo 'Cannot determine file type'"
+          } else {
+            bat "dir ${testSpec.dirPath}\\${testSpec.testBinary} || echo Test binary not found"
+            sh "file ${testSpec.dirPath}/${testSpec.testBinary} || echo 'Cannot determine file type'"
+          }
         },
         alone: !!testSpec.compileAlone,
       ])
@@ -852,6 +873,15 @@ def testGoTestSuite(prefix, packagesToTest) {
             // Only run the test if a test binary should have been produced.
             if (fileExists(spec.testBinary)) {
               println "Running tests for ${spec.dirPath}"
+              // Debug: Show test binary information before execution
+              if (isUnix()) {
+                sh "ls -lh ${spec.testBinary}"
+                sh "file ${spec.testBinary}"
+              } else {
+                bat "dir ${spec.testBinary}"
+                sh "file ${spec.testBinary}"
+                sh "ldd ${spec.testBinary} 2>&1 || echo 'ldd not available or binary not compatible'"
+              }
               def t = getOverallTimeout(spec)
               timeout(activity: true, time: t.time, unit: t.unit) {
                 if (spec.no_citogo) {
