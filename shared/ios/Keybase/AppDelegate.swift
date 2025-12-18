@@ -253,6 +253,12 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     let userInfo = response.notification.request.content.userInfo
     var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
     notificationDict["userInteraction"] = true
+    
+    // Store the notification so it can be processed when app becomes active
+    // This ensures navigation works even if React Native isn't ready yet
+    KbSetInitialNotification(notificationDict)
+    
+    // Also emit immediately in case React Native is ready
     KbEmitPushNotification(notificationDict)
     completionHandler()
   }
@@ -328,6 +334,16 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     hideCover()
     NSLog("applicationDidBecomeActive: notifying service.")
     notifyAppState(application)
+    
+    // Check if there's a stored notification with userInteraction that needs to be processed
+    // This handles the case where app was backgrounded and notification was clicked
+    // but React Native wasn't ready yet
+    if let storedNotification = KbGetAndClearInitialNotification() {
+      if let userInteraction = storedNotification["userInteraction"] as? Bool, userInteraction {
+        NSLog("applicationDidBecomeActive: found stored notification with userInteraction, emitting")
+        KbEmitPushNotification(storedNotification)
+      }
+    }
   }
   
   public override func applicationWillEnterForeground(_ application: UIApplication) {

@@ -586,3 +586,9 @@ void KbSetInitialNotification(NSDictionary *notification) {
 void KbEmitPushNotification(NSDictionary *notification) {
   [Kb emitPushNotification:notification];
 }
+
+NSDictionary *KbGetAndClearInitialNotification(void) {
+  NSDictionary *notification = kbInitialNotification;
+  kbInitialNotification = nil;
+  return notification;
+}
