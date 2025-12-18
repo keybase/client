@@ -368,6 +368,8 @@ export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
+  let isLoadingMessages = false
+
   const closeBotModal = () => {
     storeRegistry.getState('router').dispatch.clearModals()
     if (get().meta.teamname) {
@@ -1516,9 +1518,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         forceClear = true
       }
 
+      if (isLoadingMessages && !forceClear) {
+        return
+      }
+
       // clear immediately to avoid races and avoid desktop having to churn while it loads a lot of waypoints
       if (forceClear) {
         get().dispatch.messagesClear()
+        isLoadingMessages = false
       }
 
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
@@ -1543,18 +1550,20 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // we get a thread-is-stale notification, or when you scroll up and want more
       // messages
       const f = async () => {
-        // Get the conversationIDKey
-        const {id: conversationIDKey} = get()
+        isLoadingMessages = true
+        try {
+          // Get the conversationIDKey
+          const {id: conversationIDKey} = get()
 
-        if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
-          logger.info('loadMoreMessages: bail: no conversationIDKey')
-          return
-        }
+          if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
+            logger.info('loadMoreMessages: bail: no conversationIDKey')
+            return
+          }
 
-        if (get().meta.membershipType === 'youAreReset' || get().meta.rekeyers.size > 0) {
-          logger.info('loadMoreMessages: bail: we are reset')
-          return
-        }
+          if (get().meta.membershipType === 'youAreReset' || get().meta.rekeyers.size > 0) {
+            logger.info('loadMoreMessages: bail: we are reset')
+            return
+          }
         logger.info(
           `loadMoreMessages: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
         )
@@ -1674,6 +1683,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               throw error
             }
           }
+        } finally {
+          isLoadingMessages = false
         }
       }
 
