@@ -866,7 +866,8 @@ def testGoTestSuite(prefix, packagesToTest) {
   packagesToTest.each { pkg, _ ->
     def testSpec = getPackageTestSpec(pkg)
     if (testSpec && !testSpec.disable) {
-      testSpec.testBinary = "${testSpec.name}.test"
+      // On Windows, test binaries need .exe extension
+      testSpec.testBinary = prefix == "test_windows_go_" ? "${testSpec.name}.test.exe" : "${testSpec.name}.test"
       packageTestCompileList.add([
         closure: {
           println "Compiling test for ${testSpec.dirPath} -> ${testSpec.testBinary}"
