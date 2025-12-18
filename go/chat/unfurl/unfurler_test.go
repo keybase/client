@@ -117,11 +117,11 @@ func TestUnfurler(t *testing.T) {
 		require.Equal(t, uid, n.uid)
 		require.Equal(t, convID, n.convID)
 		require.Equal(t, fromMsg.GetMessageID(), n.msgID)
-		require.Equal(t, "0.1", n.domain)
+		require.Equal(t, "127.0.0.1", n.domain)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no notifications")
 	}
-	require.NoError(t, settings.WhitelistAdd(context.TODO(), uid, "0.1"))
+	require.NoError(t, settings.WhitelistAdd(context.TODO(), uid, "127.0.0.1"))
 
 	// ensure we try to prefetch once per url in the msgText once we're whitelisted
 	numPrefetched = unfurler.Prefetch(context.TODO(), uid, convID, strings.Repeat(msgBody, 5))
