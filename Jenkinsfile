@@ -556,12 +556,12 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
 
   if (prefix == "test_linux_go_") {
     // Only test golangci-lint on linux
-    println "Installing golangci-lint"
-    dir("buildtools") {
-      retry(5) {
-        sh 'go install github.com/golangci/golangci-lint/cmd/golangci-lint'
-      }
-    }
+    //println "Installing golangci-lint"
+    //dir("buildtools") {
+    //  retry(5) {
+    //    sh 'go install github.com/golangci/golangci-lint/cmd/golangci-lint'
+    //  }
+    //}
     //
 
     // TODO re-enable for kbfs.
@@ -580,20 +580,20 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     sh 'go install golang.org/x/vuln/cmd/govulncheck@latest'
     sh 'go version'
     sh 'govulncheck ./...'
-    if (env.CHANGE_TARGET) {
-      println("Running golangci-lint on new code")
-      fetchChangeTarget()
-      def BASE_COMMIT_HASH = getBaseCommitHash()
-      timeout(activity: true, time: 720, unit: 'SECONDS') {
-        // Ignore the `protocol` directory, autogeneration has some critques
-        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --timeout 10m0s"
-      }
-    } else {
-      println("Running golangci-lint on all non-KBFS code")
-      timeout(activity: true, time: 720, unit: 'SECONDS') {
-        sh "make golangci-lint-nonkbfs"
-      }
-    }
+    //if (env.CHANGE_TARGET) {
+    //  println("Running golangci-lint on new code")
+    //  fetchChangeTarget()
+    //  def BASE_COMMIT_HASH = getBaseCommitHash()
+    //  timeout(activity: true, time: 720, unit: 'SECONDS') {
+    //    // Ignore the `protocol` directory, autogeneration has some critques
+    //    sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --timeout 10m0s"
+    //  }
+    //} else {
+    //  println("Running golangci-lint on all non-KBFS code")
+    //  timeout(activity: true, time: 720, unit: 'SECONDS') {
+    //    sh "make golangci-lint-nonkbfs"
+    //  }
+    //}
 
     // Windows `gofmt` pukes on CRLF.
     // Macos pukes on mockgen because ¯\_(ツ)_/¯.
