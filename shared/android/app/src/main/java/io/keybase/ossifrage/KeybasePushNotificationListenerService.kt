@@ -138,7 +138,18 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     }
                     NativeLogger.info("KeybasePushNotificationListenerService isReactNativeRunning: $isReactNativeRunning")
 
-                    if (dontNotify && (!goProcessingSucceeded || !isReactNativeRunning)) {
+                    val isForeground = try {
+                        Keybase.isAppStateForeground()
+                    } catch (e: Exception) {
+                        NativeLogger.info("KeybasePushNotificationListenerService couldn't check if app is foreground: ${e.message}, assuming background")
+                        false
+                    }
+                    NativeLogger.info("KeybasePushNotificationListenerService isForeground: $isForeground")
+
+                    // Don't show notifications if app is foreground - user is already looking at the app
+                    if (isForeground) {
+                        NativeLogger.info("KeybasePushNotificationListenerService app is foreground, skipping notification display")
+                    } else if (dontNotify && (!goProcessingSucceeded || !isReactNativeRunning)) {
                         NativeLogger.info("KeybasePushNotificationListenerService silent notification but React Native not running or Go failed, displaying fallback")
                         NativeLogger.info("KeybasePushNotificationListenerService serverMessageBody: '${n.serverMessageBody}', sender: '${n.sender}'")
                         try {
@@ -178,7 +189,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             NativeLogger.error("Failed to display silent notification fallback: " + e.message)
                             NativeLogger.error("Silent fallback exception stack: " + e.stackTraceToString())
                         }
-                    } else if ((!goProcessingSucceeded || !isReactNativeRunning) && type == "chat.newmessage") {
+                    } else if (!isForeground && (!goProcessingSucceeded || !isReactNativeRunning) && type == "chat.newmessage") {
                         NativeLogger.info("KeybasePushNotificationListenerService goProcessingSucceeded: $goProcessingSucceeded, isReactNativeRunning: $isReactNativeRunning")
                         NativeLogger.info("KeybasePushNotificationListenerService attempting fallback notification display")
                         try {
