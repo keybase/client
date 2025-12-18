@@ -409,7 +409,6 @@ internal interface WithBackgroundActive {
             }
         } catch (ex: Exception) {
             NativeLogger.error("WithBackgroundActive.whileActive exception: " + ex.message)
-            NativeLogger.error("WithBackgroundActive exception stack: " + ex.stackTraceToString())
             throw ex
         }
     }
