@@ -157,7 +157,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             }
                             message.serverMessage = serverMsg
                             message.at = n.unixTime
-                            message.id = n.messageId
+                            message.id = n.messageId.toLong()
                             
                             val person = keybase.Person()
                             person.keybaseUsername = n.sender ?: ""
@@ -184,7 +184,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             val message = keybase.Message()
                             message.serverMessage = n.serverMessageBody
                             message.at = n.unixTime
-                            message.id = n.messageId
+                            message.id = n.messageId.toLong()
                             
                             val person = keybase.Person()
                             person.keybaseUsername = n.sender ?: ""
