@@ -44,7 +44,8 @@ has_js_files() {
 js_tests() {
 	echo 'js-tests'
 	node --version
-	npm i -g yarn
+	corepack enable
+	corepack prepare yarn@3.6.4 --activate
 	has_js_files
 
 	echo 'cleanup'

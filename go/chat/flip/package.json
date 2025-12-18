@@ -1,5 +1,6 @@
 {
   "name": "go-flip",
+  "packageManager": "yarn@3.6.4",
   "version": "1.0.0",
   "description": "Code in Go for MPC of a coin flip",
   "main": "index.js",
