@@ -160,7 +160,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             val serverMsg = if (n.serverMessageBody.isNotEmpty()) {
                                 n.serverMessageBody
                             } else {
-                                if (n.sender != null && n.sender.isNotEmpty()) {
+                                if (n.sender.isNotEmpty()) {
                                     "New message from ${n.sender}"
                                 } else {
                                     "New message"

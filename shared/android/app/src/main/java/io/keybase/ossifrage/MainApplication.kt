@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package io.keybase.ossifrage
 
 import android.app.Application
