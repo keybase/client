@@ -229,6 +229,7 @@ class MainActivity : ReactActivity() {
     }
 
     private var jsIsListening = false
+    private var handledIntentHash: String? = null
     private fun handleIntent() {
         val intent = cachedIntent ?: return
         val rc = reactActivityDelegate?.getCurrentReactContext() ?: return
@@ -237,11 +238,27 @@ class MainActivity : ReactActivity() {
         if (jsIsListening == false) {
             return
         }
-        cachedIntent = null
 
         // Here we are just reading from the notification bundle.
         // If other sources start the app, we can get their intent data the same way.
         val bundleFromNotification = intent.getBundleExtra("notification")
+        if (bundleFromNotification == null) {
+            cachedIntent = null
+            return
+        }
+
+        // Prevent duplicate handling of the same notification
+        val convID = bundleFromNotification.getString("convID") ?: bundleFromNotification.getString("c")
+        val messageId = bundleFromNotification.getString("msgID") ?: bundleFromNotification.getString("d") ?: ""
+        val intentHash = "${convID}_${messageId}"
+        if (handledIntentHash == intentHash) {
+            NativeLogger.info("MainActivity.handleIntent skipping duplicate notification: $intentHash")
+            cachedIntent = null
+            return
+        }
+        handledIntentHash = intentHash
+        NativeLogger.info("MainActivity.handleIntent processing notification: $intentHash")
+        cachedIntent = null
         intent.removeExtra("notification")
         val action = intent.action
         var uris_: Array<Uri?>? = null
@@ -277,12 +294,14 @@ class MainActivity : ReactActivity() {
 
         // If there are any other bundle sources we care about, emit them here
         if (bundleFromNotification != null) {
-            var payload1 = Arguments.fromBundle(bundleFromNotification)
+            val bundle1 = bundleFromNotification.clone() as Bundle
+            val bundle2 = bundleFromNotification.clone() as Bundle
+            var payload1 = Arguments.fromBundle(bundle1)
             emitter.emit(
                 "initialIntentFromNotification",
                 payload1
             )
-            var payload2 = Arguments.fromBundle(bundleFromNotification)
+            var payload2 = Arguments.fromBundle(bundle2)
             emitter.emit(
                 "onPushNotification",
                 payload2
