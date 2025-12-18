@@ -377,7 +377,6 @@ helpers.rootLinuxNode(env, {
                     test_windows_go: {
                       // install the updater test binary
                       dir('go') {
-                        sh "go version"
                         sh "go install github.com/keybase/client/go/updater/test"
                       }
                       testGo("test_windows_go_", getPackagesToTest(dependencyFiles, hasJenkinsfileChanges), hasKBFSChanges)
@@ -578,7 +577,6 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     // }
 
     sh 'go install golang.org/x/vuln/cmd/govulncheck@latest'
-    sh 'go version'
     sh 'govulncheck ./...'
     //if (env.CHANGE_TARGET) {
     //  println("Running golangci-lint on new code")
@@ -847,6 +845,22 @@ def testGoTestSuite(prefix, packagesToTest) {
   }
 
   println "Compiling ${packageTestSet.size()} test(s)"
+
+  // Debug: Print Go environment before compilation (Windows only)
+  if (prefix == "test_windows_go_") {
+    println "=== Go Environment Before Compilation ==="
+    sh '''
+      echo "Go version:"
+      go version
+      echo ""
+      echo "Critical Go environment variables:"
+      go env GOOS GOARCH CGO_ENABLED CC CXX GOPATH GOROOT
+      echo ""
+      echo "Full Go environment:"
+      go env
+    '''
+  }
+
   def packageTestCompileList = []
   def packageTestRunList = []
   packagesToTest.each { pkg, _ ->
@@ -855,13 +869,45 @@ def testGoTestSuite(prefix, packagesToTest) {
       testSpec.testBinary = "${testSpec.name}.test"
       packageTestCompileList.add([
         closure: {
-          sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
+          println "Compiling test for ${testSpec.dirPath} -> ${testSpec.testBinary}"
+
+          // Check if the package has any test files
+          def hasTests = false
+          if (isUnix()) {
+            hasTests = sh(
+              script: "ls ${testSpec.dirPath}/*_test.go 2>/dev/null | wc -l",
+              returnStdout: true
+            ).trim().toInteger() > 0
+          } else {
+            hasTests = sh(
+              script: "ls ${testSpec.dirPath}/*_test.go 2>/dev/null | wc -l",
+              returnStdout: true
+            ).trim().toInteger() > 0
+          }
+
+          if (!hasTests) {
+            println "SKIP: No test files found in ${testSpec.dirPath}"
+            return
+          }
+
+          if (isUnix()) {
+            sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
+          } else {
+            // Windows: Add -x for verbose build output and check for errors
+            def compileResult = sh(
+              script: "go test -vet=off -c -x ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}",
+              returnStatus: true
+            )
+            if (compileResult != 0) {
+              error "Compilation failed for ${testSpec.dirPath} with exit code ${compileResult}"
+            }
+          }
           // Debug: Show compiled binary information
           if (isUnix()) {
-            sh "ls -lh ${testSpec.dirPath}/${testSpec.testBinary} || echo 'Test binary not found'"
+            sh "ls -lh ${testSpec.dirPath}/${testSpec.testBinary} || echo 'WARNING: Test binary not found after compilation'"
             sh "file ${testSpec.dirPath}/${testSpec.testBinary} || echo 'Cannot determine file type'"
           } else {
-            bat "dir ${testSpec.dirPath}\\${testSpec.testBinary} || echo Test binary not found"
+            bat "dir ${testSpec.dirPath}\\${testSpec.testBinary} || echo WARNING: Test binary not found after compilation"
             sh "file ${testSpec.dirPath}/${testSpec.testBinary} || echo 'Cannot determine file type'"
           }
         },
