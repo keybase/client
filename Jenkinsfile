@@ -902,14 +902,9 @@ def testGoTestSuite(prefix, packagesToTest) {
               error "Compilation failed for ${testSpec.dirPath} with exit code ${compileResult}"
             }
           }
-          // Debug: Show compiled binary information
-          if (isUnix()) {
-            sh "ls -lh ${testSpec.dirPath}/${testSpec.testBinary} || echo 'WARNING: Test binary not found after compilation'"
-            sh "file ${testSpec.dirPath}/${testSpec.testBinary} || echo 'Cannot determine file type'"
-          } else {
-            bat "dir ${testSpec.dirPath}\\${testSpec.testBinary} || echo WARNING: Test binary not found after compilation"
-            sh "file ${testSpec.dirPath}/${testSpec.testBinary} || echo 'Cannot determine file type'"
-          }
+          // Debug: Show compiled binary information (using sh/ls on all platforms since Windows uses Git Bash)
+          sh "ls -lh ${testSpec.dirPath}/${testSpec.testBinary} 2>/dev/null || echo 'WARNING: Test binary not found after compilation'"
+          sh "file ${testSpec.dirPath}/${testSpec.testBinary} 2>/dev/null || echo 'Cannot determine file type'"
         },
         alone: !!testSpec.compileAlone,
       ])
@@ -920,12 +915,9 @@ def testGoTestSuite(prefix, packagesToTest) {
             if (fileExists(spec.testBinary)) {
               println "Running tests for ${spec.dirPath}"
               // Debug: Show test binary information before execution
-              if (isUnix()) {
-                sh "ls -lh ${spec.testBinary}"
-                sh "file ${spec.testBinary}"
-              } else {
-                bat "dir ${spec.testBinary}"
-                sh "file ${spec.testBinary}"
+              sh "ls -lh ${spec.testBinary}"
+              sh "file ${spec.testBinary}"
+              if (!isUnix()) {
                 sh "ldd ${spec.testBinary} 2>&1 || echo 'ldd not available or binary not compatible'"
               }
               def t = getOverallTimeout(spec)
