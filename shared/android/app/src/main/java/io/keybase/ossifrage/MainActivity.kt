@@ -83,24 +83,19 @@ class MainActivity : ReactActivity() {
         KeybasePushNotificationListenerService.createNotificationChannel(this)
         updateIsUsingHardwareKeyboard()
 
-        // old arch, hook up react starting up new arch does this by itself i think
-        val reactHost = (application as ReactApplication).reactNativeHost
-        val reactInstanceManager = reactHost.reactInstanceManager
-        if (reactInstanceManager.hasStartedCreatingInitialContext()) {
-            val reactContext = reactActivityDelegate?.getCurrentReactContext()
-            if (reactContext != null) {
-                handleIntent()
-                return
+        // Check if React context is already available, otherwise wait for it
+        val reactContext = reactActivityDelegate?.getCurrentReactContext()
+        if (reactContext != null) {
+            handleIntent()
+        } else {
+            val listener = object : ReactInstanceEventListener {
+                override fun onReactContextInitialized(c: ReactContext) {
+                    handleIntent()
+                    reactActivityDelegate?.reactHost?.removeReactInstanceEventListener(this)
+                }
             }
+            reactActivityDelegate?.reactHost?.addReactInstanceEventListener(listener)
         }
-
-        val listener = object : ReactInstanceEventListener {
-            override fun onReactContextInitialized(c: ReactContext) {
-                handleIntent()
-                reactInstanceManager.removeReactInstanceEventListener(this)
-            }
-        }
-        reactActivityDelegate?.reactHost?.addReactInstanceEventListener(listener)
 
         // fix for keyboard avoiding not working on 35
         if (Build.VERSION.SDK_INT >= 35) {
@@ -263,10 +258,10 @@ class MainActivity : ReactActivity() {
         val action = intent.action
         var uris_: Array<Uri?>? = null
         if (Intent.ACTION_SEND_MULTIPLE == action) {
-            val alUri = intent.getParcelableArrayListExtra<Uri?>(Intent.EXTRA_STREAM)
-            uris_ = alUri!!.toTypedArray<Uri?>()
+            val alUri = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)
+            uris_ = alUri?.toTypedArray<Uri?>()
         } else if (Intent.ACTION_SEND == action) {
-            val oneUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+            val oneUri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
             uris_ = arrayOf(oneUri)
         }
         intent.removeExtra(Intent.EXTRA_STREAM)
@@ -293,20 +288,19 @@ class MainActivity : ReactActivity() {
         }?.toTypedArray() ?: emptyArray()
 
         // If there are any other bundle sources we care about, emit them here
-        if (bundleFromNotification != null) {
-            val bundle1 = bundleFromNotification.clone() as Bundle
-            val bundle2 = bundleFromNotification.clone() as Bundle
-            var payload1 = Arguments.fromBundle(bundle1)
-            emitter.emit(
-                "initialIntentFromNotification",
-                payload1
-            )
-            var payload2 = Arguments.fromBundle(bundle2)
-            emitter.emit(
-                "onPushNotification",
-                payload2
-            )
-        }
+        // bundleFromNotification is already checked for null above, so it's safe here
+        val bundle1 = bundleFromNotification.clone() as Bundle
+        val bundle2 = bundleFromNotification.clone() as Bundle
+        var payload1 = Arguments.fromBundle(bundle1)
+        emitter.emit(
+            "initialIntentFromNotification",
+            payload1
+        )
+        var payload2 = Arguments.fromBundle(bundle2)
+        emitter.emit(
+            "onPushNotification",
+            payload2
+        )
         if (filePaths.size != 0) {
             val args = Arguments.createMap()
             val lPaths = Arguments.createArray()

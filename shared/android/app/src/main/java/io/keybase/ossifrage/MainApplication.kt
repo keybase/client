@@ -44,6 +44,8 @@ internal class AppLifecycleListener(private val context: Context?) :
 }
 
 class MainApplication : Application(), ReactApplication {
+    // ReactNativeHost is still required by getDefaultReactHost even in new architecture
+    @Suppress("DEPRECATION")
     override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(
       this,
       object : DefaultReactNativeHost(this) {
