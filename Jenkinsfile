@@ -896,6 +896,9 @@ def testGoTestSuite(prefix, packagesToTest) {
           } else {
             // Windows: Use -buildmode=exe (not pie) because PIE is not supported on Windows
             // Add -x for verbose build output and check for errors
+            println "=== Windows compilation debug ==="
+            println "Target binary: ${testSpec.dirPath}/${testSpec.testBinary}"
+            println "Flags: ${testSpec.flags}"
             def compileResult = sh(
               script: "go test -vet=off -c -x -buildmode=exe ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}",
               returnStatus: true
@@ -903,6 +906,7 @@ def testGoTestSuite(prefix, packagesToTest) {
             if (compileResult != 0) {
               error "Compilation failed for ${testSpec.dirPath} with exit code ${compileResult}"
             }
+            println "Compilation succeeded. Verifying binary..."
           }
           // Debug: Show compiled binary information (using sh/ls on all platforms since Windows uses Git Bash)
           sh "ls -lh ${testSpec.dirPath}/${testSpec.testBinary} 2>/dev/null || echo 'WARNING: Test binary not found after compilation'"
@@ -921,6 +925,21 @@ def testGoTestSuite(prefix, packagesToTest) {
               sh "file ${spec.testBinary}"
               if (!isUnix()) {
                 sh "ldd ${spec.testBinary} 2>&1 || echo 'ldd not available or binary not compatible'"
+                // Additional Windows debugging
+                println "=== Windows-specific debugging for ${spec.testBinary} ==="
+                sh """
+                  echo "Binary name: ${spec.testBinary}"
+                  echo "Working directory: \$(pwd)"
+                  echo "Binary exists:"
+                  test -f ${spec.testBinary} && echo "YES" || echo "NO"
+                  echo "Binary permissions:"
+                  ls -l ${spec.testBinary}
+                  echo "Trying to execute binary directly (should show usage or version):"
+                  ./${spec.testBinary} -help 2>&1 | head -20 || echo "Direct execution failed with exit code: \$?"
+                  echo "Checking for Dokan DLL (if this is a dokan test):"
+                  ls -la /cygdrive/c/WINDOWS/SYSTEM32/DOKAN1.DLL 2>&1 || echo "DOKAN1.DLL not found in SYSTEM32"
+                  ls -la /cygdrive/c/WINDOWS/SYSWOW64/DOKAN1.DLL 2>&1 || echo "DOKAN1.DLL not found in SYSWOW64"
+                """
               }
               def t = getOverallTimeout(spec)
               timeout(activity: true, time: t.time, unit: t.unit) {
