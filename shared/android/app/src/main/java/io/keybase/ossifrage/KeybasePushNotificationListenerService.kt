@@ -90,9 +90,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     // Silent notifications should never display - we'll get the non-silent version
                     // (chat.newmessage) with a servermessagebody that we can display later.
                     val dontNotify = type == "chat.newmessageSilent_2"
-                    NativeLogger.info("KeybasePushNotificationListenerService dontNotify: $dontNotify, type: $type, displayPlaintext: ${n.displayPlaintext}")
-                    NativeLogger.info("KeybasePushNotificationListenerService convID: ${n.convID}, messageId: ${n.messageId}")
-                    
+
                     // Only check for duplicates on non-silent notifications that will be displayed
                     // Silent notifications are processed but not marked as seen, allowing the non-silent one to display
                     if (!dontNotify) {
@@ -105,36 +103,30 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         seenChatNotifications.add(notificationKey)
                         NativeLogger.info("KeybasePushNotificationListenerService marked notification as seen: $notificationKey")
                     }
-                    
+
                     notifier.setMsgCache(msgCache[n.convID])
 
                     var goProcessingSucceeded = false
                     try {
-                        NativeLogger.info("KeybasePushNotificationListenerService calling withBackgroundActive.whileActive")
                         val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
                             override fun task() {
                                 try {
-                                    NativeLogger.info("KeybasePushNotificationListenerService calling Keybase.handleBackgroundNotification")
                                     Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
                                             n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
                                             n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true)
-                                    NativeLogger.info("KeybasePushNotificationListenerService Keybase.handleBackgroundNotification succeeded")
                                     goProcessingSucceeded = true
                                     if (!dontNotify) {
                                         seenChatNotifications.add(n.convID + n.messageId)
                                     }
                                 } catch (ex: Exception) {
                                     NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
-                                    NativeLogger.error("Go exception stack: " + ex.stackTraceToString())
                                     throw ex
                                 }
                             }
                         }
                         withBackgroundActive.whileActive(applicationContext)
-                        NativeLogger.info("KeybasePushNotificationListenerService withBackgroundActive.whileActive completed")
                     } catch (ex: Exception) {
                         NativeLogger.error("Failed to process notification (app may not be running): " + ex.message)
-                        NativeLogger.error("Exception stack: " + ex.stackTraceToString())
                         goProcessingSucceeded = false
                     }
 
@@ -156,49 +148,44 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
                     // Don't show notifications if app is foreground - user is already looking at the app
                     if (isForeground) {
-                        NativeLogger.info("KeybasePushNotificationListenerService app is foreground, skipping notification display")
+
                     } else if (dontNotify) {
                         // Silent notifications should never display - they're processed by Go but no notification shown
-                        NativeLogger.info("KeybasePushNotificationListenerService silent notification processed, no display needed")
                     } else if (!goProcessingSucceeded && type == "chat.newmessage") {
                         // Only show fallback if Go processing failed AND it's a non-silent notification
                         // If Go succeeded, it already displayed the notification (via notifier parameter)
-                        NativeLogger.info("KeybasePushNotificationListenerService goProcessingSucceeded: $goProcessingSucceeded, isReactNativeRunning: $isReactNativeRunning")
                         NativeLogger.info("KeybasePushNotificationListenerService attempting fallback notification display")
                         try {
                             val chatNotif = keybase.ChatNotification()
                             chatNotif.convID = n.convID
-                            
+
                             val message = keybase.Message()
                             message.serverMessage = n.serverMessageBody
                             message.at = n.unixTime
                             message.id = n.messageId.toLong()
-                            
+
                             val person = keybase.Person()
                             person.keybaseUsername = n.sender ?: ""
                             message.from = person
-                            
+
                             chatNotif.message = message
                             chatNotif.isPlaintext = n.displayPlaintext
                             chatNotif.soundName = n.soundName ?: "default"
                             chatNotif.conversationName = ""
                             chatNotif.isGroupConversation = false
                             chatNotif.tlfName = ""
-                            
-                            NativeLogger.info("KeybasePushNotificationListenerService calling notifier.displayChatNotification with message: '${n.serverMessageBody}'")
+
                             notifier.displayChatNotification(chatNotif)
                             seenChatNotifications.add(n.convID + n.messageId)
                             NativeLogger.info("KeybasePushNotificationListenerService fallback notification displayed successfully")
                         } catch (e: Exception) {
                             NativeLogger.error("Failed to display notification fallback: " + e.message)
-                            NativeLogger.error("Fallback exception stack: " + e.stackTraceToString())
                         }
                     } else if (dontNotify) {
-                        NativeLogger.info("KeybasePushNotificationListenerService silent notification processed by Go, no display needed")
+
                     }
 
                     if (type == "chat.newmessage") {
-                        NativeLogger.info("KeybasePushNotificationListenerService emitting onPushNotification event")
                         val emitBundle = bundle.clone() as Bundle
                         emitBundle.putBoolean("userInteraction", false)
                         KbModule.emitPushNotification(emitBundle)
