@@ -209,8 +209,6 @@ export const initPushListener = () => {
         logger.warn('[onNotification]: normalized notification is null/undefined')
         return
       }
-
-      logger.info(`[onNotification]: received notification type=${notification.type}, userInteraction=${(notification as any).userInteraction}, conversationIDKey=${(notification as any).conversationIDKey}`)
       storeRegistry.getState('push').dispatch.handlePush(notification)
     }
 
@@ -219,11 +217,9 @@ export const initPushListener = () => {
       // Silent notifications (chat.newmessageSilent_2) are handled entirely natively
       // Other notification types are handled natively first, then emitted to JS via onPushNotification
       RNEmitter.addListener('onPushNotification', onNotification)
-      logger.info('[Push] onPushNotification listener registered')
 
       if (isAndroid) {
         RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
-          logger.debug('[ShareDataIntent]', evt)
           const {setAndroidShare} = storeRegistry.getState('config').dispatch
 
           const text = evt.text

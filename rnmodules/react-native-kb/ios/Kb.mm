@@ -121,13 +121,13 @@ RCT_EXPORT_MODULE()
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     Class cls = [UITextView class];
-    
+
     SEL originalPaste = @selector(paste:);
     SEL swizzledPaste = @selector(kb_paste:);
     Method originalPasteMethod = class_getInstanceMethod(cls, originalPaste);
     Method swizzledPasteMethod = class_getInstanceMethod(cls, swizzledPaste);
     method_exchangeImplementations(originalPasteMethod, swizzledPasteMethod);
-    
+
     SEL originalCanPerform = @selector(canPerformAction:withSender:);
     SEL swizzledCanPerform = @selector(kb_canPerformAction:withSender:);
     Method originalCanPerformMethod = class_getInstanceMethod(cls, originalCanPerform);
@@ -138,20 +138,20 @@ RCT_EXPORT_MODULE()
 
 + (void)handlePastedImages:(NSArray<UIImage *> *)images {
   if (!kbSharedInstance || images.count == 0) return;
-  
+
   NSMutableArray *uris = [NSMutableArray array];
   for (UIImage *image in images) {
     NSData *data = UIImagePNGRepresentation(image);
     if (!data) continue;
-    
+
     NSString *filename = [NSString stringWithFormat:@"paste_%@.png", [[NSUUID UUID] UUIDString]];
     NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
-    
+
     if ([data writeToFile:tempPath atomically:YES]) {
       [uris addObject:tempPath];
     }
   }
-  
+
   if (uris.count > 0) {
     [kbSharedInstance sendEventWithName:@"onPasteImage" body:@{@"uris": uris}];
   }
@@ -330,11 +330,11 @@ RCT_EXPORT_METHOD(notifyJSReady) {
                name:RCTJavaScriptWillStartLoadingNotification
              object:nil];
     self.readQueue = dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
-    
+
     // Signal to Go that JS is ready
     KeybaseNotifyJSReady();
     NSLog(@"Notified Go that JS is ready, starting ReadArr loop");
-    
+
     // Start the read loop
     dispatch_async(self.readQueue, ^{
       while (true) {
@@ -476,17 +476,17 @@ RCT_EXPORT_METHOD(removeAllPendingNotificationRequests) {
 RCT_EXPORT_METHOD(addNotificationRequest: (NSDictionary *)config resolve: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
   NSString *body = config[@"body"];
   NSString *identifier = config[@"id"];
-  
+
   if (!body || !identifier) {
     reject(@"invalid_config", @"body and id are required", nil);
     return;
   }
-  
+
   UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
   content.body = body;
-  
+
   UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:identifier content:content trigger:nil];
-  
+
   UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
   [current addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
     if (error) {
@@ -509,8 +509,7 @@ RCT_EXPORT_METHOD(addNotificationRequest: (NSDictionary *)config resolve: (RCTPr
   NSString *type = notification[@"type"] ?: @"unknown";
   NSString *convID = notification[@"convID"] ?: notification[@"c"] ?: @"unknown";
   NSNumber *userInteraction = notification[@"userInteraction"];
-  NSLog(@"Kb.emitPushNotification: type=%@, convID=%@, userInteraction=%@, kbSharedInstance=%@", type, convID, userInteraction ?: @"nil", kbSharedInstance ? @"exists" : @"nil");
-  
+
   if (kbSharedInstance) {
     [kbSharedInstance sendEventWithName:@"onPushNotification" body:notification];
     NSLog(@"Kb.emitPushNotification: sent event 'onPushNotification' to JS");
@@ -577,7 +576,7 @@ RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
       }
     }
   }
-  
+
   [self kb_paste:sender];
 }
 

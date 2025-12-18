@@ -56,9 +56,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
   }
 
   const handleLoudMessage = async (notification: T.Push.PushNotification) => {
-    logger.info(`[Push] handleLoudMessage: type=${notification.type}, userInteraction=${notification.userInteraction}`)
     if (notification.type !== 'chat.newmessage') {
-      logger.warn(`[Push] handleLoudMessage: wrong type, expected chat.newmessage, got ${notification.type}`)
       return
     }
     // We only care if the user clicked while in session
@@ -69,10 +67,8 @@ export const usePushState = Z.createZustand<State>((set, get) => {
 
     const {conversationIDKey, unboxPayload, membersType} = notification
 
-    logger.info(`[Push] handleLoudMessage: navigating to conversationIDKey=${conversationIDKey}`)
     storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('push', undefined, unboxPayload)
     if (unboxPayload && membersType && !isIOS) {
-      logger.info('[Push] unboxing message')
       try {
         await T.RPCChat.localUnboxMobilePushNotificationRpcPromise({
           convID: conversationIDKey,
@@ -138,27 +134,21 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     handlePush: notification => {
       const f = async () => {
         try {
-          logger.info(`[Push] handlePush: type=${notification.type || 'unknown'}, userInteraction=${notification.userInteraction}, conversationIDKey=${notification.conversationIDKey}`)
-
           switch (notification.type) {
             case 'chat.readmessage':
-              logger.info('[Push] read message')
               if (notification.badges === 0) {
                 removeAllPendingNotificationRequests()
               }
               break
             case 'chat.newmessageSilent_2':
-              logger.info('[Push] silent message, skipping')
               break
             case 'chat.newmessage':
-              logger.info(`[Push] newmessage: calling handleLoudMessage, userInteraction=${notification.userInteraction}`)
               await handleLoudMessage(notification)
               break
             case 'follow':
               // We only care if the user clicked while in session
               if (notification.userInteraction) {
                 const {username} = notification
-                logger.info('[Push] follower: ', username)
                 storeRegistry.getState('profile').dispatch.showUserProfile(username)
               }
               break
@@ -237,10 +227,8 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           storeRegistry.getState('config').dispatch.dynamic.openAppSettings?.()
           const {increment} = storeRegistry.getState('waiting').dispatch
           increment(S.waitingKeyPushPermissionsRequesting)
-          logger.info('[PushRequesting] asking native')
           await requestPermissionsFromNative()
           const permissions = await checkPermissionsFromNative()
-          logger.info('[PushRequesting] after prompt:', permissions)
           if (permissions.alert || permissions.badge) {
             logger.info('[PushRequesting] enabled')
             set(s => {
