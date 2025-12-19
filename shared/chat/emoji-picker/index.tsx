@@ -118,15 +118,10 @@ const getCustomEmojiIndex = (emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>) =
   // at that point.
   return {
     filter: (filter: string): Array<EmojiData> =>
-      keys.reduce((result, key) => {
-        if (key.includes(filter)) {
-          const value = mapper.get(key)
-          if (value) {
-            result.push(value)
-          }
-        }
-        return result
-      }, new Array<EmojiData>()),
+      keys
+        .filter(key => key.includes(filter))
+        .map(key => mapper.get(key))
+        .filter((value): value is EmojiData => !!value),
     get: (shortName: string): EmojiData | undefined => mapper.get(shortName),
   }
 }
