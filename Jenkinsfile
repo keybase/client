@@ -537,7 +537,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     }
   } else if (prefix == "test_windows_go_") {
     dir("keybase") {
-      sh "go build -buildmode=exe -o keybase_production -ldflags \"-s -w\" --tags=production"
+      sh "go build -o keybase_production -ldflags \"-s -w\" --tags=production"
     }
   }
 
@@ -840,11 +840,9 @@ def testGoTestSuite(prefix, packagesToTest) {
   packagesToTest.each { pkg, _ ->
     def testSpec = getPackageTestSpec(pkg)
     if (testSpec && !testSpec.disable) {
-      // On Windows, test binaries need .exe extension
-      testSpec.testBinary = prefix == "test_windows_go_" ? "${testSpec.name}.test.exe" : "${testSpec.name}.test"
+      testSpec.testBinary = "${testSpec.name}.test"
       packageTestCompileList.add([
         closure: {
-          println "Compiling test for ${testSpec.dirPath} -> ${testSpec.testBinary}"
           sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
         },
         alone: !!testSpec.compileAlone,
