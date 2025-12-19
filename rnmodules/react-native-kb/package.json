@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "description": "misc kb",
   "main": "src/index",
-  "types": "src/index.ts",
+  "types": "src/index.tsx",
   "react-native": "src/index",
   "source": "src/index",
   "files": [

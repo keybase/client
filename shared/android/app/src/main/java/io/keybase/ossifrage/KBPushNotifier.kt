@@ -105,16 +105,22 @@ class KBPushNotifier internal constructor(private val context: Context, private 
 
         // needs to be in the background since we make network calls
         thread(start = true) {
-            displayChatNotification2(chatNotification)
+            try {
+                displayChatNotification2(chatNotification)
+            } catch (e: Exception) {
+                io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification failed: " + e.message)
+            }
         }
     }
     private fun displayChatNotification2(chatNotification: ChatNotification) {
-        bundle.putBoolean("userInteraction", true)
-        bundle.putString("type", "chat.newmessage")
-        bundle.putString("convID", chatNotification.convID)
-        val pending_intent = buildPendingIntent(bundle)
-        val convData = ConvData(chatNotification.convID, chatNotification.tlfName, chatNotification.message.id)
-        val builder = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
+        try {
+            KeybasePushNotificationListenerService.createNotificationChannel(context)
+            bundle.putBoolean("userInteraction", true)
+            bundle.putString("type", "chat.newmessage")
+            bundle.putString("convID", chatNotification.convID)
+            val pending_intent = buildPendingIntent(bundle)
+            val convData = ConvData(chatNotification.convID, chatNotification.tlfName ?: "", chatNotification.message.id)
+            val builder = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notif)
                 .setContentIntent(pending_intent)
                 .setAutoCancel(true)
@@ -136,12 +142,14 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         val msg = chatNotification.message
         val from = msg.from
         val personBuilder = Person.Builder()
-                .setName(from.keybaseUsername)
-                .setBot(from.isBot)
-        val avatarUri = chatNotification.message.from.keybaseAvatar
-        val icon = getKeybaseAvatar(avatarUri)
-        if (icon != null) {
-            personBuilder.setIcon(icon)
+                .setName(from?.keybaseUsername ?: "")
+                .setBot(from?.isBot ?: false)
+        val avatarUri = chatNotification.message.from?.keybaseAvatar
+        if (avatarUri != null && avatarUri.isNotEmpty()) {
+            val icon = getKeybaseAvatar(avatarUri)
+            if (icon != null) {
+                personBuilder.setIcon(icon)
+            }
         }
         val fromPerson = personBuilder.build()
         if (convMsgCache != null) {
@@ -152,11 +160,20 @@ class KBPushNotifier internal constructor(private val context: Context, private 
             convMsgCache!!.add(NotificationCompat.MessagingStyle.Message(msgText, msg.at, fromPerson))
         }
         val style = buildStyle(fromPerson)
-        style.setConversationTitle(chatNotification.conversationName)
+        style.setConversationTitle(chatNotification.conversationName ?: "")
         style.setGroupConversation(chatNotification.isGroupConversation)
         builder.setStyle(style)
         val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.notify(chatNotification.convID, 0, builder.build())
+        val areNotificationsEnabled = notificationManager.areNotificationsEnabled()
+        if (!areNotificationsEnabled) {
+            io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification2 notifications are disabled!")
+            return
+        }
+        val notification = builder.build()
+        notificationManager.notify(chatNotification.convID, 0, notification)
+        } catch (e: Exception) {
+            io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification2 exception: " + e.message)
+        }
     }
 
     // Return the resource name of the specified file (i.e. name and no extension),

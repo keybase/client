@@ -3,15 +3,15 @@ import * as S from './strings'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from './utils'
 import {storeRegistry} from './store-registry'
 import * as Z from '@/util/zustand'
-import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '@/logger'
 import * as T from './types'
 import {isDevApplePushToken} from '@/local-debug'
 import {isIOS} from './platform'
 import {
   iosGetHasShownPushPrompt,
-  androidRequestPushPermissions,
-  androidCheckPushPermissions,
+  checkPushPermissions,
+  requestPushPermissions,
+  removeAllPendingNotificationRequests,
 } from 'react-native-kb'
 import {type Store, type State} from './push'
 
@@ -38,13 +38,11 @@ export const usePushState = Z.createZustand<State>((set, get) => {
 
   const checkPermissionsFromNative = async () =>
     new Promise<{alert?: boolean; badge?: boolean; sound?: boolean}>((resolve, reject) => {
-      if (isIOS) {
-        PushNotificationIOS.checkPermissions(perms => resolve(perms))
-      } else {
-        androidCheckPushPermissions()
-          .then(on => resolve({alert: on, badge: on, sound: on}))
-          .catch(() => reject(new Error('')))
-      }
+      checkPushPermissions()
+        .then(on => {
+          resolve({alert: on, badge: on, sound: on})
+        })
+        .catch(() => reject(new Error('')))
     })
 
   type ReqType = Promise<{
@@ -53,14 +51,8 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     sound: boolean
   }>
   const requestPermissionsFromNative: () => ReqType = async () => {
-    if (isIOS) {
-      const perm = await (PushNotificationIOS.requestPermissions() as ReqType)
-      return perm
-    } else {
-      const on = await androidRequestPushPermissions()
-      const perm = {alert: on, badge: on, sound: on}
-      return perm
-    }
+    const on = await requestPushPermissions()
+    return {alert: on, badge: on, sound: on}
   }
 
   const handleLoudMessage = async (notification: T.Push.PushNotification) => {
@@ -69,16 +61,14 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     }
     // We only care if the user clicked while in session
     if (!notification.userInteraction) {
-      logger.warn('push ignore non userInteraction')
+      logger.warn('[Push] handleLoudMessage: ignore non userInteraction')
       return
     }
 
     const {conversationIDKey, unboxPayload, membersType} = notification
 
-    logger.warn('push selecting ', conversationIDKey)
     storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('push', undefined, unboxPayload)
     if (unboxPayload && membersType && !isIOS) {
-      logger.info('[Push] unboxing message')
       try {
         await T.RPCChat.localUnboxMobilePushNotificationRpcPromise({
           convID: conversationIDKey,
@@ -143,19 +133,14 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     },
     handlePush: notification => {
       const f = async () => {
-        // on iOS the go side handles a lot of push details
         try {
-          logger.info('[Push]: ' + notification.type || 'unknown')
-
           switch (notification.type) {
             case 'chat.readmessage':
-              logger.info('[Push] read message')
               if (notification.badges === 0) {
-                isIOS && PushNotificationIOS.removeAllPendingNotificationRequests()
+                removeAllPendingNotificationRequests()
               }
               break
             case 'chat.newmessageSilent_2':
-              // entirely handled by go on ios and in onNotification on Android
               break
             case 'chat.newmessage':
               await handleLoudMessage(notification)
@@ -164,7 +149,6 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               // We only care if the user clicked while in session
               if (notification.userInteraction) {
                 const {username} = notification
-                logger.info('[Push] follower: ', username)
                 storeRegistry.getState('profile').dispatch.showUserProfile(username)
               }
               break
@@ -243,10 +227,8 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           storeRegistry.getState('config').dispatch.dynamic.openAppSettings?.()
           const {increment} = storeRegistry.getState('waiting').dispatch
           increment(S.waitingKeyPushPermissionsRequesting)
-          logger.info('[PushRequesting] asking native')
           await requestPermissionsFromNative()
           const permissions = await checkPermissionsFromNative()
-          logger.info('[PushRequesting] after prompt:', permissions)
           if (permissions.alert || permissions.badge) {
             logger.info('[PushRequesting] enabled')
             set(s => {
