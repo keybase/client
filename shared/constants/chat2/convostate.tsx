@@ -1478,7 +1478,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 if (m) {
                   // conversationMessage is used to tell if its this gallery load or not but if we
                   // load a message we already have we don't want to overwrite that it really belongs
-                  const message = {...m, conversationMessage: get().messageMap.has(m.ordinal)}
+                  const message: T.Chat.Message = {...m, conversationMessage: get().messageMap.has(m.ordinal)}
                   set(s => {
                     const info = mapGetEnsureValue(
                       s.attachmentViewMap,
@@ -1488,7 +1488,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     if (!info.messages.find(item => item.id === message.id)) {
                       // Use lodash sortedIndexBy with reversed comparator for descending order
                       // sortedIndexBy assumes ascending, so we negate the ID to reverse the sort
-                      const insertIndex = sortedIndexBy(info.messages, message, m => -(m?.id ?? 0))
+                      const insertIndex = sortedIndexBy(
+                        info.messages,
+                        message,
+                        m => -T.Chat.messageIDToNumber(m.id)
+                      )
                       info.messages.splice(insertIndex, 0, T.castDraft(message))
                     }
                   })
