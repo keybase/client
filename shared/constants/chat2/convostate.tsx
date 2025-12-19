@@ -114,7 +114,6 @@ type ConvoStore = T.Immutable<{
   giphyWindow: boolean
   loaded: boolean // did we ever load this thread yet
   markedAsUnread: T.Chat.Ordinal
-  maxMsgIDSeen: T.Chat.MessageID // max id weve seen so far, we do delete things
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> // ordered ordinals in a thread,
@@ -153,7 +152,6 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   loaded: false,
   markedAsUnread: T.Chat.numberToOrdinal(0),
-  maxMsgIDSeen: T.Chat.numberToMessageID(-1),
   messageCenterOrdinal: undefined,
   messageMap: new Map(),
   messageOrdinals: undefined,
@@ -447,7 +445,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     return clientPrev || T.Chat.numberToMessageID(0)
   }
 
-  // things that depend on messageMap, like the ordinals and the maxMsgIDSeen
   const syncMessageDerived = (s: Z.WritableDraft<ConvoState>) => {
     const mo = [...s.messageMap]
       .filter(([, m]) => {
@@ -469,12 +466,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       p = o
     }
     s.separatorMap = sm
-
-    const lastOrd = mo.at(-1)
-    const lastID = lastOrd ? (s.messageMap.get(lastOrd)?.id ?? 0) : 0
-    if (lastID && lastID > s.maxMsgIDSeen) {
-      s.maxMsgIDSeen = lastID
-    }
   }
 
   const desktopNotification = (author: string, body: string) => {
@@ -531,11 +522,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const m = T.castDraft(_m)
         const regularMessage = m.conversationMessage !== false
 
-        // we capture the highest one, cause sometimes we'll not track it in the map
-        // aka for deleted or placeholders
-        if (regularMessage && m.id > s.maxMsgIDSeen) {
-          s.maxMsgIDSeen = m.id
-        }
         if (regularMessage && m.type === 'deleted') {
           s.messageMap.delete(m.ordinal)
           s.messageTypeMap.delete(m.ordinal)
@@ -2034,7 +2020,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.pendingOutboxToOrdinal.clear()
         s.loaded = false
         s.messageMap.clear()
-        s.maxMsgIDSeen = T.Chat.numberToMessageID(-1)
         syncMessageDerived(s)
         s.messageTypeMap.clear()
       })
