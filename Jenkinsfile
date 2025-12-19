@@ -846,25 +846,6 @@ def testGoTestSuite(prefix, packagesToTest) {
         closure: {
           println "Compiling test for ${testSpec.dirPath} -> ${testSpec.testBinary}"
 
-          // Check if the package has any test files
-          def hasTests = false
-          if (isUnix()) {
-            hasTests = sh(
-              script: "ls ${testSpec.dirPath}/*_test.go 2>/dev/null | wc -l",
-              returnStdout: true
-            ).trim().toInteger() > 0
-          } else {
-            hasTests = sh(
-              script: "ls ${testSpec.dirPath}/*_test.go 2>/dev/null | wc -l",
-              returnStdout: true
-            ).trim().toInteger() > 0
-          }
-
-          if (!hasTests) {
-            println "SKIP: No test files found in ${testSpec.dirPath}"
-            return
-          }
-
           if (isUnix()) {
             sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
           } else {
