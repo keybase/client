@@ -9,7 +9,39 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
+	"time"
 )
+
+// removeAllWithRetry attempts to remove a directory, retrying on Windows if files are locked.
+// Windows can briefly lock files after they're created/accessed, especially in freshly extracted directories.
+func removeAllWithRetry(path string, log Log) error {
+	err := os.RemoveAll(path)
+	if err == nil {
+		return nil
+	}
+
+	// On Windows, retry if we get a "file is being used by another process" error
+	if runtime.GOOS == "windows" && strings.Contains(err.Error(), "being used by another process") {
+		log.Infof("File locked on Windows, retrying removal of %s", path)
+		maxRetries := 3
+		for i := 0; i < maxRetries; i++ {
+			time.Sleep(100 * time.Millisecond * time.Duration(i+1)) // Exponential backoff: 100ms, 200ms, 300ms
+			err = os.RemoveAll(path)
+			if err == nil {
+				log.Infof("Successfully removed %s after %d retries", path, i+1)
+				return nil
+			}
+			if !strings.Contains(err.Error(), "being used by another process") {
+				// Different error, don't retry
+				break
+			}
+		}
+	}
+
+	return err
+}
 
 // UnzipOver safely unzips a file and copies it contents to a destination path.
 // If destination path exists, it will be removed first.
@@ -57,7 +89,7 @@ func unzipOver(sourcePath string, destinationPath string, log Log) error {
 
 	if _, ferr := os.Stat(destinationPath); ferr == nil {
 		log.Infof("Removing existing unzip destination path: %s", destinationPath)
-		err := os.RemoveAll(destinationPath)
+		err := removeAllWithRetry(destinationPath, log)
 		if err != nil {
 			return err
 		}
