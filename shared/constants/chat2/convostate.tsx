@@ -368,6 +368,8 @@ export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
+  let isLoadingMessages = false
+
   const closeBotModal = () => {
     storeRegistry.getState('router').dispatch.clearModals()
     if (get().meta.teamname) {
@@ -551,7 +553,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             const old = s.messageMap.get(mapOrdinal)
             if (old && old.type !== 'placeholder') {
               // ignore it
-              return
+              continue
             }
           }
 
@@ -1033,6 +1035,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const meta = get().meta
       const tlfName = meta.tlfname
       const clientPrev = getClientPrev()
+      const convID = get().getConvID()
 
       // disable sending exploding messages if flag is false
       const ephemeralLifetime = get().explodingMode
@@ -1059,7 +1062,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             ...ephemeralData,
             body: text,
             clientPrev,
-            conversationID: get().getConvID(),
+            conversationID: convID,
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             outboxID: undefined,
             replyTo,
@@ -1416,6 +1419,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const f = async () => {
         const {id: conversationIDKey} = get()
+        const convID = get().getConvID()
         try {
           const res = await T.RPCChat.localLoadGalleryRpcListener({
             incomingCallMap: {
@@ -1453,7 +1457,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               },
             },
             params: {
-              convID: get().getConvID(),
+              convID,
               fromMsgID,
               num: 50,
               typ: viewType,
@@ -1514,9 +1518,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         forceClear = true
       }
 
+      if (isLoadingMessages && !forceClear) {
+        return
+      }
+
       // clear immediately to avoid races and avoid desktop having to churn while it loads a lot of waypoints
       if (forceClear) {
         get().dispatch.messagesClear()
+        isLoadingMessages = false
       }
 
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
@@ -1541,136 +1550,142 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // we get a thread-is-stale notification, or when you scroll up and want more
       // messages
       const f = async () => {
-        // Get the conversationIDKey
-        const {id: conversationIDKey} = get()
+        isLoadingMessages = true
+        try {
+          // Get the conversationIDKey
+          const {id: conversationIDKey} = get()
 
-        if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
-          logger.info('loadMoreMessages: bail: no conversationIDKey')
-          return
-        }
-
-        if (get().meta.membershipType === 'youAreReset' || get().meta.rekeyers.size > 0) {
-          logger.info('loadMoreMessages: bail: we are reset')
-          return
-        }
-        logger.info(
-          `loadMoreMessages: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
-        )
-
-        const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
-        const onGotThread = (thread: string, why: string) => {
-          if (!thread) {
+          if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
+            logger.info('loadMoreMessages: bail: no conversationIDKey')
             return
           }
 
-          set(s => {
-            s.loaded = true
-          })
-
-          const username = storeRegistry.getState('current-user').username
-          const devicename = storeRegistry.getState('current-user').deviceName
-          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-          const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
-
-          const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, m) => {
-            const message = conversationIDKey
-              ? Message.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
-              : undefined
-            if (message) {
-              arr.push(message)
-            }
-            return arr
-          }, [])
-
-          // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
-
-          const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-          set(s => {
-            switch (sd) {
-              case 'forward':
-                s.moreToLoadForward = moreToLoad
-                break
-              case 'back':
-                s.moreToLoadBack = moreToLoad
-                break
-              case 'none':
-                s.moreToLoadBack = moreToLoad
-                s.moreToLoadForward = !!centeredMessageID
-                break
-            }
-          })
-
-          if (messages.length) {
-            messagesAdd(messages, {why: `load more ongotthread: ${why}`})
-            if (centeredMessageID) {
-              const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
-              setMessageCenterOrdinal({highlightMode: centeredMessageID.highlightMode, ordinal})
-            }
+          if (get().meta.membershipType === 'youAreReset' || get().meta.rekeyers.size > 0) {
+            logger.info('loadMoreMessages: bail: we are reset')
+            return
           }
+          logger.info(
+            `loadMoreMessages: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
+          )
 
-          // Force mark as read for user-initiated navigations (not auto-selection by service)
-          const isUserNavigation =
-            reason !== 'findNewestConversation' &&
-            reason !== 'findNewestConversationFromLayout' &&
-            reason !== 'tab selected'
-          if (isUserNavigation) {
-            get().dispatch.markThreadAsRead(true)
-          }
-        }
+          const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
+          const convID = get().getConvID()
+          const onGotThread = (thread: string, why: string) => {
+            if (!thread) {
+              return
+            }
 
-        const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
-        try {
-          const results = await T.RPCChat.localGetThreadNonblockRpcListener({
-            incomingCallMap: {
-              'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || '', 'cached'),
-              'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || '', 'full'),
-              'chat.1.chatUi.chatThreadStatus': p => {
-                logger.info(
-                  `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
-                )
-                set(s => {
-                  s.threadLoadStatus = p.status.typ
-                })
-              },
-            },
-            params: {
-              cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
-              conversationID: get().getConvID(),
-              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-              knownRemotes,
-              pagination,
-              pgmode: T.RPCChat.GetThreadNonblockPgMode.server,
-              query: {
-                disablePostProcessThread: false,
-                disableResolveSupersedes: false,
-                enableDeletePlaceholders: true,
-                markAsRead: false,
-                messageIDControl,
-                messageTypes: loadThreadMessageTypes,
-              },
-              reason: reasonToRPCReason(reason),
-            },
-            waitingKey: loadingKey,
-          })
-          if (get().isMetaGood()) {
             set(s => {
-              s.meta.offline = results.offline
+              s.loaded = true
             })
-          }
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.warn(`loadMoreMessages: error: ${error.desc}`)
-            // no longer in team
-            if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
-              const {inboxRefresh, navigateToInbox} = storeRegistry.getState('chat').dispatch
-              inboxRefresh('maybeKickedFromTeam')
-              navigateToInbox()
+
+            const username = storeRegistry.getState('current-user').username
+            const devicename = storeRegistry.getState('current-user').deviceName
+            const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+            const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
+
+            const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, m) => {
+              const message = conversationIDKey
+                ? Message.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
+                : undefined
+              if (message) {
+                arr.push(message)
+              }
+              return arr
+            }, [])
+
+            // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
+
+            const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+            set(s => {
+              switch (sd) {
+                case 'forward':
+                  s.moreToLoadForward = moreToLoad
+                  break
+                case 'back':
+                  s.moreToLoadBack = moreToLoad
+                  break
+                case 'none':
+                  s.moreToLoadBack = moreToLoad
+                  s.moreToLoadForward = !!centeredMessageID
+                  break
+              }
+            })
+
+            if (messages.length) {
+              messagesAdd(messages, {why: `load more ongotthread: ${why}`})
+              if (centeredMessageID) {
+                const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
+                setMessageCenterOrdinal({highlightMode: centeredMessageID.highlightMode, ordinal})
+              }
             }
-            if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
-              // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
-              throw error
+
+            // Force mark as read for user-initiated navigations (not auto-selection by service)
+            const isUserNavigation =
+              reason !== 'findNewestConversation' &&
+              reason !== 'findNewestConversationFromLayout' &&
+              reason !== 'tab selected'
+            if (isUserNavigation) {
+              get().dispatch.markThreadAsRead(true)
             }
           }
+
+          const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
+          try {
+            const results = await T.RPCChat.localGetThreadNonblockRpcListener({
+              incomingCallMap: {
+                'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || '', 'cached'),
+                'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || '', 'full'),
+                'chat.1.chatUi.chatThreadStatus': p => {
+                  logger.info(
+                    `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
+                  )
+                  set(s => {
+                    s.threadLoadStatus = p.status.typ
+                  })
+                },
+              },
+              params: {
+                cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
+                conversationID: convID,
+                identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+                knownRemotes,
+                pagination,
+                pgmode: T.RPCChat.GetThreadNonblockPgMode.server,
+                query: {
+                  disablePostProcessThread: false,
+                  disableResolveSupersedes: false,
+                  enableDeletePlaceholders: true,
+                  markAsRead: false,
+                  messageIDControl,
+                  messageTypes: loadThreadMessageTypes,
+                },
+                reason: reasonToRPCReason(reason),
+              },
+              waitingKey: loadingKey,
+            })
+            if (get().isMetaGood()) {
+              set(s => {
+                s.meta.offline = results.offline
+              })
+            }
+          } catch (error) {
+            if (error instanceof RPCError) {
+              logger.warn(`loadMoreMessages: error: ${error.desc}`)
+              // no longer in team
+              if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
+                const {inboxRefresh, navigateToInbox} = storeRegistry.getState('chat').dispatch
+                inboxRefresh('maybeKickedFromTeam')
+                navigateToInbox()
+              }
+              if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
+                // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
+                throw error
+              }
+            }
+          }
+        } finally {
+          isLoadingMessages = false
         }
       }
 
@@ -2901,7 +2916,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
                 if (message) {
                   set(s => {
-                    s.threadSearchInfo.hits.push(T.castDraft(message))
+                    // Only add if not already present (idempotent - safe for out-of-order callbacks)
+                    if (!s.threadSearchInfo.hits.find(h => h.id === message.id)) {
+                      s.threadSearchInfo.hits.push(T.castDraft(message))
+                    }
                   })
                 }
               },
