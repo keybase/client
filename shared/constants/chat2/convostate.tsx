@@ -17,6 +17,7 @@ import * as Z from '@/util/zustand'
 import {makeActionForOpenPathInFilesTab} from '@/constants/fs/util'
 import HiddenString from '@/util/hidden-string'
 import isEqual from 'lodash/isEqual'
+import sortedIndexBy from 'lodash/sortedIndexBy'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import type {DebouncedFunc} from 'lodash'
@@ -1485,21 +1486,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                       T.castDraft(makeAttachmentViewInfo())
                     )
                     if (!info.messages.find(item => item.id === message.id)) {
-                      const messages = info.messages
-                      // Binary search to find insertion point for O(n) insertion instead of O(n log n) sort
-                      let insertIndex = messages.length
-                      for (let i = 0; i < messages.length; i++) {
-                        const mi = messages[i]
-                        if (mi && mi.id < message.id) {
-                          insertIndex = i
-                          break
-                        }
-                      }
-                      info.messages = [
-                        ...messages.slice(0, insertIndex),
-                        T.castDraft(message),
-                        ...messages.slice(insertIndex),
-                      ]
+                      // Use lodash sortedIndexBy with reversed comparator for descending order
+                      // sortedIndexBy assumes ascending, so we negate the ID to reverse the sort
+                      const insertIndex = sortedIndexBy(info.messages, message, m => -(m?.id ?? 0))
+                      info.messages.splice(insertIndex, 0, T.castDraft(message))
                     }
                   })
                   // inject them into the message map
