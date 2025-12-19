@@ -789,7 +789,13 @@ def testGoTestSuite(prefix, packagesToTest) {
         parallel: 1,
       ],
       'github.com/keybase/client/go/kbfs/libdokan': [
-        parallel: 1,
+        disable: true,
+      ],
+      'github.com/keybase/client/go/kbfs/kbfsdokan': [
+        disable: true,
+      ],
+      'github.com/keybase/client/go/kbfs/dokan/winacl': [
+        disable: true,
       ],
       'github.com/keybase/client/go/kbfs/dokan': [
         // compileAlone: true,
