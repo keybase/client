@@ -64,7 +64,7 @@ func SetLogFileConfig(lfc *LogFileConfig, blc *BufferedLoggerConfig) error {
 	if first {
 		buf, shutdown, _ := NewAutoFlushingBufferedWriter(w, blc)
 		w.stopFlushing = shutdown
-		var backendWriter io.Writer = buf
+		var backendWriter = buf
 		// On iOS, use MultiWriter to write to both file and stderr (like tee)
 		// This allows logs to appear in Xcode console while also being written to file
 		if runtime.GOOS == "ios" {
