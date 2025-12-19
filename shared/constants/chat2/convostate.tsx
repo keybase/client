@@ -1571,64 +1571,64 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
           const convID = get().getConvID()
           const onGotThread = (thread: string, why: string) => {
-          if (!thread) {
-            return
-          }
-
-          set(s => {
-            s.loaded = true
-          })
-
-          const username = storeRegistry.getState('current-user').username
-          const devicename = storeRegistry.getState('current-user').deviceName
-          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-          const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
-
-          const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, m) => {
-            const message = conversationIDKey
-              ? Message.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
-              : undefined
-            if (message) {
-              arr.push(message)
+            if (!thread) {
+              return
             }
-            return arr
-          }, [])
 
-          // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
+            set(s => {
+              s.loaded = true
+            })
 
-          const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-          set(s => {
-            switch (sd) {
-              case 'forward':
-                s.moreToLoadForward = moreToLoad
-                break
-              case 'back':
-                s.moreToLoadBack = moreToLoad
-                break
-              case 'none':
-                s.moreToLoadBack = moreToLoad
-                s.moreToLoadForward = !!centeredMessageID
-                break
+            const username = storeRegistry.getState('current-user').username
+            const devicename = storeRegistry.getState('current-user').deviceName
+            const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+            const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
+
+            const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, m) => {
+              const message = conversationIDKey
+                ? Message.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
+                : undefined
+              if (message) {
+                arr.push(message)
+              }
+              return arr
+            }, [])
+
+            // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
+
+            const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+            set(s => {
+              switch (sd) {
+                case 'forward':
+                  s.moreToLoadForward = moreToLoad
+                  break
+                case 'back':
+                  s.moreToLoadBack = moreToLoad
+                  break
+                case 'none':
+                  s.moreToLoadBack = moreToLoad
+                  s.moreToLoadForward = !!centeredMessageID
+                  break
+              }
+            })
+
+            if (messages.length) {
+              messagesAdd(messages, {why: `load more ongotthread: ${why}`})
+              if (centeredMessageID) {
+                const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
+                setMessageCenterOrdinal({highlightMode: centeredMessageID.highlightMode, ordinal})
+              }
             }
-          })
 
-          if (messages.length) {
-            messagesAdd(messages, {why: `load more ongotthread: ${why}`})
-            if (centeredMessageID) {
-              const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
-              setMessageCenterOrdinal({highlightMode: centeredMessageID.highlightMode, ordinal})
+            // Force mark as read for user-initiated navigations (not auto-selection by service)
+            const isUserNavigation =
+              reason !== 'findNewestConversation' &&
+              reason !== 'findNewestConversationFromLayout' &&
+              reason !== 'tab selected'
+            if (isUserNavigation) {
+              get().dispatch.markThreadAsRead(true)
             }
           }
-
-          // Force mark as read for user-initiated navigations (not auto-selection by service)
-          const isUserNavigation =
-            reason !== 'findNewestConversation' &&
-            reason !== 'findNewestConversationFromLayout' &&
-            reason !== 'tab selected'
-          if (isUserNavigation) {
-            get().dispatch.markThreadAsRead(true)
-          }
-        }
 
           const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
           try {
