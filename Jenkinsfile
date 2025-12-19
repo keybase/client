@@ -772,7 +772,9 @@ def testGoTestSuite(prefix, packagesToTest) {
       ],
     ],
     test_windows_go_: [
-      '*': [],
+      '*': [
+        citogo_timeout: '5m',
+      ],
       'github.com/keybase/client/go/systests': [
         disable: true,
       ],
@@ -864,7 +866,8 @@ def testGoTestSuite(prefix, packagesToTest) {
                 if (spec.no_citogo) {
                   sh "./${spec.testBinary} -test.timeout ${spec.timeout}"
                 } else {
-                  sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${spec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${spec.testBinary} --timeout 150s -parallel=${spec.parallel} ${spec.citogo_extra ? spec.citogo_extra : ''}"
+                  def citogoTimeout = spec.citogo_timeout ? spec.citogo_timeout : '150s'
+                  sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${spec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${spec.testBinary} --timeout ${citogoTimeout} -parallel=${spec.parallel} ${spec.citogo_extra ? spec.citogo_extra : ''}"
                 }
               }
             }
