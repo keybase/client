@@ -475,12 +475,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       if (!needsRecalc) {
-        // Still update maxMsgIDSeen in case it changed
-        const lastOrd = s.messageOrdinals.at(-1)
-        const lastID = lastOrd ? (s.messageMap.get(lastOrd)?.id ?? 0) : 0
-        if (lastID && lastID > s.maxMsgIDSeen) {
-          s.maxMsgIDSeen = lastID
-        }
         return
       }
     }
@@ -1480,7 +1474,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                   devicename
                 )
 
-                  if (m) {
+                if (m) {
                   // conversationMessage is used to tell if its this gallery load or not but if we
                   // load a message we already have we don't want to overwrite that it really belongs
                   const message = {...m, conversationMessage: get().messageMap.has(m.ordinal)}
@@ -1495,7 +1489,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                       // Binary search to find insertion point for O(n) insertion instead of O(n log n) sort
                       let insertIndex = messages.length
                       for (let i = 0; i < messages.length; i++) {
-                        if (messages[i].id < message.id) {
+                        const mi = messages[i]
+                        if (mi && mi.id < message.id) {
                           insertIndex = i
                           break
                         }
@@ -2086,7 +2081,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       ignorePromise(f())
     },
     messagesClear: () => {
-      get().dispatch._clearConvIDCache()
+      clearConvIDCache()
       set(s => {
         s.messageIDToOrdinalMap.clear()
         s.pendingOutboxToOrdinal.clear()
@@ -2100,7 +2095,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
       set(s => {
         messageIDs.forEach(mid => {
-          const ordinal = messageIDToOrdinal(s.messageMap, s.pendingOutboxToOrdinal, mid, s.messageIDToOrdinalMap)
+          const ordinal = messageIDToOrdinal(
+            s.messageMap,
+            s.pendingOutboxToOrdinal,
+            mid,
+            s.messageIDToOrdinalMap
+          )
           const m = ordinal && s.messageMap.get(ordinal)
           if (!m) return
           m.exploded = true
@@ -2133,7 +2133,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       // Add ordinals from messageIDs using reverse lookup map (O(1) per lookup)
       messageIDs.forEach(messageID => {
-        const ordinal = messageIDToOrdinalMap.get(messageID) ?? messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID, messageIDToOrdinalMap)
+        const ordinal =
+          messageIDToOrdinalMap.get(messageID) ??
+          messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID, messageIDToOrdinalMap)
         if (ordinal) allOrdinals.add(ordinal)
       })
 
@@ -2422,7 +2424,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (!message) {
           return
         }
-        const ordinal = messageIDToOrdinal(get().messageMap, get().pendingOutboxToOrdinal, messageID, get().messageIDToOrdinalMap)
+        const ordinal = messageIDToOrdinal(
+          get().messageMap,
+          get().pendingOutboxToOrdinal,
+          messageID,
+          get().messageIDToOrdinalMap
+        )
         set(s => {
           const existing = ordinal ? s.messageMap.get(ordinal) : undefined
           if (existing) {
@@ -3268,10 +3275,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
   return {
     ...initialConvoStore,
-    dispatch: {
-      ...dispatch,
-      _clearConvIDCache: clearConvIDCache,
-    },
+    dispatch,
     getConvID: () => {
       const id = get().id
       if (!T.Chat.isValidConversationIDKey(id)) {
