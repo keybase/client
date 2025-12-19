@@ -845,13 +845,7 @@ def testGoTestSuite(prefix, packagesToTest) {
       packageTestCompileList.add([
         closure: {
           println "Compiling test for ${testSpec.dirPath} -> ${testSpec.testBinary}"
-
-          if (isUnix()) {
-            sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
-          } else {
-            // Windows: Use -buildmode=exe (not pie) because PIE is not supported on Windows
-            sh "go test -vet=off -c -buildmode=exe ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
-          }
+          sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
         },
         alone: !!testSpec.compileAlone,
       ])
