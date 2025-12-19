@@ -2071,7 +2071,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       ignorePromise(f())
     },
     messagesClear: () => {
-      clearConvIDCache()
+      convIDCache.clear()
       set(s => {
         s.messageIDToOrdinalMap.clear()
         s.pendingOutboxToOrdinal.clear()
@@ -3260,9 +3260,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
   }
   const convIDCache = new Map<string, Uint8Array>()
-  const clearConvIDCache = () => {
-    convIDCache.clear()
-  }
   return {
     ...initialConvoStore,
     dispatch,
