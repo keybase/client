@@ -126,7 +126,7 @@ func (l *LoaderPackage) checkPrev(mctx libkb.MetaContext, first sig3.Generic) (e
 }
 
 // checkExpectedHighSeqno enforces that the links we got down from the server
-// (links) are at or surpass the sequence number ther server promised through
+// (links) are at or surpass the sequence number there server promised through
 // the ratchet sets and the maxUncommittedSeqnoPromised obtained through the
 // merkle/path api call. We look at both the loaded and the received downloaded
 // ratchets for this check.

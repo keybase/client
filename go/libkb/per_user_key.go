@@ -17,7 +17,7 @@ import (
 
 const PerUserKeySeedSize = 32
 
-// A secretbox containg a seed encrypted for its successor generation
+// A secretbox containing a seed encrypted for its successor generation
 type PerUserKeyPrev string
 
 type PerUserKeySeed [PerUserKeySeedSize]byte

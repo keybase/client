@@ -65,7 +65,7 @@ func (p *Pegboard) TrackUPAK(mctx MetaContext, upak keybase1.UserPlusKeysV2) (er
 	return nil
 }
 
-// Returns an error if this user has reset since their peg was last udpated.
+// Returns an error if this user has reset since their peg was last updated.
 // Pegs users that haven't been seen before.
 func (p *Pegboard) CheckUV(mctx MetaContext, uv keybase1.UserVersion) error {
 	return p.checkUV(mctx, uv)

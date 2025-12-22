@@ -18,9 +18,9 @@ func TestHTTPClient(t *testing.T) {
 	require.NoError(t, err)
 	client, err := httpClient(time.Minute)
 	require.NoError(t, err)
-	resp, err := client.Do(req)
-	defer util.DiscardAndCloseBodyIgnoreError(resp)
+	resp, err := client.Do(req) //nolint:bodyclose // false positive, body is closed via defer after error check
 	require.NoError(t, err)
+	defer util.DiscardAndCloseBodyIgnoreError(resp)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
@@ -73,7 +73,7 @@ OtWvrDGSUA==
 	require.NoError(t, err)
 	client, err := httpClientWithCert(otherCert, time.Minute)
 	require.NoError(t, err)
-	resp, err := client.Do(req)
+	resp, err := client.Do(req) //nolint:bodyclose // resp may be nil on error
 	defer util.DiscardAndCloseBodyIgnoreError(resp)
 	require.ErrorContains(t, err, "x509: certificate signed by unknown authority")
 }

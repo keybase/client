@@ -17,7 +17,7 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 	}
 
 	if !arg.Bid.IsNil() {
-		// Finalize the payment way up here so that it's predicatble
+		// Finalize the payment way up here so that it's predictable
 		// that when an error is returned the payment has been canceled.
 		data, err := getGlobal(mctx.G()).finalizeBuildPayment(mctx, arg.Bid)
 		if err != nil {

@@ -115,7 +115,7 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 			"c3":  I{Val: int(sigCompression3Unstubbed)},
 		},
 	}
-	resp, finisher, err := m.G().API.GetResp(m, apiArg)
+	resp, finisher, err := m.G().API.GetResp(m, apiArg) //nolint:bodyclose // finisher closes the body
 	if err != nil {
 		return nil, err
 	}

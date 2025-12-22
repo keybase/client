@@ -47,7 +47,7 @@ type GameStateUpdateMessage struct {
 	Result             *Result
 }
 
-// Dealer is a peristent process that runs in the chat client that deals out a game. It can have multiple
+// Dealer is a persistent process that runs in the chat client that deals out a game. It can have multiple
 // games running at once.
 type Dealer struct {
 	sync.Mutex

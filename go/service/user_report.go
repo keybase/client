@@ -54,7 +54,7 @@ func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg
 	}
 	if arg.IncludeTranscript && arg.ConvID != nil {
 		convID := *arg.ConvID
-		// Pull transcripts with messages from curent user and the reported user.
+		// Pull transcripts with messages from current user and the reported user.
 		usernames := []kbun.NormalizedUsername{
 			kbun.NewNormalizedUsername(arg.Username),
 			mctx.CurrentUsername(),

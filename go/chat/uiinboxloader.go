@@ -485,7 +485,7 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	res.TotalSmallTeams = len(res.SmallTeams)
 	if res.TotalSmallTeams > h.smallTeamBound {
 		res.SmallTeams = res.SmallTeams[:h.smallTeamBound]
-		// clear extra snippets to keep the payload size managable
+		// clear extra snippets to keep the payload size manageable
 		for i := 50; i < len(res.SmallTeams); i++ {
 			res.SmallTeams[i].Snippet = nil
 			res.SmallTeams[i].SnippetDecoration = chat1.SnippetDecoration_NONE

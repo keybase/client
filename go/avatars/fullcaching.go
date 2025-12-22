@@ -401,6 +401,13 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 			c.debug(m, "populateCacheWorker: failed to download avatar: %s", err)
 			continue
 		}
+		// Ensure body is closed on all paths
+		closeBody := func() {
+			err := libkb.DiscardAndCloseBody(resp)
+			if err != nil {
+				c.debug(m, "populateCacheWorker: error closing body: %+v", err)
+			}
+		}
 		// Find any previous path we stored this image at on the disk
 		var previousEntry lruEntry
 		var previousPath string
@@ -408,10 +415,7 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 		found, ent, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to read previous entry in LRU: %s", err)
-			err = libkb.DiscardAndCloseBody(resp)
-			if err != nil {
-				c.debug(m, "populateCacheWorker: error closing body: %+v", err)
-			}
+			closeBody()
 			continue
 		}
 		if found {
@@ -421,10 +425,7 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 
 		// Save to disk
 		path, err := c.commitAvatarToDisk(m, resp.Body, previousPath)
-		discardErr := libkb.DiscardAndCloseBody(resp)
-		if discardErr != nil {
-			c.debug(m, "populateCacheWorker: error closing body: %+v", discardErr)
-		}
+		closeBody()
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to write to disk: %s", err)
 			continue

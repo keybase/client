@@ -86,11 +86,11 @@ func (k UpdateSource) findUpdate(options updater.UpdateOptions, timeout time.Dur
 		return nil, err
 	}
 	k.log.Infof("Request %#v", urlString)
-	resp, err := client.Do(req)
-	defer util.DiscardAndCloseBodyIgnoreError(resp)
+	resp, err := client.Do(req) //nolint:bodyclose // false positive, body is closed via defer after error check
 	if err != nil {
 		return nil, err
 	}
+	defer util.DiscardAndCloseBodyIgnoreError(resp)
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Find update returned bad HTTP status %v", resp.Status)

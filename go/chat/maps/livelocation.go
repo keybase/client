@@ -55,7 +55,7 @@ func (l *LiveLocationTracker) Start(ctx context.Context, uid gregor1.UID) {
 	l.Lock()
 	defer l.Unlock()
 	l.uid = uid
-	// bring back any trackers that we have stored. This is most relavent when being woken
+	// bring back any trackers that we have stored. This is most relevant when being woken
 	// up on iOS due to a location update. THe app might need to recreate all of its trackers
 	// if the app had been killed.
 	l.restoreLocked(ctx)

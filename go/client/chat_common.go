@@ -74,7 +74,7 @@ func postConvMinWriterRole(ctx context.Context, lcli chat1.LocalClient, tui libk
 	conv *chat1.ConversationLocal, role keybase1.TeamRole, doPrompt bool,
 ) (err error) {
 	if doPrompt {
-		promptText := fmt.Sprintf("Set the minimium writer role of %v for this conversation?\nHit Enter to confirm, or Ctrl-C to cancel.", role)
+		promptText := fmt.Sprintf("Set the minimum writer role of %v for this conversation?\nHit Enter to confirm, or Ctrl-C to cancel.", role)
 		if _, err = tui.Prompt(PromptDescriptorChatSetConvMinWriterRole, promptText); err != nil {
 			return err
 		}

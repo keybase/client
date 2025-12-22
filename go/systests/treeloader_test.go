@@ -146,7 +146,7 @@ func TestLoadTeamTreeMemberships(t *testing.T) {
 	defer tt.cleanup()
 
 	t.Logf("Creating users")
-	// Create the folowing team tree:
+	// Create the following team tree:
 	//
 	//     .___A_____.
 	//     |         |

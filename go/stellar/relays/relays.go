@@ -18,7 +18,7 @@ import (
 )
 
 // Get the key used to encrypt the stellar key for a relay transfer
-// A key from the implicit team betwen the logged-in user and `to`.
+// A key from the implicit team between the logged-in user and `to`.
 // If `generation` is nil, gets the latest key.
 func GetKey(mctx libkb.MetaContext, recipient stellarcommon.Recipient) (key keybase1.TeamApplicationKey, teamID keybase1.TeamID, err error) {
 	meUsername, err := mctx.G().GetUPAKLoader().LookupUsername(mctx.Ctx(), mctx.ActiveDevice().UID())

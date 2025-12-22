@@ -344,6 +344,7 @@ func checkIcon(t testing.TB, service string, icon []keybase1.SizedImage) {
 		} else {
 			resp, err := http.Get(icon.Path)
 			require.NoError(t, err, "%v", service)
+			defer resp.Body.Close()
 			require.Equal(t, 200, resp.StatusCode, "icon file should be reachable")
 			require.NoError(t, err)
 			body, err := io.ReadAll(resp.Body)

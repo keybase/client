@@ -306,7 +306,7 @@ func (m *MerkleProofVerifier) VerifyExtensionProof(ctx logger.ContextInterface, 
 	}
 
 	skipsHash, isPartOfIncExtProof, err := m.computeFinalSkipPointersHashFromPath(ctx, proof, initialSeqno, initialRootHash, finalSeqno)
-	// For exmaple, if finalSeqno = 30, then skipsHash will be the expected
+	// For example, if finalSeqno = 30, then skipsHash will be the expected
 	// SkipPointersHash of the root at seqno 30 (i.e. SHA512([H16, H24, H28,
 	// H29]) where Hi is the hash of the RootMetadata at seqno i)
 	if err != nil {
@@ -317,7 +317,7 @@ func (m *MerkleProofVerifier) VerifyExtensionProof(ctx logger.ContextInterface, 
 	}
 
 	return m.verifyExtensionProofFinal(ctx, proof.PreviousRootsNoSkips[len(proof.PreviousRootsNoSkips)-1], skipsHash, expRootHash)
-	// For exmaple, if finalSeqno = 30, this function uses the skipsHash above,
+	// For example, if finalSeqno = 30, this function uses the skipsHash above,
 	// puts it inside RootMetadata at seqno 30, hashes it and checks the hash
 	// matches expRootHash.
 }

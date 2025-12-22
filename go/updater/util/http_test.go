@@ -61,6 +61,7 @@ func TestSaveHTTPResponse(t *testing.T) {
 	defer server.Close()
 	resp, err := http.Get(server.URL)
 	assert.NoError(t, err)
+	defer resp.Body.Close()
 
 	savePath := TempPath("", "TestSaveHTTPResponse.")
 	defer RemoveFileAtPath(savePath)
@@ -80,6 +81,7 @@ func TestSaveHTTPResponseInvalidPath(t *testing.T) {
 	defer server.Close()
 	resp, err := http.Get(server.URL)
 	assert.NoError(t, err)
+	defer resp.Body.Close()
 
 	savePath := TempPath("", "TestSaveHTTPResponse.")
 	defer RemoveFileAtPath(savePath)

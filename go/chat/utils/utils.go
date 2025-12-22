@@ -2633,7 +2633,7 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 		return body
 	}
 	shouldSkipLink := func(linkPrefix, link string) bool {
-		// Check for RTLO character preceeding our match. If one is
+		// Check for RTLO character preceding our match. If one is
 		// detected, and there isn't a LTRO following it, skip this URL
 		// from linkification.
 		if rtloIdx := strings.LastIndex(linkPrefix, "\u202e"); rtloIdx >= 0 && rtloIdx > strings.LastIndex(linkPrefix, "\u202d") {

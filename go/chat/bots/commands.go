@@ -159,7 +159,7 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, typ chat1.Bot
 		if teamName == nil {
 			return res, errors.New("missing team name")
 		} else if convID != nil {
-			return res, errors.New("convID cannot be specified for team advertisments use type 'conv'")
+			return res, errors.New("convID cannot be specified for team advertisements use type 'conv'")
 		}
 
 		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, typ)

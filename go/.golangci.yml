@@ -43,6 +43,8 @@ linters:
     - ineffassign # Phase 1: Ineffectual assignments
     - unused # Phase 1: Unused code
     - staticcheck # Phase 1: Static analysis
+    - misspell # Phase 2: Spelling checks
+    - bodyclose # Phase 2: HTTP response body checks
 
   disable:
     # Disabled by default in v1, keeping disabled for incremental migration
@@ -50,8 +52,6 @@ linters:
 
     # Additional linters from kbfs-server/keybase examples (disabled for now)
     # These can be enabled incrementally in future work
-    # - bodyclose     # HTTP response body checks
-    # - misspell      # Spelling checks
     # - gosec         # Security checks
     # - unparam       # Unused parameters
 

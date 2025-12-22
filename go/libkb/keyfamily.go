@@ -718,7 +718,7 @@ func (ckf *ComputedKeyFamily) SetActivePGPHash(kid keybase1.KID, hash string) {
 		found = true
 	}
 	if !found {
-		// We've noted this case in the wild (see CORE-4771). It occured
+		// We've noted this case in the wild (see CORE-4771). It occurred
 		// because the server accepted a new Cv25519 key, but an old client
 		// failed to parse it in ParseKeyFamily above. So just warn here.
 		// We expect, though, that if you get this Warning there is trouble ahead,
