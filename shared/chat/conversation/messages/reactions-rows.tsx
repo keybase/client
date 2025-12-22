@@ -9,24 +9,11 @@ import type * as T from '@/constants/types'
 import {useOrdinal} from './ids-context'
 import {Keyboard} from 'react-native'
 
-// Get array of emoji names in the order of their earliest reaction
 const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
   if (!reactions) {
     return []
   }
-
-  const scoreMap = new Map(
-    [...reactions.entries()].map(([key, value]) => {
-      return [
-        key,
-        [...value.users].reduce(
-          (minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp),
-          Infinity
-        ),
-      ]
-    })
-  )
-  return [...reactions.keys()].sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
+  return [...reactions.keys()]
 }
 
 const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {

@@ -52,25 +52,9 @@ const ReactionTooltip = (p: OwnProps) => {
   let reactions = [...(_reactions?.keys() ?? [])]
     .map(emoji => ({
       emoji,
-      users: [...(_reactions?.get(emoji)?.users ?? new Set())]
-        // Earliest users go at the top
-        .sort((a, b) => a.timestamp - b.timestamp)
-        .map(r => ({
-          fullName: (_usersInfo.get(r.username) || {fullname: ''}).fullname || '',
-          timestamp: r.timestamp,
-          username: r.username,
-        })),
-    }))
-    .sort(
-      // earliest reactions go at the top
-      (a, b) => (a.users[0]?.timestamp || 0) - (b.users[0]?.timestamp || 0)
-    )
-    // strip timestamp
-    .map(e => ({
-      emoji: e.emoji,
-      users: e.users.map(u => ({
-        fullName: u.fullName,
-        username: u.username,
+      users: (_reactions?.get(emoji)?.users ?? []).map(username => ({
+        fullName: (_usersInfo.get(username) || {fullname: ''}).fullname || '',
+        username,
       })),
     }))
   if (!C.isMobile && emoji) {

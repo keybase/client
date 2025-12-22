@@ -102,7 +102,7 @@
     "framed-msgpack-rpc": "keybase/node-framed-msgpack-rpc#nojima/HOTPOT-use-buffer",
     "google-libphonenumber": "3.2.43",
     "iced-runtime": "1.0.4",
-    "immer": "10.2.0",
+    "immer": "11.1.0",
     "lodash": "4.17.21",
     "lottie-react-native": "7.3.4",
     "lottie-web": "5.13.0",

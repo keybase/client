@@ -674,21 +674,18 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       if (m && Message.isMessageWithReactions(m)) {
         const rs = {
           decorated: m.reactions?.get(emoji)?.decorated ?? decorated,
-          users: m.reactions?.get(emoji)?.users ?? new Set(),
+          users: m.reactions?.get(emoji)?.users ?? [],
         }
         if (!m.reactions) {
           m.reactions = new Map()
         }
         m.reactions.set(emoji, rs)
-        const existing = [...rs.users].find(r => r.username === username)
-        if (existing) {
-          // found an existing reaction. remove it from our list
-          rs.users.delete(existing)
+        if (rs.users.includes(username)) {
+          rs.users = rs.users.filter(u => u !== username)
         } else {
-          // no existing reaction. add this one to the map
-          rs.users.add(Message.makeReaction({timestamp: Date.now(), username}))
+          rs.users = [...rs.users, username]
         }
-        if (rs.users.size === 0) {
+        if (rs.users.length === 0) {
           m.reactions.delete(emoji)
         }
       }
@@ -3179,7 +3176,25 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         set(s => {
           const m = s.messageMap.get(targetOrdinal)
           if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
-            m.reactions = T.castDraft(reactions)
+            if (!reactions) {
+              m.reactions = undefined
+            } else if (!m.reactions) {
+              m.reactions = T.castDraft(reactions)
+            } else {
+              const existingOrder = [...m.reactions.keys()]
+              const newReactions = new Map<string, T.Chat.ReactionDesc>()
+              for (const emoji of existingOrder) {
+                if (reactions.has(emoji)) {
+                  newReactions.set(emoji, reactions.get(emoji)!)
+                }
+              }
+              for (const [emoji, desc] of reactions) {
+                if (!newReactions.has(emoji)) {
+                  newReactions.set(emoji, desc)
+                }
+              }
+              m.reactions = T.castDraft(newReactions)
+            }
           }
         })
       }
