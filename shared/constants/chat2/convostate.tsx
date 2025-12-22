@@ -3193,7 +3193,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                   newReactions.set(emoji, desc)
                 }
               }
-              m.reactions = newReactions
+              m.reactions = T.castDraft(newReactions)
             }
           }
         })
