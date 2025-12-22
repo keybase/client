@@ -75,6 +75,12 @@ func makeFSE(ctx context.Context, t testing.TB, config *libkbfs.ConfigLocal,
 		}
 	}()
 
+	// Clean up any stale mount for this drive letter before attempting to mount.
+	// This is needed because the Dokan driver may have stale mount entries from
+	// previous test runs, especially on Windows CI spot instances.
+	drivePath := string([]byte{driveLetter, ':', '\\'})
+	_ = dokan.Unmount(drivePath) // Ignore errors - drive may not be mounted
+
 	ctx, cancelFn := context.WithCancel(ctx)
 	filesys, err := NewFS(ctx, config, logger.NewTestLogger(t))
 	if err != nil {
@@ -83,7 +89,7 @@ func makeFSE(ctx context.Context, t testing.TB, config *libkbfs.ConfigLocal,
 
 	mnt, err := dokan.Mount(&dokan.Config{
 		FileSystem: filesys,
-		Path:       string([]byte{driveLetter, ':', '\\'}),
+		Path:       drivePath,
 		MountFlags: DefaultMountFlags,
 	})
 	if err != nil {

@@ -792,6 +792,9 @@ def testGoTestSuite(prefix, packagesToTest) {
         compileAlone: true,
         parallel: 1,
       ],
+      'github.com/keybase/client/go/kbfs/libdokan': [
+        parallel: 1,  // Sequential due to drive letter contention + stale mounts
+      ],
     ],
   ]
   def getOverallTimeout = { testSpec ->
