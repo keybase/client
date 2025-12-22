@@ -6,7 +6,7 @@ function gen {
     symbols=$3
 
     tmp=$(mktemp)
-    mockgen --package="data" \
+    go tool mockgen --package="data" \
         --self_package github.com/keybase/client/go/kbfs/data \
         $srcPkg $symbols > $tmp
     dstFile=${dst}_mocks_test.go

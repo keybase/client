@@ -260,6 +260,7 @@ func testImplicitResetParameterized(t *testing.T, startPUK, getPUKAfter bool) {
 	t.Logf("impteam created for %q (id: %s)", displayName, iteam)
 
 	ann.kickTeamRekeyd()
+	bob.kickTeamRekeyd()
 	bob.reset()
 	if getPUKAfter {
 		// Bob resets and gets a PUK afterwards

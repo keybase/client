@@ -95,6 +95,10 @@ helpers.rootLinuxNode(env, {
       # Create symlink so 'go' invokes go1.25.5
       ln -sf "${GOBIN}/go1.25.5" "${GOBIN}/go"
 
+      # Install golangci-lint
+      echo "Installing golangci-lint v2.7.2..."
+      curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "${GOBIN}" v2.7.2
+
       # Set up Node
       source  ~/.nvm/nvm.sh
       nvm install 24 && nvm use 24 && nvm alias default 24
@@ -192,18 +196,13 @@ helpers.rootLinuxNode(env, {
           test_linux: {
             def packagesToTest = [:]
             if (hasGoChanges || hasJenkinsfileChanges) {
-              // Install gofumpt for protocol generation
-              dir("go/buildtools") {
-                println "Installing gofumpt"
-                retry(5) {
-                  sh 'go install mvdan.cc/gofumpt'
-                }
-              }
-              // Check protocol diffs with GOPATH/bin in PATH so Makefile can find gofumpt
+              // Clean the index first
+              sh "git add -A"
+              // Install gofumpt and generate protocols with GOPATH/bin in PATH
               withEnv(["PATH=${env.PATH}:${env.GOPATH}/bin"]) {
-                // Clean the index first
-                sh "git add -A"
-                // Generate protocols
+                dir("go") {
+                  sh "go install mvdan.cc/gofumpt"
+                }
                 dir ('protocol') {
                   sh "yarn --frozen-lockfile"
                   sh "make clean"
@@ -543,12 +542,6 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
 
   if (prefix == "test_linux_go_") {
     // Only test golangci-lint on linux
-    //println "Installing golangci-lint"
-    //dir("buildtools") {
-    //  retry(5) {
-    //    sh 'go install github.com/golangci/golangci-lint/cmd/golangci-lint'
-    //  }
-    //}
     //
 
     // TODO re-enable for kbfs.
@@ -564,32 +557,26 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     //   }
     // }
 
-    sh 'go install golang.org/x/vuln/cmd/govulncheck@latest'
-    sh 'govulncheck ./...'
-    //if (env.CHANGE_TARGET) {
-    //  println("Running golangci-lint on new code")
-    //  fetchChangeTarget()
-    //  def BASE_COMMIT_HASH = getBaseCommitHash()
-    //  timeout(activity: true, time: 720, unit: 'SECONDS') {
-    //    // Ignore the `protocol` directory, autogeneration has some critques
-    //    sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --timeout 10m0s"
-    //  }
-    //} else {
-    //  println("Running golangci-lint on all non-KBFS code")
-    //  timeout(activity: true, time: 720, unit: 'SECONDS') {
-    //    sh "make golangci-lint-nonkbfs"
-    //  }
-    //}
+    sh 'go tool govulncheck ./...'
+    if (env.CHANGE_TARGET) {
+      println("Running golangci-lint on new code")
+      fetchChangeTarget()
+      def BASE_COMMIT_HASH = getBaseCommitHash()
+      timeout(activity: true, time: 720, unit: 'SECONDS') {
+        // Ignore the `protocol` directory, autogeneration has some critques
+        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --timeout 10m0s"
+      }
+    } else {
+      println("Running golangci-lint on all non-KBFS code")
+      timeout(activity: true, time: 720, unit: 'SECONDS') {
+        sh "make golangci-lint-nonkbfs"
+      }
+    }
 
     // Windows `gofmt` pukes on CRLF.
     // Macos pukes on mockgen because ¯\_(ツ)_/¯.
     // So, only run on Linux.
     println "Running mockgen"
-    dir("buildtools") {
-      retry(5) {
-        sh 'go install github.com/golang/mock/mockgen'
-      }
-    }
     dir('kbfs/data') {
       retry(5) {
         timeout(activity: true, time: 90, unit: 'SECONDS') {
@@ -836,7 +823,9 @@ def testGoTestSuite(prefix, packagesToTest) {
       return defaultPackageTestSpec(pkg)
     }
     if (testSpecMap[prefix].containsKey('*')) {
-      return defaultPackageTestSpec(pkg)
+      // Merge the wildcard config with the default spec
+      def wildcardSpec = testSpecMap[prefix]['*']
+      return defaultPackageTestSpec(pkg) + wildcardSpec
     }
     return false
   }
