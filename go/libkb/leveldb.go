@@ -68,9 +68,10 @@ func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbK
 func levelDbGetWhich(ops levelDBOps, cleaner *levelDbCleaner, key []byte) (val []byte, found bool, err error) {
 	val, err = ops.Get(key, nil)
 	found = false
-	if err == nil {
+	switch err {
+	case nil:
 		found = true
-	} else if err == leveldb.ErrNotFound {
+	case leveldb.ErrNotFound:
 		err = nil
 	}
 

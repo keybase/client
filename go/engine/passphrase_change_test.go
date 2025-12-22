@@ -890,11 +890,12 @@ func TestPassphraseGenerationStored(t *testing.T) {
 	finalGenOneCount := 0
 	finalGenTwoCount := 0
 	for _, block := range finalSKBKeyringFile.Blocks {
-		if block.Priv.PassphraseGeneration == 1 {
+		switch block.Priv.PassphraseGeneration {
+		case 1:
 			finalGenOneCount++
-		} else if block.Priv.PassphraseGeneration == 2 {
+		case 2:
 			finalGenTwoCount++
-		} else {
+		default:
 			t.Fatalf("Expected all encrypted keys to be ppgen 1 or 2. Found %d.",
 				block.Priv.PassphraseGeneration)
 		}

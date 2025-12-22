@@ -82,7 +82,7 @@ func (s *Sender) getRecipientUsername(ctx context.Context, uid gregor1.UID, part
 	membersType chat1.ConversationMembersType, replyToUID gregor1.UID,
 ) (res string, err error) {
 	// If this message is a reply, infer the recipient as the original sender
-	if !(replyToUID.IsNil() || uid.Eq(replyToUID)) {
+	if !replyToUID.IsNil() && !uid.Eq(replyToUID) {
 		username, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(replyToUID.String()))
 		if err != nil {
 			return res, err

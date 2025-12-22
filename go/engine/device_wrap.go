@@ -120,7 +120,7 @@ func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
 
 func (e *DeviceWrap) refreshMe(m libkb.MetaContext) (err error) {
 	defer m.Trace("DeviceWrap#refreshMe", &err)()
-	if !(e.args.IsEldest || e.args.IsSelfProvision) {
+	if !e.args.IsEldest && !e.args.IsSelfProvision {
 		return nil
 	}
 	m.Debug("reloading Me because we just bumped eldest seqno or self provisioned")

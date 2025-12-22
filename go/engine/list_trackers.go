@@ -40,10 +40,8 @@ func (e *ListTrackersUnverifiedEngine) Name() string {
 }
 
 func (e *ListTrackersUnverifiedEngine) Prereqs() Prereqs {
-	session := false
-	if len(e.arg.Assertion) == 0 && e.arg.UID.IsNil() {
-		session = true
-	}
+	session := len(e.arg.Assertion) == 0 && e.arg.UID.IsNil()
+
 	return Prereqs{Device: session}
 }
 

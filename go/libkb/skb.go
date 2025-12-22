@@ -102,7 +102,7 @@ func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec Triplesec, gen Pass
 
 	ret.Priv.PassphraseGeneration = int(gen)
 
-	err = key.Entity.Serialize(&pk)
+	err = key.Serialize(&pk)
 	if err != nil {
 		return
 	}

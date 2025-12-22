@@ -458,9 +458,10 @@ func GetNodeHashVoid(w *jsonw.Wrapper, nhp *NodeHash, errp *error) {
 }
 
 func computeSetBitsBigEndian(x uint) []uint {
-	if x == 0 {
+	switch x {
+	case 0:
 		return nil
-	} else if x == 1 {
+	case 1:
 		return []uint{1}
 	}
 	// Allocate maximum array size necessary

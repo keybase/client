@@ -309,10 +309,7 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 	}
 
 	auv := existing.AllUserVersions()
-	forceUserPoll := true
-	if len(auv) > 50 {
-		forceUserPoll = false
-	}
+	forceUserPoll := !(len(auv) > 50)
 
 	type request struct {
 		uv              keybase1.UserVersion

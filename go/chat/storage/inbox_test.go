@@ -20,7 +20,7 @@ import (
 func setupInboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Inbox, gregor1.UID) {
 	ctc := setupCommonTest(t, name)
 
-	u, err := kbtest.CreateAndSignupFakeUser("ib", ctc.TestContext.G)
+	u, err := kbtest.CreateAndSignupFakeUser("ib", ctc.G)
 	require.NoError(t, err)
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
 	return ctc, NewInbox(ctc.Context()), uid

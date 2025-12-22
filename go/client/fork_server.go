@@ -208,11 +208,12 @@ func makeServerCommandLine(g *libkb.GlobalContext, cl libkb.CommandLine,
 	g.Log.Debug("| Setting run directory for keybase service to %s", chdir)
 	args = append(args, "--chdir", chdir)
 
-	if forkType == keybase1.ForkType_AUTO {
+	switch forkType {
+	case keybase1.ForkType_AUTO:
 		args = append(args, "--auto-forked")
-	} else if forkType == keybase1.ForkType_WATCHDOG {
+	case keybase1.ForkType_WATCHDOG:
 		args = append(args, "--watchdog-forked")
-	} else if forkType == keybase1.ForkType_LAUNCHD {
+	case keybase1.ForkType_LAUNCHD:
 		args = append(args, "--launchd-forked")
 	}
 

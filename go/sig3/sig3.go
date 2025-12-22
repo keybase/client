@@ -77,7 +77,7 @@ func NewRotateKey(o OuterLink, i InnerLink, b RotateKeyBody) *RotateKey {
 // rkb returns the RotateKeyBody that we are expecting at r.Base.inner. It should never fail, if it does,
 // the program will crash.
 func (r *RotateKey) rkb() *RotateKeyBody {
-	ret, _ := r.Base.inner.Body.(*RotateKeyBody)
+	ret, _ := r.inner.Body.(*RotateKeyBody)
 	return ret
 }
 
@@ -198,14 +198,14 @@ func (r RotateKey) verifyReverseSig() (err error) {
 	for _, ptk := range r.rkb().PTKs {
 		reverseSigs = append(reverseSigs, ptk.ReverseSig)
 	}
-	innerLinkID := r.Base.outer.InnerLinkID
+	innerLinkID := r.outer.InnerLinkID
 
 	// Make sure to replace them on the way out of the function, even in an error.
 	defer func() {
 		for j, rs := range reverseSigs {
 			r.rkb().PTKs[j].ReverseSig = rs
 		}
-		r.Base.outer.InnerLinkID = innerLinkID
+		r.outer.InnerLinkID = innerLinkID
 	}()
 
 	// Verify signatures in the reverse order they were signed, nulling them out
@@ -218,11 +218,11 @@ func (r RotateKey) verifyReverseSig() (err error) {
 		}
 
 		ptk.ReverseSig = nil
-		r.Base.outer.InnerLinkID, err = r.Base.inner.hash()
+		r.outer.InnerLinkID, err = r.inner.hash()
 		if err != nil {
 			return err
 		}
-		b, err := msgpack.Encode(r.Base.outer)
+		b, err := msgpack.Encode(r.outer)
 		if err != nil {
 			return err
 		}

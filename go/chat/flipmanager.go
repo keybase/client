@@ -1303,7 +1303,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 		m.Debug(ctx, "loadGame: failed to get host message info: %s", err)
 		return err
 	}
-	if !(hmi.ConvID.Eq(job.hostConvID) && hmi.MsgID == job.hostMsgID) {
+	if !hmi.ConvID.Eq(job.hostConvID) || hmi.MsgID != job.hostMsgID {
 		m.Debug(ctx, "loadGame: host message info mismatch: job.hostConvID: %s hmi.ConvID: %s job.hostMsgID: %d hmi.msgID: %d", job.hostConvID, hmi.ConvID, job.hostMsgID, hmi.MsgID)
 		return errors.New("flip conversation does not match host message info")
 	}

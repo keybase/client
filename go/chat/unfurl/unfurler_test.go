@@ -77,8 +77,8 @@ func TestUnfurler(t *testing.T) {
 	store := attachments.NewStoreTesting(g, nil)
 	s3signer := &ptsigner{}
 	notifier := makeDummyActivityNotifier()
-	g.ChatContext.ActivityNotifier = notifier
-	g.ChatContext.MessageDeliverer = dummyDeliverer{}
+	g.ActivityNotifier = notifier
+	g.MessageDeliverer = dummyDeliverer{}
 	sender := makeDummySender()
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
 	storage := newMemConversationBackedStorage()

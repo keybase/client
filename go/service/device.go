@@ -97,7 +97,7 @@ func LoopAndDismissForDeviceChangeNotifications(mctx libkb.MetaContext, dismisse
 	var body _deviceChange
 	for _, item := range items {
 		category := item.Category().String()
-		if !(category == "device.revoked" || category == "device.new") {
+		if category != "device.revoked" && category != "device.new" {
 			continue
 		}
 		err := json.Unmarshal(item.Body().Bytes(), &body)

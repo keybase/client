@@ -188,8 +188,8 @@ func (c *CmdChatAPIListen) Run() error {
 		return err
 	}
 	errWriter := c.G().UI.GetTerminalUI().ErrorWriter()
-	_, err = errWriter.Write([]byte(fmt.Sprintf("Listening for chat notifications. Config: %+v, subscribeDevChannels: %v\n",
-		c.chatConfig, c.subscribeDev)))
+	_, err = fmt.Fprintf(errWriter, "Listening for chat notifications. Config: %+v, subscribeDevChannels: %v\n",
+		c.chatConfig, c.subscribeDev)
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func (d *baseNotificationDisplay) printf(fmt string, args ...interface{}) error 
 }
 
 func (d *baseNotificationDisplay) errorf(format string, args ...interface{}) error {
-	_, err := d.G().UI.GetTerminalUI().ErrorWriter().Write([]byte(fmt.Sprintf(format, args...)))
+	_, err := fmt.Fprintf(d.G().UI.GetTerminalUI().ErrorWriter(), format, args)
 	return err
 }
 

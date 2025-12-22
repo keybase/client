@@ -301,7 +301,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		kbSvc.SetInstallReferrerListener(newInstallReferrerListener(installReferrerListener))
 	}
 	kbSvc.RunBackgroundOperations(uir)
-	kbChatCtx = kbSvc.ChatContextified.ChatG()
+	kbChatCtx = kbSvc.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 
 	logs := status.Logs{

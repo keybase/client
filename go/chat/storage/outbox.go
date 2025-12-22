@@ -533,7 +533,7 @@ func (o *Outbox) AppendToThread(ctx context.Context, convID chat1.ConversationID
 
 	for _, obr := range obox.Records {
 		// skip outbox records that are not able to be retried.
-		if !(obr.ConvID.Eq(convID) && obr.Msg.IsBadgableType()) {
+		if !obr.ConvID.Eq(convID) || !obr.Msg.IsBadgableType() {
 			continue
 		}
 		if threadOutboxIDs[obr.OutboxID.String()] {

@@ -58,12 +58,12 @@ func NewFTLStorage(g *libkb.GlobalContext, upgrader FTLStorageUpgrader) *FTLStor
 }
 
 func (s *FTLStorage) Put(mctx libkb.MetaContext, state *keybase1.FastTeamData) {
-	s.storageGeneric.put(mctx, state)
+	s.put(mctx, state)
 }
 
 // Can return nil.
 func (s *FTLStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool) (data *keybase1.FastTeamData, frozen bool, tombstoned bool) {
-	vp := s.storageGeneric.get(mctx, teamID, public)
+	vp := s.get(mctx, teamID, public)
 	if vp == nil {
 		return nil, false, false
 	}

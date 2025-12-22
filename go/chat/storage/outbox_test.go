@@ -17,7 +17,7 @@ import (
 
 func setupOutboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Outbox, gregor1.UID, clockwork.FakeClock) {
 	ctc := setupCommonTest(t, name)
-	u, err := kbtest.CreateAndSignupFakeUser("ob", ctc.TestContext.G)
+	u, err := kbtest.CreateAndSignupFakeUser("ob", ctc.G)
 	require.NoError(t, err)
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
 	cl := clockwork.NewFakeClock()

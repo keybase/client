@@ -71,7 +71,9 @@ func makeFSE(ctx context.Context, t testing.TB, config *libkbfs.ConfigLocal,
 		if !makeSuccess {
 			lock.Unlock()
 		} else {
-			time.Sleep(5 * time.Second)
+			// Longer delay for Windows to fully initialize mount permissions,
+			// especially important for secondary mounts (U:, V:, etc.)
+			time.Sleep(10 * time.Second)
 		}
 	}()
 
@@ -1193,7 +1195,7 @@ func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -1252,7 +1254,7 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -1690,7 +1692,7 @@ func TestStatOtherFolder(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, c2)
-	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1710,7 +1712,7 @@ func TestStatOtherFolderFirstUse(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, c2)
-	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1742,7 +1744,7 @@ func TestStatOtherFolderPublic(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, c2)
-	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1778,7 +1780,7 @@ func TestReadPublicFile(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, c2)
-	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1812,7 +1814,7 @@ func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, c2)
-	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1842,7 +1844,7 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, c2)
-	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1880,7 +1882,7 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 	mnt1, _, cancelFn1 := makeFS(ctx, t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
-	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -1937,7 +1939,7 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 	mnt1, _, cancelFn1 := makeFS(ctx, t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
-	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -1994,7 +1996,7 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 	mnt1, _, cancelFn1 := makeFS(ctx, t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
-	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2114,7 +2116,7 @@ func TestInvalidateEntryOnDelete(t *testing.T) {
 	mnt1, _, cancelFn1 := makeFS(ctx, t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
-	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2238,7 +2240,7 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2326,7 +2328,7 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2394,7 +2396,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2522,7 +2524,7 @@ func TestUnstageFile(t *testing.T) {
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -3163,7 +3165,7 @@ func TestKbfsFileInfo(t *testing.T) {
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'V') // Use V: instead of U: for better Windows compatibility
 	defer mnt2.Close()
 	defer cancelFn2()
 

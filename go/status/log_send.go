@@ -93,7 +93,7 @@ func redactPotentialPaperKeys(s string) string {
 	var checkWords []string
 	var checkWordLocations []int // keep track of each checkWord's index in allWords
 	for idx, word := range allWords {
-		if !(len(word) == 1 && noncharacterRxx.MatchString(word)) {
+		if len(word) != 1 || !noncharacterRxx.MatchString(word) {
 			checkWords = append(checkWords, word)
 			checkWordLocations = append(checkWordLocations, idx)
 		}

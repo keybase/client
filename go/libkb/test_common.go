@@ -167,7 +167,7 @@ func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
 			return err
 		}
 
-		err = bundle.Entity.Serialize(fpk)
+		err = bundle.Serialize(fpk)
 		if err != nil {
 			return err
 		}

@@ -681,9 +681,9 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 	if len(arg.OutputPath) == 0 {
 		switch c.G().GetAppType() {
 		case libkb.MobileAppType:
-			arg.OutputPath = path.Join(c.G().GlobalContext.Env.GetCacheDir(), fmt.Sprintf("kbchat-%s", arg.JobID))
+			arg.OutputPath = path.Join(c.G().Env.GetCacheDir(), fmt.Sprintf("kbchat-%s", arg.JobID))
 		default:
-			arg.OutputPath = path.Join(c.G().GlobalContext.Env.GetDownloadsDir(), fmt.Sprintf("kbchat-%s", arg.JobID))
+			arg.OutputPath = path.Join(c.G().Env.GetDownloadsDir(), fmt.Sprintf("kbchat-%s", arg.JobID))
 		}
 	}
 
