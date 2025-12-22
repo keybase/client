@@ -788,18 +788,8 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/updater': [
         parallel: 1,
       ],
-      'github.com/keybase/client/go/kbfs/libdokan': [
-        disable: true,
-      ],
-      'github.com/keybase/client/go/kbfs/kbfsdokan': [
-        disable: true,
-      ],
-      'github.com/keybase/client/go/kbfs/dokan/winacl': [
-        disable: true,
-      ],
       'github.com/keybase/client/go/kbfs/dokan': [
-        // compileAlone: true,
-        disable: true,
+        compileAlone: true,
       ],
     ],
   ]
