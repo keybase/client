@@ -209,8 +209,11 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
       const showUsername = getUsernameToShow(m, pmessage, you)
       // we don't show the label if its been too recent (2hrs)
       const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
+      const orangeMessage = orangeOrdinal ? s.messageMap.get(orangeOrdinal) : undefined
+      const orangeOrdinalExists = orangeOrdinal && s.messageMap.has(orangeOrdinal) && orangeMessage?.type !== 'placeholder'
       const orangeLineAbove =
-        orangeOrdinal === ordinal || (orangeOrdinal && orangeOrdinal < ordinal && orangeOrdinal > previous)
+        orangeOrdinalExists &&
+        (orangeOrdinal === ordinal || (orangeOrdinal < ordinal && orangeOrdinal > previous))
       const isJoinLeave = m.type === 'systemJoined'
 
       const orangeTime =
