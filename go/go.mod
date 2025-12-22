@@ -35,22 +35,22 @@ require (
 	github.com/keybase/clockwork v0.1.1-0.20161209210251-976f45f4a979
 	github.com/keybase/go-codec v0.0.0-20180928230036-164397562123
 	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
-	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20251030172521-fcbc135cd8e5
+	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20251215153435-91cd20a901ac
 	github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233
-	github.com/keybase/go-kext v0.0.0-20250106202153-9105fd1e4e98
-	github.com/keybase/go-keychain v0.0.0-20250107162724-3747e5bfbb71
-	github.com/keybase/go-logging v0.0.0-20250106191441-8771804dc638
-	github.com/keybase/go-merkle-tree v0.0.0-20250107161224-3d8f9f2c4761
+	github.com/keybase/go-kext v0.0.0-20251211195321-cdcb1aed632b
+	github.com/keybase/go-keychain v0.0.2-0.20251211175755-d1c5bf371db7
+	github.com/keybase/go-logging v0.0.0-20251211195308-ca8e152456e3
+	github.com/keybase/go-merkle-tree v0.0.0-20251212154157-5587f8273ef6
 	github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/keybase/go-triplesec v0.0.0-20250106205321-7dc0668e81f5
-	github.com/keybase/go-triplesec-insecure v0.0.0-20250106205311-6a8afabf7cd9
+	github.com/keybase/go-triplesec v0.0.0-20251211201629-aae48d5abcdf
+	github.com/keybase/go-triplesec-insecure v0.0.0-20251211202331-fd8270e51b94
 	github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
-	github.com/keybase/pipeliner v0.0.0-20250106213516-c2d0059e9b94
-	github.com/keybase/saltpack v0.0.0-20250107151705-422170014712
+	github.com/keybase/pipeliner v0.0.0-20251211202808-9c182e569d71
+	github.com/keybase/saltpack v0.0.0-20251212154201-989135827042
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
 	github.com/kyokomi/emoji v2.2.2+incompatible
@@ -228,7 +228,7 @@ require (
 	github.com/karamaru-alpha/copyloopvar v1.1.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20180830205328-81db2a75821e // indirect
-	github.com/keybase/msgpackzip v0.0.0-20250106200500-93bf3a4c34cf // indirect
+	github.com/keybase/msgpackzip v0.0.0-20251211192551-92e2da32c96f // indirect
 	github.com/keybase/vcr v0.0.0-20191017153547-a32d93056205 // indirect
 	github.com/kisielk/errcheck v1.8.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.5 // indirect
