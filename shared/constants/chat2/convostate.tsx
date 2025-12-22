@@ -3176,7 +3176,25 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         set(s => {
           const m = s.messageMap.get(targetOrdinal)
           if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
-            m.reactions = T.castDraft(reactions)
+            if (!reactions) {
+              m.reactions = undefined
+            } else if (!m.reactions) {
+              m.reactions = T.castDraft(reactions)
+            } else {
+              const existingOrder = [...m.reactions.keys()]
+              const newReactions = new Map<string, T.Chat.ReactionDesc>()
+              for (const emoji of existingOrder) {
+                if (reactions.has(emoji)) {
+                  newReactions.set(emoji, reactions.get(emoji)!)
+                }
+              }
+              for (const [emoji, desc] of reactions) {
+                if (!newReactions.has(emoji)) {
+                  newReactions.set(emoji, desc)
+                }
+              }
+              m.reactions = newReactions
+            }
           }
         })
       }
