@@ -790,6 +790,7 @@ def testGoTestSuite(prefix, packagesToTest) {
       ],
       'github.com/keybase/client/go/kbfs/dokan': [
         compileAlone: true,
+        parallel: 1,
       ],
     ],
   ]
