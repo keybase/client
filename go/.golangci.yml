@@ -5,21 +5,43 @@ run:
   tests: true
 
 formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - prot.go
+      - cmd_wallet.*.go
+      - protocol
+      - third_party$
+      - kbfs
+      - builtin$
   enable:
     - gofmt
     - gofumpt
 
 linters:
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - prot.go
+      - cmd_wallet.*.go
+      - protocol
+      - third_party$
+      - builtin$
+      - examples$
+      - kbfs
   enable:
     # Currently enabled linters (migrated from v1 config)
     - gocritic
     - unconvert
     - revive
+    - govet
 
   disable:
-    # Temporarily disabled to pass CI - will re-enable in Phase 1
-    - govet # 5 issues: 3 printf warnings, 1 redundant bool, 1 impossible nil condition
-
     # Disabled by default in v1, keeping disabled for incremental migration
     - errcheck # Error checking - enabled by default in v2, many unchecked errors
     - staticcheck # Static analysis - enabled by default in v2, style issues
@@ -39,12 +61,11 @@ linters:
         - ifElseChain
         - elseif
 
-    # govet: Temporarily disabled - will re-enable in Phase 1
-    # govet:
-    #   enable-all: true
-    #   disable:
-    #     - shadow # Too noisy, legitimate patterns
-    #     - fieldalignment # Memory optimization, not worth churn
+    govet:
+      enable-all: true
+      disable:
+        - shadow # Too noisy, legitimate patterns
+        - fieldalignment # Memory optimization, not worth churn
 
     revive:
       enable-all-rules: false
@@ -57,6 +78,8 @@ linters:
         - name: exported
           disabled: true
         - name: package-comments # Disabled - too noisy about comment format
+          disabled: true
+        - name: var-naming # Disabled - allow utils/types package names
           disabled: true
 
         # Enabled rules (from v1 config)
@@ -78,7 +101,6 @@ linters:
         - name: unexported-return
         - name: unreachable-code
         - name: var-declaration
-        - name: var-naming
 # ==============================================================================
 # NOTE: Version 2 config doesn't support issues.exclude-files for path-based exclusions.
 # Files like prot.go, cmd_wallet*.go, and protocol/ that were previously excluded

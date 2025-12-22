@@ -1,10 +1,9 @@
 package systests
 
 import (
+	"context"
 	"strings"
 	"testing"
-
-	"context"
 
 	"github.com/keybase/client/go/ephemeral"
 	libkb "github.com/keybase/client/go/libkb"

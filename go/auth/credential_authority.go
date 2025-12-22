@@ -214,6 +214,7 @@ func (v *CredentialAuthority) pollOnce() error {
 // (or sleep in the case of Poll()'ing).
 func (v *CredentialAuthority) runWithCancel(body func(ctx context.Context) error) error {
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	doneCh := make(chan error)
 	var err error
 

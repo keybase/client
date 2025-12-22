@@ -184,7 +184,8 @@ func (e ErrHashMismatch) Error() string {
 func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface, t *time.Time,
 	syncResult *gregor1.SyncResult,
 ) (msgs []gregor.InBandMessage, err error) {
-	ctx, _ = context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	arg := gregor1.SyncArg{
 		Uid:      gregor1.UID(c.User.Bytes()),
 		Deviceid: gregor1.DeviceID(c.Device.Bytes()),

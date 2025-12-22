@@ -1,12 +1,11 @@
 package systests
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
-
-	"context"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/ephemeral"
