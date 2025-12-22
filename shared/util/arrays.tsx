@@ -1,6 +1,7 @@
 import findLastLodash from 'lodash/findLast'
 
 export function findLast<T>(arr: ReadonlyArray<T>, cb: (t: T) => boolean): T | undefined {
+  // eslint-disable-next-line
   if (arr.findLast) {
     return arr.findLast(cb) // eslint-disable-line
   }
