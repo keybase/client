@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import useContacts, {type Contact as _Contact} from './use-contacts.native'
-import {mapGetEnsureValue} from '@/util/map'
+import groupBy from 'lodash/groupBy'
 
 type Item = Contact
 type Section = Omit<Kb.SectionType<Item>, 'renderItem'>
@@ -21,29 +21,23 @@ const categorize = (contact: Contact): string => {
 }
 const filterAndSectionContacts = (contacts: Contact[], search: string): Section[] => {
   const searchL = search.toLowerCase()
-  const sectionMap: Map<string, Contact[]> = new Map()
-  contacts
-    .filter(
-      contact => contact.name.toLowerCase().includes(searchL) || contact.value.toLowerCase().includes(searchL)
-    )
-    .forEach(contact => {
-      const category = categorize(contact)
-      const section = mapGetEnsureValue(sectionMap, category, [])
-      section.push(contact)
-    })
+  const filtered = contacts.filter(
+    contact => contact.name.toLowerCase().includes(searchL) || contact.value.toLowerCase().includes(searchL)
+  )
+  const grouped = groupBy(filtered, categorize)
   const sections = new Array<Section>()
   for (const letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') {
-    if (sectionMap.has(letter)) {
+    if (grouped[letter]) {
       sections.push({
-        data: sectionMap.get(letter) ?? [],
+        data: grouped[letter],
         title: letter,
       })
     }
   }
   for (const sectionKey of ['0-9', 'Other']) {
-    if (sectionMap.has(sectionKey)) {
+    if (grouped[sectionKey]) {
       sections.push({
-        data: sectionMap.get(sectionKey) ?? [],
+        data: grouped[sectionKey],
         title: sectionKey,
       } as const)
     }
