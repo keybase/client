@@ -30,6 +30,10 @@ export const isElectron = false
 export const isLinux = false
 export const isWindows = false
 export const isMac = false
+
+export const getModKey = (_e: {metaKey: boolean; ctrlKey: boolean}): boolean => {
+  return false
+}
 export const isDebuggingInChrome = typeof location !== 'undefined'
 
 export const defaultUseNativeFrame = true

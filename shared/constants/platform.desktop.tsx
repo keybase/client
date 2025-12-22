@@ -23,6 +23,10 @@ export const isWindows = platform === 'win32'
 export const isLinux = platform === 'linux'
 export const isMac = isDarwin && !isIOS
 
+export const getModKey = (e: {metaKey: boolean; ctrlKey: boolean}): boolean => {
+  return isMac ? e.metaKey : e.ctrlKey
+}
+
 export const isDeviceSecureAndroid = false
 export const isAndroidNewerThanN = false
 export const isAndroidNewerThanM = false

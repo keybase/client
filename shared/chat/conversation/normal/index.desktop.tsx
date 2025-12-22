@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {getModKey} from '@/constants/platform'
 import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
@@ -28,7 +29,6 @@ const LoadingLine = () => {
   return showLoader ? <Kb.LoadingLine /> : null
 }
 
-const hotKeys = ['mod+f']
 const Conversation = React.memo(function Conversation() {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const navigateAppend = Chat.useChatNavigateAppend()
@@ -69,10 +69,19 @@ const Conversation = React.memo(function Conversation() {
   const onToggleThreadSearch = React.useCallback(() => {
     toggleThreadSearch()
   }, [toggleThreadSearch])
-  Kb.useHotKey('mod+f', onToggleThreadSearch)
+
+  const onKeyDown = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      if (getModKey(e) && e.key === 'f' && !e.shiftKey && !e.altKey) {
+        e.preventDefault()
+        onToggleThreadSearch()
+      }
+    },
+    [onToggleThreadSearch]
+  )
 
   return (
-    <div className="conversation" style={styles.container} onPaste={onPaste} key={conversationIDKey}>
+    <div className="conversation" style={styles.container} onPaste={onPaste} onKeyDown={onKeyDown} key={conversationIDKey}>
       <Kb.DragAndDrop
         onAttach={cannotWrite ? undefined : onAttach}
         fullHeight={true}
