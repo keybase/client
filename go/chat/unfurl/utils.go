@@ -2,6 +2,7 @@ package unfurl
 
 import (
 	"errors"
+	"net"
 	"net/url"
 	"strings"
 
@@ -47,6 +48,11 @@ func GetDomain(uri string) (res string, err error) {
 		return res, errors.New("no hostname")
 	}
 	if hostname == types.MapsDomain {
+		return hostname, nil
+	}
+	// Check if hostname is an IP address. If so, return it directly
+	// since publicsuffix.EffectiveTLDPlusOne doesn't work with IPs.
+	if net.ParseIP(hostname) != nil {
 		return hostname, nil
 	}
 	return publicsuffix.EffectiveTLDPlusOne(hostname)

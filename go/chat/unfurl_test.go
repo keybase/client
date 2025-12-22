@@ -249,7 +249,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 			chat1.ResolveUnfurlPromptArg{
 				ConvID:           conv.Id,
 				MsgID:            origID,
-				Result:           chat1.NewUnfurlPromptResultWithAccept("0.1"),
+				Result:           chat1.NewUnfurlPromptResultWithAccept("127.0.0.1"),
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
 			}))
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT) // from whitelist add
@@ -292,7 +292,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 			chat1.ResolveUnfurlPromptArg{
 				ConvID:           conv.Id,
 				MsgID:            origID,
-				Result:           chat1.NewUnfurlPromptResultWithAccept("0.1"),
+				Result:           chat1.NewUnfurlPromptResultWithAccept("127.0.0.1"),
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
 			}))
 		time.Sleep(200 * time.Millisecond)

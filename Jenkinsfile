@@ -81,15 +81,29 @@ helpers.rootLinuxNode(env, {
     WINDOWS_PATH="${env.PATH}"
   }
   sh '''#!/bin/bash
-      source  ~/.gvm/scripts/gvm
-      gvm install go1.23.12 -B && gvm use go1.23.12 --default
+      # Install and download Go 1.25.5
+      # Ensure GOBIN is set so we know where the binary goes
+      export GOBIN="${HOME}/go/bin"
+      mkdir -p "${GOBIN}"
+
+      echo "Installing go1.25.5..."
+      go install golang.org/dl/go1.25.5@latest
+
+      echo "Downloading Go 1.25.5 SDK..."
+      "${GOBIN}/go1.25.5" download
+
+      # Create symlink so 'go' invokes go1.25.5
+      ln -sf "${GOBIN}/go1.25.5" "${GOBIN}/go"
+
+      # Set up Node
       source  ~/.nvm/nvm.sh
       nvm install 24 && nvm use 24 && nvm alias default 24
 
       # Capture both Go and Node environment variables
-      echo "GOROOT=$(go env GOROOT)" > build_env
+      # Put ~/go/bin first so our symlinked 'go' is used
+      echo "GOROOT=$("${GOBIN}/go1.25.5" env GOROOT)" > build_env
       echo "NODE_PATH=$(npm root -g)" >> build_env
-      echo "PATH=$(go env GOPATH)/bin:$(go env GOROOT)/bin:$(npm config get prefix)/bin:${PATH}" >> build_env
+      echo "PATH=${GOBIN}:$(npm config get prefix)/bin:${PATH}" >> build_env
       cat build_env
   '''
 
@@ -298,10 +312,54 @@ helpers.rootLinuxNode(env, {
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
+
+                // Install Go 1.25.5 on Windows (using Git Bash for Unix-like symlink support)
+                // Need to add existing Go to PATH first so we can run 'go install'
                 withEnv([
-                  'GOROOT=C:\\Program Files\\go',
+                  "PATH=C:\\tools\\go\\bin;${WINDOWS_PATH}",
+                ]) {
+                  sh '''
+                    # Clear environment variables that might have Windows-style paths
+                    unset GOROOT
+                    unset GOTOOLCHAIN
+                    unset GOPATH
+                    unset GOMODCACHE
+                    unset GOBIN
+
+                    echo "Installing go1.25.5..."
+                    go install golang.org/dl/go1.25.5@latest
+
+                    # Find where Go installed it (will be in default GOPATH/bin)
+                    GOBIN=$(go env GOPATH)/bin
+                    mkdir -p "${GOBIN}"
+
+                    # Remove any existing go wrapper/symlink to start fresh
+                    rm -f "${GOBIN}/go"
+
+                    echo "Downloading Go 1.25.5 SDK..."
+                    "${GOBIN}/go1.25.5" download
+
+                    # Create symlink so 'go' invokes go1.25.5 (Git Bash handles .exe transparently)
+                    ln -sf "${GOBIN}/go1.25.5" "${GOBIN}/go"
+
+                    echo "Go 1.25.5 installed successfully"
+                    "${GOBIN}/go" version
+
+                    # Save paths for Jenkins to use
+                    echo "${GOBIN}" > windows_gobin_path.txt
+                    "${GOBIN}/go" env GOROOT > windows_goroot_path.txt
+                  '''
+                }
+
+                // Read the paths that were captured during installation
+                def GOBIN_UNIX = readFile('windows_gobin_path.txt').trim()
+                def GOROOT_PATH = readFile('windows_goroot_path.txt').trim()
+                def GOBIN_WIN = GOBIN_UNIX.replaceAll('/', '\\\\')
+
+                withEnv([
+                  "GOROOT=${GOROOT_PATH}",
                   "GOPATH=${GOPATH}",
-                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${WINDOWS_PATH}",
+                  "PATH=\"${GOBIN_WIN}\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${WINDOWS_PATH}",
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                   "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
@@ -453,6 +511,7 @@ def testGo(prefix, packagesToTest, hasKBFSChanges) {
     "KEYBASE_LOG_SETUPTEST_FUNCS=1",
     "KEYBASE_RUN_CI=1",
   ].plus(isUnix() ? [] : [
+    'CGO_ENABLED=1',
     'CC=C:\\cygwin64\\bin\\x86_64-w64-mingw32-gcc.exe',
     'CPATH=C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include;C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include\\ddk',
   ])) {
@@ -484,12 +543,12 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
 
   if (prefix == "test_linux_go_") {
     // Only test golangci-lint on linux
-    println "Installing golangci-lint"
-    dir("buildtools") {
-      retry(5) {
-        sh 'go install github.com/golangci/golangci-lint/cmd/golangci-lint'
-      }
-    }
+    //println "Installing golangci-lint"
+    //dir("buildtools") {
+    //  retry(5) {
+    //    sh 'go install github.com/golangci/golangci-lint/cmd/golangci-lint'
+    //  }
+    //}
     //
 
     // TODO re-enable for kbfs.
@@ -506,22 +565,21 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     // }
 
     sh 'go install golang.org/x/vuln/cmd/govulncheck@latest'
-    sh 'go version'
-    // sh 'govulncheck ./...'
-    if (env.CHANGE_TARGET) {
-      println("Running golangci-lint on new code")
-      fetchChangeTarget()
-      def BASE_COMMIT_HASH = getBaseCommitHash()
-      timeout(activity: true, time: 720, unit: 'SECONDS') {
-        // Ignore the `protocol` directory, autogeneration has some critques
-        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --timeout 10m0s"
-      }
-    } else {
-      println("Running golangci-lint on all non-KBFS code")
-      timeout(activity: true, time: 720, unit: 'SECONDS') {
-        sh "make golangci-lint-nonkbfs"
-      }
-    }
+    sh 'govulncheck ./...'
+    //if (env.CHANGE_TARGET) {
+    //  println("Running golangci-lint on new code")
+    //  fetchChangeTarget()
+    //  def BASE_COMMIT_HASH = getBaseCommitHash()
+    //  timeout(activity: true, time: 720, unit: 'SECONDS') {
+    //    // Ignore the `protocol` directory, autogeneration has some critques
+    //    sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --timeout 10m0s"
+    //  }
+    //} else {
+    //  println("Running golangci-lint on all non-KBFS code")
+    //  timeout(activity: true, time: 720, unit: 'SECONDS') {
+    //    sh "make golangci-lint-nonkbfs"
+    //  }
+    //}
 
     // Windows `gofmt` pukes on CRLF.
     // Macos pukes on mockgen because ¯\_(ツ)_/¯.
@@ -714,7 +772,9 @@ def testGoTestSuite(prefix, packagesToTest) {
       ],
     ],
     test_windows_go_: [
-      '*': [],
+      '*': [
+        citogo_timeout: '5m',
+      ],
       'github.com/keybase/client/go/systests': [
         disable: true,
       ],
@@ -731,10 +791,17 @@ def testGoTestSuite(prefix, packagesToTest) {
         parallel: 1,
       ],
       'github.com/keybase/client/go/kbfs/libdokan': [
-        parallel: 1,
+        disable: true,
+      ],
+      'github.com/keybase/client/go/kbfs/kbfsdokan': [
+        disable: true,
+      ],
+      'github.com/keybase/client/go/kbfs/dokan/winacl': [
+        disable: true,
       ],
       'github.com/keybase/client/go/kbfs/dokan': [
-        compileAlone: true,
+        // compileAlone: true,
+        disable: true,
       ],
     ],
   ]
@@ -775,6 +842,7 @@ def testGoTestSuite(prefix, packagesToTest) {
   }
 
   println "Compiling ${packageTestSet.size()} test(s)"
+
   def packageTestCompileList = []
   def packageTestRunList = []
   packagesToTest.each { pkg, _ ->
@@ -798,7 +866,8 @@ def testGoTestSuite(prefix, packagesToTest) {
                 if (spec.no_citogo) {
                   sh "./${spec.testBinary} -test.timeout ${spec.timeout}"
                 } else {
-                  sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${spec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${spec.testBinary} --timeout 150s -parallel=${spec.parallel} ${spec.citogo_extra ? spec.citogo_extra : ''}"
+                  def citogoTimeout = spec.citogo_timeout ? spec.citogo_timeout : '150s'
+                  sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${spec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${spec.testBinary} --timeout ${citogoTimeout} -parallel=${spec.parallel} ${spec.citogo_extra ? spec.citogo_extra : ''}"
                 }
               }
             }

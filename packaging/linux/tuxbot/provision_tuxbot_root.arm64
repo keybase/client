@@ -7,9 +7,9 @@ apt-get --allow-releaseinfo-change update
 apt-get install -yq git curl vim python3-pip jq
 apt-get install -t bullseye-backports qemu-user-static
 
-GOLANG_VERSION=1.23.4
+GOLANG_VERSION=1.25.5
 GOLANG_DOWNLOAD_URL=https://dl.google.com/go/go$GOLANG_VERSION.linux-arm64.tar.gz
-GOLANG_DOWNLOAD_SHA256=16e5017863a7f6071363782b1b8042eb12c6ca4f4cd71528b2123f0a1275b13e
+GOLANG_DOWNLOAD_SHA256=9e9b755d63b36acf30c12a9a3fc379243714c1c6d3dd72861da637f336ebb35b
 wget "$GOLANG_DOWNLOAD_URL" -O /root/go.tar.gz
 echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status --strict -
 tar -C /usr/local -xzf /root/go.tar.gz

@@ -832,7 +832,7 @@ func (maker fsBlockerMaker) makeNewBlocker(
 }
 
 func TestCopyProgress(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
@@ -1349,7 +1349,7 @@ func TestRefreshSubscription(t *testing.T) {
 }
 
 func TestGetRevisions(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")

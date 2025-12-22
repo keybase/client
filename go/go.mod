@@ -1,8 +1,8 @@
 module github.com/keybase/client/go
 
-go 1.23.0
+go 1.24.0
 
-toolchain go1.23.12
+toolchain go1.25.5
 
 require (
 	bazil.org/fuse v0.0.0-20200424023519-3c101025617f
@@ -20,11 +20,11 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.7.2-0.20180927150649-699df6a3acf6
 	github.com/docopt/docopt-go v0.0.0-20160216232012-784ddc588536
-	github.com/dustin/go-humanize v1.0.0
+	github.com/dustin/go-humanize v1.0.1
 	github.com/eapache/channels v1.1.0
 	github.com/gammazero/workerpool v0.0.0-20181230203049-86a96b5d5d92
 	github.com/go-errors/errors v1.4.2
-	github.com/go-sql-driver/mysql v1.8.1
+	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.63.4
@@ -55,7 +55,7 @@ require (
 	github.com/kr/text v0.2.0
 	github.com/kyokomi/emoji v2.2.2+incompatible
 	github.com/mattn/go-isatty v0.0.20
-	github.com/miekg/dns v1.1.57
+	github.com/miekg/dns v1.1.69
 	github.com/nfnt/resize v0.0.0-20160724205520-891127d8d1b5
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/xattr v0.2.2
@@ -67,19 +67,19 @@ require (
 	// NOTE: if stellar/go is updated, consider removing the `replace` directive
 	// for goautoneg at the bottom of this go.mod
 	github.com/stellar/go v0.0.0-20221209134558-b4ba6f8e67f2
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/urfave/cli v1.22.1
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	go.uber.org/zap v1.24.0
-	golang.org/x/crypto v0.36.0
-	golang.org/x/image v0.23.0
-	golang.org/x/mobile v0.0.0-20250106192035-c31d5b91ecc3
-	golang.org/x/net v0.38.0
-	golang.org/x/sync v0.14.0
-	golang.org/x/sys v0.33.0
-	golang.org/x/text v0.25.0
-	golang.org/x/time v0.9.0
+	golang.org/x/crypto v0.46.0
+	golang.org/x/image v0.34.0
+	golang.org/x/mobile v0.0.0-20251209145715-2553ed8ce294
+	golang.org/x/net v0.48.0
+	golang.org/x/sync v0.19.0
+	golang.org/x/sys v0.39.0
+	golang.org/x/text v0.32.0
+	golang.org/x/time v0.14.0
 	gopkg.in/src-d/go-billy.v4 v4.3.2
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	mvdan.cc/xurls/v2 v2.0.0-00010101000000-000000000000
@@ -344,8 +344,8 @@ require (
 	go4.org v0.0.0-20161118210015-09d86de304dc // indirect
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20241108190413-2d47ceb2692f // indirect
-	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/tools v0.29.0 // indirect
+	golang.org/x/mod v0.31.0 // indirect
+	golang.org/x/tools v0.40.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
