@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {getModKey, isMac} from '@/constants/platform'
+import {isMac} from '@/constants/platform'
 
 const keyToCBStack = new Map<string, Array<(cmd: string) => void>>()
 
@@ -15,7 +15,9 @@ const normalizeKey = (key: string): string => {
   return lower
 }
 
-const parseKeyCombo = (combo: string): {
+const parseKeyCombo = (
+  combo: string
+): {
   key: string
   ctrl: boolean
   shift: boolean
@@ -204,4 +206,3 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
     }
   }, [register, unregister])
 }
-

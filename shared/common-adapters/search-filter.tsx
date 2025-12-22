@@ -6,6 +6,7 @@ import NewInput from './new-input'
 import PlainInput, {type PlainInputRef} from './plain-input'
 import Text, {type AllowedColors} from './text'
 import ProgressIndicator from './progress-indicator'
+import {useHotKey} from './hot-key'
 import Icon, {type IconType} from './icon'
 import * as Styles from '@/styles'
 import * as Platforms from '@/constants/platform'
@@ -24,6 +25,7 @@ const Kb = {
   PlainInput,
   ProgressIndicator,
   Text,
+  useHotKey,
 }
 
 type Props = {

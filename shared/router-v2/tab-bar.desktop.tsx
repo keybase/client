@@ -180,6 +180,7 @@ const keysMap = Tabs.desktopTabs.reduce<{[key: string]: (typeof Tabs.desktopTabs
   },
   {}
 )
+const hotKeys = Object.keys(keysMap)
 
 const TabBar = React.memo(function TabBar(props: Props) {
   const {navigation, state} = props
