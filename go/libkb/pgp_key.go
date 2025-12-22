@@ -330,7 +330,7 @@ func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser, private bool) error {
 	if private {
 		err = k.SerializePrivate(writer)
 	} else {
-		err = k.Entity.Serialize(writer)
+		err = k.Serialize(writer)
 	}
 	if err != nil {
 		return err
@@ -476,11 +476,11 @@ func finishReadOne(lst []*openpgp.Entity, armored string, err error) (*PGPKeyBun
 		}
 	}
 
-	for _, bs := range first.Entity.BadSubkeys {
+	for _, bs := range first.BadSubkeys {
 		w.Push(Warningf("Bad subkey: %s", bs.Err))
 	}
 
-	if first.Entity.PrivateKey == nil {
+	if first.PrivateKey == nil {
 		first.ArmoredPublicKey = armored
 	}
 	return first, w, nil
@@ -675,7 +675,7 @@ func (k PGPKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 // Generates hash security warnings given a CKF
 func (k PGPKeyBundle) SecurityWarnings(kind HashSecurityWarningType) (warnings HashSecurityWarnings) {
 	fingerprint := k.GetFingerprint()
-	for _, identity := range k.Entity.Identities {
+	for _, identity := range k.Identities {
 		if identity.SelfSignature == nil ||
 			IsHashSecure(identity.SelfSignature.Hash) {
 			continue
@@ -878,7 +878,7 @@ func (k *PGPKeyBundle) CanDecrypt() bool { return false }
 func (k *PGPKeyBundle) ExportPublicAndPrivate() (public RawPublicKey, private RawPrivateKey, err error) {
 	var publicKey, privateKey bytes.Buffer
 
-	serializePublic := func() error { return k.Entity.Serialize(&publicKey) }
+	serializePublic := func() error { return k.Serialize(&publicKey) }
 	serializePrivate := func() error { return k.SerializePrivate(&privateKey) }
 
 	// NOTE(maxtaco): For imported keys, it is crucial to serialize the public key

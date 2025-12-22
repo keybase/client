@@ -70,9 +70,10 @@ func linuxUpgradeInstructionsString() (string, error) {
 
 func darwinUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 	packageName := "keybase"
-	if DefaultRunMode == DevelRunMode {
+	switch DefaultRunMode {
+	case DevelRunMode:
 		packageName = "keybase/beta/kbdev"
-	} else if DefaultRunMode == StagingRunMode {
+	case StagingRunMode:
 		packageName = "keybase/beta/kbstage"
 	}
 

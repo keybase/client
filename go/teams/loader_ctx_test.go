@@ -160,7 +160,7 @@ func (l *MockLoaderContext) getLinksFromServerCommon(ctx context.Context,
 
 			if boxSpec.Prev != nil {
 				omitPrevs := int(l.state.loadSpec.OmitPrevs)
-				if !(omitPrevs > 0 && int(boxSpec.TeamBox.Generation)-1 <= omitPrevs) {
+				if omitPrevs <= 0 || int(boxSpec.TeamBox.Generation)-1 > omitPrevs {
 					prevs[boxSpec.TeamBox.Generation] = *boxSpec.Prev
 				}
 			}

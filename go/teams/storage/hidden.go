@@ -55,12 +55,12 @@ func NewHiddenStorage(g *libkb.GlobalContext) *HiddenStorage {
 }
 
 func (s *HiddenStorage) Put(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) {
-	s.storageGeneric.put(mctx, state)
+	s.put(mctx, state)
 }
 
 // Can return nil.
 func (s *HiddenStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool) (state *keybase1.HiddenTeamChain, frozen bool, tombstoned bool) {
-	vp := s.storageGeneric.get(mctx, teamID, public)
+	vp := s.get(mctx, teamID, public)
 	if vp == nil {
 		return nil, false, false
 	}

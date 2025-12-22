@@ -21,7 +21,6 @@ import (
 	_ "github.com/keybase/golang-ico" // for image decoding
 	"github.com/nfnt/resize"
 	"golang.org/x/image/bmp"
-	_ "golang.org/x/image/bmp" // for image decoding
 	"golang.org/x/image/tiff"
 
 	"camlistore.org/pkg/images"

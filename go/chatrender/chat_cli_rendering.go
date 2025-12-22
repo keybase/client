@@ -80,7 +80,7 @@ func (v ConversationInfoListView) RenderToWriter(g *libkb.GlobalContext, writer 
 		flexibletable.ExpandableWrappable, // participants
 		flexibletable.ExpandableWrappable, // reset
 	}); err != nil {
-		return fmt.Errorf("rendering conversation info list view error: %v\n", err)
+		return fmt.Errorf("rendering conversation info list view error: %v", err)
 	}
 
 	return nil
@@ -333,7 +333,7 @@ func (v ConversationListView) RenderToWriter(g *libkb.GlobalContext, writer io.W
 		flexibletable.ColumnConstraint(width / 5), // reactionInfo
 		flexibletable.Expandable,                  // body
 	}); err != nil {
-		return fmt.Errorf("rendering conversation list view error: %v\n", err)
+		return fmt.Errorf("rendering conversation list view error: %v", err)
 	}
 
 	return nil
@@ -443,7 +443,7 @@ func (v ConversationView) RenderToWriter(g *libkb.GlobalContext, writer io.Write
 		flexibletable.ColumnConstraint(width / 5), // reactionInfo
 		flexibletable.ExpandableWrappable,         // body
 	}); err != nil {
-		return fmt.Errorf("rendering conversation view error: %v\n", err)
+		return fmt.Errorf("rendering conversation view error: %v", err)
 	}
 
 	if showRevokeAdvisory {

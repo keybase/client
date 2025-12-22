@@ -72,9 +72,10 @@ You have two options.
 			}
 			return res, err
 		}
-		if gret == 1 {
+		switch gret {
+		case 1:
 			return keybase1.ProvisionMethod_GPG_SIGN, nil
-		} else if gret == 2 {
+		case 2:
 			return keybase1.ProvisionMethod_GPG_IMPORT, nil
 		}
 	}
@@ -201,7 +202,8 @@ func (p ProvisionUI) ChooseDeviceType(ctx context.Context, arg keybase1.ChooseDe
 
 func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) (keybase1.SecretResponse, error) {
 	var resp keybase1.SecretResponse
-	if p.role == libkb.KexRoleProvisioner {
+	switch p.role {
+	case libkb.KexRoleProvisioner:
 		// This is the provisioner device (device X)
 
 		// For mobile, show the QR code and the phrase, do not prompt:
@@ -235,7 +237,7 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 			resp.Phrase = ret
 		}
 		return resp, nil
-	} else if p.role == libkb.KexRoleProvisionee {
+	case libkb.KexRoleProvisionee:
 		// this is the provisionee device (device Y)
 		// For command line app, the provisionee displays secrets only
 

@@ -78,7 +78,8 @@ func decodeContactNotifications(mctx libkb.MetaContext, home keybase1.
 					item, err)
 				continue
 			}
-			if innerT == keybase1.HomeScreenPeopleNotificationType_CONTACT {
+			switch innerT {
+			case keybase1.HomeScreenPeopleNotificationType_CONTACT:
 				contact := peopleItem.Contact()
 				decryptedContact,
 					err := contacts.DecryptContactBlob(mctx,
@@ -92,7 +93,7 @@ func decodeContactNotifications(mctx libkb.MetaContext, home keybase1.
 				item.Data = keybase1.NewHomeScreenItemDataWithPeople(
 					keybase1.NewHomeScreenPeopleNotificationWithContact(contact))
 				items[i] = item
-			} else if innerT == keybase1.HomeScreenPeopleNotificationType_CONTACT_MULTI {
+			case keybase1.HomeScreenPeopleNotificationType_CONTACT_MULTI:
 				contactMulti := peopleItem.ContactMulti()
 				contactList := contactMulti.Contacts
 				for i, contact := range contactList {

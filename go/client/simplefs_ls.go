@@ -139,69 +139,70 @@ func getPartialColor(foreground bool, letter uint8) string {
 		partialBytes.WriteString("1;")
 	}
 
-	if letter == 'a' {
+	switch letter {
+	case 'a':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgBlack))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgBlack))
 		}
-	} else if letter == 'b' {
+	case 'b':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgRed))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgRed))
 		}
-	} else if letter == 'c' {
+	case 'c':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgGreen))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgGreen))
 		}
-	} else if letter == 'd' {
+	case 'd':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgBrown))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgBrown))
 		}
-	} else if letter == 'e' {
+	case 'e':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgBlue))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgBlue))
 		}
-	} else if letter == 'f' {
+	case 'f':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgMagenta))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgMagenta))
 		}
-	} else if letter == 'g' {
+	case 'g':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgCyan))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgCyan))
 		}
-	} else if letter == 'h' {
+	case 'h':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgWhite))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgWhite))
 		}
-	} else if letter == 'A' {
+	case 'A':
 		partialBytes.WriteString(strconv.Itoa(colorFgBlack))
-	} else if letter == 'B' {
+	case 'B':
 		partialBytes.WriteString(strconv.Itoa(colorFgRed))
-	} else if letter == 'C' {
+	case 'C':
 		partialBytes.WriteString(strconv.Itoa(colorFgGreen))
-	} else if letter == 'D' {
+	case 'D':
 		partialBytes.WriteString(strconv.Itoa(colorFgBrown))
-	} else if letter == 'E' {
+	case 'E':
 		partialBytes.WriteString(strconv.Itoa(colorFgBlue))
-	} else if letter == 'F' {
+	case 'F':
 		partialBytes.WriteString(strconv.Itoa(colorFgMagenta))
-	} else if letter == 'G' {
+	case 'G':
 		partialBytes.WriteString(strconv.Itoa(colorFgCyan))
-	} else if letter == 'H' {
+	case 'H':
 		partialBytes.WriteString(strconv.Itoa(colorFgWhite))
 	}
 
@@ -227,27 +228,28 @@ func getColorFromBsdCode(code string) string {
 // global colorMap.
 func parseLsColors(lsColors string) {
 	for i := 0; i < len(lsColors); i += 2 {
-		if i == 0 {
+		switch i {
+		case 0:
 			colorMap["directory"] = getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 2 {
+		case 2:
 			colorMap["symlink"] = getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 4 {
+		case 4:
 			colorMap["socket"] = getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 6 {
+		case 6:
 			colorMap["pipe"] = getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 8 {
+		case 8:
 			colorMap["executable"] = getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 10 {
+		case 10:
 			colorMap["block"] = getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 12 {
+		case 12:
 			colorMap["character"] = getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 14 {
+		case 14:
 			colorMap["executable_suid"] = getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 16 {
+		case 16:
 			colorMap["executable_sgid"] = getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 18 {
+		case 18:
 			colorMap["directory_o+w_sticky"] = getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 20 {
+		case 20:
 			colorMap["directory_o+w"] = getColorFromBsdCode(lsColors[i : i+2])
 		}
 	}
@@ -326,12 +328,12 @@ func (c *CmdSimpleFSList) writeListingName(outputBuffer *bytes.Buffer, l Listing
 
 	if l.permissions[0] == 'l' && c.options.long {
 		if l.linkOrphan {
-			outputBuffer.WriteString(fmt.Sprintf(" -> %s%s%s",
+			fmt.Fprintf(outputBuffer, " -> %s%s%s",
 				colorMap["linkOrphan_target"],
 				l.linkTarget,
-				colorMap["end"]))
+				colorMap["end"])
 		} else {
-			outputBuffer.WriteString(fmt.Sprintf(" -> %s", l.linkTarget))
+			fmt.Fprintf(outputBuffer, " -> %s", l.linkTarget)
 		}
 	}
 }
@@ -390,21 +392,22 @@ func (c *CmdSimpleFSList) createListing(dirname string, fip FileInfoPath) (Listi
 		}
 
 		var suffix string
-		if count == 0 {
+		switch count {
+		case 0:
 			suffix = "B"
-		} else if count == 1 {
+		case 1:
 			suffix = "K"
-		} else if count == 2 {
+		case 2:
 			suffix = "M"
-		} else if count == 3 {
+		case 3:
 			suffix = "G"
-		} else if count == 4 {
+		case 4:
 			suffix = "T"
-		} else if count == 5 {
+		case 5:
 			suffix = "P"
-		} else if count == 6 {
+		case 6:
 			suffix = "E"
-		} else {
+		default:
 			suffix = "?"
 		}
 
@@ -751,39 +754,40 @@ func (c *CmdSimpleFSList) ls(outputBuffer *bytes.Buffer, listResult keybase1.Sim
 				iSplit := strings.Split(i, "=")
 				colorCode := fmt.Sprintf("\x1b[%sm", iSplit[1])
 
-				if iSplit[0] == "rs" {
+				switch iSplit[0] {
+				case "rs":
 					colorMap["end"] = colorCode
-				} else if iSplit[0] == "di" {
+				case "di":
 					colorMap["directory"] = colorCode
-				} else if iSplit[0] == "ln" {
+				case "ln":
 					colorMap["symlink"] = colorCode
-				} else if iSplit[0] == "mh" {
+				case "mh":
 					colorMap["multi_hardlink"] = colorCode
-				} else if iSplit[0] == "pi" {
+				case "pi":
 					colorMap["pipe"] = colorCode
-				} else if iSplit[0] == "so" {
+				case "so":
 					colorMap["socket"] = colorCode
-				} else if iSplit[0] == "bd" {
+				case "bd":
 					colorMap["block"] = colorCode
-				} else if iSplit[0] == "cd" {
+				case "cd":
 					colorMap["character"] = colorCode
-				} else if iSplit[0] == "or" {
+				case "or":
 					colorMap["linkOrphan"] = colorCode
-				} else if iSplit[0] == "mi" {
+				case "mi":
 					colorMap["linkOrphan_target"] = colorCode
-				} else if iSplit[0] == "su" {
+				case "su":
 					colorMap["executable_suid"] = colorCode
-				} else if iSplit[0] == "sg" {
+				case "sg":
 					colorMap["executable_sgid"] = colorCode
-				} else if iSplit[0] == "tw" {
+				case "tw":
 					colorMap["directory_o+w_sticky"] = colorCode
-				} else if iSplit[0] == "ow" {
+				case "ow":
 					colorMap["directory_o+w"] = colorCode
-				} else if iSplit[0] == "st" {
+				case "st":
 					colorMap["directory_sticky"] = colorCode
-				} else if iSplit[0] == "ex" {
+				case "ex":
 					colorMap["executable"] = colorCode
-				} else {
+				default:
 					colorMap[iSplit[0]] = colorCode
 				}
 

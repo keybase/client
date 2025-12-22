@@ -57,12 +57,12 @@ func NewStorage(g *libkb.GlobalContext) *Storage {
 }
 
 func (s *Storage) Put(mctx libkb.MetaContext, state *keybase1.TeamData) {
-	s.storageGeneric.put(mctx, state)
+	s.put(mctx, state)
 }
 
 // Get can return nil and no error.
 func (s *Storage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool) (data *keybase1.TeamData, frozen bool, tombstoned bool) {
-	vp := s.storageGeneric.get(mctx, teamID, public)
+	vp := s.get(mctx, teamID, public)
 	if vp == nil {
 		return nil, false, false
 	}

@@ -33,7 +33,7 @@ func newWalletHandler(xp rpc.Transporter, g *libkb.GlobalContext, walletState *s
 }
 
 func (h *walletHandler) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI {
-	return h.BaseHandler.getSecretUI(sessionID, g)
+	return h.getSecretUI(sessionID, g)
 }
 
 func (h *walletHandler) IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI {

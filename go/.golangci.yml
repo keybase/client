@@ -40,13 +40,13 @@ linters:
     - unconvert
     - revive
     - govet
+    - ineffassign # Phase 1: Ineffectual assignments
+    - unused # Phase 1: Unused code
+    - staticcheck # Phase 1: Static analysis
 
   disable:
     # Disabled by default in v1, keeping disabled for incremental migration
     - errcheck # Error checking - enabled by default in v2, many unchecked errors
-    - staticcheck # Static analysis - enabled by default in v2, style issues
-    - ineffassign # Will enable in Phase 1
-    - unused # Will enable in Phase 1
 
     # Additional linters from kbfs-server/keybase examples (disabled for now)
     # These can be enabled incrementally in future work
@@ -66,6 +66,13 @@ linters:
       disable:
         - shadow # Too noisy, legitimate patterns
         - fieldalignment # Memory optimization, not worth churn
+
+    staticcheck:
+      checks:
+        - 'all'
+        - '-ST1003' # Disable naming conventions (Db vs DB, etc.) - too many to fix
+        - '-ST1005' # Disable capitalized error string check (style preference)
+        - '-ST1016' # Disable inconsistent receiver names - too many to fix
 
     revive:
       enable-all-rules: false

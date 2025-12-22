@@ -193,7 +193,8 @@ func (v *CmdLaunchdList) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdLaunchdList) Run() error {
-	if v.format == "json" {
+	switch v.format {
+	case "json":
 		servicesStatus, err := install.ListServices(v.G(), 0, v.G().Log)
 		if err != nil {
 			return err
@@ -203,9 +204,9 @@ func (v *CmdLaunchdList) Run() error {
 			return err
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
-	} else if v.format == "" {
+	case "":
 		return v.ShowServices()
-	} else {
+	default:
 		return fmt.Errorf("Invalid format: %s", v.format)
 	}
 	return nil

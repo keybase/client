@@ -1269,7 +1269,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			// All removals must have come with successor.
 			for _, r := range removals {
 				role := prevState.getUserRole(r.uv)
-				if !(r.satisfied || role.IsBotLike()) {
+				if !r.satisfied && !role.IsBotLike() {
 					return res, NewImplicitTeamOperationError("removal without addition for %v", r.uv)
 				}
 			}
@@ -1930,7 +1930,7 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 					return nil, nil, fmt.Errorf("encountered invite of owner by non-owner")
 				}
 			}
-			if !(options.implicitTeam || assertIsKeybaseInvite(mctx, i)) {
+			if !options.implicitTeam && !assertIsKeybaseInvite(mctx, i) {
 				return nil, nil, fmt.Errorf("encountered a disallowed owner invite")
 			}
 			all = append(all, assignment{i, keybase1.TeamRole_OWNER})

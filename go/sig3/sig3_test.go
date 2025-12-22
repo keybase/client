@@ -119,7 +119,7 @@ func TestSignAndVerifyHappyPath(t *testing.T) {
 	require.True(t, castOk)
 	require.NotNil(t, rk2.Signer())
 	require.Equal(t, rk2.Signer().KID, outerKey.pub)
-	require.Equal(t, rk2.Signer().UID, rk.Base.inner.Signer.UID)
+	require.Equal(t, rk2.Signer().UID, rk.inner.Signer.UID)
 }
 
 func TestSignAndVerifyHappyPathFourFold(t *testing.T) {
@@ -130,7 +130,7 @@ func TestSignAndVerifyHappyPathFourFold(t *testing.T) {
 	require.True(t, castOk)
 	require.NotNil(t, rk2.Signer())
 	require.Equal(t, rk2.Signer().KID, outerKey.pub)
-	require.Equal(t, rk2.Signer().UID, rk.Base.inner.Signer.UID)
+	require.Equal(t, rk2.Signer().UID, rk.inner.Signer.UID)
 	require.Equal(t, len(rk2.rkb().PTKs), 4)
 }
 

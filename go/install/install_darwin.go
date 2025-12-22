@@ -1375,7 +1375,7 @@ func fallbackStartProcess(context Context, service launchd.Service, plist launch
 	if err != nil {
 		log.Warning("failed to create fallback pid file %s: %s", fallbackPIDFilename(service), err)
 	} else {
-		if _, err := f.Write([]byte(fmt.Sprintf("%d", cmd.Process.Pid))); err != nil {
+		if _, err := fmt.Fprintf(f, "%d", cmd.Process.Pid); err != nil {
 			log.Warning("failed to write to fallback pid file %s: %s", fallbackPIDFilename(service), err)
 		}
 		f.Close()

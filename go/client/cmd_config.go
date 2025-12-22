@@ -58,7 +58,7 @@ func (v *CmdConfigGet) ParseArgv(ctx *cli.Context) error {
 	if ctx.Bool("assert-ok-on-nil") {
 		v.AssertOkOnNil = true
 	}
-	if v.AssertOkOnNil && !(v.AssertTrue || v.AssertFalse) {
+	if v.AssertOkOnNil && (!v.AssertTrue && !v.AssertFalse) {
 		return fmt.Errorf("Must --assert-true or --assert-false to --assert-ok-on-nil.")
 	}
 	if (v.AssertTrue || v.AssertFalse) && !v.Direct {
@@ -182,7 +182,7 @@ func (v *CmdConfigGet) runDirect(dui libkb.DumbOutputUI) error {
 			// doesn't exist or the key is not in the file. Otherwise, e.g., if
 			// the permissions are incorrect or the config file contains
 			// malformed JSON, print a warning but still don't return an error.
-			if !(os.IsNotExist(err) || isJSONNoSuchKeyError) {
+			if !os.IsNotExist(err) && !isJSONNoSuchKeyError {
 				v.G().Log.Warning(fmt.Sprintf("Unexpected error while reading config %s; ignoring.", err))
 			}
 			return nil

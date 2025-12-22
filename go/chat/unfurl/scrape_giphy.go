@@ -81,17 +81,18 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.
 
 	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
 		attr := strings.ToLower(e.Attr("property"))
-		if attr == "og:video" || attr == "og:video:url" || attr == "og:video:secure_url" {
+		switch attr {
+		case "og:video", "og:video:url", "og:video:secure_url":
 			video.Url = e.Attr("content")
-		} else if attr == "og:video:width" {
+		case "og:video:width":
 			if width, err := strconv.Atoi(e.Attr("content")); err == nil {
 				video.Width = width
 			}
-		} else if attr == "og:video:height" {
+		case "og:video:height":
 			if height, err := strconv.Atoi(e.Attr("content")); err == nil {
 				video.Height = height
 			}
-		} else {
+		default:
 			s.setAttr(ctx, attr, "giphy.com", "giphy.com", generic, e)
 		}
 	})

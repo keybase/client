@@ -476,13 +476,14 @@ func (h ConfigHandler) GetProxyData(ctx context.Context) (keybase1.ProxyData, er
 	certPinning := config.IsCertPinningEnabled()
 
 	var convertedProxyType keybase1.ProxyType
-	if proxyType == libkb.NoProxy {
+	switch proxyType {
+	case libkb.NoProxy:
 		convertedProxyType = keybase1.ProxyType_No_Proxy
-	} else if proxyType == libkb.HTTPConnect {
+	case libkb.HTTPConnect:
 		convertedProxyType = keybase1.ProxyType_HTTP_Connect
-	} else if proxyType == libkb.Socks {
+	case libkb.Socks:
 		convertedProxyType = keybase1.ProxyType_Socks
-	} else {
+	default:
 		return keybase1.ProxyData{AddressWithPort: "", ProxyType: keybase1.ProxyType_No_Proxy, CertPinning: true},
 			fmt.Errorf("Failed to convert proxy type into a protocol compatible proxy type!")
 	}
@@ -496,13 +497,14 @@ func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData)
 	rpcProxyType := arg.ProxyType
 
 	var convertedProxyType libkb.ProxyType
-	if rpcProxyType == keybase1.ProxyType_No_Proxy {
+	switch rpcProxyType {
+	case keybase1.ProxyType_No_Proxy:
 		convertedProxyType = libkb.NoProxy
-	} else if rpcProxyType == keybase1.ProxyType_HTTP_Connect {
+	case keybase1.ProxyType_HTTP_Connect:
 		convertedProxyType = libkb.HTTPConnect
-	} else if rpcProxyType == keybase1.ProxyType_Socks {
+	case keybase1.ProxyType_Socks:
 		convertedProxyType = libkb.Socks
-	} else {
+	default:
 		// Got a bogus proxy type that we couldn't convert to a libkb enum so return an error
 		return fmt.Errorf("failed to convert given proxy type to a native libkb proxy type")
 	}

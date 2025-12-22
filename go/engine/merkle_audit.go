@@ -189,11 +189,8 @@ func performMerkleAudit(m libkb.MetaContext, startSeqno keybase1.Seqno) error {
 	// Traverse the merkle tree seqnos
 	currentSeqno := startSeqno + 1
 	step := 1
-	for {
+	for currentSeqno <= lastSeqno {
 		// Proceed until the last known root
-		if currentSeqno > lastSeqno {
-			break
-		}
 
 		currentRoot, err := m.G().MerkleClient.LookupRootAtSeqno(m, currentSeqno)
 		if err != nil {

@@ -80,12 +80,12 @@ func NewSupportsHiddenFlagStorage(g *libkb.GlobalContext) *SupportsHiddenFlagSto
 }
 
 func (s *SupportsHiddenFlagStorage) Put(mctx libkb.MetaContext, state *HiddenChainSupportState) {
-	s.storageGeneric.put(mctx, state)
+	s.put(mctx, state)
 }
 
 // Can return nil.
 func (s *SupportsHiddenFlagStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID) (state *HiddenChainSupportState) {
-	vp := s.storageGeneric.get(mctx, teamID, teamID.IsPublic())
+	vp := s.get(mctx, teamID, teamID.IsPublic())
 	if vp == nil {
 		return nil
 	}

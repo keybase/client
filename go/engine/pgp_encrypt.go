@@ -149,7 +149,7 @@ func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 
 	for _, up := range uplus {
 		for _, k := range up.Keys {
-			if len(k.Entity.Revocations)+len(k.Entity.UnverifiedRevocations) > 0 {
+			if len(k.Revocations)+len(k.UnverifiedRevocations) > 0 {
 				continue
 			}
 

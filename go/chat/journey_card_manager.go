@@ -295,8 +295,8 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		CannotWrite:     cannotWrite,
 	}
 
-	if !(conv.GetTopicType() == chat1.TopicType_CHAT &&
-		conv.GetMembersType() == chat1.ConversationMembersType_TEAM) {
+	if conv.GetTopicType() != chat1.TopicType_CHAT ||
+		conv.GetMembersType() != chat1.ConversationMembersType_TEAM {
 		// Cards only exist in team chats.
 		cc.Debug(ctx, "conv not eligible for card: topicType:%v membersType:%v general:%v",
 			conv.GetTopicType(), conv.GetMembersType(), conv.GetTopicName() == globals.DefaultTeamTopic)

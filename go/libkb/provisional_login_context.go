@@ -114,7 +114,7 @@ func (p *ProvisionalLoginContext) SetUsernameUserVersion(username NormalizedUser
 }
 
 func (p *ProvisionalLoginContext) assertNotReused(un NormalizedUsername, uv keybase1.UserVersion) error {
-	if !(p.uv.IsNil() || p.uv.Eq(uv)) || !(p.username.IsNil() || p.username.Eq(un)) {
+	if (!p.uv.IsNil() && !p.uv.Eq(uv)) || (!p.username.IsNil() && !p.username.Eq(un)) {
 		return errors.New("can't reuse a ProvisionalLoginContext!")
 	}
 	return nil

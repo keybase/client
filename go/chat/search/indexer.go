@@ -464,7 +464,7 @@ func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
 		close(cb)
 		return cb, nil
 	}
-	if !(force || idx.hasPriority(ctx, convID)) {
+	if !force && !idx.hasPriority(ctx, convID) {
 		close(cb)
 		return cb, nil
 	}
@@ -506,7 +506,7 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 		close(cb)
 		return cb, nil
 	}
-	if !(force || utils.IsConvLoaderContext(ctx) || idx.hasPriority(ctx, convID)) {
+	if !force && !utils.IsConvLoaderContext(ctx) && !idx.hasPriority(ctx, convID) {
 		close(cb)
 		return cb, nil
 	}

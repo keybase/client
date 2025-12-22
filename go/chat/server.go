@@ -915,7 +915,7 @@ func (h *Server) isQuickReaction(ctx context.Context, uid gregor1.UID, convID ch
 	body string,
 ) (reaction string, msgID chat1.MessageID, ok bool) {
 	body = strings.TrimSpace(body)
-	if !(strings.HasPrefix(body, "+:") && strings.HasSuffix(body, ":")) {
+	if !strings.HasPrefix(body, "+:") || !strings.HasSuffix(body, ":") {
 		return "", 0, false
 	}
 	hits := quickReactionPattern.FindStringSubmatch(body)

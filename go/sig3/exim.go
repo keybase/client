@@ -39,9 +39,9 @@ func (r RotateKey) Export() (ret *keybase1.HiddenTeamChainLink, err error) {
 
 	m[keybase1.PTKType_READER] = readerKey.Export(r.Seqno())
 	return &keybase1.HiddenTeamChainLink{
-		MerkleRoot:  r.Base.inner.MerkleRoot.Export(),
-		ParentChain: r.Base.inner.ParentChain.Export(),
-		Signer:      r.Base.inner.Signer.Export(),
+		MerkleRoot:  r.inner.MerkleRoot.Export(),
+		ParentChain: r.inner.ParentChain.Export(),
+		Signer:      r.inner.Signer.Export(),
 		Ptk:         m,
 	}, nil
 }

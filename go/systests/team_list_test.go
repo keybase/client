@@ -200,11 +200,12 @@ func TestTeamListOpenTeams(t *testing.T) {
 	check := func(list *keybase1.AnnotatedTeamList) {
 		require.Equal(t, 2, len(list.Teams))
 		for _, teamInfo := range list.Teams {
-			if teamInfo.TeamID == id1 {
+			switch teamInfo.TeamID {
+			case id1:
 				require.False(t, teamInfo.IsOpenTeam)
-			} else if teamInfo.TeamID == id2 {
+			case id2:
 				require.True(t, teamInfo.IsOpenTeam)
-			} else {
+			default:
 				t.Fatalf("Unexpected team name %v", teamInfo)
 			}
 

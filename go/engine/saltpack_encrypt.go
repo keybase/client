@@ -90,7 +90,7 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if !(e.arg.Opts.UseEntityKeys || e.arg.Opts.UseDeviceKeys || e.arg.Opts.UsePaperKeys || e.arg.Opts.UseKBFSKeysOnlyForTesting) {
+	if !e.arg.Opts.UseEntityKeys && !e.arg.Opts.UseDeviceKeys && !e.arg.Opts.UsePaperKeys && !e.arg.Opts.UseKBFSKeysOnlyForTesting {
 		return fmt.Errorf("no key type for encryption was specified")
 	}
 

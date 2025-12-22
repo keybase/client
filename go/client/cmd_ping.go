@@ -149,7 +149,7 @@ func (g *pingGregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	response, err := ac.Ping(ctx)
 	if err != nil {
 		g.pingErrors <- err
-	} else if !(response == "pong" || response == "") {
+	} else if response != "pong" && response != "" {
 		g.pingErrors <- fmt.Errorf("Got an unexpected response from ping: %#v", response)
 	} else {
 		g.pingSuccess <- struct{}{}

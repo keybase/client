@@ -268,10 +268,8 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 		m.Debug("- API %s %s: fixHeaders error: %s", req.Method, req.URL, err)
 		return
 	}
-	needSession := false
-	if arg.SessionType != APISessionTypeNONE {
-		needSession = true
-	}
+	needSession := arg.SessionType != APISessionTypeNONE
+
 	cli, err := api.getCli(needSession)
 	if err != nil {
 		return

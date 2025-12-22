@@ -279,7 +279,7 @@ func TestValidateProtocol(t *testing.T) {
 
 	for i, test := range tests {
 		a, b := validateProtocol(test.s, test.allowed)
-		if !(a == test.expected && b == test.ok) {
+		if a != test.expected || b != test.ok {
 			t.Fatalf("%v mismatch: %v\ngot      : %v %v\nexpected : %v %v\n",
 				i, test.s, test.expected, test.ok, a, b)
 		}
