@@ -1,9 +1,8 @@
+import {isMac} from '@/constants/platform'
 type KeyboardEventCallback = (e: {stopPropagation: () => void}, key: string) => void
 
 const keyToCallback = new Map<string, KeyboardEventCallback>()
 let globalHandler: ((e: KeyboardEvent) => void) | null = null
-
-const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPod|iPad/i.test(navigator.platform)
 
 const normalizeKey = (key: string): string => {
   const lower = key.toLowerCase()
@@ -19,7 +18,9 @@ const normalizeKey = (key: string): string => {
   return lower
 }
 
-const parseKeyCombo = (combo: string): {
+const parseKeyCombo = (
+  combo: string
+): {
   key: string
   ctrl: boolean
   shift: boolean
@@ -60,7 +61,7 @@ const parseKeyCombo = (combo: string): {
     }
   }
 
-  return {key, ctrl, shift, alt, meta, hasMod}
+  return {alt, ctrl, hasMod, key, meta, shift}
 }
 
 const matchesCombo = (
@@ -89,19 +90,9 @@ const matchesCombo = (
 
   if (combo.hasMod) {
     if (isMac) {
-      return (
-        e.metaKey &&
-        !e.ctrlKey &&
-        e.shiftKey === combo.shift &&
-        e.altKey === combo.alt
-      )
+      return e.metaKey && !e.ctrlKey && e.shiftKey === combo.shift && e.altKey === combo.alt
     } else {
-      return (
-        e.ctrlKey &&
-        !e.metaKey &&
-        e.shiftKey === combo.shift &&
-        e.altKey === combo.alt
-      )
+      return e.ctrlKey && !e.metaKey && e.shiftKey === combo.shift && e.altKey === combo.alt
     }
   }
 
@@ -194,4 +185,3 @@ export const reset = (): void => {
   keyToCallback.clear()
   removeGlobalHandler()
 }
-
