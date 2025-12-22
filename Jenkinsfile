@@ -599,6 +599,17 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
         }
       }
     }
+    dir('kbfs/kbfscodec') {
+      retry(5) {
+        timeout(activity: true, time: 90, unit: 'SECONDS') {
+          sh '''
+            set -e -x
+            ./gen_mocks.sh
+            git diff --exit-code
+          '''
+        }
+      }
+    }
   }
 }
 
