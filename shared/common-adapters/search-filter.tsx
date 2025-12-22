@@ -3,10 +3,10 @@ import Animation from './animation'
 import Box, {Box2, Box2Measure} from './box'
 import ClickableBox, {ClickableBox2} from './clickable-box'
 import NewInput from './new-input'
-import {HotKey} from './hot-key'
 import PlainInput, {type PlainInputRef} from './plain-input'
 import Text, {type AllowedColors} from './text'
 import ProgressIndicator from './progress-indicator'
+import {useHotKey} from './hot-key'
 import Icon, {type IconType} from './icon'
 import * as Styles from '@/styles'
 import * as Platforms from '@/constants/platform'
@@ -20,12 +20,12 @@ const Kb = {
   Box2Measure,
   ClickableBox,
   ClickableBox2,
-  HotKey,
   Icon,
   NewInput,
   PlainInput,
   ProgressIndicator,
   Text,
+  useHotKey,
 }
 
 type Props = {
@@ -140,10 +140,14 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
 
   const onHotkey = React.useCallback(
     (cmd: string) => {
-      hotkey && cmd.endsWith('+' + hotkey) && focus()
+      if (hotkey && !props.onClick && cmd.endsWith('+' + hotkey)) {
+        focus()
+      }
     },
-    [hotkey, focus]
+    [hotkey, focus, props.onClick]
   )
+
+  Kb.useHotKey(props.hotkey && !props.onClick ? `mod+${props.hotkey}` : '', onHotkey)
 
   const onKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
@@ -154,14 +158,6 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
   )
 
   const typing = () => focused || !!currentText()
-
-  const keyHandler = () => {
-    return (
-      !Styles.isMobile &&
-      props.hotkey &&
-      !props.onClick && <Kb.HotKey onHotKey={onHotkey} hotKeys={`mod+${props.hotkey}`} />
-    )
-  }
 
   const iconSizeType = () => {
     return !Styles.isMobile && props.size === 'full-width' ? 'Default' : 'Small'
@@ -275,7 +271,6 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
       style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
       pointerEvents={Styles.isMobile && props.onClick ? 'none' : undefined}
     >
-      {keyHandler()}
       {leftIcon()}
       {input()}
       {waiting()}

@@ -28,7 +28,6 @@ const LoadingLine = () => {
   return showLoader ? <Kb.LoadingLine /> : null
 }
 
-const hotKeys = ['mod+f']
 const Conversation = React.memo(function Conversation() {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const navigateAppend = Chat.useChatNavigateAppend()
@@ -69,10 +68,10 @@ const Conversation = React.memo(function Conversation() {
   const onToggleThreadSearch = React.useCallback(() => {
     toggleThreadSearch()
   }, [toggleThreadSearch])
+  Kb.useHotKey('mod+f', onToggleThreadSearch)
 
   return (
     <div className="conversation" style={styles.container} onPaste={onPaste} key={conversationIDKey}>
-      <Kb.HotKey hotKeys={hotKeys} onHotKey={onToggleThreadSearch} />
       <Kb.DragAndDrop
         onAttach={cannotWrite ? undefined : onAttach}
         fullHeight={true}

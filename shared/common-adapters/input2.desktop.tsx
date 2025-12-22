@@ -188,7 +188,7 @@ export const Input2 = React.memo(
 
     const commonProps = {
       autoFocus,
-      className: Styles.classNames({mousetrap: allowKeyboardEvents ?? true}, className),
+      className,
       onChange,
       onCompositionEnd,
       onCompositionStart,
@@ -198,6 +198,7 @@ export const Input2 = React.memo(
       placeholder,
       value,
       ...(disabled ? {readOnly: true} : {}),
+      ...((allowKeyboardEvents ?? true) ? {'data-allow-keyboard-shortcuts': 'true'} : {}),
     }
 
     return multiline ? (

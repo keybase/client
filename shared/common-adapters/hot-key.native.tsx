@@ -1,2 +1,2 @@
-export function useHotKey() {}
-export const HotKey = () => null
+export function useHotKey(_keys: Array<string> | string, _cb: (key: string) => void) {}
+

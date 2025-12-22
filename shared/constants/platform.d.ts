@@ -14,6 +14,7 @@ export const isDarwin: boolean
 export const isWindows: boolean
 export const isLinux: boolean
 export const isMac: boolean
+export const getModKey: (e: {metaKey: boolean; ctrlKey: boolean}) => boolean
 export const isDebuggingInChrome: boolean // only useful in RN
 
 export const isDeviceSecureAndroid: boolean
