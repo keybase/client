@@ -340,25 +340,17 @@ const messageIDToOrdinal = (
   pendingOutboxToOrdinal: ConvoState['pendingOutboxToOrdinal'] | undefined,
   messageID: T.Chat.MessageID
 ) => {
-  // A message we didn't send in this session?
-  let m = map.get(T.Chat.numberToOrdinal(messageID))
-  if (m?.id !== 0 && m?.id === messageID) {
+  const checkMessage = (m: T.Chat.Message | undefined) => m?.id !== 0 && m?.id === messageID
+  const ordinal = T.Chat.numberToOrdinal(messageID)
+  const m = map.get(ordinal)
+  if (checkMessage(m)) {
     return m.ordinal
   }
-  // Search through our sent messages
   const pendingOrdinal = [...(pendingOutboxToOrdinal?.values() ?? [])].find(o => {
-    m = map.get(o)
-    if (m?.id !== 0 && m?.id === messageID) {
-      return true
-    }
-    return false
+    const msg = map.get(o)
+    return checkMessage(msg)
   })
-
-  if (pendingOrdinal) {
-    return pendingOrdinal
-  }
-
-  return null
+  return pendingOrdinal ?? null
 }
 
 type ScrollDirection = 'none' | 'back' | 'forward'
@@ -368,10 +360,79 @@ export const numMessagesOnScrollback = isMobile ? 100 : 100
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   let isLoadingMessages = false
 
+  const getUserContext = () => ({
+    devicename: storeRegistry.getState('current-user').deviceName,
+    getLastOrdinal: () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0),
+    username: storeRegistry.getState('current-user').username,
+  })
+
+  const getMessageOrdinal = (messageID: T.Chat.MessageID) =>
+    messageIDToOrdinal(get().messageMap, get().pendingOutboxToOrdinal, messageID)
+
+  const handleRPCError = (error: unknown, context: string, logLevel: 'error' | 'info' = 'info') => {
+    if (error instanceof RPCError) {
+      logger[logLevel](`${context}: ${error.message}`)
+      return true
+    }
+    return false
+  }
+
+  const getAttachmentMessage = (s: Z.WritableDraft<ConvoState>, ordinal: T.Chat.Ordinal) => {
+    const m = s.messageMap.get(ordinal)
+    return m?.type === 'attachment' ? m : undefined
+  }
+
+  const getAttachmentViewInfo = (s: Z.WritableDraft<ConvoState>, viewType: T.RPCChat.GalleryItemTyp) =>
+    mapGetEnsureValue(s.attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
+
+  const updateAttachmentViewTransferState = (
+    msgId: number,
+    updates: {
+      downloadPath?: string
+      fileURLCached?: boolean
+      transferErrMsg?: string
+      transferProgress?: number
+      transferState?: 'downloading' | 'uploading' | undefined
+    }
+  ) => {
+    set(s => {
+      const viewType = T.RPCChat.GalleryItemTyp.doc
+      const info = getAttachmentViewInfo(s, viewType)
+      const {messages} = info
+      const idx = messages.findIndex(item => item.id === msgId)
+      if (idx !== -1) {
+        const m = messages[idx]
+        if (m!.type === 'attachment') {
+          if (updates.downloadPath !== undefined) m.downloadPath = updates.downloadPath
+          if (updates.fileURLCached !== undefined) m.fileURLCached = updates.fileURLCached
+          if (updates.transferErrMsg !== undefined) m.transferErrMsg = updates.transferErrMsg
+          if (updates.transferProgress !== undefined) m.transferProgress = updates.transferProgress
+          if (updates.transferState !== undefined) m.transferState = updates.transferState
+        }
+      }
+    })
+  }
+
   const closeBotModal = () => {
     storeRegistry.getState('router').dispatch.clearModals()
     if (get().meta.teamname) {
       storeRegistry.getState('teams').dispatch.getMembers(get().meta.teamID)
+    }
+  }
+
+  const handleBotOperation = async (
+    operation: () => Promise<void>,
+    context: string,
+    onSuccess?: () => void
+  ) => {
+    try {
+      await operation()
+      onSuccess?.()
+    } catch (error) {
+      if (handleRPCError(error, context, 'info')) {
+        return
+      }
+      throw error
     }
   }
 
@@ -389,40 +450,40 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const path = rpcRes.filePath
       set(s => {
-        const m = s.messageMap.get(ordinal)
-        if (m?.type === 'attachment') {
+        const m = getAttachmentMessage(s, ordinal)
+        if (m) {
           m.downloadPath = path
-          m.fileURLCached = true // assume we have this on the service now
+          m.fileURLCached = true
           m.transferErrMsg = undefined
           m.transferProgress = 1
           m.transferState = undefined
-          updateAttachmentViewTransfered(messageID, path)
+          updateAttachmentViewTransferState(T.Chat.messageIDToNumber(messageID), {
+            downloadPath: path,
+            fileURLCached: true,
+            transferProgress: 0,
+            transferState: undefined,
+          })
         }
       })
       return rpcRes.filePath
     } catch (error) {
+      const errorMsg = handleRPCError(error, 'downloadAttachment error', 'info')
+        ? (error as RPCError).message || 'Error downloading attachment'
+        : 'Error downloading attachment'
       set(s => {
-        if (error instanceof RPCError) {
-          logger.info(`downloadAttachment error: ${error.message}`)
-          const m = s.messageMap.get(ordinal)
-          if (m?.type === 'attachment') {
-            m.downloadPath = ''
-            m.fileURLCached = true // assume we have this on the service now
-            m.transferErrMsg = error.message || 'Error downloading attachment'
-            m.transferProgress = 0
-            m.transferState = undefined
-            updateAttachmentViewTransfered(messageID, '')
-          }
-        } else {
-          const m = s.messageMap.get(ordinal)
-          if (m?.type === 'attachment') {
-            m.downloadPath = ''
-            m.fileURLCached = true // assume we have this on the service now
-            m.transferErrMsg = 'Error downloading attachment'
-            m.transferProgress = 0
-            m.transferState = undefined
-            updateAttachmentViewTransfered(messageID, '')
-          }
+        const m = getAttachmentMessage(s, ordinal)
+        if (m) {
+          m.downloadPath = ''
+          m.fileURLCached = true
+          m.transferErrMsg = errorMsg
+          m.transferProgress = 0
+          m.transferState = undefined
+          updateAttachmentViewTransferState(T.Chat.messageIDToNumber(messageID), {
+            downloadPath: '',
+            fileURLCached: true,
+            transferProgress: 0,
+            transferState: undefined,
+          })
         }
       })
       return false
@@ -643,7 +704,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const refreshMutualTeamsInConv = () => {
     const f = async () => {
       const {id: conversationIDKey} = get()
-      const username = storeRegistry.getState('current-user').username
+      const {username} = getUserContext()
       const otherParticipants = Meta.getRowParticipants(get().participants, username || '')
       const results = await T.RPCChat.localGetMutualTeamsLocalRpcPromise(
         {usernames: otherParticipants},
@@ -706,39 +767,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     })
   }
 
-  const updateAttachmentViewTransfer = (msgId: number, ratio: number) => {
-    set(s => {
-      const viewType = T.RPCChat.GalleryItemTyp.doc
-      const info = mapGetEnsureValue(s.attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
-      const {messages} = info
-      const idx = messages.findIndex(item => item.id === msgId)
-      if (idx !== -1) {
-        const m = messages[idx]
-        if (m!.type === 'attachment') {
-          m.transferState = 'downloading'
-          m.transferProgress = ratio
-        }
-      }
-    })
-  }
-
-  const updateAttachmentViewTransfered = (msgId: number, path: string) => {
-    set(s => {
-      const viewType = T.RPCChat.GalleryItemTyp.doc
-      const info = mapGetEnsureValue(s.attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
-      const {messages} = info
-      const idx = messages.findIndex(item => item.id === msgId)
-      if (idx !== -1) {
-        const m = messages[idx]
-        if (m!.type === 'attachment') {
-          m.downloadPath = path
-          m.fileURLCached = true
-          m.transferProgress = 0
-          m.transferState = undefined
-        }
-      }
-    })
-  }
 
   let lastScrollNumOrdinals = 0
   let lastScrollTime = 0
@@ -760,11 +788,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
 
   const onDownloadComplete = (msgID: number) => {
-    const ordinal = messageIDToOrdinal(
-      get().messageMap,
-      get().pendingOutboxToOrdinal,
-      T.Chat.numberToMessageID(msgID)
-    )
+    const ordinal = getMessageOrdinal(T.Chat.numberToMessageID(msgID))
     if (!ordinal) {
       logger.info(`downloadComplete: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
       return
@@ -784,12 +808,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
   const onDownloadProgress = (msgID: number, bytesComplete: number, bytesTotal: number) => {
     const ratio = bytesComplete / bytesTotal
-    updateAttachmentViewTransfer(msgID, ratio)
-    const ordinal = messageIDToOrdinal(
-      get().messageMap,
-      get().pendingOutboxToOrdinal,
-      T.Chat.numberToMessageID(msgID)
-    )
+    updateAttachmentViewTransferState(msgID, {
+      transferProgress: ratio,
+      transferState: 'downloading',
+    })
+    const ordinal = getMessageOrdinal(T.Chat.numberToMessageID(msgID))
     if (!ordinal) {
       logger.info(`downloadProgress: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
       return
@@ -828,7 +851,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
 
   const onInboxFailed = (convID: Uint8Array, error: T.RPCChat.InboxUIItemError) => {
-    const username = storeRegistry.getState('current-user').username
+    const {username} = getUserContext()
     const conversationIDKey = T.Chat.conversationIDToKey(convID)
     switch (error.typ) {
       case T.RPCChat.ConversationErrorType.transient:
@@ -879,8 +902,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     const {bytesComplete = 0, bytesTotal} = params
     const ratio = bytesTotal ? bytesComplete / bytesTotal : 0.01
     set(s => {
-      const m = s.messageMap.get(ordinal)
-      if (m?.type === 'attachment') {
+      const m = getAttachmentMessage(s, ordinal)
+      if (m) {
         m.transferProgress = ratio
         m.transferState = 'uploading'
       }
@@ -953,11 +976,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
 
   const onAttachmentEdit = (placeholderID: number, message: Z.WritableDraft<T.Chat.MessageAttachment>) => {
-    const ordinal = messageIDToOrdinal(
-      get().messageMap,
-      get().pendingOutboxToOrdinal,
-      T.Chat.numberToMessageID(placeholderID)
-    )
+    const ordinal = getMessageOrdinal(T.Chat.numberToMessageID(placeholderID))
     const existing = ordinal ? get().messageMap.get(ordinal) : undefined
     if (ordinal && existing) {
       // keep this
@@ -1077,26 +1096,22 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
-      const f = async () => {
-        try {
-          await T.RPCChat.localAddBotMemberRpcPromise(
-            {
-              botSettings: restricted ? {cmds: allowCommands, convs, mentions: allowMentions} : null,
-              convID: get().getConvID(),
-              role: restricted ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
-              username,
-            },
-            Strings.waitingKeyChatBotAdd
-          )
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.info('addBotMember: failed to add bot member: ' + error.message)
-          }
-          return
-        }
-        closeBotModal()
-      }
-      ignorePromise(f())
+      ignorePromise(
+        handleBotOperation(
+          () =>
+            T.RPCChat.localAddBotMemberRpcPromise(
+              {
+                botSettings: restricted ? {cmds: allowCommands, convs, mentions: allowMentions} : null,
+                convID: get().getConvID(),
+                role: restricted ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
+                username,
+              },
+              Strings.waitingKeyChatBotAdd
+            ),
+          'addBotMember: failed to add bot member',
+          closeBotModal
+        )
+      )
     },
     attachFromDragAndDrop: (paths, titles) => {
       const f = async () => {
@@ -1269,9 +1284,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         try {
           await T.RPCGen.userDismissBlockButtonsRpcPromise({tlfID: teamID})
         } catch (error) {
-          if (error instanceof RPCError) {
-            logger.error(`Couldn't dismiss block buttons: ${error.message}`)
-          }
+          handleRPCError(error, `Couldn't dismiss block buttons`, 'error')
         }
       }
       ignorePromise(f())
@@ -1287,34 +1300,28 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           cardType: cardType,
           convID: get().getConvID(),
         }).catch((error: unknown) => {
-          if (error instanceof RPCError) {
-            logger.error(`Failed to dismiss journeycard: ${error.message}`)
-          }
+          handleRPCError(error, `Failed to dismiss journeycard`, 'error')
         })
         get().dispatch.messagesWereDeleted({ordinals: [ordinal]})
       }
       ignorePromise(f())
     },
     editBotSettings: (username, allowCommands, allowMentions, convs) => {
-      const f = async () => {
-        try {
-          await T.RPCChat.localSetBotMemberSettingsRpcPromise(
-            {
-              botSettings: {cmds: allowCommands, convs, mentions: allowMentions},
-              convID: get().getConvID(),
-              username,
-            },
-            Strings.waitingKeyChatBotAdd
-          )
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.info('addBotMember: failed to edit bot settings: ' + error.message)
-          }
-          return
-        }
-        closeBotModal()
-      }
-      ignorePromise(f())
+      ignorePromise(
+        handleBotOperation(
+          () =>
+            T.RPCChat.localSetBotMemberSettingsRpcPromise(
+              {
+                botSettings: {cmds: allowCommands, convs, mentions: allowMentions},
+                convID: get().getConvID(),
+                username,
+              },
+              Strings.waitingKeyChatBotAdd
+            ),
+          'addBotMember: failed to edit bot settings',
+          closeBotModal
+        )
+      )
     },
     giphySend: result => {
       set(s => {
@@ -1398,8 +1405,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     loadAttachmentView: (viewType, fromMsgID) => {
       set(s => {
-        const {attachmentViewMap} = s
-        const info = mapGetEnsureValue(attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
+        const info = getAttachmentViewInfo(s, viewType)
         info.status = 'loading'
       })
 
@@ -1412,9 +1418,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               'chat.1.chatUi.chatLoadGalleryHit': (
                 hit: T.RPCChat.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
               ) => {
-                const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-                const username = storeRegistry.getState('current-user').username
-                const devicename = storeRegistry.getState('current-user').deviceName
+                const {devicename, getLastOrdinal, username} = getUserContext()
                 const m = Message.uiMessageToMessage(
                   conversationIDKey,
                   hit.message,
@@ -1428,11 +1432,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                   // load a message we already have we don't want to overwrite that it really belongs
                   const message = {...m, conversationMessage: get().messageMap.has(m.ordinal)}
                   set(s => {
-                    const info = mapGetEnsureValue(
-                      s.attachmentViewMap,
-                      viewType,
-                      T.castDraft(makeAttachmentViewInfo())
-                    )
+                    const info = getAttachmentViewInfo(s, viewType)
                     if (!info.messages.find(item => item.id === message.id)) {
                       info.messages = info.messages.concat(T.castDraft(message)).sort((l, r) => r.id - l.id)
                     }
@@ -1450,23 +1450,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
           })
           set(s => {
-            const info = mapGetEnsureValue(
-              s.attachmentViewMap,
-              viewType,
-              T.castDraft(makeAttachmentViewInfo())
-            )
+            const info = getAttachmentViewInfo(s, viewType)
             info.last = !!res.last
             info.status = 'success'
           })
         } catch (error) {
-          if (error instanceof RPCError) {
-            logger.error('failed to load attachment view: ' + error.message)
+          if (handleRPCError(error, 'failed to load attachment view', 'error')) {
             set(s => {
-              const info = mapGetEnsureValue(
-                s.attachmentViewMap,
-                viewType,
-                T.castDraft(makeAttachmentViewInfo())
-              )
+              const info = getAttachmentViewInfo(s, viewType)
               info.last = false
               info.status = 'error'
             })
@@ -1565,9 +1556,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               s.loaded = true
             })
 
-            const username = storeRegistry.getState('current-user').username
-            const devicename = storeRegistry.getState('current-user').deviceName
-            const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+            const {devicename, getLastOrdinal, username} = getUserContext()
             const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
 
             const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, m) => {
@@ -1707,9 +1696,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
 
         if (result.message) {
-          const devicename = storeRegistry.getState('current-user').deviceName
-          const username = storeRegistry.getState('current-user').username
-          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+          const {devicename, getLastOrdinal, username} = getUserContext()
           const goodMessage = Message.uiMessageToMessage(
             get().id,
             result.message,
@@ -1960,7 +1947,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
           return
         }
-        const username = storeRegistry.getState('current-user').username
+        const {username} = getUserContext()
         if (!username) {
           throw new Error('messageReplyPrivately: making a convo while logged out?')
         }
@@ -2065,7 +2052,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const allOrdinals = new Set(
         [
           ...ordinals,
-          ...messageIDs.map(messageID => messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)),
+          ...messageIDs.map(messageID => getMessageOrdinal(messageID)),
           ...upToOrdinals,
         ].reduce<Array<T.Chat.Ordinal>>((arr, n) => {
           if (n) {
@@ -2252,7 +2239,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     onIncomingMessage: incoming => {
       const {message: cMsg} = incoming
-      const username = storeRegistry.getState('current-user').username
+      const {username} = getUserContext()
       // check for a reaction outbox notification before doing anything
       if (
         cMsg.state === T.RPCChat.MessageUnboxedState.outbox &&
@@ -2278,8 +2265,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
 
       const conversationIDKey = get().id
-      const devicename = storeRegistry.getState('current-user').deviceName
-      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+      const {devicename, getLastOrdinal} = getUserContext()
 
       // special case mutations
       if (cMsg.state === T.RPCChat.MessageUnboxedState.valid) {
@@ -2334,9 +2320,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     onMessagesUpdated: messagesUpdated => {
       if (!messagesUpdated.updates) return
-      const username = storeRegistry.getState('current-user').username
-      const devicename = storeRegistry.getState('current-user').deviceName
-      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+      const {devicename, getLastOrdinal, username} = getUserContext()
       const toAdd = new Array<T.Chat.Message>()
       messagesUpdated.updates.forEach(uimsg => {
         const messageID = Message.getMessageID(uimsg)
@@ -2347,7 +2331,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (!message) {
           return
         }
-        const ordinal = messageIDToOrdinal(get().messageMap, get().pendingOutboxToOrdinal, messageID)
+        const ordinal = getMessageOrdinal(messageID)
         set(s => {
           const existing = ordinal ? s.messageMap.get(ordinal) : undefined
           if (existing) {
@@ -2383,9 +2367,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             await T.RPCChat.localUnpinMessageRpcPromise({convID}, Strings.waitingKeyChatUnpin(get().id))
           }
         } catch (error) {
-          if (error instanceof RPCError) {
-            logger.error(`pinMessage: ${error.message}`)
-          }
+          handleRPCError(error, `pinMessage`, 'error')
         }
       }
       ignorePromise(f())
@@ -2399,10 +2381,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             username,
           })
         } catch (error) {
-          if (error instanceof RPCError) {
-            logger.info(`refreshBotRoleInConv: failed to refresh bot team role: ${error.message}`)
+          if (handleRPCError(error, `refreshBotRoleInConv: failed to refresh bot team role`, 'info')) {
+            return
           }
-          return
         }
         const trole = TeamsUtil.teamRoleByEnum[role]
         const r = trole === 'none' ? undefined : trole
@@ -2431,27 +2412,25 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             s.botSettings.set(username, T.castDraft(settings))
           })
         } catch (error) {
-          if (error instanceof RPCError) {
-            logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${error.message}`)
+          if (handleRPCError(error, `refreshBotSettings: failed to refresh settings for ${username}`, 'info')) {
+            return
           }
-          return
         }
       }
       ignorePromise(f())
     },
     removeBotMember: username => {
-      const f = async () => {
-        const convID = get().getConvID()
-        try {
-          await T.RPCChat.localRemoveBotMemberRpcPromise({convID, username}, Strings.waitingKeyChatBotRemove)
-          closeBotModal()
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.info('removeBotMember: failed to remove bot member: ' + error.message)
-          }
-        }
-      }
-      ignorePromise(f())
+      ignorePromise(
+        handleBotOperation(
+          () =>
+            T.RPCChat.localRemoveBotMemberRpcPromise(
+              {convID: get().getConvID(), username},
+              Strings.waitingKeyChatBotRemove
+            ),
+          'removeBotMember: failed to remove bot member',
+          closeBotModal
+        )
+      )
     },
     replyJump: messageID => {
       setMessageCenterOrdinal()
@@ -2496,7 +2475,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const fetchConversationBio = () => {
         const participantInfo = get().participants
-        const username = storeRegistry.getState('current-user').username
+        const {username} = getUserContext()
         const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
         if (otherParticipants.length === 1) {
           // we're in a one-on-one convo
@@ -2560,9 +2539,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           clientPrev,
         })
       } catch (error) {
-        if (error instanceof RPCError) {
-          logger.warn('sendAudioRecording: failed to send attachment: ' + error.message)
-        }
+        handleRPCError(error, 'sendAudioRecording: failed to send attachment', 'info')
       }
     },
     sendMessage: text => {
@@ -2587,11 +2564,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           policy = TeamsUtil.retentionPolicyToServiceRetentionPolicy(_policy)
           await T.RPCChat.localSetConvRetentionLocalRpcPromise({convID, policy})
         } catch (error) {
-          if (error instanceof RPCError) {
-            // should never happen
-            logger.error(`Unable to parse retention policy: ${error.message}`)
+          if (!handleRPCError(error, `Unable to parse retention policy`, 'error')) {
+            throw error
           }
-          throw error
         }
       }
       ignorePromise(f())
@@ -2878,9 +2853,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
       const f = async () => {
         const conversationIDKey = get().id
-        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-        const username = storeRegistry.getState('current-user').username
-        const devicename = storeRegistry.getState('current-user').deviceName
+        const {devicename, getLastOrdinal, username} = getUserContext()
         const onDone = () => {
           set(s => {
             s.threadSearchInfo.status = 'done'
@@ -2963,8 +2936,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
           })
         } catch (error) {
-          if (error instanceof RPCError) {
-            logger.error('search failed: ' + error.message)
+          if (handleRPCError(error, 'search failed', 'error')) {
             set(s => {
               s.threadSearchInfo.status = 'done'
             })
@@ -3029,9 +3001,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             tlfPublic: false,
           })
         } catch (error) {
-          if (error instanceof RPCError) {
-            logger.info(`toggleMessageReaction: failed to post` + error.message)
-          }
+          handleRPCError(error, `toggleMessageReaction: failed to post`, 'info')
         }
       }
       ignorePromise(f())
@@ -3163,11 +3133,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       for (const u of updates) {
         const reactions = u.reactions
         const targetMsgID = u.targetMsgID
-        const targetOrdinal = messageIDToOrdinal(
-          get().messageMap,
-          get().pendingOutboxToOrdinal,
-          u.targetMsgID
-        )
+        const targetOrdinal = getMessageOrdinal(u.targetMsgID)
         if (!targetOrdinal) {
           logger.info(
             `updateReactions: couldn't find target ordinal for targetMsgID=${targetMsgID} in convID=${
