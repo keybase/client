@@ -278,7 +278,7 @@ func (t TeamSigChainState) AssertWasRoleOrAboveAt(uv keybase1.UserVersion,
 	for i := len(points) - 1; i >= 0; i-- {
 		point := points[i]
 		if err := point.SigMeta.SigChainLocation.Comparable(scl); err != nil {
-			return mkErr(err.Error())
+			return mkErr("%s", err.Error())
 		}
 		if point.SigMeta.SigChainLocation.LessThanOrEqualTo(scl) && point.Role.IsOrAbove(role) {
 			// OK great, we found a point with the role in the log that's less than or equal to the given one.

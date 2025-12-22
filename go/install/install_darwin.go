@@ -1230,9 +1230,6 @@ func InstallUpdater(context Context, keybaseBinPath string, force bool, timeout 
 		return err
 	}
 	updaterBinPath := filepath.Join(filepath.Dir(keybaseBinPath), "updater")
-	if err != nil {
-		return err
-	}
 	log.Debug("Using updater path: %s", updaterBinPath)
 
 	label := DefaultUpdaterLabel(context.GetRunMode())

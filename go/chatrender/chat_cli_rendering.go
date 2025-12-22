@@ -513,7 +513,7 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, opts RenderOptions, body c
 	amountXLM := fmt.Sprintf("%s XLM", libkb.StellarSimplifyAmount(details.Amount))
 
 	var amountDescription string
-	if details.DisplayAmount != nil && details.DisplayCurrency != nil && len(*details.DisplayAmount) > 0 && len(*details.DisplayAmount) > 0 {
+	if details.DisplayAmount != nil && details.DisplayCurrency != nil && len(*details.DisplayAmount) > 0 {
 		amountDescription = fmt.Sprintf("Lumens worth %s %s (%s)", *details.DisplayAmount, *details.DisplayCurrency, amountXLM)
 	} else {
 		amountDescription = amountXLM
