@@ -366,7 +366,6 @@ export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
-  let isLoadingMessages = false
 
   const closeBotModal = () => {
     storeRegistry.getState('router').dispatch.clearModals()
@@ -1501,14 +1500,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         forceClear = true
       }
 
-      if (isLoadingMessages && !forceClear) {
-        return
-      }
-
       // clear immediately to avoid races and avoid desktop having to churn while it loads a lot of waypoints
       if (forceClear) {
         get().dispatch.messagesClear()
-        isLoadingMessages = false
       }
 
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
@@ -1533,7 +1527,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // we get a thread-is-stale notification, or when you scroll up and want more
       // messages
       const f = async () => {
-        isLoadingMessages = true
         try {
           // Get the conversationIDKey
           const {id: conversationIDKey} = get()
@@ -1667,8 +1660,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               }
             }
           }
-        } finally {
-          isLoadingMessages = false
         }
       }
 
