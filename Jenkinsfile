@@ -576,44 +576,39 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     // Windows `gofmt` pukes on CRLF.
     // Macos pukes on mockgen because ¯\_(ツ)_/¯.
     // So, only run on Linux.
-    // Run mockgen validation on PRs to catch issues before merge
-    if (env.CHANGE_ID) {
-      println "Running mockgen validation on PR #${env.CHANGE_ID}"
-      dir('kbfs/data') {
-        retry(5) {
-          timeout(activity: true, time: 90, unit: 'SECONDS') {
-            sh '''
-              set -e -x
-              ./gen_mocks.sh
-              git diff --exit-code
-            '''
-          }
+    println "Running mockgen"
+    dir('kbfs/data') {
+      retry(5) {
+        timeout(activity: true, time: 90, unit: 'SECONDS') {
+          sh '''
+            set -e -x
+            ./gen_mocks.sh
+            git diff --exit-code
+          '''
         }
       }
-      dir('kbfs/libkbfs') {
-        retry(5) {
-          timeout(activity: true, time: 90, unit: 'SECONDS') {
-            sh '''
-              set -e -x
-              ./gen_mocks.sh
-              git diff --exit-code
-            '''
-          }
+    }
+    dir('kbfs/libkbfs') {
+      retry(5) {
+        timeout(activity: true, time: 90, unit: 'SECONDS') {
+          sh '''
+            set -e -x
+            ./gen_mocks.sh
+            git diff --exit-code
+          '''
         }
       }
-      dir('kbfs/kbfscodec') {
-        retry(5) {
-          timeout(activity: true, time: 90, unit: 'SECONDS') {
-            sh '''
-              set -e -x
-              ./gen_mocks.sh
-              git diff --exit-code
-            '''
-          }
+    }
+    dir('kbfs/kbfscodec') {
+      retry(5) {
+        timeout(activity: true, time: 90, unit: 'SECONDS') {
+          sh '''
+            set -e -x
+            ./gen_mocks.sh
+            git diff --exit-code
+          '''
         }
       }
-    } else {
-      println "Skipping mockgen validation (not a PR)"
     }
   }
 }
