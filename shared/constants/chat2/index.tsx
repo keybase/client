@@ -15,7 +15,6 @@ import * as Common from './common'
 import {clearChatStores, chatStores} from './convostate'
 import {uint8ArrayToString} from 'uint8array-extras'
 import isEqual from 'lodash/isEqual'
-import uniq from 'lodash/uniq'
 import {bodyToJSON} from '../rpc-utils'
 import {storeRegistry} from '../store-registry'
 import * as S from '../strings'
@@ -416,7 +415,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             {
               identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
               membersType: T.RPCChat.ConversationMembersType.impteamnative,
-              tlfName: uniq([username, ...participants]).join(','),
+              tlfName: [...new Set([username, ...participants])].join(','),
               tlfVisibility: T.RPCGen.TLFVisibility.private,
               topicType: T.RPCChat.TopicType.chat,
             },

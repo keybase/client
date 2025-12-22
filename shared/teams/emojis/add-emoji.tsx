@@ -6,7 +6,6 @@ import * as Kb from '@/common-adapters'
 import {AliasInput, Modal} from './common'
 import {pickImages} from '@/util/pick-files'
 import kebabCase from 'lodash/kebabCase'
-import uniq from 'lodash/uniq'
 import {useEmojiState} from './use-emoji'
 import KB2 from '@/util/electron'
 
@@ -88,8 +87,19 @@ const useStuff = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => 
 
   const addFiles = React.useCallback(
     (paths: Array<string>) => {
-      const existingSet = new Set(filePaths)
-      const pathsToAdd = uniq(paths.filter(path => !existingSet.has(path)))
+      const pathsToAdd = paths.reduce(
+        ({deduplicated, set}, path) => {
+          if (!set.has(path)) {
+            set.add(path)
+            deduplicated.push(path)
+          }
+          return {deduplicated, set}
+        },
+        {
+          deduplicated: [] as Array<string>,
+          set: new Set<string>(filePaths),
+        }
+      ).deduplicated
       setAliasMap(
         pathsToAdd.reduce(
           (map: Map<string, string>, path) =>
