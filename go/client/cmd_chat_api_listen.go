@@ -228,7 +228,7 @@ func (d *baseNotificationDisplay) printf(fmt string, args ...interface{}) error 
 }
 
 func (d *baseNotificationDisplay) errorf(format string, args ...interface{}) error {
-	_, err := fmt.Fprintf(d.G().UI.GetTerminalUI().ErrorWriter(), format, args)
+	_, err := fmt.Fprintf(d.G().UI.GetTerminalUI().ErrorWriter(), format, args...)
 	return err
 }
 
