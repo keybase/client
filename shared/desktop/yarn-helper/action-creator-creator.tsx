@@ -2,7 +2,6 @@ import prettier from 'prettier'
 import path from 'path'
 import json5 from 'json5'
 import fs from 'fs'
-import capitalize from 'lodash/capitalize'
 
 type ActionNS = string
 type ActionName = string
@@ -86,6 +85,10 @@ function compileActions(
     .map((actionName: ActionName) => compileActionFn?.(ns, actionName, actions[actionName]))
     .sort()
     .join('\n')
+}
+
+function capitalize(s: string): string {
+  return (s[0]?.toUpperCase() ?? '') + s.slice(1)
 }
 
 function payloadKeys(p: ActionDesc) {

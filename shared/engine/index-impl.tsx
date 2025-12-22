@@ -4,7 +4,6 @@ import engineListener from './listener'
 import logger from '@/logger'
 import {debugWarning} from '@/util/debug-warning'
 import throttle from 'lodash/throttle'
-import capitalize from 'lodash/capitalize'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
 import type {SessionID, SessionIDKey, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
@@ -23,6 +22,10 @@ if (DEFER_INCOMING_DURING_DEBUG) {
 }
 
 type WaitingKey = string | ReadonlyArray<string>
+
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
 
 class Engine {
   _onConnectedCB: (c: boolean) => void
