@@ -65,7 +65,7 @@ func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, 
 		attachment = chat1.MessageAttachment{
 			Object:   uploaded.Object,
 			Previews: uploaded.Previews,
-			Metadata: uploaded.Metadata,
+			Metadata: uploaded.Metadata, //nolint:govet // keeping metadata for completeness
 		}
 	default:
 		return res, errors.New("not an attachment message")
