@@ -37,8 +37,7 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 		return err
 	}
 
-	createIfNotExists := !(c.clearHeadline || c.deleteHistory != nil)
-
+	createIfNotExists := !c.clearHeadline && c.deleteHistory == nil
 	conversation, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: createIfNotExists,
 		MustNotExist:      c.mustNotExist,

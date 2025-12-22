@@ -234,6 +234,7 @@ func (v *CredentialAuthority) runWithCancel(body func(ctx context.Context) error
 // pollLoop() keeps running until the CA is shut down via Shutdown(). It calls Poll()
 // on the UserKeyAPIer once per iteration.
 func (v *CredentialAuthority) pollLoop() {
+	//nolint:revive // empty-block: intentional, pollOnce blocks internally
 	for v.pollOnce() != ErrShutdown {
 		// We rely on pollOnce to not return right away, so we don't busy loop.
 	}
