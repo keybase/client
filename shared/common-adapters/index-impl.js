@@ -333,9 +333,6 @@ module.exports = {
   get urlsToImgSet() {
     return require('./icon').urlsToImgSet
   },
-  get useHotKey() {
-    return require('./hot-key').useHotKey
-  },
   get useInterval() {
     return require('./use-timers').useInterval
   },

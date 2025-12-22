@@ -9,6 +9,7 @@ import ProgressIndicator from './progress-indicator'
 import Icon, {type IconType} from './icon'
 import * as Styles from '@/styles'
 import * as Platforms from '@/constants/platform'
+import {getModKey} from '@/constants/platform'
 import type {NativeSyntheticEvent} from 'react-native'
 import type {MeasureRef} from './measure-ref'
 
@@ -136,16 +137,24 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
   const mouseOver = React.useCallback(() => setHover(true), [])
   const mouseLeave = React.useCallback(() => setHover(false), [])
 
-  const onHotkey = React.useCallback(
-    (cmd: string) => {
-      if (hotkey && !props.onClick && cmd.endsWith('+' + hotkey)) {
-        focus()
+  React.useEffect(() => {
+    if (Styles.isMobile || !hotkey || props.onClick) {
+      return
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (getModKey(e) && e.key.toLowerCase() === hotkey.toLowerCase() && !e.shiftKey && !e.altKey) {
+        const target = e.target as HTMLElement
+        if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
+          e.preventDefault()
+          focus()
+        }
       }
-    },
-    [hotkey, focus, props.onClick]
-  )
-
-  Kb.useHotKey(props.hotkey && !props.onClick ? `mod+${props.hotkey}` : '', onHotkey)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [hotkey, props.onClick, focus])
 
   const onKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
