@@ -3,21 +3,21 @@ import * as Git from '@/constants/git'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Row, {NewContext} from './row'
+import partition from 'lodash/partition'
 import sortBy from 'lodash/sortBy'
 import type * as T from '@/constants/types'
 import {useLocalBadging} from '@/util/use-local-badging'
 
 type OwnProps = {expanded?: string}
 
-const getRepos = (git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
-  sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
-    (pt, info) => {
-      const target = info.teamname ? pt.teams : pt.personals
-      target.push(info.id)
-      return pt
-    },
-    {personals: [], teams: []}
-  )
+const getRepos = (git: T.Immutable<Map<string, T.Git.GitInfo>>) => {
+  const sorted = sortBy([...git.values()], ['teamname', 'name'])
+  const [teams, personals] = partition(sorted, info => !!info.teamname)
+  return {
+    personals: personals.map(info => info.id),
+    teams: teams.map(info => info.id),
+  }
+}
 
 const Container = (ownProps: OwnProps) => {
   const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
