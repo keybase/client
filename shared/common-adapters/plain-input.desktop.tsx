@@ -203,7 +203,7 @@ const PlainInput = React.memo(
     const getCommonProps = () => {
       const commonProps = {
         autoFocus,
-        className: Styles.classNames((allowKeyboardEvents ?? true) && 'mousetrap', className),
+        className,
         maxLength,
         onBlur,
         onChange,
@@ -219,6 +219,7 @@ const PlainInput = React.memo(
         value,
         ...(maxLength ? {maxLength} : {}),
         ...(disabled ? {readOnly: true} : {}),
+        ...((allowKeyboardEvents ?? true) ? {'data-allow-keyboard-shortcuts': 'true'} : {}),
       }
       return commonProps
     }

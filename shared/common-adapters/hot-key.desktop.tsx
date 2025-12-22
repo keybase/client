@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import Mousetrap from 'mousetrap'
+import * as KeyboardShortcuts from '@/util/keyboard-shortcuts'
 import {registerDebugClear} from '@/util/debug'
 
 registerDebugClear(() => {
-  Mousetrap.reset()
+  KeyboardShortcuts.reset()
 })
 
-// mousetrap is very simple. a bind will overwrite the binding. unbind unbinds it globally
+// keyboard-shortcuts bind will overwrite the binding. unbind unbinds it globally
 // we need to keep a stack to manage the state. We register/unregister when we mount/unmount / change nav focus
 
 const keyToCBStack = new Map<string, Array<(cmd: string) => void>>()
@@ -26,7 +26,7 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
       cbs.push(cb)
     })
     // actually bind
-    Mousetrap.bind(
+    KeyboardShortcuts.bind(
       keysArr,
       (e: {stopPropagation: () => void}, key: string) => {
         e.stopPropagation()
@@ -44,10 +44,10 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
       const idx = cbs.indexOf(cb)
       if (idx !== -1) {
         cbs.splice(idx, 1)
-        // mousetrap will remove existing bindings. if there is an older one turn it back on
+        // bind will overwrite existing bindings. if there is an older one turn it back on
         const last = cbs.at(-1)
         if (last) {
-          Mousetrap.bind(
+          KeyboardShortcuts.bind(
             key,
             (e: {stopPropagation: () => void}, key: string) => {
               e.stopPropagation()
@@ -59,7 +59,7 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
       }
       // nothing listening for this key? now we finally unbind and cleanup
       if (cbs.length === 0) {
-        Mousetrap.unbind(key, 'keydown')
+        KeyboardShortcuts.unbind(key, 'keydown')
         keyToCBStack.delete(key)
       }
     })
