@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {getModKey} from '@/constants/platform'
 
 type OwnProps = {
   onEnsureSelection: () => void
@@ -72,27 +71,16 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
     [onSetFilter, filter]
   )
 
+  const onHotKeys = React.useCallback(() => {
+    appendNewChatBuilder()
+  }, [appendNewChatBuilder])
+  Kb.useHotKey('mod+n', onHotKeys)
+
   React.useEffect(() => {
     if (isSearching) {
       inputRef.current?.focus()
     }
   }, [isSearching])
-
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (getModKey(e) && e.key === 'n' && !e.shiftKey && !e.altKey) {
-        const target = e.target as HTMLElement
-        if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
-          e.preventDefault()
-          appendNewChatBuilder()
-        }
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [appendNewChatBuilder])
 
   const searchInput = (
     <Kb.SearchFilter

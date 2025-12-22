@@ -56,20 +56,15 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   }, [fullHeight, fullWidth])
 
   const vidRef = React.useRef<HTMLVideoElement>(null)
-  const isDownloadError = !!message.transferErrMsg
-
-  const onKeyDown = React.useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault()
-        onPreviousAttachment()
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault()
-        onNextAttachment()
-      }
+  const onHotKey = React.useCallback(
+    (cmd: string) => {
+      cmd === 'left' && onPreviousAttachment()
+      cmd === 'right' && onNextAttachment()
     },
     [onPreviousAttachment, onNextAttachment]
   )
+  Kb.useHotKey(['left', 'right'], onHotKey)
+  const isDownloadError = !!message.transferErrMsg
 
   const {showPopup, popup, popupAnchor} = useMessagePopup({ordinal})
 
@@ -85,7 +80,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
 
   return (
     <Kb.PopupDialog onClose={onClose} fill={true}>
-      <Kb.Box style={styles.container} onKeyDown={onKeyDown}>
+      <Kb.Box style={styles.container}>
         <Kb.Box style={styles.headerFooter}>
           <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
             {title}

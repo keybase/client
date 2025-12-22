@@ -10,7 +10,7 @@ import * as Common from './common.desktop'
 import AccountSwitcher from './account-switcher'
 import RuntimeStats from '../app/runtime-stats'
 import openURL from '@/util/open-url'
-import {getModKey, isLinux} from '@/constants/platform'
+import {isLinux} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
 import './tab-bar.css'
 import {settingsLogOutTab} from '@/constants/settings/util'
@@ -184,28 +184,13 @@ const keysMap = Tabs.desktopTabs.reduce<{[key: string]: (typeof Tabs.desktopTabs
 const TabBar = React.memo(function TabBar(props: Props) {
   const {navigation, state} = props
   const username = useCurrentUserState(s => s.username)
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (getModKey(e) && !e.shiftKey && !e.altKey) {
-        const key = e.key
-        if (key >= '1' && key <= '9') {
-          const cmd = `mod+${key}`
-          const tab = keysMap[cmd]
-          if (tab) {
-            const target = e.target as HTMLElement
-            if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
-              e.preventDefault()
-              navigation.navigate(tab as Tabs.Tab)
-            }
-          }
-        }
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [navigation])
+  const onHotKey = React.useCallback(
+    (cmd: string) => {
+      navigation.navigate(keysMap[cmd] as Tabs.Tab)
+    },
+    [navigation]
+  )
+  Kb.useHotKey(hotKeys, onHotKey)
 
   const onSelectTab = Common.useSubnavTabAction(navigation, state)
   const forceSmallNav = useConfigState(s => s.forceSmallNav)
