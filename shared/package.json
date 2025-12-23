@@ -1,5 +1,6 @@
 {
   "name": "keybase",
+  "packageManager": "yarn@3.6.4",
   "version": "1.0.1",
   "description": "",
   "scripts": {
@@ -50,7 +51,7 @@
     "rn-jsbuild-ios": "mkdir -p ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output ios/dist/main.jsbundle --sourcemap-output ios/dist/main.jsbundle.sourcemap",
     "rn-jsbuild-android": "mkdir -p android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output android/dist/main.jsbundle --sourcemap-output android/dist/main.jsbundle.sourcemap",
     "tsc": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.json ",
-    "modules": "yarn install --pure-lockfile --ignore-optional --ignore-scripts && yarn postinstall && cd node_modules/electron && yarn postinstall",
+    "modules": "yarn install --mode=skip-build && yarn postinstall && cd node_modules/electron && yarn postinstall",
     "log-to-trace": "yarn _node desktop/yarn-helper/log-to-trace",
     "pod-clean": "pod cache clean --all ; rm -rf ios/build; rm -rf ios/Pods; rm -f ios/.xcode.env.local; rm -rf ../rnmodules/react-native-kb/node_modules",
     "pod-install": "cd ios; pod install --repo-update",
@@ -116,14 +117,14 @@
     "react-list": "0.8.18",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "2.30.0",
-    "react-native-keyboard-controller": "1.20.2",
     "react-native-kb": "file:../rnmodules/react-native-kb",
+    "react-native-keyboard-controller": "1.20.2",
     "react-native-reanimated": "4.2.1",
-    "react-native-worklets": "0.7.1",
     "react-native-safe-area-context": "5.6.2",
     "react-native-screens": "4.18.0",
     "react-native-web": "0.21.2",
     "react-native-webview": "13.16.0",
+    "react-native-worklets": "0.7.1",
     "react-native-zoom-toolkit": "5.0.1",
     "react-window": "2.2.3",
     "shallowequal": "1.1.0",
@@ -191,11 +192,6 @@
     "webpack-cli": "6.0.1",
     "webpack-dev-server": "5.2.2",
     "webpack-merge": "6.0.1"
-  },
-  "resolutions": {
-    "**/purepack": "keybase/nullModule",
-    "**/@khanacademy/perseus-core": "keybase/nullModule",
-    "**/@types/react": "19.2.7"
   },
   "typecoverage": {
     "detail": true,
