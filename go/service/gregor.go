@@ -190,7 +190,7 @@ type gregorHandler struct {
 	sync.Mutex
 	ibmHandlers []libkb.GregorInBandMessageHandler
 
-	// gregorCliMu just protecs the gregorCli pointer, since it can be swapped out
+	// gregorCliMu just protects the gregorCli pointer, since it can be swapped out
 	// in one goroutine and accessed in another.
 	gregorCliMu sync.Mutex
 	gregorCli   *grclient.Client
@@ -1580,7 +1580,7 @@ func (g *gregorHandler) connectTLS(ctx context.Context) error {
 		},
 		DialerTimeout:    10 * time.Second,
 		HandshakeTimeout: 10 * time.Second,
-		// We deliberately avoid ForceInitialBackoff here, becuase we don't
+		// We deliberately avoid ForceInitialBackoff here, because we don't
 		// want to penalize mobile, which tears down its connection frequently.
 	}
 	g.conn = rpc.NewTLSConnectionWithDialable(rpc.NewFixedRemote(uri.HostPort),

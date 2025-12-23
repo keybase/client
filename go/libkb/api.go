@@ -755,7 +755,7 @@ func (a *InternalAPIEngine) GetDecodeCtx(ctx context.Context, arg APIArg, v APIR
 }
 
 func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
-	resp, finisher, err := a.GetResp(m, arg)
+	resp, finisher, err := a.GetResp(m, arg) //nolint:bodyclose // finisher closes the body
 	if err != nil {
 		m.Debug("| API GetDecode, GetResp error: %s", err)
 		return err
@@ -831,7 +831,7 @@ func (a *InternalAPIEngine) PostDecodeCtx(ctx context.Context, arg APIArg, v API
 }
 
 func (a *InternalAPIEngine) postDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
-	resp, finisher, err := a.postResp(m, arg)
+	resp, finisher, err := a.postResp(m, arg) //nolint:bodyclose // finisher closes the body
 	if err != nil {
 		return err
 	}
@@ -875,7 +875,7 @@ func (a *InternalAPIEngine) DoRequest(m MetaContext, arg APIArg, req *http.Reque
 
 func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Request) (res *APIRes, err error) {
 	m = m.EnsureCtx().WithLogTag("API")
-	resp, finisher, jw, err := doRequestShared(m, a, arg, req, true)
+	resp, finisher, jw, err := doRequestShared(m, a, arg, req, true) //nolint:bodyclose // finisher closes the body
 	if err != nil {
 		return nil, err
 	}
@@ -962,7 +962,7 @@ func (api *ExternalAPIEngine) DoRequest(m MetaContext,
 	var finisher func()
 
 	wantJSONRes := (restype == XAPIResJSON)
-	resp, finisher, jw, err = doRequestShared(m, api, arg, req, wantJSONRes)
+	resp, finisher, jw, err = doRequestShared(m, api, arg, req, wantJSONRes) //nolint:bodyclose // finisher closes the body
 	if err != nil {
 		return
 	}

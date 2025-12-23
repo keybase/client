@@ -1010,7 +1010,7 @@ func (g *GlobalContext) GetGpgClient() *GpgCLI {
 }
 
 func (g *GlobalContext) GetMyUID() keybase1.UID {
-	// Prefer ActiveDevice, that's the prefered way
+	// Prefer ActiveDevice, that's the preferred way
 	// to figure out what the current user's UID is.
 	uid := g.ActiveDevice.UID()
 	if uid.Exists() {

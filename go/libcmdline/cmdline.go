@@ -488,7 +488,7 @@ func (p CommandLine) GetDisableTeamBoxAuditor() (bool, bool) {
 }
 
 func (p CommandLine) GetDisableEKBackgroundKeygen() (bool, bool) {
-	return p.GetBool("disable-ek-backgorund-keygen", true)
+	return p.GetBool("disable-ek-background-keygen", true)
 }
 
 func (p CommandLine) GetDisableMerkleAuditor() (bool, bool) {

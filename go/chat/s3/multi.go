@@ -196,6 +196,7 @@ func (m *Multi) putPart(ctx context.Context, n int, r io.ReadSeeker, partSize in
 		if err != nil {
 			return Part{}, err
 		}
+		defer resp.Body.Close()
 		etag := resp.Header.Get("ETag")
 		if etag == "" {
 			return Part{}, errors.New("part upload succeeded with no ETag")

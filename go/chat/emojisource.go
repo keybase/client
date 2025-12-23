@@ -765,7 +765,7 @@ func (s *DevConvEmojiSource) getCrossTeamConv(ctx context.Context, uid gregor1.U
 			s.testingCreatedSyncConv <- struct{}{}
 		}
 	} else {
-		s.Debug(ctx, "getCrossTeamConv: using exising sync conv: %s (topicID: %s)", res.GetConvID(), topicID)
+		s.Debug(ctx, "getCrossTeamConv: using existing sync conv: %s (topicID: %s)", res.GetConvID(), topicID)
 	}
 	return res, nil
 }

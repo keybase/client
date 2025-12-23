@@ -155,6 +155,7 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	readAsset := func(msg chat1.UIMessage, cacheHit bool) {
 		httpRes, err := http.Get(msg.Valid().AssetUrlInfo.FullUrl)
 		require.NoError(t, err)
+		defer httpRes.Body.Close()
 		body, err := io.ReadAll(httpRes.Body)
 		require.NoError(t, err)
 		require.Equal(t, "HI", string(body))

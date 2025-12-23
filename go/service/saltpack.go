@@ -583,7 +583,7 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 
 	spui, err := h.frontendVerify(ctx, arg.SessionID, earg)
 	if err != nil {
-		h.G().Log.Debug("verify error, so removing ouput file")
+		h.G().Log.Debug("verify error, so removing output file")
 		if clErr := bw.Close(); clErr != nil {
 			transformSaltpackError(&clErr)
 			h.G().Log.Debug("error closing bw for output file: %s", clErr)

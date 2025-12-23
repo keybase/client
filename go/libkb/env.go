@@ -250,7 +250,7 @@ type TestParameters struct {
 	// easiest to skip the audit in those cases.
 	TeamSkipAudit bool
 
-	// NoGregor is on if we want to test the service without any gregor conection
+	// NoGregor is on if we want to test the service without any gregor connection
 	NoGregor bool
 
 	// TeamAuditParams can be customized if we want to control the behavior

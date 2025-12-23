@@ -3876,7 +3876,7 @@ func (h *Server) ForwardMessage(ctx context.Context, arg chat1.ForwardMessageArg
 	if err != nil {
 		return res, err
 	} else if !msg.IsValid() {
-		return res, fmt.Errorf("unable to foward message, source is invalid")
+		return res, fmt.Errorf("unable to forward message, source is invalid")
 	}
 	dstConv, err := utils.GetVerifiedConv(ctx, h.G(), uid, arg.DstConvID, types.InboxSourceDataSourceAll)
 	if err != nil {

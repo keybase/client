@@ -150,8 +150,9 @@ func checkIcon(t testing.TB, icon keybase1.SizedImage) {
 		require.True(t, len(icon.Path) > 8)
 	} else {
 		resp, err := http.Get(icon.Path)
-		require.Equal(t, 200, resp.StatusCode, "icon file should be reachable: %v", icon.Path)
 		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, 200, resp.StatusCode, "icon file should be reachable: %v", icon.Path)
 		body, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		if len(body) < 150 {

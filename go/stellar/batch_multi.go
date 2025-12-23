@@ -106,7 +106,7 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 			makeResultError(&results[i], err)
 		}
 	} else {
-		// make all ther results have success
+		// make all there results have success
 		now := stellar1.ToTimeMs(time.Now())
 
 		for i := 0; i < len(results); i++ {

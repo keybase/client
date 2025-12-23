@@ -1097,7 +1097,7 @@ func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.Te
 		return false, nil
 	}
 
-	// now check implict adminship
+	// now check implicit adminship
 	yes, err := l.isImplicitAdminOf(mctx.Ctx(), state.GetID(), state.GetParentID(), me, them)
 	if err != nil {
 		return false, err

@@ -172,7 +172,7 @@ func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact
 }
 
 func compareUserSearch(i, j keybase1.APIUserSearchResult) bool {
-	// Float comparasion - we expect exact floats here when multiple
+	// Float comparison - we expect exact floats here when multiple
 	// results match in same way and yield identical score thorugh
 	// same scoring operations.
 	if i.RawScore == j.RawScore {

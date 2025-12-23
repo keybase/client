@@ -43,7 +43,7 @@ func appendSigToState(t *testing.T, team *Team, state *TeamSigChainState,
 
 	// Always make a copy here, call site shouldn't have to worry about that
 	// when e.g. attempting to append multiple links to one base state to
-	// excercise different errors.
+	// exercise different errors.
 	state = state.DeepCopyToPtr()
 
 	sigMultiItem, _, err := team.sigTeamItemRaw(context.Background(), section,

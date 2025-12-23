@@ -694,7 +694,7 @@ func (u *userPlusDevice) waitForNewlyAddedToTeamByID(teamID keybase1.TeamID) {
 	for {
 		select {
 		case tid := <-u.notifications.newlyAddedToTeam:
-			u.tc.T.Logf("newlyAddedToTeam recieved: %+v", tid)
+			u.tc.T.Logf("newlyAddedToTeam received: %+v", tid)
 			if tid.Eq(teamID) {
 				u.tc.T.Logf("newlyAddedToTeam matched!")
 				return

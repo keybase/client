@@ -1060,7 +1060,7 @@ func SubtractFeeSoft(mctx libkb.MetaContext, availableStr string, baseFee uint64
 type buildPaymentEntry struct {
 	Bid     stellar1.BuildPaymentID
 	Stopped bool
-	// The processs in Slot likely holds DataLock and pointer to Data.
+	// The processes in Slot likely holds DataLock and pointer to Data.
 	Slot     *slotctx.PrioritySlot // Only one build or review call at a time.
 	DataLock sync.Mutex
 	Data     buildPaymentData

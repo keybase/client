@@ -105,7 +105,7 @@ func URLExists(urlString string, timeout time.Duration, log Log) (bool, error) {
 	client := &http.Client{
 		Timeout: timeout,
 	}
-	resp, requestErr := client.Do(req)
+	resp, requestErr := client.Do(req) //nolint:bodyclose // false positive, body is closed via defer after nil checks
 	if requestErr != nil {
 		return false, requestErr
 	}
@@ -175,7 +175,7 @@ func downloadURL(urlString string, destinationPath string, options DownloadURLOp
 		client = http.Client{}
 	}
 	log.Infof("Request %s", url.String())
-	resp, requestErr := client.Do(req)
+	resp, requestErr := client.Do(req) //nolint:bodyclose // false positive, body is closed via defer after error check
 	if requestErr != nil {
 		return cached, requestErr
 	}

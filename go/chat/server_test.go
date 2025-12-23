@@ -4259,6 +4259,7 @@ func TestChatSrvMakePreview(t *testing.T) {
 	require.Equal(t, chat1.PreviewLocationTyp_URL, typ)
 	resp, err := http.Get(res.Location.Url())
 	require.NoError(t, err)
+	defer resp.Body.Close()
 	require.Equal(t, 200, resp.StatusCode)
 	require.NotNil(t, res.Metadata)
 	require.Equal(t, "image/jpeg", res.MimeType)

@@ -309,7 +309,7 @@ func (b *Bucket) GetResponseWithHeaders(ctx context.Context, path string, header
 		return nil, err
 	}
 	for attempt := b.Start(); attempt.Next(); {
-		resp, err := b.run(ctx, req, nil)
+		resp, err := b.run(ctx, req, nil) //nolint:bodyclose // caller's responsibility
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
@@ -351,6 +351,7 @@ func (b *Bucket) Exists(path string) (exists bool, err error) {
 			return false, err
 		}
 
+		defer func() { _ = libkb.DiscardAndCloseBody(resp) }()
 		if resp.StatusCode/100 == 2 {
 			exists = true
 		}

@@ -572,7 +572,7 @@ func (t *Tree) getEncodedValueWithInclusionProofOrExclusionProof(ctx logger.Cont
 		sort.Sort(PosHashPairsInMerkleProofOrder(deepestAndCurrSiblings))
 
 		var currSiblings []PositionHashPair
-		// if we found a PositionHashPair corrisponding to the first element in
+		// if we found a PositionHashPair corresponding to the first element in
 		// deepestAndCurrSiblingPositions, it means the path might be deeper and we
 		// need to fetch more siblings.
 		candidateDeepest := len(deepestAndCurrSiblings)

@@ -252,7 +252,7 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 		c3 = sigCompression3Stubbed
 	}
 
-	resp, finisher, err := sc.G().API.GetResp(m, APIArg{
+	resp, finisher, err := sc.G().API.GetResp(m, APIArg{ //nolint:bodyclose // finisher closes the body
 		Endpoint:    "sig/get",
 		SessionType: APISessionTypeOPTIONAL,
 		Args: HTTPArgs{

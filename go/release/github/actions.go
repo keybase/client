@@ -78,7 +78,7 @@ func Upload(token string, repo string, tag string, name string, file string) err
 	return nil
 }
 
-// DownloadSource dowloads source from repo tag
+// DownloadSource downloads source from repo tag
 func DownloadSource(token string, repo string, tag string) error {
 	url := githubAPIURL + fmt.Sprintf("/repos/keybase/%s/tarball/%s", repo, tag)
 	name := fmt.Sprintf("%s-%s.tar.gz", repo, tag)

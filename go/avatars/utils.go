@@ -56,6 +56,7 @@ func FetchAvatar(ctx context.Context, g *globals.Context, username string) (res 
 			return res, err
 		}
 		if resp.StatusCode >= 400 {
+			resp.Body.Close()
 			avatarReader = getAvatarPlaceholder()
 		} else {
 			avatarReader = resp.Body

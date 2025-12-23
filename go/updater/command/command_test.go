@@ -157,9 +157,9 @@ func TestExecTimeoutProcessKilled(t *testing.T) {
 	assert.Error(t, err)
 	require.NotNil(t, result.Process)
 	findProcess, _ := os.FindProcess(result.Process.Pid)
-	// This should error since killing a non-existant process should error
+	// This should error since killing a non-existent process should error
 	perr := findProcess.Kill()
-	assert.NotNil(t, perr, "Should have errored killing since killing non-existant process should error")
+	assert.NotNil(t, perr, "Should have errored killing since killing non-existent process should error")
 }
 
 // TestExecNoExit runs a go binary called test from package go-updater/test,

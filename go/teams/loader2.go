@@ -179,8 +179,8 @@ var whitelistedTeamLinkSigsForKeyInUserSigchain = []keybase1.SigID{
 	// See https://github.com/keybase/client/issues/20503; a server bug allowed a team leave to interleave
 	// with a downgrade lease acquisition for a key revoke on a slow connection. The acquisition should have
 	// been blocked until the merkle tree reflected the leave, but the acquistion actually happened before the
-	// team leave transation was committed to the DB. The fix on the server is to check for leases before and
-	// after the team change is commited (in the same transaction). We were previously only checking before.
+	// team leave transition was committed to the DB. The fix on the server is to check for leases before and
+	// after the team change is committed (in the same transaction). We were previously only checking before.
 	// It has been fixed in Y2K-891.
 	"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2822",
 }
@@ -816,7 +816,7 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 
 	// Make sure there is not a gap between the latest local key and the earliest received key.
 	if earliestReceivedGen > keybase1.PerTeamKeyGeneration(1) {
-		// We should have the seed for the generation preceeding the earliest received.
+		// We should have the seed for the generation preceding the earliest received.
 		checkGen := earliestReceivedGen - 1
 		if _, ok := state.PerTeamKeySeedsUnverified[earliestReceivedGen-1]; !ok {
 			return fmt.Errorf("gap in per-team-keys: latestRecvd:%v earliestRecvd:%v missing:%v",

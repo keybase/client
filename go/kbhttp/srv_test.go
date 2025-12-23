@@ -27,6 +27,7 @@ func TestSrv(t *testing.T) {
 		t.Logf("url: %s", url)
 		resp, err := http.Get(url)
 		require.NoError(t, err)
+		defer resp.Body.Close()
 		out, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		require.Equal(t, "success", string(out))
