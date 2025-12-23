@@ -44,8 +44,9 @@ has_js_files() {
 js_tests() {
 	echo 'js-tests'
 	node --version
+	# reset this in case we're still building yarn classic branches
+	corepack disable
 	corepack enable
-	corepack prepare yarn@3.6.4 --activate
 	has_js_files
 
 	echo 'cleanup'
