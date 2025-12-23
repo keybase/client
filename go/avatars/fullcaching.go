@@ -399,7 +399,7 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 	}
 }
 
-func (c *FullCachingSource) populateCacheJob(m libkb.MetaContext, arg populateArg) err {
+func (c *FullCachingSource) populateCacheJob(m libkb.MetaContext, arg populateArg) (err error) {
 	c.debug(m, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
 		arg.format, arg.url)
 	// Grab image data first
