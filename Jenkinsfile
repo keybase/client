@@ -204,7 +204,7 @@ helpers.rootLinuxNode(env, {
                   sh "go install mvdan.cc/gofumpt"
                 }
                 dir ('protocol') {
-                  sh "yarn"
+                  sh "yarn --frozen-lockfile"
                   sh "make clean"
                   sh "make"
                 }
