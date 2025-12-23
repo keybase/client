@@ -392,60 +392,60 @@ func (c *FullCachingSource) removeFile(m libkb.MetaContext, ent *lru.DiskLRUEntr
 
 func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 	for arg := range c.populateCacheCh {
-		c.debug(m, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
-			arg.format, arg.url)
-		// Grab image data first
-		url := arg.url.String()
-		resp, err := libkb.ProxyHTTPGet(m.G(), m.G().GetEnv(), url, "FullCachingSource: Avatar")
+		err := c.populateCacheJob(m, arg)
 		if err != nil {
-			c.debug(m, "populateCacheWorker: failed to download avatar: %s", err)
-			continue
-		}
-		// Ensure body is closed on all paths
-		closeBody := func() {
-			err := libkb.DiscardAndCloseBody(resp)
-			if err != nil {
-				c.debug(m, "populateCacheWorker: error closing body: %+v", err)
-			}
-		}
-		// Find any previous path we stored this image at on the disk
-		var previousEntry lruEntry
-		var previousPath string
-		key := c.avatarKey(arg.name, arg.format)
-		found, ent, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
-		if err != nil {
-			c.debug(m, "populateCacheWorker: failed to read previous entry in LRU: %s", err)
-			closeBody()
-			continue
-		}
-		if found {
-			previousEntry = c.processLRUHit(ent)
-			previousPath = c.normalizeFilenameFromCache(m, previousEntry.Path)
-		}
-
-		// Save to disk
-		path, err := c.commitAvatarToDisk(m, resp.Body, previousPath)
-		closeBody()
-		if err != nil {
-			c.debug(m, "populateCacheWorker: failed to write to disk: %s", err)
-			continue
-		}
-		v := lruEntry{
-			Path: path,
-			URL:  &url,
-		}
-		evicted, err := c.diskLRU.Put(m.Ctx(), m.G(), key, v)
-		if err != nil {
-			c.debug(m, "populateCacheWorker: failed to put into LRU: %s", err)
-			continue
-		}
-		// Remove any evicted file (if there is one)
-		c.removeFile(m, evicted)
-
-		if c.populateSuccessCh != nil {
-			c.populateSuccessCh <- struct{}{}
+			c.debug(m, "populateCacheWorker: %s", err)
 		}
 	}
+}
+
+func (c *FullCachingSource) populateCacheJob(m libkb.MetaContext, arg populateArg) err {
+	c.debug(m, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
+		arg.format, arg.url)
+	// Grab image data first
+	url := arg.url.String()
+	resp, err := libkb.ProxyHTTPGet(m.G(), m.G().GetEnv(), url, "FullCachingSource: Avatar")
+	defer func() { _ = libkb.DiscardAndCloseBody(resp) }()
+	if err != nil {
+		c.debug(m, "populateCacheWorker: failed to download avatar: %s", err)
+		return err
+	}
+	// Find any previous path we stored this image at on the disk
+	var previousEntry lruEntry
+	var previousPath string
+	key := c.avatarKey(arg.name, arg.format)
+	found, ent, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
+	if err != nil {
+		c.debug(m, "populateCacheWorker: failed to read previous entry in LRU: %s", err)
+		return err
+	}
+	if found {
+		previousEntry = c.processLRUHit(ent)
+		previousPath = c.normalizeFilenameFromCache(m, previousEntry.Path)
+	}
+
+	// Save to disk
+	path, err := c.commitAvatarToDisk(m, resp.Body, previousPath)
+	if err != nil {
+		c.debug(m, "populateCacheWorker: failed to write to disk: %s", err)
+		return err
+	}
+	v := lruEntry{
+		Path: path,
+		URL:  &url,
+	}
+	evicted, err := c.diskLRU.Put(m.Ctx(), m.G(), key, v)
+	if err != nil {
+		c.debug(m, "populateCacheWorker: failed to put into LRU: %s", err)
+		return err
+	}
+	// Remove any evicted file (if there is one)
+	c.removeFile(m, evicted)
+
+	if c.populateSuccessCh != nil {
+		c.populateSuccessCh <- struct{}{}
+	}
+	return nil
 }
 
 func (c *FullCachingSource) dispatchPopulateFromRes(m libkb.MetaContext, res keybase1.LoadAvatarsRes,
