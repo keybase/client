@@ -46,8 +46,8 @@ js_tests() {
 	node --version
 	# reset this in case we're still building yarn classic branches
 	corepack disable
-	rm -rf ~/.node/corepack
 	corepack enable
+	corepack prepare yarn@1.22.19 --activate
 	has_js_files
 
 	echo 'cleanup'
