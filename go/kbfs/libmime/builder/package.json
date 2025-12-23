@@ -1,5 +1,4 @@
 {
-  "packageManager": "yarn@3.6.4",
   "dependencies": {
     "co": "^4.6.0",
     "cogent": "^1.0.1"

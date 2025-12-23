@@ -1,5 +1,4 @@
 {
-  "packageManager": "yarn@3.6.4",
   "title": "Keybase Browser Extension",
   "name": "keybase-extension",
   "license": "BSD-3-Clause",

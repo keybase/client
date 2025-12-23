@@ -1,6 +1,5 @@
 {
   "name": "pvl-tools",
-  "packageManager": "yarn@3.6.4",
   "version": "1.0.0",
   "description": "Tools for converting pvl from cson into a useable form",
   "main": "reader.iced",
