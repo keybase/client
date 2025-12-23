@@ -777,7 +777,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	localUpdates := make(map[chat1.ConvIDStr]chat1.LocalMtimeUpdate)
 	s.Debug(ctx, "ApplyLocalChatState: looking through %d outbox items for badgable errors", len(obrs))
 	for _, obr := range obrs {
-		if !(obr.IsBadgable() && obr.IsError()) {
+		if !obr.IsBadgable() || !obr.IsError() {
 			s.Debug(ctx, "ApplyLocalChatState: skipping msgTyp: %v", obr.Msg.MessageType())
 			continue
 		}

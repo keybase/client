@@ -335,11 +335,11 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 		var foundMiscEmail, foundMiscPhone, foundOurEmail, foundOurPhone int
 		for _, v := range list {
 			if v.Component.Email != nil {
-				switch {
-				case *v.Component.Email == miscEmailAddr:
+				switch *v.Component.Email {
+				case miscEmailAddr:
 					foundMiscEmail++
 					require.False(t, v.Resolved)
-				case *v.Component.Email == emailAddr:
+				case emailAddr:
 					foundOurEmail++
 					require.True(t, v.Resolved)
 					require.Equal(t, ann.username, v.Username)
@@ -348,11 +348,11 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 					require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
 				}
 			} else if v.Component.PhoneNumber != nil {
-				switch {
-				case *v.Component.PhoneNumber == miscPhoneNum:
+				switch *v.Component.PhoneNumber {
+				case miscPhoneNum:
 					foundMiscPhone++
 					require.False(t, v.Resolved)
-				case *v.Component.PhoneNumber == rawPhone:
+				case rawPhone:
 					foundOurPhone++
 					require.True(t, v.Resolved)
 					require.Equal(t, ann.username, v.Username)
@@ -397,19 +397,19 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 			for _, v := range list {
 				t.Logf("Checking component %s, should be UNRESOLVED", spew.Sdump(v))
 				if v.Component.Email != nil {
-					switch {
-					case *v.Component.Email == miscEmailAddr:
+					switch *v.Component.Email {
+					case miscEmailAddr:
 						foundMiscEmail++
-					case *v.Component.Email == emailAddr:
+					case emailAddr:
 						foundOurEmail++
 					default:
 						require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)
 					}
 				} else if v.Component.PhoneNumber != nil {
-					switch {
-					case *v.Component.PhoneNumber == miscPhoneNum:
+					switch *v.Component.PhoneNumber {
+					case miscPhoneNum:
 						foundMiscPhone++
-					case *v.Component.PhoneNumber == rawPhone:
+					case rawPhone:
 						foundOurPhone++
 					default:
 						require.Fail(t, "Found unexpected email in contacts: %s", *v.Component.Email)

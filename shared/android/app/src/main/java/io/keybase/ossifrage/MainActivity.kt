@@ -65,6 +65,10 @@ class MainActivity : ReactActivity() {
         NativeLogger.info("Activity onCreate")
         setupKBRuntime(this, true)
         cachedIntent = intent
+        val bundleFromNotification = intent.getBundleExtra("notification")
+        if (bundleFromNotification != null) {
+            KbModule.setInitialNotification(bundleFromNotification.clone() as Bundle)
+        }
 
         super.onCreate(null)
         Handler(Looper.getMainLooper()).postDelayed({
@@ -79,24 +83,19 @@ class MainActivity : ReactActivity() {
         KeybasePushNotificationListenerService.createNotificationChannel(this)
         updateIsUsingHardwareKeyboard()
 
-        // old arch, hook up react starting up new arch does this by itself i think
-        val reactHost = (application as ReactApplication).reactNativeHost
-        val reactInstanceManager = reactHost.reactInstanceManager
-        if (reactInstanceManager.hasStartedCreatingInitialContext()) {
-            val reactContext = reactActivityDelegate?.getCurrentReactContext()
-            if (reactContext != null) {
-                handleIntent()
-                return
+        // Check if React context is already available, otherwise wait for it
+        val reactContext = reactActivityDelegate?.getCurrentReactContext()
+        if (reactContext != null) {
+            handleIntent()
+        } else {
+            val listener = object : ReactInstanceEventListener {
+                override fun onReactContextInitialized(c: ReactContext) {
+                    handleIntent()
+                    reactActivityDelegate?.reactHost?.removeReactInstanceEventListener(this)
+                }
             }
+            reactActivityDelegate?.reactHost?.addReactInstanceEventListener(listener)
         }
-
-        val listener = object : ReactInstanceEventListener {
-            override fun onReactContextInitialized(c: ReactContext) {
-                handleIntent()
-                reactInstanceManager.removeReactInstanceEventListener(this)
-            }
-        }
-        reactActivityDelegate?.reactHost?.addReactInstanceEventListener(listener)
 
         // fix for keyboard avoiding not working on 35
         if (Build.VERSION.SDK_INT >= 35) {
@@ -212,6 +211,10 @@ class MainActivity : ReactActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         cachedIntent = intent
+        val bundleFromNotification = intent.getBundleExtra("notification")
+        if (bundleFromNotification != null) {
+            KbModule.setInitialNotification(bundleFromNotification.clone() as Bundle)
+        }
         handleIntent()
     }
 
@@ -221,6 +224,7 @@ class MainActivity : ReactActivity() {
     }
 
     private var jsIsListening = false
+    private var handledIntentHash: String? = null
     private fun handleIntent() {
         val intent = cachedIntent ?: return
         val rc = reactActivityDelegate?.getCurrentReactContext() ?: return
@@ -229,19 +233,35 @@ class MainActivity : ReactActivity() {
         if (jsIsListening == false) {
             return
         }
-        cachedIntent = null
 
         // Here we are just reading from the notification bundle.
         // If other sources start the app, we can get their intent data the same way.
         val bundleFromNotification = intent.getBundleExtra("notification")
+        if (bundleFromNotification == null) {
+            cachedIntent = null
+            return
+        }
+
+        // Prevent duplicate handling of the same notification
+        val convID = bundleFromNotification.getString("convID") ?: bundleFromNotification.getString("c")
+        val messageId = bundleFromNotification.getString("msgID") ?: bundleFromNotification.getString("d") ?: ""
+        val intentHash = "${convID}_${messageId}"
+        if (handledIntentHash == intentHash) {
+            NativeLogger.info("MainActivity.handleIntent skipping duplicate notification: $intentHash")
+            cachedIntent = null
+            return
+        }
+        handledIntentHash = intentHash
+        NativeLogger.info("MainActivity.handleIntent processing notification: $intentHash")
+        cachedIntent = null
         intent.removeExtra("notification")
         val action = intent.action
         var uris_: Array<Uri?>? = null
         if (Intent.ACTION_SEND_MULTIPLE == action) {
-            val alUri = intent.getParcelableArrayListExtra<Uri?>(Intent.EXTRA_STREAM)
-            uris_ = alUri!!.toTypedArray<Uri?>()
+            val alUri = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)
+            uris_ = alUri?.toTypedArray<Uri?>()
         } else if (Intent.ACTION_SEND == action) {
-            val oneUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+            val oneUri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
             uris_ = arrayOf(oneUri)
         }
         intent.removeExtra(Intent.EXTRA_STREAM)
@@ -268,13 +288,19 @@ class MainActivity : ReactActivity() {
         }?.toTypedArray() ?: emptyArray()
 
         // If there are any other bundle sources we care about, emit them here
-        if (bundleFromNotification != null) {
-            var payload = Arguments.fromBundle(bundleFromNotification)
-            emitter.emit(
-                "initialIntentFromNotification",
-                payload
-            )
-        }
+        // bundleFromNotification is already checked for null above, so it's safe here
+        val bundle1 = bundleFromNotification.clone() as Bundle
+        val bundle2 = bundleFromNotification.clone() as Bundle
+        var payload1 = Arguments.fromBundle(bundle1)
+        emitter.emit(
+            "initialIntentFromNotification",
+            payload1
+        )
+        var payload2 = Arguments.fromBundle(bundle2)
+        emitter.emit(
+            "onPushNotification",
+            payload2
+        )
         if (filePaths.size != 0) {
             val args = Arguments.createMap()
             val lPaths = Arguments.createArray()
@@ -352,6 +378,7 @@ class MainActivity : ReactActivity() {
 
     companion object {
         private const val TAG = "ossifrage"
+
         private fun createDummyFile(context: Context) {
             val dummyFile = File(context.filesDir, "dummy.txt")
             try {

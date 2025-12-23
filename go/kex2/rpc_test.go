@@ -165,6 +165,7 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 	secretCh := make(chan Secret)
 
 	ctx, cancelFn := context.WithCancel(context.Background())
+	defer cancelFn()
 
 	testLogCtx, cleanup := newTestLogCtx(t)
 	defer cleanup()

@@ -3,7 +3,7 @@ import type {Props} from '.'
 
 const Prompt = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.promptContainer}>
-    <Kb.Text type="BodySmallSemibold">Select attachment type</Kb.Text>
+    <Kb.Text type="BodySmallSemibold">Select attachment</Kb.Text>
   </Kb.Box2>
 )
 
@@ -28,14 +28,9 @@ const FilePickerPopup = (p: Props) => {
           title: 'Take photo or video',
         },
         {
-          icon: 'iconfont-video-library',
-          onClick: () => p.onSelect('video', 'library'),
-          title: 'Choose video from library',
-        },
-        {
           icon: 'iconfont-photo-library',
-          onClick: () => p.onSelect('photo', 'library'),
-          title: 'Choose photos from library',
+          onClick: () => p.onSelect('mixed', 'library'),
+          title: 'Choose from library',
         },
       ] as const)
     : ([
@@ -47,13 +42,8 @@ const FilePickerPopup = (p: Props) => {
         {icon: 'iconfont-film', onClick: () => p.onSelect('video', 'camera'), title: 'Take video'},
         {
           icon: 'iconfont-photo-library',
-          onClick: () => p.onSelect('photo', 'library'),
-          title: 'Photo from library',
-        },
-        {
-          icon: 'iconfont-video-library',
-          onClick: () => p.onSelect('video', 'library'),
-          title: 'Video from library',
+          onClick: () => p.onSelect('mixed', 'library'),
+          title: 'Choose from library',
         },
       ] as const)
 

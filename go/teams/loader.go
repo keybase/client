@@ -366,7 +366,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// public team you're not in. Restricted bot members don't have any secrets
 	// and are also exempt.
 	if !l.hasSyncedSecrets(mctx, ret.teamShim()) &&
-		!(ret.team.Chain.Public || ret.team.Chain.UserRole(me).IsRestrictedBot()) {
+		(!ret.team.Chain.Public && !ret.team.Chain.UserRole(me).IsRestrictedBot()) {
 		// this should not happen
 		return nil, nil, fmt.Errorf("missing secrets for team")
 	}

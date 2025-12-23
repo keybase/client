@@ -96,10 +96,11 @@ func (t *Terminal) PromptYesNo(p string, def libkb.PromptDefault) (ret bool, err
 			ret = false
 			done = true
 		} else if libkb.IsEmpty(s) {
-			if def == libkb.PromptDefaultNo {
+			switch def {
+			case libkb.PromptDefaultNo:
 				ret = false
 				done = true
-			} else if def == libkb.PromptDefaultYes {
+			case libkb.PromptDefaultYes:
 				ret = true
 				done = true
 			}

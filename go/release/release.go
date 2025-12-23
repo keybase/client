@@ -241,11 +241,10 @@ func main() {
 		}
 		if release == nil {
 			log.Fatal("No release found")
-		} else {
-			_, err := update.KBWebPromote(keybaseToken(!*promoteAReleaseDryRun), release.Version, *promoteAReleasePlatform, *promoteAReleaseDryRun)
-			if err != nil {
-				log.Fatal(err)
-			}
+		}
+		_, err = update.KBWebPromote(keybaseToken(!*promoteAReleaseDryRun), release.Version, *promoteAReleasePlatform, *promoteAReleaseDryRun)
+		if err != nil {
+			log.Fatal(err)
 		}
 	case promoteTestReleasesCmd.FullCommand():
 		err := update.PromoteTestReleases(*promoteTestReleasesBucketName, *promoteTestReleasesPlatform, *promoteTestReleasesRelease)

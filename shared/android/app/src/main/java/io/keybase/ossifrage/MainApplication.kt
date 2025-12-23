@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package io.keybase.ossifrage
 
 import android.app.Application
@@ -44,6 +46,8 @@ internal class AppLifecycleListener(private val context: Context?) :
 }
 
 class MainApplication : Application(), ReactApplication {
+    // ReactNativeHost is still required by getDefaultReactHost even in new architecture
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(
       this,
       object : DefaultReactNativeHost(this) {

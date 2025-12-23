@@ -359,9 +359,6 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 
 	// clear the paper key cache to test getting a paper key via UI
 	clearCaches(tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	f = func() libkb.SecretUI {
 		// set the passphrase in the secretUI to the paper key

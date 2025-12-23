@@ -99,6 +99,18 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	err = mctx.G().GetEKLib().KeygenIfNeeded(mctx)
 	require.NoError(t, err)
 
+	// Shutdown background EK generation now, before the revoke.
+	// The signup above triggers an OnLogin hook that spawns a goroutine with jitter
+	// (up to 1 second delay). This goroutine may call KeygenIfNeeded during the revoke,
+	// creating a UserEK even when SkipUserEKForTesting is true. Shutting down here
+	// prevents this race condition.
+	lib := tc.G.GetEKLib()
+	ekLib, ok := lib.(*EKLib)
+	require.True(t, ok)
+	err = ekLib.Shutdown(mctx)
+	require.NoError(t, err)
+	t.Logf("Disabled background EK generation after signup (SkipUserEKForTesting=%v)", skipUserEKForTesting)
+
 	// Confirm that the user has a userEK.
 	uid := tc.G.Env.GetUID()
 	uids := []keybase1.UID{uid}
@@ -145,14 +157,10 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
-	lib := tc.G.GetEKLib()
-	ekLib, ok := lib.(*EKLib)
-	require.True(t, ok)
-	// disable background keygen
-	err = ekLib.Shutdown(mctx)
-	require.NoError(t, err)
+
 	needed, err := ekLib.NewUserEKNeeded(mctx)
 	require.NoError(t, err)
+	t.Logf("NewUserEKNeeded returned %v (skipUserEKForTesting=%v)", needed, skipUserEKForTesting)
 	require.Equal(t, skipUserEKForTesting, needed)
 	publishAndVerifyUserEK(mctx, t, merkleRoot, uid)
 }

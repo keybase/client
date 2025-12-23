@@ -71,7 +71,7 @@ func (c *CmdCurrencyAdd) ParseArgv(ctx *cli.Context) error {
 	c.address = ctx.Args()[0]
 	c.force = ctx.Bool("force")
 	w := ctx.String("type")
-	if !(w == "bitcoin" || w == "zcash" || w == "") {
+	if w != "bitcoin" && w != "zcash" && w != "" {
 		return fmt.Errorf("Bad address type; can only handle 'zcash' or 'bitcoin")
 	}
 	c.wanted = w

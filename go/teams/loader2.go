@@ -928,10 +928,8 @@ func unboxPerTeamSecrets(m libkb.MetaContext, world LoaderContext, box *TeamBox,
 	// - the map is exhausted
 	// - if malformed, the map has a gap
 	// - reach generation 0
-	for {
-		if int(openGeneration) == 0 || int(openGeneration) < 0 {
-			break
-		}
+	for int(openGeneration) != 0 && int(openGeneration) >= 0 {
+
 		// Prevs is keyed by the generation that can decrypt, not the generation contained.
 		prev, ok := prevs[openGeneration+1]
 		if !ok {

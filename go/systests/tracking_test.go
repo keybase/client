@@ -216,7 +216,7 @@ func TestTrackingNotifications(t *testing.T) {
 		case arg := <-nh.trackingCh:
 			tAliceUID := keybase1.UID("295a7eea607af32040647123732bc819")
 			tc.G.Log.Debug("Got tracking changed notification (%#v)", arg)
-			if "t_alice" == arg.Username {
+			if arg.Username == "t_alice" {
 				if !tAliceUID.Equal(arg.Uid) {
 					t.Fatalf("Bad UID back: %s != %s", tAliceUID, arg.Uid)
 				}

@@ -305,7 +305,7 @@ func (h *HoleyResultCollector) PushPlaceholder(msgID chat1.MessageID) bool {
 		return false
 	}
 
-	h.ResultCollector.Push(chat1.NewMessageUnboxedWithPlaceholder(chat1.MessageUnboxedPlaceholder{
+	h.Push(chat1.NewMessageUnboxedWithPlaceholder(chat1.MessageUnboxedPlaceholder{
 		MessageID: msgID,
 	}))
 	h.holes++

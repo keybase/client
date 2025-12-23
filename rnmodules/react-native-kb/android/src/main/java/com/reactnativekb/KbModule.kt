@@ -17,6 +17,7 @@ import android.text.format.DateFormat
 import android.util.Log
 import android.view.Window
 import android.view.WindowManager
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import com.facebook.react.bridge.Arguments
@@ -81,6 +82,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     @ReactMethod
     override fun removeListeners(count: Double) {
     }
+
+
+    @ReactMethod
+    override fun setEnablePasteImage(enabled: Boolean) {
+        // not used
+    }
+
 
     /**
      * Gets a field from the project's BuildConfig. This is useful when, for example, flavors
@@ -305,15 +313,15 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     // Push
     @ReactMethod
-    override fun androidCheckPushPermissions(promise: Promise) {
+    override fun checkPushPermissions(promise: Promise) {
         val managerCompat: NotificationManagerCompat = NotificationManagerCompat.from(reactContext)
         promise.resolve(managerCompat.areNotificationsEnabled())
     }
 
     @ReactMethod
-    override fun androidRequestPushPermissions(promise: Promise) {
+    override fun requestPushPermissions(promise: Promise) {
         ensureFirebase()
-        androidCheckPushPermissions(promise)
+        checkPushPermissions(promise)
     }
 
     private fun ensureFirebase() {
@@ -330,7 +338,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     }
 
     @ReactMethod
-    override fun androidGetRegistrationToken(promise: Promise) {
+    override fun getRegistrationToken(promise: Promise) {
         ensureFirebase()
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(OnCompleteListener { task ->
@@ -505,10 +513,78 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         }
     }
 
-    // Badging
     @ReactMethod
-    override fun androidSetApplicationIconBadgeNumber(badge: Double) {
+    override fun setApplicationIconBadgeNumber(badge: Double) {
         ShortcutBadger.applyCount(reactContext, badge.toInt())
+    }
+
+    @ReactMethod
+    override fun getInitialNotification(promise: Promise) {
+        val bundle = KbModule.initialNotificationBundle
+        if (bundle != null) {
+            try {
+                @Suppress("UNCHECKED_CAST")
+                val payload: WritableMap = Arguments.fromBundle(bundle) as WritableMap
+                promise.resolve(payload)
+            } catch (e: Exception) {
+                promise.resolve(null)
+            }
+        } else {
+            promise.resolve(null)
+        }
+    }
+
+    private fun emitPushNotificationInternal(notification: Bundle) {
+        android.util.Log.d("KbModule", "emitPushNotificationInternal called")
+        if (reactContext.hasActiveCatalystInstance()) {
+            android.util.Log.d("KbModule", "emitPushNotificationInternal has active catalyst instance, emitting event")
+            try {
+                val payload = Arguments.fromBundle(notification)
+                reactContext
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                    .emit("onPushNotification", payload)
+                android.util.Log.d("KbModule", "emitPushNotificationInternal event emitted successfully")
+            } catch (e: Exception) {
+                android.util.Log.e("KbModule", "emitPushNotificationInternal failed to emit: " + e.message)
+            }
+        } else {
+            android.util.Log.w("KbModule", "emitPushNotificationInternal no active catalyst instance")
+        }
+    }
+
+    @ReactMethod
+    override fun removeAllPendingNotificationRequests() {
+    }
+
+    @ReactMethod
+    override fun addNotificationRequest(config: ReadableMap, promise: Promise) {
+        val body = config.getString("body")
+        val id = config.getString("id")
+
+        if (body == null || id == null) {
+            promise.reject("invalid_config", "body and id are required")
+            return
+        }
+
+        val notificationManager = reactContext.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        val channelId = "keybase_notifications"
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel(
+                channelId,
+                "Keybase Notifications",
+                android.app.NotificationManager.IMPORTANCE_DEFAULT
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notification = NotificationCompat.Builder(reactContext, channelId)
+            .setContentText(body)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .build()
+
+        notificationManager.notify(id.hashCode(), notification)
+        promise.resolve(null)
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
@@ -665,11 +741,33 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         private val LINE_SEPARATOR: String? = System.getProperty("line.separator")
         private const val HW_KEY_EVENT: String = "hardwareKeyPressed"
 
-        private var instance: KbModule? = null
+        var instance: KbModule? = null
+        @JvmStatic
+        internal var initialNotificationBundle: Bundle? = null
 
         @JvmStatic
         fun keyPressed(keyName: String) {
             instance?.sendHardwareKeyEvent(keyName)
+        }
+
+        @JvmStatic
+        fun setInitialNotification(bundle: Bundle?) {
+            initialNotificationBundle = bundle
+        }
+
+        @JvmStatic
+        fun isReactNativeRunning(): Boolean {
+            return instance != null
+        }
+
+        @JvmStatic
+        fun emitPushNotification(notification: Bundle) {
+            if (instance == null) {
+                android.util.Log.w("KbModule", "emitPushNotification called but instance is null (app may not be running)")
+                return
+            }
+            android.util.Log.d("KbModule", "emitPushNotification called, instance exists")
+            instance?.emitPushNotificationInternal(notification)
         }
 
         // Is this a robot controlled test device? (i.e. pre-launch report?)

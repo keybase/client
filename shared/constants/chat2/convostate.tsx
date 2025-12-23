@@ -114,7 +114,6 @@ type ConvoStore = T.Immutable<{
   giphyWindow: boolean
   loaded: boolean // did we ever load this thread yet
   markedAsUnread: T.Chat.Ordinal
-  maxMsgIDSeen: T.Chat.MessageID // max id weve seen so far, we do delete things
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> // ordered ordinals in a thread,
@@ -153,7 +152,6 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   loaded: false,
   markedAsUnread: T.Chat.numberToOrdinal(0),
-  maxMsgIDSeen: T.Chat.numberToMessageID(-1),
   messageCenterOrdinal: undefined,
   messageMap: new Map(),
   messageOrdinals: undefined,
@@ -445,7 +443,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     return clientPrev || T.Chat.numberToMessageID(0)
   }
 
-  // things that depend on messageMap, like the ordinals and the maxMsgIDSeen
   const syncMessageDerived = (s: Z.WritableDraft<ConvoState>) => {
     const mo = [...s.messageMap]
       .filter(([, m]) => {
@@ -467,12 +464,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       p = o
     }
     s.separatorMap = sm
-
-    const lastOrd = mo.at(-1)
-    const lastID = lastOrd ? (s.messageMap.get(lastOrd)?.id ?? 0) : 0
-    if (lastID && lastID > s.maxMsgIDSeen) {
-      s.maxMsgIDSeen = lastID
-    }
   }
 
   const desktopNotification = (author: string, body: string) => {
@@ -529,11 +520,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const m = T.castDraft(_m)
         const regularMessage = m.conversationMessage !== false
 
-        // we capture the highest one, cause sometimes we'll not track it in the map
-        // aka for deleted or placeholders
-        if (regularMessage && m.id > s.maxMsgIDSeen) {
-          s.maxMsgIDSeen = m.id
-        }
         if (regularMessage && m.type === 'deleted') {
           s.messageMap.delete(m.ordinal)
           s.messageTypeMap.delete(m.ordinal)
@@ -551,7 +537,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             const old = s.messageMap.get(mapOrdinal)
             if (old && old.type !== 'placeholder') {
               // ignore it
-              return
+              continue
             }
           }
 
@@ -686,21 +672,18 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       if (m && Message.isMessageWithReactions(m)) {
         const rs = {
           decorated: m.reactions?.get(emoji)?.decorated ?? decorated,
-          users: m.reactions?.get(emoji)?.users ?? new Set(),
+          users: m.reactions?.get(emoji)?.users ?? [],
         }
         if (!m.reactions) {
           m.reactions = new Map()
         }
         m.reactions.set(emoji, rs)
-        const existing = [...rs.users].find(r => r.username === username)
-        if (existing) {
-          // found an existing reaction. remove it from our list
-          rs.users.delete(existing)
+        if (rs.users.includes(username)) {
+          rs.users = rs.users.filter(u => u !== username)
         } else {
-          // no existing reaction. add this one to the map
-          rs.users.add(Message.makeReaction({timestamp: Date.now(), username}))
+          rs.users = [...rs.users, username]
         }
-        if (rs.users.size === 0) {
+        if (rs.users.length === 0) {
           m.reactions.delete(emoji)
         }
       }
@@ -1033,6 +1016,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const meta = get().meta
       const tlfName = meta.tlfname
       const clientPrev = getClientPrev()
+      const convID = get().getConvID()
 
       // disable sending exploding messages if flag is false
       const ephemeralLifetime = get().explodingMode
@@ -1059,7 +1043,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             ...ephemeralData,
             body: text,
             clientPrev,
-            conversationID: get().getConvID(),
+            conversationID: convID,
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             outboxID: undefined,
             replyTo,
@@ -1416,6 +1400,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const f = async () => {
         const {id: conversationIDKey} = get()
+        const convID = get().getConvID()
         try {
           const res = await T.RPCChat.localLoadGalleryRpcListener({
             incomingCallMap: {
@@ -1453,7 +1438,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               },
             },
             params: {
-              convID: get().getConvID(),
+              convID,
               fromMsgID,
               num: 50,
               typ: viewType,
@@ -1558,6 +1543,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         )
 
         const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
+        const convID = get().getConvID()
         const onGotThread = (thread: string, why: string) => {
           if (!thread) {
             return
@@ -1635,7 +1621,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
             params: {
               cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
-              conversationID: get().getConvID(),
+              conversationID: convID,
               identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
               knownRemotes,
               pagination,
@@ -2019,7 +2005,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.pendingOutboxToOrdinal.clear()
         s.loaded = false
         s.messageMap.clear()
-        s.maxMsgIDSeen = T.Chat.numberToMessageID(-1)
         syncMessageDerived(s)
         s.messageTypeMap.clear()
       })
@@ -2901,7 +2886,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
                 if (message) {
                   set(s => {
-                    s.threadSearchInfo.hits.push(T.castDraft(message))
+                    // Only add if not already present (idempotent - safe for out-of-order callbacks)
+                    if (!s.threadSearchInfo.hits.find(h => h.id === message.id)) {
+                      s.threadSearchInfo.hits.push(T.castDraft(message))
+                    }
                   })
                 }
               },
@@ -3176,7 +3164,25 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         set(s => {
           const m = s.messageMap.get(targetOrdinal)
           if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
-            m.reactions = T.castDraft(reactions)
+            if (!reactions) {
+              m.reactions = undefined
+            } else if (!m.reactions) {
+              m.reactions = T.castDraft(reactions)
+            } else {
+              const existingOrder = [...m.reactions.keys()]
+              const newReactions = new Map<string, T.Chat.ReactionDesc>()
+              for (const emoji of existingOrder) {
+                if (reactions.has(emoji)) {
+                  newReactions.set(emoji, reactions.get(emoji)!)
+                }
+              }
+              for (const [emoji, desc] of reactions) {
+                if (!newReactions.has(emoji)) {
+                  newReactions.set(emoji, desc)
+                }
+              }
+              m.reactions = T.castDraft(newReactions)
+            }
           }
         })
       }

@@ -97,10 +97,7 @@ var botSettingsFlags = []cli.Flag{
 }
 
 func ParseBotSettings(ctx *cli.Context) *keybase1.TeamBotSettings {
-	if !(ctx.IsSet("allow-commands") ||
-		ctx.IsSet("allow-mentions") ||
-		ctx.IsSet("allow-trigger") ||
-		ctx.IsSet("allow-conversation")) {
+	if !ctx.IsSet("allow-commands") && !ctx.IsSet("allow-mentions") && !ctx.IsSet("allow-trigger") && !ctx.IsSet("allow-conversation") {
 		return nil
 	}
 	return &keybase1.TeamBotSettings{

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -223,6 +224,14 @@ func newTestDeviceSet(t *testing.T, cl clockwork.FakeClock) *testDeviceSet {
 
 func (s *testDeviceSet) cleanup() {
 	for _, od := range s.devices {
+		// Shutdown EKLib before cleanup to stop background goroutines
+		// that might try to access the API after it's torn down
+		if ekLib := od.tctx.G.GetEKLib(); ekLib != nil {
+			if ekLibConcrete, ok := ekLib.(*ephemeral.EKLib); ok {
+				mctx := libkb.NewMetaContextForTest(*od.tctx)
+				_ = ekLibConcrete.Shutdown(mctx) // Best effort, ignore errors during cleanup
+			}
+		}
 		od.tctx.Cleanup()
 		if od.service != nil {
 			od.service.Stop(0)

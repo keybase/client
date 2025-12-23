@@ -9,7 +9,7 @@ import * as MediaLibrary from 'expo-media-library'
 import * as Tabs from '../tabs'
 import * as NetInfo from '@react-native-community/netinfo'
 import NotifyPopup from '@/util/notify-popup'
-import PushNotificationIOS from '@react-native-community/push-notification-ios'
+import {addNotificationRequest} from 'react-native-kb'
 import logger from '@/logger'
 import {Alert, Linking, ActionSheetIOS} from 'react-native'
 import {isIOS, isAndroid} from '../platform.native'
@@ -85,11 +85,10 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
     // just in case to get their attention.
-    isIOS &&
-      PushNotificationIOS.addNotificationRequest({
-        body: `Failed to save ${saveType} to camera roll`,
-        id: Math.floor(Math.random() * 2 ** 32).toString(),
-      })
+    addNotificationRequest({
+      body: `Failed to save ${saveType} to camera roll`,
+      id: Math.floor(Math.random() * 2 ** 32).toString(),
+    }).catch(() => {})
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
   } finally {

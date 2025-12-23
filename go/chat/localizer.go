@@ -86,7 +86,7 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	defer b.Trace(ctx, &err, "Localize")()
 	inbox = b.filterSelfFinalized(ctx, inbox)
 	convs := b.getConvs(inbox, maxLocalize)
-	if err := b.baseLocalizer.pipeline.queue(ctx, uid, convs, b.localizeCb); err != nil {
+	if err := b.pipeline.queue(ctx, uid, convs, b.localizeCb); err != nil {
 		b.Debug(ctx, "Localize: failed to queue: %s", err)
 		return res, err
 	}
@@ -178,7 +178,7 @@ func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	// Spawn off localization into its own goroutine and use cb to communicate with outside world
 	go func(ctx context.Context) {
 		b.Debug(ctx, "Localize: starting background localization: convs: %d", len(inbox.ConvsUnverified))
-		if err := b.baseLocalizer.pipeline.queue(ctx, uid, b.getConvs(inbox, maxLocalize), b.localizeCb); err != nil {
+		if err := b.pipeline.queue(ctx, uid, b.getConvs(inbox, maxLocalize), b.localizeCb); err != nil {
 			b.Debug(ctx, "Localize: failed to queue: %s", err)
 			close(b.localizeCb)
 		}

@@ -203,7 +203,7 @@ func TestScraper(t *testing.T) {
 	testCase("nytimes0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "First Up if Democrats Win: Campaign and Ethics Changes, Infrastructure and Drug Prices",
 		Url:         "https://www.nytimes.com/2018/10/31/us/politics/democrats-midterm-elections.html",
-		SiteName:    "0.1", // the default for these tests (from the localhost domain)
+		SiteName:    "127.0.0.1", // the default for these tests (from the localhost domain)
 		Description: strPtr("House Democratic leaders, for the first time, laid out an ambitious opening salvo of bills for a majority, including an overhaul of campaign and ethics laws."),
 		PublishTime: intPtr(1540990881),
 		ImageUrl:    strPtr("https://static01.nyt.com/images/2018/10/31/us/politics/31dc-dems/31dc-dems-facebookJumbo.jpg"),
@@ -253,7 +253,7 @@ func TestScraper(t *testing.T) {
 	}), true, nil, nil)
 	testCase("wikipedia0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "Merkle tree - Wikipedia",
-		SiteName:    "0.1",
+		SiteName:    "127.0.0.1",
 		Description: nil,
 		ImageUrl:    strPtr("https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Hash_Tree.svg/1200px-Hash_Tree.svg.png"),
 		FaviconUrl:  strPtr("http://127.0.0.1/static/apple-touch/wikipedia.png"),
@@ -298,7 +298,7 @@ func TestScraper(t *testing.T) {
 	}), true, nil, nil)
 	srv.shouldServeAppleTouchIcon = false
 	testCase("nytogimage.jpg", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
-		SiteName:   "0.1",
+		SiteName:   "127.0.0.1",
 		FaviconUrl: strPtr(fmt.Sprintf("http://%s/favicon.ico", addr)),
 		ImageUrl:   strPtr(fmt.Sprintf("http://%s/?name=nytogimage.jpg&content_type=image/jpeg", addr)),
 	}), true, strPtr("image/jpeg"), nil)

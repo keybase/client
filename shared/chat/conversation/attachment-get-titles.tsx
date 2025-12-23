@@ -130,6 +130,8 @@ const Container = (ownProps: OwnProps) => {
     [index, titles]
   )
 
+  const inputRef = React.useRef<Kb.PlainInputRef>(null)
+
   const {info, path} = pathAndInfos[index] ?? {}
   const titleHint = 'Add a caption...'
   if (!info) return null
@@ -164,7 +166,7 @@ const Container = (ownProps: OwnProps) => {
   return (
     <Kb.PopupWrapper onCancel={onCancel}>
       <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
-        <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
+        <Kb.ClickableBox2 style={styles.container} onClick={() => inputRef.current?.blur()}>
           <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
           {pathAndInfos.length > 0 && !Kb.Styles.isMobile && (
             <Kb.Box2 direction="vertical" style={styles.filename}>
@@ -176,6 +178,7 @@ const Container = (ownProps: OwnProps) => {
           )}
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
             <Kb.PlainInput
+              ref={inputRef}
               style={styles.input}
               autoFocus={!Kb.Styles.isMobile}
               autoCorrect={true}
@@ -197,7 +200,7 @@ const Container = (ownProps: OwnProps) => {
                 />
               )*/}
           </Kb.Box2>
-        </Kb.Box2>
+        </Kb.ClickableBox2>
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
           {!Kb.Styles.isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
@@ -232,9 +235,11 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       cancelButton: {marginRight: Kb.Styles.globalMargins.tiny},
       container: {
+        alignItems: 'center',
         flexGrow: 1,
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
+        width: '100%',
       },
       containerOuter: Kb.Styles.platformStyles({
         isElectron: {

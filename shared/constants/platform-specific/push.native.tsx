@@ -1,22 +1,15 @@
 import * as T from '../types'
 import {ignorePromise, timeoutPromise} from '../utils'
-import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '@/logger'
-import {isIOS, isAndroid} from '../platform'
+import {isAndroid} from '../platform'
 import {
-  androidGetRegistrationToken,
-  androidSetApplicationIconBadgeNumber,
+  getRegistrationToken,
+  setApplicationIconBadgeNumber,
   getNativeEmitter,
+  getInitialNotification,
+  removeAllPendingNotificationRequests,
 } from 'react-native-kb'
 import {storeRegistry} from '../store-registry'
-
-const setApplicationIconBadgeNumber = (n: number) => {
-  if (isIOS) {
-    PushNotificationIOS.setApplicationIconBadgeNumber(n)
-  } else {
-    androidSetApplicationIconBadgeNumber(n)
-  }
-}
 
 type DataCommon = {
   userInteraction: boolean
@@ -47,11 +40,9 @@ type DataChatExtension = DataCommon & {
 }
 type Data = DataReadMessage | DataNewMessage | DataNewMessageSilent2 | DataFollow | DataChatExtension
 
-type PushN = {
-  data?: Data
-  _data?: Data
-  message: string
-} & Data
+type PushN = Data & {
+  message?: string
+}
 
 const anyToConversationMembersType = (a: string | number): T.RPCChat.ConversationMembersType | undefined => {
   const membersTypeNumber: T.RPCChat.ConversationMembersType =
@@ -75,11 +66,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
       return undefined
     }
 
-    const n = _n as PushN
-    const data = isIOS ? n.data || n._data : n
-    if (!data) {
-      return undefined
-    }
+    const data = _n as PushN
     const userInteraction = !!data.userInteraction
 
     switch (data.type) {
@@ -129,9 +116,12 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
             }
           : undefined
       default:
-        if (typeof n.message === 'string' && n.message.startsWith('Your contact') && userInteraction) {
-          return {
-            type: 'settings.contacts',
+        {
+          const unk = data as any
+          if (typeof unk.message === 'string' && unk.message.startsWith('Your contact') && userInteraction) {
+            return {
+              type: 'settings.contacts',
+            }
           }
         }
 
@@ -143,64 +133,12 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
   }
 }
 
-// Push notifications on android are simple.
-// 1. KeybasePushNotificationListenerService.java is our listening service. (https://firebase.google.com/docs/cloud-messaging/android/receive)
-// 2. When a notification comes in it is handled only on Go/Java side (native only)
-// That's it.
-// If the intent is available and react isn't inited we'll stash it and emit when react is alive
-
-const listenForNativeAndroidIntentNotifications = async () => {
-  const pushToken = await androidGetRegistrationToken()
-  logger.debug('[PushToken] received new token: ', pushToken)
-
-  storeRegistry.getState('push').dispatch.setPushToken(pushToken)
-
-  const RNEmitter = getNativeEmitter()
-  RNEmitter.addListener('initialIntentFromNotification', (evt?: object) => {
-    const notification = evt && normalizePush(evt)
-    if (notification) {
-      storeRegistry.getState('push').dispatch.handlePush(notification)
-    }
-  })
-
-  RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
-    logger.debug('[ShareDataIntent]', evt)
-    const {setAndroidShare} = storeRegistry.getState('config').dispatch
-
-    const text = evt.text
-    const urls = evt.localPaths
-
-    if (urls) {
-      setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
-    } else if (text) {
-      setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
-    }
-  })
+const getInitialPush = async () => {
+  const n = await getInitialNotification()
+  return n ? normalizePush(n) : undefined
 }
-
-const iosListenForPushNotificationsFromJS = () => {
-  const onRegister = (token: string) => {
-    logger.debug('[PushToken] received new token: ', token)
-    storeRegistry.getState('push').dispatch.setPushToken(token)
-  }
-
-  const onNotification = (n: object) => {
-    logger.debug('[onNotification]: ', n)
-    const notification = normalizePush(n)
-    if (!notification) {
-      return
-    }
-
-    storeRegistry.getState('push').dispatch.handlePush(notification)
-  }
-
-  isIOS && PushNotificationIOS.addEventListener('notification', onNotification)
-  isIOS && PushNotificationIOS.addEventListener('localNotification', onNotification)
-  isIOS && PushNotificationIOS.addEventListener('register', onRegister)
-}
-
 const getStartupDetailsFromInitialPush = async () => {
-  const notification = await Promise.race([isAndroid ? null : getInitialPushiOS(), timeoutPromise(10)])
+  const notification = await Promise.race([getInitialPush(), timeoutPromise(10)])
   if (!notification) {
     return
   }
@@ -219,12 +157,6 @@ const getStartupDetailsFromInitialPush = async () => {
   }
 
   return
-}
-
-const getInitialPushiOS = async () => {
-  if (!isIOS) return undefined
-  const n = await PushNotificationIOS.getInitialNotification()
-  return n ? normalizePush(n) : undefined
 }
 
 export const initPushListener = () => {
@@ -257,8 +189,8 @@ export const initPushListener = () => {
     const count = s.badgeState.bigTeamBadgeCount + s.badgeState.smallTeamBadgeCount
     setApplicationIconBadgeNumber(count)
     // Only do this native call if the count actually changed, not over and over if its zero
-    if (isIOS && count === 0 && lastCount !== 0) {
-      PushNotificationIOS.removeAllPendingNotificationRequests()
+    if (count === 0 && lastCount !== 0) {
+      removeAllPendingNotificationRequests()
     }
     lastCount = count
   })
@@ -266,12 +198,52 @@ export const initPushListener = () => {
   storeRegistry.getState('push').dispatch.initialPermissionsCheck()
 
   const listenNative = async () => {
-    if (isAndroid) {
-      try {
-        await listenForNativeAndroidIntentNotifications()
-      } catch {}
-    } else {
-      iosListenForPushNotificationsFromJS()
+    const RNEmitter = getNativeEmitter()
+
+    // Set up listener immediately, before waiting for token
+    // This ensures notifications aren't lost if they arrive before token is ready
+    const onNotification = (n: object) => {
+      logger.debug('[onNotification]: ', n)
+      const notification = normalizePush(n)
+      if (!notification) {
+        logger.warn('[onNotification]: normalized notification is null/undefined')
+        return
+      }
+      storeRegistry.getState('push').dispatch.handlePush(notification)
+    }
+
+    try {
+      // Unified push notification handling for both iOS and Android
+      // Silent notifications (chat.newmessageSilent_2) are handled entirely natively
+      // Other notification types are handled natively first, then emitted to JS via onPushNotification
+      RNEmitter.addListener('onPushNotification', onNotification)
+
+      if (isAndroid) {
+        RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
+          const {setAndroidShare} = storeRegistry.getState('config').dispatch
+
+          const text = evt.text
+          const urls = evt.localPaths
+
+          if (urls) {
+            setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
+          } else if (text) {
+            setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
+          }
+        })
+      }
+    } catch (e) {
+      logger.error('[Push] failed to set up listeners: ', e)
+    }
+
+    // Get token after listener is set up (may fail if not ready yet, but listener is already active)
+    try {
+      const pushToken = await getRegistrationToken()
+      logger.debug('[PushToken] received new token: ', pushToken)
+      storeRegistry.getState('push').dispatch.setPushToken(pushToken)
+    } catch (e) {
+      logger.warn('[PushToken] failed to get token (will retry later): ', e)
+      // Token will be retrieved later when permissions are checked
     }
   }
   ignorePromise(listenNative())

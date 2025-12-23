@@ -167,9 +167,10 @@ func (r *Renderer) RenderNode(node *html.Node) {
 	case atom.Em:
 		cp = &CpItalic
 	default:
-		if node.Data == "url" {
+		switch node.Data {
+		case "url":
 			cp = &CpUnderline
-		} else if node.Data == "color" {
+		case "color":
 			if c := GetNodeAttrVal(node, "name"); c != nil {
 				cp = GetColorCode(*c)
 			}

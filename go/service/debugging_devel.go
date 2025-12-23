@@ -25,8 +25,7 @@ import (
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
 
-	// nolint
-
+	//nolint:staticcheck // SA1019: deprecated package, requires dependency update
 	"github.com/stellar/go/clients/horizon"
 )
 

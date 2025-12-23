@@ -278,7 +278,7 @@ func (t TeamSigChainState) AssertWasRoleOrAboveAt(uv keybase1.UserVersion,
 	for i := len(points) - 1; i >= 0; i-- {
 		point := points[i]
 		if err := point.SigMeta.SigChainLocation.Comparable(scl); err != nil {
-			return mkErr(err.Error())
+			return mkErr("%s", err.Error())
 		}
 		if point.SigMeta.SigChainLocation.LessThanOrEqualTo(scl) && point.Role.IsOrAbove(role) {
 			// OK great, we found a point with the role in the log that's less than or equal to the given one.
@@ -1269,7 +1269,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			// All removals must have come with successor.
 			for _, r := range removals {
 				role := prevState.getUserRole(r.uv)
-				if !(r.satisfied || role.IsBotLike()) {
+				if !r.satisfied && !role.IsBotLike() {
 					return res, NewImplicitTeamOperationError("removal without addition for %v", r.uv)
 				}
 			}
@@ -1930,7 +1930,7 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 					return nil, nil, fmt.Errorf("encountered invite of owner by non-owner")
 				}
 			}
-			if !(options.implicitTeam || assertIsKeybaseInvite(mctx, i)) {
+			if !options.implicitTeam && !assertIsKeybaseInvite(mctx, i) {
 				return nil, nil, fmt.Errorf("encountered a disallowed owner invite")
 			}
 			all = append(all, assignment{i, keybase1.TeamRole_OWNER})

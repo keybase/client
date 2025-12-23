@@ -1151,7 +1151,7 @@ func getMsgSnippetDecoration(msg chat1.MessageUnboxed) chat1.SnippetDecoration {
 func GetMsgSnippetBody(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed,
 ) (snippet, snippetDecorated string) {
-	if !(msg.IsValidFull() || msg.IsOutbox()) {
+	if !msg.IsValidFull() && !msg.IsOutbox() {
 		return "", ""
 	}
 	defer func() {
@@ -1220,7 +1220,7 @@ func GetMsgSnippetBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
 func GetMsgSnippet(ctx context.Context, g *globals.Context, uid gregor1.UID, msg chat1.MessageUnboxed,
 	conv chat1.ConversationLocal, currentUsername string,
 ) (decoration chat1.SnippetDecoration, snippet string, snippetDecorated string) {
-	if !(msg.IsValid() || msg.IsOutbox()) {
+	if !msg.IsValid() && !msg.IsOutbox() {
 		return chat1.SnippetDecoration_NONE, "", ""
 	}
 	defer func() {
@@ -1973,7 +1973,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		if !rawMsg.IsValidFull() {
 			// If we have an expired ephemeral message, don't show an error
 			// message.
-			if !(valid.IsEphemeral() && valid.IsEphemeralExpired(time.Now())) {
+			if !valid.IsEphemeral() || !valid.IsEphemeralExpired(time.Now()) {
 				return miscErr(fmt.Errorf("unexpected deleted %v message",
 					strings.ToLower(rawMsg.GetMessageType().String())))
 			}
@@ -2629,7 +2629,7 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 	origBody := body
 
 	// early out of here if there is no dot
-	if !(strings.Contains(body, ".") || strings.Contains(body, "://")) {
+	if !strings.Contains(body, ".") && !strings.Contains(body, "://") {
 		return body
 	}
 	shouldSkipLink := func(linkPrefix, link string) bool {
@@ -2917,7 +2917,7 @@ func DBConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
 	} else if a.GetMtime() < b.GetMtime() {
 		return false
 	}
-	return !(a.GetConvID().Eq(b.GetConvID()) || a.GetConvID().Less(b.GetConvID()))
+	return !a.GetConvID().Eq(b.GetConvID()) && !a.GetConvID().Less(b.GetConvID())
 }
 
 func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {

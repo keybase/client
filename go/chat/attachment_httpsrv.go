@@ -416,7 +416,7 @@ func (r *AttachmentHTTPSrv) makeError(ctx context.Context, w http.ResponseWriter
 }
 
 func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.Asset, req *http.Request) bool {
-	noStream := "true" == req.URL.Query().Get("nostream")
+	noStream := req.URL.Query().Get("nostream") == "true"
 	if noStream {
 		// If we just want the bits without streaming
 		return false
@@ -425,7 +425,7 @@ func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.
 }
 
 func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
-	contentForce := "true" == req.URL.Query().Get("contentforce")
+	contentForce := req.URL.Query().Get("contentforce") == "true"
 	if r.G().IsMobileAppType() && !contentForce {
 		r.Debug(ctx, "serveUnfurlVideoHostPage: mobile client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
@@ -433,7 +433,7 @@ func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http
 		if req.URL.Query().Get("autoplay") != "true" {
 			autoplay = `onloadeddata="togglePlay('pause')"`
 		}
-		if _, err := w.Write([]byte(fmt.Sprintf(`
+		if _, err := fmt.Fprintf(w, `
 			<html>
 				<head>
 					<meta name="viewport" content="initial-scale=1, viewport-fit=cover">
@@ -457,7 +457,7 @@ func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http
 					<video id="vid" %s preload="auto" style="width: 100%%; height: 100%%; border-radius: 4px; object-fit:fill" src="%s" playsinline webkit-playsinline loop autoplay muted />
 				</body>
 			</html>
-		`, autoplay, req.URL.String()+"&contentforce=true"))); err != nil {
+		`, autoplay, req.URL.String()+"&contentforce=true"); err != nil {
 			r.Debug(ctx, "serveUnfurlVideoHostPage: failed to write HTML video player: %s", err)
 		}
 		return true
@@ -466,11 +466,11 @@ func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http
 }
 
 func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
-	contentForce := "true" == req.URL.Query().Get("contentforce")
+	contentForce := req.URL.Query().Get("contentforce") == "true"
 	if r.G().IsMobileAppType() && !contentForce {
 		r.Debug(ctx, "serve: mobile client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
-		if _, err := w.Write([]byte(fmt.Sprintf(`
+		if _, err := fmt.Fprintf(w, `
 			<html>
 				<head>
 					<meta name="viewport" content="initial-scale=1, viewport-fit=cover">
@@ -492,7 +492,7 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 					<video id="vid" style="width: 100%%; height: 100%%; object-fit:fill; border-radius: 4px" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
-		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {
+		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"); err != nil {
 			r.Debug(ctx, "serve: failed to write HTML video player: %s", err)
 		}
 		return true
@@ -503,9 +503,9 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 	defer r.Trace(ctx, nil, "serveAttachment")()
 
-	preview := "true" == req.URL.Query().Get("prev")
-	noAnim := "true" == req.URL.Query().Get("noanim")
-	isEmoji := "true" == req.URL.Query().Get("isemoji")
+	preview := req.URL.Query().Get("prev") == "true"
+	noAnim := req.URL.Query().Get("noanim") == "true"
+	isEmoji := req.URL.Query().Get("isemoji") == "true"
 	key := req.URL.Query().Get("key")
 	r.Lock()
 	pairInt, ok := r.urlMap.Get(key)

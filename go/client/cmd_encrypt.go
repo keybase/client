@@ -239,7 +239,7 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	}
 	c.opts.UseKBFSKeysOnlyForTesting = ctx.Bool("use-kbfs-keys-only")
 
-	if !(c.opts.UseEntityKeys || c.opts.UseDeviceKeys || c.opts.UsePaperKeys) {
+	if !c.opts.UseEntityKeys && !c.opts.UseDeviceKeys && !c.opts.UsePaperKeys {
 		if forRecipients {
 			// legal arg combos if not encrypting for team: any subset (including empty set) of at most 2 of (--no-device-keys, --no-paper-keys or --no-entity-keys)
 			return errors.New("please remove at least one of --no-device-keys, --no-paper-keys or --no-entity-keys")

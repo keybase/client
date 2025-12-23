@@ -48,7 +48,7 @@ func setupCommonTest(t testing.TB, name string) kbtest.ChatTestContext {
 
 func setupStorageTest(t testing.TB, name string) (kbtest.ChatTestContext, *Storage, gregor1.UID) {
 	ctc := setupCommonTest(t, name)
-	u, err := kbtest.CreateAndSignupFakeUser("cs", ctc.TestContext.G)
+	u, err := kbtest.CreateAndSignupFakeUser("cs", ctc.G)
 	require.NoError(t, err)
 	return ctc, New(ctc.Context(), kbtest.NewDummyAssetDeleter()), gregor1.UID(u.User.GetUID().ToBytes())
 }

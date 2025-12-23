@@ -248,12 +248,13 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetS
 		if err != nil {
 			return err
 		}
-		if response == keybase1.ResetPromptResponse_NOTHING {
+		switch response {
+		case keybase1.ResetPromptResponse_NOTHING:
 			// noop
 			return mctx.UIs().LoginUI.DisplayResetMessage(mctx.Ctx(), keybase1.DisplayResetMessageArg{
 				Kind: keybase1.ResetMessage_NOT_COMPLETED,
 			})
-		} else if response == keybase1.ResetPromptResponse_CANCEL_RESET {
+		case keybase1.ResetPromptResponse_CANCEL_RESET:
 			// noop
 			if err := mctx.UIs().LoginUI.DisplayResetMessage(mctx.Ctx(), keybase1.DisplayResetMessageArg{
 				Kind: keybase1.ResetMessage_CANCELED,

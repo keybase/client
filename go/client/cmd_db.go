@@ -344,7 +344,7 @@ func (c *CmdDbKeysWithPrefix) Run() error {
 		return err
 	}
 	for _, x := range res {
-		_, err = c.G().UI.GetTerminalUI().OutputWriter().Write([]byte(fmt.Sprintf("%s\n", x.Key)))
+		_, err = fmt.Fprintf(c.G().UI.GetTerminalUI().OutputWriter(), "%s\n", x.Key)
 		if err != nil {
 			return err
 		}

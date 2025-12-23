@@ -1431,7 +1431,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         // same? ignore
         if (wasChat && isChat && wasID === isID) {
           // if we've never loaded anything, keep going so we load it
-          if (!isID || storeRegistry.getConvoState(isID).maxMsgIDSeen !== -1) {
+          if (!isID || storeRegistry.getConvoState(isID).loaded) {
             return
           }
         }

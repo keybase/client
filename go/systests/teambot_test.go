@@ -379,8 +379,15 @@ func TestTeambotKeyRemovedMember(t *testing.T) {
 	botua := tt.addUser("botua")
 	botuaUID := gregor1.UID(botua.uid.ToBytes())
 	mctx1 := libkb.NewMetaContextForTest(*user1.tc)
+	mctxBotua := libkb.NewMetaContextForTest(*botua.tc)
 	ekLib1 := mctx1.G().GetEKLib()
 	memberKeyer1 := mctx1.G().GetTeambotMemberKeyer()
+
+	// Ensure the bot has generated their ephemeral keys before adding to team
+	// This prevents a race condition where the teambot EK creation fails because
+	// the bot's user EK hasn't been generated yet
+	err := mctxBotua.G().GetEKLib().KeygenIfNeeded(mctxBotua)
+	require.NoError(t, err)
 
 	teamID, teamName := user1.createTeam2()
 	user1.addRestrictedBotTeamMember(teamName.String(), botua.username, keybase1.TeamBotSettings{})

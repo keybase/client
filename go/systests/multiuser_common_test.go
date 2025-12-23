@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	contextOld "context"
-
 	client "github.com/keybase/client/go/client"
 	engine "github.com/keybase/client/go/engine"
 	libkb "github.com/keybase/client/go/libkb"
@@ -163,19 +161,19 @@ type usernameLoginUI struct {
 
 var _ libkb.LoginUI = (*usernameLoginUI)(nil)
 
-func (s usernameLoginUI) GetEmailOrUsername(contextOld.Context, int) (string, error) {
+func (s usernameLoginUI) GetEmailOrUsername(context.Context, int) (string, error) {
 	return s.username, nil
 }
 
-func (s usernameLoginUI) PromptRevokePaperKeys(contextOld.Context, keybase1.PromptRevokePaperKeysArg) (ret bool, err error) {
+func (s usernameLoginUI) PromptRevokePaperKeys(context.Context, keybase1.PromptRevokePaperKeysArg) (ret bool, err error) {
 	return false, nil
 }
 
-func (s usernameLoginUI) DisplayPaperKeyPhrase(contextOld.Context, keybase1.DisplayPaperKeyPhraseArg) error {
+func (s usernameLoginUI) DisplayPaperKeyPhrase(context.Context, keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
 
-func (s usernameLoginUI) DisplayPrimaryPaperKey(contextOld.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
+func (s usernameLoginUI) DisplayPrimaryPaperKey(context.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
 

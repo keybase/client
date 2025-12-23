@@ -71,7 +71,7 @@ func (gr *joinLeaveGrouper) matches(ctx context.Context, msg chat1.MessageUnboxe
 		return false
 	}
 	body := msg.Valid().MessageBody
-	if !(body.IsType(chat1.MessageType_JOIN) || body.IsType(chat1.MessageType_LEAVE)) {
+	if !body.IsType(chat1.MessageType_JOIN) && !body.IsType(chat1.MessageType_LEAVE) {
 		return false
 	}
 	for _, g := range grouped {
@@ -255,7 +255,7 @@ func newAddedToTeamGrouper(g *globals.Context, uid gregor1.UID, convID chat1.Con
 }
 
 func (gr *addedToTeamGrouper) matches(ctx context.Context, msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
-	if !(msg.IsValid() && msg.Valid().ClientHeader.Sender.Eq(gr.uid)) {
+	if !msg.IsValid() || !msg.Valid().ClientHeader.Sender.Eq(gr.uid) {
 		return false
 	}
 	if len(grouped) > 0 && !grouped[0].SenderEq(msg) {
@@ -267,7 +267,7 @@ func (gr *addedToTeamGrouper) matches(ctx context.Context, msg chat1.MessageUnbo
 	}
 	sysBod := msg.Valid().MessageBody.System()
 	typ, err := sysBod.SystemType()
-	if !(err == nil && typ == chat1.MessageSystemType_ADDEDTOTEAM) {
+	if err != nil || typ != chat1.MessageSystemType_ADDEDTOTEAM {
 		return false
 	}
 	// We want to show a link to the bot settings

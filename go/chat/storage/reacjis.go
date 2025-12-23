@@ -232,7 +232,7 @@ func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) 
 func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, shortCode string) error {
 	s.Lock()
 	defer s.Unlock()
-	if !(EmojiHasAlias(shortCode) || globals.EmojiPattern.MatchString(shortCode)) {
+	if !EmojiHasAlias(shortCode) && !globals.EmojiPattern.MatchString(shortCode) {
 		return nil
 	}
 	cache := s.populateCacheLocked(ctx, uid)

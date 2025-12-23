@@ -106,9 +106,10 @@ func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.D
 	// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
 	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional()
 
-	if mode == LoadUnlockedDeviceKeysModeOffline {
+	switch mode {
+	case LoadUnlockedDeviceKeysModeOffline:
 		arg = arg.WithStaleOK(true).WithCachedOnly(true)
-	} else if mode == LoadUnlockedDeviceKeysModeStaleOK {
+	case LoadUnlockedDeviceKeysModeStaleOK:
 		arg = arg.WithStaleOK(true)
 	}
 	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)

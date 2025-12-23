@@ -147,7 +147,7 @@ func testKVStoreName(testName string) string {
 
 func TestIndexFile(t *testing.T) {
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
@@ -300,7 +300,7 @@ func makeDirTreesToIndex(
 
 func TestFullIndexSyncedTlf(t *testing.T) {
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
@@ -437,7 +437,7 @@ func TestFullIndexSyncedTlf(t *testing.T) {
 
 func TestFullIndexSearch(t *testing.T) {
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)

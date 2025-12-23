@@ -641,7 +641,7 @@ func (o OuterLinkV2) AssertFields(
 	if !o.Curr.Eq(curr) {
 		return mismatchError("curr pointer: (%s != %s)", o.Curr, curr)
 	}
-	if !(linkType == SigchainV2TypeNone && ignoreIfUnsupported) && o.LinkType != linkType {
+	if (linkType != SigchainV2TypeNone || !ignoreIfUnsupported) && o.LinkType != linkType {
 		return mismatchError("link type: (%d != %d)", o.LinkType, linkType)
 	}
 	if o.SeqType != seqType {

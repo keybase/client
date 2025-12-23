@@ -56,7 +56,7 @@ ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s
 
 build_gomobile() {
 	echo "Build gomobile..."
-	(go install golang.org/x/mobile/cmd/{gomobile,gobind} && gomobile init)
+	(go install golang.org/x/mobile/cmd/{gomobile,gobind} && go tool gomobile init)
 }
 
 if [ "$arg" = "ios" ]; then
@@ -64,11 +64,11 @@ if [ "$arg" = "ios" ]; then
 	ios_dest="$ios_dir/keybasego.xcframework"
 	echo "Building for iOS ($ios_dest)..."
 	set +e
-	OUTPUT="$(gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
+	OUTPUT="$(go tool gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
 	set -e
 	if [[ $OUTPUT == *gomobile* ]]; then
 		build_gomobile
-		gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package"
+		go tool gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package"
 	else
 		echo $OUTPUT
 	fi
@@ -80,11 +80,11 @@ elif [ "$arg" = "android" ]; then
 	android_ldflags="$ldflags \"-extldflags=-Wl,-z,max-page-size=16384\""
 	echo "Building for Android ($android_dest)..."
 	set +e
-	OUTPUT="$(gomobile bind -target=android -androidapi "$android_api" -tags="android $tags" -ldflags "$android_ldflags" -o "$android_dest" "$package" 2>&1)"
+	OUTPUT="$(go tool gomobile bind -target=android -androidapi "$android_api" -tags="android $tags" -ldflags "$android_ldflags" -o "$android_dest" "$package" 2>&1)"
 	set -e
 	if [[ $OUTPUT == *gomobile* ]]; then
 		build_gomobile
-		gomobile bind -target=android -androidapi "$android_api" -tags="android $tags" -ldflags "$android_ldflags" -o "$android_dest" "$package"
+		go tool gomobile bind -target=android -androidapi "$android_api" -tags="android $tags" -ldflags "$android_ldflags" -o "$android_dest" "$package"
 	else
 		echo $OUTPUT
 	fi

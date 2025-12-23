@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/jsonhelpers"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -274,6 +275,18 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	bob.reset()
 	bob.loginAfterResetNoPUK(10)
 
+	// Disable background EK generation after login to prevent it from racing
+	// with the explicit perUserKeyUpgrade() call below. The OnLogin hook spawns
+	// a goroutine that can import the PUK asynchronously while we're trying to
+	// create it, causing a generation mismatch error.
+	t.Logf("Disabling background EK generation after login for bob")
+	ekLibIface := bob.getPrimaryGlobalContext().GetEKLib()
+	ekLib, ok := ekLibIface.(*ephemeral.EKLib)
+	require.True(t, ok)
+	mctx := libkb.NewMetaContextForTest(*bob.primaryDevice().tctx)
+	err := ekLib.Shutdown(mctx)
+	require.NoError(t, err)
+
 	// Try to add again (bob still doesn't have a PUK). Adding this
 	// invitation should automatically cancel first invitation.
 	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_ADMIN) // Invitation 2
@@ -296,7 +309,7 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
 
 	ann.kickTeamRekeyd()
-	err := bob.perUserKeyUpgrade()
+	err = bob.perUserKeyUpgrade()
 	require.NoError(t, err)
 
 	t.Logf("Bob got a PUK, now let's see if Ann's client adds him to team")

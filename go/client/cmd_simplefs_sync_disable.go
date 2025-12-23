@@ -63,9 +63,10 @@ func (c *CmdSimpleFSSyncDisable) Run() error {
 			return err
 		}
 
-		if res.Config.Mode == keybase1.FolderSyncMode_DISABLED {
+		switch res.Config.Mode {
+		case keybase1.FolderSyncMode_DISABLED:
 			return fmt.Errorf("No syncing enabled on %s", arg.Path)
-		} else if res.Config.Mode == keybase1.FolderSyncMode_ENABLED {
+		case keybase1.FolderSyncMode_ENABLED:
 			return fmt.Errorf(
 				"Cannot disable single path on fully-synced TLF %s", arg.Path)
 		}

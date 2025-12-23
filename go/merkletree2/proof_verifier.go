@@ -341,7 +341,7 @@ func (m *MerkleProofVerifier) VerifyInclusionExtensionProof(ctx logger.ContextIn
 	}
 
 	// If initialSeqno == finalSeqno, no extension proof is necessary so if it is not there we skip checking it.
-	if initialSeqno != finalSeqno || len(proof.MerkleExtensionProof.PreviousRootsNoSkips) > 0 || len(proof.MerkleExtensionProof.PreviousRootsNoSkips) > 0 {
+	if initialSeqno != finalSeqno || len(proof.MerkleExtensionProof.PreviousRootsNoSkips) > 0 {
 		skipsHashForNewRoot, isPartOfIncExtProof, err := m.computeFinalSkipPointersHashFromPath(ctx, &proof.MerkleExtensionProof, initialSeqno, initialRootHash, incProof.RootMetadataNoHash.Seqno)
 		if err != nil {
 			return err
