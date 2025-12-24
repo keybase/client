@@ -270,6 +270,10 @@ func (t *NameIdentifier) identifyUser(ctx context.Context, assertion string, pri
 		// when identifying the user and then return this error.
 		case libkb.NotFoundError, libkb.ResolutionError, libkb.UserDeletedError:
 			return keybase1.TLFIdentifyFailure{}, nil
+		default:
+			// If it's any other error, error out here rather than getting
+			// an error in the `eng.Result` below (see CORE-10095)
+			return keybase1.TLFIdentifyFailure{}, err
 		}
 		return keybase1.TLFIdentifyFailure{}, err
 	}
