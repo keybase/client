@@ -165,33 +165,34 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <Kb.PopupWrapper onCancel={onCancel}>
-      <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
+      <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.ClickableBox2 style={styles.container} onClick={() => inputRef.current?.blur()}>
-          <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
-          {pathAndInfos.length > 0 && !Kb.Styles.isMobile && (
-            <Kb.Box2 direction="vertical" style={styles.filename}>
-              <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
-              <Kb.Text type="BodySmall" center={true}>
-                {info.filename} ({index + 1} of {pathAndInfos.length})
-              </Kb.Text>
-            </Kb.Box2>
-          )}
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-            <Kb.PlainInput
-              ref={inputRef}
-              style={styles.input}
-              autoFocus={!Kb.Styles.isMobile}
-              autoCorrect={true}
-              placeholder={titleHint}
-              multiline={true}
-              rowsMin={2}
-              padding="tiny"
-              value={titles[index]}
-              onEnterKeyDown={onNext}
-              onChangeText={updateTitle}
-              selectTextOnFocus={true}
-            />
-            {/* (
+          <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
+            <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
+            {pathAndInfos.length > 0 && !Kb.Styles.isMobile && (
+              <Kb.Box2 direction="vertical" style={styles.filename}>
+                <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
+                <Kb.Text type="BodySmall" center={true}>
+                  {info.filename} ({index + 1} of {pathAndInfos.length})
+                </Kb.Text>
+              </Kb.Box2>
+            )}
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+              <Kb.PlainInput
+                ref={inputRef}
+                style={styles.input}
+                autoFocus={!Kb.Styles.isMobile}
+                autoCorrect={true}
+                placeholder={titleHint}
+                multiline={true}
+                rowsMin={2}
+                padding="tiny"
+                value={titles[index]}
+                onEnterKeyDown={onNext}
+                onChangeText={updateTitle}
+                selectTextOnFocus={true}
+              />
+              {/* (
                 <Kb.Checkbox
                   style={{alignSelf: 'flex-end'}}
                   label="Spoiler?"
@@ -199,6 +200,7 @@ const Container = (ownProps: OwnProps) => {
                   onCheck={setSpoiler}
                 />
               )*/}
+            </Kb.Box2>
           </Kb.Box2>
         </Kb.ClickableBox2>
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
