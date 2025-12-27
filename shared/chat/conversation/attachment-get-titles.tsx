@@ -166,7 +166,7 @@ const Container = (ownProps: OwnProps) => {
   return (
     <Kb.PopupWrapper onCancel={onCancel}>
       <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.ClickableBox2 style={styles.container} onClick={() => inputRef.current?.blur()}>
+        <Kb.ClickableBox2 style={styles.container2} onClick={() => inputRef.current?.blur()}>
           <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
             <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
             {pathAndInfos.length > 0 && !Kb.Styles.isMobile && (
@@ -221,7 +221,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       boxGrow: {
-        margin: Kb.Styles.globalMargins.small,
+        marginBottom: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : 0,
         width: '100%',
       },
       buttonContainer: Kb.Styles.platformStyles({
@@ -241,6 +241,11 @@ const styles = Kb.Styles.styleSheetCreate(
         flexGrow: 1,
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
+        width: '100%',
+      },
+      container2: {
+        alignItems: 'center',
+        flexGrow: 1,
         width: '100%',
       },
       containerOuter: Kb.Styles.platformStyles({
