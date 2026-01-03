@@ -6,14 +6,18 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
 	"flag"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	mysql "github.com/go-sql-driver/mysql"
 
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/libgit"
@@ -35,6 +39,7 @@ var (
 	fStathatPrefix string
 	fBlacklist     string
 	fMySQLDSN      string
+	fMySQLDSNCAURL string
 )
 
 func init() {
@@ -53,6 +58,8 @@ func init() {
 		"a comma-separated list of domains to block")
 	flag.StringVar(&fMySQLDSN, "mysql-dsn", "",
 		"enable MySQL based storage and use this as the DSN")
+	flag.StringVar(&fMySQLDSNCAURL, "mysql-dsn-ca-url", "",
+		"enable TLS for MySQL using the CA hosted at this URL")
 }
 
 func newLogger(isCLI bool) (*zap.Logger, error) {
@@ -118,7 +125,44 @@ func getStatsActivityStorerOrBust(
 		return fileBasedStorer
 	}
 
-	db, err := sql.Open("mysql", fMySQLDSN)
+	cfg, err := mysql.ParseDSN(fMySQLDSN)
+	if err != nil {
+		logger.Panic("parse mysql dsn", zap.Error(err))
+		return nil
+	}
+
+	if len(fMySQLDSNCAURL) > 0 {
+		resp, err := http.Get(fMySQLDSNCAURL)
+		if err != nil {
+			logger.Panic("get ca", zap.Error(err))
+			return nil
+		}
+		if resp.StatusCode != 200 {
+			logger.Panic("get ca", zap.Int("status code", resp.StatusCode))
+			return nil
+		}
+		ca, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Panic("read ca", zap.Error(err))
+			return nil
+		}
+		caPool := x509.NewCertPool()
+		if ok := caPool.AppendCertsFromPEM(ca); !ok {
+			logger.Panic("append ca", zap.Error(err))
+			return nil
+		}
+		tlsConfig := &tls.Config{
+			RootCAs: caPool,
+		}
+		if err = mysql.RegisterTLSConfig("custom", tlsConfig); err != nil {
+			logger.Panic("register tls config", zap.Error(err))
+			return nil
+		}
+		cfg.TLSConfig = "custom"
+		logger.Info("registered tls config", zap.String("ca_url", fMySQLDSNCAURL))
+	}
+
+	db, err := sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
 		logger.Panic("open mysql", zap.Error(err))
 		return nil
