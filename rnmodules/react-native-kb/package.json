@@ -1,5 +1,6 @@
 {
   "name": "react-native-kb",
+  "packageManager": "yarn@3.6.4",
   "version": "0.1.1",
   "description": "misc kb",
   "main": "src/index",

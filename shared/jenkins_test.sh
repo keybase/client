@@ -44,14 +44,17 @@ has_js_files() {
 js_tests() {
 	echo 'js-tests'
 	node --version
-	npm i -g yarn
+	# reset this in case we're still building yarn classic branches
+	corepack disable
+	corepack enable
+	corepack prepare yarn@1.22.19 --activate
 	has_js_files
 
 	echo 'cleanup'
 	rm -rf node_modules
 
 	echo 'yarn install'
-	yarn install --network-concurrency 1 --prefer-offline --pure-lockfile --ignore-optional --ignore-engines
+	yarn install --prefer-offline --immutable --ignore-engines
 	yarn modules --ignore-engines
 	check_rc $? 'yarn install fail' 1
 

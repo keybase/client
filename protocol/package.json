@@ -1,5 +1,6 @@
 {
   "name": "keybase-protocol",
+  "packageManager": "yarn@3.6.4",
   "version": "1.0.0",
   "description": "An IDL and protocol generator for Keybase components",
   "main": "bin/compile.iced",
