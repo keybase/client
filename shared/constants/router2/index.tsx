@@ -235,7 +235,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       chatStack.state.routes = [chatRoot, convoRoute] as typeof chatStack.state.routes
       chatStack.state.index = 1
     }
-  })
+  }) as NavState
 
   if (!isEqual(rs, nextState)) {
     rs.key &&
@@ -323,7 +323,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
 
       const nextState = produce(ns, draft => {
         navUpHelper(draft as DeepWriteable<NavState>, name)
-      })
+      }) as NavState
       n.dispatch(CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]))
     },
     navigateAppend: (path, replace) => {
