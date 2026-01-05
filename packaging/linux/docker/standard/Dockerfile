@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:bullseye
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \

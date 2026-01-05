@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=keybaseio/client:latest
 FROM $BASE_IMAGE AS base
 
-FROM python:3.14-bookworm
+FROM python:3.13-bullseye
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \

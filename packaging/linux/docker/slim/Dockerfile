@@ -2,7 +2,7 @@ ARG BASE_IMAGE=keybaseio/client:latest
 
 FROM $BASE_IMAGE AS base
 
-FROM debian:bookworm-slim
+FROM debian:bullseye-slim
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \

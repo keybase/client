@@ -1,4 +1,4 @@
-FROM golang:1.25.5-bookworm AS builder
+FROM debian:bullseye AS builder
 
 ARG SOURCE_COMMIT=unknown
 
@@ -7,7 +7,15 @@ COPY .docker/code_signing_key /code_signing_key
 RUN gpg --import /code_signing_key
 
 RUN apt-get update
-RUN apt-get install -y gcc-x86-64-linux-gnu
+RUN apt-get install -y gcc-x86-64-linux-gnu wget ca-certificates
+
+RUN wget -q https://go.dev/dl/go1.25.5.linux-arm64.tar.gz && \
+  tar -C /usr/local -xzf go1.25.5.linux-arm64.tar.gz && \
+  rm go1.25.5.linux-arm64.tar.gz
+
+ENV PATH="/usr/local/go/bin:${PATH}"
+ENV GOPATH="/go"
+ENV PATH="${GOPATH}/bin:${PATH}"
 
 COPY . /go/src/github.com/keybase/client
 RUN SOURCE_COMMIT=${SOURCE_COMMIT} \
