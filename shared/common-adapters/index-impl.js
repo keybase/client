@@ -1,361 +1,363 @@
 // this is to defer actually importing these modules until you actually use them
 // this file is ignored by ts
-// Extract require to module scope to avoid HMR disposal issues with lazy getters
-// When a module is disposed during HMR, getters that call require() can fail
-// By extracting require to module scope, we avoid closure dependencies on the disposed module
-const _require = (id) => require(id)
 module.exports = {
   get Animation() {
-    return _require('./animation').default
+    return require('./animation').default
   },
   get Avatar() {
-    return _require('./avatar').default
+    return require('./avatar').default
   },
   get AvatarLine() {
-    return _require('./avatar/avatar-line').default
+    return require('./avatar/avatar-line').default
   },
   get BackButton() {
-    return _require('./back-button').default
+    return require('./back-button').default
   },
   get Badge() {
-    return _require('./badge').default
+    return require('./badge').default
   },
   get Banner() {
-    return _require('./banner').Banner
+    return require('./banner').Banner
   },
   get BannerParagraph() {
-    return _require('./banner').BannerParagraph
+    return require('./banner').BannerParagraph
   },
   get BottomSheetBackdrop() {
-    return _require('./bottom-sheet').BottomSheetBackdrop
+    return require('./bottom-sheet').BottomSheetBackdrop
   },
   get BottomSheetModal() {
-    return _require('./bottom-sheet').BottomSheetModal
+    return require('./bottom-sheet').BottomSheetModal
   },
   get BottomSheetScrollView() {
-    return _require('./bottom-sheet').BottomSheetScrollView
+    return require('./bottom-sheet').BottomSheetScrollView
   },
   get Box() {
-    return _require('./box').default
+    return require('./box').default
   },
   get Box2() {
-    return _require('./box').Box2
+    return require('./box').Box2
   },
   get Box2Animated() {
-    return _require('./box').Box2Animated
+    return require('./box').Box2Animated
   },
   get Box2Div() {
-    return _require('./box').Box2Div
+    return require('./box').Box2Div
   },
   get Box2Measure() {
-    return _require('./box').Box2Measure
+    return require('./box').Box2Measure
   },
   get Box2View() {
-    return _require('./box').Box2View
+    return require('./box').Box2View
   },
   get BoxGrow() {
-    return _require('./box-grow').default
+    return require('./box-grow').default
   },
   get BoxGrow2() {
-    return _require('./box-grow').BoxGrow2
+    return require('./box-grow').BoxGrow2
   },
   get Button() {
-    return _require('./button').default
+    return require('./button').default
   },
   get ButtonBar() {
-    return _require('./button-bar').default
+    return require('./button-bar').default
   },
   get CheckCircle() {
-    return _require('./check-circle').default
+    return require('./check-circle').default
   },
   get Checkbox() {
-    return _require('./checkbox').default
+    return require('./checkbox').default
   },
   get ChoiceList() {
-    return _require('./choice-list').default
+    return require('./choice-list').default
   },
   get ClickableBox() {
-    return _require('./clickable-box').default
+    return require('./clickable-box').default
   },
   get ClickableBox2() {
-    return _require('./clickable-box').ClickableBox2
+    return require('./clickable-box').ClickableBox2
   },
   get ConfirmModal() {
-    return _require('./confirm-modal').default
+    return require('./confirm-modal').default
   },
   get ConnectedNameWithIcon() {
     // explicitly require this to make popup work if it's not been imported
     // explicitly
-    _require('./profile-card').default
+    require('./profile-card').default
 
-    return _require('./name-with-icon').default
+    return require('./name-with-icon').default
   },
   get ConnectedUsernames() {
     // explicitly require this to make popup work if it's not been imported
     // explicitly
-    _require('./profile-card').default
+    require('./profile-card').default
 
-    return _require('./usernames').default
+    return require('./usernames').default
   },
   get CopyText() {
-    return _require('./copy-text').default
+    return require('./copy-text').default
   },
   get CopyableText() {
-    return _require('./copyable-text').default
+    return require('./copyable-text').default
   },
   get DelayedMounting() {
-    return _require('./delayed-mounting').default
+    return require('./delayed-mounting').default
   },
   get Divider() {
-    return _require('./divider').default
+    return require('./divider').default
   },
   get DragAndDrop() {
-    return _require('./drag-and-drop').default
+    return require('./drag-and-drop').default
   },
   get Dropdown() {
-    return _require('./dropdown').default
+    return require('./dropdown').default
   },
   get DropdownButton() {
-    return _require('./dropdown').DropdownButton
+    return require('./dropdown').DropdownButton
   },
   get Emoji() {
-    return _require('./emoji').default
+    return require('./emoji').default
   },
   get ErrorBoundary() {
-    return _require('./error-boundary').default
+    return require('./error-boundary').default
   },
   get FloatingBox() {
-    return _require('./floating-box').default
+    return require('./floating-box').default
   },
   get FloatingMenu() {
-    return _require('./floating-menu').default
+    return require('./floating-menu').default
   },
   get FloatingModalContext() {
-    return _require('./floating-menu/context').FloatingModalContext
+    return require('./floating-menu/context').FloatingModalContext
   },
   get FloatingPicker() {
-    return _require('./floating-picker').default
+    return require('./floating-picker').default
   },
   get HeaderHocHeader() {
-    return _require('./header-hoc').HeaderHocHeader
+    return require('./header-hoc').HeaderHocHeader
   },
   get HeaderHocWrapper() {
-    return _require('./header-hoc').HeaderHocWrapper
+    return require('./header-hoc').HeaderHocWrapper
   },
   get HeaderLeftBlank() {
-    return _require('./header-hoc').HeaderLeftBlank
+    return require('./header-hoc').HeaderLeftBlank
   },
   get HeaderLeftCancel() {
-    return _require('./header-hoc').HeaderLeftCancel
+    return require('./header-hoc').HeaderLeftCancel
   },
   get HotKey() {
-    return _require('./hot-key').HotKey
+    return require('./hot-key').HotKey
   },
   get Icon() {
-    return _require('./icon').default
+    return require('./icon').default
   },
   get Image2() {
-    return _require('./image2').default
+    return require('./image2').default
   },
   get InfoNote() {
-    return _require('./info-note').default
+    return require('./info-note').default
   },
   get InlineDropdown() {
-    return _require('./dropdown').InlineDropdown
+    return require('./dropdown').InlineDropdown
   },
   get Input2() {
-    return _require('./input2').Input2
+    return require('./input2').Input2
   },
   get KeyboardAvoidingView2() {
-    return _require('./keyboard-avoiding-view').KeyboardAvoidingView2
+    return require('./keyboard-avoiding-view').KeyboardAvoidingView2
   },
   get LabeledInput() {
-    return _require('./labeled-input').default
+    return require('./labeled-input').default
   },
   get List() {
-    return _require('./list').default
+    return require('./list').default
   },
   get List2() {
-    return _require('./list2').default
+    return require('./list2').default
   },
   get ListItem() {
-    return _require('./list-item').default
+    return require('./list-item').default
   },
   get ListItem2() {
-    return _require('./list-item2').default
+    return require('./list-item2').default
   },
   get LoadingLine() {
-    return _require('./loading-line').default
+    return require('./loading-line').default
   },
   get Markdown() {
-    return _require('./markdown').default
+    return require('./markdown').default
   },
   get Meta() {
-    return _require('./meta').default
+    return require('./meta').default
   },
   get MobilePopup() {
-    return _require('./mobile-popup').default
+    return require('./mobile-popup').default
   },
   get Modal() {
-    return _require('./modal').default
+    return require('./modal').default
   },
   get Modal2() {
-    return _require('./modal2').default
+    return require('./modal2').default
   },
   get ModalHeader() {
-    return _require('./modal').Header
+    return require('./modal').Header
   },
   get NameWithIcon() {
-    return _require('./name-with-icon').default
+    return require('./name-with-icon').default
   },
   get NativeEmoji() {
-    return _require('./emoji/native-emoji').default
+    return require('./emoji/native-emoji').default
   },
   get NewInput() {
-    return _require('./new-input').default
+    return require('./new-input').default
   },
   get Overlay() {
-    return _require('./overlay').default
+    return require('./overlay').default
   },
   get PhoneInput() {
-    return _require('./phone-input').default
+    return require('./phone-input').default
   },
   get Placeholder() {
-    return _require('./placeholder').default
+    return require('./placeholder').default
   },
   get PlainInput() {
-    return _require('./plain-input').default
+    return require('./plain-input').default
   },
   get PlatformIcon() {
-    return _require('./platform-icon').default
+    return require('./platform-icon').default
   },
   get PopupDialog() {
-    return _require('./popup-dialog').default
+    return require('./popup-dialog').default
   },
   get PopupHeaderText() {
-    return _require('./popup-header-text').default
+    return require('./popup-header-text').default
   },
   get PopupWrapper() {
-    return _require('./header-or-popup').PopupWrapper
+    return require('./header-or-popup').PopupWrapper
   },
   get ProfileCard() {
-    return _require('./profile-card').default
+    return require('./profile-card').default
   },
   get ProgressBar() {
-    return _require('./progress-bar').default
+    return require('./progress-bar').default
   },
   get ProgressIndicator() {
-    return _require('./progress-indicator').default
+    return require('./progress-indicator').default
   },
   get ProofBrokenBanner() {
-    return _require('./proof-broken-banner').default
+    return require('./proof-broken-banner').default
   },
   get RadioButton() {
-    return _require('./radio-button').default
+    return require('./radio-button').default
   },
   get Reloadable() {
-    return _require('./reload').default
+    return require('./reload').default
   },
   get RichButton() {
-    return _require('./rich-button').default
+    return require('./rich-button').default
   },
   get RoundedBox() {
-    return _require('./rounded-box').default
+    return require('./rounded-box').default
   },
   get SafeAreaView() {
-    return _require('./safe-area-view').default
+    return require('./safe-area-view').default
   },
   get SafeAreaViewTop() {
-    return _require('./safe-area-view').SafeAreaViewTop
+    return require('./safe-area-view').SafeAreaViewTop
   },
   get SaveIndicator() {
-    return _require('./save-indicator').default
+    return require('./save-indicator').default
   },
   get ScrollView() {
-    return _require('./scroll-view').default
+    return require('./scroll-view').default
   },
   get SearchFilter() {
-    return _require('./search-filter').default
+    return require('./search-filter').default
   },
   get SectionDivider() {
-    return _require('./section-divider').default
+    return require('./section-divider').default
   },
   get SectionList() {
-    return _require('./section-list').default
+    return require('./section-list').default
   },
   get SimpleToast() {
-    return _require('./simple-toast').default
+    return require('./simple-toast').default
   },
   get Styles() {
-    return _require('@/styles')
+    return require('@/styles')
   },
   get Switch() {
-    return _require('./switch').default
+    return require('./switch').default
   },
   get Tabs() {
-    return _require('./tabs').default
+    return require('./tabs').default
   },
   get TeamWithPopup() {
-    return _require('./team-with-popup').default
+    return require('./team-with-popup').default
   },
   get Text() {
-    return _require('./text').default
+    return require('./text').default
   },
   get Text2() {
-    return _require('./text2').Text2
+    return require('./text2').Text2
   },
   get TimelineMarker() {
-    return _require('./timeline-marker').default
+    return require('./timeline-marker').default
   },
   get Toast() {
-    return _require('./toast').default
+    return require('./toast').default
   },
   get Video() {
-    return _require('./video').default
+    return require('./video').default
   },
   get WaitingButton() {
-    return _require('./waiting-button').default
+    return require('./waiting-button').default
   },
   get WaveButton() {
-    return _require('./wave-button').default
+    return require('./wave-button').default
   },
   get WebView() {
-    return _require('./web-view').default
+    return require('./web-view').default
   },
   get WithTooltip() {
-    return _require('./with-tooltip').default
+    return require('./with-tooltip').default
   },
   get ZoomableImage() {
-    return _require('./zoomable-image').default
+    return require('./zoomable-image').default
   },
   get isValidIconType() {
-    return _require('./icon.shared').isValidIconType
+    return require('./icon.shared').isValidIconType
   },
   get largeListItem2Height() {
-    return _require('./list-item2').largeHeight
+    return require('./list-item2').largeHeight
   },
   get smallListItem2Height() {
-    return _require('./list-item2').smallHeight
+    return require('./list-item2').smallHeight
   },
   get urlsToImgSet() {
-    return _require('./icon').urlsToImgSet
+    return require('./icon').urlsToImgSet
   },
   get useHotKey() {
-    return _require('./hot-key').useHotKey
+    return require('./hot-key').useHotKey
   },
   get useInterval() {
-    return _require('./use-timers').useInterval
+    return require('./use-timers').useInterval
   },
   get useModalHeaderTitleAndCancel() {
-    return _require('./modal').useModalHeaderTitleAndCancel
+    return require('./modal').useModalHeaderTitleAndCancel
   },
   get usePopup2() {
-    return _require('./use-popup').usePopup2
+    return require('./use-popup').usePopup2
   },
   get useSafeAreaInsets() {
-    return _require('./safe-area-view').useSafeAreaInsets
+    return require('./safe-area-view').useSafeAreaInsets
   },
   get useTimeout() {
-    return _require('./use-timers').useTimeout
+    return require('./use-timers').useTimeout
   },
+}
+
+if (module.hot) {
+  module.hot.accept(() => {
+    // Accept HMR updates for this module to avoid disposal issues with lazy getters
+  })
 }
