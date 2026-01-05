@@ -1,0 +1,10 @@
+diff --git a/node_modules/immer/dist/immer.d.ts b/node_modules/immer/dist/immer.d.ts
+index 698fac5..d9db651 100644
+--- a/node_modules/immer/dist/immer.d.ts
++++ b/node_modules/immer/dist/immer.d.ts
+@@ -314,4 +314,4 @@ declare let castDraft: <T>(value: T) => Draft<T>;
+  */
+ declare let castImmutable: <T>(value: T) => Immutable<T>;
+ 
+-export { Draft, Immer, Immutable, Objectish, Patch, PatchListener, Producer, StrictMode, WritableDraft, applyPatches, castDraft, castImmutable, createDraft, current, enableArrayMethods, enableMapSet, enablePatches, finishDraft, freeze, DRAFTABLE as immerable, isDraft, isDraftable, NOTHING as nothing, original, produce, produceWithPatches, setAutoFreeze, setUseStrictIteration, setUseStrictShallowCopy };
++export { Draft, Immer, Immutable, Objectish, Patch, PatchListener, Producer, StrictMode, WritableDraft, WritableNonArrayDraft, applyPatches, castDraft, castImmutable, createDraft, current, enableArrayMethods, enableMapSet, enablePatches, finishDraft, freeze, DRAFTABLE as immerable, isDraft, isDraftable, NOTHING as nothing, original, produce, produceWithPatches, setAutoFreeze, setUseStrictIteration, setUseStrictShallowCopy };
