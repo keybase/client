@@ -293,7 +293,7 @@ export interface State extends Store {
   appendPeopleBuilder: () => void
 }
 
-export const useRouterState = Z.createZustand<State>((set, get) => {
+const _useRouterStateImpl = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
       DEBUG_NAV && console.log('[Nav] clearModals')
@@ -552,6 +552,8 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
+
+export const useRouterState = _useRouterStateImpl
 
 // Helper to reduce boilerplate in route definitions
 // Works for components with or without route params
