@@ -24,13 +24,14 @@ registerDebugClear(() => {
 })
 
 export type Route = NavigationState<KBRootParamList>['routes'][0]
+// still a little paranoid about some things being missing in this type
 export type NavState = Partial<Route['state']>
 export type PathParam = NavigateAppendType
 export type Navigator = NavigationContainerRef<KBRootParamList>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
 
-const isSplit = !isMobile || isTablet
+const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 export const getRootState = (): NavState | undefined => {
   if (!navigationRef.isReady()) return
@@ -58,6 +59,8 @@ export const _getNavigator = () => {
   return navigationRef.isReady() ? navigationRef : undefined
 }
 
+// Public API
+// gives you loggedin/tab/stackitems + modals
 export const getVisiblePath = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
   const rs = navState || getRootState()
   const inludeModals = _inludeModals ?? true
@@ -77,6 +80,7 @@ export const getVisiblePath = (navState?: T.Immutable<NavState>, _inludeModals?:
 
     let toAdd: Array<Route>
     let toAddModals: Array<Route> = []
+    // special handling of modals, we keep them to the side to add them later, then go down the visible tab
     if (depth === 0) {
       childRoute = s.routes[0] as Route
       toAdd = [childRoute]
@@ -84,6 +88,7 @@ export const getVisiblePath = (navState?: T.Immutable<NavState>, _inludeModals?:
         toAddModals = s.routes.slice(1) as Array<Route>
       }
     } else {
+      // include items in the stack
       if (s.type === 'stack') {
         toAdd = s.routes as Array<Route>
       } else {
@@ -134,26 +139,33 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
     return
   }
 
+  // found?
   if (route.name === name) {
+    // selected a root stack? choose just the root item
     if (route.state?.type === 'stack') {
       route.state.routes.length = 1
       route.state.index = 0
     } else {
+      // leave alone? maybe this never happens
       route.state = undefined
     }
     return
   }
 
+  // search stack for target
   if (route.state?.type === 'stack') {
     const idx = route.state.routes.findIndex((r: {name: string}) => r.name === name)
+    // found
     if (idx !== -1) {
       route.state.index = idx
       route.state.routes.length = idx + 1
       return
     }
   }
+  // try the incoming s
   if (s?.type === 'stack') {
     const idx: number = s.routes?.findIndex((r: {name: string}) => r.name === name) ?? -1
+    // found
     if (idx !== -1 && s.routes) {
       s.index = idx
       s.routes.length = idx + 1
@@ -172,12 +184,16 @@ export const getRouteLoggedIn = (route: Array<Route>) => {
   return route[0]?.name === 'loggedIn'
 }
 
+// if a toast is inside of a portal then its not in nav so we can't use useFocusEffect and
+// maybe other places also
 export const useSafeFocusEffect = (fn: () => void) => {
   try {
     useFocusEffect(fn)
   } catch {}
 }
 
+// Helper to reduce boilerplate in route definitions
+// Works for components with or without route params
 export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
   options?: {getOptions?: GetOptionsRet | ((props: ViewPropsToPageProps<COM>) => GetOptionsRet)}
@@ -218,6 +234,7 @@ export const navUpToScreen = (name: RouteKeys) => {
   const n = _getNavigator()
   if (!n) return
   const ns = getRootState()
+  // some kind of unknown race, just bail
   if (!ns) {
     console.log('Avoiding trying to nav to thread when missing nav state, bailing')
     return
@@ -299,6 +316,7 @@ export const navToProfile = (username: string) => {
 export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
   const rs = getRootState()
+  // some kind of unknown race, just bail
   if (!rs) {
     console.log('Avoiding trying to nav to thread when missing nav state, bailing')
     return
@@ -321,17 +339,21 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       return
     }
 
+    // select tabs
     draft.index = 0
+    // remove modals
     if (draft.routes) {
       draft.routes.length = 1
     }
 
+    // select chat tab
     if (loggedInRoute.state) {
       loggedInRoute.state.index = chatTabIdx
     }
 
     const oldChatState = chatStack.state
 
+    // setup root
     chatStack.state = {
       index: 0,
       routes: [{key: oldChatState?.routes[0]?.key ?? 'chatRoot', name: 'chatRoot'}],
@@ -339,6 +361,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
 
     if (isSplit) {
       const _chatRoot = oldChatState?.routes[0]
+      // key is required or you'll run into issues w/ the nav
       const chatRoot = {
         key: _chatRoot?.key || `chatRoot-${conversationIDKey}`,
         name: 'chatRoot',
@@ -346,11 +369,13 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       } as const
       chatStack.state.routes = [chatRoot]
     } else {
+      // key is required or you'll run into issues w/ the nav
       let convoRoute = {
         key: `chatConversation-${conversationIDKey}`,
         name: 'chatConversation',
         params: {conversationIDKey},
       } as const
+      // reuse visible route if it's the same
       const visible = oldChatState?.routes.at(-1)
       if (visible) {
         const vParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = visible.params
@@ -389,6 +414,7 @@ export const appendNewChatBuilder = () => {
   navigateAppend({props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'})
 }
 
+// Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
 export const appendNewTeamBuilder = (teamID: T.Teams.TeamID) => {
   navigateAppend({
     props: {

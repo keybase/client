@@ -88,6 +88,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
         for (const namespace of namespaces) {
           const wasTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(prev)?.name
           if (wasTeamBuilding) {
+            // team building or modal on top of that still
             const isTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(next)?.name
             if (!isTeamBuilding) {
               storeRegistry.getTBStore(namespace).dispatch.cancelTeamBuilding()
@@ -98,6 +99,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       updateTeamBuilding()
 
       const updateFS = () => {
+        // Clear critical update when we nav away from tab
         if (
           prev &&
           Util.getTab(prev) === Tabs.fsTab &&
@@ -123,6 +125,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       updateFS()
 
       const updateSignup = () => {
+        // Clear "just signed up email" when you leave the people tab after signup
         if (
           prev &&
           Util.getTab(prev) === Tabs.peopleTab &&
@@ -150,6 +153,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       updateTeams()
 
       const updateSettings = () => {
+        // Clear "check your inbox" in settings when you leave the settings tab
         if (
           prev &&
           Util.getTab(prev) === Tabs.settingsTab &&
