@@ -9,7 +9,7 @@ import {
 } from '@react-navigation/core'
 import * as Z from '@/util/zustand'
 import {produce} from 'immer'
-import type {UseBoundStore, StoreApi} from 'zustand'
+import type {UseBoundStore} from 'zustand'
 import * as Tabs from '../tabs'
 import isEqual from 'lodash/isEqual'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
@@ -293,7 +293,7 @@ export interface State extends Store {
   appendPeopleBuilder: () => void
 }
 
-export const useRouterState: UseBoundStore<StoreApi<State>> = Z.createZustand<State>((set, get) => {
+export const useRouterState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
       DEBUG_NAV && console.log('[Nav] clearModals')
