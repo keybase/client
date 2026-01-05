@@ -134,8 +134,6 @@ const setupHMR = () => {
 
   module.hot.accept(['../../app/main.desktop'], refreshMain)
   module.hot.accept(['../../common-adapters/index'], () => {})
-  module.hot.accept(['../../common-adapters/index-impl'], () => {})
-  module.hot.accept(['../../constants/store-registry'], () => {})
 }
 
 const load = () => {
