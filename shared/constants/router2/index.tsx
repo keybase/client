@@ -9,6 +9,7 @@ import {
 } from '@react-navigation/core'
 import * as Z from '@/util/zustand'
 import {produce} from 'immer'
+import type {UseBoundStore, StoreApi} from 'zustand'
 import * as Tabs from '../tabs'
 import isEqual from 'lodash/isEqual'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
@@ -235,7 +236,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       chatStack.state.routes = [chatRoot, convoRoute] as typeof chatStack.state.routes
       chatStack.state.index = 1
     }
-  }) as NavState
+  })
 
   if (!isEqual(rs, nextState)) {
     rs.key &&
@@ -292,7 +293,7 @@ export interface State extends Store {
   appendPeopleBuilder: () => void
 }
 
-export const useRouterState = Z.createZustand<State>((set, get) => {
+export const useRouterState: UseBoundStore<StoreApi<State>> = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
       DEBUG_NAV && console.log('[Nav] clearModals')
@@ -323,7 +324,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
 
       const nextState = produce(ns, draft => {
         navUpHelper(draft as DeepWriteable<NavState>, name)
-      }) as NavState
+      })
       n.dispatch(CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]))
     },
     navigateAppend: (path, replace) => {
