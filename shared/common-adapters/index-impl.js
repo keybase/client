@@ -357,5 +357,5 @@ module.exports = {
 }
 
 if (module.hot) {
-  module.hot.decline()
+  module.hot.accept()
 }

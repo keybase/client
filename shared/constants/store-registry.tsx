@@ -353,5 +353,5 @@ class StoreRegistry {
 export const storeRegistry = new StoreRegistry()
 
 if (module.hot) {
-  module.hot.decline()
+  module.hot.accept()
 }

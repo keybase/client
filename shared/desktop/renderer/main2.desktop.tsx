@@ -134,6 +134,17 @@ const setupHMR = () => {
 
   module.hot.accept(['../../app/main.desktop'], refreshMain)
   module.hot.accept(['../../common-adapters/index'], () => {})
+  
+  // Accept lazy-loading modules to prevent disposal errors
+  // These modules use dynamic requires that fail if the module is disposed
+  if (module.hot) {
+    try {
+      require('../../common-adapters/index-impl')
+      require('../../constants/store-registry')
+    } catch {}
+    module.hot.accept(['../../common-adapters/index-impl'], () => {})
+    module.hot.accept(['../../constants/store-registry'], () => {})
+  }
 }
 
 const load = () => {
