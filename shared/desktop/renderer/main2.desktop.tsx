@@ -2,6 +2,10 @@
 import Main from '@/app/main.desktop'
 // order of the above must NOT change. needed for patching / hot loading to be correct
 import * as C from '@/constants'
+// Eagerly load lazy-loading modules to prevent HMR disposal issues
+// These modules use dynamic requires that fail if the module is disposed
+require('@/common-adapters/index-impl')
+require('@/constants/store-registry')
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import type * as RemoteGen from '@/actions/remote-gen'
@@ -134,17 +138,8 @@ const setupHMR = () => {
 
   module.hot.accept(['../../app/main.desktop'], refreshMain)
   module.hot.accept(['../../common-adapters/index'], () => {})
-  
-  // Accept lazy-loading modules to prevent disposal errors
-  // These modules use dynamic requires that fail if the module is disposed
-  if (module.hot) {
-    try {
-      require('../../common-adapters/index-impl')
-      require('../../constants/store-registry')
-    } catch {}
-    module.hot.accept(['../../common-adapters/index-impl'], () => {})
-    module.hot.accept(['../../constants/store-registry'], () => {})
-  }
+  module.hot.accept(['../../common-adapters/index-impl'], () => {})
+  module.hot.accept(['../../constants/store-registry'], () => {})
 }
 
 const load = () => {
