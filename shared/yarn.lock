@@ -2107,10 +2107,6 @@
     "@jsonjoy.com/buffers" "^1.0.0"
     "@jsonjoy.com/codegen" "^1.0.0"
 
-"@khanacademy/perseus-core@keybase/nullModule":
-  version "0.0.0"
-  resolved "https://codeload.github.com/keybase/nullModule/tar.gz/e0d7d7874eb4d1fd82056f92f146589186fe94f0"
-
 "@khanacademy/perseus-utils@2.1.4":
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/@khanacademy/perseus-utils/-/perseus-utils-2.1.4.tgz#f87462f16781c7a40311ac0932e13a1f67ab9418"
