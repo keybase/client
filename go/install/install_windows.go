@@ -313,7 +313,7 @@ func getVersionAndDrivers(logFile *os.File) {
 	// Check whether the service shortcut is still present and not disabled
 	deprecatedStartupInfo(logFile)
 	status, err := autostartStatus()
-	logFile.WriteString(fmt.Sprintf("AutoStart: %v, %v\n", status, err))
+	fmt.Fprintf(logFile, "AutoStart: %v, %v\n", status, err)
 
 	// List filesystem drivers
 	outputBytes, err := exec.Command("driverquery").Output()
