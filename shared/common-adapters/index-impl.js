@@ -1,363 +1,365 @@
 // this is to defer actually importing these modules until you actually use them
 // this file is ignored by ts
+// Cache required modules to avoid HMR disposal issues with lazy getters
+const moduleCache = new Map()
+const getCached = (id) => {
+  if (!moduleCache.has(id)) {
+    moduleCache.set(id, require(id))
+  }
+  return moduleCache.get(id)
+}
 module.exports = {
   get Animation() {
-    return require('./animation').default
+    return getCached('./animation').default
   },
   get Avatar() {
-    return require('./avatar').default
+    return getCached('./avatar').default
   },
   get AvatarLine() {
-    return require('./avatar/avatar-line').default
+    return getCached('./avatar/avatar-line').default
   },
   get BackButton() {
-    return require('./back-button').default
+    return getCached('./back-button').default
   },
   get Badge() {
-    return require('./badge').default
+    return getCached('./badge').default
   },
   get Banner() {
-    return require('./banner').Banner
+    return getCached('./banner').Banner
   },
   get BannerParagraph() {
-    return require('./banner').BannerParagraph
+    return getCached('./banner').BannerParagraph
   },
   get BottomSheetBackdrop() {
-    return require('./bottom-sheet').BottomSheetBackdrop
+    return getCached('./bottom-sheet').BottomSheetBackdrop
   },
   get BottomSheetModal() {
-    return require('./bottom-sheet').BottomSheetModal
+    return getCached('./bottom-sheet').BottomSheetModal
   },
   get BottomSheetScrollView() {
-    return require('./bottom-sheet').BottomSheetScrollView
+    return getCached('./bottom-sheet').BottomSheetScrollView
   },
   get Box() {
-    return require('./box').default
+    return getCached('./box').default
   },
   get Box2() {
-    return require('./box').Box2
+    return getCached('./box').Box2
   },
   get Box2Animated() {
-    return require('./box').Box2Animated
+    return getCached('./box').Box2Animated
   },
   get Box2Div() {
-    return require('./box').Box2Div
+    return getCached('./box').Box2Div
   },
   get Box2Measure() {
-    return require('./box').Box2Measure
+    return getCached('./box').Box2Measure
   },
   get Box2View() {
-    return require('./box').Box2View
+    return getCached('./box').Box2View
   },
   get BoxGrow() {
-    return require('./box-grow').default
+    return getCached('./box-grow').default
   },
   get BoxGrow2() {
-    return require('./box-grow').BoxGrow2
+    return getCached('./box-grow').BoxGrow2
   },
   get Button() {
-    return require('./button').default
+    return getCached('./button').default
   },
   get ButtonBar() {
-    return require('./button-bar').default
+    return getCached('./button-bar').default
   },
   get CheckCircle() {
-    return require('./check-circle').default
+    return getCached('./check-circle').default
   },
   get Checkbox() {
-    return require('./checkbox').default
+    return getCached('./checkbox').default
   },
   get ChoiceList() {
-    return require('./choice-list').default
+    return getCached('./choice-list').default
   },
   get ClickableBox() {
-    return require('./clickable-box').default
+    return getCached('./clickable-box').default
   },
   get ClickableBox2() {
-    return require('./clickable-box').ClickableBox2
+    return getCached('./clickable-box').ClickableBox2
   },
   get ConfirmModal() {
-    return require('./confirm-modal').default
+    return getCached('./confirm-modal').default
   },
   get ConnectedNameWithIcon() {
     // explicitly require this to make popup work if it's not been imported
     // explicitly
-    require('./profile-card').default
+    getCached('./profile-card').default
 
-    return require('./name-with-icon').default
+    return getCached('./name-with-icon').default
   },
   get ConnectedUsernames() {
     // explicitly require this to make popup work if it's not been imported
     // explicitly
-    require('./profile-card').default
+    getCached('./profile-card').default
 
-    return require('./usernames').default
+    return getCached('./usernames').default
   },
   get CopyText() {
-    return require('./copy-text').default
+    return getCached('./copy-text').default
   },
   get CopyableText() {
-    return require('./copyable-text').default
+    return getCached('./copyable-text').default
   },
   get DelayedMounting() {
-    return require('./delayed-mounting').default
+    return getCached('./delayed-mounting').default
   },
   get Divider() {
-    return require('./divider').default
+    return getCached('./divider').default
   },
   get DragAndDrop() {
-    return require('./drag-and-drop').default
+    return getCached('./drag-and-drop').default
   },
   get Dropdown() {
-    return require('./dropdown').default
+    return getCached('./dropdown').default
   },
   get DropdownButton() {
-    return require('./dropdown').DropdownButton
+    return getCached('./dropdown').DropdownButton
   },
   get Emoji() {
-    return require('./emoji').default
+    return getCached('./emoji').default
   },
   get ErrorBoundary() {
-    return require('./error-boundary').default
+    return getCached('./error-boundary').default
   },
   get FloatingBox() {
-    return require('./floating-box').default
+    return getCached('./floating-box').default
   },
   get FloatingMenu() {
-    return require('./floating-menu').default
+    return getCached('./floating-menu').default
   },
   get FloatingModalContext() {
-    return require('./floating-menu/context').FloatingModalContext
+    return getCached('./floating-menu/context').FloatingModalContext
   },
   get FloatingPicker() {
-    return require('./floating-picker').default
+    return getCached('./floating-picker').default
   },
   get HeaderHocHeader() {
-    return require('./header-hoc').HeaderHocHeader
+    return getCached('./header-hoc').HeaderHocHeader
   },
   get HeaderHocWrapper() {
-    return require('./header-hoc').HeaderHocWrapper
+    return getCached('./header-hoc').HeaderHocWrapper
   },
   get HeaderLeftBlank() {
-    return require('./header-hoc').HeaderLeftBlank
+    return getCached('./header-hoc').HeaderLeftBlank
   },
   get HeaderLeftCancel() {
-    return require('./header-hoc').HeaderLeftCancel
+    return getCached('./header-hoc').HeaderLeftCancel
   },
   get HotKey() {
-    return require('./hot-key').HotKey
+    return getCached('./hot-key').HotKey
   },
   get Icon() {
-    return require('./icon').default
+    return getCached('./icon').default
   },
   get Image2() {
-    return require('./image2').default
+    return getCached('./image2').default
   },
   get InfoNote() {
-    return require('./info-note').default
+    return getCached('./info-note').default
   },
   get InlineDropdown() {
-    return require('./dropdown').InlineDropdown
+    return getCached('./dropdown').InlineDropdown
   },
   get Input2() {
-    return require('./input2').Input2
+    return getCached('./input2').Input2
   },
   get KeyboardAvoidingView2() {
-    return require('./keyboard-avoiding-view').KeyboardAvoidingView2
+    return getCached('./keyboard-avoiding-view').KeyboardAvoidingView2
   },
   get LabeledInput() {
-    return require('./labeled-input').default
+    return getCached('./labeled-input').default
   },
   get List() {
-    return require('./list').default
+    return getCached('./list').default
   },
   get List2() {
-    return require('./list2').default
+    return getCached('./list2').default
   },
   get ListItem() {
-    return require('./list-item').default
+    return getCached('./list-item').default
   },
   get ListItem2() {
-    return require('./list-item2').default
+    return getCached('./list-item2').default
   },
   get LoadingLine() {
-    return require('./loading-line').default
+    return getCached('./loading-line').default
   },
   get Markdown() {
-    return require('./markdown').default
+    return getCached('./markdown').default
   },
   get Meta() {
-    return require('./meta').default
+    return getCached('./meta').default
   },
   get MobilePopup() {
-    return require('./mobile-popup').default
+    return getCached('./mobile-popup').default
   },
   get Modal() {
-    return require('./modal').default
+    return getCached('./modal').default
   },
   get Modal2() {
-    return require('./modal2').default
+    return getCached('./modal2').default
   },
   get ModalHeader() {
-    return require('./modal').Header
+    return getCached('./modal').Header
   },
   get NameWithIcon() {
-    return require('./name-with-icon').default
+    return getCached('./name-with-icon').default
   },
   get NativeEmoji() {
-    return require('./emoji/native-emoji').default
+    return getCached('./emoji/native-emoji').default
   },
   get NewInput() {
-    return require('./new-input').default
+    return getCached('./new-input').default
   },
   get Overlay() {
-    return require('./overlay').default
+    return getCached('./overlay').default
   },
   get PhoneInput() {
-    return require('./phone-input').default
+    return getCached('./phone-input').default
   },
   get Placeholder() {
-    return require('./placeholder').default
+    return getCached('./placeholder').default
   },
   get PlainInput() {
-    return require('./plain-input').default
+    return getCached('./plain-input').default
   },
   get PlatformIcon() {
-    return require('./platform-icon').default
+    return getCached('./platform-icon').default
   },
   get PopupDialog() {
-    return require('./popup-dialog').default
+    return getCached('./popup-dialog').default
   },
   get PopupHeaderText() {
-    return require('./popup-header-text').default
+    return getCached('./popup-header-text').default
   },
   get PopupWrapper() {
-    return require('./header-or-popup').PopupWrapper
+    return getCached('./header-or-popup').PopupWrapper
   },
   get ProfileCard() {
-    return require('./profile-card').default
+    return getCached('./profile-card').default
   },
   get ProgressBar() {
-    return require('./progress-bar').default
+    return getCached('./progress-bar').default
   },
   get ProgressIndicator() {
-    return require('./progress-indicator').default
+    return getCached('./progress-indicator').default
   },
   get ProofBrokenBanner() {
-    return require('./proof-broken-banner').default
+    return getCached('./proof-broken-banner').default
   },
   get RadioButton() {
-    return require('./radio-button').default
+    return getCached('./radio-button').default
   },
   get Reloadable() {
-    return require('./reload').default
+    return getCached('./reload').default
   },
   get RichButton() {
-    return require('./rich-button').default
+    return getCached('./rich-button').default
   },
   get RoundedBox() {
-    return require('./rounded-box').default
+    return getCached('./rounded-box').default
   },
   get SafeAreaView() {
-    return require('./safe-area-view').default
+    return getCached('./safe-area-view').default
   },
   get SafeAreaViewTop() {
-    return require('./safe-area-view').SafeAreaViewTop
+    return getCached('./safe-area-view').SafeAreaViewTop
   },
   get SaveIndicator() {
-    return require('./save-indicator').default
+    return getCached('./save-indicator').default
   },
   get ScrollView() {
-    return require('./scroll-view').default
+    return getCached('./scroll-view').default
   },
   get SearchFilter() {
-    return require('./search-filter').default
+    return getCached('./search-filter').default
   },
   get SectionDivider() {
-    return require('./section-divider').default
+    return getCached('./section-divider').default
   },
   get SectionList() {
-    return require('./section-list').default
+    return getCached('./section-list').default
   },
   get SimpleToast() {
-    return require('./simple-toast').default
+    return getCached('./simple-toast').default
   },
   get Styles() {
-    return require('@/styles')
+    return getCached('@/styles')
   },
   get Switch() {
-    return require('./switch').default
+    return getCached('./switch').default
   },
   get Tabs() {
-    return require('./tabs').default
+    return getCached('./tabs').default
   },
   get TeamWithPopup() {
-    return require('./team-with-popup').default
+    return getCached('./team-with-popup').default
   },
   get Text() {
-    return require('./text').default
+    return getCached('./text').default
   },
   get Text2() {
-    return require('./text2').Text2
+    return getCached('./text2').Text2
   },
   get TimelineMarker() {
-    return require('./timeline-marker').default
+    return getCached('./timeline-marker').default
   },
   get Toast() {
-    return require('./toast').default
+    return getCached('./toast').default
   },
   get Video() {
-    return require('./video').default
+    return getCached('./video').default
   },
   get WaitingButton() {
-    return require('./waiting-button').default
+    return getCached('./waiting-button').default
   },
   get WaveButton() {
-    return require('./wave-button').default
+    return getCached('./wave-button').default
   },
   get WebView() {
-    return require('./web-view').default
+    return getCached('./web-view').default
   },
   get WithTooltip() {
-    return require('./with-tooltip').default
+    return getCached('./with-tooltip').default
   },
   get ZoomableImage() {
-    return require('./zoomable-image').default
+    return getCached('./zoomable-image').default
   },
   get isValidIconType() {
-    return require('./icon.shared').isValidIconType
+    return getCached('./icon.shared').isValidIconType
   },
   get largeListItem2Height() {
-    return require('./list-item2').largeHeight
+    return getCached('./list-item2').largeHeight
   },
   get smallListItem2Height() {
-    return require('./list-item2').smallHeight
+    return getCached('./list-item2').smallHeight
   },
   get urlsToImgSet() {
-    return require('./icon').urlsToImgSet
+    return getCached('./icon').urlsToImgSet
   },
   get useHotKey() {
-    return require('./hot-key').useHotKey
+    return getCached('./hot-key').useHotKey
   },
   get useInterval() {
-    return require('./use-timers').useInterval
+    return getCached('./use-timers').useInterval
   },
   get useModalHeaderTitleAndCancel() {
-    return require('./modal').useModalHeaderTitleAndCancel
+    return getCached('./modal').useModalHeaderTitleAndCancel
   },
   get usePopup2() {
-    return require('./use-popup').usePopup2
+    return getCached('./use-popup').usePopup2
   },
   get useSafeAreaInsets() {
-    return require('./safe-area-view').useSafeAreaInsets
+    return getCached('./safe-area-view').useSafeAreaInsets
   },
   get useTimeout() {
-    return require('./use-timers').useTimeout
+    return getCached('./use-timers').useTimeout
   },
-}
-
-if (module.hot) {
-  module.hot.accept(() => {
-    // Accept HMR updates for this module to avoid disposal issues with lazy getters
-  })
 }
