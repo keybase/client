@@ -50,7 +50,7 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
     setRendered(next)
   }, [selectedRoute, rendered])
 
-  const hasModals = C.useRouterState(s => C.Router2.getModalStack(s.navState).length > 0)
+  const hasModals = C.Router2.getModalStack().length > 0
 
   return (
     <NavigationContent>

@@ -258,14 +258,13 @@ export const getRouteLoggedIn = (route: Array<Route>) => {
 // maybe other places also
 export const useSafeFocusEffect = (fn: () => void) => {
   try {
-    // eslint-disable-next-line
     useFocusEffect(fn)
   } catch {}
 }
 
 type Store = T.Immutable<{
   // only used for subscribing
-  navState?: NavState
+  navState?: unknown // NavState marking this as unknown since a recent immer change broke this typing. put it back to see
 }>
 
 const initialStore: Store = {
@@ -388,7 +387,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
     },
     setNavState: next => {
       DEBUG_NAV && console.log('[Nav] setNavState')
-      const prev = get().navState
+      const prev = get().navState as NavState
       if (prev === next) return
       set(s => {
         s.navState = next
