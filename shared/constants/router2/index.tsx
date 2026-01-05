@@ -9,7 +9,6 @@ import {
 } from '@react-navigation/core'
 import * as Z from '@/util/zustand'
 import {produce} from 'immer'
-import type {UseBoundStore} from 'zustand'
 import * as Tabs from '../tabs'
 import isEqual from 'lodash/isEqual'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
