@@ -355,3 +355,7 @@ module.exports = {
     return require('./use-timers').useTimeout
   },
 }
+
+if (module.hot) {
+  module.hot.accept()
+}
