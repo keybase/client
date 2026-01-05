@@ -9,16 +9,6 @@ import {registerDebugUnClear, registerDebugClear, wrapErrors} from '@/util/debug
 // needed for tsc
 export type {WritableDraft} from 'immer'
 
-// WritableNonArrayDraft is used internally by immer but not exported
-// We declare it here so TypeScript can reference it when needed
-export type WritableNonArrayDraft<T> = T extends any[]
-  ? never
-  : T extends ReadonlyArray<any>
-    ? never
-    : {
-        -readonly [P in keyof T]: WritableNonArrayDraft<T[P]>
-      }
-
 type HasReset = {dispatch: {resetDeleteMe?: boolean; resetState: 'default' | (() => void)}}
 
 const resetters: ((isDebug?: boolean) => void)[] = []
