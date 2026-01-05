@@ -4,7 +4,7 @@ import isEqual from 'lodash/isEqual'
 import {type StateCreator} from 'zustand'
 import {create} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
-import {registerDebugUnClear, registerDebugClear, wrapErrors} from '@/util/debug'
+import {wrapErrors} from '@/util/debug'
 
 // needed for tsc
 export type {WritableDraft} from 'immer'
@@ -13,14 +13,6 @@ type HasReset = {dispatch: {resetDeleteMe?: boolean; resetState: 'default' | (()
 
 const resetters: ((isDebug?: boolean) => void)[] = []
 const resettersAndDelete: ((isDebug?: boolean) => void)[] = []
-
-registerDebugClear(() => {
-  resetAllStores(true)
-})
-// so we can rebootstrap
-registerDebugUnClear(() => {
-  resetAllStores()
-})
 
 // Auto adds immer and keeps track of resets
 export const createZustand = <T extends HasReset>(
