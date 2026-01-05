@@ -14,7 +14,7 @@ RUN gpg --import /tini_key.asc \
     && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
     && chmod +x /usr/local/bin/tini
 
-ENV GOSU_VERSION 1.11
+ENV GOSU_VERSION 1.19
 ADD https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64 /usr/local/bin/gosu
 ADD https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64.asc /usr/local/bin/gosu.asc
 COPY packaging/linux/docker/gosu_key.asc /gosu_key.asc

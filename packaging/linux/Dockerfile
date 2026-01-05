@@ -13,10 +13,9 @@ LABEL maintainer="Keybase <admin@keybase.io>"
 #   - unzip because electron6 packager requires it
 RUN apt-get update
 RUN apt-get install -y fakeroot reprepro rpm createrepo-c git wget \
-  build-essential curl s3cmd gnupg2 unzip rsync gcc-x86-64-linux-gnu
+  build-essential curl s3cmd gnupg2 unzip rsync gcc-x86-64-linux-gnu ca-certificates
 
-RUN apt-get install -y wget ca-certificates && \
-  wget -q https://go.dev/dl/go1.25.5.linux-arm64.tar.gz && \
+RUN wget -q https://go.dev/dl/go1.25.5.linux-arm64.tar.gz && \
   tar -C /usr/local -xzf go1.25.5.linux-arm64.tar.gz && \
   rm go1.25.5.linux-arm64.tar.gz
 
