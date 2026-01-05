@@ -336,6 +336,9 @@ export const initPlatformListener = () => {
   storeRegistry.getStore('config').setState(s => {
     s.dispatch.dynamic.persistRoute = wrapErrors((path?: ReadonlyArray<unknown>) => {
       const f = async () => {
+        if (!storeRegistry.getState('config').startup.loaded) {
+          return
+        }
         let param = {}
         let routeName = Tabs.peopleTab
         if (path) {
