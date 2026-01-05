@@ -2,364 +2,709 @@
 // this file is ignored by ts
 // Cache required modules to avoid HMR disposal issues with lazy getters
 const moduleCache = new Map()
-const getCached = (id) => {
-  if (!moduleCache.has(id)) {
-    moduleCache.set(id, require(id))
-  }
-  return moduleCache.get(id)
-}
 module.exports = {
   get Animation() {
-    return getCached('./animation').default
+    if (!moduleCache.has('./animation')) {
+      moduleCache.set('./animation', require('./animation'))
+    }
+    return moduleCache.get('./animation').default
   },
   get Avatar() {
-    return getCached('./avatar').default
+    if (!moduleCache.has('./avatar')) {
+      moduleCache.set('./avatar', require('./avatar'))
+    }
+    return moduleCache.get('./avatar').default
   },
   get AvatarLine() {
-    return getCached('./avatar/avatar-line').default
+    if (!moduleCache.has('./avatar/avatar-line')) {
+      moduleCache.set('./avatar/avatar-line', require('./avatar/avatar-line'))
+    }
+    return moduleCache.get('./avatar/avatar-line').default
   },
   get BackButton() {
-    return getCached('./back-button').default
+    if (!moduleCache.has('./back-button')) {
+      moduleCache.set('./back-button', require('./back-button'))
+    }
+    return moduleCache.get('./back-button').default
   },
   get Badge() {
-    return getCached('./badge').default
+    if (!moduleCache.has('./badge')) {
+      moduleCache.set('./badge', require('./badge'))
+    }
+    return moduleCache.get('./badge').default
   },
   get Banner() {
-    return getCached('./banner').Banner
+    if (!moduleCache.has('./banner')) {
+      moduleCache.set('./banner', require('./banner'))
+    }
+    return moduleCache.get('./banner').Banner
   },
   get BannerParagraph() {
-    return getCached('./banner').BannerParagraph
+    if (!moduleCache.has('./banner')) {
+      moduleCache.set('./banner', require('./banner'))
+    }
+    return moduleCache.get('./banner').BannerParagraph
   },
   get BottomSheetBackdrop() {
-    return getCached('./bottom-sheet').BottomSheetBackdrop
+    if (!moduleCache.has('./bottom-sheet')) {
+      moduleCache.set('./bottom-sheet', require('./bottom-sheet'))
+    }
+    return moduleCache.get('./bottom-sheet').BottomSheetBackdrop
   },
   get BottomSheetModal() {
-    return getCached('./bottom-sheet').BottomSheetModal
+    if (!moduleCache.has('./bottom-sheet')) {
+      moduleCache.set('./bottom-sheet', require('./bottom-sheet'))
+    }
+    return moduleCache.get('./bottom-sheet').BottomSheetModal
   },
   get BottomSheetScrollView() {
-    return getCached('./bottom-sheet').BottomSheetScrollView
+    if (!moduleCache.has('./bottom-sheet')) {
+      moduleCache.set('./bottom-sheet', require('./bottom-sheet'))
+    }
+    return moduleCache.get('./bottom-sheet').BottomSheetScrollView
   },
   get Box() {
-    return getCached('./box').default
+    if (!moduleCache.has('./box')) {
+      moduleCache.set('./box', require('./box'))
+    }
+    return moduleCache.get('./box').default
   },
   get Box2() {
-    return getCached('./box').Box2
+    if (!moduleCache.has('./box')) {
+      moduleCache.set('./box', require('./box'))
+    }
+    return moduleCache.get('./box').Box2
   },
   get Box2Animated() {
-    return getCached('./box').Box2Animated
+    if (!moduleCache.has('./box')) {
+      moduleCache.set('./box', require('./box'))
+    }
+    return moduleCache.get('./box').Box2Animated
   },
   get Box2Div() {
-    return getCached('./box').Box2Div
+    if (!moduleCache.has('./box')) {
+      moduleCache.set('./box', require('./box'))
+    }
+    return moduleCache.get('./box').Box2Div
   },
   get Box2Measure() {
-    return getCached('./box').Box2Measure
+    if (!moduleCache.has('./box')) {
+      moduleCache.set('./box', require('./box'))
+    }
+    return moduleCache.get('./box').Box2Measure
   },
   get Box2View() {
-    return getCached('./box').Box2View
+    if (!moduleCache.has('./box')) {
+      moduleCache.set('./box', require('./box'))
+    }
+    return moduleCache.get('./box').Box2View
   },
   get BoxGrow() {
-    return getCached('./box-grow').default
+    if (!moduleCache.has('./box-grow')) {
+      moduleCache.set('./box-grow', require('./box-grow'))
+    }
+    return moduleCache.get('./box-grow').default
   },
   get BoxGrow2() {
-    return getCached('./box-grow').BoxGrow2
+    if (!moduleCache.has('./box-grow')) {
+      moduleCache.set('./box-grow', require('./box-grow'))
+    }
+    return moduleCache.get('./box-grow').BoxGrow2
   },
   get Button() {
-    return getCached('./button').default
+    if (!moduleCache.has('./button')) {
+      moduleCache.set('./button', require('./button'))
+    }
+    return moduleCache.get('./button').default
   },
   get ButtonBar() {
-    return getCached('./button-bar').default
+    if (!moduleCache.has('./button-bar')) {
+      moduleCache.set('./button-bar', require('./button-bar'))
+    }
+    return moduleCache.get('./button-bar').default
   },
   get CheckCircle() {
-    return getCached('./check-circle').default
+    if (!moduleCache.has('./check-circle')) {
+      moduleCache.set('./check-circle', require('./check-circle'))
+    }
+    return moduleCache.get('./check-circle').default
   },
   get Checkbox() {
-    return getCached('./checkbox').default
+    if (!moduleCache.has('./checkbox')) {
+      moduleCache.set('./checkbox', require('./checkbox'))
+    }
+    return moduleCache.get('./checkbox').default
   },
   get ChoiceList() {
-    return getCached('./choice-list').default
+    if (!moduleCache.has('./choice-list')) {
+      moduleCache.set('./choice-list', require('./choice-list'))
+    }
+    return moduleCache.get('./choice-list').default
   },
   get ClickableBox() {
-    return getCached('./clickable-box').default
+    if (!moduleCache.has('./clickable-box')) {
+      moduleCache.set('./clickable-box', require('./clickable-box'))
+    }
+    return moduleCache.get('./clickable-box').default
   },
   get ClickableBox2() {
-    return getCached('./clickable-box').ClickableBox2
+    if (!moduleCache.has('./clickable-box')) {
+      moduleCache.set('./clickable-box', require('./clickable-box'))
+    }
+    return moduleCache.get('./clickable-box').ClickableBox2
   },
   get ConfirmModal() {
-    return getCached('./confirm-modal').default
+    if (!moduleCache.has('./confirm-modal')) {
+      moduleCache.set('./confirm-modal', require('./confirm-modal'))
+    }
+    return moduleCache.get('./confirm-modal').default
   },
   get ConnectedNameWithIcon() {
     // explicitly require this to make popup work if it's not been imported
     // explicitly
-    getCached('./profile-card').default
+    if (!moduleCache.has('./profile-card')) {
+      moduleCache.set('./profile-card', require('./profile-card'))
+    }
+    moduleCache.get('./profile-card').default
 
-    return getCached('./name-with-icon').default
+    if (!moduleCache.has('./name-with-icon')) {
+      moduleCache.set('./name-with-icon', require('./name-with-icon'))
+    }
+    return moduleCache.get('./name-with-icon').default
   },
   get ConnectedUsernames() {
     // explicitly require this to make popup work if it's not been imported
     // explicitly
-    getCached('./profile-card').default
+    if (!moduleCache.has('./profile-card')) {
+      moduleCache.set('./profile-card', require('./profile-card'))
+    }
+    moduleCache.get('./profile-card').default
 
-    return getCached('./usernames').default
+    if (!moduleCache.has('./usernames')) {
+      moduleCache.set('./usernames', require('./usernames'))
+    }
+    return moduleCache.get('./usernames').default
   },
   get CopyText() {
-    return getCached('./copy-text').default
+    if (!moduleCache.has('./copy-text')) {
+      moduleCache.set('./copy-text', require('./copy-text'))
+    }
+    return moduleCache.get('./copy-text').default
   },
   get CopyableText() {
-    return getCached('./copyable-text').default
+    if (!moduleCache.has('./copyable-text')) {
+      moduleCache.set('./copyable-text', require('./copyable-text'))
+    }
+    return moduleCache.get('./copyable-text').default
   },
   get DelayedMounting() {
-    return getCached('./delayed-mounting').default
+    if (!moduleCache.has('./delayed-mounting')) {
+      moduleCache.set('./delayed-mounting', require('./delayed-mounting'))
+    }
+    return moduleCache.get('./delayed-mounting').default
   },
   get Divider() {
-    return getCached('./divider').default
+    if (!moduleCache.has('./divider')) {
+      moduleCache.set('./divider', require('./divider'))
+    }
+    return moduleCache.get('./divider').default
   },
   get DragAndDrop() {
-    return getCached('./drag-and-drop').default
+    if (!moduleCache.has('./drag-and-drop')) {
+      moduleCache.set('./drag-and-drop', require('./drag-and-drop'))
+    }
+    return moduleCache.get('./drag-and-drop').default
   },
   get Dropdown() {
-    return getCached('./dropdown').default
+    if (!moduleCache.has('./dropdown')) {
+      moduleCache.set('./dropdown', require('./dropdown'))
+    }
+    return moduleCache.get('./dropdown').default
   },
   get DropdownButton() {
-    return getCached('./dropdown').DropdownButton
+    if (!moduleCache.has('./dropdown')) {
+      moduleCache.set('./dropdown', require('./dropdown'))
+    }
+    return moduleCache.get('./dropdown').DropdownButton
   },
   get Emoji() {
-    return getCached('./emoji').default
+    if (!moduleCache.has('./emoji')) {
+      moduleCache.set('./emoji', require('./emoji'))
+    }
+    return moduleCache.get('./emoji').default
   },
   get ErrorBoundary() {
-    return getCached('./error-boundary').default
+    if (!moduleCache.has('./error-boundary')) {
+      moduleCache.set('./error-boundary', require('./error-boundary'))
+    }
+    return moduleCache.get('./error-boundary').default
   },
   get FloatingBox() {
-    return getCached('./floating-box').default
+    if (!moduleCache.has('./floating-box')) {
+      moduleCache.set('./floating-box', require('./floating-box'))
+    }
+    return moduleCache.get('./floating-box').default
   },
   get FloatingMenu() {
-    return getCached('./floating-menu').default
+    if (!moduleCache.has('./floating-menu')) {
+      moduleCache.set('./floating-menu', require('./floating-menu'))
+    }
+    return moduleCache.get('./floating-menu').default
   },
   get FloatingModalContext() {
-    return getCached('./floating-menu/context').FloatingModalContext
+    if (!moduleCache.has('./floating-menu/context')) {
+      moduleCache.set('./floating-menu/context', require('./floating-menu/context'))
+    }
+    return moduleCache.get('./floating-menu/context').FloatingModalContext
   },
   get FloatingPicker() {
-    return getCached('./floating-picker').default
+    if (!moduleCache.has('./floating-picker')) {
+      moduleCache.set('./floating-picker', require('./floating-picker'))
+    }
+    return moduleCache.get('./floating-picker').default
   },
   get HeaderHocHeader() {
-    return getCached('./header-hoc').HeaderHocHeader
+    if (!moduleCache.has('./header-hoc')) {
+      moduleCache.set('./header-hoc', require('./header-hoc'))
+    }
+    return moduleCache.get('./header-hoc').HeaderHocHeader
   },
   get HeaderHocWrapper() {
-    return getCached('./header-hoc').HeaderHocWrapper
+    if (!moduleCache.has('./header-hoc')) {
+      moduleCache.set('./header-hoc', require('./header-hoc'))
+    }
+    return moduleCache.get('./header-hoc').HeaderHocWrapper
   },
   get HeaderLeftBlank() {
-    return getCached('./header-hoc').HeaderLeftBlank
+    if (!moduleCache.has('./header-hoc')) {
+      moduleCache.set('./header-hoc', require('./header-hoc'))
+    }
+    return moduleCache.get('./header-hoc').HeaderLeftBlank
   },
   get HeaderLeftCancel() {
-    return getCached('./header-hoc').HeaderLeftCancel
+    if (!moduleCache.has('./header-hoc')) {
+      moduleCache.set('./header-hoc', require('./header-hoc'))
+    }
+    return moduleCache.get('./header-hoc').HeaderLeftCancel
   },
   get HotKey() {
-    return getCached('./hot-key').HotKey
+    if (!moduleCache.has('./hot-key')) {
+      moduleCache.set('./hot-key', require('./hot-key'))
+    }
+    return moduleCache.get('./hot-key').HotKey
   },
   get Icon() {
-    return getCached('./icon').default
+    if (!moduleCache.has('./icon')) {
+      moduleCache.set('./icon', require('./icon'))
+    }
+    return moduleCache.get('./icon').default
   },
   get Image2() {
-    return getCached('./image2').default
+    if (!moduleCache.has('./image2')) {
+      moduleCache.set('./image2', require('./image2'))
+    }
+    return moduleCache.get('./image2').default
   },
   get InfoNote() {
-    return getCached('./info-note').default
+    if (!moduleCache.has('./info-note')) {
+      moduleCache.set('./info-note', require('./info-note'))
+    }
+    return moduleCache.get('./info-note').default
   },
   get InlineDropdown() {
-    return getCached('./dropdown').InlineDropdown
+    if (!moduleCache.has('./dropdown')) {
+      moduleCache.set('./dropdown', require('./dropdown'))
+    }
+    return moduleCache.get('./dropdown').InlineDropdown
   },
   get Input2() {
-    return getCached('./input2').Input2
+    if (!moduleCache.has('./input2')) {
+      moduleCache.set('./input2', require('./input2'))
+    }
+    return moduleCache.get('./input2').Input2
   },
   get KeyboardAvoidingView2() {
-    return getCached('./keyboard-avoiding-view').KeyboardAvoidingView2
+    if (!moduleCache.has('./keyboard-avoiding-view')) {
+      moduleCache.set('./keyboard-avoiding-view', require('./keyboard-avoiding-view'))
+    }
+    return moduleCache.get('./keyboard-avoiding-view').KeyboardAvoidingView2
   },
   get LabeledInput() {
-    return getCached('./labeled-input').default
+    if (!moduleCache.has('./labeled-input')) {
+      moduleCache.set('./labeled-input', require('./labeled-input'))
+    }
+    return moduleCache.get('./labeled-input').default
   },
   get List() {
-    return getCached('./list').default
+    if (!moduleCache.has('./list')) {
+      moduleCache.set('./list', require('./list'))
+    }
+    return moduleCache.get('./list').default
   },
   get List2() {
-    return getCached('./list2').default
+    if (!moduleCache.has('./list2')) {
+      moduleCache.set('./list2', require('./list2'))
+    }
+    return moduleCache.get('./list2').default
   },
   get ListItem() {
-    return getCached('./list-item').default
+    if (!moduleCache.has('./list-item')) {
+      moduleCache.set('./list-item', require('./list-item'))
+    }
+    return moduleCache.get('./list-item').default
   },
   get ListItem2() {
-    return getCached('./list-item2').default
+    if (!moduleCache.has('./list-item2')) {
+      moduleCache.set('./list-item2', require('./list-item2'))
+    }
+    return moduleCache.get('./list-item2').default
   },
   get LoadingLine() {
-    return getCached('./loading-line').default
+    if (!moduleCache.has('./loading-line')) {
+      moduleCache.set('./loading-line', require('./loading-line'))
+    }
+    return moduleCache.get('./loading-line').default
   },
   get Markdown() {
-    return getCached('./markdown').default
+    if (!moduleCache.has('./markdown')) {
+      moduleCache.set('./markdown', require('./markdown'))
+    }
+    return moduleCache.get('./markdown').default
   },
   get Meta() {
-    return getCached('./meta').default
+    if (!moduleCache.has('./meta')) {
+      moduleCache.set('./meta', require('./meta'))
+    }
+    return moduleCache.get('./meta').default
   },
   get MobilePopup() {
-    return getCached('./mobile-popup').default
+    if (!moduleCache.has('./mobile-popup')) {
+      moduleCache.set('./mobile-popup', require('./mobile-popup'))
+    }
+    return moduleCache.get('./mobile-popup').default
   },
   get Modal() {
-    return getCached('./modal').default
+    if (!moduleCache.has('./modal')) {
+      moduleCache.set('./modal', require('./modal'))
+    }
+    return moduleCache.get('./modal').default
   },
   get Modal2() {
-    return getCached('./modal2').default
+    if (!moduleCache.has('./modal2')) {
+      moduleCache.set('./modal2', require('./modal2'))
+    }
+    return moduleCache.get('./modal2').default
   },
   get ModalHeader() {
-    return getCached('./modal').Header
+    if (!moduleCache.has('./modal')) {
+      moduleCache.set('./modal', require('./modal'))
+    }
+    return moduleCache.get('./modal').Header
   },
   get NameWithIcon() {
-    return getCached('./name-with-icon').default
+    if (!moduleCache.has('./name-with-icon')) {
+      moduleCache.set('./name-with-icon', require('./name-with-icon'))
+    }
+    return moduleCache.get('./name-with-icon').default
   },
   get NativeEmoji() {
-    return getCached('./emoji/native-emoji').default
+    if (!moduleCache.has('./emoji/native-emoji')) {
+      moduleCache.set('./emoji/native-emoji', require('./emoji/native-emoji'))
+    }
+    return moduleCache.get('./emoji/native-emoji').default
   },
   get NewInput() {
-    return getCached('./new-input').default
+    if (!moduleCache.has('./new-input')) {
+      moduleCache.set('./new-input', require('./new-input'))
+    }
+    return moduleCache.get('./new-input').default
   },
   get Overlay() {
-    return getCached('./overlay').default
+    if (!moduleCache.has('./overlay')) {
+      moduleCache.set('./overlay', require('./overlay'))
+    }
+    return moduleCache.get('./overlay').default
   },
   get PhoneInput() {
-    return getCached('./phone-input').default
+    if (!moduleCache.has('./phone-input')) {
+      moduleCache.set('./phone-input', require('./phone-input'))
+    }
+    return moduleCache.get('./phone-input').default
   },
   get Placeholder() {
-    return getCached('./placeholder').default
+    if (!moduleCache.has('./placeholder')) {
+      moduleCache.set('./placeholder', require('./placeholder'))
+    }
+    return moduleCache.get('./placeholder').default
   },
   get PlainInput() {
-    return getCached('./plain-input').default
+    if (!moduleCache.has('./plain-input')) {
+      moduleCache.set('./plain-input', require('./plain-input'))
+    }
+    return moduleCache.get('./plain-input').default
   },
   get PlatformIcon() {
-    return getCached('./platform-icon').default
+    if (!moduleCache.has('./platform-icon')) {
+      moduleCache.set('./platform-icon', require('./platform-icon'))
+    }
+    return moduleCache.get('./platform-icon').default
   },
   get PopupDialog() {
-    return getCached('./popup-dialog').default
+    if (!moduleCache.has('./popup-dialog')) {
+      moduleCache.set('./popup-dialog', require('./popup-dialog'))
+    }
+    return moduleCache.get('./popup-dialog').default
   },
   get PopupHeaderText() {
-    return getCached('./popup-header-text').default
+    if (!moduleCache.has('./popup-header-text')) {
+      moduleCache.set('./popup-header-text', require('./popup-header-text'))
+    }
+    return moduleCache.get('./popup-header-text').default
   },
   get PopupWrapper() {
-    return getCached('./header-or-popup').PopupWrapper
+    if (!moduleCache.has('./header-or-popup')) {
+      moduleCache.set('./header-or-popup', require('./header-or-popup'))
+    }
+    return moduleCache.get('./header-or-popup').PopupWrapper
   },
   get ProfileCard() {
-    return getCached('./profile-card').default
+    if (!moduleCache.has('./profile-card')) {
+      moduleCache.set('./profile-card', require('./profile-card'))
+    }
+    return moduleCache.get('./profile-card').default
   },
   get ProgressBar() {
-    return getCached('./progress-bar').default
+    if (!moduleCache.has('./progress-bar')) {
+      moduleCache.set('./progress-bar', require('./progress-bar'))
+    }
+    return moduleCache.get('./progress-bar').default
   },
   get ProgressIndicator() {
-    return getCached('./progress-indicator').default
+    if (!moduleCache.has('./progress-indicator')) {
+      moduleCache.set('./progress-indicator', require('./progress-indicator'))
+    }
+    return moduleCache.get('./progress-indicator').default
   },
   get ProofBrokenBanner() {
-    return getCached('./proof-broken-banner').default
+    if (!moduleCache.has('./proof-broken-banner')) {
+      moduleCache.set('./proof-broken-banner', require('./proof-broken-banner'))
+    }
+    return moduleCache.get('./proof-broken-banner').default
   },
   get RadioButton() {
-    return getCached('./radio-button').default
+    if (!moduleCache.has('./radio-button')) {
+      moduleCache.set('./radio-button', require('./radio-button'))
+    }
+    return moduleCache.get('./radio-button').default
   },
   get Reloadable() {
-    return getCached('./reload').default
+    if (!moduleCache.has('./reload')) {
+      moduleCache.set('./reload', require('./reload'))
+    }
+    return moduleCache.get('./reload').default
   },
   get RichButton() {
-    return getCached('./rich-button').default
+    if (!moduleCache.has('./rich-button')) {
+      moduleCache.set('./rich-button', require('./rich-button'))
+    }
+    return moduleCache.get('./rich-button').default
   },
   get RoundedBox() {
-    return getCached('./rounded-box').default
+    if (!moduleCache.has('./rounded-box')) {
+      moduleCache.set('./rounded-box', require('./rounded-box'))
+    }
+    return moduleCache.get('./rounded-box').default
   },
   get SafeAreaView() {
-    return getCached('./safe-area-view').default
+    if (!moduleCache.has('./safe-area-view')) {
+      moduleCache.set('./safe-area-view', require('./safe-area-view'))
+    }
+    return moduleCache.get('./safe-area-view').default
   },
   get SafeAreaViewTop() {
-    return getCached('./safe-area-view').SafeAreaViewTop
+    if (!moduleCache.has('./safe-area-view')) {
+      moduleCache.set('./safe-area-view', require('./safe-area-view'))
+    }
+    return moduleCache.get('./safe-area-view').SafeAreaViewTop
   },
   get SaveIndicator() {
-    return getCached('./save-indicator').default
+    if (!moduleCache.has('./save-indicator')) {
+      moduleCache.set('./save-indicator', require('./save-indicator'))
+    }
+    return moduleCache.get('./save-indicator').default
   },
   get ScrollView() {
-    return getCached('./scroll-view').default
+    if (!moduleCache.has('./scroll-view')) {
+      moduleCache.set('./scroll-view', require('./scroll-view'))
+    }
+    return moduleCache.get('./scroll-view').default
   },
   get SearchFilter() {
-    return getCached('./search-filter').default
+    if (!moduleCache.has('./search-filter')) {
+      moduleCache.set('./search-filter', require('./search-filter'))
+    }
+    return moduleCache.get('./search-filter').default
   },
   get SectionDivider() {
-    return getCached('./section-divider').default
+    if (!moduleCache.has('./section-divider')) {
+      moduleCache.set('./section-divider', require('./section-divider'))
+    }
+    return moduleCache.get('./section-divider').default
   },
   get SectionList() {
-    return getCached('./section-list').default
+    if (!moduleCache.has('./section-list')) {
+      moduleCache.set('./section-list', require('./section-list'))
+    }
+    return moduleCache.get('./section-list').default
   },
   get SimpleToast() {
-    return getCached('./simple-toast').default
+    if (!moduleCache.has('./simple-toast')) {
+      moduleCache.set('./simple-toast', require('./simple-toast'))
+    }
+    return moduleCache.get('./simple-toast').default
   },
   get Styles() {
-    return getCached('@/styles')
+    if (!moduleCache.has('@/styles')) {
+      moduleCache.set('@/styles', require('@/styles'))
+    }
+    return moduleCache.get('@/styles')
   },
   get Switch() {
-    return getCached('./switch').default
+    if (!moduleCache.has('./switch')) {
+      moduleCache.set('./switch', require('./switch'))
+    }
+    return moduleCache.get('./switch').default
   },
   get Tabs() {
-    return getCached('./tabs').default
+    if (!moduleCache.has('./tabs')) {
+      moduleCache.set('./tabs', require('./tabs'))
+    }
+    return moduleCache.get('./tabs').default
   },
   get TeamWithPopup() {
-    return getCached('./team-with-popup').default
+    if (!moduleCache.has('./team-with-popup')) {
+      moduleCache.set('./team-with-popup', require('./team-with-popup'))
+    }
+    return moduleCache.get('./team-with-popup').default
   },
   get Text() {
-    return getCached('./text').default
+    if (!moduleCache.has('./text')) {
+      moduleCache.set('./text', require('./text'))
+    }
+    return moduleCache.get('./text').default
   },
   get Text2() {
-    return getCached('./text2').Text2
+    if (!moduleCache.has('./text2')) {
+      moduleCache.set('./text2', require('./text2'))
+    }
+    return moduleCache.get('./text2').Text2
   },
   get TimelineMarker() {
-    return getCached('./timeline-marker').default
+    if (!moduleCache.has('./timeline-marker')) {
+      moduleCache.set('./timeline-marker', require('./timeline-marker'))
+    }
+    return moduleCache.get('./timeline-marker').default
   },
   get Toast() {
-    return getCached('./toast').default
+    if (!moduleCache.has('./toast')) {
+      moduleCache.set('./toast', require('./toast'))
+    }
+    return moduleCache.get('./toast').default
   },
   get Video() {
-    return getCached('./video').default
+    if (!moduleCache.has('./video')) {
+      moduleCache.set('./video', require('./video'))
+    }
+    return moduleCache.get('./video').default
   },
   get WaitingButton() {
-    return getCached('./waiting-button').default
+    if (!moduleCache.has('./waiting-button')) {
+      moduleCache.set('./waiting-button', require('./waiting-button'))
+    }
+    return moduleCache.get('./waiting-button').default
   },
   get WaveButton() {
-    return getCached('./wave-button').default
+    if (!moduleCache.has('./wave-button')) {
+      moduleCache.set('./wave-button', require('./wave-button'))
+    }
+    return moduleCache.get('./wave-button').default
   },
   get WebView() {
-    return getCached('./web-view').default
+    if (!moduleCache.has('./web-view')) {
+      moduleCache.set('./web-view', require('./web-view'))
+    }
+    return moduleCache.get('./web-view').default
   },
   get WithTooltip() {
-    return getCached('./with-tooltip').default
+    if (!moduleCache.has('./with-tooltip')) {
+      moduleCache.set('./with-tooltip', require('./with-tooltip'))
+    }
+    return moduleCache.get('./with-tooltip').default
   },
   get ZoomableImage() {
-    return getCached('./zoomable-image').default
+    if (!moduleCache.has('./zoomable-image')) {
+      moduleCache.set('./zoomable-image', require('./zoomable-image'))
+    }
+    return moduleCache.get('./zoomable-image').default
   },
   get isValidIconType() {
-    return getCached('./icon.shared').isValidIconType
+    if (!moduleCache.has('./icon.shared')) {
+      moduleCache.set('./icon.shared', require('./icon.shared'))
+    }
+    return moduleCache.get('./icon.shared').isValidIconType
   },
   get largeListItem2Height() {
-    return getCached('./list-item2').largeHeight
+    if (!moduleCache.has('./list-item2')) {
+      moduleCache.set('./list-item2', require('./list-item2'))
+    }
+    return moduleCache.get('./list-item2').largeHeight
   },
   get smallListItem2Height() {
-    return getCached('./list-item2').smallHeight
+    if (!moduleCache.has('./list-item2')) {
+      moduleCache.set('./list-item2', require('./list-item2'))
+    }
+    return moduleCache.get('./list-item2').smallHeight
   },
   get urlsToImgSet() {
-    return getCached('./icon').urlsToImgSet
+    if (!moduleCache.has('./icon')) {
+      moduleCache.set('./icon', require('./icon'))
+    }
+    return moduleCache.get('./icon').urlsToImgSet
   },
   get useHotKey() {
-    return getCached('./hot-key').useHotKey
+    if (!moduleCache.has('./hot-key')) {
+      moduleCache.set('./hot-key', require('./hot-key'))
+    }
+    return moduleCache.get('./hot-key').useHotKey
   },
   get useInterval() {
-    return getCached('./use-timers').useInterval
+    if (!moduleCache.has('./use-timers')) {
+      moduleCache.set('./use-timers', require('./use-timers'))
+    }
+    return moduleCache.get('./use-timers').useInterval
   },
   get useModalHeaderTitleAndCancel() {
-    return getCached('./modal').useModalHeaderTitleAndCancel
+    if (!moduleCache.has('./modal')) {
+      moduleCache.set('./modal', require('./modal'))
+    }
+    return moduleCache.get('./modal').useModalHeaderTitleAndCancel
   },
   get usePopup2() {
-    return getCached('./use-popup').usePopup2
+    if (!moduleCache.has('./use-popup')) {
+      moduleCache.set('./use-popup', require('./use-popup'))
+    }
+    return moduleCache.get('./use-popup').usePopup2
   },
   get useSafeAreaInsets() {
-    return getCached('./safe-area-view').useSafeAreaInsets
+    if (!moduleCache.has('./safe-area-view')) {
+      moduleCache.set('./safe-area-view', require('./safe-area-view'))
+    }
+    return moduleCache.get('./safe-area-view').useSafeAreaInsets
   },
   get useTimeout() {
-    return getCached('./use-timers').useTimeout
+    if (!moduleCache.has('./use-timers')) {
+      moduleCache.set('./use-timers', require('./use-timers'))
+    }
+    return moduleCache.get('./use-timers').useTimeout
   },
 }
