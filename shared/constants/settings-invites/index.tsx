@@ -6,8 +6,6 @@ import logger from '@/logger'
 import trim from 'lodash/trim'
 import * as T from '../types'
 import {navigateAppend} from '../router2/util'
-import {storeRegistry} from '../store-registry'
-
 
 type InviteBase = {
   id: string

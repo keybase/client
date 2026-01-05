@@ -8,7 +8,6 @@ import {
   getTab,
   getRootState,
   getVisibleScreen,
-  type Route,
   type NavState,
   type PathParam,
   type Navigator,
@@ -99,9 +98,9 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
     dynamic: {
       tabLongPress: undefined,
     },
+    navUpToScreen: navUpToScreenUtil,
     navigateAppend: navigateAppendUtil,
     navigateUp: navigateUpUtil,
-    navUpToScreen: navUpToScreenUtil,
     popStack: popStackUtil,
     resetState: () => {
       set(s => ({
@@ -119,24 +118,6 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       const callbacks: SetNavStateCallbacks = {
         onRouteChanged: (prev, next) => {
           storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
-        },
-        updateTeamBuilding: (prev, next) => {
-          const namespaces = ['chat2', 'crypto', 'teams', 'people'] as const
-          const namespaceToRoute = new Map([
-            ['chat2', 'chatNewChat'],
-            ['crypto', 'cryptoTeamBuilder'],
-            ['teams', 'teamsTeamBuilder'],
-            ['people', 'peopleTeamBuilder'],
-          ])
-          for (const namespace of namespaces) {
-            const wasTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(prev)?.name
-            if (wasTeamBuilding) {
-              const isTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(next)?.name
-              if (!isTeamBuilding) {
-                storeRegistry.getTBStore(namespace).dispatch.cancelTeamBuilding()
-              }
-            }
-          }
         },
         updateFS: (prev, next) => {
           if (
@@ -161,25 +142,9 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
             }
           }
         },
-        updateSignup: (prev, next) => {
-          if (
-            prev &&
-            getTab(prev) === Tabs.peopleTab &&
-            next &&
-            getTab(next) !== Tabs.peopleTab &&
-            storeRegistry.getState('signup').justSignedUpEmail
-          ) {
-            storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
-          }
-        },
         updatePeople: (prev, next) => {
           if (prev && getTab(prev) === Tabs.peopleTab && next && getTab(next) !== Tabs.peopleTab) {
             storeRegistry.getState('people').dispatch.markViewed()
-          }
-        },
-        updateTeams: (prev, next) => {
-          if (prev && getTab(prev) === Tabs.teamsTab && next && getTab(next) !== Tabs.teamsTab) {
-            storeRegistry.getState('teams').dispatch.clearNavBadges()
           }
         },
         updateSettings: (prev, next) => {
@@ -191,6 +156,40 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
             storeRegistry.getState('settings-email').addedEmail
           ) {
             storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
+          }
+        },
+        updateSignup: (prev, next) => {
+          if (
+            prev &&
+            getTab(prev) === Tabs.peopleTab &&
+            next &&
+            getTab(next) !== Tabs.peopleTab &&
+            storeRegistry.getState('signup').justSignedUpEmail
+          ) {
+            storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
+          }
+        },
+        updateTeamBuilding: (prev, next) => {
+          const namespaces = ['chat2', 'crypto', 'teams', 'people'] as const
+          const namespaceToRoute = new Map([
+            ['chat2', 'chatNewChat'],
+            ['crypto', 'cryptoTeamBuilder'],
+            ['teams', 'teamsTeamBuilder'],
+            ['people', 'peopleTeamBuilder'],
+          ])
+          for (const namespace of namespaces) {
+            const wasTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(prev)?.name
+            if (wasTeamBuilding) {
+              const isTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(next)?.name
+              if (!isTeamBuilding) {
+                storeRegistry.getTBStore(namespace).dispatch.cancelTeamBuilding()
+              }
+            }
+          }
+        },
+        updateTeams: (prev, next) => {
+          if (prev && getTab(prev) === Tabs.teamsTab && next && getTab(next) !== Tabs.teamsTab) {
+            storeRegistry.getState('teams').dispatch.clearNavBadges()
           }
         },
       }

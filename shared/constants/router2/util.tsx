@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type * as T from '../types'
-import type * as Tabs from '../tabs'
+import * as Tabs from '../tabs'
 import {
   StackActions,
   CommonActions,
@@ -425,11 +425,7 @@ export type SetNavStateCallbacks = {
   updateSettings: (prev: NavState | undefined, next: NavState) => void
 }
 
-export const setNavState = (
-  prev: NavState | undefined,
-  next: NavState,
-  callbacks: SetNavStateCallbacks
-) => {
+export const setNavState = (prev: NavState | undefined, next: NavState, callbacks: SetNavStateCallbacks) => {
   DEBUG_NAV && console.log('[Nav] setNavState')
   if (prev === next) return
 

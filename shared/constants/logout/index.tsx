@@ -5,7 +5,6 @@ import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {settingsPasswordTab} from '../settings'
 import {navigateAppend} from '../router2/util'
-import {storeRegistry} from '../store-registry'
 import {isMobile} from '../platform'
 import * as Tabs from '../tabs'
 
