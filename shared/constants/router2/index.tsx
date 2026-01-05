@@ -21,16 +21,6 @@ export {
   getRouteLoggedIn,
   useSafeFocusEffect,
   makeScreen,
-  clearModals,
-  navigateAppend,
-  navigateUp,
-  navUpToScreen,
-  popStack,
-  switchTab,
-  appendEncryptRecipientsBuilder,
-  appendNewChatBuilder,
-  appendNewTeamBuilder,
-  appendPeopleBuilder,
 } from './util'
 export type {PathParam, Navigator} from './util'
 
