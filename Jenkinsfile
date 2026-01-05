@@ -559,12 +559,16 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
 
     sh 'go tool govulncheck ./...'
     if (env.CHANGE_TARGET) {
-      println("Running golangci-lint on new code")
-      fetchChangeTarget()
-      def BASE_COMMIT_HASH = getBaseCommitHash()
+      //println("Running golangci-lint on new code")
+      println("Running golangci-lint on all non-KBFS code")
+      //fetchChangeTarget()
+      //def BASE_COMMIT_HASH = getBaseCommitHash()
+      //timeout(activity: true, time: 720, unit: 'SECONDS') {
+      //  // Ignore the `protocol` directory, autogeneration has some critques
+      //  sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --timeout 10m0s"
+      //}
       timeout(activity: true, time: 720, unit: 'SECONDS') {
-        // Ignore the `protocol` directory, autogeneration has some critques
-        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --timeout 10m0s"
+        sh "make golangci-lint-nonkbfs"
       }
     } else {
       println("Running golangci-lint on all non-KBFS code")
