@@ -3,6 +3,13 @@
 import * as TeamsUtil from '../teams/util'
 import * as PlatformSpecific from '../platform-specific'
 import * as Router2 from '../router2'
+import {
+  clearModals,
+  navigateAppend,
+  navigateUp,
+  navUpToScreen,
+  switchTab,
+} from '../router2/util'
 import {isIOS} from '../platform'
 import {updateImmer} from '../utils'
 import * as T from '../types'
@@ -36,7 +43,6 @@ import * as Config from '@/constants/config/util'
 import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual} from '../utils'
 import * as Strings from '@/constants/strings'
-// TODO remove
 import {getVisibleScreen} from '@/constants/router2'
 
 import {storeRegistry} from '../store-registry'
@@ -367,7 +373,7 @@ export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const closeBotModal = () => {
-    storeRegistry.getState('router').dispatch.clearModals()
+    clearModals()
     if (get().meta.teamname) {
       storeRegistry.getState('teams').dispatch.getMembers(get().meta.teamID)
     }
@@ -1159,7 +1165,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
 
         const pathAndOutboxIDs = [{outboxID, path}]
-        storeRegistry.getState('router').dispatch.navigateAppend({
+        navigateAppend({
           props: {conversationIDKey: get().id, noDragDrop: true, pathAndOutboxIDs},
           selected: 'chatAttachmentGetTitles',
         })
@@ -1167,7 +1173,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       ignorePromise(f())
     },
     attachmentPreviewSelect: ordinal => {
-      storeRegistry.getState('router').dispatch.navigateAppend({
+      navigateAppend({
         props: {conversationIDKey: get().id, ordinal},
         selected: 'chatAttachmentFullscreen',
       })
@@ -1378,10 +1384,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         )
       }
       ignorePromise(f())
-      storeRegistry.getState('router').dispatch.clearModals()
+      clearModals()
       if (navToInbox) {
-        storeRegistry.getState('router').dispatch.navUpToScreen('chatRoot')
-        storeRegistry.getState('router').dispatch.switchTab(Tabs.chatTab)
+        navUpToScreen('chatRoot')
+        switchTab(Tabs.chatTab)
         if (!isMobile) {
           const vs = getVisibleScreen()
           const params = vs?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
@@ -1858,7 +1864,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         if (isIOS && message.fileName.endsWith('.pdf')) {
-          storeRegistry.getState('router').dispatch.navigateAppend({
+          navigateAppend({
             props: {
               conversationIDKey: get().id,
               ordinal,
@@ -2158,7 +2164,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           // note: we don't switch tabs on non split
           const modalPath = Router2.getModalStack()
           if (modalPath.length > 0) {
-            storeRegistry.getState('router').dispatch.clearModals()
+            clearModals()
           }
 
           storeRegistry
@@ -2846,12 +2852,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const visibleScreen = getVisibleScreen()
         if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
           if (show) {
-            storeRegistry.getState('router').dispatch.navigateAppend({
+            navigateAppend({
               props: {conversationIDKey, tab},
               selected: 'chatInfoPanel',
             })
           } else {
-            storeRegistry.getState('router').dispatch.navigateUp()
+            navigateUp()
             get().dispatch.clearAttachmentView()
           }
         }

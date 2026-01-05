@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
+import {navigateAppend, navUpToScreen} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 
 type Store = T.Immutable<{
@@ -119,11 +120,11 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
                   })
                   storeRegistry.getState('provision').dispatch.startProvision(get().username, true)
                 } else {
-                  storeRegistry.getState('router').dispatch.navUpToScreen('login')
+                  navUpToScreen('login')
                 }
               }
             })
-            storeRegistry.getState('router').dispatch.navigateAppend('resetConfirm', true)
+            navigateAppend('resetConfirm', true)
           } else {
             logger.info('Starting account reset process')
             get().dispatch.startAccountReset(true, '')
@@ -174,7 +175,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
         s.error = ''
         s.username = username
       })
-      storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
+      navigateAppend('recoverPasswordPromptResetAccount', true)
     },
     updateARState: (active, endTime) => {
       set(s => {

@@ -10,6 +10,7 @@ import {RPCError} from '@/util/errors'
 import {getDefaultCountryCode} from 'react-native-kb'
 import {getE164} from './settings-phone'
 import {pluralize} from '@/util/string'
+import {navigateAppend} from './router2/util'
 import {storeRegistry} from './store-registry'
 
 const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
@@ -224,7 +225,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
               s.waitingToShowJoinedModal = false
             })
             if (resolved.length) {
-              storeRegistry.getState('router').dispatch.navigateAppend('settingsContactsJoined')
+              navigateAppend('settingsContactsJoined')
             }
           }
         } catch (_error) {

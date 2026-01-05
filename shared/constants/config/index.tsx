@@ -14,6 +14,7 @@ import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from 
 import {defaultUseNativeFrame, isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from './util'
+import {navigateAppend, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {getSelectedConversation} from '@/constants/chat2/common'
 
@@ -376,7 +377,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.switchTab: {
-          storeRegistry.getState('router').dispatch.switchTab(action.payload.tab)
+          switchTab(action.payload.tab)
           break
         }
         case RemoteGen.setCriticalUpdate: {
@@ -937,7 +938,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       if (get().startup.loaded) {
         // android needs the nav to render first sadly
         setTimeout(() => {
-          storeRegistry.getState('router').dispatch.navigateAppend('incomingShareNew')
+          navigateAppend('incomingShareNew')
         }, 500)
       }
     },

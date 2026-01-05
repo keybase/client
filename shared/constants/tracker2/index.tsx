@@ -6,6 +6,7 @@ import logger from '@/logger'
 import * as T from '../types'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
+import {navigateAppend, navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 
 export const noDetails: T.Tracker.Details = {
@@ -294,8 +295,8 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
                 .dispatch.setLinkError(
                   `You followed a profile link for a user (${assertion}) that does not exist.`
                 )
-              storeRegistry.getState('router').dispatch.navigateUp()
-              storeRegistry.getState('router').dispatch.navigateAppend('keybaseLinkError')
+              navigateUp()
+              navigateAppend('keybaseLinkError')
             }
             // hooked into reloadable
             logger.error(`Error loading profile: ${error.message}`)

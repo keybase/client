@@ -8,6 +8,7 @@ import * as Path from '@/util/path'
 import KB2 from '@/util/electron.desktop'
 import {uint8ArrayToHex} from 'uint8array-extras'
 import {useFSState} from '.'
+import {navigateAppend} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 
 const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
@@ -72,7 +73,7 @@ const driverEnableFuse = async (isRetry: boolean) => {
   if (fuseInstallResultIsKextPermissionError(result)) {
     useFSState.getState().dispatch.driverKextPermissionError()
     if (!isRetry) {
-      storeRegistry.getState('router').dispatch.navigateAppend('kextPermission')
+      navigateAppend('kextPermission')
     }
   } else {
     await T.RPCGen.installInstallKBFSRpcPromise() // restarts kbfsfuse
@@ -277,7 +278,7 @@ const initPlatformSpecific = () => {
       if (path) {
         Constants.makeActionForOpenPathInFilesTab(path)
       } else {
-        storeRegistry.getState('router').dispatch.navigateAppend(Tabs.fsTab)
+        navigateAppend(Tabs.fsTab)
       }
     })
 

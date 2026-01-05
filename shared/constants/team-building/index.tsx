@@ -12,6 +12,7 @@ import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from './utils'
+import {navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 export {allServices, selfToUser, searchWaitingKey} from './utils'
 
@@ -294,7 +295,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals.at(-1)?.name
       if (routeNames.includes(routeName ?? '')) {
-        storeRegistry.getState('router').dispatch.navigateUp()
+        navigateUp()
       }
     },
     fetchUserRecs: () => {

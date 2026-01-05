@@ -16,6 +16,7 @@ import {clearChatStores, chatStores} from './convostate'
 import {uint8ArrayToString} from 'uint8array-extras'
 import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '../rpc-utils'
+import {navigateAppend, navUpToScreen, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import * as S from '../strings'
 
@@ -944,9 +945,9 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     navigateToInbox: (allowSwitchTab = true) => {
       // components can call us during render sometimes so always defer
       setTimeout(() => {
-        storeRegistry.getState('router').dispatch.navUpToScreen('chatRoot')
+        navUpToScreen('chatRoot')
         if (allowSwitchTab) {
-          storeRegistry.getState('router').dispatch.switchTab(Tabs.chatTab)
+          switchTab(Tabs.chatTab)
         }
       }, 1)
     },
@@ -1568,7 +1569,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                 .dispatch.setLinkError(
                   "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
                 )
-              storeRegistry.getState('router').dispatch.navigateAppend('keybaseLinkError')
+              navigateAppend('keybaseLinkError')
               return
             } else {
               return
@@ -1597,7 +1598,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
               .dispatch.setLinkError(
                 "We couldn't find this team. Please check that you're a member of the team and the channel exists."
               )
-            storeRegistry.getState('router').dispatch.navigateAppend('keybaseLinkError')
+            navigateAppend('keybaseLinkError')
             return
           } else {
             throw error
