@@ -1,7 +1,4 @@
 import type Logger from '@/logger'
-export const ENABLE_F5_REMOUNTS = __DEV__ && (false as boolean)
-
-const debuggerOnWrapError = false as boolean
 
 const debugClearCBs = new Array<() => void>()
 const debugUnClearCBs = new Array<() => void>()
@@ -70,13 +67,6 @@ export function createLoggingProxy<T extends {[key: string]: unknown}>(
   return proxy as T
 }
 
-const maybeDebugger = () => {
-  if (debuggerOnWrapError) {
-    // eslint-disable-next-line no-debugger
-    debugger
-  }
-}
-
 export function wrapErrors<T extends (...args: Array<any>) => any>(f: T, logExtra: string = ''): T {
   return ((...p: Parameters<T>): ReturnType<T> => {
     try {
@@ -87,7 +77,6 @@ export function wrapErrors<T extends (...args: Array<any>) => any>(f: T, logExtr
           const {default: logger} = require('@/logger') as {default: typeof Logger}
           if (__DEV__) {
             logger.error('Error in wrapped call', logExtra, e)
-            maybeDebugger()
           } else {
             logger.error('Error in wrapped call', logExtra)
           }
@@ -100,7 +89,6 @@ export function wrapErrors<T extends (...args: Array<any>) => any>(f: T, logExtr
       const {default: logger} = require('@/logger') as {default: typeof Logger}
       if (__DEV__) {
         logger.error('Error in wrapped call', logExtra, e)
-        maybeDebugger()
       } else {
         logger.error('Error in wrapped call', logExtra)
       }
