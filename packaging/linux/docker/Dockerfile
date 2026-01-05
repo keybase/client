@@ -4,10 +4,10 @@ ARG SOURCE_COMMIT=unknown
 
 ARG SIGNING_FINGERPRINT
 COPY .docker/code_signing_key /code_signing_key
-RUN gpg --import /code_signing_key
 
 RUN apt-get update
-RUN apt-get install -y gcc-x86-64-linux-gnu wget ca-certificates
+RUN apt-get install -y gcc-x86-64-linux-gnu wget ca-certificates gnupg
+RUN gpg --import /code_signing_key
 
 RUN wget -q https://go.dev/dl/go1.25.5.linux-arm64.tar.gz && \
   tar -C /usr/local -xzf go1.25.5.linux-arm64.tar.gz && \
