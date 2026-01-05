@@ -3,37 +3,7 @@ import * as Z from '@/util/zustand'
 import * as Tabs from '../tabs'
 import type {RouteKeys} from '@/router-v2/route-params'
 import {storeRegistry} from '../store-registry'
-import {
-  navigationRef,
-  getTab,
-  getRootState,
-  getVisibleScreen,
-  type NavState,
-  type PathParam,
-  type Navigator,
-  _getNavigator,
-  logState,
-  getVisiblePath,
-  getModalStack,
-  navToProfile,
-  navToThread,
-  getRouteTab,
-  getRouteLoggedIn,
-  useSafeFocusEffect,
-  makeScreen,
-  clearModals as clearModalsUtil,
-  navigateAppend as navigateAppendUtil,
-  navigateUp as navigateUpUtil,
-  navUpToScreen as navUpToScreenUtil,
-  popStack as popStackUtil,
-  switchTab as switchTabUtil,
-  appendEncryptRecipientsBuilder,
-  appendNewChatBuilder,
-  appendNewTeamBuilder,
-  appendPeopleBuilder,
-  setNavState as setNavStateUtil,
-  type SetNavStateCallbacks,
-} from './util'
+import * as Util from './util'
 
 export {
   type NavState,
@@ -51,18 +21,18 @@ export {
   getRouteLoggedIn,
   useSafeFocusEffect,
   makeScreen,
-  clearModalsUtil as clearModals,
-  navigateAppendUtil as navigateAppend,
-  navigateUpUtil as navigateUp,
-  navUpToScreenUtil as navUpToScreen,
-  popStackUtil as popStack,
-  switchTabUtil as switchTab,
+  clearModals,
+  navigateAppend,
+  navigateUp,
+  navUpToScreen,
+  popStack,
+  switchTab,
   appendEncryptRecipientsBuilder,
   appendNewChatBuilder,
   appendNewTeamBuilder,
   appendPeopleBuilder,
-}
-export type {PathParam, Navigator}
+} from './util'
+export type {PathParam, Navigator} from './util'
 
 type Store = T.Immutable<{
   navState?: unknown
@@ -78,12 +48,12 @@ export interface State extends Store {
     dynamic: {
       tabLongPress?: (tab: string) => void
     }
-    navigateAppend: (path: PathParam, replace?: boolean) => void
+    navigateAppend: (path: Util.PathParam, replace?: boolean) => void
     navigateUp: () => void
     navUpToScreen: (name: RouteKeys) => void
     popStack: () => void
     resetState: () => void
-    setNavState: (ns: NavState) => void
+    setNavState: (ns: Util.NavState) => void
     switchTab: (tab: Tabs.AppTab) => void
   }
   appendEncryptRecipientsBuilder: () => void
@@ -94,14 +64,14 @@ export interface State extends Store {
 
 export const useRouterState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
-    clearModals: clearModalsUtil,
+    clearModals: Util.clearModals,
     dynamic: {
       tabLongPress: undefined,
     },
-    navUpToScreen: navUpToScreenUtil,
-    navigateAppend: navigateAppendUtil,
-    navigateUp: navigateUpUtil,
-    popStack: popStackUtil,
+    navUpToScreen: Util.navUpToScreen,
+    navigateAppend: Util.navigateAppend,
+    navigateUp: Util.navigateUp,
+    popStack: Util.popStack,
     resetState: () => {
       set(s => ({
         ...s,
@@ -109,30 +79,30 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       }))
     },
     setNavState: next => {
-      const prev = get().navState as NavState
+      const prev = get().navState as Util.NavState
       if (prev === next) return
       set(s => {
         s.navState = next
       })
 
-      const callbacks: SetNavStateCallbacks = {
+      const callbacks: Util.SetNavStateCallbacks = {
         onRouteChanged: (prev, next) => {
           storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
         },
         updateFS: (prev, next) => {
           if (
             prev &&
-            getTab(prev) === Tabs.fsTab &&
+            Util.getTab(prev) === Tabs.fsTab &&
             next &&
-            getTab(next) !== Tabs.fsTab &&
+            Util.getTab(next) !== Tabs.fsTab &&
             storeRegistry.getState('fs').criticalUpdate
           ) {
             const {dispatch} = storeRegistry.getState('fs')
             dispatch.setCriticalUpdate(false)
           }
           const fsRrouteNames = ['fsRoot', 'barePreview']
-          const wasScreen = fsRrouteNames.includes(getVisibleScreen(prev)?.name ?? '')
-          const isScreen = fsRrouteNames.includes(getVisibleScreen(next)?.name ?? '')
+          const wasScreen = fsRrouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
+          const isScreen = fsRrouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
           if (wasScreen !== isScreen) {
             const {dispatch} = storeRegistry.getState('fs')
             if (wasScreen) {
@@ -143,16 +113,16 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
           }
         },
         updatePeople: (prev, next) => {
-          if (prev && getTab(prev) === Tabs.peopleTab && next && getTab(next) !== Tabs.peopleTab) {
+          if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
             storeRegistry.getState('people').dispatch.markViewed()
           }
         },
         updateSettings: (prev, next) => {
           if (
             prev &&
-            getTab(prev) === Tabs.settingsTab &&
+            Util.getTab(prev) === Tabs.settingsTab &&
             next &&
-            getTab(next) !== Tabs.settingsTab &&
+            Util.getTab(next) !== Tabs.settingsTab &&
             storeRegistry.getState('settings-email').addedEmail
           ) {
             storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
@@ -161,9 +131,9 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
         updateSignup: (prev, next) => {
           if (
             prev &&
-            getTab(prev) === Tabs.peopleTab &&
+            Util.getTab(prev) === Tabs.peopleTab &&
             next &&
-            getTab(next) !== Tabs.peopleTab &&
+            Util.getTab(next) !== Tabs.peopleTab &&
             storeRegistry.getState('signup').justSignedUpEmail
           ) {
             storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
@@ -178,9 +148,9 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
             ['people', 'peopleTeamBuilder'],
           ])
           for (const namespace of namespaces) {
-            const wasTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(prev)?.name
+            const wasTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(prev)?.name
             if (wasTeamBuilding) {
-              const isTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(next)?.name
+              const isTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(next)?.name
               if (!isTeamBuilding) {
                 storeRegistry.getTBStore(namespace).dispatch.cancelTeamBuilding()
               }
@@ -188,23 +158,23 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
           }
         },
         updateTeams: (prev, next) => {
-          if (prev && getTab(prev) === Tabs.teamsTab && next && getTab(next) !== Tabs.teamsTab) {
+          if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
             storeRegistry.getState('teams').dispatch.clearNavBadges()
           }
         },
       }
 
-      setNavStateUtil(prev, next, callbacks)
+      Util.setNavState(prev, next, callbacks)
     },
-    switchTab: switchTabUtil,
+    switchTab: Util.switchTab,
   }
 
   return {
     ...initialStore,
-    appendEncryptRecipientsBuilder,
-    appendNewChatBuilder,
-    appendNewTeamBuilder,
-    appendPeopleBuilder,
+    appendEncryptRecipientsBuilder: Util.appendEncryptRecipientsBuilder,
+    appendNewChatBuilder: Util.appendNewChatBuilder,
+    appendNewTeamBuilder: Util.appendNewTeamBuilder,
+    appendPeopleBuilder: Util.appendPeopleBuilder,
     dispatch,
   }
 })
