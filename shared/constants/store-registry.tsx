@@ -169,164 +169,284 @@ type StoreHooks = {
   'whats-new': typeof useWhatsNewState
 }
 
+// Cache required modules to avoid HMR disposal issues
+const storeModuleCache = new Map<string, unknown>()
+
 class StoreRegistry {
   getStore<T extends StoreName>(storeName: T): StoreHooks[T] {
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
     switch (storeName) {
       case 'active': {
-        const {useActiveState} = require('./active')
+        if (!storeModuleCache.has('./active')) {
+          storeModuleCache.set('./active', require('./active'))
+        }
+        const {useActiveState} = storeModuleCache.get('./active') as {useActiveState: StoreHooks['active']}
         return useActiveState
       }
       case 'archive': {
-        const {useArchiveState} = require('./archive')
+        if (!storeModuleCache.has('./archive')) {
+          storeModuleCache.set('./archive', require('./archive'))
+        }
+        const {useArchiveState} = storeModuleCache.get('./archive') as {useArchiveState: StoreHooks['archive']}
         return useArchiveState
       }
       case 'autoreset': {
-        const {useAutoResetState} = require('./autoreset')
+        if (!storeModuleCache.has('./autoreset')) {
+          storeModuleCache.set('./autoreset', require('./autoreset'))
+        }
+        const {useAutoResetState} = storeModuleCache.get('./autoreset') as {useAutoResetState: StoreHooks['autoreset']}
         return useAutoResetState
       }
       case 'avatar': {
-        const {useAvatarState} = require('@/common-adapters/avatar/store')
+        if (!storeModuleCache.has('@/common-adapters/avatar/store')) {
+          storeModuleCache.set('@/common-adapters/avatar/store', require('@/common-adapters/avatar/store'))
+        }
+        const {useAvatarState} = storeModuleCache.get('@/common-adapters/avatar/store') as {useAvatarState: StoreHooks['avatar']}
         return useAvatarState
       }
       case 'bots': {
-        const {useBotsState} = require('./bots')
+        if (!storeModuleCache.has('./bots')) {
+          storeModuleCache.set('./bots', require('./bots'))
+        }
+        const {useBotsState} = storeModuleCache.get('./bots') as {useBotsState: StoreHooks['bots']}
         return useBotsState
       }
       case 'chat': {
-        const {useChatState} = require('./chat2')
+        if (!storeModuleCache.has('./chat2')) {
+          storeModuleCache.set('./chat2', require('./chat2'))
+        }
+        const {useChatState} = storeModuleCache.get('./chat2') as {useChatState: StoreHooks['chat']}
         return useChatState
       }
       case 'config': {
-        const {useConfigState} = require('./config')
+        if (!storeModuleCache.has('./config')) {
+          storeModuleCache.set('./config', require('./config'))
+        }
+        const {useConfigState} = storeModuleCache.get('./config') as {useConfigState: StoreHooks['config']}
         return useConfigState
       }
       case 'current-user': {
-        const {useCurrentUserState} = require('./current-user')
+        if (!storeModuleCache.has('./current-user')) {
+          storeModuleCache.set('./current-user', require('./current-user'))
+        }
+        const {useCurrentUserState} = storeModuleCache.get('./current-user') as {useCurrentUserState: StoreHooks['current-user']}
         return useCurrentUserState
       }
       case 'crypto': {
-        const {useCryptoState} = require('./crypto')
+        if (!storeModuleCache.has('./crypto')) {
+          storeModuleCache.set('./crypto', require('./crypto'))
+        }
+        const {useCryptoState} = storeModuleCache.get('./crypto') as {useCryptoState: StoreHooks['crypto']}
         return useCryptoState
       }
       case 'daemon': {
-        const {useDaemonState} = require('./daemon')
+        if (!storeModuleCache.has('./daemon')) {
+          storeModuleCache.set('./daemon', require('./daemon'))
+        }
+        const {useDaemonState} = storeModuleCache.get('./daemon') as {useDaemonState: StoreHooks['daemon']}
         return useDaemonState
       }
       case 'dark-mode': {
-        const {useDarkModeState} = require('./darkmode')
+        if (!storeModuleCache.has('./darkmode')) {
+          storeModuleCache.set('./darkmode', require('./darkmode'))
+        }
+        const {useDarkModeState} = storeModuleCache.get('./darkmode') as {useDarkModeState: StoreHooks['dark-mode']}
         return useDarkModeState
       }
       case 'deeplinks': {
-        const {useDeepLinksState} = require('./deeplinks')
+        if (!storeModuleCache.has('./deeplinks')) {
+          storeModuleCache.set('./deeplinks', require('./deeplinks'))
+        }
+        const {useDeepLinksState} = storeModuleCache.get('./deeplinks') as {useDeepLinksState: StoreHooks['deeplinks']}
         return useDeepLinksState
       }
       case 'devices': {
-        const {useDevicesState} = require('./devices')
+        if (!storeModuleCache.has('./devices')) {
+          storeModuleCache.set('./devices', require('./devices'))
+        }
+        const {useDevicesState} = storeModuleCache.get('./devices') as {useDevicesState: StoreHooks['devices']}
         return useDevicesState
       }
       case 'engine': {
-        const {useEngineState} = require('./engine')
+        if (!storeModuleCache.has('./engine')) {
+          storeModuleCache.set('./engine', require('./engine'))
+        }
+        const {useEngineState} = storeModuleCache.get('./engine') as {useEngineState: StoreHooks['engine']}
         return useEngineState
       }
       case 'followers': {
-        const {useFollowerState} = require('./followers')
+        if (!storeModuleCache.has('./followers')) {
+          storeModuleCache.set('./followers', require('./followers'))
+        }
+        const {useFollowerState} = storeModuleCache.get('./followers') as {useFollowerState: StoreHooks['followers']}
         return useFollowerState
       }
       case 'fs': {
-        const {useFSState} = require('./fs')
+        if (!storeModuleCache.has('./fs')) {
+          storeModuleCache.set('./fs', require('./fs'))
+        }
+        const {useFSState} = storeModuleCache.get('./fs') as {useFSState: StoreHooks['fs']}
         return useFSState
       }
       case 'git': {
-        const {useGitState} = require('./git')
+        if (!storeModuleCache.has('./git')) {
+          storeModuleCache.set('./git', require('./git'))
+        }
+        const {useGitState} = storeModuleCache.get('./git') as {useGitState: StoreHooks['git']}
         return useGitState
       }
       case 'logout': {
-        const {useLogoutState} = require('./logout')
+        if (!storeModuleCache.has('./logout')) {
+          storeModuleCache.set('./logout', require('./logout'))
+        }
+        const {useLogoutState} = storeModuleCache.get('./logout') as {useLogoutState: StoreHooks['logout']}
         return useLogoutState
       }
       case 'notifications': {
-        const {useNotifState} = require('./notifications')
+        if (!storeModuleCache.has('./notifications')) {
+          storeModuleCache.set('./notifications', require('./notifications'))
+        }
+        const {useNotifState} = storeModuleCache.get('./notifications') as {useNotifState: StoreHooks['notifications']}
         return useNotifState
       }
       case 'people': {
-        const {usePeopleState} = require('./people')
+        if (!storeModuleCache.has('./people')) {
+          storeModuleCache.set('./people', require('./people'))
+        }
+        const {usePeopleState} = storeModuleCache.get('./people') as {usePeopleState: StoreHooks['people']}
         return usePeopleState
       }
       case 'pinentry': {
-        const {usePinentryState} = require('./pinentry')
+        if (!storeModuleCache.has('./pinentry')) {
+          storeModuleCache.set('./pinentry', require('./pinentry'))
+        }
+        const {usePinentryState} = storeModuleCache.get('./pinentry') as {usePinentryState: StoreHooks['pinentry']}
         return usePinentryState
       }
       case 'profile': {
-        const {useProfileState} = require('./profile')
+        if (!storeModuleCache.has('./profile')) {
+          storeModuleCache.set('./profile', require('./profile'))
+        }
+        const {useProfileState} = storeModuleCache.get('./profile') as {useProfileState: StoreHooks['profile']}
         return useProfileState
       }
       case 'provision': {
-        const {useProvisionState} = require('./provision')
+        if (!storeModuleCache.has('./provision')) {
+          storeModuleCache.set('./provision', require('./provision'))
+        }
+        const {useProvisionState} = storeModuleCache.get('./provision') as {useProvisionState: StoreHooks['provision']}
         return useProvisionState
       }
       case 'push': {
-        const {usePushState} = require('./push')
+        if (!storeModuleCache.has('./push')) {
+          storeModuleCache.set('./push', require('./push'))
+        }
+        const {usePushState} = storeModuleCache.get('./push') as {usePushState: StoreHooks['push']}
         return usePushState
       }
       case 'recover-password': {
-        const {useState} = require('./recover-password')
+        if (!storeModuleCache.has('./recover-password')) {
+          storeModuleCache.set('./recover-password', require('./recover-password'))
+        }
+        const {useState} = storeModuleCache.get('./recover-password') as {useState: StoreHooks['recover-password']}
         return useState
       }
       case 'router': {
-        const {useRouterState} = require('./router2')
+        if (!storeModuleCache.has('./router2')) {
+          storeModuleCache.set('./router2', require('./router2'))
+        }
+        const {useRouterState} = storeModuleCache.get('./router2') as {useRouterState: StoreHooks['router']}
         return useRouterState
       }
       case 'settings': {
-        const {useSettingsState} = require('./settings')
+        if (!storeModuleCache.has('./settings')) {
+          storeModuleCache.set('./settings', require('./settings'))
+        }
+        const {useSettingsState} = storeModuleCache.get('./settings') as {useSettingsState: StoreHooks['settings']}
         return useSettingsState
       }
       case 'settings-chat': {
-        const {useSettingsChatState} = require('./settings-chat')
+        if (!storeModuleCache.has('./settings-chat')) {
+          storeModuleCache.set('./settings-chat', require('./settings-chat'))
+        }
+        const {useSettingsChatState} = storeModuleCache.get('./settings-chat') as {useSettingsChatState: StoreHooks['settings-chat']}
         return useSettingsChatState
       }
       case 'settings-contacts': {
-        const {useSettingsContactsState} = require('./settings-contacts')
+        if (!storeModuleCache.has('./settings-contacts')) {
+          storeModuleCache.set('./settings-contacts', require('./settings-contacts'))
+        }
+        const {useSettingsContactsState} = storeModuleCache.get('./settings-contacts') as {useSettingsContactsState: StoreHooks['settings-contacts']}
         return useSettingsContactsState
       }
       case 'settings-email': {
-        const {useSettingsEmailState} = require('./settings-email')
+        if (!storeModuleCache.has('./settings-email')) {
+          storeModuleCache.set('./settings-email', require('./settings-email'))
+        }
+        const {useSettingsEmailState} = storeModuleCache.get('./settings-email') as {useSettingsEmailState: StoreHooks['settings-email']}
         return useSettingsEmailState
       }
       case 'settings-password': {
-        const {usePWState} = require('./settings-password')
+        if (!storeModuleCache.has('./settings-password')) {
+          storeModuleCache.set('./settings-password', require('./settings-password'))
+        }
+        const {usePWState} = storeModuleCache.get('./settings-password') as {usePWState: StoreHooks['settings-password']}
         return usePWState
       }
       case 'settings-phone': {
-        const {useSettingsPhoneState} = require('./settings-phone')
+        if (!storeModuleCache.has('./settings-phone')) {
+          storeModuleCache.set('./settings-phone', require('./settings-phone'))
+        }
+        const {useSettingsPhoneState} = storeModuleCache.get('./settings-phone') as {useSettingsPhoneState: StoreHooks['settings-phone']}
         return useSettingsPhoneState
       }
       case 'signup': {
-        const {useSignupState} = require('./signup')
+        if (!storeModuleCache.has('./signup')) {
+          storeModuleCache.set('./signup', require('./signup'))
+        }
+        const {useSignupState} = storeModuleCache.get('./signup') as {useSignupState: StoreHooks['signup']}
         return useSignupState
       }
       case 'teams': {
-        const {useTeamsState} = require('./teams')
+        if (!storeModuleCache.has('./teams')) {
+          storeModuleCache.set('./teams', require('./teams'))
+        }
+        const {useTeamsState} = storeModuleCache.get('./teams') as {useTeamsState: StoreHooks['teams']}
         return useTeamsState
       }
       case 'tracker2': {
-        const {useTrackerState} = require('./tracker2')
+        if (!storeModuleCache.has('./tracker2')) {
+          storeModuleCache.set('./tracker2', require('./tracker2'))
+        }
+        const {useTrackerState} = storeModuleCache.get('./tracker2') as {useTrackerState: StoreHooks['tracker2']}
         return useTrackerState
       }
       case 'unlock-folders': {
-        const {useUnlockFoldersState} = require('./unlock-folders')
+        if (!storeModuleCache.has('./unlock-folders')) {
+          storeModuleCache.set('./unlock-folders', require('./unlock-folders'))
+        }
+        const {useUnlockFoldersState} = storeModuleCache.get('./unlock-folders') as {useUnlockFoldersState: StoreHooks['unlock-folders']}
         return useUnlockFoldersState
       }
       case 'users': {
-        const {useUsersState} = require('./users')
+        if (!storeModuleCache.has('./users')) {
+          storeModuleCache.set('./users', require('./users'))
+        }
+        const {useUsersState} = storeModuleCache.get('./users') as {useUsersState: StoreHooks['users']}
         return useUsersState
       }
       case 'waiting': {
-        const {useWaitingState} = require('./waiting')
+        if (!storeModuleCache.has('./waiting')) {
+          storeModuleCache.set('./waiting', require('./waiting'))
+        }
+        const {useWaitingState} = storeModuleCache.get('./waiting') as {useWaitingState: StoreHooks['waiting']}
         return useWaitingState
       }
       case 'whats-new': {
-        const {useWhatsNewState} = require('./whats-new')
+        if (!storeModuleCache.has('./whats-new')) {
+          storeModuleCache.set('./whats-new', require('./whats-new'))
+        }
+        const {useWhatsNewState} = storeModuleCache.get('./whats-new') as {useWhatsNewState: StoreHooks['whats-new']}
         return useWhatsNewState
       }
       default:
@@ -339,13 +459,19 @@ class StoreRegistry {
   }
 
   getTBStore(name: T.TB.AllowedNamespace): TBType.State {
-    const {createTBStore} = require('./team-building') as typeof TBType
+    if (!storeModuleCache.has('./team-building')) {
+      storeModuleCache.set('./team-building', require('./team-building'))
+    }
+    const {createTBStore} = storeModuleCache.get('./team-building') as typeof TBType
     const store = createTBStore(name)
     return store.getState()
   }
 
   getConvoState(id: T.Chat.ConversationIDKey): ConvoState {
-    const {getConvoState} = require('./chat2/convostate') as typeof ConvoStateType
+    if (!storeModuleCache.has('./chat2/convostate')) {
+      storeModuleCache.set('./chat2/convostate', require('./chat2/convostate'))
+    }
+    const {getConvoState} = storeModuleCache.get('./chat2/convostate') as typeof ConvoStateType
     return getConvoState(id)
   }
 }
