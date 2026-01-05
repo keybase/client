@@ -7,7 +7,7 @@ import {immer as immerZustand} from 'zustand/middleware/immer'
 import {registerDebugUnClear, registerDebugClear, wrapErrors} from '@/util/debug'
 
 // needed for tsc
-export type {WritableDraft} from 'immer'
+export type {WritableDraft, WritableNonArrayDraft} from 'immer'
 
 type HasReset = {dispatch: {resetDeleteMe?: boolean; resetState: 'default' | (() => void)}}
 
