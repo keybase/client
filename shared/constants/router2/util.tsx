@@ -415,25 +415,3 @@ export const appendEncryptRecipientsBuilder = () => {
   })
 }
 
-export type SetNavStateCallbacks = {
-  onRouteChanged: (prev: NavState | undefined, next: NavState) => void
-  updateTeamBuilding: (prev: NavState | undefined, next: NavState) => void
-  updateFS: (prev: NavState | undefined, next: NavState) => void
-  updateSignup: (prev: NavState | undefined, next: NavState) => void
-  updatePeople: (prev: NavState | undefined, next: NavState) => void
-  updateTeams: (prev: NavState | undefined, next: NavState) => void
-  updateSettings: (prev: NavState | undefined, next: NavState) => void
-}
-
-export const setNavState = (prev: NavState | undefined, next: NavState, callbacks: SetNavStateCallbacks) => {
-  DEBUG_NAV && console.log('[Nav] setNavState')
-  if (prev === next) return
-
-  callbacks.updateTeamBuilding(prev, next)
-  callbacks.updateFS(prev, next)
-  callbacks.updateSignup(prev, next)
-  callbacks.updatePeople(prev, next)
-  callbacks.updateTeams(prev, next)
-  callbacks.updateSettings(prev, next)
-  callbacks.onRouteChanged(prev, next)
-}
