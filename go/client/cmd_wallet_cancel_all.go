@@ -132,7 +132,7 @@ func (c *cmdWalletCancelAll) Run() (err error) {
 
 	writeToOutfile := func(txID string) {
 		if outfile != nil {
-			if _, err := outfile.WriteString(fmt.Sprintf("%s\n", txID)); err != nil {
+			if _, err := fmt.Fprintf(outfile, "%s\n", txID); err != nil {
 				dui.Printf("WRITE ERROR for tx %s: %s\n", txID, err)
 				c.stats.writeErrorCount++
 			}

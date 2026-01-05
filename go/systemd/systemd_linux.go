@@ -30,7 +30,7 @@ func IsUserSystemdRunning() bool {
 	// Ignore non-zero-exit-status errors, because of "degraded" below.
 	_, isExitError := err.(*exec.ExitError)
 	if err != nil && !isExitError {
-		os.Stderr.WriteString(fmt.Sprintf("Failed to run systemctl: check user manager status: %s\n", err))
+		fmt.Fprintf(os.Stderr, "Failed to run systemctl: check user manager status: %s\n", err)
 		return false
 	}
 	outputStr := strings.TrimSpace(string(output))
@@ -50,7 +50,7 @@ func IsUserSystemdRunning() bool {
 		os.Stderr.WriteString("Failed to reach user-level systemd daemon.\n")
 		return false
 	default:
-		os.Stderr.WriteString(fmt.Sprintf("Systemd reported an unexpected status: %s\n", outputStr))
+		fmt.Fprintf(os.Stderr, "Systemd reported an unexpected status: %s\n", outputStr)
 		return false
 	}
 }
