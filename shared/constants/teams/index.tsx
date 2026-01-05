@@ -2,12 +2,13 @@ import * as S from '../strings'
 import {ignorePromise, wrapErrors} from '../utils'
 import * as T from '../types'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as Router from '../router2'
 import {
+  getVisibleScreen,
   clearModals,
   navigateAppend,
   navigateUp,
   navUpToScreen,
+  navToProfile,
 } from '../router2/util'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
@@ -1414,7 +1415,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           }
 
           // Dismiss the create channel dialog.
-          const visibleScreen = Router.getVisibleScreen()
+          const visibleScreen = getVisibleScreen()
           if (visibleScreen?.name === 'chatCreateChannel') {
             clearModals()
           }
@@ -2391,7 +2392,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
             // identify error
             if (error.code === T.RPCGen.StatusCode.scidentifysummaryerror) {
               // show profile card
-              Router.navToProfile(username)
+              navToProfile(username)
             }
           }
         }
