@@ -213,7 +213,8 @@ export const useCryptoState = Z.createZustand<State>((set, get) => {
   const encrypt = (destinationDir: string = '') => {
     const f = async () => {
       const start = get().encrypt
-      const username = storeRegistry.getState('current-user').username
+      const currentUserState = await storeRegistry.getState('current-user')
+      const username = currentUserState.username
       const signed = start.options.sign
       const inputType = start.inputType
       const input = start.input.stringValue()
@@ -348,7 +349,8 @@ export const useCryptoState = Z.createZustand<State>((set, get) => {
 
         const output = await (inputType === 'text' ? callText() : callFile())
 
-        const username = storeRegistry.getState('current-user').username
+        const currentUserState = await storeRegistry.getState('current-user')
+        const username = currentUserState.username
         set(s => {
           onSuccess(s.sign, s.sign.input.stringValue() === input, '', output, inputType, true, username, '')
         })
@@ -529,9 +531,16 @@ export const useCryptoState = Z.createZustand<State>((set, get) => {
 
       // User set themselves as a recipient, so don't show 'includeSelf' option
       // However we don't want to set hideIncludeSelf if we are also encrypting to an SBS user (since we must force includeSelf)
-      const currentUser = storeRegistry.getState('current-user').username
-      const {options} = get().encrypt
-      if (usernames.includes(currentUser) && !hasSBS) {
+      storeRegistry.getState('current-user').then(currentUserState => {
+        const currentUser = currentUserState.username
+        const {options} = get().encrypt
+        if (usernames.includes(currentUser) && !hasSBS) {
+          get().dispatch.setEncryptOptions(options, true)
+        }
+        get().dispatch.setRecipients(usernames, hasSBS)
+      })
+    },
+    resetOperation: op => {
         get().dispatch.setEncryptOptions(options, true)
       }
       get().dispatch.setRecipients(usernames, hasSBS)

@@ -67,7 +67,9 @@ export const usePushState = Z.createZustand<State>((set, get) => {
 
     const {conversationIDKey, unboxPayload, membersType} = notification
 
-    storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('push', undefined, unboxPayload)
+    storeRegistry.getConvoState(conversationIDKey).then(convState => {
+      convState.dispatch.navigateToThread('push', undefined, unboxPayload)
+    })
     if (unboxPayload && membersType && !isIOS) {
       try {
         await T.RPCChat.localUnboxMobilePushNotificationRpcPromise({
@@ -108,9 +110,11 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     deleteToken: version => {
       const f = async () => {
         const waitKey = 'push:deleteToken'
-        storeRegistry.getState('logout').dispatch.wait(waitKey, version, true)
+        const logoutState = await storeRegistry.getState('logout')
+        logoutState.dispatch.wait(waitKey, version, true)
         try {
-          const deviceID = storeRegistry.getState('current-user').deviceID
+          const currentUserState = await storeRegistry.getState('current-user')
+          const deviceID = currentUserState.deviceID
           if (!deviceID) {
             logger.info('[PushToken] no device id')
             return
@@ -126,7 +130,8 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         } catch (e) {
           logger.error('[PushToken] delete failed', e)
         } finally {
-          storeRegistry.getState('logout').dispatch.wait(waitKey, version, false)
+          const logoutState = await storeRegistry.getState('logout')
+          logoutState.dispatch.wait(waitKey, version, false)
         }
       }
       ignorePromise(f())
@@ -149,20 +154,28 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               // We only care if the user clicked while in session
               if (notification.userInteraction) {
                 const {username} = notification
-                storeRegistry.getState('profile').dispatch.showUserProfile(username)
+                storeRegistry.getState('profile').then(profileState => {
+                  profileState.dispatch.showUserProfile(username)
+                })
               }
               break
             case 'chat.extension':
               {
                 const {conversationIDKey} = notification
-                storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('extension')
+                storeRegistry.getConvoState(conversationIDKey).then(convState => {
+                  convState.dispatch.navigateToThread('extension')
+                })
               }
               break
             case 'settings.contacts':
-              if (storeRegistry.getState('config').loggedIn) {
-                storeRegistry.getState('router').dispatch.switchTab(Tabs.peopleTab)
-                storeRegistry.getState('router').dispatch.navUpToScreen('peopleRoot')
-              }
+              storeRegistry.getState('config').then(configState => {
+                if (configState.loggedIn) {
+                  storeRegistry.getState('router').then(routerState => {
+                    routerState.dispatch.switchTab(Tabs.peopleTab)
+                    routerState.dispatch.navUpToScreen('peopleRoot')
+                  })
+                }
+              })
               break
           }
         } catch (e) {
@@ -218,14 +231,17 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
           if (shownPushPrompt) {
             // we've already shown the prompt, take them to settings
-            storeRegistry.getState('config').dispatch.dynamic.openAppSettings?.()
+            const configState = await storeRegistry.getState('config')
+            configState.dispatch.dynamic.openAppSettings?.()
             get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
             return
           }
         }
         try {
-          storeRegistry.getState('config').dispatch.dynamic.openAppSettings?.()
-          const {increment} = storeRegistry.getState('waiting').dispatch
+          const configState = await storeRegistry.getState('config')
+          configState.dispatch.dynamic.openAppSettings?.()
+          const waitingState = await storeRegistry.getState('waiting')
+          const {increment} = waitingState.dispatch
           increment(S.waitingKeyPushPermissionsRequesting)
           await requestPermissionsFromNative()
           const permissions = await checkPermissionsFromNative()
@@ -241,7 +257,8 @@ export const usePushState = Z.createZustand<State>((set, get) => {
             })
           }
         } finally {
-          const {decrement} = storeRegistry.getState('waiting').dispatch
+          const waitingState = await storeRegistry.getState('waiting')
+          const {decrement} = waitingState.dispatch
           decrement(S.waitingKeyPushPermissionsRequesting)
           get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
         }
@@ -255,7 +272,8 @@ export const usePushState = Z.createZustand<State>((set, get) => {
       })
 
       const uploadPushToken = async () => {
-        const {deviceID, username} = storeRegistry.getState('current-user')
+        const currentUserState = await storeRegistry.getState('current-user')
+        const {deviceID, username} = currentUserState
         if (!username || !deviceID) {
           return
         }
@@ -289,17 +307,20 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         // We've just started up, we don't have the permissions, we're logged in and we
         // haven't just signed up. This handles the scenario where the push notifications
         // permissions checker finishes after the routeToInitialScreen is done.
+        const configState = await storeRegistry.getState('config')
+        const daemonState = await storeRegistry.getState('daemon')
         if (
           p.show &&
-          storeRegistry.getState('config').loggedIn &&
-          storeRegistry.getState('daemon').handshakeState === 'done' &&
+          configState.loggedIn &&
+          daemonState.handshakeState === 'done' &&
           !get().justSignedUp &&
           !get().hasPermissions
         ) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
           await timeoutPromise(100)
-          storeRegistry.getState('router').dispatch.switchTab(Tabs.peopleTab)
-          storeRegistry.getState('router').dispatch.navigateAppend('settingsPushPrompt')
+          const routerState = await storeRegistry.getState('router')
+          routerState.dispatch.switchTab(Tabs.peopleTab)
+          routerState.dispatch.navigateAppend('settingsPushPrompt')
         }
       }
       ignorePromise(monsterPrompt())

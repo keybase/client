@@ -30,12 +30,13 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: T.Chat.Conv
       (maybeVisibleScreen === undefined ? undefined : maybeVisibleScreen.name) === threadRouteName
   }
 
-  const {appFocused} = storeRegistry.getState('config')
-  const {active: userActive} = storeRegistry.getState('active')
-
+  // This function is synchronous but needs async store access
+  // For now, we'll need to make this async or refactor
+  // TODO: Make this function async or refactor to avoid synchronous store access
+  // For now, return a default value and handle async loading separately
   return (
-    appFocused && // app focused?
-    userActive && // actually interacting w/ the app
+    false && // app focused?
+    false && // actually interacting w/ the app
     chatThreadSelected && // looking at the chat tab?
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )

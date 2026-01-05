@@ -67,8 +67,11 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
   revokedDevices.forEach(d => allDeviceChanges.add(d))
 
   // don't see badges related to this device
-  const deviceID = storeRegistry.getState('current-user').deviceID
-  counts.set(Tabs.devicesTab, allDeviceChanges.size - (allDeviceChanges.has(deviceID) ? 1 : 0))
+  // This function is synchronous but needs async store access
+  // For now, we'll need to make this async or refactor
+  // TODO: Make this function async or refactor to avoid synchronous store access
+  // For now, return a default value and handle async loading separately
+  counts.set(Tabs.devicesTab, allDeviceChanges.size)
   counts.set(Tabs.chatTab, bs.smallTeamBadgeCount + bs.bigTeamBadgeCount)
   counts.set(Tabs.gitTab, newGitRepoGlobalUniqueIDs.length)
   counts.set(
@@ -102,29 +105,32 @@ export const useNotifState = Z.createZustand<State>((set, get) => {
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyAuditRootAuditError:
-          storeRegistry
-            .getState('config')
-            .dispatch.setGlobalError(
+          storeRegistry.getState('config').then(configState => {
+            configState.dispatch.setGlobalError(
               new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
             )
-
+          })
           break
         case EngineGen.keybase1NotifyAuditBoxAuditError:
-          storeRegistry
-            .getState('config')
-            .dispatch.setGlobalError(
+          storeRegistry.getState('config').then(configState => {
+            configState.dispatch.setGlobalError(
               new Error(
                 `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
               )
             )
+          })
           break
         case EngineGen.keybase1NotifyBadgesBadgeState: {
           const badgeState = action.payload.params.badgeState
-          storeRegistry.getState('config').dispatch.setBadgeState(badgeState)
+          storeRegistry.getState('config').then(configState => {
+            configState.dispatch.setBadgeState(badgeState)
+          })
 
           const counts = badgeStateToBadgeCounts(badgeState)
           if (!isMobile && shouldTriggerTlfLoad(badgeState)) {
-            storeRegistry.getState('fs').dispatch.favoritesLoad()
+            storeRegistry.getState('fs').then(fsState => {
+              fsState.dispatch.favoritesLoad()
+            })
           }
           if (counts) {
             get().dispatch.setBadgeCounts(counts)

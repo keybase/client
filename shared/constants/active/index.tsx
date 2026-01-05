@@ -19,8 +19,9 @@ export const useActiveState = Z.createZustand<State>(set => {
       set(s => {
         s.active = a
       })
-      const cs = storeRegistry.getConvoState(Chat.getSelectedConversation())
-      cs.dispatch.markThreadAsRead()
+      storeRegistry.getConvoState(Chat.getSelectedConversation()).then(cs => {
+        cs.dispatch.markThreadAsRead()
+      })
     },
   }
   return {...initialStore, dispatch}

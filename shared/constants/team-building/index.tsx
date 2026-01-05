@@ -270,7 +270,9 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
               // we want the first item
               for (const user of teamSoFar) {
                 const username = user.serviceMap.keybase || user.id
-                storeRegistry.getState('profile').dispatch.showUserProfile(username)
+                storeRegistry.getState('profile').then(profileState => {
+                  profileState.dispatch.showUserProfile(username)
+                })
                 break
               }
             }, 100)
@@ -294,7 +296,9 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals.at(-1)?.name
       if (routeNames.includes(routeName ?? '')) {
-        storeRegistry.getState('router').dispatch.navigateUp()
+        storeRegistry.getState('router').then(routerState => {
+          routerState.dispatch.navigateUp()
+        })
       }
     },
     fetchUserRecs: () => {
@@ -311,8 +315,8 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           const contactRes = _contactRes || []
           const contacts = contactRes.map(contactToUser)
           let suggestions = suggestionRes.map(interestingPersonToUser)
-          const expectingContacts =
-            storeRegistry.getState('settings-contacts').importEnabled && includeContacts
+          const settingsContactsState = await storeRegistry.getState('settings-contacts')
+          const expectingContacts = settingsContactsState.importEnabled && includeContacts
           if (expectingContacts) {
             suggestions = suggestions.slice(0, 10)
           }
@@ -335,11 +339,11 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       get().dispatch.closeTeamBuilding()
       const {teamSoFar} = get()
       if (get().namespace === 'teams') {
-        storeRegistry
-          .getState('teams')
-          .dispatch.addMembersWizardPushMembers(
+        storeRegistry.getState('teams').then(teamsState => {
+          teamsState.dispatch.addMembersWizardPushMembers(
             [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
           )
+        })
         get().dispatch.finishedTeamBuilding()
       }
     },
@@ -359,11 +363,15 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const {finishedTeam, namespace} = get()
       switch (namespace) {
         case 'crypto': {
-          storeRegistry.getState('crypto').dispatch.onTeamBuildingFinished(finishedTeam)
+          storeRegistry.getState('crypto').then(cryptoState => {
+            cryptoState.dispatch.onTeamBuildingFinished(finishedTeam)
+          })
           break
         }
         case 'chat2': {
-          storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(finishedTeam)
+          storeRegistry.getState('chat').then(chatState => {
+            chatState.dispatch.onTeamBuildingFinished(finishedTeam)
+          })
           break
         }
         default:
@@ -414,7 +422,8 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         let users: typeof _users
         if (selectedService === 'keybase') {
           // If we are on Keybase tab, do additional search if query is phone/email.
-          const userRegion = storeRegistry.getState('settings-contacts').userCountryCode
+          const settingsContactsState = await storeRegistry.getState('settings-contacts')
+          const userRegion = settingsContactsState.userCountryCode
           users = await specialContactSearch(_users, searchQuery, userRegion)
         } else {
           users = _users
@@ -431,7 +440,8 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<{info: {fullname: string}; name: string}>())
-        storeRegistry.getState('users').dispatch.updates(updates)
+        const usersState = await storeRegistry.getState('users')
+        usersState.dispatch.updates(updates)
         const blocks = users.reduce((arr, {serviceMap}) => {
           const {keybase} = serviceMap
           if (keybase) {
@@ -439,7 +449,9 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<string>())
-        blocks.length && storeRegistry.getState('users').dispatch.getBlockState(blocks)
+        if (blocks.length) {
+          usersState.dispatch.getBlockState(blocks)
+        }
       }
       ignorePromise(f())
     },

@@ -170,182 +170,182 @@ type StoreHooks = {
 }
 
 class StoreRegistry {
-  getStore<T extends StoreName>(storeName: T): StoreHooks[T] {
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+  async getStore<T extends StoreName>(storeName: T): Promise<StoreHooks[T]> {
     switch (storeName) {
       case 'active': {
-        const {useActiveState} = require('./active')
-        return useActiveState
+        const {useActiveState} = await import('./active')
+        return useActiveState as StoreHooks[T]
       }
       case 'archive': {
-        const {useArchiveState} = require('./archive')
-        return useArchiveState
+        const {useArchiveState} = await import('./archive')
+        return useArchiveState as StoreHooks[T]
       }
       case 'autoreset': {
-        const {useAutoResetState} = require('./autoreset')
-        return useAutoResetState
+        const {useAutoResetState} = await import('./autoreset')
+        return useAutoResetState as StoreHooks[T]
       }
       case 'avatar': {
-        const {useAvatarState} = require('@/common-adapters/avatar/store')
-        return useAvatarState
+        const {useAvatarState} = await import('@/common-adapters/avatar/store')
+        return useAvatarState as StoreHooks[T]
       }
       case 'bots': {
-        const {useBotsState} = require('./bots')
-        return useBotsState
+        const {useBotsState} = await import('./bots')
+        return useBotsState as StoreHooks[T]
       }
       case 'chat': {
-        const {useChatState} = require('./chat2')
-        return useChatState
+        const {useChatState} = await import('./chat2')
+        return useChatState as StoreHooks[T]
       }
       case 'config': {
-        const {useConfigState} = require('./config')
-        return useConfigState
+        const {useConfigState} = await import('./config')
+        return useConfigState as StoreHooks[T]
       }
       case 'current-user': {
-        const {useCurrentUserState} = require('./current-user')
-        return useCurrentUserState
+        const {useCurrentUserState} = await import('./current-user')
+        return useCurrentUserState as StoreHooks[T]
       }
       case 'crypto': {
-        const {useCryptoState} = require('./crypto')
-        return useCryptoState
+        const {useCryptoState} = await import('./crypto')
+        return useCryptoState as StoreHooks[T]
       }
       case 'daemon': {
-        const {useDaemonState} = require('./daemon')
-        return useDaemonState
+        const {useDaemonState} = await import('./daemon')
+        return useDaemonState as StoreHooks[T]
       }
       case 'dark-mode': {
-        const {useDarkModeState} = require('./darkmode')
-        return useDarkModeState
+        const {useDarkModeState} = await import('./darkmode')
+        return useDarkModeState as StoreHooks[T]
       }
       case 'deeplinks': {
-        const {useDeepLinksState} = require('./deeplinks')
-        return useDeepLinksState
+        const {useDeepLinksState} = await import('./deeplinks')
+        return useDeepLinksState as StoreHooks[T]
       }
       case 'devices': {
-        const {useDevicesState} = require('./devices')
-        return useDevicesState
+        const {useDevicesState} = await import('./devices')
+        return useDevicesState as StoreHooks[T]
       }
       case 'engine': {
-        const {useEngineState} = require('./engine')
-        return useEngineState
+        const {useEngineState} = await import('./engine')
+        return useEngineState as StoreHooks[T]
       }
       case 'followers': {
-        const {useFollowerState} = require('./followers')
-        return useFollowerState
+        const {useFollowerState} = await import('./followers')
+        return useFollowerState as StoreHooks[T]
       }
       case 'fs': {
-        const {useFSState} = require('./fs')
-        return useFSState
+        const {useFSState} = await import('./fs')
+        return useFSState as StoreHooks[T]
       }
       case 'git': {
-        const {useGitState} = require('./git')
-        return useGitState
+        const {useGitState} = await import('./git')
+        return useGitState as StoreHooks[T]
       }
       case 'logout': {
-        const {useLogoutState} = require('./logout')
-        return useLogoutState
+        const {useLogoutState} = await import('./logout')
+        return useLogoutState as StoreHooks[T]
       }
       case 'notifications': {
-        const {useNotifState} = require('./notifications')
-        return useNotifState
+        const {useNotifState} = await import('./notifications')
+        return useNotifState as StoreHooks[T]
       }
       case 'people': {
-        const {usePeopleState} = require('./people')
-        return usePeopleState
+        const {usePeopleState} = await import('./people')
+        return usePeopleState as StoreHooks[T]
       }
       case 'pinentry': {
-        const {usePinentryState} = require('./pinentry')
-        return usePinentryState
+        const {usePinentryState} = await import('./pinentry')
+        return usePinentryState as StoreHooks[T]
       }
       case 'profile': {
-        const {useProfileState} = require('./profile')
-        return useProfileState
+        const {useProfileState} = await import('./profile')
+        return useProfileState as StoreHooks[T]
       }
       case 'provision': {
-        const {useProvisionState} = require('./provision')
-        return useProvisionState
+        const {useProvisionState} = await import('./provision')
+        return useProvisionState as StoreHooks[T]
       }
       case 'push': {
-        const {usePushState} = require('./push')
-        return usePushState
+        const {usePushState} = await import('./push')
+        return usePushState as StoreHooks[T]
       }
       case 'recover-password': {
-        const {useState} = require('./recover-password')
-        return useState
+        const {useState} = await import('./recover-password')
+        return useState as StoreHooks[T]
       }
       case 'router': {
-        const {useRouterState} = require('./router2')
-        return useRouterState
+        const {useRouterState} = await import('./router2')
+        return useRouterState as StoreHooks[T]
       }
       case 'settings': {
-        const {useSettingsState} = require('./settings')
-        return useSettingsState
+        const {useSettingsState} = await import('./settings')
+        return useSettingsState as StoreHooks[T]
       }
       case 'settings-chat': {
-        const {useSettingsChatState} = require('./settings-chat')
-        return useSettingsChatState
+        const {useSettingsChatState} = await import('./settings-chat')
+        return useSettingsChatState as StoreHooks[T]
       }
       case 'settings-contacts': {
-        const {useSettingsContactsState} = require('./settings-contacts')
-        return useSettingsContactsState
+        const {useSettingsContactsState} = await import('./settings-contacts')
+        return useSettingsContactsState as StoreHooks[T]
       }
       case 'settings-email': {
-        const {useSettingsEmailState} = require('./settings-email')
-        return useSettingsEmailState
+        const {useSettingsEmailState} = await import('./settings-email')
+        return useSettingsEmailState as StoreHooks[T]
       }
       case 'settings-password': {
-        const {usePWState} = require('./settings-password')
-        return usePWState
+        const {usePWState} = await import('./settings-password')
+        return usePWState as StoreHooks[T]
       }
       case 'settings-phone': {
-        const {useSettingsPhoneState} = require('./settings-phone')
-        return useSettingsPhoneState
+        const {useSettingsPhoneState} = await import('./settings-phone')
+        return useSettingsPhoneState as StoreHooks[T]
       }
       case 'signup': {
-        const {useSignupState} = require('./signup')
-        return useSignupState
+        const {useSignupState} = await import('./signup')
+        return useSignupState as StoreHooks[T]
       }
       case 'teams': {
-        const {useTeamsState} = require('./teams')
-        return useTeamsState
+        const {useTeamsState} = await import('./teams')
+        return useTeamsState as StoreHooks[T]
       }
       case 'tracker2': {
-        const {useTrackerState} = require('./tracker2')
-        return useTrackerState
+        const {useTrackerState} = await import('./tracker2')
+        return useTrackerState as StoreHooks[T]
       }
       case 'unlock-folders': {
-        const {useUnlockFoldersState} = require('./unlock-folders')
-        return useUnlockFoldersState
+        const {useUnlockFoldersState} = await import('./unlock-folders')
+        return useUnlockFoldersState as StoreHooks[T]
       }
       case 'users': {
-        const {useUsersState} = require('./users')
-        return useUsersState
+        const {useUsersState} = await import('./users')
+        return useUsersState as StoreHooks[T]
       }
       case 'waiting': {
-        const {useWaitingState} = require('./waiting')
-        return useWaitingState
+        const {useWaitingState} = await import('./waiting')
+        return useWaitingState as StoreHooks[T]
       }
       case 'whats-new': {
-        const {useWhatsNewState} = require('./whats-new')
-        return useWhatsNewState
+        const {useWhatsNewState} = await import('./whats-new')
+        return useWhatsNewState as StoreHooks[T]
       }
       default:
         throw new Error(`Unknown store: ${storeName}`)
     }
   }
 
-  getState<T extends StoreName>(storeName: T): StoreStates[T] {
-    return this.getStore(storeName).getState() as StoreStates[T]
+  async getState<T extends StoreName>(storeName: T): Promise<StoreStates[T]> {
+    const store = await this.getStore(storeName)
+    return store.getState() as StoreStates[T]
   }
 
-  getTBStore(name: T.TB.AllowedNamespace): TBType.State {
-    const {createTBStore} = require('./team-building') as typeof TBType
+  async getTBStore(name: T.TB.AllowedNamespace): Promise<TBType.State> {
+    const {createTBStore} = await import('./team-building')
     const store = createTBStore(name)
     return store.getState()
   }
 
-  getConvoState(id: T.Chat.ConversationIDKey): ConvoState {
-    const {getConvoState} = require('./chat2/convostate') as typeof ConvoStateType
+  async getConvoState(id: T.Chat.ConversationIDKey): Promise<ConvoState> {
+    const {getConvoState} = await import('./chat2/convostate')
     return getConvoState(id)
   }
 }

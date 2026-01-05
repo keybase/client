@@ -289,13 +289,15 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             } else if (error.code === T.RPCGen.StatusCode.scnotfound) {
               // we're on the profile page for a user that does not exist. Currently the only way
               // to get here is with an invalid link or deeplink.
-              storeRegistry
-                .getState('deeplinks')
-                .dispatch.setLinkError(
+              storeRegistry.getState('deeplinks').then(deeplinksState => {
+                deeplinksState.dispatch.setLinkError(
                   `You followed a profile link for a user (${assertion}) that does not exist.`
                 )
-              storeRegistry.getState('router').dispatch.navigateUp()
-              storeRegistry.getState('router').dispatch.navigateAppend('keybaseLinkError')
+              })
+              storeRegistry.getState('router').then(routerState => {
+                routerState.dispatch.navigateUp()
+                routerState.dispatch.navigateAppend('keybaseLinkError')
+              })
             }
             // hooked into reloadable
             logger.error(`Error loading profile: ${error.message}`)
@@ -434,8 +436,11 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         )
         d.hidFromFollowers = hidFromFollowers
       })
-      username &&
-        storeRegistry.getState('users').dispatch.updates([{info: {fullname: card.fullName}, name: username}])
+      if (username) {
+        storeRegistry.getState('users').then(usersState => {
+          usersState.dispatch.updates([{info: {fullname: card.fullName}, name: username}])
+        })
+      }
     },
     notifyReset: guiID => {
       set(s => {
@@ -530,19 +535,21 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         }
         // if we mutated somehow reload ourselves and reget the suggestions
         case EngineGen.keybase1NotifyUsersUserChanged: {
-          if (storeRegistry.getState('current-user').uid !== action.payload.params.uid) {
-            return
-          }
-          get().dispatch.load({
-            assertion: storeRegistry.getState('current-user').username,
-            forceDisplay: false,
-            fromDaemon: false,
-            guiID: generateGUIID(),
-            ignoreCache: false,
-            inTracker: false,
-            reason: '',
+          storeRegistry.getState('current-user').then(currentUserState => {
+            if (currentUserState.uid !== action.payload.params.uid) {
+              return
+            }
+            get().dispatch.load({
+              assertion: currentUserState.username,
+              forceDisplay: false,
+              fromDaemon: false,
+              guiID: generateGUIID(),
+              ignoreCache: false,
+              inTracker: false,
+              reason: '',
+            })
+            get().dispatch.getProofSuggestions()
           })
-          get().dispatch.getProofSuggestions()
           break
         }
         // This allows the server to send us a notification to *remove* (not add)
@@ -594,7 +601,9 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
       })
       if (!skipNav) {
         // go to profile page
-        storeRegistry.getState('profile').dispatch.showUserProfile(username)
+        storeRegistry.getState('profile').then(profileState => {
+          profileState.dispatch.showUserProfile(username)
+        })
       }
     },
     updateResult: (guiID, result, reason) => {

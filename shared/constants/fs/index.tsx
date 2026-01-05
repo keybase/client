@@ -558,14 +558,13 @@ export const getTlfFromTlfs = (tlfs: T.FS.Tlfs, tlfType: T.FS.TlfType, name: str
 export const tlfTypeAndNameToPath = (tlfType: T.FS.TlfType, name: string): T.FS.Path =>
   T.FS.stringToPath(`/keybase/${tlfType}/${name}`)
 
-export const resetBannerType = (s: State, path: T.FS.Path): T.FS.ResetBannerType => {
+export const resetBannerType = (s: State, path: T.FS.Path, myUsername?: string): T.FS.ResetBannerType => {
   const resetParticipants = getTlfFromPath(s.tlfs, path).resetParticipants
   if (resetParticipants.length === 0) {
     return T.FS.ResetBannerNoOthersType.None
   }
 
-  const you = storeRegistry.getState('current-user').username
-  if (resetParticipants.findIndex(username => username === you) >= 0) {
+  if (myUsername && resetParticipants.findIndex(username => username === myUsername) >= 0) {
     return T.FS.ResetBannerNoOthersType.Self
   }
   return resetParticipants.length
@@ -882,7 +881,9 @@ export const getPathStatusIconInMergeProps = (
 
 export const makeActionsForDestinationPickerOpen = (index: number, path: T.FS.Path) => {
   useFSState.getState().dispatch.setDestinationPickerParentPath(index, path)
-  storeRegistry.getState('router').dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
+  storeRegistry.getState('router').then(routerState => {
+    routerState.dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
+  })
 }
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, settingsFsTab] : [Tabs.fsTab]
@@ -1580,7 +1581,8 @@ export const useFSState = Z.createZustand<State>((set, get) => {
     favoritesLoad: () => {
       const f = async () => {
         try {
-          if (!storeRegistry.getState('config').loggedIn) {
+          const configState = await storeRegistry.getState('config')
+          if (!configState.loggedIn) {
             return
           }
           const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
@@ -1589,6 +1591,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             public: new Map<string, T.FS.Tlf>(),
             team: new Map<string, T.FS.Tlf>(),
           } as const
+          const currentUserState = await storeRegistry.getState('current-user')
           const fs = [
             ...(results.favoriteFolders
               ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
@@ -1605,7 +1608,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               const tlfType = rpcFolderTypeToTlfType(folder.folderType)
               const tlfName =
                 tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-                  ? tlfToPreferredOrder(folder.name, storeRegistry.getState('current-user').username)
+                  ? tlfToPreferredOrder(folder.name, currentUserState.username)
                   : folder.name
               tlfType &&
                 payload[tlfType].set(
@@ -1634,7 +1637,8 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             })
             const counts = new Map<Tabs.Tab, number>()
             counts.set(Tabs.fsTab, computeBadgeNumberForAll(get().tlfs))
-            storeRegistry.getState('notifications').dispatch.setBadgeCounts(counts)
+            const notificationsState = await storeRegistry.getState('notifications')
+            notificationsState.dispatch.setBadgeCounts(counts)
           }
         } catch (e) {
           errorToActionOrThrow(e)
@@ -1900,9 +1904,10 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             path: pathToRPCPath(tlfPath).kbfs,
           })
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+          const currentUserState = await storeRegistry.getState('current-user')
           const tlfName =
             tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-              ? tlfToPreferredOrder(folder.name, storeRegistry.getState('current-user').username)
+              ? tlfToPreferredOrder(folder.name, currentUserState.username)
               : folder.name
 
           if (tlfType) {
@@ -1934,8 +1939,9 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             const users = fields?.filter(elem => elem.key === 'usernames')
             const usernames = users?.map(elem => elem.value ?? '') ?? []
             // Don't leave the user on a broken FS dir screen.
-            storeRegistry.getState('router').dispatch.navigateUp()
-            storeRegistry.getState('router').dispatch.navigateAppend({
+            const routerState = await storeRegistry.getState('router')
+            routerState.dispatch.navigateUp()
+            routerState.dispatch.navigateAppend({
               props: {source: 'newFolder', usernames},
               selected: 'contactRestricted',
             })
@@ -2199,28 +2205,33 @@ export const useFSState = Z.createZustand<State>((set, get) => {
                   src: pathToRPCPath(zState.destinationPicker.source.path),
                 },
               ]
-            : zState.destinationPicker.source.source
-                .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
-                .filter(({originalPath}) => !!originalPath)
-                .map(({originalPath, scaledPath}) => ({
-                  dest: pathToRPCPath(
-                    T.FS.pathConcat(
-                      destinationParentPath,
-                      T.FS.getLocalPathName(originalPath)
-                      // We use the local path name here since we only care about file name.
-                    )
-                  ),
-                  opID: makeUUID(),
-                  overwriteExistingFiles: false,
-                  src: {
-                    PathType: T.RPCGen.PathType.local,
-                    local: T.FS.getNormalizedLocalPath(
-                      storeRegistry.getState('config').incomingShareUseOriginal
-                        ? originalPath
-                        : scaledPath || originalPath
-                    ),
-                  } as T.RPCGen.Path,
-                }))
+            : await Promise.all(
+                zState.destinationPicker.source.source
+                  .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
+                  .filter(({originalPath}) => !!originalPath)
+                  .map(async ({originalPath, scaledPath}) => {
+                    const configState = await storeRegistry.getState('config')
+                    return {
+                      dest: pathToRPCPath(
+                        T.FS.pathConcat(
+                          destinationParentPath,
+                          T.FS.getLocalPathName(originalPath)
+                          // We use the local path name here since we only care about file name.
+                        )
+                      ),
+                      opID: makeUUID(),
+                      overwriteExistingFiles: false,
+                      src: {
+                        PathType: T.RPCGen.PathType.local,
+                        local: T.FS.getNormalizedLocalPath(
+                          configState.incomingShareUseOriginal
+                            ? originalPath
+                            : scaledPath || originalPath
+                        ),
+                      } as T.RPCGen.Path,
+                    }
+                  })
+              )
 
         try {
           const rpc =
@@ -2374,12 +2385,14 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
               break
             }
-            storeRegistry.getState('notifications').dispatch.badgeApp('kbfsUploading', true)
+            const notificationsState = await storeRegistry.getState('notifications')
+            notificationsState.dispatch.badgeApp('kbfsUploading', true)
             await timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
           }
         } finally {
           pollJournalStatusPolling = false
-          storeRegistry.getState('notifications').dispatch.badgeApp('kbfsUploading', false)
+          const notificationsState = await storeRegistry.getState('notifications')
+          notificationsState.dispatch.badgeApp('kbfsUploading', false)
           get().dispatch.checkKbfsDaemonRpcStatus()
         }
       }
@@ -2640,7 +2653,9 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               body: 'You are out of disk space. Some folders could not be synced.',
               sound: true,
             })
-            storeRegistry.getState('notifications').dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
+            storeRegistry.getState('notifications').then(notificationsState => {
+              notificationsState.dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
+            })
             break
           }
           case T.FS.DiskSpaceStatus.Warning:

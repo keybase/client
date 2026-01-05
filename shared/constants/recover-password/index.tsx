@@ -73,7 +73,8 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         if (p.abortProvisioning) {
-          storeRegistry.getState('provision').dispatch.dynamic.cancel?.()
+          const provisionState = await storeRegistry.getState('provision')
+          provisionState.dispatch.dynamic.cancel?.()
         }
         let hadError = false
         try {
@@ -89,10 +90,11 @@ export const useState = Z.createZustand<State>((set, get) => {
                       s.dispatch.dynamic.submitDeviceSelect = undefined
                     })
                   }
-                  const cancel = wrapErrors(() => {
+                  const cancel = wrapErrors(async () => {
                     clear()
                     response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
-                    storeRegistry.getState('router').dispatch.navigateUp()
+                    const routerState = await storeRegistry.getState('router')
+                    routerState.dispatch.navigateUp()
                   })
                   s.devices = devices
                   s.dispatch.dynamic.cancel = cancel
@@ -106,17 +108,17 @@ export const useState = Z.createZustand<State>((set, get) => {
                     }
                   })
                 })
-                storeRegistry
-                  .getState('router')
-                  .dispatch.navigateAppend('recoverPasswordDeviceSelector', !!replaceRoute)
+                storeRegistry.getState('router').then(routerState => {
+                  routerState.dispatch.navigateAppend('recoverPasswordDeviceSelector', !!replaceRoute)
+                })
               },
               'keybase.1.loginUi.promptPassphraseRecovery': () => {},
               // This same RPC is called at the beginning and end of the 7-day wait by the service.
               'keybase.1.loginUi.promptResetAccount': (params, response) => {
                 if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
-                  storeRegistry
-                    .getState('router')
-                    .dispatch.navigateAppend('recoverPasswordPromptResetPassword')
+                  storeRegistry.getState('router').then(routerState => {
+                    routerState.dispatch.navigateAppend('recoverPasswordPromptResetPassword')
+                  })
                   const clear = () => {
                     set(s => {
                       s.dispatch.dynamic.submitResetPassword = undefined
@@ -125,24 +127,28 @@ export const useState = Z.createZustand<State>((set, get) => {
                   }
                   set(s => {
                     s.dispatch.dynamic.submitResetPassword = wrapErrors(
-                      (action: T.RPCGen.ResetPromptResponse) => {
+                      async (action: T.RPCGen.ResetPromptResponse) => {
                         clear()
                         response.result(action)
                         set(s => {
                           s.resetEmailSent = true
                         })
-                        storeRegistry.getState('router').dispatch.navigateUp()
+                        const routerState = await storeRegistry.getState('router')
+                        routerState.dispatch.navigateUp()
                       }
                     )
-                    s.dispatch.dynamic.cancel = wrapErrors(() => {
+                    s.dispatch.dynamic.cancel = wrapErrors(async () => {
                       clear()
                       response.result(T.RPCGen.ResetPromptResponse.nothing)
-                      storeRegistry.getState('router').dispatch.navigateUp()
+                      const routerState = await storeRegistry.getState('router')
+                      routerState.dispatch.navigateUp()
                     })
                   })
                 } else {
-                  const {startAccountReset} = storeRegistry.getState('autoreset').dispatch
-                  startAccountReset(true, '')
+                  storeRegistry.getState('autoreset').then(autoresetState => {
+                    const {startAccountReset} = autoresetState.dispatch
+                    startAccountReset(true, '')
+                  })
                   response.result(T.RPCGen.ResetPromptResponse.nothing)
                 }
               },
@@ -169,7 +175,9 @@ export const useState = Z.createZustand<State>((set, get) => {
                       response.result({passphrase, storeSecret: false})
                     })
                   })
-                  storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordPaperKey', true)
+                  storeRegistry.getState('router').then(routerState => {
+                    routerState.dispatch.navigateAppend('recoverPasswordPaperKey', true)
+                  })
                 } else {
                   const clear = () => {
                     set(s => {
@@ -192,7 +200,9 @@ export const useState = Z.createZustand<State>((set, get) => {
                       })
                     })
                     // TODO maybe wait for loggedIn, for now the service promises to send this after login.
-                    storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordSetPassword')
+                    storeRegistry.getState('router').then(routerState => {
+                      routerState.dispatch.navigateAppend('recoverPasswordSetPassword')
+                    })
                   }
                 }
               },
@@ -202,7 +212,9 @@ export const useState = Z.createZustand<State>((set, get) => {
                 set(s => {
                   s.explainedDevice = {name: params.name, type: params.kind}
                 })
-                storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordExplainDevice', true)
+                storeRegistry.getState('router').then(routerState => {
+                  routerState.dispatch.navigateAppend('recoverPasswordExplainDevice', true)
+                })
               },
             },
             params: {username: p.username},
@@ -226,14 +238,12 @@ export const useState = Z.createZustand<State>((set, get) => {
             set(s => {
               s.error = msg
             })
-            storeRegistry
-              .getState('router')
-              .dispatch.navigateAppend(
-                storeRegistry.getState('config').loggedIn
-                  ? 'recoverPasswordErrorModal'
-                  : 'recoverPasswordError',
-                true
-              )
+            storeRegistry.getState('config').then(configState => {
+              const route = configState.loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError'
+              storeRegistry.getState('router').then(routerState => {
+                routerState.dispatch.navigateAppend(route, true)
+              })
+            })
           }
         } finally {
           set(s => {
@@ -246,7 +256,9 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
         if (!hadError) {
-          storeRegistry.getState('router').dispatch.clearModals()
+          storeRegistry.getState('router').then(routerState => {
+            routerState.dispatch.clearModals()
+          })
         }
       }
       ignorePromise(f())

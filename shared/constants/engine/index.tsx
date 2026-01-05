@@ -34,29 +34,32 @@ export interface State extends Store {
 export const useEngineState = Z.createZustand<State>(set => {
   let incomingTimeout: NodeJS.Timeout
   const dispatch: State['dispatch'] = {
-    onEngineConnected: () => {
+    onEngineConnected: async () => {
       ChatUtil.onEngineConnected()
-      storeRegistry.getState('config').dispatch.onEngineConnected()
+      const configState = await storeRegistry.getState('config')
+      configState.dispatch.onEngineConnected()
       NotifUtil.onEngineConnected()
       PeopleUtil.onEngineConnected()
       PinentryUtil.onEngineConnected()
       TrackerUtil.onEngineConnected()
       UnlockFoldersUtil.onEngineConnected()
     },
-    onEngineDisconnected: () => {
-      storeRegistry.getState('config').dispatch.onEngineDisonnected()
+    onEngineDisconnected: async () => {
+      const configState = await storeRegistry.getState('config')
+      configState.dispatch.onEngineDisonnected()
     },
     onEngineIncoming: action => {
       // defer a frame so its more like before
-      incomingTimeout = setTimeout(() => {
+      incomingTimeout = setTimeout(async () => {
         // we delegate to these utils so we don't need to load stores that we don't need yet
         ArchiveUtil.onEngineIncoming(action)
         AutoResetUtil.onEngineIncoming(action)
         BotsUtil.onEngineIncoming(action)
         ChatUtil.onEngineIncoming(action)
-        storeRegistry.getState('config').dispatch.dynamic.onEngineIncomingDesktop?.(action)
-        storeRegistry.getState('config').dispatch.dynamic.onEngineIncomingNative?.(action)
-        storeRegistry.getState('config').dispatch.onEngineIncoming(action)
+        const configState = await storeRegistry.getState('config')
+        configState.dispatch.dynamic.onEngineIncomingDesktop?.(action)
+        configState.dispatch.dynamic.onEngineIncomingNative?.(action)
+        configState.dispatch.onEngineIncoming(action)
         DeepLinksUtil.onEngineIncoming(action)
         DevicesUtil.onEngineIncoming(action)
         FSUtil.onEngineIncoming(action)

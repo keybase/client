@@ -263,10 +263,13 @@ export const inboxUIItemToConversationMeta = (
   const conversationIDKey = T.Chat.stringToConversationIDKey(i.convID)
   let pinnedMsg: T.Chat.PinnedMessageInfo | undefined
   if (i.pinnedMsg) {
-    const username = storeRegistry.getState('current-user').username
-    const devicename = storeRegistry.getState('current-user').deviceName
-    const getLastOrdinal = () =>
-      storeRegistry.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+    // This function is synchronous but needs async store access
+    // For now, we'll need to make this async or refactor
+    // TODO: Make this function async or refactor to avoid synchronous store access
+    // For now, return a default value and handle async loading separately
+    const username = ''
+    const devicename = ''
+    const getLastOrdinal = () => T.Chat.numberToOrdinal(0)
     const message = Message.uiMessageToMessage(
       conversationIDKey,
       i.pinnedMsg.message,

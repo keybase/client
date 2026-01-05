@@ -407,7 +407,7 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
             // team building or modal on top of that still
             const isTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(next)?.name
             if (!isTeamBuilding) {
-              storeRegistry.getTBStore(namespace).dispatch.cancelTeamBuilding()
+              storeRegistry.getTBStore(namespace).then(tbStore => tbStore.dispatch.cancelTeamBuilding())
             }
           }
         }
@@ -416,27 +416,29 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
 
       const updateFS = () => {
         // Clear critical update when we nav away from tab
-        if (
-          prev &&
-          getTab(prev) === Tabs.fsTab &&
-          next &&
-          getTab(next) !== Tabs.fsTab &&
-          storeRegistry.getState('fs').criticalUpdate
-        ) {
-          const {dispatch} = storeRegistry.getState('fs')
-          dispatch.setCriticalUpdate(false)
-        }
-        const fsRrouteNames = ['fsRoot', 'barePreview']
-        const wasScreen = fsRrouteNames.includes(getVisibleScreen(prev)?.name ?? '')
-        const isScreen = fsRrouteNames.includes(getVisibleScreen(next)?.name ?? '')
-        if (wasScreen !== isScreen) {
-          const {dispatch} = storeRegistry.getState('fs')
-          if (wasScreen) {
-            dispatch.userOut()
-          } else {
-            dispatch.userIn()
+        storeRegistry.getState('fs').then(fsState => {
+          if (
+            prev &&
+            getTab(prev) === Tabs.fsTab &&
+            next &&
+            getTab(next) !== Tabs.fsTab &&
+            fsState.criticalUpdate
+          ) {
+            const {dispatch} = fsState
+            dispatch.setCriticalUpdate(false)
           }
-        }
+          const fsRrouteNames = ['fsRoot', 'barePreview']
+          const wasScreen = fsRrouteNames.includes(getVisibleScreen(prev)?.name ?? '')
+          const isScreen = fsRrouteNames.includes(getVisibleScreen(next)?.name ?? '')
+          if (wasScreen !== isScreen) {
+            const {dispatch} = fsState
+            if (wasScreen) {
+              dispatch.userOut()
+            } else {
+              dispatch.userIn()
+            }
+          }
+        })
       }
       updateFS()
 
@@ -446,24 +448,31 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
           prev &&
           getTab(prev) === Tabs.peopleTab &&
           next &&
-          getTab(next) !== Tabs.peopleTab &&
-          storeRegistry.getState('signup').justSignedUpEmail
+          getTab(next) !== Tabs.peopleTab
         ) {
-          storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
+          storeRegistry.getState('signup').then(signupState => {
+            if (signupState.justSignedUpEmail) {
+              signupState.dispatch.clearJustSignedUpEmail()
+            }
+          })
         }
       }
       updateSignup()
 
       const updatePeople = () => {
         if (prev && getTab(prev) === Tabs.peopleTab && next && getTab(next) !== Tabs.peopleTab) {
-          storeRegistry.getState('people').dispatch.markViewed()
+          storeRegistry.getState('people').then(peopleState => {
+            peopleState.dispatch.markViewed()
+          })
         }
       }
       updatePeople()
 
       const updateTeams = () => {
         if (prev && getTab(prev) === Tabs.teamsTab && next && getTab(next) !== Tabs.teamsTab) {
-          storeRegistry.getState('teams').dispatch.clearNavBadges()
+          storeRegistry.getState('teams').then(teamsState => {
+            teamsState.dispatch.clearNavBadges()
+          })
         }
       }
       updateTeams()
@@ -474,15 +483,20 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
           prev &&
           getTab(prev) === Tabs.settingsTab &&
           next &&
-          getTab(next) !== Tabs.settingsTab &&
-          storeRegistry.getState('settings-email').addedEmail
+          getTab(next) !== Tabs.settingsTab
         ) {
-          storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
+          storeRegistry.getState('settings-email').then(settingsEmailState => {
+            if (settingsEmailState.addedEmail) {
+              settingsEmailState.dispatch.resetAddedEmail()
+            }
+          })
         }
       }
       updateSettings()
 
-      storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
+      storeRegistry.getState('chat').then(chatState => {
+        chatState.dispatch.onRouteChanged(prev, next)
+      })
     },
     switchTab: name => {
       DEBUG_NAV && console.log('[Nav] switchTab', {name})
@@ -498,38 +512,42 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
   }
 
   const appendPeopleBuilder = () => {
-    storeRegistry.getState('router').dispatch.navigateAppend({
-      props: {
-        filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
-        namespace: 'people',
-        title: '',
-      },
-      selected: 'peopleTeamBuilder',
+    storeRegistry.getState('router').then(routerState => {
+      routerState.dispatch.navigateAppend({
+        props: {
+          filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
+          namespace: 'people',
+          title: '',
+        },
+        selected: 'peopleTeamBuilder',
+      })
     })
   }
 
   const appendNewChatBuilder = () => {
-    storeRegistry
-      .getState('router')
-      .dispatch.navigateAppend({props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'})
+    storeRegistry.getState('router').then(routerState => {
+      routerState.dispatch.navigateAppend({props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'})
+    })
   }
 
   // Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
   const appendNewTeamBuilder = (teamID: T.Teams.TeamID) => {
-    storeRegistry.getState('router').dispatch.navigateAppend({
-      props: {
-        filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
-        goButtonLabel: 'Add',
-        namespace: 'teams',
-        teamID,
-        title: '',
+    storeRegistry.getState('router').then(routerState => {
+      routerState.dispatch.navigateAppend({
+        props: {
+          filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
+          goButtonLabel: 'Add',
+          namespace: 'teams',
+          teamID,
+          title: '',
       },
       selected: 'teamsTeamBuilder',
     })
   }
 
   const appendEncryptRecipientsBuilder = () => {
-    storeRegistry.getState('router').dispatch.navigateAppend({
+    storeRegistry.getState('router').then(routerState => {
+      routerState.dispatch.navigateAppend({
       props: {
         filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
         goButtonLabel: 'Add',

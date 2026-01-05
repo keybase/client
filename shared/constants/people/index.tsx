@@ -385,10 +385,11 @@ export const usePeopleState = Z.createZustand<State>((set, get) => {
       (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
         const f = async () => {
           // more logging to understand why this fails so much
+          const configState = await storeRegistry.getState('config')
           logger.info(
             'getPeopleData: appFocused:',
             'loggedIn',
-            storeRegistry.getState('config').loggedIn,
+            configState.loggedIn,
             'action',
             {markViewed, numFollowSuggestionsWanted}
           )
@@ -398,7 +399,8 @@ export const usePeopleState = Z.createZustand<State>((set, get) => {
               {markViewed, numFollowSuggestionsWanted},
               getPeopleDataWaitingKey
             )
-            const {following, followers} = storeRegistry.getState('followers')
+            const followersState = await storeRegistry.getState('followers')
+            const {following, followers} = followersState
             const oldItems: Array<T.People.PeopleScreenItem> = (data.items ?? [])
               .filter(item => !item.badged && item.data.t !== T.RPCGen.HomeScreenItemType.todo)
               .reduce(reduceRPCItemToPeopleItem, [])

@@ -79,7 +79,8 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       }
 
       try {
-        storeRegistry.getState('push').dispatch.showPermissionsPrompt({justSignedUp: true})
+        const pushState = await storeRegistry.getState('push')
+        pushState.dispatch.showPermissionsPrompt({justSignedUp: true})
 
         await T.RPCGen.signupSignupRpcListener({
           customResponseIncomingCallMap: {
@@ -116,11 +117,13 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         if (noErrors()) {
           get().dispatch.restartSignup()
         } else {
-          storeRegistry.getState('router').dispatch.navigateAppend('signupError')
+          const routerState = await storeRegistry.getState('router')
+          routerState.dispatch.navigateAppend('signupError')
         }
         // If the email was set to be visible during signup, we need to set that with a separate RPC.
         if (noErrors() && get().emailVisible) {
-          storeRegistry.getState('settings-email').dispatch.editEmail({email: get().email, makeSearchable: true})
+          const settingsEmailState = await storeRegistry.getState('settings-email')
+          settingsEmailState.dispatch.editEmail({email: get().email, makeSearchable: true})
         }
       } catch (_error) {
         if (_error instanceof RPCError) {
@@ -128,8 +131,10 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.signupError = error
           })
-          storeRegistry.getState('router').dispatch.navigateAppend('signupError')
-          storeRegistry.getState('push').dispatch.showPermissionsPrompt({justSignedUp: false})
+          const routerState = await storeRegistry.getState('router')
+          routerState.dispatch.navigateAppend('signupError')
+          const pushState = await storeRegistry.getState('push')
+          pushState.dispatch.showPermissionsPrompt({justSignedUp: false})
         }
       }
     }
@@ -170,8 +175,9 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
             s.signupError = undefined
           })
           if (noErrors()) {
-            storeRegistry.getState('router').dispatch.navigateUp()
-            storeRegistry.getState('router').dispatch.navigateAppend('signupEnterUsername')
+            const routerState = await storeRegistry.getState('router')
+            routerState.dispatch.navigateUp()
+            routerState.dispatch.navigateAppend('signupEnterUsername')
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -204,7 +210,8 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
             s.usernameTaken = ''
           })
           if (noErrors()) {
-            storeRegistry.getState('router').dispatch.navigateAppend('signupEnterDevicename')
+            const routerState = await storeRegistry.getState('router')
+            routerState.dispatch.navigateAppend('signupEnterDevicename')
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -236,7 +243,9 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         s.usernameError = ''
         s.usernameTaken = ''
       })
-      storeRegistry.getState('router').dispatch.navigateUp()
+      storeRegistry.getState('router').then(routerState => {
+        routerState.dispatch.navigateUp()
+      })
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
@@ -254,7 +263,8 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (storeRegistry.getState('config').loggedIn) {
+        const configState = await storeRegistry.getState('config')
+        if (configState.loggedIn) {
           await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true})
         }
         try {
@@ -267,7 +277,8 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.inviteCode = ''
           })
-          storeRegistry.getState('router').dispatch.navigateAppend('signupError')
+          const routerState = await storeRegistry.getState('router')
+          routerState.dispatch.navigateAppend('signupError')
         }
       }
       ignorePromise(f())
