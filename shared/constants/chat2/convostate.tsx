@@ -2,13 +2,15 @@
 // TODO remove
 import * as TeamsUtil from '../teams/util'
 import * as PlatformSpecific from '../platform-specific'
-import * as Router2 from '../router2'
 import {
   clearModals,
   navigateAppend,
   navigateUp,
   navUpToScreen,
   switchTab,
+  getVisibleScreen,
+  getModalStack,
+  navToThread,
 } from '../router2/util'
 import {isIOS} from '../platform'
 import {updateImmer} from '../utils'
@@ -43,7 +45,6 @@ import * as Config from '@/constants/config/util'
 import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual} from '../utils'
 import * as Strings from '@/constants/strings'
-import {getVisibleScreen} from '@/constants/router2'
 
 import {storeRegistry} from '../store-registry'
 
@@ -2151,10 +2152,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         // we select the chat tab and change the params
         if (Common.isSplit) {
-          Router2.navToThread(conversationIDKey)
+          navToThread(conversationIDKey)
           // immediately switch stack to an inbox | thread stack
         } else if (reason === 'push' || reason === 'savedLastState') {
-          Router2.navToThread(conversationIDKey)
+          navToThread(conversationIDKey)
           return
         } else {
           // replace if looking at the pending / waiting screen
@@ -2162,7 +2163,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             visibleRouteName === Common.threadRouteName &&
             !T.Chat.isValidConversationIDKey(visibleConvo ?? '')
           // note: we don't switch tabs on non split
-          const modalPath = Router2.getModalStack()
+          const modalPath = getModalStack()
           if (modalPath.length > 0) {
             clearModals()
           }
