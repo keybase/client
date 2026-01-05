@@ -670,21 +670,25 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     set(s => {
       const m = s.messageMap.get(targetOrdinal)
       if (m && Message.isMessageWithReactions(m)) {
-        const rs = {
-          decorated: m.reactions?.get(emoji)?.decorated ?? decorated,
-          users: m.reactions?.get(emoji)?.users ?? [],
-        }
         if (!m.reactions) {
           m.reactions = new Map()
         }
-        m.reactions.set(emoji, rs)
-        if (rs.users.includes(username)) {
-          rs.users = rs.users.filter(u => u !== username)
+        const existing = m.reactions.get(emoji)
+        if (existing) {
+          const userIndex = existing.users.indexOf(username)
+          if (userIndex >= 0) {
+            existing.users = existing.users.filter(u => u !== username)
+            if (existing.users.length === 0) {
+              m.reactions.delete(emoji)
+            }
+          } else {
+            existing.users = [...existing.users, username]
+          }
         } else {
-          rs.users = [...rs.users, username]
-        }
-        if (rs.users.length === 0) {
-          m.reactions.delete(emoji)
+          m.reactions.set(emoji, {
+            decorated,
+            users: [username],
+          })
         }
       }
     })
