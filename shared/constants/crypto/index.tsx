@@ -6,6 +6,7 @@ import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
 import * as T from '../types'
 import {RPCError} from '@/util/errors'
+import {navigateAppend} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {Operations} from './util'
 export * from './util'
@@ -593,7 +594,7 @@ export const useCryptoState = Z.createZustand<State>((set, get) => {
           break
       }
       if (isMobile) {
-        storeRegistry.getState('router').dispatch.navigateAppend(route)
+        navigateAppend(route)
       }
     },
     setEncryptOptions: (newOptions, hideIncludeSelf) => {

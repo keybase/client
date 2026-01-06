@@ -1,5 +1,6 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
 import type * as T from '../types'
+import {navigateAppend} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
@@ -19,5 +20,5 @@ export const makeActionForOpenPathInFilesTab = (
   // TODO: remove the second arg when we are done with migrating to nav2
   path: T.FS.Path
 ) => {
-  storeRegistry.getState('router').dispatch.navigateAppend({props: {path}, selected: 'fsRoot'})
+  navigateAppend({props: {path}, selected: 'fsRoot'})
 }

@@ -5,8 +5,7 @@ import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import trim from 'lodash/trim'
 import * as T from '../types'
-import {storeRegistry} from '../store-registry'
-
+import {navigateAppend} from '../router2/util'
 
 type InviteBase = {
   id: string
@@ -157,7 +156,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.error = ''
           })
           get().dispatch.loadInvites()
-          storeRegistry.getState('router').dispatch.navigateAppend({props: {email, link}, selected: 'inviteSent'})
+          navigateAppend({props: {email, link}, selected: 'inviteSent'})
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

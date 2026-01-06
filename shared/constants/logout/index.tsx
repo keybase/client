@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 // normally util.container but it re-exports from us so break the cycle
 import * as Z from '@/util/zustand'
 import {settingsPasswordTab} from '../settings'
-import {storeRegistry} from '../store-registry'
+import {navigateAppend} from '../router2/util'
 import {isMobile} from '../platform'
 import * as Tabs from '../tabs'
 
@@ -41,10 +41,10 @@ export const useLogoutState = Z.createZustand<State>((set, get) => {
           return
         } else {
           if (isMobile) {
-            storeRegistry.getState('router').dispatch.navigateAppend(settingsPasswordTab)
+            navigateAppend(settingsPasswordTab)
           } else {
-            storeRegistry.getState('router').dispatch.navigateAppend(Tabs.settingsTab)
-            storeRegistry.getState('router').dispatch.navigateAppend(settingsPasswordTab)
+            navigateAppend(Tabs.settingsTab)
+            navigateAppend(settingsPasswordTab)
           }
         }
       }

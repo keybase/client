@@ -4,6 +4,7 @@ import {waitingKeySettingsGeneric} from '../strings'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import * as T from '../types'
+import {navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 
 type Store = T.Immutable<{
@@ -142,7 +143,7 @@ export const usePWState = Z.createZustand<State>((set, get) => {
           if (thenLogout) {
             storeRegistry.getState('logout').dispatch.requestLogout()
           }
-          storeRegistry.getState('router').dispatch.navigateUp()
+          navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

@@ -13,6 +13,7 @@ import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
 import {settingsFsTab} from '../settings/util'
+import {navigateAppend, navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 
 export {makeActionForOpenPathInFilesTab} from './util'
@@ -882,7 +883,7 @@ export const getPathStatusIconInMergeProps = (
 
 export const makeActionsForDestinationPickerOpen = (index: number, path: T.FS.Path) => {
   useFSState.getState().dispatch.setDestinationPickerParentPath(index, path)
-  storeRegistry.getState('router').dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
+  navigateAppend({props: {index}, selected: 'destinationPicker'})
 }
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, settingsFsTab] : [Tabs.fsTab]
@@ -1934,8 +1935,8 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             const users = fields?.filter(elem => elem.key === 'usernames')
             const usernames = users?.map(elem => elem.value ?? '') ?? []
             // Don't leave the user on a broken FS dir screen.
-            storeRegistry.getState('router').dispatch.navigateUp()
-            storeRegistry.getState('router').dispatch.navigateAppend({
+            navigateUp()
+            navigateAppend({
               props: {source: 'newFolder', usernames},
               selected: 'contactRestricted',
             })

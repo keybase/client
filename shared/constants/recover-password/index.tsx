@@ -6,6 +6,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {type Device} from '../provision'
 import {rpcDeviceToDevice} from '../rpc-utils'
+import {clearModals, navigateAppend, navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 
 type Store = T.Immutable<{
@@ -92,7 +93,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   const cancel = wrapErrors(() => {
                     clear()
                     response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
-                    storeRegistry.getState('router').dispatch.navigateUp()
+                    navigateUp()
                   })
                   s.devices = devices
                   s.dispatch.dynamic.cancel = cancel
@@ -131,13 +132,13 @@ export const useState = Z.createZustand<State>((set, get) => {
                         set(s => {
                           s.resetEmailSent = true
                         })
-                        storeRegistry.getState('router').dispatch.navigateUp()
+                        navigateUp()
                       }
                     )
                     s.dispatch.dynamic.cancel = wrapErrors(() => {
                       clear()
                       response.result(T.RPCGen.ResetPromptResponse.nothing)
-                      storeRegistry.getState('router').dispatch.navigateUp()
+                      navigateUp()
                     })
                   })
                 } else {
@@ -169,7 +170,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                       response.result({passphrase, storeSecret: false})
                     })
                   })
-                  storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordPaperKey', true)
+                  navigateAppend('recoverPasswordPaperKey', true)
                 } else {
                   const clear = () => {
                     set(s => {
@@ -192,7 +193,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                       })
                     })
                     // TODO maybe wait for loggedIn, for now the service promises to send this after login.
-                    storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordSetPassword')
+                    navigateAppend('recoverPasswordSetPassword')
                   }
                 }
               },
@@ -202,7 +203,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                 set(s => {
                   s.explainedDevice = {name: params.name, type: params.kind}
                 })
-                storeRegistry.getState('router').dispatch.navigateAppend('recoverPasswordExplainDevice', true)
+                navigateAppend('recoverPasswordExplainDevice', true)
               },
             },
             params: {username: p.username},
@@ -246,7 +247,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
         if (!hadError) {
-          storeRegistry.getState('router').dispatch.clearModals()
+          clearModals()
         }
       }
       ignorePromise(f())

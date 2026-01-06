@@ -8,6 +8,7 @@ import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import * as Tabs from '../tabs'
 import logger from '@/logger'
+import {clearModals, navigateAppend, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {processorProfileInProgressKey, traceInProgressKey} from './util'
 
@@ -60,8 +61,8 @@ export const useSettingsState = Z.createZustand<State>(set => {
       return
     }
     maybeLoadAppLinkOnce = true
-    storeRegistry.getState('router').dispatch.switchTab(Tabs.settingsTab)
-    storeRegistry.getState('router').dispatch.navigateAppend('settingsAddPhone')
+    switchTab(Tabs.settingsTab)
+    navigateAppend('settingsAddPhone')
   }
 
   const dispatch: State['dispatch'] = {
@@ -100,8 +101,8 @@ export const useSettingsState = Z.createZustand<State>(set => {
 
         await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, S.waitingKeySettingsGeneric)
         storeRegistry.getState('config').dispatch.setJustDeletedSelf(username)
-        storeRegistry.getState('router').dispatch.clearModals()
-        storeRegistry.getState('router').dispatch.navigateAppend(Tabs.loginTab)
+        clearModals()
+        navigateAppend(Tabs.loginTab)
       }
       ignorePromise(f())
     },

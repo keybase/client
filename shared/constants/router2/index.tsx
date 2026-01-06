@@ -1,270 +1,31 @@
-// TODO change setNavState
-import type * as React from 'react'
 import type * as T from '../types'
-import {
-  StackActions,
-  CommonActions,
-  type NavigationContainerRef,
-  useFocusEffect,
-} from '@react-navigation/core'
 import * as Z from '@/util/zustand'
-import {produce} from 'immer'
 import * as Tabs from '../tabs'
-import isEqual from 'lodash/isEqual'
-import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import type {GetOptionsRet} from '../types/router2'
+import type {RouteKeys} from '@/router-v2/route-params'
 import {storeRegistry} from '../store-registry'
-import {isMobile, isTablet} from '../platform'
-import {shallowEqual, type ViewPropsToPageProps} from '../utils'
-export type PathParam = NavigateAppendType
-export type Navigator = NavigationContainerRef<KBRootParamList>
-import {navigationRef, getTab, getRootState, type Route, type NavState} from './util'
-export {type NavState, getTab, navigationRef, getRootState} from './util'
+import * as Util from './util'
 
-const DEBUG_NAV = __DEV__ && (false as boolean)
-
-export const _getNavigator = () => {
-  return navigationRef.isReady() ? navigationRef : undefined
-}
-
-export const logState = () => {
-  const rs = getRootState()
-  const safePaths = (ps: ReadonlyArray<{key?: string; name?: string}>) =>
-    ps.map(p => ({key: p.key, name: p.name}))
-  const modals = safePaths(getModalStack(rs))
-  const visible = safePaths(getVisiblePath(rs))
-  return {loggedIn: _isLoggedIn(rs), modals, visible}
-}
-
-const _isLoggedIn = (s: T.Immutable<NavState>) => {
-  if (!s) {
-    return false
-  }
-  return s.routes?.[0]?.name === 'loggedIn'
-}
-
-// Public API
-// gives you loggedin/tab/stackitems + modals
-export const getVisiblePath = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
-  const rs = navState || getRootState()
-  const inludeModals = _inludeModals ?? true
-
-  const findVisibleRoute = (
-    arr: T.Immutable<Array<Route>>,
-    s: T.Immutable<NavState>,
-    depth: number
-  ): T.Immutable<Array<Route>> => {
-    if (!s?.routes || s.index === undefined) {
-      return arr
-    }
-    let childRoute = s.routes[s.index] as Route | undefined
-    if (!childRoute) {
-      return arr
-    }
-
-    let toAdd: Array<Route>
-    let toAddModals: Array<Route> = []
-    // special handling of modals, we keep them to the side to add them later, then go down the visible tab
-    if (depth === 0) {
-      childRoute = s.routes[0] as Route
-      toAdd = [childRoute]
-      if (inludeModals) {
-        toAddModals = s.routes.slice(1) as Array<Route>
-      }
-    } else {
-      // include items in the stack
-      if (s.type === 'stack') {
-        toAdd = s.routes as Array<Route>
-      } else {
-        toAdd = [childRoute]
-      }
-    }
-
-    const nextArr = [...arr, ...toAdd]
-    const children = findVisibleRoute(nextArr, childRoute.state, depth + 1)
-    return [...children, ...toAddModals]
-  }
-
-  if (!rs) return []
-  const vs = findVisibleRoute([], rs, 0)
-  return vs
-}
-
-export const getModalStack = (navState?: T.Immutable<NavState>) => {
-  const rs = navState || getRootState()
-  if (!rs) {
-    return []
-  }
-  if (!_isLoggedIn(rs)) {
-    return []
-  }
-  return rs.routes?.slice(1) ?? []
-}
-
-export const getVisibleScreen = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
-  const visible = getVisiblePath(navState, _inludeModals ?? true)
-  return visible.at(-1)
-}
-
-type DeepWriteable<T> = {-readonly [P in keyof T]: DeepWriteable<T[P]>}
-
-const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
-  const route = s?.routes?.[s.index ?? -1] as DeepWriteable<Route> | undefined
-  if (!route) {
-    return
-  }
-
-  // found?
-  if (route.name === name) {
-    // selected a root stack? choose just the root item
-    if (route.state?.type === 'stack') {
-      route.state.routes.length = 1
-      route.state.index = 0
-    } else {
-      // leave alone? maybe this never happens
-      route.state = undefined
-    }
-    return
-  }
-
-  // search stack for target
-  if (route.state?.type === 'stack') {
-    const idx = route.state.routes.findIndex((r: {name: string}) => r.name === name)
-    // found
-    if (idx !== -1) {
-      route.state.index = idx
-      route.state.routes.length = idx + 1
-      return
-    }
-  }
-  // try the incoming s
-  if (s?.type === 'stack') {
-    const idx: number = s.routes?.findIndex((r: {name: string}) => r.name === name) ?? -1
-    // found
-    if (idx !== -1 && s.routes) {
-      s.index = idx
-      s.routes.length = idx + 1
-      return
-    }
-  }
-
-  navUpHelper(route.state, name)
-}
-
-export const navToProfile = (username: string) => {
-  if (isMobile) {
-    useRouterState.getState().dispatch.clearModals()
-  }
-  useRouterState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
-}
-
-const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
-
-export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
-  const rs = getRootState()
-  // some kind of unknown race, just bail
-  if (!rs) {
-    console.log('Avoiding trying to nav to thread when missing nav state, bailing')
-    return
-  }
-  if (!rs.routes) {
-    console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
-    return
-  }
-
-  const nextState = produce(rs, draft => {
-    const loggedInRoute = draft.routes?.[0]
-    const loggedInTabs = loggedInRoute?.state?.routes
-    if (!loggedInTabs) {
-      return
-    }
-    const chatTabIdx = loggedInTabs.findIndex((r: {name: string}) => r.name === Tabs.chatTab)
-    const chatStack = loggedInTabs[chatTabIdx]
-
-    if (!chatStack) {
-      return
-    }
-
-    // select tabs
-    draft.index = 0
-    // remove modals
-    if (draft.routes) {
-      draft.routes.length = 1
-    }
-
-    // select chat tab
-    if (loggedInRoute.state) {
-      loggedInRoute.state.index = chatTabIdx
-    }
-
-    const oldChatState = chatStack.state
-
-    // setup root
-    chatStack.state = {
-      index: 0,
-      routes: [{key: oldChatState?.routes[0]?.key ?? 'chatRoot', name: 'chatRoot'}],
-    }
-
-    if (isSplit) {
-      const _chatRoot = oldChatState?.routes[0]
-      // key is required or you'll run into issues w/ the nav
-      const chatRoot = {
-        key: _chatRoot?.key || `chatRoot-${conversationIDKey}`,
-        name: 'chatRoot',
-        params: {conversationIDKey},
-      } as const
-      chatStack.state.routes = [chatRoot]
-    } else {
-      // key is required or you'll run into issues w/ the nav
-      let convoRoute = {
-        key: `chatConversation-${conversationIDKey}`,
-        name: 'chatConversation',
-        params: {conversationIDKey},
-      } as const
-      // reuse visible route if it's the same
-      const visible = oldChatState?.routes.at(-1)
-      if (visible) {
-        const vParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = visible.params
-        if (visible.name === 'chatConversation' && vParams?.conversationIDKey === conversationIDKey) {
-          convoRoute = visible as typeof convoRoute
-        }
-      }
-
-      const chatRoot = chatStack.state.routes[0]
-      chatStack.state.routes = [chatRoot, convoRoute] as typeof chatStack.state.routes
-      chatStack.state.index = 1
-    }
-  })
-
-  if (!isEqual(rs, nextState)) {
-    rs.key &&
-      _getNavigator()?.dispatch({
-        ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
-        target: rs.key,
-      })
-  }
-}
-
-export const getRouteTab = (route: Array<Route>) => {
-  return route[1]?.name
-}
-
-export const getRouteLoggedIn = (route: Array<Route>) => {
-  return route[0]?.name === 'loggedIn'
-}
-
-// if a toast is inside of a portal then its not in nav so we can't use useFocusEffect and
-// maybe other places also
-export const useSafeFocusEffect = (fn: () => void) => {
-  try {
-    useFocusEffect(fn)
-  } catch {}
-}
+export {
+  type NavState,
+  getTab,
+  navigationRef,
+  getRootState,
+  _getNavigator,
+  logState,
+  getVisiblePath,
+  getModalStack,
+  getVisibleScreen,
+  navToProfile,
+  navToThread,
+  getRouteTab,
+  getRouteLoggedIn,
+  useSafeFocusEffect,
+  makeScreen,
+} from './util'
+export type {PathParam, Navigator} from './util'
 
 type Store = T.Immutable<{
-  // only used for subscribing
-  navState?: unknown // NavState marking this as unknown since a recent immer change broke this typing. put it back to see
+  navState?: unknown
 }>
 
 const initialStore: Store = {
@@ -277,12 +38,12 @@ export interface State extends Store {
     dynamic: {
       tabLongPress?: (tab: string) => void
     }
-    navigateAppend: (path: PathParam, replace?: boolean) => void
+    navigateAppend: (path: Util.PathParam, replace?: boolean) => void
     navigateUp: () => void
     navUpToScreen: (name: RouteKeys) => void
     popStack: () => void
     resetState: () => void
-    setNavState: (ns: NavState) => void
+    setNavState: (ns: Util.NavState) => void
     switchTab: (tab: Tabs.AppTab) => void
   }
   appendEncryptRecipientsBuilder: () => void
@@ -293,101 +54,24 @@ export interface State extends Store {
 
 export const useRouterState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
-    clearModals: () => {
-      DEBUG_NAV && console.log('[Nav] clearModals')
-      const n = _getNavigator()
-      if (!n) return
-      const ns = getRootState()
-      if (_isLoggedIn(ns) && (ns?.routes?.length ?? 0) > 1) {
-        n.dispatch({...StackActions.popToTop(), target: ns?.key})
-      }
-    },
+    clearModals: Util.clearModals,
     dynamic: {
       tabLongPress: undefined,
     },
-    navUpToScreen: name => {
-      DEBUG_NAV && console.log('[Nav] navUpToScreen', {name})
-      const n = _getNavigator()
-      if (!n) return
-      const ns = getRootState()
-      // some kind of unknown race, just bail
-      if (!ns) {
-        console.log('Avoiding trying to nav to thread when missing nav state, bailing')
-        return
-      }
-      if (!ns.routes) {
-        console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
-        return
-      }
-
-      const nextState = produce(ns, draft => {
-        navUpHelper(draft as DeepWriteable<NavState>, name)
-      })
-      n.dispatch(CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]))
-    },
-    navigateAppend: (path, replace) => {
-      DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
-      const n = _getNavigator()
-      if (!n) {
-        return
-      }
-      const ns = getRootState()
-      if (!ns) {
-        return
-      }
-      let routeName: string | undefined
-      let params: object | undefined
-      if (typeof path === 'string') {
-        routeName = path
-      } else {
-        routeName = path.selected
-        params = path.props as object
-      }
-      if (!routeName) {
-        DEBUG_NAV && console.log('[Nav] navigateAppend no routeName bail', routeName)
-        return
-      }
-      const vp = getVisiblePath(ns)
-      const visible = vp.at(-1)
-      if (visible) {
-        if (routeName === visible.name && shallowEqual(visible.params, params)) {
-          console.log('Skipping append dupe')
-          return
-        }
-      }
-
-      if (replace) {
-        if (visible?.name === routeName) {
-          params && n.dispatch(CommonActions.setParams(params))
-          return
-        } else {
-          n.dispatch(StackActions.replace(routeName, params))
-          return
-        }
-      }
-
-      n.dispatch(StackActions.push(routeName, params))
-    },
-    navigateUp: () => {
-      DEBUG_NAV && console.log('[Nav] navigateUp')
-      const n = _getNavigator()
-      return n?.dispatch(CommonActions.goBack())
-    },
-    popStack: () => {
-      DEBUG_NAV && console.log('[Nav] popStack')
-      const n = _getNavigator()
-      n?.dispatch(StackActions.popToTop())
-    },
+    navUpToScreen: Util.navUpToScreen,
+    navigateAppend: Util.navigateAppend,
+    navigateUp: Util.navigateUp,
+    popStack: Util.popStack,
     resetState: () => {
-      DEBUG_NAV && console.log('[Nav] resetState')
       set(s => ({
         ...s,
         dispatch: s.dispatch,
       }))
     },
     setNavState: next => {
+      const DEBUG_NAV = __DEV__ && (false as boolean)
       DEBUG_NAV && console.log('[Nav] setNavState')
-      const prev = get().navState as NavState
+      const prev = get().navState as Util.NavState
       if (prev === next) return
       set(s => {
         s.navState = next
@@ -402,10 +86,10 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
           ['people', 'peopleTeamBuilder'],
         ])
         for (const namespace of namespaces) {
-          const wasTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(prev)?.name
+          const wasTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(prev)?.name
           if (wasTeamBuilding) {
             // team building or modal on top of that still
-            const isTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(next)?.name
+            const isTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(next)?.name
             if (!isTeamBuilding) {
               storeRegistry.getTBStore(namespace).dispatch.cancelTeamBuilding()
             }
@@ -418,17 +102,17 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
         // Clear critical update when we nav away from tab
         if (
           prev &&
-          getTab(prev) === Tabs.fsTab &&
+          Util.getTab(prev) === Tabs.fsTab &&
           next &&
-          getTab(next) !== Tabs.fsTab &&
+          Util.getTab(next) !== Tabs.fsTab &&
           storeRegistry.getState('fs').criticalUpdate
         ) {
           const {dispatch} = storeRegistry.getState('fs')
           dispatch.setCriticalUpdate(false)
         }
         const fsRrouteNames = ['fsRoot', 'barePreview']
-        const wasScreen = fsRrouteNames.includes(getVisibleScreen(prev)?.name ?? '')
-        const isScreen = fsRrouteNames.includes(getVisibleScreen(next)?.name ?? '')
+        const wasScreen = fsRrouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
+        const isScreen = fsRrouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
         if (wasScreen !== isScreen) {
           const {dispatch} = storeRegistry.getState('fs')
           if (wasScreen) {
@@ -444,9 +128,9 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
         // Clear "just signed up email" when you leave the people tab after signup
         if (
           prev &&
-          getTab(prev) === Tabs.peopleTab &&
+          Util.getTab(prev) === Tabs.peopleTab &&
           next &&
-          getTab(next) !== Tabs.peopleTab &&
+          Util.getTab(next) !== Tabs.peopleTab &&
           storeRegistry.getState('signup').justSignedUpEmail
         ) {
           storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
@@ -455,14 +139,14 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
       updateSignup()
 
       const updatePeople = () => {
-        if (prev && getTab(prev) === Tabs.peopleTab && next && getTab(next) !== Tabs.peopleTab) {
+        if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
           storeRegistry.getState('people').dispatch.markViewed()
         }
       }
       updatePeople()
 
       const updateTeams = () => {
-        if (prev && getTab(prev) === Tabs.teamsTab && next && getTab(next) !== Tabs.teamsTab) {
+        if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
           storeRegistry.getState('teams').dispatch.clearNavBadges()
         }
       }
@@ -472,9 +156,9 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
         // Clear "check your inbox" in settings when you leave the settings tab
         if (
           prev &&
-          getTab(prev) === Tabs.settingsTab &&
+          Util.getTab(prev) === Tabs.settingsTab &&
           next &&
-          getTab(next) !== Tabs.settingsTab &&
+          Util.getTab(next) !== Tabs.settingsTab &&
           storeRegistry.getState('settings-email').addedEmail
         ) {
           storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
@@ -484,84 +168,15 @@ export const useRouterState = Z.createZustand<State>((set, get) => {
 
       storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
     },
-    switchTab: name => {
-      DEBUG_NAV && console.log('[Nav] switchTab', {name})
-      const n = _getNavigator()
-      if (!n) return
-      const ns = getRootState()
-      if (!ns) return
-      n.dispatch({
-        ...CommonActions.navigate({name}),
-        target: ns.routes?.[0]?.state?.key,
-      })
-    },
-  }
-
-  const appendPeopleBuilder = () => {
-    storeRegistry.getState('router').dispatch.navigateAppend({
-      props: {
-        filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
-        namespace: 'people',
-        title: '',
-      },
-      selected: 'peopleTeamBuilder',
-    })
-  }
-
-  const appendNewChatBuilder = () => {
-    storeRegistry
-      .getState('router')
-      .dispatch.navigateAppend({props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'})
-  }
-
-  // Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
-  const appendNewTeamBuilder = (teamID: T.Teams.TeamID) => {
-    storeRegistry.getState('router').dispatch.navigateAppend({
-      props: {
-        filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
-        goButtonLabel: 'Add',
-        namespace: 'teams',
-        teamID,
-        title: '',
-      },
-      selected: 'teamsTeamBuilder',
-    })
-  }
-
-  const appendEncryptRecipientsBuilder = () => {
-    storeRegistry.getState('router').dispatch.navigateAppend({
-      props: {
-        filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
-        goButtonLabel: 'Add',
-        namespace: 'crypto',
-        recommendedHideYourself: true,
-        title: 'Recipients',
-      },
-      selected: 'cryptoTeamBuilder',
-    })
+    switchTab: Util.switchTab,
   }
 
   return {
     ...initialStore,
-    appendEncryptRecipientsBuilder,
-    appendNewChatBuilder,
-    appendNewTeamBuilder,
-    appendPeopleBuilder,
+    appendEncryptRecipientsBuilder: Util.appendEncryptRecipientsBuilder,
+    appendNewChatBuilder: Util.appendNewChatBuilder,
+    appendNewTeamBuilder: Util.appendNewTeamBuilder,
+    appendPeopleBuilder: Util.appendPeopleBuilder,
     dispatch,
   }
 })
-
-// Helper to reduce boilerplate in route definitions
-// Works for components with or without route params
-export function makeScreen<COM extends React.LazyExoticComponent<any>>(
-  Component: COM,
-  options?: {getOptions?: GetOptionsRet | ((props: ViewPropsToPageProps<COM>) => GetOptionsRet)}
-) {
-  return {
-    ...options,
-    screen: function Screen(p: ViewPropsToPageProps<COM>) {
-      const Comp = Component as any
-      return <Comp {...(p.route.params ?? {})} />
-    },
-  }
-}

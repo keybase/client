@@ -1,6 +1,7 @@
 import * as Tabs from './tabs'
 import * as S from './strings'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from './utils'
+import {navigateAppend, navUpToScreen, switchTab} from './router2/util'
 import {storeRegistry} from './store-registry'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
@@ -160,8 +161,8 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               break
             case 'settings.contacts':
               if (storeRegistry.getState('config').loggedIn) {
-                storeRegistry.getState('router').dispatch.switchTab(Tabs.peopleTab)
-                storeRegistry.getState('router').dispatch.navUpToScreen('peopleRoot')
+                switchTab(Tabs.peopleTab)
+                navUpToScreen('peopleRoot')
               }
               break
           }
@@ -298,8 +299,8 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         ) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
           await timeoutPromise(100)
-          storeRegistry.getState('router').dispatch.switchTab(Tabs.peopleTab)
-          storeRegistry.getState('router').dispatch.navigateAppend('settingsPushPrompt')
+          switchTab(Tabs.peopleTab)
+          navigateAppend('settingsPushPrompt')
         }
       }
       ignorePromise(monsterPrompt())

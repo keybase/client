@@ -7,6 +7,7 @@ import logger from '@/logger'
 import openURL from '@/util/open-url'
 import {RPCError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
+import {clearModals, navigateAppend, navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {navToProfile} from '../router2'
 
@@ -203,7 +204,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           s.proofFound = true
           s.proofStatus = T.RPCGen.ProofStatus.ok
         })
-        storeRegistry.getState('router').dispatch.navigateAppend('profileConfirmOrPending')
+        navigateAppend('profileConfirmOrPending')
       } catch (_error) {
         if (_error instanceof RPCError) {
           const error = _error
@@ -240,14 +241,14 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         // Special cases
         switch (service) {
           case 'dnsOrGenericWebSite':
-            storeRegistry.getState('router').dispatch.navigateAppend('profileProveWebsiteChoice')
+            navigateAppend('profileProveWebsiteChoice')
             return
           case 'zcash': //  fallthrough
           case 'btc':
-            storeRegistry.getState('router').dispatch.navigateAppend('profileProveEnterUsername')
+            navigateAppend('profileProveEnterUsername')
             return
           case 'pgp':
-            storeRegistry.getState('router').dispatch.navigateAppend('profilePgp')
+            navigateAppend('profilePgp')
             return
           default:
         }
@@ -312,7 +313,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.proofText = proof
                   })
-                  storeRegistry.getState('router').dispatch.navigateAppend('profilePostProof')
+                  navigateAppend('profilePostProof')
                 } else if (proof) {
                   set(s => {
                     s.platformGenericURL = proof
@@ -361,12 +362,12 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
                   })
                 }
                 if (service) {
-                  storeRegistry.getState('router').dispatch.navigateAppend('profileProveEnterUsername')
+                  navigateAppend('profileProveEnterUsername')
                 } else if (genericService && parameters) {
                   set(s => {
                     s.platformGenericParams = T.castDraft(toProveGenericParams(parameters))
                   })
-                  storeRegistry.getState('router').dispatch.navigateAppend('profileGenericEnterUsername')
+                  navigateAppend('profileGenericEnterUsername')
                 }
               },
             },
@@ -411,7 +412,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
                 .dispatch.setLinkError(
                   "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
                 )
-              storeRegistry.getState('router').dispatch.navigateAppend('keybaseLinkError')
+              navigateAppend('keybaseLinkError')
             }
           }
           if (genericService) {
@@ -432,7 +433,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       ignorePromise(f())
     },
     backToProfile: () => {
-      storeRegistry.getState('router').dispatch.clearModals()
+      clearModals()
       setTimeout(() => {
         get().dispatch.showUserProfile(storeRegistry.getState('current-user').username)
       }, 100)
@@ -464,7 +465,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
               s.proofStatus = status
             })
             if (!isGeneric) {
-              storeRegistry.getState('router').dispatch.navigateAppend('profileConfirmOrPending')
+              navigateAppend('profileConfirmOrPending')
             }
           }
         } catch {
@@ -520,7 +521,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           username: pgpFullName || '',
         }))
 
-        storeRegistry.getState('router').dispatch.navigateAppend('profileGenerate')
+        navigateAppend('profileGenerate')
         // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
         set(s => {
           s.dispatch.dynamic.cancelPgpGen = wrapErrors(() => {
@@ -542,7 +543,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
                 }
               },
               'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
-                storeRegistry.getState('router').dispatch.navigateAppend('profileFinished')
+                navigateAppend('profileFinished')
                 set(s => {
                   s.promptShouldStoreKeyOnServer = prompt
                   s.dispatch.dynamic.finishedWithKeyGen = wrapErrors((shouldStoreKeyOnServer: boolean) => {
@@ -730,7 +731,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
             {crop: fixCrop(crop), filename},
             S.waitingKeyProfileUploadAvatar
           )
-          storeRegistry.getState('router').dispatch.navigateUp()
+          navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
