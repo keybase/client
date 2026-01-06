@@ -5,7 +5,6 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import * as T from '../types'
 import {navigateUp} from '../router2/util'
-import {storeRegistry} from '../store-registry'
 import {useLogoutState} from '../logout'
 
 type Store = T.Immutable<{

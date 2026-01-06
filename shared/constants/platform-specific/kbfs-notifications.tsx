@@ -1,5 +1,4 @@
 import {pathSep} from '@/constants/platform'
-import {storeRegistry} from '@/constants/store-registry'
 import {useCurrentUserState} from '@/constants/current-user'
 import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
