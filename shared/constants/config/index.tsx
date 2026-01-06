@@ -15,7 +15,6 @@ import {invalidPasswordErrorString} from './util'
 import {navigateAppend} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {useWhatsNewState} from '../whats-new'
-import {getSelectedConversation} from '@/constants/chat2/common'
 
 type Store = T.Immutable<{
   forceSmallNav: boolean
@@ -299,13 +298,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.appFocused = f
       })
-
-      if (!isMobile || !f) {
-        return
-      }
-      const {dispatch} = storeRegistry.getConvoState(getSelectedConversation())
-      dispatch.loadMoreMessages({reason: 'foregrounding'})
-      dispatch.markThreadAsRead()
     },
     checkForUpdate: () => {
       const f = async () => {

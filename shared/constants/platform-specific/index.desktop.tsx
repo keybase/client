@@ -25,6 +25,7 @@ import {initSharedSubscriptions} from './shared'
 import {switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {wrapErrors} from '@/util/debug'
+import {getSelectedConversation} from '@/constants/chat2/common'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions
@@ -157,39 +158,49 @@ export const initPlatformListener = () => {
   })
 
   useConfigState.subscribe((s, old) => {
-    if (s.loggedIn === old.loggedIn) return
-    s.dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)
-  })
-
-  useConfigState.subscribe((s, prev) => {
-    if (s.appFocused !== prev.appFocused) {
-      maybePauseVideos()
+    if (s.loggedIn !== old.loggedIn) {
+      s.dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)
     }
-  })
 
-  useDaemonState.subscribe((s, old) => {
-    if (s.handshakeVersion === old.handshakeVersion) return
-    if (!isWindows) return
-
-    const f = async () => {
-      const waitKey = 'pipeCheckFail'
-      const version = s.handshakeVersion
-      const {wait} = s.dispatch
-      wait(waitKey, version, true)
-      try {
-        logger.info('Checking RPC ownership')
-        if (KB2.functions.winCheckRPCOwnership) {
-          await KB2.functions.winCheckRPCOwnership()
-        }
-        wait(waitKey, version, false)
-      } catch (error_) {
-        // error will be logged in bootstrap check
-        getEngine().reset()
-        const error = error_ as RPCError
-        wait(waitKey, version, false, error.message || 'windows pipe owner fail', true)
+    if (s.appFocused !== old.appFocused) {
+      maybePauseVideos()
+      if (old.appFocused === false && s.appFocused === true) {
+        const {dispatch} = storeRegistry.getConvoState(getSelectedConversation())
+        dispatch.loadMoreMessages({reason: 'foregrounding'})
+        dispatch.markThreadAsRead()
       }
     }
-    ignorePromise(f())
+
+    if (s.openAtLogin !== old.openAtLogin) {
+      const {openAtLogin} = s
+      const f = async () => {
+        if (__DEV__) {
+          console.log('onSetOpenAtLogin disabled for dev mode')
+          return
+        } else {
+          await T.RPCGen.configGuiSetValueRpcPromise({
+            path: ConfigConstants.openAtLoginKey,
+            value: {b: openAtLogin, isNull: false},
+          })
+        }
+        if (isLinux || isWindows) {
+          const enabled =
+            (await T.RPCGen.ctlGetOnLoginStartupRpcPromise()) === T.RPCGen.OnLoginStartupStatus.enabled
+          if (enabled !== openAtLogin) {
+            try {
+              await T.RPCGen.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin})
+            } catch (error_) {
+              const error = error_ as RPCError
+              logger.warn(`Error in sending ctlSetOnLoginStartup: ${error.message}`)
+            }
+          }
+        } else {
+          logger.info(`Login item settings changed! now ${openAtLogin ? 'on' : 'off'}`)
+          await setOpenAtLogin?.(openAtLogin)
+        }
+      }
+      ignorePromise(f())
+    }
   })
 
   const handleWindowFocusEvents = () => {
@@ -215,46 +226,39 @@ export const initPlatformListener = () => {
   }
   setupReachabilityWatcher()
 
-  useConfigState.subscribe((s, old) => {
-    if (s.openAtLogin === old.openAtLogin) return
-    const {openAtLogin} = s
-    const f = async () => {
-      if (__DEV__) {
-        console.log('onSetOpenAtLogin disabled for dev mode')
-        return
-      } else {
-        await T.RPCGen.configGuiSetValueRpcPromise({
-          path: ConfigConstants.openAtLoginKey,
-          value: {b: openAtLogin, isNull: false},
-        })
-      }
-      if (isLinux || isWindows) {
-        const enabled =
-          (await T.RPCGen.ctlGetOnLoginStartupRpcPromise()) === T.RPCGen.OnLoginStartupStatus.enabled
-        if (enabled !== openAtLogin) {
-          try {
-            await T.RPCGen.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin})
-          } catch (error_) {
-            const error = error_ as RPCError
-            logger.warn(`Error in sending ctlSetOnLoginStartup: ${error.message}`)
-          }
-        }
-      } else {
-        logger.info(`Login item settings changed! now ${openAtLogin ? 'on' : 'off'}`)
-        await setOpenAtLogin?.(openAtLogin)
-      }
-    }
-    ignorePromise(f())
-  })
-
   useDaemonState.subscribe((s, old) => {
-    if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
-    useConfigState.getState().dispatch.setStartupDetails({
-      conversation: Chat.noConversationIDKey,
-      followUser: '',
-      link: '',
-      tab: undefined,
-    })
+    if (s.handshakeVersion !== old.handshakeVersion) {
+      if (!isWindows) return
+
+      const f = async () => {
+        const waitKey = 'pipeCheckFail'
+        const version = s.handshakeVersion
+        const {wait} = s.dispatch
+        wait(waitKey, version, true)
+        try {
+          logger.info('Checking RPC ownership')
+          if (KB2.functions.winCheckRPCOwnership) {
+            await KB2.functions.winCheckRPCOwnership()
+          }
+          wait(waitKey, version, false)
+        } catch (error_) {
+          // error will be logged in bootstrap check
+          getEngine().reset()
+          const error = error_ as RPCError
+          wait(waitKey, version, false, error.message || 'windows pipe owner fail', true)
+        }
+      }
+      ignorePromise(f())
+    }
+
+    if (s.handshakeState !== old.handshakeState && s.handshakeState === 'done') {
+      useConfigState.getState().dispatch.setStartupDetails({
+        conversation: Chat.noConversationIDKey,
+        followUser: '',
+        link: '',
+        tab: undefined,
+      })
+    }
   })
 
   if (isLinux) {
