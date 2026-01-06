@@ -41,6 +41,7 @@ VideoPreviewResult MakeVideoThumbnail(const char* inFilename) {
 	[generateImg setAppliesPreferredTrackTransform:YES];
 	CMTime time = CMTimeMake(1, 1);
 
+    // Use the modern async API wrapped with a semaphore for synchronous behavior
 	__block CGImageRef image = NULL;
 	dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
 
