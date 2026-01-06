@@ -97,7 +97,7 @@ const useRevoke = (deviceID = '') => {
         try {
           await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.waitingKeyDevices)
           load()
-          useConfigState.getState().dispatch.revoke(deviceName)
+          useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
         } catch {}
       } else {
         try {
@@ -106,7 +106,7 @@ const useRevoke = (deviceID = '') => {
             C.waitingKeyDevices
           )
           load()
-          useConfigState.getState().dispatch.revoke(deviceName)
+          useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
           navUpToScreen(
             C.isMobile ? (C.isTablet ? C.Tabs.settingsTab : settingsDevicesTab) : C.Tabs.devicesTab
           )

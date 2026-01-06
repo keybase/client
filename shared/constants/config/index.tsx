@@ -187,7 +187,7 @@ export interface State extends Store {
     resetState: (isDebug?: boolean) => void
     remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
-    revoke: (deviceName: string) => void
+    revoke: (deviceName: string, wasCurrentDevice: boolean) => void
     setAccounts: (a: Store['configuredAccounts']) => void
     setAndroidShare: (s: Store['androidShare']) => void
     setBadgeState: (b: State['badgeState']) => void
@@ -830,8 +830,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         userSwitching: s.userSwitching,
       }))
     },
-    revoke: name => {
-      const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
+    revoke: (name, wasCurrentDevice) => {
       if (wasCurrentDevice) {
         const {configuredAccounts, defaultUsername} = get()
         const acc = configuredAccounts.find(n => n.username !== defaultUsername)
