@@ -510,7 +510,6 @@ const makeMessageSystemNewChannel = (
   ...m,
 })
 
-
 export const uiRequestInfoToChatRequestInfo = (
   r?: T.RPCChat.UIRequestInfo
 ): MessageTypes.ChatRequestInfo | undefined => {
@@ -585,7 +584,7 @@ export const reactionMapToReactions = (r: T.RPCChat.UIReactionMap): undefined | 
         Object.keys(r.reactions).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
           if (r.reactions?.[emoji]) {
             const users = Object.keys(r.reactions[emoji].users ?? {}).map(username => ({
-              timestamp: r.reactions[emoji].users?.[username]?.ctime ?? 0,
+              timestamp: r.reactions?.[emoji]?.users?.[username]?.ctime ?? 0,
               username,
             }))
             arr.push([

@@ -54,12 +54,12 @@ const ReactionTooltip = (p: OwnProps) => {
       const reactionUsers = _reactions?.get(emoji)?.users ?? []
       const sortedUsers = [...reactionUsers].sort((a, b) => a.timestamp - b.timestamp)
       return {
+        earliestTimestamp: sortedUsers[0]?.timestamp ?? 0,
         emoji,
         users: sortedUsers.map(r => ({
           fullName: (_usersInfo.get(r.username) || {fullname: ''}).fullname || '',
           username: r.username,
         })),
-        earliestTimestamp: sortedUsers[0]?.timestamp || 0,
       }
     })
     .sort((a, b) => a.earliestTimestamp - b.earliestTimestamp)
