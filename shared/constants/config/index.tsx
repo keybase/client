@@ -597,59 +597,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.loadOnStartPhase = phase
       })
-
-      if (phase === 'startupOrReloginButNotInARush') {
-        const getFollowerInfo = () => {
-          const {uid} = useCurrentUserState.getState()
-          logger.info(`getFollowerInfo: init; uid=${uid}`)
-          if (uid) {
-            // request follower info in the background
-            T.RPCGen.configRequestFollowingAndUnverifiedFollowersRpcPromise()
-              .then(() => {})
-              .catch(() => {})
-          }
-        }
-
-        const updateServerConfig = async () => {
-          if (get().loggedIn) {
-            try {
-              await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
-                serverConfigPath: serverConfigFileName,
-              })
-            } catch {}
-          }
-        }
-
-        const updateTeams = () => {
-          storeRegistry.getState('teams').dispatch.getTeams()
-          storeRegistry.getState('teams').dispatch.refreshTeamRoleMap()
-        }
-
-        const updateSettings = () => {
-          storeRegistry.getState('settings-contacts').dispatch.loadContactImportEnabled()
-        }
-
-        const updateChat = async () => {
-          // On login lets load the untrusted inbox. This helps make some flows easier
-          if (useCurrentUserState.getState().username) {
-            const {inboxRefresh} = storeRegistry.getState('chat').dispatch
-            inboxRefresh('bootstrap')
-          }
-          try {
-            const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-            const ri = rows.i ?? -1
-            if (ri > 0) {
-              storeRegistry.getState('chat').dispatch.setInboxNumSmallRows(ri, true)
-            }
-          } catch {}
-        }
-
-        getFollowerInfo()
-        ignorePromise(updateServerConfig())
-        updateTeams()
-        updateSettings()
-        ignorePromise(updateChat())
-      }
     },
     login: (username, passphrase) => {
       const cancelDesc = 'Canceling RPC'

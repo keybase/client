@@ -1,7 +1,14 @@
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
-import {storeRegistry} from '../store-registry'
+import {useChatState} from '../chat2'
+import {getConvoState} from '../chat2/convostate'
+import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
+import {useDaemonState} from '../daemon'
 import {useDarkModeState} from '../darkmode'
+import {useFSState} from '../fs'
+import {useProfileState} from '../profile'
+import {useRouterState} from '../router2'
+import {useSettingsContactsState} from '../settings-contacts'
 import * as T from '../types'
 import * as Clipboard from 'expo-clipboard'
 import * as EngineGen from '@/actions/engine-gen-gen'
@@ -31,6 +38,7 @@ import {
   shareListenersRegistered,
 } from 'react-native-kb'
 import {initPushListener, getStartupDetailsFromInitialPush} from './push.native'
+import {initSharedSubscriptions} from './shared'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from '@/constants/types/chat2/common'
 
@@ -201,7 +209,7 @@ const loadStartupDetails = async () => {
     tab = ''
   }
 
-  storeRegistry.getState('config').dispatch.setStartupDetails({
+  useConfigState.getState().dispatch.setStartupDetails({
     conversation: conversation ?? noConversationIDKey,
     followUser,
     link,
@@ -210,7 +218,7 @@ const loadStartupDetails = async () => {
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
-  storeRegistry.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+  getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: text,
     displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
@@ -296,7 +304,7 @@ const ensureBackgroundTask = () => {
       lon: pos?.coords.longitude ?? 0,
     }
 
-    storeRegistry.getState('chat').dispatch.updateLastCoord(coord)
+    useChatState.getState().dispatch.updateLastCoord(coord)
     return Promise.resolve()
   })
 }
@@ -321,7 +329,7 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
           lat: location.coords.latitude,
           lon: location.coords.longitude,
         }
-        storeRegistry.getState('chat').dispatch.updateLastCoord(coord)
+        useChatState.getState().dispatch.updateLastCoord(coord)
       }
     )
     return () => sub.remove()
@@ -335,10 +343,10 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
 
 export const initPlatformListener = () => {
   let _lastPersist = ''
-  storeRegistry.getStore('config').setState(s => {
+  useConfigState.setState(s => {
     s.dispatch.dynamic.persistRoute = wrapErrors((path?: ReadonlyArray<unknown>) => {
       const f = async () => {
-        if (!storeRegistry.getState('config').startup.loaded) {
+        if (!useConfigState.getState().startup.loaded) {
           return
         }
         let param = {}
@@ -380,7 +388,7 @@ export const initPlatformListener = () => {
     })
   })
 
-  storeRegistry.getStore('config').subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     let appFocused: boolean
     let logState: T.RPCGen.MobileAppState
@@ -403,10 +411,10 @@ export const initPlatformListener = () => {
     }
 
     logger.info(`setting app state on service to: ${logState}`)
-    storeRegistry.getState('config').dispatch.changedFocus(appFocused)
+    s.dispatch.changedFocus(appFocused)
   })
 
-  storeRegistry.getStore('config').setState(s => {
+  useConfigState.setState(s => {
     s.dispatch.dynamic.copyToClipboard = wrapErrors((s: string) => {
       Clipboard.setStringAsync(s)
         .then(() => {})
@@ -435,7 +443,7 @@ export const initPlatformListener = () => {
     }
   }
 
-  storeRegistry.getStore('daemon').subscribe((s, old) => {
+  useDaemonState.subscribe((s, old) => {
     const versionChanged = s.handshakeVersion !== old.handshakeVersion
     const stateChanged = s.handshakeState !== old.handshakeState
     const justBecameReady = stateChanged && s.handshakeState === 'done' && old.handshakeState !== 'done'
@@ -445,7 +453,7 @@ export const initPlatformListener = () => {
     }
   })
 
-  storeRegistry.getStore('config').setState(s => {
+  useConfigState.setState(s => {
     s.dispatch.dynamic.onFilePickerError = wrapErrors((error: Error) => {
       Alert.alert('Error', String(error))
     })
@@ -458,7 +466,7 @@ export const initPlatformListener = () => {
     })
   })
 
-  storeRegistry.getStore('profile').setState(s => {
+  useProfileState.setState(s => {
     s.dispatch.editAvatar = () => {
       const f = async () => {
         try {
@@ -470,30 +478,28 @@ export const initPlatformListener = () => {
             return acc
           }, undefined)
           if (!result.canceled && first) {
-            storeRegistry
-              .getState('router')
+            useRouterState
+              .getState()
               .dispatch.navigateAppend({props: {image: first}, selected: 'profileEditAvatar'})
           }
         } catch (error) {
-          storeRegistry.getState('config').dispatch.filePickerError(new Error(String(error)))
+          useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
         }
       }
       ignorePromise(f())
     }
   })
 
-  storeRegistry.getStore('config').subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
       const {type} = await NetInfo.fetch()
-      storeRegistry
-        .getState('config')
-        .dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type, true)
+      s.dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type, true)
     }
     ignorePromise(f())
   })
 
-  storeRegistry.getStore('config').subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.networkStatus === old.networkStatus) return
     const type = s.networkStatus?.type
     if (!type) return
@@ -507,7 +513,7 @@ export const initPlatformListener = () => {
     ignorePromise(f())
   })
 
-  storeRegistry.getStore('config').setState(s => {
+  useConfigState.setState(s => {
     s.dispatch.dynamic.showShareActionSheet = wrapErrors(
       (filePath: string, message: string, mimeType: string) => {
         const f = async () => {
@@ -518,11 +524,11 @@ export const initPlatformListener = () => {
     )
   })
 
-  storeRegistry.getStore('config').subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     if (s.mobileAppState === 'active') {
       // only reload on foreground
-      storeRegistry.getState('settings-contacts').dispatch.loadContactPermissions()
+      useSettingsContactsState.getState().dispatch.loadContactPermissions()
     }
   })
 
@@ -530,22 +536,21 @@ export const initPlatformListener = () => {
   if (isAndroid) {
     useDarkModeState.subscribe((s, old) => {
       if (s.darkModePreference === old.darkModePreference) return
-      const {darkModePreference} = useDarkModeState.getState()
-      androidAppColorSchemeChanged(darkModePreference)
+      androidAppColorSchemeChanged(s.darkModePreference)
     })
   }
 
   // we call this when we're logged in.
   let calledShareListenersRegistered = false
 
-  storeRegistry.getStore('router').subscribe((s, old) => {
+  useRouterState.subscribe((s, old) => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
     const f = async () => {
       await timeoutPromise(1000)
       const path = getVisiblePath()
-      storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(path)
+      useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
     }
 
     if (!calledShareListenersRegistered && logState().loggedIn) {
@@ -560,8 +565,8 @@ export const initPlatformListener = () => {
   initPushListener()
 
   NetInfo.addEventListener(({type}) => {
-    storeRegistry
-      .getState('config')
+    useConfigState
+      .getState()
       .dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
   })
 
@@ -571,13 +576,13 @@ export const initPlatformListener = () => {
   initAudioModes()
 
   if (isAndroid) {
-    const daemonState = storeRegistry.getState('daemon')
+    const daemonState = useDaemonState.getState()
     if (daemonState.handshakeState === 'done' || daemonState.handshakeVersion > 0) {
       configureAndroidCacheDir()
     }
   }
 
-  storeRegistry.getStore('config').setState(s => {
+  useConfigState.setState(s => {
     s.dispatch.dynamic.openAppSettings = wrapErrors(() => {
       const f = async () => {
         if (isAndroid) {
@@ -598,7 +603,7 @@ export const initPlatformListener = () => {
     s.dispatch.dynamic.onEngineIncomingNative = wrapErrors((action: EngineGen.Actions) => {
       switch (action.type) {
         case EngineGen.chat1ChatUiTriggerContactSync:
-          storeRegistry.getState('settings-contacts').dispatch.manageContactsCache()
+          useSettingsContactsState.getState().dispatch.manageContactsCache()
           break
         case EngineGen.keybase1LogUiLog: {
           const {params} = action.payload
@@ -620,18 +625,20 @@ export const initPlatformListener = () => {
     })
   })
 
-  storeRegistry.getStore('router').setState(s => {
+  useRouterState.setState(s => {
     s.dispatch.dynamic.tabLongPress = wrapErrors((tab: string) => {
       if (tab !== Tabs.peopleTab) return
-      const accountRows = storeRegistry.getState('config').configuredAccounts
+      const accountRows = useConfigState.getState().configuredAccounts
       const current = useCurrentUserState.getState().username
       const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
       if (row) {
-        storeRegistry.getState('config').dispatch.setUserSwitching(true)
-        storeRegistry.getState('config').dispatch.login(row.username, '')
+        useConfigState.getState().dispatch.setUserSwitching(true)
+        useConfigState.getState().dispatch.login(row.username, '')
       }
     })
   })
 
-  ignorePromise(storeRegistry.getState('fs').dispatch.setupSubscriptions())
+  initSharedSubscriptions()
+
+  ignorePromise(useFSState.getState().dispatch.setupSubscriptions())
 }

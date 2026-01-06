@@ -1,7 +1,12 @@
 import * as Chat from '../chat2'
 import {ignorePromise} from '../utils'
-import {storeRegistry} from '../store-registry'
+import {useActiveState} from '../active'
+import {useConfigState} from '../config'
 import * as ConfigConstants from '../config'
+import {useDaemonState} from '../daemon'
+import {useFSState} from '../fs'
+import {useProfileState} from '../profile'
+import {useRouterState} from '../router2'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '../types'
 import InputMonitor from './input-monitor.desktop'
@@ -14,6 +19,7 @@ import {kbfsNotification} from './kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import NotifyPopup from '@/util/notify-popup'
 import {noKBFSFailReason} from '@/constants/config/util'
+import {initSharedSubscriptions} from './shared'
 import {wrapErrors} from '@/util/debug'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
@@ -34,7 +40,7 @@ export const requestLocationPermission = async () => Promise.resolve()
 export const watchPositionForMap = async () => Promise.resolve(() => {})
 
 const maybePauseVideos = () => {
-  const {appFocused} = storeRegistry.getState('config')
+  const {appFocused} = useConfigState.getState()
   const videos = document.querySelectorAll('video')
   const allVideos = Array.from(videos)
 
@@ -67,7 +73,7 @@ export const dumpLogs = async (reason?: string) => {
 }
 
 export const initPlatformListener = () => {
-  storeRegistry.getStore('config').setState(s => {
+  useConfigState.setState(s => {
     s.dispatch.dynamic.dumpLogsNative = dumpLogs
     s.dispatch.dynamic.showMainNative = wrapErrors(() => showMainWindow?.())
     s.dispatch.dynamic.copyToClipboard = wrapErrors((s: string) => copyToClipboard?.(s))
@@ -136,8 +142,8 @@ export const initPlatformListener = () => {
           const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
           NotifyPopup('Client out of date!', {body}, 60 * 60)
           // This is from the API server. Consider notifications from server always critical.
-          storeRegistry
-            .getState('config')
+          useConfigState
+            .getState()
             .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
           break
         }
@@ -146,25 +152,25 @@ export const initPlatformListener = () => {
     })
   })
 
-  storeRegistry.getStore('config').subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
-    storeRegistry.getState('config').dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)
+    s.dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)
   })
 
-  storeRegistry.getStore('config').subscribe((s, prev) => {
+  useConfigState.subscribe((s, prev) => {
     if (s.appFocused !== prev.appFocused) {
       maybePauseVideos()
     }
   })
 
-  storeRegistry.getStore('daemon').subscribe((s, old) => {
+  useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
     if (!isWindows) return
 
     const f = async () => {
       const waitKey = 'pipeCheckFail'
       const version = s.handshakeVersion
-      const {wait} = storeRegistry.getState('daemon').dispatch
+      const {wait} = s.dispatch
       wait(waitKey, version, true)
       try {
         logger.info('Checking RPC ownership')
@@ -187,7 +193,7 @@ export const initPlatformListener = () => {
       if (skipAppFocusActions) {
         console.log('Skipping app focus actions!')
       } else {
-        storeRegistry.getState('config').dispatch.changedFocus(appFocused)
+        useConfigState.getState().dispatch.changedFocus(appFocused)
       }
     }
     window.addEventListener('focus', () => handle(true))
@@ -197,15 +203,15 @@ export const initPlatformListener = () => {
 
   const setupReachabilityWatcher = () => {
     window.addEventListener('online', () =>
-      storeRegistry.getState('config').dispatch.osNetworkStatusChanged(true, 'notavailable')
+      useConfigState.getState().dispatch.osNetworkStatusChanged(true, 'notavailable')
     )
     window.addEventListener('offline', () =>
-      storeRegistry.getState('config').dispatch.osNetworkStatusChanged(false, 'notavailable')
+      useConfigState.getState().dispatch.osNetworkStatusChanged(false, 'notavailable')
     )
   }
   setupReachabilityWatcher()
 
-  storeRegistry.getStore('config').subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.openAtLogin === old.openAtLogin) return
     const {openAtLogin} = s
     const f = async () => {
@@ -237,9 +243,9 @@ export const initPlatformListener = () => {
     ignorePromise(f())
   })
 
-  storeRegistry.getStore('daemon').subscribe((s, old) => {
+  useDaemonState.subscribe((s, old) => {
     if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
-    storeRegistry.getState('config').dispatch.setStartupDetails({
+    useConfigState.getState().dispatch.setStartupDetails({
       conversation: Chat.noConversationIDKey,
       followUser: '',
       link: '',
@@ -248,17 +254,17 @@ export const initPlatformListener = () => {
   })
 
   if (isLinux) {
-    storeRegistry.getState('config').dispatch.initUseNativeFrame()
+    useConfigState.getState().dispatch.initUseNativeFrame()
   }
-  storeRegistry.getState('config').dispatch.initNotifySound()
-  storeRegistry.getState('config').dispatch.initForceSmallNav()
-  storeRegistry.getState('config').dispatch.initOpenAtLogin()
-  storeRegistry.getState('config').dispatch.initAppUpdateLoop()
+  useConfigState.getState().dispatch.initNotifySound()
+  useConfigState.getState().dispatch.initForceSmallNav()
+  useConfigState.getState().dispatch.initOpenAtLogin()
+  useConfigState.getState().dispatch.initAppUpdateLoop()
 
-  storeRegistry.getStore('profile').setState(s => {
+  useProfileState.setState(s => {
     s.dispatch.editAvatar = () => {
-      storeRegistry
-        .getState('router')
+      useRouterState
+        .getState()
         .dispatch.navigateAppend({props: {image: undefined}, selected: 'profileEditAvatar'})
     }
   })
@@ -269,7 +275,7 @@ export const initPlatformListener = () => {
       if (skipAppFocusActions) {
         console.log('Skipping app focus actions!')
       } else {
-        storeRegistry.getState('active').dispatch.setActive(userActive)
+        useActiveState.getState().dispatch.setActive(userActive)
         // let node thread save file
         activeChanged?.(Date.now(), userActive)
       }
@@ -277,14 +283,16 @@ export const initPlatformListener = () => {
   }
   initializeInputMonitor()
 
-  storeRegistry.getStore('daemon').setState(s => {
+  useDaemonState.setState(s => {
     s.dispatch.onRestartHandshakeNative = () => {
-      const {handshakeFailedReason} = storeRegistry.getState('daemon')
+      const {handshakeFailedReason} = useDaemonState.getState()
       if (isWindows && handshakeFailedReason === noKBFSFailReason) {
         requestWindowsStartService?.()
       }
     }
   })
 
-  ignorePromise(storeRegistry.getState('fs').dispatch.setupSubscriptions())
+  initSharedSubscriptions()
+
+  ignorePromise(useFSState.getState().dispatch.setupSubscriptions())
 }
