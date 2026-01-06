@@ -666,6 +666,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     targetOrdinal: T.Chat.Ordinal
     username: string
   }) => {
+    console.log('aaaaaa ')
     const {decorated, emoji, targetOrdinal, username} = p
     set(s => {
       const m = s.messageMap.get(targetOrdinal)
