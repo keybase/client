@@ -1,6 +1,5 @@
 import * as T from '../types'
 import {ignorePromise, timeoutPromise} from '../utils'
-import {serverConfigFileName} from '../platform'
 import {waitingKeyConfigLogin} from '../strings'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as RemoteGen from '@/actions/remote-gen'
@@ -767,11 +766,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           }
           const newFollowers = new Set(_newFollowers)
           const newFollowing = new Set(_newFollowing)
-          const {
-            following: oldFollowing,
-            followers: oldFollowers,
-            dispatch,
-          } = useFollowerState.getState()
+          const {following: oldFollowing, followers: oldFollowers, dispatch} = useFollowerState.getState()
           const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
           const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
           dispatch.replace(followers, following)
