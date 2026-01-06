@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
 )
 
 type ClientConfig struct {
@@ -182,13 +181,6 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 		c, err = dialer.DialContext(ctx, network, addr)
 		if err != nil {
 			extraLog(ctx, "api.Client:%v transport.Dial err=%v", needCookie, err)
-			// If we get a DNS error, it could be because glibc has cached an
-			// old version of /etc/resolv.conf. The res_init() libc function
-			// busts that cache and keeps us from getting stuck in a state
-			// where DNS requests keep failing even though the network is up.
-			// This is similar to what the Rust standard library does:
-			// https://github.com/rust-lang/rust/blob/028569ab1b/src/libstd/sys_common/net.rs#L186-L190
-			resinit.IfDNSError(err)
 			return c, err
 		}
 		if err = rpc.DisableSigPipe(c); err != nil {
