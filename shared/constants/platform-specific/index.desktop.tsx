@@ -164,7 +164,7 @@ export const initPlatformListener = () => {
 
     if (s.appFocused !== old.appFocused) {
       maybePauseVideos()
-      if (old.appFocused === false && s.appFocused === true) {
+      if (!old.appFocused && s.appFocused) {
         const {dispatch} = storeRegistry.getConvoState(getSelectedConversation())
         dispatch.loadMoreMessages({reason: 'foregrounding'})
         dispatch.markThreadAsRead()
