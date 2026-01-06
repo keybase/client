@@ -14,7 +14,7 @@ import * as T from '../types'
 import InputMonitor from './input-monitor.desktop'
 import KB2 from '@/util/electron.desktop'
 import logger from '@/logger'
-import type {RPCError} from '@/util/errors'
+import {RPCError} from '@/util/errors'
 import {getEngine} from '@/engine'
 import {isLinux, isWindows} from '../platform.desktop'
 import {kbfsNotification} from './kbfs-notifications'
@@ -306,6 +306,18 @@ const updateApp = () => {
     await T.RPCGen.configStartUpdateIfNeededRpcPromise()
   }
   ignorePromise(f())
+  // * If user choose to update:
+  //   We'd get killed and it doesn't matter what happens here.
+  // * If user hits "Ignore":
+  //   Note that we ignore the snooze here, so the state shouldn't change,
+  //   and we'd back to where we think we still need an update. So we could
+  //   have just unset the "updating" flag.However, in case server has
+  //   decided to pull out the update between last time we asked the updater
+  //   and now, we'd be in a wrong state if we didn't check with the service.
+  //   Since user has interacted with it, we still ask the service to make
+  //   sure.
+
+  useConfigState.getState().dispatch.setUpdating()
 }
 
 export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
@@ -314,9 +326,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     case RemoteGen.openChatFromWidget: {
       useConfigState.getState().dispatch.showMain()
-      storeRegistry
-        .getConvoState(action.payload.conversationIDKey)
-        .dispatch.navigateToThread('inboxSmall')
+      storeRegistry.getConvoState(action.payload.conversationIDKey).dispatch.navigateToThread('inboxSmall')
       break
     }
     case RemoteGen.inboxRefresh: {
@@ -360,16 +370,11 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.openPathInSystemFileManager: {
-      storeRegistry
-        .getState('fs')
-        .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
+      storeRegistry.getState('fs').dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
       break
     }
     case RemoteGen.unlockFoldersSubmitPaperKey: {
-      T.RPCGen.loginPaperKeySubmitRpcPromise(
-        {paperPhrase: action.payload.paperKey},
-        'unlock-folders:waiting'
-      )
+      T.RPCGen.loginPaperKeySubmitRpcPromise({paperPhrase: action.payload.paperKey}, 'unlock-folders:waiting')
         .then(() => {
           useConfigState.getState().dispatch.openUnlockFolders([])
         })
@@ -393,9 +398,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.trackerChangeFollow: {
-      storeRegistry
-        .getState('tracker2')
-        .dispatch.changeFollow(action.payload.guiID, action.payload.follow)
+      storeRegistry.getState('tracker2').dispatch.changeFollow(action.payload.guiID, action.payload.follow)
       break
     }
     case RemoteGen.trackerIgnore: {
@@ -432,7 +435,9 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       ignorePromise(useConfigState.getState().dispatch.dumpLogs(action.payload.reason))
       break
     case RemoteGen.remoteWindowWantsProps:
-      useConfigState.getState().dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
+      useConfigState
+        .getState()
+        .dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
       break
     case RemoteGen.updateWindowMaxState:
       useConfigState.setState(s => {

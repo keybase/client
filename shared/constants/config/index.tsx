@@ -199,8 +199,9 @@ export interface State extends Store {
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
     setOpenAtLogin: (open: boolean) => void
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
-    setUserSwitching: (sw: boolean) => void
+    setUpdating: () => void
     setUseNativeFrame: (use: boolean) => void
+    setUserSwitching: (sw: boolean) => void
     showMain: () => void
     toggleRuntimeStats: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
@@ -277,26 +278,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
     const lastSeenItem = goodState.find(i => i.item.category === 'whatsNewLastSeenVersion')
     useWhatsNewState.getState().dispatch.updateLastSeen(lastSeenItem)
-  }
-
-  const updateApp = () => {
-    const f = async () => {
-      await T.RPCGen.configStartUpdateIfNeededRpcPromise()
-    }
-    ignorePromise(f())
-    // * If user choose to update:
-    //   We'd get killed and it doesn't matter what happens here.
-    // * If user hits "Ignore":
-    //   Note that we ignore the snooze here, so the state shouldn't change,
-    //   and we'd back to where we think we still need an update. So we could
-    //   have just unset the "updating" flag.However, in case server has
-    //   decided to pull out the update between last time we asked the updater
-    //   and now, we'd be in a wrong state if we didn't check with the service.
-    //   Since user has interacted with it, we still ask the service to make
-    //   sure.
-    set(s => {
-      s.outOfDate.updating = true
-    })
   }
 
   const updateRuntimeStats = (stats?: T.RPCGen.RuntimeStats) => {
@@ -865,6 +846,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           ...st,
           loaded: true,
         }
+      })
+    },
+    setUpdating: () => {
+      set(s => {
+        s.outOfDate.updating = true
       })
     },
     setUseNativeFrame: use => {
