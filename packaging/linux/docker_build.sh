@@ -97,7 +97,6 @@ sudo docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -e "KEYBASE_TEST=${KEYBASE_TEST:-}" \
   -e "KEYBASE_TEST_CODE_SIGNING_KEY=${KEYBASE_TEST_CODE_SIGNING_KEY:-}" \
   --rm \
-  --log-driver=journald \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"
 
