@@ -26,7 +26,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
       const reaction = message?.reactions?.get(emoji || '')
-      const active = (reaction?.users ?? []).includes(me)
+      const active = (reaction?.users ?? []).some(r => r.username === me)
       return {
         active,
         count: reaction?.users.length ?? 0,

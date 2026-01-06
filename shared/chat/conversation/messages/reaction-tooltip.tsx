@@ -50,15 +50,21 @@ const ReactionTooltip = (p: OwnProps) => {
   }, [navigateAppend, onHidden, ordinal])
 
   let reactions = [...(_reactions?.keys() ?? [])]
-    .map(emoji => ({
-      emoji,
-      users: (_reactions?.get(emoji)?.users ?? []).map(username => ({
-        fullName: (_usersInfo.get(username) || {fullname: ''}).fullname || '',
-        username,
-      })),
-    }))
+    .map(emoji => {
+      const reactionUsers = _reactions?.get(emoji)?.users ?? []
+      const sortedUsers = [...reactionUsers].sort((a, b) => a.timestamp - b.timestamp)
+      return {
+        emoji,
+        users: sortedUsers.map(r => ({
+          fullName: (_usersInfo.get(r.username) || {fullname: ''}).fullname || '',
+          username: r.username,
+        })),
+        earliestTimestamp: sortedUsers[0]?.timestamp || 0,
+      }
+    })
+    .sort((a, b) => a.earliestTimestamp - b.earliestTimestamp)
+    .map(({emoji, users}) => ({emoji, users}))
   if (!C.isMobile && emoji) {
-    // Filter down to selected emoji
     reactions = reactions.filter(r => r.emoji === emoji)
   }
   const insets = Kb.useSafeAreaInsets()
