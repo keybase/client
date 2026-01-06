@@ -510,7 +510,6 @@ def testGo(prefix, packagesToTest, hasKBFSChanges) {
     "KEYBASE_LOG_SETUPTEST_FUNCS=1",
     "KEYBASE_RUN_CI=1",
   ].plus(isUnix() ? [] : [
-    'CGO_ENABLED=1',
     'CC=C:\\cygwin64\\bin\\x86_64-w64-mingw32-gcc.exe',
     'CPATH=C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include;C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include\\ddk',
   ])) {

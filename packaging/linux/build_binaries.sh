@@ -194,8 +194,7 @@ build_one_architecture() {
 	fi
 }
 
-# required for cross-compiling, or else the Go compiler will skip over
-# resinit_nix.go and fail the i386 build
+# required for cross-compiling
 export CGO_ENABLED=1
 
 if [ -n "${KEYBASE_BUILD_ARM_ONLY:-}" ]; then
