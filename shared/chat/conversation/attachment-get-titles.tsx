@@ -237,18 +237,24 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small, 0),
       }),
       cancelButton: {marginRight: Kb.Styles.globalMargins.tiny},
-      container: {
-        alignItems: 'center',
-        flexGrow: 1,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-        width: '100%',
-      },
-      container2: {
-        alignItems: 'center',
-        flexGrow: 1,
-        width: '100%',
-      },
+      container: Kb.Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          flexGrow: 1,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
+          width: '100%',
+        },
+        isMobile: {flexShrink: 1},
+      }),
+      container2: Kb.Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          flexGrow: 1,
+          width: '100%',
+        },
+        isMobile: {flexShrink: 1},
+      }),
       containerOuter: Kb.Styles.platformStyles({
         isElectron: {
           height: 560,
