@@ -148,12 +148,15 @@ const ThreadSearchDesktop = React.memo(function ThreadSearchDesktop(p: OwnProps)
   const {conversationIDKey, submitSearch, hits, selectResult, onEnter} = props
   const {onUp, onDown, onChangedText, inProgress, hasResults} = props
   const {selectedIndex, status, text, style, onToggleThreadSearch} = props
-  const hotKeys = ['esc']
-  const onHotKey = (cmd: string) => {
-    if (cmd === 'esc') {
-      onToggleThreadSearch()
-    }
-  }
+  const onHotKey = React.useCallback(
+    (cmd: string) => {
+      if (cmd === 'esc') {
+        onToggleThreadSearch()
+      }
+    },
+    [onToggleThreadSearch]
+  )
+  Kb.useHotKey('esc', onHotKey)
   const inputRef = React.createRef<Kb.PlainInputRef>()
   const onKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
@@ -206,7 +209,6 @@ const ThreadSearchDesktop = React.memo(function ThreadSearchDesktop(p: OwnProps)
   const noResults = status === 'done' && hits.length === 0
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={style}>
-      <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKey} />
       <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
         <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>

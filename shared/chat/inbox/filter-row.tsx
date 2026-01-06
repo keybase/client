@@ -13,7 +13,6 @@ type OwnProps = {
   showSearch: boolean
 }
 
-const hotKeys = ['mod+n']
 
 const ConversationFilterInput = React.memo(function ConversationFilterInput(ownProps: OwnProps) {
   const {onEnsureSelection, onSelectDown, onSelectUp, showSearch} = ownProps
@@ -75,6 +74,7 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
   const onHotKeys = React.useCallback(() => {
     appendNewChatBuilder()
   }, [appendNewChatBuilder])
+  Kb.useHotKey('mod+n', onHotKeys)
 
   React.useEffect(() => {
     if (isSearching) {
@@ -118,7 +118,6 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
       gapStart={showSearch}
       gapEnd={showSearch}
     >
-      {!Kb.Styles.isMobile && <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKeys} />}
       {showSearch && searchInput}
     </Kb.Box2>
   )

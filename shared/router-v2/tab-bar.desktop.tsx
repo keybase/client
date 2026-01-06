@@ -191,6 +191,7 @@ const TabBar = React.memo(function TabBar(props: Props) {
     },
     [navigation]
   )
+  Kb.useHotKey(hotKeys, onHotKey)
 
   const onSelectTab = Common.useSubnavTabAction(navigation, state)
   const forceSmallNav = useConfigState(s => s.forceSmallNav)
@@ -202,7 +203,6 @@ const TabBar = React.memo(function TabBar(props: Props) {
       fullHeight={true}
     >
       <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
-        <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKey} />
         <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
         <Header />
         <Kb.Divider style={styles.divider} />
