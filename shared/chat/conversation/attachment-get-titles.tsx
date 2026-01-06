@@ -221,6 +221,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       boxGrow: {
+        flexShrink: 1,
         marginBottom: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : 0,
         width: '100%',
       },
@@ -253,7 +254,7 @@ const styles = Kb.Styles.styleSheetCreate(
           height: 560,
           width: 400,
         },
-        isMobile: {flexGrow: 1},
+        isMobile: {flexGrow: 1, flexShrink: 1},
       }),
       filename: Kb.Styles.platformStyles({
         isElectron: {
