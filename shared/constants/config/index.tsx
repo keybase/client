@@ -2,7 +2,6 @@ import * as T from '../types'
 import {ignorePromise, timeoutPromise} from '../utils'
 import {waitingKeyConfigLogin} from '../strings'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as RemoteGen from '@/actions/remote-gen'
 import * as Stats from '@/engine/stats'
 import * as Z from '@/util/zustand'
 import {noConversationIDKey} from '../types/chat2/common'
@@ -13,9 +12,8 @@ import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from 
 import {defaultUseNativeFrame, isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from './util'
-import {navigateAppend, switchTab} from '../router2/util'
+import {navigateAppend} from '../router2/util'
 import {storeRegistry} from '../store-registry'
-import {usePinentryState} from '../pinentry'
 import {useWhatsNewState} from '../whats-new'
 import {getSelectedConversation} from '@/constants/chat2/common'
 
@@ -164,7 +162,6 @@ export interface State extends Store {
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
     dumpLogs: (reason: string) => Promise<void>
-    eventFromRemoteWindows: (action: RemoteGen.Actions) => void
     filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
     initNotifySound: () => void
@@ -353,154 +350,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       setNavigatorExistsNative: undefined,
       showMainNative: undefined,
       showShareActionSheet: undefined,
-    },
-    eventFromRemoteWindows: (action: RemoteGen.Actions) => {
-      switch (action.type) {
-        case RemoteGen.resetStore:
-          break
-        case RemoteGen.openChatFromWidget: {
-          get().dispatch.showMain()
-          storeRegistry
-            .getConvoState(action.payload.conversationIDKey)
-            .dispatch.navigateToThread('inboxSmall')
-          break
-        }
-        case RemoteGen.inboxRefresh: {
-          storeRegistry.getState('chat').dispatch.inboxRefresh('widgetRefresh')
-          break
-        }
-        case RemoteGen.engineConnection: {
-          if (action.payload.connected) {
-            storeRegistry.getState('engine').dispatch.onEngineConnected()
-          } else {
-            storeRegistry.getState('engine').dispatch.onEngineDisconnected()
-          }
-          break
-        }
-        case RemoteGen.switchTab: {
-          switchTab(action.payload.tab)
-          break
-        }
-        case RemoteGen.setCriticalUpdate: {
-          storeRegistry.getState('fs').dispatch.setCriticalUpdate(action.payload.critical)
-          break
-        }
-        case RemoteGen.userFileEditsLoad: {
-          storeRegistry.getState('fs').dispatch.userFileEditsLoad()
-          break
-        }
-        case RemoteGen.openFilesFromWidget: {
-          storeRegistry.getState('fs').dispatch.dynamic.openFilesFromWidgetDesktop?.(action.payload.path)
-          break
-        }
-        case RemoteGen.saltpackFileOpen: {
-          storeRegistry.getState('deeplinks').dispatch.handleSaltPackOpen(action.payload.path)
-          break
-        }
-        case RemoteGen.pinentryOnCancel: {
-          usePinentryState.getState().dispatch.dynamic.onCancel?.()
-          break
-        }
-        case RemoteGen.pinentryOnSubmit: {
-          usePinentryState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
-          break
-        }
-        case RemoteGen.openPathInSystemFileManager: {
-          storeRegistry
-            .getState('fs')
-            .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
-          break
-        }
-        case RemoteGen.unlockFoldersSubmitPaperKey: {
-          T.RPCGen.loginPaperKeySubmitRpcPromise(
-            {paperPhrase: action.payload.paperKey},
-            'unlock-folders:waiting'
-          )
-            .then(() => {
-              get().dispatch.openUnlockFolders([])
-            })
-            .catch((e: unknown) => {
-              if (!(e instanceof RPCError)) return
-              set(s => {
-                s.unlockFoldersError = e.desc
-              })
-            })
-          break
-        }
-        case RemoteGen.closeUnlockFolders: {
-          T.RPCGen.rekeyRekeyStatusFinishRpcPromise()
-            .then(() => {})
-            .catch(() => {})
-          get().dispatch.openUnlockFolders([])
-          break
-        }
-        case RemoteGen.stop: {
-          storeRegistry.getState('settings').dispatch.stop(action.payload.exitCode)
-          break
-        }
-        case RemoteGen.trackerChangeFollow: {
-          storeRegistry
-            .getState('tracker2')
-            .dispatch.changeFollow(action.payload.guiID, action.payload.follow)
-          break
-        }
-        case RemoteGen.trackerIgnore: {
-          storeRegistry.getState('tracker2').dispatch.ignore(action.payload.guiID)
-          break
-        }
-        case RemoteGen.trackerCloseTracker: {
-          storeRegistry.getState('tracker2').dispatch.closeTracker(action.payload.guiID)
-          break
-        }
-        case RemoteGen.trackerLoad: {
-          storeRegistry.getState('tracker2').dispatch.load(action.payload)
-          break
-        }
-        case RemoteGen.link:
-          {
-            const {link} = action.payload
-            storeRegistry.getState('deeplinks').dispatch.handleAppLink(link)
-          }
-          break
-        case RemoteGen.installerRan:
-          get().dispatch.installerRan()
-          break
-        case RemoteGen.updateNow:
-          updateApp()
-          break
-        case RemoteGen.powerMonitorEvent:
-          get().dispatch.powerMonitorEvent(action.payload.event)
-          break
-        case RemoteGen.showMain:
-          get().dispatch.showMain()
-          break
-        case RemoteGen.dumpLogs:
-          ignorePromise(get().dispatch.dumpLogs(action.payload.reason))
-          break
-        case RemoteGen.remoteWindowWantsProps:
-          get().dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
-          break
-        case RemoteGen.updateWindowMaxState:
-          set(s => {
-            s.windowState.isMaximized = action.payload.max
-          })
-          break
-        case RemoteGen.updateWindowState:
-          get().dispatch.updateWindowState(action.payload.windowState)
-          break
-        case RemoteGen.updateWindowShown: {
-          const win = action.payload.component
-          set(s => {
-            s.windowShownCount.set(win, (s.windowShownCount.get(win) ?? 0) + 1)
-          })
-          break
-        }
-        case RemoteGen.previewConversation:
-          storeRegistry
-            .getState('chat')
-            .dispatch.previewConversation({participants: [action.payload.participant], reason: 'tracker'})
-          break
-      }
     },
     filePickerError: error => {
       get().dispatch.dynamic.onFilePickerError?.(error)

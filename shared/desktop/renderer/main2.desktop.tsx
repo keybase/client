@@ -8,7 +8,7 @@ import type * as RemoteGen from '@/actions/remote-gen'
 import Root from './container.desktop'
 import {makeEngine} from '@/engine'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
-import {dumpLogs} from '@/constants/platform-specific/index.desktop'
+import {dumpLogs, eventFromRemoteWindows} from '@/constants/platform-specific/index.desktop'
 import {initDesktopStyles} from '@/styles/index.desktop'
 import {isWindows} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
@@ -58,7 +58,7 @@ const setupApp = () => {
   ipcRendererOn?.('KBdispatchAction', (_: unknown, action: unknown) => {
     setTimeout(() => {
       try {
-        useConfigState.getState().dispatch.eventFromRemoteWindows(action as RemoteGen.Actions)
+        eventFromRemoteWindows(action as RemoteGen.Actions)
       } catch {}
     }, 0)
   })
