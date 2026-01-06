@@ -243,15 +243,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     set(s => {
       s.gregorReachable = r
     })
-    // Re-get info about our account if you log in/we're done handshaking/became reachable
-    if (r === T.RPCGen.Reachable.yes) {
-      // not in waiting state
-      if (storeRegistry.getState('daemon').handshakeWaiters.size === 0) {
-        ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
-      }
-    }
-
-    storeRegistry.getState('teams').dispatch.eagerLoadTeams()
   }
 
   const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
@@ -394,8 +385,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.installerRanCount++
       })
-
-      storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
     },
     loadIsOnline: () => {
       const f = async () => {
@@ -756,11 +745,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
       if (!changed) return
 
-      if (loggedIn) {
-        ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
-      }
-      storeRegistry.getState('daemon').dispatch.loadDaemonAccounts()
-
       const {loadOnStart} = get().dispatch
       if (loggedIn) {
         if (!causedByStartup) {
@@ -776,14 +760,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       } else {
         Z.resetAllStores()
       }
-
-      if (loggedIn) {
-        storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
-      }
-
-      if (!causedByStartup) {
-        ignorePromise(storeRegistry.getState('daemon').dispatch.refreshAccounts())
-      }
     },
     setLoginError: error => {
       set(s => {
@@ -798,9 +774,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.mobileAppState = nextAppState
       })
-      if (nextAppState === 'background' && storeRegistry.getState('chat').inboxSearch) {
-        storeRegistry.getState('chat').dispatch.toggleInboxSearch(false)
-      }
     },
     setNotifySound: n => {
       set(s => {

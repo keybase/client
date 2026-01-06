@@ -31,59 +31,91 @@ import * as UsersUtil from '../users/util'
 
 export const initSharedSubscriptions = () => {
   useConfigState.subscribe((s, old) => {
-    if (s.loadOnStartPhase === old.loadOnStartPhase) return
-
-    if (s.loadOnStartPhase === 'startupOrReloginButNotInARush') {
-      const getFollowerInfo = () => {
-        const {uid} = useCurrentUserState.getState()
-        logger.info(`getFollowerInfo: init; uid=${uid}`)
-        if (uid) {
-          // request follower info in the background
-          T.RPCGen.configRequestFollowingAndUnverifiedFollowersRpcPromise()
-            .then(() => {})
-            .catch(() => {})
+    if (s.loadOnStartPhase !== old.loadOnStartPhase) {
+      if (s.loadOnStartPhase === 'startupOrReloginButNotInARush') {
+        const getFollowerInfo = () => {
+          const {uid} = useCurrentUserState.getState()
+          logger.info(`getFollowerInfo: init; uid=${uid}`)
+          if (uid) {
+            // request follower info in the background
+            T.RPCGen.configRequestFollowingAndUnverifiedFollowersRpcPromise()
+              .then(() => {})
+              .catch(() => {})
+          }
         }
-      }
 
-      const updateServerConfig = async () => {
-        if (s.loggedIn) {
+        const updateServerConfig = async () => {
+          if (s.loggedIn) {
+            try {
+              await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
+                serverConfigPath: serverConfigFileName,
+              })
+            } catch {}
+          }
+        }
+
+        const updateTeams = () => {
+          useTeamsState.getState().dispatch.getTeams()
+          useTeamsState.getState().dispatch.refreshTeamRoleMap()
+        }
+
+        const updateSettings = () => {
+          useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
+        }
+
+        const updateChat = async () => {
+          // On login lets load the untrusted inbox. This helps make some flows easier
+          if (useCurrentUserState.getState().username) {
+            const {inboxRefresh} = useChatState.getState().dispatch
+            inboxRefresh('bootstrap')
+          }
           try {
-            await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
-              serverConfigPath: serverConfigFileName,
-            })
+            const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+            const ri = rows.i ?? -1
+            if (ri > 0) {
+              useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
+            }
           } catch {}
         }
-      }
 
-      const updateTeams = () => {
-        useTeamsState.getState().dispatch.getTeams()
-        useTeamsState.getState().dispatch.refreshTeamRoleMap()
+        getFollowerInfo()
+        ignorePromise(updateServerConfig())
+        updateTeams()
+        updateSettings()
+        ignorePromise(updateChat())
       }
+    }
 
-      const updateSettings = () => {
-        useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
-      }
-
-      const updateChat = async () => {
-        // On login lets load the untrusted inbox. This helps make some flows easier
-        if (useCurrentUserState.getState().username) {
-          const {inboxRefresh} = useChatState.getState().dispatch
-          inboxRefresh('bootstrap')
+    if (s.gregorReachable !== old.gregorReachable) {
+      // Re-get info about our account if you log in/we're done handshaking/became reachable
+      if (s.gregorReachable === T.RPCGen.Reachable.yes) {
+        // not in waiting state
+        if (storeRegistry.getState('daemon').handshakeWaiters.size === 0) {
+          ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
         }
-        try {
-          const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-          const ri = rows.i ?? -1
-          if (ri > 0) {
-            useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
-          }
-        } catch {}
+        storeRegistry.getState('teams').dispatch.eagerLoadTeams()
       }
+    }
 
-      getFollowerInfo()
-      ignorePromise(updateServerConfig())
-      updateTeams()
-      updateSettings()
-      ignorePromise(updateChat())
+    if (s.installerRanCount !== old.installerRanCount) {
+      storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
+    }
+
+    if (s.loggedIn !== old.loggedIn) {
+      if (s.loggedIn) {
+        ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
+        storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
+      }
+      storeRegistry.getState('daemon').dispatch.loadDaemonAccounts()
+      if (!s.loggedInCausedbyStartup) {
+        ignorePromise(storeRegistry.getState('daemon').dispatch.refreshAccounts())
+      }
+    }
+
+    if (s.mobileAppState !== old.mobileAppState) {
+      if (s.mobileAppState === 'background' && storeRegistry.getState('chat').inboxSearch) {
+        storeRegistry.getState('chat').dispatch.toggleInboxSearch(false)
+      }
     }
   })
 }
