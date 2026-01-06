@@ -3,6 +3,9 @@ import * as S from './strings'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from './utils'
 import {navigateAppend, navUpToScreen, switchTab} from './router2/util'
 import {storeRegistry} from './store-registry'
+import {useCurrentUserState} from './current-user'
+import {useLogoutState} from './logout'
+import {useWaitingState} from './waiting'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import * as T from './types'
@@ -109,9 +112,9 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     deleteToken: version => {
       const f = async () => {
         const waitKey = 'push:deleteToken'
-        storeRegistry.getState('logout').dispatch.wait(waitKey, version, true)
+        useLogoutState.getState().dispatch.wait(waitKey, version, true)
         try {
-          const deviceID = storeRegistry.getState('current-user').deviceID
+          const deviceID = useCurrentUserState.getState().deviceID
           if (!deviceID) {
             logger.info('[PushToken] no device id')
             return
@@ -127,7 +130,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         } catch (e) {
           logger.error('[PushToken] delete failed', e)
         } finally {
-          storeRegistry.getState('logout').dispatch.wait(waitKey, version, false)
+          useLogoutState.getState().dispatch.wait(waitKey, version, false)
         }
       }
       ignorePromise(f())
@@ -226,7 +229,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         }
         try {
           storeRegistry.getState('config').dispatch.dynamic.openAppSettings?.()
-          const {increment} = storeRegistry.getState('waiting').dispatch
+          const {increment} = useWaitingState.getState().dispatch
           increment(S.waitingKeyPushPermissionsRequesting)
           await requestPermissionsFromNative()
           const permissions = await checkPermissionsFromNative()
@@ -242,7 +245,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
             })
           }
         } finally {
-          const {decrement} = storeRegistry.getState('waiting').dispatch
+          const {decrement} = useWaitingState.getState().dispatch
           decrement(S.waitingKeyPushPermissionsRequesting)
           get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
         }
@@ -256,7 +259,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
       })
 
       const uploadPushToken = async () => {
-        const {deviceID, username} = storeRegistry.getState('current-user')
+        const {deviceID, username} = useCurrentUserState.getState()
         if (!username || !deviceID) {
           return
         }

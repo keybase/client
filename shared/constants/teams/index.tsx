@@ -20,6 +20,7 @@ import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '../rpc-utils'
 import {fixCrop} from '@/util/crop'
 import {storeRegistry} from '../store-registry'
+import {useCurrentUserState} from '../current-user'
 import * as Util from './util'
 import {getTab} from '../router2/util'
 
@@ -304,7 +305,7 @@ export const getDisabledReasonsForRolePicker = (
     theyAreOwner = membersToModify.some(username => members.get(username)?.type === 'owner')
   }
 
-  const myUsername = storeRegistry.getState('current-user').username
+  const myUsername = useCurrentUserState.getState().username
   const you = members.get(myUsername)
   // Fallback to the lowest role, although this shouldn't happen
   const yourRole = you?.type ?? 'reader'
@@ -1519,7 +1520,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.errorInTeamCreation = ''
       })
-      const me = storeRegistry.getState('current-user').username
+      const me = useCurrentUserState.getState().username
       const participantInfo = storeRegistry.getConvoState(conversationIDKey).participants
       // exclude bots from the newly created team, they can be added back later.
       const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
@@ -1790,7 +1791,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       }
 
       const f = async () => {
-        const username = storeRegistry.getState('current-user').username
+        const username = useCurrentUserState.getState().username
         const loggedIn = storeRegistry.getState('config').loggedIn
         if (!username || !loggedIn) {
           logger.warn('getTeams while logged out')

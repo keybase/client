@@ -15,6 +15,7 @@ import isEqual from 'lodash/isEqual'
 import {settingsFsTab} from '../settings/util'
 import {navigateAppend, navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useCurrentUserState} from '../current-user'
 
 export {makeActionForOpenPathInFilesTab} from './util'
 
@@ -565,7 +566,7 @@ export const resetBannerType = (s: State, path: T.FS.Path): T.FS.ResetBannerType
     return T.FS.ResetBannerNoOthersType.None
   }
 
-  const you = storeRegistry.getState('current-user').username
+  const you = useCurrentUserState.getState().username
   if (resetParticipants.findIndex(username => username === you) >= 0) {
     return T.FS.ResetBannerNoOthersType.Self
   }
@@ -1606,7 +1607,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               const tlfType = rpcFolderTypeToTlfType(folder.folderType)
               const tlfName =
                 tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-                  ? tlfToPreferredOrder(folder.name, storeRegistry.getState('current-user').username)
+                  ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
                   : folder.name
               tlfType &&
                 payload[tlfType].set(
@@ -1903,7 +1904,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
           const tlfName =
             tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-              ? tlfToPreferredOrder(folder.name, storeRegistry.getState('current-user').username)
+              ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
               : folder.name
 
           if (tlfType) {

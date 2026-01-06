@@ -3,6 +3,8 @@ import {ignorePromise} from '../utils'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 import {storeRegistry} from '../store-registry'
+import {useCurrentUserState} from '../current-user'
+import {useDarkModeState} from '../darkmode'
 import {maxHandshakeTries} from '../values'
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
@@ -109,7 +111,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         wait(name, version, true)
         try {
           await get().dispatch.loadDaemonBootstrapStatus()
-          storeRegistry.getState('dark-mode').dispatch.loadDarkPrefs()
+          useDarkModeState.getState().dispatch.loadDarkPrefs()
           storeRegistry.getState('chat').dispatch.loadStaticConfig()
         } finally {
           wait(name, version, false)
@@ -170,7 +172,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       const {wait} = get().dispatch
 
       const f = async () => {
-        const {setBootstrap} = storeRegistry.getState('current-user').dispatch
+        const {setBootstrap} = useCurrentUserState.getState().dispatch
         const {setDefaultUsername} = storeRegistry.getState('config').dispatch
         const s = await T.RPCGen.configGetBootstrapStatusRpcPromise()
         const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s

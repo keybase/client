@@ -16,6 +16,11 @@ import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from './util'
 import {navigateAppend, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useAvatarState} from '@/common-adapters/avatar/store'
+import {useCurrentUserState} from '../current-user'
+import {useFollowerState} from '../followers'
+import {usePinentryState} from '../pinentry'
+import {useWhatsNewState} from '../whats-new'
 import {getSelectedConversation} from '@/constants/chat2/common'
 
 type Store = T.Immutable<{
@@ -278,7 +283,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     })
 
     const lastSeenItem = goodState.find(i => i.item.category === 'whatsNewLastSeenVersion')
-    storeRegistry.getState('whats-new').dispatch.updateLastSeen(lastSeenItem)
+    useWhatsNewState.getState().dispatch.updateLastSeen(lastSeenItem)
   }
 
   const updateApp = () => {
@@ -397,11 +402,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.pinentryOnCancel: {
-          storeRegistry.getState('pinentry').dispatch.dynamic.onCancel?.()
+          usePinentryState.getState().dispatch.dynamic.onCancel?.()
           break
         }
         case RemoteGen.pinentryOnSubmit: {
-          storeRegistry.getState('pinentry').dispatch.dynamic.onSubmit?.(action.payload.password)
+          usePinentryState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
           break
         }
         case RemoteGen.openPathInSystemFileManager: {
@@ -595,7 +600,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
       if (phase === 'startupOrReloginButNotInARush') {
         const getFollowerInfo = () => {
-          const {uid} = storeRegistry.getState('current-user')
+          const {uid} = useCurrentUserState.getState()
           logger.info(`getFollowerInfo: init; uid=${uid}`)
           if (uid) {
             // request follower info in the background
@@ -626,7 +631,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
         const updateChat = async () => {
           // On login lets load the untrusted inbox. This helps make some flows easier
-          if (storeRegistry.getState('current-user').username) {
+          if (useCurrentUserState.getState().username) {
             const {inboxRefresh} = storeRegistry.getState('chat').dispatch
             inboxRefresh('bootstrap')
           }
@@ -800,17 +805,17 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
         case EngineGen.keybase1NotifyTeamAvatarUpdated: {
           const {name} = action.payload.params
-          storeRegistry.getState('avatar').dispatch.updated(name)
+          useAvatarState.getState().dispatch.updated(name)
           break
         }
         case EngineGen.keybase1NotifyTrackingTrackingChanged: {
           const {isTracking, username} = action.payload.params
-          storeRegistry.getState('followers').dispatch.updateFollowing(username, isTracking)
+          useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
           break
         }
         case EngineGen.keybase1NotifyTrackingTrackingInfo: {
           const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
-          if (storeRegistry.getState('current-user').uid !== uid) {
+          if (useCurrentUserState.getState().uid !== uid) {
             return
           }
           const newFollowers = new Set(_newFollowers)
@@ -819,7 +824,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
             following: oldFollowing,
             followers: oldFollowers,
             dispatch,
-          } = storeRegistry.getState('followers')
+          } = useFollowerState.getState()
           const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
           const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
           dispatch.replace(followers, following)
@@ -910,7 +915,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }))
     },
     revoke: name => {
-      const wasCurrentDevice = storeRegistry.getState('current-user').deviceName === name
+      const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
       if (wasCurrentDevice) {
         const {configuredAccounts, defaultUsername} = get()
         const acc = configuredAccounts.find(n => n.username !== defaultUsername)

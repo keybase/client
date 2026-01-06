@@ -7,24 +7,18 @@ import type {ConvoState} from './chat2/convostate'
 import type {State as ActiveState, useActiveState} from './active'
 import type {State as ArchiveState, useArchiveState} from './archive'
 import type {State as AutoResetState, useAutoResetState} from './autoreset'
-import type {State as AvatarState, useAvatarState} from '@/common-adapters/avatar/store'
 import type {State as BotsState, useBotsState} from './bots'
 import type {State as ChatState, useChatState} from './chat2'
 import type {State as ConfigState, useConfigState} from './config'
 import type {State as CryptoState, useCryptoState} from './crypto'
-import type {State as CurrentUserState, useCurrentUserState} from './current-user'
 import type {State as DaemonState, useDaemonState} from './daemon'
-import type {State as DarkModeState, useDarkModeState} from './darkmode'
 import type {State as DeepLinksState, useDeepLinksState} from './deeplinks'
 import type {State as DevicesState, useDevicesState} from './devices'
 import type {State as EngineState, useEngineState} from './engine'
-import type {State as FollowersState, useFollowerState} from './followers'
 import type {State as FSState, useFSState} from './fs'
 import type {State as GitState, useGitState} from './git'
-import type {State as LogoutState, useLogoutState} from './logout'
 import type {State as NotificationsState, useNotifState} from './notifications'
 import type {State as PeopleState, usePeopleState} from './people'
-import type {State as PinentryState, usePinentryState} from './pinentry'
 import type {State as ProfileState, useProfileState} from './profile'
 import type {State as ProvisionState, useProvisionState} from './provision'
 import type {State as PushState, usePushState} from './push'
@@ -41,31 +35,23 @@ import type {State as TeamsState, useTeamsState} from './teams'
 import type {State as Tracker2State, useTrackerState} from './tracker2'
 import type {State as UnlockFoldersState, useUnlockFoldersState} from './unlock-folders'
 import type {State as UsersState, useUsersState} from './users'
-import type {State as WaitingState, useWaitingState} from './waiting'
-import type {State as WhatsNewState, useWhatsNewState} from './whats-new'
 
 type StoreName =
   | 'active'
   | 'archive'
   | 'autoreset'
-  | 'avatar'
   | 'bots'
   | 'chat'
   | 'config'
   | 'crypto'
-  | 'current-user'
   | 'daemon'
-  | 'dark-mode'
   | 'deeplinks'
   | 'devices'
   | 'engine'
-  | 'followers'
   | 'fs'
   | 'git'
-  | 'logout'
   | 'notifications'
   | 'people'
-  | 'pinentry'
   | 'profile'
   | 'provision'
   | 'push'
@@ -82,31 +68,23 @@ type StoreName =
   | 'tracker2'
   | 'unlock-folders'
   | 'users'
-  | 'waiting'
-  | 'whats-new'
 
 type StoreStates = {
   active: ActiveState
   archive: ArchiveState
   autoreset: AutoResetState
-  avatar: AvatarState
   bots: BotsState
   chat: ChatState
   config: ConfigState
   crypto: CryptoState
-  'current-user': CurrentUserState
   daemon: DaemonState
-  'dark-mode': DarkModeState
   deeplinks: DeepLinksState
   devices: DevicesState
   engine: EngineState
-  followers: FollowersState
   fs: FSState
   git: GitState
-  logout: LogoutState
   notifications: NotificationsState
   people: PeopleState
-  pinentry: PinentryState
   profile: ProfileState
   provision: ProvisionState
   push: PushState
@@ -123,32 +101,24 @@ type StoreStates = {
   tracker2: Tracker2State
   'unlock-folders': UnlockFoldersState
   users: UsersState
-  waiting: WaitingState
-  'whats-new': WhatsNewState
 }
 
 type StoreHooks = {
   active: typeof useActiveState
   archive: typeof useArchiveState
   autoreset: typeof useAutoResetState
-  avatar: typeof useAvatarState
   bots: typeof useBotsState
   chat: typeof useChatState
   config: typeof useConfigState
   crypto: typeof useCryptoState
-  'current-user': typeof useCurrentUserState
   daemon: typeof useDaemonState
-  'dark-mode': typeof useDarkModeState
   deeplinks: typeof useDeepLinksState
   devices: typeof useDevicesState
   engine: typeof useEngineState
-  followers: typeof useFollowerState
   fs: typeof useFSState
   git: typeof useGitState
-  logout: typeof useLogoutState
   notifications: typeof useNotifState
   people: typeof usePeopleState
-  pinentry: typeof usePinentryState
   profile: typeof useProfileState
   provision: typeof useProvisionState
   push: typeof usePushState
@@ -165,8 +135,6 @@ type StoreHooks = {
   tracker2: typeof useTrackerState
   'unlock-folders': typeof useUnlockFoldersState
   users: typeof useUsersState
-  waiting: typeof useWaitingState
-  'whats-new': typeof useWhatsNewState
 }
 
 class StoreRegistry {
@@ -185,10 +153,6 @@ class StoreRegistry {
         const {useAutoResetState} = require('./autoreset')
         return useAutoResetState
       }
-      case 'avatar': {
-        const {useAvatarState} = require('@/common-adapters/avatar/store')
-        return useAvatarState
-      }
       case 'bots': {
         const {useBotsState} = require('./bots')
         return useBotsState
@@ -201,10 +165,6 @@ class StoreRegistry {
         const {useConfigState} = require('./config')
         return useConfigState
       }
-      case 'current-user': {
-        const {useCurrentUserState} = require('./current-user')
-        return useCurrentUserState
-      }
       case 'crypto': {
         const {useCryptoState} = require('./crypto')
         return useCryptoState
@@ -212,10 +172,6 @@ class StoreRegistry {
       case 'daemon': {
         const {useDaemonState} = require('./daemon')
         return useDaemonState
-      }
-      case 'dark-mode': {
-        const {useDarkModeState} = require('./darkmode')
-        return useDarkModeState
       }
       case 'deeplinks': {
         const {useDeepLinksState} = require('./deeplinks')
@@ -229,10 +185,6 @@ class StoreRegistry {
         const {useEngineState} = require('./engine')
         return useEngineState
       }
-      case 'followers': {
-        const {useFollowerState} = require('./followers')
-        return useFollowerState
-      }
       case 'fs': {
         const {useFSState} = require('./fs')
         return useFSState
@@ -241,10 +193,6 @@ class StoreRegistry {
         const {useGitState} = require('./git')
         return useGitState
       }
-      case 'logout': {
-        const {useLogoutState} = require('./logout')
-        return useLogoutState
-      }
       case 'notifications': {
         const {useNotifState} = require('./notifications')
         return useNotifState
@@ -252,10 +200,6 @@ class StoreRegistry {
       case 'people': {
         const {usePeopleState} = require('./people')
         return usePeopleState
-      }
-      case 'pinentry': {
-        const {usePinentryState} = require('./pinentry')
-        return usePinentryState
       }
       case 'profile': {
         const {useProfileState} = require('./profile')
@@ -320,14 +264,6 @@ class StoreRegistry {
       case 'users': {
         const {useUsersState} = require('./users')
         return useUsersState
-      }
-      case 'waiting': {
-        const {useWaitingState} = require('./waiting')
-        return useWaitingState
-      }
-      case 'whats-new': {
-        const {useWhatsNewState} = require('./whats-new')
-        return useWhatsNewState
       }
       default:
         throw new Error(`Unknown store: ${storeName}`)

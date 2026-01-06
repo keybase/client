@@ -10,6 +10,7 @@ import {
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
 import {storeRegistry} from '../store-registry'
+import {useLogoutState} from '../logout'
 
 type DataCommon = {
   userInteraction: boolean
@@ -177,7 +178,7 @@ export const initPushListener = () => {
   })
 
   // Token handling
-  storeRegistry.getStore('logout').subscribe((s, old) => {
+  useLogoutState.subscribe((s, old) => {
     if (s.version === old.version) return
     storeRegistry.getState('push').dispatch.deleteToken(s.version)
   })

@@ -1,5 +1,7 @@
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
 import {storeRegistry} from '../store-registry'
+import {useCurrentUserState} from '../current-user'
+import {useDarkModeState} from '../darkmode'
 import * as T from '../types'
 import * as Clipboard from 'expo-clipboard'
 import * as EngineGen from '@/actions/engine-gen-gen'
@@ -526,9 +528,9 @@ export const initPlatformListener = () => {
 
   // Location
   if (isAndroid) {
-    storeRegistry.getStore('dark-mode').subscribe((s, old) => {
+    useDarkModeState.subscribe((s, old) => {
       if (s.darkModePreference === old.darkModePreference) return
-      const {darkModePreference} = storeRegistry.getState('dark-mode')
+      const {darkModePreference} = useDarkModeState.getState()
       androidAppColorSchemeChanged(darkModePreference)
     })
   }
@@ -622,7 +624,7 @@ export const initPlatformListener = () => {
     s.dispatch.dynamic.tabLongPress = wrapErrors((tab: string) => {
       if (tab !== Tabs.peopleTab) return
       const accountRows = storeRegistry.getState('config').configuredAccounts
-      const current = storeRegistry.getState('current-user').username
+      const current = useCurrentUserState.getState().username
       const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
       if (row) {
         storeRegistry.getState('config').dispatch.setUserSwitching(true)

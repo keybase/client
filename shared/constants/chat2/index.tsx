@@ -18,6 +18,8 @@ import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '../rpc-utils'
 import {navigateAppend, navUpToScreen, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useCurrentUserState} from '../current-user'
+import {useWaitingState} from '../waiting'
 import * as S from '../strings'
 
 const defaultTopReacjis = [
@@ -406,7 +408,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       // only one pending conversation state.
       // The fix involves being able to make multiple pending conversations
       const f = async () => {
-        const username = storeRegistry.getState('current-user').username
+        const username = useCurrentUserState.getState().username
         if (!username) {
           logger.error('Making a convo while logged out?')
           return
@@ -524,7 +526,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     inboxRefresh: reason => {
       const f = async () => {
-        const {username} = storeRegistry.getState('current-user')
+        const {username} = useCurrentUserState.getState()
         const {loggedIn} = storeRegistry.getState('config')
         if (!loggedIn || !username) {
           return
@@ -897,7 +899,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     messageSendByUsername: (username, text, waitingKey) => {
       const f = async () => {
-        const tlfName = `${storeRegistry.getState('current-user').username},${username}`
+        const tlfName = `${useCurrentUserState.getState().username},${username}`
         try {
           const result = await T.RPCChat.localNewConversationLocalRpcPromise(
             {
@@ -953,7 +955,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     onChatInboxSynced: action => {
       const {syncRes} = action.payload.params
-      const {clear} = storeRegistry.getState('waiting').dispatch
+      const {clear} = useWaitingState.getState().dispatch
       const {inboxRefresh} = get().dispatch
       clear(S.waitingKeyChatInboxSyncStarted)
 
@@ -1118,7 +1120,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           get().dispatch.onGetInboxUnverifiedConvs(action)
           break
         case EngineGen.chat1NotifyChatChatInboxSyncStarted:
-          storeRegistry.getState('waiting').dispatch.increment(S.waitingKeyChatInboxSyncStarted)
+          useWaitingState.getState().dispatch.increment(S.waitingKeyChatInboxSyncStarted)
           break
 
         case EngineGen.chat1NotifyChatChatInboxSynced:

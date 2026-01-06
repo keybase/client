@@ -2,6 +2,7 @@ import type {RPCError} from '@/util/errors'
 import type * as T from '../types'
 import * as Z from '@/util/zustand'
 
+// This store has no dependencies on other stores and is safe to import directly from other stores.
 const initialStore: T.Waiting.State = {
   counts: new Map(),
   errors: new Map(),

@@ -10,6 +10,8 @@ import * as Tabs from '../tabs'
 import logger from '@/logger'
 import {clearModals, navigateAppend, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useCurrentUserState} from '../current-user'
+import {useWaitingState} from '../waiting'
 import {processorProfileInProgressKey, traceInProgressKey} from './util'
 
 export * from './util'
@@ -89,7 +91,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
     },
     deleteAccountForever: passphrase => {
       const f = async () => {
-        const username = storeRegistry.getState('current-user').username
+        const username = useCurrentUserState.getState().username
 
         if (!username) {
           throw new Error('Unable to delete account: no username set')
@@ -204,7 +206,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
           logDirForMobile: pprofDir,
           profileDurationSeconds,
         })
-        const {decrement, increment} = storeRegistry.getState('waiting').dispatch
+        const {decrement, increment} = useWaitingState.getState().dispatch
         increment(processorProfileInProgressKey)
         await timeoutPromise(profileDurationSeconds * 1_000)
         decrement(processorProfileInProgressKey)
@@ -262,7 +264,7 @@ export const useSettingsState = Z.createZustand<State>(set => {
           logDirForMobile: pprofDir,
           traceDurationSeconds: durationSeconds,
         })
-        const {decrement, increment} = storeRegistry.getState('waiting').dispatch
+        const {decrement, increment} = useWaitingState.getState().dispatch
         increment(traceInProgressKey)
         await timeoutPromise(durationSeconds * 1_000)
         decrement(traceInProgressKey)

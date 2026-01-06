@@ -1,6 +1,7 @@
 import type * as T from '../types'
 import * as Z from '@/util/zustand'
 
+// This store has no dependencies on other stores and is safe to import directly from other stores.
 type Store = T.Immutable<{
   deviceID: T.RPCGen.DeviceID
   deviceName: string

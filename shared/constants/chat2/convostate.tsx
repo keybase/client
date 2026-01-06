@@ -47,6 +47,7 @@ import {enumKeys, ignorePromise, shallowEqual} from '../utils'
 import * as Strings from '@/constants/strings'
 
 import {storeRegistry} from '../store-registry'
+import {useCurrentUserState} from '../current-user'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -648,7 +649,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const refreshMutualTeamsInConv = () => {
     const f = async () => {
       const {id: conversationIDKey} = get()
-      const username = storeRegistry.getState('current-user').username
+      const username = useCurrentUserState.getState().username
       const otherParticipants = Meta.getRowParticipants(get().participants, username || '')
       const results = await T.RPCChat.localGetMutualTeamsLocalRpcPromise(
         {usernames: otherParticipants},
@@ -834,7 +835,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
 
   const onInboxFailed = (convID: Uint8Array, error: T.RPCChat.InboxUIItemError) => {
-    const username = storeRegistry.getState('current-user').username
+    const username = useCurrentUserState.getState().username
     const conversationIDKey = T.Chat.conversationIDToKey(convID)
     switch (error.typ) {
       case T.RPCChat.ConversationErrorType.transient:
@@ -1419,8 +1420,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 hit: T.RPCChat.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
               ) => {
                 const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-                const username = storeRegistry.getState('current-user').username
-                const devicename = storeRegistry.getState('current-user').deviceName
+                const username = useCurrentUserState.getState().username
+                const devicename = useCurrentUserState.getState().deviceName
                 const m = Message.uiMessageToMessage(
                   conversationIDKey,
                   hit.message,
@@ -1564,8 +1565,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             s.loaded = true
           })
 
-          const username = storeRegistry.getState('current-user').username
-          const devicename = storeRegistry.getState('current-user').deviceName
+          const username = useCurrentUserState.getState().username
+          const devicename = useCurrentUserState.getState().deviceName
           const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
           const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
 
@@ -1703,8 +1704,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
 
         if (result.message) {
-          const devicename = storeRegistry.getState('current-user').deviceName
-          const username = storeRegistry.getState('current-user').username
+          const devicename = useCurrentUserState.getState().deviceName
+          const username = useCurrentUserState.getState().username
           const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
           const goodMessage = Message.uiMessageToMessage(
             get().id,
@@ -1956,7 +1957,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
           return
         }
-        const username = storeRegistry.getState('current-user').username
+        const username = useCurrentUserState.getState().username
         if (!username) {
           throw new Error('messageReplyPrivately: making a convo while logged out?')
         }
@@ -2248,7 +2249,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     onIncomingMessage: incoming => {
       const {message: cMsg} = incoming
-      const username = storeRegistry.getState('current-user').username
+      const username = useCurrentUserState.getState().username
       // check for a reaction outbox notification before doing anything
       if (
         cMsg.state === T.RPCChat.MessageUnboxedState.outbox &&
@@ -2274,7 +2275,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
 
       const conversationIDKey = get().id
-      const devicename = storeRegistry.getState('current-user').deviceName
+      const devicename = useCurrentUserState.getState().deviceName
       const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
 
       // special case mutations
@@ -2330,8 +2331,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     onMessagesUpdated: messagesUpdated => {
       if (!messagesUpdated.updates) return
-      const username = storeRegistry.getState('current-user').username
-      const devicename = storeRegistry.getState('current-user').deviceName
+      const username = useCurrentUserState.getState().username
+      const devicename = useCurrentUserState.getState().deviceName
       const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
       const toAdd = new Array<T.Chat.Message>()
       messagesUpdated.updates.forEach(uimsg => {
@@ -2492,7 +2493,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const fetchConversationBio = () => {
         const participantInfo = get().participants
-        const username = storeRegistry.getState('current-user').username
+        const username = useCurrentUserState.getState().username
         const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
         if (otherParticipants.length === 1) {
           // we're in a one-on-one convo
@@ -2607,7 +2608,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       let ordinal = T.Chat.numberToOrdinal(0)
       // Editing last message
       if (e === 'last') {
-        const editLastUser = storeRegistry.getState('current-user').username
+        const editLastUser = useCurrentUserState.getState().username
         // Editing your last message
         const ordinals = get().messageOrdinals
         const found =
@@ -2875,8 +2876,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const conversationIDKey = get().id
         const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-        const username = storeRegistry.getState('current-user').username
-        const devicename = storeRegistry.getState('current-user').deviceName
+        const username = useCurrentUserState.getState().username
+        const devicename = useCurrentUserState.getState().deviceName
         const onDone = () => {
           set(s => {
             s.threadSearchInfo.status = 'done'

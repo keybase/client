@@ -8,6 +8,7 @@ import {navigateAppend} from '../router2/util'
 import {isMobile} from '../platform'
 import * as Tabs from '../tabs'
 
+// This store has no dependencies on other stores and is safe to import directly from other stores.
 type Store = T.Immutable<{
   waiters: Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things

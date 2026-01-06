@@ -5,6 +5,7 @@ import logger from '@/logger'
 import {invalidPasswordErrorString} from '@/constants/config/util'
 import {wrapErrors} from '../utils'
 
+// This store has no dependencies on other stores and is safe to import directly from other stores.
 export type Store = T.Immutable<{
   cancelLabel?: string
   prompt: string

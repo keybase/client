@@ -5,6 +5,7 @@ import {noVersion, getSeenVersions} from './utils'
 
 export {currentVersion, lastVersion, lastLastVersion, keybaseFM} from './utils'
 
+// This store has no dependencies on other stores and is safe to import directly from other stores.
 type SeenVersionsMap = {[key in string]: boolean}
 
 type Store = T.Immutable<{

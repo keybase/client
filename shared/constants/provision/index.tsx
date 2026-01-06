@@ -10,6 +10,7 @@ import {rpcDeviceToDevice} from '../rpc-utils'
 import {invalidPasswordErrorString} from '@/constants/config/util'
 import {clearModals, navigateAppend} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useWaitingState} from '../waiting'
 
 export type Device = {
   deviceNumberOfType: number
@@ -122,7 +123,7 @@ export interface State extends Store {
 
 export const useProvisionState = Z.createZustand<State>((set, get) => {
   const _cancel = C.wrapErrors((ignoreWarning?: boolean) => {
-    storeRegistry.getState('waiting').dispatch.clear(C.waitingKeyProvision)
+    useWaitingState.getState().dispatch.clear(C.waitingKeyProvision)
     if (!ignoreWarning) {
       console.log('Provision: cancel called while not overloaded')
     }
@@ -259,7 +260,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
             },
             incomingCallMap: {
               'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-                storeRegistry.getState('waiting').dispatch.increment(C.waitingKeyProvision)
+                useWaitingState.getState().dispatch.increment(C.waitingKeyProvision)
               },
               'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
               'keybase.1.provisionUi.ProvisionerSuccess': () => {},
@@ -502,7 +503,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
             incomingCallMap: {
               'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
               'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-                storeRegistry.getState('waiting').dispatch.increment(C.waitingKeyProvision)
+                useWaitingState.getState().dispatch.increment(C.waitingKeyProvision)
               },
               'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
               'keybase.1.provisionUi.ProvisionerSuccess': () => {},

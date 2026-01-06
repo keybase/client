@@ -5,6 +5,7 @@ import {isMobile} from '../platform'
 
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
 
+// This store has no dependencies on other stores and is safe to import directly from other stores.
 type Store = T.Immutable<{
   darkModePreference: DarkModePreference
   systemDarkMode: boolean

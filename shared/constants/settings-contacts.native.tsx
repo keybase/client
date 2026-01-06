@@ -12,6 +12,8 @@ import {getE164} from './settings-phone'
 import {pluralize} from '@/util/string'
 import {navigateAppend} from './router2/util'
 import {storeRegistry} from './store-registry'
+import {useCurrentUserState} from './current-user'
+import {useWaitingState} from './waiting'
 
 const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
 
@@ -80,7 +82,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
         })
       }
       const f = async () => {
-        const username = storeRegistry.getState('current-user').username
+        const username = useCurrentUserState.getState().username
         if (!username) {
           logger.warn('no username')
           return
@@ -103,7 +105,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
         if (!storeRegistry.getState('config').loggedIn) {
           return
         }
-        const username = storeRegistry.getState('current-user').username
+        const username = useCurrentUserState.getState().username
         if (!username) {
           logger.warn('no username')
           return
@@ -241,7 +243,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
     },
     requestPermissions: (thenToggleImportOn?: boolean, fromSettings?: boolean) => {
       const f = async () => {
-        const {decrement, increment} = storeRegistry.getState('waiting').dispatch
+        const {decrement, increment} = useWaitingState.getState().dispatch
         increment(C.importContactsWaitingKey)
         const status = (await Contacts.requestPermissionsAsync()).status
 

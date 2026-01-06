@@ -9,6 +9,7 @@ import {RPCError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
 import {clearModals, navigateAppend, navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useCurrentUserState} from '../current-user'
 import {navToProfile} from '../router2'
 
 type ProveGenericParams = {
@@ -266,7 +267,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
 
         const loadAfter = () =>
           storeRegistry.getState('tracker2').dispatch.load({
-            assertion: storeRegistry.getState('current-user').username,
+            assertion: useCurrentUserState.getState().username,
             guiID: generateGUIID(),
             inTracker: false,
             reason: '',
@@ -435,7 +436,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     backToProfile: () => {
       clearModals()
       setTimeout(() => {
-        get().dispatch.showUserProfile(storeRegistry.getState('current-user').username)
+        get().dispatch.showUserProfile(useCurrentUserState.getState().username)
       }, 100)
     },
     checkProof: () => {
@@ -494,15 +495,15 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     editProfile: (bio, fullName, location) => {
       const f = async () => {
         await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, S.waitingKeyTracker)
-        get().dispatch.showUserProfile(storeRegistry.getState('current-user').username)
+        get().dispatch.showUserProfile(useCurrentUserState.getState().username)
       }
       ignorePromise(f())
     },
     finishRevoking: () => {
-      const username = storeRegistry.getState('current-user').username
+      const username = useCurrentUserState.getState().username
       get().dispatch.showUserProfile(username)
       storeRegistry.getState('tracker2').dispatch.load({
-        assertion: storeRegistry.getState('current-user').username,
+        assertion: useCurrentUserState.getState().username,
         guiID: generateGUIID(),
         inTracker: false,
         reason: '',
@@ -599,7 +600,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         await T.RPCGen.proveCheckProofRpcPromise({sigID}, S.waitingKeyProfile)
         storeRegistry
           .getState('tracker2')
-          .dispatch.showUser(storeRegistry.getState('current-user').username, false)
+          .dispatch.showUser(useCurrentUserState.getState().username, false)
       }
       ignorePromise(f())
     },
@@ -649,7 +650,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         const you = storeRegistry
           .getState('tracker2')
-          .getDetails(storeRegistry.getState('current-user').username)
+          .getDetails(useCurrentUserState.getState().username)
         if (!you.assertions) return
         const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
         if (!proof) return

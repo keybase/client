@@ -8,6 +8,7 @@ import * as T from '../types'
 import {RPCError} from '@/util/errors'
 import {navigateAppend} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useCurrentUserState} from '../current-user'
 import {Operations} from './util'
 export * from './util'
 
@@ -214,7 +215,7 @@ export const useCryptoState = Z.createZustand<State>((set, get) => {
   const encrypt = (destinationDir: string = '') => {
     const f = async () => {
       const start = get().encrypt
-      const username = storeRegistry.getState('current-user').username
+      const username = useCurrentUserState.getState().username
       const signed = start.options.sign
       const inputType = start.inputType
       const input = start.input.stringValue()
@@ -349,7 +350,7 @@ export const useCryptoState = Z.createZustand<State>((set, get) => {
 
         const output = await (inputType === 'text' ? callText() : callFile())
 
-        const username = storeRegistry.getState('current-user').username
+        const username = useCurrentUserState.getState().username
         set(s => {
           onSuccess(s.sign, s.sign.input.stringValue() === input, '', output, inputType, true, username, '')
         })
@@ -530,7 +531,7 @@ export const useCryptoState = Z.createZustand<State>((set, get) => {
 
       // User set themselves as a recipient, so don't show 'includeSelf' option
       // However we don't want to set hideIncludeSelf if we are also encrypting to an SBS user (since we must force includeSelf)
-      const currentUser = storeRegistry.getState('current-user').username
+      const currentUser = useCurrentUserState.getState().username
       const {options} = get().encrypt
       if (usernames.includes(currentUser) && !hasSBS) {
         get().dispatch.setEncryptOptions(options, true)

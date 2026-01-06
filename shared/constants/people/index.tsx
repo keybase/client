@@ -10,6 +10,7 @@ import {isMobile} from '../platform'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import debounce from 'lodash/debounce'
 import {storeRegistry} from '../store-registry'
+import {useFollowerState} from '../followers'
 import {RPCError, isNetworkErr} from '../utils'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
@@ -398,7 +399,7 @@ export const usePeopleState = Z.createZustand<State>((set, get) => {
               {markViewed, numFollowSuggestionsWanted},
               getPeopleDataWaitingKey
             )
-            const {following, followers} = storeRegistry.getState('followers')
+            const {following, followers} = useFollowerState.getState()
             const oldItems: Array<T.People.PeopleScreenItem> = (data.items ?? [])
               .filter(item => !item.badged && item.data.t !== T.RPCGen.HomeScreenItemType.todo)
               .reduce(reduceRPCItemToPeopleItem, [])

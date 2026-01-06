@@ -7,6 +7,7 @@ import {formatTimeForPopup} from '@/util/timestamp'
 import {uint8ArrayToHex} from 'uint8array-extras'
 import {storeRegistry} from '../store-registry'
 import {isMobile} from '../platform'
+import {useCurrentUserState} from '../current-user'
 
 type ChatJob = {
   id: string
@@ -448,7 +449,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
   return {
     ...initialStore,
     chatIDToDisplayname: (conversationIDKey: string) => {
-      const you = storeRegistry.getState('current-user').username
+      const you = useCurrentUserState.getState().username
       const cs = storeRegistry.getConvoState(conversationIDKey)
       const m = cs.meta
       if (m.teamname) {
