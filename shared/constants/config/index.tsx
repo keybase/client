@@ -15,9 +15,7 @@ import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from './util'
 import {navigateAppend, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
-import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useCurrentUserState} from '../current-user'
-import {useFollowerState} from '../followers'
 import {usePinentryState} from '../pinentry'
 import {useWhatsNewState} from '../whats-new'
 import {getSelectedConversation} from '@/constants/chat2/common'
@@ -749,30 +747,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           }
           break
         }
-        case EngineGen.keybase1NotifyTeamAvatarUpdated: {
-          const {name} = action.payload.params
-          useAvatarState.getState().dispatch.updated(name)
-          break
-        }
-        case EngineGen.keybase1NotifyTrackingTrackingChanged: {
-          const {isTracking, username} = action.payload.params
-          useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
-          break
-        }
-        case EngineGen.keybase1NotifyTrackingTrackingInfo: {
-          const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
-          if (useCurrentUserState.getState().uid !== uid) {
-            return
-          }
-          const newFollowers = new Set(_newFollowers)
-          const newFollowing = new Set(_newFollowing)
-          const {following: oldFollowing, followers: oldFollowers, dispatch} = useFollowerState.getState()
-          const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
-          const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
-          dispatch.replace(followers, following)
-          break
-        }
-
         case EngineGen.keybase1ReachabilityReachabilityChanged:
           if (get().loggedIn) {
             setGregorReachable(action.payload.params.reachability.reachable)

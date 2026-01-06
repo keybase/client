@@ -5,6 +5,7 @@ import * as T from '../types'
 import {ignorePromise} from '../utils'
 import * as ArchiveUtil from '../archive/util'
 import * as AutoResetUtil from '../autoreset/util'
+import * as AvatarUtil from '@/common-adapters/avatar/util'
 import * as BotsUtil from '../bots/util'
 import {useChatState} from '../chat2'
 import * as ChatUtil from '../chat2/util'
@@ -12,6 +13,7 @@ import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
 import * as DeepLinksUtil from '../deeplinks/util'
 import * as DevicesUtil from '../devices/util'
+import * as FollowerUtil from '../followers/util'
 import * as FSUtil from '../fs/util'
 import * as GitUtil from '../git/util'
 import * as NotifUtil from '../notifications/util'
@@ -89,6 +91,7 @@ export const initSharedSubscriptions = () => {
 export const onEngineIncoming = (action: EngineGen.Actions) => {
   ArchiveUtil.onEngineIncoming(action)
   AutoResetUtil.onEngineIncoming(action)
+  AvatarUtil.onEngineIncoming(action)
   BotsUtil.onEngineIncoming(action)
   ChatUtil.onEngineIncoming(action)
   storeRegistry.getState('config').dispatch.dynamic.onEngineIncomingDesktop?.(action)
@@ -96,6 +99,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
   storeRegistry.getState('config').dispatch.onEngineIncoming(action)
   DeepLinksUtil.onEngineIncoming(action)
   DevicesUtil.onEngineIncoming(action)
+  FollowerUtil.onEngineIncoming(action)
   FSUtil.onEngineIncoming(action)
   GitUtil.onEngineIncoming(action)
   NotifUtil.onEngineIncoming(action)
