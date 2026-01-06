@@ -125,7 +125,7 @@ build_one_architecture() {
 
 	# Build the root redirector binary.
 	echo "Building keybase-redirector for $GOARCH..."
-	(cd "$client_dir" && go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
+	(cd "$client_dir" && CGO_ENABLED=1 go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
 		"$layout_dir/usr/bin/keybase-redirector" github.com/keybase/client/go/kbfs/redirector)
 
 	# Build the kbnm binary
