@@ -2,9 +2,6 @@ import logger from '@/logger'
 import {ignorePromise} from '../utils'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
-import {storeRegistry} from '../store-registry'
-import {useCurrentUserState} from '../current-user'
-import {useDarkModeState} from '../darkmode'
 import {maxHandshakeTries} from '../values'
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
@@ -12,16 +9,18 @@ import {maxHandshakeTries} from '../values'
 const getAccountsWaitKey = 'config.getAccounts'
 
 type Store = T.Immutable<{
+  bootstrapStatus?: T.RPCGen.BootstrapStatus
   error?: Error
-  handshakeState: T.Config.DaemonHandshakeState
   handshakeFailedReason: string
   handshakeRetriesLeft: number
+  handshakeState: T.Config.DaemonHandshakeState
+  handshakeVersion: number
   handshakeWaiters: Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things
-  handshakeVersion: number
 }>
 
 const initialStore: Store = {
+  bootstrapStatus: undefined,
   handshakeFailedReason: '',
   handshakeRetriesLeft: maxHandshakeTries,
   handshakeState: 'starting',
@@ -31,9 +30,8 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    loadDaemonAccounts: () => void
+    loadDaemonAccounts: (configuredAccountsLength: number, loggedIn: boolean, refreshAccounts: () => Promise<void>) => void
     loadDaemonBootstrapStatus: () => Promise<void>
-    refreshAccounts: () => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
     setFailed: (r: string) => void
@@ -93,7 +91,6 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
 
   // When there are no more waiters, we can show the actual app
 
-  let _emitStartupOnLoadDaemonConnectedOnce = false
   const dispatch: State['dispatch'] = {
     daemonHandshake: version => {
       get().dispatch.setState('waitingForWaiters')
@@ -111,22 +108,19 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         wait(name, version, true)
         try {
           await get().dispatch.loadDaemonBootstrapStatus()
-          useDarkModeState.getState().dispatch.loadDarkPrefs()
-          storeRegistry.getState('chat').dispatch.loadStaticConfig()
         } finally {
           wait(name, version, false)
         }
       }
       ignorePromise(f())
-      get().dispatch.loadDaemonAccounts()
     },
     daemonHandshakeDone: () => {
       get().dispatch.setState('done')
     },
-    loadDaemonAccounts: () => {
+    loadDaemonAccounts: (configuredAccountsLength: number, loggedIn: boolean, refreshAccounts: () => Promise<void>) => {
       const f = async () => {
         const version = get().handshakeVersion
-        if (storeRegistry.getState('config').configuredAccounts.length) {
+        if (configuredAccountsLength) {
           // bail on already loaded
           return
         }
@@ -135,7 +129,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         const handshakeVersion = version
 
         // did we beat getBootstrapStatus?
-        if (!storeRegistry.getState('config').loggedIn) {
+        if (!loggedIn) {
           handshakeWait = true
         }
 
@@ -145,7 +139,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
             wait(getAccountsWaitKey, handshakeVersion, true)
           }
 
-          await get().dispatch.refreshAccounts()
+          await refreshAccounts()
 
           if (handshakeWait) {
             // someone dismissed this already?
@@ -172,32 +166,22 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       const {wait} = get().dispatch
 
       const f = async () => {
-        const {setBootstrap} = useCurrentUserState.getState().dispatch
-        const {setDefaultUsername} = storeRegistry.getState('config').dispatch
         const s = await T.RPCGen.configGetBootstrapStatusRpcPromise()
-        const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
-        setBootstrap({deviceID, deviceName, uid, username})
-        if (username) {
-          setDefaultUsername(username)
-        }
-        if (loggedIn) {
-          storeRegistry.getState('config').dispatch.setUserSwitching(false)
-        }
+        set(state => {
+          state.bootstrapStatus = T.castDraft(s)
+        })
 
-        logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
-        storeRegistry.getState('config').dispatch.setLoggedIn(loggedIn, false)
-        storeRegistry.getState('chat').dispatch.updateUserReacjis(userReacjis)
+        logger.info(`[Bootstrap] loggedIn: ${s.loggedIn ? 1 : 0}`)
 
         // set HTTP srv info
         if (s.httpSrvInfo) {
           logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
-          storeRegistry.getState('config').dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
         } else {
           logger.info(`[Bootstrap] http server: no info given`)
         }
 
         // if we're logged in act like getAccounts is done already
-        if (loggedIn) {
+        if (s.loggedIn) {
           const {handshakeWaiters} = get()
           if (handshakeWaiters.get(getAccountsWaitKey)) {
             wait(getAccountsWaitKey, version, false)
@@ -207,39 +191,6 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       return await f()
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
-    refreshAccounts: async () => {
-      const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
-      // already have one?
-      const {defaultUsername} = storeRegistry.getState('config')
-      const {setAccounts, setDefaultUsername} = storeRegistry.getState('config').dispatch
-
-      let existingDefaultFound = false as boolean
-      let currentName = ''
-      const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
-      const usernameToFullname: {[username: string]: string} = {}
-
-      configuredAccounts.forEach(account => {
-        const {username, isCurrent, fullname, hasStoredSecret} = account
-        if (username === defaultUsername) {
-          existingDefaultFound = true
-        }
-        if (isCurrent) {
-          currentName = account.username
-        }
-        nextConfiguredAccounts.push({hasStoredSecret, username})
-        usernameToFullname[username] = fullname
-      })
-      if (!existingDefaultFound) {
-        setDefaultUsername(currentName)
-      }
-      setAccounts(nextConfiguredAccounts)
-      storeRegistry.getState('users').dispatch.updates(
-        Object.keys(usernameToFullname).map(name => ({
-          info: {fullname: usernameToFullname[name]},
-          name,
-        }))
-      )
-    },
     resetState: () => {
       set(s => ({
         ...s,
@@ -270,13 +221,6 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.handshakeState = ds
       })
-
-      if (ds !== 'done') return
-
-      if (!_emitStartupOnLoadDaemonConnectedOnce) {
-        _emitStartupOnLoadDaemonConnectedOnce = true
-        storeRegistry.getState('config').dispatch.loadOnStart('connectedToDaemonForFirstTime')
-      }
     },
     startHandshake: () => {
       get().dispatch.setError()

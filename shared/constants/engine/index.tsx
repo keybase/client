@@ -6,8 +6,10 @@ import * as PeopleUtil from '../people/util'
 import * as PinentryUtil from '../pinentry/util'
 import {onEngineIncoming as onEngineIncomingShared} from '../platform-specific/shared'
 import {storeRegistry} from '../store-registry'
+import {ignorePromise} from '../utils'
 import * as TrackerUtil from '../tracker2/util'
 import * as UnlockFoldersUtil from '../unlock-folders/util'
+import logger from '@/logger'
 
 type Store = object
 const initialStore: Store = {}
@@ -27,6 +29,7 @@ export const useEngineState = Z.createZustand<State>(set => {
     onEngineConnected: () => {
       ChatUtil.onEngineConnected()
       storeRegistry.getState('config').dispatch.onEngineConnected()
+      storeRegistry.getState('daemon').dispatch.startHandshake()
       NotifUtil.onEngineConnected()
       PeopleUtil.onEngineConnected()
       PinentryUtil.onEngineConnected()
@@ -34,7 +37,11 @@ export const useEngineState = Z.createZustand<State>(set => {
       UnlockFoldersUtil.onEngineConnected()
     },
     onEngineDisconnected: () => {
-      storeRegistry.getState('config').dispatch.onEngineDisonnected()
+      const f = async () => {
+        await logger.dump()
+      }
+      ignorePromise(f())
+      storeRegistry.getState('daemon').dispatch.setError(new Error('Disconnected'))
     },
     onEngineIncoming: action => {
       // defer a frame so its more like before

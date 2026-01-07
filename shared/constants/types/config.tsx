@@ -8,6 +8,7 @@ export type OutOfDate = {
 }
 export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
 export type ConfiguredAccount = {
+  fullname?: string
   hasStoredSecret: boolean
   username: string
 }

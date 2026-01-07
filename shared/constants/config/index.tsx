@@ -174,7 +174,6 @@ export interface State extends Store {
     setLoginError: (error?: RPCError) => void
     logoutAndTryToLogInAs: (username: string) => void
     onEngineConnected: () => void
-    onEngineDisonnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     osNetworkStatusChanged: (online: boolean, type: T.Config.ConnectionType, isInit?: boolean) => void
     openUnlockFolders: (devices: ReadonlyArray<T.RPCGen.Device>) => void
@@ -183,6 +182,7 @@ export interface State extends Store {
     remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
     revoke: (deviceName: string, wasCurrentDevice: boolean) => void
+    refreshAccounts: () => Promise<void>
     setAccounts: (a: Store['configuredAccounts']) => void
     setAndroidShare: (s: Store['androidShare']) => void
     setBadgeState: (b: State['badgeState']) => void
@@ -488,8 +488,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       ignorePromise(f())
     },
     onEngineConnected: () => {
-      storeRegistry.getState('daemon').dispatch.startHandshake()
-
       // The startReachability RPC call both starts and returns the current
       // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
       // This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
@@ -516,13 +514,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
       get().dispatch.dynamic.onEngineConnectedDesktop?.()
       get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
-    },
-    onEngineDisonnected: () => {
-      const f = async () => {
-        await logger.dump()
-      }
-      ignorePromise(f())
-      storeRegistry.getState('daemon').dispatch.setError(new Error('Disconnected'))
     },
     onEngineIncoming: action => {
       switch (action.type) {
@@ -612,6 +603,30 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
+    refreshAccounts: async () => {
+      const defaultUsername = get().defaultUsername
+      const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
+      const {setAccounts, setDefaultUsername} = get().dispatch
+
+      let existingDefaultFound = false as boolean
+      let currentName = ''
+      const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
+
+      configuredAccounts.forEach(account => {
+        const {username, isCurrent, fullname, hasStoredSecret} = account
+        if (username === defaultUsername) {
+          existingDefaultFound = true
+        }
+        if (isCurrent) {
+          currentName = account.username
+        }
+        nextConfiguredAccounts.push({fullname, hasStoredSecret, username})
+      })
+      if (!existingDefaultFound) {
+        setDefaultUsername(currentName)
+      }
+      setAccounts(nextConfiguredAccounts)
+    },
     remoteWindowNeedsProps: (component, params) => {
       set(s => {
         const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
@@ -650,7 +665,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           s.justRevokedSelf = name
           s.revokedTrigger++
         })
-        storeRegistry.getState('daemon').dispatch.loadDaemonAccounts()
       }
     },
     setAccounts: a => {

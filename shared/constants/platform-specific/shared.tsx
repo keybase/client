@@ -11,6 +11,8 @@ import {useChatState} from '../chat2'
 import * as ChatUtil from '../chat2/util'
 import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
+import {useDaemonState} from '../daemon'
+import {useDarkModeState} from '../darkmode'
 import * as DeepLinksUtil from '../deeplinks/util'
 import * as DevicesUtil from '../devices/util'
 import * as FollowerUtil from '../followers/util'
@@ -28,6 +30,8 @@ import * as TeamsUtil from '../teams/util'
 import * as TrackerUtil from '../tracker2/util'
 import * as UnlockFoldersUtil from '../unlock-folders/util'
 import * as UsersUtil from '../users/util'
+
+let _emitStartupOnLoadDaemonConnectedOnce = false
 
 export const initSharedSubscriptions = () => {
   useConfigState.subscribe((s, old) => {
@@ -106,15 +110,72 @@ export const initSharedSubscriptions = () => {
         ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
         storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
       }
-      storeRegistry.getState('daemon').dispatch.loadDaemonAccounts()
+      storeRegistry.getState('daemon').dispatch.loadDaemonAccounts(s.configuredAccounts.length, s.loggedIn, storeRegistry.getState('config').dispatch.refreshAccounts)
       if (!s.loggedInCausedbyStartup) {
-        ignorePromise(storeRegistry.getState('daemon').dispatch.refreshAccounts())
+        ignorePromise(storeRegistry.getState('config').dispatch.refreshAccounts())
       }
     }
 
     if (s.mobileAppState !== old.mobileAppState) {
       if (s.mobileAppState === 'background' && storeRegistry.getState('chat').inboxSearch) {
         storeRegistry.getState('chat').dispatch.toggleInboxSearch(false)
+      }
+    }
+
+    if (s.revokedTrigger !== old.revokedTrigger) {
+      storeRegistry.getState('daemon').dispatch.loadDaemonAccounts(s.configuredAccounts.length, s.loggedIn, storeRegistry.getState('config').dispatch.refreshAccounts)
+    }
+  })
+
+  useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion !== old.handshakeVersion) {
+      useDarkModeState.getState().dispatch.loadDarkPrefs()
+      storeRegistry.getState('chat').dispatch.loadStaticConfig()
+      const configState = storeRegistry.getState('config')
+      s.dispatch.loadDaemonAccounts(configState.configuredAccounts.length, configState.loggedIn, storeRegistry.getState('config').dispatch.refreshAccounts)
+    }
+
+    if (s.bootstrapStatus !== old.bootstrapStatus) {
+      const bootstrap = s.bootstrapStatus
+      if (bootstrap) {
+        const {deviceID, deviceName, loggedIn, uid, username, userReacjis} = bootstrap
+        useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
+
+        const configDispatch = storeRegistry.getState('config').dispatch
+        if (username) {
+          configDispatch.setDefaultUsername(username)
+        }
+        if (loggedIn) {
+          configDispatch.setUserSwitching(false)
+        }
+        configDispatch.setLoggedIn(loggedIn, false)
+
+        if (bootstrap.httpSrvInfo) {
+          configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
+        }
+
+        storeRegistry.getState('chat').dispatch.updateUserReacjis(userReacjis)
+      }
+    }
+
+    if (s.handshakeState !== old.handshakeState) {
+      if (s.handshakeState === 'done') {
+        if (!_emitStartupOnLoadDaemonConnectedOnce) {
+          _emitStartupOnLoadDaemonConnectedOnce = true
+          storeRegistry.getState('config').dispatch.loadOnStart('connectedToDaemonForFirstTime')
+        }
+      }
+    }
+  })
+
+  useConfigState.subscribe((s, old) => {
+    if (s.configuredAccounts !== old.configuredAccounts) {
+      const updates = s.configuredAccounts.map(account => ({
+        info: {fullname: account.fullname ?? ''},
+        name: account.username,
+      }))
+      if (updates.length > 0) {
+        storeRegistry.getState('users').dispatch.updates(updates)
       }
     }
   })
