@@ -140,15 +140,6 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
     })
   })
 
-  const _setUsername = C.wrapErrors((username: string, restart: boolean = true) => {
-    set(s => {
-      s.username = username
-      s.autoSubmit = [{type: 'username'}]
-    })
-    if (restart) {
-      get().dispatch.restartProvisioning()
-    }
-  })
   const _setPassphrase = C.wrapErrors((passphrase: string, restart: boolean = true) => {
     set(s => {
       s.passphrase = passphrase
@@ -274,7 +265,6 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
             s.dispatch.dynamic.cancel = _cancel
             s.dispatch.dynamic.setDeviceName = _setDeviceName
             s.dispatch.dynamic.setPassphrase = _setPassphrase
-            s.dispatch.dynamic.setUsername = _setUsername
             s.dispatch.dynamic.submitDeviceSelect = _submitDeviceSelect
             s.dispatch.dynamic.submitTextCode = _submitTextCode
           })
@@ -287,7 +277,15 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
       cancel: _cancel,
       setDeviceName: _setDeviceName,
       setPassphrase: _setPassphrase,
-      setUsername: _setUsername,
+      setUsername: C.wrapErrors((username: string, restart: boolean = true) => {
+        set(s => {
+          s.username = username
+          s.autoSubmit = [{type: 'username'}]
+        })
+        if (restart) {
+          get().dispatch.restartProvisioning()
+        }
+      }),
       submitDeviceSelect: _submitDeviceSelect,
       submitTextCode: _submitTextCode,
     },
