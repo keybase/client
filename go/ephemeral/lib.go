@@ -42,7 +42,7 @@ type EKLib struct {
 	clock                    clockwork.Clock
 	backgroundCreationTestCh chan bool
 	backgroundDeletionTestCh chan bool
-	stopCh                   chan<- struct{}
+	stopCh                   chan struct{}
 }
 
 var _ libkb.EKLib = (*EKLib)(nil)
@@ -90,7 +90,12 @@ func (e *EKLib) Shutdown(mctx libkb.MetaContext) error {
 
 func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext, stopCh <-chan struct{}) {
 	// Don't fire immediately on startup
-	time.Sleep(libkb.RandomJitter(time.Second))
+	select {
+	case <-time.After(libkb.RandomJitter(time.Second)):
+	case <-stopCh:
+		return
+	}
+
 	mctx = mctx.WithLogTag("EKBKG")
 	mctx.Debug("backgroundKeygen: starting up")
 	keygenInterval := time.Hour
@@ -126,8 +131,13 @@ func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext, stopCh <-chan struct{})
 				// resources with other background tasks. libkb.BgTicker
 				// handles this internally, so we only need to throttle on
 				// MobileAppState change.
-				time.Sleep(libkb.RandomJitter(time.Second))
-				runIfNeeded(false /* force */)
+				select {
+				case <-time.After(libkb.RandomJitter(time.Second)):
+					runIfNeeded(false /* force */)
+				case <-stopCh:
+					ticker.Stop()
+					return
+				}
 			}
 		case <-stopCh:
 			ticker.Stop()
@@ -1234,8 +1244,18 @@ func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
 		// are attempting logout.
 		keygen(mctx)
 	} else {
+		e.stateMu.Lock()
+		defer e.stateMu.Unlock()
+		stopCh := e.stopCh
+		if stopCh == nil {
+			return nil
+		}
 		go func() {
-			time.Sleep(libkb.RandomJitter(time.Second))
+			select {
+			case <-time.After(libkb.RandomJitter(time.Second)):
+			case <-stopCh:
+				return
+			}
 			keygen(mctx.BackgroundWithLogTags())
 		}()
 	}

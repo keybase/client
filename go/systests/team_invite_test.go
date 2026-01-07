@@ -267,6 +267,17 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	bob := ctx.installKeybaseForUserNoPUK("bob", 10)
 	bob.signupNoPUK()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	// Disable background EK generation after login to prevent it from racing
+	// with the explicit perUserKeyUpgrade() call below. The OnLogin hook spawns
+	// a goroutine that can import the PUK asynchronously while we're trying to
+	// create it, causing a generation mismatch error.
+	t.Logf("Disabling background EK generation after signup for bob")
+	ekLibIface := bob.getPrimaryGlobalContext().GetEKLib()
+	ekLib, ok := ekLibIface.(*ephemeral.EKLib)
+	require.True(t, ok)
+	mctx := bob.MetaContext()
+	err := ekLib.Shutdown(mctx)
+	require.NoError(t, err)
 
 	// Try to add bob to team, should add an invitation because bob is PUK-less.
 	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_WRITER) // Invitation 1
@@ -279,12 +290,12 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	// with the explicit perUserKeyUpgrade() call below. The OnLogin hook spawns
 	// a goroutine that can import the PUK asynchronously while we're trying to
 	// create it, causing a generation mismatch error.
-	t.Logf("Disabling background EK generation after login for bob")
-	ekLibIface := bob.getPrimaryGlobalContext().GetEKLib()
-	ekLib, ok := ekLibIface.(*ephemeral.EKLib)
+	t.Logf("Disabling background EK generation after reset for bob")
+	ekLibIface = bob.getPrimaryGlobalContext().GetEKLib()
+	ekLib, ok = ekLibIface.(*ephemeral.EKLib)
 	require.True(t, ok)
-	mctx := libkb.NewMetaContextForTest(*bob.primaryDevice().tctx)
-	err := ekLib.Shutdown(mctx)
+	mctx = bob.MetaContext()
+	err = ekLib.Shutdown(mctx)
 	require.NoError(t, err)
 
 	// Try to add again (bob still doesn't have a PUK). Adding this
