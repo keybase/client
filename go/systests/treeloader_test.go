@@ -36,7 +36,7 @@ func loadTeamTree(t *testing.T, tmctx libkb.MetaContext, notifications *teamNoti
 ) ([]keybase1.TeamTreeMembership, error) {
 	var err error
 
-	guid := rand.Int()
+	guid := rand.Int() //nolint:gosec // G404: Test GUID generation, not security-critical
 
 	l, err := teams.NewTreeloader(tmctx, username, teamID, guid, true /* includeAncestors */)
 	if err != nil {

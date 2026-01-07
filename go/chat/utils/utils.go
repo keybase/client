@@ -2308,13 +2308,13 @@ func MessageIDControlToPagination(ctx context.Context, logger DebugLabeler, cont
 				logger.Debug(ctx, "MessageIDControlToPagination: centered mode with no conv, bailing")
 				return nil
 			}
-			maxID := int(conv.Conv.MaxVisibleMsgID())
-			desired := int(pm.msgID) + control.Num/2
+			maxID := int(conv.Conv.MaxVisibleMsgID()) //nolint:gosec // G115: MessageID for pagination math, safe to convert
+			desired := int(pm.msgID) + control.Num/2  //nolint:gosec // G115: MessageID for pagination math, safe to convert
 			logger.Debug(ctx, "MessageIDControlToPagination: maxID: %d desired: %d", maxID, desired)
 			if desired > maxID {
 				desired = maxID
 			}
-			pm.msgID = chat1.MessageID(desired + 1)
+			pm.msgID = chat1.MessageID(desired + 1) //nolint:gosec // G115: MessageID pagination arithmetic, safe to convert
 			res.Next, err = pag.MakeIndex(pm)
 			res.ForceFirstPage = true
 		}

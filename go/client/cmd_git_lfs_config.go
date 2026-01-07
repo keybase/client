@@ -64,7 +64,7 @@ func (c *CmdGitLFSConfig) gitExec(command ...string) (string, error) {
 	if c.path != "" {
 		path = []string{"-C", c.path}
 	}
-	cmd := exec.Command("git",
+	cmd := exec.Command("git", //nolint:gosec // G204: git command with user-specified path for git-lfs configuration
 		append(path, command...)...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {

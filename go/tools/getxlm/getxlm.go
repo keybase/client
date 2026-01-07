@@ -88,7 +88,7 @@ func createWalletUser() (string, error) {
 	}
 	fmt.Printf("accountID: %s\n", acctID)
 	fu := fmt.Sprintf("https://friendbot.stellar.org/?addr=%s", acctID)
-	resp, err := http.Get(fu)
+	resp, err := http.Get(fu) //nolint:gosec // G107: Stellar testnet friendbot URL with account ID parameter
 	if err != nil {
 		return "", err
 	}

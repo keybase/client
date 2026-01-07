@@ -279,7 +279,7 @@ func (l *Treeloader) loadAncestors(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 	switch e := err.(type) {
 	case nil:
-		expectedCount = int32(teamName.Depth()) - 1
+		expectedCount = int32(teamName.Depth()) - 1 //nolint:gosec // G115: Team depth is bounded by naming rules, safe to convert
 	case *MapAncestorsError:
 		mctx.Debug("loadTeamAncestorsMemberships: map failed: %s at idx %d", e,
 			e.failedLoadingAtAncestorIdx)
@@ -290,7 +290,7 @@ func (l *Treeloader) loadAncestors(mctx libkb.MetaContext, teamID keybase1.TeamI
 		idx := maxInt(0, teamName.Depth()-1-e.failedLoadingAtAncestorIdx)
 		nameFailedAt := keybase1.TeamName{Parts: teamName.Parts[:idx+1]}
 
-		expectedCount = maxInt32(0, int32(e.failedLoadingAtAncestorIdx))
+		expectedCount = maxInt32(0, int32(e.failedLoadingAtAncestorIdx)) //nolint:gosec // G115: Ancestor index is bounded by team depth, safe to convert
 		ch <- newPartialNotification(nameFailedAt, l.NewErrorResult(err, nameFailedAt))
 	default:
 		// Should never happen, since MapTeamAncestors should wrap every error as a

@@ -1204,7 +1204,7 @@ func (b *Boxer) compareHeadersMBV2orV3(ctx context.Context, hServer chat1.Messag
 
 func (b *Boxer) makeHeaderHash(headerSealed chat1.SignEncryptedData) (chat1.Hash, types.UnboxingError) {
 	buf := bytes.Buffer{}
-	err := binary.Write(&buf, binary.BigEndian, int32(headerSealed.V))
+	err := binary.Write(&buf, binary.BigEndian, int32(headerSealed.V)) //nolint:gosec // G115: Version number is a small positive value, safe to convert
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}
@@ -1226,7 +1226,7 @@ func (b *Boxer) makeHeaderHash(headerSealed chat1.SignEncryptedData) (chat1.Hash
 
 func (b *Boxer) makeBodyHash(bodyCiphertext chat1.EncryptedData) (chat1.Hash, types.UnboxingError) {
 	buf := bytes.Buffer{}
-	err := binary.Write(&buf, binary.BigEndian, int32(bodyCiphertext.V))
+	err := binary.Write(&buf, binary.BigEndian, int32(bodyCiphertext.V)) //nolint:gosec // G115: Version number is a small positive value, safe to convert
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}

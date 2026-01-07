@@ -239,7 +239,7 @@ func (s *DiskInstrumentationStorage) logRecord(ctx context.Context, tag string, 
 		return
 	}
 	if _, ok := tagLogBlacklist[tag]; !ok {
-		s.G().PerfLog.CDebugf(ctx, "%s %v %s", tag, record.Dur, humanize.Bytes(uint64(record.Size)))
+		s.G().PerfLog.CDebugf(ctx, "%s %v %s", tag, record.Dur, humanize.Bytes(uint64(record.Size))) //nolint:gosec // G115: Network size is non-negative, safe to convert
 		s.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
 			EventType: keybase1.PerfEventType_NETWORK,
 			Message:   tag,

@@ -242,8 +242,8 @@ func (i *InMemoryStorageEngine) LookupKEVPairsUnderPosition(ctx logger.ContextIn
 		k := i.SortedKVPRs[n].kevp.Key
 		pLeadingZeros := bits.LeadingZeros8(pBytes[0])
 		for j := 1; j < 8*len(pBytes)-pLeadingZeros; j++ {
-			jthBitP := (pBytes[(pLeadingZeros+j)/8] & byte(1<<uint(7-((pLeadingZeros+j)%8)))) != 0
-			jthBitK := (k[(j-1)/8] & byte(1<<uint(7-((j-1)%8)))) != 0
+			jthBitP := (pBytes[(pLeadingZeros+j)/8] & byte(1<<uint(7-((pLeadingZeros+j)%8)))) != 0 //nolint:gosec // G115: Test code, bit positions bounded by byte length*8, safe to convert
+			jthBitK := (k[(j-1)/8] & byte(1<<uint(7-((j-1)%8)))) != 0                              //nolint:gosec // G115: Test code, bit positions bounded by byte length*8, safe to convert
 			if !jthBitK && jthBitP {
 				return false
 			} else if jthBitK == jthBitP {
@@ -259,8 +259,8 @@ func (i *InMemoryStorageEngine) LookupKEVPairsUnderPosition(ctx logger.ContextIn
 		k := i.SortedKVPRs[n].kevp.Key
 		pLeadingZeros := bits.LeadingZeros8(pBytes[0])
 		for j := 1; j < 8*len(pBytes)-pLeadingZeros; j++ {
-			jthBitP := (pBytes[(pLeadingZeros+j)/8] & byte(1<<uint(7-((pLeadingZeros+j)%8)))) != 0
-			jthBitK := (k[(j-1)/8] & byte(1<<uint(7-((j-1)%8)))) != 0
+			jthBitP := (pBytes[(pLeadingZeros+j)/8] & byte(1<<uint(7-((pLeadingZeros+j)%8)))) != 0 //nolint:gosec // G115: Test code, bit positions bounded by byte length*8, safe to convert
+			jthBitK := (k[(j-1)/8] & byte(1<<uint(7-((j-1)%8)))) != 0                              //nolint:gosec // G115: Test code, bit positions bounded by byte length*8, safe to convert
 			if !jthBitK && jthBitP {
 				return false
 			} else if jthBitK == jthBitP {

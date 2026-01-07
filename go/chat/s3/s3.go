@@ -14,7 +14,7 @@ package s3
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec // G501: MD5 required for S3 ETag computation (AWS API requirement, not cryptographic use)
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
@@ -598,7 +598,7 @@ func (b *Bucket) DelMulti(objects Delete) error {
 	}
 
 	buf := makeXMLBuffer(doc)
-	digest := md5.New()
+	digest := md5.New() //nolint:gosec // G401: MD5 required for S3 ETag (AWS API requirement)
 	size, err := digest.Write(buf.Bytes())
 	if err != nil {
 		return err

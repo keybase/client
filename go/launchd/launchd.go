@@ -144,7 +144,7 @@ func exitStatus(err error) int {
 // If false, nil is returned it means there was nothing to stop.
 func (s Service) Stop(wait time.Duration) (bool, error) {
 	// We stop by removing the job. This works for non-demand and demand jobs.
-	output, err := exec.Command("/bin/launchctl", "remove", s.label).CombinedOutput()
+	output, err := exec.Command("/bin/launchctl", "remove", s.label).CombinedOutput() //nolint:gosec // G204: launchctl with service label from config
 	s.log.Debug("Output (launchctl remove): %s", string(output))
 	if err != nil {
 		exitStatus := exitStatus(err)
@@ -608,7 +608,7 @@ func (p Plist) Env() []string {
 }
 
 func (p Plist) FallbackCommand() *exec.Cmd {
-	cmd := exec.Command(p.binPath, p.args...)
+	cmd := exec.Command(p.binPath, p.args...) //nolint:gosec // G204: Binary path and args from plist config for launchd fallback
 	cmd.Env = append(os.Environ(), p.Env()...)
 	return cmd
 }

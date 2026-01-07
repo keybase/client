@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -955,6 +956,9 @@ func (f *JSONConfigFile) GetTimeAtPath(path string) keybase1.Time {
 	if err != nil {
 		return ret
 	}
+	if u > math.MaxInt64 {
+		return ret
+	}
 	ret = keybase1.Time(u)
 	return ret
 }
@@ -993,6 +997,9 @@ func (f *JSONConfigFile) GetBug3964RepairTime(un NormalizedUsername) (time.Time,
 	i, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		return time.Time{}, err
+	}
+	if i > math.MaxInt64 {
+		return time.Time{}, fmt.Errorf("timestamp overflow: %d", i)
 	}
 	return keybase1.FromTime(keybase1.Time(i)), nil
 }

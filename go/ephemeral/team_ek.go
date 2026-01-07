@@ -190,7 +190,7 @@ func (k *TeamEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.TeamI
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"team_id":    libkb.S{Val: string(teamID)},
-			"generation": libkb.U{Val: uint64(generation)},
+			"generation": libkb.U{Val: uint64(generation)}, //nolint:gosec // G115: Generation is positive sequential counter, safe to convert
 		},
 	}
 

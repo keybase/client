@@ -72,6 +72,7 @@ func (a *Client) getURIAndTLS(m libkb.MetaContext) (uri *rpc.FMPURI, tlsConfig *
 	tlsConfig = &tls.Config{
 		RootCAs:    certs,
 		ServerName: uri.Host,
+		MinVersion: tls.VersionTLS12,
 	}
 	return uri, tlsConfig, nil
 }

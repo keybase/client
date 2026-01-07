@@ -155,7 +155,7 @@ func (s *UserEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, generation keyb
 		Endpoint:    "user/user_ek_box",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"generation":          libkb.U{Val: uint64(generation)},
+			"generation":          libkb.U{Val: uint64(generation)}, //nolint:gosec // G115: Generation is positive sequential counter, safe to convert
 			"recipient_device_id": libkb.S{Val: string(mctx.ActiveDevice().DeviceID())},
 		},
 	}

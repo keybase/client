@@ -19,6 +19,7 @@ func InitTestKey(k *PGPKeyBundle) {
 	k.GPGFallbackKey = &TestGenericKey{k}
 }
 
+//nolint:gosec // G101: Test PGP key for GPG fallback testing, not real credentials
 var gpgDummyKey = `-----BEGIN PGP PRIVATE KEY BLOCK-----
 Version: GnuPG v2
 

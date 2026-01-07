@@ -57,15 +57,15 @@ func (be *blockEngine) makeBlockKey(convID chat1.ConversationID, uid gregor1.UID
 }
 
 func (be *blockEngine) getBlockNumber(id chat1.MessageID) int {
-	return int(id) / blockSize
+	return int(id) / blockSize //nolint:gosec // G115: MessageID to block number calculation, safe to convert
 }
 
 func (be *blockEngine) getBlockPosition(id chat1.MessageID) int {
-	return int(id) % blockSize
+	return int(id) % blockSize //nolint:gosec // G115: MessageID to block position calculation, safe to convert
 }
 
 func (be *blockEngine) getMsgID(blockNum, blockPos int) chat1.MessageID {
-	return chat1.MessageID(blockNum*blockSize + blockPos)
+	return chat1.MessageID(blockNum*blockSize + blockPos) //nolint:gosec // G115: Block arithmetic to MessageID, safe to convert
 }
 
 func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,

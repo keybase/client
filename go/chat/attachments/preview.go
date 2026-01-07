@@ -171,8 +171,8 @@ func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, ba
 		ContentType:   encodeContentType,
 		BaseWidth:     img.Bounds().Dx(),
 		BaseHeight:    img.Bounds().Dy(),
-		PreviewWidth:  int(width),
-		PreviewHeight: int(height),
+		PreviewWidth:  int(width),  //nolint:gosec // G115: Image dimensions are bounded by max image size, safe to convert
+		PreviewHeight: int(height), //nolint:gosec // G115: Image dimensions are bounded by max image size, safe to convert
 	}, nil
 }
 
@@ -239,8 +239,8 @@ func previewGIF(ctx context.Context, log utils.DebugLabeler, src io.Reader, base
 	}
 
 	// change the image Config to the new size
-	g.Config.Width = int(width)
-	g.Config.Height = int(height)
+	g.Config.Width = int(width)   //nolint:gosec // G115: Image dimensions are bounded by max image size, safe to convert
+	g.Config.Height = int(height) //nolint:gosec // G115: Image dimensions are bounded by max image size, safe to convert
 
 	// encode all the frames into buf
 	var buf bytes.Buffer
@@ -253,8 +253,8 @@ func previewGIF(ctx context.Context, log utils.DebugLabeler, src io.Reader, base
 		ContentType:    "image/gif",
 		BaseWidth:      origBounds.Dx(),
 		BaseHeight:     origBounds.Dy(),
-		PreviewWidth:   int(width),
-		PreviewHeight:  int(height),
+		PreviewWidth:   int(width),  //nolint:gosec // G115: Image dimensions are bounded by max image size, safe to convert
+		PreviewHeight:  int(height), //nolint:gosec // G115: Image dimensions are bounded by max image size, safe to convert
 		BaseDurationMs: baseDuration,
 	}
 
@@ -266,8 +266,8 @@ func previewGIF(ctx context.Context, log utils.DebugLabeler, src io.Reader, base
 }
 
 func previewDimensions(origBounds image.Rectangle) (uint, uint) {
-	origWidth := uint(origBounds.Dx())
-	origHeight := uint(origBounds.Dy())
+	origWidth := uint(origBounds.Dx())  //nolint:gosec // G115: Image dimensions are bounded by max image size, safe to convert
+	origHeight := uint(origBounds.Dy()) //nolint:gosec // G115: Image dimensions are bounded by max image size, safe to convert
 
 	if previewImageWidth >= origWidth && previewImageHeight >= origHeight {
 		return origWidth, origHeight

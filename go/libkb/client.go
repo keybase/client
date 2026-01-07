@@ -191,7 +191,10 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 	}
 
 	if config != nil && config.RootCAs != nil {
-		xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
+		xprt.TLSClientConfig = &tls.Config{
+			RootCAs:    config.RootCAs,
+			MinVersion: tls.VersionTLS12,
+		}
 	}
 
 	xprt.Proxy = MakeProxy(env)

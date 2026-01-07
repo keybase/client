@@ -3,7 +3,7 @@ package s3
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec // G501: MD5 required for S3 ETag computation (AWS API requirement, not cryptographic use)
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/xml"
@@ -211,7 +211,7 @@ func seekerInfo(r io.ReadSeeker) (size int64, md5hex string, md5b64 string, err 
 	if err != nil {
 		return 0, "", "", err
 	}
-	digest := md5.New()
+	digest := md5.New() //nolint:gosec // G401: MD5 required for S3 ETag (AWS API requirement)
 	size, err = io.Copy(digest, r)
 	if err != nil {
 		return 0, "", "", err

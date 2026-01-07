@@ -177,7 +177,7 @@ func TestConcurrentGlobals(t *testing.T) {
 		wg.Add(1)
 		go func(_ int) {
 			for j := 0; j < 10; j++ {
-				f := fns[rand.Intn(len(fns))]
+				f := fns[rand.Intn(len(fns))] //nolint:gosec // G404: Test code with randomized function calls, not security-critical
 				f(tc.G)
 			}
 			wg.Done()

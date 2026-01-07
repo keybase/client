@@ -27,7 +27,7 @@ type PGPGenArg struct {
 
 func ui32p(i int) *uint32 {
 	if i >= 0 {
-		tmp := uint32(i)
+		tmp := uint32(i) //nolint:gosec // G115: Negative values checked above, lifetime values are bounded
 		return &tmp
 	}
 	return nil

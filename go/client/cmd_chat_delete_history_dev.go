@@ -95,10 +95,10 @@ func (c *CmdChatDeleteHistoryDev) ParseArgv(ctx *cli.Context) (err error) {
 
 	// Send a normal message.
 	upto := ctx.Int("upto")
-	if upto == 0 {
+	if upto <= 0 {
 		return fmt.Errorf("upto must be > 0")
 	}
-	c.upto = chat1.MessageID(upto)
+	c.upto = chat1.MessageID(upto) //nolint:gosec // G115: CLI arg validated to be positive, safe to convert
 
 	return nil
 }

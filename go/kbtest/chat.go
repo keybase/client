@@ -994,7 +994,7 @@ func (m *ChatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1
 	msg.ServerHeader = &chat1.MessageServerHeader{
 		Ctime:     gregor1.ToTime(m.world.Fc.Now()),
 		Now:       gregor1.ToTime(m.world.Fc.Now()),
-		MessageID: chat1.MessageID(len(m.world.Msgs[convIDStr]) + 1),
+		MessageID: chat1.MessageID(len(m.world.Msgs[convIDStr]) + 1), //nolint:gosec // G115: Mock test data generating sequential MessageIDs, safe to convert
 	}
 	m.world.Msgs[convIDStr] = append(m.world.Msgs[convIDStr], &msg)
 	sort.Sort(msgByMessageIDDesc{world: m.world, convID: convID})

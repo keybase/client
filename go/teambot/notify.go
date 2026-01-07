@@ -27,7 +27,7 @@ func notifyTeambotKeyNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID,
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"team_id":      libkb.S{Val: string(teamID)},
-			"generation":   libkb.U{Val: uint64(generation)},
+			"generation":   libkb.U{Val: uint64(generation)}, //nolint:gosec // G115: Generation is positive sequential counter, safe to convert
 			"application":  libkb.I{Val: int(app)},
 			"is_ephemeral": libkb.B{Val: isEphemeral},
 		},

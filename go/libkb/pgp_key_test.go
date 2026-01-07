@@ -103,6 +103,7 @@ func TestMultipleArmored(t *testing.T) {
 	}
 }
 
+//nolint:gosec // G101: Test PGP key for issue 454 regression testing, not real credentials
 const issue454Keys = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 Comment: GPGTools - http://gpgtools.org
 

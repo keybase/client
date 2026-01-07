@@ -568,7 +568,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 			DisablePostProcessThread: true,
 			MarkAsRead:               false,
 		}
-		for i := minIdxID; i < maxIdxID; i += chat1.MessageID(idx.pageSize) {
+		for i := minIdxID; i < maxIdxID; i += chat1.MessageID(idx.pageSize) { //nolint:gosec // G115: pageSize is a small positive config value, safe to convert
 			select {
 			case <-ctx.Done():
 				return 0, ctx.Err()

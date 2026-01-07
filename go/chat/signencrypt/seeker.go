@@ -158,7 +158,7 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 		}
 		// Decrypt all the chunks and write out to the cache
 		decoder := NewDecoder(r.encKey, r.verifyKey, r.sigPrefix, r.nonce)
-		decoder.setChunkNum(uint64(prefetchChunks[0].index))
+		decoder.setChunkNum(uint64(prefetchChunks[0].index)) //nolint:gosec // G115: Chunk index is positive sequential counter, safe to convert
 		if chunkPlaintext, err = decoder.Write(cipherText); err != nil {
 			return n, err
 		}

@@ -61,17 +61,19 @@ func memstats() {
 }
 
 func memprof() {
-	f, err := os.Create("/tmp/sc_memprof")
+	f, err := os.CreateTemp("", "sc_memprof")
 	if err != nil {
 		log.Printf("could not create memory profile: %v", err)
+		return
 	}
 	defer f.Close()
+	defer os.Remove(f.Name())
 	runtime.GC() // get up-to-date statistics
 	if err := pprof.WriteHeapProfile(f); err != nil {
 		log.Printf("could not write memory profile: %v", err)
+		return
 	}
-	f.Close()
-	fmt.Printf("wrote memory profile to /tmp/sc_memprof\n")
+	fmt.Printf("wrote memory profile to %s\n", f.Name())
 }
 
 // don't GC me

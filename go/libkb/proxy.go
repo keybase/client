@@ -126,7 +126,7 @@ func (d httpsDialer) Dial(network string, addr string) (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	return tls.Client(conn, &tls.Config{}), err
+	return tls.Client(conn, &tls.Config{MinVersion: tls.VersionTLS12}), err
 }
 
 // A net.Dialer that dials via just the standard net.Dial

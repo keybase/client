@@ -82,7 +82,7 @@ const (
 	SocketFile           = "keybased.sock"
 	PIDFile              = "keybased.pid"
 
-	SecretKeyringTemplate = "secretkeys.%u.mpack"
+	SecretKeyringTemplate = "secretkeys.%u.mpack" //nolint:gosec // G101: Filename template string, not a credential
 
 	APIVersion           = "1.0"
 	APIURIPathPrefix     = "/_/api/" + APIVersion
@@ -626,7 +626,7 @@ const (
 const (
 	EncryptionReasonChatLocalStorage        EncryptionReason = "Keybase-Chat-Local-Storage-1"
 	EncryptionReasonChatMessage             EncryptionReason = "Keybase-Chat-Message-1"
-	EncryptionReasonChatIndexerTokenKey     EncryptionReason = "Keybase-Chat-IndexerTokenKey-1"
+	EncryptionReasonChatIndexerTokenKey     EncryptionReason = "Keybase-Chat-IndexerTokenKey-1" //nolint:gosec // G101: Encryption context string constant, not a credential
 	EncryptionReasonChatIndexerAliasKey     EncryptionReason = "Keybase-Chat-IndexerAliasKey-1"
 	EncryptionReasonTeamsLocalStorage       EncryptionReason = "Keybase-Teams-Local-Storage-1"
 	EncryptionReasonTeamsFTLLocalStorage    EncryptionReason = "Keybase-Teams-FTL-Local-Storage-1"
@@ -712,9 +712,9 @@ const (
 	TeamKBFSDerivationString             = "Keybase-Derived-Team-NaCl-KBFS-1"
 	TeamChatDerivationString             = "Keybase-Derived-Team-NaCl-Chat-1"
 	TeamSaltpackDerivationString         = "Keybase-Derived-Team-NaCl-Saltpack-1"
-	TeamPrevKeySecretBoxDerivationString = "Keybase-Derived-Team-NaCl-SecretBox-1"
+	TeamPrevKeySecretBoxDerivationString = "Keybase-Derived-Team-NaCl-SecretBox-1" //nolint:gosec // G101: Key derivation context string constant, not a credential
 	TeamGitMetadataDerivationString      = "Keybase-Derived-Team-NaCl-GitMetadata-1"
-	TeamSeitanTokenDerivationString      = "Keybase-Derived-Team-NaCl-SeitanInviteToken-1"
+	TeamSeitanTokenDerivationString      = "Keybase-Derived-Team-NaCl-SeitanInviteToken-1" //nolint:gosec // G101: Key derivation context string constant, not a credential
 	TeamStellarRelayDerivationString     = "Keybase-Derived-Team-NaCl-StellarRelay-1"
 	TeamKVStoreDerivationString          = "Keybase-Derived-Team-NaCl-KVStore-1"
 	TeamKeySeedCheckDerivationString     = "Keybase-Derived-Team-Seedcheck-1"

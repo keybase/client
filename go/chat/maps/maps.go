@@ -87,6 +87,7 @@ func httpClient(g *libkb.GlobalContext, host string) *http.Client {
 	var xprt http.Transport
 	tlsConfig := &tls.Config{
 		ServerName: host,
+		MinVersion: tls.VersionTLS12,
 	}
 	xprt.TLSClientConfig = tlsConfig
 	return &http.Client{

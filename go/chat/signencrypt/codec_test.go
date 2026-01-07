@@ -118,7 +118,7 @@ func assertErrorType(t *testing.T, err error, expectedType ErrorType) {
 func TestPacketRoundtrips(t *testing.T) {
 	for index, input := range plaintextInputs {
 		// Vary the chunk number, just for fun.
-		chunkNum := uint64(index)
+		chunkNum := uint64(index) //nolint:gosec // G115: Test code, index from range is non-negative
 		sealed := sealPacket(
 			[]byte(input),
 			zeroSecretboxKey(),
@@ -608,7 +608,7 @@ func TestPrefixDifference(t *testing.T) {
 	// Test that different prefixes fail verification
 	for index, input := range plaintextInputs {
 		// Vary the chunk number, just for fun.
-		chunkNum := uint64(index)
+		chunkNum := uint64(index) //nolint:gosec // G115: Test code, index from range is non-negative
 		sealed := sealPacket(
 			[]byte(input),
 			zeroSecretboxKey(),

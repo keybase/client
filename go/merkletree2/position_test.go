@@ -243,7 +243,7 @@ func TestGetLevel(t *testing.T) {
 			pos, err := makePositionFromStringForTesting(test.pos)
 			require.NoError(t, err)
 
-			require.Equal(t, int(test.lev), test.c.getLevel(&pos))
+			require.Equal(t, int(test.lev), test.c.getLevel(&pos)) //nolint:gosec // G115: Test data comparing tree levels, safe to convert
 		})
 	}
 }

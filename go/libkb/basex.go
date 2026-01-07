@@ -37,7 +37,7 @@ func NewBaseX(alphabet string) *BaseXEncoder {
 		enc.alphabetMap[i] = invalidBaseIndex
 	}
 	for i, c := range alphabet {
-		enc.alphabetMap[c] = uint8(i)
+		enc.alphabetMap[c] = uint8(i) //nolint:gosec // G115: Alphabet length bounded by encoding scheme (e.g., base58 = 58 chars), safe to convert
 	}
 	return enc
 }
