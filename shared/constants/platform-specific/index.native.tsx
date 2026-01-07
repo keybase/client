@@ -40,7 +40,8 @@ import {
 import {initPushListener, getStartupDetailsFromInitialPush} from './push.native'
 import {initSharedSubscriptions} from './shared'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
-import {noConversationIDKey, getSelectedConversation} from '@/constants/types/chat2/common'
+import {noConversationIDKey} from '@/constants/types/chat2/common'
+import {getSelectedConversation} from '@/constants/chat2/common'
 import {storeRegistry} from '../store-registry'
 
 export const requestPermissionsToWrite = async () => {
@@ -572,9 +573,7 @@ export const initPlatformListener = () => {
   initPushListener()
 
   NetInfo.addEventListener(({type}) => {
-    useConfigState
-      .getState()
-      .dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
+    useConfigState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
   })
 
   const initAudioModes = () => {
