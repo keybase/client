@@ -2,7 +2,6 @@ import logger from '@/logger'
 import {ignorePromise} from '../utils'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
-import {storeRegistry} from '../store-registry'
 import {maxHandshakeTries} from '../values'
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
