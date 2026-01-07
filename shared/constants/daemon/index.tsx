@@ -33,7 +33,7 @@ export interface State extends Store {
   dispatch: {
     loadDaemonAccounts: (configuredAccountsLength: number, loggedIn: boolean) => void
     loadDaemonBootstrapStatus: () => Promise<void>
-    refreshAccounts: () => Promise<void>
+    refreshAccounts: (defaultUsername: string) => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
     setFailed: (r: string) => void
@@ -142,7 +142,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
             wait(getAccountsWaitKey, handshakeVersion, true)
           }
 
-          await get().dispatch.refreshAccounts()
+          await get().dispatch.refreshAccounts(storeRegistry.getState('config').defaultUsername)
 
           if (handshakeWait) {
             // someone dismissed this already?
@@ -194,10 +194,8 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       return await f()
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
-    refreshAccounts: async () => {
+    refreshAccounts: async (defaultUsername: string) => {
       const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
-      // already have one?
-      const {defaultUsername} = storeRegistry.getState('config')
       const {setAccounts, setDefaultUsername} = storeRegistry.getState('config').dispatch
 
       let existingDefaultFound = false as boolean

@@ -110,7 +110,7 @@ export const initSharedSubscriptions = () => {
       }
       storeRegistry.getState('daemon').dispatch.loadDaemonAccounts(s.configuredAccounts.length, s.loggedIn)
       if (!s.loggedInCausedbyStartup) {
-        ignorePromise(storeRegistry.getState('daemon').dispatch.refreshAccounts())
+        ignorePromise(storeRegistry.getState('daemon').dispatch.refreshAccounts(s.defaultUsername))
       }
     }
 
