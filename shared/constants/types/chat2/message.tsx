@@ -16,9 +16,13 @@ export const numberToMessageID = (n: number) => n as MessageID
 export const numbersToMessageIDs = (a: ReadonlyArray<number>) => a as ReadonlyArray<MessageID>
 export const messageIDToNumber = (n: MessageID): number => n
 
+export type Reaction = T.Immutable<{
+  timestamp: number
+  username: string
+}>
 export type ReactionDesc = T.Immutable<{
   decorated: string
-  users: ReadonlyArray<string>
+  users: ReadonlyArray<Reaction>
 }>
 export type Reactions = ReadonlyMap<string, ReactionDesc>
 

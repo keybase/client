@@ -206,8 +206,7 @@ const extractMetaFromTodoItem = (todo: T.RPCGen.HomeScreenTodo, todoExt?: T.RPCG
     case t.verifyAllEmail:
       return makeTodoMetaEmail({
         email: todo.verifyAllEmail || '',
-        lastVerifyEmailDate:
-          todoExt && todoExt.t === t.verifyAllEmail ? todoExt.verifyAllEmail.lastVerifyEmailDate : 0,
+        lastVerifyEmailDate: todoExt?.t === t.verifyAllEmail ? todoExt.verifyAllEmail.lastVerifyEmailDate : 0,
       })
     case t.verifyAllPhoneNumber:
       return makeTodoMetaPhone({phone: todo.verifyAllPhoneNumber})

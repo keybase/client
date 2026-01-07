@@ -683,19 +683,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         const existing = m.reactions.get(emoji)
         if (existing) {
-          const userIndex = existing.users.indexOf(username)
+          const userIndex = existing.users.findIndex(u => u.username === username)
           if (userIndex >= 0) {
-            existing.users = existing.users.filter(u => u !== username)
+            existing.users = existing.users.filter(u => u.username !== username)
             if (existing.users.length === 0) {
               m.reactions.delete(emoji)
             }
           } else {
-            existing.users = [...existing.users, username]
+            existing.users = [...existing.users, {timestamp: Date.now(), username}]
           }
         } else {
           m.reactions.set(emoji, {
             decorated,
-            users: [username],
+            users: [{timestamp: Date.now(), username}],
           })
         }
       }
@@ -3182,16 +3182,27 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               m.reactions = T.castDraft(reactions)
             } else {
               const existingOrder = [...m.reactions.keys()]
+              const scoreMap = new Map(
+                [...reactions.entries()].map(([key, value]) => {
+                  return [
+                    key,
+                    value.users.reduce(
+                      (minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp),
+                      Infinity
+                    ),
+                  ]
+                })
+              )
               const newReactions = new Map<string, T.Chat.ReactionDesc>()
               for (const emoji of existingOrder) {
                 if (reactions.has(emoji)) {
                   newReactions.set(emoji, reactions.get(emoji)!)
                 }
               }
-              for (const [emoji, desc] of reactions) {
-                if (!newReactions.has(emoji)) {
-                  newReactions.set(emoji, desc)
-                }
+              const remainingEmojis = [...reactions.keys()].filter(emoji => !newReactions.has(emoji))
+              remainingEmojis.sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
+              for (const emoji of remainingEmojis) {
+                newReactions.set(emoji, reactions.get(emoji)!)
               }
               m.reactions = T.castDraft(newReactions)
             }
