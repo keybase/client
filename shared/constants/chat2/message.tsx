@@ -771,13 +771,13 @@ const previewSpecs = (preview?: T.RPCChat.AssetMetadata, full?: T.RPCChat.AssetM
   if (preview.assetType === T.RPCChat.AssetMetadataType.image) {
     res.height = preview.image.height
     res.width = preview.image.width
-    if (full && full.assetType === T.RPCChat.AssetMetadataType.video && full.video.isAudio) {
+    if (full?.assetType === T.RPCChat.AssetMetadataType.video && full.video.isAudio) {
       res.attachmentType = 'audio'
       res.audioDuration = full.video.durationMs
     } else {
       res.attachmentType = 'image'
       // full is a video but preview is an image?
-      if (full && full.assetType === T.RPCChat.AssetMetadataType.video) {
+      if (full?.assetType === T.RPCChat.AssetMetadataType.video) {
         res.showPlayButton = true
       }
     }
@@ -1067,9 +1067,7 @@ const outboxUIMessagetoMessage = (
       let pre: T.Chat.PreviewSpec
       if (o.preview) {
         previewURL =
-          o.preview.location && o.preview.location.ltyp === T.RPCChat.PreviewLocationTyp.url
-            ? o.preview.location.url
-            : ''
+          o.preview.location?.ltyp === T.RPCChat.PreviewLocationTyp.url ? o.preview.location.url : ''
         const md = o.preview.metadata ?? undefined
         const baseMd = o.preview.baseMetadata ?? undefined
         pre = previewSpecs(md, baseMd)
