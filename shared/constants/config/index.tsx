@@ -613,6 +613,30 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
+    refreshAccounts: async () => {
+      const defaultUsername = get().defaultUsername
+      const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
+      const {setAccounts, setDefaultUsername} = get().dispatch
+
+      let existingDefaultFound = false as boolean
+      let currentName = ''
+      const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
+
+      configuredAccounts.forEach(account => {
+        const {username, isCurrent, fullname, hasStoredSecret} = account
+        if (username === defaultUsername) {
+          existingDefaultFound = true
+        }
+        if (isCurrent) {
+          currentName = account.username
+        }
+        nextConfiguredAccounts.push({fullname, hasStoredSecret, username})
+      })
+      if (!existingDefaultFound) {
+        setDefaultUsername(currentName)
+      }
+      setAccounts(nextConfiguredAccounts)
+    },
     remoteWindowNeedsProps: (component, params) => {
       set(s => {
         const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
@@ -651,32 +675,10 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           s.justRevokedSelf = name
           s.revokedTrigger++
         })
-        storeRegistry.getState('daemon').dispatch.loadDaemonAccounts(configuredAccounts.length, loggedIn, get().dispatch.refreshAccounts)
+        storeRegistry
+          .getState('daemon')
+          .dispatch.loadDaemonAccounts(configuredAccounts.length, loggedIn, get().dispatch.refreshAccounts)
       }
-    },
-    refreshAccounts: async () => {
-      const defaultUsername = get().defaultUsername
-      const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
-      const {setAccounts, setDefaultUsername} = get().dispatch
-
-      let existingDefaultFound = false as boolean
-      let currentName = ''
-      const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
-
-      configuredAccounts.forEach(account => {
-        const {username, isCurrent, fullname, hasStoredSecret} = account
-        if (username === defaultUsername) {
-          existingDefaultFound = true
-        }
-        if (isCurrent) {
-          currentName = account.username
-        }
-        nextConfiguredAccounts.push({fullname, hasStoredSecret, username})
-      })
-      if (!existingDefaultFound) {
-        setDefaultUsername(currentName)
-      }
-      setAccounts(nextConfiguredAccounts)
     },
     setAccounts: a => {
       set(s => {
