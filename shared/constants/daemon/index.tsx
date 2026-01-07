@@ -115,8 +115,6 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         }
       }
       ignorePromise(f())
-      const configState = storeRegistry.getState('config')
-      get().dispatch.loadDaemonAccounts(configState.configuredAccounts.length, configState.loggedIn)
     },
     daemonHandshakeDone: () => {
       get().dispatch.setState('done')

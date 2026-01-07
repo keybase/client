@@ -125,6 +125,8 @@ export const initSharedSubscriptions = () => {
     if (s.handshakeVersion !== old.handshakeVersion) {
       useDarkModeState.getState().dispatch.loadDarkPrefs()
       storeRegistry.getState('chat').dispatch.loadStaticConfig()
+      const configState = storeRegistry.getState('config')
+      s.dispatch.loadDaemonAccounts(configState.configuredAccounts.length, configState.loggedIn)
     }
   })
 }
