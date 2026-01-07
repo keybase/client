@@ -31,9 +31,8 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    loadDaemonAccounts: (configuredAccountsLength: number, loggedIn: boolean) => void
+    loadDaemonAccounts: (configuredAccountsLength: number, loggedIn: boolean, refreshAccounts: () => Promise<void>) => void
     loadDaemonBootstrapStatus: () => Promise<void>
-    refreshAccounts: (defaultUsername: string) => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
     setFailed: (r: string) => void
@@ -120,7 +119,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
     daemonHandshakeDone: () => {
       get().dispatch.setState('done')
     },
-    loadDaemonAccounts: (configuredAccountsLength: number, loggedIn: boolean) => {
+    loadDaemonAccounts: (configuredAccountsLength: number, loggedIn: boolean, refreshAccounts: () => Promise<void>) => {
       const f = async () => {
         const version = get().handshakeVersion
         if (configuredAccountsLength) {
@@ -142,7 +141,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
             wait(getAccountsWaitKey, handshakeVersion, true)
           }
 
-          await get().dispatch.refreshAccounts(storeRegistry.getState('config').defaultUsername)
+          await refreshAccounts()
 
           if (handshakeWait) {
             // someone dismissed this already?
@@ -194,37 +193,6 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       return await f()
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
-    refreshAccounts: async (defaultUsername: string) => {
-      const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
-      const {setAccounts, setDefaultUsername} = storeRegistry.getState('config').dispatch
-
-      let existingDefaultFound = false as boolean
-      let currentName = ''
-      const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
-      const usernameToFullname: {[username: string]: string} = {}
-
-      configuredAccounts.forEach(account => {
-        const {username, isCurrent, fullname, hasStoredSecret} = account
-        if (username === defaultUsername) {
-          existingDefaultFound = true
-        }
-        if (isCurrent) {
-          currentName = account.username
-        }
-        nextConfiguredAccounts.push({hasStoredSecret, username})
-        usernameToFullname[username] = fullname
-      })
-      if (!existingDefaultFound) {
-        setDefaultUsername(currentName)
-      }
-      setAccounts(nextConfiguredAccounts)
-      storeRegistry.getState('users').dispatch.updates(
-        Object.keys(usernameToFullname).map(name => ({
-          info: {fullname: usernameToFullname[name]},
-          name,
-        }))
-      )
-    },
     resetState: () => {
       set(s => ({
         ...s,

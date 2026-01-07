@@ -108,9 +108,9 @@ export const initSharedSubscriptions = () => {
         ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
         storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
       }
-      storeRegistry.getState('daemon').dispatch.loadDaemonAccounts(s.configuredAccounts.length, s.loggedIn)
+      storeRegistry.getState('daemon').dispatch.loadDaemonAccounts(s.configuredAccounts.length, s.loggedIn, storeRegistry.getState('config').dispatch.refreshAccounts)
       if (!s.loggedInCausedbyStartup) {
-        ignorePromise(storeRegistry.getState('daemon').dispatch.refreshAccounts(s.defaultUsername))
+        ignorePromise(storeRegistry.getState('config').dispatch.refreshAccounts())
       }
     }
 
@@ -126,7 +126,7 @@ export const initSharedSubscriptions = () => {
       useDarkModeState.getState().dispatch.loadDarkPrefs()
       storeRegistry.getState('chat').dispatch.loadStaticConfig()
       const configState = storeRegistry.getState('config')
-      s.dispatch.loadDaemonAccounts(configState.configuredAccounts.length, configState.loggedIn)
+      s.dispatch.loadDaemonAccounts(configState.configuredAccounts.length, configState.loggedIn, storeRegistry.getState('config').dispatch.refreshAccounts)
     }
 
     if (s.bootstrapStatus !== old.bootstrapStatus) {
@@ -149,6 +149,18 @@ export const initSharedSubscriptions = () => {
         }
 
         storeRegistry.getState('chat').dispatch.updateUserReacjis(userReacjis)
+      }
+    }
+  })
+
+  useConfigState.subscribe((s, old) => {
+    if (s.configuredAccounts !== old.configuredAccounts) {
+      const updates = s.configuredAccounts.map(account => ({
+        info: {fullname: account.fullname ?? ''},
+        name: account.username,
+      }))
+      if (updates.length > 0) {
+        storeRegistry.getState('users').dispatch.updates(updates)
       }
     }
   })
