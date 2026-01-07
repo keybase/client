@@ -667,7 +667,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     },
     revoke: (name, wasCurrentDevice) => {
       if (wasCurrentDevice) {
-        const {configuredAccounts, defaultUsername, loggedIn} = get()
+        const {configuredAccounts, defaultUsername} = get()
         const acc = configuredAccounts.find(n => n.username !== defaultUsername)
         const du = acc?.username ?? ''
         set(s => {
@@ -675,9 +675,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           s.justRevokedSelf = name
           s.revokedTrigger++
         })
-        storeRegistry
-          .getState('daemon')
-          .dispatch.loadDaemonAccounts(configuredAccounts.length, loggedIn, get().dispatch.refreshAccounts)
       }
     },
     setAccounts: a => {

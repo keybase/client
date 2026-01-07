@@ -119,6 +119,10 @@ export const initSharedSubscriptions = () => {
         storeRegistry.getState('chat').dispatch.toggleInboxSearch(false)
       }
     }
+
+    if (s.revokedTrigger !== old.revokedTrigger) {
+      storeRegistry.getState('daemon').dispatch.loadDaemonAccounts(s.configuredAccounts.length, s.loggedIn, storeRegistry.getState('config').dispatch.refreshAccounts)
+    }
   })
 
   useDaemonState.subscribe((s, old) => {
