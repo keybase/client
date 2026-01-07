@@ -13,7 +13,18 @@ const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
   if (!reactions) {
     return []
   }
-  return [...reactions.keys()]
+  const scoreMap = new Map(
+    [...reactions.entries()].map(([key, value]) => {
+      return [
+        key,
+        value.users.reduce(
+          (minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp),
+          Infinity
+        ),
+      ]
+    })
+  )
+  return [...reactions.keys()].sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
 }
 
 const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {

@@ -125,7 +125,7 @@ build_one_architecture() {
 
 	# Build the root redirector binary.
 	echo "Building keybase-redirector for $GOARCH..."
-	(cd "$client_dir" && go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
+	(cd "$client_dir" && CGO_ENABLED=1 go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
 		"$layout_dir/usr/bin/keybase-redirector" github.com/keybase/client/go/kbfs/redirector)
 
 	# Build the kbnm binary
@@ -193,10 +193,6 @@ build_one_architecture() {
 		exit 1
 	fi
 }
-
-# required for cross-compiling, or else the Go compiler will skip over
-# resinit_nix.go and fail the i386 build
-export CGO_ENABLED=1
 
 if [ -n "${KEYBASE_BUILD_ARM_ONLY:-}" ]; then
 	echo "Keybase: Building for ARM only"

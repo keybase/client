@@ -20,10 +20,19 @@ package attachments
 #include <AppKit/AppKit.h>
 #endif
 
-NSData* imageData = NULL;
-int duration = 0;
+typedef struct {
+	const void* imageData;
+	int imageLength;
+	int duration;
+} VideoPreviewResult;
 
-void MakeVideoThumbnail(const char* inFilename) {
+typedef struct {
+	const void* imageData;
+	int imageLength;
+} ImageConversionResult;
+
+VideoPreviewResult MakeVideoThumbnail(const char* inFilename) {
+	VideoPreviewResult result = {NULL, 0, 0};
 	NSString* filename = [NSString stringWithUTF8String:inFilename];
 	NSURL *videoURL = [NSURL fileURLWithPath:filename];
 
@@ -32,7 +41,7 @@ void MakeVideoThumbnail(const char* inFilename) {
 	[generateImg setAppliesPreferredTrackTransform:YES];
 	CMTime time = CMTimeMake(1, 1);
 
-	// Use the modern async API wrapped with a semaphore for synchronous behavior
+    // Use the modern async API wrapped with a semaphore for synchronous behavior
 	__block CGImageRef image = NULL;
 	dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
 
@@ -44,7 +53,7 @@ void MakeVideoThumbnail(const char* inFilename) {
 	}];
 
 	dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-	duration = CMTimeGetSeconds([asset duration]);
+	result.duration = (int)CMTimeGetSeconds([asset duration]);
 
 	if (image != NULL) {
 		CFMutableDataRef mutableData = CFDataCreateMutable(NULL, 0);
@@ -62,36 +71,33 @@ void MakeVideoThumbnail(const char* inFilename) {
 		];
 		CGImageDestinationAddImage(idst, image, (CFDictionaryRef)props);
 		CGImageDestinationFinalize(idst);
-		imageData = [NSData dataWithData:(__bridge_transfer NSData *)mutableData];
+		NSData *localImageData = [[NSData alloc] initWithData:(__bridge_transfer NSData *)mutableData];
+		result.imageData = [localImageData bytes];
+		result.imageLength = (int)[localImageData length];
 		CFRelease(idst);
 		CGImageRelease(image);
 	}
-}
 
-const void* ImageData() {
-	return [imageData bytes];
-}
-
-int ImageLength() {
-	return [imageData length];
-}
-
-int VideoDuration() {
-	return duration;
+	return result;
 }
 
 #if TARGET_OS_IPHONE
-int HEICToJPEG(const char* inFilename) {
+ImageConversionResult HEICToJPEG(const char* inFilename) {
+	ImageConversionResult result = {NULL, 0};
 	NSString* filename = [NSString stringWithUTF8String:inFilename];
 	UIImage* heicImage = [UIImage imageWithContentsOfFile:filename];
 	if (heicImage) {
-		imageData = UIImageJPEGRepresentation(heicImage, 1.0);
-		return 0;
+		NSData *localImageData = UIImageJPEGRepresentation(heicImage, 1.0);
+		if (localImageData) {
+			result.imageData = [localImageData bytes];
+			result.imageLength = (int)[localImageData length];
+		}
 	}
-	return 1;
+	return result;
 }
 #else
-int HEICToJPEG(const char* inFilename) {
+ImageConversionResult HEICToJPEG(const char* inFilename) {
+	ImageConversionResult result = {NULL, 0};
 	NSString* filename = [NSString stringWithUTF8String:inFilename];
 	NSImage *heicImage = [[NSImage alloc] initWithContentsOfFile:filename];
     if (heicImage) {
@@ -100,12 +106,15 @@ int HEICToJPEG(const char* inFilename) {
         if (imageRep) {
             NSBitmapImageRep *bitmapRep = (NSBitmapImageRep *)imageRep;
             if (bitmapRep) {
-                imageData = [bitmapRep representationUsingType:NSBitmapImageFileTypeJPEG properties:@{}];
-				return 0;
+                NSData *localImageData = [bitmapRep representationUsingType:NSBitmapImageFileTypeJPEG properties:@{}];
+				if (localImageData) {
+					result.imageData = [localImageData bytes];
+					result.imageLength = (int)[localImageData length];
+				}
             }
         }
     }
-	return 1;
+	return result;
 }
 #endif
 */
@@ -128,20 +137,20 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	defer log.Trace(ctx, &err, "previewVideo")()
 	cbasename := C.CString(basename)
 	defer C.free(unsafe.Pointer(cbasename))
-	C.MakeVideoThumbnail(cbasename)
-	duration := int(C.VideoDuration())
+	result := C.MakeVideoThumbnail(cbasename)
+	duration := int(result.duration)
 	if duration < 1 {
 		// clamp to 1 so we know it is a video, but also not to compute a duration for it
 		duration = 1
 	} else {
 		duration *= 1000
 	}
-	log.Debug(ctx, "previewVideo: length: %d duration: %ds", C.ImageLength(), duration)
-	if C.ImageLength() == 0 {
+	log.Debug(ctx, "previewVideo: length: %d duration: %ds", result.imageLength, duration)
+	if result.imageLength == 0 {
 		return res, errors.New("no data returned from native")
 	}
-	localDat := make([]byte, C.ImageLength())
-	copy(localDat, (*[1 << 30]byte)(C.ImageData())[0:C.ImageLength()])
+	localDat := make([]byte, result.imageLength)
+	copy(localDat, (*[1 << 30]byte)(result.imageData)[0:result.imageLength])
 	imagePreview, err := previewImage(ctx, log, bytes.NewReader(localDat), basename, "image/jpeg")
 	if err != nil {
 		return res, err
@@ -161,14 +170,14 @@ func HEICToJPEG(ctx context.Context, log utils.DebugLabeler, basename string) (d
 	defer log.Trace(ctx, &err, "HEICToJPEG")()
 	cbasename := C.CString(basename)
 	defer C.free(unsafe.Pointer(cbasename))
-	ret := C.HEICToJPEG(cbasename)
-	log.Debug(ctx, "HEICToJPEG: length: %d", C.ImageLength())
-	if ret != 0 || C.ImageLength() == 0 {
+	result := C.HEICToJPEG(cbasename)
+	log.Debug(ctx, "HEICToJPEG: length: %d", result.imageLength)
+	if result.imageLength == 0 {
 		log.Debug(ctx, "unable to convert heic to jpeg")
 		return nil, nil
 	}
-	dat = make([]byte, C.ImageLength())
-	copy(dat, (*[1 << 30]byte)(C.ImageData())[0:C.ImageLength()])
+	dat = make([]byte, result.imageLength)
+	copy(dat, (*[1 << 30]byte)(result.imageData)[0:result.imageLength])
 	return dat, nil
 }
 
