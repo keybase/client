@@ -171,7 +171,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         const s = await T.RPCGen.configGetBootstrapStatusRpcPromise()
         set(state => {
-          state.bootstrapStatus = s
+          state.bootstrapStatus = T.castDraft(s)
         })
 
         logger.info(`[Bootstrap] loggedIn: ${s.loggedIn ? 1 : 0}`)
