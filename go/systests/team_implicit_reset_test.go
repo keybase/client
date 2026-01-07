@@ -195,6 +195,12 @@ func TestImplicitTeamResetAndSBSBringback(t *testing.T) {
 
 	bob := tt.addUser("bob")
 	t.Logf("Signed up bob (%s)", bob.username)
+	ekLibIface := bob.tc.G.GetEKLib()
+	ekLib, ok := ekLibIface.(*ephemeral.EKLib)
+	require.True(t, ok)
+	mctx := bob.MetaContext()
+	err := ekLib.Shutdown(mctx)
+	require.NoError(t, err)
 
 	// (1)
 	displayName := strings.Join([]string{ann.username, bob.username}, ",")
@@ -209,10 +215,10 @@ func TestImplicitTeamResetAndSBSBringback(t *testing.T) {
 	// Disable background EK generation after login to prevent it from racing
 	// with the explicit perUserKeyUpgrade() call below.
 	t.Logf("Disabling background EK generation after login for bob")
-	ekLibIface := bob.tc.G.GetEKLib()
-	ekLib, ok := ekLibIface.(*ephemeral.EKLib)
+	ekLibIface = bob.tc.G.GetEKLib()
+	ekLib, ok = ekLibIface.(*ephemeral.EKLib)
 	require.True(t, ok)
-	mctx := bob.MetaContext()
+	mctx = bob.MetaContext()
 	err = ekLib.Shutdown(mctx)
 	require.NoError(t, err)
 
