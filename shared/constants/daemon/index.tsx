@@ -4,7 +4,6 @@ import * as T from '../types'
 import * as Z from '@/util/zustand'
 import {storeRegistry} from '../store-registry'
 import {useCurrentUserState} from '../current-user'
-import {useDarkModeState} from '../darkmode'
 import {maxHandshakeTries} from '../values'
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
@@ -111,8 +110,6 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         wait(name, version, true)
         try {
           await get().dispatch.loadDaemonBootstrapStatus()
-          useDarkModeState.getState().dispatch.loadDarkPrefs()
-          storeRegistry.getState('chat').dispatch.loadStaticConfig()
         } finally {
           wait(name, version, false)
         }

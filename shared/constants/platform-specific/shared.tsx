@@ -11,6 +11,8 @@ import {useChatState} from '../chat2'
 import * as ChatUtil from '../chat2/util'
 import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
+import {useDaemonState} from '../daemon'
+import {useDarkModeState} from '../darkmode'
 import * as DeepLinksUtil from '../deeplinks/util'
 import * as DevicesUtil from '../devices/util'
 import * as FollowerUtil from '../followers/util'
@@ -116,6 +118,13 @@ export const initSharedSubscriptions = () => {
       if (s.mobileAppState === 'background' && storeRegistry.getState('chat').inboxSearch) {
         storeRegistry.getState('chat').dispatch.toggleInboxSearch(false)
       }
+    }
+  })
+
+  useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion !== old.handshakeVersion) {
+      useDarkModeState.getState().dispatch.loadDarkPrefs()
+      storeRegistry.getState('chat').dispatch.loadStaticConfig()
     }
   })
 }
