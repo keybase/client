@@ -489,8 +489,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       ignorePromise(f())
     },
     onEngineConnected: () => {
-      storeRegistry.getState('daemon').dispatch.startHandshake()
-
       // The startReachability RPC call both starts and returns the current
       // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
       // This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
@@ -517,13 +515,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
       get().dispatch.dynamic.onEngineConnectedDesktop?.()
       get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
-    },
-    onEngineDisonnected: () => {
-      const f = async () => {
-        await logger.dump()
-      }
-      ignorePromise(f())
-      storeRegistry.getState('daemon').dispatch.setError(new Error('Disconnected'))
     },
     onEngineIncoming: action => {
       switch (action.type) {
