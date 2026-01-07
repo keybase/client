@@ -3,6 +3,7 @@ import * as S from './strings'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from './utils'
 import {navigateAppend, navUpToScreen, switchTab} from './router2/util'
 import {storeRegistry} from './store-registry'
+import {useConfigState} from './config'
 import {useCurrentUserState} from './current-user'
 import {useLogoutState} from './logout'
 import {useWaitingState} from './waiting'
@@ -163,7 +164,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               }
               break
             case 'settings.contacts':
-              if (storeRegistry.getState('config').loggedIn) {
+              if (useConfigState.getState().loggedIn) {
                 switchTab(Tabs.peopleTab)
                 navUpToScreen('peopleRoot')
               }
@@ -222,13 +223,13 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
           if (shownPushPrompt) {
             // we've already shown the prompt, take them to settings
-            storeRegistry.getState('config').dispatch.dynamic.openAppSettings?.()
+            useConfigState.getState().dispatch.dynamic.openAppSettings?.()
             get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
             return
           }
         }
         try {
-          storeRegistry.getState('config').dispatch.dynamic.openAppSettings?.()
+          useConfigState.getState().dispatch.dynamic.openAppSettings?.()
           const {increment} = useWaitingState.getState().dispatch
           increment(S.waitingKeyPushPermissionsRequesting)
           await requestPermissionsFromNative()
@@ -295,7 +296,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         // permissions checker finishes after the routeToInitialScreen is done.
         if (
           p.show &&
-          storeRegistry.getState('config').loggedIn &&
+          useConfigState.getState().loggedIn &&
           storeRegistry.getState('daemon').handshakeState === 'done' &&
           !get().justSignedUp &&
           !get().hasPermissions

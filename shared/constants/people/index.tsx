@@ -10,6 +10,7 @@ import {isMobile} from '../platform'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import debounce from 'lodash/debounce'
 import {storeRegistry} from '../store-registry'
+import {useConfigState} from '../config'
 import {useFollowerState} from '../followers'
 import {RPCError, isNetworkErr} from '../utils'
 
@@ -388,7 +389,7 @@ export const usePeopleState = Z.createZustand<State>((set, get) => {
           logger.info(
             'getPeopleData: appFocused:',
             'loggedIn',
-            storeRegistry.getState('config').loggedIn,
+            useConfigState.getState().loggedIn,
             'action',
             {markViewed, numFollowSuggestionsWanted}
           )

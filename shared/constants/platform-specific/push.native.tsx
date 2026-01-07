@@ -10,6 +10,7 @@ import {
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
 import {storeRegistry} from '../store-registry'
+import {useConfigState} from '../config'
 import {useLogoutState} from '../logout'
 
 type DataCommon = {
@@ -162,7 +163,7 @@ const getStartupDetailsFromInitialPush = async () => {
 
 export const initPushListener = () => {
   // Permissions
-  storeRegistry.getStore('config').subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     // Only recheck on foreground, not background
     if (s.mobileAppState !== 'active') {
@@ -184,7 +185,7 @@ export const initPushListener = () => {
   })
 
   let lastCount = -1
-  storeRegistry.getStore('config').subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.badgeState === old.badgeState) return
     if (!s.badgeState) return
     const count = s.badgeState.bigTeamBadgeCount + s.badgeState.smallTeamBadgeCount
@@ -221,7 +222,7 @@ export const initPushListener = () => {
 
       if (isAndroid) {
         RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
-          const {setAndroidShare} = storeRegistry.getState('config').dispatch
+          const {setAndroidShare} = useConfigState.getState().dispatch
 
           const text = evt.text
           const urls = evt.localPaths

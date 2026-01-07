@@ -6,6 +6,7 @@ import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
 import debounce from 'lodash/debounce'
 import {storeRegistry} from '../store-registry'
+import {useConfigState} from '../config'
 
 const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {
   const errors: Array<Error> = []
@@ -105,7 +106,7 @@ export const useGitState = Z.createZustand<State>((set, get) => {
     async () => {
       const results = await T.RPCGen.gitGetAllGitMetadataRpcPromise(undefined, S.waitingKeyGitLoading)
       const {errors, repos} = parseRepos(results || [])
-      const {setGlobalError} = storeRegistry.getState('config').dispatch
+      const {setGlobalError} = useConfigState.getState().dispatch
       errors.forEach(e => setGlobalError(e))
       set(s => {
         s.idToInfo = repos

@@ -12,6 +12,7 @@ import {getE164} from './settings-phone'
 import {pluralize} from '@/util/string'
 import {navigateAppend} from './router2/util'
 import {storeRegistry} from './store-registry'
+import {useConfigState} from './config'
 import {useCurrentUserState} from './current-user'
 import {useWaitingState} from './waiting'
 
@@ -102,7 +103,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
     },
     loadContactImportEnabled: () => {
       const f = async () => {
-        if (!storeRegistry.getState('config').loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
         const username = useCurrentUserState.getState().username

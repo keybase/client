@@ -2,6 +2,7 @@ import * as T from '../types'
 import {isMobile, isTablet} from '../platform'
 import * as Router2 from '../router2'
 import {storeRegistry} from '../store-registry'
+import {useConfigState} from '../config'
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 
@@ -30,7 +31,7 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: T.Chat.Conv
       (maybeVisibleScreen === undefined ? undefined : maybeVisibleScreen.name) === threadRouteName
   }
 
-  const {appFocused} = storeRegistry.getState('config')
+  const {appFocused} = useConfigState.getState()
   const {active: userActive} = storeRegistry.getState('active')
 
   return (

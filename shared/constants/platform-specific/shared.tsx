@@ -117,10 +117,10 @@ export const initSharedSubscriptions = () => {
         .dispatch.loadDaemonAccounts(
           s.configuredAccounts.length,
           s.loggedIn,
-          storeRegistry.getState('config').dispatch.refreshAccounts
+          useConfigState.getState().dispatch.refreshAccounts
         )
       if (!s.loggedInCausedbyStartup) {
-        ignorePromise(storeRegistry.getState('config').dispatch.refreshAccounts())
+        ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
       }
     }
 
@@ -136,7 +136,7 @@ export const initSharedSubscriptions = () => {
         .dispatch.loadDaemonAccounts(
           s.configuredAccounts.length,
           s.loggedIn,
-          storeRegistry.getState('config').dispatch.refreshAccounts
+          useConfigState.getState().dispatch.refreshAccounts
         )
     }
 
@@ -160,11 +160,11 @@ export const initSharedSubscriptions = () => {
     if (s.handshakeVersion !== old.handshakeVersion) {
       useDarkModeState.getState().dispatch.loadDarkPrefs()
       storeRegistry.getState('chat').dispatch.loadStaticConfig()
-      const configState = storeRegistry.getState('config')
+      const configState = useConfigState.getState()
       s.dispatch.loadDaemonAccounts(
         configState.configuredAccounts.length,
         configState.loggedIn,
-        storeRegistry.getState('config').dispatch.refreshAccounts
+        useConfigState.getState().dispatch.refreshAccounts
       )
     }
 
@@ -174,7 +174,7 @@ export const initSharedSubscriptions = () => {
         const {deviceID, deviceName, loggedIn, uid, username, userReacjis} = bootstrap
         useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
 
-        const configDispatch = storeRegistry.getState('config').dispatch
+        const configDispatch = useConfigState.getState().dispatch
         if (username) {
           configDispatch.setDefaultUsername(username)
         }
@@ -195,7 +195,7 @@ export const initSharedSubscriptions = () => {
       if (s.handshakeState === 'done') {
         if (!_emitStartupOnLoadDaemonConnectedOnce) {
           _emitStartupOnLoadDaemonConnectedOnce = true
-          storeRegistry.getState('config').dispatch.loadOnStart('connectedToDaemonForFirstTime')
+          useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
         }
       }
     }
@@ -203,11 +203,11 @@ export const initSharedSubscriptions = () => {
 
   useProvisionState.subscribe((s, old) => {
     if (s.startProvisionTrigger !== old.startProvisionTrigger) {
-      storeRegistry.getState('config').dispatch.setLoginError()
-      storeRegistry.getState('config').dispatch.resetRevokedSelf()
+      useConfigState.getState().dispatch.setLoginError()
+      useConfigState.getState().dispatch.resetRevokedSelf()
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (storeRegistry.getState('config').loggedIn) {
+        if (useConfigState.getState().loggedIn) {
           await T.RPCGen.loginLogoutRpcPromise(
             {force: false, keepSecrets: true},
             'config:loginAsOther'
@@ -225,9 +225,9 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
   AvatarUtil.onEngineIncoming(action)
   BotsUtil.onEngineIncoming(action)
   ChatUtil.onEngineIncoming(action)
-  storeRegistry.getState('config').dispatch.dynamic.onEngineIncomingDesktop?.(action)
-  storeRegistry.getState('config').dispatch.dynamic.onEngineIncomingNative?.(action)
-  storeRegistry.getState('config').dispatch.onEngineIncoming(action)
+  useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
+  useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
+  useConfigState.getState().dispatch.onEngineIncoming(action)
   DeepLinksUtil.onEngineIncoming(action)
   DevicesUtil.onEngineIncoming(action)
   FollowerUtil.onEngineIncoming(action)

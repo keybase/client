@@ -9,6 +9,7 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 import {navigateAppend, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useConfigState} from '../config'
 
 const prefix = 'keybase://'
 type Store = T.Immutable<{
@@ -291,7 +292,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
     handleSaltPackOpen: _path => {
       const path = typeof _path === 'string' ? _path : _path.stringValue()
 
-      if (!storeRegistry.getState('config').loggedIn) {
+      if (!useConfigState.getState().loggedIn) {
         console.warn('Tried to open a saltpack file before being logged in')
         return
       }

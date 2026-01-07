@@ -47,6 +47,7 @@ import {enumKeys, ignorePromise, shallowEqual} from '../utils'
 import * as Strings from '@/constants/strings'
 
 import {storeRegistry} from '../store-registry'
+import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
@@ -494,13 +495,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
 
     const onClick = () => {
-      storeRegistry.getState('config').dispatch.showMain()
+      useConfigState.getState().dispatch.showMain()
       storeRegistry.getState('chat').dispatch.navigateToInbox()
       get().dispatch.navigateToThread('desktopNotification')
     }
     const onClose = () => {}
     logger.info('invoking NotifyPopup for chat notification')
-    const sound = storeRegistry.getState('config').notifySound
+    const sound = useConfigState.getState().notifySound
 
     const cleanBody = body.replaceAll(/!>(.*?)<!/g, '•••')
 
@@ -1239,7 +1240,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     blockConversation: reportUser => {
       const f = async () => {
         storeRegistry.getState('chat').dispatch.navigateToInbox()
-        storeRegistry.getState('config').dispatch.dynamic.persistRoute?.()
+        useConfigState.getState().dispatch.dynamic.persistRoute?.()
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
           conversationID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -1754,7 +1755,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     markTeamAsRead: teamID => {
       const f = async () => {
-        if (!storeRegistry.getState('config').loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           logger.info('bail on not logged in')
           return
         }
@@ -1765,7 +1766,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     markThreadAsRead: force => {
       const f = async () => {
-        if (!storeRegistry.getState('config').loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           logger.info('mark read bail on not logged in')
           return
         }
@@ -2703,7 +2704,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       const conversationIDKey = get().id
       const f = async () => {
-        if (!storeRegistry.getState('config').loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           logger.info('mark unread bail on not logged in')
           return
         }

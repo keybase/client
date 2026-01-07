@@ -5,6 +5,7 @@ import {isMobile} from '../platform'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '../tabs'
 import {storeRegistry} from '../store-registry'
+import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
 
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
@@ -121,7 +122,7 @@ export const useNotifState = Z.createZustand<State>((set, get) => {
           break
         case EngineGen.keybase1NotifyBadgesBadgeState: {
           const badgeState = action.payload.params.badgeState
-          storeRegistry.getState('config').dispatch.setBadgeState(badgeState)
+          useConfigState.getState().dispatch.setBadgeState(badgeState)
 
           const counts = badgeStateToBadgeCounts(badgeState)
           if (!isMobile && shouldTriggerTlfLoad(badgeState)) {

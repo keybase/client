@@ -6,6 +6,7 @@ import * as PeopleUtil from '../people/util'
 import * as PinentryUtil from '../pinentry/util'
 import {onEngineIncoming as onEngineIncomingShared} from '../platform-specific/shared'
 import {storeRegistry} from '../store-registry'
+import {useConfigState} from '../config'
 import {ignorePromise} from '../utils'
 import * as TrackerUtil from '../tracker2/util'
 import * as UnlockFoldersUtil from '../unlock-folders/util'
@@ -28,7 +29,7 @@ export const useEngineState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     onEngineConnected: () => {
       ChatUtil.onEngineConnected()
-      storeRegistry.getState('config').dispatch.onEngineConnected()
+      useConfigState.getState().dispatch.onEngineConnected()
       storeRegistry.getState('daemon').dispatch.startHandshake()
       NotifUtil.onEngineConnected()
       PeopleUtil.onEngineConnected()

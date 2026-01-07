@@ -18,6 +18,7 @@ import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '../rpc-utils'
 import {navigateAppend, navUpToScreen, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
 import {useWaitingState} from '../waiting'
 import * as S from '../strings'
@@ -527,7 +528,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     inboxRefresh: reason => {
       const f = async () => {
         const {username} = useCurrentUserState.getState()
-        const {loggedIn} = storeRegistry.getState('config')
+        const {loggedIn} = useConfigState.getState()
         if (!loggedIn || !username) {
           return
         }
@@ -1757,7 +1758,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     unboxRows: (ids, force) => {
       // We want to unbox rows that have scroll into view
       const f = async () => {
-        if (!storeRegistry.getState('config').loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
 

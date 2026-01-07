@@ -15,6 +15,7 @@ import isEqual from 'lodash/isEqual'
 import {settingsFsTab} from '../settings/util'
 import {navigateAppend, navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
 
 export {makeActionForOpenPathInFilesTab} from './util'
@@ -1582,7 +1583,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
     favoritesLoad: () => {
       const f = async () => {
         try {
-          if (!storeRegistry.getState('config').loggedIn) {
+          if (!useConfigState.getState().loggedIn) {
             return
           }
           const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
@@ -2217,7 +2218,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
                   src: {
                     PathType: T.RPCGen.PathType.local,
                     local: T.FS.getNormalizedLocalPath(
-                      storeRegistry.getState('config').incomingShareUseOriginal
+                      useConfigState.getState().incomingShareUseOriginal
                         ? originalPath
                         : scaledPath || originalPath
                     ),
