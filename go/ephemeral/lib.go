@@ -1253,7 +1253,6 @@ func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
 		go func() {
 			select {
 			case <-time.After(libkb.RandomJitter(time.Second)):
-				break
 			case <-stopCh:
 				return
 			}
