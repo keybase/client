@@ -37,7 +37,6 @@ export const useEngineState = Z.createZustand<State>(set => {
       UnlockFoldersUtil.onEngineConnected()
     },
     onEngineDisconnected: () => {
-      storeRegistry.getState('config').dispatch.onEngineDisonnected()
       const f = async () => {
         await logger.dump()
       }

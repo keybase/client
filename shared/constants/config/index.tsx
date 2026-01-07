@@ -174,7 +174,6 @@ export interface State extends Store {
     setLoginError: (error?: RPCError) => void
     logoutAndTryToLogInAs: (username: string) => void
     onEngineConnected: () => void
-    onEngineDisonnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     osNetworkStatusChanged: (online: boolean, type: T.Config.ConnectionType, isInit?: boolean) => void
     openUnlockFolders: (devices: ReadonlyArray<T.RPCGen.Device>) => void
