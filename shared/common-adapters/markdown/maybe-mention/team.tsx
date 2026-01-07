@@ -26,9 +26,7 @@ const TeamMention = (ownProps: OwnProps) => {
     s.maybeMentionMap.get(Chat.getTeamMentionName(name, channel))
   )
   const mentionInfo =
-    maybeMentionInfo && maybeMentionInfo.status === T.RPCChat.UIMaybeMentionStatus.team
-      ? maybeMentionInfo.team
-      : null
+    maybeMentionInfo?.status === T.RPCChat.UIMaybeMentionStatus.team ? maybeMentionInfo.team : null
   const _convID = mentionInfo ? mentionInfo.convID : undefined
   const description = mentionInfo?.description || ''
   const inTeam = !!mentionInfo && mentionInfo.inTeam
