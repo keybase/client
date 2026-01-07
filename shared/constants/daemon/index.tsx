@@ -30,7 +30,7 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    loadDaemonAccounts: () => void
+    loadDaemonAccounts: (configuredAccountsLength: number, loggedIn: boolean) => void
     loadDaemonBootstrapStatus: () => Promise<void>
     refreshAccounts: () => Promise<void>
     resetState: () => void
@@ -115,15 +115,16 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         }
       }
       ignorePromise(f())
-      get().dispatch.loadDaemonAccounts()
+      const configState = storeRegistry.getState('config')
+      get().dispatch.loadDaemonAccounts(configState.configuredAccounts.length, configState.loggedIn)
     },
     daemonHandshakeDone: () => {
       get().dispatch.setState('done')
     },
-    loadDaemonAccounts: () => {
+    loadDaemonAccounts: (configuredAccountsLength: number, loggedIn: boolean) => {
       const f = async () => {
         const version = get().handshakeVersion
-        if (storeRegistry.getState('config').configuredAccounts.length) {
+        if (configuredAccountsLength) {
           // bail on already loaded
           return
         }
@@ -132,7 +133,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         const handshakeVersion = version
 
         // did we beat getBootstrapStatus?
-        if (!storeRegistry.getState('config').loggedIn) {
+        if (!loggedIn) {
           handshakeWait = true
         }
 

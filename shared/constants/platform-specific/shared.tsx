@@ -108,7 +108,7 @@ export const initSharedSubscriptions = () => {
         ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
         storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
       }
-      storeRegistry.getState('daemon').dispatch.loadDaemonAccounts()
+      storeRegistry.getState('daemon').dispatch.loadDaemonAccounts(s.configuredAccounts.length, s.loggedIn)
       if (!s.loggedInCausedbyStartup) {
         ignorePromise(storeRegistry.getState('daemon').dispatch.refreshAccounts())
       }
