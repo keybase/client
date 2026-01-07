@@ -40,7 +40,8 @@ import {
 import {initPushListener, getStartupDetailsFromInitialPush} from './push.native'
 import {initSharedSubscriptions} from './shared'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
-import {noConversationIDKey} from '@/constants/types/chat2/common'
+import {noConversationIDKey, getSelectedConversation} from '@/constants/types/chat2/common'
+import {storeRegistry} from '../store-registry'
 
 export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -412,6 +413,12 @@ export const initPlatformListener = () => {
 
     logger.info(`setting app state on service to: ${logState}`)
     s.dispatch.changedFocus(appFocused)
+
+    if (appFocused && old.mobileAppState !== 'active') {
+      const {dispatch} = storeRegistry.getConvoState(getSelectedConversation())
+      dispatch.loadMoreMessages({reason: 'foregrounding'})
+      dispatch.markThreadAsRead()
+    }
   })
 
   useConfigState.setState(s => {

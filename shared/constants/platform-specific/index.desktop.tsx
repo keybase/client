@@ -25,7 +25,6 @@ import {initSharedSubscriptions} from './shared'
 import {switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {wrapErrors} from '@/util/debug'
-import {getSelectedConversation} from '@/constants/chat2/common'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions
@@ -164,11 +163,6 @@ export const initPlatformListener = () => {
 
     if (s.appFocused !== old.appFocused) {
       maybePauseVideos()
-      if (!old.appFocused && s.appFocused) {
-        const {dispatch} = storeRegistry.getConvoState(getSelectedConversation())
-        dispatch.loadMoreMessages({reason: 'foregrounding'})
-        dispatch.markThreadAsRead()
-      }
     }
 
     if (s.openAtLogin !== old.openAtLogin) {
