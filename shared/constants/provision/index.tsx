@@ -9,7 +9,6 @@ import isEqual from 'lodash/isEqual'
 import {rpcDeviceToDevice} from '../rpc-utils'
 import {invalidPasswordErrorString} from '@/constants/config/util'
 import {clearModals, navigateAppend} from '../router2/util'
-import {storeRegistry} from '../store-registry'
 import {useWaitingState} from '../waiting'
 
 export type Device = {
@@ -83,6 +82,7 @@ type Store = T.Immutable<{
   inlineError?: RPCError
   passphrase: string
   provisionStep: number
+  startProvisionTrigger: number
   username: string
 }>
 const initialStore: Store = {
@@ -100,6 +100,7 @@ const initialStore: Store = {
   inlineError: undefined,
   passphrase: '',
   provisionStep: 0,
+  startProvisionTrigger: 0,
   username: '',
 }
 
@@ -550,20 +551,11 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
     },
     startProvision: (name = '', fromReset = false) => {
       get().dispatch.dynamic.cancel?.(true)
-      storeRegistry.getState('config').dispatch.setLoginError()
-      storeRegistry.getState('config').dispatch.resetRevokedSelf()
-
       set(s => {
+        s.startProvisionTrigger++
         s.username = name
       })
       const f = async () => {
-        // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (storeRegistry.getState('config').loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise(
-            {force: false, keepSecrets: true},
-            C.waitingKeyConfigLoginAsOther
-          )
-        }
         navigateAppend({props: {fromReset}, selected: 'username'})
       }
       ignorePromise(f())

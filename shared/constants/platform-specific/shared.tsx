@@ -21,6 +21,7 @@ import * as GitUtil from '../git/util'
 import * as NotifUtil from '../notifications/util'
 import * as PeopleUtil from '../people/util'
 import * as PinentryUtil from '../pinentry/util'
+import {useProvisionState} from '../provision'
 import {storeRegistry} from '../store-registry'
 import {useSettingsContactsState} from '../settings-contacts'
 import * as SettingsUtil from '../settings/util'
@@ -191,6 +192,23 @@ export const initSharedSubscriptions = () => {
           storeRegistry.getState('config').dispatch.loadOnStart('connectedToDaemonForFirstTime')
         }
       }
+    }
+  })
+
+  useProvisionState.subscribe((s, old) => {
+    if (s.startProvisionTrigger !== old.startProvisionTrigger) {
+      storeRegistry.getState('config').dispatch.setLoginError()
+      storeRegistry.getState('config').dispatch.resetRevokedSelf()
+      const f = async () => {
+        // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
+        if (storeRegistry.getState('config').loggedIn) {
+          await T.RPCGen.loginLogoutRpcPromise(
+            {force: false, keepSecrets: true},
+            'config:loginAsOther'
+          )
+        }
+      }
+      ignorePromise(f())
     }
   })
 }
