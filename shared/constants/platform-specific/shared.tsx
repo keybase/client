@@ -31,6 +31,7 @@ import * as TeamsUtil from '../teams/util'
 import * as TrackerUtil from '../tracker2/util'
 import * as UnlockFoldersUtil from '../unlock-folders/util'
 import * as UsersUtil from '../users/util'
+import {useWhatsNewState} from '../whats-new'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 
@@ -147,6 +148,11 @@ export const initSharedSubscriptions = () => {
       if (updates.length > 0) {
         storeRegistry.getState('users').dispatch.updates(updates)
       }
+    }
+
+    if (s.gregorPushState !== old.gregorPushState) {
+      const lastSeenItem = s.gregorPushState.find(i => i.item.category === 'whatsNewLastSeenVersion')
+      useWhatsNewState.getState().dispatch.updateLastSeen(lastSeenItem)
     }
   })
 

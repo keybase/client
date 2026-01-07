@@ -13,8 +13,6 @@ import {defaultUseNativeFrame, isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from './util'
 import {navigateAppend} from '../router2/util'
-import {storeRegistry} from '../store-registry'
-import {useWhatsNewState} from '../whats-new'
 
 type Store = T.Immutable<{
   forceSmallNav: boolean
@@ -265,9 +263,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     set(s => {
       s.allowAnimatedEmojis = allowAnimatedEmojis
     })
-
-    const lastSeenItem = goodState.find(i => i.item.category === 'whatsNewLastSeenVersion')
-    useWhatsNewState.getState().dispatch.updateLastSeen(lastSeenItem)
   }
 
   const updateRuntimeStats = (stats?: T.RPCGen.RuntimeStats) => {
