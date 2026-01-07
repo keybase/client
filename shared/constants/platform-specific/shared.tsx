@@ -31,6 +31,8 @@ import * as TrackerUtil from '../tracker2/util'
 import * as UnlockFoldersUtil from '../unlock-folders/util'
 import * as UsersUtil from '../users/util'
 
+let _emitStartupOnLoadDaemonConnectedOnce = false
+
 export const initSharedSubscriptions = () => {
   useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase !== old.loadOnStartPhase) {
@@ -153,6 +155,15 @@ export const initSharedSubscriptions = () => {
         }
 
         storeRegistry.getState('chat').dispatch.updateUserReacjis(userReacjis)
+      }
+    }
+
+    if (s.handshakeState !== old.handshakeState) {
+      if (s.handshakeState === 'done') {
+        if (!_emitStartupOnLoadDaemonConnectedOnce) {
+          _emitStartupOnLoadDaemonConnectedOnce = true
+          storeRegistry.getState('config').dispatch.loadOnStart('connectedToDaemonForFirstTime')
+        }
       }
     }
   })

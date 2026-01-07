@@ -92,7 +92,6 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
 
   // When there are no more waiters, we can show the actual app
 
-  let _emitStartupOnLoadDaemonConnectedOnce = false
   const dispatch: State['dispatch'] = {
     daemonHandshake: version => {
       get().dispatch.setState('waitingForWaiters')
@@ -223,13 +222,6 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.handshakeState = ds
       })
-
-      if (ds !== 'done') return
-
-      if (!_emitStartupOnLoadDaemonConnectedOnce) {
-        _emitStartupOnLoadDaemonConnectedOnce = true
-        storeRegistry.getState('config').dispatch.loadOnStart('connectedToDaemonForFirstTime')
-      }
     },
     startHandshake: () => {
       get().dispatch.setError()
