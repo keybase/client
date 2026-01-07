@@ -128,6 +128,29 @@ export const initSharedSubscriptions = () => {
       const configState = storeRegistry.getState('config')
       s.dispatch.loadDaemonAccounts(configState.configuredAccounts.length, configState.loggedIn)
     }
+
+    if (s.bootstrapStatus !== old.bootstrapStatus) {
+      const bootstrap = s.bootstrapStatus
+      if (bootstrap) {
+        const {deviceID, deviceName, loggedIn, uid, username, userReacjis} = bootstrap
+        useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
+
+        const configDispatch = storeRegistry.getState('config').dispatch
+        if (username) {
+          configDispatch.setDefaultUsername(username)
+        }
+        if (loggedIn) {
+          configDispatch.setUserSwitching(false)
+        }
+        configDispatch.setLoggedIn(loggedIn, false)
+
+        if (bootstrap.httpSrvInfo) {
+          configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
+        }
+
+        storeRegistry.getState('chat').dispatch.updateUserReacjis(userReacjis)
+      }
+    }
   })
 }
 

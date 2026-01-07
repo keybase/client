@@ -3,7 +3,6 @@ import {ignorePromise} from '../utils'
 import * as T from '../types'
 import * as Z from '@/util/zustand'
 import {storeRegistry} from '../store-registry'
-import {useCurrentUserState} from '../current-user'
 import {maxHandshakeTries} from '../values'
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
@@ -11,16 +10,18 @@ import {maxHandshakeTries} from '../values'
 const getAccountsWaitKey = 'config.getAccounts'
 
 type Store = T.Immutable<{
+  bootstrapStatus?: T.RPCGen.BootstrapStatus
   error?: Error
-  handshakeState: T.Config.DaemonHandshakeState
   handshakeFailedReason: string
   handshakeRetriesLeft: number
+  handshakeState: T.Config.DaemonHandshakeState
+  handshakeVersion: number
   handshakeWaiters: Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things
-  handshakeVersion: number
 }>
 
 const initialStore: Store = {
+  bootstrapStatus: undefined,
   handshakeFailedReason: '',
   handshakeRetriesLeft: maxHandshakeTries,
   handshakeState: 'starting',
@@ -168,32 +169,22 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       const {wait} = get().dispatch
 
       const f = async () => {
-        const {setBootstrap} = useCurrentUserState.getState().dispatch
-        const {setDefaultUsername} = storeRegistry.getState('config').dispatch
         const s = await T.RPCGen.configGetBootstrapStatusRpcPromise()
-        const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
-        setBootstrap({deviceID, deviceName, uid, username})
-        if (username) {
-          setDefaultUsername(username)
-        }
-        if (loggedIn) {
-          storeRegistry.getState('config').dispatch.setUserSwitching(false)
-        }
+        set(state => {
+          state.bootstrapStatus = s
+        })
 
-        logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
-        storeRegistry.getState('config').dispatch.setLoggedIn(loggedIn, false)
-        storeRegistry.getState('chat').dispatch.updateUserReacjis(userReacjis)
+        logger.info(`[Bootstrap] loggedIn: ${s.loggedIn ? 1 : 0}`)
 
         // set HTTP srv info
         if (s.httpSrvInfo) {
           logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
-          storeRegistry.getState('config').dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
         } else {
           logger.info(`[Bootstrap] http server: no info given`)
         }
 
         // if we're logged in act like getAccounts is done already
-        if (loggedIn) {
+        if (s.loggedIn) {
           const {handshakeWaiters} = get()
           if (handshakeWaiters.get(getAccountsWaitKey)) {
             wait(getAccountsWaitKey, version, false)
