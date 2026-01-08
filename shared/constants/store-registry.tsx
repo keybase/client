@@ -10,7 +10,6 @@ import type {State as AutoResetState, useAutoResetState} from './autoreset'
 import type {State as BotsState, useBotsState} from './bots'
 import type {State as ChatState, useChatState} from './chat2'
 import type {State as DaemonState, useDaemonState} from './daemon'
-import type {State as DeepLinksState, useDeepLinksState} from './deeplinks'
 import type {State as DevicesState, useDevicesState} from './devices'
 import type {State as FSState, useFSState} from './fs'
 import type {State as GitState, useGitState} from './git'
@@ -40,7 +39,6 @@ type StoreName =
   | 'bots'
   | 'chat'
   | 'daemon'
-  | 'deeplinks'
   | 'devices'
   | 'fs'
   | 'git'
@@ -70,7 +68,6 @@ type StoreStates = {
   bots: BotsState
   chat: ChatState
   daemon: DaemonState
-  deeplinks: DeepLinksState
   devices: DevicesState
   fs: FSState
   git: GitState
@@ -101,7 +98,6 @@ type StoreHooks = {
   bots: typeof useBotsState
   chat: typeof useChatState
   daemon: typeof useDaemonState
-  deeplinks: typeof useDeepLinksState
   devices: typeof useDevicesState
   fs: typeof useFSState
   git: typeof useGitState

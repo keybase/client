@@ -9,6 +9,7 @@ import {RPCError} from '@/util/errors'
 import {switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {onEngineConnected, onEngineDisconnected} from '@/constants/platform-specific/shared'
+import {handleAppLink, handleSaltPackOpen} from '../deeplinks'
 
 const {ctlQuit, dumpNodeLogger} = KB2.functions
 
@@ -92,7 +93,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.saltpackFileOpen: {
-      storeRegistry.getState('deeplinks').dispatch.handleSaltPackOpen(action.payload.path)
+      handleSaltPackOpen(action.payload.path)
       break
     }
     case RemoteGen.pinentryOnCancel: {
@@ -150,7 +151,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
     case RemoteGen.link:
       {
         const {link} = action.payload
-        storeRegistry.getState('deeplinks').dispatch.handleAppLink(link)
+        handleAppLink(link)
       }
       break
     case RemoteGen.installerRan:
