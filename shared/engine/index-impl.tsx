@@ -12,7 +12,7 @@ import {printOutstandingRPCs} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '../actions/engine-gen-gen'
-import {onEngineIncoming as onEngineIncomingShared} from '@/constants/platform-specific/shared'
+import type * as PlatSpecType from '@/constants/platform-specific/shared'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
@@ -73,6 +73,8 @@ class Engine {
         // defer a frame so its more like before
         this._incomingTimeout = setTimeout(() => {
           // we delegate to these utils so we don't need to load stores that we don't need yet
+          const {onEngineIncoming: onEngineIncomingShared} =
+            require('@/constants/platform-specific/shared') as typeof PlatSpecType
           onEngineIncomingShared(action)
         }, 0)
       }
