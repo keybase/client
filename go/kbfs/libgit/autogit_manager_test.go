@@ -40,7 +40,7 @@ func initConfigForAutogit(t *testing.T) (
 	require.NoError(t, err)
 	defer func() {
 		if !success {
-			os.RemoveAll(tempdir)
+			_ = os.RemoveAll(tempdir)
 		}
 	}()
 
@@ -61,7 +61,7 @@ func addFileToWorktreeWithInfo(
 ) {
 	foo, err := worktreeFS.Create(name)
 	require.NoError(t, err)
-	defer foo.Close()
+	defer func() { _ = foo.Close() }()
 	_, err = io.WriteString(foo, data)
 	require.NoError(t, err)
 	wt, err := repo.Worktree()

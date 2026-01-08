@@ -146,14 +146,14 @@ func (d *ImpatientDebugDumper) dump(ctx context.Context) {
 	base64er := base64.NewEncoder(base64.StdEncoding, buf)
 	gzipper := gzip.NewWriter(base64er)
 	for _, p := range pprof.Profiles() {
-		fmt.Fprintf(gzipper,
+		_, _ = fmt.Fprintf(gzipper,
 			"\n======== START Profile: %s ========\n\n", p.Name())
 		_ = p.WriteTo(gzipper, 2)
-		fmt.Fprintf(gzipper,
+		_, _ = fmt.Fprintf(gzipper,
 			"\n======== END   Profile: %s ========\n\n", p.Name())
 	}
-	gzipper.Close()
-	base64er.Close()
+	_ = gzipper.Close()
+	_ = base64er.Close()
 	d.log.CDebugf(ctx,
 		"Operation exceeded max wait time. dump>gzip>base64: %q "+
 			"Pipe the quoted content into ` | base64 -d | gzip -d ` "+

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/stretchr/testify/require"
 )
 
 // bob and alice both write(to the same file),
@@ -48,9 +49,10 @@ func TestCrConflictWriteFile(t *testing.T) {
 
 func TestCrConflictWriteFileWithObfuscation(t *testing.T) {
 	oldEnv := os.Getenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest)
-	os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, "1")
+	err := os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, "1")
+	require.NoError(t, err)
 	defer func() {
-		os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, oldEnv)
+		_ = os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, oldEnv)
 	}()
 	testCrConflictWriteFile(t)
 }

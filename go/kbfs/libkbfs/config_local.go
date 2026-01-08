@@ -1563,7 +1563,7 @@ func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 	if err != nil {
 		return err
 	}
-	defer ldb.Close()
+	defer func() { _ = ldb.Close() }()
 	iter := ldb.NewIterator(nil, nil)
 	defer iter.Release()
 
@@ -1669,7 +1669,7 @@ func (c *ConfigLocal) setTlfSyncState(
 		if err != nil {
 			return nil, err
 		}
-		defer ldb.Close()
+		defer func() { _ = ldb.Close() }()
 		tlfBytes, err := tlfID.MarshalText()
 		if err != nil {
 			return nil, err

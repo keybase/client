@@ -154,7 +154,7 @@ func TestIndexFile(t *testing.T) {
 
 	tempdir, err := os.MkdirTemp("", "indexTest")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	config.SetStorageRoot(tempdir)
 
 	i, err := newIndexerWithConfigInit(
@@ -307,7 +307,7 @@ func TestFullIndexSyncedTlf(t *testing.T) {
 
 	tempdir, err := os.MkdirTemp("", "indexTest")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	config.SetStorageRoot(tempdir)
 
 	err = config.EnableDiskLimiter(tempdir)
@@ -444,7 +444,7 @@ func TestFullIndexSearch(t *testing.T) {
 
 	tempdir, err := os.MkdirTemp("", "indexTest")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	config.SetStorageRoot(tempdir)
 
 	err = config.EnableDiskLimiter(tempdir)

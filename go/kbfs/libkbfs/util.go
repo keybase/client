@@ -309,7 +309,7 @@ func cleanOldTempStorageRoots(config Config) {
 		log.CDebugf(ctx, "Error opening storage root %s: %+v", storageRoot, err)
 		return
 	}
-	defer d.Close()
+	defer func() { _ = d.Close() }()
 
 	fis, err := d.Readdir(0)
 	if err != nil {

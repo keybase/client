@@ -5546,7 +5546,7 @@ func (fbo *folderBranchOps) Read(
 
 	fsFile := file.GetFile(ctx)
 	if fsFile != nil {
-		defer fsFile.Close()
+		defer func() { _ = fsFile.Close() }()
 		fbo.vlog.CLogf(ctx, libkb.VLog1, "Reading from an FS file")
 		nInt, err := fsFile.ReadAt(dest, off)
 		if nInt == 0 && errors.Cause(err) == io.EOF {

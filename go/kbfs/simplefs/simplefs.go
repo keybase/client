@@ -1398,7 +1398,7 @@ func (k *SimpleFS) doCopyFromSource(
 	if err != nil {
 		return err
 	}
-	defer src.Close()
+	defer func() { _ = src.Close() }()
 
 	mode := os.O_RDWR | os.O_CREATE | os.O_EXCL
 	if overwriteExistingFiles {
@@ -1408,7 +1408,7 @@ func (k *SimpleFS) doCopyFromSource(
 	if err != nil {
 		return err
 	}
-	defer dst.Close()
+	defer func() { _ = dst.Close() }()
 
 	if pathType, _ := dstPath.PathType(); pathType == keybase1.PathType_LOCAL {
 		defer func() {

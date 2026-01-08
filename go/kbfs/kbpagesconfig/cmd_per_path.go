@@ -80,7 +80,7 @@ var perPathGetPermissionCmd = cli.Command{
 			os.Exit(1)
 		}
 		writer := tabwriter.NewWriter(os.Stdout, 0, 4, 1, '\t', 0)
-		fmt.Fprintln(writer, "read\tlist\tpath")
+		_, _ = fmt.Fprintln(writer, "read\tlist\tpath")
 		for _, p := range c.Args()[1:] {
 			read, list, err := editor.getUserPermissionsOnPath(c.Args()[0], p)
 			if err != nil {
@@ -88,7 +88,7 @@ var perPathGetPermissionCmd = cli.Command{
 					"%q on %q error: %v\n", c.Args()[0], p, err)
 				os.Exit(1)
 			}
-			fmt.Fprintf(writer, "%t\t%t\t%s\n", read, list, p)
+			_, _ = fmt.Fprintf(writer, "%t\t%t\t%s\n", read, list, p)
 		}
 		if err := writer.Flush(); err != nil {
 			fmt.Fprintf(os.Stderr, "flushing tabwriter error: %v\n", err)

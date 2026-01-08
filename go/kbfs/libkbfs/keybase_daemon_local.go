@@ -79,7 +79,7 @@ func (c diskFavoriteClient) FavoriteList(uid keybase1.UID) (
 }
 
 func (c diskFavoriteClient) Shutdown() {
-	c.favoriteDb.Close()
+	_ = c.favoriteDb.Close()
 }
 
 type memoryFavoriteClient struct {

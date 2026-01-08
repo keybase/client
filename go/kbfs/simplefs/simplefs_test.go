@@ -57,7 +57,7 @@ func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 }
 
 func deleteTempLocalPath(path keybase1.Path) {
-	os.RemoveAll(path.Local())
+	_ = os.RemoveAll(path.Local())
 }
 
 // "pending" tells whether we expect the operation to still be
@@ -483,7 +483,7 @@ func TestCopyToLocal(t *testing.T) {
 
 	// make a temp local dest directory + files we will clean up later
 	tempdir2, err := os.MkdirTemp(TempDirBase, "simpleFstest")
-	defer os.RemoveAll(tempdir2)
+	defer func() { _ = os.RemoveAll(tempdir2) }()
 	require.NoError(t, err)
 	path2 := keybase1.NewPathWithLocal(tempdir2)
 
@@ -522,7 +522,7 @@ func TestCopyRecursive(t *testing.T) {
 	// make a temp local dest directory + files we will clean up later
 	tempdir, err := os.MkdirTemp(TempDirBase, "simpleFstest")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 
 	// First try copying from a TLF that doesn't exist yet, which
 	// shouldn't do anything.
@@ -580,7 +580,7 @@ func TestCopyRecursive(t *testing.T) {
 	// Copy it back.
 	tempdir2, err := os.MkdirTemp(TempDirBase, "simpleFstest")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempdir2)
+	defer func() { _ = os.RemoveAll(tempdir2) }()
 	path3 := keybase1.NewPathWithLocal(
 		filepath.ToSlash(filepath.Join(tempdir2, "testdir")))
 	opid2, err := sfs.SimpleFSMakeOpid(ctx)
@@ -648,7 +648,7 @@ func TestCopyToRemote(t *testing.T) {
 
 	// make a temp local dest directory + files we will clean up later
 	tempdir, err := os.MkdirTemp(TempDirBase, "simpleFstest")
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(tempdir)
 	defer deleteTempLocalPath(path1)
@@ -692,7 +692,7 @@ func writeRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyb
 		Dest:  path,
 		Flags: keybase1.OpenFlags_REPLACE | keybase1.OpenFlags_WRITE,
 	})
-	defer sfs.SimpleFSClose(ctx, opid)
+	defer func() { _ = sfs.SimpleFSClose(ctx, opid) }()
 	require.NoError(t, err)
 
 	err = sfs.SimpleFSWrite(ctx, keybase1.SimpleFSWriteArg{
@@ -713,7 +713,7 @@ func writeRemoteDir(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyba
 		Dest:  path,
 		Flags: keybase1.OpenFlags_REPLACE | keybase1.OpenFlags_WRITE | keybase1.OpenFlags_DIRECTORY,
 	})
-	defer sfs.SimpleFSClose(ctx, opid)
+	defer func() { _ = sfs.SimpleFSClose(ctx, opid) }()
 	require.NoError(t, err)
 }
 
@@ -730,7 +730,7 @@ func readRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyba
 		Dest:  path,
 		Flags: keybase1.OpenFlags_READ | keybase1.OpenFlags_EXISTING,
 	})
-	defer sfs.SimpleFSClose(ctx, opid)
+	defer func() { _ = sfs.SimpleFSClose(ctx, opid) }()
 	require.NoError(t, err)
 
 	data, err := sfs.SimpleFSRead(ctx, keybase1.SimpleFSReadArg{
@@ -852,7 +852,7 @@ func TestCopyProgress(t *testing.T) {
 	// make a temp local dest directory + files we will clean up later
 	tempdir, err := os.MkdirTemp(TempDirBase, "simpleFstest")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 
 	// Make local starting directory.
 	err = os.Mkdir(filepath.Join(tempdir, "testdir"), 0o700)
@@ -1463,7 +1463,7 @@ func TestOverallStatusFile(t *testing.T) {
 func TestFavoriteConflicts(t *testing.T) {
 	ctx := context.Background()
 	tempdir, err := os.MkdirTemp(TempDirBase, "journal_for_simplefs_cr")
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	require.NoError(t, err)
 	sfs := newSimpleFS(
 		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
@@ -1603,7 +1603,7 @@ func TestSyncConfigFavorites(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	tempdir, err := os.MkdirTemp(TempDirBase, "journal_for_simplefs_favs")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	err = config.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
 	config.SetDiskCacheMode(libkbfs.DiskCacheModeLocal)
@@ -1711,7 +1711,7 @@ func TestRemoveFavorite(t *testing.T) {
 func TestBadgeState(t *testing.T) {
 	ctx := context.Background()
 	tempdir, err := os.MkdirTemp(TempDirBase, "journal_for_simplefs_badge")
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	require.NoError(t, err)
 	sfs := newSimpleFS(
 		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
@@ -1813,7 +1813,7 @@ func TestArchiveSymlink(t *testing.T) {
 
 	// make a temp local dest directory + files we will clean up later
 	tempdir, err := os.MkdirTemp(TempDirBase, "simpleFStest")
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	require.NoError(t, err)
 	t.Logf("temp dir:  %s", tempdir)
 

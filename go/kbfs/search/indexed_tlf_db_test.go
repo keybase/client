@@ -42,7 +42,7 @@ func newIndexedTlfDbForTest(t *testing.T) (
 
 func shutdownIndexedTlfDbTest(db *IndexedTlfDb, tempdir string) {
 	db.Shutdown(context.Background())
-	os.RemoveAll(tempdir)
+	_ = os.RemoveAll(tempdir)
 }
 
 func TestIndexedTlfDbCreate(t *testing.T) {

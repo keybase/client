@@ -36,7 +36,7 @@ func loadArchiveStateFromJsonGz(ctx context.Context, simpleFS *SimpleFS, filePat
 		simpleFS.log.CErrorf(ctx, "loadArchiveStateFromJsonGz: opening state file error: %v", err)
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	gzReader, err := gzip.NewReader(f)
 	if err != nil {
 		simpleFS.log.CErrorf(ctx, "loadArchiveStateFromJsonGz: creating gzip reader error: %v", err)
@@ -62,10 +62,10 @@ func writeArchiveStateIntoJsonGz(ctx context.Context, simpleFS *SimpleFS, filePa
 		simpleFS.log.CErrorf(ctx, "writeArchiveStateIntoJsonGz: creating state file error: %v", err)
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	gzWriter := gzip.NewWriter(f)
-	defer gzWriter.Close()
+	defer func() { _ = gzWriter.Close() }()
 
 	encoder := json.NewEncoder(gzWriter)
 	err = encoder.Encode(s)
@@ -250,7 +250,7 @@ func (m *archiveManager) checkArchive(
 		return keybase1.SimpleFSArchiveJobDesc{}, nil,
 			fmt.Errorf("zip.OpenReader(%s) error: %v", archiveZipFilePath, err)
 	}
-	defer reader.Close()
+	defer func() { _ = reader.Close() }()
 
 	var receipt Receipt
 	{
@@ -259,7 +259,7 @@ func (m *archiveManager) checkArchive(
 			return keybase1.SimpleFSArchiveJobDesc{}, nil,
 				fmt.Errorf("reader.Open(receipt.json) error: %v", err)
 		}
-		defer receiptFile.Close()
+		defer func() { _ = receiptFile.Close() }()
 		err = json.NewDecoder(receiptFile).Decode(&receipt)
 		if err != nil {
 			return keybase1.SimpleFSArchiveJobDesc{}, nil,
@@ -414,7 +414,7 @@ func (m *archiveManager) doIndexing(ctx context.Context, jobID string) (err erro
 	if err != nil {
 		return err
 	}
-	defer m.simpleFS.SimpleFSClose(ctx, opid)
+	defer func() { _ = m.simpleFS.SimpleFSClose(ctx, opid) }()
 	filter := keybase1.ListFilter_NO_FILTER
 	err = m.simpleFS.SimpleFSListRecursive(ctx, keybase1.SimpleFSListRecursiveArg{
 		OpID:   opid,
@@ -582,13 +582,13 @@ func (m *archiveManager) copyFileFromBeginning(ctx context.Context,
 	if err != nil {
 		return nil, fmt.Errorf("srcDirFS.Open(%s) error: %v", entryPathWithinJob, err)
 	}
-	defer src.Close()
+	defer func() { _ = src.Close() }()
 
 	dst, err := os.OpenFile(localPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 	if err != nil {
 		return nil, fmt.Errorf("os.OpenFile(%s) error: %v", localPath, err)
 	}
-	defer dst.Close()
+	defer func() { _ = dst.Close() }()
 
 	teeReader := newSHA256TeeReader(src)
 
@@ -614,7 +614,7 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 	if err != nil {
 		return nil, fmt.Errorf("srcDirFS.Open(%s) error: %v", entryPathWithinJob, err)
 	}
-	defer src.Close()
+	defer func() { _ = src.Close() }()
 
 	_, err = src.Seek(srcSeekOffset, io.SeekStart)
 	if err != nil {
@@ -627,7 +627,7 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 		if err != nil {
 			return fmt.Errorf("os.OpenFile(%s) error: %v", localPath, err)
 		}
-		defer dst.Close()
+		defer func() { _ = dst.Close() }()
 
 		err = ctxAwareCopy(ctx, dst, src, bytesCopiedUpdater)
 		if err != nil {
@@ -658,7 +658,7 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 		if err != nil {
 			return nil, nil, fmt.Errorf("os.Open(%s) error: %v", localPath, err)
 		}
-		defer dst.Close()
+		defer func() { _ = dst.Close() }()
 		dstSHA256SumHasher := sha256.New()
 		_, err = io.Copy(dstSHA256SumHasher, dst)
 		if err != nil {
@@ -943,7 +943,7 @@ func zipWriterAddDir(ctx context.Context,
 			if err != nil {
 				return err
 			}
-			defer f.Close()
+			defer func() { _ = f.Close() }()
 			return ctxAwareCopy(ctx, fw, f, bytesZippedUpdater)
 		}
 	})
@@ -1210,7 +1210,7 @@ func (m *archiveManager) notifyUIStateChangeWorker(ctx context.Context) {
 			return
 		case <-m.notifyUIStateChangeSignal:
 		}
-		limiter.Wait(ctx)
+		_ = limiter.Wait(ctx)
 
 		m.notifyUIStateChange(ctx)
 	}

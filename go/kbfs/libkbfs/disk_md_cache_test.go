@@ -51,7 +51,7 @@ func newDiskMDCacheLocalForTest(t *testing.T) (*DiskMDCacheLocal, string) {
 
 func shutdownDiskMDCacheTest(cache DiskMDCache, tempdir string) {
 	cache.Shutdown(context.Background())
-	os.RemoveAll(tempdir)
+	_ = os.RemoveAll(tempdir)
 }
 
 func makeRandomMDBuf(t *testing.T) []byte {

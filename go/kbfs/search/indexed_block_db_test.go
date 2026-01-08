@@ -46,7 +46,7 @@ func newIndexedBlockDbForTest(t *testing.T) (
 
 func shutdownIndexedBlockDbTest(db *IndexedBlockDb, tempdir string) {
 	db.Shutdown(context.Background())
-	os.RemoveAll(tempdir)
+	_ = os.RemoveAll(tempdir)
 }
 
 func TestIndexedBlockDbCreate(t *testing.T) {

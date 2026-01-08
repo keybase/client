@@ -38,7 +38,7 @@ func initConfig(t *testing.T) (
 	require.NoError(t, err)
 	defer func() {
 		if !success {
-			os.RemoveAll(tempdir)
+			_ = os.RemoveAll(tempdir)
 		}
 	}()
 
@@ -54,7 +54,7 @@ func initConfig(t *testing.T) (
 func TestGetOrCreateRepoAndID(t *testing.T) {
 	ctx, cancel, config, tempdir := initConfig(t)
 	defer cancel()
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := tlfhandle.ParseHandle(
@@ -110,7 +110,7 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 func TestCreateRepoAndID(t *testing.T) {
 	ctx, cancel, config, tempdir := initConfig(t)
 	defer cancel()
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := tlfhandle.ParseHandle(
@@ -146,7 +146,7 @@ func TestCreateRepoAndID(t *testing.T) {
 func TestCreateDuplicateRepo(t *testing.T) {
 	ctx, cancel, config, tempdir := initConfig(t)
 	defer cancel()
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	config2 := libkbfs.ConfigAsUser(config, "user2")
@@ -154,7 +154,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	defer cancel2()
 	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_server")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	err = config2.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
 	err = config2.EnableJournaling(
@@ -229,7 +229,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 func TestGetRepoAndID(t *testing.T) {
 	ctx, cancel, config, tempdir := initConfig(t)
 	defer cancel()
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := tlfhandle.ParseHandle(
@@ -263,7 +263,7 @@ func TestGetRepoAndID(t *testing.T) {
 func TestDeleteRepo(t *testing.T) {
 	ctx, cancel, config, tempdir := initConfig(t)
 	defer cancel()
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	clock := &clocktest.TestClock{}
 	clock.Set(time.Now())
@@ -324,7 +324,7 @@ func TestDeleteRepo(t *testing.T) {
 func TestRepoRename(t *testing.T) {
 	ctx, cancel, config, tempdir := initConfig(t)
 	defer cancel()
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := tlfhandle.ParseHandle(

@@ -92,7 +92,7 @@ func (s *diskBlockMetadataStore) Shutdown() {
 	if s.db == nil {
 		return
 	}
-	s.db.Close()
+	_ = s.db.Close()
 	s.db = nil
 	s.hitMeter.Shutdown()
 	s.missMeter.Shutdown()
