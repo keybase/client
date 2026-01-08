@@ -137,6 +137,7 @@ func getStatsActivityStorerOrBust(
 			logger.Panic("get ca", zap.Error(err))
 			return nil
 		}
+		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
 			logger.Panic("get ca", zap.Int("status code", resp.StatusCode))
 			return nil

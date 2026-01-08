@@ -18,6 +18,8 @@ linters:
       - dokan # Windows-specific FUSE implementation, not maintained
   enable:
     - misspell # Ready - spelling auto-fixed
+    - bodyclose # HTTP response body not closed
+    - gocritic # Code quality checks
 
   disable:
     # Explicitly disable default preset linters until we're ready
@@ -26,10 +28,14 @@ linters:
     - ineffassign
     - staticcheck
     - unused
+
+  settings:
+    gocritic:
+      disabled-checks:
+        - ifElseChain # Style preference - if-else is often clearer than switch
+
 # Next steps: Enable these linters systematically:
-# - bodyclose       # 3 issues - HTTP response body not closed
 # - errcheck        # 50 issues - Unchecked errors
-# - gocritic        # 4 issues - Code quality
 # - gosec           # 21 issues - Security (G115, G404, G101, G602)
 # - govet           # 9 issues - Go vet checks
 # - revive          # 25 issues - Style checks

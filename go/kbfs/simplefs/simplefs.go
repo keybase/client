@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"mime"
 	"net/http"
 	"net/url"
@@ -215,7 +214,7 @@ func (k *SimpleFS) ResetForLogin(ctx context.Context,
 	k.archiveManager.shutdown(ctx)
 	k.archiveManager, err = newArchiveManager(k, username)
 	if err != nil {
-		log.Fatalf("initializing archive manager error: %v", err)
+		return err
 	}
 
 	if k.indexer != nil {
