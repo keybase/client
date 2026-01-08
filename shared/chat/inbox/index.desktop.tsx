@@ -9,7 +9,7 @@ import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
-import {List, type RowComponentProps} from 'react-window'
+import {List, type RowComponentProps, useListRef} from 'react-window'
 import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/sizes'
 import {makeRow} from './row'
 import './inbox.css'
@@ -241,6 +241,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const [unreadCount, setUnreadCount] = React.useState(0)
 
   const scrollDiv = React.useRef<HTMLDivElement | null>(null)
+  const listRef = useListRef(undefined)
 
   // stuff for UnreadShortcut
   const firstOffscreenIdx = React.useRef(-1)
@@ -266,15 +267,11 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   )
 
   const scrollToUnread = React.useCallback(() => {
-    if (firstOffscreenIdx.current <= 0 || !scrollDiv.current) {
+    if (firstOffscreenIdx.current <= 0) {
       return
     }
-    let top = 100 // give it some space below
-    for (let i = lastVisibleIdx.current; i <= firstOffscreenIdx.current; i++) {
-      top += itemSizeGetter(i)
-    }
-    scrollDiv.current.scrollBy({behavior: 'smooth', top})
-  }, [itemSizeGetter])
+    listRef.current?.scrollToRow({index: firstOffscreenIdx.current})
+  }, [listRef])
 
   const calculateShowFloating = React.useCallback(() => {
     if (lastVisibleIdx.current < 0) {
@@ -428,6 +425,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
         <div style={styles.list} ref={scrollDiv}>
           {rows.length ? (
             <List
+              listRef={listRef}
               onRowsRendered={onItemsRendered}
               rowCount={rows.length}
               rowHeight={itemSizeGetter}
