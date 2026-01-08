@@ -36,7 +36,7 @@ import {initSharedSubscriptions} from './platform-specific/shared'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from './types/chat2/common'
 import {getSelectedConversation} from './chat2/common'
-import {storeRegistry} from './store-registry'
+import {getConvoState} from './chat2/convostate'
 import {requestLocationPermission, showShareActionSheet} from './platform-specific/index.native'
 
 const loadStartupDetails = async () => {
@@ -146,7 +146,7 @@ const ensureBackgroundTask = () => {
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
-  storeRegistry.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+  getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: text,
     displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
@@ -295,7 +295,7 @@ export const initPlatformListener = () => {
     s.dispatch.changedFocus(appFocused)
 
     if (appFocused && old.mobileAppState !== 'active') {
-      const {dispatch} = storeRegistry.getConvoState(getSelectedConversation())
+      const {dispatch} = getConvoState(getSelectedConversation())
       dispatch.loadMoreMessages({reason: 'foregrounding'})
       dispatch.markThreadAsRead()
     }
