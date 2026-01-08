@@ -70,7 +70,11 @@ func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body strin
 		return err
 	}
 
-	msgID := chat1.MessageID(intMessageID) //nolint:gosec // G115: MessageID from mobile app API, validated by caller
+	if intMessageID < 0 {
+		return fmt.Errorf("invalid message ID: %d", intMessageID)
+	}
+
+	msgID := chat1.MessageID(intMessageID)
 	if err = kbChatCtx.InboxSource.MarkAsRead(context.Background(), convID, uid, &msgID, false /* forceUnread */); err != nil {
 		kbCtx.Log.CDebugf(ctx, "Failed to mark as read from QuickReply: convID: %s. Err: %s", strConvID, err)
 		// We don't want to fail this method call just because we couldn't mark it as aread
