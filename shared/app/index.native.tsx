@@ -20,7 +20,7 @@ import {darkModeSupported, guiConfig} from 'react-native-kb'
 import {install} from 'react-native-kb'
 import * as DarkMode from '@/constants/darkmode'
 import {onEngineConnected, onEngineDisconnected} from '@/constants/platform-specific/shared'
-import {initPlatformListener} from '@/constants/platform-specific'
+import {initPlatformListener} from '@/constants/init'
 
 enableFreeze(true)
 setServiceDecoration(ServiceDecoration)
