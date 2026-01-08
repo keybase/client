@@ -417,7 +417,7 @@ func (md *RootMetadataV2) makeSuccessorCopyV3(
 	mdV3 := &RootMetadataV3{}
 
 	// Fill out the writer metadata.
-	mdV3.WriterMetadata = md.WriterMetadataV2.ToWriterMetadataV3()
+	mdV3.WriterMetadata = md.ToWriterMetadataV3()
 
 	// Have this as ExtraMetadata so we return an untyped nil
 	// instead of a typed nil.
@@ -1013,12 +1013,12 @@ func (md *RootMetadataV2) ClearWriterMetadataCopiedBit() {
 
 // IsUnmergedSet implements the MutableRootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) IsUnmergedSet() bool {
-	return (md.WriterMetadataV2.WFlags & MetadataFlagUnmerged) != 0
+	return (md.WFlags & MetadataFlagUnmerged) != 0
 }
 
 // SetUnmerged implements the MutableRootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) SetUnmerged() {
-	md.WriterMetadataV2.WFlags |= MetadataFlagUnmerged
+	md.WFlags |= MetadataFlagUnmerged
 }
 
 // SetBranchID implements the MutableRootMetadata interface for RootMetadataV2.
@@ -1169,7 +1169,7 @@ func (md *RootMetadataV2) GetCurrentTLFPublicKey(
 // GetUnresolvedParticipants implements the RootMetadata interface
 // for RootMetadataV2.
 func (md *RootMetadataV2) GetUnresolvedParticipants() []keybase1.SocialAssertion {
-	writers := md.WriterMetadataV2.Extra.UnresolvedWriters
+	writers := md.Extra.UnresolvedWriters
 	readers := md.UnresolvedReaders
 	users := make([]keybase1.SocialAssertion, 0, len(writers)+len(readers))
 	users = append(users, writers...)

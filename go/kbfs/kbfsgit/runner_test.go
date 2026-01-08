@@ -199,7 +199,7 @@ func testPushWithTemplate(ctx context.Context, t *testing.T,
 	defer inputWriter.Close()
 	go func() {
 		for _, refspec := range refspecs {
-			_, _ = inputWriter.Write([]byte(fmt.Sprintf("push %s\n", refspec)))
+			_, _ = fmt.Fprintf(inputWriter, "push %s\n", refspec)
 		}
 		_, _ = inputWriter.Write([]byte("\n\n"))
 	}()
@@ -252,7 +252,7 @@ func testListAndGetHeadsWithNameWithPush(
 		if forPush {
 			p = " for-push"
 		}
-		_, _ = inputWriter.Write([]byte(fmt.Sprintf("list%s\n\n", p)))
+		_, _ = fmt.Fprintf(inputWriter, "list%s\n\n", p)
 	}()
 
 	var output bytes.Buffer
@@ -353,8 +353,8 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
 	go func() {
-		_, _ = inputWriter.Write([]byte(fmt.Sprintf(
-			"%sfetch %s refs/heads/master\n\n\n", cloningStr, heads[0])))
+		_, _ = fmt.Fprintf(inputWriter,
+			"%sfetch %s refs/heads/master\n\n\n", cloningStr, heads[0])
 	}()
 
 	var output3 bytes.Buffer
@@ -623,9 +623,9 @@ func testCloneIntoNewLocalRepo(
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
 	go func() {
-		_, _ = inputWriter.Write([]byte(fmt.Sprintf(
+		_, _ = fmt.Fprintf(inputWriter,
 			"option cloning true\n"+
-				"fetch %s refs/heads/master\n\n\n", heads[0])))
+				"fetch %s refs/heads/master\n\n\n", heads[0])
 	}()
 
 	var output bytes.Buffer
@@ -740,8 +740,8 @@ func TestPushcertOptions(t *testing.T) {
 		inputReader, inputWriter := io.Pipe()
 		defer inputWriter.Close()
 		go func() {
-			_, _ = inputWriter.Write([]byte(fmt.Sprintf(
-				"option pushcert %s\n\n", option)))
+			_, _ = fmt.Fprintf(inputWriter,
+				"option pushcert %s\n\n", option)
 		}()
 
 		var output bytes.Buffer

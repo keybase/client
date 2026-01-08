@@ -64,23 +64,23 @@ type tlfJournalConfigAdapter struct {
 }
 
 func (ca tlfJournalConfigAdapter) encryptionKeyGetter() encryptionKeyGetter {
-	return ca.Config.KeyManager()
+	return ca.KeyManager()
 }
 
 func (ca tlfJournalConfigAdapter) mdDecryptionKeyGetter() mdDecryptionKeyGetter {
-	return ca.Config.KeyManager()
+	return ca.KeyManager()
 }
 
 func (ca tlfJournalConfigAdapter) usernameGetter() idutil.NormalizedUsernameGetter {
-	return ca.Config.KBPKI()
+	return ca.KBPKI()
 }
 
 func (ca tlfJournalConfigAdapter) resolver() idutil.Resolver {
-	return ca.Config.KBPKI()
+	return ca.KBPKI()
 }
 
 func (ca tlfJournalConfigAdapter) teamMembershipChecker() kbfsmd.TeamMembershipChecker {
-	return ca.Config.KBPKI()
+	return ca.KBPKI()
 }
 
 func (ca tlfJournalConfigAdapter) diskLimitTimeout() time.Duration {

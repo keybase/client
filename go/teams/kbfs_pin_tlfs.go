@@ -2,7 +2,6 @@ package teams
 
 import (
 	"fmt"
-	insecurerand "math/rand"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -92,7 +91,7 @@ type defaultPinLoopTimer struct{}
 var _ pinLoopTimer = defaultPinLoopTimer{}
 
 func (p defaultPinLoopTimer) wait(m libkb.MetaContext, why string, rangeMinutes int64, minMinutes int64) error {
-	dur := time.Duration(minMinutes)*time.Minute + time.Duration(insecurerand.Int63n(rangeMinutes*60))*time.Second
+	dur := time.Duration(minMinutes)*time.Minute + libkb.RandomJitter(time.Duration(rangeMinutes)*time.Minute)
 	m.Debug("BackgroundPinLoop: waiting %v before %s", dur, why)
 	wakeAt := m.G().Clock().Now().Add(dur)
 	return libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt)

@@ -371,7 +371,7 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 
 		// Refuse to execute files by checking FILE_EXECUTE (not exported by syscall)
 		// in TLFs considered unsafe.
-		if de.Type.IsFile() && oc.CreateData.DesiredAccess&0x20 != 0 && !isSafeFolder(ctx, d.folder) {
+		if de.Type.IsFile() && oc.DesiredAccess&0x20 != 0 && !isSafeFolder(ctx, d.folder) {
 			d.folder.fs.log.CErrorf(ctx, "Denying execution access to: %q", path[0])
 
 			return nil, 0, dokan.ErrAccessDenied

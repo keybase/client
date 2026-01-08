@@ -364,7 +364,7 @@ type KBFSOps interface {
 	GetBadge(ctx context.Context) (keybase1.FilesTabBadge, error)
 	// RefreshCachedFavorites tells the instances to forget any cached
 	// favorites list and fetch a new list from the server.  The
-	// effects are asychronous; if there's an error refreshing the
+	// effects are asynchronous; if there's an error refreshing the
 	// favorites, the cached favorites will become empty.
 	RefreshCachedFavorites(ctx context.Context, mode FavoritesRefreshMode)
 	// ClearCachedFavorites tells the instances to forget any cached
@@ -492,7 +492,7 @@ type KBFSOps interface {
 	// buffer at the given offset within the file, if the logged-in
 	// user has write permission to the top-level folder.  It
 	// overwrites any data already there, and extends the file size as
-	// necessary to accomodate the new data.  It guarantees to write
+	// necessary to accommodate the new data.  It guarantees to write
 	// the entire buffer in one operation.  Writes on an unlinked file
 	// may or may not succeed as no-ops, depending on whether or not
 	// the necessary blocks have been locally cached.  This is a
@@ -560,7 +560,7 @@ type KBFSOps interface {
 	// GetUpdateHistory returns a complete history of all the merged
 	// updates of the given folder, in a data structure that's
 	// suitable for encoding directly into JSON.  This is an expensive
-	// operation, and should only be used for ocassional debugging.
+	// operation, and should only be used for occasional debugging.
 	// Note that the history does not include any unmerged changes or
 	// outstanding writes from the local device.  To get all the
 	// revisions after `start`, use `kbfsmd.RevisionUninitialized` for
@@ -1768,7 +1768,7 @@ type mdServerLocal interface {
 
 // BlockServer gets and puts opaque data blocks.  The instantiation
 // should be able to fetch session/user details via KBPKI.  On a
-// put/delete, the server is reponsible for: 1) checking that the ID
+// put/delete, the server is responsible for: 1) checking that the ID
 // matches the hash of the buffer; and 2) enforcing writer quotas.
 type BlockServer interface {
 	authTokenRefreshHandler
@@ -2087,7 +2087,7 @@ type InitMode interface {
 	// DoRefreshFavoritesOnInit indicates whether we should refresh
 	// our cached versions of the favorites immediately upon a login.
 	DoRefreshFavoritesOnInit() bool
-	// DoLogObfuscation indicates whether senstive data like filenames
+	// DoLogObfuscation indicates whether sensitive data like filenames
 	// should be obfuscated in log messages.
 	DoLogObfuscation() bool
 	// BlockTLFEditHistoryIntialization indicates where we should

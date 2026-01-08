@@ -208,15 +208,15 @@ func DecryptPrivateMetadata(
 	encryptedPrivateMetadata EncryptedPrivateMetadata, key TLFCryptKey) (
 	[]byte, error,
 ) {
-	if encryptedPrivateMetadata.encryptedData.Version ==
+	if encryptedPrivateMetadata.Version ==
 		EncryptionSecretboxWithKeyNonce {
 		// Only blocks should have v2 encryption.
 		return nil, errors.WithStack(InvalidEncryptionVer{
-			encryptedPrivateMetadata.encryptedData.Version,
+			encryptedPrivateMetadata.Version,
 		})
 	}
 
-	nonce, err := encryptedPrivateMetadata.encryptedData.Nonce24()
+	nonce, err := encryptedPrivateMetadata.Nonce24()
 	if err != nil {
 		return nil, err
 	}
@@ -264,9 +264,9 @@ func DecryptBlock(
 	encryptedBlock EncryptedBlock, tlfCryptKey TLFCryptKey,
 	blockServerHalf BlockCryptKeyServerHalf,
 ) ([]byte, error) {
-	switch encryptedBlock.encryptedData.Version {
+	switch encryptedBlock.Version {
 	case EncryptionSecretbox:
-		nonce, err := encryptedBlock.encryptedData.Nonce24()
+		nonce, err := encryptedBlock.Nonce24()
 		if err != nil {
 			return nil, err
 		}
@@ -279,7 +279,7 @@ func DecryptBlock(
 			encryptedBlock.encryptedData, key.cryptKey(), key.nonce())
 	default:
 		return nil, errors.WithStack(
-			InvalidEncryptionVer{encryptedBlock.encryptedData.Version})
+			InvalidEncryptionVer{encryptedBlock.Version})
 	}
 }
 
@@ -311,14 +311,14 @@ func DecryptTLFCryptKeys(
 	codec kbfscodec.Codec, encryptedTLFCryptKeys EncryptedTLFCryptKeys, key TLFCryptKey) (
 	[]TLFCryptKey, error,
 ) {
-	if encryptedTLFCryptKeys.encryptedData.Version ==
+	if encryptedTLFCryptKeys.Version ==
 		EncryptionSecretboxWithKeyNonce {
 		// Only blocks should have v2 encryption.
 		return nil, errors.WithStack(
-			InvalidEncryptionVer{encryptedTLFCryptKeys.encryptedData.Version})
+			InvalidEncryptionVer{encryptedTLFCryptKeys.Version})
 	}
 
-	nonce, err := encryptedTLFCryptKeys.encryptedData.Nonce24()
+	nonce, err := encryptedTLFCryptKeys.Nonce24()
 	if err != nil {
 		return nil, err
 	}

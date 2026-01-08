@@ -1737,7 +1737,7 @@ func (cache *DiskBlockCacheLocal) DeleteUnmarked(
 	}
 }
 
-// AddHomeTLF implements this DiskBlockCache interace for DiskBlockCacheLocal.
+// AddHomeTLF implements this DiskBlockCache interacted for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) AddHomeTLF(ctx context.Context, tlfID tlf.ID) error {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
@@ -1758,7 +1758,7 @@ func (cache *DiskBlockCacheLocal) AddHomeTLF(ctx context.Context, tlfID tlf.ID) 
 	return nil
 }
 
-// ClearHomeTLFs implements this DiskBlockCache interace for
+// ClearHomeTLFs implements this DiskBlockCache interacted for
 // DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) ClearHomeTLFs(ctx context.Context) error {
 	cache.lock.Lock()

@@ -802,7 +802,7 @@ func (fs *fsBlocker) ReadDir(p string) (fis []os.FileInfo, err error) {
 }
 
 func (fs *fsBlocker) Chroot(p string) (newFS billy.Filesystem, err error) {
-	chrootFS, err := fs.FS.ChrootAsLibFS(p)
+	chrootFS, err := fs.ChrootAsLibFS(p)
 	if err != nil {
 		return nil, err
 	}

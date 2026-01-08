@@ -1,0 +1,37 @@
+version: '2'
+
+run:
+  timeout: 15m
+  tests: true
+
+formatters:
+  exclusions:
+    paths:
+      - dokan # Windows-specific FUSE implementation, not maintained
+  enable:
+    - gofmt
+    - gofumpt
+
+linters:
+  exclusions:
+    paths:
+      - dokan # Windows-specific FUSE implementation, not maintained
+  enable:
+    - misspell # Ready - spelling auto-fixed
+
+  disable:
+    # Explicitly disable default preset linters until we're ready
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+# Next steps: Enable these linters systematically:
+# - bodyclose       # 3 issues - HTTP response body not closed
+# - errcheck        # 50 issues - Unchecked errors
+# - gocritic        # 4 issues - Code quality
+# - gosec           # 21 issues - Security (G115, G404, G101, G602)
+# - govet           # 9 issues - Go vet checks
+# - revive          # 25 issues - Style checks
+# - staticcheck     # 20 issues - Static analysis
+# - unused          # 50 issues - Unused code

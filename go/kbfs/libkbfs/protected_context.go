@@ -22,7 +22,7 @@ type protectedContext struct {
 	ctx context.Context
 	log logger.Logger
 
-	// defaultContextReplacer is embeded here as a helper that includes a no-op
+	// defaultContextReplacer is embedded here as a helper that includes a no-op
 	// maybeReplaceContext, so that we can "override" the method in tests.
 	defaultContextReplacer // nolint
 }

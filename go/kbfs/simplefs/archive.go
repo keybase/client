@@ -802,7 +802,7 @@ loopEntryPaths:
 			if err != nil {
 				return fmt.Errorf("os.Symlink(%s, %s) error: %v", link, localPath, err)
 			}
-			// Skipping Chtimes becasue there doesn't seem to be a way to
+			// Skipping Chtimes because there doesn't seem to be a way to
 			// change time on symlinks.
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry

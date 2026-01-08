@@ -156,10 +156,10 @@ renameLoop:
 		_, err = m.k.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{
 			Path: keybase1.NewPathWithKbfs(dstPath),
 		})
-		switch {
-		case err == nil:
+		switch err {
+		case nil:
 			continue renameLoop
-		case err == errNotExist:
+		case errNotExist:
 		default:
 			return keybase1.OpID{}, keybase1.KBFSPath{}, err
 		}

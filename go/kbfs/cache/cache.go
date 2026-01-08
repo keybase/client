@@ -64,7 +64,7 @@ func (c *randomEvictedCache) evictOneLocked() {
 	c.keys = c.keys[:last]
 }
 
-// Get impelments the Cache interface.
+// Get implements the Cache interface.
 func (c *randomEvictedCache) Get(key Measurable) (data Measurable, ok bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -137,7 +137,7 @@ func NewLRUEvictedCache(maxBytes int) Cache {
 	return c
 }
 
-// Get impelments the Cache interface.
+// Get implements the Cache interface.
 func (c *lruEvictedCache) Get(key Measurable) (data Measurable, ok bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()

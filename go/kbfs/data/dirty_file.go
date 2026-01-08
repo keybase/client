@@ -198,10 +198,11 @@ func (df *DirtyFile) ResetSyncingBlocksToDirty() {
 		if state.orphaned {
 			// This block will never be sync'd again, so clear any
 			// bytes from the buffer.
-			if state.sync == blockSyncing {
+			switch state.sync {
+			case blockSyncing:
 				df.dirtyBcache.UpdateUnsyncedBytes(df.Path.Tlf,
 					-state.syncSize, true)
-			} else if state.sync == blockSynced {
+			case blockSynced:
 				// Some blocks did finish, so we might be able to
 				// increase our buffer size.
 				syncFinishedNeeded = true
@@ -210,11 +211,12 @@ func (df *DirtyFile) ResetSyncingBlocksToDirty() {
 			delete(df.fileBlockStates, ptr)
 			continue
 		}
-		if state.sync == blockSynced {
+		switch state.sync {
+		case blockSynced:
 			// Re-dirty the unsynced bytes (but don't touch the total
 			// bytes).
 			df.dirtyBcache.BlockSyncFinished(df.Path.Tlf, -state.syncSize)
-		} else if state.sync == blockSyncing {
+		case blockSyncing:
 			df.dirtyBcache.UpdateSyncingBytes(df.Path.Tlf, -state.syncSize)
 		}
 		if state.sync != blockNotSyncing {

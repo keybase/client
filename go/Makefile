@@ -55,10 +55,13 @@ linux-clear-test-secrets:
 
 GOLANGCI_RUN_OPT = --color auto
 
-golangci-lint-kbfs:
-	go list -f '{{.Dir}}' ./kbfs/... | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run $(GOLANGCI_RUN_OPT) --timeout 15m0s
+# Get all top-level directories except kbfs
+NON_KBFS_DIRS = $(shell find . -maxdepth 1 -type d ! -name kbfs ! -name . ! -name .git -name '[a-z]*' | sed 's|^\./||' | sed 's|$$|/...|' | tr '\n' ' ')
 
-golangci-lint-nonkbfs:
-	go list -f '{{.Dir}}' ./... | fgrep -v protocol  | fgrep -v kbfs | xargs realpath --relative-to=. | xargs golangci-lint run $(GOLANGCI_RUN_OPT) --timeout 15m0s
+golangci-lint:
+	@echo "Linting non-KBFS code..."
+	golangci-lint run $(GOLANGCI_RUN_OPT) --timeout 15m0s $(NON_KBFS_DIRS)
+	@echo "Linting KBFS code..."
+	cd kbfs && golangci-lint run $(GOLANGCI_RUN_OPT) --timeout 15m0s ./...
 
-.PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean gen-deps
+.PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean gen-deps golangci-lint

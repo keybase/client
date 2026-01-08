@@ -840,14 +840,7 @@ func (r *runner) processGogitStatus(ctx context.Context,
 
 	currStage := plumbing.StatusUnknown
 	lastByteCount := 0
-	for {
-		if statusChan == nil && fsEvents == nil {
-			// statusChan is never passed in as nil. So if it's nil, it's been
-			// closed in the select/case below because receive failed. So
-			// instead of letting select block forever, we break out of the
-			// loop here.
-			break
-		}
+	for statusChan != nil || fsEvents != nil {
 		select {
 		case update, ok := <-statusChan:
 			if !ok {
@@ -1039,8 +1032,8 @@ func (r *runner) copyFileWithCount(
 		// progress report.
 		startTime := r.config.Clock().Now()
 		zeroStr := fmt.Sprintf("%s... ", humanizeBytes(0, 1))
-		_, err := r.errput.Write(
-			[]byte(fmt.Sprintf("%s: %s", countingText, zeroStr)))
+		_, err := fmt.Fprintf(r.errput,
+			"%s: %s", countingText, zeroStr)
 		if err != nil {
 			return err
 		}
@@ -1063,7 +1056,7 @@ func (r *runner) copyFileWithCount(
 		}
 
 		sw = &statusWriter{r, nil, 0, fi.Size(), 0}
-		_, err = r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
+		_, err = fmt.Fprintf(r.errput, "%s: ", copyingText)
 		if err != nil {
 			return err
 		}
@@ -1138,7 +1131,7 @@ func (r *runner) recursiveCopyWithCounts(
 		// Get the total number of bytes we expect to fetch, for the
 		// progress report.
 		startTime := r.config.Clock().Now()
-		_, err := r.errput.Write([]byte(fmt.Sprintf("%s: ", countingText)))
+		_, err := fmt.Fprintf(r.errput, "%s: ", countingText)
 		if err != nil {
 			return err
 		}
@@ -1154,7 +1147,7 @@ func (r *runner) recursiveCopyWithCounts(
 		}
 
 		sw = &statusWriter{r, nil, 0, b, 0}
-		_, err = r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
+		_, err = fmt.Fprintf(r.errput, "%s: ", copyingText)
 		if err != nil {
 			return err
 		}
@@ -1900,8 +1893,8 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 func (r *runner) handleOption(ctx context.Context, args []string) (err error) {
 	defer func() {
 		if err != nil {
-			_, _ = r.output.Write(
-				[]byte(fmt.Sprintf("error %s\n", err.Error())))
+			_, _ = fmt.Fprintf(r.output,
+				"error %s\n", err.Error())
 		}
 	}()
 
@@ -1980,7 +1973,7 @@ type lfsProgressWriter struct {
 	oid                   string
 	start                 int
 	soFar                 int     // how much in absolute bytes has been copied
-	totalForCopy          int     // how much in absolue bytes will be copied
+	totalForCopy          int     // how much in absolute bytes will be copied
 	plaintextSize         int     // how much LFS expects to be copied
 	factorOfPlaintextSize float64 // what frac of the above size is this copy?
 }

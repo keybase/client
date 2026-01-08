@@ -140,7 +140,7 @@ var vinfo = dokan.VolumeInformation{
 
 // GetVolumeInformation returns information about the whole filesystem for dokan.
 func (f *FS) GetVolumeInformation(ctx context.Context) (dokan.VolumeInformation, error) {
-	// TODO should this be explicitely refused to other users?
+	// TODO should this be explicitly refused to other users?
 	// As the mount is limited to current session there is little need.
 	return vinfo, nil
 }
@@ -372,15 +372,15 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 	case libfs.EditHistoryName == ps[0]:
 		return oc.returnFileNoCleanup(NewUserEditHistoryFile(&Folder{fs: f}))
 
-	case ".kbfs_unmount" == ps[0]:
+	case ps[0] == ".kbfs_unmount":
 		f.log.CInfof(ctx, "Exiting due to .kbfs_unmount")
 		logger.Shutdown()
 		os.Exit(0)
-	case ".kbfs_restart" == ps[0]:
+	case ps[0] == ".kbfs_restart":
 		f.log.CInfof(ctx, "Exiting due to .kbfs_restart, should get restarted by watchdog process")
 		logger.Shutdown()
 		os.Exit(int(keybase1.ExitCode_RESTART))
-	case ".kbfs_number_of_handles" == ps[0]:
+	case ps[0] == ".kbfs_number_of_handles":
 		x := stringReadFile(strconv.Itoa(int(oc.fi.NumberOfFileHandles())))
 		return oc.returnFileNoCleanup(x)
 	// TODO

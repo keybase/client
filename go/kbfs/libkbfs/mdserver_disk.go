@@ -510,7 +510,7 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
 	if mStatus == kbfsmd.Merged &&
 		// Don't send notifies if it's just a rekey (the real mdserver
 		// sends a "folder needs rekey" notification in this case).
-		!(rmds.MD.IsRekeySet() && rmds.MD.IsWriterMetadataCopiedSet()) {
+		(!rmds.MD.IsRekeySet() || !rmds.MD.IsWriterMetadataCopiedSet()) {
 		md.updateManager.setHead(rmds.MD.TlfID(), md)
 	}
 
