@@ -25,6 +25,7 @@ export async function saveAttachmentToCameraRoll() {
 }
 
 export const requestLocationPermission = async (_perm: T.RPCChat.UIWatchPositionPerm): Promise<void> => {
+  // eslint-disable-next-line
   if (!navigator.geolocation) {
     throw new Error('Geolocation is not supported by this browser.')
   }
@@ -37,7 +38,11 @@ export const requestLocationPermission = async (_perm: T.RPCChat.UIWatchPosition
       error => {
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            reject(new Error('Location permission denied. Please allow Keybase to access your location in browser settings.'))
+            reject(
+              new Error(
+                'Location permission denied. Please allow Keybase to access your location in browser settings.'
+              )
+            )
             break
           case error.POSITION_UNAVAILABLE:
             reject(new Error('Location information is unavailable.'))
@@ -58,6 +63,7 @@ export const requestLocationPermission = async (_perm: T.RPCChat.UIWatchPosition
 export const watchPositionForMap = async (
   conversationIDKey: T.Chat.ConversationIDKey
 ): Promise<() => void> => {
+  // eslint-disable-next-line
   if (!navigator.geolocation) {
     throw new Error('Geolocation is not supported by this browser.')
   }
@@ -66,7 +72,7 @@ export const watchPositionForMap = async (
     const watchId = navigator.geolocation.watchPosition(
       position => {
         const coord = {
-          accuracy: Math.floor(position.coords.accuracy ?? 0),
+          accuracy: Math.floor(position.coords.accuracy),
           lat: position.coords.latitude,
           lon: position.coords.longitude,
         }
@@ -74,14 +80,14 @@ export const watchPositionForMap = async (
       },
       error => {
         const conversationIDKeyStr = T.Chat.conversationIDKeyToString(conversationIDKey)
-        const setCommandStatusInfo = storeRegistry
-          .getConvoState(conversationIDKey)
-          .dispatch.setCommandStatusInfo
+        const setCommandStatusInfo =
+          storeRegistry.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo
 
         let errorMessage = 'Failed to access location.'
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = 'Location permission denied. Please allow Keybase to access your location in browser settings.'
+            errorMessage =
+              'Location permission denied. Please allow Keybase to access your location in browser settings.'
             setCommandStatusInfo({
               actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
               displayText: errorMessage,
