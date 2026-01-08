@@ -1,34 +1,16 @@
-import * as Chat from '../chat2'
 import {ignorePromise} from '../utils'
-import {useActiveState} from '../active'
-import {useConfigState, type State as ConfigState} from '../config'
-import * as ConfigConstants from '../config'
-import {useDaemonState} from '../daemon'
-import {useFSState} from '../fs'
+import {useConfigState} from '../config'
 import {usePinentryState} from '../pinentry'
-import {useProfileState} from '../profile'
-import {useRouterState} from '../router2'
-import * as EngineGen from '@/actions/engine-gen-gen'
 import * as RemoteGen from '@/actions/remote-gen'
 import * as T from '../types'
-import InputMonitor from './input-monitor.desktop'
 import KB2 from '@/util/electron.desktop'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
-import {getEngine} from '@/engine'
-import {isLinux, isWindows} from '../platform.desktop'
-import {kbfsNotification} from './kbfs-notifications'
-import {skipAppFocusActions} from '@/local-debug.desktop'
-import NotifyPopup from '@/util/notify-popup'
-import {noKBFSFailReason} from '@/constants/config/util'
-import {initSharedSubscriptions} from './shared'
 import {switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
-import {wrapErrors} from '@/util/debug'
 import {onEngineConnected, onEngineDisconnected} from '@/constants/platform-specific/shared'
 
-const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
-const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions
+const {ctlQuit, dumpNodeLogger} = KB2.functions
 
 export const requestPermissionsToWrite = async () => {
   return Promise.resolve(true)
@@ -132,7 +114,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
         })
         .catch((e: unknown) => {
           if (!(e instanceof RPCError)) return
-          useConfigState.setState((s: ConfigState) => {
+          useConfigState.setState(s => {
             s.unlockFoldersError = e.desc
           })
         })
@@ -192,7 +174,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
         .dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
       break
     case RemoteGen.updateWindowMaxState:
-      useConfigState.setState((s: ConfigState) => {
+      useConfigState.setState(s => {
         s.windowState.isMaximized = action.payload.max
       })
       break
@@ -201,7 +183,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     case RemoteGen.updateWindowShown: {
       const win = action.payload.component
-      useConfigState.setState((s: ConfigState) => {
+      useConfigState.setState(s => {
         s.windowShownCount.set(win, (s.windowShownCount.get(win) ?? 0) + 1)
       })
       break

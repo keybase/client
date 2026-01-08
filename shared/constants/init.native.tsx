@@ -1,6 +1,5 @@
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from './utils'
 import {useChatState} from './chat2'
-import {getConvoState} from './chat2/convostate'
 import {useConfigState} from './config'
 import {useCurrentUserState} from './current-user'
 import {useDaemonState} from './daemon'
@@ -17,10 +16,9 @@ import * as ExpoTaskManager from 'expo-task-manager'
 import * as Tabs from './tabs'
 import * as NetInfo from '@react-native-community/netinfo'
 import NotifyPopup from '@/util/notify-popup'
-import {addNotificationRequest} from 'react-native-kb'
 import logger from '@/logger'
-import {Alert, Linking, ActionSheetIOS} from 'react-native'
-import {isIOS, isAndroid} from './platform.native'
+import {Alert, Linking} from 'react-native'
+import {isAndroid} from './platform.native'
 import {wrapErrors} from '@/util/debug'
 import {getTab, getVisiblePath, logState} from './router2'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
@@ -43,7 +41,7 @@ import {
   requestLocationPermission,
   setPermissionDeniedCommandStatus,
   showShareActionSheet,
-} from './platform-specific'
+} from './platform-specific/index.native'
 
 const loadStartupDetails = async () => {
   const [routeState, initialUrl, push] = await Promise.all([
@@ -506,4 +504,3 @@ export const initPlatformListener = () => {
 
   ignorePromise(useFSState.getState().dispatch.setupSubscriptions())
 }
-

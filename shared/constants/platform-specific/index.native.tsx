@@ -1,48 +1,13 @@
-import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
 import {useChatState} from '../chat2'
 import {getConvoState} from '../chat2/convostate'
-import {useConfigState} from '../config'
-import {useCurrentUserState} from '../current-user'
-import {useDaemonState} from '../daemon'
-import {useDarkModeState} from '../darkmode'
-import {useFSState} from '../fs'
-import {useProfileState} from '../profile'
-import {useRouterState} from '../router2'
-import {useSettingsContactsState} from '../settings-contacts'
 import * as T from '../types'
-import * as Clipboard from 'expo-clipboard'
-import * as EngineGen from '@/actions/engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
-import * as ExpoTaskManager from 'expo-task-manager'
 import * as MediaLibrary from 'expo-media-library'
-import * as Tabs from '../tabs'
-import * as NetInfo from '@react-native-community/netinfo'
-import NotifyPopup from '@/util/notify-popup'
 import {addNotificationRequest} from 'react-native-kb'
 import logger from '@/logger'
-import {Alert, Linking, ActionSheetIOS} from 'react-native'
+import {ActionSheetIOS} from 'react-native'
 import {isIOS, isAndroid} from '../platform.native'
-import {wrapErrors} from '@/util/debug'
-import {getTab, getVisiblePath, logState} from '../router2'
-import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
-import {setupAudioMode} from '@/util/audio.native'
-import {
-  androidOpenSettings,
-  androidShare,
-  androidShareText,
-  androidUnlink,
-  fsCacheDir,
-  fsDownloadDir,
-  androidAppColorSchemeChanged,
-  guiConfig,
-  shareListenersRegistered,
-} from 'react-native-kb'
-import {initPushListener, getStartupDetailsFromInitialPush} from './push.native'
-import {initSharedSubscriptions} from './shared'
-import type {ImageInfo} from '@/util/expo-image-picker.native'
-import {noConversationIDKey} from '@/constants/types/chat2/common'
-import {getSelectedConversation} from '@/constants/chat2/common'
-import {storeRegistry} from '../store-registry'
+import {androidShare, androidShareText, androidUnlink} from 'react-native-kb'
 
 export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -147,7 +112,10 @@ export const showShareActionSheet = async (options: {
   }
 }
 
-export const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
+export const setPermissionDeniedCommandStatus = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  text: string
+) => {
   getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: text,

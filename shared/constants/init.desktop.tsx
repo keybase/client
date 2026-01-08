@@ -5,16 +5,14 @@ import {useConfigState} from './config'
 import * as ConfigConstants from './config'
 import {useDaemonState} from './daemon'
 import {useFSState} from './fs'
-import {usePinentryState} from './pinentry'
 import {useProfileState} from './profile'
 import {useRouterState} from './router2'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as RemoteGen from '@/actions/remote-gen'
 import * as T from './types'
 import InputMonitor from './platform-specific/input-monitor.desktop'
 import KB2 from '@/util/electron.desktop'
 import logger from '@/logger'
-import {RPCError} from '@/util/errors'
+import type {RPCError} from '@/util/errors'
 import {getEngine} from '@/engine'
 import {isLinux, isWindows} from './platform.desktop'
 import {kbfsNotification} from './platform-specific/kbfs-notifications'
@@ -22,13 +20,11 @@ import {skipAppFocusActions} from '@/local-debug.desktop'
 import NotifyPopup from '@/util/notify-popup'
 import {noKBFSFailReason} from './config/util'
 import {initSharedSubscriptions} from './platform-specific/shared'
-import {storeRegistry} from './store-registry'
 import {wrapErrors} from '@/util/debug'
-import {onEngineConnected, onEngineDisconnected} from './platform-specific/shared'
-import {dumpLogs} from './platform-specific'
+import {dumpLogs} from './platform-specific/index.desktop'
 
-const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
-const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions
+const {showMainWindow, activeChanged, requestWindowsStartService} = KB2.functions
+const {quitApp, exitApp, setOpenAtLogin, copyToClipboard} = KB2.functions
 
 const maybePauseVideos = () => {
   const {appFocused} = useConfigState.getState()
@@ -276,4 +272,3 @@ export const initPlatformListener = () => {
 
   ignorePromise(useFSState.getState().dispatch.setupSubscriptions())
 }
-
