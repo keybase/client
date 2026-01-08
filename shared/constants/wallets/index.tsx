@@ -2,7 +2,6 @@ import * as T from '../types'
 import {ignorePromise} from '../utils'
 import * as Z from '@/util/zustand'
 import {loadAccountsWaitingKey} from './utils'
-import {storeRegistry} from '../store-registry'
 import {useConfigState} from '../config'
 
 export {loadAccountsWaitingKey} from './utils'

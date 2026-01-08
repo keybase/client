@@ -104,16 +104,16 @@ export const useNotifState = Z.createZustand<State>((set, get) => {
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyAuditRootAuditError:
-          storeRegistry
-            .getState('config')
+          useConfigState
+            .getState()
             .dispatch.setGlobalError(
               new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
             )
 
           break
         case EngineGen.keybase1NotifyAuditBoxAuditError:
-          storeRegistry
-            .getState('config')
+          useConfigState
+            .getState()
             .dispatch.setGlobalError(
               new Error(
                 `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`

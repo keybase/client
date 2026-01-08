@@ -2,7 +2,6 @@ import * as T from '../types'
 import {ignorePromise} from '../utils'
 import * as S from '../strings'
 import * as Z from '@/util/zustand'
-import {storeRegistry} from '../store-registry'
 import {useConfigState} from '../config'
 
 export type ChatUnfurlState = {

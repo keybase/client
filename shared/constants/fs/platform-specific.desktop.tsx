@@ -9,7 +9,6 @@ import KB2 from '@/util/electron.desktop'
 import {uint8ArrayToHex} from 'uint8array-extras'
 import {useFSState} from '.'
 import {navigateAppend} from '../router2/util'
-import {storeRegistry} from '../store-registry'
 import {useConfigState} from '../config'
 
 const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions

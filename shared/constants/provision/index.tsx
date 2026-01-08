@@ -555,10 +555,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
         s.startProvisionTrigger++
         s.username = name
       })
-      const f = async () => {
-        navigateAppend({props: {fromReset}, selected: 'username'})
-      }
-      ignorePromise(f())
+      navigateAppend({props: {fromReset}, selected: 'username'})
     },
   }
 

@@ -25,6 +25,7 @@ import {initSharedSubscriptions} from './shared'
 import {switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {wrapErrors} from '@/util/debug'
+import {onEngineConnected, onEngineDisconnected} from '@/constants/platform-specific/shared'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions
@@ -333,9 +334,9 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
     }
     case RemoteGen.engineConnection: {
       if (action.payload.connected) {
-        storeRegistry.getState('engine').dispatch.onEngineConnected()
+        onEngineConnected()
       } else {
-        storeRegistry.getState('engine').dispatch.onEngineDisconnected()
+        onEngineDisconnected()
       }
       break
     }

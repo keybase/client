@@ -9,7 +9,6 @@ import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pul
 import {isMobile} from '../platform'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import debounce from 'lodash/debounce'
-import {storeRegistry} from '../store-registry'
 import {useConfigState} from '../config'
 import {useFollowerState} from '../followers'
 import {RPCError, isNetworkErr} from '../utils'
