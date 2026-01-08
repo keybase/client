@@ -128,7 +128,7 @@ func TestComputeExpectedRootSkips(t *testing.T) {
 		{2048, []uint{2047, 2046, 2044, 2040, 2032, 2016, 1984, 1920, 1792, 1536, 1024}},
 	}
 	for _, test := range tests {
-		got := computeExpectedRootSkips(uint(test.root))
+		got := computeExpectedRootSkips(uint(test.root)) //nolint:gosec // G115: Test data with small positive values, safe to convert
 		if !reflect.DeepEqual(got, test.expected) {
 			t.Fatalf("Failed on input (%d), expected %v, got %v.", test.root, test.expected, got)
 		}

@@ -114,7 +114,7 @@ func (r *runner) testerName() string {
 }
 
 func (r *runner) listTests() error {
-	cmd := exec.Command(r.testerName(), "-test.list", ".")
+	cmd := exec.Command(r.testerName(), "-test.list", ".") //nolint:gosec // G204: Test binary path from build output, args are test flags
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
@@ -225,7 +225,7 @@ func (r *runner) runTestOnce(test string, isRerun bool, canRerun bool) (outcome 
 		}
 	}()
 
-	cmd := exec.Command(r.testerName(), "-test.run", "^"+test+"$", "-test.timeout", r.opts.Timeout)
+	cmd := exec.Command(r.testerName(), "-test.run", "^"+test+"$", "-test.timeout", r.opts.Timeout) //nolint:gosec // G204: Test binary with test name and timeout flags
 	if isRerun {
 		cmd.Args = append(cmd.Args, "-test.v")
 		cmd.Env = append(os.Environ(), "CITOGO_FLAKE_RERUN=1")

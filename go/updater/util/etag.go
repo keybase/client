@@ -4,7 +4,7 @@
 package util
 
 import (
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec // G501: MD5 required for ETag computation (standard HTTP ETag format, not cryptographic use)
 	"encoding/hex"
 	"io"
 	"os"
@@ -19,7 +19,7 @@ func ComputeEtag(path string) (string, error) {
 	}
 	defer Close(file)
 
-	hash := md5.New()
+	hash := md5.New() //nolint:gosec // G401: MD5 required for ETag computation
 	if _, err := io.Copy(hash, file); err != nil {
 		return "", err
 	}

@@ -237,5 +237,8 @@ func MinMaxIDs(conv chat1.Conversation) (minID, maxID chat1.MessageID) {
 	}
 	// highest msgID we care about
 	maxID = conv.GetMaxMessageID()
+	if minID > maxID {
+		maxID = minID
+	}
 	return minID, maxID
 }

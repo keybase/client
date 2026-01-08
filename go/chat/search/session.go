@@ -121,10 +121,10 @@ func (s *searchSession) getMsgsAndIDSet(ctx context.Context, convID chat1.Conver
 		if s.opts.BeforeContext > 0 {
 			for i := 0; i < s.opts.BeforeContext+MaxContext; i++ {
 				// ensure we don't underflow MessageID which is a uint.
-				if chat1.MessageID(i+1) >= msgID {
+				if chat1.MessageID(i+1) >= msgID { //nolint:gosec // G115: i is bounded by BeforeContext+MaxContext (small config values), safe to convert
 					break
 				}
-				beforeID := msgID - chat1.MessageID(i+1)
+				beforeID := msgID - chat1.MessageID(i+1) //nolint:gosec // G115: i is bounded by BeforeContext+MaxContext (small config values), safe to convert
 				idSetWithContext.Add(beforeID)
 			}
 		}
@@ -133,7 +133,7 @@ func (s *searchSession) getMsgsAndIDSet(ctx context.Context, convID chat1.Conver
 		idSetWithContext.Add(msgID)
 		if s.opts.AfterContext > 0 {
 			for i := 0; i < s.opts.AfterContext+MaxContext; i++ {
-				afterID := msgID + chat1.MessageID(i+1)
+				afterID := msgID + chat1.MessageID(i+1) //nolint:gosec // G115: i is bounded by AfterContext+MaxContext (small config values), safe to convert
 				idSetWithContext.Add(afterID)
 			}
 		}

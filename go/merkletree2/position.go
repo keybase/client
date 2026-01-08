@@ -20,8 +20,8 @@ func (t *Config) GetRootPosition() *Position {
 
 func (t *Config) GetChild(p *Position, c ChildIndex) *Position {
 	var q big.Int
-	q.Lsh((*big.Int)(p), uint(t.BitsPerIndex))
-	q.Bits()[0] = q.Bits()[0] | big.Word(c)
+	q.Lsh((*big.Int)(p), uint(t.BitsPerIndex)) //nolint:gosec // G115: BitsPerIndex is a small config value, safe for bit shift
+	q.Bits()[0] = q.Bits()[0] | big.Word(c)    //nolint:gosec // G115: ChildIndex is bounded by BitsPerIndex, safe to convert
 	return (*Position)(&q)
 }
 
@@ -63,7 +63,7 @@ func (p *Position) isOnPathToKey(k Key) bool {
 	var q big.Int
 	q.SetBytes([]byte(k))
 	q.SetBit(&q, len(k)*8, 1)
-	q.Rsh(&q, uint(q.BitLen()-(*big.Int)(p).BitLen()))
+	q.Rsh(&q, uint(q.BitLen()-(*big.Int)(p).BitLen())) //nolint:gosec // G115: BitLen difference for tree position, safe to convert
 	return (*big.Int)(p).Cmp(&q) == 0
 }
 
@@ -89,8 +89,8 @@ func (t *Config) updateToParent(p *Position) {
 
 // Behavior if p has no parent at the requested level is undefined.
 func (t *Config) updateToParentAtLevel(p *Position, level uint) {
-	shift := (*big.Int)(p).BitLen() - 1 - int(t.BitsPerIndex)*int(level)
-	((*big.Int)(p)).Rsh((*big.Int)(p), uint(shift))
+	shift := (*big.Int)(p).BitLen() - 1 - int(t.BitsPerIndex)*int(level) //nolint:gosec // G115: Level is bounded by tree depth, safe to convert
+	((*big.Int)(p)).Rsh((*big.Int)(p), uint(shift))                      //nolint:gosec // G115: Shift calculated from tree structure, safe to convert
 }
 
 // updateToParentAndAllSiblings takes as input p and a slice of size
@@ -109,11 +109,11 @@ func (t *Config) updateToParentAndAllSiblings(p *Position, sibs []Position) {
 
 	} else {
 
-		pChildIndex := big.Word(t.getDeepestChildIndex(p))
+		pChildIndex := big.Word(t.getDeepestChildIndex(p)) //nolint:gosec // G115: ChildIndex is bounded by tree config, safe to convert
 
 		mask := ^((big.Word)((1 << t.BitsPerIndex) - 1))
 
-		for i, j := uint(0), big.Word(0); j < big.Word(t.ChildrenPerNode); j++ {
+		for i, j := uint(0), big.Word(0); j < big.Word(t.ChildrenPerNode); j++ { //nolint:gosec // G115: BitsPerIndex and ChildrenPerNode are small tree config values, safe to convert
 			if j == pChildIndex {
 				continue
 			}
@@ -146,7 +146,7 @@ func (t *Config) getDeepestPositionForKey(k Key) (*Position, error) {
 func (t *Config) getMinKey(p *Position) Key {
 	var minI big.Int
 	minI.Set((*big.Int)(p))
-	n := uint(t.KeysByteLength*8 + 1 - minI.BitLen())
+	n := uint(t.KeysByteLength*8 + 1 - minI.BitLen()) //nolint:gosec // G115: Tree key bit length calculation, bounded by config
 	minI.Lsh(&minI, n)
 	return minI.Bytes()[1:]
 }
@@ -155,7 +155,7 @@ func (t *Config) GetKeyIntervalUnderPosition(p *Position) (minKey, maxKey Key) {
 	var minI, maxI big.Int
 
 	minI.Set((*big.Int)(p))
-	n := uint(t.KeysByteLength*8 + 1 - minI.BitLen())
+	n := uint(t.KeysByteLength*8 + 1 - minI.BitLen()) //nolint:gosec // G115: Tree key bit length calculation, bounded by config
 	minI.Lsh(&minI, n)
 	minKey = minI.Bytes()[1:]
 
@@ -195,7 +195,7 @@ func (t *Config) getDeepestPositionAtLevelAndSiblingsOnPathToKey(k Key, lastLeve
 	(*big.Int)(p).SetBytes(k)
 	(*big.Int)(p).SetBit((*big.Int)(p), len(k)*8, 1)
 
-	t.updateToParentAtLevel(p, uint(lastLevel))
+	t.updateToParentAtLevel(p, uint(lastLevel)) //nolint:gosec // G115: Tree level is bounded by tree depth config, safe to convert
 
 	sibs = make([]Position, (lastLevel-firstLevel+1)*(t.ChildrenPerNode-1)+1)
 	sibs[0].Set(p)
@@ -217,7 +217,7 @@ func (t *Config) getLevel(p *Position) int {
 // getParentAtLevel returns nil if p is at a level lower than `level`. The root
 // is at level 0, and each node has level 1 higher than its parent.
 func (t *Config) getParentAtLevel(p *Position, level uint) *Position {
-	shift := (*big.Int)(p).BitLen() - 1 - int(t.BitsPerIndex)*int(level)
+	shift := (*big.Int)(p).BitLen() - 1 - int(t.BitsPerIndex)*int(level) //nolint:gosec // G115: Level is bounded by tree depth, safe to convert
 	if (*big.Int)(p).BitLen() < 2 || shift < 0 {
 		return nil
 	}
@@ -232,12 +232,12 @@ func (t *Config) getParentAtLevel(p *Position, level uint) *Position {
 func (t *Config) positionToChildIndexPath(p *Position) (path []ChildIndex) {
 	path = make([]ChildIndex, t.getLevel(p))
 
-	bitMask := big.Word(t.ChildrenPerNode - 1)
+	bitMask := big.Word(t.ChildrenPerNode - 1) //nolint:gosec // G115: ChildrenPerNode is a small tree config value, safe to convert
 
 	buff := p.Clone()
 
 	for i := range path {
-		path[i] = ChildIndex(((*big.Int)(buff)).Bits()[0] & bitMask)
+		path[i] = ChildIndex(((*big.Int)(buff)).Bits()[0] & bitMask) //nolint:gosec // G115: Masked by ChildrenPerNode-1, bounded by tree config
 		((*big.Int)(buff)).Rsh((*big.Int)(buff), uint(t.BitsPerIndex))
 	}
 
@@ -250,7 +250,7 @@ func (t *Config) getDeepestChildIndex(p *Position) ChildIndex {
 	if (*big.Int)(p).BitLen() < 2 {
 		return ChildIndex(0)
 	}
-	return ChildIndex(((*big.Int)(p).Bits())[0] & ((1 << t.BitsPerIndex) - 1))
+	return ChildIndex(((*big.Int)(p).Bits())[0] & ((1 << t.BitsPerIndex) - 1)) //nolint:gosec // G115: Masked by BitsPerIndex, bounded by tree config
 }
 
 func (p *Position) CmpInMerkleProofOrder(p2 *Position) int {

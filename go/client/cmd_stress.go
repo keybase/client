@@ -145,7 +145,7 @@ func (c *CmdStress) simulate(username, passphrase string) {
 		c.trackSomeone,
 	}
 	for i := 0; i < 10; i++ {
-		f := funcs[libkb.RandIntn(len(funcs))]
+		f := funcs[libkb.RandIntn(len(funcs))] //nolint:gosec // G602: RandIntn returns value in [0, n) via modulo, array access is safe
 		f()
 	}
 

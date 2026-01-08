@@ -101,13 +101,13 @@ func ToggleAutostart(context Context, on bool, forAutoinstall bool) error {
 		fmt.Println(`Installing autostart file. Manage autostart settings with ` + backtick + `keybase ctl autostart` + backtick + `.`)
 	}
 
-	err = os.WriteFile(autostartFilePath(context), []byte(text), 0o644)
+	err = os.WriteFile(autostartFilePath(context), []byte(text), 0o644) //nolint:gosec // G306: Autostart .desktop file must be world-readable for desktop environment
 	if err != nil {
 		return err
 	}
 
 	if forAutoinstall {
-		err = os.WriteFile(sentinelFilePath(context), []byte(sentinelFileText), 0o644)
+		err = os.WriteFile(sentinelFilePath(context), []byte(sentinelFileText), 0o644) //nolint:gosec // G306: Sentinel file must be world-readable for autostart detection
 		if err != nil {
 			return err
 		}

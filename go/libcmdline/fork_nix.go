@@ -39,6 +39,6 @@ func SpawnDetachedProcess(
 		Files: files,
 	}
 
-	pid, err = syscall.ForkExec(cmd, args, &attr)
+	pid, err = syscall.ForkExec(cmd, args, &attr) //nolint:gosec // G204: Forking keybase binary itself for service mode, cmd/args validated by caller
 	return pid, err
 }

@@ -79,7 +79,7 @@ func makeMsgRange(maxMsgs int) (res []chat1.MessageUnboxed) {
 func addMsgs(num int, msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
 	maxID := msgs[0].GetMessageID()
 	for i := 0; i < num; i++ {
-		msgs = append([]chat1.MessageUnboxed{MakeText(chat1.MessageID(int(maxID)+i+1), "addMsgs junk text")},
+		msgs = append([]chat1.MessageUnboxed{MakeText(chat1.MessageID(int(maxID)+i+1), "addMsgs junk text")}, //nolint:gosec // G115: Test code generating sequential MessageIDs, safe to convert
 			msgs...)
 	}
 	return msgs
@@ -138,7 +138,7 @@ func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, length 
 					break
 				}
 			}
-			next, err := encode(chat1.MessageID(bi.Int64()))
+			next, err := encode(chat1.MessageID(bi.Int64())) //nolint:gosec // G115: Test code, bi is positive random bounded by num
 			require.NoError(b, err)
 			p := chat1.Pagination{
 				Num:  length,

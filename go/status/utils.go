@@ -478,7 +478,7 @@ func DirSize(dirPath string) (size uint64, numFiles int, err error) {
 			return err
 		}
 		if !info.IsDir() {
-			size += uint64(info.Size())
+			size += uint64(info.Size()) //nolint:gosec // G115: File size is non-negative, safe to convert
 			numFiles++
 		}
 		return nil
@@ -501,7 +501,7 @@ func CacheSizeInfo(g *libkb.GlobalContext) (info []keybase1.DirSizeInfo, err err
 			if err != nil {
 				return nil, err
 			}
-			totalSize += uint64(info.Size())
+			totalSize += uint64(info.Size()) //nolint:gosec // G115: File sizes are non-negative, safe to convert
 			continue
 		}
 		dirPath := filepath.Join(cacheDir, file.Name())

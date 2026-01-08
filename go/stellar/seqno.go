@@ -47,7 +47,7 @@ func (s *SeqnoProvider) SequenceForAccount(aid string) (xdr.SequenceNumber, erro
 	}
 
 	s.mctx.Debug("SeqnoProvider.SequenceForAccount(%s) -> %d", aid, seqno)
-	return xdr.SequenceNumber(seqno), nil
+	return xdr.SequenceNumber(seqno), nil //nolint:gosec // G115: Stellar sequence number is positive and bounded, safe to convert
 }
 
 // ClaimSeqnoProvider is a build.SequenceProvider for relay claims.  It should only
@@ -78,5 +78,5 @@ func (s *ClaimSeqnoProvider) SequenceForAccount(aid string) (xdr.SequenceNumber,
 	if err != nil {
 		return 0, err
 	}
-	return xdr.SequenceNumber(seqno), nil
+	return xdr.SequenceNumber(seqno), nil //nolint:gosec // G115: Stellar sequence number is positive and bounded, safe to convert
 }

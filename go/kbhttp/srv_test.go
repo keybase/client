@@ -25,7 +25,7 @@ func TestSrv(t *testing.T) {
 		require.NoError(t, err)
 		url := fmt.Sprintf("http://%s/test", addr)
 		t.Logf("url: %s", url)
-		resp, err := http.Get(url)
+		resp, err := http.Get(url) //nolint:gosec // G107: Test code making request to own test server
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		out, err := io.ReadAll(resp.Body)

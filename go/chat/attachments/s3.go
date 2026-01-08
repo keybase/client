@@ -3,7 +3,7 @@ package attachments
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec // G501: MD5 required for S3 ETag computation (AWS API requirement, not cryptographic use)
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -262,7 +262,7 @@ func (a *S3Store) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan j
 			block = block[:n]
 		}
 		if n > 0 {
-			md5sum := md5.Sum(block)
+			md5sum := md5.Sum(block) //nolint:gosec // G401: MD5 required for S3 ETag (AWS API requirement)
 			md5hex := hex.EncodeToString(md5sum[:])
 
 			if previous != nil {

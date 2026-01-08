@@ -40,7 +40,7 @@ func TestScanOldLogFiles(t *testing.T) {
 		filepath.Join(dir, "keybase.kbfs-20170214T142129-0600-20170214T142252-0600"),
 	}
 	for _, fn := range append(logFilenames, nonLogFilenames...) {
-		require.NoError(t, os.WriteFile(fn, []byte("hello"), 0o644))
+		require.NoError(t, os.WriteFile(fn, []byte("hello"), 0o644)) //nolint:gosec // G306: Test file, simulating log files which are world-readable
 	}
 
 	fNames, err := scanOldLogFiles(p)

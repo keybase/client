@@ -201,7 +201,7 @@ func (c *levelDbCleaner) getDbSize() (size uint64, err error) {
 	if err != nil {
 		return 0, err
 	}
-	return uint64(sizes.Sum()), nil
+	return uint64(sizes.Sum()), nil //nolint:gosec // G115: Database size is non-negative, safe to convert
 }
 
 func (c *levelDbCleaner) clean(force bool) (err error) {

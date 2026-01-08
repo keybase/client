@@ -129,7 +129,7 @@ func (pi *pinentryInstance) Init() (err error) {
 
 	parent.log.Debug("+ pinentryInstance::Init()")
 
-	pi.cmd = exec.Command(parent.path)
+	pi.cmd = exec.Command(parent.path) //nolint:gosec // G204: Pinentry binary path from config (system pinentry or GPG pinentry)
 	pi.stdin, _ = pi.cmd.StdinPipe()
 	pi.stdout, _ = pi.cmd.StdoutPipe()
 

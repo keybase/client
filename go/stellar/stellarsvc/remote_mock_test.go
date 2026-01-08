@@ -671,7 +671,7 @@ func (r *BackendMock) AccountSeqno(ctx context.Context, accountID stellar1.Accou
 	defer r.Unlock()
 	_, ok := r.seqnos[accountID]
 	if !ok {
-		r.seqnos[accountID] = uint64(time.Now().UnixNano())
+		r.seqnos[accountID] = uint64(time.Now().UnixNano()) //nolint:gosec // G115: Mock test data using timestamp as sequence number, safe to convert
 	}
 
 	return r.seqnos[accountID], nil
@@ -728,9 +728,9 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 	require.NotNil(tc.T, extract.TimeBounds, "We are expecting TimeBounds in all txs")
 	if extract.TimeBounds != nil {
 		require.NotZero(tc.T, extract.TimeBounds.MaxTime, "We are expecting non-zero TimeBounds.MaxTime in all txs")
-		require.True(tc.T, time.Now().Before(time.Unix(int64(extract.TimeBounds.MaxTime), 0)))
+		require.True(tc.T, time.Now().Before(time.Unix(int64(extract.TimeBounds.MaxTime), 0))) //nolint:gosec // G115: Test code comparing timestamps, safe to convert
 		// We always send MinTime=0 but this assertion should still hold.
-		require.True(tc.T, time.Now().After(time.Unix(int64(extract.TimeBounds.MinTime), 0)))
+		require.True(tc.T, time.Now().After(time.Unix(int64(extract.TimeBounds.MinTime), 0))) //nolint:gosec // G115: Test code comparing timestamps, safe to convert
 	}
 
 	caller, err := tc.G.GetMeUV(ctx)
@@ -1111,7 +1111,7 @@ func (r *BackendMock) addAccountRandom(uid keybase1.UID, funded bool) stellar1.A
 
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
-	r.seqnos[a.accountID] = uint64(time.Now().UnixNano())
+	r.seqnos[a.accountID] = uint64(time.Now().UnixNano()) //nolint:gosec // G115: Mock test data using timestamp as sequence number, safe to convert
 	r.userAccounts[uid] = append(r.userAccounts[uid], a.accountID)
 	return a.accountID
 }
@@ -1132,7 +1132,7 @@ func (r *BackendMock) addAccountByID(uid keybase1.UID, accountID stellar1.Accoun
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
-	r.seqnos[a.accountID] = uint64(time.Now().UnixNano())
+	r.seqnos[a.accountID] = uint64(time.Now().UnixNano()) //nolint:gosec // G115: Mock test data using timestamp as sequence number, safe to convert
 	r.userAccounts[uid] = append(r.userAccounts[uid], a.accountID)
 	return a
 }
@@ -1310,9 +1310,9 @@ func (r *BackendMock) SetInflationDestination(ctx context.Context, tc *TestConte
 	require.NotNil(tc.T, unpackedTx.Tx.TimeBounds, "We are expecting TimeBounds in all txs")
 	if unpackedTx.Tx.TimeBounds != nil {
 		require.NotZero(tc.T, unpackedTx.Tx.TimeBounds.MaxTime, "We are expecting non-zero TimeBounds.MaxTime in all txs")
-		require.True(tc.T, time.Now().Before(time.Unix(int64(unpackedTx.Tx.TimeBounds.MaxTime), 0)))
+		require.True(tc.T, time.Now().Before(time.Unix(int64(unpackedTx.Tx.TimeBounds.MaxTime), 0))) //nolint:gosec // G115: Test code comparing timestamps, safe to convert
 		// We always send MinTime=0 but this assertion should still hold.
-		require.True(tc.T, time.Now().After(time.Unix(int64(unpackedTx.Tx.TimeBounds.MinTime), 0)))
+		require.True(tc.T, time.Now().After(time.Unix(int64(unpackedTx.Tx.TimeBounds.MinTime), 0))) //nolint:gosec // G115: Test code comparing timestamps, safe to convert
 	}
 
 	account.inflationDest = stellar1.AccountID(setOpt.InflationDest.Address())

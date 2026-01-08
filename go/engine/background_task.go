@@ -12,7 +12,6 @@ package engine
 import (
 	"context"
 	"fmt"
-	insecurerand "math/rand"
 	"sync"
 	"time"
 
@@ -140,7 +139,7 @@ func (e *BackgroundTask) loop(mctx libkb.MetaContext) error {
 	// this routine decides when to wake up. That led to this routine never waking.
 	wakeAt := mctx.G().Clock().Now().Add(e.args.Settings.Start)
 	if e.args.Settings.StartStagger > 0 {
-		wakeAt = wakeAt.Add(time.Duration(insecurerand.Int63n(int64(e.args.Settings.StartStagger))))
+		wakeAt = wakeAt.Add(libkb.RandomJitter(e.args.Settings.StartStagger))
 	}
 	if e.args.Settings.MobileForegroundStartAddition > 0 && mctx.G().IsMobileAppType() {
 		appState := mctx.G().MobileAppState.State()

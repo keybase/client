@@ -19,8 +19,8 @@ func SkipPointersForSeqno(s Seqno) (pointers []Seqno) {
 	n := int(math.Log2(float64(s - 1)))
 	x := Seqno(0)
 	for i := n; i >= 0; i-- {
-		if x+(1<<uint(i)) < s {
-			x += 1 << uint(i)
+		if x+(1<<uint(i)) < s { //nolint:gosec // G115: Loop counter from Log2, bounded by skip pointer algorithm, safe to convert
+			x += 1 << uint(i) //nolint:gosec // G115: Loop counter from Log2, bounded by skip pointer algorithm, safe to convert
 			pointers = append(pointers, x)
 		}
 	}

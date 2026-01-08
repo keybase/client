@@ -293,6 +293,7 @@ func checkZipArchive(tc libkb.TestContext, filename string) {
 }
 
 func checkZipFileEqual(tc libkb.TestContext, f *zip.File) {
+	//nolint:gosec // G305: Test code reading from known test data; f.Name validated by switch statement in caller
 	localName := filepath.Join("testdata", f.Name)
 	localData, err := os.ReadFile(localName)
 	require.NoError(tc.T, err)

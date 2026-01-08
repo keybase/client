@@ -38,7 +38,7 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 	}
 
 	// We don't care about holes.
-	maxHoles := int(maxMsgID-purgeInfo.MinUnexplodedID) + 1
+	maxHoles := int(maxMsgID-purgeInfo.MinUnexplodedID) + 1 //nolint:gosec // G115: Message count for result collector, safe to convert
 	var target int
 	if purgeInfo.MinUnexplodedID == 0 {
 		target = 0 // we need to traverse the whole conversation

@@ -3,7 +3,7 @@ package storage
 import (
 	"bytes"
 	"context"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec // G505: SHA1 used for non-cryptographic cache key generation, not for security
 	"encoding/hex"
 	"fmt"
 	"time"
@@ -423,7 +423,7 @@ func (i *Inbox) hashQuery(ctx context.Context, query *chat1.GetInboxQuery) (quer
 		return nil, NewInternalError(ctx, i.DebugLabeler, "failed to encode query: %s", err.Error())
 	}
 
-	hasher := sha1.New()
+	hasher := sha1.New() //nolint:gosec // G401: SHA1 for cache key generation, not cryptographic use
 	_, err = hasher.Write(dat)
 	if err != nil {
 		return nil, NewInternalError(ctx, i.DebugLabeler, "failed to write query: %s", err.Error())

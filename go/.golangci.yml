@@ -46,13 +46,13 @@ linters:
     - misspell # Phase 2: Spelling checks
     - bodyclose # Phase 2: HTTP response body checks
 
-  disable:
+    # disable:
     # Disabled by default in v1, keeping disabled for incremental migration
-    - errcheck # Error checking - enabled by default in v2, many unchecked errors
+    # - errcheck # Error checking - enabled by default in v2, many unchecked errors
 
     # Additional linters from kbfs-server/keybase examples (disabled for now)
     # These can be enabled incrementally in future work
-    # - gosec         # Security checks
+    - gosec # Security checks
     # - unparam       # Unused parameters
 
   settings:

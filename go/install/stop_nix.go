@@ -55,7 +55,7 @@ func stopProcessInexactMatch(mctx libkb.MetaContext, process string) error {
 func stopPID(mctx libkb.MetaContext, pid int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	output, err := exec.CommandContext(ctx, "kill", "-SIGTERM", fmt.Sprintf("%d", pid)).CombinedOutput()
+	output, err := exec.CommandContext(ctx, "kill", "-SIGTERM", fmt.Sprintf("%d", pid)).CombinedOutput() //nolint:gosec // G204: PID from process manager, kill command is system binary
 	mctx.Debug("Output (kill -SIGTERM %d): %s; err=%v", pid, string(output), err)
 	return err
 }

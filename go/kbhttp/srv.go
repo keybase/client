@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 )
@@ -174,8 +175,9 @@ func (h *Srv) Start() (err error) {
 		return err
 	}
 	h.server = &http.Server{
-		Addr:    address,
-		Handler: h.ServeMux,
+		Addr:              address,
+		Handler:           h.ServeMux,
+		ReadHeaderTimeout: 10 * time.Second, // Prevent Slowloris attacks
 	}
 	h.doneCh = make(chan struct{})
 	go func(server *http.Server, doneCh chan struct{}) {

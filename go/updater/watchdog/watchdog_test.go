@@ -64,7 +64,7 @@ func TestTerminateBeforeWatch(t *testing.T) {
 	matcher := process.NewMatcher(procProgram.Path, process.PathEqual, testLog)
 
 	// Launch program (so we can test it gets terminated on watch)
-	err := exec.Command(procProgram.Path, procProgram.Args...).Start()
+	err := exec.Command(procProgram.Path, procProgram.Args...).Start() //nolint:gosec // G204: Test code launching test program
 	require.NoError(t, err)
 
 	procsBefore, err := process.FindProcesses(matcher, time.Second, time.Millisecond, testLog)
@@ -117,11 +117,11 @@ func TestTerminateBeforeWatchRace(t *testing.T) {
 	blocker := make(chan struct{})
 	go func() {
 		for _, p := range otherIterations[:3] {
-			_ = exec.Command(p.Path, p.Args...).Start()
+			_ = exec.Command(p.Path, p.Args...).Start() //nolint:gosec // G204: Test code launching test programs
 		}
 		blocker <- struct{}{}
 		for _, p := range otherIterations[3:] {
-			_ = exec.Command(p.Path, p.Args...).Start()
+			_ = exec.Command(p.Path, p.Args...).Start() //nolint:gosec // G204: Test code launching test programs
 		}
 	}()
 
