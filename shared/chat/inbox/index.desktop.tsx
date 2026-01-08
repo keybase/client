@@ -79,8 +79,11 @@ const DragLine = (p: {
         (e.dataTransfer?.types.length ?? 0) > 0 &&
         e.dataTransfer?.types[0] === dragKey
       ) {
-        const dy = e.clientY - scrollDiv.current.getBoundingClientRect().top + scrollDiv.current.scrollTop
-        throttledDragY(dy)
+        const scrollableDiv = scrollDiv.current.firstElementChild as HTMLDivElement | null
+        if (scrollableDiv) {
+          const dy = e.clientY - scrollDiv.current.getBoundingClientRect().top + scrollableDiv.scrollTop
+          throttledDragY(dy)
+        }
       }
     },
     [scrollDiv, throttledDragY]
@@ -361,12 +364,15 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     }
 
     // Should we scroll?
+    const scrollableDiv = scrollDiv.current.firstElementChild as HTMLDivElement | null
+    if (!scrollableDiv) return
+
     const top = inboxNumSmallRows * smallRowHeight
-    const boundingHeight = scrollDiv.current.getBoundingClientRect().height
+    const boundingHeight = scrollableDiv.getBoundingClientRect().height
     const dragHeight = 76 // grabbed from inspector
-    const currentScrollTop = scrollDiv.current.scrollTop
+    const currentScrollTop = scrollableDiv.scrollTop
     if (boundingHeight + currentScrollTop < top + dragHeight) {
-      scrollDiv.current.scrollBy({behavior: 'smooth', top})
+      scrollableDiv.scrollBy({behavior: 'smooth', top})
     }
   }, [inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded])
 
