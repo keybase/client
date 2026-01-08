@@ -161,10 +161,6 @@ class StoreRegistry {
         const {useDaemonState} = require('./daemon')
         return useDaemonState
       }
-      case 'deeplinks': {
-        const {useDeepLinksState} = require('./deeplinks')
-        return useDeepLinksState
-      }
       case 'devices': {
         const {useDevicesState} = require('./devices')
         return useDevicesState

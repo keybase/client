@@ -10,7 +10,7 @@ import {fixCrop} from '@/util/crop'
 import {clearModals, navigateAppend, navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {useCurrentUserState} from '../current-user'
-import {navToProfile} from '../router2'
+import {navToProfile} from '../router2/util'
 
 type ProveGenericParams = {
   logoBlack: T.Tracker.SiteIconSet
@@ -408,12 +408,13 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
               s.errorCode = error.code
             })
             if (error.code === T.RPCGen.StatusCode.scgeneric && reason === 'appLink') {
-              storeRegistry
-                .getState('deeplinks')
-                .dispatch.setLinkError(
-                  "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
-                )
-              navigateAppend('keybaseLinkError')
+              navigateAppend({
+                props: {
+                  error:
+                    "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
+                },
+                selected: 'keybaseLinkError',
+              })
             }
           }
           if (genericService) {

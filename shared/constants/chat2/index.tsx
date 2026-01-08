@@ -1567,12 +1567,13 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           const first = resultMetas[0]
           if (!first) {
             if (p.reason === 'appLink') {
-              storeRegistry
-                .getState('deeplinks')
-                .dispatch.setLinkError(
-                  "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
-                )
-              navigateAppend('keybaseLinkError')
+              navigateAppend({
+                props: {
+                  error:
+                    "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists.",
+                },
+                selected: 'keybaseLinkError',
+              })
               return
             } else {
               return
@@ -1596,12 +1597,13 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             error.code === T.RPCGen.StatusCode.scteamnotfound &&
             reason === 'appLink'
           ) {
-            storeRegistry
-              .getState('deeplinks')
-              .dispatch.setLinkError(
-                "We couldn't find this team. Please check that you're a member of the team and the channel exists."
-              )
-            navigateAppend('keybaseLinkError')
+            navigateAppend({
+              props: {
+                error:
+                  "We couldn't find this team. Please check that you're a member of the team and the channel exists.",
+              },
+              selected: 'keybaseLinkError',
+            })
             return
           } else {
             throw error

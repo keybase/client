@@ -1,11 +1,11 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
-import {storeRegistry} from '../store-registry'
+import {onEngineIncomingImpl} from './index'
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
   switch (action.type) {
     case EngineGen.keybase1NotifyServiceHandleKeybaseLink:
       {
-        storeRegistry.getState('deeplinks').dispatch.onEngineIncomingImpl(action)
+        onEngineIncomingImpl(action)
       }
       break
     default:
