@@ -95,9 +95,7 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
 		cmds[cmdAddEmoji],
-	}
-	if s.G().IsMobileAppType() || s.G().GetRunMode() == libkb.DevelRunMode {
-		common = append(common, cmds[cmdLocation])
+		cmds[cmdLocation],
 	}
 
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
