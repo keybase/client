@@ -168,7 +168,7 @@ func NewCredentialAuthority(log logger.Logger, api UserKeyAPIer) *CredentialAuth
 	return newCredentialAuthorityWithEngine(log, api, newStandardEngine())
 }
 
-// newCredentialAuthoirutyWithEngine is an internal call that can specify the non-standard
+// newCredentialAuthorityWithEngine is an internal call that can specify the non-standard
 // engine. We'd only need to call this directly from testing to specify a testingEngine.
 func newCredentialAuthorityWithEngine(log logger.Logger, api UserKeyAPIer, eng engine) *CredentialAuthority {
 	ret := &CredentialAuthority{
