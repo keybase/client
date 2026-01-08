@@ -70,8 +70,7 @@ const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositio
   }
 }
 
-const onChatClearWatch = (action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
-  const response = action.payload.response
+const onChatClearWatch = () => {
   locationRefs--
   if (locationRefs <= 0) {
     try {
@@ -85,7 +84,6 @@ const onChatClearWatch = (action: EngineGen.Chat1ChatUiChatClearWatchPayload) =>
       logger.info('[location] end failed')
     }
   }
-  response.result()
 }
 
 const maybePauseVideos = () => {
@@ -191,7 +189,7 @@ export const initPlatformListener = () => {
           ignorePromise(onChatWatchPosition(action))
           break
         case EngineGen.chat1ChatUiChatClearWatch:
-          onChatClearWatch(action)
+          onChatClearWatch()
           break
         default:
       }
