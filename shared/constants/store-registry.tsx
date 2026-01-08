@@ -13,7 +13,6 @@ import type {State as CryptoState, useCryptoState} from './crypto'
 import type {State as DaemonState, useDaemonState} from './daemon'
 import type {State as DeepLinksState, useDeepLinksState} from './deeplinks'
 import type {State as DevicesState, useDevicesState} from './devices'
-import type {State as EngineState, useEngineState} from './engine'
 import type {State as FSState, useFSState} from './fs'
 import type {State as GitState, useGitState} from './git'
 import type {State as NotificationsState, useNotifState} from './notifications'
@@ -45,7 +44,6 @@ type StoreName =
   | 'daemon'
   | 'deeplinks'
   | 'devices'
-  | 'engine'
   | 'fs'
   | 'git'
   | 'notifications'
@@ -77,7 +75,6 @@ type StoreStates = {
   daemon: DaemonState
   deeplinks: DeepLinksState
   devices: DevicesState
-  engine: EngineState
   fs: FSState
   git: GitState
   notifications: NotificationsState
@@ -110,7 +107,6 @@ type StoreHooks = {
   daemon: typeof useDaemonState
   deeplinks: typeof useDeepLinksState
   devices: typeof useDevicesState
-  engine: typeof useEngineState
   fs: typeof useFSState
   git: typeof useGitState
   notifications: typeof useNotifState
@@ -172,10 +168,6 @@ class StoreRegistry {
       case 'devices': {
         const {useDevicesState} = require('./devices')
         return useDevicesState
-      }
-      case 'engine': {
-        const {useEngineState} = require('./engine')
-        return useEngineState
       }
       case 'fs': {
         const {useFSState} = require('./fs')

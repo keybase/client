@@ -32,31 +32,29 @@ import * as TrackerUtil from '../tracker2/util'
 import * as UnlockFoldersUtil from '../unlock-folders/util'
 import * as UsersUtil from '../users/util'
 import {useWhatsNewState} from '../whats-new'
-import {useEngineState} from '../engine'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 
-export const initSharedSubscriptions = () => {
-  useEngineState.subscribe((s, old) => {
-    if (s.connectedTrigger !== old.connectedTrigger) {
-      ChatUtil.onEngineConnected()
-      useConfigState.getState().dispatch.onEngineConnected()
-      storeRegistry.getState('daemon').dispatch.startHandshake()
-      NotifUtil.onEngineConnected()
-      PeopleUtil.onEngineConnected()
-      PinentryUtil.onEngineConnected()
-      TrackerUtil.onEngineConnected()
-      UnlockFoldersUtil.onEngineConnected()
-    }
+export const onEngineConnected = () => {
+  ChatUtil.onEngineConnected()
+  useConfigState.getState().dispatch.onEngineConnected()
+  storeRegistry.getState('daemon').dispatch.startHandshake()
+  NotifUtil.onEngineConnected()
+  PeopleUtil.onEngineConnected()
+  PinentryUtil.onEngineConnected()
+  TrackerUtil.onEngineConnected()
+  UnlockFoldersUtil.onEngineConnected()
+}
 
-    if (s.disconnectedTrigger !== old.disconnectedTrigger) {
-      const f = async () => {
-        await logger.dump()
-      }
-      ignorePromise(f())
-      storeRegistry.getState('daemon').dispatch.setError(new Error('Disconnected'))
-    }
-  })
+export const onEngineDisconnected = () => {
+  const f = async () => {
+    await logger.dump()
+  }
+  ignorePromise(f())
+  storeRegistry.getState('daemon').dispatch.setError(new Error('Disconnected'))
+}
+
+export const initSharedSubscriptions = () => {
 
   useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase !== old.loadOnStartPhase) {
