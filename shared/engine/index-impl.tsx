@@ -37,7 +37,9 @@ class Engine {
   _customResponseAction: {[K in MethodKey]: true} = {
     'keybase.1.rekeyUI.delegateRekeyUI': true,
     'keybase.1.secretUi.getPassphrase': true,
-    ...(isMobile ? {'chat.1.chatUi.chatWatchPosition': true} : {'keybase.1.logsend.prepareLogsend': true}),
+    ...(isMobile
+      ? {'chat.1.chatUi.chatWatchPosition': true}
+      : {'chat.1.chatUi.chatWatchPosition': true, 'keybase.1.logsend.prepareLogsend': true}),
   }
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123

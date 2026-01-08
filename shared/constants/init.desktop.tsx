@@ -70,7 +70,7 @@ const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositio
   }
 }
 
-const onChatClearWatch = (action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
+const onChatClearWatch = async (action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
   const response = action.payload.response
   locationRefs--
   if (locationRefs <= 0) {
@@ -191,7 +191,7 @@ export const initPlatformListener = () => {
           ignorePromise(onChatWatchPosition(action))
           break
         case EngineGen.chat1ChatUiChatClearWatch:
-          onChatClearWatch(action)
+          ignorePromise(onChatClearWatch(action))
           break
         default:
       }

@@ -23,7 +23,7 @@ const setupDefaultSession = () => {
   // webviews, we should make sure to attach this to those partitions too.
   ds.on('will-download', event => event.preventDefault())
 
-  // Disallow any permissions requests except for notifications and fullscreen
+  // Disallow any permissions requests except for notifications, fullscreen, and geolocation
   ds.setPermissionRequestHandler((webContents, permission, callback) => {
     // allow fullscreen
     if (permission === 'fullscreen') {
@@ -36,6 +36,13 @@ const setupDefaultSession = () => {
       requestURL.pathname.toLowerCase() === ourURL.pathname.toLowerCase()
     ) {
       // Allow notifications
+      return callback(true)
+    }
+    if (
+      permission === 'geolocation' &&
+      requestURL.pathname.toLowerCase() === ourURL.pathname.toLowerCase()
+    ) {
+      // Allow geolocation - Electron will show native OS permission dialog
       return callback(true)
     }
     return callback(false)
