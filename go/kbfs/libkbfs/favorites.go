@@ -528,9 +528,12 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			// If we weren't explicitly asked to refresh, we can return possibly
 			// stale favorites rather than return nothing.
 			if err == context.DeadlineExceeded {
-				newCtx, _ := context.WithTimeout(context.Background(),
+				newCtx, cancel := context.WithTimeout(context.Background(),
 					favoritesBackgroundRefreshTimeout)
-				go f.RefreshCache(newCtx, FavoritesRefreshModeBlocking)
+				go func() {
+					defer cancel()
+					f.RefreshCache(newCtx, FavoritesRefreshModeBlocking)
+				}()
 			}
 			f.log.CDebugf(req.ctx,
 				"Serving possibly stale favorites; new data could not be"+

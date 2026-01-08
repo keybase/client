@@ -75,35 +75,42 @@ func TestServerDefault(t *testing.T) {
 		"http://%s/files/private/alice,bob/non-existent", addr))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	resp.Body.Close()
 
 	resp, err = http.Get(fmt.Sprintf(
 		"http://%s/files/private/alice,bob/non-existent?token=deadbeaf", addr))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	resp.Body.Close()
 
 	resp, err = http.Get(fmt.Sprintf(
 		"http://%s/files/private/alice,bob/non-existent?token=%s", addr, token))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	resp.Body.Close()
 
 	resp, err = http.Get(fmt.Sprintf(
 		"http://%s/files/private/alice,bob/non-existent?token=%s&viewTypeInvariance=0", addr, token))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	resp.Body.Close()
 
 	resp, err = http.Get(fmt.Sprintf(
 		"http://%s/files/private/alice,bob/test.txt?token=%s&viewTypeInvariance=0", addr, token))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusPreconditionFailed, resp.StatusCode)
+	resp.Body.Close()
 
 	resp, err = http.Get(fmt.Sprintf(
 		"http://%s/files/private/alice,bob/test.txt?token=%s&viewTypeInvariance=1", addr, token))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	require.Contains(t, resp.Header.Get("Content-Type"), "charset=")
+	resp.Body.Close()
 
 	resp, err = http.Get(fmt.Sprintf(
 		"http://%s/files/blah/alice,bob/non-existent?token=%s&viewTypeInvariance=1", addr, token))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	resp.Body.Close()
 }
