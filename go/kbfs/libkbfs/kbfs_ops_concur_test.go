@@ -1677,6 +1677,13 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
+
+	// Wait for any background block deletion tasks to complete before
+	// shutting down the MDServer, to avoid goroutine logging after the
+	// test completes.
+	err = ops.fbm.waitForDeletingBlocks(ctx)
+	require.NoError(t, err, "Error waiting for deleting blocks: %v", err)
+
 	// Shutdown the MDServer to disable state checking at the end of the test,
 	// since we hacked stuff a bit by deleting blocks manually rather than
 	// allowing them to be garbage collected.
