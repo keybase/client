@@ -103,7 +103,7 @@ func OpenLevelDBStorage(bfs billy.Filesystem, readOnly bool) (
 		if err != nil {
 			return nil, err
 		}
-		logSize, err = logw.Seek(0, os.SEEK_END)
+		logSize, err = logw.Seek(0, io.SeekEnd)
 		if err != nil {
 			_ = logw.Close()
 			return nil, err

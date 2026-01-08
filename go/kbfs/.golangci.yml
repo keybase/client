@@ -22,11 +22,11 @@ linters:
     - gocritic # Code quality checks
     - govet # Go vet checks
     - errcheck # Unchecked errors
+    - ineffassign # Ineffectual assignments
+    - staticcheck # Static analysis
 
   disable:
     # Explicitly disable default preset linters until we're ready
-    - ineffassign
-    - staticcheck
     - unused
 
   settings:
@@ -39,9 +39,12 @@ linters:
       disable:
         - shadow
         - fieldalignment
-# Next steps: Enable these linters systematically:
-# - errcheck        # 50 issues - Unchecked errors
-# - gosec           # 21 issues - Security (G115, G404, G101, G602)
-# - revive          # 25 issues - Style checks
-# - staticcheck     # 20 issues - Static analysis
-# - unused          # 50 issues - Unused code
+
+    staticcheck:
+      checks:
+        - 'all'
+        - '-ST1000' # Disable package comment requirement - too many to fix
+        - '-ST1003' # Disable naming conventions (Db vs DB, etc.) - too many to fix
+        - '-ST1005' # Disable capitalized error string check (style preference)
+        - '-ST1016' # Disable inconsistent receiver names - too many to fix
+        - '-ST1020' # Disable comment format requirement - too many to fix

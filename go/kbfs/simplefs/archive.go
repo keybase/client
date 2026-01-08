@@ -1050,7 +1050,7 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 				Name:   "receipt.json",
 				Method: zip.Deflate,
 			}
-			header.SetModTime(time.Now())
+			header.Modified = time.Now()
 			w, err := zipWriter.CreateHeader(header)
 			if err != nil {
 				return fmt.Errorf("zipWriter.Create(receipt.json) into %s error: %v", jobDesc.ZipFilePath, err)
