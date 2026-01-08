@@ -972,7 +972,7 @@ func (p *blockPrefetcher) stopIfNeeded(
 				req.action.CacheType() == DiskBlockSyncCache &&
 				howMuchRoom < settings.SpaceAvailableNotificationThreshold {
 				// If a notification threshold is configured, we send a
-				// notificaiton here.
+				// notification here.
 				p.sendOverallSyncStatusNotification()
 			}
 		}

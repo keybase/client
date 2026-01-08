@@ -389,7 +389,7 @@ func (sm *subscriptionManager) pollOnFolderBranchForSubscribePathRequest(
 			select {
 			case <-ctx.Done():
 				// No need to call cancelAndDeleteFolderBranchPollerLocked here
-				// since we always cancel and delete at the same tiem and if
+				// since we always cancel and delete at the same time and if
 				// it's canceled it must have been deleted too.
 				return
 			default:

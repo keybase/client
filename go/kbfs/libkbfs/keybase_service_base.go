@@ -970,8 +970,8 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	k.setCachedTeamInfo(tid, info)
 
 	if desiredUser.Uid.Exists() && !info.Writers[desiredUser.Uid] &&
-		!(desiredRole == keybase1.TeamRole_NONE ||
-			desiredRole == keybase1.TeamRole_READER) {
+		(desiredRole != keybase1.TeamRole_NONE &&
+			desiredRole != keybase1.TeamRole_READER) {
 		// Remember that this user was not a writer for a short
 		// amount of time, to avoid repeated lookups for writers
 		// in a public folder (for example).

@@ -176,7 +176,7 @@ type perPathConfigsReaderV1 struct {
 	// ac, if not nil, defines the access control that should be applied to the
 	// path that the *perPathConfigsReaderV1 represents. If it's nil, it means no
 	// specific access control is defined for the path, and the object exists
-	// most likely for the purpose of the children field to realy to checkers
+	// most likely for the purpose of the children field to really to checkers
 	// under this path. In this case, the parent's access control is the
 	// effective one for this path.
 	ac *perPathConfigV1

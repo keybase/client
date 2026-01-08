@@ -36,9 +36,9 @@ func NewCryptoClientRPC(config Config, kbCtx Context) *CryptoClientRPC {
 		config: config,
 	}
 	conn := NewSharedKeybaseConnection(kbCtx, config, c)
-	c.CryptoClient.client = keybase1.CryptoClient{Cli: conn.GetClient()}
-	c.CryptoClient.teamsClient = keybase1.TeamsClient{Cli: conn.GetClient()}
-	c.CryptoClient.shutdownFn = conn.Shutdown
+	c.client = keybase1.CryptoClient{Cli: conn.GetClient()}
+	c.teamsClient = keybase1.TeamsClient{Cli: conn.GetClient()}
+	c.shutdownFn = conn.Shutdown
 	return c
 }
 

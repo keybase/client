@@ -139,7 +139,7 @@ func NewImpatientDebugDumperForForcedDumps(config Config) *ImpatientDebugDumper 
 
 func (d *ImpatientDebugDumper) dump(ctx context.Context) {
 	if !d.limiter.Allow() {
-		// Use a limiter to avoid dumping too much into log accidently.
+		// Use a limiter to avoid dumping too much into log accidentally.
 		return
 	}
 	buf := &bytes.Buffer{}

@@ -36,7 +36,7 @@ func Mount(cfg *Config) (*MountHandle, error) {
 	// 2) After the filesystem is mounted from handling the Mounted callback.
 	// Thus either the filesystem was mounted ok or it was not mounted
 	// and an err is not nil. DokanMain does not return errors after the
-	// mount, but if such errors occured they can be catched by BlockTillDone.
+	// mount, but if such errors occurred they can be catched by BlockTillDone.
 	err = <-ec
 	if err != nil {
 		return nil, err

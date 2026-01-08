@@ -803,7 +803,7 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 		ctx, libkb.VLog1, "User %s is no longer a writer of team %s; "+
 			"checking merkle trees to verify they were a writer at the time the "+
 			"MD was written.", uid, tid)
-	root, err := mbtc.teamMembershipChecker.NoLongerTeamWriter(
+	root, err := mbtc.NoLongerTeamWriter(
 		ctx, tid, mbtc.irmd.TlfID().Type(), uid, verifyingKey, offline)
 	switch e := errors.Cause(err).(type) {
 	case nil:

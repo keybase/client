@@ -71,6 +71,6 @@ func (r *kbfsFavoritesHandler) favoritesChanged(ctx context.Context,
 	}
 
 	kbUID := keybase1.UID(item.Metadata().UID().String())
-	r.Contextified.G().NotifyRouter.HandleFavoritesChanged(kbUID)
+	r.G().NotifyRouter.HandleFavoritesChanged(kbUID)
 	return nil
 }

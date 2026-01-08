@@ -312,12 +312,12 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dis
 	case StatusCodeServerErrorOverQuota:
 		quotaErr := ServerErrorOverQuota{Msg: s.Desc}
 		for _, f := range s.Fields {
-			switch {
-			case f.Key == "QUOTA_USAGE":
+			switch f.Key {
+			case "QUOTA_USAGE":
 				quotaErr.Usage, _ = strconv.ParseInt(f.Value, 10, 64)
-			case f.Key == "QUOTA_LIMIT":
+			case "QUOTA_LIMIT":
 				quotaErr.Limit, _ = strconv.ParseInt(f.Value, 10, 64)
-			case f.Key == "QUOTA_THROTTLE":
+			case "QUOTA_THROTTLE":
 				quotaErr.Throttled, _ = strconv.ParseBool(f.Value)
 			}
 		}

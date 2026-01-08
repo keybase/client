@@ -33,7 +33,6 @@ linters:
       - third_party$
       - builtin$
       - examples$
-      - kbfs
   enable:
     - gocritic
     - unconvert

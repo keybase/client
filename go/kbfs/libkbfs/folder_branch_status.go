@@ -233,7 +233,7 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 		prefetchStatus := fbsk.config.PrefetchStatus(ctx, fbsk.md.TlfID(),
 			fbsk.md.Data().Dir.BlockPointer)
 		fbs.PrefetchStatus = prefetchStatus.String()
-		fbs.RootBlockID = fbsk.md.Data().Dir.BlockPointer.ID.String()
+		fbs.RootBlockID = fbsk.md.Data().Dir.ID.String()
 		fbs.LocalTimestamp = fbsk.md.localTimestamp
 
 		chargedTo, err := chargedToForTLF(

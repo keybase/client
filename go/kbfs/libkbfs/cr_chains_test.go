@@ -541,7 +541,7 @@ func TestCRChainsRemove(t *testing.T) {
 	chainMDs, writtenFileUnref := testCRChainsMultiOps(t)
 
 	for i := range chainMDs {
-		chainMDs[i].(rootMetadataWithKeyAndTimestamp).RootMetadata.SetRevision(
+		chainMDs[i].(rootMetadataWithKeyAndTimestamp).SetRevision(
 			kbfsmd.Revision(i))
 	}
 

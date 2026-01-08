@@ -1037,18 +1037,18 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 			if err != nil {
 				return err
 			}
-			switch {
-			case rawPath == "/":
+			switch rawPath {
+			case "/":
 				res = []keybase1.Dirent{
 					{Name: "private", DirentType: deTy2Ty(data.Dir)},
 					{Name: "public", DirentType: deTy2Ty(data.Dir)},
 					{Name: "team", DirentType: deTy2Ty(data.Dir)},
 				}
-			case rawPath == `/public`:
+			case `/public`:
 				res, err = k.favoriteList(ctx, tlf.Public)
-			case rawPath == `/private`:
+			case `/private`:
 				res, err = k.favoriteList(ctx, tlf.Private)
-			case rawPath == `/team`:
+			case `/team`:
 				res, err = k.favoriteList(ctx, tlf.SingleTeam)
 			default:
 				fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
@@ -2259,7 +2259,7 @@ func (k *SimpleFS) doGetRevisions(
 		// revision could have slid off the previous revisions
 		// list because that revision was garbage-collected, but
 		// that doesn't guarantee that the older revision of the
-		// file was garabge-collected too (since it was created,
+		// file was garbage-collected too (since it was created,
 		// not deleted, as of that garbage-collected revision).
 		p := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
 			Path: pathStr,

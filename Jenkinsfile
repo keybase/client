@@ -540,34 +540,20 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
   }
 
   if (prefix == "test_linux_go_") {
-    // Only test golangci-lint on linux
-    //
-
-    // TODO re-enable for kbfs.
-    // if (hasKBFSChanges) {
-    //   println "Running golangci-lint on KBFS"
-    //   dir('kbfs') {
-    //     retry(5) {
-    //       timeout(activity: true, time: 720, unit: 'SECONDS') {
-    //         // Ignore the `dokan` directory since it contains lots of c code.
-    //         sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan  | xargs realpath --relative-to=. | xargs golangci-lint run --timeout 10m0s'
-    //       }
-    //     }
-    //   }
-    // }
-
     sh 'go tool govulncheck ./...'
+
+    // Only test golangci-lint on linux
     if (env.CHANGE_TARGET) {
       println("Running golangci-lint on new code")
       fetchChangeTarget()
       def BASE_COMMIT_HASH = getBaseCommitHash()
       timeout(activity: true, time: 720, unit: 'SECONDS') {
-        sh "make golangci-lint-nonkbfs GOLANGCI_RUN_OPT='--new-from-rev ${BASE_COMMIT_HASH}'"
+        sh "make golangci-lint GOLANGCI_RUN_OPT='--new-from-rev ${BASE_COMMIT_HASH}'"
       }
     } else {
-      println("Running golangci-lint on all non-KBFS code")
+      println("Running golangci-lint on all code")
       timeout(activity: true, time: 720, unit: 'SECONDS') {
-        sh "make golangci-lint-nonkbfs"
+        sh "make golangci-lint"
       }
     }
 

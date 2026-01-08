@@ -33,7 +33,7 @@ type V1 struct {
 
 	bcryptLimiter *rate.Limiter
 
-	// ACLs is deprecated, and kept around for back-compability. Now it serves
+	// ACLs is deprecated, and kept around for back-compatibility. Now it serves
 	// as an alias to PerPathConfigs. If both ACLs and PerPathConfigs are
 	// present, it's a parsing error.
 	ACLs map[string]PerPathConfigV1 `json:"acls,omitempty"`

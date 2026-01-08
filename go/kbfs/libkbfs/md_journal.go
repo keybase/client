@@ -59,7 +59,7 @@ func MakeImmutableBareRootMetadata(
 func (ibrmd ImmutableBareRootMetadata) MakeBareTlfHandleWithExtra() (
 	tlf.Handle, error,
 ) {
-	return ibrmd.RootMetadata.MakeBareTlfHandle(ibrmd.extra)
+	return ibrmd.MakeBareTlfHandle(ibrmd.extra)
 }
 
 // mdJournal stores a single ordered list of metadata IDs for a (TLF,
@@ -220,8 +220,8 @@ func makeMDJournalWithIDJournal(
 
 	if earliest != nil {
 		if earliest.BID() != latest.BID() &&
-			!(earliest.BID() == kbfsmd.NullBranchID &&
-				latest.BID() == kbfsmd.PendingLocalSquashBranchID) {
+			(earliest.BID() != kbfsmd.NullBranchID ||
+				latest.BID() != kbfsmd.PendingLocalSquashBranchID) {
 			return nil, errors.Errorf(
 				"earliest.BID=%s != latest.BID=%s",
 				earliest.BID(), latest.BID())
@@ -503,7 +503,7 @@ func (j mdJournal) getMDAndExtra(ctx context.Context, entry mdIDJournalEntry,
 	}
 
 	if verifyBranchID && rmd.BID() != j.branchID &&
-		!(rmd.BID() == kbfsmd.NullBranchID && j.branchID == kbfsmd.PendingLocalSquashBranchID) {
+		(rmd.BID() != kbfsmd.NullBranchID || j.branchID != kbfsmd.PendingLocalSquashBranchID) {
 		return nil, nil, time.Time{}, errors.Errorf(
 			"Branch ID mismatch: expected %s, got %s",
 			j.branchID, rmd.BID())

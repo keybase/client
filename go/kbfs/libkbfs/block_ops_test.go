@@ -306,7 +306,7 @@ func (c badEncoder) Encode(o interface{}) ([]byte, error) {
 func TestBlockOpsReadyFailEncode(t *testing.T) {
 	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
-	config.testCodecGetter.codec = badEncoder{config.codec}
+	config.codec = badEncoder{config.codec}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0, env.EmptyAppStateUpdater{})

@@ -3757,7 +3757,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 		entry, ok := entries[child.Name]
 		if !ok {
 			undoFn := fbo.unlinkDuringFastForwardLocked(
-				ctx, lState, kmd, child.BlockPointer.Ref())
+				ctx, lState, kmd, child.Ref())
 			if undoFn != nil {
 				undoFns = append(undoFns, undoFn)
 			}
@@ -3770,7 +3770,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 		fbo.updatePointer(kmd, child.BlockPointer,
 			entry.BlockPointer, true)
 		updates[child.BlockPointer] = entry.BlockPointer
-		node := fbo.nodeCache.Get(entry.BlockPointer.Ref())
+		node := fbo.nodeCache.Get(entry.Ref())
 		if node == nil {
 			fbo.vlog.CLogf(
 				ctx, libkb.VLog1, "Skipping missing node for %s",
@@ -3889,7 +3889,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	}()
 
 	rootPath.Path[0].BlockPointer = md.data.Dir.BlockPointer
-	rootNode := fbo.nodeCache.Get(md.data.Dir.BlockPointer.Ref())
+	rootNode := fbo.nodeCache.Get(md.data.Dir.Ref())
 	if rootNode != nil {
 		change := NodeChange{Node: rootNode}
 		for child := range children[rootPath.String()] {
@@ -3911,7 +3911,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	for _, childPNs := range children {
 		for child := range childPNs {
 			fbo.unlinkDuringFastForwardLocked(
-				ctx, lState, md, child.BlockPointer.Ref())
+				ctx, lState, md, child.Ref())
 		}
 	}
 	return changes, affectedNodeIDs, nil
@@ -4029,7 +4029,7 @@ func (fbo *folderBlockOps) MarkNode(
 	}
 
 	for _, info := range infos {
-		err = dbc.Mark(ctx, info.BlockPointer.ID, tag, cacheType)
+		err = dbc.Mark(ctx, info.ID, tag, cacheType)
 		switch errors.Cause(err).(type) {
 		case nil:
 		case data.NoSuchBlockError:

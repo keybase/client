@@ -199,7 +199,7 @@ func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
 	expectedPrevRoot kbfsmd.ID, expectedMergeStatus kbfsmd.MergeStatus,
 	expectedBranchID kbfsmd.BranchID,
 ) {
-	verifyingKey := c.crypto.SigningKeySigner.Key.GetVerifyingKey()
+	verifyingKey := c.crypto.Key.GetVerifyingKey()
 	checkBRMD(c.t, c.uid, verifyingKey, c.Codec(),
 		rmds.MD, extra, expectedRevision, expectedPrevRoot,
 		expectedMergeStatus, expectedBranchID)
