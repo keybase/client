@@ -107,9 +107,9 @@ func (m *mounter) Unmount() (err error) {
 	// Try normal unmount
 	switch runtime.GOOS {
 	case "darwin": // no ios
-		_, err = exec.Command("/sbin/umount", dir).Output()
+		_, err = exec.Command("/sbin/umount", dir).Output() //nolint:gosec // G204: System unmount command with dir path
 	case "linux":
-		fusermountOutput, fusermountErr := exec.Command("fusermount", "-u", dir).CombinedOutput()
+		fusermountOutput, fusermountErr := exec.Command("fusermount", "-u", dir).CombinedOutput() //nolint:gosec // G204: System unmount command with dir path
 		// Only clean up mountdir on a clean unmount.
 		if fusermountErr == nil {
 			m.log.Info("Successfully unmounted")
@@ -132,11 +132,11 @@ func (m *mounter) Unmount() (err error) {
 		// Unmount failed, so let's try and force it.
 		switch runtime.GOOS {
 		case "darwin": // no ios
-			_, err = exec.Command(
+			_, err = exec.Command( //nolint:gosec // G204: System force unmount command with dir path
 				"/usr/sbin/diskutil", "unmountDisk", "force", dir).Output()
 		case "linux":
 			// Lazy unmount; will unmount when KBFS is no longer in use.
-			_, err = exec.Command("fusermount", "-u", "-z", dir).Output()
+			_, err = exec.Command("fusermount", "-u", "-z", dir).Output() //nolint:gosec // G204: System force unmount command with dir path
 		default:
 			err = errors.New("Forced unmount is not supported on this platform yet")
 		}

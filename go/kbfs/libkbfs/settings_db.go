@@ -58,7 +58,7 @@ func openSettingsDBInternal(config Config) (*ldbutils.LevelDb, error) {
 	}
 	dbPath := path.Join(config.StorageRoot(), settingsDBDir,
 		settingsDBVersionString)
-	err := os.MkdirAll(dbPath, os.ModePerm)
+	err := os.MkdirAll(dbPath, 0o700)
 	if err != nil {
 		return nil, err
 	}

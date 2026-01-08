@@ -633,15 +633,15 @@ func TestOpsCollapseWriteRange(t *testing.T) {
 		var syncOps []*syncOp
 		for j := 0; j < numWrites; j++ {
 			// Start a new syncOp?
-			if len(syncOps) == 0 || rand.Int()%5 == 0 {
+			if len(syncOps) == 0 || rand.Int()%5 == 0 { //nolint:gosec // G404: Test data generation, not security-sensitive
 				syncOps = append(syncOps, &syncOp{})
 			}
 
 			op := syncOps[len(syncOps)-1]
 			// Generate either a random truncate or random write
-			off := uint64(rand.Int()) % fileSize
+			off := uint64(rand.Int()) % fileSize //nolint:gosec // G404: Test data generation, not security-sensitive
 			var length uint64
-			if rand.Int()%5 > 0 {
+			if rand.Int()%5 > 0 { //nolint:gosec // G404: Test data generation, not security-sensitive
 				// A write, not a truncate
 				maxLen := fileSize - off
 				if maxLen > maxWriteSize {
@@ -652,7 +652,7 @@ func TestOpsCollapseWriteRange(t *testing.T) {
 					maxLen = 1
 				}
 				// Writes must have at least one byte
-				length = uint64(rand.Int())%maxLen + uint64(1)
+				length = uint64(rand.Int())%maxLen + uint64(1) //nolint:gosec // G404: Test data generation, not security-sensitive
 				op.addWrite(off, length)
 				// Fill in dirty bytes
 				for k := off; k < off+length; k++ {

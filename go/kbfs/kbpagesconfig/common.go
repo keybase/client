@@ -107,7 +107,7 @@ func confirmAndWrite(
 	}
 
 	// Write the new config to kbpConfigPath.
-	f, err := os.Create(configPath)
+	f, err := os.Create(configPath) //nolint:gosec // G304: configPath from trusted config directory
 	if err != nil {
 		return fmt.Errorf(
 			"opening file [%s] error: %v", configPath, err)

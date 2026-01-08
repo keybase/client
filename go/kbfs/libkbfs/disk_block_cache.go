@@ -1262,7 +1262,7 @@ func (cache *DiskBlockCacheLocal) shuffleTLFsAtPriorityWeighted(
 			continue
 		}
 		weightedSlice = append(weightedSlice, weightedByCount{
-			key:   math.Pow(rand.Float64(), 1.0/float64(count)),
+			key:   math.Pow(rand.Float64(), 1.0/float64(count)), //nolint:gosec // G404: Weighted cache eviction, not security-sensitive
 			value: tlfID,
 		})
 		idx++

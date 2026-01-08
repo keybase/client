@@ -304,7 +304,7 @@ func cleanOldTempStorageRoots(config Config) {
 		context.Background(), CtxInitKey, CtxInitID, log)
 
 	storageRoot := config.StorageRoot()
-	d, err := os.Open(storageRoot)
+	d, err := os.Open(storageRoot) //nolint:gosec // G304: storageRoot from trusted config
 	if err != nil {
 		log.CDebugf(ctx, "Error opening storage root %s: %+v", storageRoot, err)
 		return

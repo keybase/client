@@ -56,7 +56,7 @@ func shutdownDiskQuotaCacheTest(cache DiskQuotaCache, tempdir string) {
 
 func makeRandomQuotaWithUsageWrite(t *testing.T) kbfsblock.QuotaInfo {
 	qi := kbfsblock.NewQuotaInfo()
-	qi.Total.Bytes[kbfsblock.UsageWrite] = rand.Int63()
+	qi.Total.Bytes[kbfsblock.UsageWrite] = rand.Int63() //nolint:gosec // G404: Test data generation, not security-sensitive
 	return *qi
 }
 

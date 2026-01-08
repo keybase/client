@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"math/rand"
 	"os"
 	stdpath "path"
 	"path/filepath"
@@ -1686,7 +1685,7 @@ func (fbo *folderBranchOps) partialMarkAndSweepLoop(trigger <-chan struct{}) {
 
 	// Set the first timer to be some random duration less than the
 	// period, to spread out the work of different TLFs.
-	d := time.Duration(rand.Int63n(int64(markAndSweepPeriod)))
+	d := libkb.RandomJitter(markAndSweepPeriod)
 	timer := time.NewTimer(d)
 
 	var currMarkAndSweepCtxDone <-chan struct{}

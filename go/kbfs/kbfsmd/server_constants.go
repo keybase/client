@@ -6,7 +6,7 @@ package kbfsmd
 
 const (
 	// ServerTokenServer is the expected server type for mdserver authentication.
-	ServerTokenServer = "kbfs_md"
+	ServerTokenServer = "kbfs_md" //nolint:gosec // G101: Server type identifier, not credentials
 	// ServerTokenExpireIn is the TTL to use when constructing an authentication token.
 	ServerTokenExpireIn = 24 * 60 * 60 // 24 hours
 )

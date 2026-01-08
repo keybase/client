@@ -542,7 +542,7 @@ func TestCopyRecursive(t *testing.T) {
 		true)
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
-	d, err := os.Open(testdir)
+	d, err := os.Open(testdir) //nolint:gosec // G304: Test directory path from test setup
 	require.NoError(t, err)
 	fis, err := d.Readdir(0)
 	require.NoError(t, err)
@@ -595,11 +595,11 @@ func TestCopyRecursive(t *testing.T) {
 		ctx, t, sfs, opid2, keybase1.AsyncOps_COPY, pathKbfs, path3, true)
 	err = sfs.SimpleFSWait(ctx, opid2)
 	require.NoError(t, err)
-	dataFoo, err := os.ReadFile(
+	dataFoo, err := os.ReadFile( //nolint:gosec // G304: Test file path
 		filepath.Join(tempdir2, "testdir", "test1.txt"))
 	require.NoError(t, err)
 	require.Equal(t, "foo", string(dataFoo))
-	dataBar, err := os.ReadFile(
+	dataBar, err := os.ReadFile( //nolint:gosec // G304: Test file path
 		filepath.Join(tempdir2, "testdir", "test2.txt"))
 	require.NoError(t, err)
 	require.Equal(t, "bar", string(dataBar))
@@ -652,7 +652,7 @@ func TestCopyToRemote(t *testing.T) {
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(tempdir)
 	defer deleteTempLocalPath(path1)
-	err = os.WriteFile(filepath.Join(path1.Local(), "test1.txt"), []byte("foo"), 0o644)
+	err = os.WriteFile(filepath.Join(path1.Local(), "test1.txt"), []byte("foo"), 0o644) //nolint:gosec // G306: Test file, doesn't need restrictive permissions
 	require.NoError(t, err)
 
 	opid, err := sfs.SimpleFSMakeOpid(ctx)

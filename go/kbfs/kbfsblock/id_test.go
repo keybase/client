@@ -91,7 +91,7 @@ func TestRandomIDInRange(t *testing.T) {
 		id, err := MakeRandomIDInRange(0, 1.0, UseMathRandForTest)
 		require.NoError(t, err)
 		asInt := idToInt(id)
-		buckets[asInt>>60]++
+		buckets[asInt>>60]++ //nolint:gosec // G602: Test asserts range is valid
 	}
 	t.Log("Buckets:")
 	for i, v := range buckets {

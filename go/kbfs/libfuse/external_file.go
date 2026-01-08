@@ -35,7 +35,7 @@ func newExternalFile(path string) (*SpecialReadFile, error) { // nolint
 					return
 				}
 				fileTime = info.ModTime()
-				data, err = os.ReadFile(path)
+				data, err = os.ReadFile(path) //nolint:gosec // G304: External file path is controlled by ExternalFile creator
 			})
 			return data, fileTime, err
 		},

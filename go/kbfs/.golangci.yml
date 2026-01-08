@@ -19,7 +19,7 @@ linters:
       - test/engine_fs_test.go # Test framework - interface methods required even if unused
       - libkbfs/protected_context.go # Test hook - method overridden in tests
   enable:
-    - misspell # Ready - spelling auto-fixed
+    - misspell # Spelling errors
     - bodyclose # HTTP response body not closed
     - gocritic # Code quality checks
     - govet # Go vet checks
@@ -29,6 +29,7 @@ linters:
     - unused # Unused code
     - unconvert # Unnecessary type conversions
     - revive # Code quality and style checks
+    - gosec # Security issues
 
   disable: []
 

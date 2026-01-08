@@ -303,7 +303,7 @@ func StallMDOp(ctx context.Context, config Config, stalledOp StallableMDOp,
 func newStallKey() stallKeyType {
 	stallKey := stallKeyStallEverything
 	for stallKey == stallKeyStallEverything {
-		stallKey = stallKeyType(rand.Int63())
+		stallKey = stallKeyType(rand.Int63()) //nolint:gosec // G404: Test stall key generation, not security-sensitive
 	}
 	return stallKey
 }

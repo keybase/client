@@ -449,7 +449,7 @@ func main() {
 				"Couldn't get the current executable: %v", err)
 			os.Exit(1)
 		}
-		cmd := exec.Command(ex, os.Args[1])
+		cmd := exec.Command(ex, os.Args[1]) //nolint:gosec // G204: Redirector launching updater with single arg
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err = cmd.Start()

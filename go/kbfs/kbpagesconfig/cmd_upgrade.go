@@ -51,7 +51,7 @@ func upgradeToSHA256WithPrompter(kbpConfigDir string, prompter prompter) (err er
 	if err != nil {
 		return err
 	}
-	f, err := os.Open(kbpConfigPath)
+	f, err := os.Open(kbpConfigPath) //nolint:gosec // G304: kbpConfigPath from trusted config directory
 	switch {
 	case err == nil:
 	case os.IsNotExist(err):
