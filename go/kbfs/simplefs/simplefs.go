@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	stdpath "path"
 	"path/filepath"
 	"regexp"
@@ -2199,6 +2198,7 @@ func (k *SimpleFS) doGetRevisions(
 		// Otherwise, we have to fetch the stats from the MD revision
 		// before the last one we processed, and use the
 		// PreviousRevisions list from that version of the file.
+	revisionLoop:
 		for len(revPaths) < 4 && nextSlot < len(prs) {
 			var rev kbfsmd.Revision
 			switch {
@@ -2237,7 +2237,7 @@ func (k *SimpleFS) doGetRevisions(
 				nextSlot = 0      // will be incremented below
 				expectedCount = 1 // will be incremented below
 			default:
-				break
+				break revisionLoop
 			}
 
 			p := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
@@ -3470,7 +3470,7 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 	u := url.URL{
 		Scheme:   "http",
 		Host:     address,
-		Path:     path.Join("/files", kbfsPath.Path),
+		Path:     stdpath.Join("/files", kbfsPath.Path),
 		RawQuery: "token=" + token + "&viewTypeInvariance=" + invariance,
 	}
 

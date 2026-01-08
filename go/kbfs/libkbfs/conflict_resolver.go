@@ -3509,9 +3509,7 @@ func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
 
 	err = dbc.WaitUntilStarted()
 	if err != nil {
-		if cleanupFn != nil {
-			cleanupFn(ctx)
-		}
+		cleanupFn(ctx)
 		return nil, nil, err
 	}
 

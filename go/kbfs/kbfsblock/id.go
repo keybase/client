@@ -5,11 +5,11 @@
 package kbfsblock
 
 import (
+	"crypto/rand"
 	"encoding"
 	"encoding/binary"
 	"errors"
 	"math"
-	"math/rand"
 
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"

@@ -66,8 +66,6 @@ func (fod fileOrDir) Close() (err error) {
 	if fod.dir != nil {
 		fod.dir.node = nil
 	}
-	fod.file = nil
-	fod.dir = nil
 	return err
 }
 

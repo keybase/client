@@ -111,7 +111,7 @@ func (ei *ExtendedIdentify) makeTlfBreaksIfNeeded(
 		case ub, ok := <-ei.userBreaks:
 			if !ok {
 				return errors.New("makeTlfBreaksIfNeeded called on ExtendedIdentify" +
-					" with closed userBreaks channel.")
+					" with closed userBreaks channel")
 			}
 			if ub.Breaks != nil {
 				b.Breaks = append(b.Breaks, ub)

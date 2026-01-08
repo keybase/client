@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"context"
 	"math"
-	"math/rand"
 	"os"
 	"sync"
 	"testing"
@@ -821,8 +820,6 @@ func TestDiskBlockCacheHomeDirPriorities(t *testing.T) {
 	defer shutdownDiskBlockCacheTest(cache)
 
 	ctx := context.Background()
-
-	rand.Seed(1)
 
 	t.Log("Set home directories on the cache")
 	homeTLF := tlf.FakeID(100, tlf.Private)
