@@ -1871,6 +1871,7 @@ func (k *SimpleFS) SimpleFSOpen(
 		fsCtx, cancel = context.WithCancel(k.makeContext(context.Background()))
 		fsCtx, err := k.startOpWrapContext(fsCtx)
 		if err != nil {
+			cancel()
 			return err
 		}
 		libfs = libfs.WithContext(fsCtx)
@@ -1881,6 +1882,7 @@ func (k *SimpleFS) SimpleFSOpen(
 
 	f, err := fs.OpenFile(finalElem, cflags, 0o644)
 	if err != nil {
+		cancel()
 		return err
 	}
 

@@ -484,7 +484,7 @@ func TestTlfHistoryRenameDirAndReuseNameForFile(t *testing.T) {
 			OldFilename: "/k/p/a,b/x",
 		}, time.Time{}, EntryTypeFile)
 	aliceMessages = append(aliceMessages, nn.encode(t))
-	aliceCreateA.Filename = "/k/p/a,b/a"
+	aliceCreateA.Filename = "/k/p/a,b/a" //nolint:govet // unusedwrite: Test data setup, field will be read later in test assertions
 
 	// Alice modifies file "a".
 	aliceModifyA := nn.make(

@@ -381,6 +381,8 @@ func (m *archiveManager) startWorkerTask(ctx context.Context,
 			return jobID, jobCtx, true
 		}
 	}
+	// No eligible job found, cancel the context
+	cancel()
 	return "", nil, false
 }
 
