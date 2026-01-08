@@ -8,6 +8,7 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 import {navigateAppend, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useCryptoState} from '../crypto'
 import {useConfigState} from '../config'
 
 const prefix = 'keybase://'
@@ -286,7 +287,7 @@ export const handleSaltPackOpen = (_path: string | HiddenString) => {
     )
     return
   }
-  storeRegistry.getState('crypto').dispatch.onSaltpackOpenFile(operation, path)
+  useCryptoState.getState().dispatch.onSaltpackOpenFile(operation, path)
   switchTab(Tabs.cryptoTab)
 }
 

@@ -9,7 +9,6 @@ import type {State as ArchiveState, useArchiveState} from './archive'
 import type {State as AutoResetState, useAutoResetState} from './autoreset'
 import type {State as BotsState, useBotsState} from './bots'
 import type {State as ChatState, useChatState} from './chat2'
-import type {State as CryptoState, useCryptoState} from './crypto'
 import type {State as DaemonState, useDaemonState} from './daemon'
 import type {State as DeepLinksState, useDeepLinksState} from './deeplinks'
 import type {State as DevicesState, useDevicesState} from './devices'
@@ -40,7 +39,6 @@ type StoreName =
   | 'autoreset'
   | 'bots'
   | 'chat'
-  | 'crypto'
   | 'daemon'
   | 'deeplinks'
   | 'devices'
@@ -71,7 +69,6 @@ type StoreStates = {
   autoreset: AutoResetState
   bots: BotsState
   chat: ChatState
-  crypto: CryptoState
   daemon: DaemonState
   deeplinks: DeepLinksState
   devices: DevicesState
@@ -103,7 +100,6 @@ type StoreHooks = {
   autoreset: typeof useAutoResetState
   bots: typeof useBotsState
   chat: typeof useChatState
-  crypto: typeof useCryptoState
   daemon: typeof useDaemonState
   deeplinks: typeof useDeepLinksState
   devices: typeof useDevicesState
@@ -152,10 +148,6 @@ class StoreRegistry {
       case 'chat': {
         const {useChatState} = require('./chat2')
         return useChatState
-      }
-      case 'crypto': {
-        const {useCryptoState} = require('./crypto')
-        return useCryptoState
       }
       case 'daemon': {
         const {useDaemonState} = require('./daemon')
