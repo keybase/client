@@ -50,6 +50,72 @@ const maybePauseVideos = () => {
   })
 }
 
+export const onEngineIncoming = (action: EngineGen.Actions) => {
+  switch (action.type) {
+    case EngineGen.keybase1LogsendPrepareLogsend: {
+      const f = async () => {
+        const response = action.payload.response
+        try {
+          await dumpLogs()
+        } finally {
+          response.result()
+        }
+      }
+      ignorePromise(f())
+      break
+    }
+    case EngineGen.keybase1NotifyAppExit:
+      console.log('App exit requested')
+      exitApp?.(0)
+      break
+    case EngineGen.keybase1NotifyFSFSActivity:
+      kbfsNotification(action.payload.params.notification, NotifyPopup)
+      break
+    case EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile: {
+      const f = async () => {
+        try {
+          await T.RPCGen.pgpPgpStorageDismissRpcPromise()
+        } catch (err) {
+          console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
+        }
+      }
+      ignorePromise(f())
+      break
+    }
+    case EngineGen.keybase1NotifyServiceShutdown: {
+      const {code} = action.payload.params
+      if (isWindows && code !== (T.RPCGen.ExitCode.restart as number)) {
+        console.log('Quitting due to service shutdown with code: ', code)
+        // Quit just the app, not the service
+        quitApp?.()
+      }
+      break
+    }
+
+    case EngineGen.keybase1LogUiLog: {
+      const {params} = action.payload
+      const {level, text} = params
+      logger.info('keybase.1.logUi.log:', params.text.data)
+      if (level >= T.RPCGen.LogLevel.error) {
+        NotifyPopup(text.data)
+      }
+      break
+    }
+
+    case EngineGen.keybase1NotifySessionClientOutOfDate: {
+      const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
+      const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
+      NotifyPopup('Client out of date!', {body}, 60 * 60)
+      // This is from the API server. Consider notifications from server always critical.
+      useConfigState
+        .getState()
+        .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
+      break
+    }
+    default:
+  }
+}
+
 export const initPlatformListener = () => {
   useConfigState.setState(s => {
     s.dispatch.dynamic.dumpLogsNative = dumpLogs
@@ -63,71 +129,6 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.onEngineIncomingDesktop = wrapErrors((action: EngineGen.Actions) => {
-      switch (action.type) {
-        case EngineGen.keybase1LogsendPrepareLogsend: {
-          const f = async () => {
-            const response = action.payload.response
-            try {
-              await dumpLogs()
-            } finally {
-              response.result()
-            }
-          }
-          ignorePromise(f())
-          break
-        }
-        case EngineGen.keybase1NotifyAppExit:
-          console.log('App exit requested')
-          exitApp?.(0)
-          break
-        case EngineGen.keybase1NotifyFSFSActivity:
-          kbfsNotification(action.payload.params.notification, NotifyPopup)
-          break
-        case EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile: {
-          const f = async () => {
-            try {
-              await T.RPCGen.pgpPgpStorageDismissRpcPromise()
-            } catch (err) {
-              console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-            }
-          }
-          ignorePromise(f())
-          break
-        }
-        case EngineGen.keybase1NotifyServiceShutdown: {
-          const {code} = action.payload.params
-          if (isWindows && code !== (T.RPCGen.ExitCode.restart as number)) {
-            console.log('Quitting due to service shutdown with code: ', code)
-            // Quit just the app, not the service
-            quitApp?.()
-          }
-          break
-        }
-
-        case EngineGen.keybase1LogUiLog: {
-          const {params} = action.payload
-          const {level, text} = params
-          logger.info('keybase.1.logUi.log:', params.text.data)
-          if (level >= T.RPCGen.LogLevel.error) {
-            NotifyPopup(text.data)
-          }
-          break
-        }
-
-        case EngineGen.keybase1NotifySessionClientOutOfDate: {
-          const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
-          const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
-          NotifyPopup('Client out of date!', {body}, 60 * 60)
-          // This is from the API server. Consider notifications from server always critical.
-          useConfigState
-            .getState()
-            .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
-          break
-        }
-        default:
-      }
-    })
   })
 
   useConfigState.subscribe((s, old) => {

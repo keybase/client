@@ -32,6 +32,7 @@ import * as TrackerUtil from '../tracker2/util'
 import * as UnlockFoldersUtil from '../unlock-folders/util'
 import * as UsersUtil from '../users/util'
 import {useWhatsNewState} from '../whats-new'
+import {onEngineIncoming as onEngineIncomingPlatform} from '../init'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 
@@ -245,8 +246,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
   AvatarUtil.onEngineIncoming(action)
   BotsUtil.onEngineIncoming(action)
   ChatUtil.onEngineIncoming(action)
-  useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
-  useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
+  onEngineIncomingPlatform(action)
   useConfigState.getState().dispatch.onEngineIncoming(action)
   DeepLinksUtil.onEngineIncoming(action)
   DevicesUtil.onEngineIncoming(action)

@@ -203,6 +203,30 @@ const onChatClearWatch = async () => {
   }
 }
 
+export const onEngineIncoming = (action: EngineGen.Actions) => {
+  switch (action.type) {
+    case EngineGen.chat1ChatUiTriggerContactSync:
+      useSettingsContactsState.getState().dispatch.manageContactsCache()
+      break
+    case EngineGen.keybase1LogUiLog: {
+      const {params} = action.payload
+      const {level, text} = params
+      logger.info('keybase.1.logUi.log:', params.text.data)
+      if (level >= T.RPCGen.LogLevel.error) {
+        NotifyPopup(text.data)
+      }
+      break
+    }
+    case EngineGen.chat1ChatUiChatWatchPosition:
+      ignorePromise(onChatWatchPosition(action))
+      break
+    case EngineGen.chat1ChatUiChatClearWatch:
+      ignorePromise(onChatClearWatch())
+      break
+    default:
+  }
+}
+
 export const initPlatformListener = () => {
   let _lastPersist = ''
   useConfigState.setState(s => {
@@ -243,11 +267,6 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.onEngineIncomingNative = wrapErrors((action: EngineGen.Actions) => {
-      switch (action.type) {
-        default:
-      }
-    })
   })
 
   useConfigState.subscribe((s, old) => {
@@ -466,29 +485,6 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.onEngineIncomingNative = wrapErrors((action: EngineGen.Actions) => {
-      switch (action.type) {
-        case EngineGen.chat1ChatUiTriggerContactSync:
-          useSettingsContactsState.getState().dispatch.manageContactsCache()
-          break
-        case EngineGen.keybase1LogUiLog: {
-          const {params} = action.payload
-          const {level, text} = params
-          logger.info('keybase.1.logUi.log:', params.text.data)
-          if (level >= T.RPCGen.LogLevel.error) {
-            NotifyPopup(text.data)
-          }
-          break
-        }
-        case EngineGen.chat1ChatUiChatWatchPosition:
-          ignorePromise(onChatWatchPosition(action))
-          break
-        case EngineGen.chat1ChatUiChatClearWatch:
-          ignorePromise(onChatClearWatch())
-          break
-        default:
-      }
-    })
   })
 
   useRouterState.setState(s => {
