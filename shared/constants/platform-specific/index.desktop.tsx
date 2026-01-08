@@ -3,6 +3,7 @@ import {useConfigState} from '../config'
 import {usePinentryState} from '../pinentry'
 import * as RemoteGen from '@/actions/remote-gen'
 import * as T from '../types'
+import * as Chat from '../chat2'
 import KB2 from '@/util/electron.desktop'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
@@ -23,8 +24,107 @@ export async function saveAttachmentToCameraRoll() {
   return Promise.reject(new Error('Save Attachment to camera roll - unsupported on this platform'))
 }
 
-export const requestLocationPermission = async () => Promise.resolve()
-export const watchPositionForMap = async () => Promise.resolve(() => {})
+export const requestLocationPermission = async (_perm: T.RPCChat.UIWatchPositionPerm): Promise<void> => {
+  if (!navigator.geolocation) {
+    throw new Error('Geolocation is not supported by this browser.')
+  }
+
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        resolve()
+      },
+      error => {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            reject(new Error('Location permission denied. Please allow Keybase to access your location in browser settings.'))
+            break
+          case error.POSITION_UNAVAILABLE:
+            reject(new Error('Location information is unavailable.'))
+            break
+          case error.TIMEOUT:
+            reject(new Error('Location request timed out.'))
+            break
+          default:
+            reject(new Error('An unknown error occurred while requesting location.'))
+            break
+        }
+      },
+      {enableHighAccuracy: true, timeout: 10000}
+    )
+  })
+}
+
+export const watchPositionForMap = async (
+  conversationIDKey: T.Chat.ConversationIDKey
+): Promise<() => void> => {
+  if (!navigator.geolocation) {
+    throw new Error('Geolocation is not supported by this browser.')
+  }
+
+  return new Promise(resolve => {
+    const watchId = navigator.geolocation.watchPosition(
+      position => {
+        const coord = {
+          accuracy: Math.floor(position.coords.accuracy ?? 0),
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        }
+        Chat.useChatState.getState().dispatch.updateLastCoord(coord)
+      },
+      error => {
+        const conversationIDKeyStr = T.Chat.conversationIDKeyToString(conversationIDKey)
+        const setCommandStatusInfo = storeRegistry
+          .getConvoState(conversationIDKey)
+          .dispatch.setCommandStatusInfo
+
+        let errorMessage = 'Failed to access location.'
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location permission denied. Please allow Keybase to access your location in browser settings.'
+            setCommandStatusInfo({
+              actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+              displayText: errorMessage,
+              displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+            })
+            break
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location information is unavailable.'
+            setCommandStatusInfo({
+              actions: [],
+              displayText: errorMessage,
+              displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+            })
+            break
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out.'
+            setCommandStatusInfo({
+              actions: [],
+              displayText: errorMessage,
+              displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+            })
+            break
+          default:
+            errorMessage = 'An unknown error occurred while accessing location.'
+            setCommandStatusInfo({
+              actions: [],
+              displayText: errorMessage,
+              displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+            })
+            break
+        }
+        logger.info(`[location] watch error for ${conversationIDKeyStr}: ${errorMessage}`)
+      },
+      {enableHighAccuracy: true}
+    )
+
+    const cleanup = () => {
+      navigator.geolocation.clearWatch(watchId)
+    }
+
+    resolve(cleanup)
+  })
+}
 
 export const dumpLogs = async (reason?: string) => {
   await logger.dump()

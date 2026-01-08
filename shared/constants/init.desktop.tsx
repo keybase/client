@@ -21,10 +21,72 @@ import NotifyPopup from '@/util/notify-popup'
 import {noKBFSFailReason} from './config/util'
 import {initSharedSubscriptions} from './platform-specific/shared'
 import {wrapErrors} from '@/util/debug'
-import {dumpLogs} from './platform-specific/index.desktop'
+import {dumpLogs, requestLocationPermission, watchPositionForMap} from './platform-specific/index.desktop'
+import {storeRegistry} from './store-registry'
 
 const {showMainWindow, activeChanged, requestWindowsStartService} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, copyToClipboard} = KB2.functions
+
+let locationRefs = 0
+let locationCleanup: (() => void) | undefined
+
+const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
+  storeRegistry.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+    actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+    displayText: text,
+    displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+  })
+}
+
+const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositionPayload) => {
+  const response = action.payload.response
+  response.result(0)
+  try {
+    await requestLocationPermission(action.payload.params.perm)
+  } catch (_error) {
+    const error = _error as {message?: string}
+    logger.info('failed to get location perms: ' + error.message)
+    setPermissionDeniedCommandStatus(
+      T.Chat.conversationIDToKey(action.payload.params.convID),
+      `Failed to access location. ${error.message}`
+    )
+  }
+
+  locationRefs++
+
+  if (locationRefs === 1) {
+    try {
+      logger.info(
+        '[location] location watch start due to ',
+        T.Chat.conversationIDToKey(action.payload.params.convID)
+      )
+      locationCleanup = await watchPositionForMap(T.Chat.conversationIDToKey(action.payload.params.convID))
+      logger.info('[location] start success')
+    } catch (_error) {
+      const error = _error as {message?: string}
+      logger.info('[location] start failed: ' + error.message)
+      locationRefs--
+    }
+  }
+}
+
+const onChatClearWatch = async (action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
+  const response = action.payload.response
+  locationRefs--
+  if (locationRefs <= 0) {
+    try {
+      logger.info('[location] end start')
+      if (locationCleanup) {
+        locationCleanup()
+        locationCleanup = undefined
+      }
+      logger.info('[location] end success')
+    } catch {
+      logger.info('[location] end failed')
+    }
+  }
+  response.result()
+}
 
 const maybePauseVideos = () => {
   const {appFocused} = useConfigState.getState()
@@ -125,6 +187,12 @@ export const initPlatformListener = () => {
             .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
           break
         }
+        case EngineGen.chat1ChatUiChatWatchPosition:
+          ignorePromise(onChatWatchPosition(action))
+          break
+        case EngineGen.chat1ChatUiChatClearWatch:
+          ignorePromise(onChatClearWatch(action))
+          break
         default:
       }
     })
