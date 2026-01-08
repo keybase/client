@@ -37,11 +37,7 @@ import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from './types/chat2/common'
 import {getSelectedConversation} from './chat2/common'
 import {storeRegistry} from './store-registry'
-import {
-  requestLocationPermission,
-  setPermissionDeniedCommandStatus,
-  showShareActionSheet,
-} from './platform-specific/index.native'
+import {requestLocationPermission, showShareActionSheet} from './platform-specific/index.native'
 
 const loadStartupDetails = async () => {
   const [routeState, initialUrl, push] = await Promise.all([
@@ -146,6 +142,14 @@ const ensureBackgroundTask = () => {
 
     useChatState.getState().dispatch.updateLastCoord(coord)
     return Promise.resolve()
+  })
+}
+
+const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
+  storeRegistry.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+    actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+    displayText: text,
+    displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
   })
 }
 

@@ -1,5 +1,3 @@
-import {useChatState} from '../chat2'
-import {getConvoState} from '../chat2/convostate'
 import * as T from '../types'
 import * as ExpoLocation from 'expo-location'
 import * as MediaLibrary from 'expo-media-library'
@@ -109,48 +107,5 @@ export const showShareActionSheet = async (options: {
     } catch (e) {
       throw new Error('Failed to share: ' + String(e))
     }
-  }
-}
-
-export const setPermissionDeniedCommandStatus = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  text: string
-) => {
-  getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
-    actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
-    displayText: text,
-    displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
-  })
-}
-
-export const watchPositionForMap = async (conversationIDKey: T.Chat.ConversationIDKey) => {
-  try {
-    logger.info('[location] perms check due to map')
-    await requestLocationPermission(T.RPCChat.UIWatchPositionPerm.base)
-  } catch (_error) {
-    const error = _error as {message?: string}
-    logger.info('failed to get location perms: ' + error.message)
-    setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
-    return () => {}
-  }
-
-  try {
-    const sub = await ExpoLocation.watchPositionAsync(
-      {accuracy: ExpoLocation.LocationAccuracy.Highest},
-      (location: ExpoLocation.LocationObject) => {
-        const coord = {
-          accuracy: Math.floor(location.coords.accuracy ?? 0),
-          lat: location.coords.latitude,
-          lon: location.coords.longitude,
-        }
-        useChatState.getState().dispatch.updateLastCoord(coord)
-      }
-    )
-    return () => sub.remove()
-  } catch (_error) {
-    const error = _error as {message?: string}
-    logger.info('failed to get location: ' + error.message)
-    setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
-    return () => {}
   }
 }
