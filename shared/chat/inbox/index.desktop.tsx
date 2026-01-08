@@ -241,7 +241,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const [unreadCount, setUnreadCount] = React.useState(0)
 
   const scrollDiv = React.useRef<HTMLDivElement | null>(null)
-  const listRef = useListRef(undefined)
+  const listRef = useListRef(null)
 
   // stuff for UnreadShortcut
   const firstOffscreenIdx = React.useRef(-1)
