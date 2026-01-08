@@ -33,10 +33,10 @@ func TestDownloadManager(t *testing.T) {
 
 	cacheDir, err := os.MkdirTemp(TempDirBase, "simplefs-downloadtest-cache")
 	require.NoError(t, err)
-	defer os.RemoveAll(cacheDir)
+	defer func() { _ = os.RemoveAll(cacheDir) }()
 	downloadDir, err := os.MkdirTemp(TempDirBase, "simplefs-downloadtest-download")
 	require.NoError(t, err)
-	defer os.RemoveAll(downloadDir)
+	defer func() { _ = os.RemoveAll(downloadDir) }()
 
 	err = sfs.SimpleFSConfigureDownload(ctx, keybase1.SimpleFSConfigureDownloadArg{
 		CacheDirOverride:    cacheDir,

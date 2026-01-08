@@ -198,7 +198,7 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	buf, err := io.ReadAll(f)
 	if err != nil {
 		return err
@@ -289,7 +289,7 @@ func takeConfigLock(
 	}
 	defer func() {
 		if err != nil {
-			f.Close()
+			_ = f.Close()
 		}
 	}()
 
@@ -311,7 +311,7 @@ func makeExistingRepoError(
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	buf, err := io.ReadAll(f)
 	if err != nil {
 		return err
@@ -365,7 +365,7 @@ func createNewRepoAndID(
 	if err != nil {
 		return NullID, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
@@ -511,7 +511,7 @@ func getOrCreateRepoAndID(
 		fs.SetLockNamespace(repoID.Bytes())
 		return fs, repoID, nil
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	buf, err := io.ReadAll(f)
 	if err != nil {
@@ -664,7 +664,7 @@ func renameRepoInConfigFile(
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	buf, err := io.ReadAll(f)
 	if err != nil {
 		return err

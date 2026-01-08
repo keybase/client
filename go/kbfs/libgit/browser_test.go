@@ -25,7 +25,7 @@ import (
 func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	ctx, config, cancel, tempdir := initConfigForAutogit(t)
 	defer cancel()
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := tlfhandle.ParseHandle(
@@ -92,7 +92,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	t.Log("Verify the data in foo.")
 	f, err := b.Open("foo")
 	require.NoError(t, err)
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	data, err := io.ReadAll(f)
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
@@ -153,7 +153,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 		require.Zero(t, fi.Mode()&os.ModeSymlink)
 		f2, err := b.Open(link)
 		require.NoError(t, err)
-		defer f2.Close()
+		defer func() { _ = f2.Close() }()
 		data, err = io.ReadAll(f2)
 		require.NoError(t, err)
 		require.Equal(t, "hello", string(data))

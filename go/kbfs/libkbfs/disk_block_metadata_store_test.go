@@ -61,7 +61,7 @@ func shutdownBlockMetadataStoreTest(
 	blockMetadataStore BlockMetadataStore, tempdir string,
 ) {
 	blockMetadataStore.Shutdown()
-	os.RemoveAll(tempdir)
+	_ = os.RemoveAll(tempdir)
 }
 
 func TestDiskXattr(t *testing.T) {

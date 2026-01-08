@@ -275,7 +275,7 @@ func (r *runner) getElapsedStr(
 			if err != nil {
 				r.log.CDebugf(ctx, "Couldn't write heap profile: %+v", err)
 			}
-			f.Close()
+			_ = f.Close()
 		}
 		elapsedStr += " [memprof " + profName + "]"
 	}
@@ -503,7 +503,7 @@ func (r *runner) printStageStart(ctx context.Context,
 				ctx, "Couldn't create CPU profile: %s", cpuProfName)
 			cpuProfPath = ""
 		} else {
-			defer f.Close()
+			defer func() { _ = f.Close() }()
 			err := pprof.StartCPUProfile(f)
 			if err != nil {
 				r.log.CDebugf(ctx, "Couldn't start CPU profile: %+v", err)
@@ -1004,12 +1004,12 @@ func (r *runner) copyFile(
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	toF, err := to.Create(name)
 	if err != nil {
 		return err
 	}
-	defer toF.Close()
+	defer func() { _ = toF.Close() }()
 
 	var w io.Writer = toF
 	// Wrap the destination file in a status shim if we are supposed
@@ -1426,7 +1426,7 @@ func (r *runner) canPushAll(
 	if err != nil {
 		return false, false, err
 	}
-	defer refs.Close()
+	defer func() { refs.Close() }()
 
 	// Iterate through the remote references.
 	for {
@@ -2055,12 +2055,12 @@ func (r *runner) copyFileLFS(
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	toF, err := to.Create(toName)
 	if err != nil {
 		return err
 	}
-	defer toF.Close()
+	defer func() { _ = toF.Close() }()
 
 	// Scale the progress by the given factor.
 	w := &lfsProgressWriter{

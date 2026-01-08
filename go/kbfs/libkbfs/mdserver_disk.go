@@ -655,10 +655,10 @@ func (md *MDServerDisk) Shutdown() {
 
 	// Make further accesses error out.
 
-	md.handleDb.Close()
+	_ = md.handleDb.Close()
 	md.handleDb = nil
 
-	md.branchDb.Close()
+	_ = md.branchDb.Close()
 	md.branchDb = nil
 
 	tlfStorage := md.tlfStorage

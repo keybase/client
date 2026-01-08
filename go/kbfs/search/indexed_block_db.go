@@ -154,7 +154,7 @@ func newIndexedBlockDb(config libkbfs.Config, dirPath string) (
 	}
 	defer func() {
 		if err != nil {
-			blockStorage.Close()
+			_ = blockStorage.Close()
 		}
 	}()
 	tlfDbPath := filepath.Join(versionPath, tlfDbFilename)
@@ -164,7 +164,7 @@ func newIndexedBlockDb(config libkbfs.Config, dirPath string) (
 	}
 	defer func() {
 		if err != nil {
-			tlfStorage.Close()
+			_ = tlfStorage.Close()
 		}
 	}()
 	return newIndexedBlockDbFromStorage(config, blockStorage, tlfStorage)

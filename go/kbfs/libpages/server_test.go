@@ -50,7 +50,8 @@ func makeTestKBFSConfig(t *testing.T) (
 ) {
 	// This env is needed for the regression test for HOTPOT-2207.
 	oldEnv := os.Getenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest)
-	os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, "1")
+	err := os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, "1")
+	require.NoError(t, err)
 
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	cfg := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
@@ -67,7 +68,7 @@ func makeTestKBFSConfig(t *testing.T) (
 	require.NoError(t, err)
 	shutdown = func() {
 		libkbfs.CheckConfigAndShutdown(ctx, t, cfg)
-		os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, oldEnv)
+		_ = os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, oldEnv)
 		err := ioutil.RemoveAll(tempdir)
 		require.NoError(t, err)
 	}

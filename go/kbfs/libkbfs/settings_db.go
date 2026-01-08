@@ -81,7 +81,7 @@ func openSettingsDB(config Config) *SettingsDB {
 				"Perhaps multiple KBFS instances are being run concurrently"+
 				"? Error: %+v", err)
 		if db != nil {
-			db.Close()
+			_ = db.Close()
 		}
 		return nil
 	}

@@ -29,53 +29,53 @@ func WriteMetrics(r metrics.Registry, w io.Writer) {
 	for _, namedMetric := range namedMetrics {
 		switch metric := namedMetric.m.(type) {
 		case metrics.Counter:
-			fmt.Fprintf(w, "counter %s\n", namedMetric.name)
-			fmt.Fprintf(w, "  count: %9d\n", metric.Count())
+			_, _ = fmt.Fprintf(w, "counter %s\n", namedMetric.name)
+			_, _ = fmt.Fprintf(w, "  count: %9d\n", metric.Count())
 		case metrics.Gauge:
-			fmt.Fprintf(w, "gauge %s\n", namedMetric.name)
-			fmt.Fprintf(w, "  value: %9d\n", metric.Value())
+			_, _ = fmt.Fprintf(w, "gauge %s\n", namedMetric.name)
+			_, _ = fmt.Fprintf(w, "  value: %9d\n", metric.Value())
 		case metrics.GaugeFloat64:
-			fmt.Fprintf(w, "gauge %s\n", namedMetric.name)
-			fmt.Fprintf(w, "  value: %f\n", metric.Value())
+			_, _ = fmt.Fprintf(w, "gauge %s\n", namedMetric.name)
+			_, _ = fmt.Fprintf(w, "  value: %f\n", metric.Value())
 		case metrics.Healthcheck:
 			metric.Check()
-			fmt.Fprintf(w, "healthcheck %s\n", namedMetric.name)
-			fmt.Fprintf(w, "  error: %v\n", metric.Error())
+			_, _ = fmt.Fprintf(w, "healthcheck %s\n", namedMetric.name)
+			_, _ = fmt.Fprintf(w, "  error: %v\n", metric.Error())
 		case metrics.Histogram:
 			h := metric.Snapshot()
 			ps := h.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999})
-			fmt.Fprintf(w, "histogram %s\n", namedMetric.name)
-			fmt.Fprintf(w, "  count=%d, mean=%.2f, stddef=%.2f\n", h.Count(), h.Mean(), h.StdDev())
-			fmt.Fprintf(w, "  min=%.2fms median=%.2fms max=%.2fms\n",
+			_, _ = fmt.Fprintf(w, "histogram %s\n", namedMetric.name)
+			_, _ = fmt.Fprintf(w, "  count=%d, mean=%.2f, stddef=%.2f\n", h.Count(), h.Mean(), h.StdDev())
+			_, _ = fmt.Fprintf(w, "  min=%.2fms median=%.2fms max=%.2fms\n",
 				float64(h.Min())/float64(time.Millisecond),
 				ps[0]/float64(time.Millisecond),
 				float64(h.Max())/float64(time.Millisecond))
-			fmt.Fprintf(w, "  %%iles (ms): 75=%.2f 95=%.2f 99=%.2f 99.9=%.2f\n",
+			_, _ = fmt.Fprintf(w, "  %%iles (ms): 75=%.2f 95=%.2f 99=%.2f 99.9=%.2f\n",
 				ps[1]/float64(time.Millisecond),
 				ps[2]/float64(time.Millisecond),
 				ps[3]/float64(time.Millisecond),
 				ps[4]/float64(time.Millisecond))
 		case metrics.Meter:
 			m := metric.Snapshot()
-			fmt.Fprintf(w, "meter %s\n", namedMetric.name)
-			fmt.Fprintf(w, "  count: %d\n", m.Count())
-			fmt.Fprintf(w, "  rates: 1m=%.2f 5m=%.2f 15m=%.2f mean=%.2f\n", m.Rate1(), m.Rate5(), m.Rate15(), m.RateMean())
+			_, _ = fmt.Fprintf(w, "meter %s\n", namedMetric.name)
+			_, _ = fmt.Fprintf(w, "  count: %d\n", m.Count())
+			_, _ = fmt.Fprintf(w, "  rates: 1m=%.2f 5m=%.2f 15m=%.2f mean=%.2f\n", m.Rate1(), m.Rate5(), m.Rate15(), m.RateMean())
 		case metrics.Timer:
 			t := metric.Snapshot()
 			ps := t.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999})
-			fmt.Fprintf(w, "timer %s\n", namedMetric.name)
-			fmt.Fprintf(w, "  count=%d, mean=%.2fms, stddev=%.2fms\n",
+			_, _ = fmt.Fprintf(w, "timer %s\n", namedMetric.name)
+			_, _ = fmt.Fprintf(w, "  count=%d, mean=%.2fms, stddev=%.2fms\n",
 				t.Count(), t.Mean()/float64(time.Millisecond), t.StdDev()/float64(time.Millisecond))
-			fmt.Fprintf(w, "  min=%.2fms median=%.2fms max=%.2fms\n",
+			_, _ = fmt.Fprintf(w, "  min=%.2fms median=%.2fms max=%.2fms\n",
 				float64(t.Min())/float64(time.Millisecond),
 				ps[0]/float64(time.Millisecond),
 				float64(t.Max())/float64(time.Millisecond))
-			fmt.Fprintf(w, "  %%iles (ms): 75=%.2f 95=%.2f 99=%.2f 99.9=%.2f\n",
+			_, _ = fmt.Fprintf(w, "  %%iles (ms): 75=%.2f 95=%.2f 99=%.2f 99.9=%.2f\n",
 				ps[1]/float64(time.Millisecond),
 				ps[2]/float64(time.Millisecond),
 				ps[3]/float64(time.Millisecond),
 				ps[4]/float64(time.Millisecond))
-			fmt.Fprintf(w, "  rates: 1m=%.2f 5m=%.2f 15m=%.2f mean=%.2f\n", t.Rate1(), t.Rate5(), t.Rate15(), t.RateMean())
+			_, _ = fmt.Fprintf(w, "  rates: 1m=%.2f 5m=%.2f 15m=%.2f mean=%.2f\n", t.Rate1(), t.Rate5(), t.Rate15(), t.RateMean())
 		}
 	}
 }

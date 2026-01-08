@@ -148,7 +148,7 @@ func OpenLevelDbWithOptions(stor storage.Storage, options *opt.Options) (
 		db, err = leveldb.Recover(stor, options)
 	}
 	if err != nil {
-		stor.Close()
+		_ = stor.Close()
 		return nil, err
 	}
 	return &LevelDb{db, stor}, nil
@@ -279,7 +279,7 @@ func OpenVersionedLevelDb(
 	}
 	defer func() {
 		if err != nil {
-			storage.Close()
+			_ = storage.Close()
 		}
 	}()
 	options := LeveldbOptions(sizeGetter)

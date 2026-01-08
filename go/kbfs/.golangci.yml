@@ -21,10 +21,10 @@ linters:
     - bodyclose # HTTP response body not closed
     - gocritic # Code quality checks
     - govet # Go vet checks
+    - errcheck # Unchecked errors
 
   disable:
     # Explicitly disable default preset linters until we're ready
-    - errcheck
     - ineffassign
     - staticcheck
     - unused

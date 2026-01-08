@@ -767,7 +767,7 @@ func (j *JournalManager) EnableExistingJournals(
 			if blockEntryCount == 0 && mdEntryCount == 0 {
 				j.log.CDebugf(groupCtx, "Nuking empty journal for %s", tlfID)
 				tj.shutdown(groupCtx)
-				os.RemoveAll(dir)
+				_ = os.RemoveAll(dir)
 				continue
 			}
 

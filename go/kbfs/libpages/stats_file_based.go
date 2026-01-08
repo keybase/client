@@ -50,7 +50,7 @@ func (s *fileBasedActivityStatsStorer) processLoop() {
 		if !ok || time.Since(lastProcessed) > fbassStoreInterval {
 			if f, err := os.Create(filepath.Join(
 				s.root, dirnameTlfStamps, a.tlfID.String())); err == nil {
-				f.Close()
+				_ = f.Close()
 				recentProcessedTlfs[a.tlfID] = time.Now()
 			} else {
 				s.logger.Warn("os.Create", zap.Error(err))
@@ -61,7 +61,7 @@ func (s *fileBasedActivityStatsStorer) processLoop() {
 		if !ok || time.Since(lastProcessed) > fbassStoreInterval {
 			if f, err := os.Create(filepath.Join(
 				s.root, dirnameHostStamps, a.host)); err == nil {
-				f.Close()
+				_ = f.Close()
 				recentProcessedHosts[a.host] = time.Now()
 			} else {
 				s.logger.Warn("os.Create", zap.Error(err))

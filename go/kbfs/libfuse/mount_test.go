@@ -580,7 +580,8 @@ func syncAndClose(t *testing.T, f *os.File) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f.Close()
+	err = f.Close()
+	require.NoError(t, err)
 }
 
 func syncFilename(t *testing.T, name string) {
@@ -3936,7 +3937,7 @@ func TestDirSyncAll(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer d.Close()
+	defer func() { _ = d.Close() }()
 	err = d.Sync()
 	if err != nil {
 		t.Fatal(err)
@@ -4074,7 +4075,7 @@ func TestOpenFileCount(t *testing.T) {
 	checkCount := func(expected int64) {
 		f, err := os.Open(p)
 		require.NoError(t, err)
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 
 		b, err := ioutil.ReadAll(f)
 		require.NoError(t, err)
@@ -4128,7 +4129,7 @@ func TestUpdateHistoryFile(t *testing.T) {
 	histPrefix := path.Join(p, libfs.UpdateHistoryFileName)
 	fRange, err := os.Open(histPrefix + ".3-5")
 	require.NoError(t, err)
-	defer fRange.Close()
+	defer func() { _ = fRange.Close() }()
 	b, err := ioutil.ReadAll(fRange)
 	require.NoError(t, err)
 	var histRange libkbfs.TLFUpdateHistory
@@ -4139,7 +4140,7 @@ func TestUpdateHistoryFile(t *testing.T) {
 	t.Log("Read a single revision")
 	fSingle, err := os.Open(histPrefix + ".7")
 	require.NoError(t, err)
-	defer fSingle.Close()
+	defer func() { _ = fSingle.Close() }()
 	b, err = ioutil.ReadAll(fSingle)
 	require.NoError(t, err)
 	var histSingle libkbfs.TLFUpdateHistory
@@ -4150,7 +4151,7 @@ func TestUpdateHistoryFile(t *testing.T) {
 	t.Log("Read the entire history")
 	fAll, err := os.Open(histPrefix)
 	require.NoError(t, err)
-	defer fAll.Close()
+	defer func() { _ = fAll.Close() }()
 	b, err = ioutil.ReadAll(fAll)
 	require.NoError(t, err)
 	var histAll libkbfs.TLFUpdateHistory

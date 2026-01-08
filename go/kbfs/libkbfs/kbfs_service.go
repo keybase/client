@@ -142,7 +142,7 @@ func (k *KBFSService) handle(c net.Conn) {
 		case <-serverCh:
 		}
 		// Close is idempotent, so always close when we're done.
-		c.Close()
+		_ = c.Close()
 	}()
 	<-serverCh
 
@@ -160,9 +160,9 @@ func (k *KBFSService) handle(c net.Conn) {
 func (k *KBFSService) listenLoop(l net.Listener) error {
 	go func() {
 		<-k.stopCh
-		l.Close()
+		_ = l.Close()
 	}()
-	defer l.Close()
+	defer func() { _ = l.Close() }()
 	for {
 		c, err := l.Accept()
 		if err != nil {

@@ -86,7 +86,7 @@ func OpenLevelDBStorage(bfs billy.Filesystem, readOnly bool) (
 	}
 	defer func() {
 		if err != nil {
-			flock.Close()
+			_ = flock.Close()
 		}
 	}()
 	err = flock.Lock()
@@ -105,7 +105,7 @@ func OpenLevelDBStorage(bfs billy.Filesystem, readOnly bool) (
 		}
 		logSize, err = logw.Seek(0, os.SEEK_END)
 		if err != nil {
-			logw.Close()
+			_ = logw.Close()
 			return nil, err
 		}
 	}
@@ -185,7 +185,7 @@ func (fs *levelDBStorage) printDay(t time.Time) {
 func (fs *levelDBStorage) doLogRLocked(t time.Time, str string) {
 	if fs.logSize > logSizeThreshold {
 		// Rotate log file.
-		fs.logw.Close()
+		_ = fs.logw.Close()
 		fs.logw = nil
 		fs.logSize = 0
 		err := fs.fs.Rename("LOG", "LOG.old")
@@ -287,7 +287,7 @@ func (fs *levelDBStorage) setMetaRLocked(fd storage.FileDesc) error {
 		if err != nil {
 			return err
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 		b, err := io.ReadAll(f)
 		if err != nil {
 			fs.logRLocked(fmt.Sprintf("backup CURRENT: %v", err))
@@ -381,7 +381,7 @@ func (fs *levelDBStorage) GetMeta() (storage.FileDesc, error) {
 			}
 			return nil, err
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 		b, err := io.ReadAll(f)
 		if err != nil {
 			return nil, err
@@ -633,7 +633,7 @@ func (fs *levelDBStorage) Close() error {
 	}
 	fs.open = -1
 	if fs.logw != nil {
-		fs.logw.Close()
+		_ = fs.logw.Close()
 	}
 	return fs.flock.Close()
 }

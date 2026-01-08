@@ -200,7 +200,7 @@ func newDiskMDCacheLocal(
 	}
 	defer func() {
 		if err != nil {
-			headsStorage.Close()
+			_ = headsStorage.Close()
 		}
 	}()
 	return newDiskMDCacheLocalFromStorage(config, headsStorage, mode)

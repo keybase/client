@@ -57,7 +57,7 @@ func makeFSWithJournal(t *testing.T, subdir string) (
 	require.NoError(t, err)
 	defer func() {
 		if err != nil {
-			os.RemoveAll(tempdir)
+			_ = os.RemoveAll(tempdir)
 		}
 	}()
 	err = config.EnableDiskLimiter(tempdir)

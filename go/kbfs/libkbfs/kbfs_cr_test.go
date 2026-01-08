@@ -799,7 +799,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 // and that we can move the conflicts out of the way.
 func TestBasicCRFailureAndFixing(t *testing.T) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_fail_fix")
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 
 	// simulate two users
 	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
@@ -1978,7 +1978,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 
 func TestForceStuckConflict(t *testing.T) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_stuck_cr")
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 	require.NoError(t, err)
 
 	var u1 kbname.NormalizedUsername = "u1"
@@ -2038,7 +2038,7 @@ func TestForceStuckConflict(t *testing.T) {
 func TestBasicCRFailureClearAndFastForward(t *testing.T) {
 	t.Skip()
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_fail_fix")
-	defer os.RemoveAll(tempdir)
+	defer func() { _ = os.RemoveAll(tempdir) }()
 
 	// simulate two users
 	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
