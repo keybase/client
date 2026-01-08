@@ -579,10 +579,9 @@ func InitWithLogPrefix(
 				if interruptErr != nil {
 					log.Info("Failed to unmount before exit: %s", interruptErr)
 					os.Exit(1)
-				} else {
-					// Do not return 128 + signal since kbfsfuse is not a shell command
-					os.Exit(0)
 				}
+				// Do not return 128 + signal since kbfsfuse is not a shell command
+				os.Exit(0)
 			}
 		}
 	}()
@@ -681,21 +680,21 @@ func getCleanBlockCacheCapacity(
 	ctx context.Context, kbCtx Context, params InitParams,
 	log logger.Logger,
 ) uint64 {
-	cap := params.CleanBlockCacheCapacity
+	capacity := params.CleanBlockCacheCapacity
 
 	// Use the capacity from the config file if none is provided on
 	// the command line.
-	if cap == 0 {
+	if capacity == 0 {
 		config := kbCtx.GetEnv().GetConfig()
 		capInt, ok := config.GetIntAtPath(configBlockCacheMemMaxBytesStr)
 		if ok {
 			log.CDebugf(
 				ctx, "Using block cache capacity from config file: %d", capInt)
-			cap = uint64(capInt)
+			capacity = uint64(capInt)
 		}
 	}
 
-	return cap
+	return capacity
 }
 
 func getCacheFrac(
@@ -752,11 +751,11 @@ func doInit(
 		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
 	config.SetVLogLevel(kbCtx.GetVDebugSetting())
 
-	if cap := getCleanBlockCacheCapacity(ctx, kbCtx, params, log); cap > 0 {
+	if capacity := getCleanBlockCacheCapacity(ctx, kbCtx, params, log); capacity > 0 {
 		log.CDebugf(
 			ctx, "Overriding default clean block cache capacity from %d to %d",
-			config.BlockCache().GetCleanBytesCapacity(), cap)
-		config.BlockCache().SetCleanBytesCapacity(cap)
+			config.BlockCache().GetCleanBytesCapacity(), capacity)
+		config.BlockCache().SetCleanBytesCapacity(capacity)
 	}
 
 	workers := config.Mode().BlockWorkers()

@@ -346,11 +346,11 @@ func (md *MDServerMemory) GetForTLFByTime(
 			continue
 		}
 
-		max := md.config.MetadataVersion()
+		maxVer := md.config.MetadataVersion()
 		ver := blocks[i].version
 		buf := blocks[i].encodedMd
 		rmds, err := DecodeRootMetadataSigned(
-			md.config.Codec(), id, ver, max, buf, t)
+			md.config.Codec(), id, ver, maxVer, buf, t)
 		if err != nil {
 			return nil, err
 		}
@@ -378,12 +378,12 @@ func (md *MDServerMemory) getHeadForTLFRLocked(ctx context.Context, id tlf.ID,
 		return nil, nil
 	}
 	blocks := blockList.blocks
-	max := md.config.MetadataVersion()
+	maxVer := md.config.MetadataVersion()
 	ver := blocks[len(blocks)-1].version
 	buf := blocks[len(blocks)-1].encodedMd
 	timestamp := blocks[len(blocks)-1].timestamp
 	rmds, err := DecodeRootMetadataSigned(
-		md.config.Codec(), id, ver, max, buf, timestamp)
+		md.config.Codec(), id, ver, maxVer, buf, timestamp)
 	if err != nil {
 		return nil, err
 	}
@@ -475,13 +475,13 @@ func (md *MDServerMemory) getRangeLocked(ctx context.Context, id tlf.ID,
 		endI = len(blocks)
 	}
 
-	max := md.config.MetadataVersion()
+	maxVer := md.config.MetadataVersion()
 
 	for i := startI; i < endI; i++ {
 		ver := blocks[i].version
 		buf := blocks[i].encodedMd
 		rmds, err := DecodeRootMetadataSigned(
-			md.config.Codec(), id, ver, max, buf,
+			md.config.Codec(), id, ver, maxVer, buf,
 			blocks[i].timestamp)
 		if err != nil {
 			return nil, nil, kbfsmd.ServerError{Err: err}

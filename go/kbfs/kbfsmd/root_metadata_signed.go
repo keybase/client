@@ -270,10 +270,10 @@ func EncodeRootMetadataSigned(
 // DecodeRootMetadataSigned deserializes a metadata block into the
 // specified versioned structure.
 func DecodeRootMetadataSigned(
-	codec kbfscodec.Codec, tlf tlf.ID, ver, max MetadataVer, buf []byte) (
+	codec kbfscodec.Codec, tlf tlf.ID, ver, maxVer MetadataVer, buf []byte) (
 	*RootMetadataSigned, error,
 ) {
-	rmd, err := makeMutableRootMetadataForDecode(codec, tlf, ver, max, buf)
+	rmd, err := makeMutableRootMetadataForDecode(codec, tlf, ver, maxVer, buf)
 	if err != nil {
 		return nil, err
 	}

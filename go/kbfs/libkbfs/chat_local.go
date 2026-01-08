@@ -275,8 +275,8 @@ func (c *chatLocal) GetGroupedInbox(
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	var selfHandles []*tlfhandle.Handle
-	max := numSelfTlfs
-	for i := len(c.selfConvInfos) - 1; i >= 0 && len(selfHandles) < max; i-- {
+	maxTlfs := numSelfTlfs
+	for i := len(c.selfConvInfos) - 1; i >= 0 && len(selfHandles) < maxTlfs; i-- {
 		info := c.selfConvInfos[i]
 		h, err := GetHandleFromFolderNameAndType(
 			ctx, c.config.KBPKI(), c.config.MDOps(), c.config,
@@ -351,11 +351,11 @@ func (c *chatLocal) RegisterForMessages(
 }
 
 func (c *chatLocal) copy(config Config) *chatLocal {
-	copy := newChatLocalWithData(config, c.data)
+	copyChatLocal := newChatLocalWithData(config, c.data)
 	c.data.lock.Lock()
 	defer c.data.lock.Unlock()
 	c.data.newChannelCBs[config] = config.KBFSOps().NewNotificationChannel
-	return copy
+	return copyChatLocal
 }
 
 // ClearCache implements the Chat interface.

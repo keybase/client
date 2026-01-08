@@ -203,12 +203,12 @@ func (fs *levelDBStorage) doLogRLocked(t time.Time, str string) {
 		fs.day = 0
 	}
 	fs.printDay(t)
-	hour, min, sec := t.Clock()
+	hour, minute, sec := t.Clock()
 	msec := t.Nanosecond() / 1e3
 	// time
 	fs.buf = itoa(fs.buf[:0], hour, 2)
 	fs.buf = append(fs.buf, ':')
-	fs.buf = itoa(fs.buf, min, 2)
+	fs.buf = itoa(fs.buf, minute, 2)
 	fs.buf = append(fs.buf, ':')
 	fs.buf = itoa(fs.buf, sec, 2)
 	fs.buf = append(fs.buf, '.')
@@ -415,7 +415,7 @@ func (fs *levelDBStorage) GetMeta() (storage.FileDesc, error) {
 			cur, err = tryCurrent(name)
 			if err == nil {
 				break
-			} else if err == os.ErrNotExist {
+			} else if err == os.ErrNotExist { //nolint:revive // empty-block: intentional fallthrough to next iteration
 				// Fallback to the next file.
 			} else if isCorrupted(err) {
 				lastCerr = err

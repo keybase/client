@@ -722,7 +722,7 @@ func (fbm *folderBlockManager) getUnrefPointersFromMD(
 		nextPtr = iter.nextPtr
 	}
 	ptrMap := make(map[data.BlockPointer]bool)
-	max := fbm.config.Mode().MaxBlockPtrsToManageAtOnce()
+	maxBlockPtrs := fbm.config.Mode().MaxBlockPtrsToManageAtOnce()
 opLoop:
 	for _, op := range rmd.data.Changes.Ops {
 		if _, ok := op.(*GCOp); !includeGC && ok {
@@ -742,7 +742,7 @@ opLoop:
 				ptrMap[ptr] = true
 			}
 			nextPtr++
-			if max >= 0 && len(ptrMap) >= max {
+			if maxBlockPtrs >= 0 && len(ptrMap) >= maxBlockPtrs {
 				complete = false
 				break opLoop
 			}
@@ -762,7 +762,7 @@ opLoop:
 				ptrMap[update.Unref] = true
 			}
 			nextPtr++
-			if max >= 0 && len(ptrMap) >= max {
+			if maxBlockPtrs >= 0 && len(ptrMap) >= maxBlockPtrs {
 				complete = false
 				break opLoop
 			}
@@ -992,10 +992,9 @@ outer:
 			newPtrs, iter := fbm.getUnrefPointersFromMD(
 				rmd.ReadOnlyRootMetadata, false, &unrefIterator{0})
 			if iter != nil {
-				return nil, kbfsmd.RevisionUninitialized, false, errors.New(
-					fmt.Sprintf(
-						"Can't handle the unref'd pointers of revision %d",
-						lastRev))
+				return nil, kbfsmd.RevisionUninitialized, false, fmt.Errorf(
+					"Can't handle the unref'd pointers of revision %d",
+					lastRev)
 			}
 			ptrs = append(ptrs, newPtrs...)
 			// TODO: when can we clean up the MD's unembedded block

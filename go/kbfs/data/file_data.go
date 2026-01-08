@@ -428,16 +428,16 @@ func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 		oldLen := len(block.Contents)
 
 		// Take care not to write past the beginning of the next block
-		// by using max.
-		max := Int64Offset(len(data))
+		// by using maxWrite.
+		maxWrite := Int64Offset(len(data))
 		if nextBlockOff > 0 {
-			if room := nextBlockOff - off; room < max {
-				max = room
+			if room := nextBlockOff - off; room < maxWrite {
+				maxWrite = room
 			}
 		}
 		oldNCopied := nCopied
 		nCopied += fd.tree.bsplit.CopyUntilSplit(
-			block, nextBlockOff < 0, data[nCopied:max],
+			block, nextBlockOff < 0, data[nCopied:maxWrite],
 			int64(off+Int64Offset(nCopied)-startOff))
 
 		// If we need another block but there are no more, then make one.

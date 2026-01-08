@@ -237,18 +237,18 @@ func mdCheck(ctx context.Context, config libkbfs.Config, args []string) (
 			return 1
 		}
 
-		min := start
-		max := stop
+		minRev := start
+		maxRev := stop
 		if start > stop {
-			min = stop
-			max = start
+			minRev = stop
+			maxRev = start
 		}
 
 		// The returned RMDs are already verified, so we don't
 		// have to do anything else.
 		//
 		// TODO: Chunk the range between start and stop.
-		irmds, err := mdGet(ctx, config, tlfID, branchID, min, max)
+		irmds, err := mdGet(ctx, config, tlfID, branchID, minRev, maxRev)
 		if err != nil {
 			printError("md check", err)
 			return 1

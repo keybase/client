@@ -90,29 +90,29 @@ func NewPath(pathStr string) (Path, error) {
 	if err != nil {
 		return Path{}, err
 	}
-	len := len(components)
+	numComponents := len(components)
 
-	if (len >= 1 && components[0] != topName) ||
-		(len >= 2 && components[1] != publicName &&
+	if (numComponents >= 1 && components[0] != topName) ||
+		(numComponents >= 2 && components[1] != publicName &&
 			components[1] != privateName && components[1] != teamName) {
 		return Path{}, InvalidPathErr{pathStr}
 	}
 
-	if len == 0 {
+	if numComponents == 0 {
 		p := Path{
 			PathType: RootPathType,
 		}
 		return p, nil
 	}
 
-	if len == 1 {
+	if numComponents == 1 {
 		p := Path{
 			PathType: KeybasePathType,
 		}
 		return p, nil
 	}
 
-	if len == 2 {
+	if numComponents == 2 {
 		p := Path{
 			PathType: KeybaseChildPathType,
 			TLFType:  listTypeToTLFType(components[1]),
@@ -181,8 +181,8 @@ func (p Path) DirAndBasename() (dir Path, basename string, err error) {
 		return
 
 	case TLFPathType:
-		len := len(p.TLFComponents)
-		if len == 0 {
+		numTLFComponents := len(p.TLFComponents)
+		if numTLFComponents == 0 {
 			dir = Path{
 				PathType: KeybaseChildPathType,
 				TLFType:  p.TLFType,
@@ -193,9 +193,9 @@ func (p Path) DirAndBasename() (dir Path, basename string, err error) {
 				PathType:      TLFPathType,
 				TLFType:       p.TLFType,
 				TLFName:       p.TLFName,
-				TLFComponents: p.TLFComponents[:len-1],
+				TLFComponents: p.TLFComponents[:numTLFComponents-1],
 			}
-			basename = p.TLFComponents[len-1]
+			basename = p.TLFComponents[numTLFComponents-1]
 		}
 		return
 	}

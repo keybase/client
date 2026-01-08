@@ -567,10 +567,10 @@ func (md *MDServerRemote) get(ctx context.Context, arg keybase1.GetMetadataArg) 
 	rmdses = make([]*RootMetadataSigned, len(response.MdBlocks))
 	diskMDCache := md.config.DiskMDCache()
 	for i, block := range response.MdBlocks {
-		ver, max := kbfsmd.MetadataVer(block.Version), md.config.MetadataVersion()
+		ver, maxVer := kbfsmd.MetadataVer(block.Version), md.config.MetadataVersion()
 		timestamp := keybase1.FromTime(block.Timestamp)
 		rmds, err := DecodeRootMetadataSigned(
-			md.config.Codec(), tlfID, ver, max, block.Block,
+			md.config.Codec(), tlfID, ver, maxVer, block.Block,
 			keybase1.FromTime(block.Timestamp))
 		if err != nil {
 			return tlf.ID{}, nil, err
@@ -708,9 +708,9 @@ func (md *MDServerRemote) GetForTLFByTime(
 		return nil, errors.Errorf("No revision available at %s", serverTime)
 	}
 
-	ver, max := kbfsmd.MetadataVer(block.Version), md.config.MetadataVersion()
+	ver, maxVer := kbfsmd.MetadataVer(block.Version), md.config.MetadataVersion()
 	rmds, err = DecodeRootMetadataSigned(
-		md.config.Codec(), id, ver, max, block.Block,
+		md.config.Codec(), id, ver, maxVer, block.Block,
 		keybase1.FromTime(block.Timestamp))
 	if err != nil {
 		return nil, err
