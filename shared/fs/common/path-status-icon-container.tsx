@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import PathStatusIcon from './path-status-icon'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type OwnPropsPathItem = {
   path: T.FS.Path

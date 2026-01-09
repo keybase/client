@@ -6,7 +6,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import openURL from '@/util/open-url'
 import {useTrackerState} from '@/constants/tracker2'
-import * as FS from '@/constants/fs'
+import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/constants/current-user'
 
 export const NewContext = React.createContext<ReadonlySet<string>>(new Set())

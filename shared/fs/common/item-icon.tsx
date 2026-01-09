@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 export type Size = 96 | 48 | 32 | 16
 type SizeString = '96' | '48' | '32' | '16'

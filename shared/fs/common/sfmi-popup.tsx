@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useFuseClosedSourceConsent} from './hooks'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type Props = {
   mode: 'Icon' | 'Button'

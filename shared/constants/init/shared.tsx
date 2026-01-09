@@ -18,7 +18,7 @@ import {useDarkModeState} from '../darkmode'
 import * as DeepLinksUtil from '../deeplinks/util'
 import {useFollowerState} from '@/stores/followers'
 import isEqual from 'lodash/isEqual'
-import * as FSUtil from '../fs/util'
+import type * as UseFSStateType from '@/stores/fs'
 import * as GitUtil from '../git/util'
 import * as NotifUtil from '../notifications/util'
 import * as PeopleUtil from '../people/util'
@@ -275,6 +275,14 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useBotsState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
+    case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged:
+    case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath:
+    case EngineGen.keybase1NotifyFSFSSubscriptionNotify:
+      {
+        const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
+        useFSState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
     default:
   }
   AvatarUtil.onEngineIncoming(action)
@@ -302,7 +310,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     }
     default:
   }
-  FSUtil.onEngineIncoming(action)
   GitUtil.onEngineIncoming(action)
   NotifUtil.onEngineIncoming(action)
   PeopleUtil.onEngineIncoming(action)

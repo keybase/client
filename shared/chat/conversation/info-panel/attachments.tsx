@@ -8,7 +8,7 @@ import chunk from 'lodash/chunk'
 import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp'
 import {infoPanelWidth} from './common'
 import {useMessagePopup} from '../messages/message-popup'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type Props = {
   commonSections: ReadonlyArray<Section>

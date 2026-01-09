@@ -9,7 +9,7 @@ import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {getEditStyle, ShowToastAfterSaving} from './shared'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type OwnProps = {showPopup: () => void}
 

@@ -1,9 +1,9 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/fs'
+import * as Constants from '@/stores/fs'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import PieSlice from '@/fs/common/pie-slice'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type OwnProps = {
   negative?: boolean

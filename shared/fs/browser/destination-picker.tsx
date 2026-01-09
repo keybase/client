@@ -8,8 +8,8 @@ import NavHeaderTitle from '@/fs/nav-header/title'
 import Root from './root'
 import Rows from './rows/rows-container'
 import {OriginalOrCompressedButton} from '@/incoming-share'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type OwnProps = {index: number}
 

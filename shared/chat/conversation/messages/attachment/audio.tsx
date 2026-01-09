@@ -3,7 +3,7 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useOrdinal} from '../ids-context'
 import AudioPlayer from '@/chat/audio/audio-player'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const missingMessage = Chat.makeMessageAttachment()
 

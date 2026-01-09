@@ -8,8 +8,8 @@ import capitalize from 'lodash/capitalize'
 import type * as T from '@/constants/types'
 import {pickFiles} from '@/util/pick-files'
 import type HiddenString from '@/util/hidden-string'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 import {useConfigState} from '@/constants/config'
 
 type OutputProps = {operation: T.Crypto.Operations}

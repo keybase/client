@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const InstallSecurityPrefs = () => {
   const driverStatus = useFSState(s => s.sfmi.driverStatus)

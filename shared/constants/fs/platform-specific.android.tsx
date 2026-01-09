@@ -1,6 +1,6 @@
 import * as T from '../types'
 import {ignorePromise, wrapErrors} from '../utils'
-import * as FS from '@/constants/fs'
+import * as FS from '@/stores/fs'
 import logger from '@/logger'
 import nativeInit from './common.native'
 import {useFSState} from '.'

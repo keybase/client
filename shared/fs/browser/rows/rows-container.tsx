@@ -4,8 +4,8 @@ import * as RowTypes from './types'
 import {sortRowItems, type SortableRowItem} from './sort'
 import Rows, {type Props} from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {

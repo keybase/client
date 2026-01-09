@@ -6,7 +6,7 @@ import * as T from '@/constants/types'
 import {useOrdinal} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
 import {Keyboard} from 'react-native'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState

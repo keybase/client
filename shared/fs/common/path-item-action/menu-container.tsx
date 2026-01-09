@@ -8,8 +8,8 @@ import * as Util from '@/util/kbfs'
 import Header from './header'
 import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {

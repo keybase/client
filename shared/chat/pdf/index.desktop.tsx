@@ -3,7 +3,7 @@ import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {Props} from '.'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const ChatPDF = (props: Props) => {
   const {ordinal} = props

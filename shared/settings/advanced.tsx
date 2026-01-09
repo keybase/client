@@ -5,7 +5,7 @@ import * as React from 'react'
 import {ProxySettings} from './proxy'
 import {useSettingsState, traceInProgressKey, processorProfileInProgressKey} from '@/constants/settings'
 import {usePWState} from '@/constants/settings-password'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 import {useConfigState} from '@/constants/config'
 
 let initialUseNativeFrame: boolean | undefined

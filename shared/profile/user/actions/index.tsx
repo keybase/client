@@ -6,7 +6,7 @@ import FollowButton from './follow-button'
 import ChatButton from '@/chat/chat-button'
 import {useBotsState} from '@/stores/bots'
 import {useTrackerState} from '@/constants/tracker2'
-import * as FS from '@/constants/fs'
+import * as FS from '@/stores/fs'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/constants/current-user'
 
