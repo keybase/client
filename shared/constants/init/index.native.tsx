@@ -33,7 +33,7 @@ import {
   shareListenersRegistered,
 } from 'react-native-kb'
 import {initPushListener, getStartupDetailsFromInitialPush} from '../platform-specific/push.native'
-import {initSharedSubscriptions} from './shared'
+import {initSharedSubscriptions, onEngineConnected, onEngineDisconnected} from './shared'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from '../types/chat2/common'
 import {getSelectedConversation} from '../chat2/common'
@@ -503,3 +503,5 @@ export const initPlatformListener = () => {
 
   ignorePromise(useFSState.getState().dispatch.setupSubscriptions())
 }
+
+export {onEngineConnected, onEngineDisconnected}

@@ -18,7 +18,7 @@ import {kbfsNotification} from '../platform-specific/kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import NotifyPopup from '@/util/notify-popup'
 import {noKBFSFailReason} from '../config/util'
-import {initSharedSubscriptions} from './shared'
+import {initSharedSubscriptions, onEngineConnected, onEngineDisconnected} from './shared'
 import {wrapErrors} from '@/util/debug'
 import {dumpLogs} from '../platform-specific/index.desktop'
 
@@ -272,3 +272,5 @@ export const initPlatformListener = () => {
 
   ignorePromise(useFSState.getState().dispatch.setupSubscriptions())
 }
+
+export {onEngineConnected, onEngineDisconnected}
