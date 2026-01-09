@@ -4,7 +4,7 @@ import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
-import {useBotsState} from '@/constants/bots'
+import {useBotsState} from '@/stores/bots'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
 

@@ -4,9 +4,9 @@ import {serverConfigFileName} from '../platform'
 import * as T from '../types'
 import {ignorePromise} from '../utils'
 import type * as UseArchiveStateType from '@/stores/archive'
-import * as AutoResetUtil from '../autoreset/util'
+import type * as UseAutoResetStateType from '@/stores/autoreset'
 import * as AvatarUtil from '@/common-adapters/avatar/util'
-import * as BotsUtil from '../bots/util'
+import type * as UseBotsStateType from '@/stores/bots'
 import {useChatState} from '../chat2'
 import {getSelectedConversation} from '../chat2/common'
 import * as ChatUtil from '../chat2/util'
@@ -35,6 +35,7 @@ import * as UsersUtil from '../users/util'
 import {useWhatsNewState} from '../whats-new'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
+let _devicesLoaded = false
 
 export const onEngineConnected = () => {
   ChatUtil.onEngineConnected()
@@ -252,15 +253,36 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useArchiveState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
+    case EngineGen.keybase1NotifyBadgesBadgeState:
+      {
+        const {useAutoResetState} = require('@/stores/autoreset') as typeof UseAutoResetStateType
+        useAutoResetState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
+      {
+        const {useBotsState} = require('@/stores/bots') as typeof UseBotsStateType
+        useBotsState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1NotifyBadgesBadgeState:
+      {
+        const {badgeState} = action.payload.params
+        const {newDevices, revokedDevices} = badgeState
+        const hasValue = (newDevices?.length ?? 0) + (revokedDevices?.length ?? 0) > 0
+        if (_devicesLoaded || hasValue) {
+          _devicesLoaded = true
+          const {useDevicesState} = require('@/stores/devices') as typeof UseDevicesStateType
+          useDevicesState.getState().dispatch.onEngineIncomingImpl(action)
+        }
+      }
+      break
     default:
   }
-  AutoResetUtil.onEngineIncoming(action)
   AvatarUtil.onEngineIncoming(action)
-  BotsUtil.onEngineIncoming(action)
   ChatUtil.onEngineIncoming(action)
   useConfigState.getState().dispatch.onEngineIncoming(action)
   DeepLinksUtil.onEngineIncoming(action)
-  DevicesUtil.onEngineIncoming(action)
   FollowerUtil.onEngineIncoming(action)
   FSUtil.onEngineIncoming(action)
   GitUtil.onEngineIncoming(action)

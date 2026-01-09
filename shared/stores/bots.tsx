@@ -1,8 +1,8 @@
-import * as T from '../types'
+import * as T from '@/constants/types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
-import {ignorePromise, RPCError, isNetworkErr} from '../utils'
-import * as S from '../strings'
+import {ignorePromise, RPCError, isNetworkErr} from '@/constants/utils'
+import * as S from '@/constants/strings'
 import logger from '@/logger'
 
 type BotSearchResults = {
@@ -14,7 +14,7 @@ type Store = T.Immutable<{
   featuredBotsPage: number
   featuredBotsLoaded: boolean
   featuredBotsMap: Map<string, T.RPCGen.FeaturedBot>
-  botSearchResults: Map<string, BotSearchResults | undefined> // Keyed so that we never show results that don't match the user's input (e.g. outdated results)
+  botSearchResults: Map<string, BotSearchResults | undefined>
 }>
 
 const initialStore: Store = {
@@ -136,7 +136,6 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
             query,
           })
           if (!bots || bots.length === 0) {
-            // don't do anything with a bad response from rpc
             return
           }
           get().dispatch.updateFeaturedBots(bots)
@@ -183,4 +182,17 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
   }
 })
 
-export {getFeaturedSorted} from './util'
+export const getFeaturedSorted = (
+  featuredBotsMap: ReadonlyMap<string, T.RPCGen.FeaturedBot>
+): Array<T.RPCGen.FeaturedBot> => {
+  const featured = [...featuredBotsMap.values()]
+  featured.sort((a: T.RPCGen.FeaturedBot, b: T.RPCGen.FeaturedBot) => {
+    if (a.rank < b.rank) {
+      return 1
+    } else if (a.rank > b.rank) {
+      return -1
+    }
+    return 0
+  })
+  return featured
+}

@@ -18,7 +18,7 @@ import {
   type Section,
   type Item,
 } from './rows'
-import {useBotsState} from '@/constants/bots'
+import {useBotsState} from '@/stores/bots'
 
 type Props = {
   teamID: T.Teams.TeamID

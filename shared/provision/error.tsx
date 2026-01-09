@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
+import * as AutoReset from '@/stores/autoreset'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import LoginContainer from '../login/forms/container'

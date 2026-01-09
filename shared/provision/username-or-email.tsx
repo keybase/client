@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
+import * as AutoReset from '@/stores/autoreset'
 import {useSignupState} from '@/constants/signup'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'

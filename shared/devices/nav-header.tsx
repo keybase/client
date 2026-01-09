@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import type * as DevicesType from '@/constants/devices'
+import type * as DevicesType from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 

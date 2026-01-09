@@ -15,7 +15,7 @@ import ChannelMemberRow from './rows'
 import BotRow from '../team/rows/bot-row/bot'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
-import {useBotsState} from '@/constants/bots'
+import {useBotsState} from '@/stores/bots'
 import {useUsersState} from '@/constants/users'
 
 export type OwnProps = {

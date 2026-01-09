@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
+import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useProvisionState} from '@/constants/provision'

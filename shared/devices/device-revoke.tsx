@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import {useConfigState} from '@/constants/config'
-import * as Devices from '@/constants/devices'
+import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'

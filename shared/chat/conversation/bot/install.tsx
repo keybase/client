@@ -6,7 +6,7 @@ import * as React from 'react'
 import ChannelPicker from './channel-picker'
 import openURL from '@/util/open-url'
 import * as T from '@/constants/types'
-import {useBotsState} from '@/constants/bots'
+import {useBotsState} from '@/stores/bots'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 const RestrictedItem = '---RESTRICTED---'

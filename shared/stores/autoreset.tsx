@@ -1,12 +1,12 @@
 import * as Z from '@/util/zustand'
-import {ignorePromise} from '../utils'
-import * as S from '../strings'
+import {ignorePromise} from '@/constants/utils'
+import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
-import {navigateAppend, navUpToScreen} from '../router2/util'
-import {storeRegistry} from '../store-registry'
+import {navigateAppend, navUpToScreen} from '@/constants/router2/util'
+import {storeRegistry} from '@/constants/store-registry'
 
 type Store = T.Immutable<{
   active: boolean
@@ -61,15 +61,10 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
           logger.error('Error in CancelAutoreset', error)
           switch (error.code) {
             case T.RPCGen.StatusCode.scnosession:
-              // We got logged out because we were revoked (which might have been
-              // becase the reset was completed and this device wasn't notified).
               return undefined
             case T.RPCGen.StatusCode.scnotfound:
-              // "User not in autoreset queue."
-              // do nothing, fall out of the catch block to cancel reset modal.
               break
             default:
-              // Any other error - display a red bar in the modal.
               {
                 const desc = error.desc
                 set(s => {

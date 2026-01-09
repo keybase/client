@@ -4,7 +4,7 @@ import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {getFeaturedSorted, useBotsState} from '@/constants/bots'
+import {getFeaturedSorted, useBotsState} from '@/stores/bots'
 import {useUsersState} from '@/constants/users'
 
 type AddToChannelProps = {
