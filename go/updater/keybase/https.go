@@ -25,7 +25,10 @@ func httpClientWithCert(cert string, timeout time.Duration) (*http.Client, error
 	if certPool == nil {
 		return nil, fmt.Errorf("No cert pool")
 	}
-	tlsConfig := &tls.Config{RootCAs: certPool}
+	tlsConfig := &tls.Config{
+		RootCAs:    certPool,
+		MinVersion: tls.VersionTLS12,
+	}
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
 	return &http.Client{
 		Transport: transport,

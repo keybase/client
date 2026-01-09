@@ -65,7 +65,7 @@ func doSomeIO() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(dir, "some-io"), []byte("O_O"), 0o666)
+	return os.WriteFile(filepath.Join(dir, "some-io"), []byte("O_O"), 0o600)
 }
 
 func testLevelDbPut(db *LevelDb) (key DbKey, err error) {

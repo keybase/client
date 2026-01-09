@@ -699,7 +699,7 @@ func (fbo *folderBranchOps) commitHeadLocked(
 	fbo.goTracked(func() {
 		err := diskMDCache.Commit(context.Background(), id, rev)
 		if err != nil {
-			log.CDebugf(ctx, "Error commiting revision %d: %+v", rev, err)
+			log.CDebugf(ctx, "Error committing revision %d: %+v", rev, err)
 		}
 	})
 }
@@ -965,10 +965,11 @@ func (fbo *folderBranchOps) getJournalRevisions(ctx context.Context) (
 			errNoMergedRevWhileStaged
 	}
 
-	if jStatus.RevisionStart == kbfsmd.RevisionUninitialized {
+	switch jStatus.RevisionStart {
+	case kbfsmd.RevisionUninitialized:
 		// The journal is empty, so the local head must be the most recent.
 		return kbfsmd.RevisionUninitialized, kbfsmd.RevisionUninitialized, nil
-	} else if jStatus.RevisionStart == kbfsmd.RevisionInitial {
+	case kbfsmd.RevisionInitial:
 		// Nothing has been flushed to the servers yet, so don't
 		// return anything.
 		return kbfsmd.RevisionUninitialized, kbfsmd.RevisionUninitialized,
@@ -1898,7 +1899,7 @@ func (fbo *folderBranchOps) commitFlushedMD(
 		}
 
 		fbo.vlog.CLogf(
-			ctx, libkb.VLog1, "Prefetch for revision %d complete; commiting",
+			ctx, libkb.VLog1, "Prefetch for revision %d complete; committing",
 			rev)
 	case keybase1.FolderSyncMode_PARTIAL:
 		// For partially-synced TLFs, wait for the partial sync to
@@ -1924,7 +1925,7 @@ func (fbo *folderBranchOps) commitFlushedMD(
 
 	err := diskMDCache.Commit(ctx, fbo.id(), rev)
 	if err != nil {
-		fbo.log.CDebugf(ctx, "Error commiting revision %d: %+v", rev, err)
+		fbo.log.CDebugf(ctx, "Error committing revision %d: %+v", rev, err)
 	}
 }
 
@@ -3140,7 +3141,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 				ctx, md, latestRootBlockFetch, nil)
 			if err != nil {
 				fbo.log.CDebugf(ctx,
-					"Couldn't fetch root block, so not commiting MD: %+v", err)
+					"Couldn't fetch root block, so not committing MD: %+v", err)
 				ct = mdNoCommit
 			}
 		}
@@ -5261,7 +5262,7 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 		return err
 	}
 	if de.Type == data.Dir {
-		removedNode := fbo.nodeCache.Get(de.BlockPointer.Ref())
+		removedNode := fbo.nodeCache.Get(de.Ref())
 		if removedNode != nil {
 			// If it was a dirty directory, the removed node no longer
 			// counts as dirty (it will never be sync'd). Note that
@@ -5545,7 +5546,7 @@ func (fbo *folderBranchOps) Read(
 
 	fsFile := file.GetFile(ctx)
 	if fsFile != nil {
-		defer fsFile.Close()
+		defer func() { _ = fsFile.Close() }()
 		fbo.vlog.CLogf(ctx, libkb.VLog1, "Reading from an FS file")
 		nInt, err := fsFile.ReadAt(dest, off)
 		if nInt == 0 && errors.Cause(err) == io.EOF {
@@ -8586,7 +8587,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	irmd, err := fbo.config.MDOps().ResolveBranch(
 		ctx, fbo.id(), fbo.unmergedBID, blocksToDelete, md,
 		session.VerifyingKey, bps)
-	md = irmd.ReadOnlyRootMetadata.RootMetadata // un-read-onlyify
+	md = irmd.RootMetadata // un-read-onlyify
 	doUnmergedPut := isRevisionConflict(err)
 	if doUnmergedPut {
 		fbo.log.CDebugf(ctx, "Got a conflict after resolution; aborting CR")

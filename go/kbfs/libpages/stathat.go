@@ -126,7 +126,7 @@ func (s *stathatReporter) postCountOneOrLog(statName string) {
 	}
 }
 
-// ReportServedRequest implementes the StatsReporter interface.
+// ReportServedRequest implements the StatsReporter interface.
 func (s *stathatReporter) ReportServedRequest(sri *ServedRequestInfo) {
 	s.postCountOneOrLog(s.statNameRequests)
 	s.postCountOneOrLog(s.statPrefixProto + sri.Proto)

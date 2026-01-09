@@ -490,7 +490,7 @@ func (md *MDServerRemote) CheckReachability(ctx context.Context) {
 		}
 	}
 	if conn != nil {
-		conn.Close()
+		_ = conn.Close()
 	}
 }
 

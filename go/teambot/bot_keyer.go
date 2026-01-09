@@ -233,7 +233,7 @@ func (k *BotKeyer) remoteFetch(mctx libkb.MetaContext, teamID keybase1.TeamID,
 			Args: libkb.HTTPArgs{
 				"team_id":      libkb.S{Val: string(teamID)},
 				"application":  libkb.I{Val: int(app)},
-				"generation":   libkb.U{Val: uint64(generation)},
+				"generation":   libkb.U{Val: uint64(generation)}, //nolint:gosec // G115: Generation is positive sequential counter, safe to convert
 				"is_ephemeral": libkb.B{Val: false},
 			},
 		}

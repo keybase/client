@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 
@@ -88,7 +89,10 @@ func (b *BadgeState) Export(ctx context.Context) (keybase1.BadgeState, error) {
 		b.state.Conversations = append(b.state.Conversations, info)
 	}
 	b.state.Conversations, b.state.SmallTeamBadgeCount, b.state.BigTeamBadgeCount = b.localChatState.ApplyLocalChatState(ctx, b.state.Conversations)
-	b.state.InboxVers = int(b.inboxVers)
+	if b.inboxVers > math.MaxInt {
+		return keybase1.BadgeState{}, fmt.Errorf("inbox version overflow: %d", b.inboxVers)
+	}
+	b.state.InboxVers = int(b.inboxVers) //nolint:gosec // G115: Overflow checked above
 
 	b.state.UnreadWalletAccounts = []keybase1.WalletAccountInfo{}
 	for accountID, count := range b.walletUnreadMap {

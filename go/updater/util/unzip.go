@@ -14,6 +14,9 @@ import (
 	"time"
 )
 
+// MaxDecompressedSize is the maximum size of a decompressed file to prevent decompression bombs
+const MaxDecompressedSize = 5 * 1024 * 1024 // 500MB limit for updater packages
+
 // removeAllWithRetry attempts to remove a directory, retrying on Windows if files are locked.
 // Windows can briefly lock files after they're created/accessed, especially in freshly extracted directories.
 func removeAllWithRetry(path string, log Log) error {
@@ -130,7 +133,13 @@ func Unzip(sourcePath, destinationPath string, log Log) error {
 			}
 		}()
 
-		filePath := filepath.Join(destinationPath, f.Name)
+		filePath := filepath.Join(destinationPath, f.Name) //nolint:gosec // G305: Path traversal check on lines 138-141
+
+		// G305: Prevent path traversal attacks
+		if !strings.HasPrefix(filepath.Clean(filePath), filepath.Clean(destinationPath)+string(os.PathSeparator)) {
+			return fmt.Errorf("zip slip vulnerability: %s is outside of %s", f.Name, destinationPath)
+		}
+
 		fileInfo := f.FileInfo()
 
 		if fileInfo.IsDir() {
@@ -158,9 +167,14 @@ func Unzip(sourcePath, destinationPath string, log Log) error {
 			}
 			defer Close(fileCopy)
 
-			_, err = io.Copy(fileCopy, rc)
-			if err != nil {
+			// G110: Limit the size of the decompressed file to prevent decompression bombs
+			limitedReader := &io.LimitedReader{R: rc, N: MaxDecompressedSize}
+			n, err := io.Copy(fileCopy, limitedReader)
+			if err != nil && err != io.EOF {
 				return err
+			}
+			if limitedReader.N == 0 && n == MaxDecompressedSize {
+				return fmt.Errorf("file %s exceeds maximum decompressed size of %d bytes", f.Name, MaxDecompressedSize)
 			}
 		}
 

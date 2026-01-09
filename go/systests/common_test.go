@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	_ "net/http/pprof"
+	_ "net/http/pprof" //nolint:gosec // G108: pprof endpoint only exposed for debugging tests via KEYBASE_SYSTESTS_DEBUG env var
 
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
@@ -24,7 +24,7 @@ import (
 func TestMain(m *testing.M) {
 	if os.Getenv("KEYBASE_SYSTESTS_DEBUG") != "" {
 		go func() {
-			_ = http.ListenAndServe("localhost:8080", nil)
+			_ = http.ListenAndServe("localhost:8080", nil) //nolint:gosec // G114: Debug server for tests only, timeouts not critical
 		}()
 	}
 	os.Exit(m.Run())

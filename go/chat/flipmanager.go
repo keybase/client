@@ -415,7 +415,7 @@ func (m *FlipManager) addCardHandResult(ctx context.Context, status *chat1.UICoi
 ) {
 	deckIndex := 0
 	numCards := len(result.Shuffle)
-	handSize := int(hmi.HandCardCount)
+	handSize := int(hmi.HandCardCount) //nolint:gosec // G115: Hand card count is a small game parameter, safe to convert
 	var uiHandResult []chat1.UICoinFlipHand
 	for _, target := range hmi.HandTargets {
 		if numCards-handSize < deckIndex {
@@ -1586,20 +1586,20 @@ func NewFlipVisualizer(width, height int) *FlipVisualizer {
 	}
 	for i := 0; i < 256; i++ {
 		v.commitmentColors[i] = color.RGBA{
-			R: uint8(i),
-			G: uint8((128 + i*5) % 128),
+			R: uint8(i),                 //nolint:gosec // G115: Loop bounded by 256, safe for uint8
+			G: uint8((128 + i*5) % 128), //nolint:gosec // G115: Modulo by 128 ensures result fits in uint8
 			B: 255,
 			A: 128,
 		}
 		v.secretColors[i] = color.RGBA{
 			R: 255,
-			G: uint8(64 + i/2),
+			G: uint8(64 + i/2), //nolint:gosec // G115: 64 + (0-255)/2 = 64-191, fits in uint8
 			B: 0,
 			A: 255,
 		}
 		v.commitmentMatchColors[i] = color.RGBA{
-			R: uint8(i * 3 / 4),
-			G: uint8((192 + i*4) % 64),
+			R: uint8(i * 3 / 4),        //nolint:gosec // G115: (0-255)*3/4 = 0-191, fits in uint8
+			G: uint8((192 + i*4) % 64), //nolint:gosec // G115: Modulo by 64 ensures result fits in uint8
 			B: 255,
 			A: 255,
 		}

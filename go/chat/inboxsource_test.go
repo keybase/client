@@ -86,7 +86,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 	assertInboxVersion := func(v int) {
 		ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
 			types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil)
-		require.Equal(t, chat1.InboxVers(v), ib.Version, "wrong version")
+		require.Equal(t, chat1.InboxVers(v), ib.Version, "wrong version") //nolint:gosec // G115: Test code comparing version numbers, safe to convert
 		require.NoError(t, err)
 	}
 

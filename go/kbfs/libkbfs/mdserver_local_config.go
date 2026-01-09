@@ -29,9 +29,9 @@ type mdServerLocalConfigAdapter struct {
 }
 
 func (ca mdServerLocalConfigAdapter) currentSessionGetter() idutil.CurrentSessionGetter {
-	return ca.Config.KBPKI()
+	return ca.KBPKI()
 }
 
 func (ca mdServerLocalConfigAdapter) teamMembershipChecker() kbfsmd.TeamMembershipChecker {
-	return ca.Config.KBPKI()
+	return ca.KBPKI()
 }

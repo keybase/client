@@ -471,7 +471,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	_, id, rmd := injectNewRMD(t, config)
-	rmd.data.Dir.BlockPointer.ID = kbfsblock.FakeID(1)
+	rmd.data.Dir.ID = kbfsblock.FakeID(1)
 	rmd.data.Dir.Type = data.Dir
 
 	ops := getOps(config, id)
@@ -500,7 +500,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	_, id, rmd := injectNewRMD(t, config)
-	rmd.data.Dir.BlockPointer.ID = kbfsblock.FakeID(1)
+	rmd.data.Dir.ID = kbfsblock.FakeID(1)
 	rmd.data.Dir.Type = data.Dir
 
 	ops := getOps(config, id)
@@ -565,7 +565,7 @@ func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 
 	_, id, rmd := injectNewRMD(t, config)
 
-	rmd.data.Dir.BlockPointer.ID = kbfsblock.FakeID(1)
+	rmd.data.Dir.ID = kbfsblock.FakeID(1)
 	rmd.data.Dir.Type = data.Dir
 
 	ops := getOps(config, id)
@@ -822,7 +822,7 @@ func TestKBFSOpsGetBaseDirChildrenHidesFiles(t *testing.T) {
 	for c, ei := range children {
 		if de, ok := dirBlock.Children[c.Plaintext()]; !ok {
 			t.Errorf("No such child: %s", c)
-		} else if !de.EntryInfo.Eq(ei) {
+		} else if !de.Eq(ei) {
 			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
 		}
 	}
@@ -858,7 +858,7 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 	for c, ei := range children {
 		if de, ok := dirBlock.Children[c.Plaintext()]; !ok {
 			t.Errorf("No such child: %s", c)
-		} else if !de.EntryInfo.Eq(ei) {
+		} else if !de.Eq(ei) {
 			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
 		}
 	}
@@ -1010,7 +1010,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	for c, ei := range children {
 		if de, ok := dirBlock.Children[c.Plaintext()]; !ok {
 			t.Errorf("No such child: %s", c)
-		} else if !de.EntryInfo.Eq(ei) {
+		} else if !de.Eq(ei) {
 			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
 		}
 	}

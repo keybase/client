@@ -188,7 +188,7 @@ func newDiskQuotaCacheLocal(
 	}
 	defer func() {
 		if err != nil {
-			quotaStorage.Close()
+			_ = quotaStorage.Close()
 		}
 	}()
 	return newDiskQuotaCacheLocalFromStorage(config, quotaStorage, mode)

@@ -51,7 +51,7 @@ func newDiskMDCacheLocalForTest(t *testing.T) (*DiskMDCacheLocal, string) {
 
 func shutdownDiskMDCacheTest(cache DiskMDCache, tempdir string) {
 	cache.Shutdown(context.Background())
-	os.RemoveAll(tempdir)
+	_ = os.RemoveAll(tempdir)
 }
 
 func makeRandomMDBuf(t *testing.T) []byte {
@@ -81,7 +81,7 @@ func TestDiskMDCacheCommitAndGet(t *testing.T) {
 	err := cache.Stage(ctx, tlf1, rev, buf, kbfsmd.ImplicitTeamsVer, now)
 	require.NoError(t, err)
 	_, _, _, err = cache.Get(ctx, tlf1)
-	require.Error(t, err) // not commited yet
+	require.Error(t, err) // not committed yet
 	status := cache.Status(ctx)
 	require.Equal(t, uint64(0), status.NumMDs)
 	require.Equal(t, uint64(1), status.NumStaged)

@@ -3,6 +3,7 @@ package ephemeral
 import (
 	"fmt"
 	"log"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -165,6 +166,9 @@ func (s *DeviceEKStorage) keyToEldestSeqno(mctx libkb.MetaContext, key string) k
 	if err != nil {
 		return -1
 	}
+	if e > math.MaxInt64 {
+		return -1
+	}
 	return keybase1.Seqno(e)
 }
 
@@ -191,6 +195,9 @@ func (s *DeviceEKStorage) keyToGeneration(mctx libkb.MetaContext, key string) ke
 	g, err := strconv.ParseUint(parts[1], 10, 64)
 	if err != nil {
 		mctx.Debug("keyToGeneration: unable to parseUint: %v", err)
+		return -1
+	}
+	if g > math.MaxInt64 {
 		return -1
 	}
 	return keybase1.EkGeneration(g)

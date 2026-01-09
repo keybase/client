@@ -514,7 +514,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Remove the prefetched file block from the cache.")
-	err = cache.DeleteTransient(dirA.Children["b"].BlockPointer.ID, kmd.TlfID())
+	err = cache.DeleteTransient(dirA.Children["b"].ID, kmd.TlfID())
 	require.NoError(t, err)
 	_, err = cache.Get(dirA.Children["b"].BlockPointer)
 	require.EqualError(t, err,

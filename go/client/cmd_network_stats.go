@@ -249,19 +249,19 @@ func (c *CmdNetworkStats) Run() (err error) {
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.SingleCell{Item: humanize.Bytes(uint64(stat.AvgSize))},
+				Content:   flexibletable.SingleCell{Item: humanize.Bytes(uint64(stat.AvgSize))}, //nolint:gosec // G115: File size is non-negative, safe to convert
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.SingleCell{Item: humanize.Bytes(uint64(stat.MinSize))},
+				Content:   flexibletable.SingleCell{Item: humanize.Bytes(uint64(stat.MinSize))}, //nolint:gosec // G115: File size is non-negative, safe to convert
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.SingleCell{Item: humanize.Bytes(uint64(stat.MaxSize))},
+				Content:   flexibletable.SingleCell{Item: humanize.Bytes(uint64(stat.MaxSize))}, //nolint:gosec // G115: File size is non-negative, safe to convert
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.SingleCell{Item: humanize.Bytes(uint64(stat.TotalSize))},
+				Content:   flexibletable.SingleCell{Item: humanize.Bytes(uint64(stat.TotalSize))}, //nolint:gosec // G115: File size is non-negative, safe to convert
 			},
 		})
 		if err != nil {

@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"strings"
 	"sync"
 	"time"
@@ -525,7 +524,7 @@ func (h *Home) RunUpdateLoop(m libkb.MetaContext) {
 func (h *Home) updateLoopThread(m libkb.MetaContext) {
 	m = m.WithLogTag("HULT")
 	m.Debug("Starting Home#updateLoopThread")
-	slp := time.Minute * (time.Duration(5) + time.Duration((rand.Int() % 10)))
+	slp := 5*time.Minute + libkb.RandomJitter(5*time.Minute)
 	var err error
 	for {
 		m.Debug("Sleeping %v until next poll", slp)

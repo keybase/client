@@ -31,7 +31,7 @@ func (fo fileOnly) Readdir(count int) ([]os.FileInfo, error) {
 
 // Stat implements the http.File interface.
 func (fo fileOnly) Stat() (os.FileInfo, error) {
-	return fo.rfs.Stat(fo.File.Name())
+	return fo.rfs.Stat(fo.Name())
 }
 
 func (hrfs httpRootFileSystem) Open(filename string) (entry http.File, err error) {

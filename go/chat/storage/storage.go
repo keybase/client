@@ -1026,7 +1026,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
 				return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 			}
-			maxID = chat1.MessageID(int(pid) + num)
+			maxID = chat1.MessageID(int(pid) + num) //nolint:gosec // G115: MessageID arithmetic for pagination, safe to convert
 			minID = pid
 			s.Debug(ctx, "Fetch: prev pagination: pid: %d", pid)
 		}

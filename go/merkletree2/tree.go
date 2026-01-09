@@ -605,7 +605,7 @@ func (t *Tree) getEncodedValueWithInclusionProofOrExclusionProof(ctx logger.Cont
 	if err != nil {
 		return nil, MerkleInclusionProof{}, err
 	}
-	leafPos := t.cfg.getParentAtLevel(deepestPosition, uint(leafLevel))
+	leafPos := t.cfg.getParentAtLevel(deepestPosition, uint(leafLevel)) //nolint:gosec // G115: Leaf level bounded by tree depth, safe to convert
 
 	proof.SiblingHashesOnPath = make([]Hash, leafLevel*(t.cfg.ChildrenPerNode-1))
 	leafChildIndexes := t.cfg.positionToChildIndexPath(leafPos)

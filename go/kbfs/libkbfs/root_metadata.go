@@ -55,7 +55,7 @@ type verboseOp struct {
 }
 
 func (o verboseOp) String() string {
-	return o.op.StringWithRefs(o.indent)
+	return o.StringWithRefs(o.indent)
 }
 
 // DumpPrivateMetadata returns a detailed dump of the given

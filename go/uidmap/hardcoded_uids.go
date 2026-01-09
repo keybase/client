@@ -49,7 +49,7 @@ func initUsernameSort() {
 	findInit()
 	usernameSortOrder = make([]uint16, len(lengths))
 	for i := 0; i < len(lengths); i++ {
-		usernameSortOrder[i] = uint16(i)
+		usernameSortOrder[i] = uint16(i) //nolint:gosec // G115: Hardcoded username list is small and bounded, safe to convert
 	}
 	sort.SliceStable(usernameSortOrder, func(i, j int) bool {
 		return bytes.Compare(usernameBytesAtSortedIndex(i), usernameBytesAtSortedIndex(j)) < 0
@@ -92,6 +92,7 @@ func initUsernames() {
 	}
 	usernames = make([]byte, usernamesLen)
 	buf := bufWriter{usernames, 0}
+	//nolint:gosec // G110: Decompressing hardcoded embedded data with known size; bomb protection via usernamesLen check
 	n, err := io.Copy(&buf, zip)
 	if err != nil {
 		panic(err)

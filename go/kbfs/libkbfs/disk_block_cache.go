@@ -354,7 +354,7 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 	}
 	defer func() {
 		if err != nil {
-			blockStorage.Close()
+			_ = blockStorage.Close()
 		}
 	}()
 	metaDbPath := filepath.Join(versionPath, metaDbFilename)
@@ -364,7 +364,7 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 	}
 	defer func() {
 		if err != nil {
-			metadataStorage.Close()
+			_ = metadataStorage.Close()
 		}
 	}()
 	tlfDbPath := filepath.Join(versionPath, tlfDbFilename)
@@ -374,7 +374,7 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 	}
 	defer func() {
 		if err != nil {
-			tlfStorage.Close()
+			_ = tlfStorage.Close()
 		}
 	}()
 	lastUnrefDbPath := filepath.Join(versionPath, lastUnrefDbFilename)
@@ -384,7 +384,7 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 	}
 	defer func() {
 		if err != nil {
-			lastUnrefStorage.Close()
+			_ = lastUnrefStorage.Close()
 		}
 	}()
 	cache, err = newDiskBlockCacheLocalFromStorage(config, cacheType,
@@ -1737,7 +1737,7 @@ func (cache *DiskBlockCacheLocal) DeleteUnmarked(
 	}
 }
 
-// AddHomeTLF implements this DiskBlockCache interace for DiskBlockCacheLocal.
+// AddHomeTLF implements this DiskBlockCache interacted for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) AddHomeTLF(ctx context.Context, tlfID tlf.ID) error {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
@@ -1758,7 +1758,7 @@ func (cache *DiskBlockCacheLocal) AddHomeTLF(ctx context.Context, tlfID tlf.ID) 
 	return nil
 }
 
-// ClearHomeTLFs implements this DiskBlockCache interace for
+// ClearHomeTLFs implements this DiskBlockCache interacted for
 // DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) ClearHomeTLFs(ctx context.Context) error {
 	cache.lock.Lock()

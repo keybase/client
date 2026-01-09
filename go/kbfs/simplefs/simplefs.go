@@ -10,12 +10,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"mime"
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	stdpath "path"
 	"path/filepath"
 	"regexp"
@@ -215,7 +213,7 @@ func (k *SimpleFS) ResetForLogin(ctx context.Context,
 	k.archiveManager.shutdown(ctx)
 	k.archiveManager, err = newArchiveManager(k, username)
 	if err != nil {
-		log.Fatalf("initializing archive manager error: %v", err)
+		return err
 	}
 
 	if k.indexer != nil {
@@ -1037,18 +1035,18 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 			if err != nil {
 				return err
 			}
-			switch {
-			case rawPath == "/":
+			switch rawPath {
+			case "/":
 				res = []keybase1.Dirent{
 					{Name: "private", DirentType: deTy2Ty(data.Dir)},
 					{Name: "public", DirentType: deTy2Ty(data.Dir)},
 					{Name: "team", DirentType: deTy2Ty(data.Dir)},
 				}
-			case rawPath == `/public`:
+			case `/public`:
 				res, err = k.favoriteList(ctx, tlf.Public)
-			case rawPath == `/private`:
+			case `/private`:
 				res, err = k.favoriteList(ctx, tlf.Private)
-			case rawPath == `/team`:
+			case `/team`:
 				res, err = k.favoriteList(ctx, tlf.SingleTeam)
 			default:
 				fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
@@ -1399,7 +1397,7 @@ func (k *SimpleFS) doCopyFromSource(
 	if err != nil {
 		return err
 	}
-	defer src.Close()
+	defer func() { _ = src.Close() }()
 
 	mode := os.O_RDWR | os.O_CREATE | os.O_EXCL
 	if overwriteExistingFiles {
@@ -1409,7 +1407,7 @@ func (k *SimpleFS) doCopyFromSource(
 	if err != nil {
 		return err
 	}
-	defer dst.Close()
+	defer func() { _ = dst.Close() }()
 
 	if pathType, _ := dstPath.PathType(); pathType == keybase1.PathType_LOCAL {
 		defer func() {
@@ -1872,6 +1870,7 @@ func (k *SimpleFS) SimpleFSOpen(
 		fsCtx, cancel = context.WithCancel(k.makeContext(context.Background()))
 		fsCtx, err := k.startOpWrapContext(fsCtx)
 		if err != nil {
+			cancel()
 			return err
 		}
 		libfs = libfs.WithContext(fsCtx)
@@ -1882,6 +1881,7 @@ func (k *SimpleFS) SimpleFSOpen(
 
 	f, err := fs.OpenFile(finalElem, cflags, 0o644)
 	if err != nil {
+		cancel()
 		return err
 	}
 
@@ -2198,6 +2198,7 @@ func (k *SimpleFS) doGetRevisions(
 		// Otherwise, we have to fetch the stats from the MD revision
 		// before the last one we processed, and use the
 		// PreviousRevisions list from that version of the file.
+	revisionLoop:
 		for len(revPaths) < 4 && nextSlot < len(prs) {
 			var rev kbfsmd.Revision
 			switch {
@@ -2236,7 +2237,7 @@ func (k *SimpleFS) doGetRevisions(
 				nextSlot = 0      // will be incremented below
 				expectedCount = 1 // will be incremented below
 			default:
-				break
+				break revisionLoop
 			}
 
 			p := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
@@ -2259,7 +2260,7 @@ func (k *SimpleFS) doGetRevisions(
 		// revision could have slid off the previous revisions
 		// list because that revision was garbage-collected, but
 		// that doesn't guarantee that the older revision of the
-		// file was garabge-collected too (since it was created,
+		// file was garbage-collected too (since it was created,
 		// not deleted, as of that garbage-collected revision).
 		p := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
 			Path: pathStr,
@@ -3469,7 +3470,7 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 	u := url.URL{
 		Scheme:   "http",
 		Host:     address,
-		Path:     path.Join("/files", kbfsPath.Path),
+		Path:     stdpath.Join("/files", kbfsPath.Path),
 		RawQuery: "token=" + token + "&viewTypeInvariance=" + invariance,
 	}
 

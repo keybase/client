@@ -79,7 +79,7 @@ func (c diskFavoriteClient) FavoriteList(uid keybase1.UID) (
 }
 
 func (c diskFavoriteClient) Shutdown() {
-	c.favoriteDb.Close()
+	_ = c.favoriteDb.Close()
 }
 
 type memoryFavoriteClient struct {
@@ -245,7 +245,7 @@ func (k *KeybaseDaemonLocal) addTeamWriterForTest(
 ) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	teamName, isImplicit, err := k.DaemonLocal.AddTeamWriterForTest(tid, uid)
+	teamName, isImplicit, err := k.AddTeamWriterForTest(tid, uid)
 	if err != nil {
 		return err
 	}
@@ -267,7 +267,7 @@ func (k *KeybaseDaemonLocal) removeTeamWriterForTest(
 ) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	teamName, err := k.DaemonLocal.RemoveTeamWriterForTest(tid, uid)
+	teamName, err := k.RemoveTeamWriterForTest(tid, uid)
 	if err != nil {
 		return err
 	}
@@ -283,7 +283,7 @@ func (k *KeybaseDaemonLocal) addTeamReaderForTest(
 ) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	teamName, err := k.DaemonLocal.AddTeamReaderForTest(tid, uid)
+	teamName, err := k.AddTeamReaderForTest(tid, uid)
 	if err != nil {
 		return err
 	}
@@ -295,7 +295,7 @@ func (k *KeybaseDaemonLocal) addTeamReaderForTest(
 }
 
 func (k *KeybaseDaemonLocal) addTeamsForTestLocked(teams []idutil.TeamInfo) {
-	k.DaemonLocal.AddTeamsForTest(teams)
+	k.AddTeamsForTest(teams)
 	for _, t := range teams {
 		f := keybase1.FolderHandle{
 			Name:       string(t.Name),

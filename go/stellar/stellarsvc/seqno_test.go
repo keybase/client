@@ -93,8 +93,8 @@ func TestSeqnoConcurrent(t *testing.T) {
 		defer unlock()
 		seqno, err := sp.SequenceForAccount(accountID1.String())
 		require.NoError(t, err)
-		time.Sleep(time.Duration(rand.Intn(50)) * time.Millisecond)
-		submits <- uint64(seqno)
+		time.Sleep(time.Duration(rand.Intn(50)) * time.Millisecond) //nolint:gosec // G404: Random sleep for concurrency testing, not security-critical
+		submits <- uint64(seqno)                                    //nolint:gosec // G115: Test code, Stellar sequence numbers are positive, safe to convert
 	}
 
 	numPayments := 10

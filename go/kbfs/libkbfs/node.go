@@ -83,7 +83,7 @@ func makeNodeStandard(core *nodeCore) *nodeStandard {
 }
 
 func (n *nodeStandard) GetBlockID() (blockID kbfsblock.ID) {
-	return n.core.pathNode.BlockPointer.ID
+	return n.core.pathNode.ID
 }
 
 func (n *nodeStandard) GetCanonicalPath() string {

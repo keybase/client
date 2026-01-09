@@ -133,7 +133,7 @@ func NewContextWithPerfLog(logName string) *KBFSContext {
 	// Override the perf file for this process, before logging is
 	// initialized.
 	if os.Getenv("KEYBASE_PERF_LOG_FILE") == "" {
-		os.Setenv("KEYBASE_PERF_LOG_FILE", filepath.Join(
+		_ = os.Setenv("KEYBASE_PERF_LOG_FILE", filepath.Join(
 			g.Env.GetLogDir(), logName))
 	}
 

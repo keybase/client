@@ -153,7 +153,7 @@ func WriteHTML(bucketName string, prefixes string, suffix string, outPath string
 		if err != nil {
 			return err
 		}
-		err = os.WriteFile(outPath, buf.Bytes(), 0o644)
+		err = os.WriteFile(outPath, buf.Bytes(), 0o644) //nolint:gosec // G306: Public HTML index file, needs to be world-readable
 		if err != nil {
 			return err
 		}

@@ -538,7 +538,7 @@ func getTimeboundsForSending(m libkb.MetaContext, walletState *WalletState) (*bu
 	// counting from when the server gets our signed tx.
 	deadline := serverTimes.TimeNow.Time().Add(took).Unix() + serverTimes.Timeout
 	tb := build.Timebounds{
-		MaxTime: uint64(deadline),
+		MaxTime: uint64(deadline), //nolint:gosec // G115: Unix timestamp plus timeout, safe to convert
 	}
 	m.Debug("Returning timebounds for tx: %+v", tb)
 	return &tb, nil

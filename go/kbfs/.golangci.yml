@@ -1,0 +1,50 @@
+version: '2'
+
+run:
+  timeout: 15m
+  tests: true
+
+formatters:
+  exclusions:
+    paths:
+      - dokan # Windows-specific FUSE implementation, not maintained
+  enable:
+    - gofmt
+    - gofumpt
+
+linters:
+  exclusions:
+    paths:
+      - dokan # Windows-specific FUSE implementation, not maintained
+  enable:
+    - misspell # Ready - spelling auto-fixed
+    - bodyclose # HTTP response body not closed
+    - gocritic # Code quality checks
+    - govet # Go vet checks
+    - errcheck # Unchecked errors
+    - ineffassign # Ineffectual assignments
+    - staticcheck # Static analysis
+
+  disable:
+    # Explicitly disable default preset linters until we're ready
+    - unused
+
+  settings:
+    gocritic:
+      disabled-checks:
+        - ifElseChain # Style preference - if-else is often clearer than switch
+
+    govet:
+      enable-all: true
+      disable:
+        - shadow
+        - fieldalignment
+
+    staticcheck:
+      checks:
+        - 'all'
+        - '-ST1000' # Disable package comment requirement - too many to fix
+        - '-ST1003' # Disable naming conventions (Db vs DB, etc.) - too many to fix
+        - '-ST1005' # Disable capitalized error string check (style preference)
+        - '-ST1016' # Disable inconsistent receiver names - too many to fix
+        - '-ST1020' # Disable comment format requirement - too many to fix

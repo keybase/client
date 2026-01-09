@@ -482,8 +482,8 @@ func computeLogPatternMerkleSkips(startSeqno keybase1.Seqno, endSeqno keybase1.S
 	if endSeqno == startSeqno {
 		return ret, nil
 	}
-	end := uint(endSeqno)
-	start := uint(startSeqno)
+	end := uint(endSeqno)     //nolint:gosec // G115: Seqno values are positive and ordered (checked above), safe to convert
+	start := uint(startSeqno) //nolint:gosec // G115: Seqno values are positive and ordered (checked above), safe to convert
 	diff := end - start
 	skips := computeSetBitsBigEndian(diff)
 	curr := end
@@ -1300,7 +1300,7 @@ func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot k
 
 	for index := 1; index < len(ss)-1; index++ {
 		root := ss[index].seqno()
-		if keybase1.Seqno(expectedSkips[index-1]) != root {
+		if keybase1.Seqno(expectedSkips[index-1]) != root { //nolint:gosec // G115: expectedSkips are computed from seqno differences, safe to convert back
 			return MerkleClientError{fmt.Sprintf("Unexpected skip index: expected %d, got %d.", expectedSkips[index-1], root), merkleErrorWrongSkipSequence}
 		}
 	}
@@ -1397,12 +1397,12 @@ func (mc *MerkleClient) verifyRootHelper(m MetaContext, newRoot *MerkleRoot, cur
 }
 
 func verifyRootSkips(rootSeqno keybase1.Seqno, skips SkipTable) error {
-	expectedSkips := computeExpectedRootSkips(uint(rootSeqno))
+	expectedSkips := computeExpectedRootSkips(uint(rootSeqno)) //nolint:gosec // G115: Seqno is positive, safe for skip computation
 	if len(expectedSkips) != len(skips) {
 		return MerkleClientError{fmt.Sprintf("Root check: wrong number of skips: expected %d, got %d.", len(expectedSkips), len(skips)), merkleErrorWrongRootSkips}
 	}
 	for _, expectedSkip := range expectedSkips {
-		seqno := keybase1.Seqno(expectedSkip)
+		seqno := keybase1.Seqno(expectedSkip) //nolint:gosec // G115: expectedSkips computed from seqno, safe to convert back
 		_, ok := skips[seqno]
 		if !ok {
 			return MerkleClientError{fmt.Sprintf("Root check: unexpected skip index: wanted %d, but did not exist.", seqno), merkleErrorWrongRootSkips}

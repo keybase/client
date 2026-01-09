@@ -51,7 +51,7 @@ func newDiskQuotaCacheLocalForTest(t *testing.T) (
 
 func shutdownDiskQuotaCacheTest(cache DiskQuotaCache, tempdir string) {
 	cache.Shutdown(context.Background())
-	os.RemoveAll(tempdir)
+	_ = os.RemoveAll(tempdir)
 }
 
 func makeRandomQuotaWithUsageWrite(t *testing.T) kbfsblock.QuotaInfo {

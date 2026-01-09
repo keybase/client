@@ -1228,7 +1228,6 @@ func (fd *FileData) DeepCopy(ctx context.Context, dataVer Ver) (
 	}
 
 	// Finally, make a new ID for the top block and cache it.
-	newTopPtr = fd.rootBlockPointer()
 	newID, err := kbfsblock.MakeTemporaryID()
 	if err != nil {
 		return ZeroPtr, nil, err

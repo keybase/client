@@ -510,7 +510,7 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
 	if mStatus == kbfsmd.Merged &&
 		// Don't send notifies if it's just a rekey (the real mdserver
 		// sends a "folder needs rekey" notification in this case).
-		!(rmds.MD.IsRekeySet() && rmds.MD.IsWriterMetadataCopiedSet()) {
+		(!rmds.MD.IsRekeySet() || !rmds.MD.IsWriterMetadataCopiedSet()) {
 		md.updateManager.setHead(rmds.MD.TlfID(), md)
 	}
 
@@ -655,10 +655,10 @@ func (md *MDServerDisk) Shutdown() {
 
 	// Make further accesses error out.
 
-	md.handleDb.Close()
+	_ = md.handleDb.Close()
 	md.handleDb = nil
 
-	md.branchDb.Close()
+	_ = md.branchDb.Close()
 	md.branchDb = nil
 
 	tlfStorage := md.tlfStorage

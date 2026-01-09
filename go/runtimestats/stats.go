@@ -115,9 +115,9 @@ func GetProcessStats(t keybase1.ProcessType) keybase1.ProcessRuntimeStats {
 	stats.Type = t
 	var memstats runtime.MemStats
 	runtime.ReadMemStats(&memstats)
-	stats.Goheap = utils.PresentBytes(int64(memstats.HeapAlloc))
-	stats.Goheapsys = utils.PresentBytes(int64(memstats.HeapSys))
-	stats.Goreleased = utils.PresentBytes(int64(memstats.HeapReleased))
+	stats.Goheap = utils.PresentBytes(int64(memstats.HeapAlloc))        //nolint:gosec // G115: Memory sizes are bounded by system, safe to convert
+	stats.Goheapsys = utils.PresentBytes(int64(memstats.HeapSys))       //nolint:gosec // G115: Memory sizes are bounded by system, safe to convert
+	stats.Goreleased = utils.PresentBytes(int64(memstats.HeapReleased)) //nolint:gosec // G115: Memory sizes are bounded by system, safe to convert
 	return stats
 }
 

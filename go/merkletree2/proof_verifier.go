@@ -99,7 +99,7 @@ func (m *MerkleProofVerifier) verifyInclusionOrExclusionProof(ctx logger.Context
 	if err != nil {
 		return NewProofVerificationFailedError(err)
 	}
-	leafPosition := m.cfg.getParentAtLevel(keyAsPos, uint(len(sibH)/(m.cfg.ChildrenPerNode-1)))
+	leafPosition := m.cfg.getParentAtLevel(keyAsPos, uint(len(sibH)/(m.cfg.ChildrenPerNode-1))) //nolint:gosec // G115: Sibling hash list length bounded by tree depth, safe to convert
 
 	// recompute the hash of the root node by recreating all the internal nodes
 	// on the path from the leaf to the root.

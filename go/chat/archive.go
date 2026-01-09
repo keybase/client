@@ -765,7 +765,7 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 	// Fetch size of each conv to track progress.
 	var totalMsgs int64
 	for _, conv := range convs {
-		totalMsgs += int64(conv.MaxVisibleMsgID() - conv.GetMaxDeletedUpTo())
+		totalMsgs += int64(conv.MaxVisibleMsgID() - conv.GetMaxDeletedUpTo()) //nolint:gosec // G115: Message count for progress tracking, safe to convert
 
 		convArchivePath := path.Join(arg.OutputPath, c.archiveName(conv))
 		err = os.MkdirAll(convArchivePath, os.ModePerm)

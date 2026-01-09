@@ -49,7 +49,10 @@ func newKbwebClient() (*kbwebClient, error) {
 	}
 	client := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{RootCAs: certPool},
+			TLSClientConfig: &tls.Config{
+				RootCAs:    certPool,
+				MinVersion: tls.VersionTLS12,
+			},
 		},
 	}
 	return &kbwebClient{http: client}, nil

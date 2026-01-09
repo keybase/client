@@ -31,7 +31,7 @@ type PrevRevisions []PrevRevisionAndCount
 
 // AddRevision returns a copy of `pr` with a new immediately-previous
 // revision added, with the existing entries moved or overwritten to
-// accomodate the new entry, and with increased counts.  Any existing
+// accommodate the new entry, and with increased counts.  Any existing
 // revisions smaller than or equal to minRev will be removed.
 func (pr PrevRevisions) AddRevision(
 	r, minRev kbfsmd.Revision,
@@ -151,7 +151,7 @@ func (pr PrevRevisions) AddRevision(
 			}
 		} else if ret[i].Count-ret[i-1].Count < minCount/5 {
 			// This revision is not being shifted, but it's
-			// uncomfortablely close to its neighbor on the right, so
+			// uncomfortably close to its neighbor on the right, so
 			// just drop it.
 			ret[i-1] = PrevRevisionAndCount{
 				Revision: kbfsmd.RevisionUninitialized,

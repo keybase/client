@@ -21,7 +21,7 @@ type quorumRes struct {
 func (r *LocalReader) StatusRead(accountID string) (*Status, error) {
 	url := fmt.Sprintf("http://localhost:11626/quorum?node=%s", accountID)
 
-	res, err := http.Get(url)
+	res, err := http.Get(url) //nolint:gosec // G107: Localhost Stellar validator monitoring endpoint with account ID parameter
 	if err != nil {
 		return nil, err
 	}

@@ -57,7 +57,7 @@ type FileSystem interface {
 	Printf(format string, v ...interface{})
 }
 
-// CreateStatus marks status of successfull create/open operations.
+// CreateStatus marks status of successful create/open operations.
 type CreateStatus uint32
 
 const (

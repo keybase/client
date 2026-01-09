@@ -95,7 +95,7 @@ func start() (startErr *libfs.Error) {
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
-	defer stderrFile.Close()
+	defer func() { _ = stderrFile.Close() }()
 
 	defer func() {
 		// Now that the stderr has been duplicated, print all errors
@@ -103,7 +103,7 @@ func start() (startErr *libfs.Error) {
 		// `main()`, so that the error shows up both in the log and to
 		// the user.
 		if startErr != nil {
-			fmt.Fprintf(stderrFile, "git-remote-keybase error: (%d) %s\n",
+			_, _ = fmt.Fprintf(stderrFile, "git-remote-keybase error: (%d) %s\n",
 				startErr.Code, startErr.Message)
 		}
 	}()
@@ -173,7 +173,7 @@ func main() {
 	runMode := os.Getenv("KEYBASE_RUN_MODE")
 	if len(runMode) == 0 {
 		// Default to prod.
-		os.Setenv("KEYBASE_RUN_MODE", "prod")
+		_ = os.Setenv("KEYBASE_RUN_MODE", "prod")
 	}
 
 	err := start()

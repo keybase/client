@@ -577,8 +577,8 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		AccountModeEditable: editable,
 		DeviceReadOnly:      readOnly,
 		IsFunded:            isFunded,
-		CanSubmitTx:         availableInt > int64(baseFee),
-		CanAddTrustline:     availableInt > int64(baseFee)+trustlineReserveStroops,
+		CanSubmitTx:         availableInt > int64(baseFee),                         //nolint:gosec // G115: Stellar base fee is small bounded value, safe to convert
+		CanAddTrustline:     availableInt > int64(baseFee)+trustlineReserveStroops, //nolint:gosec // G115: Stellar base fee is small bounded value, safe to convert
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())

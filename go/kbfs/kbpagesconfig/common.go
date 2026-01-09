@@ -35,7 +35,7 @@ type kbpConfigEditor struct {
 func readConfigAndClose(from io.ReadCloser) (
 	cfg config.Config, str string, err error,
 ) {
-	defer from.Close()
+	defer func() { _ = from.Close() }()
 	buf := &bytes.Buffer{}
 	if cfg, err = config.ParseConfig(io.TeeReader(from, buf)); err != nil {
 		return nil, "", err
@@ -112,7 +112,7 @@ func confirmAndWrite(
 		return fmt.Errorf(
 			"opening file [%s] error: %v", configPath, err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	if _, err = f.WriteString(newConfigStr); err != nil {
 		return fmt.Errorf(
 			"writing config to file [%s] error: %v", configPath, err)

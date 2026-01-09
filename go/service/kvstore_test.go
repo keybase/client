@@ -61,7 +61,7 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	require.EqualValues(t, []keybase1.KVListEntryKey{}, listEntriesRes.EntryKeys)
 
 	// put a secret
-	cleartextSecret := "lorem ipsum blah blah blah"
+	cleartextSecret := "lorem ipsum blah blah blah" //nolint:gosec // G101: Test data string, not real credentials
 	putArg := keybase1.PutKVEntryArg{
 		SessionID:  0,
 		TeamName:   teamName,

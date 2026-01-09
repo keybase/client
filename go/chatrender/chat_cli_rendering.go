@@ -402,7 +402,7 @@ func (v ConversationView) RenderToWriter(g *libkb.GlobalContext, writer io.Write
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
 				Alignment: flexibletable.Right,
-				Content:   flexibletable.SingleCell{Item: strconv.Itoa(int(mv.MessageID))},
+				Content:   flexibletable.SingleCell{Item: strconv.Itoa(int(mv.MessageID))}, //nolint:gosec // G115: MessageID display formatting, safe to convert
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Center,

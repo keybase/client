@@ -190,7 +190,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 			return res
 		}
 		nextPageFn = func(p *chat1.Pagination) (res *chat1.Pagination) {
-			pivot += chat1.MessageID(g.PrevStride)
+			pivot += chat1.MessageID(g.PrevStride) //nolint:gosec // G115: PrevStride is positive config value, safe to convert
 			return utils.MessageIDControlToPagination(ctx, g.DebugLabeler, &chat1.MessageIDControl{
 				Pivot: &pivot,
 				Num:   g.PrevStride,

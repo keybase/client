@@ -27,9 +27,12 @@ func TestKeygenIfNeeded(t *testing.T) {
 
 	ekLib, ok := tc.G.GetEKLib().(*EKLib)
 	require.True(t, ok)
+	// shutdown to prevent any background ops from running during the test
+	err := ekLib.Shutdown(mctx)
+	require.NoError(t, err)
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
-	err := ekLib.KeygenIfNeeded(mctx)
+	err = ekLib.KeygenIfNeeded(mctx)
 	require.NoError(t, err)
 
 	expectedDeviceEKGen, err := deviceEKStorage.MaxGeneration(mctx, false)

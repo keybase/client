@@ -47,8 +47,9 @@ func (d *dummyHTTPSrv) Start() string {
 	mux.HandleFunc("/", d.handler)
 	mux.HandleFunc("/apple-touch-icon.png", d.serveAppleTouchIcon)
 	d.srv = &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", localhost, port),
-		Handler: mux,
+		Addr:              fmt.Sprintf("%s:%d", localhost, port),
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second, // Prevent Slowloris attacks
 	}
 	go func() { _ = d.srv.Serve(listener) }()
 	return d.srv.Addr

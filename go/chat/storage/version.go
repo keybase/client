@@ -73,7 +73,7 @@ func (s *ServerVersions) matchLocked(ctx context.Context, vers int,
 	}
 	retVers := versFunc(srvVers)
 	if retVers != vers {
-		return retVers, NewVersionMismatchError(chat1.InboxVers(vers), chat1.InboxVers(retVers))
+		return retVers, NewVersionMismatchError(chat1.InboxVers(vers), chat1.InboxVers(retVers)) //nolint:gosec // G115: Version numbers are positive counters, safe to convert
 	}
 	return retVers, nil
 }

@@ -89,7 +89,7 @@ func newDocDb(config libkbfs.Config, fs billy.Filesystem) (
 
 	defer func() {
 		if err != nil {
-			s.Close()
+			_ = s.Close()
 		}
 	}()
 	return newDocDbFromStorage(config, s)

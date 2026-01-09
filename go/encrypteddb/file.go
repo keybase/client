@@ -38,7 +38,7 @@ func (f *EncryptedFile) Put(ctx context.Context, data interface{}) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(f.path, b, 0o644)
+	return os.WriteFile(f.path, b, 0o600)
 }
 
 func (f *EncryptedFile) Remove(ctx context.Context) error {

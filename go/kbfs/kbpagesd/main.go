@@ -137,6 +137,7 @@ func getStatsActivityStorerOrBust(
 			logger.Panic("get ca", zap.Error(err))
 			return nil
 		}
+		defer func() { _ = resp.Body.Close() }()
 		if resp.StatusCode != 200 {
 			logger.Panic("get ca", zap.Int("status code", resp.StatusCode))
 			return nil
@@ -189,7 +190,7 @@ func main() {
 	}
 
 	// Hack to make libkbfs.Init connect to prod {md,b}server all the time.
-	os.Setenv("KEYBASE_RUN_MODE", "prod")
+	_ = os.Setenv("KEYBASE_RUN_MODE", "prod")
 
 	kbCtx := env.NewContext()
 	params := libkbfs.DefaultInitParams(kbCtx)

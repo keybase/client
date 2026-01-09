@@ -72,7 +72,7 @@ func (ods *OnDemandStorer) EncodedObject(
 	// `Storer.EncodedObject()` or `o.cache()`.  Instead use a
 	// KBFS-specific `HasEncodedObject()` method that just tells us
 	// whether or not the object exists.
-	err := ods.Storer.HasEncodedObject(hash)
+	err := ods.HasEncodedObject(hash)
 	if err != nil {
 		return nil, err
 	}

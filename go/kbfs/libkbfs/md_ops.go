@@ -772,7 +772,7 @@ type merkleBasedTeamChecker struct {
 	notCacheable bool
 }
 
-func (mbtc merkleBasedTeamChecker) IsTeamWriter(
+func (mbtc *merkleBasedTeamChecker) IsTeamWriter(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
 	verifyingKey kbfscrypto.VerifyingKey,
 	offline keybase1.OfflineAvailability,
@@ -803,7 +803,7 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 		ctx, libkb.VLog1, "User %s is no longer a writer of team %s; "+
 			"checking merkle trees to verify they were a writer at the time the "+
 			"MD was written.", uid, tid)
-	root, err := mbtc.teamMembershipChecker.NoLongerTeamWriter(
+	root, err := mbtc.NoLongerTeamWriter(
 		ctx, tid, mbtc.irmd.TlfID().Type(), uid, verifyingKey, offline)
 	switch e := errors.Cause(err).(type) {
 	case nil:
@@ -828,7 +828,7 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 	return true, nil
 }
 
-func (mbtc merkleBasedTeamChecker) IsTeamReader(
+func (mbtc *merkleBasedTeamChecker) IsTeamReader(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
 	offline keybase1.OfflineAvailability) (
 	bool, error,
@@ -918,7 +918,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 	// Next, verify validity and signatures.  Use a checker that can
 	// check for writership in the past, using the merkle tree.
-	checker := merkleBasedTeamChecker{md.config.KBPKI(), md, rmds, irmd, false}
+	checker := &merkleBasedTeamChecker{md.config.KBPKI(), md, rmds, irmd, false}
 	err = rmds.IsValidAndSigned(
 		ctx, md.config.Codec(), checker, extra,
 		md.config.OfflineAvailabilityForID(handle.TlfID()))

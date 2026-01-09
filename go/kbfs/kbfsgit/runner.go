@@ -275,7 +275,7 @@ func (r *runner) getElapsedStr(
 			if err != nil {
 				r.log.CDebugf(ctx, "Couldn't write heap profile: %+v", err)
 			}
-			f.Close()
+			_ = f.Close()
 		}
 		elapsedStr += " [memprof " + profName + "]"
 	}
@@ -503,7 +503,7 @@ func (r *runner) printStageStart(ctx context.Context,
 				ctx, "Couldn't create CPU profile: %s", cpuProfName)
 			cpuProfPath = ""
 		} else {
-			defer f.Close()
+			defer func() { _ = f.Close() }()
 			err := pprof.StartCPUProfile(f)
 			if err != nil {
 				r.log.CDebugf(ctx, "Couldn't start CPU profile: %+v", err)
@@ -840,14 +840,7 @@ func (r *runner) processGogitStatus(ctx context.Context,
 
 	currStage := plumbing.StatusUnknown
 	lastByteCount := 0
-	for {
-		if statusChan == nil && fsEvents == nil {
-			// statusChan is never passed in as nil. So if it's nil, it's been
-			// closed in the select/case below because receive failed. So
-			// instead of letting select block forever, we break out of the
-			// loop here.
-			break
-		}
+	for statusChan != nil || fsEvents != nil {
 		select {
 		case update, ok := <-statusChan:
 			if !ok {
@@ -1011,12 +1004,12 @@ func (r *runner) copyFile(
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	toF, err := to.Create(name)
 	if err != nil {
 		return err
 	}
-	defer toF.Close()
+	defer func() { _ = toF.Close() }()
 
 	var w io.Writer = toF
 	// Wrap the destination file in a status shim if we are supposed
@@ -1039,8 +1032,8 @@ func (r *runner) copyFileWithCount(
 		// progress report.
 		startTime := r.config.Clock().Now()
 		zeroStr := fmt.Sprintf("%s... ", humanizeBytes(0, 1))
-		_, err := r.errput.Write(
-			[]byte(fmt.Sprintf("%s: %s", countingText, zeroStr)))
+		_, err := fmt.Fprintf(r.errput,
+			"%s: %s", countingText, zeroStr)
 		if err != nil {
 			return err
 		}
@@ -1063,7 +1056,7 @@ func (r *runner) copyFileWithCount(
 		}
 
 		sw = &statusWriter{r, nil, 0, fi.Size(), 0}
-		_, err = r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
+		_, err = fmt.Fprintf(r.errput, "%s: ", copyingText)
 		if err != nil {
 			return err
 		}
@@ -1138,7 +1131,7 @@ func (r *runner) recursiveCopyWithCounts(
 		// Get the total number of bytes we expect to fetch, for the
 		// progress report.
 		startTime := r.config.Clock().Now()
-		_, err := r.errput.Write([]byte(fmt.Sprintf("%s: ", countingText)))
+		_, err := fmt.Fprintf(r.errput, "%s: ", countingText)
 		if err != nil {
 			return err
 		}
@@ -1154,7 +1147,7 @@ func (r *runner) recursiveCopyWithCounts(
 		}
 
 		sw = &statusWriter{r, nil, 0, b, 0}
-		_, err = r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
+		_, err = fmt.Fprintf(r.errput, "%s: ", copyingText)
 		if err != nil {
 			return err
 		}
@@ -1433,7 +1426,7 @@ func (r *runner) canPushAll(
 	if err != nil {
 		return false, false, err
 	}
-	defer refs.Close()
+	defer func() { refs.Close() }()
 
 	// Iterate through the remote references.
 	for {
@@ -1900,8 +1893,8 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 func (r *runner) handleOption(ctx context.Context, args []string) (err error) {
 	defer func() {
 		if err != nil {
-			_, _ = r.output.Write(
-				[]byte(fmt.Sprintf("error %s\n", err.Error())))
+			_, _ = fmt.Fprintf(r.output,
+				"error %s\n", err.Error())
 		}
 	}()
 
@@ -1980,7 +1973,7 @@ type lfsProgressWriter struct {
 	oid                   string
 	start                 int
 	soFar                 int     // how much in absolute bytes has been copied
-	totalForCopy          int     // how much in absolue bytes will be copied
+	totalForCopy          int     // how much in absolute bytes will be copied
 	plaintextSize         int     // how much LFS expects to be copied
 	factorOfPlaintextSize float64 // what frac of the above size is this copy?
 }
@@ -2062,12 +2055,12 @@ func (r *runner) copyFileLFS(
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	toF, err := to.Create(toName)
 	if err != nil {
 		return err
 	}
-	defer toF.Close()
+	defer func() { _ = toF.Close() }()
 
 	// Scale the progress by the given factor.
 	w := &lfsProgressWriter{

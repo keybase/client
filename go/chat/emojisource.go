@@ -303,7 +303,7 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 }
 
 func (s *DevConvEmojiSource) fromURL(ctx context.Context, url string) (string, error) {
-	resp, err := http.Get(url)
+	resp, err := http.Get(url) //nolint:gosec // G107: URL added by user.
 	if err != nil {
 		return "", err
 	}

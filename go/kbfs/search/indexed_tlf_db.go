@@ -102,7 +102,7 @@ func newIndexedTlfDb(config libkbfs.Config, dirPath string) (
 	}
 	defer func() {
 		if err != nil {
-			tlfStorage.Close()
+			_ = tlfStorage.Close()
 		}
 	}()
 	return newIndexedTlfDbFromStorage(config, tlfStorage)

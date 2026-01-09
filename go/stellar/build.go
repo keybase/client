@@ -1049,7 +1049,7 @@ func SubtractFeeSoft(mctx libkb.MetaContext, availableStr string, baseFee uint64
 		mctx.Debug("error parsing available balance: %v", err)
 		return availableStr
 	}
-	available -= int64(baseFee)
+	available -= int64(baseFee) //nolint:gosec // G115: Stellar base fee is a small bounded value, safe to convert
 	if available < 0 {
 		available = 0
 	}

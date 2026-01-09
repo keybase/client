@@ -39,7 +39,7 @@ func TestEncryptDecryptDataV2Success(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t, EncryptionSecretboxWithKeyNonce,
-		encryptedBlock.encryptedData.Version)
+		encryptedBlock.Version)
 
 	decryptedData, err := DecryptBlock(
 		encryptedBlock, tlfCryptKey, blockServerHalf)

@@ -236,7 +236,7 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 		return "", err
 	}
 
-	mctx.Debug("body size: %s", humanize.Bytes(uint64(body.Len())))
+	mctx.Debug("body size: %s", humanize.Bytes(uint64(body.Len()))) //nolint:gosec // G115: Buffer length is non-negative, safe to convert
 
 	arg := libkb.APIArg{
 		Endpoint:        "logdump/send",
@@ -270,7 +270,7 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 	}
 	mctx := libkb.NewMetaContextBackground(l.G()).WithLogTag("LOGSEND")
 	defer mctx.Trace(fmt.Sprintf("LogSend sendLogs: %v numBytes: %s",
-		sendLogs, humanize.Bytes(uint64(numBytes))), &err)()
+		sendLogs, humanize.Bytes(uint64(numBytes))), &err)() //nolint:gosec // G115: numBytes is a validated positive value, safe to convert
 
 	logs := l.Logs
 	// So far, install logs are Windows only

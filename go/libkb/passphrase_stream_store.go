@@ -29,7 +29,7 @@ type pwhStoreIdentifier string
 
 const (
 	ssEddsaSuffix  pwhStoreIdentifier = "tmp_eddsa"
-	ssPwhashSuffix pwhStoreIdentifier = "tmp_pwhash"
+	ssPwhashSuffix pwhStoreIdentifier = "tmp_pwhash" //nolint:gosec // G101: Key derivation suffix constant, not a credential
 )
 
 func formatPPSSecretStoreIdentifier(username NormalizedUsername, typ pwhStoreIdentifier) NormalizedUsername {

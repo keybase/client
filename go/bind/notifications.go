@@ -70,6 +70,10 @@ func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body strin
 		return err
 	}
 
+	if intMessageID < 0 {
+		return fmt.Errorf("invalid message ID: %d", intMessageID)
+	}
+
 	msgID := chat1.MessageID(intMessageID)
 	if err = kbChatCtx.InboxSource.MarkAsRead(context.Background(), convID, uid, &msgID, false /* forceUnread */); err != nil {
 		kbCtx.Log.CDebugf(ctx, "Failed to mark as read from QuickReply: convID: %s. Err: %s", strConvID, err)

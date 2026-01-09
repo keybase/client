@@ -105,7 +105,7 @@ func (e *fsEngine) GetFavorites(user User, t tlf.Type) (map[string]bool, error) 
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	fis, err := f.Readdir(-1)
 	if err != nil {
 		return nil, fmt.Errorf("Readdir on %v failed: %q", f, err.Error())
@@ -221,7 +221,9 @@ func (*fsEngine) CreateFile(u User, parentDir Node, name string) (file Node, err
 	if err != nil {
 		return nil, err
 	}
-	f.Close()
+	if err = f.Close(); err != nil {
+		return nil, err
+	}
 	return fsNode{path}, nil
 }
 
@@ -234,7 +236,9 @@ func (*fsEngine) CreateFileExcl(u User, parentDir Node, name string) (file Node,
 	if err != nil {
 		return nil, err
 	}
-	f.Close()
+	if err = f.Close(); err != nil {
+		return nil, err
+	}
 	return fsNode{p}, nil
 }
 
@@ -245,7 +249,7 @@ func (*fsEngine) WriteFile(u User, file Node, data []byte, off int64, sync bool)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	_, err = f.Seek(off, 0)
 	if err != nil {
 		return err
@@ -267,7 +271,7 @@ func (*fsEngine) TruncateFile(u User, file Node, size uint64, sync bool) (err er
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	err = f.Truncate(int64(size))
 	if err != nil {
 		return err
@@ -306,7 +310,7 @@ func (e *fsEngine) ReadFile(u User, file Node, off int64, bs []byte) (int, error
 	if err != nil {
 		return 0, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	return io.ReadFull(io.NewSectionReader(f, off, int64(len(bs))), bs)
 }
 
@@ -318,7 +322,7 @@ func (*fsEngine) GetDirChildrenTypes(u User, parentDir Node) (children map[strin
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	fis, err := f.Readdir(-1)
 	if err != nil {
 		return nil, fmt.Errorf("Readdir on %v failed: %q", f, err.Error())
