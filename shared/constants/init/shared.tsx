@@ -276,6 +276,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
           const {useGitState} = require('@/stores/git') as typeof UseGitStateType
           useGitState.getState().dispatch.onEngineIncomingImpl(action)
         }
+
+        const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
+        useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
@@ -294,12 +297,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break
     case EngineGen.keybase1NotifyAuditRootAuditError:
     case EngineGen.keybase1NotifyAuditBoxAuditError:
-    case EngineGen.keybase1NotifyBadgesBadgeState:
-      {
-        const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
-        useNotifState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
     default:
   }
   AvatarUtil.onEngineIncoming(action)

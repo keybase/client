@@ -1,7 +1,5 @@
 import * as T from '../types'
 import {ignorePromise} from '../utils'
-import * as EngineGen from '@/actions/engine-gen-gen'
-import {storeRegistry} from '../store-registry'
 import {isMobile} from '../platform'
 import logger from '@/logger'
 
@@ -54,4 +52,3 @@ export const onEngineConnected = () => {
   }
   ignorePromise(f())
 }
-

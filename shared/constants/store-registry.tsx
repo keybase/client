@@ -145,7 +145,7 @@ class StoreRegistry {
         return useGitState
       }
       case 'notifications': {
-        const {useNotifState} = require('@/constants/notifications')
+        const {useNotifState} = require('@/stores/notifications')
         return useNotifState
       }
       case 'people': {
