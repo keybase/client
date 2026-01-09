@@ -4,7 +4,6 @@ import type * as T from './types'
 import type * as TBType from './team-building'
 import type * as ConvoStateType from './chat2/convostate'
 import type {ConvoState} from './chat2/convostate'
-import type {State as ActiveState, useActiveState} from './active'
 import type {State as ArchiveState, useArchiveState} from './archive'
 import type {State as AutoResetState, useAutoResetState} from './autoreset'
 import type {State as BotsState, useBotsState} from './bots'
@@ -33,7 +32,6 @@ import type {State as UnlockFoldersState, useUnlockFoldersState} from './unlock-
 import type {State as UsersState, useUsersState} from './users'
 
 type StoreName =
-  | 'active'
   | 'archive'
   | 'autoreset'
   | 'bots'
@@ -62,7 +60,6 @@ type StoreName =
   | 'users'
 
 type StoreStates = {
-  active: ActiveState
   archive: ArchiveState
   autoreset: AutoResetState
   bots: BotsState
@@ -92,7 +89,6 @@ type StoreStates = {
 }
 
 type StoreHooks = {
-  active: typeof useActiveState
   archive: typeof useArchiveState
   autoreset: typeof useAutoResetState
   bots: typeof useBotsState
@@ -125,10 +121,6 @@ class StoreRegistry {
   getStore<T extends StoreName>(storeName: T): StoreHooks[T] {
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
     switch (storeName) {
-      case 'active': {
-        const {useActiveState} = require('./active')
-        return useActiveState
-      }
       case 'archive': {
         const {useArchiveState} = require('./archive')
         return useArchiveState

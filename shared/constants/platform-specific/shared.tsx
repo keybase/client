@@ -8,6 +8,7 @@ import * as AutoResetUtil from '../autoreset/util'
 import * as AvatarUtil from '@/common-adapters/avatar/util'
 import * as BotsUtil from '../bots/util'
 import {useChatState} from '../chat2'
+import {getSelectedConversation} from '../chat2/common'
 import * as ChatUtil from '../chat2/util'
 import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
@@ -174,6 +175,11 @@ export const initSharedSubscriptions = () => {
     if (s.gregorPushState !== old.gregorPushState) {
       const lastSeenItem = s.gregorPushState.find(i => i.item.category === 'whatsNewLastSeenVersion')
       useWhatsNewState.getState().dispatch.updateLastSeen(lastSeenItem)
+    }
+
+    if (s.active !== old.active) {
+      const cs = storeRegistry.getConvoState(getSelectedConversation())
+      cs.dispatch.markThreadAsRead()
     }
   })
 

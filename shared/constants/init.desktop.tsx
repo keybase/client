@@ -1,6 +1,5 @@
 import * as Chat from './chat2'
 import {ignorePromise} from './utils'
-import {useActiveState} from './active'
 import {useConfigState} from './config'
 import * as ConfigConstants from './config'
 import {useDaemonState} from './daemon'
@@ -252,7 +251,7 @@ export const initPlatformListener = () => {
       if (skipAppFocusActions) {
         console.log('Skipping app focus actions!')
       } else {
-        useActiveState.getState().dispatch.setActive(userActive)
+        useConfigState.getState().dispatch.setActive(userActive)
         // let node thread save file
         activeChanged?.(Date.now(), userActive)
       }

@@ -15,7 +15,7 @@ import {invalidPasswordErrorString} from './util'
 import {navigateAppend} from '../router2/util'
 
 type Store = T.Immutable<{
-  forceSmallNav: boolean
+  active: boolean
   allowAnimatedEmojis: boolean
   androidShare?:
     | {type: T.RPCGen.IncomingShareType.file; urls: Array<string>}
@@ -82,6 +82,7 @@ type Store = T.Immutable<{
 }>
 
 const initialStore: Store = {
+  active: true,
   allowAnimatedEmojis: true,
   androidShare: undefined,
   appFocused: true,
@@ -180,6 +181,7 @@ export interface State extends Store {
     revoke: (deviceName: string, wasCurrentDevice: boolean) => void
     refreshAccounts: () => Promise<void>
     setAccounts: (a: Store['configuredAccounts']) => void
+    setActive: (a: boolean) => void
     setAndroidShare: (s: Store['androidShare']) => void
     setBadgeState: (b: State['badgeState']) => void
     setDefaultUsername: (u: string) => void
@@ -663,6 +665,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         if (!isEqual(a, s.configuredAccounts)) {
           s.configuredAccounts = T.castDraft(a)
         }
+      })
+    },
+    setActive: a => {
+      set(s => {
+        s.active = a
       })
     },
     setAndroidShare: share => {
