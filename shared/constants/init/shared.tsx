@@ -110,32 +110,34 @@ export const onEngineConnected = () => {
       } catch (error) {
         logger.warn('error in registering secret ui: ', error)
       }
-          }
-          ignorePromise(f())
-        }
-        { // Tracker2
-          const f = async () => {
-            try {
-              await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
-              logger.info('Registered identify ui')
-            } catch (error) {
-              logger.warn('error in registering identify ui: ', error)
-            }
-          }
-          ignorePromise(f())
-        }
-        { // UnlockFolders
-          const f = async () => {
-            try {
-              await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
-              logger.info('Registered rekey ui')
-            } catch (error) {
-              logger.warn('error in registering rekey ui: ')
-              logger.debug('error in registering rekey ui: ', error)
-            }
-          }
-          ignorePromise(f())
-        }
+    }
+    ignorePromise(f())
+  }
+  {
+    // Tracker2
+    const f = async () => {
+      try {
+        await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
+        logger.info('Registered identify ui')
+      } catch (error) {
+        logger.warn('error in registering identify ui: ', error)
+      }
+    }
+    ignorePromise(f())
+  }
+  {
+    // UnlockFolders
+    const f = async () => {
+      try {
+        await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
+        logger.info('Registered rekey ui')
+      } catch (error) {
+        logger.warn('error in registering rekey ui: ')
+        logger.debug('error in registering rekey ui: ', error)
+      }
+    }
+    ignorePromise(f())
+  }
 }
 
 export const onEngineDisconnected = () => {
@@ -454,8 +456,8 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyTrackingTrackingChanged: {
       const {isTracking, username} = action.payload.params
       useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
-      const {useTracker2State} = require('@/stores/tracker2') as typeof UseTracker2StateType
-      useTracker2State.getState().dispatch.onEngineIncomingImpl(action)
+      const {useTrackerState} = require('@/stores/tracker2') as typeof UseTracker2StateType
+      useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
       break
     }
     case EngineGen.keybase1NotifyTrackingTrackingInfo: {
@@ -480,8 +482,8 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1Identify3UiIdentify3UpdateUserCard:
     case EngineGen.keybase1Identify3UiIdentify3Summary:
       {
-        const {useTracker2State} = require('@/stores/tracker2') as typeof UseTracker2StateType
-        useTracker2State.getState().dispatch.onEngineIncomingImpl(action)
+        const {useTrackerState} = require('@/stores/tracker2') as typeof UseTracker2StateType
+        useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
       }
       {
         const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
