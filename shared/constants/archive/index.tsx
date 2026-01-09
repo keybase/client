@@ -5,9 +5,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as FS from '@/constants/fs'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {uint8ArrayToHex} from 'uint8array-extras'
-import {storeRegistry} from '../store-registry'
 import {isMobile} from '../platform'
-import {useCurrentUserState} from '../current-user'
 
 type ChatJob = {
   id: string
@@ -90,7 +88,6 @@ export interface State extends Store {
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'
   }
-  chatIDToDisplayname: (id: string) => string
 }
 
 export const useArchiveState = Z.createZustand<State>((set, get) => {
@@ -448,23 +445,6 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
   }
   return {
     ...initialStore,
-    chatIDToDisplayname: (conversationIDKey: string) => {
-      const you = useCurrentUserState.getState().username
-      const cs = storeRegistry.getConvoState(conversationIDKey)
-      const m = cs.meta
-      if (m.teamname) {
-        if (m.channelname) {
-          return `${m.teamname}#${m.channelname}`
-        }
-        return m.teamname
-      }
-
-      const participants = cs.participants.name
-      if (participants.length === 1) {
-        return participants[0] ?? ''
-      }
-      return participants.filter(username => username !== you).join(',')
-    },
     dispatch,
   }
 })
