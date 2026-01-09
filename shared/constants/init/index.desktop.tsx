@@ -1,3 +1,4 @@
+// links all the stores together, stores never import this
 import * as Chat from '../chat2'
 import {ignorePromise} from '../utils'
 import {useConfigState} from '../config'
