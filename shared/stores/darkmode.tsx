@@ -1,7 +1,7 @@
-import * as T from '../types'
+import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {Appearance} from 'react-native'
-import {isMobile} from '../platform'
+import {isMobile} from '@/constants/platform'
 
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
 

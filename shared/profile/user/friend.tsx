@@ -1,4 +1,4 @@
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import {useUsersState} from '@/stores/users'
 

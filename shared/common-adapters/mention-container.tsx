@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat2'
 import Mention, {type OwnProps} from './mention'
 import {useTrackerState} from '@/stores/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 

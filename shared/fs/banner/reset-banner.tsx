@@ -7,7 +7,7 @@ import * as RowTypes from '@/fs/browser/rows/types'
 import {useTrackerState} from '@/stores/tracker2'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 
 type OwnProps = {path: T.FS.Path}
 

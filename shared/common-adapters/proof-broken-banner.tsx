@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import {Banner, BannerParagraph} from './banner'
 import {useTrackerState} from '@/stores/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 
 const Kb = {Banner}
 type Props = {users?: Array<string>}

@@ -5,7 +5,7 @@ import {Splash} from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {colors, darkColors, themed} from '@/styles/colors'
 import {useFSState} from '@/stores/fs'
-import {useDarkModeState} from '@/constants/darkmode'
+import {useDarkModeState} from '@/stores/darkmode'
 
 export const SimpleLoading = React.memo(function SimpleLoading() {
   return (

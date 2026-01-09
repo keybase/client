@@ -3,7 +3,7 @@ import * as React from 'react'
 import {useConfigState} from '@/stores/config'
 import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings/util'
-import {useDaemonState} from '@/constants/daemon'
+import {useDaemonState} from '@/stores/daemon'
 
 export type Size = 'Closed' | 'Small' | 'Big'
 

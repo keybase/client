@@ -4,7 +4,7 @@ import * as React from 'react'
 import SubHeading from '../subheading'
 import * as dateFns from 'date-fns'
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import {useState as useSettingsInvitesState} from '@/constants/settings-invites'
 
 // Like intersperse but takes a function to define the separator

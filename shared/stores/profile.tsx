@@ -1,16 +1,16 @@
-import * as T from '../types'
-import {generateGUIID, ignorePromise, wrapErrors} from '../utils'
-import * as S from '../strings'
+import * as T from '@/constants/types'
+import {generateGUIID, ignorePromise, wrapErrors} from '@/constants/utils'
+import * as S from '@/constants/strings'
 import * as Validators from '@/util/simple-validators'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import openURL from '@/util/open-url'
 import {RPCError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
-import {clearModals, navigateAppend, navigateUp} from '../router2/util'
-import {storeRegistry} from '../store-registry'
+import {clearModals, navigateAppend, navigateUp} from '@/constants/router2/util'
+import {storeRegistry} from '@/constants/store-registry'
 import {useCurrentUserState} from '@/stores/current-user'
-import {navToProfile} from '../router2/util'
+import {navToProfile} from '@/constants/router2/util'
 
 type ProveGenericParams = {
   logoBlack: T.Tracker.SiteIconSet

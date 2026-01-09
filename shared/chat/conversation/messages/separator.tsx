@@ -8,7 +8,7 @@ import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp
 import {OrangeLineContext} from '../orange-line-context'
 import logger from '@/logger'
 import {useTrackerState} from '@/stores/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import {useCurrentUserState} from '@/stores/current-user'
 // import {useChatDebugDump} from '@/constants/chat2/debug'
 

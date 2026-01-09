@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
-import * as DarkMode from '@/constants/darkmode'
+import * as DarkMode from '@/stores/darkmode'
 
 const Display = () => {
   const allowAnimatedEmojis = useConfigState(s => s.allowAnimatedEmojis)

@@ -10,7 +10,7 @@ import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
 import * as Tracker from '@/stores/tracker2'
 import {useTrackerState} from '@/stores/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 
 type OwnProps = {
   isSuggestion?: boolean

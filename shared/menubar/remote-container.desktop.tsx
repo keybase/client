@@ -7,8 +7,8 @@ import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useDaemonState} from '@/constants/daemon'
-import {useDarkModeState} from '@/constants/darkmode'
+import {useDaemonState} from '@/stores/daemon'
+import {useDarkModeState} from '@/stores/darkmode'
 
 const RemoteContainer = (d: DeserializeProps) => {
   const {avatarRefreshCounter, badgeMap, daemonHandshakeState, darkMode, diskSpaceStatus, endEstimate} = d

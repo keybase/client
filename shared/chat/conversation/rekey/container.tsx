@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat2'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as T from '@/constants/types'
 import ParticipantRekey from './participant-rekey'

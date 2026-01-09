@@ -16,7 +16,7 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {registerDebugClear} from '@/util/debug'
 import type {RootParamList} from '@/router-v2/route-params'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useDaemonState} from '@/constants/daemon'
+import {useDaemonState} from '@/stores/daemon'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import './router.css'
 

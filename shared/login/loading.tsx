@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useDaemonState} from '@/constants/daemon'
+import {useDaemonState} from '@/stores/daemon'
 
 const SplashContainer = () => {
   const failedReason = useDaemonState(s => s.handshakeFailedReason)

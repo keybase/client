@@ -1,5 +1,5 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
-import {useDarkModeState} from '@/constants/darkmode'
+import {useDarkModeState} from '@/stores/darkmode'
 import {isIOS, isAndroid} from '@/constants/platform'
 import type {DynamicColorIOS as DynamicColorIOSType} from 'react-native'
 import type {Opaque} from '@/constants/types/ts'

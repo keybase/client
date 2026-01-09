@@ -1,8 +1,8 @@
 import logger from '@/logger'
-import {ignorePromise} from '../utils'
-import * as T from '../types'
+import {ignorePromise} from '@/constants/utils'
+import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
-import {maxHandshakeTries} from '../values'
+import {maxHandshakeTries} from '@/constants/values'
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
 // normally this wouldn't be worth it but this is startup

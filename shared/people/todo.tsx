@@ -10,7 +10,7 @@ import {useSettingsPhoneState} from '@/constants/settings-phone'
 import {useSettingsEmailState} from '@/constants/settings-email'
 import {settingsAccountTab, settingsGitTab} from '@/constants/settings/util'
 import {useTrackerState} from '@/stores/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import {usePeopleState, todoTypes} from '@/stores/people'
 import {useCurrentUserState} from '@/stores/current-user'
 

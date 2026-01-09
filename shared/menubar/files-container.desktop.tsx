@@ -1,4 +1,4 @@
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as R from '@/constants/remote'
 import * as T from '@/constants/types'
 import * as RemoteGen from '../actions/remote-gen'

@@ -13,7 +13,7 @@ import {useTrackerState} from '@/stores/tracker2'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useDarkModeState} from '@/constants/darkmode'
+import {useDarkModeState} from '@/stores/darkmode'
 
 const {closeWindow} = KB2.functions
 

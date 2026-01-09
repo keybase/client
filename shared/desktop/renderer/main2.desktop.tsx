@@ -25,7 +25,7 @@ import {debugWarning} from '@/util/debug-warning'
 import type {default as NewMainType} from '../../app/main.desktop'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
-import {useDarkModeState} from '@/constants/darkmode'
+import {useDarkModeState} from '@/stores/darkmode'
 import {initPlatformListener, onEngineIncoming} from '@/constants/init/index.desktop'
 setServiceDecoration(ServiceDecoration)
 

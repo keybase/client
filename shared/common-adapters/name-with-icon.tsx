@@ -14,7 +14,7 @@ import Text, {
 } from './text'
 import ConnectedUsernames from './usernames'
 import {useTrackerState} from '@/stores/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 

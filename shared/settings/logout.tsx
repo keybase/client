@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import {UpdatePassword} from './password'
 import {usePWState} from '@/constants/settings-password'
 import {useSettingsState} from '@/stores/settings'
-import {useLogoutState} from '@/constants/logout'
+import {useLogoutState} from '@/stores/logout'
 
 const LogoutContainer = () => {
   const {checkPassword, checkPasswordIsCorrect, resetCheckPassword} = useSettingsState(

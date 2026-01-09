@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat2'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'

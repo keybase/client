@@ -1,12 +1,12 @@
 import logger from '@/logger'
-import {ignorePromise, timeoutPromise} from '../utils'
+import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 // normally util.container but it re-exports from us so break the cycle
 import * as Z from '@/util/zustand'
 import {settingsPasswordTab} from '@/constants/settings/util'
-import {navigateAppend} from '../router2/util'
-import {isMobile} from '../platform'
-import * as Tabs from '../tabs'
+import {navigateAppend} from '@/constants/router2/util'
+import {isMobile} from '@/constants/platform'
+import * as Tabs from '@/constants/tabs'
 
 // This store has no dependencies on other stores and is safe to import directly from other stores.
 type Store = T.Immutable<{

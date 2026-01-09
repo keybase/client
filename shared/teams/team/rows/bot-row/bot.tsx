@@ -6,7 +6,7 @@ import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
 import {useBotsState} from '@/stores/bots'
 import {useTrackerState} from '@/stores/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 
 export type Props = {
   botAlias: string

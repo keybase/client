@@ -3,7 +3,7 @@ import * as RemoteGen from '../actions/remote-gen'
 import * as R from '@/constants/remote'
 import Pinentry from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
-import {useDarkModeState} from '@/constants/darkmode'
+import {useDarkModeState} from '@/stores/darkmode'
 
 const RemoteContainer = (d: DeserializeProps) => {
   const {darkMode, ...rest} = d

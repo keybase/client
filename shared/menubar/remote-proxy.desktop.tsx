@@ -18,8 +18,8 @@ import {useFollowerState} from '@/stores/followers'
 import {useUsersState} from '@/stores/users'
 import {useNotifState} from '@/stores/notifications'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useDaemonState} from '@/constants/daemon'
-import {useDarkModeState} from '@/constants/darkmode'
+import {useDaemonState} from '@/stores/daemon'
+import {useDarkModeState} from '@/stores/darkmode'
 
 const {showTray} = KB2.functions
 
