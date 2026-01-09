@@ -1,10 +1,11 @@
-import type * as EngineGen from '@/actions/engine-gen-gen'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
 import {serverConfigFileName} from '../platform'
 import * as T from '../types'
 import {ignorePromise} from '../utils'
 import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
+import type * as UseDevicesStateType from '@/stores/devices'
 import * as AvatarUtil from '@/common-adapters/avatar/util'
 import type * as UseBotsStateType from '@/stores/bots'
 import {useChatState} from '../chat2'
@@ -15,7 +16,6 @@ import {useCurrentUserState} from '../current-user'
 import {useDaemonState} from '../daemon'
 import {useDarkModeState} from '../darkmode'
 import * as DeepLinksUtil from '../deeplinks/util'
-import * as DevicesUtil from '../devices/util'
 import * as FollowerUtil from '../followers/util'
 import * as FSUtil from '../fs/util'
 import * as GitUtil from '../git/util'
@@ -257,16 +257,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const {useAutoResetState} = require('@/stores/autoreset') as typeof UseAutoResetStateType
         useAutoResetState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
-      {
-        const {useBotsState} = require('@/stores/bots') as typeof UseBotsStateType
-        useBotsState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case EngineGen.keybase1NotifyBadgesBadgeState:
-      {
+
         const {badgeState} = action.payload.params
         const {newDevices, revokedDevices} = badgeState
         const hasValue = (newDevices?.length ?? 0) + (revokedDevices?.length ?? 0) > 0
@@ -275,6 +266,12 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
           const {useDevicesState} = require('@/stores/devices') as typeof UseDevicesStateType
           useDevicesState.getState().dispatch.onEngineIncomingImpl(action)
         }
+      }
+      break
+    case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
+      {
+        const {useBotsState} = require('@/stores/bots') as typeof UseBotsStateType
+        useBotsState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     default:
