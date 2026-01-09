@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import Group from './group'
 import {useSettingsChatState as useSettingsChatState} from '@/stores/settings-chat'
-import {useSettingsNotifState} from '@/constants/settings-notifications'
+import {useSettingsNotifState} from '@/stores/settings-notifications'
 import {useSettingsState} from '@/stores/settings'
 import {useConfigState} from '@/stores/config'
 

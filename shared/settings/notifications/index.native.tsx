@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import Notifications from './render'
 import {Reloadable} from '@/common-adapters'
-import {useSettingsNotifState} from '@/constants/settings-notifications'
+import {useSettingsNotifState} from '@/stores/settings-notifications'
 import {useSettingsState} from '@/stores/settings'
 import {usePushState} from '@/constants/push'
 

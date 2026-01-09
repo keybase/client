@@ -4,7 +4,7 @@ import type * as React from 'react'
 import EmailPhoneRow from './email-phone-row'
 import {usePWState} from '@/constants/settings-password'
 import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useSettingsEmailState} from '@/constants/settings-email'
+import {useSettingsEmailState} from '@/stores/settings-email'
 import {useSettingsState, settingsPasswordTab} from '@/stores/settings'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (

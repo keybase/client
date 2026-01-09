@@ -7,7 +7,7 @@ import {EnterPhoneNumberBody} from '@/signup/phone-number'
 import VerifyBody from '@/signup/phone-number/verify-body'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useSettingsEmailState} from '@/constants/settings-email'
+import {useSettingsEmailState} from '@/stores/settings-email'
 
 export const Email = () => {
   const nav = useSafeNavigation()

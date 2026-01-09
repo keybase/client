@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useTrackerState} from '@/stores/tracker2'
 import {useFollowerState} from '@/stores/followers'
 

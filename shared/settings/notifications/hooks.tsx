@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import {useSettingsEmailState} from '@/constants/settings-email'
-import {useSettingsNotifState} from '@/constants/settings-notifications'
+import {useSettingsEmailState} from '@/stores/settings-email'
+import {useSettingsNotifState} from '@/stores/settings-notifications'
 import {useSettingsState, settingsAccountTab} from '@/stores/settings'
 
 const useNotifications = () => {

@@ -22,8 +22,8 @@ import type {
 } from '@/stores/recover-password'
 import type {State as SettingsState, useSettingsState} from '@/stores/settings'
 import type {State as SettingsChatState, useSettingsChatState} from '@/stores/settings-chat'
-import type {State as SettingsContactsState, useSettingsContactsState} from '@/constants/settings-contacts'
-import type {State as SettingsEmailState, useSettingsEmailState} from '@/constants/settings-email'
+import type {State as SettingsContactsState, useSettingsContactsState} from '@/stores/settings-contacts'
+import type {State as SettingsEmailState, useSettingsEmailState} from '@/stores/settings-email'
 import type {State as SettingsPasswordState, usePWState} from '@/constants/settings-password'
 import type {State as SettingsPhoneState, useSettingsPhoneState} from '@/constants/settings-phone'
 import type {State as SignupState, useSignupState} from '@/stores/signup'
@@ -177,11 +177,11 @@ class StoreRegistry {
         return useSettingsChatState
       }
       case 'settings-contacts': {
-        const {useSettingsContactsState} = require('@/constants/settings-contacts')
+        const {useSettingsContactsState} = require('@/stores/settings-contacts')
         return useSettingsContactsState
       }
       case 'settings-email': {
-        const {useSettingsEmailState} = require('@/constants/settings-email')
+        const {useSettingsEmailState} = require('@/stores/settings-email')
         return useSettingsEmailState
       }
       case 'settings-password': {

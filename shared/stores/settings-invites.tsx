@@ -1,11 +1,11 @@
 import * as Z from '@/util/zustand'
-import {ignorePromise} from '../utils'
-import {waitingKeySettingsGeneric} from '../strings'
+import {ignorePromise} from '@/constants/utils'
+import {waitingKeySettingsGeneric} from '@/constants/strings'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import trim from 'lodash/trim'
-import * as T from '../types'
-import {navigateAppend} from '../router2/util'
+import * as T from '@/constants/types'
+import {navigateAppend} from '@/constants/router2/util'
 
 type InviteBase = {
   id: string

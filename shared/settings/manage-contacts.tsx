@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SettingsSection} from './account'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {settingsFeedbackTab} from '@/stores/settings'
 import {useConfigState} from '@/stores/config'
 

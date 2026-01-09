@@ -1,7 +1,7 @@
 import {Reloadable} from '@/common-adapters'
 import * as C from '@/constants'
 import Render from './render'
-import {useSettingsNotifState} from '@/constants/settings-notifications'
+import {useSettingsNotifState} from '@/stores/settings-notifications'
 import {useSettingsState} from '@/stores/settings'
 
 const Notifications = () => {
