@@ -18,7 +18,7 @@ import {kbfsNotification} from '../platform-specific/kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import NotifyPopup from '@/util/notify-popup'
 import {noKBFSFailReason} from '../config/util'
-import {initSharedSubscriptions, onEngineConnected, onEngineDisconnected} from './shared'
+import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {wrapErrors} from '@/util/debug'
 import {dumpLogs} from '../platform-specific/index.desktop'
 
@@ -50,6 +50,7 @@ const maybePauseVideos = () => {
 }
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
+  _onEngineIncoming(action)
   switch (action.type) {
     case EngineGen.keybase1LogsendPrepareLogsend: {
       const f = async () => {
@@ -127,7 +128,6 @@ export const initPlatformListener = () => {
       }
       ignorePromise(f())
     })
-
   })
 
   useConfigState.subscribe((s, old) => {
@@ -269,8 +269,7 @@ export const initPlatformListener = () => {
   })
 
   initSharedSubscriptions()
-
   ignorePromise(useFSState.getState().dispatch.setupSubscriptions())
 }
 
-export {onEngineConnected, onEngineDisconnected}
+export {onEngineConnected, onEngineDisconnected} from './shared'

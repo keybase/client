@@ -33,7 +33,6 @@ import * as TrackerUtil from '../tracker2/util'
 import * as UnlockFoldersUtil from '../unlock-folders/util'
 import * as UsersUtil from '../users/util'
 import {useWhatsNewState} from '../whats-new'
-import {onEngineIncoming as onEngineIncomingPlatform} from '../init'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 
@@ -57,7 +56,6 @@ export const onEngineDisconnected = () => {
 }
 
 export const initSharedSubscriptions = () => {
-
   useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase !== old.loadOnStartPhase) {
       if (s.loadOnStartPhase === 'startupOrReloginButNotInARush') {
@@ -235,10 +233,7 @@ export const initSharedSubscriptions = () => {
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
         if (useConfigState.getState().loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise(
-            {force: false, keepSecrets: true},
-            'config:loginAsOther'
-          )
+          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, 'config:loginAsOther')
         }
       }
       ignorePromise(f())
@@ -246,13 +241,12 @@ export const initSharedSubscriptions = () => {
   })
 }
 
-export const onEngineIncoming = (action: EngineGen.Actions) => {
+export const _onEngineIncoming = (action: EngineGen.Actions) => {
   ArchiveUtil.onEngineIncoming(action)
   AutoResetUtil.onEngineIncoming(action)
   AvatarUtil.onEngineIncoming(action)
   BotsUtil.onEngineIncoming(action)
   ChatUtil.onEngineIncoming(action)
-  onEngineIncomingPlatform(action)
   useConfigState.getState().dispatch.onEngineIncoming(action)
   DeepLinksUtil.onEngineIncoming(action)
   DevicesUtil.onEngineIncoming(action)

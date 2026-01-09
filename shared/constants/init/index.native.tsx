@@ -33,7 +33,7 @@ import {
   shareListenersRegistered,
 } from 'react-native-kb'
 import {initPushListener, getStartupDetailsFromInitialPush} from '../platform-specific/push.native'
-import {initSharedSubscriptions, onEngineConnected, onEngineDisconnected} from './shared'
+import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from '../types/chat2/common'
 import {getSelectedConversation} from '../chat2/common'
@@ -205,6 +205,7 @@ const onChatClearWatch = async () => {
 }
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
+  _onEngineIncoming(action)
   switch (action.type) {
     case EngineGen.chat1ChatUiTriggerContactSync:
       useSettingsContactsState.getState().dispatch.manageContactsCache()
@@ -504,4 +505,4 @@ export const initPlatformListener = () => {
   ignorePromise(useFSState.getState().dispatch.setupSubscriptions())
 }
 
-export {onEngineConnected, onEngineDisconnected}
+export {onEngineConnected, onEngineDisconnected} from './shared'
