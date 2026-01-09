@@ -1157,7 +1157,7 @@ func TestRunnerSubmodule(t *testing.T) {
 	// git-submodules requires a real working directory for some reason.
 	err = os.Chdir(git1)
 	require.NoError(t, err)
-	gitExec(t, dotgit1, git1, "submodule", "add", "-f", dotgit2)
+	gitExec(t, dotgit1, git1, "-c", "protocol.file.allow=always", "submodule", "add", "-f", dotgit2)
 	gitExec(t, dotgit1, git1, "-c", "user.name=Foo",
 		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", "submodule")
 
