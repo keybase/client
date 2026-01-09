@@ -1,7 +1,5 @@
 import * as T from '../types'
 import {ignorePromise} from '../utils'
-import * as EngineGen from '@/actions/engine-gen-gen'
-import {storeRegistry} from '../store-registry'
 
 export const onEngineConnected = () => {
   const f = async () => {
@@ -14,4 +12,3 @@ export const onEngineConnected = () => {
   }
   ignorePromise(f())
 }
-
