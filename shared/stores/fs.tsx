@@ -1,9 +1,9 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
-import {ignorePromise, timeoutPromise} from '../utils'
-import * as S from '../strings'
-import {requestPermissionsToWrite} from '../platform-specific'
-import * as Tabs from '../tabs'
-import * as T from '../types'
+import {ignorePromise, timeoutPromise} from '@/constants/utils'
+import * as S from '@/constants/strings'
+import {requestPermissionsToWrite} from '@/constants/platform-specific'
+import * as Tabs from '@/constants/tabs'
+import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import NotifyPopup from '@/util/notify-popup'
 import {RPCError} from '@/util/errors'
@@ -11,10 +11,10 @@ import logger from '@/logger'
 import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
-import {navigateAppend, navigateUp} from '../router2/util'
-import {storeRegistry} from '../store-registry'
-import {useConfigState} from '../config'
-import {useCurrentUserState} from '../current-user'
+import {navigateAppend, navigateUp} from '@/constants/router2/util'
+import {storeRegistry} from '@/constants/store-registry'
+import {useConfigState} from '@/constants/config'
+import {useCurrentUserState} from '@/constants/current-user'
 import * as Util from '@/constants/fs/util'
 
 export * from '@/constants/fs/util'
@@ -1598,7 +1598,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       })
     },
     setupSubscriptions: async () => {
-      const initPlatformSpecific = await import('./platform-specific')
+      const initPlatformSpecific = await import('../constants/fs/platform-specific')
       initPlatformSpecific.default()
     },
     showIncomingShare: initialDestinationParentPath => {
