@@ -2541,9 +2541,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         }
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
-      storeRegistry
-        .getState('router')
-        .dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     showMoveOrCopy: initialDestinationParentPath => {
       set(s => {
@@ -2558,9 +2556,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
 
-      storeRegistry
-        .getState('router')
-        .dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     startManualConflictResolution: tlfPath => {
       const f = async () => {

@@ -2170,9 +2170,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             clearModals()
           }
 
-          storeRegistry
-            .getState('router')
-            .dispatch.navigateAppend({props: {conversationIDKey}, selected: Common.threadRouteName}, replace)
+          navigateAppend({props: {conversationIDKey}, selected: Common.threadRouteName}, replace)
         }
       }
       updateNav()
@@ -3331,8 +3329,6 @@ export const ProviderScreen = React.memo(function ProviderScreen(p: {
 
 import type {NavigateAppendType} from '@/router-v2/route-params'
 export const useChatNavigateAppend = () => {
-  const useRouterState = storeRegistry.getStore('router')
-  const navigateAppend = useRouterState(s => s.dispatch.navigateAppend)
   const cid = useChatContext(s => s.id)
   return React.useCallback(
     (makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType, replace?: boolean) => {

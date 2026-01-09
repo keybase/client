@@ -5,6 +5,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
 import debounce from 'lodash/debounce'
+import {navigateAppend} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {useConfigState} from '../config'
 
@@ -152,9 +153,7 @@ export const useGitState = Z.createZustand<State>((set, get) => {
         await _load()
         for (const [, info] of get().idToInfo) {
           if (info.repoID === repoID && info.teamname === teamname) {
-            storeRegistry
-              .getState('router')
-              .dispatch.navigateAppend({props: {expanded: info.id}, selected: 'gitRoot'})
+            navigateAppend({props: {expanded: info.id}, selected: 'gitRoot'})
             break
           }
         }

@@ -168,9 +168,7 @@ export const handleKeybaseLink = (link: string) => {
       try {
         const decoded = decodeURIComponent(link)
         switchTab(Tabs.fsTab)
-        storeRegistry
-          .getState('router')
-          .dispatch.navigateAppend({props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'})
+        navigateAppend({props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'})
         return
       } catch {
         logger.warn("Coudn't decode KBFS URI")

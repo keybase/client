@@ -17,7 +17,6 @@ import type {State as ProfileState, useProfileState} from './profile'
 import type {State as ProvisionState, useProvisionState} from './provision'
 import type {State as PushState, usePushState} from './push'
 import type {State as RecoverPasswordState, useState as useRecoverPasswordState} from './recover-password'
-import type {State as RouterState, useRouterState} from './router2'
 import type {State as SettingsState, useSettingsState} from './settings'
 import type {State as SettingsChatState, useSettingsChatState} from './settings-chat'
 import type {State as SettingsContactsState, useSettingsContactsState} from './settings-contacts'
@@ -44,7 +43,6 @@ type StoreName =
   | 'provision'
   | 'push'
   | 'recover-password'
-  | 'router'
   | 'settings'
   | 'settings-chat'
   | 'settings-contacts'
@@ -71,7 +69,6 @@ type StoreStates = {
   provision: ProvisionState
   push: PushState
   'recover-password': RecoverPasswordState
-  router: RouterState
   settings: SettingsState
   'settings-chat': SettingsChatState
   'settings-contacts': SettingsContactsState
@@ -99,7 +96,6 @@ type StoreHooks = {
   provision: typeof useProvisionState
   push: typeof usePushState
   'recover-password': typeof useRecoverPasswordState
-  router: typeof useRouterState
   settings: typeof useSettingsState
   'settings-chat': typeof useSettingsChatState
   'settings-contacts': typeof useSettingsContactsState
@@ -168,10 +164,6 @@ class StoreRegistry {
       case 'recover-password': {
         const {useState} = require('./recover-password')
         return useState
-      }
-      case 'router': {
-        const {useRouterState} = require('./router2')
-        return useRouterState
       }
       case 'settings': {
         const {useSettingsState} = require('./settings')
