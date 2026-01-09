@@ -117,11 +117,11 @@ class StoreRegistry {
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
     switch (storeName) {
       case 'autoreset': {
-        const {useAutoResetState} = require('./autoreset')
+        const {useAutoResetState} = require('../stores/autoreset')
         return useAutoResetState
       }
       case 'bots': {
-        const {useBotsState} = require('./bots')
+        const {useBotsState} = require('../stores/bots')
         return useBotsState
       }
       case 'chat': {
@@ -133,7 +133,7 @@ class StoreRegistry {
         return useDaemonState
       }
       case 'devices': {
-        const {useDevicesState} = require('./devices')
+        const {useDevicesState} = require('../stores/devices')
         return useDevicesState
       }
       case 'fs': {

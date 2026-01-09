@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 
 export const HeaderTitle = () => {
-  const Devices = require('@/constants/devices') as typeof DevicesType
+  const Devices = require('@/stores/devices') as typeof DevicesType
   const numActive = Devices.useActiveDeviceCounts()
   const numRevoked = Devices.useRevokedDeviceCounts()
   return (
