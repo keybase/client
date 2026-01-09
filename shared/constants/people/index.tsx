@@ -10,7 +10,7 @@ import {isMobile} from '../platform'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import debounce from 'lodash/debounce'
 import {useConfigState} from '../config'
-import {useFollowerState} from '../followers'
+import {useFollowerState} from '@/stores/followers'
 import {RPCError, isNetworkErr} from '../utils'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
