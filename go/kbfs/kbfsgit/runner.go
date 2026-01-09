@@ -1722,7 +1722,7 @@ func (r *runner) pushSome(
 				r.processGogitStatus(ctx, s, events)
 				fs.UnsubscribeToEvents(events)
 				// Drain any pending writes to the channel.
-				for range events {
+				for range events { //nolint:revive // empty-block: intentionally draining channel
 				}
 			}()
 		}

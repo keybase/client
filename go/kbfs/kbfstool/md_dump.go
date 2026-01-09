@@ -39,16 +39,16 @@ func mdDumpChunk(ctx context.Context, config libkbfs.Config,
 	tlfID tlf.ID, branchID kbfsmd.BranchID,
 	start, stop kbfsmd.Revision,
 ) error {
-	min := start
-	max := stop
+	minRev := start
+	maxRev := stop
 	reversed := false
 	if start > stop {
-		min = stop
-		max = start
+		minRev = stop
+		maxRev = start
 		reversed = true
 	}
 
-	irmds, err := mdGet(ctx, config, tlfID, branchID, min, max)
+	irmds, err := mdGet(ctx, config, tlfID, branchID, minRev, maxRev)
 	if err != nil {
 		return err
 	}

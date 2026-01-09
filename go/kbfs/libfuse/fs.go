@@ -72,8 +72,8 @@ type FS struct {
 
 func makeTraceHandler(renderFn func(http.ResponseWriter, *http.Request, bool)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		any, sensitive := trace.AuthRequest(req)
-		if !any {
+		anyAuth, sensitive := trace.AuthRequest(req)
+		if !anyAuth {
 			http.Error(w, "not allowed", http.StatusUnauthorized)
 			return
 		}

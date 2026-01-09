@@ -2009,7 +2009,7 @@ func TestPrefetcherReschedules(t *testing.T) {
 	// channel when the test is over. (The defered close is at the top
 	// of this function.)
 	go func() {
-		for range prefetchDoneCh {
+		for range prefetchDoneCh { //nolint:revive // empty-block: intentionally draining channel
 		}
 	}()
 

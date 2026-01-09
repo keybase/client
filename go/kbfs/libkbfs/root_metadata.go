@@ -1108,11 +1108,11 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(
 // DecodeRootMetadataSigned deserializes a metadata block into the
 // specified versioned structure.
 func DecodeRootMetadataSigned(
-	codec kbfscodec.Codec, tlf tlf.ID, ver, max kbfsmd.MetadataVer, buf []byte,
+	codec kbfscodec.Codec, tlf tlf.ID, ver, maxVer kbfsmd.MetadataVer, buf []byte,
 	untrustedServerTimestamp time.Time) (
 	*RootMetadataSigned, error,
 ) {
-	rmds, err := kbfsmd.DecodeRootMetadataSigned(codec, tlf, ver, max, buf)
+	rmds, err := kbfsmd.DecodeRootMetadataSigned(codec, tlf, ver, maxVer, buf)
 	if err != nil {
 		return nil, err
 	}

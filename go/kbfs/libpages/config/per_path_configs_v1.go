@@ -260,7 +260,7 @@ func (c *perPathConfigsReaderV1) getPerPathConfig(
 // getPermissions returns the permissions that username has on p. This method
 // should only be called on the root perPathConfigsReaderV1.
 func (c *perPathConfigsReaderV1) getPermissions(p string, username *string) (
-	permissions permissionsV1, max permissionsV1, effectivePath string,
+	permissions permissionsV1, maxPermissions permissionsV1, effectivePath string,
 ) {
 	// This is only called on the root perPathConfigsReaderV1, and c.ac is always
 	// populated here. So even if no other path shows up in the per-path

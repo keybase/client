@@ -114,9 +114,9 @@ func checkPendingOp(ctx context.Context,
 		write := o.Write()
 		require.Equal(t, write.Path, src, "Expected matching path in operation")
 	case keybase1.AsyncOps_COPY:
-		copy := o.Copy()
-		require.Equal(t, copy.Src, src, "Expected matching path in operation")
-		require.Equal(t, copy.Dest, dest, "Expected matching path in operation")
+		copyOp := o.Copy()
+		require.Equal(t, copyOp.Src, src, "Expected matching path in operation")
+		require.Equal(t, copyOp.Dest, dest, "Expected matching path in operation")
 	case keybase1.AsyncOps_MOVE:
 		move := o.Move()
 		require.Equal(t, move.Src, src, "Expected matching path in operation")

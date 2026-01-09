@@ -336,11 +336,11 @@ func MakeInitialRootMetadata(
 }
 
 func makeMutableRootMetadataForDecode(codec kbfscodec.Codec, tlf tlf.ID,
-	ver, max MetadataVer, buf []byte,
+	ver, maxVer MetadataVer, buf []byte,
 ) (MutableRootMetadata, error) {
 	if ver < FirstValidMetadataVer {
 		return nil, InvalidMetadataVersionError{TlfID: tlf, MetadataVer: ver}
-	} else if ver > max {
+	} else if ver > maxVer {
 		return nil, NewMetadataVersionError{tlf, ver}
 	}
 	if ver > ImplicitTeamsVer {
@@ -356,9 +356,9 @@ func makeMutableRootMetadataForDecode(codec kbfscodec.Codec, tlf tlf.ID,
 // DecodeRootMetadata deserializes a metadata block into the specified
 // versioned structure.
 func DecodeRootMetadata(codec kbfscodec.Codec, tlfID tlf.ID,
-	ver, max MetadataVer, buf []byte,
+	ver, maxVer MetadataVer, buf []byte,
 ) (MutableRootMetadata, error) {
-	rmd, err := makeMutableRootMetadataForDecode(codec, tlfID, ver, max, buf)
+	rmd, err := makeMutableRootMetadataForDecode(codec, tlfID, ver, maxVer, buf)
 	if err != nil {
 		return nil, err
 	}
