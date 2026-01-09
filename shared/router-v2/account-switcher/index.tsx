@@ -9,7 +9,7 @@ import {useTrackerState} from '@/stores/tracker2'
 import {useProfileState} from '@/stores/profile'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: ReadonlyArray<T>,

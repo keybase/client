@@ -7,7 +7,7 @@ import QRScan from './qr-scan'
 import Troubleshooting from '../troubleshooting'
 import type * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
-import {type Device, useProvisionState} from '@/constants/provision'
+import {type Device, useProvisionState} from '@/stores/provision'
 
 const CodePageContainer = () => {
   const {deviceID, storeDeviceName} = useCurrentUserState(

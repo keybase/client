@@ -14,14 +14,14 @@ import type {State as GitState, useGitState} from '@/stores/git'
 import type {State as NotificationsState, useNotifState} from '@/stores/notifications'
 import type {State as PeopleState, usePeopleState} from '@/stores/people'
 import type {State as ProfileState, useProfileState} from '@/stores/profile'
-import type {State as ProvisionState, useProvisionState} from '@/constants/provision'
+import type {State as ProvisionState, useProvisionState} from '@/stores/provision'
 import type {State as PushState, usePushState} from '@/constants/push'
 import type {
   State as RecoverPasswordState,
   useState as useRecoverPasswordState,
-} from '@/constants/recover-password'
+} from '@/stores/recover-password'
 import type {State as SettingsState, useSettingsState} from '@/stores/settings'
-import type {State as SettingsChatState, useSettingsChatState} from '@/constants/settings-chat'
+import type {State as SettingsChatState, useSettingsChatState} from '@/stores/settings-chat'
 import type {State as SettingsContactsState, useSettingsContactsState} from '@/constants/settings-contacts'
 import type {State as SettingsEmailState, useSettingsEmailState} from '@/constants/settings-email'
 import type {State as SettingsPasswordState, usePWState} from '@/constants/settings-password'
@@ -157,7 +157,7 @@ class StoreRegistry {
         return useProfileState
       }
       case 'provision': {
-        const {useProvisionState} = require('@/constants/provision')
+        const {useProvisionState} = require('@/stores/provision')
         return useProvisionState
       }
       case 'push': {
@@ -165,7 +165,7 @@ class StoreRegistry {
         return usePushState
       }
       case 'recover-password': {
-        const {useState} = require('@/constants/recover-password')
+        const {useState} = require('@/stores/recover-password')
         return useState
       }
       case 'settings': {
@@ -173,7 +173,7 @@ class StoreRegistry {
         return useSettingsState
       }
       case 'settings-chat': {
-        const {useSettingsChatState} = require('@/constants/settings-chat')
+        const {useSettingsChatState} = require('@/stores/settings-chat')
         return useSettingsChatState
       }
       case 'settings-contacts': {

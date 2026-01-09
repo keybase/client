@@ -3,9 +3,9 @@ import * as React from 'react'
 import {useConfigState} from '@/stores/config'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
-import {useState as useRecoverState} from '@/constants/recover-password'
+import {useState as useRecoverState} from '@/stores/recover-password'
 import {useSignupState} from '@/stores/signup'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 const needPasswordError = 'passphrase cannot be empty'
 

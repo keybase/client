@@ -1,15 +1,15 @@
-import * as T from '../types'
-import {ignorePromise, wrapErrors} from '../utils'
-import {waitingKeyProvision, waitingKeyProvisionForgotUsername} from '../strings'
+import * as T from '@/constants/types'
+import {ignorePromise, wrapErrors} from '@/constants/utils'
+import {waitingKeyProvision, waitingKeyProvisionForgotUsername} from '@/constants/strings'
 import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
-import {isMobile} from '../platform'
+import {isMobile} from '@/constants/platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import isEqual from 'lodash/isEqual'
-import {rpcDeviceToDevice} from '../rpc-utils'
+import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {invalidPasswordErrorString} from '@/constants/config/util'
-import {clearModals, navigateAppend} from '../router2/util'
-import {useWaitingState} from '../waiting'
+import {clearModals, navigateAppend} from '@/constants/router2/util'
+import {useWaitingState} from '@/constants/waiting'
 
 export type Device = {
   deviceNumberOfType: number

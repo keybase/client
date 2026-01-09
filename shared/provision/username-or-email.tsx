@@ -8,7 +8,7 @@ import type {RPCError} from '@/util/errors'
 import * as Kb from '@/common-adapters'
 import UserCard from '@/login/user-card'
 import {SignupScreen, errorBanner} from '@/signup/common'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 type OwnProps = {fromReset?: boolean; username?: string}
 

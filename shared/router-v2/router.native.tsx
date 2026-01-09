@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/router2'
+import * as Constants from '@/stores/router2'
 import {useConfigState} from '@/stores/config'
 import {useDarkModeState} from '@/stores/darkmode'
 import * as Kb from '@/common-adapters'

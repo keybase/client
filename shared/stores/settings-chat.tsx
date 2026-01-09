@@ -1,6 +1,6 @@
-import * as T from '../types'
-import {ignorePromise} from '../utils'
-import * as S from '../strings'
+import * as T from '@/constants/types'
+import {ignorePromise} from '@/constants/utils'
+import * as S from '@/constants/strings'
 import * as Z from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 

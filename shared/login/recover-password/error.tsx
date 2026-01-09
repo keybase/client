@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
-import {useState as useRecoverState} from '@/constants/recover-password'
+import {useState as useRecoverState} from '@/stores/recover-password'
 import {useConfigState} from '@/stores/config'
 
 const ConnectedError = () => {

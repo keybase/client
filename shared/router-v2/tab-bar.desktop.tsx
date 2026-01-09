@@ -19,7 +19,7 @@ import {useFSState} from '@/stores/fs'
 import {useProfileState} from '@/stores/profile'
 import {useNotifState} from '@/stores/notifications'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 const {hideWindow, ctlQuit} = KB2.functions
 

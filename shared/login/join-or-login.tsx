@@ -4,7 +4,7 @@ import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
 import {useSignupState} from '@/stores/signup'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 const Intro = () => {
   const justDeletedSelf = useConfigState(s => s.justDeletedSelf)

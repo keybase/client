@@ -5,7 +5,7 @@ import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
 import openURL from '@/util/open-url'
 import * as T from '@/constants/types'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <LoginContainer onBack={p.onBack}>
