@@ -1,9 +1,9 @@
 import * as Z from '@/util/zustand'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as T from '../types'
+import * as T from '@/constants/types'
 import logger from '@/logger'
 import {invalidPasswordErrorString} from '@/constants/config/util'
-import {wrapErrors} from '../utils'
+import {wrapErrors} from '@/constants/utils'
 
 // This store has no dependencies on other stores and is safe to import directly from other stores.
 export type Store = T.Immutable<{

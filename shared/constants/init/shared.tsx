@@ -1,6 +1,6 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
-import {serverConfigFileName} from '../platform'
+import {isMobile, serverConfigFileName} from '../platform'
 import * as T from '../types'
 import {ignorePromise} from '../utils'
 import type * as UseArchiveStateType from '@/stores/archive'
@@ -21,10 +21,8 @@ import isEqual from 'lodash/isEqual'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseGitStateType from '@/stores/git'
 import type * as UseNotificationsStateType from '@/stores/notifications'
-import * as NotifUtil from '../notifications/util'
 import type * as UsePeopleStateType from '@/stores/people'
-import * as PeopleUtil from '../people/util'
-import * as PinentryUtil from '../pinentry/util'
+import type * as UsePinentryStateType from '@/stores/pinentry'
 import {useProvisionState} from '../provision'
 import {storeRegistry} from '../store-registry'
 import {useSettingsContactsState} from '../settings-contacts'
@@ -45,9 +43,77 @@ export const onEngineConnected = () => {
   ChatUtil.onEngineConnected()
   useConfigState.getState().dispatch.onEngineConnected()
   storeRegistry.getState('daemon').dispatch.startHandshake()
-  NotifUtil.onEngineConnected()
-  PeopleUtil.onEngineConnected()
-  PinentryUtil.onEngineConnected()
+  {
+    const f = async () => {
+      try {
+        await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
+          channels: {
+            allowChatNotifySkips: true,
+            app: true,
+            audit: true,
+            badges: true,
+            chat: true,
+            chatarchive: true,
+            chatattachments: true,
+            chatdev: false,
+            chatemoji: false,
+            chatemojicross: false,
+            chatkbfsedits: false,
+            deviceclone: false,
+            ephemeral: false,
+            favorites: false,
+            featuredBots: true,
+            kbfs: true,
+            kbfsdesktop: !isMobile,
+            kbfslegacy: false,
+            kbfsrequest: false,
+            kbfssubscription: true,
+            keyfamily: false,
+            notifysimplefs: true,
+            paperkeys: false,
+            pgp: true,
+            reachability: true,
+            runtimestats: true,
+            saltpack: true,
+            service: true,
+            session: true,
+            team: true,
+            teambot: false,
+            tracking: true,
+            users: true,
+            wallet: false,
+          },
+        })
+      } catch (error) {
+        if (error) {
+          logger.warn('error in toggling notifications: ', error)
+        }
+      }
+    }
+    ignorePromise(f())
+  }
+  {
+    const f = async () => {
+      try {
+        await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()
+        console.log('Registered home UI')
+      } catch (error) {
+        console.warn('Error in registering home UI:', error)
+      }
+    }
+    ignorePromise(f())
+  }
+  {
+    const f = async () => {
+      try {
+        await T.RPCGen.delegateUiCtlRegisterSecretUIRpcPromise()
+        logger.info('Registered secret ui')
+      } catch (error) {
+        logger.warn('error in registering secret ui: ', error)
+      }
+    }
+    ignorePromise(f())
+  }
   TrackerUtil.onEngineConnected()
   UnlockFoldersUtil.onEngineConnected()
 }
@@ -310,6 +376,12 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         usePeopleState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
+    case EngineGen.keybase1SecretUiGetPassphrase:
+      {
+        const {usePinentryState} = require('@/stores/pinentry') as typeof UsePinentryStateType
+        usePinentryState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
     default:
   }
   AvatarUtil.onEngineIncoming(action)
@@ -337,7 +409,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     }
     default:
   }
-  PinentryUtil.onEngineIncoming(action)
   SettingsUtil.onEngineIncoming(action)
   SignupUtil.onEngineIncoming(action)
   TeamsUtil.onEngineIncoming(action)
