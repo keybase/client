@@ -20,6 +20,7 @@ import {useFollowerState} from '@/stores/followers'
 import isEqual from 'lodash/isEqual'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseGitStateType from '@/stores/git'
+import type * as UseNotificationsStateType from '@/stores/notifications'
 import * as NotifUtil from '../notifications/util'
 import * as PeopleUtil from '../people/util'
 import * as PinentryUtil from '../pinentry/util'
@@ -291,6 +292,14 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useFSState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
+    case EngineGen.keybase1NotifyAuditRootAuditError:
+    case EngineGen.keybase1NotifyAuditBoxAuditError:
+    case EngineGen.keybase1NotifyBadgesBadgeState:
+      {
+        const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
+        useNotifState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
     default:
   }
   AvatarUtil.onEngineIncoming(action)
@@ -318,7 +327,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     }
     default:
   }
-  NotifUtil.onEngineIncoming(action)
   PeopleUtil.onEngineIncoming(action)
   PinentryUtil.onEngineIncoming(action)
   SettingsUtil.onEngineIncoming(action)

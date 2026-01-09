@@ -10,7 +10,7 @@ import noop from 'lodash/noop'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
 import * as Settings from '@/constants/settings'
 import {usePushState} from '@/constants/push'
-import {useNotifState} from '@/constants/notifications'
+import {useNotifState} from '@/stores/notifications'
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')

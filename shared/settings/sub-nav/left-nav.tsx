@@ -6,7 +6,7 @@ import SettingsItem from './settings-item'
 import {keybaseFM} from '@/constants/whats-new'
 import * as Settings from '@/constants/settings'
 import {usePushState} from '@/constants/push'
-import {useNotifState} from '@/constants/notifications'
+import {useNotifState} from '@/stores/notifications'
 
 type Props = {
   onClick: (s: string) => void

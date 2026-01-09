@@ -55,15 +55,3 @@ export const onEngineConnected = () => {
   ignorePromise(f())
 }
 
-export const onEngineIncoming = (action: EngineGen.Actions) => {
-  switch (action.type) {
-    case EngineGen.keybase1NotifyAuditRootAuditError:
-    case EngineGen.keybase1NotifyAuditBoxAuditError:
-    case EngineGen.keybase1NotifyBadgesBadgeState:
-      {
-        storeRegistry.getState('notifications').dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    default:
-  }
-}

@@ -17,7 +17,7 @@ import {settingsLogOutTab} from '@/constants/settings/util'
 import {useTrackerState} from '@/constants/tracker2'
 import {useFSState} from '@/stores/fs'
 import {useProfileState} from '@/constants/profile'
-import {useNotifState} from '@/constants/notifications'
+import {useNotifState} from '@/stores/notifications'
 import {useCurrentUserState} from '@/constants/current-user'
 import {useProvisionState} from '@/constants/provision'
 
