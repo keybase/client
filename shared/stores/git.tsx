@@ -1,12 +1,12 @@
-import * as S from '../strings'
-import * as T from '../types'
-import {ignorePromise} from '../utils'
+import * as S from '@/constants/strings'
+import * as T from '@/constants/types'
+import {ignorePromise} from '@/constants/utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
 import debounce from 'lodash/debounce'
-import {navigateAppend} from '../router2/util'
-import {useConfigState} from '../config'
+import {navigateAppend} from '@/constants/router2/util'
+import {useConfigState} from '@/constants/config'
 
 const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {
   const errors: Array<Error> = []
