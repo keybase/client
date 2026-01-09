@@ -9,7 +9,7 @@ import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
-import {List, type RowComponentProps} from 'react-window'
+import {List, type RowComponentProps, useListRef} from 'react-window'
 import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/sizes'
 import {makeRow} from './row'
 import './inbox.css'
@@ -79,8 +79,11 @@ const DragLine = (p: {
         (e.dataTransfer?.types.length ?? 0) > 0 &&
         e.dataTransfer?.types[0] === dragKey
       ) {
-        const dy = e.clientY - scrollDiv.current.getBoundingClientRect().top + scrollDiv.current.scrollTop
-        throttledDragY(dy)
+        const scrollableDiv = scrollDiv.current.firstElementChild as HTMLDivElement | null
+        if (scrollableDiv) {
+          const dy = e.clientY - scrollDiv.current.getBoundingClientRect().top + scrollableDiv.scrollTop
+          throttledDragY(dy)
+        }
       }
     },
     [scrollDiv, throttledDragY]
@@ -241,6 +244,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const [unreadCount, setUnreadCount] = React.useState(0)
 
   const scrollDiv = React.useRef<HTMLDivElement | null>(null)
+  const listRef = useListRef(null)
 
   // stuff for UnreadShortcut
   const firstOffscreenIdx = React.useRef(-1)
@@ -266,15 +270,11 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   )
 
   const scrollToUnread = React.useCallback(() => {
-    if (firstOffscreenIdx.current <= 0 || !scrollDiv.current) {
+    if (firstOffscreenIdx.current <= 0) {
       return
     }
-    let top = 100 // give it some space below
-    for (let i = lastVisibleIdx.current; i <= firstOffscreenIdx.current; i++) {
-      top += itemSizeGetter(i)
-    }
-    scrollDiv.current.scrollBy({behavior: 'smooth', top})
-  }, [itemSizeGetter])
+    listRef.current?.scrollToRow({index: firstOffscreenIdx.current})
+  }, [listRef])
 
   const calculateShowFloating = React.useCallback(() => {
     if (lastVisibleIdx.current < 0) {
@@ -364,12 +364,15 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     }
 
     // Should we scroll?
+    const scrollableDiv = scrollDiv.current.firstElementChild as HTMLDivElement | null
+    if (!scrollableDiv) return
+
     const top = inboxNumSmallRows * smallRowHeight
-    const boundingHeight = scrollDiv.current.getBoundingClientRect().height
+    const boundingHeight = scrollableDiv.getBoundingClientRect().height
     const dragHeight = 76 // grabbed from inspector
-    const currentScrollTop = scrollDiv.current.scrollTop
+    const currentScrollTop = scrollableDiv.scrollTop
     if (boundingHeight + currentScrollTop < top + dragHeight) {
-      scrollDiv.current.scrollBy({behavior: 'smooth', top})
+      scrollableDiv.scrollBy({behavior: 'smooth', top})
     }
   }, [inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded])
 
@@ -428,6 +431,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
         <div style={styles.list} ref={scrollDiv}>
           {rows.length ? (
             <List
+              listRef={listRef}
               onRowsRendered={onItemsRendered}
               rowCount={rows.length}
               rowHeight={itemSizeGetter}
