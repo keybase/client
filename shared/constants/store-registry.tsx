@@ -1,6 +1,6 @@
 // used to allow non-circular cross-calls between stores
 // ONLY for zustand stores
-import type * as T from './types'
+import type * as T from '@/constants/types'
 import type * as TBType from '@/constants/team-building'
 import type * as ConvoStateType from '@/constants/chat2/convostate'
 import type {ConvoState} from '@/constants/chat2/convostate'
@@ -117,99 +117,99 @@ class StoreRegistry {
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
     switch (storeName) {
       case 'autoreset': {
-        const {useAutoResetState} = require('../stores/autoreset')
+        const {useAutoResetState} = require('@/stores/autoreset')
         return useAutoResetState
       }
       case 'bots': {
-        const {useBotsState} = require('../stores/bots')
+        const {useBotsState} = require('@/stores/bots')
         return useBotsState
       }
       case 'chat': {
-        const {useChatState} = require('./chat2')
+        const {useChatState} = require('@/constants/chat2')
         return useChatState
       }
       case 'daemon': {
-        const {useDaemonState} = require('./daemon')
+        const {useDaemonState} = require('@/constants/daemon')
         return useDaemonState
       }
       case 'devices': {
-        const {useDevicesState} = require('../stores/devices')
+        const {useDevicesState} = require('@/stores/devices')
         return useDevicesState
       }
       case 'fs': {
-        const {useFSState} = require('./fs')
+        const {useFSState} = require('@/constants/fs')
         return useFSState
       }
       case 'git': {
-        const {useGitState} = require('./git')
+        const {useGitState} = require('@/stores/git')
         return useGitState
       }
       case 'notifications': {
-        const {useNotifState} = require('./notifications')
+        const {useNotifState} = require('@/constants/notifications')
         return useNotifState
       }
       case 'people': {
-        const {usePeopleState} = require('./people')
+        const {usePeopleState} = require('@/constants/people')
         return usePeopleState
       }
       case 'profile': {
-        const {useProfileState} = require('./profile')
+        const {useProfileState} = require('@/constants/profile')
         return useProfileState
       }
       case 'provision': {
-        const {useProvisionState} = require('./provision')
+        const {useProvisionState} = require('@/constants/provision')
         return useProvisionState
       }
       case 'push': {
-        const {usePushState} = require('./push')
+        const {usePushState} = require('@/constants/push')
         return usePushState
       }
       case 'recover-password': {
-        const {useState} = require('./recover-password')
+        const {useState} = require('@/constants/recover-password')
         return useState
       }
       case 'settings': {
-        const {useSettingsState} = require('./settings')
+        const {useSettingsState} = require('@/constants/settings')
         return useSettingsState
       }
       case 'settings-chat': {
-        const {useSettingsChatState} = require('./settings-chat')
+        const {useSettingsChatState} = require('@/constants/settings-chat')
         return useSettingsChatState
       }
       case 'settings-contacts': {
-        const {useSettingsContactsState} = require('./settings-contacts')
+        const {useSettingsContactsState} = require('@/constants/settings-contacts')
         return useSettingsContactsState
       }
       case 'settings-email': {
-        const {useSettingsEmailState} = require('./settings-email')
+        const {useSettingsEmailState} = require('@/constants/settings-email')
         return useSettingsEmailState
       }
       case 'settings-password': {
-        const {usePWState} = require('./settings-password')
+        const {usePWState} = require('@/constants/settings-password')
         return usePWState
       }
       case 'settings-phone': {
-        const {useSettingsPhoneState} = require('./settings-phone')
+        const {useSettingsPhoneState} = require('@/constants/settings-phone')
         return useSettingsPhoneState
       }
       case 'signup': {
-        const {useSignupState} = require('./signup')
+        const {useSignupState} = require('@/constants/signup')
         return useSignupState
       }
       case 'teams': {
-        const {useTeamsState} = require('./teams')
+        const {useTeamsState} = require('@/constants/teams')
         return useTeamsState
       }
       case 'tracker2': {
-        const {useTrackerState} = require('./tracker2')
+        const {useTrackerState} = require('@/constants/tracker2')
         return useTrackerState
       }
       case 'unlock-folders': {
-        const {useUnlockFoldersState} = require('./unlock-folders')
+        const {useUnlockFoldersState} = require('@/constants/unlock-folders')
         return useUnlockFoldersState
       }
       case 'users': {
-        const {useUsersState} = require('./users')
+        const {useUsersState} = require('@/constants/users')
         return useUsersState
       }
       default:
@@ -222,13 +222,13 @@ class StoreRegistry {
   }
 
   getTBStore(name: T.TB.AllowedNamespace): TBType.State {
-    const {createTBStore} = require('./team-building') as typeof TBType
+    const {createTBStore} = require('@/constants/team-building') as typeof TBType
     const store = createTBStore(name)
     return store.getState()
   }
 
   getConvoState(id: T.Chat.ConversationIDKey): ConvoState {
-    const {getConvoState} = require('./chat2/convostate') as typeof ConvoStateType
+    const {getConvoState} = require('@/constants/chat2/convostate') as typeof ConvoStateType
     return getConvoState(id)
   }
 }
