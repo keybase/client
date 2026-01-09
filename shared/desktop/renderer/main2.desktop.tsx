@@ -4,7 +4,7 @@ import Main from '@/app/main.desktop'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
-import type * as RemoteGen from '@/actions/remote-gen'
+import * as RemoteGen from '@/actions/remote-gen'
 import Root from './container.desktop'
 import {makeEngine} from '@/engine'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
@@ -227,9 +227,13 @@ const setupApp = () => {
   disableDragDrop()
 
   const {batch} = C.useWaitingState.getState().dispatch
-  const eng = makeEngine(batch, () => {
-    // do nothing we wait for the remote version from node
-  }, onEngineIncoming)
+  const eng = makeEngine(
+    batch,
+    () => {
+      // do nothing we wait for the remote version from node
+    },
+    onEngineIncoming
+  )
   initPlatformListener()
   eng.listenersAreReady()
 
