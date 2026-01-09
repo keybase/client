@@ -2,7 +2,7 @@ import * as T from '../types'
 import * as Z from '@/util/zustand'
 import {ignorePromise} from '../utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as FS from '@/constants/fs'
+import {pathToRPCPath} from '@/constants/fs/util'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {uint8ArrayToHex} from 'uint8array-extras'
 import {isMobile} from '../platform'
@@ -277,7 +277,7 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
       await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
         archiveJobStartPath: {
           archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.kbfs,
-          kbfs: FS.pathToRPCPath(path).kbfs,
+          kbfs: pathToRPCPath(path).kbfs,
         },
         outputPath: outPath,
         overwriteZip: true,
