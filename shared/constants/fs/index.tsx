@@ -448,7 +448,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             try {
               await T.RPCGen.SimpleFSSimpleFSOpenRpcPromise(
                 {
-                  dest: Util.Util.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
+                  dest: Util.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
                   flags: T.RPCGen.OpenFlags.directory,
                   opID: makeUUID(),
                 },
@@ -464,10 +464,10 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             try {
               const opID = makeUUID()
               await T.RPCGen.SimpleFSSimpleFSMoveRpcPromise({
-                dest: Util.Util.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
+                dest: Util.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
                 opID,
                 overwriteExistingFiles: false,
-                src: Util.Util.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.originalName)),
+                src: Util.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.originalName)),
               })
               await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, S.waitingKeyFSCommitEdit)
               get().dispatch.editSuccess(editID)
@@ -497,7 +497,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.SimpleFSSimpleFSRemoveRpcPromise({
             opID,
-            path: Util.Util.pathToRPCPath(path),
+            path: Util.pathToRPCPath(path),
             recursive: true,
           })
           await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})
@@ -1557,7 +1557,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         if (old) {
           old.sort = sortSetting
         } else {
-            s.pathUserSettings.set(path, {...Util.defaultPathUserSetting, sort: sortSetting})
+          s.pathUserSettings.set(path, {...Util.defaultPathUserSetting, sort: sortSetting})
         }
       })
     },
