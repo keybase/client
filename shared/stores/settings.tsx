@@ -2,7 +2,6 @@ import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as S from '@/constants/strings'
 import {androidIsTestDevice, pprofDir} from '@/constants/platform'
-import * as EngineGen from '@/actions/engine-gen-gen'
 import openURL from '@/util/open-url'
 import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
@@ -40,7 +39,6 @@ export interface State extends Store {
     loadProxyData: () => void
     loadSettings: () => void
     loginBrowserViaWebAuthToken: () => void
-    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     processorProfile: (durationSeconds: number) => void
     resetCheckPassword: () => void
     resetState: 'default'
@@ -172,34 +170,6 @@ export const useSettingsState = Z.createZustand<State>(set => {
         openURL(link)
       }
       ignorePromise(f())
-    },
-    onEngineIncomingImpl: action => {
-      switch (action.type) {
-        case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
-          logger.info('email verified')
-          storeRegistry
-            .getState('settings-email')
-            .dispatch.notifyEmailVerified(action.payload.params.emailAddress)
-          break
-        case EngineGen.keybase1NotifyUsersPasswordChanged: {
-          const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
-          storeRegistry.getState('settings-password').dispatch.notifyUsersPasswordChanged(randomPW)
-          break
-        }
-        case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
-          const {list} = action.payload.params
-          storeRegistry
-            .getState('settings-phone')
-            .dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
-          break
-        }
-        case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
-          const list = action.payload.params.list ?? []
-          storeRegistry.getState('settings-email').dispatch.notifyEmailAddressEmailsChanged(list)
-          break
-        }
-        default:
-      }
     },
     processorProfile: profileDurationSeconds => {
       const f = async () => {

@@ -1,6 +1,3 @@
-import * as EngineGen from '@/actions/engine-gen-gen'
-import {storeRegistry} from '../store-registry'
-
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
 
@@ -47,4 +44,3 @@ export type SettingsTab =
   | typeof settingsCryptoTab
   | typeof settingsContactsTab
   | typeof settingsWhatsNewTab
-

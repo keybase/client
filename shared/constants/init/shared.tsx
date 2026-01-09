@@ -26,7 +26,6 @@ import type * as UsePinentryStateType from '@/stores/pinentry'
 import {useProvisionState} from '../provision'
 import {storeRegistry} from '../store-registry'
 import {useSettingsContactsState} from '../settings-contacts'
-import type * as UseSettingsStateType from '@/stores/settings'
 import type * as UseSignupStateType from '@/stores/signup'
 import {useTeamsState} from '../teams'
 import * as TeamsUtil from '../teams/util'
@@ -374,6 +373,12 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const {usePeopleState} = require('@/stores/people') as typeof UsePeopleStateType
         usePeopleState.getState().dispatch.onEngineIncomingImpl(action)
+        const emailAddress = action.payload.params?.emailAddress
+        if (emailAddress) {
+          storeRegistry.getState('settings-email').dispatch.notifyEmailVerified(emailAddress)
+        }
+        const {useSignupState} = require('@/stores/signup') as typeof UseSignupStateType
+        useSignupState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case EngineGen.keybase1SecretUiGetPassphrase:
@@ -382,22 +387,24 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         usePinentryState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
-      {
-        const {useSettingsState} = require('@/stores/settings') as typeof UseSettingsStateType
-        useSettingsState.getState().dispatch.onEngineIncomingImpl(action)
-        const {useSignupState} = require('@/stores/signup') as typeof UseSignupStateType
-        useSignupState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
     case EngineGen.keybase1NotifyUsersPasswordChanged:
-    case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
-    case EngineGen.keybase1NotifyEmailAddressEmailsChanged:
       {
-        const {useSettingsState} = require('@/stores/settings') as typeof UseSettingsStateType
-        useSettingsState.getState().dispatch.onEngineIncomingImpl(action)
+        const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
+        storeRegistry.getState('settings-password').dispatch.notifyUsersPasswordChanged(randomPW)
       }
       break
+    case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
+      const {list} = action.payload.params
+      storeRegistry
+        .getState('settings-phone')
+        .dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+      break
+    }
+    case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
+      const list = action.payload.params.list ?? []
+      storeRegistry.getState('settings-email').dispatch.notifyEmailAddressEmailsChanged(list)
+      break
+    }
     default:
   }
   AvatarUtil.onEngineIncoming(action)

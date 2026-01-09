@@ -3,7 +3,7 @@ import {ignorePromise, timeoutPromise} from '../utils'
 import * as T from '@/constants/types'
 // normally util.container but it re-exports from us so break the cycle
 import * as Z from '@/util/zustand'
-import {settingsPasswordTab} from '../settings'
+import {settingsPasswordTab} from '@/constants/settings/util'
 import {navigateAppend} from '../router2/util'
 import {isMobile} from '../platform'
 import * as Tabs from '../tabs'
