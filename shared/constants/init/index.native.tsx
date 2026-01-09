@@ -1,26 +1,27 @@
-import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from './utils'
-import {useChatState} from './chat2'
-import {useConfigState} from './config'
-import {useCurrentUserState} from './current-user'
-import {useDaemonState} from './daemon'
-import {useDarkModeState} from './darkmode'
-import {useFSState} from './fs'
-import {useProfileState} from './profile'
-import {useRouterState} from './router2'
-import {useSettingsContactsState} from './settings-contacts'
-import * as T from './types'
+// links all the stores together, stores never import this
+import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
+import {useChatState} from '../chat2'
+import {useConfigState} from '../config'
+import {useCurrentUserState} from '../current-user'
+import {useDaemonState} from '../daemon'
+import {useDarkModeState} from '../darkmode'
+import {useFSState} from '../fs'
+import {useProfileState} from '../profile'
+import {useRouterState} from '../router2'
+import {useSettingsContactsState} from '../settings-contacts'
+import * as T from '../types'
 import * as Clipboard from 'expo-clipboard'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
-import * as Tabs from './tabs'
+import * as Tabs from '../tabs'
 import * as NetInfo from '@react-native-community/netinfo'
 import NotifyPopup from '@/util/notify-popup'
 import logger from '@/logger'
 import {Alert, Linking} from 'react-native'
-import {isAndroid} from './platform.native'
+import {isAndroid} from '../platform.native'
 import {wrapErrors} from '@/util/debug'
-import {getTab, getVisiblePath, logState} from './router2'
+import {getTab, getVisiblePath, logState} from '../router2'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
 import {
@@ -31,13 +32,13 @@ import {
   guiConfig,
   shareListenersRegistered,
 } from 'react-native-kb'
-import {initPushListener, getStartupDetailsFromInitialPush} from './platform-specific/push.native'
-import {initSharedSubscriptions} from './platform-specific/shared'
+import {initPushListener, getStartupDetailsFromInitialPush} from '../platform-specific/push.native'
+import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
-import {noConversationIDKey} from './types/chat2/common'
-import {getSelectedConversation} from './chat2/common'
-import {getConvoState} from './chat2/convostate'
-import {requestLocationPermission, showShareActionSheet} from './platform-specific/index.native'
+import {noConversationIDKey} from '../types/chat2/common'
+import {getSelectedConversation} from '../chat2/common'
+import {getConvoState} from '../chat2/convostate'
+import {requestLocationPermission, showShareActionSheet} from '../platform-specific/index.native'
 
 const loadStartupDetails = async () => {
   const [routeState, initialUrl, push] = await Promise.all([
@@ -204,6 +205,7 @@ const onChatClearWatch = async () => {
 }
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
+  _onEngineIncoming(action)
   switch (action.type) {
     case EngineGen.chat1ChatUiTriggerContactSync:
       useSettingsContactsState.getState().dispatch.manageContactsCache()
@@ -266,7 +268,6 @@ export const initPlatformListener = () => {
       }
       ignorePromise(f())
     })
-
   })
 
   useConfigState.subscribe((s, old) => {
@@ -484,7 +485,6 @@ export const initPlatformListener = () => {
       }
       ignorePromise(f())
     })
-
   })
 
   useRouterState.setState(s => {
@@ -504,3 +504,5 @@ export const initPlatformListener = () => {
 
   ignorePromise(useFSState.getState().dispatch.setupSubscriptions())
 }
+
+export {onEngineConnected, onEngineDisconnected} from './shared'

@@ -1,30 +1,38 @@
-import * as Chat from './chat2'
-import {ignorePromise} from './utils'
-import {useActiveState} from './active'
-import {useConfigState} from './config'
-import * as ConfigConstants from './config'
-import {useDaemonState} from './daemon'
-import {useFSState} from './fs'
-import {useProfileState} from './profile'
-import {useRouterState} from './router2'
+// links all the stores together, stores never import this
+import * as Chat from '../chat2'
+import {ignorePromise} from '../utils'
+import {useConfigState} from '../config'
+import * as ConfigConstants from '../config'
+import {useDaemonState} from '../daemon'
+import {useFSState} from '../fs'
+import {useProfileState} from '../profile'
+import {useRouterState} from '../router2'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as T from './types'
-import InputMonitor from './platform-specific/input-monitor.desktop'
+import * as T from '../types'
+import InputMonitor from '../platform-specific/input-monitor.desktop'
 import KB2 from '@/util/electron.desktop'
 import logger from '@/logger'
 import type {RPCError} from '@/util/errors'
 import {getEngine} from '@/engine'
-import {isLinux, isWindows} from './platform.desktop'
-import {kbfsNotification} from './platform-specific/kbfs-notifications'
+import {isLinux, isWindows} from '../platform.desktop'
+import {kbfsNotification} from '../platform-specific/kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import NotifyPopup from '@/util/notify-popup'
-import {noKBFSFailReason} from './config/util'
-import {initSharedSubscriptions} from './platform-specific/shared'
+import {noKBFSFailReason} from '../config/util'
+import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {wrapErrors} from '@/util/debug'
-import {dumpLogs} from './platform-specific/index.desktop'
 
-const {showMainWindow, activeChanged, requestWindowsStartService} = KB2.functions
+const {showMainWindow, activeChanged, requestWindowsStartService, ctlQuit, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, copyToClipboard} = KB2.functions
+
+const dumpLogs = async (reason?: string) => {
+  await logger.dump()
+  await (dumpNodeLogger?.() ?? Promise.resolve([]))
+  // quit as soon as possible
+  if (reason === 'quitting through menu') {
+    ctlQuit?.()
+  }
+}
 
 const maybePauseVideos = () => {
   const {appFocused} = useConfigState.getState()
@@ -51,6 +59,7 @@ const maybePauseVideos = () => {
 }
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
+  _onEngineIncoming(action)
   switch (action.type) {
     case EngineGen.keybase1LogsendPrepareLogsend: {
       const f = async () => {
@@ -128,7 +137,6 @@ export const initPlatformListener = () => {
       }
       ignorePromise(f())
     })
-
   })
 
   useConfigState.subscribe((s, old) => {
@@ -252,7 +260,7 @@ export const initPlatformListener = () => {
       if (skipAppFocusActions) {
         console.log('Skipping app focus actions!')
       } else {
-        useActiveState.getState().dispatch.setActive(userActive)
+        useConfigState.getState().dispatch.setActive(userActive)
         // let node thread save file
         activeChanged?.(Date.now(), userActive)
       }
@@ -270,6 +278,7 @@ export const initPlatformListener = () => {
   })
 
   initSharedSubscriptions()
-
   ignorePromise(useFSState.getState().dispatch.setupSubscriptions())
 }
+
+export {onEngineConnected, onEngineDisconnected} from './shared'
