@@ -129,7 +129,7 @@ class StoreRegistry {
         return useChatState
       }
       case 'daemon': {
-        const {useDaemonState} = require('@/constants/daemon')
+        const {useDaemonState} = require('@/stores/daemon')
         return useDaemonState
       }
       case 'devices': {
@@ -153,7 +153,7 @@ class StoreRegistry {
         return usePeopleState
       }
       case 'profile': {
-        const {useProfileState} = require('@/constants/profile')
+        const {useProfileState} = require('@/stores/profile')
         return useProfileState
       }
       case 'provision': {
