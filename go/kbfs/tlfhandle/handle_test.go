@@ -273,7 +273,7 @@ func TestHandleAccessorsPrivate(t *testing.T) {
 	require.True(t, h.IsReader(localUsers[2].UID))
 
 	for i := 6; i < 10; i++ {
-		u := keybase1.MakeTestUID(uint32(i))
+		u := keybase1.MakeTestUID(uint32(i)) //nolint:gosec // G115: Test data with small values
 		require.False(t, h.IsWriter(u))
 		require.False(t, h.IsReader(u))
 	}
@@ -345,7 +345,7 @@ func TestHandleAccessorsPublic(t *testing.T) {
 	require.True(t, h.IsReader(localUsers[2].UID))
 
 	for i := 6; i < 10; i++ {
-		u := keybase1.MakeTestUID(uint32(i))
+		u := keybase1.MakeTestUID(uint32(i)) //nolint:gosec // G115: Test data with small values
 		require.False(t, h.IsWriter(u))
 		require.True(t, h.IsReader(u))
 	}

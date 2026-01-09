@@ -128,7 +128,7 @@ func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 				if err != nil {
 					return err
 				}
-				err = cb(truncate("bench", uint64(mask+1)))
+				err = cb(truncate("bench", uint64(mask+1))) //nolint:gosec // G115: Test data with bounded values
 				if err != nil {
 					return err
 				}
@@ -380,7 +380,7 @@ func benchmarkMultiFileSync(
 					// Sync each file by doing a no-op truncate.
 					for i := iter * numFiles; i < (iter+1)*numFiles; i++ {
 						f := fmt.Sprintf("a/b/c/file%d", i)
-						err := cb(truncate(f, uint64(fileSize)))
+						err := cb(truncate(f, uint64(fileSize))) //nolint:gosec // G115: Test data with bounded values
 						if err != nil {
 							return err
 						}

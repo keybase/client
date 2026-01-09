@@ -754,7 +754,7 @@ func (ro *renameOp) AddSelfUpdate(ptr data.BlockPointer) {
 }
 
 func (ro *renameOp) SizeExceptUpdates() uint64 {
-	return uint64(len(ro.NewName) + len(ro.NewName))
+	return uint64(len(ro.NewName) + len(ro.NewName)) //nolint:gosec // G115: String lengths are non-negative and bounded by filesystem limits
 }
 
 func (ro *renameOp) allUpdates() []blockUpdate {
@@ -954,7 +954,7 @@ func (so *syncOp) addTruncate(off uint64) WriteRange {
 }
 
 func (so *syncOp) SizeExceptUpdates() uint64 {
-	return uint64(len(so.Writes) * 16)
+	return uint64(len(so.Writes) * 16) //nolint:gosec // G115: Small bounded calculation for metadata size estimation
 }
 
 func (so *syncOp) allUpdates() []blockUpdate {

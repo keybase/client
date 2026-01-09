@@ -304,9 +304,16 @@ func EntryInfoFromFileInfo(fi os.FileInfo) EntryInfo {
 		t = Exec
 	}
 	mtime := fi.ModTime().UnixNano()
+
+	// Handle negative file sizes (shouldn't happen in practice, but FileInfo.Size() returns int64)
+	size := uint64(0)
+	if fi.Size() >= 0 {
+		size = uint64(fi.Size()) //nolint:gosec // G115: Validated above to be non-negative
+	}
+
 	return EntryInfo{
 		Type:  t,
-		Size:  uint64(fi.Size()), // TODO: deal with negatives?
+		Size:  size,
 		Mtime: mtime,
 		Ctime: mtime,
 		// Leave TeamWriter and PrevRevisions empty

@@ -683,13 +683,13 @@ func TestOpsCollapseWriteRange(t *testing.T) {
 
 		var wrExpected []WriteRange
 		inWrite := false
-		for j := 0; j < int(lastByte); j++ {
+		for j := 0; j < int(lastByte); j++ { //nolint:gosec // G115: Test data with bounded values
 			if !inWrite && file[j] {
 				inWrite = true
-				wrExpected = append(wrExpected, WriteRange{Off: uint64(j)})
+				wrExpected = append(wrExpected, WriteRange{Off: uint64(j)}) //nolint:gosec // G115: Test data with bounded values
 			} else if inWrite && !file[j] {
 				inWrite = false
-				wrExpected[len(wrExpected)-1].Len = uint64(j) - wrExpected[len(wrExpected)-1].Off
+				wrExpected[len(wrExpected)-1].Len = uint64(j) - wrExpected[len(wrExpected)-1].Off //nolint:gosec // G115: Test data with bounded values
 			}
 		}
 		if inWrite {

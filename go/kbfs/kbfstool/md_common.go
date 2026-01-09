@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -175,6 +176,9 @@ func getRevision(ctx context.Context, config libkbfs.Config,
 	u, err := strconv.ParseUint(revisionStr, base, 64)
 	if err != nil {
 		return kbfsmd.RevisionUninitialized, err
+	}
+	if u > math.MaxInt64 {
+		return kbfsmd.RevisionUninitialized, fmt.Errorf("revision %d exceeds maximum value", u)
 	}
 	return kbfsmd.Revision(u), nil
 }

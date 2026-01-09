@@ -311,7 +311,7 @@ func newDiskBlockCacheLocalFromStorage(
 			// determined it.
 			ctx := context.Background()
 			cache.config.DiskLimiter().onSimpleByteTrackerEnable(ctx,
-				cache.cacheType, int64(cache.getCurrBytes()))
+				cache.cacheType, int64(cache.getCurrBytes())) //nolint:gosec // G115: Cache byte counts bounded by config limits
 		}
 		close(startedCh)
 	}()
@@ -695,7 +695,7 @@ func (cache *DiskBlockCacheLocal) numBlocksToEvictLocked(
 		return minNumBlocksToEvictInBatch
 	}
 
-	bytesPerBlock := int(cache.getCurrBytes()) / cache.numBlocks
+	bytesPerBlock := int(cache.getCurrBytes()) / cache.numBlocks //nolint:gosec // G115: Cache sizes are bounded by config limits
 	toEvict := -int(bytesAvailable) / bytesPerBlock
 	if toEvict < minNumBlocksToEvictInBatch {
 		return minNumBlocksToEvictInBatch
@@ -810,7 +810,7 @@ func (cache *DiskBlockCacheLocal) Put(
 		cache.priorityBlockCounts[cache.homeDirs[tlfID]]++
 		cache.priorityTlfMap[cache.homeDirs[tlfID]][tlfID]++
 		cache.numBlocks++
-		encodedLenUint := uint64(encodedLen)
+		encodedLenUint := uint64(encodedLen) //nolint:gosec // G115: Block sizes are bounded by max block size config
 		cache.tlfSizes[tlfID] += encodedLenUint
 		cache.addCurrBytes(encodedLenUint)
 	}
@@ -833,7 +833,7 @@ func (cache *DiskBlockCacheLocal) Put(
 		// Initially leave TriggeredPrefetch and FinishedPrefetch as false;
 		// rely on the later-called UpdateMetadata to fix it.
 		md.TlfID = tlfID
-		md.BlockSize = uint32(encodedLen)
+		md.BlockSize = uint32(encodedLen) //nolint:gosec // G115: Block sizes are bounded by max block size config
 		err = nil
 	}
 	return cache.updateMetadataLocked(ctx, blockKey, md, ldbutils.Unmetered)
@@ -1163,7 +1163,7 @@ func (cache *DiskBlockCacheLocal) removeBrokenBlock(
 	// probably won't be in there, since the stats are loaded by
 	// iterating over the metadata db.  So it's very possible that
 	// this will make the stats incorrect. ‾\_(ツ)_/‾.
-	cache.decCacheCountsLocked(tlfID, 1, uint64(size))
+	cache.decCacheCountsLocked(tlfID, 1, uint64(size)) //nolint:gosec // G115: Block sizes are bounded by max block size config
 	if cache.useLimiter() {
 		cache.config.DiskLimiter().release(ctx, cache.cacheType, size, 0)
 	}
@@ -1499,10 +1499,10 @@ func (cache *DiskBlockCacheLocal) Status(
 	switch cache.cacheType {
 	case syncCacheLimitTrackerType:
 		name = syncCacheName
-		maxLimit = uint64(limiterStatus.SyncCacheByteStatus.Max)
+		maxLimit = uint64(limiterStatus.SyncCacheByteStatus.Max) //nolint:gosec // G115: Cache limits are bounded by config
 	case workingSetCacheLimitTrackerType:
 		name = workingSetCacheName
-		maxLimit = uint64(limiterStatus.DiskCacheByteStatus.Max)
+		maxLimit = uint64(limiterStatus.DiskCacheByteStatus.Max) //nolint:gosec // G115: Status values bounded by config
 	case crDirtyBlockCacheLimitTrackerType:
 		name = crDirtyBlockCacheName
 	}
@@ -1565,7 +1565,7 @@ func (cache *DiskBlockCacheLocal) Status(
 	return map[string]DiskBlockCacheStatus{
 		name: {
 			StartState:              DiskBlockCacheStartStateStarted,
-			NumBlocks:               uint64(cache.numBlocks),
+			NumBlocks:               uint64(cache.numBlocks), //nolint:gosec // G115: Block counts are bounded by config limits
 			BlockBytes:              cache.getCurrBytes(),
 			CurrByteLimit:           maxLimit,
 			LastUnrefCount:          uint64(len(cache.tlfLastUnrefs)),
@@ -1825,7 +1825,7 @@ func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) <-chan struct{} 
 	cache.tlfDb = nil
 	if cache.useLimiter() {
 		cache.config.DiskLimiter().onSimpleByteTrackerDisable(ctx,
-			cache.cacheType, int64(cache.getCurrBytes()))
+			cache.cacheType, int64(cache.getCurrBytes())) //nolint:gosec // G115: Cache byte counts bounded by config limits
 	}
 	cache.hitMeter.Shutdown()
 	cache.missMeter.Shutdown()

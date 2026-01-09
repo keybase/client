@@ -469,7 +469,7 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 	}
 
 	t.Log("Set the cache maximum bytes to the current total.")
-	currBytes := int64(standardCache.currBytes)
+	currBytes := int64(standardCache.currBytes) //nolint:gosec // G115: Test data
 	limiter := config.DiskLimiter().(*backpressureDiskLimiter)
 	limiter.diskCacheByteTracker.limit = currBytes
 
@@ -480,7 +480,7 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 		ctx, tlf.FakeID(10, tlf.Private), blockPtr.ID, blockEncoded, serverHalf)
 	require.NoError(t, err)
 
-	require.True(t, int64(standardCache.currBytes) < currBytes)
+	require.True(t, int64(standardCache.currBytes) < currBytes) //nolint:gosec // G115: Test data
 	require.Equal(
 		t, 1+numBlocks-minNumBlocksToEvictInBatch, standardCache.numBlocks)
 }
@@ -514,7 +514,7 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 
 	t.Log("Set the cache dynamic limit to its current value by tweaking the" +
 		" free space function.")
-	currBytes := int64(standardCache.currBytes)
+	currBytes := int64(standardCache.currBytes) //nolint:gosec // G115: Test data
 	limiter := config.DiskLimiter().(*backpressureDiskLimiter)
 	limiter.freeBytesAndFilesFn = func() (int64, int64, error) {
 		// Since the limit is 25% of the total available space, make that true
@@ -540,7 +540,7 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 			t, start+(i%minNumBlocksToEvictInBatch), standardCache.numBlocks)
 	}
 
-	require.True(t, int64(standardCache.currBytes) < currBytes)
+	require.True(t, int64(standardCache.currBytes) < currBytes) //nolint:gosec // G115: Test data
 	require.Equal(t, start, standardCache.numBlocks)
 }
 
@@ -612,7 +612,7 @@ func testPutBlockWhenSyncCacheFull(
 
 	t.Log("Set the cache maximum bytes to the current total.")
 	require.Equal(t, 0, putCache.numBlocks)
-	currBytes := int64(cache.syncCache.currBytes)
+	currBytes := int64(cache.syncCache.currBytes) //nolint:gosec // G115: Test data
 	limiter := config.DiskLimiter().(*backpressureDiskLimiter)
 	limiter.syncCacheByteTracker.limit = currBytes
 
@@ -624,7 +624,7 @@ func testPutBlockWhenSyncCacheFull(
 		ctx, tlf.FakeID(0, tlf.Private), blockPtr.ID, blockEncoded, serverHalf)
 	require.NoError(t, err)
 
-	require.Equal(t, int64(cache.syncCache.currBytes), currBytes)
+	require.Equal(t, int64(cache.syncCache.currBytes), currBytes) //nolint:gosec // G115: Test data
 	require.Equal(t, numBlocks, cache.syncCache.numBlocks)
 	require.Equal(t, 1, putCache.numBlocks)
 }
@@ -988,7 +988,7 @@ func TestDiskBlockCacheRemoveBrokenBlocks(t *testing.T) {
 
 	t.Log("Make the cache full, and put a new block, which should succeed " +
 		"and will remove the broken block.")
-	currBytes := int64(cache.workingSetCache.currBytes)
+	currBytes := int64(cache.workingSetCache.currBytes) //nolint:gosec // G115: Test data
 	limiter := config.DiskLimiter().(*backpressureDiskLimiter)
 	limiter.diskCacheByteTracker.limit = currBytes
 

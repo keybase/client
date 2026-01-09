@@ -215,7 +215,7 @@ func doAssembleBlock(
 		return err
 	}
 
-	block.SetEncodedSize(uint32(len(buf)))
+	block.SetEncodedSize(uint32(len(buf))) //nolint:gosec // G115: Block sizes are bounded by max block size config
 	return nil
 }
 

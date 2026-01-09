@@ -221,7 +221,7 @@ func parseHandleExtension(fields []string) (*HandleExtension, error) {
 	}
 	return &HandleExtension{
 		Date:     date.UTC().Unix(),
-		Number:   uint16(num),
+		Number:   uint16(num), //nolint:gosec // G115: Extension numbers are small bounded values
 		Type:     extType,
 		Username: un,
 	}, nil

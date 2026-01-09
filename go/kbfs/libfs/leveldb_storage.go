@@ -158,7 +158,7 @@ func (fs *levelDBStorage) Lock() (storage.Locker, error) {
 }
 
 func itoa(buf []byte, i int, wid int) []byte {
-	u := uint(i)
+	u := uint(i) //nolint:gosec // G115: Small bounded integers for formatting
 	if u == 0 && wid <= 1 {
 		return append(buf, '0')
 	}

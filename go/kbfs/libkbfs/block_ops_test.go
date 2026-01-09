@@ -213,7 +213,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 		encryptedBlock, kmd.keys[latestKeyGen-kbfsmd.FirstValidKeyGen],
 		readyBlockData.ServerHalf, decryptedBlock)
 	require.NoError(t, err)
-	decryptedBlock.SetEncodedSize(uint32(readyBlockData.GetEncodedSize()))
+	decryptedBlock.SetEncodedSize(uint32(readyBlockData.GetEncodedSize())) //nolint:gosec // G115: Test data with bounded values
 	require.Equal(t, block, decryptedBlock)
 }
 

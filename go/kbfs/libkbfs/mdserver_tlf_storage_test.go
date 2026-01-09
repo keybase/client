@@ -22,7 +22,7 @@ import (
 func getMDStorageLength(t *testing.T, s *mdServerTlfStorage, bid kbfsmd.BranchID) int {
 	journalLen, err := s.journalLength(bid)
 	require.NoError(t, err)
-	return int(journalLen)
+	return int(journalLen) //nolint:gosec // G115: Test data with bounded values
 }
 
 // TestMDServerTlfStorageBasic copies TestMDServerBasics, but for a

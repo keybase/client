@@ -7,6 +7,7 @@ package data
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
@@ -514,7 +515,7 @@ func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 					// For the purposes of calculating the newly-dirtied
 					// bytes for the deferral calculation, disregard the
 					// existing "hole" in the file.
-					oldSizeWithoutHoles = uint64(newBlockOff)
+					oldSizeWithoutHoles = uint64(newBlockOff) //nolint:gosec // G115: File offsets are bounded by filesystem limits
 				}
 			}
 		}
@@ -533,7 +534,7 @@ func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 			newDe.EncodedSize = 0
 			// Since this is the last block, the end of this block
 			// marks the file size.
-			newDe.Size = uint64(startOff + Int64Offset(len(block.Contents)))
+			newDe.Size = uint64(startOff + Int64Offset(len(block.Contents))) //nolint:gosec // G115: File sizes are bounded by filesystem limits
 		}
 
 		// Calculate the amount of bytes we've newly-dirtied as part
@@ -573,8 +574,8 @@ func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 
 	lastByteWritten := int64(off) + int64(len(data)) // not counting holes
 	bytesExtended = 0
-	if lastByteWritten > int64(oldSizeWithoutHoles) {
-		bytesExtended = lastByteWritten - int64(oldSizeWithoutHoles)
+	if lastByteWritten > int64(oldSizeWithoutHoles) { //nolint:gosec // G115: File sizes are bounded by filesystem limits
+		bytesExtended = lastByteWritten - int64(oldSizeWithoutHoles) //nolint:gosec // G115: File sizes are bounded by filesystem limits
 	}
 
 	dirtyPtrs = make([]BlockPointer, 0, len(dirtyMap))
@@ -607,7 +608,7 @@ func (fd *FileData) TruncateExtend(ctx context.Context, size uint64,
 	}
 
 	rightParents, newDirtyPtrs, err := fd.tree.newRightBlock(
-		ctx, parentBlocks, Int64Offset(size),
+		ctx, parentBlocks, Int64Offset(size), //nolint:gosec // G115: File sizes are bounded by filesystem limits
 		DefaultNewBlockDataVersion(true), NewFileBlockWithPtrs,
 		fd.fileTopBlocker(df))
 	if err != nil {
@@ -668,7 +669,10 @@ func (fd *FileData) TruncateShrink(ctx context.Context, size uint64,
 	newDe DirEntry, dirtyPtrs []BlockPointer, unrefs []BlockInfo,
 	newlyDirtiedChildBytes int64, err error,
 ) {
-	iSize := Int64Offset(size) // TODO: deal with overflow
+	if size > math.MaxInt64 {
+		return DirEntry{}, nil, nil, 0, fmt.Errorf("file size %d exceeds maximum offset", size)
+	}
+	iSize := Int64Offset(size)
 
 	ptr, parentBlocks, block, nextBlockOff, startOff, wasDirty, err := fd.GetFileBlockAtOffset(ctx, topBlock, iSize, BlockWrite)
 	if err != nil {

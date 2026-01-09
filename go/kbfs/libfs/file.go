@@ -7,6 +7,7 @@ package libfs
 import (
 	"bytes"
 	"io"
+	"math"
 	"sync"
 	"sync/atomic"
 
@@ -112,6 +113,9 @@ func (f *File) Seek(offset int64, whence int) (n int64, err error) {
 		ei, err := f.fs.config.KBFSOps().Stat(f.fs.ctx, f.node)
 		if err != nil {
 			return 0, err
+		}
+		if ei.Size > math.MaxInt64 {
+			return 0, errors.Errorf("File size %d exceeds maximum offset", ei.Size)
 		}
 		newOffset = int64(ei.Size) + offset
 	}
@@ -266,6 +270,9 @@ func (f *File) Unlock() (err error) {
 
 // Truncate implements the billy.File interface for File.
 func (f *File) Truncate(size int64) error {
+	if size < 0 {
+		return errors.New("truncate size cannot be negative")
+	}
 	return f.fs.config.KBFSOps().Truncate(f.fs.ctx, f.node, uint64(size))
 }
 

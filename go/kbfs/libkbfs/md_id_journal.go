@@ -61,7 +61,7 @@ func makeMdIDJournal(codec kbfscodec.Codec, dir string) (mdIDJournal, error) {
 }
 
 func ordinalToRevision(o journalOrdinal) (kbfsmd.Revision, error) {
-	r := kbfsmd.Revision(o)
+	r := kbfsmd.Revision(o) //nolint:gosec // G115: Journal ordinals bounded by journal length and always positive
 	if r < kbfsmd.RevisionInitial {
 		return kbfsmd.RevisionUninitialized, errors.Errorf(
 			"Cannot convert ordinal %s to a kbfsmd.Revision", o)
@@ -74,7 +74,7 @@ func revisionToOrdinal(r kbfsmd.Revision) (journalOrdinal, error) {
 		return journalOrdinal(0), errors.Errorf(
 			"Cannot convert revision %s to an ordinal", r)
 	}
-	return journalOrdinal(r), nil
+	return journalOrdinal(r), nil //nolint:gosec // G115: Journal ordinals bounded by journal length
 }
 
 // TODO: Consider caching the values returned by the read functions

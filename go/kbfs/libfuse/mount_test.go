@@ -3933,7 +3933,7 @@ func TestDirSyncAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	d, err := os.Open(mydir1)
+	d, err := os.Open(mydir1) //nolint:gosec // G304: Test directory path
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -4120,14 +4120,14 @@ func TestUpdateHistoryFile(t *testing.T) {
 	p := path.Join(mnt.Dir, PrivateName, "jdoe")
 	for i := 0; i < 10; i++ {
 		file := path.Join(p, fmt.Sprintf("foo-%d", i))
-		f, err := os.Create(file)
+		f, err := os.Create(file) //nolint:gosec // G304: Test file path
 		require.NoError(t, err)
 		syncAndClose(t, f)
 	}
 
 	t.Log("Read a revision range")
 	histPrefix := path.Join(p, libfs.UpdateHistoryFileName)
-	fRange, err := os.Open(histPrefix + ".3-5")
+	fRange, err := os.Open(histPrefix + ".3-5") //nolint:gosec // G304: Test file path
 	require.NoError(t, err)
 	defer func() { _ = fRange.Close() }()
 	b, err := ioutil.ReadAll(fRange)
@@ -4138,7 +4138,7 @@ func TestUpdateHistoryFile(t *testing.T) {
 	require.Len(t, histRange.Updates, 3)
 
 	t.Log("Read a single revision")
-	fSingle, err := os.Open(histPrefix + ".7")
+	fSingle, err := os.Open(histPrefix + ".7") //nolint:gosec // G304: Test file path
 	require.NoError(t, err)
 	defer func() { _ = fSingle.Close() }()
 	b, err = ioutil.ReadAll(fSingle)
@@ -4149,7 +4149,7 @@ func TestUpdateHistoryFile(t *testing.T) {
 	require.Len(t, histSingle.Updates, 1)
 
 	t.Log("Read the entire history")
-	fAll, err := os.Open(histPrefix)
+	fAll, err := os.Open(histPrefix) //nolint:gosec // G304: Test file path
 	require.NoError(t, err)
 	defer func() { _ = fAll.Close() }()
 	b, err = ioutil.ReadAll(fAll)

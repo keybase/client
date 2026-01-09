@@ -688,9 +688,13 @@ func getCleanBlockCacheCapacity(
 		config := kbCtx.GetEnv().GetConfig()
 		capInt, ok := config.GetIntAtPath(configBlockCacheMemMaxBytesStr)
 		if ok {
-			log.CDebugf(
-				ctx, "Using block cache capacity from config file: %d", capInt)
-			capacity = uint64(capInt)
+			if capInt < 0 {
+				log.CDebugf(ctx, "Ignoring negative block cache capacity from config file: %d", capInt)
+			} else {
+				log.CDebugf(
+					ctx, "Using block cache capacity from config file: %d", capInt)
+				capacity = uint64(capInt)
+			}
 		}
 	}
 

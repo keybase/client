@@ -2075,7 +2075,7 @@ func (j *tlfJournal) getBlockSize(
 	// Block sizes are restricted, but `size` is an int64 because
 	// that's what the OS gives us.  Convert it to a uint32. TODO:
 	// check this is safe?
-	return uint32(size), nil
+	return uint32(size), nil //nolint:gosec // G115: Block sizes are bounded by max block size config
 }
 
 // ErrDiskLimitTimeout is returned when putBlockData exceeds
@@ -2219,7 +2219,7 @@ func (j *tlfJournal) putBlockData(
 	}
 
 	if putData && j.mdJournal.branchID == kbfsmd.NullBranchID {
-		j.unsquashedBytes += uint64(bufLen)
+		j.unsquashedBytes += uint64(bufLen) //nolint:gosec // G115: Buffer lengths bounded by memory limits
 	}
 
 	j.config.SubscriptionManagerPublisher().PublishChange(

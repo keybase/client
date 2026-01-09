@@ -66,7 +66,7 @@ var _ fs.Node = (*FolderList)(nil)
 // Attr implements the fs.Node interface.
 func (fl *FolderList) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Mode = os.ModeDir | 0o500
-	a.Uid = uint32(os.Getuid())
+	a.Uid = uint32(os.Getuid()) //nolint:gosec // G115: UID values are bounded by system limits
 	a.Inode = fl.inode
 	return nil
 }

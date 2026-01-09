@@ -237,7 +237,7 @@ func setupTLFJournalTest(
 ) {
 	// Set up config and dependencies.
 	bsplitter, err := data.NewBlockSplitterSimpleExact(
-		64*1024, int(64*1024/data.BPSize), 8*1024)
+		64*1024, int(64*1024/data.BPSize), 8*1024) //nolint:gosec // G115: Test config with bounded values
 	require.NoError(t, err)
 	codec := kbfscodec.NewMsgpack()
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
@@ -987,7 +987,7 @@ func testTLFJournalFlushMDBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, defaultFlushContext())
 	require.NoError(t, err)
 	require.False(t, flushed)
-	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
+	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0) //nolint:gosec // G115: Test data with bounded values
 	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Check RMDSes on the server.
@@ -1050,7 +1050,7 @@ func testTLFJournalFlushMDConflict(t *testing.T, ver kbfsmd.MetadataVer) {
 	}
 
 	// The journal won't flush anything while on a branch.
-	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), uint64(mdCount))
+	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), uint64(mdCount)) //nolint:gosec // G115: Test data with bounded values
 }
 
 // orderedBlockServer and orderedMDServer appends onto their shared

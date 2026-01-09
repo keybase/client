@@ -91,7 +91,7 @@ func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 	require.NoError(t, err)
 
 	bsplit, err = data.NewBlockSplitterSimpleExact(
-		64*1024, int(64*1024/data.BPSize), 8*1024)
+		64*1024, int(64*1024/data.BPSize), 8*1024) //nolint:gosec // G115: Test config with bounded values
 	require.NoError(t, err)
 
 	return codec, crypto, tlfID, signer, ekg, bsplit, tempdir, j
@@ -286,7 +286,7 @@ func testMDJournalBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 		firstRevision, firstPrevRoot, mdCount, j)
 
 	require.Equal(t, mdCount, len(mds))
-	require.Equal(t, uint64(mdCount), j.length())
+	require.Equal(t, uint64(mdCount), j.length()) //nolint:gosec // G115: Test data with bounded values
 
 	// Should now be non-empty.
 	ibrmds, err := j.getRange(
@@ -755,7 +755,7 @@ func testMDJournalResolveAndClear(t *testing.T, ver kbfsmd.MetadataVer, bid kbfs
 	_, resolveJournalID2, err := j.resolveAndClear(
 		ctx, signer, ekg, bsplit, mdcache, bid, md)
 	require.NoError(t, err)
-	require.Equal(t, uint64(numExpectedMDs), j.length())
+	require.Equal(t, uint64(numExpectedMDs), j.length()) //nolint:gosec // G115: Test data
 	head, err = j.getHead(ctx, kbfsmd.NullBranchID)
 	require.NoError(t, err)
 	require.Equal(t, md.Revision(), head.RevisionNumber())
@@ -1008,7 +1008,7 @@ func testMDJournalClearPendingWithMaster(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.NullBranchID, j.branchID)
 
-	require.Equal(t, uint64(mdCount), j.length())
+	require.Equal(t, uint64(mdCount), j.length()) //nolint:gosec // G115: Test data with bounded values
 
 	head, err := j.getHead(ctx, bid)
 	require.NoError(t, err)
@@ -1042,7 +1042,7 @@ func testMDJournalRestart(t *testing.T, ver kbfsmd.MetadataVer) {
 		j.overrideTlfID)
 	require.NoError(t, err)
 
-	require.Equal(t, uint64(mdCount), j.length())
+	require.Equal(t, uint64(mdCount), j.length()) //nolint:gosec // G115: Test data with bounded values
 
 	ibrmds, err := j.getRange(
 		ctx, kbfsmd.NullBranchID, 1, firstRevision+kbfsmd.Revision(2*mdCount))
@@ -1084,7 +1084,7 @@ func testMDJournalRestartAfterBranchConversion(t *testing.T, ver kbfsmd.Metadata
 		j.overrideTlfID)
 	require.NoError(t, err)
 
-	require.Equal(t, uint64(mdCount), j.length())
+	require.Equal(t, uint64(mdCount), j.length()) //nolint:gosec // G115: Test data with bounded values
 
 	ibrmds, err := j.getRange(
 		ctx, bid, 1, firstRevision+kbfsmd.Revision(2*mdCount))
