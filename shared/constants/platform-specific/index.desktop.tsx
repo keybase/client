@@ -8,7 +8,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
-import {onEngineConnected, onEngineDisconnected} from '@/constants/platform-specific/shared'
+import {onEngineConnected, onEngineDisconnected} from '@/constants/init/shared'
 import {handleAppLink, handleSaltPackOpen} from '../deeplinks'
 
 const {ctlQuit, dumpNodeLogger} = KB2.functions

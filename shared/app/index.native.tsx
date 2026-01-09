@@ -19,8 +19,8 @@ import {useUnmountAll} from '@/util/debug-react'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
 import {install} from 'react-native-kb'
 import * as DarkMode from '@/constants/darkmode'
-import {onEngineConnected, onEngineDisconnected} from '@/constants/platform-specific/shared'
-import {initPlatformListener} from '@/constants/init'
+import {onEngineConnected, onEngineDisconnected} from '@/constants/init/shared'
+import {initPlatformListener} from '@/constants/init/index.native'
 
 enableFreeze(true)
 setServiceDecoration(ServiceDecoration)
