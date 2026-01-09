@@ -17,7 +17,7 @@ import type {default as NewMainType} from '../../app/main.desktop'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useDarkModeState} from '@/constants/darkmode'
-import {initPlatformListener} from '@/constants/init/index.desktop'
+import {initPlatformListener, onEngineIncoming} from '@/constants/init/index.desktop'
 setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
@@ -50,7 +50,7 @@ const setupApp = () => {
   const {batch} = C.useWaitingState.getState().dispatch
   const eng = makeEngine(batch, () => {
     // do nothing we wait for the remote version from node
-  })
+  }, onEngineIncoming)
   initPlatformListener()
   eng.listenersAreReady()
 

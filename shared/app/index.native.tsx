@@ -19,7 +19,7 @@ import {useUnmountAll} from '@/util/debug-react'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
 import {install} from 'react-native-kb'
 import * as DarkMode from '@/constants/darkmode'
-import {initPlatformListener, onEngineConnected, onEngineDisconnected} from '@/constants/init/index.native'
+import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index.native'
 
 enableFreeze(true)
 setServiceDecoration(ServiceDecoration)
@@ -138,7 +138,7 @@ const useInit = () => {
     } else {
       onEngineDisconnected()
     }
-  })
+  }, onEngineIncoming)
   initPlatformListener()
   eng.listenersAreReady()
 
