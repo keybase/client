@@ -26,8 +26,8 @@ import type * as UsePinentryStateType from '@/stores/pinentry'
 import {useProvisionState} from '../provision'
 import {storeRegistry} from '../store-registry'
 import {useSettingsContactsState} from '../settings-contacts'
-import * as SettingsUtil from '../settings/util'
-import * as SignupUtil from '../signup/util'
+import type * as UseSettingsStateType from '@/stores/settings'
+import type * as UseSignupStateType from '@/stores/signup'
 import {useTeamsState} from '../teams'
 import * as TeamsUtil from '../teams/util'
 import * as TrackerUtil from '../tracker2/util'
@@ -382,6 +382,22 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         usePinentryState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
+    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+      {
+        const {useSettingsState} = require('@/stores/settings') as typeof UseSettingsStateType
+        useSettingsState.getState().dispatch.onEngineIncomingImpl(action)
+        const {useSignupState} = require('@/stores/signup') as typeof UseSignupStateType
+        useSignupState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1NotifyUsersPasswordChanged:
+    case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
+    case EngineGen.keybase1NotifyEmailAddressEmailsChanged:
+      {
+        const {useSettingsState} = require('@/stores/settings') as typeof UseSettingsStateType
+        useSettingsState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
     default:
   }
   AvatarUtil.onEngineIncoming(action)
@@ -409,8 +425,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     }
     default:
   }
-  SettingsUtil.onEngineIncoming(action)
-  SignupUtil.onEngineIncoming(action)
   TeamsUtil.onEngineIncoming(action)
   TrackerUtil.onEngineIncoming(action)
   UnlockFoldersUtil.onEngineIncoming(action)

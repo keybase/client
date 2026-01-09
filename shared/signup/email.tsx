@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from './common'
 import {useSettingsEmailState} from '@/constants/settings-email'
-import {useSignupState} from '@/constants/signup'
+import {useSignupState} from '@/stores/signup'
 import {usePushState} from '@/constants/push'
 
 const ConnectedEnterEmail = () => {

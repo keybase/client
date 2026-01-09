@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SettingsSection} from './account'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
-import {settingsFeedbackTab} from '@/constants/settings'
+import {settingsFeedbackTab} from '@/stores/settings'
 import {useConfigState} from '@/constants/config'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'

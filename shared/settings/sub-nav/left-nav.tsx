@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import WhatsNewIcon from '@/whats-new/icon'
 import SettingsItem from './settings-item'
 import {keybaseFM} from '@/constants/whats-new'
-import * as Settings from '@/constants/settings'
+import * as Settings from '@/stores/settings'
 import {usePushState} from '@/constants/push'
 import {useNotifState} from '@/stores/notifications'
 

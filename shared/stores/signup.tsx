@@ -1,16 +1,16 @@
-import * as Platforms from '../platform'
-import {ignorePromise} from '../utils'
-import * as S from '../strings'
+import * as Platforms from '@/constants/platform'
+import {ignorePromise} from '@/constants/utils'
+import * as S from '@/constants/strings'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as T from '../types'
+import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
-import {navigateAppend, navigateUp} from '../router2/util'
-import {storeRegistry} from '../store-registry'
-import {useConfigState} from '../config'
+import {navigateAppend, navigateUp} from '@/constants/router2/util'
+import {storeRegistry} from '@/constants/store-registry'
+import {useConfigState} from '@/constants/config'
 
 type Store = T.Immutable<{
   devicename: string

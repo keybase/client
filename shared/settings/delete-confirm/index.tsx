@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {usePWState} from '@/constants/settings-password'
-import {useSettingsState} from '@/constants/settings'
+import {useSettingsState} from '@/stores/settings'
 import {useCurrentUserState} from '@/constants/current-user'
 
 type CheckboxesProps = {

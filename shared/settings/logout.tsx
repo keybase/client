@@ -4,7 +4,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {UpdatePassword} from './password'
 import {usePWState} from '@/constants/settings-password'
-import {useSettingsState} from '@/constants/settings'
+import {useSettingsState} from '@/stores/settings'
 import {useLogoutState} from '@/constants/logout'
 
 const LogoutContainer = () => {

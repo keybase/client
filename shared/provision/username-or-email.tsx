@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as AutoReset from '@/stores/autoreset'
-import {useSignupState} from '@/constants/signup'
+import {useSignupState} from '@/stores/signup'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
 import * as React from 'react'

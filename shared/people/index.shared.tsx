@@ -7,7 +7,7 @@ import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import type {Props} from '.'
 import Todo from './todo'
-import {useSignupState} from '@/constants/signup'
+import {useSignupState} from '@/stores/signup'
 import {usePeopleState} from '@/stores/people'
 // import WotTask from './wot-task'
 

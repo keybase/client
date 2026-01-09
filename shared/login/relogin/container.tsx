@@ -4,7 +4,7 @@ import {useConfigState} from '@/constants/config'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
 import {useState as useRecoverState} from '@/constants/recover-password'
-import {useSignupState} from '@/constants/signup'
+import {useSignupState} from '@/stores/signup'
 import {useProvisionState} from '@/constants/provision'
 
 const needPasswordError = 'passphrase cannot be empty'

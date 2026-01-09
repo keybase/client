@@ -3,7 +3,7 @@ import * as React from 'react'
 import {useConfigState} from '@/constants/config'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
-import {useSignupState} from '@/constants/signup'
+import {useSignupState} from '@/stores/signup'
 import {useProvisionState} from '@/constants/provision'
 
 const Intro = () => {

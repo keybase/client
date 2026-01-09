@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useSettingsState} from '@/constants/settings'
+import {useSettingsState} from '@/stores/settings'
 
 const useConnect = () => {
   const allowTlsMitmToggle = useSettingsState(s => s.didToggleCertificatePinning)

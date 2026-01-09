@@ -5,7 +5,7 @@ import EmailPhoneRow from './email-phone-row'
 import {usePWState} from '@/constants/settings-password'
 import {useSettingsPhoneState} from '@/constants/settings-phone'
 import {useSettingsEmailState} from '@/constants/settings-email'
-import {useSettingsState, settingsPasswordTab} from '@/constants/settings'
+import {useSettingsState, settingsPasswordTab} from '@/stores/settings'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>

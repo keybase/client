@@ -6,7 +6,7 @@ import * as React from 'react'
 import Group from './group'
 import {useSettingsChatState as useSettingsChatState} from '@/constants/settings-chat'
 import {useSettingsNotifState} from '@/constants/settings-notifications'
-import {useSettingsState} from '@/constants/settings'
+import {useSettingsState} from '@/stores/settings'
 import {useConfigState} from '@/constants/config'
 
 const emptyList = new Array<string>()

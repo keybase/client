@@ -4,7 +4,7 @@ import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {settingsDevicesTab} from '@/constants/settings'
+import {settingsDevicesTab} from '@/stores/settings'
 import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {deviceID: string}
