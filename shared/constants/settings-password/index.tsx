@@ -1,11 +1,11 @@
 import * as Z from '@/util/zustand'
-import {ignorePromise} from '../utils'
-import {waitingKeySettingsGeneric} from '../strings'
+import {ignorePromise} from '@/constants/utils'
+import {waitingKeySettingsGeneric} from '@/constants/strings'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
-import * as T from '../types'
-import {navigateUp} from '../router2/util'
-import {useLogoutState} from '../logout'
+import * as T from '@/constants/types'
+import {navigateUp} from '@/constants/router2/util'
+import {useLogoutState} from '@/stores/logout'
 
 type Store = T.Immutable<{
   error: string

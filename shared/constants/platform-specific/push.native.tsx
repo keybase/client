@@ -11,7 +11,7 @@ import {
 } from 'react-native-kb'
 import {storeRegistry} from '../store-registry'
 import {useConfigState} from '@/stores/config'
-import {useLogoutState} from '../logout'
+import {useLogoutState} from '@/stores/logout'
 
 type DataCommon = {
   userInteraction: boolean

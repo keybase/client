@@ -1,24 +1,24 @@
-import * as Tabs from './tabs'
-import * as S from './strings'
-import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from './utils'
-import {navigateAppend, navUpToScreen, switchTab} from './router2/util'
-import {storeRegistry} from './store-registry'
+import * as Tabs from '@/constants/tabs'
+import * as S from '@/constants/strings'
+import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '@/constants/utils'
+import {navigateAppend, navUpToScreen, switchTab} from '@/constants/router2/util'
+import {storeRegistry} from '@/constants/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useLogoutState} from './logout'
-import {useWaitingState} from './waiting'
+import {useLogoutState} from '@/stores/logout'
+import {useWaitingState} from '@/constants/waiting'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
-import * as T from './types'
+import * as T from '@/constants/types'
 import {isDevApplePushToken} from '@/local-debug'
-import {isIOS} from './platform'
+import {isIOS} from '@/constants/platform'
 import {
   iosGetHasShownPushPrompt,
   checkPushPermissions,
   requestPushPermissions,
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
-import {type Store, type State} from './push'
+import {type Store, type State} from '@/constants/push'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 
