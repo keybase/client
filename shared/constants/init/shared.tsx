@@ -3,7 +3,7 @@ import logger from '@/logger'
 import {serverConfigFileName} from '../platform'
 import * as T from '../types'
 import {ignorePromise} from '../utils'
-import * as ArchiveUtil from '../archive/util'
+import type * as UseArchiveStateType from '@/stores/archive'
 import * as AutoResetUtil from '../autoreset/util'
 import * as AvatarUtil from '@/common-adapters/avatar/util'
 import * as BotsUtil from '../bots/util'
@@ -241,8 +241,19 @@ export const initSharedSubscriptions = () => {
   })
 }
 
+// This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
-  ArchiveUtil.onEngineIncoming(action)
+  switch (action.type) {
+    case EngineGen.keybase1NotifySimpleFSSimpleFSArchiveStatusChanged:
+    case EngineGen.chat1NotifyChatChatArchiveComplete:
+    case EngineGen.chat1NotifyChatChatArchiveProgress:
+      {
+        const {useArchiveState} = require('@/stores/archive') as typeof UseArchiveStateType
+        useArchiveState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    default:
+  }
   AutoResetUtil.onEngineIncoming(action)
   AvatarUtil.onEngineIncoming(action)
   BotsUtil.onEngineIncoming(action)

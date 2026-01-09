@@ -1,11 +1,11 @@
-import * as T from '../types'
+import * as T from '../constants/types'
 import * as Z from '@/util/zustand'
-import {ignorePromise} from '../utils'
+import {ignorePromise} from '../constants/utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {pathToRPCPath} from '@/constants/fs/util'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {uint8ArrayToHex} from 'uint8array-extras'
-import {isMobile} from '../platform'
+import {isMobile} from '../constants/platform'
 
 type ChatJob = {
   id: string
