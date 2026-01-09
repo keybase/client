@@ -1,3 +1,4 @@
+// links all the stores together, stores never import this
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from './utils'
 import {useChatState} from './chat2'
 import {useConfigState} from './config'
@@ -266,7 +267,6 @@ export const initPlatformListener = () => {
       }
       ignorePromise(f())
     })
-
   })
 
   useConfigState.subscribe((s, old) => {
@@ -484,7 +484,6 @@ export const initPlatformListener = () => {
       }
       ignorePromise(f())
     })
-
   })
 
   useRouterState.setState(s => {

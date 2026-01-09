@@ -24,6 +24,7 @@ type Store = T.Immutable<{
   badgeState?: T.RPCGen.BadgeState
   configuredAccounts: Array<T.Config.ConfiguredAccount>
   defaultUsername: string
+  forceSmallNav: boolean
   globalError?: Error | RPCError
   gregorReachable?: T.RPCGen.Reachable
   gregorPushState: Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>
