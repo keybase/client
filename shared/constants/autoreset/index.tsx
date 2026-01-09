@@ -140,9 +140,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
                     s.endTime = params.endTime * 1000
                   })
                 }
-                storeRegistry
-                  .getState('router')
-                  .dispatch.navigateAppend(
+                  navigateAppend(
                     {props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'},
                     true
                   )

@@ -1502,9 +1502,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
             clearModals()
             navigateAppend({props: {teamID}, selected: 'team'})
             if (isMobile) {
-              storeRegistry
-                .getState('router')
-                .dispatch.navigateAppend({props: {createdTeam: true, teamID}, selected: 'profileEditAvatar'})
+              navigateAppend({props: {createdTeam: true, teamID}, selected: 'profileEditAvatar'})
             }
           }
         } catch (error) {
@@ -2031,9 +2029,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           )
           logger.info(`leaveTeam: left ${teamname} successfully`)
           clearModals()
-          storeRegistry
-            .getState('router')
-            .dispatch.navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
+          navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
           get().dispatch.getTeams()
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2165,9 +2161,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       })
     },
     manageChatChannels: teamID => {
-      storeRegistry
-        .getState('router')
-        .dispatch.navigateAppend({props: {teamID}, selected: 'teamAddToChannels'})
+      navigateAppend({props: {teamID}, selected: 'teamAddToChannels'})
     },
     notifyTeamTeamRoleMapChanged: (newVersion: number) => {
       const loadedVersion = get().teamRoleMap.loadedVersion
@@ -2873,13 +2867,9 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           logger.info(`team="${teamname}" cannot be loaded:`, err)
           // navigate to team page for team we're not in
           logger.info(`showing external team page, join=${join}`)
-          storeRegistry
-            .getState('router')
-            .dispatch.navigateAppend({props: {teamname}, selected: 'teamExternalTeam'})
+          navigateAppend({props: {teamname}, selected: 'teamExternalTeam'})
           if (join) {
-            storeRegistry
-              .getState('router')
-              .dispatch.navigateAppend({props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'})
+            navigateAppend({props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'})
           }
           return
         }
@@ -2901,9 +2891,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
             return
           }
         }
-        storeRegistry
-          .getState('router')
-          .dispatch.navigateAppend({props: {initialTab, teamID}, selected: 'team'})
+        navigateAppend({props: {initialTab, teamID}, selected: 'team'})
         if (addMembers) {
           navigateAppend({
             props: {namespace: 'teams', teamID, title: ''},

@@ -108,17 +108,13 @@ export const useState = Z.createZustand<State>((set, get) => {
                     }
                   })
                 })
-                storeRegistry
-                  .getState('router')
-                  .dispatch.navigateAppend('recoverPasswordDeviceSelector', !!replaceRoute)
+                navigateAppend('recoverPasswordDeviceSelector', !!replaceRoute)
               },
               'keybase.1.loginUi.promptPassphraseRecovery': () => {},
               // This same RPC is called at the beginning and end of the 7-day wait by the service.
               'keybase.1.loginUi.promptResetAccount': (params, response) => {
                 if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
-                  storeRegistry
-                    .getState('router')
-                    .dispatch.navigateAppend('recoverPasswordPromptResetPassword')
+                  navigateAppend('recoverPasswordPromptResetPassword')
                   const clear = () => {
                     set(s => {
                       s.dispatch.dynamic.submitResetPassword = undefined
@@ -228,14 +224,12 @@ export const useState = Z.createZustand<State>((set, get) => {
             set(s => {
               s.error = msg
             })
-            storeRegistry
-              .getState('router')
-              .dispatch.navigateAppend(
-                useConfigState.getState().loggedIn
-                  ? 'recoverPasswordErrorModal'
-                  : 'recoverPasswordError',
-                true
-              )
+            navigateAppend(
+              useConfigState.getState().loggedIn
+                ? 'recoverPasswordErrorModal'
+                : 'recoverPasswordError',
+              true
+            )
           }
         } finally {
           set(s => {
