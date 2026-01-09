@@ -21,10 +21,18 @@ import NotifyPopup from '@/util/notify-popup'
 import {noKBFSFailReason} from '../config/util'
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {wrapErrors} from '@/util/debug'
-import {dumpLogs} from '../platform-specific/index.desktop'
 
-const {showMainWindow, activeChanged, requestWindowsStartService} = KB2.functions
+const {showMainWindow, activeChanged, requestWindowsStartService, ctlQuit, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, copyToClipboard} = KB2.functions
+
+const dumpLogs = async (reason?: string) => {
+  await logger.dump()
+  await (dumpNodeLogger?.() ?? Promise.resolve([]))
+  // quit as soon as possible
+  if (reason === 'quitting through menu') {
+    ctlQuit?.()
+  }
+}
 
 const maybePauseVideos = () => {
   const {appFocused} = useConfigState.getState()
