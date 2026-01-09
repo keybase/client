@@ -1,7 +1,6 @@
 import * as Crypto from '../crypto/util'
 import * as Tabs from '../tabs'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
-import * as Z from '@/util/zustand'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import type HiddenString from '@/util/hidden-string'
 import URL from 'url-parse'
@@ -9,11 +8,10 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 import {navigateAppend, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useCryptoState} from '../crypto'
+import {useConfigState} from '../config'
 
 const prefix = 'keybase://'
-type Store = T.Immutable<{
-  keybaseLinkError: string
-}>
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
   `${prefix}chat/${conv}/${messageID}`
 
@@ -40,23 +38,6 @@ const validTeamnamePart = (s: string): boolean => {
 }
 
 const validTeamname = (s: string) => s.split('.').every(validTeamnamePart)
-
-const initialStore: Store = {
-  keybaseLinkError: '',
-}
-
-export interface State extends Store {
-  dispatch: {
-    handleAppLink: (link: string) => void
-    handleKeybaseLink: (link: string) => void
-    handleSaltPackOpen: (_path: string | HiddenString) => void
-    onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    resetState: 'default'
-    setLinkError: (e: string) => void
-  }
-}
-
-export const useDeepLinksState = Z.createZustand<State>((set, get) => {
   const handleShowUserProfileLink = (username: string) => {
     switchTab(Tabs.peopleTab)
     storeRegistry.getState('profile').dispatch.showUserProfile(username)
@@ -129,209 +110,197 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
       )
   }
 
-  const dispatch: State['dispatch'] = {
-    handleAppLink: link => {
-      if (link.startsWith('keybase://')) {
-        get().dispatch.handleKeybaseLink(link.replace('keybase://', ''))
-        return
-      } else {
-        // Normal deeplink
-        const url = new URL(link)
-        const username = urlToUsername(url)
-        if (username === 'phone-app') {
-          const phones = storeRegistry.getState('settings-phone').phones
-          if (!phones || phones.size > 0) {
-            return
-          }
-          switchTab(Tabs.settingsTab)
-          navigateAppend('settingsAddPhone')
-        } else if (username && username !== 'app') {
-          handleShowUserProfileLink(username)
-          return
-        }
-        const teamLink = urlToTeamDeepLink(url)
-        if (teamLink) {
-          handleTeamPageLink(teamLink.teamName, teamLink.action)
-          return
-        }
-      }
-    },
-    handleKeybaseLink: link => {
-      if (!link) return
-      const error =
-        "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and needs to be updated."
-      const parts = link.split('/')
-      // List guaranteed to contain at least one elem.
-      switch (parts[0]) {
-        case 'profile':
-          if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
-            parts.length === 4 &&
-              parts[3] &&
-              storeRegistry.getState('profile').dispatch.showUserProfile(parts[3])
-            storeRegistry.getState('profile').dispatch.addProof(parts[2]!, 'appLink')
-            return
-          } else if (parts[1] === 'show' && parts.length === 3) {
-            // Username is basically a team name part, we can use the same logic to
-            // validate deep link.
-            const username = parts[2]!
-            if (username.length && validTeamnamePart(username)) {
-              return handleShowUserProfileLink(username)
-            }
-          }
-          break
-        // Fall-through
-        case 'private':
-        case 'public':
-        case 'team':
-          try {
-            const decoded = decodeURIComponent(link)
-            switchTab(Tabs.fsTab)
-            storeRegistry
-              .getState('router')
-              .dispatch.navigateAppend({props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'})
-            return
-          } catch {
-            logger.warn("Coudn't decode KBFS URI")
-            return
-          }
-        case 'convid':
-          if (parts.length === 2) {
-            const conversationIDKey = parts[1]
-            if (conversationIDKey) {
-              storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('navChanged')
-            }
-            return
-          }
-          break
-        case 'chat':
-          if (parts.length === 2 || parts.length === 3) {
-            if (parts[1]!.includes('#')) {
-              const teamChat = parts[1]!.split('#')
-              if (teamChat.length !== 2) {
-                get().dispatch.setLinkError(error)
-                navigateAppend('keybaseLinkError')
-                return
-              }
-              const [teamname, channelname] = teamChat
-              const _highlightMessageID = parseInt(parts[2]!, 10)
-              if (_highlightMessageID < 0) {
-                logger.warn(`invalid chat message id: ${_highlightMessageID}`)
-                return
-              }
-
-              const highlightMessageID = T.Chat.numberToMessageID(_highlightMessageID)
-              const {previewConversation} = storeRegistry.getState('chat').dispatch
-              previewConversation({
-                channelname,
-                highlightMessageID,
-                reason: 'appLink',
-                teamname,
-              })
-              return
-            } else {
-              const highlightMessageID = parseInt(parts[2]!, 10)
-              if (highlightMessageID < 0) {
-                logger.warn(`invalid chat message id: ${highlightMessageID}`)
-                return
-              }
-              const {previewConversation} = storeRegistry.getState('chat').dispatch
-              previewConversation({
-                highlightMessageID: T.Chat.numberToMessageID(highlightMessageID),
-                participants: parts[1]!.split(','),
-                reason: 'appLink',
-              })
-              return
-            }
-          }
-          break
-        case 'team-page': // keybase://team-page/{team_name}/{manage_settings,add_or_invite}?
-          if (parts.length >= 2) {
-            const teamName = parts[1]!
-            if (teamName.length && validTeamname(teamName)) {
-              const actionPart = parts[2]
-              const action = isTeamPageAction(actionPart) ? actionPart : undefined
-              handleTeamPageLink(teamName, action)
-              return
-            }
-          }
-          break
-        case 'incoming-share':
-          // android needs to render first when coming back
-          setTimeout(() => {
-            navigateAppend('incomingShareNew')
-          }, 500)
-          return
-        case 'team-invite-link':
-          storeRegistry.getState('teams').dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
-          return
-        case 'settingsPushPrompt':
-          navigateAppend('settingsPushPrompt')
-          return
-        case Tabs.teamsTab:
-          switchTab(Tabs.teamsTab)
-          return
-        case Tabs.fsTab:
-          switchTab(Tabs.fsTab)
-          return
-        case Tabs.chatTab:
-          switchTab(Tabs.chatTab)
-          return
-        case Tabs.peopleTab:
-          switchTab(Tabs.peopleTab)
-          return
-        case Tabs.settingsTab:
-          switchTab(Tabs.settingsTab)
-          return
-        default:
-        // Fall through to the error return below.
-      }
-      get().dispatch.setLinkError(error)
-      navigateAppend('keybaseLinkError')
-    },
-    handleSaltPackOpen: _path => {
-      const path = typeof _path === 'string' ? _path : _path.stringValue()
-
-      if (!storeRegistry.getState('config').loggedIn) {
-        console.warn('Tried to open a saltpack file before being logged in')
+export const handleAppLink = (link: string) => {
+  if (link.startsWith('keybase://')) {
+    handleKeybaseLink(link.replace('keybase://', ''))
+    return
+  } else {
+    // Normal deeplink
+    const url = new URL(link)
+    const username = urlToUsername(url)
+    if (username === 'phone-app') {
+      const phoneState = storeRegistry.getState('settings-phone')
+      const phones = (phoneState as {phones?: Map<string, unknown>}).phones
+      if (!phones || phones.size > 0) {
         return
       }
-      let operation: T.Crypto.Operations | undefined
-      if (isPathSaltpackEncrypted(path)) {
-        operation = Crypto.Operations.Decrypt
-      } else if (isPathSaltpackSigned(path)) {
-        operation = Crypto.Operations.Verify
-      } else {
-        logger.warn(
-          'Deeplink received saltpack file path not ending in ".encrypted.saltpack" or ".signed.saltpack"'
-        )
-        return
-      }
-      storeRegistry.getState('crypto').dispatch.onSaltpackOpenFile(operation, path)
-      switchTab(Tabs.cryptoTab)
-    },
-
-    onEngineIncomingImpl: action => {
-      switch (action.type) {
-        case EngineGen.keybase1NotifyServiceHandleKeybaseLink: {
-          const {link, deferred} = action.payload.params
-          if (deferred && !link.startsWith('keybase://team-invite-link/')) {
-            return
-          }
-          get().dispatch.handleKeybaseLink(link)
-          break
-        }
-        default:
-      }
-    },
-    resetState: 'default',
-    setLinkError: e => {
-      set(s => {
-        s.keybaseLinkError = e
-      })
-    },
+      switchTab(Tabs.settingsTab)
+      navigateAppend('settingsAddPhone')
+    } else if (username && username !== 'app') {
+      handleShowUserProfileLink(username)
+      return
+    }
+    const teamLink = urlToTeamDeepLink(url)
+    if (teamLink) {
+      handleTeamPageLink(teamLink.teamName, teamLink.action)
+      return
+    }
   }
-  return {
-    ...initialStore,
-    dispatch,
+}
+
+export const handleKeybaseLink = (link: string) => {
+  if (!link) return
+  const error =
+    "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and needs to be updated."
+  const parts = link.split('/')
+  // List guaranteed to contain at least one elem.
+  switch (parts[0]) {
+    case 'profile':
+      if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
+        parts.length === 4 &&
+          parts[3] &&
+          storeRegistry.getState('profile').dispatch.showUserProfile(parts[3])
+        storeRegistry.getState('profile').dispatch.addProof(parts[2]!, 'appLink')
+        return
+      } else if (parts[1] === 'show' && parts.length === 3) {
+        // Username is basically a team name part, we can use the same logic to
+        // validate deep link.
+        const username = parts[2]!
+        if (username.length && validTeamnamePart(username)) {
+          return handleShowUserProfileLink(username)
+        }
+      }
+      break
+    // Fall-through
+    case 'private':
+    case 'public':
+    case 'team':
+      try {
+        const decoded = decodeURIComponent(link)
+        switchTab(Tabs.fsTab)
+        storeRegistry
+          .getState('router')
+          .dispatch.navigateAppend({props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'})
+        return
+      } catch {
+        logger.warn("Coudn't decode KBFS URI")
+        return
+      }
+    case 'convid':
+      if (parts.length === 2) {
+        const conversationIDKey = parts[1]
+        if (conversationIDKey) {
+          storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('navChanged')
+        }
+        return
+      }
+      break
+    case 'chat':
+      if (parts.length === 2 || parts.length === 3) {
+        if (parts[1]!.includes('#')) {
+          const teamChat = parts[1]!.split('#')
+          if (teamChat.length !== 2) {
+            navigateAppend({props: {error}, selected: 'keybaseLinkError'})
+            return
+          }
+          const [teamname, channelname] = teamChat
+          const _highlightMessageID = parseInt(parts[2]!, 10)
+          if (_highlightMessageID < 0) {
+            logger.warn(`invalid chat message id: ${_highlightMessageID}`)
+            return
+          }
+
+          const highlightMessageID = T.Chat.numberToMessageID(_highlightMessageID)
+          const {previewConversation} = storeRegistry.getState('chat').dispatch
+          previewConversation({
+            channelname,
+            highlightMessageID,
+            reason: 'appLink',
+            teamname,
+          })
+          return
+        } else {
+          const highlightMessageID = parseInt(parts[2]!, 10)
+          if (highlightMessageID < 0) {
+            logger.warn(`invalid chat message id: ${highlightMessageID}`)
+            return
+          }
+          const {previewConversation} = storeRegistry.getState('chat').dispatch
+          previewConversation({
+            highlightMessageID: T.Chat.numberToMessageID(highlightMessageID),
+            participants: parts[1]!.split(','),
+            reason: 'appLink',
+          })
+          return
+        }
+      }
+      break
+    case 'team-page': // keybase://team-page/{team_name}/{manage_settings,add_or_invite}?
+      if (parts.length >= 2) {
+        const teamName = parts[1]!
+        if (teamName.length && validTeamname(teamName)) {
+          const actionPart = parts[2]
+          const action = isTeamPageAction(actionPart) ? actionPart : undefined
+          handleTeamPageLink(teamName, action)
+          return
+        }
+      }
+      break
+    case 'incoming-share':
+      // android needs to render first when coming back
+      setTimeout(() => {
+        navigateAppend('incomingShareNew')
+      }, 500)
+      return
+    case 'team-invite-link':
+      storeRegistry.getState('teams').dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
+      return
+    case 'settingsPushPrompt':
+      navigateAppend('settingsPushPrompt')
+      return
+    case Tabs.teamsTab:
+      switchTab(Tabs.teamsTab)
+      return
+    case Tabs.fsTab:
+      switchTab(Tabs.fsTab)
+      return
+    case Tabs.chatTab:
+      switchTab(Tabs.chatTab)
+      return
+    case Tabs.peopleTab:
+      switchTab(Tabs.peopleTab)
+      return
+    case Tabs.settingsTab:
+      switchTab(Tabs.settingsTab)
+      return
+    default:
+    // Fall through to the error return below.
   }
-})
+  navigateAppend({props: {error}, selected: 'keybaseLinkError'})
+}
+
+export const handleSaltPackOpen = (_path: string | HiddenString) => {
+  const path = typeof _path === 'string' ? _path : _path.stringValue()
+
+  if (!useConfigState.getState().loggedIn) {
+    console.warn('Tried to open a saltpack file before being logged in')
+    return
+  }
+  let operation: T.Crypto.Operations | undefined
+  if (isPathSaltpackEncrypted(path)) {
+    operation = Crypto.Operations.Decrypt
+  } else if (isPathSaltpackSigned(path)) {
+    operation = Crypto.Operations.Verify
+  } else {
+    logger.warn(
+      'Deeplink received saltpack file path not ending in ".encrypted.saltpack" or ".signed.saltpack"'
+    )
+    return
+  }
+  useCryptoState.getState().dispatch.onSaltpackOpenFile(operation, path)
+  switchTab(Tabs.cryptoTab)
+}
+
+export const onEngineIncomingImpl = (action: EngineGen.Actions) => {
+  switch (action.type) {
+    case EngineGen.keybase1NotifyServiceHandleKeybaseLink: {
+      const {link, deferred} = action.payload.params
+      if (deferred && !link.startsWith('keybase://team-invite-link/')) {
+        return
+      }
+      handleKeybaseLink(link)
+      break
+    }
+    default:
+  }
+}

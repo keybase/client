@@ -12,7 +12,7 @@ import {printOutstandingRPCs} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '../actions/engine-gen-gen'
-import type * as EngineConst from '@/constants/engine'
+import type * as PlatSpecType from '@/constants/platform-specific/shared'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
@@ -47,6 +47,7 @@ class Engine {
   _listenersAreReady: boolean = false
 
   _emitWaiting: (changes: BatchParams) => void
+  _incomingTimeout: NodeJS.Timeout | undefined
 
   _queuedChanges: Array<{error?: RPCError; increment: boolean; key: WaitingKey}> = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error?: RPCError) => {
@@ -68,8 +69,15 @@ class Engine {
     this._onConnectedCB = onConnected
     // the node engine doesn't do this and we don't want to pull in any reqs
     if (allowIncomingCalls) {
-      const {useEngineState} = require('@/constants/engine') as typeof EngineConst
-      this._engineConstantsIncomingCall = useEngineState.getState().dispatch.onEngineIncoming
+      this._engineConstantsIncomingCall = (action: EngineGen.Actions) => {
+        // defer a frame so its more like before
+        this._incomingTimeout = setTimeout(() => {
+          // we delegate to these utils so we don't need to load stores that we don't need yet
+          const {onEngineIncoming: onEngineIncomingShared} =
+            require('@/constants/platform-specific/shared') as typeof PlatSpecType
+          onEngineIncomingShared(action)
+        }, 0)
+      }
     }
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(

@@ -10,7 +10,7 @@ import UserCard from '@/login/user-card'
 import {SignupScreen, errorBanner} from '@/signup/common'
 import {useProvisionState} from '@/constants/provision'
 
-type OwnProps = {fromReset?: boolean}
+type OwnProps = {fromReset?: boolean; username?: string}
 
 const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
   let inlineError = ''
@@ -59,7 +59,12 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
     },
     [_setUsername, waiting]
   )
-  const [username, setUsername] = React.useState(_username)
+  const [username, setUsername] = React.useState(op.username ?? _username)
+  React.useEffect(() => {
+    if (op.username && op.username !== _username) {
+      _setUsername?.(op.username)
+    }
+  }, [op.username, _username, _setUsername])
   const onSubmit = React.useCallback(() => {
     _onSubmit(username)
   }, [_onSubmit, username])

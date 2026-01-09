@@ -14,6 +14,7 @@ import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from './utils'
 import {navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useCryptoState} from '../crypto'
 export {allServices, selfToUser, searchWaitingKey} from './utils'
 
 type Store = T.Immutable<{
@@ -360,7 +361,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const {finishedTeam, namespace} = get()
       switch (namespace) {
         case 'crypto': {
-          storeRegistry.getState('crypto').dispatch.onTeamBuildingFinished(finishedTeam)
+          useCryptoState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
           break
         }
         case 'chat2': {

@@ -15,5 +15,4 @@ export declare function saveAttachmentToCameraRoll(fileURL: string, mimeType: st
 export declare function requestLocationPermission(mode: T.RPCChat.UIWatchPositionPerm): Promise<void>
 export declare function watchPositionForMap(conversationIDKey: T.Chat.ConversationIDKey): Promise<() => void>
 
-export declare function initPlatformListener(): void
 export declare function requestPermissionsToWrite(): Promise<void>

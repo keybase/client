@@ -1,6 +1,6 @@
-import * as C from '..'
 import * as T from '../types'
-import {ignorePromise} from '../utils'
+import {ignorePromise, wrapErrors} from '../utils'
+import {waitingKeyProvision, waitingKeyProvisionForgotUsername} from '../strings'
 import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '../platform'
@@ -9,7 +9,6 @@ import isEqual from 'lodash/isEqual'
 import {rpcDeviceToDevice} from '../rpc-utils'
 import {invalidPasswordErrorString} from '@/constants/config/util'
 import {clearModals, navigateAppend} from '../router2/util'
-import {storeRegistry} from '../store-registry'
 import {useWaitingState} from '../waiting'
 
 export type Device = {
@@ -83,6 +82,7 @@ type Store = T.Immutable<{
   inlineError?: RPCError
   passphrase: string
   provisionStep: number
+  startProvisionTrigger: number
   username: string
 }>
 const initialStore: Store = {
@@ -100,6 +100,7 @@ const initialStore: Store = {
   inlineError: undefined,
   passphrase: '',
   provisionStep: 0,
+  startProvisionTrigger: 0,
   username: '',
 }
 
@@ -122,15 +123,15 @@ export interface State extends Store {
 }
 
 export const useProvisionState = Z.createZustand<State>((set, get) => {
-  const _cancel = C.wrapErrors((ignoreWarning?: boolean) => {
-    useWaitingState.getState().dispatch.clear(C.waitingKeyProvision)
+  const _cancel = wrapErrors((ignoreWarning?: boolean) => {
+    useWaitingState.getState().dispatch.clear(waitingKeyProvision)
     if (!ignoreWarning) {
       console.log('Provision: cancel called while not overloaded')
     }
   })
 
   // add a new value to submit and clear things behind
-  const _updateAutoSubmit = C.wrapErrors((step: Store['autoSubmit'][0]) => {
+  const _updateAutoSubmit = wrapErrors((step: Store['autoSubmit'][0]) => {
     set(s => {
       const idx = s.autoSubmit.findIndex(a => a.type === step.type)
       if (idx !== -1) {
@@ -140,16 +141,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
     })
   })
 
-  const _setUsername = C.wrapErrors((username: string, restart: boolean = true) => {
-    set(s => {
-      s.username = username
-      s.autoSubmit = [{type: 'username'}]
-    })
-    if (restart) {
-      get().dispatch.restartProvisioning()
-    }
-  })
-  const _setPassphrase = C.wrapErrors((passphrase: string, restart: boolean = true) => {
+  const _setPassphrase = wrapErrors((passphrase: string, restart: boolean = true) => {
     set(s => {
       s.passphrase = passphrase
     })
@@ -159,7 +151,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
     }
   })
 
-  const _setDeviceName = C.wrapErrors((name: string, restart: boolean = true) => {
+  const _setDeviceName = wrapErrors((name: string, restart: boolean = true) => {
     set(s => {
       s.deviceName = name
     })
@@ -169,7 +161,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
     }
   })
 
-  const _submitDeviceSelect = C.wrapErrors((name: string, restart: boolean = true) => {
+  const _submitDeviceSelect = wrapErrors((name: string, restart: boolean = true) => {
     const devices = get().devices
     const selectedDevice = devices.find(d => d.name === name)
     if (!selectedDevice) {
@@ -184,7 +176,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
     }
   })
 
-  const _submitTextCode = C.wrapErrors((_code: string) => {
+  const _submitTextCode = wrapErrors((_code: string) => {
     console.log('Provision, unwatched submitTextCode called')
     get().dispatch.restartProvisioning()
   })
@@ -205,7 +197,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
       let cancelled = false
       const setupCancel = (response: CommonResponseHandler) => {
         set(s => {
-          s.dispatch.dynamic.cancel = C.wrapErrors(() => {
+          s.dispatch.dynamic.cancel = wrapErrors(() => {
             set(s => {
               s.dispatch.dynamic.cancel = _cancel
             })
@@ -232,7 +224,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
                 set(s => {
                   s.error = previousErr
                   s.codePageIncomingTextCode = phrase
-                  s.dispatch.dynamic.submitTextCode = C.wrapErrors((code: string) => {
+                  s.dispatch.dynamic.submitTextCode = wrapErrors((code: string) => {
                     set(s => {
                       s.dispatch.dynamic.submitTextCode = _submitTextCode
                     })
@@ -260,13 +252,13 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
             },
             incomingCallMap: {
               'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-                useWaitingState.getState().dispatch.increment(C.waitingKeyProvision)
+                useWaitingState.getState().dispatch.increment(waitingKeyProvision)
               },
               'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
               'keybase.1.provisionUi.ProvisionerSuccess': () => {},
             },
             params: undefined,
-            waitingKey: C.waitingKeyProvision,
+            waitingKey: waitingKeyProvision,
           })
         } catch {
         } finally {
@@ -274,7 +266,6 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
             s.dispatch.dynamic.cancel = _cancel
             s.dispatch.dynamic.setDeviceName = _setDeviceName
             s.dispatch.dynamic.setPassphrase = _setPassphrase
-            s.dispatch.dynamic.setUsername = _setUsername
             s.dispatch.dynamic.submitDeviceSelect = _submitDeviceSelect
             s.dispatch.dynamic.submitTextCode = _submitTextCode
           })
@@ -287,7 +278,15 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
       cancel: _cancel,
       setDeviceName: _setDeviceName,
       setPassphrase: _setPassphrase,
-      setUsername: _setUsername,
+      setUsername: wrapErrors((username: string, restart: boolean = true) => {
+        set(s => {
+          s.username = username
+          s.autoSubmit = [{type: 'username'}]
+        })
+        if (restart) {
+          get().dispatch.restartProvisioning()
+        }
+      }),
       submitDeviceSelect: _submitDeviceSelect,
       submitTextCode: _submitTextCode,
     },
@@ -297,7 +296,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
           try {
             await T.RPCGen.accountRecoverUsernameWithEmailRpcPromise(
               {email},
-              C.waitingKeyProvisionForgotUsername
+              waitingKeyProvisionForgotUsername
             )
             set(s => {
               s.forgotUsernameResult = 'success'
@@ -315,7 +314,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
           try {
             await T.RPCGen.accountRecoverUsernameWithPhoneRpcPromise(
               {phone},
-              C.waitingKeyProvisionForgotUsername
+              waitingKeyProvisionForgotUsername
             )
             set(s => {
               s.forgotUsernameResult = 'success'
@@ -367,7 +366,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
         // Make cancel set the flag and cancel the current rpc
         const setupCancel = (response: CommonResponseHandler) => {
           set(s => {
-            s.dispatch.dynamic.cancel = C.wrapErrors(() => {
+            s.dispatch.dynamic.cancel = wrapErrors(() => {
               set(s => {
                 s.dispatch.dynamic.cancel = _cancel
               })
@@ -398,7 +397,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
                 set(s => {
                   s.error = previousErr
                   s.codePageIncomingTextCode = phrase
-                  s.dispatch.dynamic.submitTextCode = C.wrapErrors((code: string) => {
+                  s.dispatch.dynamic.submitTextCode = wrapErrors((code: string) => {
                     set(s => {
                       s.dispatch.dynamic.submitTextCode = _submitTextCode
                     })
@@ -419,7 +418,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
                 set(s => {
                   s.error = errorMessage
                   s.existingDevices = T.castDraft(existingDevices ?? [])
-                  s.dispatch.dynamic.setDeviceName = C.wrapErrors((name: string) => {
+                  s.dispatch.dynamic.setDeviceName = wrapErrors((name: string) => {
                     set(s => {
                       s.dispatch.dynamic.setDeviceName = _setDeviceName
                     })
@@ -444,7 +443,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
                 set(s => {
                   s.error = ''
                   s.devices = devices
-                  s.dispatch.dynamic.submitDeviceSelect = C.wrapErrors((device: string) => {
+                  s.dispatch.dynamic.submitDeviceSelect = wrapErrors((device: string) => {
                     set(s => {
                       s.dispatch.dynamic.submitDeviceSelect = _submitDeviceSelect
                     })
@@ -473,7 +472,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
                 // Service asking us again due to an error?
                 set(s => {
                   s.error = retryLabel === invalidPasswordErrorString ? 'Incorrect password.' : retryLabel
-                  s.dispatch.dynamic.setPassphrase = C.wrapErrors((passphrase: string) => {
+                  s.dispatch.dynamic.setPassphrase = wrapErrors((passphrase: string) => {
                     set(s => {
                       s.dispatch.dynamic.setPassphrase = _setPassphrase
                     })
@@ -503,7 +502,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
             incomingCallMap: {
               'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
               'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-                useWaitingState.getState().dispatch.increment(C.waitingKeyProvision)
+                useWaitingState.getState().dispatch.increment(waitingKeyProvision)
               },
               'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
               'keybase.1.provisionUi.ProvisionerSuccess': () => {},
@@ -516,7 +515,7 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
               paperKey: '',
               username,
             },
-            waitingKey: C.waitingKeyProvision,
+            waitingKey: waitingKeyProvision,
           })
           get().dispatch.resetState()
         } catch (_finalError) {
@@ -552,23 +551,11 @@ export const useProvisionState = Z.createZustand<State>((set, get) => {
     },
     startProvision: (name = '', fromReset = false) => {
       get().dispatch.dynamic.cancel?.(true)
-      storeRegistry.getState('config').dispatch.setLoginError()
-      storeRegistry.getState('config').dispatch.resetRevokedSelf()
-
       set(s => {
+        s.startProvisionTrigger++
         s.username = name
       })
-      const f = async () => {
-        // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (storeRegistry.getState('config').loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise(
-            {force: false, keepSecrets: true},
-            C.waitingKeyConfigLoginAsOther
-          )
-        }
-        navigateAppend({props: {fromReset}, selected: 'username'})
-      }
-      ignorePromise(f())
+      navigateAppend({props: {fromReset}, selected: 'username'})
     },
   }
 

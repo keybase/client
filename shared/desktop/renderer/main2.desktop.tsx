@@ -17,7 +17,7 @@ import type {default as NewMainType} from '../../app/main.desktop'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useDarkModeState} from '@/constants/darkmode'
-import {initPlatformListener} from '@/constants/platform-specific'
+import {initPlatformListener} from '@/constants/init'
 setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions

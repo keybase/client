@@ -8,6 +8,7 @@ import {type Device} from '../provision'
 import {rpcDeviceToDevice} from '../rpc-utils'
 import {clearModals, navigateAppend, navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
+import {useConfigState} from '../config'
 
 type Store = T.Immutable<{
   devices: Array<Device>
@@ -230,7 +231,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             storeRegistry
               .getState('router')
               .dispatch.navigateAppend(
-                storeRegistry.getState('config').loggedIn
+                useConfigState.getState().loggedIn
                   ? 'recoverPasswordErrorModal'
                   : 'recoverPasswordError',
                 true

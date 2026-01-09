@@ -13,8 +13,6 @@ import {defaultUseNativeFrame, isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from './util'
 import {navigateAppend} from '../router2/util'
-import {storeRegistry} from '../store-registry'
-import {useWhatsNewState} from '../whats-new'
 
 type Store = T.Immutable<{
   forceSmallNav: boolean
@@ -151,8 +149,6 @@ export interface State extends Store {
       openAppSettings?: () => void
       openAppStore?: () => void
       onEngineConnectedDesktop?: () => void
-      onEngineIncomingDesktop?: (action: EngineGen.Actions) => void
-      onEngineIncomingNative?: (action: EngineGen.Actions) => void
       persistRoute?: (path?: ReadonlyArray<unknown>) => void
       setNavigatorExistsNative?: () => void
       showMainNative?: () => void
@@ -265,9 +261,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     set(s => {
       s.allowAnimatedEmojis = allowAnimatedEmojis
     })
-
-    const lastSeenItem = goodState.find(i => i.item.category === 'whatsNewLastSeenVersion')
-    useWhatsNewState.getState().dispatch.updateLastSeen(lastSeenItem)
   }
 
   const updateRuntimeStats = (stats?: T.RPCGen.RuntimeStats) => {
@@ -305,8 +298,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       },
       dumpLogsNative: undefined,
       onEngineConnectedDesktop: undefined,
-      onEngineIncomingDesktop: undefined,
-      onEngineIncomingNative: undefined,
       onFilePickerError: undefined,
       openAppSettings: undefined,
       openAppStore: undefined,
@@ -420,7 +411,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
               'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
               'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
                 cancelOnCallback(undefined, response)
-                storeRegistry.getState('provision').dispatch.dynamic.setUsername?.(username)
+                navigateAppend({props: {username}, selected: 'username'})
               },
               'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
               'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,

@@ -9,12 +9,8 @@ import type {State as ArchiveState, useArchiveState} from './archive'
 import type {State as AutoResetState, useAutoResetState} from './autoreset'
 import type {State as BotsState, useBotsState} from './bots'
 import type {State as ChatState, useChatState} from './chat2'
-import type {State as ConfigState, useConfigState} from './config'
-import type {State as CryptoState, useCryptoState} from './crypto'
 import type {State as DaemonState, useDaemonState} from './daemon'
-import type {State as DeepLinksState, useDeepLinksState} from './deeplinks'
 import type {State as DevicesState, useDevicesState} from './devices'
-import type {State as EngineState, useEngineState} from './engine'
 import type {State as FSState, useFSState} from './fs'
 import type {State as GitState, useGitState} from './git'
 import type {State as NotificationsState, useNotifState} from './notifications'
@@ -42,12 +38,8 @@ type StoreName =
   | 'autoreset'
   | 'bots'
   | 'chat'
-  | 'config'
-  | 'crypto'
   | 'daemon'
-  | 'deeplinks'
   | 'devices'
-  | 'engine'
   | 'fs'
   | 'git'
   | 'notifications'
@@ -75,12 +67,8 @@ type StoreStates = {
   autoreset: AutoResetState
   bots: BotsState
   chat: ChatState
-  config: ConfigState
-  crypto: CryptoState
   daemon: DaemonState
-  deeplinks: DeepLinksState
   devices: DevicesState
-  engine: EngineState
   fs: FSState
   git: GitState
   notifications: NotificationsState
@@ -109,12 +97,8 @@ type StoreHooks = {
   autoreset: typeof useAutoResetState
   bots: typeof useBotsState
   chat: typeof useChatState
-  config: typeof useConfigState
-  crypto: typeof useCryptoState
   daemon: typeof useDaemonState
-  deeplinks: typeof useDeepLinksState
   devices: typeof useDevicesState
-  engine: typeof useEngineState
   fs: typeof useFSState
   git: typeof useGitState
   notifications: typeof useNotifState
@@ -161,29 +145,13 @@ class StoreRegistry {
         const {useChatState} = require('./chat2')
         return useChatState
       }
-      case 'config': {
-        const {useConfigState} = require('./config')
-        return useConfigState
-      }
-      case 'crypto': {
-        const {useCryptoState} = require('./crypto')
-        return useCryptoState
-      }
       case 'daemon': {
         const {useDaemonState} = require('./daemon')
         return useDaemonState
       }
-      case 'deeplinks': {
-        const {useDeepLinksState} = require('./deeplinks')
-        return useDeepLinksState
-      }
       case 'devices': {
         const {useDevicesState} = require('./devices')
         return useDevicesState
-      }
-      case 'engine': {
-        const {useEngineState} = require('./engine')
-        return useEngineState
       }
       case 'fs': {
         const {useFSState} = require('./fs')

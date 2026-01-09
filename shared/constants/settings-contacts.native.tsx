@@ -1,6 +1,6 @@
-import * as C from '.'
 import * as Contacts from 'expo-contacts'
 import {ignorePromise} from './utils'
+import {importContactsWaitingKey} from './strings'
 import * as T from './types'
 import * as Z from '@/util/zustand'
 import {addNotificationRequest} from 'react-native-kb'
@@ -11,7 +11,7 @@ import {getDefaultCountryCode} from 'react-native-kb'
 import {getE164} from './settings-phone'
 import {pluralize} from '@/util/string'
 import {navigateAppend} from './router2/util'
-import {storeRegistry} from './store-registry'
+import {useConfigState} from './config'
 import {useCurrentUserState} from './current-user'
 import {useWaitingState} from './waiting'
 
@@ -89,7 +89,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
         }
         await T.RPCGen.configGuiSetValueRpcPromise(
           {path: importContactsConfigKey(username), value: {b: enable, isNull: false}},
-          C.importContactsWaitingKey
+          importContactsWaitingKey
         )
         get().dispatch.loadContactImportEnabled()
       }
@@ -102,7 +102,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
     },
     loadContactImportEnabled: () => {
       const f = async () => {
-        if (!storeRegistry.getState('config').loggedIn) {
+        if (!useConfigState.getState().loggedIn) {
           return
         }
         const username = useCurrentUserState.getState().username
@@ -114,7 +114,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
         try {
           const value = await T.RPCGen.configGuiGetValueRpcPromise(
             {path: importContactsConfigKey(username)},
-            C.importContactsWaitingKey
+            importContactsWaitingKey
           )
           enabled = !!value.b && !value.isNull
         } catch (error) {
@@ -244,7 +244,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
     requestPermissions: (thenToggleImportOn?: boolean, fromSettings?: boolean) => {
       const f = async () => {
         const {decrement, increment} = useWaitingState.getState().dispatch
-        increment(C.importContactsWaitingKey)
+        increment(importContactsWaitingKey)
         const status = (await Contacts.requestPermissionsAsync()).status
 
         if (status === Contacts.PermissionStatus.GRANTED && thenToggleImportOn) {
@@ -253,7 +253,7 @@ export const useSettingsContactsState = Z.createZustand<State>((set, get) => {
         set(s => {
           s.permissionStatus = status
         })
-        decrement(C.importContactsWaitingKey)
+        decrement(importContactsWaitingKey)
       }
       ignorePromise(f())
     },

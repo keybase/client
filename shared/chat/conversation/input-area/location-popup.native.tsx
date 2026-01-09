@@ -2,10 +2,52 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import {useConfigState} from '@/constants/config'
+import logger from '@/logger'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import LocationMap from '@/chat/location-map'
 import {useCurrentUserState} from '@/constants/current-user'
+import {requestLocationPermission} from '@/constants/platform-specific'
+import * as ExpoLocation from 'expo-location'
+
+const useWatchPosition = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const updateLastCoord = Chat.useChatState(s => s.dispatch.updateLastCoord)
+  const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
+  React.useEffect(() => {
+    let unsub = () => {}
+    logger.info('[location] perms check due to map')
+    const f = async () => {
+      try {
+        await requestLocationPermission(T.RPCChat.UIWatchPositionPerm.base)
+        const sub = await ExpoLocation.watchPositionAsync(
+          {accuracy: ExpoLocation.LocationAccuracy.Highest},
+          (location: ExpoLocation.LocationObject) => {
+            const coord = {
+              accuracy: Math.floor(location.coords.accuracy ?? 0),
+              lat: location.coords.latitude,
+              lon: location.coords.longitude,
+            }
+            updateLastCoord(coord)
+          }
+        )
+        unsub = () => sub.remove()
+      } catch (_error) {
+        const error = _error as {message?: string}
+        logger.info('failed to get location: ' + error.message)
+        setCommandStatusInfo({
+          actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+          displayText: `Failed to access location. ${error.message}`,
+          displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+        })
+      }
+    }
+
+    C.ignorePromise(f())
+    return () => {
+      unsub()
+    }
+  }, [conversationIDKey, updateLastCoord, setCommandStatusInfo])
+}
 
 const LocationPopup = () => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
@@ -27,17 +69,7 @@ const LocationPopup = () => {
     sendMessage(duration ? `/location live ${duration}` : '/location')
   }
 
-  React.useEffect(() => {
-    let unwatch: undefined | (() => void)
-    C.PlatformSpecific.watchPositionForMap(conversationIDKey)
-      .then(unsub => {
-        unwatch = unsub
-      })
-      .catch(() => {})
-    return () => {
-      unwatch?.()
-    }
-  }, [conversationIDKey])
+  useWatchPosition(conversationIDKey)
 
   const width = Math.ceil(Kb.Styles.dimensionWidth)
   const height = Math.ceil(Kb.Styles.dimensionHeight - 320)

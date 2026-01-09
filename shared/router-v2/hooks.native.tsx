@@ -3,7 +3,7 @@ import * as Chat from '@/constants/chat2'
 import {useConfigState} from '@/constants/config'
 import * as Tabs from '@/constants/tabs'
 import * as React from 'react'
-import {useDeepLinksState} from '@/constants/deeplinks'
+import {handleAppLink} from '@/constants/deeplinks'
 import {Linking} from 'react-native'
 import {useColorScheme} from 'react-native'
 import {usePushState} from '@/constants/push'
@@ -109,7 +109,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
       }
 
       if (url && isValidLink(url)) {
-        setTimeout(() => url && useDeepLinksState.getState().dispatch.handleAppLink(url), 1)
+        setTimeout(() => url && handleAppLink(url), 1)
       } else if (startupFollowUser && !startupConversation) {
         url = `keybase://profile/show/${startupFollowUser}`
 

@@ -3,8 +3,7 @@ import * as T from '../types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {getEngine} from '@/engine/require'
-import type {State as ConfigStore} from '../config'
-import {storeRegistry} from '../store-registry'
+import {useConfigState, type State as ConfigStore} from '../config'
 
 type Store = T.Immutable<{
   devices: ConfigStore['unlockFoldersDevices']
@@ -39,7 +38,7 @@ export const useUnlockFoldersState = Z.createZustand<State>((set, _get) => {
         case EngineGen.keybase1RekeyUIRefresh: {
           const {problemSetDevices} = action.payload.params
           logger.info('Asked for rekey')
-          storeRegistry.getState('config').dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
+          useConfigState.getState().dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
           break
         }
         case EngineGen.keybase1RekeyUIDelegateRekeyUI: {
@@ -49,7 +48,7 @@ export const useUnlockFoldersState = Z.createZustand<State>((set, _get) => {
             dangling: true,
             incomingCallMap: {
               'keybase.1.rekeyUI.refresh': ({problemSetDevices}) => {
-                storeRegistry.getState('config').dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
+                useConfigState.getState().dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
               },
               'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
             },
