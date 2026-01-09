@@ -1,17 +1,17 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
-import {ignorePromise} from '../utils'
+import {ignorePromise} from '@/constants/utils'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
-import * as T from '../types'
+import * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
-import {isMobile} from '../platform'
+import {isMobile} from '@/constants/platform'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import debounce from 'lodash/debounce'
-import {useConfigState} from '../config'
+import {useConfigState} from '@/constants/config'
 import {useFollowerState} from '@/stores/followers'
-import {RPCError, isNetworkErr} from '../utils'
+import {RPCError, isNetworkErr} from '@/constants/utils'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false as boolean

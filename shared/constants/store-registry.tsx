@@ -12,7 +12,7 @@ import type {State as DevicesState, useDevicesState} from '@/stores/devices'
 import type {State as FSState, useFSState} from '@/stores/fs'
 import type {State as GitState, useGitState} from '@/stores/git'
 import type {State as NotificationsState, useNotifState} from '@/stores/notifications'
-import type {State as PeopleState, usePeopleState} from '@/constants/people'
+import type {State as PeopleState, usePeopleState} from '@/stores/people'
 import type {State as ProfileState, useProfileState} from '@/constants/profile'
 import type {State as ProvisionState, useProvisionState} from '@/constants/provision'
 import type {State as PushState, usePushState} from '@/constants/push'
@@ -137,7 +137,7 @@ class StoreRegistry {
         return useDevicesState
       }
       case 'fs': {
-        const {useFSState} = require('@/constants/fs')
+        const {useFSState} = require('@/stores/fs')
         return useFSState
       }
       case 'git': {
@@ -149,7 +149,7 @@ class StoreRegistry {
         return useNotifState
       }
       case 'people': {
-        const {usePeopleState} = require('@/constants/people')
+        const {usePeopleState} = require('@/stores/people')
         return usePeopleState
       }
       case 'profile': {

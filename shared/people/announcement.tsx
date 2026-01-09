@@ -5,7 +5,7 @@ import openURL from '@/util/open-url'
 import * as Kb from '@/common-adapters'
 import PeopleItem from './item'
 import * as Settings from '@/constants/settings/util'
-import {usePeopleState} from '@/constants/people'
+import {usePeopleState} from '@/stores/people'
 
 type OwnProps = {
   appLink?: T.RPCGen.AppLinkType

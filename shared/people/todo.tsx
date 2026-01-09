@@ -11,7 +11,7 @@ import {useSettingsEmailState} from '@/constants/settings-email'
 import {settingsAccountTab, settingsGitTab} from '@/constants/settings/util'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
-import {usePeopleState, todoTypes} from '@/constants/people'
+import {usePeopleState, todoTypes} from '@/stores/people'
 import {useCurrentUserState} from '@/constants/current-user'
 
 type TodoOwnProps = {

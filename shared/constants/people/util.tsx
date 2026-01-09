@@ -15,14 +15,3 @@ export const onEngineConnected = () => {
   ignorePromise(f())
 }
 
-export const onEngineIncoming = (action: EngineGen.Actions) => {
-  switch (action.type) {
-    case EngineGen.keybase1HomeUIHomeUIRefresh:
-    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
-      {
-        storeRegistry.getState('people').dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    default:
-  }
-}

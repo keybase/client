@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import People from '.'
 import {useSignupState} from '@/constants/signup'
 import {useProfileState} from '@/constants/profile'
-import {usePeopleState, getPeopleDataWaitingKey} from '@/constants/people'
+import {usePeopleState, getPeopleDataWaitingKey} from '@/stores/people'
 import {useCurrentUserState} from '@/constants/current-user'
 
 const waitToRefresh = 1000 * 60 * 5

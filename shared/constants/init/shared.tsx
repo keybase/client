@@ -22,6 +22,7 @@ import type * as UseFSStateType from '@/stores/fs'
 import type * as UseGitStateType from '@/stores/git'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import * as NotifUtil from '../notifications/util'
+import type * as UsePeopleStateType from '@/stores/people'
 import * as PeopleUtil from '../people/util'
 import * as PinentryUtil from '../pinentry/util'
 import {useProvisionState} from '../provision'
@@ -297,6 +298,18 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break
     case EngineGen.keybase1NotifyAuditRootAuditError:
     case EngineGen.keybase1NotifyAuditBoxAuditError:
+      {
+        const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
+        useNotifState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1HomeUIHomeUIRefresh:
+    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+      {
+        const {usePeopleState} = require('@/stores/people') as typeof UsePeopleStateType
+        usePeopleState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
     default:
   }
   AvatarUtil.onEngineIncoming(action)
@@ -324,7 +337,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     }
     default:
   }
-  PeopleUtil.onEngineIncoming(action)
   PinentryUtil.onEngineIncoming(action)
   SettingsUtil.onEngineIncoming(action)
   SignupUtil.onEngineIncoming(action)
