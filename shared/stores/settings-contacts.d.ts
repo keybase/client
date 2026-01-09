@@ -1,4 +1,4 @@
-import type * as T from './types'
+import type * as T from '../constants/types'
 import type {UseBoundStore, StoreApi} from 'zustand'
 type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
 
