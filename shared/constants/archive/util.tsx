@@ -1,5 +1,5 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
-import type {useArchiveState as UseArchiveState} from '../archive'
+import type * as UseArchiveStateType from '../archive'
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
   switch (action.type) {
@@ -7,7 +7,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.chat1NotifyChatChatArchiveComplete:
     case EngineGen.chat1NotifyChatChatArchiveProgress:
       {
-        const {useArchiveState} = require('../archive') as typeof UseArchiveState
+        const {useArchiveState} = require('../archive') as typeof UseArchiveStateType
         useArchiveState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break

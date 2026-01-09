@@ -3334,7 +3334,7 @@ export const useChatNavigateAppend = () => {
     (makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType, replace?: boolean) => {
       navigateAppend(makePath(cid), replace)
     },
-    [cid, navigateAppend]
+    [cid]
   )
 }
 

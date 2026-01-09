@@ -6,7 +6,6 @@ import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
 import debounce from 'lodash/debounce'
 import {navigateAppend} from '../router2/util'
-import {storeRegistry} from '../store-registry'
 import {useConfigState} from '../config'
 
 const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {
