@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 
 export const transformer = (
   input: {

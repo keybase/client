@@ -1,11 +1,11 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
-import * as T from '../types'
+import * as T from '@/constants/types'
 import {mapGetEnsureValue} from '@/util/map'
-import {ignorePromise} from '../utils'
-import {RPCError, isNetworkErr} from '../utils'
-import * as S from '../strings'
+import {ignorePromise} from '@/constants/utils'
+import {RPCError, isNetworkErr} from '@/constants/utils'
+import * as S from '@/constants/strings'
 
 type Store = T.Immutable<{
   blockMap: Map<string, T.Users.BlockState>

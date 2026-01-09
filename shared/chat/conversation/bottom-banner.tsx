@@ -5,7 +5,7 @@ import * as React from 'react'
 import _openSMS from '@/util/sms'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import type {Props as TextProps} from '@/common-adapters/text'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`

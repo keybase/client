@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import Participant from './participant'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 
 type Props = {
   commonSections: ReadonlyArray<Section>

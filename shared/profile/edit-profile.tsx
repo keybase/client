@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useTrackerState} from '@/constants/tracker2'
+import {useTrackerState} from '@/stores/tracker2'
 import {useProfileState} from '@/constants/profile'
 import {useCurrentUserState} from '@/constants/current-user'
 

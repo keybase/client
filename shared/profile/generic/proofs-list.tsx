@@ -5,7 +5,7 @@ import type * as T from '@/constants/types'
 import {SiteIcon} from './shared'
 import {makeInsertMatcher} from '@/util/string'
 import {useColorScheme} from 'react-native'
-import {useTrackerState} from '@/constants/tracker2'
+import {useTrackerState} from '@/stores/tracker2'
 import {useProfileState} from '@/constants/profile'
 
 const Container = () => {

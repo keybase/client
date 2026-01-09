@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import * as FS from '@/stores/fs'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 
 type Props = {path: T.FS.Path}
 

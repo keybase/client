@@ -7,7 +7,7 @@ import * as T from '@/constants/types'
 import * as InfoPanelCommon from './common'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {TeamsSubscriberMountOnly} from '@/teams/subscriber'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/constants/current-user'
 
 export type OwnProps = {

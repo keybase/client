@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {getFeaturedSorted, useBotsState} from '@/stores/bots'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey

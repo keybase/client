@@ -5,7 +5,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
-import {useTrackerState} from '@/constants/tracker2'
+import {useTrackerState} from '@/stores/tracker2'
 import {useFollowerState} from '@/stores/followers'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />

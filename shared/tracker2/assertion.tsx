@@ -8,8 +8,8 @@ import * as Kb from '@/common-adapters'
 import {SiteIcon} from '@/profile/generic/shared'
 import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
-import * as Tracker from '@/constants/tracker2'
-import {useTrackerState} from '@/constants/tracker2'
+import * as Tracker from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker2'
 import {useProfileState} from '@/constants/profile'
 
 type OwnProps = {

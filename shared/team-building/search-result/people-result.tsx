@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FS from '@/stores/fs'
 import CommonResult, {type ResultProps} from './common-result'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/constants/current-user'
 
 /*

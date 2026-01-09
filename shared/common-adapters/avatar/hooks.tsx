@@ -7,7 +7,7 @@ import * as AvatarZus from './store'
 import './avatar.css'
 import type {Props} from '.'
 import {useColorScheme} from 'react-native'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {navToProfile} from '@/constants/router2'
 

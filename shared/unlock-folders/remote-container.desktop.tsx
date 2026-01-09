@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as RemoteGen from '../actions/remote-gen'
 import UnlockFolders from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
-import {useUnlockFoldersState as useUFState} from '@/constants/unlock-folders'
+import {useUnlockFoldersState as useUFState} from '@/stores/unlock-folders'
 import {useDarkModeState} from '@/constants/darkmode'
 
 const RemoteContainer = (d: DeserializeProps) => {

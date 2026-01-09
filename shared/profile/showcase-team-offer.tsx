@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import {useTeamsSubscribe} from '@/teams/subscriber'
-import {useTrackerState} from '@/constants/tracker2'
+import {useTrackerState} from '@/stores/tracker2'
 import {useCurrentUserState} from '@/constants/current-user'
 
 const Container = () => {

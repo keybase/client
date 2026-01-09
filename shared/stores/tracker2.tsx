@@ -1,14 +1,14 @@
-import * as S from '../strings'
+import * as S from '@/constants/strings'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import {generateGUIID, ignorePromise} from '../utils'
+import {generateGUIID, ignorePromise} from '@/constants/utils'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
-import * as T from '../types'
+import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
-import {navigateAppend, navigateUp} from '../router2/util'
-import {storeRegistry} from '../store-registry'
-import {useCurrentUserState} from '../current-user'
+import {navigateAppend, navigateUp} from '@/constants/router2/util'
+import {storeRegistry} from '@/constants/store-registry'
+import {useCurrentUserState} from '@/constants/current-user'
 
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),

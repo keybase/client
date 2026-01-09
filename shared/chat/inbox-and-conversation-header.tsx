@@ -7,7 +7,7 @@ import SearchRow from './inbox/search-row'
 import NewChatButton from './inbox/new-chat-button'
 import {useRoute} from '@react-navigation/native'
 import type {RootRouteProps} from '@/router-v2/route-params'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/constants/current-user'
 import * as Teams from '@/stores/teams'
 

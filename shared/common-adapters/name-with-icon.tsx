@@ -13,7 +13,7 @@ import Text, {
   type TextTypeBold,
 } from './text'
 import ConnectedUsernames from './usernames'
-import {useTrackerState} from '@/constants/tracker2'
+import {useTrackerState} from '@/stores/tracker2'
 import {useProfileState} from '@/constants/profile'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'

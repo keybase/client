@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import {Banner, BannerParagraph} from './banner'
-import {useTrackerState} from '@/constants/tracker2'
+import {useTrackerState} from '@/stores/tracker2'
 import {useProfileState} from '@/constants/profile'
 
 const Kb = {Banner}

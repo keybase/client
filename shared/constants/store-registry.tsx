@@ -28,9 +28,9 @@ import type {State as SettingsPasswordState, usePWState} from '@/constants/setti
 import type {State as SettingsPhoneState, useSettingsPhoneState} from '@/constants/settings-phone'
 import type {State as SignupState, useSignupState} from '@/stores/signup'
 import type {State as TeamsState, useTeamsState} from '@/stores/teams'
-import type {State as Tracker2State, useTrackerState} from '@/constants/tracker2'
-import type {State as UnlockFoldersState, useUnlockFoldersState} from '@/constants/unlock-folders'
-import type {State as UsersState, useUsersState} from '@/constants/users'
+import type {State as Tracker2State, useTrackerState} from '@/stores/tracker2'
+import type {State as UnlockFoldersState, useUnlockFoldersState} from '@/stores/unlock-folders'
+import type {State as UsersState, useUsersState} from '@/stores/users'
 
 type StoreName =
   | 'autoreset'
@@ -201,15 +201,15 @@ class StoreRegistry {
         return useTeamsState
       }
       case 'tracker2': {
-        const {useTrackerState} = require('@/constants/tracker2')
+        const {useTrackerState} = require('@/stores/tracker2')
         return useTrackerState
       }
       case 'unlock-folders': {
-        const {useUnlockFoldersState} = require('@/constants/unlock-folders')
+        const {useUnlockFoldersState} = require('@/stores/unlock-folders')
         return useUnlockFoldersState
       }
       case 'users': {
-        const {useUsersState} = require('@/constants/users')
+        const {useUsersState} = require('@/stores/users')
         return useUsersState
       }
       default:

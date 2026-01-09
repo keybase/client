@@ -29,9 +29,9 @@ import {useSettingsContactsState} from '../settings-contacts'
 import type * as UseSignupStateType from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
-import * as TrackerUtil from '../tracker2/util'
-import * as UnlockFoldersUtil from '../unlock-folders/util'
-import * as UsersUtil from '../users/util'
+import type * as UseTracker2StateType from '@/stores/tracker2'
+import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
+import type * as UseUsersStateType from '@/stores/users'
 import {useWhatsNewState} from '../whats-new'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
@@ -110,11 +110,32 @@ export const onEngineConnected = () => {
       } catch (error) {
         logger.warn('error in registering secret ui: ', error)
       }
-    }
-    ignorePromise(f())
-  }
-  TrackerUtil.onEngineConnected()
-  UnlockFoldersUtil.onEngineConnected()
+          }
+          ignorePromise(f())
+        }
+        { // Tracker2
+          const f = async () => {
+            try {
+              await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
+              logger.info('Registered identify ui')
+            } catch (error) {
+              logger.warn('error in registering identify ui: ', error)
+            }
+          }
+          ignorePromise(f())
+        }
+        { // UnlockFolders
+          const f = async () => {
+            try {
+              await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
+              logger.info('Registered rekey ui')
+            } catch (error) {
+              logger.warn('error in registering rekey ui: ')
+              logger.debug('error in registering rekey ui: ', error)
+            }
+          }
+          ignorePromise(f())
+        }
 }
 
 export const onEngineDisconnected = () => {
@@ -433,6 +454,8 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyTrackingTrackingChanged: {
       const {isTracking, username} = action.payload.params
       useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
+      const {useTracker2State} = require('@/stores/tracker2') as typeof UseTracker2StateType
+      useTracker2State.getState().dispatch.onEngineIncomingImpl(action)
       break
     }
     case EngineGen.keybase1NotifyTrackingTrackingInfo: {
@@ -448,9 +471,36 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       dispatch.replace(followers, following)
       break
     }
+    case EngineGen.keybase1Identify3UiIdentify3Result:
+    case EngineGen.keybase1Identify3UiIdentify3ShowTracker:
+    case EngineGen.keybase1NotifyUsersUserChanged:
+    case EngineGen.keybase1NotifyTrackingNotifyUserBlocked:
+    case EngineGen.keybase1Identify3UiIdentify3UpdateRow:
+    case EngineGen.keybase1Identify3UiIdentify3UserReset:
+    case EngineGen.keybase1Identify3UiIdentify3UpdateUserCard:
+    case EngineGen.keybase1Identify3UiIdentify3Summary:
+      {
+        const {useTracker2State} = require('@/stores/tracker2') as typeof UseTracker2StateType
+        useTracker2State.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      {
+        const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
+        useUsersState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1NotifyUsersIdentifyUpdate:
+      {
+        const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
+        useUsersState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1RekeyUIRefresh:
+    case EngineGen.keybase1RekeyUIDelegateRekeyUI:
+      {
+        const {useUnlockFoldersState} = require('@/stores/unlock-folders') as typeof UseUnlockFoldersStateType
+        useUnlockFoldersState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
     default:
   }
-  TrackerUtil.onEngineIncoming(action)
-  UnlockFoldersUtil.onEngineIncoming(action)
-  UsersUtil.onEngineIncoming(action)
 }

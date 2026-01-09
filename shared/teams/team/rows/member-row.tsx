@@ -6,9 +6,9 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTrackerState} from '@/constants/tracker2'
+import {useTrackerState} from '@/stores/tracker2'
 import {useProfileState} from '@/constants/profile'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/constants/current-user'
 
 export type Props = {

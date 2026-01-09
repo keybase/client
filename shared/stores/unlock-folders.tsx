@@ -1,9 +1,9 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as T from '../types'
+import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {getEngine} from '@/engine/require'
-import {useConfigState, type State as ConfigStore} from '../config'
+import {useConfigState, type State as ConfigStore} from '@/constants/config'
 
 type Store = T.Immutable<{
   devices: ConfigStore['unlockFoldersDevices']

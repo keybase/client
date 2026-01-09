@@ -9,7 +9,7 @@ import {Keyboard} from 'react-native'
 // import {DebugChatDumpContext} from '@/constants/chat2/debug'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/constants/current-user'
 
 export const HeaderAreaRight = () => {

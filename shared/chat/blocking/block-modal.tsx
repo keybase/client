@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Chat from '@/constants/chat2'
 import {useTeamsState} from '@/stores/teams'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the
 // modal from specific places from the app.
