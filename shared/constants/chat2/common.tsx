@@ -1,7 +1,7 @@
 import * as T from '../types'
 import {isMobile, isTablet} from '../platform'
 import * as Router2 from '../router2'
-import {useConfigState} from '../config'
+import {useConfigState} from '@/stores/config'
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 

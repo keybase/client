@@ -9,7 +9,7 @@ import KB2 from '@/util/electron.desktop'
 import {uint8ArrayToHex} from 'uint8array-extras'
 import {useFSState} from '.'
 import {navigateAppend} from '../router2/util'
-import {useConfigState} from '../config'
+import {useConfigState} from '@/stores/config'
 
 const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
 const {darwinCopyToKBFSTempUploadFile, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions

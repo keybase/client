@@ -8,8 +8,8 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 import {navigateAppend, switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
-import {useCryptoState} from '../crypto'
-import {useConfigState} from '../config'
+import {useCryptoState} from '@/stores/crypto'
+import {useConfigState} from '@/stores/config'
 
 const prefix = 'keybase://'
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
@@ -38,77 +38,77 @@ const validTeamnamePart = (s: string): boolean => {
 }
 
 const validTeamname = (s: string) => s.split('.').every(validTeamnamePart)
-  const handleShowUserProfileLink = (username: string) => {
-    switchTab(Tabs.peopleTab)
-    storeRegistry.getState('profile').dispatch.showUserProfile(username)
-  }
+const handleShowUserProfileLink = (username: string) => {
+  switchTab(Tabs.peopleTab)
+  storeRegistry.getState('profile').dispatch.showUserProfile(username)
+}
 
-  const isKeybaseIoUrl = (url: URL) => {
-    const {protocol} = url
-    if (protocol !== 'http:' && protocol !== 'https:') return false
-    if (url.username || url.password) return false
-    const {hostname} = url
-    if (hostname !== 'keybase.io' && hostname !== 'www.keybase.io') return false
-    const {port} = url
-    if (port) {
-      if (protocol === 'http:' && port !== '80') return false
-      if (protocol === 'https:' && port !== '443') return false
-    }
-    return true
+const isKeybaseIoUrl = (url: URL) => {
+  const {protocol} = url
+  if (protocol !== 'http:' && protocol !== 'https:') return false
+  if (url.username || url.password) return false
+  const {hostname} = url
+  if (hostname !== 'keybase.io' && hostname !== 'www.keybase.io') return false
+  const {port} = url
+  if (port) {
+    if (protocol === 'http:' && port !== '80') return false
+    if (protocol === 'https:' && port !== '443') return false
   }
+  return true
+}
 
-  const urlToUsername = (url: URL) => {
-    if (!isKeybaseIoUrl(url)) {
-      return null
-    }
-    // Adapted username regexp (see libkb/checkers.go) with a leading /, an
-    // optional trailing / and a dash for custom links.
-    const match = url.pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_-]?)+)\/?$/)
-    if (!match) {
-      return null
-    }
-    const usernameMatch = match[1]
-    if (!usernameMatch || usernameMatch.length < 2 || usernameMatch.length > 16) {
-      return null
-    }
-    // Ignore query string and hash parameters.
-    return usernameMatch.toLowerCase()
+const urlToUsername = (url: URL) => {
+  if (!isKeybaseIoUrl(url)) {
+    return null
   }
+  // Adapted username regexp (see libkb/checkers.go) with a leading /, an
+  // optional trailing / and a dash for custom links.
+  const match = url.pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_-]?)+)\/?$/)
+  if (!match) {
+    return null
+  }
+  const usernameMatch = match[1]
+  if (!usernameMatch || usernameMatch.length < 2 || usernameMatch.length > 16) {
+    return null
+  }
+  // Ignore query string and hash parameters.
+  return usernameMatch.toLowerCase()
+}
 
-  const urlToTeamDeepLink = (url: URL) => {
-    if (!isKeybaseIoUrl(url)) {
-      return null
-    }
-    // Similar regexp to username but allow `.` for subteams
-    const match = url.pathname.match(/^\/team\/((?:[a-zA-Z0-9][a-zA-Z0-9_.-]?)+)\/?$/)
-    if (!match) {
-      return null
-    }
-    const teamName = match[1]
-    if (!teamName || teamName.length < 2 || teamName.length > 255) {
-      return null
-    }
-    // `url.query` has a wrong type in @types/url-parse. It's a `string` in the
-    // code, but @types claim it's a {[k: string]: string | undefined}.
-    const queryString = url.query as unknown as string
-    // URLSearchParams is not available in react-native. See if any of recognized
-    // query parameters is passed using regular expressions.
-    const action = (['add_or_invite', 'manage_settings'] satisfies readonly TeamPageAction[]).find(
-      x => queryString.search(`[?&]applink=${x}([?&].+)?$`) !== -1
+const urlToTeamDeepLink = (url: URL) => {
+  if (!isKeybaseIoUrl(url)) {
+    return null
+  }
+  // Similar regexp to username but allow `.` for subteams
+  const match = url.pathname.match(/^\/team\/((?:[a-zA-Z0-9][a-zA-Z0-9_.-]?)+)\/?$/)
+  if (!match) {
+    return null
+  }
+  const teamName = match[1]
+  if (!teamName || teamName.length < 2 || teamName.length > 255) {
+    return null
+  }
+  // `url.query` has a wrong type in @types/url-parse. It's a `string` in the
+  // code, but @types claim it's a {[k: string]: string | undefined}.
+  const queryString = url.query as unknown as string
+  // URLSearchParams is not available in react-native. See if any of recognized
+  // query parameters is passed using regular expressions.
+  const action = (['add_or_invite', 'manage_settings'] satisfies readonly TeamPageAction[]).find(
+    x => queryString.search(`[?&]applink=${x}([?&].+)?$`) !== -1
+  )
+  return {action, teamName}
+}
+
+const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
+  storeRegistry
+    .getState('teams')
+    .dispatch.showTeamByName(
+      teamname,
+      action === 'manage_settings' ? 'settings' : undefined,
+      action === 'join' ? true : undefined,
+      action === 'add_or_invite' ? true : undefined
     )
-    return {action, teamName}
-  }
-
-  const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
-    storeRegistry
-      .getState('teams')
-      .dispatch.showTeamByName(
-        teamname,
-        action === 'manage_settings' ? 'settings' : undefined,
-        action === 'join' ? true : undefined,
-        action === 'add_or_invite' ? true : undefined
-      )
-  }
+}
 
 export const handleAppLink = (link: string) => {
   if (link.startsWith('keybase://')) {
@@ -147,9 +147,7 @@ export const handleKeybaseLink = (link: string) => {
   switch (parts[0]) {
     case 'profile':
       if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
-        parts.length === 4 &&
-          parts[3] &&
-          storeRegistry.getState('profile').dispatch.showUserProfile(parts[3])
+        parts.length === 4 && parts[3] && storeRegistry.getState('profile').dispatch.showUserProfile(parts[3])
         storeRegistry.getState('profile').dispatch.addProof(parts[2]!, 'appLink')
         return
       } else if (parts[1] === 'show' && parts.length === 3) {

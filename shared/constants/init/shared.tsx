@@ -11,8 +11,8 @@ import type * as UseBotsStateType from '@/stores/bots'
 import {useChatState} from '@/stores/chat2'
 import {getSelectedConversation} from '@/constants/chat2/common'
 import type * as UseChatStateType from '@/stores/chat2'
-import {useConfigState} from '../config'
-import {useCurrentUserState} from '../current-user'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '../daemon'
 import {useDarkModeState} from '../darkmode'
 import * as DeepLinksUtil from '../deeplinks/util'
@@ -39,7 +39,8 @@ let _devicesLoaded = false
 let _gitLoaded = false
 
 export const onEngineConnected = () => {
-  { // Chat2
+  {
+    // Chat2
     const f = async () => {
       try {
         await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise()

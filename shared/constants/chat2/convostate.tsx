@@ -47,8 +47,8 @@ import {enumKeys, ignorePromise, shallowEqual} from '../utils'
 import * as Strings from '@/constants/strings'
 
 import {storeRegistry} from '../store-registry'
-import {useConfigState} from '../config'
-import {useCurrentUserState} from '../current-user'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 

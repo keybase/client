@@ -11,8 +11,8 @@ import {getDefaultCountryCode} from 'react-native-kb'
 import {getE164} from './settings-phone'
 import {pluralize} from '@/util/string'
 import {navigateAppend} from './router2/util'
-import {useConfigState} from './config'
-import {useCurrentUserState} from './current-user'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import {useWaitingState} from './waiting'
 
 const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`

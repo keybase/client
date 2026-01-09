@@ -9,7 +9,7 @@ import {RPCError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
 import {clearModals, navigateAppend, navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
-import {useCurrentUserState} from '../current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '../router2/util'
 
 type ProveGenericParams = {
@@ -599,9 +599,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         await T.RPCGen.proveCheckProofRpcPromise({sigID}, S.waitingKeyProfile)
-        storeRegistry
-          .getState('tracker2')
-          .dispatch.showUser(useCurrentUserState.getState().username, false)
+        storeRegistry.getState('tracker2').dispatch.showUser(useCurrentUserState.getState().username, false)
       }
       ignorePromise(f())
     },
@@ -649,9 +647,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     },
     submitRevokeProof: proofId => {
       const f = async () => {
-        const you = storeRegistry
-          .getState('tracker2')
-          .getDetails(useCurrentUserState.getState().username)
+        const you = storeRegistry.getState('tracker2').getDetails(useCurrentUserState.getState().username)
         if (!you.assertions) return
         const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
         if (!proof) return

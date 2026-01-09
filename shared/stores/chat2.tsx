@@ -1995,7 +1995,7 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
 export * from '@/constants/chat2/convostate'
 export * from '@/constants/chat2/common'
 export * from '@/constants/chat2/meta'
-export * from './message'
+export * from '@/constants/chat2/message'
 
 export {
   noConversationIDKey,

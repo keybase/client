@@ -14,7 +14,7 @@ import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from './utils'
 import {navigateUp} from '../router2/util'
 import {storeRegistry} from '../store-registry'
-import {useCryptoState} from '../crypto'
+import {useCryptoState} from '@/stores/crypto'
 export {allServices, selfToUser, searchWaitingKey} from './utils'
 
 type Store = T.Immutable<{

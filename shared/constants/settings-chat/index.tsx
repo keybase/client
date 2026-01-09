@@ -2,7 +2,7 @@ import * as T from '../types'
 import {ignorePromise} from '../utils'
 import * as S from '../strings'
 import * as Z from '@/util/zustand'
-import {useConfigState} from '../config'
+import {useConfigState} from '@/stores/config'
 
 export type ChatUnfurlState = {
   unfurlMode?: T.RPCChat.UnfurlMode

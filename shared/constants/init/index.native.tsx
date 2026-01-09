@@ -1,8 +1,8 @@
 // links all the stores together, stores never import this
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
-import {useChatState} from '../chat2'
-import {useConfigState} from '../config'
-import {useCurrentUserState} from '../current-user'
+import {useChatState} from '@/stores/chat2'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '../daemon'
 import {useDarkModeState} from '../darkmode'
 import {useFSState} from '../fs'
