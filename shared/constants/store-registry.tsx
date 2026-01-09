@@ -27,7 +27,7 @@ import type {State as SettingsEmailState, useSettingsEmailState} from '@/constan
 import type {State as SettingsPasswordState, usePWState} from '@/constants/settings-password'
 import type {State as SettingsPhoneState, useSettingsPhoneState} from '@/constants/settings-phone'
 import type {State as SignupState, useSignupState} from '@/stores/signup'
-import type {State as TeamsState, useTeamsState} from '@/constants/teams'
+import type {State as TeamsState, useTeamsState} from '@/stores/teams'
 import type {State as Tracker2State, useTrackerState} from '@/constants/tracker2'
 import type {State as UnlockFoldersState, useUnlockFoldersState} from '@/constants/unlock-folders'
 import type {State as UsersState, useUsersState} from '@/constants/users'
@@ -197,7 +197,7 @@ class StoreRegistry {
         return useSignupState
       }
       case 'teams': {
-        const {useTeamsState} = require('@/constants/teams')
+        const {useTeamsState} = require('@/stores/teams')
         return useTeamsState
       }
       case 'tracker2': {

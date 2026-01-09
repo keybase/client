@@ -3,26 +3,6 @@ import * as T from '../types'
 import {storeRegistry} from '../store-registry'
 import invert from 'lodash/invert'
 
-export const onEngineIncoming = (action: EngineGen.Actions) => {
-  switch (action.type) {
-    case EngineGen.chat1ChatUiChatShowManageChannels:
-    case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
-    case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded:
-    case EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial:
-    case EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone:
-    case EngineGen.keybase1NotifyTeamTeamRoleMapChanged:
-    case EngineGen.keybase1NotifyTeamTeamChangedByID:
-    case EngineGen.keybase1NotifyTeamTeamDeleted:
-    case EngineGen.keybase1NotifyTeamTeamExit:
-    case EngineGen.keybase1NotifyBadgesBadgeState:
-    case EngineGen.keybase1GregorUIPushState:
-      {
-        storeRegistry.getState('teams').dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    default:
-  }
-}
 
 export const makeRetentionPolicy = (
   r?: Partial<T.Retention.RetentionPolicy>

@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Props} from '.'

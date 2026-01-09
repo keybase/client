@@ -9,7 +9,7 @@ import {useRoute} from '@react-navigation/native'
 import type {RootRouteProps} from '@/router-v2/route-params'
 import {useUsersState} from '@/constants/users'
 import {useCurrentUserState} from '@/constants/current-user'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 
 const Header = () => {
   const {params} = useRoute<RootRouteProps<'chatRoot'>>()

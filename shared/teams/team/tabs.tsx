@@ -2,7 +2,7 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import type {Tab as TabType} from '@/common-adapters/tabs'
 
 type TeamTabsProps = {

@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Rover from './background'

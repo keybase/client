@@ -1,6 +1,6 @@
-import * as S from '../strings'
-import {ignorePromise, wrapErrors} from '../utils'
-import * as T from '../types'
+import * as S from '@/constants/strings'
+import {ignorePromise, wrapErrors} from '@/constants/utils'
+import * as T from '@/constants/types'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {
   getVisibleScreen,
@@ -9,21 +9,21 @@ import {
   navigateUp,
   navUpToScreen,
   navToProfile,
-} from '../router2/util'
+} from '@/constants/router2/util'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import logger from '@/logger'
 import openSMS from '@/util/sms'
 import {RPCError, logError} from '@/util/errors'
-import {isMobile, isPhone} from '../platform'
+import {isMobile, isPhone} from '@/constants/platform'
 import {mapGetEnsureValue} from '@/util/map'
-import {bodyToJSON} from '../rpc-utils'
+import {bodyToJSON} from '@/constants/rpc-utils'
 import {fixCrop} from '@/util/crop'
-import {storeRegistry} from '../store-registry'
-import {useConfigState} from '../config'
-import {useCurrentUserState} from '../current-user'
-import * as Util from './util'
-import {getTab} from '../router2/util'
+import {storeRegistry} from '@/constants/store-registry'
+import {useConfigState} from '@/constants/config'
+import {useCurrentUserState} from '@/constants/current-user'
+import * as Util from '@/constants/teams/util'
+import {getTab} from '@/constants/router2/util'
 
 export {
   baseRetentionPolicies,
@@ -33,7 +33,7 @@ export {
   teamRoleByEnum,
   retentionPolicyToServiceRetentionPolicy,
   userIsRoleInTeamWithInfo,
-} from './util'
+} from '@/constants/teams/util'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 

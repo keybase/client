@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import {Box2} from './box'
 import * as Styles from '@/styles'

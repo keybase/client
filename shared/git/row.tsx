@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Git from '@/stores/git'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'

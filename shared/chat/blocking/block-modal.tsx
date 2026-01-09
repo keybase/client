@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Chat from '@/constants/chat2'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import {useUsersState} from '@/constants/users'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the

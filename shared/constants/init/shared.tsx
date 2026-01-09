@@ -27,8 +27,8 @@ import {useProvisionState} from '../provision'
 import {storeRegistry} from '../store-registry'
 import {useSettingsContactsState} from '../settings-contacts'
 import type * as UseSignupStateType from '@/stores/signup'
-import {useTeamsState} from '../teams'
-import * as TeamsUtil from '../teams/util'
+import type * as UseTeamsStateType from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as TrackerUtil from '../tracker2/util'
 import * as UnlockFoldersUtil from '../unlock-folders/util'
 import * as UsersUtil from '../users/util'
@@ -345,6 +345,24 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
 
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
+
+        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
+        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.chat1ChatUiChatShowManageChannels:
+    case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
+    case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded:
+    case EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial:
+    case EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone:
+    case EngineGen.keybase1NotifyTeamTeamRoleMapChanged:
+    case EngineGen.keybase1NotifyTeamTeamChangedByID:
+    case EngineGen.keybase1NotifyTeamTeamDeleted:
+    case EngineGen.keybase1NotifyTeamTeamExit:
+    case EngineGen.keybase1GregorUIPushState:
+      {
+        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
+        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
@@ -432,7 +450,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     }
     default:
   }
-  TeamsUtil.onEngineIncoming(action)
   TrackerUtil.onEngineIncoming(action)
   UnlockFoldersUtil.onEngineIncoming(action)
   UsersUtil.onEngineIncoming(action)

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import Avatar, {type AvatarSize} from './avatar'
 import {Box} from './box'
 import ClickableBox from './clickable-box'

@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import openURL from '@/util/open-url'
 import type * as T from '@/constants/types'

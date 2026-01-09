@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as dateFns from 'date-fns'

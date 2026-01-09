@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import {useProfileState} from '@/constants/profile'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
