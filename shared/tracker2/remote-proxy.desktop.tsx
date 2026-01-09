@@ -11,7 +11,7 @@ import {mapFilterByKey} from '@/util/map'
 import {useColorScheme} from 'react-native'
 import {useTrackerState} from '@/constants/tracker2'
 import {useUsersState} from '@/constants/users'
-import {useFollowerState} from '@/constants/followers'
+import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/constants/current-user'
 
 const MAX_TRACKERS = 5

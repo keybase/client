@@ -15,7 +15,7 @@ import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import {useTrackerState} from '@/constants/tracker2'
 import {useUsersState} from '@/constants/users'
 import {useProfileState} from '@/constants/profile'
-import {useFollowerState} from '@/constants/followers'
+import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/constants/current-user'
 
 export type User = {

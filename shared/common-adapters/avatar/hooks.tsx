@@ -8,7 +8,7 @@ import './avatar.css'
 import type {Props} from '.'
 import {useColorScheme} from 'react-native'
 import {useUsersState} from '@/constants/users'
-import {useFollowerState} from '@/constants/followers'
+import {useFollowerState} from '@/stores/followers'
 import {navToProfile} from '@/constants/router2'
 
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const

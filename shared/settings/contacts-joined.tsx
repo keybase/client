@@ -6,7 +6,7 @@ import * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
 import {useSettingsContactsState} from '@/constants/settings-contacts'
 import {useTrackerState} from '@/constants/tracker2'
-import {useFollowerState} from '@/constants/followers'
+import {useFollowerState} from '@/stores/followers'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
 

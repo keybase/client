@@ -16,7 +16,8 @@ import {useCurrentUserState} from '../current-user'
 import {useDaemonState} from '../daemon'
 import {useDarkModeState} from '../darkmode'
 import * as DeepLinksUtil from '../deeplinks/util'
-import * as FollowerUtil from '../followers/util'
+import {useFollowerState} from '@/stores/followers'
+import isEqual from 'lodash/isEqual'
 import * as FSUtil from '../fs/util'
 import * as GitUtil from '../git/util'
 import * as NotifUtil from '../notifications/util'
@@ -280,7 +281,27 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
   ChatUtil.onEngineIncoming(action)
   useConfigState.getState().dispatch.onEngineIncoming(action)
   DeepLinksUtil.onEngineIncoming(action)
-  FollowerUtil.onEngineIncoming(action)
+  switch (action.type) {
+    case EngineGen.keybase1NotifyTrackingTrackingChanged: {
+      const {isTracking, username} = action.payload.params
+      useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
+      break
+    }
+    case EngineGen.keybase1NotifyTrackingTrackingInfo: {
+      const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
+      if (useCurrentUserState.getState().uid !== uid) {
+        break
+      }
+      const newFollowers = new Set(_newFollowers)
+      const newFollowing = new Set(_newFollowing)
+      const {following: oldFollowing, followers: oldFollowers, dispatch} = useFollowerState.getState()
+      const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
+      const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
+      dispatch.replace(followers, following)
+      break
+    }
+    default:
+  }
   FSUtil.onEngineIncoming(action)
   GitUtil.onEngineIncoming(action)
   NotifUtil.onEngineIncoming(action)

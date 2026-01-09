@@ -4,7 +4,7 @@ import {type BackgroundColorType} from '.'
 import {useColorScheme} from 'react-native'
 import {useTrackerState} from '@/constants/tracker2'
 import {useProfileState} from '@/constants/profile'
-import {useFollowerState} from '@/constants/followers'
+import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/constants/current-user'
 
 const headerBackgroundColorType = (

@@ -7,7 +7,7 @@ import ChatButton from '@/chat/chat-button'
 import {useBotsState} from '@/stores/bots'
 import {useTrackerState} from '@/constants/tracker2'
 import * as FS from '@/constants/fs'
-import {useFollowerState} from '@/constants/followers'
+import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {username: string}
