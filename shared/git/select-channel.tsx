@@ -1,4 +1,4 @@
-import * as Git from '@/constants/git'
+import * as Git from '@/stores/git'
 import * as Teams from '@/constants/teams'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as Kb from '@/common-adapters'

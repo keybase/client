@@ -19,7 +19,7 @@ import * as DeepLinksUtil from '../deeplinks/util'
 import {useFollowerState} from '@/stores/followers'
 import isEqual from 'lodash/isEqual'
 import type * as UseFSStateType from '@/stores/fs'
-import * as GitUtil from '../git/util'
+import type * as UseGitStateType from '@/stores/git'
 import * as NotifUtil from '../notifications/util'
 import * as PeopleUtil from '../people/util'
 import * as PinentryUtil from '../pinentry/util'
@@ -37,6 +37,7 @@ import {useWhatsNewState} from '../whats-new'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 let _devicesLoaded = false
+let _gitLoaded = false
 
 export const onEngineConnected = () => {
   ChatUtil.onEngineConnected()
@@ -267,6 +268,13 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
           const {useDevicesState} = require('@/stores/devices') as typeof UseDevicesStateType
           useDevicesState.getState().dispatch.onEngineIncomingImpl(action)
         }
+
+        const badges = new Set(badgeState.newGitRepoGlobalUniqueIDs)
+        if (_gitLoaded || badges.size) {
+          _gitLoaded = true
+          const {useGitState} = require('@/stores/git') as typeof UseGitStateType
+          useGitState.getState().dispatch.onEngineIncomingImpl(action)
+        }
       }
       break
     case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
@@ -310,7 +318,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     }
     default:
   }
-  GitUtil.onEngineIncoming(action)
   NotifUtil.onEngineIncoming(action)
   PeopleUtil.onEngineIncoming(action)
   PinentryUtil.onEngineIncoming(action)
