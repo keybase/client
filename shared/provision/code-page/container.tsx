@@ -6,7 +6,7 @@ import QRImage from './qr-image'
 import QRScan from './qr-scan'
 import Troubleshooting from '../troubleshooting'
 import type * as T from '@/constants/types'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 import {type Device, useProvisionState} from '@/constants/provision'
 
 const CodePageContainer = () => {

@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {

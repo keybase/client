@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {usePWState} from '@/constants/settings-password'
 import {useSettingsState} from '@/stores/settings'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type CheckboxesProps = {
   checkData: boolean

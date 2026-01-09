@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
 import {useSignupState} from '@/stores/signup'

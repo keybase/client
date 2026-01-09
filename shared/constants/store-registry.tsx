@@ -6,7 +6,7 @@ import type * as ConvoStateType from '@/constants/chat2/convostate'
 import type {ConvoState} from '@/constants/chat2/convostate'
 import type {State as AutoResetState, useAutoResetState} from '@/stores/autoreset'
 import type {State as BotsState, useBotsState} from '@/stores/bots'
-import type {State as ChatState, useChatState} from '@/constants/chat2'
+import type {State as ChatState, useChatState} from '@/stores/chat2'
 import type {State as DaemonState, useDaemonState} from '@/constants/daemon'
 import type {State as DevicesState, useDevicesState} from '@/stores/devices'
 import type {State as FSState, useFSState} from '@/stores/fs'
@@ -125,7 +125,7 @@ class StoreRegistry {
         return useBotsState
       }
       case 'chat': {
-        const {useChatState} = require('@/constants/chat2')
+        const {useChatState} = require('@/stores/chat2')
         return useChatState
       }
       case 'daemon': {

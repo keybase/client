@@ -1,27 +1,27 @@
-import * as T from '../types'
-import {ignorePromise, timeoutPromise, type ViewPropsToPageProps} from '../utils'
-import * as Tabs from '../tabs'
+import * as T from '@/constants/types'
+import {ignorePromise, timeoutPromise, type ViewPropsToPageProps} from '@/constants/utils'
+import * as Tabs from '@/constants/tabs'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import type * as ConfigConstants from '../config'
-import * as Message from './message'
-import * as Router2 from '../router2'
-import * as TeamConstants from '../teams/util'
+import type * as ConfigConstants from '@/stores/config'
+import * as Message from '@/constants/chat2/message'
+import * as Router2 from '@/constants/router2'
+import * as TeamConstants from '@/constants/teams/util'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
-import * as Meta from './meta'
-import {isMobile, isPhone} from '../platform'
+import * as Meta from '@/constants/chat2/meta'
+import {isMobile, isPhone} from '@/constants/platform'
 import * as Z from '@/util/zustand'
-import * as Common from './common'
-import {clearChatStores, chatStores} from './convostate'
+import * as Common from '@/constants/chat2/common'
+import {clearChatStores, chatStores} from '@/constants/chat2/convostate'
 import {uint8ArrayToString} from 'uint8array-extras'
 import isEqual from 'lodash/isEqual'
-import {bodyToJSON} from '../rpc-utils'
-import {navigateAppend, navUpToScreen, switchTab} from '../router2/util'
-import {storeRegistry} from '../store-registry'
-import {useConfigState} from '../config'
-import {useCurrentUserState} from '../current-user'
-import {useWaitingState} from '../waiting'
-import * as S from '../strings'
+import {bodyToJSON} from '@/constants/rpc-utils'
+import {navigateAppend, navUpToScreen, switchTab} from '@/constants/router2/util'
+import {storeRegistry} from '@/constants/store-registry'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useWaitingState} from '@/constants/waiting'
+import * as S from '@/constants/strings'
 
 const defaultTopReacjis = [
   {name: ':+1:'},
@@ -1966,7 +1966,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
   }
 })
 
-import {type ChatProviderProps, ProviderScreen} from './convostate'
+import {type ChatProviderProps, ProviderScreen} from '@/constants/chat2/convostate'
 import type {GetOptionsRet} from '@/constants/types/router2'
 
 export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
@@ -1992,9 +1992,9 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
   }
 }
 
-export * from './convostate'
-export * from './common'
-export * from './meta'
+export * from '@/constants/chat2/convostate'
+export * from '@/constants/chat2/common'
+export * from '@/constants/chat2/meta'
 export * from './message'
 
 export {
@@ -2003,4 +2003,4 @@ export {
   pendingErrorConversationIDKey,
   isValidConversationIDKey,
   dummyConversationIDKey,
-} from '../types/chat2/common'
+} from '@/constants/types/chat2/common'

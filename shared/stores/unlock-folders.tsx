@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {getEngine} from '@/engine/require'
-import {useConfigState, type State as ConfigStore} from '@/constants/config'
+import {useConfigState, type State as ConfigStore} from '@/stores/config'
 
 type Store = T.Immutable<{
   devices: ConfigStore['unlockFoldersDevices']

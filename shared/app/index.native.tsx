@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {handleAppLink} from '@/constants/deeplinks'

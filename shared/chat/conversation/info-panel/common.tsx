@@ -1,4 +1,4 @@
-import type * as Chat from '@/constants/chat2'
+import type * as Chat from '@/stores/chat2'
 import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import * as Styles from '@/styles'

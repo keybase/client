@@ -6,7 +6,7 @@ import {pickSave} from '@/util/pick-files'
 import * as FsCommon from '@/fs/common'
 import {useArchiveState} from '@/stores/archive'
 import {settingsArchiveTab} from '@/stores/settings'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 import {getConvoState} from '@/constants/chat2/convostate'
 
 type Props =

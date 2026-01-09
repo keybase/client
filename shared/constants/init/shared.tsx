@@ -8,9 +8,9 @@ import type * as UseAutoResetStateType from '@/stores/autoreset'
 import type * as UseDevicesStateType from '@/stores/devices'
 import * as AvatarUtil from '@/common-adapters/avatar/util'
 import type * as UseBotsStateType from '@/stores/bots'
-import {useChatState} from '../chat2'
-import {getSelectedConversation} from '../chat2/common'
-import * as ChatUtil from '../chat2/util'
+import {useChatState} from '@/stores/chat2'
+import {getSelectedConversation} from '@/constants/chat2/common'
+import type * as UseChatStateType from '@/stores/chat2'
 import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
 import {useDaemonState} from '../daemon'
@@ -39,7 +39,18 @@ let _devicesLoaded = false
 let _gitLoaded = false
 
 export const onEngineConnected = () => {
-  ChatUtil.onEngineConnected()
+  { // Chat2
+    const f = async () => {
+      try {
+        await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise()
+        await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise()
+        console.log('Registered Chat UI')
+      } catch (error) {
+        console.warn('Error in registering Chat UI:', error)
+      }
+    }
+    ignorePromise(f())
+  }
   useConfigState.getState().dispatch.onEngineConnected()
   storeRegistry.getState('daemon').dispatch.startHandshake()
   {
@@ -371,6 +382,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
 
         const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
         useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+
+        const {useChatState} = require('@/stores/chat2') as typeof UseChatStateType
+        useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case EngineGen.chat1ChatUiChatShowManageChannels:
@@ -446,10 +460,46 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       storeRegistry.getState('settings-email').dispatch.notifyEmailAddressEmailsChanged(list)
       break
     }
+    case EngineGen.chat1ChatUiChatInboxFailed:
+    case EngineGen.chat1NotifyChatChatSetConvSettings:
+    case EngineGen.chat1NotifyChatChatAttachmentUploadStart:
+    case EngineGen.chat1NotifyChatChatPromptUnfurl:
+    case EngineGen.chat1NotifyChatChatPaymentInfo:
+    case EngineGen.chat1NotifyChatChatRequestInfo:
+    case EngineGen.chat1NotifyChatChatAttachmentDownloadProgress:
+    case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete:
+    case EngineGen.chat1NotifyChatChatAttachmentUploadProgress:
+    case EngineGen.chat1ChatUiChatCommandMarkdown:
+    case EngineGen.chat1ChatUiChatGiphyToggleResultWindow:
+    case EngineGen.chat1ChatUiChatCommandStatus:
+    case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
+    case EngineGen.chat1ChatUiChatGiphySearchResults:
+    case EngineGen.chat1NotifyChatChatParticipantsInfo:
+    case EngineGen.chat1ChatUiChatMaybeMentionUpdate:
+    case EngineGen.chat1NotifyChatChatConvUpdate:
+    case EngineGen.chat1ChatUiChatCoinFlipStatus:
+    case EngineGen.chat1NotifyChatChatThreadsStale:
+    case EngineGen.chat1NotifyChatChatSubteamRename:
+    case EngineGen.chat1NotifyChatChatTLFFinalize:
+    case EngineGen.chat1NotifyChatChatIdentifyUpdate:
+    case EngineGen.chat1ChatUiChatInboxUnverified:
+    case EngineGen.chat1NotifyChatChatInboxSyncStarted:
+    case EngineGen.chat1NotifyChatChatInboxSynced:
+    case EngineGen.chat1ChatUiChatInboxLayout:
+    case EngineGen.chat1NotifyChatChatInboxStale:
+    case EngineGen.chat1ChatUiChatInboxConversation:
+    case EngineGen.chat1NotifyChatNewChatActivity:
+    case EngineGen.chat1NotifyChatChatTypingUpdate:
+    case EngineGen.chat1NotifyChatChatSetConvRetention:
+    case EngineGen.chat1NotifyChatChatSetTeamRetention:
+      {
+        const {useChatState} = require('@/stores/chat2') as typeof UseChatStateType
+        useChatState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
     default:
   }
   AvatarUtil.onEngineIncoming(action)
-  ChatUtil.onEngineIncoming(action)
   useConfigState.getState().dispatch.onEngineIncoming(action)
   DeepLinksUtil.onEngineIncoming(action)
   switch (action.type) {

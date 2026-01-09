@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings/util'
 import {useDaemonState} from '@/constants/daemon'

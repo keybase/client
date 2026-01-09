@@ -5,7 +5,7 @@ import * as React from 'react'
 import WalletPopup from './wallet-popup'
 import * as Wallets from '@/constants/wallets'
 import {useState as useWalletsState} from '@/constants/wallets'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 type OwnProps = {accountID: string}
 

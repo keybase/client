@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common/hooks'
 import * as React from 'react'
@@ -10,7 +10,7 @@ import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps

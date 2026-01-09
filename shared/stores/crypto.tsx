@@ -1,15 +1,15 @@
 import * as Z from '@/util/zustand'
-import {ignorePromise} from '../utils'
-import {isMobile} from '../platform'
-import {waitingKeyCrypto} from '../strings'
+import {ignorePromise} from '@/constants/utils'
+import {isMobile} from '@/constants/platform'
+import {waitingKeyCrypto} from '@/constants/strings'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
-import * as T from '../types'
+import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
-import {navigateAppend} from '../router2/util'
-import {useCurrentUserState} from '../current-user'
-import {Operations} from './util'
-export * from './util'
+import {navigateAppend} from '@/constants/router2/util'
+import {useCurrentUserState} from '@/stores/current-user'
+import {Operations} from '@/constants/crypto/util'
+export * from '@/constants/crypto/util'
 
 type CommonStore = {
   bytesComplete: number

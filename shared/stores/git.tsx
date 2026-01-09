@@ -6,7 +6,7 @@ import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
 import debounce from 'lodash/debounce'
 import {navigateAppend} from '@/constants/router2/util'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {
   const errors: Array<Error> = []

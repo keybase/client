@@ -6,7 +6,7 @@ import {ModalTitle} from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const AddSubteamMembers = () => {
   const nav = useSafeNavigation()

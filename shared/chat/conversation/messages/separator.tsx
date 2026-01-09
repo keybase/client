@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -9,7 +9,7 @@ import {OrangeLineContext} from '../orange-line-context'
 import logger from '@/logger'
 import {useTrackerState} from '@/stores/tracker2'
 import {useProfileState} from '@/constants/profile'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 // import {useChatDebugDump} from '@/constants/chat2/debug'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>

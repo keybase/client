@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
@@ -9,7 +9,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTrackerState} from '@/stores/tracker2'
 import {useProfileState} from '@/constants/profile'
 import {useUsersState} from '@/stores/users'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export type Props = {
   firstItem: boolean

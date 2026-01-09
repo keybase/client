@@ -4,7 +4,7 @@ import {currentVersion} from '@/constants/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
 import {useWhatsNewState as useWNState} from '@/constants/whats-new'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const WhatsNewContainer = () => {
   const _onNavigateExternal = (url: string) => {

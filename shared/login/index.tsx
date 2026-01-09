@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/constants/daemon'
 
 const Loading = React.lazy(async () => import('./loading'))

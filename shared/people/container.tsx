@@ -5,7 +5,7 @@ import People from '.'
 import {useSignupState} from '@/stores/signup'
 import {useProfileState} from '@/constants/profile'
 import {usePeopleState, getPeopleDataWaitingKey} from '@/stores/people'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const waitToRefresh = 1000 * 60 * 5
 

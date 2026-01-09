@@ -6,7 +6,7 @@ import {ProxySettings} from './proxy'
 import {useSettingsState, traceInProgressKey, processorProfileInProgressKey} from '@/stores/settings'
 import {usePWState} from '@/constants/settings-password'
 import {useFSState} from '@/stores/fs'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 let initialUseNativeFrame: boolean | undefined
 

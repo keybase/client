@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Kb from '@/common-adapters'

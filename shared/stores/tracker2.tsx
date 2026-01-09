@@ -8,7 +8,7 @@ import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
 import {navigateAppend, navigateUp} from '@/constants/router2/util'
 import {storeRegistry} from '@/constants/store-registry'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),

@@ -7,7 +7,7 @@ import {MobileSendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/stores/settings'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)

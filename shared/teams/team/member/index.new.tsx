@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useCurrentUserState} from '@/constants/current-user'
+import * as Chat from '@/stores/chat2'
+import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
 import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'

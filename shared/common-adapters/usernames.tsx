@@ -16,7 +16,7 @@ import {useTrackerState} from '@/stores/tracker2'
 import {useUsersState} from '@/stores/users'
 import {useProfileState} from '@/constants/profile'
 import {useFollowerState} from '@/stores/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export type User = {
   username: string

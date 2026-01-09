@@ -9,7 +9,7 @@ import openURL from '@/util/open-url'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,

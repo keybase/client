@@ -7,7 +7,7 @@ import SfmiBanner from '../banner/system-file-manager-integration-banner/contain
 import {WrapRow} from './rows/rows'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
   destinationPickerIndex?: number

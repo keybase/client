@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Crypto from '@/constants/crypto'
+import * as Chat from '@/stores/chat2'
+import * as Crypto from '@/stores/crypto'
 import * as React from 'react'
 import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import type * as T from '@/constants/types'

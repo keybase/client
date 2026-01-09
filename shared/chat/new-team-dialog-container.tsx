@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import {CreateNewTeam} from '../teams/new-team'
 import {useTeamsState} from '@/stores/teams'
 import upperFirst from 'lodash/upperFirst'

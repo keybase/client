@@ -6,7 +6,7 @@ import {IconWithPopupDesktop as WhatsNewIconWithPopup} from '@/whats-new/icon'
 import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
 import shallowEqual from 'shallowequal'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 

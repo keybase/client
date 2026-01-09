@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
 import {useState as useRecoverState} from '@/constants/recover-password'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const ConnectedError = () => {
   const loggedIn = useConfigState(s => s.loggedIn)

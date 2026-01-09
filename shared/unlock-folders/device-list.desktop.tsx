@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {State as ConfigStore} from '@/constants/config'
+import type {State as ConfigStore} from '@/stores/config'
 
 export type Props = {
   devices: ConfigStore['unlockFoldersDevices']

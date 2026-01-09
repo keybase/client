@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Constants from '@/constants/router2'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import {useDarkModeState} from '@/constants/darkmode'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'

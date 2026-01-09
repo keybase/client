@@ -1,5 +1,5 @@
-import {useConfigState} from '@/constants/config'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Feedback from '.'

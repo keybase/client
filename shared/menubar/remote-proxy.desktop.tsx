@@ -1,7 +1,7 @@
 // A mirror of the remote menubar windows.
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useConfigState} from '@/constants/config'
+import * as Chat from '@/stores/chat2'
+import {useConfigState} from '@/stores/config'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import KB2 from '@/util/electron.desktop'
@@ -17,7 +17,7 @@ import {useFSState} from '@/stores/fs'
 import {useFollowerState} from '@/stores/followers'
 import {useUsersState} from '@/stores/users'
 import {useNotifState} from '@/stores/notifications'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/constants/daemon'
 import {useDarkModeState} from '@/constants/darkmode'
 

@@ -10,7 +10,7 @@ import Button from './button'
 import Icon from './icon'
 import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings/util'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const Kb = {
   Box2,

@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as Kbfs from '@/fs/common'
 import * as Platforms from '@/constants/platform'
 import * as T from '@/constants/types'
@@ -18,7 +18,7 @@ import {useTrackerState} from '@/stores/tracker2'
 import {useFSState} from '@/stores/fs'
 import {useProfileState} from '@/constants/profile'
 import {useNotifState} from '@/stores/notifications'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 import {useProvisionState} from '@/constants/provision'
 
 const {hideWindow, ctlQuit} = KB2.functions

@@ -8,7 +8,7 @@ import {useBotsState} from '@/stores/bots'
 import {useTrackerState} from '@/stores/tracker2'
 import * as FS from '@/stores/fs'
 import {useFollowerState} from '@/stores/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {username: string}
 

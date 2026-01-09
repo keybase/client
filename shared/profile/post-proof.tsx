@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
 import openUrl from '@/util/open-url'
 import Modal from './modal'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const Container = () => {
   const platform = useProfileState(s => s.platform)

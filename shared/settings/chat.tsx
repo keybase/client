@@ -7,7 +7,7 @@ import Group from './group'
 import {useSettingsChatState as useSettingsChatState} from '@/constants/settings-chat'
 import {useSettingsNotifState} from '@/constants/settings-notifications'
 import {useSettingsState} from '@/stores/settings'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const emptyList = new Array<string>()
 

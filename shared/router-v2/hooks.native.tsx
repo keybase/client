@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useConfigState} from '@/constants/config'
+import * as Chat from '@/stores/chat2'
+import {useConfigState} from '@/stores/config'
 import * as Tabs from '@/constants/tabs'
 import * as React from 'react'
 import {handleAppLink} from '@/constants/deeplinks'

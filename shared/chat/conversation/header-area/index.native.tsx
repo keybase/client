@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -10,7 +10,7 @@ import {Keyboard} from 'react-native'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {useUsersState} from '@/stores/users'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export const HeaderAreaRight = () => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
