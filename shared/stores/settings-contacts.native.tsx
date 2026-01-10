@@ -8,12 +8,12 @@ import logger from '@/logger'
 import type {Store, State} from './settings-contacts'
 import {RPCError} from '@/util/errors'
 import {getDefaultCountryCode} from 'react-native-kb'
-import {getE164} from '../constants/settings-phone'
+import {getE164} from '@/util/phone-numbers'
 import {pluralize} from '@/util/string'
-import {navigateAppend} from '../constants/router2/util'
+import {navigateAppend} from '@/constants/router2/util'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useWaitingState} from '../constants/waiting'
+import {useWaitingState} from '@/stores/waiting'
 
 const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
 
