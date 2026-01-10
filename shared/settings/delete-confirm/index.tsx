@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {usePWState} from '@/constants/settings-password'
+import {usePWState} from '@/stores/settings-password'
 import {useSettingsState} from '@/stores/settings'
 import {useCurrentUserState} from '@/stores/current-user'
 

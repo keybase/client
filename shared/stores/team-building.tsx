@@ -11,11 +11,11 @@ import {serviceIdFromString} from '@/util/platforms'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
-import {searchWaitingKey} from './utils'
+import {searchWaitingKey} from '@/constants/team-building/utils'
 import {navigateUp} from '@/constants/router2/util'
 import {storeRegistry} from '@/constants/store-registry'
 import {useCryptoState} from '@/stores/crypto'
-export {allServices, selfToUser, searchWaitingKey} from './utils'
+export {allServices, selfToUser, searchWaitingKey} from '@/constants/team-building/utils'
 
 type Store = T.Immutable<{
   namespace: T.TB.AllowedNamespace

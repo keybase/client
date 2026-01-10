@@ -9,7 +9,7 @@ import isEqual from 'lodash/isEqual'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {invalidPasswordErrorString} from '@/constants/config/util'
 import {clearModals, navigateAppend} from '@/constants/router2/util'
-import {useWaitingState} from '@/constants/waiting'
+import {useWaitingState} from '@/stores/waiting'
 
 export type Device = {
   deviceNumberOfType: number

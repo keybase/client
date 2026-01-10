@@ -5,7 +5,7 @@ import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
 import {useTeamDetailsSubscribe} from '../subscriber'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {getE164} from '@/constants/settings-phone'
+import {getE164} from '@/stores/settings-phone'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.

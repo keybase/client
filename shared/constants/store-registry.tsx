@@ -1,7 +1,7 @@
 // used to allow non-circular cross-calls between stores
 // ONLY for zustand stores
 import type * as T from '@/constants/types'
-import type * as TBType from '@/constants/team-building'
+import type * as TBType from '@/stores/team-building'
 import type * as ConvoStateType from '@/constants/chat2/convostate'
 import type {ConvoState} from '@/constants/chat2/convostate'
 import type {State as AutoResetState, useAutoResetState} from '@/stores/autoreset'
@@ -24,8 +24,8 @@ import type {State as SettingsState, useSettingsState} from '@/stores/settings'
 import type {State as SettingsChatState, useSettingsChatState} from '@/stores/settings-chat'
 import type {State as SettingsContactsState, useSettingsContactsState} from '@/stores/settings-contacts'
 import type {State as SettingsEmailState, useSettingsEmailState} from '@/stores/settings-email'
-import type {State as SettingsPasswordState, usePWState} from '@/constants/settings-password'
-import type {State as SettingsPhoneState, useSettingsPhoneState} from '@/constants/settings-phone'
+import type {State as SettingsPasswordState, usePWState} from '@/stores/settings-password'
+import type {State as SettingsPhoneState, useSettingsPhoneState} from '@/stores/settings-phone'
 import type {State as SignupState, useSignupState} from '@/stores/signup'
 import type {State as TeamsState, useTeamsState} from '@/stores/teams'
 import type {State as Tracker2State, useTrackerState} from '@/stores/tracker2'
@@ -185,11 +185,11 @@ class StoreRegistry {
         return useSettingsEmailState
       }
       case 'settings-password': {
-        const {usePWState} = require('@/constants/settings-password')
+        const {usePWState} = require('@/stores/settings-password')
         return usePWState
       }
       case 'settings-phone': {
-        const {useSettingsPhoneState} = require('@/constants/settings-phone')
+        const {useSettingsPhoneState} = require('@/stores/settings-phone')
         return useSettingsPhoneState
       }
       case 'signup': {
@@ -222,7 +222,7 @@ class StoreRegistry {
   }
 
   getTBStore(name: T.TB.AllowedNamespace): TBType.State {
-    const {createTBStore} = require('@/constants/team-building') as typeof TBType
+    const {createTBStore} = require('@/stores/team-building') as typeof TBType
     const store = createTBStore(name)
     return store.getState()
   }

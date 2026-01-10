@@ -32,7 +32,7 @@ import {useTeamsState} from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker2'
 import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
-import {useWhatsNewState} from '../whats-new'
+import {useWhatsNewState} from '@/stores/whats-new'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 let _devicesLoaded = false

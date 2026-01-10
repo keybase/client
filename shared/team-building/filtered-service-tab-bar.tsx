@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {ServiceTabBar} from './service-tab-bar'
-import * as TeamBuilding from '@/constants/team-building'
+import * as TeamBuilding from '@/stores/team-building'
 
 export const FilteredServiceTabBar = (
   props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {

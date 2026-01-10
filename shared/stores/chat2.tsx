@@ -20,7 +20,7 @@ import {navigateAppend, navUpToScreen, switchTab} from '@/constants/router2/util
 import {storeRegistry} from '@/constants/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useWaitingState} from '@/constants/waiting'
+import {useWaitingState} from '@/stores/waiting'
 import * as S from '@/constants/strings'
 
 const defaultTopReacjis = [

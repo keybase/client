@@ -11,7 +11,7 @@ import {clearModals, navigateAppend, switchTab} from '@/constants/router2/util'
 import {storeRegistry} from '@/constants/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useWaitingState} from '@/constants/waiting'
+import {useWaitingState} from '@/stores/waiting'
 import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings/util'
 
 export * from '@/constants/settings/util'

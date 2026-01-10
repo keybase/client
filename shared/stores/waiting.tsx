@@ -1,5 +1,5 @@
 import type {RPCError} from '@/util/errors'
-import type * as T from '../types'
+import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 
 // This store has no dependencies on other stores and is safe to import directly from other stores.

@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {ModalTitle, usePhoneNumberList} from '../common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
 
 const waitingKey = 'phoneLookup'
 

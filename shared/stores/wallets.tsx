@@ -1,10 +1,10 @@
-import * as T from '../types'
-import {ignorePromise} from '../utils'
+import * as T from '@/constants/types'
+import {ignorePromise} from '@/constants/utils'
 import * as Z from '@/util/zustand'
-import {loadAccountsWaitingKey} from './utils'
+import {loadAccountsWaitingKey} from '@/constants/wallets/utils'
 import {useConfigState} from '@/stores/config'
 
-export {loadAccountsWaitingKey} from './utils'
+export {loadAccountsWaitingKey} from '@/constants/wallets/utils'
 
 export type Account = {
   accountID: string
