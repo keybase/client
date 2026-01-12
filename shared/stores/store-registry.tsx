@@ -15,7 +15,7 @@ import type {State as NotificationsState, useNotifState} from '@/stores/notifica
 import type {State as PeopleState, usePeopleState} from '@/stores/people'
 import type {State as ProfileState, useProfileState} from '@/stores/profile'
 import type {State as ProvisionState, useProvisionState} from '@/stores/provision'
-import type {State as PushState, usePushState} from '@/constants/push'
+import type {State as PushState, usePushState} from '@/stores/push'
 import type {
   State as RecoverPasswordState,
   useState as useRecoverPasswordState,

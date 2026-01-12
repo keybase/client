@@ -5,7 +5,7 @@ import WhatsNewIcon from '@/whats-new/icon'
 import SettingsItem from './settings-item'
 import {keybaseFM} from '@/stores/whats-new'
 import * as Settings from '@/stores/settings'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 import {useNotifState} from '@/stores/notifications'
 
 type Props = {

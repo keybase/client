@@ -4,7 +4,7 @@ import Notifications from './render'
 import {Reloadable} from '@/common-adapters'
 import {useSettingsNotifState} from '@/stores/settings-notifications'
 import {useSettingsState} from '@/stores/settings'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 
 const MobileNotifications = () => {
   const loadSettings = useSettingsState(s => s.dispatch.loadSettings)

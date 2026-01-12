@@ -6,7 +6,7 @@ import * as Shared from './router.shared'
 import {View} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {useColorScheme} from 'react-native'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 import {useNotifState} from '@/stores/notifications'
 
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const

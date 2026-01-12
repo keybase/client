@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import useNotifications from './hooks'
 import Group from '../group'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 
 type Props = ReturnType<typeof useNotifications>
 
