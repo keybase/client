@@ -1,6 +1,6 @@
 import type * as React from 'react'
-import type * as T from '../types'
-import * as Tabs from '../tabs'
+import type * as T from './types'
+import * as Tabs from './tabs'
 import {
   StackActions,
   CommonActions,
@@ -10,11 +10,11 @@ import {
   type NavigationState,
 } from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import type {GetOptionsRet} from '../types/router2'
+import type {GetOptionsRet} from './types/router2'
 import {produce} from 'immer'
 import isEqual from 'lodash/isEqual'
-import {isMobile, isTablet} from '../platform'
-import {shallowEqual, type ViewPropsToPageProps} from '../utils'
+import {isMobile, isTablet} from './platform'
+import {shallowEqual, type ViewPropsToPageProps} from './utils'
 import {registerDebugClear} from '@/util/debug'
 
 export const navigationRef = createNavigationContainerRef<KBRootParamList>()
@@ -440,4 +440,3 @@ export const appendEncryptRecipientsBuilder = () => {
     selected: 'cryptoTeamBuilder',
   })
 }
-

@@ -1,6 +1,6 @@
 // TODO remove useChatNavigateAppend
 // TODO remove
-import * as TeamsUtil from '../teams/util'
+import * as TeamsUtil from '../teams'
 import * as PlatformSpecific from '../platform-specific'
 import {
   clearModals,
@@ -11,7 +11,7 @@ import {
   getVisibleScreen,
   getModalStack,
   navToThread,
-} from '../router2/util'
+} from '../router2'
 import {isIOS} from '../platform'
 import {updateImmer} from '../utils'
 import * as T from '../types'

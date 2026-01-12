@@ -1,4 +1,4 @@
-import {isMobile} from '../platform'
+import {isMobile} from './platform'
 
 export const saltpackDocumentation = 'https://saltpack.org'
 export const inputDesktopMaxHeight = {maxHeight: '30%'} as const
