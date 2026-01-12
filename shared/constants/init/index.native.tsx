@@ -21,7 +21,7 @@ import logger from '@/logger'
 import {Alert, Linking} from 'react-native'
 import {isAndroid} from '@/constants/platform.native'
 import {wrapErrors} from '@/util/debug'
-import {getTab, getVisiblePath, logState} from '@/stores/router2'
+import {getTab, getVisiblePath, logState} from '@/constants/router2'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
 import {
@@ -32,12 +32,12 @@ import {
   guiConfig,
   shareListenersRegistered,
 } from 'react-native-kb'
-import {initPushListener, getStartupDetailsFromInitialPush} from '../platform-specific/push.native'
+import {initPushListener, getStartupDetailsFromInitialPush} from '@/stores/push-listener.native'
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from '../types/chat2/common'
 import {getSelectedConversation} from '../chat2/common'
-import {getConvoState} from '../chat2/convostate'
+import {getConvoState} from '@/stores/convostate'
 import {requestLocationPermission, showShareActionSheet} from '../platform-specific/index.native'
 
 const loadStartupDetails = async () => {

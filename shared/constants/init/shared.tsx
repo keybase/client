@@ -26,6 +26,10 @@ import type * as UsePinentryStateType from '@/stores/pinentry'
 import {useProvisionState} from '@/stores/provision'
 import {storeRegistry} from '@/stores/store-registry'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {createTBStore} from '@/stores/team-building'
+import {useCryptoState} from '@/stores/crypto'
+import {useProfileState} from '@/stores/profile'
+import {useUsersState} from '@/stores/users'
 import type * as UseSignupStateType from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
@@ -91,6 +95,59 @@ export const onEngineDisconnected = () => {
   }
   ignorePromise(f())
   storeRegistry.getState('daemon').dispatch.setError(new Error('Disconnected'))
+}
+
+// Initialize team building callbacks. Not ideal but keeping all the existing logic for now.
+export const initTeamBuildingCallbacks = () => {
+  const commonCallbacks = {
+    onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => {
+      useTeamsState.getState().dispatch.addMembersWizardPushMembers(members)
+    },
+    onGetSettingsContactsImportEnabled: () => {
+      return useSettingsContactsState.getState().importEnabled
+    },
+    onGetSettingsContactsUserCountryCode: () => {
+      return useSettingsContactsState.getState().userCountryCode
+    },
+    onShowUserProfile: (username: string) => {
+      useProfileState.getState().dispatch.showUserProfile(username)
+    },
+    onUsersGetBlockState: (usernames: ReadonlyArray<string>) => {
+      useUsersState.getState().dispatch.getBlockState(usernames)
+    },
+    onUsersUpdates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+      useUsersState.getState().dispatch.updates(infos)
+    },
+  }
+
+  const namespaces: Array<T.TB.AllowedNamespace> = ['chat2', 'crypto', 'teams', 'people']
+  for (const namespace of namespaces) {
+    const store = createTBStore(namespace)
+    const currentState = store.getState()
+    store.setState({
+      dispatch: {
+        ...currentState.dispatch,
+        dynamic: {
+          ...currentState.dispatch.dynamic,
+          ...commonCallbacks,
+          ...(namespace === 'chat2'
+            ? {
+                onFinishedTeamBuildingChat: users => {
+                  storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(users)
+                },
+              }
+            : {}),
+          ...(namespace === 'crypto'
+            ? {
+                onFinishedTeamBuildingCrypto: users => {
+                  useCryptoState.getState().dispatch.onTeamBuildingFinished(users)
+                },
+              }
+            : {}),
+        },
+      },
+    })
+  }
 }
 
 export const initSharedSubscriptions = () => {
@@ -277,6 +334,8 @@ export const initSharedSubscriptions = () => {
       ignorePromise(f())
     }
   })
+
+  initTeamBuildingCallbacks()
 }
 
 // This is to defer loading stores we don't need immediately.

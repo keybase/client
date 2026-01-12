@@ -18,7 +18,7 @@ import {
   requestPushPermissions,
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
-import {type Store, type State} from '@/constants/push'
+import {type Store, type State} from '@/stores/push'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 

@@ -1,7 +1,7 @@
-import * as T from '../types'
-import {ignorePromise, timeoutPromise} from '../utils'
+import * as T from '@/constants/types'
+import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import logger from '@/logger'
-import {isAndroid} from '../platform'
+import {isAndroid} from '@/constants/platform'
 import {
   getRegistrationToken,
   setApplicationIconBadgeNumber,

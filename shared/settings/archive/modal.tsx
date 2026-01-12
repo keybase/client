@@ -7,7 +7,7 @@ import * as FsCommon from '@/fs/common'
 import {useArchiveState} from '@/stores/archive'
 import {settingsArchiveTab} from '@/stores/settings'
 import {useCurrentUserState} from '@/stores/current-user'
-import {getConvoState} from '@/constants/chat2/convostate'
+import {getConvoState} from '@/stores/convostate'
 
 type Props =
   | {type: 'chatID'; conversationIDKey: T.Chat.ConversationIDKey}

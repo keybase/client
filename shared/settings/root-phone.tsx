@@ -9,7 +9,7 @@ import WhatsNewIcon from '../whats-new/icon'
 import noop from 'lodash/noop'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as Settings from '@/stores/settings'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 import {useNotifState} from '@/stores/notifications'
 
 const PerfRow = () => {

@@ -6,7 +6,7 @@ import * as React from 'react'
 import {handleAppLink} from '@/constants/deeplinks'
 import {Linking} from 'react-native'
 import {useColorScheme} from 'react-native'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 
 type InitialStateState = 'init' | 'loading' | 'loaded'
 

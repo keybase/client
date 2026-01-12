@@ -2,8 +2,8 @@
 // ONLY for zustand stores
 import type * as T from '@/constants/types'
 import type * as TBType from '@/stores/team-building'
-import type * as ConvoStateType from '@/constants/chat2/convostate'
-import type {ConvoState} from '@/constants/chat2/convostate'
+import type * as ConvoStateType from '@/stores/convostate'
+import type {ConvoState} from '@/stores/convostate'
 import type {State as AutoResetState, useAutoResetState} from '@/stores/autoreset'
 import type {State as BotsState, useBotsState} from '@/stores/bots'
 import type {State as ChatState, useChatState} from '@/stores/chat2'
@@ -15,7 +15,7 @@ import type {State as NotificationsState, useNotifState} from '@/stores/notifica
 import type {State as PeopleState, usePeopleState} from '@/stores/people'
 import type {State as ProfileState, useProfileState} from '@/stores/profile'
 import type {State as ProvisionState, useProvisionState} from '@/stores/provision'
-import type {State as PushState, usePushState} from '@/constants/push'
+import type {State as PushState, usePushState} from '@/stores/push'
 import type {
   State as RecoverPasswordState,
   useState as useRecoverPasswordState,
@@ -161,7 +161,7 @@ class StoreRegistry {
         return useProvisionState
       }
       case 'push': {
-        const {usePushState} = require('@/constants/push')
+        const {usePushState} = require('@/stores/push')
         return usePushState
       }
       case 'recover-password': {
@@ -228,7 +228,7 @@ class StoreRegistry {
   }
 
   getConvoState(id: T.Chat.ConversationIDKey): ConvoState {
-    const {getConvoState} = require('@/constants/chat2/convostate') as typeof ConvoStateType
+    const {getConvoState} = require('@/stores/convostate') as typeof ConvoStateType
     return getConvoState(id)
   }
 }

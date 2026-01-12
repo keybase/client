@@ -1,7 +1,7 @@
 // TODO remove useChatNavigateAppend
 // TODO remove
-import * as TeamsUtil from '../teams'
-import * as PlatformSpecific from '../platform-specific'
+import * as TeamsUtil from '@/constants/teams'
+import * as PlatformSpecific from '@/constants/platform-specific'
 import {
   clearModals,
   navigateAppend,
@@ -11,16 +11,16 @@ import {
   getVisibleScreen,
   getModalStack,
   navToThread,
-} from '../router2'
-import {isIOS} from '../platform'
-import {updateImmer} from '../utils'
-import * as T from '../types'
+} from '@/constants/router2'
+import {isIOS} from '@/constants/platform'
+import {updateImmer} from '@/constants/utils'
+import * as T from '@/constants/types'
 import * as Styles from '@/styles'
-import * as Common from './common'
-import * as Tabs from '../tabs'
+import * as Common from '@/constants/chat2/common'
+import * as Tabs from '@/constants/tabs'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as Message from './message'
-import * as Meta from './meta'
+import * as Message from '@/constants/chat2/message'
+import * as Meta from '@/constants/chat2/meta'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
 import {makeActionForOpenPathInFilesTab} from '@/constants/fs'
@@ -32,9 +32,9 @@ import type {DebouncedFunc} from 'lodash'
 import {RPCError} from '@/util/errors'
 import {findLast} from '@/util/arrays'
 import {mapGetEnsureValue} from '@/util/map'
-import {noConversationIDKey} from '../types/chat2/common'
+import {noConversationIDKey} from '@/constants/types/chat2/common'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
-import * as Platform from '../platform'
+import * as Platform from '@/constants/platform'
 import KB2 from '@/util/electron'
 import NotifyPopup from '@/util/notify-popup'
 import {hexToUint8Array} from 'uint8array-extras'
@@ -43,7 +43,7 @@ import {clearChatTimeCache} from '@/util/timestamp'
 import {registerDebugClear} from '@/util/debug'
 import * as Config from '@/constants/config'
 import {isMobile} from '@/constants/platform'
-import {enumKeys, ignorePromise, shallowEqual} from '../utils'
+import {enumKeys, ignorePromise, shallowEqual} from '@/constants/utils'
 import * as Strings from '@/constants/strings'
 
 import {storeRegistry} from '@/stores/store-registry'

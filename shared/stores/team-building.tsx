@@ -11,11 +11,10 @@ import {serviceIdFromString} from '@/util/platforms'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
-import {searchWaitingKey} from '@/constants/team-building'
+import {searchWaitingKey} from '@/constants/strings'
 import {navigateUp} from '@/constants/router2'
-import {storeRegistry} from '@/stores/store-registry'
-import {useCryptoState} from '@/stores/crypto'
-export {allServices, selfToUser, searchWaitingKey} from '@/constants/team-building'
+export {allServices, selfToUser} from '@/constants/team-building'
+export {searchWaitingKey} from '@/constants/strings'
 
 type Store = T.Immutable<{
   namespace: T.TB.AllowedNamespace
@@ -55,6 +54,16 @@ export interface State extends Store {
     cancelTeamBuilding: () => void
     changeSendNotification: (sendNotification: boolean) => void
     closeTeamBuilding: () => void
+      dynamic: {
+      onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
+      onFinishedTeamBuildingChat: (users: ReadonlySet<T.TB.User>) => void
+      onFinishedTeamBuildingCrypto: (users: ReadonlySet<T.TB.User>) => void
+      onGetSettingsContactsImportEnabled: () => boolean | undefined
+      onGetSettingsContactsUserCountryCode: () => string | undefined
+      onShowUserProfile: (username: string) => void
+      onUsersGetBlockState: (usernames: ReadonlyArray<string>) => void
+      onUsersUpdates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
+    }
     fetchUserRecs: () => void
     finishTeamBuilding: () => void
     finishedTeamBuilding: () => void
@@ -272,7 +281,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
               // we want the first item
               for (const user of teamSoFar) {
                 const username = user.serviceMap.keybase || user.id
-                storeRegistry.getState('profile').dispatch.showUserProfile(username)
+                get().dispatch.dynamic.onShowUserProfile(username)
                 break
               }
             }, 100)
@@ -299,6 +308,32 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         navigateUp()
       }
     },
+    dynamic: {
+      onAddMembersWizardPushMembers: (_members: Array<T.Teams.AddingMember>) => {
+        throw new Error('onAddMembersWizardPushMembers not properly initialized')
+      },
+      onFinishedTeamBuildingChat: (_users: ReadonlySet<T.TB.User>) => {
+        throw new Error('onFinishedTeamBuildingChat not properly initialized')
+      },
+      onFinishedTeamBuildingCrypto: (_users: ReadonlySet<T.TB.User>) => {
+        throw new Error('onFinishedTeamBuildingCrypto not properly initialized')
+      },
+      onGetSettingsContactsImportEnabled: () => {
+        throw new Error('onGetSettingsContactsImportEnabled not properly initialized')
+      },
+      onGetSettingsContactsUserCountryCode: () => {
+        throw new Error('onGetSettingsContactsUserCountryCode not properly initialized')
+      },
+      onShowUserProfile: (_username: string) => {
+        throw new Error('onShowUserProfile not properly initialized')
+      },
+      onUsersGetBlockState: (_usernames: ReadonlyArray<string>) => {
+        throw new Error('onUsersGetBlockState not properly initialized')
+      },
+      onUsersUpdates: (_infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+        throw new Error('onUsersUpdates not properly initialized')
+      },
+    },
     fetchUserRecs: () => {
       const includeContacts = get().namespace === 'chat2'
       const f = async () => {
@@ -314,7 +349,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           const contacts = contactRes.map(contactToUser)
           let suggestions = suggestionRes.map(interestingPersonToUser)
           const expectingContacts =
-            storeRegistry.getState('settings-contacts').importEnabled && includeContacts
+            get().dispatch.dynamic.onGetSettingsContactsImportEnabled() && includeContacts
           if (expectingContacts) {
             suggestions = suggestions.slice(0, 10)
           }
@@ -337,11 +372,9 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       get().dispatch.closeTeamBuilding()
       const {teamSoFar} = get()
       if (get().namespace === 'teams') {
-        storeRegistry
-          .getState('teams')
-          .dispatch.addMembersWizardPushMembers(
-            [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
-          )
+        get().dispatch.dynamic.onAddMembersWizardPushMembers(
+          [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
+        )
         get().dispatch.finishedTeamBuilding()
       }
     },
@@ -361,11 +394,11 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const {finishedTeam, namespace} = get()
       switch (namespace) {
         case 'crypto': {
-          useCryptoState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
+          get().dispatch.dynamic.onFinishedTeamBuildingCrypto(finishedTeam)
           break
         }
         case 'chat2': {
-          storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(finishedTeam)
+          get().dispatch.dynamic.onFinishedTeamBuildingChat(finishedTeam)
           break
         }
         default:
@@ -416,7 +449,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         let users: typeof _users
         if (selectedService === 'keybase') {
           // If we are on Keybase tab, do additional search if query is phone/email.
-          const userRegion = storeRegistry.getState('settings-contacts').userCountryCode
+          const userRegion = get().dispatch.dynamic.onGetSettingsContactsUserCountryCode()
           users = await specialContactSearch(_users, searchQuery, userRegion)
         } else {
           users = _users
@@ -433,7 +466,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<{info: {fullname: string}; name: string}>())
-        storeRegistry.getState('users').dispatch.updates(updates)
+        get().dispatch.dynamic.onUsersUpdates(updates)
         const blocks = users.reduce((arr, {serviceMap}) => {
           const {keybase} = serviceMap
           if (keybase) {
@@ -441,7 +474,9 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<string>())
-        blocks.length && storeRegistry.getState('users').dispatch.getBlockState(blocks)
+        if (blocks.length) {
+          get().dispatch.dynamic.onUsersGetBlockState(blocks)
+        }
       }
       ignorePromise(f())
     },
