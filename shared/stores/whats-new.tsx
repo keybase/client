@@ -1,8 +1,7 @@
 import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {uint8ArrayToString} from 'uint8array-extras'
-import {currentVersion, lastVersion, lastLastVersion, keybaseFM} from '@/constants/strings'
-
+import {currentVersion, lastVersion, lastLastVersion} from '@/constants/strings'
 export {currentVersion, lastVersion, lastLastVersion, keybaseFM} from '@/constants/strings'
 
 const noVersion: string = '0.0.0'

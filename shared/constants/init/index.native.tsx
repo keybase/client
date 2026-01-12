@@ -39,7 +39,11 @@ import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from '../types/chat2/common'
 import {getSelectedConversation} from '../chat2/common'
 import {getConvoState} from '@/stores/convostate'
-import {requestLocationPermission, saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific/index.native'
+import {
+  requestLocationPermission,
+  saveAttachmentToCameraRoll,
+  showShareActionSheet,
+} from '@/util/platform-specific/index.native'
 import * as FS from '@/stores/fs'
 import * as Styles from '@/styles'
 
@@ -579,42 +583,44 @@ export const initPlatformListener = () => {
       // needs to be called, TODO could make this better
       s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged()
 
-      s.dispatch.dynamic.finishedRegularDownloadMobile = wrapErrors((downloadID: string, mimeType: string) => {
-        const f = async () => {
-          // This is fired from a hook and can happen more than once per downloadID.
-          // So just deduplicate them here. This is small enough and won't happen
-          // constantly, so don't worry about clearing them.
-          if (finishedRegularDownloadIDs.has(downloadID)) {
-            return
-          }
-          finishedRegularDownloadIDs.add(downloadID)
+      s.dispatch.dynamic.finishedRegularDownloadMobile = wrapErrors(
+        (downloadID: string, mimeType: string) => {
+          const f = async () => {
+            // This is fired from a hook and can happen more than once per downloadID.
+            // So just deduplicate them here. This is small enough and won't happen
+            // constantly, so don't worry about clearing them.
+            if (finishedRegularDownloadIDs.has(downloadID)) {
+              return
+            }
+            finishedRegularDownloadIDs.add(downloadID)
 
-          const {downloads} = useFSState.getState()
+            const {downloads} = useFSState.getState()
 
-          const downloadState = downloads.state.get(downloadID) || FS.emptyDownloadState
-          const downloadInfo = downloads.info.get(downloadID) || FS.emptyDownloadInfo
-          if (downloadState === FS.emptyDownloadState || downloadInfo === FS.emptyDownloadInfo) {
-            logger.warn('missing download', downloadID)
-            return
+            const downloadState = downloads.state.get(downloadID) || FS.emptyDownloadState
+            const downloadInfo = downloads.info.get(downloadID) || FS.emptyDownloadInfo
+            if (downloadState === FS.emptyDownloadState || downloadInfo === FS.emptyDownloadInfo) {
+              logger.warn('missing download', downloadID)
+              return
+            }
+            if (downloadState.error) {
+              return
+            }
+            try {
+              await androidAddCompleteDownload({
+                description: `Keybase downloaded ${downloadInfo.filename}`,
+                mime: mimeType,
+                path: downloadState.localPath,
+                showNotification: true,
+                title: downloadInfo.filename,
+              })
+            } catch {
+              logger.warn('Failed to addCompleteDownload')
+            }
+            // No need to dismiss here as the download wrapper does it for Android.
           }
-          if (downloadState.error) {
-            return
-          }
-          try {
-            await androidAddCompleteDownload({
-              description: `Keybase downloaded ${downloadInfo.filename}`,
-              mime: mimeType,
-              path: downloadState.localPath,
-              showNotification: true,
-              title: downloadInfo.filename,
-            })
-          } catch {
-            logger.warn('Failed to addCompleteDownload')
-          }
-          // No need to dismiss here as the download wrapper does it for Android.
+          ignorePromise(f())
         }
-        ignorePromise(f())
-      })
+      )
     })
   }
 
