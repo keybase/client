@@ -6,7 +6,7 @@ import URL from 'url-parse'
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import {navigateAppend, switchTab} from './router2'
-import {storeRegistry} from '../stores/store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 import {useCryptoState} from '@/stores/crypto'
 import {useConfigState} from '@/stores/config'
 

@@ -46,7 +46,7 @@ import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual} from '../utils'
 import * as Strings from '@/constants/strings'
 
-import {storeRegistry} from '../../stores/store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 

@@ -9,7 +9,7 @@ import {
   getInitialNotification,
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
-import {storeRegistry} from '../../stores/store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useLogoutState} from '@/stores/logout'
 
