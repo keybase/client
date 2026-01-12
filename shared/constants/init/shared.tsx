@@ -26,6 +26,8 @@ import type * as UsePinentryStateType from '@/stores/pinentry'
 import {useProvisionState} from '@/stores/provision'
 import {storeRegistry} from '@/stores/store-registry'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {TBstores} from '@/stores/team-building'
+import {useCryptoState} from '@/stores/crypto'
 import type * as UseSignupStateType from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
@@ -91,6 +93,26 @@ export const onEngineDisconnected = () => {
   }
   ignorePromise(f())
   storeRegistry.getState('daemon').dispatch.setError(new Error('Disconnected'))
+}
+
+export const initTeamBuildingCallbacks = () => {
+  const chatStore = TBstores.get('chat2')
+  if (chatStore) {
+    chatStore.setState(s => {
+      s.dispatch.dynamic.onFinishedTeamBuildingChat = users => {
+        storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(users)
+      }
+    })
+  }
+
+  const cryptoStore = TBstores.get('crypto')
+  if (cryptoStore) {
+    cryptoStore.setState(s => {
+      s.dispatch.dynamic.onFinishedTeamBuildingCrypto = users => {
+        useCryptoState.getState().dispatch.onTeamBuildingFinished(users)
+      }
+    })
+  }
 }
 
 export const initSharedSubscriptions = () => {
@@ -277,6 +299,8 @@ export const initSharedSubscriptions = () => {
       ignorePromise(f())
     }
   })
+
+  initTeamBuildingCallbacks()
 }
 
 // This is to defer loading stores we don't need immediately.

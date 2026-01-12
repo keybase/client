@@ -14,7 +14,6 @@ import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from '@/constants/team-building'
 import {navigateUp} from '@/constants/router2'
 import {storeRegistry} from '@/stores/store-registry'
-import {useCryptoState} from '@/stores/crypto'
 export {allServices, selfToUser, searchWaitingKey} from '@/constants/team-building'
 
 type Store = T.Immutable<{
@@ -55,6 +54,10 @@ export interface State extends Store {
     cancelTeamBuilding: () => void
     changeSendNotification: (sendNotification: boolean) => void
     closeTeamBuilding: () => void
+    dynamic: {
+      onFinishedTeamBuildingChat: (users: ReadonlySet<T.TB.User>) => void
+      onFinishedTeamBuildingCrypto: (users: ReadonlySet<T.TB.User>) => void
+    }
     fetchUserRecs: () => void
     finishTeamBuilding: () => void
     finishedTeamBuilding: () => void
@@ -299,6 +302,14 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         navigateUp()
       }
     },
+    dynamic: {
+      onFinishedTeamBuildingChat: (_users: ReadonlySet<T.TB.User>) => {
+        throw new Error('onFinishedTeamBuildingChat not properly initialized')
+      },
+      onFinishedTeamBuildingCrypto: (_users: ReadonlySet<T.TB.User>) => {
+        throw new Error('onFinishedTeamBuildingCrypto not properly initialized')
+      },
+    },
     fetchUserRecs: () => {
       const includeContacts = get().namespace === 'chat2'
       const f = async () => {
@@ -361,11 +372,11 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const {finishedTeam, namespace} = get()
       switch (namespace) {
         case 'crypto': {
-          useCryptoState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
+          get().dispatch.dynamic.onFinishedTeamBuildingCrypto(finishedTeam)
           break
         }
         case 'chat2': {
-          storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(finishedTeam)
+          get().dispatch.dynamic.onFinishedTeamBuildingChat(finishedTeam)
           break
         }
         default:
