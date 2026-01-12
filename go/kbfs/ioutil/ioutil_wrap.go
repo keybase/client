@@ -42,7 +42,7 @@ func ReadDir(dirname string) ([]os.FileInfo, error) {
 
 // ReadFile wraps ReadFile from "os".
 func ReadFile(filename string) ([]byte, error) {
-	buf, err := os.ReadFile(filename)
+	buf, err := os.ReadFile(filename) //nolint:gosec // G304: Wrapper function, caller controls path
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read file %q", filename)
 	}

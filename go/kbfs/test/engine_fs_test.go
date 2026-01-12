@@ -232,7 +232,7 @@ func (*fsEngine) CreateFile(u User, parentDir Node, name string) (file Node, err
 // O_RDWR|O_CREATE|O_EXCL.
 func (*fsEngine) CreateFileExcl(u User, parentDir Node, name string) (file Node, err error) {
 	p := parentDir.(fsNode).path
-	f, err := os.OpenFile(filepath.Join(p, name), os.O_RDWR|os.O_CREATE|os.O_EXCL, 0o666)
+	f, err := os.OpenFile(filepath.Join(p, name), os.O_RDWR|os.O_CREATE|os.O_EXCL, 0o666) //nolint:gosec // G302: Test file creation
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +245,7 @@ func (*fsEngine) CreateFileExcl(u User, parentDir Node, name string) (file Node,
 // WriteFile is called by the test harness to write to the given file as the given user.
 func (*fsEngine) WriteFile(u User, file Node, data []byte, off int64, sync bool) (err error) {
 	n := file.(fsNode)
-	f, err := os.OpenFile(n.path, os.O_RDWR|os.O_CREATE, 0o644)
+	f, err := os.OpenFile(n.path, os.O_RDWR|os.O_CREATE, 0o644) //nolint:gosec // G302: Test file creation
 	if err != nil {
 		return err
 	}

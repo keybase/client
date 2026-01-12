@@ -7,6 +7,7 @@ package libfs
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"regexp"
 	"strconv"
@@ -233,6 +234,9 @@ func (sfn *specialFileNode) newUpdateHistoryFileNode(
 		}
 	}
 
+	if start > math.MaxInt64 || end > math.MaxInt64 {
+		return nil
+	}
 	return newUpdateHistoryFileNode(
 		sfn.config, node, sfn.GetFolderBranch(),
 		kbfsmd.Revision(start), kbfsmd.Revision(end), sfn.log)

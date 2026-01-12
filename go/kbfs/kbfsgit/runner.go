@@ -266,7 +266,7 @@ func (r *runner) getElapsedStr(
 
 	if r.verbosity >= 3 {
 		profName = filepath.Join(os.TempDir(), profName)
-		f, err := os.Create(profName)
+		f, err := os.Create(profName) //nolint:gosec // G304: profName is a defined constant.
 		if err != nil {
 			r.log.CDebugf(ctx, err.Error())
 		} else {
@@ -497,7 +497,7 @@ func (r *runner) printStageStart(ctx context.Context,
 	if len(cpuProfName) > 0 && r.verbosity >= 4 {
 		cpuProfPath := filepath.Join(
 			os.TempDir(), cpuProfName)
-		f, err := os.Create(cpuProfPath)
+		f, err := os.Create(cpuProfPath) //nolint:gosec // G304: profName is a defined constant.
 		if err != nil {
 			r.log.CDebugf(
 				ctx, "Couldn't create CPU profile: %s", cpuProfName)
@@ -1299,7 +1299,7 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 	}
 
 	localObjectsPath := filepath.Join(r.gitDir, "objects")
-	err = os.MkdirAll(localObjectsPath, 0o775)
+	err = os.MkdirAll(localObjectsPath, 0o775) //nolint:gosec // G301: Git objects dir may need group write for multi-user git operations
 	if err != nil {
 		return err
 	}

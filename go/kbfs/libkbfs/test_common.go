@@ -65,7 +65,7 @@ func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger
 	config.SetBlockOps(bops)
 
 	bsplit, err := data.NewBlockSplitterSimpleExact(
-		64*1024, 64*1024/int(data.BPSize), 8*1024)
+		64*1024, 64*1024/int(data.BPSize), 8*1024) //nolint:gosec // G115: Test config with bounded values
 	if err != nil {
 		panic(err)
 	}

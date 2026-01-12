@@ -215,7 +215,7 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd libkey.KeyMetadata,
 	}
 
 	// Cache the encoded size.
-	block.SetEncodedSize(uint32(encodedSize))
+	block.SetEncodedSize(uint32(encodedSize)) //nolint:gosec // G115: Block sizes are bounded by max block size config
 
 	return
 }

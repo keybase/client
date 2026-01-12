@@ -3839,7 +3839,7 @@ func openCRDBInternal(config Config) (*ldbutils.LevelDb, error) {
 	}
 	err := os.MkdirAll(sysPath.Join(config.StorageRoot(),
 		conflictResolverRecordsDir, conflictResolverRecordsVersionString),
-		os.ModePerm)
+		0o700)
 	if err != nil {
 		return nil, err
 	}

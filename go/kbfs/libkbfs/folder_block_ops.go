@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"math"
 	pathlib "path"
 	"time"
 
@@ -322,7 +323,7 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizesLocked(ctx context.Context,
 				}
 				if buf, _, _, err := diskBCache.Get(
 					ctx, fbo.id(), ptr.ID, cacheType); err == nil {
-					sizes[i] = uint32(len(buf))
+					sizes[i] = uint32(len(buf)) //nolint:gosec // G115: Block sizes are bounded by max block size config
 					statuses[i] = keybase1.BlockStatus_LIVE
 					continue
 				}
@@ -2249,7 +2250,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		df.AddDeferredNewBytes(bytesExtended)
 	}
 
-	latestWrite = si.op.addWrite(uint64(off), uint64(len(buf)))
+	latestWrite = si.op.addWrite(uint64(off), uint64(len(buf))) //nolint:gosec // G115: Write offsets and buffer lengths bounded by filesystem limits
 
 	return latestWrite, dirtyPtrs, newlyDirtiedChildBytes, nil
 }
@@ -2466,7 +2467,10 @@ func (fbo *folderBlockOps) truncateLocked(
 	fd := fbo.newFileData(lState, file, chargedTo, kmd)
 
 	// find the block where the file should now end
-	iSize := int64(size) // TODO: deal with overflow
+	if size > math.MaxInt64 {
+		return &WriteRange{}, nil, 0, fmt.Errorf("file size %d exceeds maximum", size)
+	}
+	iSize := int64(size)
 	_, parentBlocks, block, nextBlockOff, startOff, _, err := fd.GetFileBlockAtOffset(
 		ctx, fblock, data.Int64Offset(iSize), data.BlockWrite)
 	if err != nil {
@@ -2477,7 +2481,7 @@ func (fbo *folderBlockOps) truncateLocked(
 	switch {
 	case currLen+truncateExtendCutoffPoint < iSize:
 		latestWrite, dirtyPtrs, err := fbo.truncateExtendLocked(
-			ctx, lState, kmd, file, uint64(iSize), parentBlocks)
+			ctx, lState, kmd, file, uint64(iSize), parentBlocks) //nolint:gosec // G115: File sizes bounded by filesystem limits
 		if err != nil {
 			return &latestWrite, dirtyPtrs, 0, err
 		}
@@ -2549,12 +2553,12 @@ func (fbo *folderBlockOps) Truncate(
 	// truncate.  TODO: try to figure out how many bytes actually will
 	// be dirtied ahead of time?
 	c, err := fbo.config.DirtyBlockCache().RequestPermissionToDirty(ctx,
-		fbo.id(), int64(size))
+		fbo.id(), int64(size)) //nolint:gosec // G115: File sizes bounded by filesystem limits
 	if err != nil {
 		return err
 	}
 	defer fbo.config.DirtyBlockCache().UpdateUnsyncedBytes(fbo.id(),
-		-int64(size), false)
+		-int64(size), false) //nolint:gosec // G115: File sizes bounded by filesystem limits
 	err = fbo.maybeWaitOnDeferredWrites(ctx, lState, file, c)
 	if err != nil {
 		return err

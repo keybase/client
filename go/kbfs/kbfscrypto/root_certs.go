@@ -94,6 +94,8 @@ ZBucIbSqY9FP9m95YPfU85vS90V/UXGRjrUeQW1uleADUDlh
 -----END CERTIFICATE-----`
 
 // TestRootKey can be used with the above cert+public key to test TLS support.
+//
+//nolint:gosec // G101: Test RSA key for TLS testing, not real credentials
 const TestRootKey = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEA3KoIOvkDEViq0IHkyhGX70L7xoPi3t/AY64Oefa+63CN8Btz
 +/KZrwRW//LDJnz76/z8/SM+neXCZ95ZKUJxJPg/6JGCTWSBkKQwRu3EJXY9uk5w

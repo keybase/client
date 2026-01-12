@@ -12,7 +12,7 @@ import (
 
 // OpenFile wraps OpenFile from "os".
 func OpenFile(name string, flag int, perm os.FileMode) (*os.File, error) {
-	f, err := os.OpenFile(name, flag, perm)
+	f, err := os.OpenFile(name, flag, perm) //nolint:gosec // G304: Wrapper function, caller controls path
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to open %q", name)
 	}

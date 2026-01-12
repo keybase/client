@@ -47,7 +47,7 @@ func MakeLocalUsers(users []kbname.NormalizedUsername) []LocalUser {
 		localUsers[i] = LocalUser{
 			UserInfo: UserInfo{
 				Name:            users[i],
-				UID:             keybase1.MakeTestUID(uint32(i + 1)),
+				UID:             keybase1.MakeTestUID(uint32(i + 1)), //nolint:gosec // G115: Test data with small bounded values
 				VerifyingKeys:   []kbfscrypto.VerifyingKey{verifyingKey},
 				CryptPublicKeys: []kbfscrypto.CryptPublicKey{cryptPublicKey},
 				KIDNames: map[keybase1.KID]string{
@@ -145,7 +145,7 @@ func makeLocalTeams(
 			kbfsmd.FirstValidKeyGen)
 		localTeams[index] = TeamInfo{
 			Name: teams[index],
-			TID:  keybase1.MakeTestTeamID(uint32(i+1), ty == tlf.Public),
+			TID:  keybase1.MakeTestTeamID(uint32(i+1), ty == tlf.Public), //nolint:gosec // G115: Test data with small bounded values
 			CryptKeys: map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey{
 				kbfsmd.FirstValidKeyGen: cryptKey,
 			},

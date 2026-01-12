@@ -25,7 +25,7 @@ func GetExecPathFromPID(pid uint32) (string, error) {
 		uintptr(pid),
 		procpidpathinfo,
 		0,
-		uintptr(unsafe.Pointer(&buf[0])),
+		uintptr(unsafe.Pointer(&buf[0])), //nolint:gosec // G103: unsafe required for syscall
 		procpidpathinfosize)
 	if errno != 0 {
 		return "", errno

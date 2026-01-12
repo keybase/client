@@ -296,7 +296,7 @@ func unmount(currUID, mountAsUID uint64, dir string) {
 	if currUID != mountAsUID {
 		// Unmounting requires escalating the effective user to the
 		// mounting user.  But we leave the real user ID the same.
-		err := syscall.Seteuid(int(mountAsUID))
+		err := syscall.Seteuid(int(mountAsUID)) //nolint:gosec // G115: UID values are bounded by system limits
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Can't setuid: %+v\n", err)
 			os.Exit(1)
@@ -310,7 +310,7 @@ func unmount(currUID, mountAsUID uint64, dir string) {
 
 	// Set it back.
 	if currUID != mountAsUID {
-		err := syscall.Seteuid(int(currUID))
+		err := syscall.Seteuid(int(currUID)) //nolint:gosec // G115: UID values are bounded by system limits
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Can't setuid: %+v\n", err)
 			os.Exit(1)
@@ -392,7 +392,7 @@ func main() {
 		// Escalate privileges of the effective user to the mounting
 		// user briefly, just for the `Mount` call.  Keep the real
 		// user the same throughout.
-		err := syscall.Seteuid(int(mountAsUID))
+		err := syscall.Seteuid(int(mountAsUID)) //nolint:gosec // G115: UID values are bounded by system limits
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Can't seteuid: %+v\n", err)
 			os.Exit(1)
@@ -407,7 +407,7 @@ func main() {
 
 	if currUser.Uid != u.Uid {
 		runtime.LockOSThread()
-		err := syscall.Seteuid(int(currUID))
+		err := syscall.Seteuid(int(currUID)) //nolint:gosec // G115: UID values are bounded by system limits
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Can't seteuid: %+v\n", err)
 			os.Exit(1)
@@ -449,7 +449,7 @@ func main() {
 				"Couldn't get the current executable: %v", err)
 			os.Exit(1)
 		}
-		cmd := exec.Command(ex, os.Args[1])
+		cmd := exec.Command(ex, os.Args[1]) //nolint:gosec // G204: Redirector launching updater with single arg
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err = cmd.Start()

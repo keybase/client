@@ -132,7 +132,7 @@ func getStatsActivityStorerOrBust(
 	}
 
 	if len(fMySQLDSNCAURL) > 0 {
-		resp, err := http.Get(fMySQLDSNCAURL)
+		resp, err := http.Get(fMySQLDSNCAURL) //nolint:gosec // G107: URL from trusted config flag for fetching CA cert
 		if err != nil {
 			logger.Panic("get ca", zap.Error(err))
 			return nil
@@ -153,7 +153,8 @@ func getStatsActivityStorerOrBust(
 			return nil
 		}
 		tlsConfig := &tls.Config{
-			RootCAs: caPool,
+			RootCAs:    caPool,
+			MinVersion: tls.VersionTLS12,
 		}
 		if err = mysql.RegisterTLSConfig("custom", tlsConfig); err != nil {
 			logger.Panic("register tls config", zap.Error(err))

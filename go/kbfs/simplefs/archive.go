@@ -31,7 +31,7 @@ import (
 )
 
 func loadArchiveStateFromJsonGz(ctx context.Context, simpleFS *SimpleFS, filePath string) (state *keybase1.SimpleFSArchiveState, err error) {
-	f, err := os.Open(filePath)
+	f, err := os.Open(filePath) //nolint:gosec // G304: Archive state file path from trusted source
 	if err != nil {
 		simpleFS.log.CErrorf(ctx, "loadArchiveStateFromJsonGz: opening state file error: %v", err)
 		return nil, err
@@ -52,12 +52,12 @@ func loadArchiveStateFromJsonGz(ctx context.Context, simpleFS *SimpleFS, filePat
 }
 
 func writeArchiveStateIntoJsonGz(ctx context.Context, simpleFS *SimpleFS, filePath string, s *keybase1.SimpleFSArchiveState) error {
-	err := os.MkdirAll(filepath.Dir(filePath), 0o755)
+	err := os.MkdirAll(filepath.Dir(filePath), 0o700) // G301: Archive state is internal, user-only access
 	if err != nil {
 		simpleFS.log.CErrorf(ctx, "writeArchiveStateIntoJsonGz: os.MkdirAll error: %v", err)
 		return err
 	}
-	f, err := os.Create(filePath)
+	f, err := os.Create(filePath) //nolint:gosec // G304: Archive state file path from trusted source
 	if err != nil {
 		simpleFS.log.CErrorf(ctx, "writeArchiveStateIntoJsonGz: creating state file error: %v", err)
 		return err
@@ -584,7 +584,7 @@ func (m *archiveManager) copyFileFromBeginning(ctx context.Context,
 	}
 	defer func() { _ = src.Close() }()
 
-	dst, err := os.OpenFile(localPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
+	dst, err := os.OpenFile(localPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode) //nolint:gosec // G304: Archive extraction path from manifest
 	if err != nil {
 		return nil, fmt.Errorf("os.OpenFile(%s) error: %v", localPath, err)
 	}
@@ -623,7 +623,7 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 
 	// Copy the file.
 	if err = func() error {
-		dst, err := os.OpenFile(localPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, mode)
+		dst, err := os.OpenFile(localPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, mode) //nolint:gosec // G304: Archive extraction path from manifest
 		if err != nil {
 			return fmt.Errorf("os.OpenFile(%s) error: %v", localPath, err)
 		}
@@ -654,7 +654,7 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 		}
 		srcSHA256Sum = srcSHA256SumHasher.Sum(nil)
 
-		dst, err := os.Open(localPath)
+		dst, err := os.Open(localPath) //nolint:gosec // G304: Archive extraction path from manifest
 		if err != nil {
 			return nil, nil, fmt.Errorf("os.Open(%s) error: %v", localPath, err)
 		}
@@ -745,7 +745,7 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 	}
 	dstBase := filepath.Join(getWorkspaceDir(desc), desc.TargetName)
 
-	err = os.MkdirAll(dstBase, 0o755)
+	err = os.MkdirAll(dstBase, 0o755) //nolint:gosec // G301: Extracted archive directory needs standard permissions for usability
 	if err != nil {
 		return fmt.Errorf("os.MkdirAll(%s) error: %v", dstBase, err)
 	}
@@ -770,7 +770,7 @@ loopEntryPaths:
 		}
 		switch {
 		case srcFI.IsDir():
-			err = os.MkdirAll(localPath, 0o755)
+			err = os.MkdirAll(localPath, 0o755) //nolint:gosec // G301: Extracted directories need standard permissions for usability
 			if err != nil {
 				return fmt.Errorf("os.MkdirAll(%s) error: %v", localPath, err)
 			}
@@ -781,7 +781,7 @@ loopEntryPaths:
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry
 		case srcFI.Mode()&os.ModeSymlink != 0: // symlink
-			err = os.MkdirAll(filepath.Dir(localPath), 0o755)
+			err = os.MkdirAll(filepath.Dir(localPath), 0o755) //nolint:gosec // G301: Extracted file parent dirs need standard permissions
 			if err != nil {
 				return fmt.Errorf("os.MkdirAll(filepath.Dir(%s)) error: %v", localPath, err)
 			}
@@ -809,7 +809,7 @@ loopEntryPaths:
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry
 		default:
-			err = os.MkdirAll(filepath.Dir(localPath), 0o755)
+			err = os.MkdirAll(filepath.Dir(localPath), 0o755) //nolint:gosec // G301: Extracted file parent dirs need standard permissions
 			if err != nil {
 				return fmt.Errorf("os.MkdirAll(filepath.Dir(%s)) error: %v", localPath, err)
 			}
@@ -996,7 +996,7 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 
 	workspaceDir := getWorkspaceDir(jobDesc)
 
-	err = os.MkdirAll(filepath.Dir(jobDesc.ZipFilePath), 0o755)
+	err = os.MkdirAll(filepath.Dir(jobDesc.ZipFilePath), 0o755) //nolint:gosec // G301: Zip file parent dir needs standard permissions
 	if err != nil {
 		m.simpleFS.log.CErrorf(ctx, "os.MkdirAll error: %v", err)
 		return err
@@ -1007,7 +1007,7 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 		if jobDesc.OverwriteZip {
 			flag = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 		}
-		zipFile, err := os.OpenFile(jobDesc.ZipFilePath, flag, 0o666)
+		zipFile, err := os.OpenFile(jobDesc.ZipFilePath, flag, 0o600)
 		if err != nil {
 			return fmt.Errorf("os.Create(%s) error: %v", jobDesc.ZipFilePath, err)
 		}

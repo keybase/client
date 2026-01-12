@@ -55,7 +55,7 @@ func (c *randomEvictedCache) entrySize(key Measurable, value Measurable) int {
 }
 
 func (c *randomEvictedCache) evictOneLocked() {
-	i := int(rand.Int63()) % len(c.keys)
+	i := int(rand.Int63()) % len(c.keys) //nolint:gosec // G404: Cache eviction selection, not security-sensitive
 	last := len(c.keys) - 1
 	var toRemove memoizedMeasurable
 	toRemove, c.keys[i] = c.keys[i], c.keys[last]

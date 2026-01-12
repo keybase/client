@@ -149,7 +149,7 @@ func (b *BlockServerMemory) GetEncodedSizes(
 			continue
 		}
 
-		sizes[i] = uint32(len(entry.blockData))
+		sizes[i] = uint32(len(entry.blockData)) //nolint:gosec // G115: Block sizes are bounded by max block size config
 		statuses[i] = refStatus.toBlockStatus()
 	}
 

@@ -901,7 +901,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() data.DirtyBlockCache {
 	// The maximum number of bytes we can try to sync at once (also limits the
 	// amount of memory used by dirty blocks). We use the same value from clean
 	// block cache capacity here.
-	maxSyncBufferSize := int64(capacity)
+	maxSyncBufferSize := int64(capacity) //nolint:gosec // G115: Capacity values are bounded by system memory
 
 	// Start off conservatively to avoid getting immediate timeouts on
 	// slow connections.

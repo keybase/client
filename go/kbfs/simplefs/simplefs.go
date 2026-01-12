@@ -2800,7 +2800,7 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 				if err != nil {
 					return res, err
 				}
-				res.Status.StoredBytesTotal = int64(size)
+				res.Status.StoredBytesTotal = int64(size) //nolint:gosec // G115: Disk sizes are bounded by filesystem limits
 			}
 		} else {
 			k.log.CDebugf(ctx,
@@ -2940,7 +2940,7 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 			if err != nil {
 				return keybase1.SyncConfigAndStatusRes{}, err
 			}
-			res.Folders[i].Status.StoredBytesTotal = int64(size)
+			res.Folders[i].Status.StoredBytesTotal = int64(size) //nolint:gosec // G115: Disk sizes are bounded by filesystem limits
 		}
 
 		i++
@@ -2974,7 +2974,7 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 		statusMap := dbc.Status(ctx)
 		status, ok := statusMap["SyncBlockCache"]
 		if ok {
-			res.OverallStatus.StoredBytesTotal = int64(status.BlockBytes)
+			res.OverallStatus.StoredBytesTotal = int64(status.BlockBytes) //nolint:gosec // G115: Disk sizes are bounded by filesystem limits
 		}
 	}
 

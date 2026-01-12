@@ -530,19 +530,19 @@ func TestReaddirPublicFailedIdentifyViaOSCall(t *testing.T) {
 	})
 
 	// A private non-existing home folder, with write permissions, fails.
-	err := exec.Command("ls", path.Join(mnt1.Dir, PublicName, "u1")).Run()
+	err := exec.Command("ls", path.Join(mnt1.Dir, PublicName, "u1")).Run() //nolint:gosec // G204: Test command with known args
 	if _, ok := err.(*exec.ExitError); !ok {
 		t.Fatalf("No error as expected on broken user identify: %v", err)
 	}
 
 	// A private existing shared folder, with write permissions, fails.
-	err = exec.Command("ls", path.Join(mnt1.Dir, PrivateName, "u1,u2")).Run()
+	err = exec.Command("ls", path.Join(mnt1.Dir, PrivateName, "u1,u2")).Run() //nolint:gosec // G204: Test command with known args
 	if _, ok := err.(*exec.ExitError); !ok {
 		t.Fatalf("No error as expected on broken user identify: %v", err)
 	}
 
 	// A public, non-existing folder, without write permissions, fails.
-	err = exec.Command("ls", path.Join(mnt1.Dir, PublicName, "u2")).Run()
+	err = exec.Command("ls", path.Join(mnt1.Dir, PublicName, "u2")).Run() //nolint:gosec // G204: Test command with known args
 	if _, ok := err.(*exec.ExitError); !ok {
 		t.Fatalf("No error as expected on broken user identify: %v", err)
 	}
@@ -585,7 +585,7 @@ func syncAndClose(t *testing.T, f *os.File) {
 }
 
 func syncFilename(t *testing.T, name string) {
-	f, err := os.OpenFile(name, os.O_WRONLY, 0o644)
+	f, err := os.OpenFile(name, os.O_WRONLY, 0o644) //nolint:gosec // G302: Test file, doesn't need restrictive permissions
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -621,7 +621,7 @@ func TestReaddirMyFolderWithFiles(t *testing.T) {
 }
 
 func testOneCreateThenRead(t *testing.T, p string) {
-	f, err := os.Create(p)
+	f, err := os.Create(p) //nolint:gosec // G304: Test file path //nolint:gosec // G304: Test file path from test setup
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -685,7 +685,7 @@ func TestReadUnflushed(t *testing.T) {
 	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
-	f, err := os.Create(p)
+	f, err := os.Create(p) //nolint:gosec // G304: Test file path //nolint:gosec // G304: Test file path from test setup
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1058,7 +1058,7 @@ func TestWriteThenRename(t *testing.T) {
 	p1 := path.Join(mnt.Dir, PrivateName, "jdoe", "old")
 	p2 := path.Join(mnt.Dir, PrivateName, "jdoe", "new")
 
-	f, err := os.Create(p1)
+	f, err := os.Create(p1) //nolint:gosec // G304: Test file path from test setup
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -1119,7 +1119,7 @@ func TestWriteThenRenameCrossDir(t *testing.T) {
 	p1 := path.Join(mnt.Dir, PrivateName, "jdoe", "one", "old")
 	p2 := path.Join(mnt.Dir, PrivateName, "jdoe", "two", "new")
 
-	f, err := os.Create(p1)
+	f, err := os.Create(p1) //nolint:gosec // G304: Test file path from test setup
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -1199,7 +1199,7 @@ func TestRemoveTLF(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe,pikachu")
-	f1, err := os.Create(path.Join(p, "f"))
+	f1, err := os.Create(path.Join(p, "f")) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1307,7 +1307,7 @@ func TestRemoveFileWhileOpenSetEx(t *testing.T) {
 	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
-	f, err := os.Create(p)
+	f, err := os.Create(p) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -1352,7 +1352,7 @@ func TestRemoveFileWhileOpenWritingInTLFRoot(t *testing.T) {
 	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
-	f, err := os.Create(p)
+	f, err := os.Create(p) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -1393,7 +1393,7 @@ func TestRemoveFileWhileOpenWritingInSubDir(t *testing.T) {
 	}
 
 	p := path.Join(dirPath, "myfile")
-	f, err := os.Create(p)
+	f, err := os.Create(p) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -1434,7 +1434,7 @@ func TestRenameOverFileWhileOpenWritingInDifferentDir(t *testing.T) {
 	}
 
 	p1 := path.Join(dirPath, "myfile")
-	f1, err := os.Create(p1)
+	f1, err := os.Create(p1) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -1442,7 +1442,7 @@ func TestRenameOverFileWhileOpenWritingInDifferentDir(t *testing.T) {
 	defer func() { syncAndClose(t, f1) }()
 
 	p2 := path.Join(mnt.Dir, PrivateName, "jdoe", "mynewfile")
-	f2, err := os.Create(p2)
+	f2, err := os.Create(p2) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -1486,7 +1486,7 @@ func TestRenameOverFileWhileOpenWritingInSameSubDir(t *testing.T) {
 	}
 
 	p1 := path.Join(dirPath, "myfile")
-	f1, err := os.Create(p1)
+	f1, err := os.Create(p1) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -1494,7 +1494,7 @@ func TestRenameOverFileWhileOpenWritingInSameSubDir(t *testing.T) {
 	defer func() { syncAndClose(t, f1) }()
 
 	p2 := path.Join(dirPath, "mynewfile")
-	f2, err := os.Create(p2)
+	f2, err := os.Create(p2) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -1539,7 +1539,7 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 	}
 	syncFilename(t, p)
 
-	f, err := os.Open(p)
+	f, err := os.Open(p) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatalf("cannot open file: %v", err)
 	}
@@ -1595,7 +1595,7 @@ func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	}
 	syncFilename(t, p1)
 
-	f, err := os.Open(p1)
+	f, err := os.Open(p1) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatalf("cannot open file: %v", err)
 	}
@@ -1665,7 +1665,7 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	}
 	syncFilename(t, p1Other)
 
-	f, err := os.Open(p1)
+	f, err := os.Open(p1) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatalf("cannot open file: %v", err)
 	}
@@ -1806,7 +1806,7 @@ func TestChmodExec(t *testing.T) {
 	}
 	syncFilename(t, p)
 
-	if err := os.Chmod(p, 0o744); err != nil {
+	if err := os.Chmod(p, 0o744); err != nil { //nolint:gosec // G302: Test file permissions
 		t.Fatal(err)
 	}
 
@@ -1835,7 +1835,7 @@ func TestChmodNonExec(t *testing.T) {
 	}
 	syncFilename(t, p)
 
-	if err := os.Chmod(p, 0o655); err != nil {
+	if err := os.Chmod(p, 0o655); err != nil { //nolint:gosec // G302: Test file permissions
 		t.Fatal(err)
 	}
 
@@ -1899,7 +1899,7 @@ func TestChmodDirIgnored(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := os.Chmod(p, 0o655); err != nil {
+	if err := os.Chmod(p, 0o655); err != nil { //nolint:gosec // G302: Test file permissions
 		t.Fatalf("Expecting the dir chmod to get swallowed silently, "+
 			"but got: %v", err)
 	}
@@ -2148,7 +2148,7 @@ func TestFsync(t *testing.T) {
 	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
-	f, err := os.Create(p)
+	f, err := os.Create(p) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -3069,7 +3069,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 
 	syncFolderToServer(t, "user1,user2", fs2)
 	myfile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
-	f, err := os.OpenFile(myfile2, os.O_RDWR, 0o644)
+	f, err := os.OpenFile(myfile2, os.O_RDWR, 0o644) //nolint:gosec // G302: Test file permissions
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -3507,7 +3507,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 
 	// user1 creates and writes a file
 	file1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "f")
-	f1, err := os.Create(file1)
+	f1, err := os.Create(file1) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -3526,7 +3526,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 
 	// user2 creates and writes a file
 	file2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "f")
-	f2, err := os.Create(file2)
+	f2, err := os.Create(file2) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -3707,7 +3707,7 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 
 	// user1 creates and writes a file
 	file1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "f")
-	f1, err := os.Create(file1)
+	f1, err := os.Create(file1) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -3730,7 +3730,7 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	file2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "f", "foo")
-	f2, err := os.Create(file2)
+	f2, err := os.Create(file2) //nolint:gosec // G304: Test file path
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -3933,7 +3933,7 @@ func TestDirSyncAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	d, err := os.Open(mydir1)
+	d, err := os.Open(mydir1) //nolint:gosec // G304: Test directory path
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -4073,7 +4073,7 @@ func TestOpenFileCount(t *testing.T) {
 
 	p := path.Join(mnt.Dir, libfs.OpenFileCountFileName)
 	checkCount := func(expected int64) {
-		f, err := os.Open(p)
+		f, err := os.Open(p) //nolint:gosec // G304: Test file path
 		require.NoError(t, err)
 		defer func() { _ = f.Close() }()
 
@@ -4120,14 +4120,14 @@ func TestUpdateHistoryFile(t *testing.T) {
 	p := path.Join(mnt.Dir, PrivateName, "jdoe")
 	for i := 0; i < 10; i++ {
 		file := path.Join(p, fmt.Sprintf("foo-%d", i))
-		f, err := os.Create(file)
+		f, err := os.Create(file) //nolint:gosec // G304: Test file path
 		require.NoError(t, err)
 		syncAndClose(t, f)
 	}
 
 	t.Log("Read a revision range")
 	histPrefix := path.Join(p, libfs.UpdateHistoryFileName)
-	fRange, err := os.Open(histPrefix + ".3-5")
+	fRange, err := os.Open(histPrefix + ".3-5") //nolint:gosec // G304: Test file path
 	require.NoError(t, err)
 	defer func() { _ = fRange.Close() }()
 	b, err := ioutil.ReadAll(fRange)
@@ -4138,7 +4138,7 @@ func TestUpdateHistoryFile(t *testing.T) {
 	require.Len(t, histRange.Updates, 3)
 
 	t.Log("Read a single revision")
-	fSingle, err := os.Open(histPrefix + ".7")
+	fSingle, err := os.Open(histPrefix + ".7") //nolint:gosec // G304: Test file path
 	require.NoError(t, err)
 	defer func() { _ = fSingle.Close() }()
 	b, err = ioutil.ReadAll(fSingle)
@@ -4149,7 +4149,7 @@ func TestUpdateHistoryFile(t *testing.T) {
 	require.Len(t, histSingle.Updates, 1)
 
 	t.Log("Read the entire history")
-	fAll, err := os.Open(histPrefix)
+	fAll, err := os.Open(histPrefix) //nolint:gosec // G304: Test file path
 	require.NoError(t, err)
 	defer func() { _ = fAll.Close() }()
 	b, err = ioutil.ReadAll(fAll)

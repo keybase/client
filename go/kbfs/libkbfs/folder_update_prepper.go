@@ -350,6 +350,9 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 		}
 
 		if de.Type == data.Dir {
+			if plainSize < 0 {
+				return data.Path{}, data.DirEntry{}, fmt.Errorf("plainSize %d is negative", plainSize)
+			}
 			de.Size = uint64(plainSize)
 		}
 

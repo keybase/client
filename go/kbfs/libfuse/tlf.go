@@ -183,7 +183,7 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 		// dir.
 		a.Valid = 1 * time.Second
 		a.Mode = os.ModeDir | 0o500
-		a.Uid = uint32(os.Getuid())
+		a.Uid = uint32(os.Getuid()) //nolint:gosec // G115: UID values are bounded by system limits
 		return nil
 	}
 

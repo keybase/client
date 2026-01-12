@@ -304,7 +304,7 @@ func cleanOldTempStorageRoots(config Config) {
 		context.Background(), CtxInitKey, CtxInitID, log)
 
 	storageRoot := config.StorageRoot()
-	d, err := os.Open(storageRoot)
+	d, err := os.Open(storageRoot) //nolint:gosec // G304: storageRoot from trusted config
 	if err != nil {
 		log.CDebugf(ctx, "Error opening storage root %s: %+v", storageRoot, err)
 		return
@@ -356,8 +356,8 @@ func GetLocalDiskStats(ctx context.Context, dbc DiskBlockCache) (
 
 	dbcStatus := dbc.Status(ctx)
 	if status, ok := dbcStatus["SyncBlockCache"]; ok {
-		return int64(status.LocalDiskBytesAvailable),
-			int64(status.LocalDiskBytesTotal)
+		return int64(status.LocalDiskBytesAvailable), //nolint:gosec // G115: Disk byte counts bounded by filesystem limits
+			int64(status.LocalDiskBytesTotal) //nolint:gosec // G115: Disk byte counts bounded by filesystem limits
 	}
 	return 0, 0
 }

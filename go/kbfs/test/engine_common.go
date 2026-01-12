@@ -27,7 +27,7 @@ func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSi
 			blockChangeSize = 8 * 1024
 		}
 		bsplit, err := data.NewBlockSplitterSimple(blockSize,
-			uint64(blockChangeSize), config.Codec())
+			uint64(blockChangeSize), config.Codec()) //nolint:gosec // G115: Test config with bounded values
 		if err != nil {
 			t.Fatalf("Couldn't make block splitter for block size %d,"+
 				" blockChangeSize %d: %v", blockSize, blockChangeSize, err)

@@ -184,7 +184,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 
 	// make the context identifiable, to verify that it is passed
 	// correctly to the observer
-	id := rand.Int()
+	id := rand.Int() //nolint:gosec // G404: Test context ID generation, not security-sensitive
 	ctx, err = libcontext.NewContextWithCancellationDelayer(libcontext.NewContextReplayable(
 		timeoutCtx, func(ctx context.Context) context.Context {
 			return context.WithValue(ctx, tCtxID, id)

@@ -117,7 +117,7 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) (err
 				fmt.Fprintf(os.Stderr, "Appending to %s\n", p)
 			}
 
-			off = int64(de.Size)
+			off = int64(de.Size) //nolint:gosec // G115: File sizes are bounded by filesystem limits
 		} else {
 			if *verbose {
 				fmt.Fprintf(os.Stderr, "Truncating %s\n", p)

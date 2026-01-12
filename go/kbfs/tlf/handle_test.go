@@ -197,7 +197,7 @@ func TestHandleAccessorsPrivate(t *testing.T) {
 	}
 
 	for i := 6; i < 10; i++ {
-		u := keybase1.MakeTestUID(uint32(i)).AsUserOrTeam()
+		u := keybase1.MakeTestUID(uint32(i)).AsUserOrTeam() //nolint:gosec // G115: Test data with small values
 		require.False(t, h.IsWriter(u))
 		require.False(t, h.IsReader(u))
 	}
@@ -261,7 +261,7 @@ func TestHandleAccessorsPublic(t *testing.T) {
 	}
 
 	for i := 6; i < 10; i++ {
-		u := keybase1.MakeTestUID(uint32(i)).AsUserOrTeam()
+		u := keybase1.MakeTestUID(uint32(i)).AsUserOrTeam() //nolint:gosec // G115: Test data with small values
 		require.False(t, h.IsWriter(u))
 		require.True(t, h.IsReader(u))
 	}

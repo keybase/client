@@ -129,7 +129,7 @@ func (bc *BlockChanges) SizeEstimate() uint64 {
 		for _, op := range bc.Ops {
 			numPtrs := len(op.Refs()) + len(op.Unrefs()) +
 				2*len(op.allUpdates())
-			bc.sizeEstimate += uint64(numPtrs)*data.BPSize + op.SizeExceptUpdates()
+			bc.sizeEstimate += uint64(numPtrs)*data.BPSize + op.SizeExceptUpdates() //nolint:gosec // G115: Block pointer counts are bounded by tree structure
 		}
 	}
 	return bc.sizeEstimate
@@ -725,8 +725,8 @@ type PrefetchProgress struct {
 func (p PrefetchProgress) ToProtocolProgress(clock Clock) (
 	out keybase1.PrefetchProgress,
 ) {
-	out.BytesFetched = int64(p.SubtreeBytesFetched)
-	out.BytesTotal = int64(p.SubtreeBytesTotal)
+	out.BytesFetched = int64(p.SubtreeBytesFetched) //nolint:gosec // G115: Byte counts are bounded by filesystem limits
+	out.BytesTotal = int64(p.SubtreeBytesTotal)     //nolint:gosec // G115: Byte counts are bounded by filesystem limits
 	out.Start = keybase1.ToTime(p.Start)
 
 	if out.BytesTotal == 0 || out.Start == 0 {

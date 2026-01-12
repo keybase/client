@@ -210,7 +210,7 @@ func (b *BlockServerDisk) GetEncodedSizes(
 		if err != nil {
 			return nil, nil, err
 		}
-		sizes[i] = uint32(size64)
+		sizes[i] = uint32(size64) //nolint:gosec // G115: Block sizes are bounded by max block size config
 		statuses[i] = refStatus.toBlockStatus()
 	}
 	return sizes, statuses, nil

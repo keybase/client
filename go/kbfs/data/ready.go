@@ -6,6 +6,8 @@ package data
 
 import (
 	"context"
+	"fmt"
+	"math"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
@@ -58,9 +60,13 @@ func ReadyBlock(
 		}
 	}
 
+	encodedSize := readyBlockData.GetEncodedSize()
+	if encodedSize < 0 || encodedSize > math.MaxUint32 {
+		return BlockInfo{}, 0, ReadyBlockData{}, fmt.Errorf("encoded size %d out of range for uint32", encodedSize)
+	}
 	info = BlockInfo{
 		BlockPointer: ptr,
-		EncodedSize:  uint32(readyBlockData.GetEncodedSize()),
+		EncodedSize:  uint32(encodedSize),
 	}
 	return info, plainSize, readyBlockData, nil
 }
