@@ -110,6 +110,10 @@ export const useRevokedDeviceCounts = () => {
   return [...ds.values()].reduce((c, v) => (v.revokedAt ? c + 1 : c), 0)
 }
 
+// Icons are numbered 1-10, so this focuses on mapping
+// Device -> [1, 10]
+// We split devices by type and order them by creation time. Then, we use (index mod 10)
+// as the background #
 export const numBackgrounds = 10
 
 export const useDeviceIconNumber = (deviceID: T.Devices.DeviceID) => {
@@ -120,6 +124,7 @@ export const useDeviceIconNumber = (deviceID: T.Devices.DeviceID) => {
 export const useNextDeviceIconNumber = () => {
   const dm = useDevicesState(s => s.deviceMap)
   const next = React.useMemo(() => {
+    // Find the max device number and add one (+ one more since these are 1-indexed)
     const result = {backup: 1, desktop: 1, mobile: 1}
     dm.forEach(device => {
       if (device.deviceNumberOfType >= result[device.type]) {

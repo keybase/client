@@ -14,7 +14,7 @@ type Store = T.Immutable<{
   featuredBotsPage: number
   featuredBotsLoaded: boolean
   featuredBotsMap: Map<string, T.RPCGen.FeaturedBot>
-  botSearchResults: Map<string, BotSearchResults | undefined>
+  botSearchResults: Map<string, BotSearchResults | undefined> // Keyed so that we never show results that don't match the user's input (e.g. outdated results)
 }>
 
 const initialStore: Store = {
@@ -136,6 +136,7 @@ export const useBotsState = Z.createZustand<State>((set, get) => {
             query,
           })
           if (!bots || bots.length === 0) {
+            // don't do anything with a bad response from rpc
             return
           }
           get().dispatch.updateFeaturedBots(bots)
