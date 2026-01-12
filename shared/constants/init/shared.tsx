@@ -98,19 +98,33 @@ export const onEngineDisconnected = () => {
 export const initTeamBuildingCallbacks = () => {
   const chatStore = TBstores.get('chat2')
   if (chatStore) {
-    chatStore.setState(s => {
-      s.dispatch.dynamic.onFinishedTeamBuildingChat = users => {
-        storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(users)
-      }
+    const currentState = chatStore.getState()
+    chatStore.setState({
+      dispatch: {
+        ...currentState.dispatch,
+        dynamic: {
+          ...currentState.dispatch.dynamic,
+          onFinishedTeamBuildingChat: users => {
+            storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(users)
+          },
+        },
+      },
     })
   }
 
   const cryptoStore = TBstores.get('crypto')
   if (cryptoStore) {
-    cryptoStore.setState(s => {
-      s.dispatch.dynamic.onFinishedTeamBuildingCrypto = users => {
-        useCryptoState.getState().dispatch.onTeamBuildingFinished(users)
-      }
+    const currentState = cryptoStore.getState()
+    cryptoStore.setState({
+      dispatch: {
+        ...currentState.dispatch,
+        dynamic: {
+          ...currentState.dispatch.dynamic,
+          onFinishedTeamBuildingCrypto: users => {
+            useCryptoState.getState().dispatch.onTeamBuildingFinished(users)
+          },
+        },
+      },
     })
   }
 }
