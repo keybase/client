@@ -97,10 +97,17 @@ export const onEngineDisconnected = () => {
   storeRegistry.getState('daemon').dispatch.setError(new Error('Disconnected'))
 }
 
+// Initialize team building callbacks. Not ideal but keeping all the existing logic for now.
 export const initTeamBuildingCallbacks = () => {
   const commonCallbacks = {
     onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => {
       useTeamsState.getState().dispatch.addMembersWizardPushMembers(members)
+    },
+    onGetSettingsContactsImportEnabled: () => {
+      return useSettingsContactsState.getState().importEnabled
+    },
+    onGetSettingsContactsUserCountryCode: () => {
+      return useSettingsContactsState.getState().userCountryCode
     },
     onShowUserProfile: (username: string) => {
       useProfileState.getState().dispatch.showUserProfile(username)

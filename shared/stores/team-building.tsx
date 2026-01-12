@@ -13,7 +13,6 @@ import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from '@/constants/strings'
 import {navigateUp} from '@/constants/router2'
-import {storeRegistry} from '@/stores/store-registry'
 export {allServices, selfToUser} from '@/constants/team-building'
 export {searchWaitingKey} from '@/constants/strings'
 
@@ -55,13 +54,15 @@ export interface State extends Store {
     cancelTeamBuilding: () => void
     changeSendNotification: (sendNotification: boolean) => void
     closeTeamBuilding: () => void
-    dynamic: {
+      dynamic: {
+      onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
       onFinishedTeamBuildingChat: (users: ReadonlySet<T.TB.User>) => void
       onFinishedTeamBuildingCrypto: (users: ReadonlySet<T.TB.User>) => void
+      onGetSettingsContactsImportEnabled: () => boolean | undefined
+      onGetSettingsContactsUserCountryCode: () => string | undefined
       onShowUserProfile: (username: string) => void
-      onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
-      onUsersUpdates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
       onUsersGetBlockState: (usernames: ReadonlyArray<string>) => void
+      onUsersUpdates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
     fetchUserRecs: () => void
     finishTeamBuilding: () => void
@@ -317,6 +318,12 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       onFinishedTeamBuildingCrypto: (_users: ReadonlySet<T.TB.User>) => {
         throw new Error('onFinishedTeamBuildingCrypto not properly initialized')
       },
+      onGetSettingsContactsImportEnabled: () => {
+        throw new Error('onGetSettingsContactsImportEnabled not properly initialized')
+      },
+      onGetSettingsContactsUserCountryCode: () => {
+        throw new Error('onGetSettingsContactsUserCountryCode not properly initialized')
+      },
       onShowUserProfile: (_username: string) => {
         throw new Error('onShowUserProfile not properly initialized')
       },
@@ -342,7 +349,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           const contacts = contactRes.map(contactToUser)
           let suggestions = suggestionRes.map(interestingPersonToUser)
           const expectingContacts =
-            storeRegistry.getState('settings-contacts').importEnabled && includeContacts
+            get().dispatch.dynamic.onGetSettingsContactsImportEnabled() && includeContacts
           if (expectingContacts) {
             suggestions = suggestions.slice(0, 10)
           }
@@ -442,7 +449,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         let users: typeof _users
         if (selectedService === 'keybase') {
           // If we are on Keybase tab, do additional search if query is phone/email.
-          const userRegion = storeRegistry.getState('settings-contacts').userCountryCode
+          const userRegion = get().dispatch.dynamic.onGetSettingsContactsUserCountryCode()
           users = await specialContactSearch(_users, searchQuery, userRegion)
         } else {
           users = _users
