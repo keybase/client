@@ -32,7 +32,7 @@ import {
   guiConfig,
   shareListenersRegistered,
 } from 'react-native-kb'
-import {initPushListener, getStartupDetailsFromInitialPush} from '@/stores/push-listener'
+import {initPushListener, getStartupDetailsFromInitialPush} from '@/stores/push-listener.native'
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from '../types/chat2/common'
