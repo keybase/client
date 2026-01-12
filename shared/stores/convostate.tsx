@@ -298,7 +298,6 @@ export interface ConvoState extends ConvoStore {
     setReplyTo: (o: T.Chat.Ordinal) => void
     setThreadSearchQuery: (query: string) => void
     setTyping: DebouncedFunc<(t: Set<string>) => void>
-    setupSubscriptions: () => void
     showInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
     tabSelected: () => void
     threadSearch: (query: string) => void
@@ -2845,7 +2844,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     }, 1000),
-    setupSubscriptions: () => {},
     showInfoPanel: (show, tab) => {
       storeRegistry.getState('chat').dispatch.updateInfoPanel(show, tab)
       const conversationIDKey = get().id
@@ -3254,7 +3252,6 @@ const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const next = Z.createZustand<ConvoState>(createSlice)
   next.setState({id})
   chatStores.set(id, next)
-  next.getState().dispatch.setupSubscriptions()
   return next
 }
 

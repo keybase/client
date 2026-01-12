@@ -269,7 +269,6 @@ export interface State extends Store {
     setTlfsAsUnloaded: () => void
     setTlfSyncConfig: (tlfPath: T.FS.Path, enabled: boolean) => void
     setSorting: (path: T.FS.Path, sortSetting: T.FS.SortSetting) => void
-    setupSubscriptions: () => Promise<void>
     showIncomingShare: (initialDestinationParentPath: T.FS.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: T.FS.Path) => void
     startManualConflictResolution: (tlfPath: T.FS.Path) => void
@@ -1596,11 +1595,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.tlfs.loaded = false
       })
-    },
-    setupSubscriptions: async () => {
-      const initPlatformSpecific = await import('../constants/fs/platform-specific')
-      initPlatformSpecific.default()
-    },
+    }, 
     showIncomingShare: initialDestinationParentPath => {
       set(s => {
         if (s.destinationPicker.source.type !== T.FS.DestinationPickerSource.IncomingShare) {

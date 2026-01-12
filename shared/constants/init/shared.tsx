@@ -15,7 +15,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
-import {handleKeybaseLink} from '../deeplinks'
+import {handleKeybaseLink} from '@/constants/deeplinks'
 import {useFollowerState} from '@/stores/followers'
 import isEqual from 'lodash/isEqual'
 import type * as UseFSStateType from '@/stores/fs'
@@ -37,6 +37,7 @@ import type * as UseTracker2StateType from '@/stores/tracker2'
 import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
 import {useWhatsNewState} from '@/stores/whats-new'
+import initFSPlatformSpecific from '@/constants/fs/platform-specific'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 let _devicesLoaded = false
@@ -336,6 +337,7 @@ export const initSharedSubscriptions = () => {
   })
 
   initTeamBuildingCallbacks()
+  initFSPlatformSpecific ()
 }
 
 // This is to defer loading stores we don't need immediately.

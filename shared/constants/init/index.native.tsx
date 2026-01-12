@@ -501,8 +501,6 @@ export const initPlatformListener = () => {
   })
 
   initSharedSubscriptions()
-
-  ignorePromise(useFSState.getState().dispatch.setupSubscriptions())
 }
 
 export {onEngineConnected, onEngineDisconnected} from './shared'

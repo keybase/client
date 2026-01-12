@@ -1,5 +1,5 @@
-import * as T from '../types'
-import {ignorePromise, wrapErrors} from '../utils'
+import * as T from '@/constants/types'
+import {ignorePromise, wrapErrors} from '@/constants/utils'
 import * as FS from '@/stores/fs'
 import logger from '@/logger'
 import nativeInit from './common.native'
