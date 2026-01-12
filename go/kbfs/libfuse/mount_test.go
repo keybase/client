@@ -4017,8 +4017,8 @@ func TestHardLinkNotSupported(t *testing.T) {
 	defer cancelFn()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	checkLinkErr := func(old, new string, checkPermErr bool) {
-		err := os.Link(old, new)
+	checkLinkErr := func(old, newPath string, checkPermErr bool) {
+		err := os.Link(old, newPath)
 		linkErr, ok := errors.Cause(err).(*os.LinkError)
 		require.True(t, ok)
 		if checkPermErr && runtime.GOOS == "darwin" {
@@ -4037,8 +4037,8 @@ func TestHardLinkNotSupported(t *testing.T) {
 	err := ioutil.WriteFile(old, []byte("hello"), 0o755)
 	require.NoError(t, err)
 	syncFilename(t, old)
-	new := path.Join(mnt.Dir, PrivateName, "jdoe", "hardlink")
-	checkLinkErr(old, new, false)
+	newPath := path.Join(mnt.Dir, PrivateName, "jdoe", "hardlink")
+	checkLinkErr(old, newPath, false)
 
 	t.Log("Test hardlink in subdir of TLF")
 	mydir := path.Join(mnt.Dir, PrivateName, "jdoe", "mydir")

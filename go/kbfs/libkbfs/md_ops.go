@@ -341,11 +341,11 @@ func (md *MDOpsStandard) startOfValidatedChainForLeaf(
 	if !ok {
 		return leafRev
 	}
-	min, ok := revs[leafRev]
+	minRev, ok := revs[leafRev]
 	if !ok {
 		return leafRev
 	}
-	return min
+	return minRev
 }
 
 func (md *MDOpsStandard) mdserver(ctx context.Context) (

@@ -236,12 +236,12 @@ func CleanupCancellationDelayer(ctx context.Context) error {
 // BackgroundContextWithCancellationDelayer generate a "Background"
 // context that is cancellation delayable
 func BackgroundContextWithCancellationDelayer() context.Context {
-	if ctx, err := NewContextWithCancellationDelayer(NewContextReplayable(
+	ctx, err := NewContextWithCancellationDelayer(NewContextReplayable(
 		context.Background(), func(c context.Context) context.Context {
 			return c
-		})); err != nil {
+		}))
+	if err != nil {
 		panic(err)
-	} else {
-		return ctx
 	}
+	return ctx
 }

@@ -20,9 +20,9 @@ import (
 )
 
 func getMDStorageLength(t *testing.T, s *mdServerTlfStorage, bid kbfsmd.BranchID) int {
-	len, err := s.journalLength(bid)
+	journalLen, err := s.journalLength(bid)
 	require.NoError(t, err)
-	return int(len)
+	return int(journalLen)
 }
 
 // TestMDServerTlfStorageBasic copies TestMDServerBasics, but for a

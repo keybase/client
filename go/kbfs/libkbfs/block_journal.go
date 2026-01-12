@@ -1114,7 +1114,7 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 // deferred GC journal.  If the returned length is 0, there's no need
 // for further GC.
 func (j *blockJournal) getDeferredGCRange() (
-	len int, earliest, latest journalOrdinal, err error,
+	numEntries int, earliest, latest journalOrdinal, err error,
 ) {
 	earliest, err = j.deferredGC.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {

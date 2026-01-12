@@ -14,12 +14,12 @@ def withKbweb(closure) {
         // Coyne: I logged this next line to confirm it was coming through
         // println "Using S3 Secrets AccessKeyID with length = ${env.S3_SECRETS_ACCESS_KEY_ID.length()}"
         retry(5) {
-          sh "docker-compose down"
-          sh "docker-compose up -d mysql.local"
+          sh "docker compose down"
+          sh "docker compose up -d mysql.local"
         }
         // Give MySQL a few seconds to start up.
         sleep(10)
-        sh "docker-compose up -d kbweb.local"
+        sh "docker compose up -d kbweb.local"
       }
     }
 
@@ -30,12 +30,12 @@ def withKbweb(closure) {
 
     println "Dockers:"
     sh "docker ps -a"
-    sh "docker-compose stop"
+    sh "docker compose stop"
     helpers.logContainer('docker-compose', 'mysql')
     logKbwebServices(kbwebName)
     throw ex
   } finally {
-    sh "docker-compose down"
+    sh "docker compose down"
   }
 }
 
@@ -541,6 +541,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
 
   if (prefix == "test_linux_go_") {
     sh 'go tool govulncheck ./...'
+    sh "golangci-lint config verify"
 
     // Only test golangci-lint on linux
     if (env.CHANGE_TARGET) {

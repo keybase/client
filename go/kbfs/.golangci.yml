@@ -16,6 +16,8 @@ linters:
   exclusions:
     paths:
       - dokan # Windows-specific FUSE implementation, not maintained
+      - test/engine_fs_test.go # Test framework - interface methods required even if unused
+      - libkbfs/protected_context.go # Test hook - method overridden in tests
   enable:
     - misspell # Ready - spelling auto-fixed
     - bodyclose # HTTP response body not closed
@@ -24,10 +26,11 @@ linters:
     - errcheck # Unchecked errors
     - ineffassign # Ineffectual assignments
     - staticcheck # Static analysis
+    - unused # Unused code
+    - unconvert # Unnecessary type conversions
+    - revive # Code quality and style checks
 
-  disable:
-    # Explicitly disable default preset linters until we're ready
-    - unused
+  disable: []
 
   settings:
     gocritic:
@@ -48,3 +51,38 @@ linters:
         - '-ST1005' # Disable capitalized error string check (style preference)
         - '-ST1016' # Disable inconsistent receiver names - too many to fix
         - '-ST1020' # Disable comment format requirement - too many to fix
+
+    revive:
+      enable-all-rules: false
+      rules:
+        # Disabled rules
+        - name: unused-parameter
+          disabled: true
+        - name: error-strings
+          disabled: true
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+        - name: var-naming
+          disabled: true
+
+        # Enabled rules
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: empty-block
+        - name: error-naming
+        - name: error-return
+        - name: errorf
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unreachable-code
+        - name: var-declaration

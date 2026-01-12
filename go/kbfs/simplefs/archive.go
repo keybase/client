@@ -349,13 +349,13 @@ loopManifest:
 func (m *archiveManager) changeJobPhaseLocked(ctx context.Context,
 	jobID string, newPhase keybase1.SimpleFSArchiveJobPhase,
 ) {
-	copy, ok := m.state.Jobs[jobID]
+	jobCopy, ok := m.state.Jobs[jobID]
 	if !ok {
 		m.simpleFS.log.CWarningf(ctx, "job %s not found. it might have been canceled", jobID)
 		return
 	}
-	copy.Phase = newPhase
-	m.state.Jobs[jobID] = copy
+	jobCopy.Phase = newPhase
+	m.state.Jobs[jobID] = jobCopy
 	m.signal(m.notifyUIStateChangeSignal)
 }
 
