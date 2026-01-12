@@ -13,7 +13,7 @@ import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from '@/constants/team-building'
 import {navigateUp} from '@/constants/router2'
-import {storeRegistry} from '@/constants/store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 import {useCryptoState} from '@/stores/crypto'
 export {allServices, selfToUser, searchWaitingKey} from '@/constants/team-building'
 

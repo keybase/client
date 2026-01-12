@@ -2,7 +2,7 @@ import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import * as Tabs from '@/constants/tabs'
 import type {RouteKeys} from '@/router-v2/route-params'
-import {storeRegistry} from '@/constants/store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 import * as Util from '@/constants/router2'
 
 export {

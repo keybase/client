@@ -6,7 +6,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {navigateAppend, navUpToScreen} from '@/constants/router2'
-import {storeRegistry} from '@/constants/store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 
 type Store = T.Immutable<{
   active: boolean

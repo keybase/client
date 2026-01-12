@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import * as Teams from '@/constants/teams'
 import * as Message from './message'
 import {base64ToUint8Array, uint8ArrayToHex} from 'uint8array-extras'
-import {storeRegistry} from '@/constants/store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {

@@ -9,7 +9,7 @@ import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
 import {navigateAppend, navigateUp} from '@/constants/router2'
-import {storeRegistry} from '@/constants/store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 
 type Store = T.Immutable<{
