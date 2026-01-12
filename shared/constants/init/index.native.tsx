@@ -21,7 +21,7 @@ import logger from '@/logger'
 import {Alert, Linking} from 'react-native'
 import {isAndroid} from '@/constants/platform.native'
 import {wrapErrors} from '@/util/debug'
-import {getTab, getVisiblePath, logState} from '@/stores/router2'
+import {getTab, getVisiblePath, logState} from '@/constants/router2'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
 import {

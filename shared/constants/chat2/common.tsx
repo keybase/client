@@ -1,12 +1,12 @@
 import * as T from '../types'
 import {isMobile, isTablet} from '../platform'
-import * as Router2 from '@/stores/router2'
+import {getVisibleScreen} from '@/constants/router2'
 import {useConfigState} from '@/stores/config'
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 
 export const getSelectedConversation = (allowUnderModal: boolean = false): T.Chat.ConversationIDKey => {
-  const maybeVisibleScreen = Router2.getVisibleScreen(undefined, allowUnderModal)
+  const maybeVisibleScreen = getVisibleScreen(undefined, allowUnderModal)
   if (maybeVisibleScreen?.name === threadRouteName) {
     const mParams = maybeVisibleScreen.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
     return mParams?.conversationIDKey ?? T.Chat.noConversationIDKey
@@ -25,7 +25,7 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: T.Chat.Conv
   if (!isSplit) {
     chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
   } else {
-    const maybeVisibleScreen = Router2.getVisibleScreen()
+    const maybeVisibleScreen = getVisibleScreen()
     chatThreadSelected =
       (maybeVisibleScreen === undefined ? undefined : maybeVisibleScreen.name) === threadRouteName
   }
