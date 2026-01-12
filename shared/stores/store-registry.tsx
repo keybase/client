@@ -161,7 +161,7 @@ class StoreRegistry {
         return useProvisionState
       }
       case 'push': {
-        const {usePushState} = require('@/constants/push')
+        const {usePushState} = require('@/stores/push')
         return usePushState
       }
       case 'recover-password': {
