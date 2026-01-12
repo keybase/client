@@ -1,9 +1,9 @@
 import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {uint8ArrayToString} from 'uint8array-extras'
-import {noVersion, getSeenVersions} from '@/constants/whats-new/utils'
+import {noVersion, getSeenVersions} from '@/constants/whats-new'
 
-export {currentVersion, lastVersion, lastLastVersion, keybaseFM} from '@/constants/whats-new/utils'
+export {currentVersion, lastVersion, lastLastVersion, keybaseFM} from '@/constants/whats-new'
 
 // This store has no dependencies on other stores and is safe to import directly from other stores.
 type SeenVersionsMap = {[key in string]: boolean}
