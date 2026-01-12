@@ -28,6 +28,8 @@ import {storeRegistry} from '@/stores/store-registry'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {createTBStore} from '@/stores/team-building'
 import {useCryptoState} from '@/stores/crypto'
+import {useProfileState} from '@/stores/profile'
+import {useUsersState} from '@/stores/users'
 import type * as UseSignupStateType from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
@@ -96,33 +98,49 @@ export const onEngineDisconnected = () => {
 }
 
 export const initTeamBuildingCallbacks = () => {
-  const chatStore = createTBStore('chat2')
-  const chatState = chatStore.getState()
-  chatStore.setState({
-    dispatch: {
-      ...chatState.dispatch,
-      dynamic: {
-        ...chatState.dispatch.dynamic,
-        onFinishedTeamBuildingChat: users => {
-          storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(users)
-        },
-      },
+  const commonCallbacks = {
+    onShowUserProfile: (username: string) => {
+      useProfileState.getState().dispatch.showUserProfile(username)
     },
-  })
+    onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => {
+      useTeamsState.getState().dispatch.addMembersWizardPushMembers(members)
+    },
+    onUsersUpdates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+      useUsersState.getState().dispatch.updates(infos)
+    },
+    onUsersGetBlockState: (usernames: ReadonlyArray<string>) => {
+      useUsersState.getState().dispatch.getBlockState(usernames)
+    },
+  }
 
-  const cryptoStore = createTBStore('crypto')
-  const cryptoState = cryptoStore.getState()
-  cryptoStore.setState({
-    dispatch: {
-      ...cryptoState.dispatch,
-      dynamic: {
-        ...cryptoState.dispatch.dynamic,
-        onFinishedTeamBuildingCrypto: users => {
-          useCryptoState.getState().dispatch.onTeamBuildingFinished(users)
+  const namespaces: Array<T.TB.AllowedNamespace> = ['chat2', 'crypto', 'teams', 'people']
+  for (const namespace of namespaces) {
+    const store = createTBStore(namespace)
+    const currentState = store.getState()
+    store.setState({
+      dispatch: {
+        ...currentState.dispatch,
+        dynamic: {
+          ...currentState.dispatch.dynamic,
+          ...commonCallbacks,
+          ...(namespace === 'chat2'
+            ? {
+                onFinishedTeamBuildingChat: users => {
+                  storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(users)
+                },
+              }
+            : {}),
+          ...(namespace === 'crypto'
+            ? {
+                onFinishedTeamBuildingCrypto: users => {
+                  useCryptoState.getState().dispatch.onTeamBuildingFinished(users)
+                },
+              }
+            : {}),
         },
       },
-    },
-  })
+    })
+  }
 }
 
 export const initSharedSubscriptions = () => {

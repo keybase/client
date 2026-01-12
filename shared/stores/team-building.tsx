@@ -58,6 +58,10 @@ export interface State extends Store {
     dynamic: {
       onFinishedTeamBuildingChat: (users: ReadonlySet<T.TB.User>) => void
       onFinishedTeamBuildingCrypto: (users: ReadonlySet<T.TB.User>) => void
+      onShowUserProfile: (username: string) => void
+      onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
+      onUsersUpdates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
+      onUsersGetBlockState: (usernames: ReadonlyArray<string>) => void
     }
     fetchUserRecs: () => void
     finishTeamBuilding: () => void
@@ -276,7 +280,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
               // we want the first item
               for (const user of teamSoFar) {
                 const username = user.serviceMap.keybase || user.id
-                storeRegistry.getState('profile').dispatch.showUserProfile(username)
+                get().dispatch.dynamic.onShowUserProfile(username)
                 break
               }
             }, 100)
@@ -309,6 +313,18 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       },
       onFinishedTeamBuildingCrypto: (_users: ReadonlySet<T.TB.User>) => {
         throw new Error('onFinishedTeamBuildingCrypto not properly initialized')
+      },
+      onShowUserProfile: (_username: string) => {
+        throw new Error('onShowUserProfile not properly initialized')
+      },
+      onAddMembersWizardPushMembers: (_members: Array<T.Teams.AddingMember>) => {
+        throw new Error('onAddMembersWizardPushMembers not properly initialized')
+      },
+      onUsersUpdates: (_infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+        throw new Error('onUsersUpdates not properly initialized')
+      },
+      onUsersGetBlockState: (_usernames: ReadonlyArray<string>) => {
+        throw new Error('onUsersGetBlockState not properly initialized')
       },
     },
     fetchUserRecs: () => {
@@ -349,11 +365,9 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       get().dispatch.closeTeamBuilding()
       const {teamSoFar} = get()
       if (get().namespace === 'teams') {
-        storeRegistry
-          .getState('teams')
-          .dispatch.addMembersWizardPushMembers(
-            [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
-          )
+        get().dispatch.dynamic.onAddMembersWizardPushMembers(
+          [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
+        )
         get().dispatch.finishedTeamBuilding()
       }
     },
@@ -445,7 +459,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<{info: {fullname: string}; name: string}>())
-        storeRegistry.getState('users').dispatch.updates(updates)
+        get().dispatch.dynamic.onUsersUpdates(updates)
         const blocks = users.reduce((arr, {serviceMap}) => {
           const {keybase} = serviceMap
           if (keybase) {
@@ -453,7 +467,9 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<string>())
-        blocks.length && storeRegistry.getState('users').dispatch.getBlockState(blocks)
+        if (blocks.length) {
+          get().dispatch.dynamic.onUsersGetBlockState(blocks)
+        }
       }
       ignorePromise(f())
     },
