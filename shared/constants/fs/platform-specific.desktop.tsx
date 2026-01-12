@@ -1,13 +1,13 @@
 import * as T from '@/constants/types'
-import {ignorePromise, wrapErrors} from '../utils'
-import * as Constants from '@/stores/fs'
-import * as Tabs from '../tabs'
-import {isWindows, isLinux, pathSep, isDarwin} from '../platform.desktop'
+import {ignorePromise, wrapErrors} from '@/constants/utils'
+import * as Constants from '@/constants/fs'
+import * as Tabs from '@/constants/tabs'
+import {isWindows, isLinux, pathSep, isDarwin} from '@/constants/platform.desktop'
 import logger from '@/logger'
 import * as Path from '@/util/path'
 import KB2 from '@/util/electron.desktop'
 import {uint8ArrayToHex} from 'uint8array-extras'
-import {navigateAppend} from '../router2'
+import {navigateAppend} from '@/constants/router2'
 import {useConfigState} from '@/stores/config'
 
 const useFSState = Constants.useFSState
