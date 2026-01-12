@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 
 type DeletedTeam = {
   teamName: string

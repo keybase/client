@@ -1,7 +1,7 @@
 // Inside tracker we use an embedded Avatar which is connected.
 import * as React from 'react'
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
 import type * as T from '@/constants/types'
@@ -9,11 +9,11 @@ import Tracker from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import KB2 from '@/util/electron.desktop'
 import {useAvatarState} from '@/common-adapters/avatar/store'
-import {useTrackerState} from '@/constants/tracker2'
-import {useUsersState} from '@/constants/users'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
-import {useDarkModeState} from '@/constants/darkmode'
+import {useTrackerState} from '@/stores/tracker2'
+import {useUsersState} from '@/stores/users'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useDarkModeState} from '@/stores/darkmode'
 
 const {closeWindow} = KB2.functions
 

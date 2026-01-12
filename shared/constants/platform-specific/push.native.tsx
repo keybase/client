@@ -10,8 +10,8 @@ import {
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
 import {storeRegistry} from '../store-registry'
-import {useConfigState} from '../config'
-import {useLogoutState} from '../logout'
+import {useConfigState} from '@/stores/config'
+import {useLogoutState} from '@/stores/logout'
 
 type DataCommon = {
   userInteraction: boolean

@@ -1,7 +1,7 @@
 // A mirror of the remote tracker windows.
 import * as C from '@/constants'
 import {useAvatarState} from '@/common-adapters/avatar/store'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as React from 'react'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
@@ -9,10 +9,10 @@ import {serialize, type ProxyProps} from './remote-serializer.desktop'
 import {intersect} from '@/util/set'
 import {mapFilterByKey} from '@/util/map'
 import {useColorScheme} from 'react-native'
-import {useTrackerState} from '@/constants/tracker2'
-import {useUsersState} from '@/constants/users'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useTrackerState} from '@/stores/tracker2'
+import {useUsersState} from '@/stores/users'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 /**
  * Popup explaining that Keybase doesn't have contact permissions with a link to

@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
-import * as Provision from '@/constants/provision'
-import {useSignupState} from '@/constants/signup'
+import * as Provision from '@/stores/provision'
+import {useSignupState} from '@/stores/signup'
 
 const ConnectedEnterDevicename = () => {
   const error = useSignupState(s => s.devicenameError)

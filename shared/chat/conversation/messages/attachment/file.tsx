@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Crypto from '@/constants/crypto'
+import * as Chat from '@/stores/chat2'
+import * as Crypto from '@/stores/crypto'
 import * as React from 'react'
 import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import type * as T from '@/constants/types'
@@ -9,7 +9,7 @@ import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {getEditStyle, ShowToastAfterSaving} from './shared'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type OwnProps = {showPopup: () => void}
 

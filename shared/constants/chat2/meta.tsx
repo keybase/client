@@ -5,7 +5,7 @@ import * as Teams from '../teams/util'
 import * as Message from './message'
 import {base64ToUint8Array, uint8ArrayToHex} from 'uint8array-extras'
 import {storeRegistry} from '../store-registry'
-import {useCurrentUserState} from '../current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {
   switch (m) {
@@ -41,9 +41,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
   // We only treat implicit adhoc teams as having resetParticipants
   const resetParticipants: Set<string> = new Set(
     i.localMetadata &&
-    (i.membersType === T.RPCChat.ConversationMembersType.impteamnative ||
-      i.membersType === T.RPCChat.ConversationMembersType.impteamupgrade) &&
-    i.localMetadata.resetParticipants
+      (i.membersType === T.RPCChat.ConversationMembersType.impteamnative ||
+        i.membersType === T.RPCChat.ConversationMembersType.impteamupgrade) &&
+      i.localMetadata.resetParticipants
       ? i.localMetadata.resetParticipants
       : []
   )
@@ -237,7 +237,7 @@ export const inboxUIItemToConversationMeta = (
   const resetParticipants = new Set(
     (i.membersType === T.RPCChat.ConversationMembersType.impteamnative ||
       i.membersType === T.RPCChat.ConversationMembersType.impteamupgrade) &&
-    i.resetParticipants
+      i.resetParticipants
       ? i.resetParticipants
       : []
   )

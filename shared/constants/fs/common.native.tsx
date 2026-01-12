@@ -3,10 +3,10 @@ import {ignorePromise} from '../utils'
 import {wrapErrors} from '@/util/debug'
 import * as T from '../types'
 import * as Styles from '@/styles'
-import * as FS from '@/constants/fs'
+import * as FS from '@/stores/fs'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
-import {useFSState} from '.'
+import {useFSState} from '@/stores/fs'
 
 export default function initNative() {
   useFSState.setState(s => {

@@ -1,8 +1,8 @@
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
+import * as Chat from '@/stores/chat2'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const BlockButtons = () => {
   const nav = useSafeNavigation()

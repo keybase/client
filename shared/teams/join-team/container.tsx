@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import upperFirst from 'lodash/upperFirst'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 

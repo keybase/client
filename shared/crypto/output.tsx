@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Crypto from '@/constants/crypto'
+import * as Chat from '@/stores/chat2'
+import * as Crypto from '@/stores/crypto'
 import * as Kb from '@/common-adapters'
 import * as Path from '@/util/path'
 import * as React from 'react'
@@ -8,9 +8,9 @@ import capitalize from 'lodash/capitalize'
 import type * as T from '@/constants/types'
 import {pickFiles} from '@/util/pick-files'
 import type HiddenString from '@/util/hidden-string'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useConfigState} from '@/constants/config'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
+import {useConfigState} from '@/stores/config'
 
 type OutputProps = {operation: T.Crypto.Operations}
 type OutputActionsBarProps = {operation: T.Crypto.Operations}

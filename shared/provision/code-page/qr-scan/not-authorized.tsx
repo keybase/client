@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const QRScanNotAuthorized = () => {
   const onOpenSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)

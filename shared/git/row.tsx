@@ -1,13 +1,13 @@
 import * as C from '@/constants'
-import * as Git from '@/constants/git'
-import * as Teams from '@/constants/teams'
+import * as Git from '@/stores/git'
+import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import openURL from '@/util/open-url'
-import {useTrackerState} from '@/constants/tracker2'
-import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useTrackerState} from '@/stores/tracker2'
+import * as FS from '@/stores/fs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 

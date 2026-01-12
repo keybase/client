@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useProvisionState} from '@/constants/provision'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useProvisionState} from '@/stores/provision'
 
 const ForgotUsername = () => {
   const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)

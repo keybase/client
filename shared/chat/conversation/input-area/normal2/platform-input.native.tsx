@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AudioRecorder from '@/chat/audio/audio-recorder.native'
@@ -28,7 +28,7 @@ import logger from '@/logger'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import type {RefType as Input2Ref, Props as Input2Props} from '@/common-adapters/input2'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const singleLineHeight = 36
 const threeLineHeight = 78

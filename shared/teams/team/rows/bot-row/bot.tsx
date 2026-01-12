@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
-import {useBotsState} from '@/constants/bots'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {useBotsState} from '@/stores/bots'
+import {useTrackerState} from '@/stores/tracker2'
+import {useProfileState} from '@/stores/profile'
 
 export type Props = {
   botAlias: string

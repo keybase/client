@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
-import {useSignupState} from '@/constants/signup'
+import * as AutoReset from '@/stores/autoreset'
+import {useSignupState} from '@/stores/signup'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -8,7 +8,7 @@ import type {RPCError} from '@/util/errors'
 import * as Kb from '@/common-adapters'
 import UserCard from '@/login/user-card'
 import {SignupScreen, errorBanner} from '@/signup/common'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 type OwnProps = {fromReset?: boolean; username?: string}
 

@@ -1,10 +1,10 @@
 import * as C from '@/constants'
-import * as TB from '@/constants/team-building'
+import * as TB from '@/stores/team-building'
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
 import type * as T from 'constants/types'
 import ContinueButton from './continue-button'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
 
 type PhoneSearchProps = {
   continueLabel: string

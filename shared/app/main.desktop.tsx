@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Router from '@/router-v2/router'
-import {useDarkModeState} from '@/constants/darkmode'
+import {useDarkModeState} from '@/stores/darkmode'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors'
 import OutOfDate from './out-of-date'

@@ -1,50 +1,88 @@
-import type * as EngineGen from '@/actions/engine-gen-gen'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
-import {serverConfigFileName} from '../platform'
+import {isMobile, serverConfigFileName} from '../platform'
 import * as T from '../types'
 import {ignorePromise} from '../utils'
-import * as ArchiveUtil from '../archive/util'
-import * as AutoResetUtil from '../autoreset/util'
-import * as AvatarUtil from '@/common-adapters/avatar/util'
-import * as BotsUtil from '../bots/util'
-import {useChatState} from '../chat2'
-import {getSelectedConversation} from '../chat2/common'
-import * as ChatUtil from '../chat2/util'
-import {useConfigState} from '../config'
-import {useCurrentUserState} from '../current-user'
-import {useDaemonState} from '../daemon'
-import {useDarkModeState} from '../darkmode'
-import * as DeepLinksUtil from '../deeplinks/util'
-import * as DevicesUtil from '../devices/util'
-import * as FollowerUtil from '../followers/util'
-import * as FSUtil from '../fs/util'
-import * as GitUtil from '../git/util'
-import * as NotifUtil from '../notifications/util'
-import * as PeopleUtil from '../people/util'
-import * as PinentryUtil from '../pinentry/util'
-import {useProvisionState} from '../provision'
+import type * as UseArchiveStateType from '@/stores/archive'
+import type * as UseAutoResetStateType from '@/stores/autoreset'
+import type * as UseDevicesStateType from '@/stores/devices'
+import {useAvatarState} from '@/common-adapters/avatar/store'
+import type * as UseBotsStateType from '@/stores/bots'
+import {useChatState} from '@/stores/chat2'
+import {getSelectedConversation} from '@/constants/chat2/common'
+import type * as UseChatStateType from '@/stores/chat2'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
+import {useDarkModeState} from '@/stores/darkmode'
+import {handleKeybaseLink} from '../deeplinks'
+import {useFollowerState} from '@/stores/followers'
+import isEqual from 'lodash/isEqual'
+import type * as UseFSStateType from '@/stores/fs'
+import type * as UseGitStateType from '@/stores/git'
+import type * as UseNotificationsStateType from '@/stores/notifications'
+import type * as UsePeopleStateType from '@/stores/people'
+import type * as UsePinentryStateType from '@/stores/pinentry'
+import {useProvisionState} from '@/stores/provision'
 import {storeRegistry} from '../store-registry'
-import {useSettingsContactsState} from '../settings-contacts'
-import * as SettingsUtil from '../settings/util'
-import * as SignupUtil from '../signup/util'
-import {useTeamsState} from '../teams'
-import * as TeamsUtil from '../teams/util'
-import * as TrackerUtil from '../tracker2/util'
-import * as UnlockFoldersUtil from '../unlock-folders/util'
-import * as UsersUtil from '../users/util'
-import {useWhatsNewState} from '../whats-new'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import type * as UseSignupStateType from '@/stores/signup'
+import type * as UseTeamsStateType from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
+import type * as UseTracker2StateType from '@/stores/tracker2'
+import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
+import type * as UseUsersStateType from '@/stores/users'
+import {useWhatsNewState} from '@/stores/whats-new'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
+let _devicesLoaded = false
+let _gitLoaded = false
 
 export const onEngineConnected = () => {
-  ChatUtil.onEngineConnected()
+  {
+    const registerUIs = async () => {
+      try {
+        await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise()
+        await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise()
+        logger.info('Registered Chat UI')
+        await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()
+        logger.info('Registered home UI')
+        await T.RPCGen.delegateUiCtlRegisterSecretUIRpcPromise()
+        logger.info('Registered secret ui')
+        await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
+        logger.info('Registered identify ui')
+        await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
+        logger.info('Registered rekey ui')
+      } catch (error) {
+        logger.error('Error in registering UIs:', error)
+      }
+    }
+    ignorePromise(registerUIs())
+  }
   useConfigState.getState().dispatch.onEngineConnected()
   storeRegistry.getState('daemon').dispatch.startHandshake()
-  NotifUtil.onEngineConnected()
-  PeopleUtil.onEngineConnected()
-  PinentryUtil.onEngineConnected()
-  TrackerUtil.onEngineConnected()
-  UnlockFoldersUtil.onEngineConnected()
+  {
+    const notifyCtl = async () => {
+      try {
+        // prettier-ignore
+        await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
+          channels: {
+            allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
+            chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
+            deviceclone: false, ephemeral: false, favorites: false, featuredBots: true, kbfs: true, kbfsdesktop: !isMobile,
+            kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
+            paperkeys: false, pgp: true, reachability: true, runtimestats: true, saltpack: true, service: true, session: true,
+            team: true, teambot: false, tracking: true, users: true, wallet: false,
+          },
+        })
+      } catch (error) {
+        if (error) {
+          logger.warn('error in toggling notifications: ', error)
+        }
+      }
+    }
+    ignorePromise(notifyCtl())
+  }
 }
 
 export const onEngineDisconnected = () => {
@@ -241,25 +279,223 @@ export const initSharedSubscriptions = () => {
   })
 }
 
+// This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
-  ArchiveUtil.onEngineIncoming(action)
-  AutoResetUtil.onEngineIncoming(action)
-  AvatarUtil.onEngineIncoming(action)
-  BotsUtil.onEngineIncoming(action)
-  ChatUtil.onEngineIncoming(action)
+  switch (action.type) {
+    case EngineGen.keybase1NotifySimpleFSSimpleFSArchiveStatusChanged:
+    case EngineGen.chat1NotifyChatChatArchiveComplete:
+    case EngineGen.chat1NotifyChatChatArchiveProgress:
+      {
+        const {useArchiveState} = require('@/stores/archive') as typeof UseArchiveStateType
+        useArchiveState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1NotifyBadgesBadgeState:
+      {
+        const {useAutoResetState} = require('@/stores/autoreset') as typeof UseAutoResetStateType
+        useAutoResetState.getState().dispatch.onEngineIncomingImpl(action)
+
+        const {badgeState} = action.payload.params
+        const {newDevices, revokedDevices} = badgeState
+        const hasValue = (newDevices?.length ?? 0) + (revokedDevices?.length ?? 0) > 0
+        if (_devicesLoaded || hasValue) {
+          _devicesLoaded = true
+          const {useDevicesState} = require('@/stores/devices') as typeof UseDevicesStateType
+          useDevicesState.getState().dispatch.onEngineIncomingImpl(action)
+        }
+
+        const badges = new Set(badgeState.newGitRepoGlobalUniqueIDs)
+        if (_gitLoaded || badges.size) {
+          _gitLoaded = true
+          const {useGitState} = require('@/stores/git') as typeof UseGitStateType
+          useGitState.getState().dispatch.onEngineIncomingImpl(action)
+        }
+
+        const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
+        useNotifState.getState().dispatch.onEngineIncomingImpl(action)
+
+        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
+        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+
+        const {useChatState} = require('@/stores/chat2') as typeof UseChatStateType
+        useChatState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.chat1ChatUiChatShowManageChannels:
+    case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
+    case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded:
+    case EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial:
+    case EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone:
+    case EngineGen.keybase1NotifyTeamTeamRoleMapChanged:
+    case EngineGen.keybase1NotifyTeamTeamChangedByID:
+    case EngineGen.keybase1NotifyTeamTeamDeleted:
+    case EngineGen.keybase1NotifyTeamTeamExit:
+    case EngineGen.keybase1GregorUIPushState:
+      {
+        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
+        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
+      {
+        const {useBotsState} = require('@/stores/bots') as typeof UseBotsStateType
+        useBotsState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged:
+    case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath:
+    case EngineGen.keybase1NotifyFSFSSubscriptionNotify:
+      {
+        const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
+        useFSState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1NotifyAuditRootAuditError:
+    case EngineGen.keybase1NotifyAuditBoxAuditError:
+      {
+        const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
+        useNotifState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1HomeUIHomeUIRefresh:
+    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+      {
+        const {usePeopleState} = require('@/stores/people') as typeof UsePeopleStateType
+        usePeopleState.getState().dispatch.onEngineIncomingImpl(action)
+        const emailAddress = action.payload.params?.emailAddress
+        if (emailAddress) {
+          storeRegistry.getState('settings-email').dispatch.notifyEmailVerified(emailAddress)
+        }
+        const {useSignupState} = require('@/stores/signup') as typeof UseSignupStateType
+        useSignupState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1SecretUiGetPassphrase:
+      {
+        const {usePinentryState} = require('@/stores/pinentry') as typeof UsePinentryStateType
+        usePinentryState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1NotifyUsersPasswordChanged:
+      {
+        const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
+        storeRegistry.getState('settings-password').dispatch.notifyUsersPasswordChanged(randomPW)
+      }
+      break
+    case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
+      const {list} = action.payload.params
+      storeRegistry
+        .getState('settings-phone')
+        .dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+      break
+    }
+    case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
+      const list = action.payload.params.list ?? []
+      storeRegistry.getState('settings-email').dispatch.notifyEmailAddressEmailsChanged(list)
+      break
+    }
+    case EngineGen.chat1ChatUiChatInboxFailed:
+    case EngineGen.chat1NotifyChatChatSetConvSettings:
+    case EngineGen.chat1NotifyChatChatAttachmentUploadStart:
+    case EngineGen.chat1NotifyChatChatPromptUnfurl:
+    case EngineGen.chat1NotifyChatChatPaymentInfo:
+    case EngineGen.chat1NotifyChatChatRequestInfo:
+    case EngineGen.chat1NotifyChatChatAttachmentDownloadProgress:
+    case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete:
+    case EngineGen.chat1NotifyChatChatAttachmentUploadProgress:
+    case EngineGen.chat1ChatUiChatCommandMarkdown:
+    case EngineGen.chat1ChatUiChatGiphyToggleResultWindow:
+    case EngineGen.chat1ChatUiChatCommandStatus:
+    case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
+    case EngineGen.chat1ChatUiChatGiphySearchResults:
+    case EngineGen.chat1NotifyChatChatParticipantsInfo:
+    case EngineGen.chat1ChatUiChatMaybeMentionUpdate:
+    case EngineGen.chat1NotifyChatChatConvUpdate:
+    case EngineGen.chat1ChatUiChatCoinFlipStatus:
+    case EngineGen.chat1NotifyChatChatThreadsStale:
+    case EngineGen.chat1NotifyChatChatSubteamRename:
+    case EngineGen.chat1NotifyChatChatTLFFinalize:
+    case EngineGen.chat1NotifyChatChatIdentifyUpdate:
+    case EngineGen.chat1ChatUiChatInboxUnverified:
+    case EngineGen.chat1NotifyChatChatInboxSyncStarted:
+    case EngineGen.chat1NotifyChatChatInboxSynced:
+    case EngineGen.chat1ChatUiChatInboxLayout:
+    case EngineGen.chat1NotifyChatChatInboxStale:
+    case EngineGen.chat1ChatUiChatInboxConversation:
+    case EngineGen.chat1NotifyChatNewChatActivity:
+    case EngineGen.chat1NotifyChatChatTypingUpdate:
+    case EngineGen.chat1NotifyChatChatSetConvRetention:
+    case EngineGen.chat1NotifyChatChatSetTeamRetention:
+      {
+        const {useChatState} = require('@/stores/chat2') as typeof UseChatStateType
+        useChatState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1NotifyServiceHandleKeybaseLink:
+      {
+        const {link, deferred} = action.payload.params
+        if (deferred && !link.startsWith('keybase://team-invite-link/')) {
+          return
+        }
+        handleKeybaseLink(link)
+      }
+      break
+    case EngineGen.keybase1NotifyTeamAvatarUpdated: {
+      const {name} = action.payload.params
+      useAvatarState.getState().dispatch.updated(name)
+      break
+    }
+    case EngineGen.keybase1NotifyTrackingTrackingChanged: {
+      const {isTracking, username} = action.payload.params
+      useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
+      const {useTrackerState} = require('@/stores/tracker2') as typeof UseTracker2StateType
+      useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
+      break
+    }
+    case EngineGen.keybase1NotifyTrackingTrackingInfo: {
+      const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
+      if (useCurrentUserState.getState().uid !== uid) {
+        break
+      }
+      const newFollowers = new Set(_newFollowers)
+      const newFollowing = new Set(_newFollowing)
+      const {following: oldFollowing, followers: oldFollowers, dispatch} = useFollowerState.getState()
+      const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
+      const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
+      dispatch.replace(followers, following)
+      break
+    }
+    case EngineGen.keybase1Identify3UiIdentify3Result:
+    case EngineGen.keybase1Identify3UiIdentify3ShowTracker:
+    case EngineGen.keybase1NotifyUsersUserChanged:
+    case EngineGen.keybase1NotifyTrackingNotifyUserBlocked:
+    case EngineGen.keybase1Identify3UiIdentify3UpdateRow:
+    case EngineGen.keybase1Identify3UiIdentify3UserReset:
+    case EngineGen.keybase1Identify3UiIdentify3UpdateUserCard:
+    case EngineGen.keybase1Identify3UiIdentify3Summary:
+      {
+        const {useTrackerState} = require('@/stores/tracker2') as typeof UseTracker2StateType
+        useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      {
+        const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
+        useUsersState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1NotifyUsersIdentifyUpdate:
+      {
+        const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
+        useUsersState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case EngineGen.keybase1RekeyUIRefresh:
+    case EngineGen.keybase1RekeyUIDelegateRekeyUI:
+      {
+        const {useUnlockFoldersState} = require('@/stores/unlock-folders') as typeof UseUnlockFoldersStateType
+        useUnlockFoldersState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    default:
+  }
   useConfigState.getState().dispatch.onEngineIncoming(action)
-  DeepLinksUtil.onEngineIncoming(action)
-  DevicesUtil.onEngineIncoming(action)
-  FollowerUtil.onEngineIncoming(action)
-  FSUtil.onEngineIncoming(action)
-  GitUtil.onEngineIncoming(action)
-  NotifUtil.onEngineIncoming(action)
-  PeopleUtil.onEngineIncoming(action)
-  PinentryUtil.onEngineIncoming(action)
-  SettingsUtil.onEngineIncoming(action)
-  SignupUtil.onEngineIncoming(action)
-  TeamsUtil.onEngineIncoming(action)
-  TrackerUtil.onEngineIncoming(action)
-  UnlockFoldersUtil.onEngineIncoming(action)
-  UsersUtil.onEngineIncoming(action)
 }

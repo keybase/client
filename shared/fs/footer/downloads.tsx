@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as Kbfs from '../common'
 import Download from './download'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const Mobile = () => {
   Kbfs.useFsDownloadStatus()

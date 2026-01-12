@@ -4,10 +4,10 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FsCommon from '@/fs/common'
 import {MobileSendToChat} from '../chat/send-to-chat'
-import {settingsFeedbackTab} from '@/constants/settings'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
-import {useConfigState} from '@/constants/config'
+import {settingsFeedbackTab} from '@/stores/settings'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
+import {useConfigState} from '@/stores/config'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)

@@ -1,12 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import _openSMS from '@/util/sms'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import type {Props as TextProps} from '@/common-adapters/text'
-import {useUsersState} from '@/constants/users'
-import {useFollowerState} from '@/constants/followers'
+import {useUsersState} from '@/stores/users'
+import {useFollowerState} from '@/stores/followers'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 

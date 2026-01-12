@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '@/util/platforms'

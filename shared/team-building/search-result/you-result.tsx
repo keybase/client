@@ -1,6 +1,6 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as React from 'react'
-import {useTBContext} from '@/constants/team-building'
+import {useTBContext} from '@/stores/team-building'
 import * as Kb from '@/common-adapters'
 import CommonResult, {type ResultProps} from './common-result'
 

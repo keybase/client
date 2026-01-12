@@ -4,8 +4,8 @@ import type * as T from '@/constants/types'
 import {Activity, useChannelParticipants} from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 
 type ChannelRowProps = {
   conversationIDKey: T.Chat.ConversationIDKey

@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import SystemFileManagerIntegrationPopup from './sfmi-popup'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type Props = {path: T.FS.Path}
 

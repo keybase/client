@@ -1,13 +1,13 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat2'
+import {useProfileState} from '@/stores/profile'
+import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import MenuHeader from '../team/rows/menu-header.new'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey

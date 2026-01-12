@@ -1,5 +1,5 @@
-import type * as Provision from '@/constants/provision'
-import * as Devices from '@/constants/devices'
+import type * as Provision from '@/stores/provision'
+import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import type {IconStyle} from '@/common-adapters/icon'

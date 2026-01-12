@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
-import {useBotsState} from '@/constants/bots'
+import {useBotsState} from '@/stores/bots'
 
 type Props = {botUsername: string}
 

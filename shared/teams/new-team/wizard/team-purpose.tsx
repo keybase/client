@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import {ModalTitle} from '@/teams/common'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 
 const TeamPurpose = () => {
   const nav = useSafeNavigation()

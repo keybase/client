@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
-import * as Devices from '@/constants/devices'
+import {useConfigState} from '@/stores/config'
+import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {settingsDevicesTab} from '@/constants/settings'
-import {useCurrentUserState} from '@/constants/current-user'
+import {settingsDevicesTab} from '@/stores/settings'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {deviceID: string}
 

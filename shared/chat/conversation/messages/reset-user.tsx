@@ -1,5 +1,5 @@
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
+import * as Chat from '@/stores/chat2'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 
 const ResetUser = () => {

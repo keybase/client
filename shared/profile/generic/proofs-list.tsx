@@ -5,8 +5,8 @@ import type * as T from '@/constants/types'
 import {SiteIcon} from './shared'
 import {makeInsertMatcher} from '@/util/string'
 import {useColorScheme} from 'react-native'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {useTrackerState} from '@/stores/tracker2'
+import {useProfileState} from '@/stores/profile'
 
 const Container = () => {
   const _proofSuggestions = useTrackerState(s => s.proofSuggestions)

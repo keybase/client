@@ -1,5 +1,5 @@
 import {pathSep} from '@/constants/platform'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
 import {parseFolderNameToUsers} from '@/util/kbfs'

@@ -1,6 +1,3 @@
-import * as EngineGen from '@/actions/engine-gen-gen'
-import {storeRegistry} from '../store-registry'
-
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
 
@@ -47,17 +44,3 @@ export type SettingsTab =
   | typeof settingsCryptoTab
   | typeof settingsContactsTab
   | typeof settingsWhatsNewTab
-
-export const onEngineIncoming = (action: EngineGen.Actions) => {
-  switch (action.type) {
-    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
-    case EngineGen.keybase1NotifyUsersPasswordChanged:
-    case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
-    case EngineGen.keybase1NotifyEmailAddressEmailsChanged:
-      {
-        storeRegistry.getState('settings').dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    default:
-  }
-}

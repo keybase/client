@@ -1,7 +1,7 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const empty = {
   actions: [],

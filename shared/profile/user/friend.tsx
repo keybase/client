@@ -1,6 +1,6 @@
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 
 type OwnProps = {
   username: string

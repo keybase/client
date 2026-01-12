@@ -3,9 +3,9 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import WalletPopup from './wallet-popup'
-import * as Wallets from '@/constants/wallets'
-import {useState as useWalletsState} from '@/constants/wallets'
-import {useConfigState} from '@/constants/config'
+import * as Wallets from '@/stores/wallets'
+import {useState as useWalletsState} from '@/stores/wallets'
+import {useConfigState} from '@/stores/config'
 
 type OwnProps = {accountID: string}
 

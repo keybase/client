@@ -4,9 +4,9 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {pickSave} from '@/util/pick-files'
 import * as FsCommon from '@/fs/common'
-import {useArchiveState} from '@/constants/archive'
-import {settingsArchiveTab} from '@/constants/settings'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useArchiveState} from '@/stores/archive'
+import {settingsArchiveTab} from '@/stores/settings'
+import {useCurrentUserState} from '@/stores/current-user'
 import {getConvoState} from '@/constants/chat2/convostate'
 
 type Props =

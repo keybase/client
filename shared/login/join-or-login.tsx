@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
-import {useSignupState} from '@/constants/signup'
-import {useProvisionState} from '@/constants/provision'
+import {useSignupState} from '@/stores/signup'
+import {useProvisionState} from '@/stores/provision'
 
 const Intro = () => {
   const justDeletedSelf = useConfigState(s => s.justDeletedSelf)

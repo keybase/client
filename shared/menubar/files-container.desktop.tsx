@@ -1,4 +1,4 @@
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as R from '@/constants/remote'
 import * as T from '@/constants/types'
 import * as RemoteGen from '../actions/remote-gen'
@@ -6,7 +6,7 @@ import * as FsUtil from '@/util/kbfs'
 import * as TimestampUtil from '@/util/timestamp'
 import {FilesPreview} from './files.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const FilesContainer = (p: Pick<DeserializeProps, 'remoteTlfUpdates'>) => {
   const {remoteTlfUpdates} = p

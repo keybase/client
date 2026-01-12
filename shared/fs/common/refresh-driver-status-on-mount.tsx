@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const RefreshDriverStatusOnMount = () => {
   const refreshDriverStatusDesktop = useFSState(s => s.dispatch.dynamic.refreshDriverStatusDesktop)

@@ -12,11 +12,11 @@ import Text, {
 import {backgroundModeIsNegative} from './text.shared'
 import isArray from 'lodash/isArray'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
-import {useTrackerState} from '@/constants/tracker2'
-import {useUsersState} from '@/constants/users'
-import {useProfileState} from '@/constants/profile'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useTrackerState} from '@/stores/tracker2'
+import {useUsersState} from '@/stores/users'
+import {useProfileState} from '@/stores/profile'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export type User = {
   username: string
