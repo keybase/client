@@ -19,7 +19,12 @@ import {RPCError} from '@/util/errors'
 import {switchTab} from '@/constants/router2'
 import {storeRegistry} from '@/stores/store-registry'
 import {onEngineConnected, onEngineDisconnected} from '@/constants/init/index.desktop'
-import {handleAppLink, handleSaltPackOpen} from '@/constants/deeplinks'
+import {handleAppLink} from '@/constants/deeplinks'
+import * as Crypto from '@/constants/crypto'
+import * as Tabs from '@/constants/tabs'
+import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
+import type HiddenString from '@/util/hidden-string'
+import {useCryptoState} from '@/stores/crypto'
 import logger from '@/logger'
 import {debugWarning} from '@/util/debug-warning'
 import type {default as NewMainType} from '../../app/main.desktop'
@@ -30,6 +35,28 @@ import {initPlatformListener, onEngineIncoming} from '@/constants/init/index.des
 setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp, ctlQuit, dumpNodeLogger} = KB2.functions
+
+const handleSaltPackOpen = (_path: string | HiddenString) => {
+  const path = typeof _path === 'string' ? _path : _path.stringValue()
+
+  if (!useConfigState.getState().loggedIn) {
+    console.warn('Tried to open a saltpack file before being logged in')
+    return
+  }
+  let operation: T.Crypto.Operations | undefined
+  if (isPathSaltpackEncrypted(path)) {
+    operation = Crypto.Operations.Decrypt
+  } else if (isPathSaltpackSigned(path)) {
+    operation = Crypto.Operations.Verify
+  } else {
+    logger.warn(
+      'Deeplink received saltpack file path not ending in ".encrypted.saltpack" or ".signed.saltpack"'
+    )
+    return
+  }
+  useCryptoState.getState().dispatch.onSaltpackOpenFile(operation, path)
+  switchTab(Tabs.cryptoTab)
+}
 
 const dumpLogs = async (reason?: string) => {
   await logger.dump()

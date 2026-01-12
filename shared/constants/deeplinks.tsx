@@ -1,14 +1,9 @@
-import * as Crypto from './crypto'
 import * as Tabs from './tabs'
-import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
-import type HiddenString from '@/util/hidden-string'
 import URL from 'url-parse'
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import {navigateAppend, switchTab} from './router2'
 import {storeRegistry} from '@/stores/store-registry'
-import {useCryptoState} from '@/stores/crypto'
-import {useConfigState} from '@/stores/config'
 
 const prefix = 'keybase://'
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
@@ -264,24 +259,3 @@ export const handleKeybaseLink = (link: string) => {
   navigateAppend({props: {error}, selected: 'keybaseLinkError'})
 }
 
-export const handleSaltPackOpen = (_path: string | HiddenString) => {
-  const path = typeof _path === 'string' ? _path : _path.stringValue()
-
-  if (!useConfigState.getState().loggedIn) {
-    console.warn('Tried to open a saltpack file before being logged in')
-    return
-  }
-  let operation: T.Crypto.Operations | undefined
-  if (isPathSaltpackEncrypted(path)) {
-    operation = Crypto.Operations.Decrypt
-  } else if (isPathSaltpackSigned(path)) {
-    operation = Crypto.Operations.Verify
-  } else {
-    logger.warn(
-      'Deeplink received saltpack file path not ending in ".encrypted.saltpack" or ".signed.saltpack"'
-    )
-    return
-  }
-  useCryptoState.getState().dispatch.onSaltpackOpenFile(operation, path)
-  switchTab(Tabs.cryptoTab)
-}
