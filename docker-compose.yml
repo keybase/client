@@ -31,10 +31,11 @@ services:
         ports:
             - "9324"
         healthcheck:
-            test: ["CMD-SHELL", "curl -f http://localhost:9324/ || exit 1"]
+            test: ["CMD-SHELL", "nc -z localhost 9324 || exit 1"]
             interval: 5s
             timeout: 3s
             retries: 10
+            start_period: 10s
     kbweb.local:
         image: 897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb
         ports:
