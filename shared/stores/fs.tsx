@@ -19,6 +19,194 @@ import * as Util from '@/constants/fs'
 
 export * from '@/constants/fs'
 
+const tlfSyncEnabled: T.FS.TlfSyncEnabled = {
+  mode: T.FS.TlfSyncMode.Enabled,
+}
+
+const tlfSyncDisabled: T.FS.TlfSyncDisabled = {
+  mode: T.FS.TlfSyncMode.Disabled,
+}
+
+const makeTlfSyncPartial = ({
+  enabledPaths,
+}: {
+  enabledPaths?: T.FS.TlfSyncPartial['enabledPaths']
+}): T.FS.TlfSyncPartial => ({
+  enabledPaths: [...(enabledPaths || [])],
+  mode: T.FS.TlfSyncMode.Partial,
+})
+
+const makeConflictStateNormalView = ({
+  localViewTlfPaths,
+  resolvingConflict,
+  stuckInConflict,
+}: Partial<T.FS.ConflictStateNormalView>): T.FS.ConflictStateNormalView => ({
+  localViewTlfPaths: [...(localViewTlfPaths || [])],
+  resolvingConflict: resolvingConflict || false,
+  stuckInConflict: stuckInConflict || false,
+  type: T.FS.ConflictStateType.NormalView,
+})
+
+const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
+
+const makeConflictStateManualResolvingLocalView = ({
+  normalViewTlfPath,
+}: Partial<T.FS.ConflictStateManualResolvingLocalView>): T.FS.ConflictStateManualResolvingLocalView => ({
+  normalViewTlfPath: normalViewTlfPath || Util.defaultPath,
+  type: T.FS.ConflictStateType.ManualResolvingLocalView,
+})
+
+const makeTlf = (p: Partial<T.FS.Tlf>): T.FS.Tlf => {
+  const {conflictState, isFavorite, isIgnored, isNew, name, resetParticipants, syncConfig, teamId, tlfMtime} =
+    p
+  return {
+    conflictState: conflictState || tlfNormalViewWithNoConflict,
+    isFavorite: isFavorite || false,
+    isIgnored: isIgnored || false,
+    isNew: isNew || false,
+    name: name || '',
+    resetParticipants: [...(resetParticipants || [])],
+    syncConfig: syncConfig || tlfSyncDisabled,
+    teamId: teamId || '',
+    tlfMtime: tlfMtime || 0,
+    /* See comment in constants/types/fs.js
+      needsRekey: false,
+      waitingForParticipantUnlock: I.List(),
+      youCanUnlock: I.List(),
+      */
+  }
+}
+
+const rpcFolderTypeToTlfType = (rpcFolderType: T.RPCGen.FolderType) => {
+  switch (rpcFolderType) {
+    case T.RPCGen.FolderType.private:
+      return T.FS.TlfType.Private
+    case T.RPCGen.FolderType.public:
+      return T.FS.TlfType.Public
+    case T.RPCGen.FolderType.team:
+      return T.FS.TlfType.Team
+    default:
+      return null
+  }
+}
+
+const rpcPathToPath = (rpcPath: T.RPCGen.KBFSPath) => T.FS.pathConcat(Util.defaultPath, rpcPath.path)
+
+const pathFromFolderRPC = (folder: T.RPCGen.Folder): T.FS.Path => {
+  const visibility = T.FS.getVisibilityFromRPCFolderType(folder.folderType)
+  if (!visibility) return T.FS.stringToPath('')
+  return T.FS.stringToPath(`/keybase/${visibility}/${folder.name}`)
+}
+
+const folderRPCFromPath = (path: T.FS.Path): T.RPCGen.FolderHandle | undefined => {
+  const pathElems = T.FS.getPathElements(path)
+  if (pathElems.length === 0) return undefined
+
+  const visibility = T.FS.getVisibilityFromElems(pathElems)
+  if (visibility === undefined) return undefined
+
+  const name = T.FS.getPathNameFromElems(pathElems)
+  if (name === '') return undefined
+
+  return {
+    created: false,
+    folderType: T.FS.getRPCFolderTypeFromVisibility(visibility),
+    name,
+  }
+}
+
+const rpcConflictStateToConflictState = (
+  rpcConflictState?: T.RPCGen.ConflictState
+): T.FS.ConflictState => {
+  if (rpcConflictState) {
+    if (rpcConflictState.conflictStateType === T.RPCGen.ConflictStateType.normalview) {
+      const nv = rpcConflictState.normalview
+      return makeConflictStateNormalView({
+        localViewTlfPaths: (nv.localViews || []).reduce<Array<T.FS.Path>>((arr, p) => {
+          p.PathType === T.RPCGen.PathType.kbfs && arr.push(rpcPathToPath(p.kbfs))
+          return arr
+        }, []),
+        resolvingConflict: nv.resolvingConflict,
+        stuckInConflict: nv.stuckInConflict,
+      })
+    } else {
+      const nv = rpcConflictState.manualresolvinglocalview.normalView
+      return makeConflictStateManualResolvingLocalView({
+        normalViewTlfPath: nv.PathType === T.RPCGen.PathType.kbfs ? rpcPathToPath(nv.kbfs) : Util.defaultPath,
+      })
+    }
+  } else {
+    return tlfNormalViewWithNoConflict
+  }
+}
+
+const getSyncConfigFromRPC = (
+  tlfName: string,
+  tlfType: T.FS.TlfType,
+  config?: T.RPCGen.FolderSyncConfig
+): T.FS.TlfSyncConfig => {
+  if (!config) {
+    return tlfSyncDisabled
+  }
+  switch (config.mode) {
+    case T.RPCGen.FolderSyncMode.disabled:
+      return tlfSyncDisabled
+    case T.RPCGen.FolderSyncMode.enabled:
+      return tlfSyncEnabled
+    case T.RPCGen.FolderSyncMode.partial:
+      return makeTlfSyncPartial({
+        enabledPaths: config.paths
+          ? config.paths.map(str => T.FS.getPathFromRelative(tlfName, tlfType, str))
+          : [],
+      })
+    default:
+      return tlfSyncDisabled
+  }
+}
+
+const fsNotificationTypeToEditType = (
+  fsNotificationType: T.RPCChat.Keybase1.FSNotificationType
+): T.FS.FileEditType => {
+  switch (fsNotificationType) {
+    case T.RPCGen.FSNotificationType.fileCreated:
+      return T.FS.FileEditType.Created
+    case T.RPCGen.FSNotificationType.fileModified:
+      return T.FS.FileEditType.Modified
+    case T.RPCGen.FSNotificationType.fileDeleted:
+      return T.FS.FileEditType.Deleted
+    case T.RPCGen.FSNotificationType.fileRenamed:
+      return T.FS.FileEditType.Renamed
+    default:
+      return T.FS.FileEditType.Unknown
+  }
+}
+
+const userTlfHistoryRPCToState = (
+  history: ReadonlyArray<T.RPCGen.FSFolderEditHistory>
+): T.FS.UserTlfUpdates => {
+  let updates: Array<T.FS.TlfUpdate> = []
+  history.forEach(folder => {
+    const updateServerTime = folder.serverTime
+    const path = pathFromFolderRPC(folder.folder)
+    const tlfUpdates = folder.history
+      ? folder.history.map(({writerName, edits}) => ({
+          history: edits
+            ? edits.map(({filename, notificationType, serverTime}) => ({
+                editType: fsNotificationTypeToEditType(notificationType),
+                filename,
+                serverTime,
+              }))
+            : [],
+          path,
+          serverTime: updateServerTime,
+          writer: writerName,
+        }))
+      : []
+    updates = updates.concat(tlfUpdates)
+  })
+  return updates
+}
+
 // Prefetch Constants
 const prefetchNotStarted: T.FS.PrefetchNotStarted = {
   state: T.FS.PrefetchState.NotStarted,
@@ -623,7 +811,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
     },
     favoriteIgnore: path => {
       const f = async () => {
-        const folder = Util.folderRPCFromPath(path)
+        const folder = folderRPCFromPath(path)
         if (!folder) {
           throw new Error('No folder specified')
         }
@@ -690,7 +878,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           ]
           fs.forEach(({folders, isFavorite, isIgnored, isNew}) =>
             folders.forEach(folder => {
-              const tlfType = Util.rpcFolderTypeToTlfType(folder.folderType)
+              const tlfType = rpcFolderTypeToTlfType(folder.folderType)
               const tlfName =
                 tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
                   ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
@@ -698,14 +886,14 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               tlfType &&
                 payload[tlfType].set(
                   tlfName,
-                  Util.makeTlf({
-                    conflictState: Util.rpcConflictStateToConflictState(folder.conflictState || undefined),
+                  makeTlf({
+                    conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
                     isFavorite,
                     isIgnored,
                     isNew,
                     name: tlfName,
                     resetParticipants: (folder.reset_members || []).map(({username}) => username),
-                    syncConfig: Util.getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
+                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
                     teamId: folder.team_id || '',
                     tlfMtime: folder.mtime || 0,
                   })
@@ -987,7 +1175,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           const {folder, isFavorite, isIgnored, isNew} = await T.RPCGen.SimpleFSSimpleFSGetFolderRpcPromise({
             path: Util.pathToRPCPath(tlfPath).kbfs,
           })
-          const tlfType = Util.rpcFolderTypeToTlfType(folder.folderType)
+          const tlfType = rpcFolderTypeToTlfType(folder.folderType)
           const tlfName =
             tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
               ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
@@ -998,14 +1186,14 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               s.tlfs.additionalTlfs.set(
                 tlfPath,
                 T.castDraft(
-                  Util.makeTlf({
-                    conflictState: Util.rpcConflictStateToConflictState(folder.conflictState || undefined),
+                  makeTlf({
+                    conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
                     isFavorite,
                     isIgnored,
                     isNew,
                     name: tlfName,
                     resetParticipants: (folder.reset_members || []).map(({username}) => username),
-                    syncConfig: Util.getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
+                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
                     teamId: folder.team_id || '',
                     tlfMtime: folder.mtime || 0,
                   })
@@ -1198,7 +1386,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           const result = await T.RPCGen.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
             path: Util.pathToRPCPath(tlfPath),
           })
-          const syncConfig = Util.getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config)
+          const syncConfig = getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config)
           const tlfName = parsedPath.tlfName
           const tlfType = parsedPath.tlfType
 
@@ -1237,7 +1425,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
 
             const writingToJournal = new Map(
               uploadStates?.map(uploadState => {
-                const path = Util.rpcPathToPath(uploadState.targetPath)
+                const path = rpcPathToPath(uploadState.targetPath)
                 const oldUploadState = s.uploads.writingToJournal.get(path)
                 return [
                   path,
@@ -1774,7 +1962,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         try {
           const writerEdits = await T.RPCGen.SimpleFSSimpleFSUserEditHistoryRpcPromise()
           set(s => {
-            s.tlfUpdates = T.castDraft(Util.userTlfHistoryRPCToState(writerEdits || []))
+            s.tlfUpdates = T.castDraft(userTlfHistoryRPCToState(writerEdits || []))
           })
         } catch (error) {
           errorToActionOrThrow(error)

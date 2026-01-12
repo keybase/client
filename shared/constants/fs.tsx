@@ -1,8 +1,6 @@
 import type * as React from 'react'
-import * as Tabs from '@/constants/tabs'
 import * as T from '@/constants/types'
 import {isLinux, isMobile} from '@/constants/platform'
-import {settingsFsTab} from '@/constants/settings'
 import {navigateAppend} from '@/constants/router2'
 import {prefetchNotStarted, prefetchComplete} from '@/stores/fs'
 
@@ -58,68 +56,44 @@ export const unknownPathItem: T.FS.UnknownPathItem = {
   type: T.FS.PathType.Unknown,
 }
 
-// Sync Config Constants
-export const tlfSyncEnabled: T.FS.TlfSyncEnabled = {
-  mode: T.FS.TlfSyncMode.Enabled,
-}
-
-export const tlfSyncDisabled: T.FS.TlfSyncDisabled = {
-  mode: T.FS.TlfSyncMode.Disabled,
-}
-
-export const makeTlfSyncPartial = ({
-  enabledPaths,
-}: {
-  enabledPaths?: T.FS.TlfSyncPartial['enabledPaths']
-}): T.FS.TlfSyncPartial => ({
-  enabledPaths: [...(enabledPaths || [])],
-  mode: T.FS.TlfSyncMode.Partial,
-})
-
-// Conflict State Constants
-export const makeConflictStateNormalView = ({
-  localViewTlfPaths,
-  resolvingConflict,
-  stuckInConflict,
-}: Partial<T.FS.ConflictStateNormalView>): T.FS.ConflictStateNormalView => ({
-  localViewTlfPaths: [...(localViewTlfPaths || [])],
-  resolvingConflict: resolvingConflict || false,
-  stuckInConflict: stuckInConflict || false,
-  type: T.FS.ConflictStateType.NormalView,
-})
-
-export const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
-
-export const makeConflictStateManualResolvingLocalView = ({
-  normalViewTlfPath,
-}: Partial<T.FS.ConflictStateManualResolvingLocalView>): T.FS.ConflictStateManualResolvingLocalView => ({
-  normalViewTlfPath: normalViewTlfPath || defaultPath,
-  type: T.FS.ConflictStateType.ManualResolvingLocalView,
-})
-
 // Factory Functions
-export const makeTlf = (p: Partial<T.FS.Tlf>): T.FS.Tlf => {
-  const {conflictState, isFavorite, isIgnored, isNew, name, resetParticipants, syncConfig, teamId, tlfMtime} =
-    p
-  return {
-    conflictState: conflictState || tlfNormalViewWithNoConflict,
-    isFavorite: isFavorite || false,
-    isIgnored: isIgnored || false,
-    isNew: isNew || false,
-    name: name || '',
-    resetParticipants: [...(resetParticipants || [])],
-    syncConfig: syncConfig || tlfSyncDisabled,
-    teamId: teamId || '',
-    tlfMtime: tlfMtime || 0,
-    /* See comment in constants/types/fs.js
-      needsRekey: false,
-      waitingForParticipantUnlock: I.List(),
-      youCanUnlock: I.List(),
-      */
+export const unknownTlf = (() => {
+  const tlfSyncDisabled: T.FS.TlfSyncDisabled = {
+    mode: T.FS.TlfSyncMode.Disabled,
   }
-}
-
-export const unknownTlf = makeTlf({})
+  const makeConflictStateNormalView = ({
+    localViewTlfPaths,
+    resolvingConflict,
+    stuckInConflict,
+  }: Partial<T.FS.ConflictStateNormalView>): T.FS.ConflictStateNormalView => ({
+    localViewTlfPaths: [...(localViewTlfPaths || [])],
+    resolvingConflict: resolvingConflict || false,
+    stuckInConflict: stuckInConflict || false,
+    type: T.FS.ConflictStateType.NormalView,
+  })
+  const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
+  const makeTlf = (p: Partial<T.FS.Tlf>): T.FS.Tlf => {
+    const {conflictState, isFavorite, isIgnored, isNew, name, resetParticipants, syncConfig, teamId, tlfMtime} =
+      p
+    return {
+      conflictState: conflictState || tlfNormalViewWithNoConflict,
+      isFavorite: isFavorite || false,
+      isIgnored: isIgnored || false,
+      isNew: isNew || false,
+      name: name || '',
+      resetParticipants: [...(resetParticipants || [])],
+      syncConfig: syncConfig || tlfSyncDisabled,
+      teamId: teamId || '',
+      tlfMtime: tlfMtime || 0,
+      /* See comment in constants/types/fs.js
+        needsRekey: false,
+        waitingForParticipantUnlock: I.List(),
+        youCanUnlock: I.List(),
+        */
+    }
+  }
+  return makeTlf({})
+})()
 
 // Empty/Default Objects
 export const emptyNewFolder: T.FS.Edit = {
@@ -193,19 +167,6 @@ export const emptyFileContext: T.FS.FileContext = {
   viewType: T.RPCGen.GUIViewType.default,
 }
 
-export const emptyTlfUpdate: T.FS.TlfUpdate = {
-  history: [],
-  path: T.FS.stringToPath(''),
-  serverTime: 0,
-  writer: '',
-}
-
-export const emptyTlfEdit: T.FS.TlfEdit = {
-  editType: T.FS.FileEditType.Unknown,
-  filename: '',
-  serverTime: 0,
-}
-
 // Driver Status Constants
 export const driverStatusUnknown: T.FS.DriverStatusUnknown = {
   type: T.FS.DriverStatusType.Unknown,
@@ -231,45 +192,25 @@ export const unknownKbfsDaemonStatus: T.FS.KbfsDaemonStatus = {
   rpcStatus: T.FS.KbfsDaemonRpcStatus.Waiting,
 }
 
-// Route Constants
-export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, settingsFsTab] : [Tabs.fsTab]
-
-// Error Constants
-export const invalidTokenError = new Error('invalid token')
-export const notFoundError = new Error('not found')
-
 // Parsed Path Constants
-export const parsedPathRoot: T.FS.ParsedPathRoot = {kind: T.FS.PathKind.Root}
+const parsedPathRoot: T.FS.ParsedPathRoot = {kind: T.FS.PathKind.Root}
 
-export const parsedPathPrivateList: T.FS.ParsedPathTlfList = {
+const parsedPathPrivateList: T.FS.ParsedPathTlfList = {
   kind: T.FS.PathKind.TlfList,
   tlfType: T.FS.TlfType.Private,
 }
 
-export const parsedPathPublicList: T.FS.ParsedPathTlfList = {
+const parsedPathPublicList: T.FS.ParsedPathTlfList = {
   kind: T.FS.PathKind.TlfList,
   tlfType: T.FS.TlfType.Public,
 }
 
-export const parsedPathTeamList: T.FS.ParsedPathTlfList = {
+const parsedPathTeamList: T.FS.ParsedPathTlfList = {
   kind: T.FS.PathKind.TlfList,
   tlfType: T.FS.TlfType.Team,
 }
 
 // Conversion Functions
-export const rpcFolderTypeToTlfType = (rpcFolderType: T.RPCGen.FolderType) => {
-  switch (rpcFolderType) {
-    case T.RPCGen.FolderType.private:
-      return T.FS.TlfType.Private
-    case T.RPCGen.FolderType.public:
-      return T.FS.TlfType.Public
-    case T.RPCGen.FolderType.team:
-      return T.FS.TlfType.Team
-    default:
-      return null
-  }
-}
-
 export const pathToRPCPath = (
   path: T.FS.Path
 ): {PathType: T.RPCGen.PathType.kbfs; kbfs: T.RPCGen.KBFSPath} => ({
@@ -279,80 +220,6 @@ export const pathToRPCPath = (
     path: T.FS.pathToString(path).substring('/keybase'.length) || '/',
   },
 })
-
-export const rpcPathToPath = (rpcPath: T.RPCGen.KBFSPath) => T.FS.pathConcat(defaultPath, rpcPath.path)
-
-export const pathFromFolderRPC = (folder: T.RPCGen.Folder): T.FS.Path => {
-  const visibility = T.FS.getVisibilityFromRPCFolderType(folder.folderType)
-  if (!visibility) return T.FS.stringToPath('')
-  return T.FS.stringToPath(`/keybase/${visibility}/${folder.name}`)
-}
-
-export const folderRPCFromPath = (path: T.FS.Path): T.RPCGen.FolderHandle | undefined => {
-  const pathElems = T.FS.getPathElements(path)
-  if (pathElems.length === 0) return undefined
-
-  const visibility = T.FS.getVisibilityFromElems(pathElems)
-  if (visibility === undefined) return undefined
-
-  const name = T.FS.getPathNameFromElems(pathElems)
-  if (name === '') return undefined
-
-  return {
-    created: false,
-    folderType: T.FS.getRPCFolderTypeFromVisibility(visibility),
-    name,
-  }
-}
-
-export const rpcConflictStateToConflictState = (
-  rpcConflictState?: T.RPCGen.ConflictState
-): T.FS.ConflictState => {
-  if (rpcConflictState) {
-    if (rpcConflictState.conflictStateType === T.RPCGen.ConflictStateType.normalview) {
-      const nv = rpcConflictState.normalview
-      return makeConflictStateNormalView({
-        localViewTlfPaths: (nv.localViews || []).reduce<Array<T.FS.Path>>((arr, p) => {
-          p.PathType === T.RPCGen.PathType.kbfs && arr.push(rpcPathToPath(p.kbfs))
-          return arr
-        }, []),
-        resolvingConflict: nv.resolvingConflict,
-        stuckInConflict: nv.stuckInConflict,
-      })
-    } else {
-      const nv = rpcConflictState.manualresolvinglocalview.normalView
-      return makeConflictStateManualResolvingLocalView({
-        normalViewTlfPath: nv.PathType === T.RPCGen.PathType.kbfs ? rpcPathToPath(nv.kbfs) : defaultPath,
-      })
-    }
-  } else {
-    return tlfNormalViewWithNoConflict
-  }
-}
-
-export const getSyncConfigFromRPC = (
-  tlfName: string,
-  tlfType: T.FS.TlfType,
-  config?: T.RPCGen.FolderSyncConfig
-): T.FS.TlfSyncConfig => {
-  if (!config) {
-    return tlfSyncDisabled
-  }
-  switch (config.mode) {
-    case T.RPCGen.FolderSyncMode.disabled:
-      return tlfSyncDisabled
-    case T.RPCGen.FolderSyncMode.enabled:
-      return tlfSyncEnabled
-    case T.RPCGen.FolderSyncMode.partial:
-      return makeTlfSyncPartial({
-        enabledPaths: config.paths
-          ? config.paths.map(str => T.FS.getPathFromRelative(tlfName, tlfType, str))
-          : [],
-      })
-    default:
-      return tlfSyncDisabled
-  }
-}
 
 // Path/PathItem Utilities
 export const pathTypeToTextType = (type: T.FS.PathType) =>
@@ -486,7 +353,7 @@ export const usernameInPath = (username: string, path: T.FS.Path) => {
   return elems.length >= 3 && elems[2]!.split(',').includes(username)
 }
 
-export const splitTlfIntoReadersAndWriters = (
+const splitTlfIntoReadersAndWriters = (
   tlf: string
 ): {
   readers?: Array<string>
@@ -897,46 +764,3 @@ export const showIgnoreFolder = (path: T.FS.Path, username?: string): boolean =>
   return ['public', 'private'].includes(elems[1]!) && elems[2]! !== username
 }
 
-// RPC to State Conversion
-export const fsNotificationTypeToEditType = (
-  fsNotificationType: T.RPCChat.Keybase1.FSNotificationType
-): T.FS.FileEditType => {
-  switch (fsNotificationType) {
-    case T.RPCGen.FSNotificationType.fileCreated:
-      return T.FS.FileEditType.Created
-    case T.RPCGen.FSNotificationType.fileModified:
-      return T.FS.FileEditType.Modified
-    case T.RPCGen.FSNotificationType.fileDeleted:
-      return T.FS.FileEditType.Deleted
-    case T.RPCGen.FSNotificationType.fileRenamed:
-      return T.FS.FileEditType.Renamed
-    default:
-      return T.FS.FileEditType.Unknown
-  }
-}
-
-export const userTlfHistoryRPCToState = (
-  history: ReadonlyArray<T.RPCGen.FSFolderEditHistory>
-): T.FS.UserTlfUpdates => {
-  let updates: Array<T.FS.TlfUpdate> = []
-  history.forEach(folder => {
-    const updateServerTime = folder.serverTime
-    const path = pathFromFolderRPC(folder.folder)
-    const tlfUpdates = folder.history
-      ? folder.history.map(({writerName, edits}) => ({
-          history: edits
-            ? edits.map(({filename, notificationType, serverTime}) => ({
-                editType: fsNotificationTypeToEditType(notificationType),
-                filename,
-                serverTime,
-              }))
-            : [],
-          path,
-          serverTime: updateServerTime,
-          writer: writerName,
-        }))
-      : []
-    updates = updates.concat(tlfUpdates)
-  })
-  return updates
-}
