@@ -26,7 +26,7 @@ import type * as UsePinentryStateType from '@/stores/pinentry'
 import {useProvisionState} from '@/stores/provision'
 import {storeRegistry} from '@/stores/store-registry'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
-import {TBstores} from '@/stores/team-building'
+import {createTBStore} from '@/stores/team-building'
 import {useCryptoState} from '@/stores/crypto'
 import type * as UseSignupStateType from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
@@ -96,37 +96,33 @@ export const onEngineDisconnected = () => {
 }
 
 export const initTeamBuildingCallbacks = () => {
-  const chatStore = TBstores.get('chat2')
-  if (chatStore) {
-    const currentState = chatStore.getState()
-    chatStore.setState({
-      dispatch: {
-        ...currentState.dispatch,
-        dynamic: {
-          ...currentState.dispatch.dynamic,
-          onFinishedTeamBuildingChat: users => {
-            storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(users)
-          },
+  const chatStore = createTBStore('chat2')
+  const chatState = chatStore.getState()
+  chatStore.setState({
+    dispatch: {
+      ...chatState.dispatch,
+      dynamic: {
+        ...chatState.dispatch.dynamic,
+        onFinishedTeamBuildingChat: users => {
+          storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(users)
         },
       },
-    })
-  }
+    },
+  })
 
-  const cryptoStore = TBstores.get('crypto')
-  if (cryptoStore) {
-    const currentState = cryptoStore.getState()
-    cryptoStore.setState({
-      dispatch: {
-        ...currentState.dispatch,
-        dynamic: {
-          ...currentState.dispatch.dynamic,
-          onFinishedTeamBuildingCrypto: users => {
-            useCryptoState.getState().dispatch.onTeamBuildingFinished(users)
-          },
+  const cryptoStore = createTBStore('crypto')
+  const cryptoState = cryptoStore.getState()
+  cryptoStore.setState({
+    dispatch: {
+      ...cryptoState.dispatch,
+      dynamic: {
+        ...cryptoState.dispatch.dynamic,
+        onFinishedTeamBuildingCrypto: users => {
+          useCryptoState.getState().dispatch.onTeamBuildingFinished(users)
         },
       },
-    })
-  }
+    },
+  })
 }
 
 export const initSharedSubscriptions = () => {
