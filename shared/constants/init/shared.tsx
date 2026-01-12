@@ -6,7 +6,7 @@ import {ignorePromise} from '../utils'
 import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
 import type * as UseDevicesStateType from '@/stores/devices'
-import * as AvatarUtil from '@/common-adapters/avatar/util'
+import {useAvatarState} from '@/common-adapters/avatar/store'
 import type * as UseBotsStateType from '@/stores/bots'
 import {useChatState} from '@/stores/chat2'
 import {getSelectedConversation} from '@/constants/chat2/common'
@@ -15,7 +15,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
-import * as DeepLinksUtil from '../deeplinks/util'
+import {handleKeybaseLink} from '../deeplinks'
 import {useFollowerState} from '@/stores/followers'
 import isEqual from 'lodash/isEqual'
 import type * as UseFSStateType from '@/stores/fs'
@@ -40,59 +40,39 @@ let _gitLoaded = false
 
 export const onEngineConnected = () => {
   {
-    // Chat2
-    const f = async () => {
+    const registerUIs = async () => {
       try {
         await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise()
         await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise()
-        console.log('Registered Chat UI')
+        logger.info('Registered Chat UI')
+        await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()
+        logger.info('Registered home UI')
+        await T.RPCGen.delegateUiCtlRegisterSecretUIRpcPromise()
+        logger.info('Registered secret ui')
+        await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
+        logger.info('Registered identify ui')
+        await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
+        logger.info('Registered rekey ui')
       } catch (error) {
-        console.warn('Error in registering Chat UI:', error)
+        logger.error('Error in registering UIs:', error)
       }
     }
-    ignorePromise(f())
+    ignorePromise(registerUIs())
   }
   useConfigState.getState().dispatch.onEngineConnected()
   storeRegistry.getState('daemon').dispatch.startHandshake()
   {
-    const f = async () => {
+    const notifyCtl = async () => {
       try {
+        // prettier-ignore
         await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
           channels: {
-            allowChatNotifySkips: true,
-            app: true,
-            audit: true,
-            badges: true,
-            chat: true,
-            chatarchive: true,
-            chatattachments: true,
-            chatdev: false,
-            chatemoji: false,
-            chatemojicross: false,
-            chatkbfsedits: false,
-            deviceclone: false,
-            ephemeral: false,
-            favorites: false,
-            featuredBots: true,
-            kbfs: true,
-            kbfsdesktop: !isMobile,
-            kbfslegacy: false,
-            kbfsrequest: false,
-            kbfssubscription: true,
-            keyfamily: false,
-            notifysimplefs: true,
-            paperkeys: false,
-            pgp: true,
-            reachability: true,
-            runtimestats: true,
-            saltpack: true,
-            service: true,
-            session: true,
-            team: true,
-            teambot: false,
-            tracking: true,
-            users: true,
-            wallet: false,
+            allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
+            chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
+            deviceclone: false, ephemeral: false, favorites: false, featuredBots: true, kbfs: true, kbfsdesktop: !isMobile,
+            kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
+            paperkeys: false, pgp: true, reachability: true, runtimestats: true, saltpack: true, service: true, session: true,
+            team: true, teambot: false, tracking: true, users: true, wallet: false,
           },
         })
       } catch (error) {
@@ -101,54 +81,7 @@ export const onEngineConnected = () => {
         }
       }
     }
-    ignorePromise(f())
-  }
-  {
-    const f = async () => {
-      try {
-        await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()
-        console.log('Registered home UI')
-      } catch (error) {
-        console.warn('Error in registering home UI:', error)
-      }
-    }
-    ignorePromise(f())
-  }
-  {
-    const f = async () => {
-      try {
-        await T.RPCGen.delegateUiCtlRegisterSecretUIRpcPromise()
-        logger.info('Registered secret ui')
-      } catch (error) {
-        logger.warn('error in registering secret ui: ', error)
-      }
-    }
-    ignorePromise(f())
-  }
-  {
-    // Tracker2
-    const f = async () => {
-      try {
-        await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
-        logger.info('Registered identify ui')
-      } catch (error) {
-        logger.warn('error in registering identify ui: ', error)
-      }
-    }
-    ignorePromise(f())
-  }
-  {
-    // UnlockFolders
-    const f = async () => {
-      try {
-        await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
-        logger.info('Registered rekey ui')
-      } catch (error) {
-        logger.warn('error in registering rekey ui: ')
-        logger.debug('error in registering rekey ui: ', error)
-      }
-    }
-    ignorePromise(f())
+    ignorePromise(notifyCtl())
   }
 }
 
@@ -498,12 +431,20 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    default:
-  }
-  AvatarUtil.onEngineIncoming(action)
-  useConfigState.getState().dispatch.onEngineIncoming(action)
-  DeepLinksUtil.onEngineIncoming(action)
-  switch (action.type) {
+    case EngineGen.keybase1NotifyServiceHandleKeybaseLink:
+      {
+        const {link, deferred} = action.payload.params
+        if (deferred && !link.startsWith('keybase://team-invite-link/')) {
+          return
+        }
+        handleKeybaseLink(link)
+      }
+      break
+    case EngineGen.keybase1NotifyTeamAvatarUpdated: {
+      const {name} = action.payload.params
+      useAvatarState.getState().dispatch.updated(name)
+      break
+    }
     case EngineGen.keybase1NotifyTrackingTrackingChanged: {
       const {isTracking, username} = action.payload.params
       useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
@@ -556,4 +497,5 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break
     default:
   }
+  useConfigState.getState().dispatch.onEngineIncoming(action)
 }

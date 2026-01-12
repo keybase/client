@@ -1,7 +1,6 @@
 import * as Crypto from '../crypto/util'
 import * as Tabs from '../tabs'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
-import * as EngineGen from '@/actions/engine-gen-gen'
 import type HiddenString from '@/util/hidden-string'
 import URL from 'url-parse'
 import logger from '@/logger'
@@ -285,18 +284,4 @@ export const handleSaltPackOpen = (_path: string | HiddenString) => {
   }
   useCryptoState.getState().dispatch.onSaltpackOpenFile(operation, path)
   switchTab(Tabs.cryptoTab)
-}
-
-export const onEngineIncomingImpl = (action: EngineGen.Actions) => {
-  switch (action.type) {
-    case EngineGen.keybase1NotifyServiceHandleKeybaseLink: {
-      const {link, deferred} = action.payload.params
-      if (deferred && !link.startsWith('keybase://team-invite-link/')) {
-        return
-      }
-      handleKeybaseLink(link)
-      break
-    }
-    default:
-  }
 }
