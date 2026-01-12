@@ -61,10 +61,15 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
           logger.error('Error in CancelAutoreset', error)
           switch (error.code) {
             case T.RPCGen.StatusCode.scnosession:
+              // We got logged out because we were revoked (which might have been
+              // because the reset was completed and this device wasn't notified).
               return undefined
             case T.RPCGen.StatusCode.scnotfound:
+              // "User not in autoreset queue."
+              // do nothing, fall out of the catch block to cancel reset modal.
               break
             default:
+              // Any other error - display a red bar in the modal.
               {
                 const desc = error.desc
                 set(s => {
@@ -135,10 +140,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
                     s.endTime = params.endTime * 1000
                   })
                 }
-                  navigateAppend(
-                    {props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'},
-                    true
-                  )
+                navigateAppend({props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'}, true)
               },
             },
             params: {
