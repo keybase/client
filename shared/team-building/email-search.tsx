@@ -6,6 +6,7 @@ import type * as T from '@/constants/types'
 import {validateEmailAddress} from '@/util/email-address'
 import {UserMatchMention} from './phone-search'
 import ContinueButton from './continue-button'
+import {searchWaitingKey} from '@/constants/strings'
 
 type EmailSearchProps = {
   continueLabel: string
@@ -17,7 +18,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   const teamBuildingSearchResults = TB.useTBContext(s => s.searchResults)
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
-  const waiting = C.Waiting.useAnyWaiting(TB.searchWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(searchWaitingKey)
   const user: T.TB.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 

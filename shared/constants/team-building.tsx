@@ -16,5 +16,3 @@ export const selfToUser = (you: string): T.TB.User => ({
   serviceMap: {},
   username: you,
 })
-
-export const searchWaitingKey = 'teamBuilding:search'

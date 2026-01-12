@@ -44,6 +44,8 @@ export const waitingKeyRecoverPassword = 'recover-password:waiting'
 
 export const waitingKeyCrypto = 'cryptoWaiting'
 
+export const searchWaitingKey = 'teamBuilding:search'
+
 export const waitingKeyTeamsLoaded = 'teams:loaded'
 export const waitingKeyTeamsJoinTeam = 'teams:joinTeam'
 export const waitingKeyTeamsTeam = (teamID: T.Teams.TeamID) => `team:${teamID}`
