@@ -1,10 +1,10 @@
-import * as T from '../types'
+import * as T from '@/constants/types'
 import * as ExpoLocation from 'expo-location'
 import * as MediaLibrary from 'expo-media-library'
 import {addNotificationRequest} from 'react-native-kb'
 import logger from '@/logger'
 import {ActionSheetIOS} from 'react-native'
-import {isIOS, isAndroid} from '../platform.native'
+import {isIOS, isAndroid} from '@/constants/platform.native'
 import {androidShare, androidShareText, androidUnlink} from 'react-native-kb'
 
 export const requestPermissionsToWrite = async () => {

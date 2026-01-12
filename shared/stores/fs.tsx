@@ -1,7 +1,7 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as S from '@/constants/strings'
-import {requestPermissionsToWrite} from '@/constants/platform-specific'
+import {requestPermissionsToWrite} from '@/util/platform-specific'
 import * as Tabs from '@/constants/tabs'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'

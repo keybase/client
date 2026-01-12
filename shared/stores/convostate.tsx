@@ -1,7 +1,7 @@
 // TODO remove useChatNavigateAppend
 // TODO remove
 import * as TeamsUtil from '@/constants/teams'
-import * as PlatformSpecific from '@/constants/platform-specific'
+import * as PlatformSpecific from '@/util/platform-specific'
 import {
   clearModals,
   navigateAppend,
