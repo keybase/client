@@ -1,9 +1,10 @@
 import type * as React from 'react'
-import * as Tabs from '@constants/tabs'
-import * as T from '@constants/types'
-import {isLinux, isMobile} from '@constants/platform'
-import {settingsFsTab} from '@constants/settings'
-import {navigateAppend} from '@constants/router2'
+import * as Tabs from '@/constants/tabs'
+import * as T from '@/constants/types'
+import {isLinux, isMobile} from '@/constants/platform'
+import {settingsFsTab} from '@/constants/settings'
+import {navigateAppend} from '@/constants/router2'
+
 export const makeActionForOpenPathInFilesTab = (
   // TODO: remove the second arg when we are done with migrating to nav2
   path: T.FS.Path
