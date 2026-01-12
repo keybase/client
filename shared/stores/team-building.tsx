@@ -1,6 +1,5 @@
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
-import * as Router2 from '@/stores/router2'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
@@ -12,7 +11,7 @@ import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from '@/constants/strings'
-import {navigateUp} from '@/constants/router2'
+import {navigateUp, getModalStack} from '@/constants/router2'
 export {allServices, selfToUser} from '@/constants/team-building'
 export {searchWaitingKey} from '@/constants/strings'
 
@@ -301,7 +300,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       })
     },
     closeTeamBuilding: () => {
-      const modals = Router2.getModalStack()
+      const modals = getModalStack()
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals.at(-1)?.name
       if (routeNames.includes(routeName ?? '')) {
