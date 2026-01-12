@@ -28,7 +28,7 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
   const isNew = React.useContext(NewContext).has(id)
   const you = useCurrentUserState(s => s.username)
   const setTeamRepoSettings = Git.useGitState(s => s.dispatch.setTeamRepoSettings)
-  const _onBrowseGitRepo = FS.makeActionForOpenPathInFilesTab
+  const _onBrowseGitRepo = FS.navToPath
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   const {url: gitURL, repoID, channelName, teamname, chatDisabled} = git

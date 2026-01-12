@@ -19,6 +19,25 @@ import * as Util from '@/constants/fs'
 
 export * from '@/constants/fs'
 
+// Prefetch Constants
+const prefetchNotStarted: T.FS.PrefetchNotStarted = {
+  state: T.FS.PrefetchState.NotStarted,
+}
+
+const prefetchComplete: T.FS.PrefetchComplete = {
+  state: T.FS.PrefetchState.Complete,
+}
+
+const emptyPrefetchInProgress: T.FS.PrefetchInProgress = {
+  bytesFetched: 0,
+  bytesTotal: 0,
+  endEstimate: 0,
+  startTime: 0,
+  state: T.FS.PrefetchState.InProgress,
+}
+
+export {prefetchNotStarted, prefetchComplete}
+
 const subscriptionDeduplicateIntervalSecond = 1
 
 // RPC expects a string that's interpreted as [16]byte on Go side and it has to
@@ -292,19 +311,19 @@ const getPrefetchStatusFromRPC = (
 ) => {
   switch (prefetchStatus) {
     case T.RPCGen.PrefetchStatus.notStarted:
-      return Util.prefetchNotStarted
+      return prefetchNotStarted
     case T.RPCGen.PrefetchStatus.inProgress:
       return {
-        ...Util.emptyPrefetchInProgress,
+        ...emptyPrefetchInProgress,
         bytesFetched: prefetchProgress.bytesFetched,
         bytesTotal: prefetchProgress.bytesTotal,
         endEstimate: prefetchProgress.endEstimate,
         startTime: prefetchProgress.start,
       }
     case T.RPCGen.PrefetchStatus.complete:
-      return Util.prefetchComplete
+      return prefetchComplete
     default:
-      return Util.prefetchNotStarted
+      return prefetchNotStarted
   }
 }
 

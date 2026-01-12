@@ -4,8 +4,9 @@ import * as T from '@/constants/types'
 import {isLinux, isMobile} from '@/constants/platform'
 import {settingsFsTab} from '@/constants/settings'
 import {navigateAppend} from '@/constants/router2'
+import {prefetchNotStarted, prefetchComplete} from '@/stores/fs'
 
-export const makeActionForOpenPathInFilesTab = (
+export const navToPath = (
   // TODO: remove the second arg when we are done with migrating to nav2
   path: T.FS.Path
 ) => {
@@ -16,26 +17,13 @@ export const makeActionForOpenPathInFilesTab = (
 export const ExitCodeFuseKextError = 4
 export const ExitCodeFuseKextPermissionError = 5
 export const ExitCodeAuthCanceledError = 6
+// See Installer.m: KBExitFuseCriticalUpdate
+export const ExitFuseCriticalUpdate = 8
+// See install_darwin.go: exitCodeFuseCriticalUpdateFailed
+export const ExitFuseCriticalUpdateFailed = 300
 
 // Path Constants
 export const defaultPath = T.FS.stringToPath('/keybase')
-
-// Prefetch Constants
-export const prefetchNotStarted: T.FS.PrefetchNotStarted = {
-  state: T.FS.PrefetchState.NotStarted,
-}
-
-export const prefetchComplete: T.FS.PrefetchComplete = {
-  state: T.FS.PrefetchState.Complete,
-}
-
-export const emptyPrefetchInProgress: T.FS.PrefetchInProgress = {
-  bytesFetched: 0,
-  bytesTotal: 0,
-  endEstimate: 0,
-  startTime: 0,
-  state: T.FS.PrefetchState.InProgress,
-}
 
 // PathItem Constants
 const pathItemMetadataDefault = {

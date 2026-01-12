@@ -546,7 +546,7 @@ export const initPlatformListener = () => {
     s.dispatch.dynamic.openFilesFromWidgetDesktop = wrapErrors((path: T.FS.Path) => {
       useConfigState.getState().dispatch.showMain()
       if (path) {
-        Constants.makeActionForOpenPathInFilesTab(path)
+        Constants.navToPath(path)
       } else {
         navigateAppend(Tabs.fsTab)
       }
