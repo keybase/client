@@ -7,14 +7,14 @@ import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
-import {clearModals, navigateAppend, switchTab} from '@/constants/router2/util'
+import {clearModals, navigateAppend, switchTab} from '@/constants/router2'
 import {storeRegistry} from '@/constants/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useWaitingState} from '@/stores/waiting'
-import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings/util'
+import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings'
 
-export * from '@/constants/settings/util'
+export * from '@/constants/settings'
 
 type Store = T.Immutable<{
   checkPasswordIsCorrect?: boolean

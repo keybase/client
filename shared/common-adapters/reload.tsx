@@ -9,7 +9,7 @@ import Text from './text'
 import Button from './button'
 import Icon from './icon'
 import type {RPCError} from '@/util/errors'
-import {settingsFeedbackTab} from '@/constants/settings/util'
+import {settingsFeedbackTab} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
 
 const Kb = {

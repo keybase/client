@@ -11,8 +11,8 @@ import type {Tab} from '@/constants/tabs'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '@/util/errors'
 import {defaultUseNativeFrame, isMobile} from '@/constants/platform'
 import {type CommonResponseHandler} from '@/engine/types'
-import {invalidPasswordErrorString} from '@/constants/config/util'
-import {navigateAppend} from '@/constants/router2/util'
+import {invalidPasswordErrorString} from '@/constants/config'
+import {navigateAppend} from '@/constants/router2'
 
 type Store = T.Immutable<{
   active: boolean

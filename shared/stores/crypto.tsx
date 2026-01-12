@@ -6,10 +6,10 @@ import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
-import {navigateAppend} from '@/constants/router2/util'
+import {navigateAppend} from '@/constants/router2'
 import {useCurrentUserState} from '@/stores/current-user'
-import {Operations} from '@/constants/crypto/util'
-export * from '@/constants/crypto/util'
+import {Operations} from '@/constants/crypto'
+export * from '@/constants/crypto'
 
 type CommonStore = {
   bytesComplete: number

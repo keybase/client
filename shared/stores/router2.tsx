@@ -3,7 +3,7 @@ import * as Z from '@/util/zustand'
 import * as Tabs from '@/constants/tabs'
 import type {RouteKeys} from '@/router-v2/route-params'
 import {storeRegistry} from '@/constants/store-registry'
-import * as Util from '@/constants/router2/util'
+import * as Util from '@/constants/router2'
 
 export {
   type NavState,
@@ -21,8 +21,8 @@ export {
   getRouteLoggedIn,
   useSafeFocusEffect,
   makeScreen,
-} from '@/constants/router2/util'
-export type {PathParam, Navigator} from '@/constants/router2/util'
+} from '@/constants/router2'
+export type {PathParam, Navigator} from '@/constants/router2'
 
 type Store = T.Immutable<{
   navState?: unknown

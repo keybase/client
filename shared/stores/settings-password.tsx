@@ -4,7 +4,7 @@ import {waitingKeySettingsGeneric} from '@/constants/strings'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import * as T from '@/constants/types'
-import {navigateUp} from '@/constants/router2/util'
+import {navigateUp} from '@/constants/router2'
 import {useLogoutState} from '@/stores/logout'
 
 type Store = T.Immutable<{

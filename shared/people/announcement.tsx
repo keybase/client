@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import openURL from '@/util/open-url'
 import * as Kb from '@/common-adapters'
 import PeopleItem from './item'
-import * as Settings from '@/constants/settings/util'
+import * as Settings from '@/constants/settings'
 import {usePeopleState} from '@/stores/people'
 
 type OwnProps = {

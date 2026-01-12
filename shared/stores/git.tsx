@@ -5,7 +5,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
 import debounce from 'lodash/debounce'
-import {navigateAppend} from '@/constants/router2/util'
+import {navigateAppend} from '@/constants/router2'
 import {useConfigState} from '@/stores/config'
 
 const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {

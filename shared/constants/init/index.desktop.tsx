@@ -18,7 +18,7 @@ import {isLinux, isWindows} from '@/constants/platform.desktop'
 import {kbfsNotification} from '@/constants/platform-specific/kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import NotifyPopup from '@/util/notify-popup'
-import {noKBFSFailReason} from '@/constants/config/util'
+import {noKBFSFailReason} from '@/constants/config'
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {wrapErrors} from '@/util/debug'
 
