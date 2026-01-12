@@ -9,8 +9,7 @@ import KB2 from '@/util/electron.desktop'
 import {uint8ArrayToHex} from 'uint8array-extras'
 import {navigateAppend} from '@/constants/router2'
 import {useConfigState} from '@/stores/config'
-
-const useFSState = Constants.useFSState
+import {useFSState, errorToActionOrThrow} from '@/stores/fs'
 
 const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
 const {darwinCopyToKBFSTempUploadFile, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
@@ -129,7 +128,7 @@ const onInstallCachedDokan = async () => {
     await installCachedDokan?.()
     useFSState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
   } catch (e) {
-    Constants.errorToActionOrThrow(e)
+    errorToActionOrThrow(e)
   }
 }
 
@@ -166,7 +165,7 @@ const initPlatformSpecific = () => {
             await _openPathInSystemFileManagerPromise(localPath, pathType === 'directory')
           }
         } catch (e) {
-          Constants.errorToActionOrThrow(e)
+          errorToActionOrThrow(e)
         }
       }
       ignorePromise(f())
@@ -180,7 +179,7 @@ const initPlatformSpecific = () => {
               _rebaseKbfsPathToMountLocation(path, sfmi.directMountDir),
               ![T.FS.PathKind.InGroupTlf, T.FS.PathKind.InTeamTlf].includes(Constants.parsePath(path).kind) ||
                 Constants.getPathItem(pathItems, path).type === T.FS.PathType.Folder
-            ).catch((e: unknown) => Constants.errorToActionOrThrow(e, path))
+            ).catch((e: unknown) => errorToActionOrThrow(e, path))
           : new Promise<void>((resolve, reject) => {
               if (sfmi.driverStatus.type !== T.FS.DriverStatusType.Enabled) {
                 // This usually indicates a developer error as
