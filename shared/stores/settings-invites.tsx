@@ -5,7 +5,7 @@ import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import trim from 'lodash/trim'
 import * as T from '@/constants/types'
-import {navigateAppend} from '@/constants/router2/util'
+import {navigateAppend} from '@/constants/router2'
 
 type InviteBase = {
   id: string

@@ -9,7 +9,7 @@ import {
   navigateUp,
   navUpToScreen,
   navToProfile,
-} from '@/constants/router2/util'
+} from '@/constants/router2'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import logger from '@/logger'
@@ -19,11 +19,11 @@ import {isMobile, isPhone} from '@/constants/platform'
 import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {fixCrop} from '@/util/crop'
-import {storeRegistry} from '@/constants/store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import * as Util from '@/constants/teams/util'
-import {getTab} from '@/constants/router2/util'
+import * as Util from '@/constants/teams'
+import {getTab} from '@/constants/router2'
 
 export {
   baseRetentionPolicies,
@@ -33,7 +33,7 @@ export {
   teamRoleByEnum,
   retentionPolicyToServiceRetentionPolicy,
   userIsRoleInTeamWithInfo,
-} from '@/constants/teams/util'
+} from '@/constants/teams'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 

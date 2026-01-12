@@ -1,4 +1,4 @@
-import * as T from '../types'
+import * as T from './types'
 import invert from 'lodash/invert'
 
 export const makeRetentionPolicy = (

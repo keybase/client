@@ -1,5 +1,5 @@
 import uniq from 'lodash/uniq'
-import {runMode} from '../platform'
+import {runMode} from './platform'
 // An ugly error message from the service that we'd like to rewrite ourselves.
 export const invalidPasswordErrorString = 'Bad password: Invalid password. Server rejected login attempt..'
 

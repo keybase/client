@@ -6,8 +6,8 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
-import {navigateAppend, navigateUp} from '@/constants/router2/util'
-import {storeRegistry} from '@/constants/store-registry'
+import {navigateAppend, navigateUp} from '@/constants/router2'
+import {storeRegistry} from '@/stores/store-registry'
 import {useCurrentUserState} from '@/stores/current-user'
 
 export const noDetails: T.Tracker.Details = {

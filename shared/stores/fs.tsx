@@ -11,13 +11,13 @@ import logger from '@/logger'
 import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
-import {navigateAppend, navigateUp} from '@/constants/router2/util'
-import {storeRegistry} from '@/constants/store-registry'
+import {navigateAppend, navigateUp} from '@/constants/router2'
+import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import * as Util from '@/constants/fs/util'
+import * as Util from '@/constants/fs'
 
-export * from '@/constants/fs/util'
+export * from '@/constants/fs'
 
 const subscriptionDeduplicateIntervalSecond = 1
 

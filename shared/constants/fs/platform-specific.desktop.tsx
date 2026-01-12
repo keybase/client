@@ -7,7 +7,7 @@ import logger from '@/logger'
 import * as Path from '@/util/path'
 import KB2 from '@/util/electron.desktop'
 import {uint8ArrayToHex} from 'uint8array-extras'
-import {navigateAppend} from '../router2/util'
+import {navigateAppend} from '../router2'
 import {useConfigState} from '@/stores/config'
 
 const useFSState = Constants.useFSState

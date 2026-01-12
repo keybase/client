@@ -1,10 +1,10 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
 import {shallowEqual} from '../utils'
-import * as T from '../types'
-import * as Teams from '../teams/util'
+import * as T from '@/constants/types'
+import * as Teams from '@/constants/teams'
 import * as Message from './message'
 import {base64ToUint8Array, uint8ArrayToHex} from 'uint8array-extras'
-import {storeRegistry} from '../store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {

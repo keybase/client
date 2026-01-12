@@ -1,4 +1,4 @@
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 
 export const fixCrop = (c?: T.RPCChat.Keybase1.ImageCropRect) => {
   return c

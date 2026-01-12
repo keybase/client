@@ -1,6 +1,6 @@
 // TODO remove useChatNavigateAppend
 // TODO remove
-import * as TeamsUtil from '../teams/util'
+import * as TeamsUtil from '../teams'
 import * as PlatformSpecific from '../platform-specific'
 import {
   clearModals,
@@ -11,7 +11,7 @@ import {
   getVisibleScreen,
   getModalStack,
   navToThread,
-} from '../router2/util'
+} from '../router2'
 import {isIOS} from '../platform'
 import {updateImmer} from '../utils'
 import * as T from '../types'
@@ -23,7 +23,7 @@ import * as Message from './message'
 import * as Meta from './meta'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
-import {makeActionForOpenPathInFilesTab} from '@/constants/fs/util'
+import {makeActionForOpenPathInFilesTab} from '@/constants/fs'
 import HiddenString from '@/util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
@@ -41,12 +41,12 @@ import {hexToUint8Array} from 'uint8array-extras'
 import assign from 'lodash/assign'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {registerDebugClear} from '@/util/debug'
-import * as Config from '@/constants/config/util'
+import * as Config from '@/constants/config'
 import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual} from '../utils'
 import * as Strings from '@/constants/strings'
 
-import {storeRegistry} from '../store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 

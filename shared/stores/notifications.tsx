@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 import {isMobile} from '@/constants/platform'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '@/constants/tabs'
-import {storeRegistry} from '@/constants/store-registry'
+import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 
