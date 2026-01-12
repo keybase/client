@@ -99,17 +99,17 @@ export const onEngineDisconnected = () => {
 
 export const initTeamBuildingCallbacks = () => {
   const commonCallbacks = {
-    onShowUserProfile: (username: string) => {
-      useProfileState.getState().dispatch.showUserProfile(username)
-    },
     onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => {
       useTeamsState.getState().dispatch.addMembersWizardPushMembers(members)
     },
-    onUsersUpdates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-      useUsersState.getState().dispatch.updates(infos)
+    onShowUserProfile: (username: string) => {
+      useProfileState.getState().dispatch.showUserProfile(username)
     },
     onUsersGetBlockState: (usernames: ReadonlyArray<string>) => {
       useUsersState.getState().dispatch.getBlockState(usernames)
+    },
+    onUsersUpdates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+      useUsersState.getState().dispatch.updates(infos)
     },
   }
 

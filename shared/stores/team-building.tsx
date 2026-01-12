@@ -308,6 +308,9 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       }
     },
     dynamic: {
+      onAddMembersWizardPushMembers: (_members: Array<T.Teams.AddingMember>) => {
+        throw new Error('onAddMembersWizardPushMembers not properly initialized')
+      },
       onFinishedTeamBuildingChat: (_users: ReadonlySet<T.TB.User>) => {
         throw new Error('onFinishedTeamBuildingChat not properly initialized')
       },
@@ -317,14 +320,11 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       onShowUserProfile: (_username: string) => {
         throw new Error('onShowUserProfile not properly initialized')
       },
-      onAddMembersWizardPushMembers: (_members: Array<T.Teams.AddingMember>) => {
-        throw new Error('onAddMembersWizardPushMembers not properly initialized')
+      onUsersGetBlockState: (_usernames: ReadonlyArray<string>) => {
+        throw new Error('onUsersGetBlockState not properly initialized')
       },
       onUsersUpdates: (_infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
         throw new Error('onUsersUpdates not properly initialized')
-      },
-      onUsersGetBlockState: (_usernames: ReadonlyArray<string>) => {
-        throw new Error('onUsersGetBlockState not properly initialized')
       },
     },
     fetchUserRecs: () => {
