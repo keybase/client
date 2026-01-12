@@ -12,7 +12,7 @@ import * as Meta from '@/constants/chat2/meta'
 import {isMobile, isPhone} from '@/constants/platform'
 import * as Z from '@/util/zustand'
 import * as Common from '@/constants/chat2/common'
-import {clearChatStores, chatStores} from '@/constants/chat2/convostate'
+import {clearChatStores, chatStores} from '@/stores/convostate'
 import {uint8ArrayToString} from 'uint8array-extras'
 import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '@/constants/rpc-utils'
@@ -1966,7 +1966,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
   }
 })
 
-import {type ChatProviderProps, ProviderScreen} from '@/constants/chat2/convostate'
+import {type ChatProviderProps, ProviderScreen} from '@/stores/convostate'
 import type {GetOptionsRet} from '@/constants/types/router2'
 
 export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
@@ -1992,7 +1992,7 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
   }
 }
 
-export * from '@/constants/chat2/convostate'
+export * from '@/stores/convostate'
 export * from '@/constants/chat2/common'
 export * from '@/constants/chat2/meta'
 export * from '@/constants/chat2/message'

@@ -1,7 +1,7 @@
 // Message related constants
 import * as T from '../types'
 import * as TeamsUtil from '@/constants/teams'
-import type * as ConvoConstants from './convostate'
+import type * as ConvoConstants from '@/stores/convostate'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
 import type * as MessageTypes from '@/constants/types/chat2/message'

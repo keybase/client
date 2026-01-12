@@ -37,7 +37,7 @@ import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from '../types/chat2/common'
 import {getSelectedConversation} from '../chat2/common'
-import {getConvoState} from '../chat2/convostate'
+import {getConvoState} from '@/stores/convostate'
 import {requestLocationPermission, showShareActionSheet} from '../platform-specific/index.native'
 
 const loadStartupDetails = async () => {

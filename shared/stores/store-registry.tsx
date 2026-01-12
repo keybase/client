@@ -2,8 +2,8 @@
 // ONLY for zustand stores
 import type * as T from '@/constants/types'
 import type * as TBType from '@/stores/team-building'
-import type * as ConvoStateType from '@/constants/chat2/convostate'
-import type {ConvoState} from '@/constants/chat2/convostate'
+import type * as ConvoStateType from '@/stores/convostate'
+import type {ConvoState} from '@/stores/convostate'
 import type {State as AutoResetState, useAutoResetState} from '@/stores/autoreset'
 import type {State as BotsState, useBotsState} from '@/stores/bots'
 import type {State as ChatState, useChatState} from '@/stores/chat2'
@@ -228,7 +228,7 @@ class StoreRegistry {
   }
 
   getConvoState(id: T.Chat.ConversationIDKey): ConvoState {
-    const {getConvoState} = require('@/constants/chat2/convostate') as typeof ConvoStateType
+    const {getConvoState} = require('@/stores/convostate') as typeof ConvoStateType
     return getConvoState(id)
   }
 }
