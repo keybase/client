@@ -14,6 +14,8 @@ type OwnProps = {
   tlfName?: string
   // don't use the drag drop functionality, just upload the outbox IDs
   noDragDrop?: boolean
+  // Only compress videos when attaching from the chat input flow
+  shouldCompress?: boolean
 }
 
 type Info = {
@@ -37,7 +39,7 @@ const pathToAttachmentType = (path: string) => {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {titles: _titles, tlfName, pathAndOutboxIDs: initialPathAndOutboxIDs} = ownProps
+  const {titles: _titles, tlfName, pathAndOutboxIDs: initialPathAndOutboxIDs, shouldCompress} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -64,6 +66,9 @@ const Container = (ownProps: OwnProps) => {
   const [isCompressing, setIsCompressing] = React.useState(false)
 
   React.useEffect(() => {
+    if (!shouldCompress) {
+      return
+    }
     const videosToCompress = initialPathAndOutboxIDs.filter(({path}) => pathToAttachmentType(path) === 'video')
     if (videosToCompress.length === 0) {
       return
@@ -83,7 +88,7 @@ const Container = (ownProps: OwnProps) => {
       setIsCompressing(false)
     }
     C.ignorePromise(compressVideos())
-  }, [initialPathAndOutboxIDs])
+  }, [initialPathAndOutboxIDs, shouldCompress])
 
   const pathAndOutboxIDs = isCompressing ? initialPathAndOutboxIDs : compressedPathAndOutboxIDs
 
