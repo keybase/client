@@ -14,6 +14,7 @@ import type {Props} from './platform-input'
 import {Keyboard, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
 import {formatDurationShort} from '@/util/timestamp'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
+import {compressVideo} from '@/util/compress-video.native'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
 import {MaxInputAreaContext} from './max-input-area-context'
@@ -206,11 +207,16 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
       const f = async () => {
-        const handleSelection = (result: ImagePicker.ImagePickerResult) => {
+        const handleSelection = async (result: ImagePicker.ImagePickerResult) => {
           if (result.canceled || result.assets.length === 0 || !conversationIDKey) {
             return
           }
-          const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
+          const pathAndOutboxIDs = await Promise.all(
+            result.assets.map(async a => {
+              const path = a.type === 'video' ? await compressVideo(a.uri) : a.uri
+              return {path}
+            })
+          )
           navigateAppend(conversationIDKey => ({
             props: {conversationIDKey, pathAndOutboxIDs},
             selected: 'chatAttachmentGetTitles',
