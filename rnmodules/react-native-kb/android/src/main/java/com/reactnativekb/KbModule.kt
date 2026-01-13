@@ -64,6 +64,7 @@ import androidx.media3.transformer.TransformationRequest
 import androidx.media3.transformer.Transformer
 import androidx.media3.transformer.EditedMediaItem
 import androidx.media3.effect.ScaleAndRotateTransformation
+import androidx.media3.effect.Effects
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import java.nio.ByteBuffer
@@ -146,10 +147,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         val targetBitrate = calculateBitrate(outputWidth, outputHeight)
         
         // Use Media3 Transformer for simple, reliable transcoding
+        // Note: Bitrate is controlled by the encoder automatically based on resolution
+        // Media3 Transformer doesn't expose direct bitrate control in TransformationRequest
         val transformationRequest = TransformationRequest.Builder()
             .setVideoMimeType(MimeTypes.VIDEO_H264)
             .setAudioMimeType(MimeTypes.AUDIO_AAC)
-            .setVideoBitrate(targetBitrate)
             .build()
         
         val transformer = Transformer.Builder(reactContext)
@@ -167,7 +169,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             val scaleX = outputWidth.toFloat() / originalWidth.toFloat()
             val scaleY = outputHeight.toFloat() / originalHeight.toFloat()
             editedMediaItemBuilder.setEffects(
-                androidx.media3.effect.Effects(
+                Effects(
                     listOf(ScaleAndRotateTransformation.Builder().setScale(scaleX, scaleY).build())
                 )
             )
