@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useGitState} from '@/stores/git'
 import UserNotice from '../user-notice'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemGitPush}
@@ -21,7 +21,7 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
           '/.kbfs_autogit_commit_' +
           commitHash
       )
-      FS.makeActionForOpenPathInFilesTab(path)
+      FS.navToPath(path)
     },
     [message]
   )

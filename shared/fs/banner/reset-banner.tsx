@@ -21,7 +21,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       if (pathElems.length < 3) return
       const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
       const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-      FS.makeActionForOpenPathInFilesTab(filteredPath)
+      FS.navToPath(filteredPath)
     },
     []
   )

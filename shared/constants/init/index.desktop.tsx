@@ -9,13 +9,13 @@ import {useProfileState} from '@/stores/profile'
 import {useRouterState} from '@/stores/router2'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '@/constants/types'
-import InputMonitor from '@/constants/platform-specific/input-monitor.desktop'
+import InputMonitor from '@/util/platform-specific/input-monitor.desktop'
 import KB2 from '@/util/electron.desktop'
 import logger from '@/logger'
 import type {RPCError} from '@/util/errors'
 import {getEngine} from '@/engine'
 import {isLinux, isWindows, isDarwin, pathSep} from '@/constants/platform.desktop'
-import {kbfsNotification} from '@/constants/platform-specific/kbfs-notifications'
+import {kbfsNotification} from '@/util/platform-specific/kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import NotifyPopup from '@/util/notify-popup'
 import {noKBFSFailReason} from '@/constants/config'
@@ -27,6 +27,7 @@ import * as Path from '@/util/path'
 import {uint8ArrayToHex} from 'uint8array-extras'
 import {navigateAppend} from '@/constants/router2'
 import {errorToActionOrThrow} from '@/stores/fs'
+import {ExitCodeFuseKextPermissionError} from '@/constants/values'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, ctlQuit, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, copyToClipboard} = KB2.functions
@@ -184,7 +185,7 @@ const fuseStatusToActions =
 
 const fuseInstallResultIsKextPermissionError = (result: T.RPCGen.InstallResult): boolean =>
   result.componentResults?.findIndex(
-    c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
+    c => c.name === 'fuse' && c.exitCode === ExitCodeFuseKextPermissionError
   ) !== -1
 
 const driverEnableFuse = async (isRetry: boolean) => {
@@ -546,7 +547,7 @@ export const initPlatformListener = () => {
     s.dispatch.dynamic.openFilesFromWidgetDesktop = wrapErrors((path: T.FS.Path) => {
       useConfigState.getState().dispatch.showMain()
       if (path) {
-        Constants.makeActionForOpenPathInFilesTab(path)
+        Constants.navToPath(path)
       } else {
         navigateAppend(Tabs.fsTab)
       }
@@ -577,7 +578,6 @@ export const initPlatformListener = () => {
   })
 
   initSharedSubscriptions()
-  
 }
 
 export {onEngineConnected, onEngineDisconnected} from './shared'

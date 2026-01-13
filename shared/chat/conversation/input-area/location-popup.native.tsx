@@ -7,7 +7,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import LocationMap from '@/chat/location-map'
 import {useCurrentUserState} from '@/stores/current-user'
-import {requestLocationPermission} from '@/constants/platform-specific'
+import {requestLocationPermission} from '@/util/platform-specific'
 import * as ExpoLocation from 'expo-location'
 
 const useWatchPosition = (conversationIDKey: T.Chat.ConversationIDKey) => {

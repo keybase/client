@@ -1,4 +1,4 @@
-import type * as T from '../types'
+import type * as T from '@/constants/types'
 
 type NextURI = string
 

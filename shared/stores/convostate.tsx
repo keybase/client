@@ -1,7 +1,7 @@
 // TODO remove useChatNavigateAppend
 // TODO remove
 import * as TeamsUtil from '@/constants/teams'
-import * as PlatformSpecific from '@/constants/platform-specific'
+import * as PlatformSpecific from '@/util/platform-specific'
 import {
   clearModals,
   navigateAppend,
@@ -23,7 +23,7 @@ import * as Message from '@/constants/chat2/message'
 import * as Meta from '@/constants/chat2/meta'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
-import {makeActionForOpenPathInFilesTab} from '@/constants/fs'
+import {navToPath} from '@/constants/fs'
 import HiddenString from '@/util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
@@ -2361,7 +2361,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           ? Config.teamFolder(meta.teamname)
           : Config.privateFolderWithUsers(participantInfo.name)
       )
-      makeActionForOpenPathInFilesTab(path)
+      navToPath(path)
     },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {

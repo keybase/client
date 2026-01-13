@@ -9,7 +9,7 @@ import type * as T from '@/constants/types'
 import {pickFiles} from '@/util/pick-files'
 import type HiddenString from '@/util/hidden-string'
 import {useFSState} from '@/stores/fs'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useConfigState} from '@/stores/config'
 
 type OutputProps = {operation: T.Crypto.Operations}

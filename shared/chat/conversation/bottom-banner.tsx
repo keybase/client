@@ -7,6 +7,7 @@ import {assertionToDisplay} from '@/common-adapters/usernames'
 import type {Props as TextProps} from '@/common-adapters/text'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
+import {showShareActionSheet} from '@/util/platform-specific'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
@@ -16,7 +17,7 @@ const Invite = () => {
   const users = participantInfoAll.filter(p => p.includes('@'))
 
   const openShareSheet = () => {
-    C.PlatformSpecific.showShareActionSheet({
+    showShareActionSheet({
       message: installMessage,
       mimeType: 'text/plain',
     })
