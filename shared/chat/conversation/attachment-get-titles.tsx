@@ -3,6 +3,7 @@ import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {compressVideo} from '@/util/compress-video.native'
 
 type OwnProps = {
   pathAndOutboxIDs: Array<T.Chat.PathAndOutboxID>
@@ -36,7 +37,7 @@ const pathToAttachmentType = (path: string) => {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
+  const {titles: _titles, tlfName, pathAndOutboxIDs: initialPathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -44,7 +45,7 @@ const Container = (ownProps: OwnProps) => {
   const attachmentUploadCanceled = Chat.useChatContext(s => s.dispatch.attachmentUploadCanceled)
   const onCancel = () => {
     attachmentUploadCanceled(
-      pathAndOutboxIDs.reduce((l: Array<T.RPCChat.OutboxID>, {outboxID}) => {
+      initialPathAndOutboxIDs.reduce((l: Array<T.RPCChat.OutboxID>, {outboxID}) => {
         if (outboxID) {
           l.push(outboxID)
         }
@@ -56,8 +57,41 @@ const Container = (ownProps: OwnProps) => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const attachmentsUpload = Chat.useChatContext(s => s.dispatch.attachmentsUpload)
   const attachFromDragAndDrop = Chat.useChatContext(s => s.dispatch.attachFromDragAndDrop)
+
+  const [compressedPathAndOutboxIDs, setCompressedPathAndOutboxIDs] = React.useState<Array<T.Chat.PathAndOutboxID>>(
+    initialPathAndOutboxIDs.map(({path, outboxID, url}) => ({path, outboxID, url}))
+  )
+  const [isCompressing, setIsCompressing] = React.useState(false)
+
+  React.useEffect(() => {
+    const videosToCompress = initialPathAndOutboxIDs.filter(({path}) => pathToAttachmentType(path) === 'video')
+    if (videosToCompress.length === 0) {
+      return
+    }
+    const compressVideos = async () => {
+      setIsCompressing(true)
+      const compressed = await Promise.all(
+        initialPathAndOutboxIDs.map(async ({path, outboxID, url}) => {
+          if (pathToAttachmentType(path) === 'video') {
+            const compressedPath = await compressVideo(path)
+            return {path: compressedPath, outboxID, url}
+          }
+          return {path, outboxID, url}
+        })
+      )
+      setCompressedPathAndOutboxIDs(compressed)
+      setIsCompressing(false)
+    }
+    C.ignorePromise(compressVideos())
+  }, [initialPathAndOutboxIDs])
+
+  const pathAndOutboxIDs = isCompressing ? initialPathAndOutboxIDs : compressedPathAndOutboxIDs
+
   const _onSubmit = React.useCallback(
     (titles: Array<string>, spoiler: boolean) => {
+      if (isCompressing) {
+        return
+      }
       tlfName || noDragDrop
         ? attachmentsUpload(pathAndOutboxIDs, titles, tlfName, spoiler)
         : attachFromDragAndDrop(pathAndOutboxIDs, titles)
@@ -76,6 +110,7 @@ const Container = (ownProps: OwnProps) => {
       pathAndOutboxIDs,
       selectConversationWithReason,
       tlfName,
+      isCompressing,
     ]
   )
   const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}) => {
@@ -166,6 +201,20 @@ const Container = (ownProps: OwnProps) => {
   return (
     <Kb.PopupWrapper onCancel={onCancel}>
       <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
+        {isCompressing && (
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            fullHeight={true}
+            style={styles.compressingOverlay}
+            centerChildren={true}
+          >
+            <Kb.ProgressIndicator />
+            <Kb.Text type="Body" style={styles.compressingText}>
+              Compressing video...
+            </Kb.Text>
+          </Kb.Box2>
+        )}
         <Kb.ClickableBox2 style={styles.container2} onClick={() => inputRef.current?.blur()}>
           <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
             <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
@@ -204,12 +253,14 @@ const Container = (ownProps: OwnProps) => {
         </Kb.ClickableBox2>
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
           {!Kb.Styles.isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
-          {isLast ? (
+          {isCompressing ? (
+            <Kb.WaitingButton fullWidth={true} onClick={() => {}} label="Compressing..." waiting={true} />
+          ) : isLast ? (
             <Kb.WaitingButton fullWidth={!multiUpload} onClick={onSubmit} label="Send" />
           ) : (
             <Kb.Button fullWidth={!multiUpload} onClick={onNext} label="Next" />
           )}
-          {multiUpload ? <Kb.WaitingButton onClick={onSubmit} label="Send All" /> : null}
+          {!isCompressing && multiUpload ? <Kb.WaitingButton onClick={onSubmit} label="Send All" /> : null}
         </Kb.ButtonBar>
       </Kb.Box2>
     </Kb.PopupWrapper>
@@ -320,6 +371,14 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: {borderRadius: Kb.Styles.borderRadius},
       }),
+      compressingOverlay: {
+        backgroundColor: Kb.Styles.globalColors.white_90,
+        position: 'absolute',
+        zIndex: 1000,
+      },
+      compressingText: {
+        marginTop: Kb.Styles.globalMargins.small,
+      },
     }) as const
 )
 export default Container

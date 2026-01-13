@@ -211,12 +211,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
           if (result.canceled || result.assets.length === 0 || !conversationIDKey) {
             return
           }
-          const pathAndOutboxIDs = await Promise.all(
-            result.assets.map(async a => {
-              const path = a.type === 'video' ? await compressVideo(a.uri) : a.uri
-              return {path}
-            })
-          )
+          const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
           navigateAppend(conversationIDKey => ({
             props: {conversationIDKey, pathAndOutboxIDs},
             selected: 'chatAttachmentGetTitles',
