@@ -94,7 +94,8 @@ const ConversationList = React.memo(function ConversationList() {
   const [lastED, setLastED] = React.useState(extraData)
 
   const loaded = Chat.useChatContext(s => s.loaded)
-  const centeredOrdinal = Chat.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
+  const centeredOrdinal =
+    Chat.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
   const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
   const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
 
@@ -187,10 +188,12 @@ const ConversationList = React.memo(function ConversationList() {
     if (!justLoaded) return
 
     if (centeredOrdinal > 0) {
+      scrollToCentered()
       setTimeout(() => {
         scrollToCentered()
       }, 100)
     } else if (numOrdinals > 0) {
+      scrollToBottom()
       setTimeout(() => {
         scrollToBottom()
       }, 100)
