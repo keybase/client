@@ -27,6 +27,7 @@ import * as Path from '@/util/path'
 import {uint8ArrayToHex} from 'uint8array-extras'
 import {navigateAppend} from '@/constants/router2'
 import {errorToActionOrThrow} from '@/stores/fs'
+import {ExitCodeFuseKextPermissionError} from '@/constants/values'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, ctlQuit, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, copyToClipboard} = KB2.functions
@@ -184,7 +185,7 @@ const fuseStatusToActions =
 
 const fuseInstallResultIsKextPermissionError = (result: T.RPCGen.InstallResult): boolean =>
   result.componentResults?.findIndex(
-    c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
+    c => c.name === 'fuse' && c.exitCode === ExitCodeFuseKextPermissionError
   ) !== -1
 
 const driverEnableFuse = async (isRetry: boolean) => {
@@ -577,7 +578,6 @@ export const initPlatformListener = () => {
   })
 
   initSharedSubscriptions()
-  
 }
 
 export {onEngineConnected, onEngineDisconnected} from './shared'

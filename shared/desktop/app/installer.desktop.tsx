@@ -15,7 +15,7 @@ import {
   ExitCodeFuseKextPermissionError,
   ExitFuseCriticalUpdate,
   ExitFuseCriticalUpdateFailed,
-} from '@/constants/fs'
+} from '@/constants/values'
 
 const file = path.join(Electron.app.getPath('userData'), 'installer.json')
 

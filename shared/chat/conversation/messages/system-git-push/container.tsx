@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useGitState} from '@/stores/git'
 import UserNotice from '../user-notice'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemGitPush}

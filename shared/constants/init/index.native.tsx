@@ -44,7 +44,8 @@ import {
   saveAttachmentToCameraRoll,
   showShareActionSheet,
 } from '@/util/platform-specific/index.native'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
+import {errorToActionOrThrow} from '@/stores/fs'
 import * as Styles from '@/styles'
 
 const finishedRegularDownloadIDs = new Set<string>()
@@ -520,7 +521,7 @@ export const initPlatformListener = () => {
               useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(r.uri))
             )
           } catch (e) {
-            FS.errorToActionOrThrow(e)
+            errorToActionOrThrow(e)
           }
         }
         ignorePromise(f())
@@ -559,7 +560,7 @@ export const initPlatformListener = () => {
                 return
             }
           } catch (err) {
-            FS.errorToActionOrThrow(err)
+            errorToActionOrThrow(err)
           }
         }
         ignorePromise(f())

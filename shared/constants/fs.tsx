@@ -1,8 +1,17 @@
-import type * as React from 'react'
 import * as T from '@/constants/types'
 import {isLinux, isMobile} from '@/constants/platform'
 import {navigateAppend} from '@/constants/router2'
-import {prefetchNotStarted, prefetchComplete} from '@/stores/fs'
+
+// Prefetch Constants
+const prefetchNotStarted: T.FS.PrefetchNotStarted = {
+  state: T.FS.PrefetchState.NotStarted,
+}
+
+const prefetchComplete: T.FS.PrefetchComplete = {
+  state: T.FS.PrefetchState.Complete,
+}
+
+export {prefetchNotStarted, prefetchComplete}
 
 export const navToPath = (
   // TODO: remove the second arg when we are done with migrating to nav2
@@ -10,15 +19,6 @@ export const navToPath = (
 ) => {
   navigateAppend({props: {path}, selected: 'fsRoot'})
 }
-
-// Exit Codes
-export const ExitCodeFuseKextError = 4
-export const ExitCodeFuseKextPermissionError = 5
-export const ExitCodeAuthCanceledError = 6
-// See Installer.m: KBExitFuseCriticalUpdate
-export const ExitFuseCriticalUpdate = 8
-// See install_darwin.go: exitCodeFuseCriticalUpdateFailed
-export const ExitFuseCriticalUpdateFailed = 300
 
 // Path Constants
 export const defaultPath = T.FS.stringToPath('/keybase')
@@ -73,8 +73,17 @@ export const unknownTlf = (() => {
   })
   const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
   const makeTlf = (p: Partial<T.FS.Tlf>): T.FS.Tlf => {
-    const {conflictState, isFavorite, isIgnored, isNew, name, resetParticipants, syncConfig, teamId, tlfMtime} =
-      p
+    const {
+      conflictState,
+      isFavorite,
+      isIgnored,
+      isNew,
+      name,
+      resetParticipants,
+      syncConfig,
+      teamId,
+      tlfMtime,
+    } = p
     return {
       conflictState: conflictState || tlfNormalViewWithNoConflict,
       isFavorite: isFavorite || false,
@@ -753,8 +762,6 @@ export const hideOrDisableInDestinationPicker = (
 ) => typeof destinationPickerIndex === 'number' && tlfType === T.FS.TlfType.Public && name !== username
 
 // Other Utilities
-export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): DOMRect | undefined =>
-  isMobile ? undefined : evt ? (evt.target as HTMLElement).getBoundingClientRect() : undefined
 
 export const showIgnoreFolder = (path: T.FS.Path, username?: string): boolean => {
   const elems = T.FS.getPathElements(path)
@@ -763,4 +770,3 @@ export const showIgnoreFolder = (path: T.FS.Path, username?: string): boolean =>
   }
   return ['public', 'private'].includes(elems[1]!) && elems[2]! !== username
 }
-

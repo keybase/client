@@ -10,7 +10,7 @@ import NewChatCard from './cards/new-chat'
 import ProfileResetNotice from './system-profile-reset-notice'
 import RetentionNotice from './retention-notice'
 import {usingFlashList} from '../list-area/flashlist-config'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const ErrorMessage = () => {
