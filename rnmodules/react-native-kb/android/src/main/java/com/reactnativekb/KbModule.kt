@@ -63,8 +63,8 @@ import android.media.MediaMetadataRetriever
 import androidx.media3.transformer.TransformationRequest
 import androidx.media3.transformer.Transformer
 import androidx.media3.transformer.EditedMediaItem
+import androidx.media3.transformer.Effects
 import androidx.media3.effect.ScaleAndRotateTransformation
-import androidx.media3.effect.Effects
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import java.nio.ByteBuffer
@@ -172,11 +172,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                 .setScale(scaleX, scaleY)
                 .build()
             // Effects class wraps video effects and audio processors
+            // Constructor takes (audioProcessors, videoEffects) as positional parameters
             editedMediaItemBuilder.setEffects(
-                Effects(
-                    audioProcessors = listOf(),
-                    videoEffects = listOf(scaleTransformation)
-                )
+                Effects(listOf(), listOf(scaleTransformation))
             )
         }
         val editedMediaItem = editedMediaItemBuilder.build()
