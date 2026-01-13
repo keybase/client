@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
   if respond_to?(:install_modules_dependencies, true)
       s.pod_target_xcconfig    = {
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" $(PODS_ROOT)/../../node_modules/msgpack-cxx-6.1.0/include $(PODS_ROOT)/../keybasego.xcframework/ios-arm64/Keybasego.framework/Headers",
-          "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1",
+          "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1 -fmodules -fcxx-modules",
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
           "CLANG_ENABLE_MODULES" => "YES"
       }
@@ -40,7 +40,7 @@ Pod::Spec.new do |s|
       s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
       s.pod_target_xcconfig    = {
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" $(PODS_ROOT)/../../node_modules/msgpack-cxx-6.1.0/include $(PODS_ROOT)/../keybasego.xcframework/ios-arm64/Keybasego.framework/Headers",
-          "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1",
+          "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1 -fmodules -fcxx-modules",
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
           "CLANG_ENABLE_MODULES" => "YES"
       }
@@ -52,7 +52,7 @@ Pod::Spec.new do |s|
     else
       s.pod_target_xcconfig    = {
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" $(PODS_ROOT)/../../node_modules/msgpack-cxx-6.1.0/include $(PODS_ROOT)/../keybasego.xcframework/ios-arm64/Keybasego.framework/Headers",
-          "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1",
+          "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1 -fmodules -fcxx-modules",
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
           "CLANG_ENABLE_MODULES" => "YES"
       }
