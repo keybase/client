@@ -16,9 +16,7 @@
 #import <objc/runtime.h>
 #import "./KBJSScheduler.h"
 #import "RNKbSpec.h"
-#if __has_include(<KBCommon/MediaUtils-Swift.h>)
 #import <KBCommon/MediaUtils-Swift.h>
-#endif
 
 using namespace facebook::jsi;
 using namespace facebook;
@@ -501,7 +499,6 @@ RCT_EXPORT_METHOD(addNotificationRequest: (NSDictionary *)config resolve: (RCTPr
 }
 
 RCT_EXPORT_METHOD(processVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
-#if __has_include(<KBCommon/MediaUtils-Swift.h>)
   NSURL *videoURL = [NSURL fileURLWithPath:path];
   if (!videoURL) {
     reject(@"invalid_path", @"Invalid video path", nil);
@@ -517,10 +514,6 @@ RCT_EXPORT_METHOD(processVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)
       reject(@"compression_error", @"No processed video URL returned", nil);
     }
   }];
-#else
-  // Fallback: return original path if KBCommon not available
-  resolve(path);
-#endif
 }
 
 + (void)setDeviceToken:(NSString *)token {
