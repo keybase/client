@@ -16,7 +16,7 @@
 #import <objc/runtime.h>
 #import "./KBJSScheduler.h"
 #import "RNKbSpec.h"
-#import <KBCommon/MediaUtils-Swift.h>
+@import KBCommon;
 
 using namespace facebook::jsi;
 using namespace facebook;
