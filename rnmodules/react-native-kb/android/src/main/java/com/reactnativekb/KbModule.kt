@@ -168,9 +168,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         if (outputWidth != originalWidth || outputHeight != originalHeight) {
             val scaleX = outputWidth.toFloat() / originalWidth.toFloat()
             val scaleY = outputHeight.toFloat() / originalHeight.toFloat()
+            val scaleTransformation = ScaleAndRotateTransformation.Builder()
+                .setScale(scaleX, scaleY)
+                .build()
+            // Effects class wraps video effects and audio processors
             editedMediaItemBuilder.setEffects(
                 Effects(
-                    listOf(ScaleAndRotateTransformation.Builder().setScale(scaleX, scaleY).build())
+                    audioProcessors = listOf(),
+                    videoEffects = listOf(scaleTransformation)
                 )
             )
         }
