@@ -65,7 +65,15 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.media.MediaMuxer
+import android.graphics.SurfaceTexture
+import android.opengl.EGL14
+import android.opengl.EGLExt
+import android.opengl.GLES20
+import android.opengl.GLES11Ext
+import android.view.Surface
 import java.nio.ByteBuffer
+import java.nio.FloatBuffer
+import java.nio.ByteOrder
 import kotlin.math.min
 
 @OptIn(FrameworkAPI::class)
@@ -141,11 +149,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     }
 
     private fun compressVideo(inputPath: String, outputPath: String, originalWidth: Int, originalHeight: Int, maxPixels: Int) {
-        // Android video compression with resolution/bitrate reduction requires a full decoder/encoder pipeline
-        // This is complex and typically requires OpenGL for frame scaling
-        // For now, we remux the video which can help with some optimization
-        // Full compression with bitrate reduction would require MediaCodec decoder -> scaler -> encoder
-        
         val extractor = MediaExtractor()
         extractor.setDataSource(inputPath)
 
@@ -156,74 +159,360 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         }
 
         val inputFormat = extractor.getTrackFormat(videoTrackIndex)
+        val mimeType = inputFormat.getString(MediaFormat.KEY_MIME) ?: "video/avc"
         val (outputWidth, outputHeight) = calculateOutputDimensions(originalWidth, originalHeight, maxPixels)
-        
-        // If resolution needs to be reduced, we'd need decoder/encoder with scaling
-        // For now, remux with same resolution (helps with container optimization)
+        val targetBitrate = calculateBitrate(outputWidth, outputHeight)
+        val currentBitrate = inputFormat.getInteger(MediaFormat.KEY_BIT_RATE) ?: 0
         val needsResize = outputWidth != originalWidth || outputHeight != originalHeight
-        
-        if (needsResize) {
-            // Resolution reduction requires decoder -> scaler -> encoder pipeline
-            // This is complex and would need OpenGL or similar for frame scaling
-            // For now, remux the original (container optimization only)
+        val needsReencode = needsResize || (currentBitrate > 0 && targetBitrate < currentBitrate * 0.8)
+
+        if (!needsReencode) {
             extractor.release()
-            // Remux to optimize container, even if we can't resize yet
-            remuxVideo(inputPath, outputPath)
+            // No compression needed, return original path
+            File(inputPath).copyTo(File(outputPath), overwrite = true)
             return
         }
 
-        // Copy video and audio tracks with optimized settings
+        // Full transcoding with scaling and bitrate reduction
+        transcodeVideoWithScaling(inputPath, outputPath, extractor, videoTrackIndex, inputFormat, originalWidth, originalHeight, outputWidth, outputHeight, targetBitrate)
+    }
+
+    private fun transcodeVideoWithScaling(
+        inputPath: String,
+        outputPath: String,
+        extractor: MediaExtractor,
+        videoTrackIndex: Int,
+        inputFormat: MediaFormat,
+        originalWidth: Int,
+        originalHeight: Int,
+        outputWidth: Int,
+        outputHeight: Int,
+        targetBitrate: Int
+    ) {
+        val decoder = MediaCodec.createDecoderByType(inputFormat.getString(MediaFormat.KEY_MIME) ?: "video/avc")
+        val encoder = MediaCodec.createEncoderByType("video/avc")
+        
+        extractor.selectTrack(videoTrackIndex)
+        
+        // Configure encoder with surface-based input for scaling support
+        val outputFormat = MediaFormat.createVideoFormat("video/avc", outputWidth, outputHeight)
+        outputFormat.setInteger(MediaFormat.KEY_BIT_RATE, targetBitrate)
+        outputFormat.setInteger(MediaFormat.KEY_FRAME_RATE, inputFormat.getInteger(MediaFormat.KEY_FRAME_RATE) ?: 30)
+        outputFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 2)
+        outputFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
+
+        val encoderSurface = encoder.createInputSurface()
+        encoder.configure(outputFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+        encoder.start()
+
+        // Create EGL context and surface for scaling
+        val eglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
+        if (eglDisplay == EGL14.EGL_NO_DISPLAY) {
+            throw IOException("Failed to get EGL display")
+        }
+        
+        val version = IntArray(2)
+        if (!EGL14.eglInitialize(eglDisplay, version, 0, version, 1)) {
+            throw IOException("Failed to initialize EGL")
+        }
+
+        val eglConfig = chooseEglConfig(eglDisplay)
+        val eglContext = createEglContext(eglDisplay, eglConfig)
+        val eglSurface = createEglSurface(eglDisplay, eglConfig, encoderSurface, outputWidth, outputHeight)
+        
+        EGL14.eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext)
+
+        // Configure decoder to output to a surface (we'll render to encoder surface with scaling)
+        val decoderSurfaceObj = createDecoderSurface(eglDisplay, eglConfig, originalWidth, originalHeight)
+        decoder.configure(inputFormat, decoderSurfaceObj, null, 0)
+        decoder.start()
+
+        // Setup OpenGL for scaling
+        setupGLScaling(originalWidth, originalHeight, outputWidth, outputHeight)
+
         val muxer = MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         var muxerStarted = false
         var videoTrackIndexOutput = -1
         var audioTrackIndex = findAudioTrack(extractor)
         var audioTrackIndexOutput = -1
 
+        // Setup audio
+        val audioExtractor = MediaExtractor()
+        audioExtractor.setDataSource(inputPath)
         if (audioTrackIndex >= 0) {
-            val audioFormat = extractor.getTrackFormat(audioTrackIndex)
+            audioExtractor.selectTrack(audioTrackIndex)
+            val audioFormat = audioExtractor.getTrackFormat(audioTrackIndex)
             audioTrackIndexOutput = muxer.addTrack(audioFormat)
         }
 
-        extractor.selectTrack(videoTrackIndex)
-        val videoFormat = extractor.getTrackFormat(videoTrackIndex)
-        videoTrackIndexOutput = muxer.addTrack(videoFormat)
-
-        if (!muxerStarted && (audioTrackIndex < 0 || audioTrackIndexOutput >= 0)) {
-            muxer.start()
-            muxerStarted = true
-        }
-
-        val buffer = ByteBuffer.allocate(1024 * 1024)
         val bufferInfo = MediaCodec.BufferInfo()
+        var inputEOS = false
+        var outputEOS = false
+        var encoderOutputFormat: MediaFormat? = null
 
-        // Copy video track
         extractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
-        extractor.selectTrack(videoTrackIndex)
-        while (true) {
-            val sampleSize = extractor.readSampleData(buffer, 0)
-            if (sampleSize < 0) {
-                break
+
+        // Process video: decode -> scale via OpenGL -> encode
+        while (!outputEOS) {
+            // Feed input to decoder
+            if (!inputEOS) {
+                val inputBufferIndex = decoder.dequeueInputBuffer(10000)
+                if (inputBufferIndex >= 0) {
+                    val inputBuffer = decoder.getInputBuffer(inputBufferIndex)
+                    val sampleSize = extractor.readSampleData(inputBuffer!!, 0)
+                    if (sampleSize < 0) {
+                        decoder.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                        inputEOS = true
+                    } else {
+                        decoder.queueInputBuffer(
+                            inputBufferIndex, 0, sampleSize,
+                            extractor.sampleTime, extractor.sampleFlags
+                        )
+                        extractor.advance()
+                    }
+                }
             }
-            bufferInfo.offset = 0
-            bufferInfo.size = sampleSize
-            bufferInfo.presentationTimeUs = extractor.sampleTime
-            bufferInfo.flags = extractor.sampleFlags
-            if (muxerStarted) {
-                muxer.writeSampleData(videoTrackIndexOutput, buffer, bufferInfo)
+
+            // Get decoded output - frames are rendered to decoderSurface, then scaled to encoderSurface
+            val outputBufferIndex = decoder.dequeueOutputBuffer(bufferInfo, 10000)
+            if (outputBufferIndex >= 0) {
+                // Render decoded frame with scaling
+                if (bufferInfo.size > 0) {
+                    renderFrameWithScaling()
+                    // Set presentation time for encoder
+                    EGLExt.eglPresentationTimeANDROID(eglDisplay, eglSurface, bufferInfo.presentationTimeUs * 1000)
+                    EGL14.eglSwapBuffers(eglDisplay, eglSurface)
+                }
+                decoder.releaseOutputBuffer(outputBufferIndex, true) // render to surface
+                
+                if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                    // Signal EOS to encoder via surface
+                    EGLExt.eglPresentationTimeANDROID(eglDisplay, eglSurface, Long.MAX_VALUE)
+                    EGL14.eglSwapBuffers(eglDisplay, eglSurface)
+                }
+            } else if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                // Decoder output format changed
             }
-            extractor.advance()
+
+            // Get encoded output
+            val encoderOutputIndex = encoder.dequeueOutputBuffer(bufferInfo, 10000)
+            if (encoderOutputIndex >= 0) {
+                if (encoderOutputFormat == null) {
+                    encoderOutputFormat = encoder.outputFormat
+                    videoTrackIndexOutput = muxer.addTrack(encoderOutputFormat!!)
+                    if (audioTrackIndexOutput >= 0 || videoTrackIndexOutput >= 0) {
+                        muxer.start()
+                        muxerStarted = true
+                    }
+                }
+
+                if (muxerStarted && bufferInfo.size > 0) {
+                    val encodedBuffer = encoder.getOutputBuffer(encoderOutputIndex)
+                    if (encodedBuffer != null) {
+                        muxer.writeSampleData(videoTrackIndexOutput, encodedBuffer, bufferInfo)
+                    }
+                }
+                encoder.releaseOutputBuffer(encoderOutputIndex, false)
+
+                if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                    outputEOS = true
+                }
+            } else if (encoderOutputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                encoderOutputFormat = encoder.outputFormat
+                videoTrackIndexOutput = muxer.addTrack(encoderOutputFormat!!)
+                if (audioTrackIndexOutput >= 0 || videoTrackIndexOutput >= 0) {
+                    muxer.start()
+                    muxerStarted = true
+                }
+            }
         }
 
-        // Copy audio track if present
-        if (audioTrackIndex >= 0) {
-            copyAudioTrack(extractor, muxer, audioTrackIndex, audioTrackIndexOutput, muxerStarted)
+        // Copy audio track
+        if (audioTrackIndex >= 0 && muxerStarted) {
+            copyAudioTrack(audioExtractor, muxer, audioTrackIndex, audioTrackIndexOutput, true)
         }
 
+        // Cleanup
+        EGL14.eglMakeCurrent(eglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT)
+        EGL14.eglDestroySurface(eglDisplay, eglSurface)
+        EGL14.eglDestroyContext(eglDisplay, eglContext)
+        EGL14.eglReleaseThread()
+        EGL14.eglTerminate(eglDisplay)
+        
+        decoderSurface?.release()
+        surfaceTexture?.release()
+        if (textureId != 0) {
+            GLES20.glDeleteTextures(1, intArrayOf(textureId), 0)
+        }
+        if (shaderProgram != 0) {
+            GLES20.glDeleteProgram(shaderProgram)
+        }
+        
+        decoder.stop()
+        decoder.release()
+        encoder.stop()
+        encoder.release()
+        encoderSurface.release()
         extractor.release()
+        audioExtractor.release()
         if (muxerStarted) {
             muxer.stop()
         }
         muxer.release()
+    }
+
+    // OpenGL helper functions for scaling
+    private fun chooseEglConfig(display: android.opengl.EGLDisplay): android.opengl.EGLConfig {
+        val attribs = intArrayOf(
+            EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
+            EGL14.EGL_RED_SIZE, 8,
+            EGL14.EGL_GREEN_SIZE, 8,
+            EGL14.EGL_BLUE_SIZE, 8,
+            EGL14.EGL_ALPHA_SIZE, 8,
+            EGL14.EGL_NONE
+        )
+        val configs = arrayOfNulls<android.opengl.EGLConfig>(1)
+        val numConfigs = IntArray(1)
+        if (!EGL14.eglChooseConfig(display, attribs, 0, configs, 0, configs.size, numConfigs, 0)) {
+            throw IOException("Failed to choose EGL config")
+        }
+        return configs[0]!!
+    }
+
+    private fun createEglContext(display: android.opengl.EGLDisplay, config: android.opengl.EGLConfig): android.opengl.EGLContext {
+        val attribs = intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL14.EGL_NONE)
+        val context = EGL14.eglCreateContext(display, config, EGL14.EGL_NO_CONTEXT, attribs, 0)
+        if (context == EGL14.EGL_NO_CONTEXT) {
+            throw IOException("Failed to create EGL context")
+        }
+        return context
+    }
+
+    private fun createEglSurface(display: android.opengl.EGLDisplay, config: android.opengl.EGLConfig, surface: Surface, width: Int, height: Int): android.opengl.EGLSurface {
+        val attribs = intArrayOf(EGL14.EGL_WIDTH, width, EGL14.EGL_HEIGHT, height, EGL14.EGL_NONE)
+        val eglSurface = EGLExt.eglCreateWindowSurface(display, config, surface, attribs, 0)
+        if (eglSurface == EGL14.EGL_NO_SURFACE) {
+            throw IOException("Failed to create EGL surface")
+        }
+        return eglSurface
+    }
+
+    private var textureId: Int = 0
+    private var surfaceTexture: SurfaceTexture? = null
+    private var decoderSurface: Surface? = null
+    private var shaderProgram: Int = 0
+    private var positionHandle: Int = 0
+    private var texCoordHandle: Int = 0
+    private var textureHandle: Int = 0
+
+    private val vertexShaderCode = """
+        attribute vec4 aPosition;
+        attribute vec2 aTexCoord;
+        varying vec2 vTexCoord;
+        void main() {
+            gl_Position = aPosition;
+            vTexCoord = aTexCoord;
+        }
+    """.trimIndent()
+
+    private val fragmentShaderCode = """
+        #extension GL_OES_EGL_image_external : require
+        precision mediump float;
+        varying vec2 vTexCoord;
+        uniform samplerExternalOES uTexture;
+        void main() {
+            gl_FragColor = texture2D(uTexture, vTexCoord);
+        }
+    """.trimIndent()
+
+    private val vertices = floatArrayOf(
+        -1.0f, -1.0f,  // bottom left
+         1.0f, -1.0f,  // bottom right
+        -1.0f,  1.0f,  // top left
+         1.0f,  1.0f   // top right
+    )
+
+    private val texCoords = floatArrayOf(
+        0.0f, 1.0f,  // bottom left
+        1.0f, 1.0f,  // bottom right
+        0.0f, 0.0f,  // top left
+        1.0f, 0.0f   // top right
+    )
+
+    private fun createDecoderSurface(display: android.opengl.EGLDisplay, config: android.opengl.EGLConfig, width: Int, height: Int): Surface {
+        // Create SurfaceTexture for decoder output
+        val textures = IntArray(1)
+        GLES20.glGenTextures(1, textures, 0)
+        textureId = textures[0]
+        
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId)
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+        
+        surfaceTexture = SurfaceTexture(textureId)
+        surfaceTexture!!.setDefaultBufferSize(width, height)
+        decoderSurface = Surface(surfaceTexture)
+        return decoderSurface!!
+    }
+
+    private fun setupGLScaling(inputWidth: Int, inputHeight: Int, outputWidth: Int, outputHeight: Int) {
+        // Setup viewport for output resolution (this handles scaling)
+        GLES20.glViewport(0, 0, outputWidth, outputHeight)
+        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+        
+        // Compile and link shaders
+        val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)
+        val fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode)
+        
+        shaderProgram = GLES20.glCreateProgram()
+        GLES20.glAttachShader(shaderProgram, vertexShader)
+        GLES20.glAttachShader(shaderProgram, fragmentShader)
+        GLES20.glLinkProgram(shaderProgram)
+        
+        // Get attribute/uniform locations
+        positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition")
+        texCoordHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoord")
+        textureHandle = GLES20.glGetUniformLocation(shaderProgram, "uTexture")
+    }
+
+    private fun loadShader(type: Int, shaderCode: String): Int {
+        val shader = GLES20.glCreateShader(type)
+        GLES20.glShaderSource(shader, shaderCode)
+        GLES20.glCompileShader(shader)
+        return shader
+    }
+
+    private fun renderFrameWithScaling() {
+        // Update SurfaceTexture to get latest frame
+        surfaceTexture?.updateTexImage()
+        
+        // Clear and render
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+        GLES20.glUseProgram(shaderProgram)
+        
+        // Bind texture
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId)
+        GLES20.glUniform1i(textureHandle, 0)
+        
+        // Set vertex attributes
+        val vertexBuffer = ByteBuffer.allocateDirect(vertices.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+        vertexBuffer.put(vertices).position(0)
+        GLES20.glEnableVertexAttribArray(positionHandle)
+        GLES20.glVertexAttribPointer(positionHandle, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer)
+        
+        val texBuffer = ByteBuffer.allocateDirect(texCoords.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+        texBuffer.put(texCoords).position(0)
+        GLES20.glEnableVertexAttribArray(texCoordHandle)
+        GLES20.glVertexAttribPointer(texCoordHandle, 2, GLES20.GL_FLOAT, false, 0, texBuffer)
+        
+        // Draw
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+        
+        GLES20.glDisableVertexAttribArray(positionHandle)
+        GLES20.glDisableVertexAttribArray(texCoordHandle)
     }
 
     private fun remuxVideo(inputPath: String, outputPath: String) {
