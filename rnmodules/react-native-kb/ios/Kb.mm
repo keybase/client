@@ -499,12 +499,8 @@ RCT_EXPORT_METHOD(addNotificationRequest: (NSDictionary *)config resolve: (RCTPr
 }
 
 RCT_EXPORT_METHOD(processVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
-  NSURL *videoURL = [NSURL fileURLWithPath:path];
-  if (!videoURL) {
-    reject(@"invalid_path", @"Invalid video path", nil);
-    return;
-  }
-  
+  NSURL * videoURL = [NSURL URLWithString:path];
+
   [MediaUtils processVideoFromOriginal:videoURL completion:^(NSError * _Nullable error, NSURL * _Nullable processedURL) {
     if (error) {
       reject(@"compression_error", error.localizedDescription, error);
