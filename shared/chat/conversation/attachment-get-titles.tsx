@@ -190,7 +190,6 @@ const Container = (ownProps: OwnProps) => {
                 value={titles[index]}
                 onEnterKeyDown={onNext}
                 onChangeText={updateTitle}
-                selectTextOnFocus={true}
               />
               {/* (
                 <Kb.Checkbox
