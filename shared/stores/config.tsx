@@ -1,3 +1,4 @@
+import type * as NetInfo from '@react-native-community/netinfo'
 import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {waitingKeyConfigLogin} from '@/constants/strings'
@@ -13,6 +14,8 @@ import {defaultUseNativeFrame, isMobile} from '@/constants/platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {navigateAppend} from '@/constants/router2'
+
+export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 
 type Store = T.Immutable<{
   active: boolean
@@ -47,7 +50,7 @@ type Store = T.Immutable<{
     | 'reloggedIn'
     | 'startupOrReloginButNotInARush'
   mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
-  networkStatus?: {online: boolean; type: T.Config.ConnectionType; isInit?: boolean}
+  networkStatus?: {online: boolean; type: ConnectionType; isInit?: boolean}
   notifySound: boolean
   openAtLogin: boolean
   outOfDate: T.Config.OutOfDate
@@ -173,7 +176,7 @@ export interface State extends Store {
     logoutAndTryToLogInAs: (username: string) => void
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
-    osNetworkStatusChanged: (online: boolean, type: T.Config.ConnectionType, isInit?: boolean) => void
+    osNetworkStatusChanged: (online: boolean, type: ConnectionType, isInit?: boolean) => void
     openUnlockFolders: (devices: ReadonlyArray<T.RPCGen.Device>) => void
     powerMonitorEvent: (event: string) => void
     resetState: (isDebug?: boolean) => void
@@ -559,7 +562,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }))
       })
     },
-    osNetworkStatusChanged: (online: boolean, type: T.Config.ConnectionType, isInit?: boolean) => {
+    osNetworkStatusChanged: (online: boolean, type: ConnectionType, isInit?: boolean) => {
       const old = get().networkStatus
       set(s => {
         if (!s.networkStatus) {

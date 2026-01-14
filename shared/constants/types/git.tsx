@@ -12,9 +12,3 @@ export type GitInfo = {
   teamname?: string
   url: string
 }
-
-export type State = T.Immutable<{
-  readonly error?: Error
-  readonly idToInfo: Map<string, GitInfo>
-  readonly isNew?: Set<string>
-}>
