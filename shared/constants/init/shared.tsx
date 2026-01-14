@@ -5,6 +5,7 @@ import * as T from '../types'
 import {ignorePromise} from '../utils'
 import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
+import {useAutoResetState} from '@/stores/autoreset'
 import type * as UseDevicesStateType from '@/stores/devices'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import type * as UseBotsStateType from '@/stores/bots'
@@ -148,6 +149,23 @@ export const initTeamBuildingCallbacks = () => {
       },
     })
   }
+}
+
+export const initAutoResetCallbacks = () => {
+  const currentState = useAutoResetState.getState()
+  useAutoResetState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        onGetRecoverPasswordUsername: () => {
+          return storeRegistry.getState('recover-password').username
+        },
+        onStartProvision: (username: string, fromReset: boolean) => {
+          storeRegistry.getState('provision').dispatch.startProvision(username, fromReset)
+        },
+      },
+    },
+  })
 }
 
 export const initSharedSubscriptions = () => {
@@ -335,6 +353,7 @@ export const initSharedSubscriptions = () => {
     }
   })
 
+  initAutoResetCallbacks()
   initTeamBuildingCallbacks()
 }
 

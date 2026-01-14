@@ -6,7 +6,6 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {navigateAppend, navUpToScreen} from '@/constants/router2'
-import {storeRegistry} from '@/stores/store-registry'
 
 type Store = T.Immutable<{
   active: boolean
@@ -33,6 +32,10 @@ const initialStore: Store = {
 export interface State extends Store {
   dispatch: {
     cancelReset: () => void
+    dynamic: {
+      onGetRecoverPasswordUsername: () => string
+      onStartProvision: (username: string, fromReset: boolean) => void
+    }
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'
     resetAccount: (password?: string) => void
@@ -82,6 +85,14 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
+    dynamic: {
+      onGetRecoverPasswordUsername: () => {
+        throw new Error('onGetRecoverPasswordUsername not properly initialized')
+      },
+      onStartProvision: (_username: string, _fromReset: boolean) => {
+        throw new Error('onStartProvision not properly initialized')
+      },
+    },
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyBadgesBadgeState: {
@@ -118,7 +129,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = ''
                   })
-                  storeRegistry.getState('provision').dispatch.startProvision(get().username, true)
+                  get().dispatch.dynamic.onStartProvision(get().username, true)
                 } else {
                   navUpToScreen('login')
                 }
@@ -164,7 +175,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
     },
     resetState: 'default',
     startAccountReset: (skipPassword, _username) => {
-      const username = _username || storeRegistry.getState('recover-password').username
+      const username = _username || get().dispatch.dynamic.onGetRecoverPasswordUsername() || ''
       set(s => {
         s.skipPassword = skipPassword
         s.error = ''
