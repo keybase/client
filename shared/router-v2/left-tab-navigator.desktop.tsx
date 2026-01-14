@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import TabBar from './tab-bar.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
 import type * as Tabs from '@/constants/tabs'
+import * as Router2 from '@/constants/router2'
 
 type BackBehavior = Parameters<typeof TabRouter>[0]['backBehavior']
 type Props = Parameters<typeof useNavigationBuilder>[1] & {backBehavior: BackBehavior}
@@ -50,7 +50,7 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
     setRendered(next)
   }, [selectedRoute, rendered])
 
-  const hasModals = C.Router2.getModalStack().length > 0
+  const hasModals = Router2.useRouterState(() => Router2.getModalStack().length > 0)
 
   return (
     <NavigationContent>
