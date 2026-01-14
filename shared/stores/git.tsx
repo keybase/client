@@ -8,7 +8,7 @@ import debounce from 'lodash/debounce'
 import {navigateAppend} from '@/constants/router2'
 import {useConfigState} from '@/stores/config'
 
-export type State = T.Immutable<{
+type Store = T.Immutable<{
   readonly error?: Error
   readonly idToInfo: Map<string, T.Git.GitInfo>
   readonly isNew?: Set<string>
@@ -63,13 +63,13 @@ const parseRepoError = (result: T.RPCGen.GitRepoResult): Error => {
   return new Error(`Git repo error: ${errStr}`)
 }
 
-const initialStore: State = {
+const initialStore: Store = {
   error: undefined,
   idToInfo: new Map(),
   isNew: new Set(),
 }
 
-export interface State extends State {
+export interface State extends Store {
   dispatch: {
     setError: (err?: Error) => void
     clearBadges: () => void

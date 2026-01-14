@@ -1,4 +1,3 @@
-import type * as T from '@/constants/types'
 export type GitInfo = {
   canDelete: boolean
   channelName?: string
