@@ -30,7 +30,9 @@ func getDiskLimits(path string) (
 	}
 
 	// Bavail is the free block count for an unprivileged user.
+	// #nosec G115 -- Bsize is typically uint32 or int64 depending on platform, conversion to uint64 is safe
 	availableBytes = stat.Bavail * uint64(stat.Bsize)
+	// #nosec G115 -- Bsize is typically uint32 or int64 depending on platform, conversion to uint64 is safe
 	totalBytes = stat.Blocks * uint64(stat.Bsize)
 	// Some filesystems, like btrfs, don't keep track of inodes.
 	// (See https://github.com/keybase/client/issues/6206 .) Use

@@ -22,7 +22,7 @@ func newKBPConfigEditorWithPrompter(kbpConfigDir string, p prompter) (
 		return nil, err
 	}
 	editor := &kbpConfigEditor{kbpConfigPath: kbpConfigPath, prompter: p}
-	f, err := os.Open(kbpConfigPath)
+	f, err := os.Open(kbpConfigPath) //nolint:gosec // G304: kbpConfigPath from trusted config directory
 	switch {
 	case err == nil:
 		var cfg config.Config

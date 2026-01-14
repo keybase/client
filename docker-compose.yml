@@ -9,11 +9,33 @@ services:
             - "3306"
         tmpfs: /var/lib/mysql
         command: ["--innodb_print_all_deadlocks=1", "--max_connections=1000"]
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "mysqladmin",
+                    "ping",
+                    "-h",
+                    "localhost",
+                    "-u",
+                    "root",
+                    "-psecret",
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+            start_period: 30s
     sqsd.local:
         image: 897413463132.dkr.ecr.us-east-1.amazonaws.com/sqsd
         restart: unless-stopped
         ports:
             - "9324"
+        healthcheck:
+            test: ["CMD-SHELL", "nc -z localhost 9324 || exit 1"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+            start_period: 10s
     kbweb.local:
         image: 897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb
         ports:
@@ -24,8 +46,10 @@ services:
             - "13037:13037"
             - "13047:13047"
         depends_on:
-            - mysql.local
-            - sqsd.local
+            mysql.local:
+                condition: service_healthy
+            sqsd.local:
+                condition: service_healthy
         entrypoint: ["run/startup_for_container.sh"]
         environment:
             - KEYBASE_RUN_MODE=devel
@@ -42,6 +66,12 @@ services:
             - CHAT_S3_SECRET_KEY=test
             - S3_SECRETS_ACCESS_KEY_ID
             - S3_SECRETS_SECRET_ACCESS_KEY
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:3000/_/api/1.0/ping.json"]
+            interval: 5s
+            timeout: 3s
+            retries: 20
+            start_period: 60s
         logging:
             driver: json-file
             options:

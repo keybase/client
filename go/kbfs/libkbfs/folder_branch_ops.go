@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"math/rand"
 	"os"
 	stdpath "path"
 	"path/filepath"
@@ -1686,7 +1685,7 @@ func (fbo *folderBranchOps) partialMarkAndSweepLoop(trigger <-chan struct{}) {
 
 	// Set the first timer to be some random duration less than the
 	// period, to spread out the work of different TLFs.
-	d := time.Duration(rand.Int63n(int64(markAndSweepPeriod)))
+	d := libkb.RandomJitter(markAndSweepPeriod)
 	timer := time.NewTimer(d)
 
 	var currMarkAndSweepCtxDone <-chan struct{}
@@ -2806,7 +2805,7 @@ func ResetRootBlock(ctx context.Context, config Config,
 		BlockInfo: info,
 		EntryInfo: data.EntryInfo{
 			Type:  data.Dir,
-			Size:  uint64(plainSize),
+			Size:  uint64(plainSize), //nolint:gosec // G115: Directory sizes are bounded by filesystem limits
 			Mtime: now,
 			Ctime: now,
 		},
@@ -3524,7 +3523,7 @@ func (fbo *folderBranchOps) processMissedLookup(
 			},
 			EntryInfo: data.EntryInfo{
 				Type:  data.Dir,
-				Size:  uint64(fi.Size()),
+				Size:  uint64(fi.Size()), //nolint:gosec // G115: Directory sizes bounded by filesystem limits
 				Mtime: fi.ModTime().Unix(),
 				Ctime: fi.ModTime().Unix(),
 			},
@@ -3592,7 +3591,7 @@ func (fbo *folderBranchOps) statUsingFS(
 				},
 				EntryInfo: data.EntryInfo{
 					Type:  data.Dir,
-					Size:  uint64(fi.Size()),
+					Size:  uint64(fi.Size()), //nolint:gosec // G115: Directory sizes bounded by filesystem limits
 					Mtime: fi.ModTime().Unix(),
 					Ctime: fi.ModTime().Unix(),
 				},
@@ -4606,7 +4605,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 		return nil, data.DirEntry{}, err
 	}
 
-	if uint32(len(name.Plaintext())) > fbo.config.MaxNameBytes() {
+	if uint32(len(name.Plaintext())) > fbo.config.MaxNameBytes() { //nolint:gosec // G115: String lengths are non-negative and bounded by MaxNameBytes
 		return nil, data.DirEntry{},
 			NameTooLongError{name.String(), fbo.config.MaxNameBytes()}
 	}
@@ -5064,7 +5063,7 @@ func (fbo *folderBranchOps) createLinkLocked(
 		return data.DirEntry{}, err
 	}
 
-	if uint32(len(fromName.Plaintext())) > fbo.config.MaxNameBytes() {
+	if uint32(len(fromName.Plaintext())) > fbo.config.MaxNameBytes() { //nolint:gosec // G115: String lengths are non-negative and bounded by MaxNameBytes
 		return data.DirEntry{},
 			NameTooLongError{fromName.Plaintext(), fbo.config.MaxNameBytes()}
 	}

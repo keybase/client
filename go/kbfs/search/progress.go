@@ -128,8 +128,8 @@ func (p *Progress) fillInProgressRecord(
 			(float64(bytesLeft) / rate) * float64(time.Second))
 		rec.EndEstimate = keybase1.ToTime(p.clock.Now().Add(timeLeft))
 	}
-	rec.BytesSoFar = int64(soFar)
-	rec.BytesTotal = int64(total)
+	rec.BytesSoFar = int64(soFar) //nolint:gosec // G115: Progress byte counts are bounded by file sizes
+	rec.BytesTotal = int64(total) //nolint:gosec // G115: Progress byte counts are bounded by file sizes
 }
 
 // GetStatus returns the current progress status.

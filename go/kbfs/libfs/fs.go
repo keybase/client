@@ -642,7 +642,7 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 		if ei.Size >= uint64(1<<63) {
 			return nil, errors.New("offset too large")
 		}
-		offset = int64(ei.Size)
+		offset = int64(ei.Size) //nolint:gosec // G115: Validated above to be <= MaxInt64
 	}
 
 	return &File{

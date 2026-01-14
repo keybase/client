@@ -72,7 +72,7 @@ func testTruncateLargeThenWriteToSmallerOffset(t *testing.T, dataLen int) {
 		blockSize(20), blockChangeSize(100*1024), users("alice", "bob"),
 		as(alice,
 			mkfile("file", ""),
-			truncate("file", uint64(dataLen)),
+			truncate("file", uint64(dataLen)), //nolint:gosec // G115: Test data with bounded values
 			// Write first block and sync.
 			writeBS("file", data[:12]),
 			// Write last block, don't sync yet.

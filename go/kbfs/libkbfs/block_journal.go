@@ -715,13 +715,13 @@ func (j *blockJournal) getNextEntriesToFlush(
 				"end of the journal (realEnd=%d, end=%d)", realEnd, end)
 	}
 
-	entries.puts = newBlockPutStateMemory(int(end - first))
-	entries.adds = newBlockPutStateMemory(int(end - first))
+	entries.puts = newBlockPutStateMemory(int(end - first)) //nolint:gosec // G115: Journal entry counts are bounded by config limits
+	entries.adds = newBlockPutStateMemory(int(end - first)) //nolint:gosec // G115: Journal entry counts are bounded by config limits
 	maxMDRevToFlush = kbfsmd.RevisionUninitialized
 
 	loopEnd := end
-	if first+journalOrdinal(maxToFlush) < end {
-		loopEnd = first + journalOrdinal(maxToFlush)
+	if first+journalOrdinal(maxToFlush) < end { //nolint:gosec // G115: maxToFlush is bounded by config limits
+		loopEnd = first + journalOrdinal(maxToFlush) //nolint:gosec // G115: maxToFlush is bounded by config limits
 	}
 
 	for ordinal := first; ordinal < loopEnd; ordinal++ {
@@ -965,7 +965,7 @@ func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 	// Remove them all!
 	for i, entry := range entries.all {
 		flushedBytes, err := j.removeFlushedEntry(
-			ctx, entries.first+journalOrdinal(i), entry)
+			ctx, entries.first+journalOrdinal(i), entry) //nolint:gosec // G115: Loop index is bounded by slice length
 		if err != nil {
 			return 0, err
 		}
@@ -1130,7 +1130,7 @@ func (j *blockJournal) getDeferredGCRange() (
 		return 0, 0, 0, err
 	}
 
-	return int(latest - earliest + 1), earliest, latest, nil
+	return int(latest - earliest + 1), earliest, latest, nil //nolint:gosec // G115: Journal entry counts are bounded by config limits
 }
 
 // doGC collects any unreferenced blocks from flushed

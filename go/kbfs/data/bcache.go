@@ -110,7 +110,7 @@ func getCachedBlockSize(block Block) uint32 {
 		if b.IsInd {
 			return b.GetEncodedSize()
 		}
-		return uint32(len(b.Contents))
+		return uint32(len(b.Contents)) //nolint:gosec // G115: Block sizes are bounded by max block size config
 	default:
 		return block.GetEncodedSize()
 	}

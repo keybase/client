@@ -1128,7 +1128,7 @@ func (j mdJournal) atLeastNNonLocalSquashes(
 	// `numNonLocalSquashes` entries ago, and see if it's a local
 	// squash or not.
 	entry, err := j.j.readJournalEntry(
-		latestRev - kbfsmd.Revision(numNonLocalSquashes) + 1)
+		latestRev - kbfsmd.Revision(numNonLocalSquashes) + 1) //nolint:gosec // G115: Squash counts bounded by journal length
 	if err != nil {
 		return false, err
 	}

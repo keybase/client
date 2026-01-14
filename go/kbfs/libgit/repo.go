@@ -76,7 +76,7 @@ type RefDataByName map[plumbing.ReferenceName]*RefData
 
 func checkValidRepoName(repoName string, config libkbfs.Config) bool {
 	return len(repoName) >= 1 &&
-		uint32(len(repoName)) <= config.MaxNameBytes() &&
+		uint32(len(repoName)) <= config.MaxNameBytes() && //nolint:gosec // G115: String lengths are non-negative and bounded by MaxNameBytes
 		(os.Getenv("KBFS_GIT_REPONAME_SKIP_CHECK") != "" ||
 			repoNameRE.MatchString(repoName))
 }

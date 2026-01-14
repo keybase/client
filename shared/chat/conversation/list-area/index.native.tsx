@@ -93,7 +93,9 @@ const ConversationList = React.memo(function ConversationList() {
   const [extraData, setExtraData] = React.useState(0)
   const [lastED, setLastED] = React.useState(extraData)
 
-  const centeredOrdinal = Chat.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
+  const loaded = Chat.useChatContext(s => s.loaded)
+  const centeredOrdinal =
+    Chat.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
   const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
   const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
 
@@ -177,6 +179,26 @@ const ConversationList = React.memo(function ConversationList() {
       markInitiallyLoadedThreadAsRead()
     }
   }, [markInitiallyLoadedThreadAsRead])
+
+  const prevLoadedRef = React.useRef(loaded)
+  React.useLayoutEffect(() => {
+    const justLoaded = loaded && !prevLoadedRef.current
+    prevLoadedRef.current = loaded
+
+    if (!justLoaded) return
+
+    if (centeredOrdinal > 0) {
+      scrollToCentered()
+      setTimeout(() => {
+        scrollToCentered()
+      }, 100)
+    } else if (numOrdinals > 0) {
+      scrollToBottom()
+      setTimeout(() => {
+        scrollToBottom()
+      }, 100)
+    }
+  }, [loaded, centeredOrdinal, scrollToBottom, scrollToCentered, numOrdinals])
 
   // We use context to inject a way for items to force the list to rerender when they notice something about their
   // internals have changed (aka a placeholder isn't a placeholder anymore). This can be racy as if you detect this

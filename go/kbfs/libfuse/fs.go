@@ -425,8 +425,8 @@ func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.Sta
 		return err
 	}
 
-	total := getNumBlocksFromSize(uint64(limitBytes))
-	used := getNumBlocksFromSize(uint64(usageBytes))
+	total := getNumBlocksFromSize(uint64(limitBytes)) //nolint:gosec // G115: Byte counts are non-negative
+	used := getNumBlocksFromSize(uint64(usageBytes))  //nolint:gosec // G115: Byte counts are non-negative
 	resp.Blocks = total
 	resp.Bavail = total - used
 	resp.Bfree = total - used

@@ -846,7 +846,7 @@ func defaultGetFreeBytesAndFiles(path string) (int64, int64, error) {
 	if freeFiles > uint64(math.MaxInt64) {
 		freeFiles = math.MaxInt64
 	}
-	return int64(freeBytes), int64(freeFiles), nil
+	return int64(freeBytes), int64(freeFiles), nil //nolint:gosec // G115: Clamped to MaxInt64 above
 }
 
 func (bdl *backpressureDiskLimiter) simpleByteTrackerFromType(typ diskLimitTrackerType) (

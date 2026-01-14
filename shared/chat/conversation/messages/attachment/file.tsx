@@ -66,7 +66,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDownload = React.useCallback(() => {
     if (C.isMobile) {
-      messageAttachmentNativeShare(ordinal)
+      messageAttachmentNativeShare(ordinal, true)
     } else if (!downloadPath) {
       if (fileType === 'application/pdf') {
         navigateAppend({

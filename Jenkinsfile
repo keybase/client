@@ -135,7 +135,6 @@ helpers.rootLinuxNode(env, {
   println "Setting up build: ${env.BUILD_TAG}"
 
   ws("client") {
-
     stage("Setup") {
       parallel (
         checkout: {
@@ -635,12 +634,10 @@ def testGoTestSuite(prefix, packagesToTest) {
         timeout: '30s',
       ],
       'github.com/keybase/client/go/kbfs/libfuse': [
-        // TODO re-enable
-        // flags: '',
-        // timeout: '5m',
-        // citogo_extra : '--pause 1s',
-        // no_citogo : '1'
-        disable: true,
+        flags: '',
+        timeout: '5m',
+        citogo_extra : '--pause 1s',
+        no_citogo : '1'
       ],
       'github.com/keybase/client/go/kbfs/idutil': [
         flags: '-race',

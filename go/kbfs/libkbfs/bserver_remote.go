@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"math"
 	"sync"
 	"time"
 
@@ -493,6 +494,9 @@ func (b *BlockServerRemote) GetEncodedSizes(
 	}
 	sizes = make([]uint32, len(res.Sizes))
 	for i, size := range res.Sizes {
+		if size < 0 || size > math.MaxUint32 {
+			return nil, nil, errors.Errorf("block size %d out of range for uint32", size)
+		}
 		sizes[i] = uint32(size)
 	}
 	return sizes, res.Statuses, nil

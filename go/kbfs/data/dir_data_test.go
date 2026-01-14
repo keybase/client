@@ -549,7 +549,7 @@ func TestDirDataShifting(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i <= 10; i++ {
-		addFakeDirDataEntry(ctx, t, dd, strconv.Itoa(i), uint64(i+1))
+		addFakeDirDataEntry(ctx, t, dd, strconv.Itoa(i), uint64(i+1)) //nolint:gosec // G115: Test data with small values
 	}
 	testDirDataCheckLookup(ctx, t, dd, "10", 11)
 	expectedLeafs := []testDirDataLeaf{

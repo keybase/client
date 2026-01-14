@@ -30,7 +30,7 @@ func TestUpgrade(t *testing.T) {
 	v1.Users = make(map[string]string)
 	v1.Users["alice"] = string(bcryptHash)
 
-	f1, err := os.Create(kbpConfigPath)
+	f1, err := os.Create(kbpConfigPath) //nolint:gosec // G304: Test file with known path
 	require.NoError(t, err)
 	defer func() { _ = f1.Close() }()
 	err = v1.Encode(f1, true)
@@ -53,7 +53,7 @@ func TestUpgrade(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("testing new config is upgraded and still works")
-	f2, err := os.Open(kbpConfigPath)
+	f2, err := os.Open(kbpConfigPath) //nolint:gosec // G304: Test file with known path
 	require.NoError(t, err)
 	defer func() { _ = f2.Close() }()
 

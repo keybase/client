@@ -138,7 +138,7 @@ func TestRunnerInitRepoPublic(t *testing.T) {
 }
 
 func gitExec(t *testing.T, gitDir, workTree string, command ...string) {
-	cmd := exec.Command("git",
+	cmd := exec.Command("git", //nolint:gosec // G204: Test helper running git commands
 		append([]string{"--git-dir", gitDir, "--work-tree", workTree},
 			command...)...)
 	output, err := cmd.CombinedOutput()
@@ -149,7 +149,7 @@ func makeLocalRepoWithOneFileCustomCommitMsg(t *testing.T,
 	gitDir, filename, contents, branch, msg string,
 ) {
 	t.Logf("Make a new repo in %s with one file", gitDir)
-	err := os.WriteFile(
+	err := os.WriteFile( //nolint:gosec // G304: Test file path from test setup
 		filepath.Join(gitDir, filename), []byte(contents), 0o600)
 	require.NoError(t, err)
 	dotgit := filepath.Join(gitDir, ".git")
@@ -175,7 +175,7 @@ func addOneFileToRepoCustomCommitMsg(t *testing.T, gitDir,
 	filename, contents, msg string,
 ) {
 	t.Logf("Add a new file to %s", gitDir)
-	err := os.WriteFile(
+	err := os.WriteFile( //nolint:gosec // G304: Test file path from test setup
 		filepath.Join(gitDir, filename), []byte(contents), 0o600)
 	require.NoError(t, err)
 	dotgit := filepath.Join(gitDir, ".git")
@@ -371,7 +371,7 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 	// `git` process that invokes the runner).
 	gitExec(t, dotgit2, git2, "checkout", heads[0])
 
-	data, err := os.ReadFile(filepath.Join(git2, "foo"))
+	data, err := os.ReadFile(filepath.Join(git2, "foo")) //nolint:gosec // G304: Test file path from test setup
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
 }
@@ -676,7 +676,7 @@ func TestRunnerReaderClone(t *testing.T) {
 	git2 := testCloneIntoNewLocalRepo(ctx, t, config2, "user1#user2")
 	defer func() { _ = os.RemoveAll(git2) }()
 
-	data, err := os.ReadFile(filepath.Join(git2, "foo"))
+	data, err := os.ReadFile(filepath.Join(git2, "foo")) //nolint:gosec // G304: Test file path from test setup
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
 }
@@ -1016,7 +1016,7 @@ func TestRepackObjects(t *testing.T) {
 	defer func() { _ = os.RemoveAll(git2) }()
 
 	checkFile := func(name, expectedData string) {
-		data, err := os.ReadFile(filepath.Join(git2, name))
+		data, err := os.ReadFile(filepath.Join(git2, name)) //nolint:gosec // G304: Test file path from test setup
 		require.NoError(t, err)
 		require.Equal(t, expectedData, string(data))
 	}
@@ -1190,7 +1190,7 @@ func TestRunnerLFS(t *testing.T) {
 	defer func() { _ = os.RemoveAll(tempdir) }()
 
 	localFilePath := filepath.Join(tempdir, "local.txt")
-	f, err := os.Create(localFilePath)
+	f, err := os.Create(localFilePath) //nolint:gosec // G304: Test file path from test setup
 	require.NoError(t, err)
 	doClose := true
 	defer func() {
@@ -1282,7 +1282,7 @@ func TestRunnerLFS(t *testing.T) {
 		t, "{\"event\":\"complete\",\"oid\":\""+oid+"\",\"path\":\""+p+"\"}\n",
 		output2.String())
 
-	pF, err := os.Open(p)
+	pF, err := os.Open(p) //nolint:gosec // G304: Test file path from test setup
 	require.NoError(t, err)
 	defer func() { _ = pF.Close() }()
 	buf, err = io.ReadAll(pF)

@@ -96,7 +96,7 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 	// the number of realistic indirect pointers you can fit into the
 	// default block size.  TODO: calculate this number more exactly
 	// during initialization for a given `maxSize`.
-	maxPtrs := int(.75 * float64(maxSize/int64(BPSize)))
+	maxPtrs := int(.75 * float64(maxSize/int64(BPSize))) //nolint:gosec // G115: maxSize is bounded by config
 	if maxPtrs < 2 {
 		maxPtrs = 2
 	}

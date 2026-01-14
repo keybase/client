@@ -1293,8 +1293,8 @@ func setLimiterLimits(
 func testGetDiskCacheBytes(syncCache, workingCache *DiskBlockCacheLocal) (
 	syncBytes, workingBytes int64,
 ) {
-	syncBytes = int64(syncCache.getCurrBytes())
-	workingBytes = int64(workingCache.getCurrBytes())
+	syncBytes = int64(syncCache.getCurrBytes())       //nolint:gosec // G115: Test data
+	workingBytes = int64(workingCache.getCurrBytes()) //nolint:gosec // G115: Test data
 	return syncBytes, workingBytes
 }
 

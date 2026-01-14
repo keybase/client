@@ -252,7 +252,7 @@ export interface ConvoState extends ConvoStore {
     markThreadAsRead: (force?: boolean) => void
     markTeamAsRead: (teamID: T.Teams.TeamID) => void
     messageAttachmentNativeSave: (ordinal: T.Chat.Ordinal) => void
-    messageAttachmentNativeShare: (ordinal: T.Chat.Ordinal) => void
+    messageAttachmentNativeShare: (ordinal: T.Chat.Ordinal, fromDownload?: boolean) => void
     messageDelete: (ordinal: T.Chat.Ordinal) => void
     messageDeleteHistory: () => void
     messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
@@ -1852,7 +1852,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       ignorePromise(f())
     },
-    messageAttachmentNativeShare: ordinal => {
+    messageAttachmentNativeShare: (ordinal, fromDownload = false) => {
       const message = get().messageMap.get(ordinal)
       if (message?.type !== 'attachment') {
         throw new Error('Invalid share message')
@@ -1865,7 +1865,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
 
-        if (isIOS && message.fileName.endsWith('.pdf')) {
+        // kinda hacky, on download we need to download and showing
+        if (isIOS && message.fileName.endsWith('.pdf') && fromDownload) {
           navigateAppend({
             props: {
               conversationIDKey: get().id,

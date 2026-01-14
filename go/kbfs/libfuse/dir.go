@@ -398,7 +398,7 @@ func (f *Folder) fillAttrWithUIDAndWritePerm(
 	a.Mtime = time.Unix(0, ei.Mtime)
 	a.Ctime = time.Unix(0, ei.Ctime)
 
-	a.Uid = uint32(os.Getuid())
+	a.Uid = uint32(os.Getuid()) //nolint:gosec // G115: UID values are bounded by system limits
 
 	if a.Mode, err = f.writePermMode(ctx, node, a.Mode); err != nil {
 		return err

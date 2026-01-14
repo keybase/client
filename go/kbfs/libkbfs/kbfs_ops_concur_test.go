@@ -287,7 +287,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	for _, fileNode := range fileNodes {
 		if ei, err := kbfsOps.Stat(ctx, fileNode); err != nil {
 			t.Fatalf("Couldn't stat: %v", err)
-		} else if g, e := ei.Size, uint64(totalSize); g != e {
+		} else if g, e := ei.Size, uint64(totalSize); g != e { //nolint:gosec // G115: Test data with bounded values
 			t.Fatalf("Unexpected size: %d vs %d", g, e)
 		}
 	}

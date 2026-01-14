@@ -45,7 +45,7 @@ func PadBlock(block []byte) ([]byte, error) {
 	totalLen := powerOfTwoEqualOrGreater(len(block))
 
 	buf := make([]byte, padPrefixSize+totalLen)
-	binary.LittleEndian.PutUint32(buf, uint32(len(block)))
+	binary.LittleEndian.PutUint32(buf, uint32(len(block))) //nolint:gosec // G115: Block sizes are bounded by max block size config
 
 	copy(buf[padPrefixSize:], block)
 	return buf, nil

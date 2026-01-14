@@ -91,7 +91,7 @@ func TestProgress(t *testing.T) {
 		currTotal:    int64(size1),
 		currSoFar:    10,
 		currEnd:      currEndEstimate,
-		overallTotal: int64(size1 + size2),
+		overallTotal: int64(size1 + size2), //nolint:gosec // G115: Test data with bounded values
 		overallSoFar: 10,
 		overallEnd:   overallEndEstimate,
 	})
@@ -105,7 +105,7 @@ func TestProgress(t *testing.T) {
 		currTotal:    int64(size1),
 		currSoFar:    int64(size1),
 		currEnd:      currEndEstimate,
-		overallTotal: int64(size1 + size2),
+		overallTotal: int64(size1 + size2), //nolint:gosec // G115: Test data with bounded values
 		overallSoFar: int64(size1),
 		overallEnd:   overallEndEstimate,
 	})

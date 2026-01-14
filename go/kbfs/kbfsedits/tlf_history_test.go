@@ -575,8 +575,8 @@ func TestTlfHistoryDeleteHistory(t *testing.T) {
 	sort.Sort(allAliceExpected)
 	sort.Sort(allBobExpected)
 
-	expected[0].notifications = allBobExpected[:maxEditsPerWriter]
-	expected[1].notifications = allAliceExpected[:maxEditsPerWriter]
+	expected[0].notifications = allBobExpected[:maxEditsPerWriter]   //nolint:gosec // G602: Test setup ensures sufficient length
+	expected[1].notifications = allAliceExpected[:maxEditsPerWriter] //nolint:gosec // G602: Test setup ensures sufficient length
 	rev, err = th.AddNotifications(aliceName, aliceMessages)
 	require.NoError(t, err)
 	require.Equal(t, allAliceExpected[0].Revision, rev)
@@ -594,10 +594,10 @@ func TestTlfHistoryDeleteHistory(t *testing.T) {
 		{
 			aliceName,
 			append([]NotificationMessage{aliceRecreateA},
-				allAliceExpected[:maxEditsPerWriter-1]...),
+				allAliceExpected[:maxEditsPerWriter-1]...), //nolint:gosec // G602: Test setup ensures sufficient length
 			[]NotificationMessage{aliceDeleteE},
 		},
-		expected[0],
+		expected[0], //nolint:gosec // G602: Test setup ensures sufficient length
 	}
 	rev, err = th.AddNotifications(aliceName, aliceMessages)
 	require.NoError(t, err)
@@ -618,9 +618,9 @@ func TestTlfHistoryDeleteHistory(t *testing.T) {
 		{
 			aliceName,
 			[]NotificationMessage{aliceRecreateA, aliceWrite},
-			allAliceDeletesExpected[:maxDeletesPerWriter],
+			allAliceDeletesExpected[:maxDeletesPerWriter], //nolint:gosec // G602: Test setup ensures sufficient length
 		},
-		expected[1],
+		expected[1], //nolint:gosec // G602: Test setup ensures sufficient length
 	}
 	rev, err = th.AddNotifications(aliceName, aliceMessages)
 	require.NoError(t, err)
