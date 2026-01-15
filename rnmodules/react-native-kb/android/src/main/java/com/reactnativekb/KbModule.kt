@@ -132,14 +132,17 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
                     val needsCompression = pixelCount > maxPixels || fileSize > maxFileSize
 
+                    Log.i("VideoCompression", "Video processing: width=$width, height=$height, pixelCount=$pixelCount, fileSize=$fileSize, needsCompression=$needsCompression")
                     NativeLogger.info("Video processing: width=$width, height=$height, pixelCount=$pixelCount, fileSize=$fileSize, needsCompression=$needsCompression")
 
                     if (!needsCompression) {
+                        Log.i("VideoCompression", "Video does not need compression, returning original path")
                         promise.resolve(path)
                         return@execute
                     }
 
                     val outputFile = File(inputFile.parent, "${inputFile.nameWithoutExtension}.processed.mp4")
+                    Log.i("VideoCompression", "Starting video compression: $path -> ${outputFile.absolutePath}")
                     NativeLogger.info("Starting video compression: $path -> ${outputFile.absolutePath}")
                     compressVideo(path, outputFile.absolutePath, width, height, maxPixels)
                     
@@ -151,12 +154,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                     if (outputSize == 0L) {
                         throw IllegalStateException("Compressed video file is empty: ${outputFile.absolutePath}")
                     }
+                    Log.i("VideoCompression", "Video compression completed successfully: ${outputFile.absolutePath}, size=$outputSize bytes (original=${inputFile.length()} bytes)")
                     NativeLogger.info("Video compression completed successfully: ${outputFile.absolutePath}, size=$outputSize bytes (original=${inputFile.length()} bytes)")
                     promise.resolve(outputFile.absolutePath)
                 } finally {
                     retriever.release()
                 }
             } catch (e: Exception) {
+                Log.e("VideoCompression", "Error compressing video", e)
                 NativeLogger.error("Error compressing video", e)
                 promise.reject("COMPRESSION_ERROR", "Failed to compress video: ${e.message}", e)
             }
@@ -181,6 +186,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         
         mainHandler.post {
             try {
+                Log.i("VideoCompression", "compressVideo: Creating Media3 objects on main thread")
                 NativeLogger.info("compressVideo: Creating Media3 objects on main thread")
                 // Create file URI properly
                 val inputFile = File(inputPath)
@@ -192,6 +198,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                 if (outputWidth != originalWidth || outputHeight != originalHeight) {
                     val scaleX = outputWidth.toFloat() / originalWidth.toFloat()
                     val scaleY = outputHeight.toFloat() / originalHeight.toFloat()
+                    Log.i("VideoCompression", "compressVideo: Scaling from ${originalWidth}x${originalHeight} to ${outputWidth}x${outputHeight} (scale=$scaleX,$scaleY)")
                     NativeLogger.info("compressVideo: Scaling from ${originalWidth}x${originalHeight} to ${outputWidth}x${outputHeight} (scale=$scaleX,$scaleY)")
                     val scaleTransformation = ScaleAndRotateTransformation.Builder()
                         .setScale(scaleX, scaleY)
@@ -209,16 +216,19 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                     .setAudioMimeType(MimeTypes.AUDIO_AAC)
                     .build()
                 
+                Log.i("VideoCompression", "compressVideo: Creating Transformer with listener")
                 NativeLogger.info("compressVideo: Creating Transformer with listener")
                 val transformer = Transformer.Builder(reactContext)
                     .setTransformationRequest(transformationRequest)
                     .addListener(object : Listener {
                         override fun onCompleted(composition: Composition, result: ExportResult) {
+                            Log.i("VideoCompression", "compressVideo: Transformation completed successfully")
                             NativeLogger.info("compressVideo: Transformation completed successfully")
                             latch.countDown()
                         }
                         
                         override fun onError(composition: Composition, result: ExportResult, exception: ExportException) {
+                            Log.e("VideoCompression", "compressVideo: Transformation error", exception)
                             NativeLogger.error("compressVideo: Transformation error", exception)
                             exceptionRef.set(exception)
                             latch.countDown()
@@ -226,10 +236,12 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                     })
                     .build()
                 
+                Log.i("VideoCompression", "compressVideo: Starting Transformer.start() (asynchronous), outputPath=$outputPath")
                 NativeLogger.info("compressVideo: Starting Transformer.start() (asynchronous)")
                 // Transformer.start() is asynchronous - completion is signaled via Listener callbacks
                 transformer.start(editedMediaItem, outputPath)
             } catch (e: Exception) {
+                Log.e("VideoCompression", "Error in compressVideo Transformer operation", e)
                 NativeLogger.error("Error in compressVideo Transformer operation", e)
                 exceptionRef.set(e)
                 latch.countDown()
@@ -248,11 +260,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         
         // Validate that output file was created and is valid
         if (!outputFile.exists()) {
+            Log.e("VideoCompression", "compressVideo: Output file does not exist: $outputPath")
             throw IllegalStateException("Compressed video file was not created: $outputPath")
         }
         if (outputFile.length() == 0L) {
+            Log.e("VideoCompression", "compressVideo: Output file is empty: $outputPath")
             throw IllegalStateException("Compressed video file is empty: $outputPath")
         }
+        Log.i("VideoCompression", "compressVideo: Output file validated - size=${outputFile.length()} bytes")
         NativeLogger.info("compressVideo: Output file validated - size=${outputFile.length()} bytes")
     }
 
