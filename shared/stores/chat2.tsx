@@ -1,27 +1,35 @@
-import * as T from '@/constants/types'
-import {ignorePromise, timeoutPromise, type ViewPropsToPageProps} from '@/constants/utils'
-import * as Tabs from '@/constants/tabs'
-import * as EngineGen from '@/actions/engine-gen-gen'
-import type * as ConfigConstants from '@/stores/config'
-import * as Message from '@/constants/chat2/message'
-import * as Router2 from '@/stores/router2'
-import * as TeamConstants from '@/constants/teams'
-import logger from '@/logger'
-import {RPCError} from '@/util/errors'
-import * as Meta from '@/constants/chat2/meta'
-import {isMobile, isPhone} from '@/constants/platform'
-import * as Z from '@/util/zustand'
 import * as Common from '@/constants/chat2/common'
-import {clearChatStores, chatStores} from '@/stores/convostate'
-import {uint8ArrayToString} from 'uint8array-extras'
+import * as EngineGen from '@/actions/engine-gen-gen'
+import * as Message from '@/constants/chat2/message'
+import * as Meta from '@/constants/chat2/meta'
+import * as S from '@/constants/strings'
+import * as T from '@/constants/types'
+import * as Tabs from '@/constants/tabs'
+import * as TeamConstants from '@/constants/teams'
+import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
+import logger from '@/logger'
+import type * as Router2 from '@/stores/router2'
+import {type ChatProviderProps, ProviderScreen} from '@/stores/convostate'
+import type {GetOptionsRet} from '@/constants/types/router2'
+import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
-import {navigateAppend, navUpToScreen, switchTab} from '@/constants/router2'
+import {clearChatStores, chatStores} from '@/stores/convostate'
+import {ignorePromise, timeoutPromise, type ViewPropsToPageProps} from '@/constants/utils'
+import {isMobile, isPhone} from '@/constants/platform'
+import {
+  navigateAppend,
+  navUpToScreen,
+  switchTab,
+  getModalStack,
+  getTab,
+  getVisibleScreen,
+} from '@/constants/router2'
 import {storeRegistry} from '@/stores/store-registry'
+import {uint8ArrayToString} from 'uint8array-extras'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useWaitingState} from '@/stores/waiting'
-import * as S from '@/constants/strings'
 
 const defaultTopReacjis = [
   {name: ':+1:'},
@@ -105,7 +113,8 @@ export const getBotsAndParticipants = (
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
   const teamMembers =
-    storeRegistry.getState('teams').teamIDToMembers.get(meta.teamID) ?? new Map<string, T.Teams.MemberInfo>()
+    useChatState.getState().dispatch.dynamic.onGetTeamsTeamIDToMembers(meta.teamID) ??
+    new Map<string, T.Teams.MemberInfo>()
   let bots: Array<string> = []
   if (isAdhocTeam) {
     bots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
@@ -281,6 +290,17 @@ export interface State extends Store {
   dispatch: {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
+    dynamic: {
+      onChatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
+      onGetDaemonState: () => {handshakeVersion: number; dispatch: any}
+      onGetTeamsTeamIDToMembers: (
+        teamID: T.Teams.TeamID
+      ) => ReadonlyMap<string, T.Teams.MemberInfo> | undefined
+      onGetUsersInfoMap: () => ReadonlyMap<string, T.Users.UserInfo>
+      onTeamsGetMembers: (teamID: T.Teams.TeamID) => void
+      onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
+      onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
+    }
     conversationErrored: (
       allowedUsers: ReadonlyArray<string>,
       disallowedUsers: ReadonlyArray<string>,
@@ -349,17 +369,22 @@ export interface State extends Store {
     setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
     toggleInboxSearch: (enabled: boolean) => void
     toggleSmallTeamsExpanded: () => void
-    unboxRows: (ids: Array<T.Chat.ConversationIDKey>, force?: boolean) => void
+    unboxRows: (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: boolean) => void
     updateCoinFlipStatus: (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => void
     updateInboxLayout: (layout: string) => void
     updateLastCoord: (coord: T.Chat.Coordinate) => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
-    updatedGregor: (items: ConfigConstants.State['gregorPushState']) => void
+    updatedGregor: (
+      items: ReadonlyArray<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
+    ) => void
     updateInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
   }
   getBackCount: (conversationIDKey: T.Chat.ConversationIDKey) => number
-  getBadgeHiddenCount: (ids: Set<T.Chat.ConversationIDKey>) => {badgeCount: number; hiddenCount: number}
-  getUnreadIndicies: (ids: Array<T.Chat.ConversationIDKey>) => Map<number, number>
+  getBadgeHiddenCount: (ids: ReadonlySet<T.Chat.ConversationIDKey>) => {
+    badgeCount: number
+    hiddenCount: number
+  }
+  getUnreadIndicies: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => Map<number, number>
 }
 
 // Only get the untrusted conversations out
@@ -467,6 +492,29 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         }
       }
       ignorePromise(f())
+    },
+    dynamic: {
+      onChatMetasReceived: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
+        throw new Error('onChatMetasReceived not properly initialized')
+      },
+      onGetDaemonState: () => {
+        throw new Error('onGetDaemonState not properly initialized')
+      },
+      onGetTeamsTeamIDToMembers: (_teamID: T.Teams.TeamID) => {
+        throw new Error('onGetTeamsTeamIDToMembers not properly initialized')
+      },
+      onGetUsersInfoMap: () => {
+        throw new Error('onGetUsersInfoMap not properly initialized')
+      },
+      onTeamsGetMembers: (_teamID: T.Teams.TeamID) => {
+        throw new Error('onTeamsGetMembers not properly initialized')
+      },
+      onTeamsUpdateTeamRetentionPolicy: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
+        throw new Error('onTeamsUpdateTeamRetentionPolicy not properly initialized')
+      },
+      onUsersUpdates: (_updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+        throw new Error('onUsersUpdates not properly initialized')
+      },
     },
     ensureWidgetMetas: () => {
       const {inboxLayout} = get()
@@ -801,7 +849,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       if (get().staticConfig) {
         return
       }
-      const {handshakeVersion, dispatch} = storeRegistry.getState('daemon')
+      const {handshakeVersion, dispatch} = get().dispatch.dynamic.onGetDaemonState()
       const f = async () => {
         const name = 'chat.loadStatic'
         dispatch.wait(name, handshakeVersion, true)
@@ -940,8 +988,8 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       const {isMetaGood, meta} = storeRegistry.getConvoState(selectedConversation)
       if (isMetaGood()) {
         const {teamID} = meta
-        if (!storeRegistry.getState('teams').teamIDToMembers.get(teamID) && meta.teamname) {
-          storeRegistry.getState('teams').dispatch.getMembers(teamID)
+        if (!get().dispatch.dynamic.onGetTeamsTeamIDToMembers(teamID) && meta.teamname) {
+          get().dispatch.dynamic.onTeamsGetMembers(teamID)
         }
       }
     },
@@ -1114,7 +1162,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           const usernames = update.CanonicalName.split(',')
           const broken = (update.breaks.breaks || []).map(b => b.user.username)
           const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
-          storeRegistry.getState('users').dispatch.updates(updates)
+          get().dispatch.dynamic.onUsersUpdates(updates)
           break
         }
         case EngineGen.chat1ChatUiChatInboxUnverified:
@@ -1301,7 +1349,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                 cs.dispatch.setMeta(meta)
               }
             })
-            storeRegistry.getState('teams').dispatch.updateTeamRetentionPolicy(metas)
+            get().dispatch.dynamic.onTeamsUpdateTeamRetentionPolicy(metas)
           }
           // this is a more serious problem, but we don't need to bug the user about it
           logger.error(
@@ -1335,7 +1383,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
       // TODO not reactive
-      const {infoMap} = storeRegistry.getState('users')
+      const infoMap = get().dispatch.dynamic.onGetUsersInfoMap()
       const {convs} = action.payload.params
       const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
       const metas: Array<T.Chat.ConversationMeta> = []
@@ -1363,7 +1411,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         })
       })
       if (added) {
-        storeRegistry.getState('users').dispatch.updates(
+        get().dispatch.dynamic.onUsersUpdates(
           Object.keys(usernameToFullname).map(name => ({
             info: {fullname: usernameToFullname[name]},
             name,
@@ -1398,7 +1446,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         return map
       }, {})
 
-      storeRegistry.getState('users').dispatch.updates(
+      get().dispatch.dynamic.onUsersUpdates(
         Object.keys(usernameToFullname).map(name => ({
           info: {fullname: usernameToFullname[name]},
           name,
@@ -1411,14 +1459,14 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     onRouteChanged: (prev, next) => {
       const maybeChangeChatSelection = () => {
-        const wasModal = prev && Router2.getModalStack(prev).length > 0
-        const isModal = next && Router2.getModalStack(next).length > 0
+        const wasModal = prev && getModalStack(prev).length > 0
+        const isModal = next && getModalStack(next).length > 0
         // ignore if changes involve a modal
         if (wasModal || isModal) {
           return
         }
-        const p = Router2.getVisibleScreen(prev)
-        const n = Router2.getVisibleScreen(next)
+        const p = getVisibleScreen(prev)
+        const n = getVisibleScreen(next)
         const wasChat = p?.name === Common.threadRouteName
         const isChat = n?.name === Common.threadRouteName
         // nothing to do with chat
@@ -1471,8 +1519,8 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       }
 
       const maybeChatTabSelected = () => {
-        if (Router2.getTab(prev) !== Tabs.chatTab && Router2.getTab(next) === Tabs.chatTab) {
-          const n = Router2.getVisibleScreen(next)
+        if (getTab(prev) !== Tabs.chatTab && getTab(next) === Tabs.chatTab) {
+          const n = getVisibleScreen(next)
           const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
           const isID = nParams?.conversationIDKey
           isID && storeRegistry.getConvoState(isID).dispatch.tabSelected()
@@ -1585,7 +1633,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           })
           const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
-            storeRegistry.getState('chat').dispatch.metasReceived([meta])
+            get().dispatch.dynamic.onChatMetasReceived([meta])
           }
 
           storeRegistry
@@ -1965,9 +2013,6 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
   }
 })
-
-import {type ChatProviderProps, ProviderScreen} from '@/stores/convostate'
-import type {GetOptionsRet} from '@/constants/types/router2'
 
 export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,

@@ -5,11 +5,6 @@ import * as _Message from './message'
 import type * as Meta from './meta'
 import {uint8ArrayToHex, hexToUint8Array} from 'uint8array-extras'
 
-export type PaymentConfirmInfo = {
-  error?: RPCTypes.Status
-  summary?: T.RPCChat.UIChatPaymentSummary
-}
-
 // Static config data we use for various things
 export type StaticConfig = {
   deletableByDeleteHistory: Set<_Message.MessageType>
@@ -84,11 +79,6 @@ export type AttachmentViewInfo = {
   status: AttachmentViewStatus
   messages: ReadonlyArray<_Message.Message>
   last: boolean
-}
-
-export type AttachmentFullscreenSelection = {
-  autoPlay: boolean
-  message: _Message.Message
 }
 
 export type CommandStatusInfo = {
@@ -208,4 +198,3 @@ export const outboxIDToRpcOutboxID = (outboxID: _Message.OutboxID): T.RPCChat.Ou
 export * from './message'
 export * from './common'
 export type * from './meta'
-export type * from './rowitem'

@@ -1046,7 +1046,7 @@ export interface State extends Store {
       sendChatNotification: boolean,
       crop?: T.RPCGen.ImageCropRect
     ) => void
-    updateTeamRetentionPolicy: (metas: Array<T.Chat.ConversationMeta>) => void
+    updateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
   }
 }
 
