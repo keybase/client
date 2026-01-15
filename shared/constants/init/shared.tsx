@@ -2,7 +2,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '../types'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
-import type * as Tabs from '@/constants/tabs'
+import * as Tabs from '@/constants/tabs'
 import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
 import type * as UseBotsStateType from '@/stores/bots'
@@ -46,6 +46,8 @@ import {useTeamsState} from '@/stores/teams'
 import {useTrackerState} from '@/stores/tracker2'
 import {useUsersState} from '@/stores/users'
 import {useWhatsNewState} from '@/stores/whats-new'
+import {useRouterState} from '@/stores/router2'
+import * as Util from '@/constants/router2'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 let _devicesLoaded = false
@@ -555,6 +557,85 @@ export const initSharedSubscriptions = () => {
       }
       ignorePromise(f())
     }
+  })
+
+  useRouterState.subscribe((s, old) => {
+    const next = s.navState as Util.NavState
+    const prev = old.navState as Util.NavState
+    if (prev === next) return
+
+    const namespaces = ['chat2', 'crypto', 'teams', 'people'] as const
+    const namespaceToRoute = new Map([
+      ['chat2', 'chatNewChat'],
+      ['crypto', 'cryptoTeamBuilder'],
+      ['teams', 'teamsTeamBuilder'],
+      ['people', 'peopleTeamBuilder'],
+    ])
+    for (const namespace of namespaces) {
+      const wasTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(prev)?.name
+      if (wasTeamBuilding) {
+        // team building or modal on top of that still
+        const isTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(next)?.name
+        if (!isTeamBuilding) {
+          storeRegistry.getTBStore(namespace).dispatch.cancelTeamBuilding()
+        }
+      }
+    }
+
+    // Clear critical update when we nav away from tab
+    if (
+      prev &&
+      Util.getTab(prev) === Tabs.fsTab &&
+      next &&
+      Util.getTab(next) !== Tabs.fsTab &&
+      storeRegistry.getState('fs').criticalUpdate
+    ) {
+      const {dispatch} = storeRegistry.getState('fs')
+      dispatch.setCriticalUpdate(false)
+    }
+    const fsRrouteNames = ['fsRoot', 'barePreview']
+    const wasScreen = fsRrouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
+    const isScreen = fsRrouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
+    if (wasScreen !== isScreen) {
+      const {dispatch} = storeRegistry.getState('fs')
+      if (wasScreen) {
+        dispatch.userOut()
+      } else {
+        dispatch.userIn()
+      }
+    }
+
+    // Clear "just signed up email" when you leave the people tab after signup
+    if (
+      prev &&
+      Util.getTab(prev) === Tabs.peopleTab &&
+      next &&
+      Util.getTab(next) !== Tabs.peopleTab &&
+      storeRegistry.getState('signup').justSignedUpEmail
+    ) {
+      storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
+    }
+
+    if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
+      storeRegistry.getState('people').dispatch.markViewed()
+    }
+
+    if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
+      storeRegistry.getState('teams').dispatch.clearNavBadges()
+    }
+
+    // Clear "check your inbox" in settings when you leave the settings tab
+    if (
+      prev &&
+      Util.getTab(prev) === Tabs.settingsTab &&
+      next &&
+      Util.getTab(next) !== Tabs.settingsTab &&
+      storeRegistry.getState('settings-email').addedEmail
+    ) {
+      storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
+    }
+
+    storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
   })
 
   initAutoResetCallbacks()
