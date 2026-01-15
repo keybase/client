@@ -36,9 +36,10 @@ const FilePickerPopup = (p: Props) => {
     : ([
         {
           icon: 'iconfont-camera',
-          onClick: () => p.onSelect('mixed', 'camera'),
-          title: 'Take photo or video',
+          onClick: () => p.onSelect('photo', 'camera'),
+          title: 'Take photo',
         },
+        {icon: 'iconfont-film', onClick: () => p.onSelect('video', 'camera'), title: 'Take video'},
         {
           icon: 'iconfont-photo-library',
           onClick: () => p.onSelect('mixed', 'library'),
