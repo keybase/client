@@ -168,6 +168,39 @@ export const initAutoResetCallbacks = () => {
   })
 }
 
+export const initChat2Callbacks = () => {
+  const currentState = useChatState.getState()
+  useChatState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        onChatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
+          storeRegistry.getState('chat').dispatch.metasReceived(metas)
+        },
+        onGetDaemonState: () => {
+          const daemonState = storeRegistry.getState('daemon')
+          return {handshakeVersion: daemonState.handshakeVersion, dispatch: daemonState.dispatch}
+        },
+        onGetTeamsTeamIDToMembers: (teamID: T.Teams.TeamID) => {
+          return storeRegistry.getState('teams').teamIDToMembers.get(teamID)
+        },
+        onGetUsersInfoMap: () => {
+          return storeRegistry.getState('users').infoMap
+        },
+        onTeamsGetMembers: (teamID: T.Teams.TeamID) => {
+          storeRegistry.getState('teams').dispatch.getMembers(teamID)
+        },
+        onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
+          storeRegistry.getState('teams').dispatch.updateTeamRetentionPolicy(metas)
+        },
+        onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+          storeRegistry.getState('users').dispatch.updates(updates)
+        },
+      },
+    },
+  })
+}
+
 export const initSharedSubscriptions = () => {
   useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase !== old.loadOnStartPhase) {
@@ -354,6 +387,7 @@ export const initSharedSubscriptions = () => {
   })
 
   initAutoResetCallbacks()
+  initChat2Callbacks()
   initTeamBuildingCallbacks()
 }
 

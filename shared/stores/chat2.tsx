@@ -105,7 +105,7 @@ export const getBotsAndParticipants = (
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
   const teamMembers =
-    storeRegistry.getState('teams').teamIDToMembers.get(meta.teamID) ?? new Map<string, T.Teams.MemberInfo>()
+    useChatState.getState().dispatch.dynamic.onGetTeamsTeamIDToMembers(meta.teamID) ?? new Map<string, T.Teams.MemberInfo>()
   let bots: Array<string> = []
   if (isAdhocTeam) {
     bots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
@@ -281,6 +281,15 @@ export interface State extends Store {
   dispatch: {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
+    dynamic: {
+      onChatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
+      onGetDaemonState: () => {handshakeVersion: number; dispatch: any}
+      onGetTeamsTeamIDToMembers: (teamID: T.Teams.TeamID) => Map<string, T.Teams.MemberInfo> | undefined
+      onGetUsersInfoMap: () => Map<string, T.Users.UserInfo>
+      onTeamsGetMembers: (teamID: T.Teams.TeamID) => void
+      onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
+      onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
+    }
     conversationErrored: (
       allowedUsers: ReadonlyArray<string>,
       disallowedUsers: ReadonlyArray<string>,
@@ -393,6 +402,29 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       for (const [, cs] of chatStores) {
         cs.getState().dispatch.setMeta()
       }
+    },
+    dynamic: {
+      onChatMetasReceived: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
+        throw new Error('onChatMetasReceived not properly initialized')
+      },
+      onGetDaemonState: () => {
+        throw new Error('onGetDaemonState not properly initialized')
+      },
+      onGetTeamsTeamIDToMembers: (_teamID: T.Teams.TeamID) => {
+        throw new Error('onGetTeamsTeamIDToMembers not properly initialized')
+      },
+      onGetUsersInfoMap: () => {
+        throw new Error('onGetUsersInfoMap not properly initialized')
+      },
+      onTeamsGetMembers: (_teamID: T.Teams.TeamID) => {
+        throw new Error('onTeamsGetMembers not properly initialized')
+      },
+      onTeamsUpdateTeamRetentionPolicy: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
+        throw new Error('onTeamsUpdateTeamRetentionPolicy not properly initialized')
+      },
+      onUsersUpdates: (_updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+        throw new Error('onUsersUpdates not properly initialized')
+      },
     },
     conversationErrored: (allowedUsers, disallowedUsers, code, message) => {
       set(s => {
@@ -801,7 +833,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       if (get().staticConfig) {
         return
       }
-      const {handshakeVersion, dispatch} = storeRegistry.getState('daemon')
+      const {handshakeVersion, dispatch} = get().dispatch.dynamic.onGetDaemonState()
       const f = async () => {
         const name = 'chat.loadStatic'
         dispatch.wait(name, handshakeVersion, true)
@@ -940,8 +972,8 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       const {isMetaGood, meta} = storeRegistry.getConvoState(selectedConversation)
       if (isMetaGood()) {
         const {teamID} = meta
-        if (!storeRegistry.getState('teams').teamIDToMembers.get(teamID) && meta.teamname) {
-          storeRegistry.getState('teams').dispatch.getMembers(teamID)
+        if (!get().dispatch.dynamic.onGetTeamsTeamIDToMembers(teamID) && meta.teamname) {
+          get().dispatch.dynamic.onTeamsGetMembers(teamID)
         }
       }
     },
@@ -1114,7 +1146,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           const usernames = update.CanonicalName.split(',')
           const broken = (update.breaks.breaks || []).map(b => b.user.username)
           const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
-          storeRegistry.getState('users').dispatch.updates(updates)
+          get().dispatch.dynamic.onUsersUpdates(updates)
           break
         }
         case EngineGen.chat1ChatUiChatInboxUnverified:
@@ -1301,7 +1333,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                 cs.dispatch.setMeta(meta)
               }
             })
-            storeRegistry.getState('teams').dispatch.updateTeamRetentionPolicy(metas)
+            get().dispatch.dynamic.onTeamsUpdateTeamRetentionPolicy(metas)
           }
           // this is a more serious problem, but we don't need to bug the user about it
           logger.error(
@@ -1335,7 +1367,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
       // TODO not reactive
-      const {infoMap} = storeRegistry.getState('users')
+      const infoMap = get().dispatch.dynamic.onGetUsersInfoMap()
       const {convs} = action.payload.params
       const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
       const metas: Array<T.Chat.ConversationMeta> = []
@@ -1363,7 +1395,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         })
       })
       if (added) {
-        storeRegistry.getState('users').dispatch.updates(
+        get().dispatch.dynamic.onUsersUpdates(
           Object.keys(usernameToFullname).map(name => ({
             info: {fullname: usernameToFullname[name]},
             name,
@@ -1398,7 +1430,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         return map
       }, {})
 
-      storeRegistry.getState('users').dispatch.updates(
+      get().dispatch.dynamic.onUsersUpdates(
         Object.keys(usernameToFullname).map(name => ({
           info: {fullname: usernameToFullname[name]},
           name,
@@ -1585,7 +1617,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           })
           const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
-            storeRegistry.getState('chat').dispatch.metasReceived([meta])
+            get().dispatch.dynamic.onChatMetasReceived([meta])
           }
 
           storeRegistry
