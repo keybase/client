@@ -494,10 +494,10 @@ func (b *BlockServerRemote) GetEncodedSizes(
 	}
 	sizes = make([]uint32, len(res.Sizes))
 	for i, size := range res.Sizes {
-		if size < 0 || size > math.MaxUint32 {
+		if size < 0 || uint64(size) > math.MaxUint32 {
 			return nil, nil, errors.Errorf("block size %d out of range for uint32", size)
 		}
-		sizes[i] = uint32(size)
+		sizes[i] = uint32(size) // #nosec G115 -- validated range check above
 	}
 	return sizes, res.Statuses, nil
 }
