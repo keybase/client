@@ -10,7 +10,7 @@ import {fixCrop} from '@/util/crop'
 import {clearModals, navigateAppend, navigateUp} from '@/constants/router2'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router2'
-import {useTrackerState} from '@/stores/tracker2'
+import type {useTrackerState} from '@/stores/tracker2'
 
 type ProveGenericParams = {
   logoBlack: T.Tracker.SiteIconSet
@@ -666,7 +666,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     submitRevokeProof: proofId => {
       const f = async () => {
         const you = get().dispatch.dynamic.onTracker2GetDetails?.(useCurrentUserState.getState().username)
-        if (!you || !you.assertions) return
+        if (!you?.assertions) return
         const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
         if (!proof) return
 
@@ -709,7 +709,11 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           }
           const error = _error
           logger.warn(`Error unblocking user ${username}`, error)
-          get().dispatch.dynamic.onTracker2UpdateResult?.(guiID, 'error', `Failed to unblock ${username}: ${error.desc}`)
+          get().dispatch.dynamic.onTracker2UpdateResult?.(
+            guiID,
+            'error',
+            `Failed to unblock ${username}: ${error.desc}`
+          )
         }
       }
       ignorePromise(f())

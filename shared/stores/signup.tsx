@@ -142,14 +142,6 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
-    dynamic: {
-      onEditEmail: () => {
-        throw new Error('onEditEmail not implemented')
-      },
-      onShowPermissionsPrompt: () => {
-        throw new Error('onShowPermissionsPrompt not implemented')
-      },
-    },
     checkDeviceName: _devicename => {
       const devicename = trim(_devicename)
       set(s => {
@@ -239,6 +231,14 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.justSignedUpEmail = ''
       })
+    },
+    dynamic: {
+      onEditEmail: () => {
+        throw new Error('onEditEmail not implemented')
+      },
+      onShowPermissionsPrompt: () => {
+        throw new Error('onShowPermissionsPrompt not implemented')
+      },
     },
     goBackAndClearErrors: () => {
       set(s => {

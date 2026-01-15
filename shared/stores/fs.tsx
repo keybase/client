@@ -776,6 +776,12 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       afterKbfsDaemonRpcStatusChanged: undefined,
       finishedDownloadWithIntentMobile: undefined,
       finishedRegularDownloadMobile: undefined,
+      onBadgeApp: () => {
+        throw new Error('onBadgeApp not implemented')
+      },
+      onSetBadgeCounts: () => {
+        throw new Error('onSetBadgeCounts not implemented')
+      },
       openAndUploadDesktop: undefined,
       openFilesFromWidgetDesktop: undefined,
       openLocalPathInSystemFileManagerDesktop: undefined,
@@ -786,12 +792,6 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       refreshMountDirsDesktop: undefined,
       setSfmiBannerDismissedDesktop: undefined,
       uploadFromDragAndDropDesktop: undefined,
-      onBadgeApp: () => {
-        throw new Error('onBadgeApp not implemented')
-      },
-      onSetBadgeCounts: () => {
-        throw new Error('onSetBadgeCounts not implemented')
-      },
     },
     editError: (editID, error) => {
       set(s => {

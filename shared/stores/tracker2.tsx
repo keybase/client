@@ -210,14 +210,6 @@ const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType) => {
 }
 export const useTrackerState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
-    dynamic: {
-      onShowUserProfile: () => {
-        throw new Error('onShowUserProfile not implemented')
-      },
-      onUsersUpdates: () => {
-        throw new Error('onUsersUpdates not implemented')
-      },
-    },
     changeFollow: (guiID, follow) => {
       const f = async () => {
         try {
@@ -238,6 +230,14 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         logger.info(`Closing tracker for assertion: ${username}`)
         s.showTrackerSet.delete(username)
       })
+    },
+    dynamic: {
+      onShowUserProfile: () => {
+        throw new Error('onShowUserProfile not implemented')
+      },
+      onUsersUpdates: () => {
+        throw new Error('onUsersUpdates not implemented')
+      },
     },
     getProofSuggestions: () => {
       const f = async () => {
@@ -331,7 +331,9 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followersCount = d.followers.size
           })
           if (fs.users) {
-            get().dispatch.dynamic.onUsersUpdates?.(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
+            get().dispatch.dynamic.onUsersUpdates?.(
+              fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username}))
+            )
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -355,7 +357,9 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followingCount = d.following.size
           })
           if (fs.users) {
-            get().dispatch.dynamic.onUsersUpdates?.(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
+            get().dispatch.dynamic.onUsersUpdates?.(
+              fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username}))
+            )
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -443,8 +447,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         )
         d.hidFromFollowers = hidFromFollowers
       })
-      username &&
-        get().dispatch.dynamic.onUsersUpdates?.([{info: {fullname: card.fullName}, name: username}])
+      username && get().dispatch.dynamic.onUsersUpdates?.([{info: {fullname: card.fullName}, name: username}])
     },
     notifyReset: guiID => {
       set(s => {

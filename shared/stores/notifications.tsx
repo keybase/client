@@ -96,17 +96,17 @@ export const useNotifState = Z.createZustand<State>((set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
-    dynamic: {
-      onFavoritesLoad: () => {
-        throw new Error('onFavoritesLoad not implemented')
-      },
-    },
     badgeApp: (key, on) => {
       set(s => {
         const {keyState} = s
         keyState.set(key, on)
         updateWidgetBadge(s)
       })
+    },
+    dynamic: {
+      onFavoritesLoad: () => {
+        throw new Error('onFavoritesLoad not implemented')
+      },
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
