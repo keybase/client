@@ -75,6 +75,7 @@ import androidx.media3.transformer.Transformer.Listener
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
+import androidx.media3.transformer.VideoEncoderSettings
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -193,7 +194,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                 val inputUri = Uri.fromFile(inputFile)
                 val mediaItem = MediaItem.fromUri(inputUri)
                 
-                // Apply scaling transformation if needed
+                // Apply scaling transformation if needed and set video encoder settings with bitrate
                 val editedMediaItemBuilder = EditedMediaItem.Builder(mediaItem)
                 if (outputWidth != originalWidth || outputHeight != originalHeight) {
                     val scaleX = outputWidth.toFloat() / originalWidth.toFloat()
@@ -209,6 +210,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                         Effects(listOf(), listOf(scaleTransformation))
                     )
                 }
+                
+                // Set video encoder settings with target bitrate to actually compress the video
+                Log.i("VideoCompression", "compressVideo: Setting video encoder bitrate to $targetBitrate bps for ${outputWidth}x${outputHeight}")
+                val videoEncoderSettings = VideoEncoderSettings.Builder()
+                    .setBitrate(targetBitrate)
+                    .build()
+                editedMediaItemBuilder.setVideoEncoderSettings(videoEncoderSettings)
+                
                 val editedMediaItem = editedMediaItemBuilder.build()
                 
                 val transformationRequest = TransformationRequest.Builder()
