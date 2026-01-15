@@ -71,6 +71,8 @@ import androidx.media3.transformer.Effects
 import androidx.media3.effect.ScaleAndRotateTransformation
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
+import androidx.media3.transformer.Transformer.Listener
+import androidx.media3.common.util.TransformationException
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -138,7 +140,16 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                     val outputFile = File(inputFile.parent, "${inputFile.nameWithoutExtension}.processed.mp4")
                     NativeLogger.info("Starting video compression: $path -> ${outputFile.absolutePath}")
                     compressVideo(path, outputFile.absolutePath, width, height, maxPixels)
-                    NativeLogger.info("Video compression completed: ${outputFile.absolutePath}")
+                    
+                    // Verify output file exists and is valid before resolving
+                    if (!outputFile.exists()) {
+                        throw IllegalStateException("Compressed video file does not exist: ${outputFile.absolutePath}")
+                    }
+                    val outputSize = outputFile.length()
+                    if (outputSize == 0L) {
+                        throw IllegalStateException("Compressed video file is empty: ${outputFile.absolutePath}")
+                    }
+                    NativeLogger.info("Video compression completed successfully: ${outputFile.absolutePath}, size=$outputSize bytes (original=${inputFile.length()} bytes)")
                     promise.resolve(outputFile.absolutePath)
                 } finally {
                     retriever.release()
@@ -196,31 +207,60 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                     .setAudioMimeType(MimeTypes.AUDIO_AAC)
                     .build()
                 
-                NativeLogger.info("compressVideo: Creating Transformer")
+                NativeLogger.info("compressVideo: Creating Transformer with listener")
                 val transformer = Transformer.Builder(reactContext)
                     .setTransformationRequest(transformationRequest)
+                    .addListener(object : Listener {
+                        override fun onTransformationStarted(inputMediaItem: MediaItem) {
+                            NativeLogger.info("compressVideo: Transformation started")
+                        }
+                        
+                        override fun onTransformationProgress(inputMediaItem: MediaItem, progress: Float) {
+                            NativeLogger.info("compressVideo: Transformation progress: ${(progress * 100).toInt()}%")
+                        }
+                        
+                        override fun onTransformationCompleted(inputMediaItem: MediaItem, result: androidx.media3.transformer.TransformationResult) {
+                            NativeLogger.info("compressVideo: Transformation completed successfully")
+                            latch.countDown()
+                        }
+                        
+                        override fun onTransformationError(inputMediaItem: MediaItem, exception: TransformationException) {
+                            NativeLogger.error("compressVideo: Transformation error", exception)
+                            exceptionRef.set(exception)
+                            latch.countDown()
+                        }
+                    })
                     .build()
                 
-                NativeLogger.info("compressVideo: Starting Transformer.start()")
-                // Transformer.start() is synchronous and blocks until complete
+                NativeLogger.info("compressVideo: Starting Transformer.start() (asynchronous)")
+                // Transformer.start() is asynchronous - completion is signaled via Listener callbacks
                 transformer.start(editedMediaItem, outputPath)
-                NativeLogger.info("compressVideo: Transformer.start() completed successfully")
             } catch (e: Exception) {
                 NativeLogger.error("Error in compressVideo Transformer operation", e)
                 exceptionRef.set(e)
-            } finally {
                 latch.countDown()
             }
         }
         
         // Wait for Transformer operation to complete on main thread
+        // The Listener callbacks will signal completion via latch.countDown()
         latch.await()
         
-        // Check if an exception occurred on the main thread
+        // Check if an exception occurred during transformation
         val exception = exceptionRef.get()
         if (exception != null) {
             throw exception
         }
+        
+        // Validate that output file was created and is valid
+        val outputFile = File(outputPath)
+        if (!outputFile.exists()) {
+            throw IllegalStateException("Compressed video file was not created: $outputPath")
+        }
+        if (outputFile.length() == 0L) {
+            throw IllegalStateException("Compressed video file is empty: $outputPath")
+        }
+        NativeLogger.info("compressVideo: Output file validated - size=${outputFile.length()} bytes")
     }
 
     private fun calculateOutputDimensions(width: Int, height: Int, maxPixels: Int): Pair<Int, Int> {
