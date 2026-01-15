@@ -128,6 +128,24 @@ class MediaUtils: NSObject {
         
         try validateVideoAsset(asset)
         
+        let semaphore = DispatchSemaphore(value: 0)
+        var loadError: Error?
+        
+        asset.loadValuesAsynchronously(forKeys: ["tracks"]) {
+            var error: NSError?
+            let status = asset.statusOfValue(forKey: "tracks", error: &error)
+            if status != .loaded {
+                loadError = error ?? MediaUtilsError.videoProcessingFailed("Failed to load asset tracks: status \(status.rawValue)")
+            }
+            semaphore.signal()
+        }
+        
+        semaphore.wait()
+        
+        if let error = loadError {
+            throw error
+        }
+        
         let basename = url.deletingPathExtension().lastPathComponent
         let parent = url.deletingLastPathComponent()
         let processedURL = parent.appendingPathComponent("\(basename).processed.mp4")
@@ -172,7 +190,14 @@ class MediaUtils: NSObject {
         let pixelCount = Int(size.width * size.height)
         let fileSize = getFileSize(for: asset.url)
         
-        // Determine if we need to scale down
+        if fileSize == 0 {
+            NSLog("MediaUtils: Warning - file size is 0, may indicate file access issue. Using default compression.")
+        }
+        
+        if pixelCount == 0 {
+            NSLog("MediaUtils: Warning - pixel count is 0, asset properties may not be loaded. Using default compression.")
+        }
+        
         let needsScaling = pixelCount > MediaProcessingConfig.videoMaxPixels ||
                           fileSize > MediaProcessingConfig.videoMaxFileSize
         
@@ -238,10 +263,23 @@ class MediaUtils: NSObject {
     private static func getFileSize(for url: URL) -> Int64 {
         do {
             let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
-            return attributes[.size] as? Int64 ?? 0
+            if let size = attributes[.size] as? Int64 {
+                return size
+            }
         } catch {
-            return 0
+            NSLog("MediaUtils: Failed to get file size using attributes: \(error.localizedDescription)")
         }
+        
+        do {
+            let resourceValues = try url.resourceValues(forKeys: [.fileSizeKey])
+            if let size = resourceValues.fileSize {
+                return Int64(size)
+            }
+        } catch {
+            NSLog("MediaUtils: Failed to get file size using resource values: \(error.localizedDescription)")
+        }
+        
+        return 0
     }
     
     private static func scaleDownCGImageSource(_ img: CGImageSource, dstURL: URL, options: CFDictionary) throws {
