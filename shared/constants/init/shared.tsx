@@ -201,6 +201,7 @@ export const initChat2Callbacks = () => {
   })
 }
 
+
 export const initSharedSubscriptions = () => {
   useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase !== old.loadOnStartPhase) {
