@@ -13,6 +13,7 @@ import type * as UseGitStateType from '@/stores/git'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UsePeopleStateType from '@/stores/people'
 import type * as UsePinentryStateType from '@/stores/pinentry'
+import type * as UseSettingsPasswordStateType from '@/stores/settings-password'
 import type * as UseSignupStateType from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker2'
@@ -751,7 +752,8 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyUsersPasswordChanged:
       {
         const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
-        storeRegistry.getState('settings-password').dispatch.notifyUsersPasswordChanged(randomPW)
+        const {usePWState} = require('@/stores/settings-password') as typeof UseSettingsPasswordStateType
+        usePWState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
       }
       break
     case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {

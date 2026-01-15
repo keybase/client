@@ -17,7 +17,6 @@ import type {
 } from '@/stores/recover-password'
 import type {State as SettingsState, useSettingsState} from '@/stores/settings'
 import type {State as SettingsEmailState, useSettingsEmailState} from '@/stores/settings-email'
-import type {State as SettingsPasswordState, usePWState} from '@/stores/settings-password'
 import type {State as SettingsPhoneState, useSettingsPhoneState} from '@/stores/settings-phone'
 import type {State as SignupState, useSignupState} from '@/stores/signup'
 import type {State as TeamsState, useTeamsState} from '@/stores/teams'
@@ -35,7 +34,6 @@ type StoreName =
   | 'recover-password'
   | 'settings'
   | 'settings-email'
-  | 'settings-password'
   | 'settings-phone'
   | 'signup'
   | 'teams'
@@ -53,7 +51,6 @@ type StoreStates = {
   'recover-password': RecoverPasswordState
   settings: SettingsState
   'settings-email': SettingsEmailState
-  'settings-password': SettingsPasswordState
   'settings-phone': SettingsPhoneState
   signup: SignupState
   teams: TeamsState
@@ -72,7 +69,6 @@ type StoreHooks = {
   'recover-password': typeof useRecoverPasswordState
   settings: typeof useSettingsState
   'settings-email': typeof useSettingsEmailState
-  'settings-password': typeof usePWState
   'settings-phone': typeof useSettingsPhoneState
   signup: typeof useSignupState
   teams: typeof useTeamsState
@@ -123,10 +119,6 @@ class StoreRegistry {
       case 'settings-email': {
         const {useSettingsEmailState} = require('@/stores/settings-email')
         return useSettingsEmailState
-      }
-      case 'settings-password': {
-        const {usePWState} = require('@/stores/settings-password')
-        return usePWState
       }
       case 'settings-phone': {
         const {useSettingsPhoneState} = require('@/stores/settings-phone')
