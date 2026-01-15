@@ -61,12 +61,12 @@ func ReadyBlock(
 	}
 
 	encodedSize := readyBlockData.GetEncodedSize()
-	if encodedSize < 0 || encodedSize > math.MaxUint32 {
+	if encodedSize < 0 || uint64(encodedSize) > math.MaxUint32 {
 		return BlockInfo{}, 0, ReadyBlockData{}, fmt.Errorf("encoded size %d out of range for uint32", encodedSize)
 	}
 	info = BlockInfo{
 		BlockPointer: ptr,
-		EncodedSize:  uint32(encodedSize),
+		EncodedSize:  uint32(encodedSize), // #nosec G115 -- validated range check above
 	}
 	return info, plainSize, readyBlockData, nil
 }
