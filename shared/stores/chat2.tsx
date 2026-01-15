@@ -1,22 +1,36 @@
-import * as T from '@/constants/types'
-import {ignorePromise, timeoutPromise, type ViewPropsToPageProps} from '@/constants/utils'
-import * as Tabs from '@/constants/tabs'
-import * as EngineGen from '@/actions/engine-gen-gen'
-import type * as ConfigConstants from '@/stores/config'
-import * as Message from '@/constants/chat2/message'
-import type * as Router2 from '@/stores/router2'
-import * as TeamConstants from '@/constants/teams'
-import logger from '@/logger'
-import {RPCError} from '@/util/errors'
-import * as Meta from '@/constants/chat2/meta'
-import {isMobile, isPhone} from '@/constants/platform'
-import * as Z from '@/util/zustand'
 import * as Common from '@/constants/chat2/common'
-import {clearChatStores, chatStores} from '@/stores/convostate'
-import {uint8ArrayToString} from 'uint8array-extras'
+import * as EngineGen from '@/actions/engine-gen-gen'
+import * as Message from '@/constants/chat2/message'
+import * as Meta from '@/constants/chat2/meta'
+import * as S from '@/constants/strings'
+import * as T from '@/constants/types'
+import * as Tabs from '@/constants/tabs'
+import * as TeamConstants from '@/constants/teams'
+import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
+import logger from '@/logger'
+import type * as ConfigConstants from '@/stores/config'
+import type * as Router2 from '@/stores/router2'
+import {type ChatProviderProps, ProviderScreen} from '@/stores/convostate'
+import type {GetOptionsRet} from '@/constants/types/router2'
+import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
-import {navigateAppend, navUpToScreen, switchTab, getModalStack, getTab, getVisibleScreen} from '@/constants/router2'
+import {clearChatStores, chatStores} from '@/stores/convostate'
+import {ignorePromise, timeoutPromise, type ViewPropsToPageProps} from '@/constants/utils'
+import {isMobile, isPhone} from '@/constants/platform'
+import {
+  navigateAppend,
+  navUpToScreen,
+  switchTab,
+  getModalStack,
+  getTab,
+  getVisibleScreen,
+} from '@/constants/router2'
+import {storeRegistry} from '@/stores/store-registry'
+import {uint8ArrayToString} from 'uint8array-extras'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useWaitingState} from '@/stores/waiting'
 
 const defaultTopReacjis = [
   {name: ':+1:'},
@@ -100,7 +114,8 @@ export const getBotsAndParticipants = (
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
   const teamMembers =
-    useChatState.getState().dispatch.dynamic.onGetTeamsTeamIDToMembers(meta.teamID) ?? new Map<string, T.Teams.MemberInfo>()
+    useChatState.getState().dispatch.dynamic.onGetTeamsTeamIDToMembers(meta.teamID) ??
+    new Map<string, T.Teams.MemberInfo>()
   let bots: Array<string> = []
   if (isAdhocTeam) {
     bots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
@@ -279,8 +294,10 @@ export interface State extends Store {
     dynamic: {
       onChatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       onGetDaemonState: () => {handshakeVersion: number; dispatch: any}
-      onGetTeamsTeamIDToMembers: (teamID: T.Teams.TeamID) => Map<string, T.Teams.MemberInfo> | undefined
-      onGetUsersInfoMap: () => Map<string, T.Users.UserInfo>
+      onGetTeamsTeamIDToMembers: (
+        teamID: T.Teams.TeamID
+      ) => ReadonlyMap<string, T.Teams.MemberInfo> | undefined
+      onGetUsersInfoMap: () => ReadonlyMap<string, T.Users.UserInfo>
       onTeamsGetMembers: (teamID: T.Teams.TeamID) => void
       onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
@@ -398,29 +415,6 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         cs.getState().dispatch.setMeta()
       }
     },
-    dynamic: {
-      onChatMetasReceived: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
-        throw new Error('onChatMetasReceived not properly initialized')
-      },
-      onGetDaemonState: () => {
-        throw new Error('onGetDaemonState not properly initialized')
-      },
-      onGetTeamsTeamIDToMembers: (_teamID: T.Teams.TeamID) => {
-        throw new Error('onGetTeamsTeamIDToMembers not properly initialized')
-      },
-      onGetUsersInfoMap: () => {
-        throw new Error('onGetUsersInfoMap not properly initialized')
-      },
-      onTeamsGetMembers: (_teamID: T.Teams.TeamID) => {
-        throw new Error('onTeamsGetMembers not properly initialized')
-      },
-      onTeamsUpdateTeamRetentionPolicy: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
-        throw new Error('onTeamsUpdateTeamRetentionPolicy not properly initialized')
-      },
-      onUsersUpdates: (_updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-        throw new Error('onUsersUpdates not properly initialized')
-      },
-    },
     conversationErrored: (allowedUsers, disallowedUsers, code, message) => {
       set(s => {
         s.createConversationError = T.castDraft({
@@ -494,6 +488,29 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         }
       }
       ignorePromise(f())
+    },
+    dynamic: {
+      onChatMetasReceived: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
+        throw new Error('onChatMetasReceived not properly initialized')
+      },
+      onGetDaemonState: () => {
+        throw new Error('onGetDaemonState not properly initialized')
+      },
+      onGetTeamsTeamIDToMembers: (_teamID: T.Teams.TeamID) => {
+        throw new Error('onGetTeamsTeamIDToMembers not properly initialized')
+      },
+      onGetUsersInfoMap: () => {
+        throw new Error('onGetUsersInfoMap not properly initialized')
+      },
+      onTeamsGetMembers: (_teamID: T.Teams.TeamID) => {
+        throw new Error('onTeamsGetMembers not properly initialized')
+      },
+      onTeamsUpdateTeamRetentionPolicy: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
+        throw new Error('onTeamsUpdateTeamRetentionPolicy not properly initialized')
+      },
+      onUsersUpdates: (_updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+        throw new Error('onUsersUpdates not properly initialized')
+      },
     },
     ensureWidgetMetas: () => {
       const {inboxLayout} = get()

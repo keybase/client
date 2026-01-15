@@ -179,7 +179,7 @@ export const initChat2Callbacks = () => {
         },
         onGetDaemonState: () => {
           const daemonState = storeRegistry.getState('daemon')
-          return {handshakeVersion: daemonState.handshakeVersion, dispatch: daemonState.dispatch}
+          return {dispatch: daemonState.dispatch, handshakeVersion: daemonState.handshakeVersion}
         },
         onGetTeamsTeamIDToMembers: (teamID: T.Teams.TeamID) => {
           return storeRegistry.getState('teams').teamIDToMembers.get(teamID)
