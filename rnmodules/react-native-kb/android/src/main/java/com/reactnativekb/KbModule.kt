@@ -213,14 +213,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                 val transformer = Transformer.Builder(reactContext)
                     .setTransformationRequest(transformationRequest)
                     .addListener(object : Listener {
-                        override fun onStarted(composition: Composition) {
-                            NativeLogger.info("compressVideo: Transformation started")
-                        }
-                        
-                        override fun onProgress(composition: Composition, progress: Float) {
-                            NativeLogger.info("compressVideo: Transformation progress: ${(progress * 100).toInt()}%")
-                        }
-                        
                         override fun onCompleted(composition: Composition, result: ExportResult) {
                             NativeLogger.info("compressVideo: Transformation completed successfully")
                             latch.countDown()
@@ -255,7 +247,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         }
         
         // Validate that output file was created and is valid
-        val outputFile = File(outputPath)
         if (!outputFile.exists()) {
             throw IllegalStateException("Compressed video file was not created: $outputPath")
         }
