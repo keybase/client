@@ -14,7 +14,6 @@ import type {Props} from './platform-input'
 import {Keyboard, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
 import {formatDurationShort} from '@/util/timestamp'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
-import {compressVideo} from '@/util/compress-video.native'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
 import {MaxInputAreaContext} from './max-input-area-context'
@@ -207,7 +206,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
       const f = async () => {
-        const handleSelection = async (result: ImagePicker.ImagePickerResult) => {
+        const handleSelection = (result: ImagePicker.ImagePickerResult) => {
           if (result.canceled || result.assets.length === 0 || !conversationIDKey) {
             return
           }

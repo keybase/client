@@ -60,16 +60,18 @@ const Container = (ownProps: OwnProps) => {
   const attachmentsUpload = Chat.useChatContext(s => s.dispatch.attachmentsUpload)
   const attachFromDragAndDrop = Chat.useChatContext(s => s.dispatch.attachFromDragAndDrop)
 
-  const [compressedPathAndOutboxIDs, setCompressedPathAndOutboxIDs] = React.useState<Array<T.Chat.PathAndOutboxID>>(
-    initialPathAndOutboxIDs.map(({path, outboxID, url}) => ({path, outboxID, url}))
-  )
+  const [compressedPathAndOutboxIDs, setCompressedPathAndOutboxIDs] = React.useState<
+    Array<T.Chat.PathAndOutboxID>
+  >(initialPathAndOutboxIDs.map(({path, outboxID, url}) => ({outboxID, path, url})))
   const [isCompressing, setIsCompressing] = React.useState(false)
 
   React.useEffect(() => {
     if (!shouldCompress) {
       return
     }
-    const videosToCompress = initialPathAndOutboxIDs.filter(({path}) => pathToAttachmentType(path) === 'video')
+    const videosToCompress = initialPathAndOutboxIDs.filter(
+      ({path}) => pathToAttachmentType(path) === 'video'
+    )
     if (videosToCompress.length === 0) {
       return
     }
@@ -79,9 +81,9 @@ const Container = (ownProps: OwnProps) => {
         initialPathAndOutboxIDs.map(async ({path, outboxID, url}) => {
           if (pathToAttachmentType(path) === 'video') {
             const compressedPath = await compressVideo(path)
-            return {path: compressedPath, outboxID, url}
+            return {outboxID, path: compressedPath, url}
           }
-          return {path, outboxID, url}
+          return {outboxID, path, url}
         })
       )
       setCompressedPathAndOutboxIDs(compressed)
@@ -292,6 +294,14 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small, 0),
       }),
       cancelButton: {marginRight: Kb.Styles.globalMargins.tiny},
+      compressingOverlay: {
+        backgroundColor: Kb.Styles.globalColors.white_90,
+        position: 'absolute',
+        zIndex: 1000,
+      },
+      compressingText: {
+        marginTop: Kb.Styles.globalMargins.small,
+      },
       container: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
@@ -376,14 +386,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: {borderRadius: Kb.Styles.borderRadius},
       }),
-      compressingOverlay: {
-        backgroundColor: Kb.Styles.globalColors.white_90,
-        position: 'absolute',
-        zIndex: 1000,
-      },
-      compressingText: {
-        marginTop: Kb.Styles.globalMargins.small,
-      },
     }) as const
 )
 export default Container
