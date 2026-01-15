@@ -1,50 +1,50 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
-import logger from '@/logger'
-import {isMobile, serverConfigFileName} from '../platform'
 import * as T from '../types'
-import {ignorePromise} from '../utils'
+import isEqual from 'lodash/isEqual'
+import logger from '@/logger'
+import type * as Tabs from '@/constants/tabs'
 import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
-import {useAutoResetState} from '@/stores/autoreset'
-import type * as UseDevicesStateType from '@/stores/devices'
-import {useAvatarState} from '@/common-adapters/avatar/store'
 import type * as UseBotsStateType from '@/stores/bots'
-import {useChatState} from '@/stores/chat2'
-import {getSelectedConversation} from '@/constants/chat2/common'
 import type * as UseChatStateType from '@/stores/chat2'
+import type * as UseDevicesStateType from '@/stores/devices'
+import type * as UseFSStateType from '@/stores/fs'
+import type * as UseGitStateType from '@/stores/git'
+import type * as UseNotificationsStateType from '@/stores/notifications'
+import type * as UsePeopleStateType from '@/stores/people'
+import type * as UsePinentryStateType from '@/stores/pinentry'
+import type * as UseSignupStateType from '@/stores/signup'
+import type * as UseTeamsStateType from '@/stores/teams'
+import type * as UseTracker2StateType from '@/stores/tracker2'
+import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
+import type * as UseUsersStateType from '@/stores/users'
+import {createTBStore} from '@/stores/team-building'
+import {getSelectedConversation} from '@/constants/chat2/common'
+import {handleKeybaseLink} from '@/constants/deeplinks'
+import {ignorePromise} from '../utils'
+import {isMobile, serverConfigFileName} from '../platform'
+import {storeRegistry} from '@/stores/store-registry'
+import {useAutoResetState} from '@/stores/autoreset'
+import {useAvatarState} from '@/common-adapters/avatar/store'
+import {useChatState} from '@/stores/chat2'
 import {useConfigState} from '@/stores/config'
+import {useCryptoState} from '@/stores/crypto'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
-import {handleKeybaseLink} from '@/constants/deeplinks'
-import {useFollowerState} from '@/stores/followers'
-import isEqual from 'lodash/isEqual'
-import type * as UseFSStateType from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
-import type * as UseGitStateType from '@/stores/git'
-import type * as UseNotificationsStateType from '@/stores/notifications'
+import {useFollowerState} from '@/stores/followers'
 import {useNotifState} from '@/stores/notifications'
-import type * as UsePeopleStateType from '@/stores/people'
-import type * as UsePinentryStateType from '@/stores/pinentry'
+import {useProfileState} from '@/stores/profile'
 import {useProvisionState} from '@/stores/provision'
-import {storeRegistry} from '@/stores/store-registry'
+import {usePushState} from '@/stores/push'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import {createTBStore} from '@/stores/team-building'
-import * as Tabs from '@/constants/tabs'
-import {useCryptoState} from '@/stores/crypto'
-import {useProfileState} from '@/stores/profile'
-import {useUsersState} from '@/stores/users'
-import {usePushState} from '@/stores/push'
-import {useState as useRecoverPasswordState} from '@/stores/recover-password'
-import type * as UseSignupStateType from '@/stores/signup'
 import {useSignupState} from '@/stores/signup'
-import type * as UseTeamsStateType from '@/stores/teams'
+import {useState as useRecoverPasswordState} from '@/stores/recover-password'
 import {useTeamsState} from '@/stores/teams'
-import type * as UseTracker2StateType from '@/stores/tracker2'
 import {useTrackerState} from '@/stores/tracker2'
-import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
-import type * as UseUsersStateType from '@/stores/users'
+import {useUsersState} from '@/stores/users'
 import {useWhatsNewState} from '@/stores/whats-new'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
@@ -213,11 +213,11 @@ export const initFSCallbacks = () => {
       ...currentState.dispatch,
       dynamic: {
         ...currentState.dispatch.dynamic,
-        onSetBadgeCounts: (counts: Map<Tabs.Tab, number>) => {
-          useNotifState.getState().dispatch.setBadgeCounts(counts)
-        },
         onBadgeApp: (key: 'kbfsUploading' | 'outOfSpace', on: boolean) => {
           useNotifState.getState().dispatch.badgeApp(key, on)
+        },
+        onSetBadgeCounts: (counts: Map<Tabs.Tab, number>) => {
+          useNotifState.getState().dispatch.setBadgeCounts(counts)
         },
       },
     },
@@ -246,6 +246,9 @@ export const initProfileCallbacks = () => {
       ...currentState.dispatch,
       dynamic: {
         ...currentState.dispatch.dynamic,
+        onTracker2GetDetails: (username: string) => {
+          return useTrackerState.getState().getDetails(username)
+        },
         onTracker2Load: (
           params: Parameters<ReturnType<typeof useTrackerState.getState>['dispatch']['load']>[0]
         ) => {
@@ -253,9 +256,6 @@ export const initProfileCallbacks = () => {
         },
         onTracker2ShowUser: (username: string, asTracker: boolean, skipNav?: boolean) => {
           useTrackerState.getState().dispatch.showUser(username, asTracker, skipNav)
-        },
-        onTracker2GetDetails: (username: string) => {
-          return useTrackerState.getState().getDetails(username)
         },
         onTracker2UpdateResult: (guiID: string, result: T.Tracker.DetailsState, reason?: string) => {
           useTrackerState.getState().dispatch.updateResult(guiID, result, reason)
@@ -272,15 +272,20 @@ export const initPushCallbacks = () => {
       ...currentState.dispatch,
       dynamic: {
         ...currentState.dispatch.dynamic,
-        onShowUserProfile: (username: string) => {
-          useProfileState.getState().dispatch.showUserProfile(username)
-        },
         onGetDaemonHandshakeState: () => {
           return useDaemonState.getState().handshakeState
         },
-        onNavigateToThread: (conversationIDKey: T.Chat.ConversationIDKey, reason: 'push' | 'extension', pushBody?: string) => {
-          const {getConvoState} = require('@/stores/convostate')
-          getConvoState(conversationIDKey).dispatch.navigateToThread(reason, undefined, pushBody)
+        onNavigateToThread: (
+          conversationIDKey: T.Chat.ConversationIDKey,
+          reason: 'push' | 'extension',
+          pushBody?: string
+        ) => {
+          storeRegistry
+            .getConvoState(conversationIDKey)
+            .dispatch.navigateToThread(reason, undefined, pushBody)
+        },
+        onShowUserProfile: (username: string) => {
+          useProfileState.getState().dispatch.showUserProfile(username)
         },
       },
     },
@@ -312,11 +317,11 @@ export const initSignupCallbacks = () => {
       ...currentState.dispatch,
       dynamic: {
         ...currentState.dispatch.dynamic,
-        onShowPermissionsPrompt: (p: {justSignedUp?: boolean}) => {
-          usePushState.getState().dispatch.showPermissionsPrompt(p)
-        },
         onEditEmail: (p: {email: string; makeSearchable: boolean}) => {
           useSettingsEmailState.getState().dispatch.editEmail(p)
+        },
+        onShowPermissionsPrompt: (p: {justSignedUp?: boolean}) => {
+          usePushState.getState().dispatch.showPermissionsPrompt(p)
         },
       },
     },
@@ -330,11 +335,11 @@ export const initTracker2Callbacks = () => {
       ...currentState.dispatch,
       dynamic: {
         ...currentState.dispatch.dynamic,
-        onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-          useUsersState.getState().dispatch.updates(updates)
-        },
         onShowUserProfile: (username: string) => {
           useProfileState.getState().dispatch.showUserProfile(username)
+        },
+        onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+          useUsersState.getState().dispatch.updates(updates)
         },
       },
     },

@@ -87,17 +87,6 @@ export const usePushState = Z.createZustand<State>((set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
-    dynamic: {
-      onGetDaemonHandshakeState: () => {
-        throw new Error('onGetDaemonHandshakeState not implemented')
-      },
-      onNavigateToThread: () => {
-        throw new Error('onNavigateToThread not implemented')
-      },
-      onShowUserProfile: () => {
-        throw new Error('onShowUserProfile not implemented')
-      },
-    },
     // Call when we foreground and on app start, action is undefined on app start. Returns if you have permissions
     checkPermissions: async () => {
       const permissions = await checkPermissionsFromNative()
@@ -145,6 +134,17 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         }
       }
       ignorePromise(f())
+    },
+    dynamic: {
+      onGetDaemonHandshakeState: () => {
+        throw new Error('onGetDaemonHandshakeState not implemented')
+      },
+      onNavigateToThread: () => {
+        throw new Error('onNavigateToThread not implemented')
+      },
+      onShowUserProfile: () => {
+        throw new Error('onShowUserProfile not implemented')
+      },
     },
     handlePush: notification => {
       const f = async () => {
