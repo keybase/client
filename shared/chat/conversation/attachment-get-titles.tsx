@@ -3,7 +3,7 @@ import * as Chat from '@/stores/chat2'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {compressVideo} from '@/util/compress-video.native'
+import {compressVideo} from '@/util/compress-video'
 
 type OwnProps = {
   pathAndOutboxIDs: Array<T.Chat.PathAndOutboxID>
