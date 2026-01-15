@@ -49,6 +49,7 @@ import {useUsersState} from '@/stores/users'
 import {useWhatsNewState} from '@/stores/whats-new'
 import {useRouterState} from '@/stores/router2'
 import * as Util from '@/constants/router2'
+import {setOtherStores} from '@/stores/convostate'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 let _devicesLoaded = false
@@ -376,6 +377,11 @@ export const initTracker2Callbacks = () => {
 }
 
 export const initSharedSubscriptions = () => {
+  setOtherStores(
+    storeRegistry.getStore('chat'),
+    storeRegistry.getStore('teams'),
+    storeRegistry.getStore('users')
+  )
   useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase !== old.loadOnStartPhase) {
       if (s.loadOnStartPhase === 'startupOrReloginButNotInARush') {

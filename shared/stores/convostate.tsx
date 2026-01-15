@@ -46,9 +46,11 @@ import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual} from '@/constants/utils'
 import * as Strings from '@/constants/strings'
 
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import type {useChatState} from '@/stores/chat2'
+import type {useTeamsState} from '@/stores/teams'
+import type {useUsersState} from '@/stores/users'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -374,9 +376,9 @@ export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const createSlice = (
-  chatStateHook: ReturnType<typeof storeRegistry.getStore<'chat'>>,
-  teamsStateHook: ReturnType<typeof storeRegistry.getStore<'teams'>>,
-  usersStateHook: ReturnType<typeof storeRegistry.getStore<'users'>>
+  chatStateHook: typeof useChatState,
+  teamsStateHook: typeof useTeamsState,
+  usersStateHook: typeof useUsersState
 ): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   const closeBotModal = () => {
     clearModals()
@@ -3250,14 +3252,31 @@ registerDebugClear(() => {
   clearChatStores()
 })
 
+let chatStore: typeof useChatState | undefined
+let teamsStore: typeof useTeamsState | undefined
+let usersStore: typeof useUsersState | undefined
+
+export const setOtherStores = (
+  chat: typeof useChatState,
+  teams: typeof useTeamsState,
+  users: typeof useUsersState
+) => {
+  chatStore = chat
+  teamsStore = teams
+  usersStore = users
+}
+
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const existing = chatStores.get(id)
   if (existing) return existing
+  if (!chatStore || !teamsStore || !usersStore) {
+    throw new Error('Stores not initialized. Call setOtherStores before creating conversation stores.')
+  }
   const next = Z.createZustand<ConvoState>(
     createSlice(
-      storeRegistry.getStore('chat'),
-      storeRegistry.getStore('teams'),
-      storeRegistry.getStore('users')
+      chatStore,
+      teamsStore,
+      usersStore
     )
   )
   next.setState({id})
