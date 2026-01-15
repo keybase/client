@@ -9,7 +9,6 @@ import * as TeamConstants from '@/constants/teams'
 import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
-import type * as ConfigConstants from '@/stores/config'
 import type * as Router2 from '@/stores/router2'
 import {type ChatProviderProps, ProviderScreen} from '@/stores/convostate'
 import type {GetOptionsRet} from '@/constants/types/router2'
@@ -375,11 +374,16 @@ export interface State extends Store {
     updateInboxLayout: (layout: string) => void
     updateLastCoord: (coord: T.Chat.Coordinate) => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
-    updatedGregor: (items: ReadonlyArray<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>) => void
+    updatedGregor: (
+      items: ReadonlyArray<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
+    ) => void
     updateInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
   }
   getBackCount: (conversationIDKey: T.Chat.ConversationIDKey) => number
-  getBadgeHiddenCount: (ids: ReadonlySet<T.Chat.ConversationIDKey>) => {badgeCount: number; hiddenCount: number}
+  getBadgeHiddenCount: (ids: ReadonlySet<T.Chat.ConversationIDKey>) => {
+    badgeCount: number
+    hiddenCount: number
+  }
   getUnreadIndicies: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => Map<number, number>
 }
 
