@@ -7,7 +7,6 @@ import {RPCError} from '@/util/errors'
 import {type Device} from '@/stores/provision'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {clearModals, navigateAppend, navigateUp} from '@/constants/router2'
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 
 type Store = T.Immutable<{
@@ -37,6 +36,8 @@ export interface State extends Store {
   dispatch: {
     dynamic: {
       cancel?: () => void
+      onProvisionCancel?: (ignoreWarning?: boolean) => void
+      onStartAccountReset?: (skipPassword: boolean, username: string) => void
       submitDeviceSelect?: (name: string) => void
       submitPaperKey?: (key: string) => void
       submitPassword?: (pw: string) => void
@@ -51,6 +52,12 @@ export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     dynamic: {
       cancel: undefined,
+      onProvisionCancel: () => {
+        throw new Error('onProvisionCancel not implemented')
+      },
+      onStartAccountReset: () => {
+        throw new Error('onStartAccountReset not implemented')
+      },
       submitDeviceSelect: undefined,
       submitPaperKey: undefined,
       submitPassword: undefined,
@@ -75,7 +82,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         if (p.abortProvisioning) {
-          storeRegistry.getState('provision').dispatch.dynamic.cancel?.()
+          get().dispatch.dynamic.onProvisionCancel?.()
         }
         let hadError = false
         try {
@@ -139,8 +146,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     })
                   })
                 } else {
-                  const {startAccountReset} = storeRegistry.getState('autoreset').dispatch
-                  startAccountReset(true, '')
+                  get().dispatch.dynamic.onStartAccountReset?.(true, '')
                   response.result(T.RPCGen.ResetPromptResponse.nothing)
                 }
               },

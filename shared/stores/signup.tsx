@@ -9,7 +9,6 @@ import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
 import {navigateAppend, navigateUp} from '@/constants/router2'
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 
 type Store = T.Immutable<{
@@ -46,6 +45,10 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
+    dynamic: {
+      onEditEmail?: (p: {email: string; makeSearchable: boolean}) => void
+      onShowPermissionsPrompt?: (p: {justSignedUp?: boolean}) => void
+    }
     checkDeviceName: (devicename: string) => void
     checkInviteCode: () => void
     checkUsername: (username: string) => void
@@ -81,7 +84,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       }
 
       try {
-        storeRegistry.getState('push').dispatch.showPermissionsPrompt({justSignedUp: true})
+        get().dispatch.dynamic.onShowPermissionsPrompt?.({justSignedUp: true})
 
         await T.RPCGen.signupSignupRpcListener({
           customResponseIncomingCallMap: {
@@ -122,7 +125,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         }
         // If the email was set to be visible during signup, we need to set that with a separate RPC.
         if (noErrors() && get().emailVisible) {
-          storeRegistry.getState('settings-email').dispatch.editEmail({email: get().email, makeSearchable: true})
+          get().dispatch.dynamic.onEditEmail?.({email: get().email, makeSearchable: true})
         }
       } catch (_error) {
         if (_error instanceof RPCError) {
@@ -131,7 +134,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
             s.signupError = error
           })
           navigateAppend('signupError')
-          storeRegistry.getState('push').dispatch.showPermissionsPrompt({justSignedUp: false})
+          get().dispatch.dynamic.onShowPermissionsPrompt?.({justSignedUp: false})
         }
       }
     }
@@ -139,6 +142,14 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
+    dynamic: {
+      onEditEmail: () => {
+        throw new Error('onEditEmail not implemented')
+      },
+      onShowPermissionsPrompt: () => {
+        throw new Error('onShowPermissionsPrompt not implemented')
+      },
+    },
     checkDeviceName: _devicename => {
       const devicename = trim(_devicename)
       set(s => {

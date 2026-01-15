@@ -20,21 +20,29 @@ import {handleKeybaseLink} from '@/constants/deeplinks'
 import {useFollowerState} from '@/stores/followers'
 import isEqual from 'lodash/isEqual'
 import type * as UseFSStateType from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 import type * as UseGitStateType from '@/stores/git'
 import type * as UseNotificationsStateType from '@/stores/notifications'
+import {useNotifState} from '@/stores/notifications'
 import type * as UsePeopleStateType from '@/stores/people'
 import type * as UsePinentryStateType from '@/stores/pinentry'
 import {useProvisionState} from '@/stores/provision'
 import {storeRegistry} from '@/stores/store-registry'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {useSettingsEmailState} from '@/stores/settings-email'
 import {createTBStore} from '@/stores/team-building'
+import * as Tabs from '@/constants/tabs'
 import {useCryptoState} from '@/stores/crypto'
 import {useProfileState} from '@/stores/profile'
 import {useUsersState} from '@/stores/users'
+import {usePushState} from '@/stores/push'
+import {useState as useRecoverPasswordState} from '@/stores/recover-password'
 import type * as UseSignupStateType from '@/stores/signup'
+import {useSignupState} from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker2'
 import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
 import {useWhatsNewState} from '@/stores/whats-new'
@@ -198,6 +206,140 @@ export const initChat2Callbacks = () => {
   })
 }
 
+export const initFSCallbacks = () => {
+  const currentState = useFSState.getState()
+  useFSState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onSetBadgeCounts: (counts: Map<Tabs.Tab, number>) => {
+          useNotifState.getState().dispatch.setBadgeCounts(counts)
+        },
+        onBadgeApp: (key: 'kbfsUploading' | 'outOfSpace', on: boolean) => {
+          useNotifState.getState().dispatch.badgeApp(key, on)
+        },
+      },
+    },
+  })
+}
+
+export const initNotificationsCallbacks = () => {
+  const currentState = useNotifState.getState()
+  useNotifState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onFavoritesLoad: () => {
+          useFSState.getState().dispatch.favoritesLoad()
+        },
+      },
+    },
+  })
+}
+
+export const initProfileCallbacks = () => {
+  const currentState = useProfileState.getState()
+  useProfileState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onTracker2Load: (
+          params: Parameters<ReturnType<typeof useTrackerState.getState>['dispatch']['load']>[0]
+        ) => {
+          useTrackerState.getState().dispatch.load(params)
+        },
+        onTracker2ShowUser: (username: string, asTracker: boolean, skipNav?: boolean) => {
+          useTrackerState.getState().dispatch.showUser(username, asTracker, skipNav)
+        },
+        onTracker2GetDetails: (username: string) => {
+          return useTrackerState.getState().getDetails(username)
+        },
+        onTracker2UpdateResult: (guiID: string, result: T.Tracker.DetailsState, reason?: string) => {
+          useTrackerState.getState().dispatch.updateResult(guiID, result, reason)
+        },
+      },
+    },
+  })
+}
+
+export const initPushCallbacks = () => {
+  const currentState = usePushState.getState()
+  usePushState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onShowUserProfile: (username: string) => {
+          useProfileState.getState().dispatch.showUserProfile(username)
+        },
+        onGetDaemonHandshakeState: () => {
+          return useDaemonState.getState().handshakeState
+        },
+        onNavigateToThread: (conversationIDKey: T.Chat.ConversationIDKey, reason: 'push' | 'extension', pushBody?: string) => {
+          const {getConvoState} = require('@/stores/convostate')
+          getConvoState(conversationIDKey).dispatch.navigateToThread(reason, undefined, pushBody)
+        },
+      },
+    },
+  })
+}
+
+export const initRecoverPasswordCallbacks = () => {
+  const currentState = useRecoverPasswordState.getState()
+  useRecoverPasswordState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onProvisionCancel: (ignoreWarning?: boolean) => {
+          useProvisionState.getState().dispatch.dynamic.cancel?.(ignoreWarning)
+        },
+        onStartAccountReset: (skipPassword: boolean, username: string) => {
+          useAutoResetState.getState().dispatch.startAccountReset(skipPassword, username)
+        },
+      },
+    },
+  })
+}
+
+export const initSignupCallbacks = () => {
+  const currentState = useSignupState.getState()
+  useSignupState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onShowPermissionsPrompt: (p: {justSignedUp?: boolean}) => {
+          usePushState.getState().dispatch.showPermissionsPrompt(p)
+        },
+        onEditEmail: (p: {email: string; makeSearchable: boolean}) => {
+          useSettingsEmailState.getState().dispatch.editEmail(p)
+        },
+      },
+    },
+  })
+}
+
+export const initTracker2Callbacks = () => {
+  const currentState = useTrackerState.getState()
+  useTrackerState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+          useUsersState.getState().dispatch.updates(updates)
+        },
+        onShowUserProfile: (username: string) => {
+          useProfileState.getState().dispatch.showUserProfile(username)
+        },
+      },
+    },
+  })
+}
 
 export const initSharedSubscriptions = () => {
   useConfigState.subscribe((s, old) => {
@@ -387,6 +529,13 @@ export const initSharedSubscriptions = () => {
   initAutoResetCallbacks()
   initChat2Callbacks()
   initTeamBuildingCallbacks()
+  initFSCallbacks()
+  initNotificationsCallbacks()
+  initProfileCallbacks()
+  initPushCallbacks()
+  initRecoverPasswordCallbacks()
+  initSignupCallbacks()
+  initTracker2Callbacks()
 }
 
 // This is to defer loading stores we don't need immediately.

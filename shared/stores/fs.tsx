@@ -12,7 +12,6 @@ import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
 import {navigateAppend, navigateUp} from '@/constants/router2'
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Constants from '@/constants/fs'
@@ -401,6 +400,8 @@ export interface State extends Store {
       refreshMountDirsDesktop?: () => void
       setSfmiBannerDismissedDesktop?: (dismissed: boolean) => void
       uploadFromDragAndDropDesktop?: (parentPath: T.FS.Path, localPaths: Array<string>) => void
+      onBadgeApp?: (key: 'kbfsUploading' | 'outOfSpace', on: boolean) => void
+      onSetBadgeCounts?: (counts: Map<Tabs.Tab, number>) => void
     }
     editError: (editID: T.FS.EditID, error: string) => void
     editSuccess: (editID: T.FS.EditID) => void
@@ -785,6 +786,12 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       refreshMountDirsDesktop: undefined,
       setSfmiBannerDismissedDesktop: undefined,
       uploadFromDragAndDropDesktop: undefined,
+      onBadgeApp: () => {
+        throw new Error('onBadgeApp not implemented')
+      },
+      onSetBadgeCounts: () => {
+        throw new Error('onSetBadgeCounts not implemented')
+      },
     },
     editError: (editID, error) => {
       set(s => {
@@ -898,7 +905,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             })
             const counts = new Map<Tabs.Tab, number>()
             counts.set(Tabs.fsTab, Constants.computeBadgeNumberForAll(get().tlfs))
-            storeRegistry.getState('notifications').dispatch.setBadgeCounts(counts)
+            get().dispatch.dynamic.onSetBadgeCounts?.(counts)
           }
         } catch (e) {
           errorToActionOrThrow(e)
@@ -1638,12 +1645,12 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
               break
             }
-            storeRegistry.getState('notifications').dispatch.badgeApp('kbfsUploading', true)
+            get().dispatch.dynamic.onBadgeApp?.('kbfsUploading', true)
             await timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
           }
         } finally {
           pollJournalStatusPolling = false
-          storeRegistry.getState('notifications').dispatch.badgeApp('kbfsUploading', false)
+          get().dispatch.dynamic.onBadgeApp?.('kbfsUploading', false)
           get().dispatch.checkKbfsDaemonRpcStatus()
         }
       }
@@ -1896,7 +1903,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               body: 'You are out of disk space. Some folders could not be synced.',
               sound: true,
             })
-            storeRegistry.getState('notifications').dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
+            get().dispatch.dynamic.onBadgeApp?.('outOfSpace', status.outOfSyncSpace)
             break
           }
           case T.FS.DiskSpaceStatus.Warning:
