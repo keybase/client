@@ -174,9 +174,6 @@ export const initChat2Callbacks = () => {
     dispatch: {
       ...currentState.dispatch,
       dynamic: {
-        onChatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
-          storeRegistry.getState('chat').dispatch.metasReceived(metas)
-        },
         onGetDaemonState: () => {
           const daemonState = storeRegistry.getState('daemon')
           return {dispatch: daemonState.dispatch, handshakeVersion: daemonState.handshakeVersion}
