@@ -4,14 +4,9 @@ import type * as T from '@/constants/types'
 import type * as TBType from '@/stores/team-building'
 import type * as ConvoStateType from '@/stores/convostate'
 import type {ConvoState} from '@/stores/convostate'
-import type {State as AutoResetState, useAutoResetState} from '@/stores/autoreset'
-import type {State as BotsState, useBotsState} from '@/stores/bots'
 import type {State as ChatState, useChatState} from '@/stores/chat2'
 import type {State as DaemonState, useDaemonState} from '@/stores/daemon'
-import type {State as DevicesState, useDevicesState} from '@/stores/devices'
 import type {State as FSState, useFSState} from '@/stores/fs'
-import type {State as GitState, useGitState} from '@/stores/git'
-import type {State as NotificationsState, useNotifState} from '@/stores/notifications'
 import type {State as PeopleState, usePeopleState} from '@/stores/people'
 import type {State as ProfileState, useProfileState} from '@/stores/profile'
 import type {State as ProvisionState, useProvisionState} from '@/stores/provision'
@@ -21,94 +16,67 @@ import type {
   useState as useRecoverPasswordState,
 } from '@/stores/recover-password'
 import type {State as SettingsState, useSettingsState} from '@/stores/settings'
-import type {State as SettingsChatState, useSettingsChatState} from '@/stores/settings-chat'
-import type {State as SettingsContactsState, useSettingsContactsState} from '@/stores/settings-contacts'
 import type {State as SettingsEmailState, useSettingsEmailState} from '@/stores/settings-email'
 import type {State as SettingsPasswordState, usePWState} from '@/stores/settings-password'
 import type {State as SettingsPhoneState, useSettingsPhoneState} from '@/stores/settings-phone'
 import type {State as SignupState, useSignupState} from '@/stores/signup'
 import type {State as TeamsState, useTeamsState} from '@/stores/teams'
 import type {State as Tracker2State, useTrackerState} from '@/stores/tracker2'
-import type {State as UnlockFoldersState, useUnlockFoldersState} from '@/stores/unlock-folders'
 import type {State as UsersState, useUsersState} from '@/stores/users'
 
 type StoreName =
-  | 'autoreset'
-  | 'bots'
   | 'chat'
   | 'daemon'
-  | 'devices'
   | 'fs'
-  | 'git'
-  | 'notifications'
   | 'people'
   | 'profile'
   | 'provision'
   | 'push'
   | 'recover-password'
   | 'settings'
-  | 'settings-chat'
-  | 'settings-contacts'
   | 'settings-email'
   | 'settings-password'
   | 'settings-phone'
   | 'signup'
   | 'teams'
   | 'tracker2'
-  | 'unlock-folders'
   | 'users'
 
 type StoreStates = {
-  autoreset: AutoResetState
-  bots: BotsState
   chat: ChatState
   daemon: DaemonState
-  devices: DevicesState
   fs: FSState
-  git: GitState
-  notifications: NotificationsState
   people: PeopleState
   profile: ProfileState
   provision: ProvisionState
   push: PushState
   'recover-password': RecoverPasswordState
   settings: SettingsState
-  'settings-chat': SettingsChatState
-  'settings-contacts': SettingsContactsState
   'settings-email': SettingsEmailState
   'settings-password': SettingsPasswordState
   'settings-phone': SettingsPhoneState
   signup: SignupState
   teams: TeamsState
   tracker2: Tracker2State
-  'unlock-folders': UnlockFoldersState
   users: UsersState
 }
 
 type StoreHooks = {
-  autoreset: typeof useAutoResetState
-  bots: typeof useBotsState
   chat: typeof useChatState
   daemon: typeof useDaemonState
-  devices: typeof useDevicesState
   fs: typeof useFSState
-  git: typeof useGitState
-  notifications: typeof useNotifState
   people: typeof usePeopleState
   profile: typeof useProfileState
   provision: typeof useProvisionState
   push: typeof usePushState
   'recover-password': typeof useRecoverPasswordState
   settings: typeof useSettingsState
-  'settings-chat': typeof useSettingsChatState
-  'settings-contacts': typeof useSettingsContactsState
   'settings-email': typeof useSettingsEmailState
   'settings-password': typeof usePWState
   'settings-phone': typeof useSettingsPhoneState
   signup: typeof useSignupState
   teams: typeof useTeamsState
   tracker2: typeof useTrackerState
-  'unlock-folders': typeof useUnlockFoldersState
   users: typeof useUsersState
 }
 
@@ -116,14 +84,6 @@ class StoreRegistry {
   getStore<T extends StoreName>(storeName: T): StoreHooks[T] {
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
     switch (storeName) {
-      case 'autoreset': {
-        const {useAutoResetState} = require('@/stores/autoreset')
-        return useAutoResetState
-      }
-      case 'bots': {
-        const {useBotsState} = require('@/stores/bots')
-        return useBotsState
-      }
       case 'chat': {
         const {useChatState} = require('@/stores/chat2')
         return useChatState
@@ -132,21 +92,9 @@ class StoreRegistry {
         const {useDaemonState} = require('@/stores/daemon')
         return useDaemonState
       }
-      case 'devices': {
-        const {useDevicesState} = require('@/stores/devices')
-        return useDevicesState
-      }
       case 'fs': {
         const {useFSState} = require('@/stores/fs')
         return useFSState
-      }
-      case 'git': {
-        const {useGitState} = require('@/stores/git')
-        return useGitState
-      }
-      case 'notifications': {
-        const {useNotifState} = require('@/stores/notifications')
-        return useNotifState
       }
       case 'people': {
         const {usePeopleState} = require('@/stores/people')
@@ -172,14 +120,6 @@ class StoreRegistry {
         const {useSettingsState} = require('@/stores/settings')
         return useSettingsState
       }
-      case 'settings-chat': {
-        const {useSettingsChatState} = require('@/stores/settings-chat')
-        return useSettingsChatState
-      }
-      case 'settings-contacts': {
-        const {useSettingsContactsState} = require('@/stores/settings-contacts')
-        return useSettingsContactsState
-      }
       case 'settings-email': {
         const {useSettingsEmailState} = require('@/stores/settings-email')
         return useSettingsEmailState
@@ -203,10 +143,6 @@ class StoreRegistry {
       case 'tracker2': {
         const {useTrackerState} = require('@/stores/tracker2')
         return useTrackerState
-      }
-      case 'unlock-folders': {
-        const {useUnlockFoldersState} = require('@/stores/unlock-folders')
-        return useUnlockFoldersState
       }
       case 'users': {
         const {useUsersState} = require('@/stores/users')
