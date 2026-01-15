@@ -134,7 +134,7 @@ PODS:
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
   - lottie-ios (4.5.0)
-  - lottie-react-native (7.3.4):
+  - lottie-react-native (7.3.5):
     - boost
     - DoubleConversion
     - fast_float
@@ -1910,6 +1910,7 @@ PODS:
     - fmt
     - glog
     - hermes-engine
+    - KBCommon
     - RCT-Folly
     - RCT-Folly/Fabric
     - RCTRequired
@@ -1931,7 +1932,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-keyboard-controller (1.20.4):
+  - react-native-keyboard-controller (1.20.6):
     - boost
     - DoubleConversion
     - fast_float
@@ -1949,7 +1950,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.20.4)
+    - react-native-keyboard-controller/common (= 1.20.6)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -1960,7 +1961,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-keyboard-controller/common (1.20.4):
+  - react-native-keyboard-controller/common (1.20.6):
     - boost
     - DoubleConversion
     - fast_float
@@ -3323,7 +3324,7 @@ SPEC CHECKSUMS:
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   lottie-ios: a881093fab623c467d3bce374367755c272bdd59
-  lottie-react-native: d2b7601b28c063bde347fac764166b5362037846
+  lottie-react-native: b01c4b468aed88931afefbde03d790fc4f8b010a
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: 5eb1d2eeff5fb91151e8a8eef45b6c7658b6c897
   RCTRequired: cebcf9442fc296c9b89ac791dfd463021d9f6f23
@@ -3357,8 +3358,8 @@ SPEC CHECKSUMS:
   React-logger: a913317214a26565cd4c045347edf1bcacb80a3f
   React-Mapbuffer: 017336879e2e0fb7537bbc08c24f34e2384c9260
   React-microtasksnativemodule: 63ee6730cec233feab9cdcc0c100dc28a12e4165
-  react-native-kb: 36a9fb7e03a3983f91f15d26d6f8c9a1252aa7c2
-  react-native-keyboard-controller: f88742e5b54833422a2f292e3a1ec4b6e778044c
+  react-native-kb: 078843e8c52d210aff0c50cbb4c4abe888c28ee2
+  react-native-keyboard-controller: 40b005f1202d68566a2d058ddc148a3ea8d73288
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-safe-area-context: 0a3b034bb63a5b684dd2f5fffd3c90ef6ed41ee8
   react-native-webview: cdce419e8022d0ef6f07db21890631258e7a9e6e

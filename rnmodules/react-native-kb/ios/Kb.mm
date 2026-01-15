@@ -16,6 +16,7 @@
 #import <objc/runtime.h>
 #import "./KBJSScheduler.h"
 #import "RNKbSpec.h"
+#import <KBCommon/KBCommon-Swift.h>
 
 using namespace facebook::jsi;
 using namespace facebook;
@@ -493,6 +494,20 @@ RCT_EXPORT_METHOD(addNotificationRequest: (NSDictionary *)config resolve: (RCTPr
       reject(@"notification_error", error.localizedDescription, error);
     } else {
       resolve(@YES);
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(processVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+  NSURL * videoURL = [NSURL URLWithString:path];
+
+  [MediaUtils processVideoFromOriginal:videoURL completion:^(NSError * _Nullable error, NSURL * _Nullable processedURL) {
+    if (error) {
+      reject(@"compression_error", error.localizedDescription, error);
+    } else if (processedURL) {
+      resolve(processedURL.path);
+    } else {
+      reject(@"compression_error", @"No processed video URL returned", nil);
     }
   }];
 }
