@@ -128,13 +128,17 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
                     val needsCompression = pixelCount > maxPixels || fileSize > maxFileSize
 
+                    NativeLogger.info("Video processing: width=$width, height=$height, pixelCount=$pixelCount, fileSize=$fileSize, needsCompression=$needsCompression")
+
                     if (!needsCompression) {
                         promise.resolve(path)
                         return@execute
                     }
 
                     val outputFile = File(inputFile.parent, "${inputFile.nameWithoutExtension}.processed.mp4")
+                    NativeLogger.info("Starting video compression: $path -> ${outputFile.absolutePath}")
                     compressVideo(path, outputFile.absolutePath, width, height, maxPixels)
+                    NativeLogger.info("Video compression completed: ${outputFile.absolutePath}")
                     promise.resolve(outputFile.absolutePath)
                 } finally {
                     retriever.release()
@@ -150,27 +154,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         val (outputWidth, outputHeight) = calculateOutputDimensions(originalWidth, originalHeight, maxPixels)
         val targetBitrate = calculateBitrate(outputWidth, outputHeight)
         
-        // Create file URI properly
-        val inputFile = File(inputPath)
-        val inputUri = Uri.fromFile(inputFile)
-        val mediaItem = MediaItem.fromUri(inputUri)
-        
-        // Apply scaling transformation if needed
-        val editedMediaItemBuilder = EditedMediaItem.Builder(mediaItem)
-        if (outputWidth != originalWidth || outputHeight != originalHeight) {
-            val scaleX = outputWidth.toFloat() / originalWidth.toFloat()
-            val scaleY = outputHeight.toFloat() / originalHeight.toFloat()
-            val scaleTransformation = ScaleAndRotateTransformation.Builder()
-                .setScale(scaleX, scaleY)
-                .build()
-            // Effects class wraps video effects and audio processors
-            // Constructor takes (audioProcessors, videoEffects) as positional parameters
-            editedMediaItemBuilder.setEffects(
-                Effects(listOf(), listOf(scaleTransformation))
-            )
-        }
-        val editedMediaItem = editedMediaItemBuilder.build()
-        
         // Ensure output directory exists
         val outputFile = File(outputPath)
         outputFile.parentFile?.mkdirs()
@@ -178,25 +161,52 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         // Use Media3 Transformer for simple, reliable transcoding
         // Note: Bitrate is controlled by the encoder automatically based on resolution
         // Media3 Transformer doesn't expose direct bitrate control in TransformationRequest
-        // Transformer must be created and used on a thread with a Looper (main thread)
+        // Transformer and all Media3 objects must be created and used on a thread with a Looper (main thread)
         val latch = CountDownLatch(1)
         val exceptionRef = AtomicReference<Exception?>(null)
         val mainHandler = Handler(Looper.getMainLooper())
         
         mainHandler.post {
             try {
+                NativeLogger.info("compressVideo: Creating Media3 objects on main thread")
+                // Create file URI properly
+                val inputFile = File(inputPath)
+                val inputUri = Uri.fromFile(inputFile)
+                val mediaItem = MediaItem.fromUri(inputUri)
+                
+                // Apply scaling transformation if needed
+                val editedMediaItemBuilder = EditedMediaItem.Builder(mediaItem)
+                if (outputWidth != originalWidth || outputHeight != originalHeight) {
+                    val scaleX = outputWidth.toFloat() / originalWidth.toFloat()
+                    val scaleY = outputHeight.toFloat() / originalHeight.toFloat()
+                    NativeLogger.info("compressVideo: Scaling from ${originalWidth}x${originalHeight} to ${outputWidth}x${outputHeight} (scale=$scaleX,$scaleY)")
+                    val scaleTransformation = ScaleAndRotateTransformation.Builder()
+                        .setScale(scaleX, scaleY)
+                        .build()
+                    // Effects class wraps video effects and audio processors
+                    // Constructor takes (audioProcessors, videoEffects) as positional parameters
+                    editedMediaItemBuilder.setEffects(
+                        Effects(listOf(), listOf(scaleTransformation))
+                    )
+                }
+                val editedMediaItem = editedMediaItemBuilder.build()
+                
                 val transformationRequest = TransformationRequest.Builder()
                     .setVideoMimeType(MimeTypes.VIDEO_H264)
                     .setAudioMimeType(MimeTypes.AUDIO_AAC)
                     .build()
                 
+                NativeLogger.info("compressVideo: Creating Transformer")
                 val transformer = Transformer.Builder(reactContext)
                     .setTransformationRequest(transformationRequest)
                     .build()
                 
+                NativeLogger.info("compressVideo: Starting Transformer.start()")
                 // Transformer.start() is synchronous and blocks until complete
                 transformer.start(editedMediaItem, outputPath)
+                NativeLogger.info("compressVideo: Transformer.start() completed successfully")
             } catch (e: Exception) {
+                NativeLogger.error("Error in compressVideo Transformer operation", e)
                 exceptionRef.set(e)
             } finally {
                 latch.countDown()
