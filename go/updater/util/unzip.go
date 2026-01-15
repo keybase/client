@@ -15,7 +15,7 @@ import (
 )
 
 // MaxDecompressedSize is the maximum size of a decompressed file to prevent decompression bombs
-const MaxDecompressedSize = 500 * 1024 * 1024 // 500MB limit for updater packages
+const MaxDecompressedSize = 5 * 1024 * 1024 // 500MB limit for updater packages
 
 // removeAllWithRetry attempts to remove a directory, retrying on Windows if files are locked.
 // Windows can briefly lock files after they're created/accessed, especially in freshly extracted directories.
