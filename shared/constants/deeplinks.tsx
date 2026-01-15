@@ -4,6 +4,10 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 import {navigateAppend, switchTab} from './router2'
 import {storeRegistry} from '@/stores/store-registry'
+import {useChatState} from '@/stores/chat2'
+import {useProfileState} from '@/stores/profile'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useTeamsState} from '@/stores/teams'
 
 const prefix = 'keybase://'
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
@@ -34,7 +38,7 @@ const validTeamnamePart = (s: string): boolean => {
 const validTeamname = (s: string) => s.split('.').every(validTeamnamePart)
 const handleShowUserProfileLink = (username: string) => {
   switchTab(Tabs.peopleTab)
-  storeRegistry.getState('profile').dispatch.showUserProfile(username)
+  useProfileState.getState().dispatch.showUserProfile(username)
 }
 
 const isKeybaseIoUrl = (url: URL) => {
@@ -94,8 +98,8 @@ const urlToTeamDeepLink = (url: URL) => {
 }
 
 const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
-  storeRegistry
-    .getState('teams')
+  useTeamsState
+    .getState()
     .dispatch.showTeamByName(
       teamname,
       action === 'manage_settings' ? 'settings' : undefined,
@@ -113,7 +117,7 @@ export const handleAppLink = (link: string) => {
     const url = new URL(link)
     const username = urlToUsername(url)
     if (username === 'phone-app') {
-      const phoneState = storeRegistry.getState('settings-phone')
+      const phoneState = useSettingsPhoneState.getState()
       const phones = (phoneState as {phones?: Map<string, unknown>}).phones
       if (!phones || phones.size > 0) {
         return
@@ -141,8 +145,8 @@ export const handleKeybaseLink = (link: string) => {
   switch (parts[0]) {
     case 'profile':
       if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
-        parts.length === 4 && parts[3] && storeRegistry.getState('profile').dispatch.showUserProfile(parts[3])
-        storeRegistry.getState('profile').dispatch.addProof(parts[2]!, 'appLink')
+        parts.length === 4 && parts[3] && useProfileState.getState().dispatch.showUserProfile(parts[3])
+        useProfileState.getState().dispatch.addProof(parts[2]!, 'appLink')
         return
       } else if (parts[1] === 'show' && parts.length === 3) {
         // Username is basically a team name part, we can use the same logic to
@@ -191,7 +195,7 @@ export const handleKeybaseLink = (link: string) => {
           }
 
           const highlightMessageID = T.Chat.numberToMessageID(_highlightMessageID)
-          const {previewConversation} = storeRegistry.getState('chat').dispatch
+          const {previewConversation} = useChatState.getState().dispatch
           previewConversation({
             channelname,
             highlightMessageID,
@@ -205,7 +209,7 @@ export const handleKeybaseLink = (link: string) => {
             logger.warn(`invalid chat message id: ${highlightMessageID}`)
             return
           }
-          const {previewConversation} = storeRegistry.getState('chat').dispatch
+          const {previewConversation} = useChatState.getState().dispatch
           previewConversation({
             highlightMessageID: T.Chat.numberToMessageID(highlightMessageID),
             participants: parts[1]!.split(','),
@@ -233,7 +237,7 @@ export const handleKeybaseLink = (link: string) => {
       }, 500)
       return
     case 'team-invite-link':
-      storeRegistry.getState('teams').dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
+      useTeamsState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
       return
     case 'settingsPushPrompt':
       navigateAppend('settingsPushPrompt')
