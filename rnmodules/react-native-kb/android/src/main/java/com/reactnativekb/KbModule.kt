@@ -72,7 +72,9 @@ import androidx.media3.effect.ScaleAndRotateTransformation
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.transformer.Transformer.Listener
-import androidx.media3.common.util.TransformationException
+import androidx.media3.transformer.Composition
+import androidx.media3.transformer.ExportException
+import androidx.media3.transformer.ExportResult
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -211,20 +213,20 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                 val transformer = Transformer.Builder(reactContext)
                     .setTransformationRequest(transformationRequest)
                     .addListener(object : Listener {
-                        override fun onTransformationStarted(inputMediaItem: MediaItem) {
+                        override fun onStarted(composition: Composition) {
                             NativeLogger.info("compressVideo: Transformation started")
                         }
                         
-                        override fun onTransformationProgress(inputMediaItem: MediaItem, progress: Float) {
+                        override fun onProgress(composition: Composition, progress: Float) {
                             NativeLogger.info("compressVideo: Transformation progress: ${(progress * 100).toInt()}%")
                         }
                         
-                        override fun onTransformationCompleted(inputMediaItem: MediaItem, result: androidx.media3.transformer.TransformationResult) {
+                        override fun onCompleted(composition: Composition, result: ExportResult) {
                             NativeLogger.info("compressVideo: Transformation completed successfully")
                             latch.countDown()
                         }
                         
-                        override fun onTransformationError(inputMediaItem: MediaItem, exception: TransformationException) {
+                        override fun onError(composition: Composition, result: ExportResult, exception: ExportException) {
                             NativeLogger.error("compressVideo: Transformation error", exception)
                             exceptionRef.set(exception)
                             latch.countDown()
