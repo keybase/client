@@ -370,17 +370,17 @@ export interface State extends Store {
     setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
     toggleInboxSearch: (enabled: boolean) => void
     toggleSmallTeamsExpanded: () => void
-    unboxRows: (ids: Array<T.Chat.ConversationIDKey>, force?: boolean) => void
+    unboxRows: (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: boolean) => void
     updateCoinFlipStatus: (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => void
     updateInboxLayout: (layout: string) => void
     updateLastCoord: (coord: T.Chat.Coordinate) => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
-    updatedGregor: (items: ConfigConstants.State['gregorPushState']) => void
+    updatedGregor: (items: ReadonlyArray<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>) => void
     updateInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
   }
   getBackCount: (conversationIDKey: T.Chat.ConversationIDKey) => number
-  getBadgeHiddenCount: (ids: Set<T.Chat.ConversationIDKey>) => {badgeCount: number; hiddenCount: number}
-  getUnreadIndicies: (ids: Array<T.Chat.ConversationIDKey>) => Map<number, number>
+  getBadgeHiddenCount: (ids: ReadonlySet<T.Chat.ConversationIDKey>) => {badgeCount: number; hiddenCount: number}
+  getUnreadIndicies: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => Map<number, number>
 }
 
 // Only get the untrusted conversations out
