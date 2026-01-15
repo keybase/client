@@ -2198,7 +2198,6 @@ func (k *SimpleFS) doGetRevisions(
 		// Otherwise, we have to fetch the stats from the MD revision
 		// before the last one we processed, and use the
 		// PreviousRevisions list from that version of the file.
-	revisionLoop:
 		for len(revPaths) < 4 && nextSlot < len(prs) {
 			var rev kbfsmd.Revision
 			switch {
@@ -2237,7 +2236,7 @@ func (k *SimpleFS) doGetRevisions(
 				nextSlot = 0      // will be incremented below
 				expectedCount = 1 // will be incremented below
 			default:
-				break revisionLoop
+				// break TODO: add break label?
 			}
 
 			p := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
