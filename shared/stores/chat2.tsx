@@ -4,7 +4,7 @@ import * as Tabs from '@/constants/tabs'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import type * as ConfigConstants from '@/stores/config'
 import * as Message from '@/constants/chat2/message'
-import * as Router2 from '@/stores/router2'
+import type * as Router2 from '@/stores/router2'
 import * as TeamConstants from '@/constants/teams'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
@@ -16,12 +16,7 @@ import {clearChatStores, chatStores} from '@/stores/convostate'
 import {uint8ArrayToString} from 'uint8array-extras'
 import isEqual from 'lodash/isEqual'
 import {bodyToJSON} from '@/constants/rpc-utils'
-import {navigateAppend, navUpToScreen, switchTab} from '@/constants/router2'
-import {storeRegistry} from '@/stores/store-registry'
-import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
-import {useWaitingState} from '@/stores/waiting'
-import * as S from '@/constants/strings'
+import {navigateAppend, navUpToScreen, switchTab, getModalStack, getTab, getVisibleScreen} from '@/constants/router2'
 
 const defaultTopReacjis = [
   {name: ':+1:'},
@@ -1443,14 +1438,14 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     onRouteChanged: (prev, next) => {
       const maybeChangeChatSelection = () => {
-        const wasModal = prev && Router2.getModalStack(prev).length > 0
-        const isModal = next && Router2.getModalStack(next).length > 0
+        const wasModal = prev && getModalStack(prev).length > 0
+        const isModal = next && getModalStack(next).length > 0
         // ignore if changes involve a modal
         if (wasModal || isModal) {
           return
         }
-        const p = Router2.getVisibleScreen(prev)
-        const n = Router2.getVisibleScreen(next)
+        const p = getVisibleScreen(prev)
+        const n = getVisibleScreen(next)
         const wasChat = p?.name === Common.threadRouteName
         const isChat = n?.name === Common.threadRouteName
         // nothing to do with chat
@@ -1503,8 +1498,8 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       }
 
       const maybeChatTabSelected = () => {
-        if (Router2.getTab(prev) !== Tabs.chatTab && Router2.getTab(next) === Tabs.chatTab) {
-          const n = Router2.getVisibleScreen(next)
+        if (getTab(prev) !== Tabs.chatTab && getTab(next) === Tabs.chatTab) {
+          const n = getVisibleScreen(next)
           const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
           const isID = nParams?.conversationIDKey
           isID && storeRegistry.getConvoState(isID).dispatch.tabSelected()
@@ -1997,9 +1992,6 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
   }
 })
-
-import {type ChatProviderProps, ProviderScreen} from '@/stores/convostate'
-import type {GetOptionsRet} from '@/constants/types/router2'
 
 export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
