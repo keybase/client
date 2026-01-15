@@ -206,6 +206,32 @@ export const initChat2Callbacks = () => {
   })
 }
 
+export const initTeamsCallbacks = () => {
+  const currentState = useTeamsState.getState()
+  useTeamsState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onChatNavigateToInbox: (allowSwitchTab?: boolean) => {
+          storeRegistry.getState('chat').dispatch.navigateToInbox(allowSwitchTab)
+        },
+        onChatPreviewConversation: (p: {
+          channelname?: string
+          conversationIDKey?: T.Chat.ConversationIDKey
+          reason?: string
+          teamname?: string
+        }) => {
+          storeRegistry.getState('chat').dispatch.previewConversation(p)
+        },
+        onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+          storeRegistry.getState('users').dispatch.updates(updates)
+        },
+      },
+    },
+  })
+}
+
 export const initFSCallbacks = () => {
   const currentState = useFSState.getState()
   useFSState.setState({
@@ -534,6 +560,7 @@ export const initSharedSubscriptions = () => {
   initAutoResetCallbacks()
   initChat2Callbacks()
   initTeamBuildingCallbacks()
+  initTeamsCallbacks()
   initFSCallbacks()
   initNotificationsCallbacks()
   initProfileCallbacks()
