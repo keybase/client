@@ -11,6 +11,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.text.format.DateFormat
@@ -48,9 +50,11 @@ import java.io.InputStreamReader
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.HashMap
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import keybase.Keybase
@@ -146,18 +150,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         val (outputWidth, outputHeight) = calculateOutputDimensions(originalWidth, originalHeight, maxPixels)
         val targetBitrate = calculateBitrate(outputWidth, outputHeight)
         
-        // Use Media3 Transformer for simple, reliable transcoding
-        // Note: Bitrate is controlled by the encoder automatically based on resolution
-        // Media3 Transformer doesn't expose direct bitrate control in TransformationRequest
-        val transformationRequest = TransformationRequest.Builder()
-            .setVideoMimeType(MimeTypes.VIDEO_H264)
-            .setAudioMimeType(MimeTypes.AUDIO_AAC)
-            .build()
-        
-        val transformer = Transformer.Builder(reactContext)
-            .setTransformationRequest(transformationRequest)
-            .build()
-        
         // Create file URI properly
         val inputFile = File(inputPath)
         val inputUri = Uri.fromFile(inputFile)
@@ -183,8 +175,42 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         val outputFile = File(outputPath)
         outputFile.parentFile?.mkdirs()
         
-        // Transformer.start() is synchronous and blocks until complete
-        transformer.start(editedMediaItem, outputPath)
+        // Use Media3 Transformer for simple, reliable transcoding
+        // Note: Bitrate is controlled by the encoder automatically based on resolution
+        // Media3 Transformer doesn't expose direct bitrate control in TransformationRequest
+        // Transformer must be created and used on a thread with a Looper (main thread)
+        val latch = CountDownLatch(1)
+        val exceptionRef = AtomicReference<Exception?>(null)
+        val mainHandler = Handler(Looper.getMainLooper())
+        
+        mainHandler.post {
+            try {
+                val transformationRequest = TransformationRequest.Builder()
+                    .setVideoMimeType(MimeTypes.VIDEO_H264)
+                    .setAudioMimeType(MimeTypes.AUDIO_AAC)
+                    .build()
+                
+                val transformer = Transformer.Builder(reactContext)
+                    .setTransformationRequest(transformationRequest)
+                    .build()
+                
+                // Transformer.start() is synchronous and blocks until complete
+                transformer.start(editedMediaItem, outputPath)
+            } catch (e: Exception) {
+                exceptionRef.set(e)
+            } finally {
+                latch.countDown()
+            }
+        }
+        
+        // Wait for Transformer operation to complete on main thread
+        latch.await()
+        
+        // Check if an exception occurred on the main thread
+        val exception = exceptionRef.get()
+        if (exception != null) {
+            throw exception
+        }
     }
 
     private fun calculateOutputDimensions(width: Int, height: Int, maxPixels: Int): Pair<Int, Int> {
