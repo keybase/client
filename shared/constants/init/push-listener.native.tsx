@@ -9,9 +9,9 @@ import {
   getInitialNotification,
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useLogoutState} from '@/stores/logout'
+import {usePushState} from '@/stores/push'
 
 type DataCommon = {
   userInteraction: boolean
@@ -171,8 +171,8 @@ export const initPushListener = () => {
       return
     }
     logger.debug(`[PushCheck] checking on foreground`)
-    storeRegistry
-      .getState('push')
+    usePushState
+      .getState()
       .dispatch.checkPermissions()
       .then(() => {})
       .catch(() => {})
@@ -181,7 +181,7 @@ export const initPushListener = () => {
   // Token handling
   useLogoutState.subscribe((s, old) => {
     if (s.version === old.version) return
-    storeRegistry.getState('push').dispatch.deleteToken(s.version)
+    usePushState.getState().dispatch.deleteToken(s.version)
   })
 
   let lastCount = -1
@@ -197,7 +197,7 @@ export const initPushListener = () => {
     lastCount = count
   })
 
-  storeRegistry.getState('push').dispatch.initialPermissionsCheck()
+  usePushState.getState().dispatch.initialPermissionsCheck()
 
   const listenNative = async () => {
     const RNEmitter = getNativeEmitter()
@@ -211,7 +211,7 @@ export const initPushListener = () => {
         logger.warn('[onNotification]: normalized notification is null/undefined')
         return
       }
-      storeRegistry.getState('push').dispatch.handlePush(notification)
+      usePushState.getState().dispatch.handlePush(notification)
     }
 
     try {
@@ -242,7 +242,7 @@ export const initPushListener = () => {
     try {
       const pushToken = await getRegistrationToken()
       logger.debug('[PushToken] received new token: ', pushToken)
-      storeRegistry.getState('push').dispatch.setPushToken(pushToken)
+      usePushState.getState().dispatch.setPushToken(pushToken)
     } catch (e) {
       logger.warn('[PushToken] failed to get token (will retry later): ', e)
       // Token will be retrieved later when permissions are checked
