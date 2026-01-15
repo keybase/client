@@ -220,12 +220,9 @@ export const initTeamsCallbacks = () => {
         onChatNavigateToInbox: (allowSwitchTab?: boolean) => {
           storeRegistry.getState('chat').dispatch.navigateToInbox(allowSwitchTab)
         },
-        onChatPreviewConversation: (p: {
-          channelname?: string
-          conversationIDKey?: T.Chat.ConversationIDKey
-          reason?: string
-          teamname?: string
-        }) => {
+        onChatPreviewConversation: (
+          p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
+        ) => {
           storeRegistry.getState('chat').dispatch.previewConversation(p)
         },
         onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {

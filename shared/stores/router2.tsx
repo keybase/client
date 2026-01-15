@@ -1,6 +1,6 @@
 import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
-import * as Tabs from '@/constants/tabs'
+import type * as Tabs from '@/constants/tabs'
 import type {RouteKeys} from '@/router-v2/route-params'
 import * as Util from '@/constants/router2'
 
