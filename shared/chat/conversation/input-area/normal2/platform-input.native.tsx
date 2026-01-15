@@ -212,7 +212,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
           }
           const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
           navigateAppend(conversationIDKey => ({
-            props: {conversationIDKey, pathAndOutboxIDs},
+            props: {conversationIDKey, pathAndOutboxIDs, shouldCompress: true},
             selected: 'chatAttachmentGetTitles',
           }))
         }

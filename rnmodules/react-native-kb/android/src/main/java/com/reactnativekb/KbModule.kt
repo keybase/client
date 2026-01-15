@@ -11,6 +11,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.text.format.DateFormat
@@ -48,9 +50,11 @@ import java.io.InputStreamReader
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.HashMap
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import keybase.Keybase
@@ -59,6 +63,22 @@ import keybase.Keybase.readArr
 import keybase.Keybase.version
 import keybase.Keybase.writeArr
 import com.facebook.react.common.annotations.FrameworkAPI
+import android.media.MediaMetadataRetriever
+import androidx.media3.transformer.TransformationRequest
+import androidx.media3.transformer.Transformer
+import androidx.media3.transformer.EditedMediaItem
+import androidx.media3.transformer.Effects
+import androidx.media3.effect.ScaleAndRotateTransformation
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.transformer.Transformer.Listener
+import androidx.media3.transformer.Composition
+import androidx.media3.transformer.ExportException
+import androidx.media3.transformer.ExportResult
+import androidx.media3.transformer.VideoEncoderSettings
+import androidx.media3.transformer.DefaultEncoderFactory
+import java.nio.ByteBuffer
+import kotlin.math.min
 
 @OptIn(FrameworkAPI::class)
 class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
@@ -88,6 +108,188 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     override fun setEnablePasteImage(enabled: Boolean) {
         // not used
     }
+
+    @ReactMethod
+    override fun processVideo(path: String, promise: Promise) {
+        Executors.newSingleThreadExecutor().execute {
+            try {
+                val inputFile = File(path)
+                if (!inputFile.exists()) {
+                    promise.reject("FILE_NOT_FOUND", "Video file not found: $path")
+                    return@execute
+                }
+
+                val retriever = MediaMetadataRetriever()
+                try {
+                    retriever.setDataSource(path)
+                    val widthStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                    val heightStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                    val fileSize = inputFile.length()
+
+                    val width = widthStr?.toIntOrNull() ?: 0
+                    val height = heightStr?.toIntOrNull() ?: 0
+                    val maxPixels = 1920 * 1080
+                    val maxFileSize = 50L * 1024 * 1024 // 50MB
+                    val pixelCount = width * height
+
+                    val needsCompression = pixelCount > maxPixels || fileSize > maxFileSize
+                    NativeLogger.info("Video processing: width=$width, height=$height, pixelCount=$pixelCount, fileSize=$fileSize, needsCompression=$needsCompression")
+
+                    if (!needsCompression) {
+                        Log.i("VideoCompression", "Video does not need compression, returning original path")
+                        promise.resolve(path)
+                        return@execute
+                    }
+
+                    val outputFile = File(inputFile.parent, "${inputFile.nameWithoutExtension}.processed.mp4")
+                    NativeLogger.info("Starting video compression: $path -> ${outputFile.absolutePath}")
+                    compressVideo(path, outputFile.absolutePath, width, height, maxPixels)
+
+                    // Verify output file exists and is valid before resolving
+                    if (!outputFile.exists()) {
+                        throw IllegalStateException("Compressed video file does not exist: ${outputFile.absolutePath}")
+                    }
+                    val outputSize = outputFile.length()
+                    if (outputSize == 0L) {
+                        throw IllegalStateException("Compressed video file is empty: ${outputFile.absolutePath}")
+                    }
+                    NativeLogger.info("Video compression completed successfully: ${outputFile.absolutePath}, size=$outputSize bytes (original=${inputFile.length()} bytes)")
+                    promise.resolve(outputFile.absolutePath)
+                } finally {
+                    retriever.release()
+                }
+            } catch (e: Exception) {
+                NativeLogger.error("Error compressing video", e)
+                promise.reject("COMPRESSION_ERROR", "Failed to compress video: ${e.message}", e)
+            }
+        }
+    }
+
+    private fun compressVideo(inputPath: String, outputPath: String, originalWidth: Int, originalHeight: Int, maxPixels: Int) {
+        val (outputWidth, outputHeight) = calculateOutputDimensions(originalWidth, originalHeight, maxPixels)
+        val targetBitrate = calculateBitrate(outputWidth, outputHeight)
+
+        // Ensure output directory exists
+        val outputFile = File(outputPath)
+        outputFile.parentFile?.mkdirs()
+
+        // Use Media3 Transformer for simple, reliable transcoding
+        // Note: Bitrate is controlled by the encoder automatically based on resolution
+        // Media3 Transformer doesn't expose direct bitrate control in TransformationRequest
+        // Transformer and all Media3 objects must be created and used on a thread with a Looper (main thread)
+        val latch = CountDownLatch(1)
+        val exceptionRef = AtomicReference<Exception?>(null)
+        val mainHandler = Handler(Looper.getMainLooper())
+
+        mainHandler.post {
+            try {
+                NativeLogger.info("compressVideo: Creating Media3 objects on main thread")
+                // Create file URI properly
+                val inputFile = File(inputPath)
+                val inputUri = Uri.fromFile(inputFile)
+                val mediaItem = MediaItem.fromUri(inputUri)
+
+                // Apply scaling transformation if needed
+                val editedMediaItemBuilder = EditedMediaItem.Builder(mediaItem)
+                if (outputWidth != originalWidth || outputHeight != originalHeight) {
+                    val scaleX = outputWidth.toFloat() / originalWidth.toFloat()
+                    val scaleY = outputHeight.toFloat() / originalHeight.toFloat()
+                    NativeLogger.info("compressVideo: Scaling from ${originalWidth}x${originalHeight} to ${outputWidth}x${outputHeight} (scale=$scaleX,$scaleY)")
+                    val scaleTransformation = ScaleAndRotateTransformation.Builder()
+                        .setScale(scaleX, scaleY)
+                        .build()
+                    // Effects class wraps video effects and audio processors
+                    // Constructor takes (audioProcessors, videoEffects) as positional parameters
+                    editedMediaItemBuilder.setEffects(
+                        Effects(listOf(), listOf(scaleTransformation))
+                    )
+                }
+                val editedMediaItem = editedMediaItemBuilder.build()
+
+                // Set video encoder settings with target bitrate to actually compress the video
+                val videoEncoderSettings = VideoEncoderSettings.Builder()
+                    .setBitrate(targetBitrate)
+                    .build()
+
+                // Create encoder factory with video encoder settings
+                val encoderFactory = DefaultEncoderFactory.Builder(reactContext)
+                    .setRequestedVideoEncoderSettings(videoEncoderSettings)
+                    .build()
+
+                val transformationRequest = TransformationRequest.Builder()
+                    .setVideoMimeType(MimeTypes.VIDEO_H264)
+                    .setAudioMimeType(MimeTypes.AUDIO_AAC)
+                    .build()
+
+                NativeLogger.info("compressVideo: Creating Transformer with listener")
+                val transformer = Transformer.Builder(reactContext)
+                    .setTransformationRequest(transformationRequest)
+                    .setEncoderFactory(encoderFactory)
+                    .addListener(object : Listener {
+                        override fun onCompleted(composition: Composition, result: ExportResult) {
+                            NativeLogger.info("compressVideo: Transformation completed successfully")
+                            latch.countDown()
+                        }
+
+                        override fun onError(composition: Composition, result: ExportResult, exception: ExportException) {
+                            NativeLogger.error("compressVideo: Transformation error", exception)
+                            exceptionRef.set(exception)
+                            latch.countDown()
+                        }
+                    })
+                    .build()
+
+                NativeLogger.info("compressVideo: Starting Transformer.start() (asynchronous)")
+                // Transformer.start() is asynchronous - completion is signaled via Listener callbacks
+                transformer.start(editedMediaItem, outputPath)
+            } catch (e: Exception) {
+                NativeLogger.error("Error in compressVideo Transformer operation", e)
+                exceptionRef.set(e)
+                latch.countDown()
+            }
+        }
+
+        // Wait for Transformer operation to complete on main thread
+        // The Listener callbacks will signal completion via latch.countDown()
+        latch.await()
+
+        // Check if an exception occurred during transformation
+        val exception = exceptionRef.get()
+        if (exception != null) {
+            throw exception
+        }
+
+        // Validate that output file was created and is valid
+        if (!outputFile.exists()) {
+            throw IllegalStateException("Compressed video file was not created: $outputPath")
+        }
+        if (outputFile.length() == 0L) {
+            throw IllegalStateException("Compressed video file is empty: $outputPath")
+        }
+        NativeLogger.info("compressVideo: Output file validated - size=${outputFile.length()} bytes")
+    }
+
+    private fun calculateOutputDimensions(width: Int, height: Int, maxPixels: Int): Pair<Int, Int> {
+        val pixelCount = width * height
+        if (pixelCount <= maxPixels) {
+            return Pair(width, height)
+        }
+
+        val scale = kotlin.math.sqrt(maxPixels.toDouble() / pixelCount)
+        val newWidth = (width * scale).toInt().let { if (it % 2 == 0) it else it - 1 }
+        val newHeight = (height * scale).toInt().let { if (it % 2 == 0) it else it - 1 }
+        return Pair(newWidth, newHeight)
+    }
+
+    private fun calculateBitrate(width: Int, height: Int): Int {
+        val pixelCount = width * height
+        return when {
+            pixelCount > 1920 * 1080 -> 8000000 // 8 Mbps for > 1080p
+            pixelCount > 1280 * 720 -> 5000000  // 5 Mbps for 1080p
+            else -> 3000000 // 3 Mbps for 720p and below
+        }
+    }
+
 
 
     /**
