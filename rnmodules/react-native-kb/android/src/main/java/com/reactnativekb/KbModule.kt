@@ -76,6 +76,7 @@ import androidx.media3.transformer.Composition
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.VideoEncoderSettings
+import androidx.media3.transformer.DefaultEncoderFactory
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -194,7 +195,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                 val inputUri = Uri.fromFile(inputFile)
                 val mediaItem = MediaItem.fromUri(inputUri)
                 
-                // Apply scaling transformation if needed and set video encoder settings with bitrate
+                // Apply scaling transformation if needed
                 val editedMediaItemBuilder = EditedMediaItem.Builder(mediaItem)
                 if (outputWidth != originalWidth || outputHeight != originalHeight) {
                     val scaleX = outputWidth.toFloat() / originalWidth.toFloat()
@@ -210,15 +211,18 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                         Effects(listOf(), listOf(scaleTransformation))
                     )
                 }
+                val editedMediaItem = editedMediaItemBuilder.build()
                 
                 // Set video encoder settings with target bitrate to actually compress the video
                 Log.i("VideoCompression", "compressVideo: Setting video encoder bitrate to $targetBitrate bps for ${outputWidth}x${outputHeight}")
                 val videoEncoderSettings = VideoEncoderSettings.Builder()
                     .setBitrate(targetBitrate)
                     .build()
-                editedMediaItemBuilder.setVideoEncoderSettings(videoEncoderSettings)
                 
-                val editedMediaItem = editedMediaItemBuilder.build()
+                // Create encoder factory with video encoder settings
+                val encoderFactory = DefaultEncoderFactory.Builder(reactContext)
+                    .setRequestedVideoEncoderSettings(videoEncoderSettings)
+                    .build()
                 
                 val transformationRequest = TransformationRequest.Builder()
                     .setVideoMimeType(MimeTypes.VIDEO_H264)
@@ -229,6 +233,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                 NativeLogger.info("compressVideo: Creating Transformer with listener")
                 val transformer = Transformer.Builder(reactContext)
                     .setTransformationRequest(transformationRequest)
+                    .setEncoderFactory(encoderFactory)
                     .addListener(object : Listener {
                         override fun onCompleted(composition: Composition, result: ExportResult) {
                             Log.i("VideoCompression", "compressVideo: Transformation completed successfully")
