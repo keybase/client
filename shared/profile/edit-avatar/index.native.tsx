@@ -272,9 +272,9 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
             )
             console.log(
               '[AvatarUpload] getRect - after scaling by rescalex: ',
-              rescalex,
+              rescaleX,
               ' rescaley: ',
-              rescalex,
+              rescaleY,
               ':',
               result
             )
