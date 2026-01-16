@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import type * as T from '@/constants/types'
 

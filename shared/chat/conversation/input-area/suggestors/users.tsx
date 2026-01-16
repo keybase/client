@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useTeamsState} from '@/constants/teams'
+import * as Chat from '@/stores/chat2'
+import {useTeamsState} from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 
 export const transformer = (
   input: {

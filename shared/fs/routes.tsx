@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as FS from '@/constants/fs'
+import * as FS from '@/stores/fs'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 
 const FsRoot = React.lazy(async () => import('.'))

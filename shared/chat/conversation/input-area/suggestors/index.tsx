@@ -1,5 +1,5 @@
 import * as Channels from './channels'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Kb from '@/common-adapters'

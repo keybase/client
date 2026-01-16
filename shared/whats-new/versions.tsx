@@ -1,10 +1,10 @@
 import * as C from '@/constants'
-import {encryptTab} from '@/constants/crypto/util'
+import {encryptTab} from '@/constants/crypto'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {keybaseFM} from '@/constants/whats-new'
+import {keybaseFM} from '@/stores/whats-new'
 import NewFeatureRow from './new-feature-row'
-import {settingsCryptoTab, settingsDisplayTab} from '@/constants/settings/util'
+import {settingsCryptoTab, settingsDisplayTab} from '@/constants/settings'
 
 export type VersionProps = {
   seen: boolean

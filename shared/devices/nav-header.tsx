@@ -1,10 +1,10 @@
 import * as C from '@/constants'
-import type * as DevicesType from '@/constants/devices'
+import type * as DevicesType from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 
 export const HeaderTitle = () => {
-  const Devices = require('@/constants/devices') as typeof DevicesType
+  const Devices = require('@/stores/devices') as typeof DevicesType
   const numActive = Devices.useActiveDeviceCounts()
   const numRevoked = Devices.useRevokedDeviceCounts()
   return (

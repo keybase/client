@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error'

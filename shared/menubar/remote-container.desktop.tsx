@@ -1,14 +1,14 @@
 import * as React from 'react'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import Menubar from './index.desktop'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {useAvatarState} from '@/common-adapters/avatar/store'
-import {useUsersState} from '@/constants/users'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
-import {useDaemonState} from '@/constants/daemon'
-import {useDarkModeState} from '@/constants/darkmode'
+import {useUsersState} from '@/stores/users'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
+import {useDarkModeState} from '@/stores/darkmode'
 
 const RemoteContainer = (d: DeserializeProps) => {
   const {avatarRefreshCounter, badgeMap, daemonHandshakeState, darkMode, diskSpaceStatus, endEstimate} = d

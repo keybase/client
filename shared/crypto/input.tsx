@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Crypto from '@/constants/crypto'
+import * as Crypto from '@/stores/crypto'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'

@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Wallets from '@/constants/wallets'
-import {useState as useWalletsState} from '@/constants/wallets'
+import * as Wallets from '@/stores/wallets'
+import {useState as useWalletsState} from '@/stores/wallets'
 
 const Row = (p: {account: Wallets.Account}) => {
   const {account} = p

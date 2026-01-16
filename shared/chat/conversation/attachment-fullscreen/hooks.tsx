@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import type * as T from '@/constants/types'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const blankMessage = Chat.makeMessageAttachment({})
 export const useData = (initialOrdinal: T.Chat.Ordinal) => {

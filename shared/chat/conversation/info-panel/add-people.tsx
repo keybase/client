@@ -1,5 +1,5 @@
-import * as Chat from '@/constants/chat2'
-import {useTeamsState} from '@/constants/teams'
+import * as Chat from '@/stores/chat2'
+import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 

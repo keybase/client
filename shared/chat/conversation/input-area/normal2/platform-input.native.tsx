@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AudioRecorder from '@/chat/audio/audio-recorder.native'
 import FilePickerPopup from '../filepicker-popup'
 import {onHWKeyPressed, removeOnHWKeyPressed} from 'react-native-kb'
-import MoreMenuPopup from './moremenu-popup'
+import MoreMenuPopup from './moremenu-popup.native'
 import SetExplodingMessagePicker from './set-explode-popup'
 import Typing from './typing'
 import type * as ImagePicker from 'expo-image-picker'
@@ -28,7 +28,7 @@ import logger from '@/logger'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import type {RefType as Input2Ref, Props as Input2Props} from '@/common-adapters/input2'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const singleLineHeight = 36
 const threeLineHeight = 78

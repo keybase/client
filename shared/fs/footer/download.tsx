@@ -4,8 +4,8 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import DownloadWrapper from './download-wrapper'
 import {formatDurationFromNowTo} from '@/util/timestamp'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 
 export type Props = {
   downloadID: string

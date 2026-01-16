@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
-import * as FS from '@/constants/fs/util'
-import * as Teams from '@/constants/teams'
+import * as FS from '@/constants/fs'
+import * as Teams from '@/stores/teams'
 import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
@@ -98,7 +98,7 @@ const Container = (ownProps: OwnProps) => {
     navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'})
   }
   const onOpenFolder = (teamname: string) => {
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
+    FS.navToPath(T.FS.stringToPath(`/keybase/team/${teamname}`))
   }
 
   const items: Kb.MenuItems = ['Divider']

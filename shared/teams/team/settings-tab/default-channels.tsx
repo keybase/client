@@ -4,8 +4,8 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
 import {ChannelsWidget} from '@/teams/common'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 
 type Props = {
   teamID: T.Teams.TeamID

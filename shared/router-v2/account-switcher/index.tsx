@@ -1,15 +1,15 @@
 import * as C from '@/constants'
 import './account-switcher.css'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {settingsLogOutTab} from '@/constants/settings/util'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
-import {useProvisionState} from '@/constants/provision'
+import {settingsLogOutTab} from '@/constants/settings'
+import {useTrackerState} from '@/stores/tracker2'
+import {useProfileState} from '@/stores/profile'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useProvisionState} from '@/stores/provision'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: ReadonlyArray<T>,

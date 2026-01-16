@@ -1,5 +1,5 @@
-import {useConfigState} from '@/constants/config'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Feedback from '.'
@@ -9,7 +9,7 @@ import {getExtraChatLogsForLogSend} from './shared'
 import {isAndroid, version, pprofDir} from '@/constants/platform'
 import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
 import type {Props as OwnProps} from './container'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 
 export type Props = {
   chat: object

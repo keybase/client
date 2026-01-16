@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 
 // The behavior is to only show spinner when user first time lands on a screen
 // and when don't have the data that drives it yet. Since RPCs happen

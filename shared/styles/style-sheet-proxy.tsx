@@ -1,4 +1,4 @@
-import {useDarkModeState} from '@/constants/darkmode'
+import {useDarkModeState} from '@/stores/darkmode'
 import type {StylesCrossPlatform} from '.'
 
 // Support a closure to enable simple dark mode.

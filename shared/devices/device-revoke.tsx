@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
-import * as Devices from '@/constants/devices'
+import {useConfigState} from '@/stores/config'
+import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {settingsDevicesTab} from '@/constants/settings'
-import {useCurrentUserState} from '@/constants/current-user'
+import {settingsDevicesTab} from '@/stores/settings'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {deviceID: string}
 
@@ -97,7 +97,7 @@ const useRevoke = (deviceID = '') => {
         try {
           await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.waitingKeyDevices)
           load()
-          useConfigState.getState().dispatch.revoke(deviceName)
+          useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
         } catch {}
       } else {
         try {
@@ -106,7 +106,7 @@ const useRevoke = (deviceID = '') => {
             C.waitingKeyDevices
           )
           load()
-          useConfigState.getState().dispatch.revoke(deviceName)
+          useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
           navUpToScreen(
             C.isMobile ? (C.isTablet ? C.Tabs.settingsTab : settingsDevicesTab) : C.Tabs.devicesTab
           )

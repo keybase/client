@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as React from 'react'
 import JumpToRecent from './jump-to-recent'
 import type * as T from '@/constants/types'

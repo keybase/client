@@ -3,9 +3,10 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
-import {useArchiveState} from '@/constants/archive'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import {useArchiveState} from '@/stores/archive'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
+import {showShareActionSheet} from '@/util/platform-specific'
 
 const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
   const {id, index} = p
@@ -37,7 +38,7 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
 
   const onShare = React.useCallback(() => {
     if (!job?.outPath) return
-    C.PlatformSpecific.showShareActionSheet({
+    showShareActionSheet({
       filePath: job.outPath,
       mimeType: 'application/zip',
     })
@@ -164,10 +165,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
     if (!Kb.Styles.isMobile || !job) {
       return
     }
-    C.PlatformSpecific.showShareActionSheet({
-      filePath: job.zipFilePath,
-      mimeType: 'application/zip',
-    })
+    showShareActionSheet({filePath: job.zipFilePath, mimeType: 'application/zip'})
       .then(() => {})
       .catch(() => {})
   }, [job])

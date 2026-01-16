@@ -1,5 +1,5 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as React from 'react'
 import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType} from '../icon'
 import * as Styles from '@/styles'
@@ -7,9 +7,9 @@ import * as AvatarZus from './store'
 import './avatar.css'
 import type {Props} from '.'
 import {useColorScheme} from 'react-native'
-import {useUsersState} from '@/constants/users'
-import {useFollowerState} from '@/constants/followers'
-import {navToProfile} from '@/constants/router2'
+import {useUsersState} from '@/stores/users'
+import {useFollowerState} from '@/stores/followers'
+import {navToProfile} from '@/stores/router2'
 
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = (typeof avatarSizes)[number]

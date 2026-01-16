@@ -4,8 +4,10 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {pickSave} from '@/util/pick-files'
 import * as FsCommon from '@/fs/common'
-import {useArchiveState} from '@/constants/archive'
-import {settingsArchiveTab} from '@/constants/settings'
+import {useArchiveState} from '@/stores/archive'
+import {settingsArchiveTab} from '@/stores/settings'
+import {useCurrentUserState} from '@/stores/current-user'
+import {getConvoState} from '@/stores/convostate'
 
 type Props =
   | {type: 'chatID'; conversationIDKey: T.Chat.ConversationIDKey}
@@ -16,12 +18,29 @@ type Props =
   | {type: 'fsPath'; path: string}
   | {type: 'git'; gitURL: string}
 
+const chatIDToDisplayname = (conversationIDKey: string) => {
+  const you = useCurrentUserState.getState().username
+  const cs = getConvoState(conversationIDKey)
+  const m = cs.meta
+  if (m.teamname) {
+    if (m.channelname) {
+      return `${m.teamname}#${m.channelname}`
+    }
+    return m.teamname
+  }
+
+  const participants = cs.participants.name
+  if (participants.length === 1) {
+    return participants[0] ?? ''
+  }
+  return participants.filter(username => username !== you).join(',')
+}
+
 const ArchiveModal = (p: Props) => {
   const {type} = p
-  const chatIDToDisplayname = useArchiveState(s => s.chatIDToDisplayname)
   const displayname = React.useMemo(() => {
     return p.type === 'chatID' ? chatIDToDisplayname(p.conversationIDKey) : ''
-  }, [p, chatIDToDisplayname])
+  }, [p])
 
   let defaultPath = ''
   if (C.isElectron) {

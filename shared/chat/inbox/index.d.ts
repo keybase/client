@@ -1,5 +1,6 @@
 import type * as React from 'react'
 import type * as T from '@/constants/types'
+import type {ChatInboxRowItem} from './rowitem'
 
 export type Props = {
   allowShowFloatingButton: boolean
@@ -10,7 +11,7 @@ export type Props = {
   neverLoaded: boolean
   onNewChat: () => void
   onUntrustedInboxVisible: (conversationIDKeys: Array<T.Chat.ConversationIDKey>) => void
-  rows: Array<T.Chat.ChatInboxRowItem>
+  rows: Array<ChatInboxRowItem>
   setInboxNumSmallRows: (rows: number) => void
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void

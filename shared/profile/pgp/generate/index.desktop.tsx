@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import Modal from '@/profile/modal'
 
 export default function Generate() {

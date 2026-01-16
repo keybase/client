@@ -8,7 +8,7 @@ import {useTimeout} from './use-timers'
 import * as Styles from '@/styles'
 import logger from '@/logger'
 import type {MeasureRef} from './measure-ref'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const Kb = {
   Box2Measure,

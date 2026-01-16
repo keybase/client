@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker} from './role-picker'

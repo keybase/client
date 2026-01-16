@@ -1,16 +1,16 @@
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {keybaseFM} from '@/constants/whats-new'
+import {keybaseFM} from '@/stores/whats-new'
 import SettingsItem from './sub-nav/settings-item'
 import WhatsNewIcon from '../whats-new/icon'
 import noop from 'lodash/noop'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
-import * as Settings from '@/constants/settings'
-import {usePushState} from '@/constants/push'
-import {useNotifState} from '@/constants/notifications'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import * as Settings from '@/stores/settings'
+import {usePushState} from '@/stores/push'
+import {useNotifState} from '@/stores/notifications'
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')

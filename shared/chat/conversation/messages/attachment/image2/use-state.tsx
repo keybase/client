@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {maxWidth, maxHeight} from '../shared'
 

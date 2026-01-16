@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {IconStyle} from '@/common-adapters/icon'
-import {keybaseFM} from '@/constants/whats-new'
+import {keybaseFM} from '@/stores/whats-new'
 import Popup from './popup'
 import './icon.css'
-import {useWhatsNewState as useWNState} from '@/constants/whats-new'
+import {useWhatsNewState as useWNState} from '@/stores/whats-new'
 
 type OwnProps = {
   color?: string

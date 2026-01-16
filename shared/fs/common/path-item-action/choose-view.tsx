@@ -2,7 +2,7 @@ import * as T from '@/constants/types'
 import type {FloatingMenuProps} from './types'
 import Menu from './menu-container'
 import Confirm from './confirm'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps

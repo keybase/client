@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import openURL from '@/util/open-url'
-import {currentVersion} from '@/constants/whats-new'
+import {currentVersion} from '@/stores/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
-import {useWhatsNewState as useWNState} from '@/constants/whats-new'
-import {useConfigState} from '@/constants/config'
+import {useWhatsNewState as useWNState} from '@/stores/whats-new'
+import {useConfigState} from '@/stores/config'
 
 const WhatsNewContainer = () => {
   const _onNavigateExternal = (url: string) => {

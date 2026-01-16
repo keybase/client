@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
 import type {HeaderOptions} from '@react-navigation/elements'
 import {HeaderLeftArrowCanGoBack} from '@/common-adapters/header-hoc'
-import type {NavState} from '@/constants/router2'
+import type {NavState} from '@/stores/router2'
 
 export const headerDefaultStyle = {
   get backgroundColor() {

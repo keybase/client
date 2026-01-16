@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import ChatFilterRow from './filter-row'
 import StartNewChat from './row/start-new-chat'
 

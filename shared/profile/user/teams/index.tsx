@@ -1,12 +1,12 @@
 import * as C from '@/constants'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import OpenMeta from './openmeta'
 import {default as TeamInfo, type Props as TIProps} from './teaminfo'
-import {useTrackerState} from '@/constants/tracker2'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useTrackerState} from '@/stores/tracker2'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {username: string}
 
