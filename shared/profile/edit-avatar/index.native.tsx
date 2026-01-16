@@ -239,6 +239,7 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
             
             const rescale = resolution.width / (c.resize?.width ?? 1)
             console.log('[AvatarUpload] getRect - calculated rescale (original/resize):', rescale, `= ${resolution.width} / ${c.resize?.width ?? 1}`)
+            console.log('[AvatarUpload] getRect - NOTE: If zoomed, c.resize should differ from resolution. If same, zoom may not be working.')
             
             const {originX: x, originY: y} = c.crop
             const result = {
