@@ -240,54 +240,90 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
 
             const {originX: x, originY: y, width, height} = c.crop
             
-            const displayedImageWidth = c.resize?.width ?? resolution.width
-            const displayedImageHeight = c.resize?.height ?? resolution.height
+            const coordinateSpaceWidth = c.resize?.width ?? resolution.width
+            const coordinateSpaceHeight = c.resize?.height ?? resolution.height
+            
+            const imageAspectRatio = resolution.width / resolution.height
+            const isWider = imageAspectRatio > 1
+            
+            let visibleAreaStartX = 0
+            let visibleAreaStartY = 0
+            let visibleAreaWidth = coordinateSpaceWidth
+            let visibleAreaHeight = coordinateSpaceHeight
+            
+            if (isWider) {
+              const fittedHeight = avatarSize
+              const fittedWidth = fittedHeight * imageAspectRatio
+              const scaleFromFittedToCoordinate = coordinateSpaceWidth / fittedWidth
+              visibleAreaWidth = avatarSize * scaleFromFittedToCoordinate
+              visibleAreaStartX = (coordinateSpaceWidth - visibleAreaWidth) / 2
+            } else {
+              const fittedWidth = avatarSize
+              const fittedHeight = fittedWidth / imageAspectRatio
+              const scaleFromFittedToCoordinate = coordinateSpaceHeight / fittedHeight
+              visibleAreaHeight = avatarSize * scaleFromFittedToCoordinate
+              visibleAreaStartY = (coordinateSpaceHeight - visibleAreaHeight) / 2
+            }
             
             console.log(
-              '[AvatarUpload] getRect - SIMPLIFIED:',
-              'c.crop coordinates: x=',
-              x,
-              ', y=',
-              y,
-              ', width=',
-              width,
-              ', height=',
-              height,
-              'in coordinate space',
-              displayedImageWidth,
+              '[AvatarUpload] getRect - Coordinate space:',
+              coordinateSpaceWidth,
               'x',
-              displayedImageHeight
-            )
-            console.log(
-              '[AvatarUpload] getRect - Original image:',
-              resolution.width,
+              coordinateSpaceHeight,
+              ', visible area in crop view:',
+              visibleAreaStartX.toFixed(2),
+              ',',
+              visibleAreaStartY.toFixed(2),
+              'to',
+              (visibleAreaStartX + visibleAreaWidth).toFixed(2),
+              ',',
+              (visibleAreaStartY + visibleAreaHeight).toFixed(2),
+              '(size:',
+              visibleAreaWidth.toFixed(2),
               'x',
-              resolution.height
-            )
-            
-            const rescaleX = resolution.width / displayedImageWidth
-            const rescaleY = resolution.height / displayedImageHeight
-            const rescale = rescaleX
-            
-            console.log(
-              '[AvatarUpload] getRect - Rescale factor:',
-              rescale,
-              '(using rescaleX, rescaleY=',
-              rescaleY,
-              ', diff=',
-              Math.abs(rescaleX - rescaleY).toFixed(6),
+              visibleAreaHeight.toFixed(2),
               ')'
             )
+            
+            const coordinateX = x + visibleAreaStartX
+            const coordinateY = y + visibleAreaStartY
+            
+            const rescaleX = resolution.width / coordinateSpaceWidth
+            const rescaleY = resolution.height / coordinateSpaceHeight
+            const rescale = rescaleX
             
             const result = {
               height: height * rescale,
               width: width * rescale,
-              x: x * rescale,
-              y: y * rescale,
+              x: coordinateX * rescale,
+              y: coordinateY * rescale,
             }
             
             console.log(
-              '[AvatarUpload] getRect - Result:',
+              '[AvatarUpload] getRect - Crop coordinates relative to visible area:',
+              'x=',
+              x.toFixed(2),
+              ', y=',
+              y.toFixed(2),
+              ', width=',
+              width,
+              ', height=',
+              height
+            )
+            console.log(
+              '[AvatarUpload] getRect - Adjusted to coordinate space:',
+              'x=',
+              coordinateX.toFixed(2),
+              ', y=',
+              coordinateY.toFixed(2),
+              '(added offset:',
+              visibleAreaStartX.toFixed(2),
+              ',',
+              visibleAreaStartY.toFixed(2),
+              ')'
+            )
+            console.log(
+              '[AvatarUpload] getRect - Scaled to original image space:',
               'x=',
               result.x.toFixed(2),
               ', y=',
@@ -296,16 +332,6 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               result.width.toFixed(2),
               ', height=',
               result.height.toFixed(2)
-            )
-            console.log(
-              '[AvatarUpload] getRect - Bounds:',
-              'x goes from',
-              result.x.toFixed(2),
-              'to',
-              (result.x + result.width).toFixed(2),
-              '(image width:',
-              resolution.width,
-              ')'
             )
             return result
           }
