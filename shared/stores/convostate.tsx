@@ -46,9 +46,11 @@ import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual} from '@/constants/utils'
 import * as Strings from '@/constants/strings'
 
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import type {useChatState} from '@/stores/chat2'
+import type {useTeamsState} from '@/stores/teams'
+import type {useUsersState} from '@/stores/users'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -373,11 +375,15 @@ type ScrollDirection = 'none' | 'back' | 'forward'
 export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
-const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
+const createSlice = (
+  chatStateHook: typeof useChatState,
+  teamsStateHook: typeof useTeamsState,
+  usersStateHook: typeof useUsersState
+): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   const closeBotModal = () => {
     clearModals()
     if (get().meta.teamname) {
-      storeRegistry.getState('teams').dispatch.getMembers(get().meta.teamID)
+      teamsStateHook.getState().dispatch.getMembers(get().meta.teamID)
     }
   }
 
@@ -495,7 +501,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
     const onClick = () => {
       useConfigState.getState().dispatch.showMain()
-      storeRegistry.getState('chat').dispatch.navigateToInbox()
+      chatStateHook.getState().dispatch.navigateToInbox()
       get().dispatch.navigateToThread('desktopNotification')
     }
     const onClose = () => {}
@@ -632,7 +638,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       logger.error(errMsg)
       throw new Error(errMsg)
     }
-    storeRegistry.getState('chat').dispatch.paymentInfoReceived(paymentInfo)
+    chatStateHook.getState().dispatch.paymentInfoReceived(paymentInfo)
     getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
   }
 
@@ -1070,7 +1076,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
 
       // If there are block buttons on this conversation, clear them.
-      if (storeRegistry.getState('chat').blockButtonsMap.has(meta.teamID)) {
+      if (chatStateHook.getState().blockButtonsMap.has(meta.teamID)) {
         get().dispatch.dismissBlockButtons(meta.teamID)
       }
 
@@ -1238,7 +1244,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     blockConversation: reportUser => {
       const f = async () => {
-        storeRegistry.getState('chat').dispatch.navigateToInbox()
+        chatStateHook.getState().dispatch.navigateToInbox()
         useConfigState.getState().dispatch.dynamic.persistRoute?.()
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
           conversationID: get().getConvID(),
@@ -1342,7 +1348,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           // Nav to inbox but don't use findNewConversation since changeSelectedConversation
           // does that with better information. It knows the conversation is hidden even before
           // that state bounces back.
-          storeRegistry.getState('chat').dispatch.navigateToInbox()
+          chatStateHook.getState().dispatch.navigateToInbox()
           get().dispatch.showInfoPanel(false, undefined)
         }
 
@@ -1395,7 +1401,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           const params = vs?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
           if (params?.conversationIDKey === get().id) {
             // select a convo
-            const next = storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID
+            const next = chatStateHook.getState().inboxLayout?.smallTeams?.[0]?.convID
             if (next) {
               getConvoState(next).dispatch.navigateToThread('findNewestConversationFromLayout')
             }
@@ -1660,9 +1666,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             logger.warn(`loadMoreMessages: error: ${error.desc}`)
             // no longer in team
             if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
-              const {inboxRefresh, navigateToInbox} = storeRegistry.getState('chat').dispatch
-              inboxRefresh('maybeKickedFromTeam')
-              navigateToInbox()
+              chatStateHook.getState().dispatch.inboxRefresh('maybeKickedFromTeam')
+              chatStateHook.getState().dispatch.navigateToInbox()
             }
             if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
               // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
@@ -1989,7 +1994,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         const text = formatTextForQuoting(message.text.stringValue())
         getConvoState(newThreadCID).dispatch.injectIntoInput(text)
-        storeRegistry.getState('chat').dispatch.metasReceived([meta])
+        chatStateHook.getState().dispatch.metasReceived([meta])
         getConvoState(newThreadCID).dispatch.navigateToThread('createdMessagePrivately')
       }
       ignorePromise(f())
@@ -2134,7 +2139,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       loadMessages()
 
       // load meta
-      storeRegistry.getState('chat').dispatch.unboxRows([get().id], true)
+      chatStateHook.getState().dispatch.unboxRows([get().id], true)
 
       const updateNav = () => {
         const reason = _reason
@@ -2460,7 +2465,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // remove all bad people
       const goodParticipants = new Set(participantInfo.all)
       meta.resetParticipants.forEach(r => goodParticipants.delete(r))
-      storeRegistry.getState('chat').dispatch.previewConversation({
+      chatStateHook.getState().dispatch.previewConversation({
         participants: [...goodParticipants],
         reason: 'resetChatWithoutThem',
       })
@@ -2503,7 +2508,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             return
           }
 
-          storeRegistry.getState('users').dispatch.getBio(username)
+          usersStateHook.getState().dispatch.getBio(username)
         }
       }
 
@@ -2513,19 +2518,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (isMetaGood()) {
           const {teamID, teamname} = meta
           if (teamname) {
-            storeRegistry.getState('teams').dispatch.getMembers(teamID)
+            teamsStateHook.getState().dispatch.getMembers(teamID)
           }
         }
       }
       ensureSelectedTeamLoaded()
       const participantInfo = get().participants
       const force = !get().isMetaGood() || participantInfo.all.length === 0
-      storeRegistry.getState('chat').dispatch.unboxRows([conversationIDKey], force)
+      chatStateHook.getState().dispatch.unboxRows([conversationIDKey], force)
       set(s => {
         s.threadLoadStatus = T.RPCChat.UIChatThreadStatusTyp.none
       })
       fetchConversationBio()
-      storeRegistry.getState('chat').dispatch.resetConversationErrored()
+      chatStateHook.getState().dispatch.resetConversationErrored()
     },
     sendAudioRecording: async (path, duration, amps) => {
       const outboxID = Common.generateOutboxID()
@@ -2846,7 +2851,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     }, 1000),
     showInfoPanel: (show, tab) => {
-      storeRegistry.getState('chat').dispatch.updateInfoPanel(show, tab)
+      chatStateHook.getState().dispatch.updateInfoPanel(show, tab)
       const conversationIDKey = get().id
       if (Platform.isPhone) {
         const visibleScreen = getVisibleScreen()
@@ -3247,10 +3252,33 @@ registerDebugClear(() => {
   clearChatStores()
 })
 
+let chatStore: typeof useChatState | undefined
+let teamsStore: typeof useTeamsState | undefined
+let usersStore: typeof useUsersState | undefined
+
+export const setOtherStores = (
+  chat: typeof useChatState,
+  teams: typeof useTeamsState,
+  users: typeof useUsersState
+) => {
+  chatStore = chat
+  teamsStore = teams
+  usersStore = users
+}
+
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const existing = chatStores.get(id)
   if (existing) return existing
-  const next = Z.createZustand<ConvoState>(createSlice)
+  if (!chatStore || !teamsStore || !usersStore) {
+    throw new Error('Stores not initialized. Call setOtherStores before creating conversation stores.')
+  }
+  const next = Z.createZustand<ConvoState>(
+    createSlice(
+      chatStore,
+      teamsStore,
+      usersStore
+    )
+  )
   next.setState({id})
   chatStores.set(id, next)
   return next

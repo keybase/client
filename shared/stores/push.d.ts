@@ -10,6 +10,15 @@ type Store = T.Immutable<{
 
 export type State = Store & {
   dispatch: {
+    dynamic: {
+      onGetDaemonHandshakeState?: () => T.Config.DaemonHandshakeState
+      onNavigateToThread?: (
+        conversationIDKey: T.Chat.ConversationIDKey,
+        reason: 'push' | 'extension',
+        pushBody?: string
+      ) => void
+      onShowUserProfile?: (username: string) => void
+    }
     checkPermissions: () => Promise<boolean>
     deleteToken: (version: number) => void
     handlePush: (notification: T.Push.PushNotification) => void

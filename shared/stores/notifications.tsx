@@ -4,7 +4,6 @@ import type * as T from '@/constants/types'
 import {isMobile} from '@/constants/platform'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '@/constants/tabs'
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -30,6 +29,9 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
+    dynamic: {
+      onFavoritesLoad?: () => void
+    }
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'
     badgeApp: (key: NotificationKeys, on: boolean) => void
@@ -101,6 +103,11 @@ export const useNotifState = Z.createZustand<State>((set, get) => {
         updateWidgetBadge(s)
       })
     },
+    dynamic: {
+      onFavoritesLoad: () => {
+        throw new Error('onFavoritesLoad not implemented')
+      },
+    },
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyAuditRootAuditError:
@@ -126,7 +133,7 @@ export const useNotifState = Z.createZustand<State>((set, get) => {
 
           const counts = badgeStateToBadgeCounts(badgeState)
           if (!isMobile && shouldTriggerTlfLoad(badgeState)) {
-            storeRegistry.getState('fs').dispatch.favoritesLoad()
+            get().dispatch.dynamic.onFavoritesLoad?.()
           }
           if (counts) {
             get().dispatch.setBadgeCounts(counts)

@@ -1,43 +1,55 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
-import logger from '@/logger'
-import {isMobile, serverConfigFileName} from '../platform'
 import * as T from '../types'
-import {ignorePromise} from '../utils'
+import isEqual from 'lodash/isEqual'
+import logger from '@/logger'
+import * as Tabs from '@/constants/tabs'
 import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
-import {useAutoResetState} from '@/stores/autoreset'
-import type * as UseDevicesStateType from '@/stores/devices'
-import {useAvatarState} from '@/common-adapters/avatar/store'
 import type * as UseBotsStateType from '@/stores/bots'
-import {useChatState} from '@/stores/chat2'
-import {getSelectedConversation} from '@/constants/chat2/common'
 import type * as UseChatStateType from '@/stores/chat2'
-import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
-import {useDaemonState} from '@/stores/daemon'
-import {useDarkModeState} from '@/stores/darkmode'
-import {handleKeybaseLink} from '@/constants/deeplinks'
-import {useFollowerState} from '@/stores/followers'
-import isEqual from 'lodash/isEqual'
+import type * as UseDevicesStateType from '@/stores/devices'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseGitStateType from '@/stores/git'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UsePeopleStateType from '@/stores/people'
 import type * as UsePinentryStateType from '@/stores/pinentry'
-import {useProvisionState} from '@/stores/provision'
-import {storeRegistry} from '@/stores/store-registry'
-import {useSettingsContactsState} from '@/stores/settings-contacts'
-import {createTBStore} from '@/stores/team-building'
-import {useCryptoState} from '@/stores/crypto'
-import {useProfileState} from '@/stores/profile'
-import {useUsersState} from '@/stores/users'
+import type * as UseSettingsPasswordStateType from '@/stores/settings-password'
 import type * as UseSignupStateType from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker2'
 import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
+import {createTBStore} from '@/stores/team-building'
+import {getSelectedConversation} from '@/constants/chat2/common'
+import {handleKeybaseLink} from '@/constants/deeplinks'
+import {ignorePromise} from '../utils'
+import {isMobile, serverConfigFileName} from '../platform'
+import {storeRegistry} from '@/stores/store-registry'
+import {useAutoResetState} from '@/stores/autoreset'
+import {useAvatarState} from '@/common-adapters/avatar/store'
+import {useChatState} from '@/stores/chat2'
+import {useConfigState} from '@/stores/config'
+import {useCryptoState} from '@/stores/crypto'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
+import {useDarkModeState} from '@/stores/darkmode'
+import {useFSState} from '@/stores/fs'
+import {useFollowerState} from '@/stores/followers'
+import {useNotifState} from '@/stores/notifications'
+import {useProfileState} from '@/stores/profile'
+import {useProvisionState} from '@/stores/provision'
+import {usePushState} from '@/stores/push'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {useSettingsEmailState} from '@/stores/settings-email'
+import {useSignupState} from '@/stores/signup'
+import {useState as useRecoverPasswordState} from '@/stores/recover-password'
+import {useTeamsState} from '@/stores/teams'
+import {useTrackerState} from '@/stores/tracker2'
+import {useUsersState} from '@/stores/users'
 import {useWhatsNewState} from '@/stores/whats-new'
+import {useRouterState} from '@/stores/router2'
+import * as Util from '@/constants/router2'
+import {setOtherStores} from '@/stores/convostate'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 let _devicesLoaded = false
@@ -174,9 +186,6 @@ export const initChat2Callbacks = () => {
     dispatch: {
       ...currentState.dispatch,
       dynamic: {
-        onChatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
-          storeRegistry.getState('chat').dispatch.metasReceived(metas)
-        },
         onGetDaemonState: () => {
           const daemonState = storeRegistry.getState('daemon')
           return {dispatch: daemonState.dispatch, handshakeVersion: daemonState.handshakeVersion}
@@ -201,7 +210,175 @@ export const initChat2Callbacks = () => {
   })
 }
 
+export const initTeamsCallbacks = () => {
+  const currentState = useTeamsState.getState()
+  useTeamsState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onChatNavigateToInbox: (allowSwitchTab?: boolean) => {
+          storeRegistry.getState('chat').dispatch.navigateToInbox(allowSwitchTab)
+        },
+        onChatPreviewConversation: (
+          p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
+        ) => {
+          storeRegistry.getState('chat').dispatch.previewConversation(p)
+        },
+        onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+          storeRegistry.getState('users').dispatch.updates(updates)
+        },
+      },
+    },
+  })
+}
+
+export const initFSCallbacks = () => {
+  const currentState = useFSState.getState()
+  useFSState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onBadgeApp: (key: 'kbfsUploading' | 'outOfSpace', on: boolean) => {
+          useNotifState.getState().dispatch.badgeApp(key, on)
+        },
+        onSetBadgeCounts: (counts: Map<Tabs.Tab, number>) => {
+          useNotifState.getState().dispatch.setBadgeCounts(counts)
+        },
+      },
+    },
+  })
+}
+
+export const initNotificationsCallbacks = () => {
+  const currentState = useNotifState.getState()
+  useNotifState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onFavoritesLoad: () => {
+          useFSState.getState().dispatch.favoritesLoad()
+        },
+      },
+    },
+  })
+}
+
+export const initProfileCallbacks = () => {
+  const currentState = useProfileState.getState()
+  useProfileState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onTracker2GetDetails: (username: string) => {
+          return useTrackerState.getState().getDetails(username)
+        },
+        onTracker2Load: (
+          params: Parameters<ReturnType<typeof useTrackerState.getState>['dispatch']['load']>[0]
+        ) => {
+          useTrackerState.getState().dispatch.load(params)
+        },
+        onTracker2ShowUser: (username: string, asTracker: boolean, skipNav?: boolean) => {
+          useTrackerState.getState().dispatch.showUser(username, asTracker, skipNav)
+        },
+        onTracker2UpdateResult: (guiID: string, result: T.Tracker.DetailsState, reason?: string) => {
+          useTrackerState.getState().dispatch.updateResult(guiID, result, reason)
+        },
+      },
+    },
+  })
+}
+
+export const initPushCallbacks = () => {
+  const currentState = usePushState.getState()
+  usePushState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onGetDaemonHandshakeState: () => {
+          return useDaemonState.getState().handshakeState
+        },
+        onNavigateToThread: (
+          conversationIDKey: T.Chat.ConversationIDKey,
+          reason: 'push' | 'extension',
+          pushBody?: string
+        ) => {
+          storeRegistry
+            .getConvoState(conversationIDKey)
+            .dispatch.navigateToThread(reason, undefined, pushBody)
+        },
+        onShowUserProfile: (username: string) => {
+          useProfileState.getState().dispatch.showUserProfile(username)
+        },
+      },
+    },
+  })
+}
+
+export const initRecoverPasswordCallbacks = () => {
+  const currentState = useRecoverPasswordState.getState()
+  useRecoverPasswordState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onProvisionCancel: (ignoreWarning?: boolean) => {
+          useProvisionState.getState().dispatch.dynamic.cancel?.(ignoreWarning)
+        },
+        onStartAccountReset: (skipPassword: boolean, username: string) => {
+          useAutoResetState.getState().dispatch.startAccountReset(skipPassword, username)
+        },
+      },
+    },
+  })
+}
+
+export const initSignupCallbacks = () => {
+  const currentState = useSignupState.getState()
+  useSignupState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onEditEmail: (p: {email: string; makeSearchable: boolean}) => {
+          useSettingsEmailState.getState().dispatch.editEmail(p)
+        },
+        onShowPermissionsPrompt: (p: {justSignedUp?: boolean}) => {
+          usePushState.getState().dispatch.showPermissionsPrompt(p)
+        },
+      },
+    },
+  })
+}
+
+export const initTracker2Callbacks = () => {
+  const currentState = useTrackerState.getState()
+  useTrackerState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      dynamic: {
+        ...currentState.dispatch.dynamic,
+        onShowUserProfile: (username: string) => {
+          useProfileState.getState().dispatch.showUserProfile(username)
+        },
+        onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+          useUsersState.getState().dispatch.updates(updates)
+        },
+      },
+    },
+  })
+}
+
 export const initSharedSubscriptions = () => {
+  setOtherStores(
+    storeRegistry.getStore('chat'),
+    storeRegistry.getStore('teams'),
+    storeRegistry.getStore('users')
+  )
   useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase !== old.loadOnStartPhase) {
       if (s.loadOnStartPhase === 'startupOrReloginButNotInARush') {
@@ -386,9 +563,96 @@ export const initSharedSubscriptions = () => {
     }
   })
 
+  useRouterState.subscribe((s, old) => {
+    const next = s.navState as Util.NavState
+    const prev = old.navState as Util.NavState
+    if (prev === next) return
+
+    const namespaces = ['chat2', 'crypto', 'teams', 'people'] as const
+    const namespaceToRoute = new Map([
+      ['chat2', 'chatNewChat'],
+      ['crypto', 'cryptoTeamBuilder'],
+      ['teams', 'teamsTeamBuilder'],
+      ['people', 'peopleTeamBuilder'],
+    ])
+    for (const namespace of namespaces) {
+      const wasTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(prev)?.name
+      if (wasTeamBuilding) {
+        // team building or modal on top of that still
+        const isTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(next)?.name
+        if (!isTeamBuilding) {
+          storeRegistry.getTBStore(namespace).dispatch.cancelTeamBuilding()
+        }
+      }
+    }
+
+    // Clear critical update when we nav away from tab
+    if (
+      prev &&
+      Util.getTab(prev) === Tabs.fsTab &&
+      next &&
+      Util.getTab(next) !== Tabs.fsTab &&
+      storeRegistry.getState('fs').criticalUpdate
+    ) {
+      const {dispatch} = storeRegistry.getState('fs')
+      dispatch.setCriticalUpdate(false)
+    }
+    const fsRrouteNames = ['fsRoot', 'barePreview']
+    const wasScreen = fsRrouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
+    const isScreen = fsRrouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
+    if (wasScreen !== isScreen) {
+      const {dispatch} = storeRegistry.getState('fs')
+      if (wasScreen) {
+        dispatch.userOut()
+      } else {
+        dispatch.userIn()
+      }
+    }
+
+    // Clear "just signed up email" when you leave the people tab after signup
+    if (
+      prev &&
+      Util.getTab(prev) === Tabs.peopleTab &&
+      next &&
+      Util.getTab(next) !== Tabs.peopleTab &&
+      storeRegistry.getState('signup').justSignedUpEmail
+    ) {
+      storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
+    }
+
+    if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
+      storeRegistry.getState('people').dispatch.markViewed()
+    }
+
+    if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
+      storeRegistry.getState('teams').dispatch.clearNavBadges()
+    }
+
+    // Clear "check your inbox" in settings when you leave the settings tab
+    if (
+      prev &&
+      Util.getTab(prev) === Tabs.settingsTab &&
+      next &&
+      Util.getTab(next) !== Tabs.settingsTab &&
+      storeRegistry.getState('settings-email').addedEmail
+    ) {
+      storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
+    }
+
+    storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
+  })
+
   initAutoResetCallbacks()
   initChat2Callbacks()
   initTeamBuildingCallbacks()
+  initTeamsCallbacks()
+  initFSCallbacks()
+  initNotificationsCallbacks()
+  initProfileCallbacks()
+  initPushCallbacks()
+  initRecoverPasswordCallbacks()
+  initSignupCallbacks()
+  initTracker2Callbacks()
 }
 
 // This is to defer loading stores we don't need immediately.
@@ -491,7 +755,8 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyUsersPasswordChanged:
       {
         const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
-        storeRegistry.getState('settings-password').dispatch.notifyUsersPasswordChanged(randomPW)
+        const {usePWState} = require('@/stores/settings-password') as typeof UseSettingsPasswordStateType
+        usePWState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
       }
       break
     case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {

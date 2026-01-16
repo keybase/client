@@ -291,7 +291,6 @@ export interface State extends Store {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
     dynamic: {
-      onChatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       onGetDaemonState: () => {handshakeVersion: number; dispatch: any}
       onGetTeamsTeamIDToMembers: (
         teamID: T.Teams.TeamID
@@ -494,9 +493,6 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       ignorePromise(f())
     },
     dynamic: {
-      onChatMetasReceived: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
-        throw new Error('onChatMetasReceived not properly initialized')
-      },
       onGetDaemonState: () => {
         throw new Error('onGetDaemonState not properly initialized')
       },
@@ -1633,7 +1629,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           })
           const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
-            get().dispatch.dynamic.onChatMetasReceived([meta])
+            get().dispatch.metasReceived([meta])
           }
 
           storeRegistry

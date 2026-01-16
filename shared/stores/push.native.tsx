@@ -2,7 +2,6 @@ import * as Tabs from '@/constants/tabs'
 import * as S from '@/constants/strings'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '@/constants/utils'
 import {navigateAppend, navUpToScreen, switchTab} from '@/constants/router2'
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useLogoutState} from '@/stores/logout'
@@ -72,7 +71,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
 
     const {conversationIDKey, unboxPayload, membersType} = notification
 
-    storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('push', undefined, unboxPayload)
+    get().dispatch.dynamic.onNavigateToThread?.(conversationIDKey, 'push', unboxPayload)
     if (unboxPayload && membersType && !isIOS) {
       try {
         await T.RPCChat.localUnboxMobilePushNotificationRpcPromise({
@@ -136,6 +135,17 @@ export const usePushState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
+    dynamic: {
+      onGetDaemonHandshakeState: () => {
+        throw new Error('onGetDaemonHandshakeState not implemented')
+      },
+      onNavigateToThread: () => {
+        throw new Error('onNavigateToThread not implemented')
+      },
+      onShowUserProfile: () => {
+        throw new Error('onShowUserProfile not implemented')
+      },
+    },
     handlePush: notification => {
       const f = async () => {
         try {
@@ -154,13 +164,13 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               // We only care if the user clicked while in session
               if (notification.userInteraction) {
                 const {username} = notification
-                storeRegistry.getState('profile').dispatch.showUserProfile(username)
+                get().dispatch.dynamic.onShowUserProfile?.(username)
               }
               break
             case 'chat.extension':
               {
                 const {conversationIDKey} = notification
-                storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('extension')
+                get().dispatch.dynamic.onNavigateToThread?.(conversationIDKey, 'extension')
               }
               break
             case 'settings.contacts':
@@ -297,7 +307,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         if (
           p.show &&
           useConfigState.getState().loggedIn &&
-          storeRegistry.getState('daemon').handshakeState === 'done' &&
+          get().dispatch.dynamic.onGetDaemonHandshakeState?.() === 'done' &&
           !get().justSignedUp &&
           !get().hasPermissions
         ) {

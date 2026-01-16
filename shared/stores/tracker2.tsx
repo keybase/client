@@ -7,7 +7,6 @@ import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
 import {navigateAppend, navigateUp} from '@/constants/router2'
-import {storeRegistry} from '@/stores/store-registry'
 import {useCurrentUserState} from '@/stores/current-user'
 
 export const noDetails: T.Tracker.Details = {
@@ -164,6 +163,10 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
+    dynamic: {
+      onShowUserProfile?: (username: string) => void
+      onUsersUpdates?: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
+    }
     changeFollow: (guiID: string, follow: boolean) => void
     closeTracker: (guiID: string) => void
     getProofSuggestions: () => void
@@ -227,6 +230,14 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         logger.info(`Closing tracker for assertion: ${username}`)
         s.showTrackerSet.delete(username)
       })
+    },
+    dynamic: {
+      onShowUserProfile: () => {
+        throw new Error('onShowUserProfile not implemented')
+      },
+      onUsersUpdates: () => {
+        throw new Error('onUsersUpdates not implemented')
+      },
     },
     getProofSuggestions: () => {
       const f = async () => {
@@ -320,9 +331,9 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followersCount = d.followers.size
           })
           if (fs.users) {
-            storeRegistry
-              .getState('users')
-              .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
+            get().dispatch.dynamic.onUsersUpdates?.(
+              fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username}))
+            )
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -346,9 +357,9 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followingCount = d.following.size
           })
           if (fs.users) {
-            storeRegistry
-              .getState('users')
-              .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
+            get().dispatch.dynamic.onUsersUpdates?.(
+              fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username}))
+            )
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -436,8 +447,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         )
         d.hidFromFollowers = hidFromFollowers
       })
-      username &&
-        storeRegistry.getState('users').dispatch.updates([{info: {fullname: card.fullName}, name: username}])
+      username && get().dispatch.dynamic.onUsersUpdates?.([{info: {fullname: card.fullName}, name: username}])
     },
     notifyReset: guiID => {
       set(s => {
@@ -596,7 +606,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
       })
       if (!skipNav) {
         // go to profile page
-        storeRegistry.getState('profile').dispatch.showUserProfile(username)
+        get().dispatch.dynamic.onShowUserProfile?.(username)
       }
     },
     updateResult: (guiID, result, reason) => {
