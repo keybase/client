@@ -316,69 +316,36 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               (x / (c.resize?.width ?? 1) * 100).toFixed(2),
               '% from left'
             )
-            const isZoomedOut = displayedImageWidth === resolution.width && displayedImageHeight === resolution.height
-            
-            let offsetX = 0
-            let offsetY = 0
-            
-            if (!isZoomedOut) {
-              const displayedImageAspectRatio = displayedImageWidth / displayedImageHeight
-              const cropViewAspectRatio = 1.0
-              
-              if (displayedImageAspectRatio > cropViewAspectRatio) {
-                const fittedHeight = avatarSize
-                const fittedWidth = fittedHeight * displayedImageAspectRatio
-                const scaleFromFittedToDisplayed = displayedImageWidth / fittedWidth
-                const visibleWidthInDisplayedSpace = avatarSize * scaleFromFittedToDisplayed
-                offsetX = (displayedImageWidth - visibleWidthInDisplayedSpace) / 2
-              } else {
-                const fittedWidth = avatarSize
-                const fittedHeight = fittedWidth / displayedImageAspectRatio
-                const scaleFromFittedToDisplayed = displayedImageHeight / fittedHeight
-                const visibleHeightInDisplayedSpace = avatarSize * scaleFromFittedToDisplayed
-                offsetY = (displayedImageHeight - visibleHeightInDisplayedSpace) / 2
-              }
-            }
-            
             console.log(
-              '[AvatarUpload] getRect - isZoomedOut:',
-              isZoomedOut,
-              ', crop view is',
+              '[AvatarUpload] getRect - crop view is',
               avatarSize,
               'x',
               avatarSize,
-              ', displayed image is',
+              ', displayed image coordinate space is',
               displayedImageWidth,
               'x',
-              displayedImageHeight,
-              ', offsetX=',
-              offsetX.toFixed(2),
-              ', offsetY=',
-              offsetY.toFixed(2)
+              displayedImageHeight
             )
-            
-            const adjustedX = x - offsetX
-            const adjustedY = y - offsetY
             
             const result = {
               height: height * rescale,
               width: width * rescale,
-              x: adjustedX * rescale,
-              y: adjustedY * rescale,
+              x: x * rescale,
+              y: y * rescale,
             }
             
             console.log(
-              '[AvatarUpload] getRect - before adjustment: x=',
+              '[AvatarUpload] getRect - coordinates: x=',
               x,
-              ', after offset adjustment:',
-              adjustedX,
-              ', after scaling:',
+              'in displayed space (',
+              displayedImageWidth,
+              'px wide), scaled to',
               result.x,
-              'out of',
+              'in original space (',
               resolution.width,
-              '=',
+              'px wide) =',
               (result.x / resolution.width * 100).toFixed(2),
-              '% from left of original image'
+              '% from left'
             )
             console.log(
               '[AvatarUpload] getRect - crop size in displayed space:',
