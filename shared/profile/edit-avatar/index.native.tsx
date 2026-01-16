@@ -5,7 +5,7 @@ import {type Props} from '.'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {ModalTitle} from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {CropZoom, type CropZoomRefType} from 'react-native-zoom-toolkit'
+import {CropZoom, type CropZoomRefType, useImageResolution} from 'react-native-zoom-toolkit'
 import useHooks from './hooks'
 
 const AvatarUploadWrapper = (p: Props) => {
@@ -203,12 +203,13 @@ type AvatarZoomRef = {
 
 const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number; height: number}>(
   function AvatarZoom(p, ref) {
-    const {src, width, height} = p
+    const {src, width: pickerWidth, height: pickerHeight} = p
+    const {isFetching, resolution: actualResolution} = useImageResolution({uri: src ?? ''})
     const resolution = React.useMemo(() => {
-      const res = {height, width}
-      console.log('[AvatarUpload] AvatarZoom resolution from props:', res)
+      const res = actualResolution ?? {height: pickerHeight, width: pickerWidth}
+      console.log('[AvatarUpload] AvatarZoom resolution - picker:', {width: pickerWidth, height: pickerHeight}, ', actual:', actualResolution, ', using:', res)
       return res
-    }, [width, height])
+    }, [actualResolution, pickerWidth, pickerHeight])
 
     React.useImperativeHandle(ref, () => {
       // we don't use this in mobile for now, and likely never
@@ -237,18 +238,59 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               height: c.crop.height,
             })
 
-            const rescaleX = resolution.width / (c.resize?.width ?? 1)
-            const rescaleY = resolution.height / (c.resize?.height ?? 1)
+            const displayedImageWidth = c.resize?.width ?? 1
+            const displayedImageHeight = c.resize?.height ?? 1
+            
+            const imageAspectRatio = resolution.width / resolution.height
+            const isWider = imageAspectRatio > 1
+            
+            let fittedWidth, fittedHeight
+            if (isWider) {
+              fittedHeight = avatarSize
+              fittedWidth = fittedHeight * imageAspectRatio
+            } else {
+              fittedWidth = avatarSize
+              fittedHeight = fittedWidth / imageAspectRatio
+            }
+            
+            console.log(
+              '[AvatarUpload] getRect - image fitting analysis:',
+              'original',
+              resolution.width,
+              'x',
+              resolution.height,
+              ', fitted to square',
+              avatarSize,
+              'would be',
+              fittedWidth.toFixed(2),
+              'x',
+              fittedHeight.toFixed(2),
+              ', but c.resize says',
+              displayedImageWidth,
+              'x',
+              displayedImageHeight
+            )
+            
+            const rescaleX = resolution.width / displayedImageWidth
+            const rescaleY = resolution.height / displayedImageHeight
+            
             console.log(
               '[AvatarUpload] getRect - calculated rescaleX (original/resize):',
               rescaleX,
-              `= ${resolution.width} / ${c.resize?.width ?? 1}`
+              `= ${resolution.width} / ${displayedImageWidth}`
             )
             console.log(
               '[AvatarUpload] getRect - calculated rescaleY (original/resize):',
               rescaleY,
-              `= ${resolution.height} / ${c.resize?.height ?? 1}`
+              `= ${resolution.height} / ${displayedImageHeight}`
             )
+            console.log(
+              '[AvatarUpload] getRect - scale difference:',
+              Math.abs(rescaleX - rescaleY),
+              '(should be ~0 if aspect ratio maintained)'
+            )
+            
+            const rescale = rescaleX
             console.log(
               '[AvatarUpload] getRect - aspect ratios - original:',
               (resolution.width / resolution.height).toFixed(4),
@@ -276,10 +318,10 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
             )
             
             const result = {
-              height: height * rescaleY,
-              width: width * rescaleX,
-              x: x * rescaleX,
-              y: y * rescaleY,
+              height: height * rescale,
+              width: width * rescale,
+              x: x * rescale,
+              y: y * rescale,
             }
             
             console.log(
@@ -302,10 +344,8 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               result.height
             )
             console.log(
-              '[AvatarUpload] getRect - after scaling by rescalex: ',
-              rescaleX,
-              ' rescaley: ',
-              rescaleY,
+              '[AvatarUpload] getRect - after scaling by rescale (using rescaleX): ',
+              rescale,
               ':',
               result
             )
@@ -339,7 +379,7 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
           width: avatarSize,
         }}
       >
-        {src ? (
+        {src && !isFetching && resolution ? (
           <CropZoom cropSize={cropSize} resolution={resolution} ref={czref}>
             <Kb.Image2 src={src} style={cropSize} />
           </CropZoom>
