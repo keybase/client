@@ -5,7 +5,7 @@ import {type Props} from '.'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {ModalTitle} from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {CropZoom, type CropZoomRefType, useImageResolution} from 'react-native-zoom-toolkit'
+import {CropZoom, type CropZoomRefType, useImageResolution, fitContainer} from 'react-native-zoom-toolkit'
 import useHooks from './hooks'
 
 const AvatarUploadWrapper = (p: Props) => {
@@ -243,64 +243,12 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
             const coordinateSpaceWidth = c.resize?.width ?? resolution.width
             const coordinateSpaceHeight = c.resize?.height ?? resolution.height
             
-            const imageAspectRatio = resolution.width / resolution.height
-            const isWider = imageAspectRatio > 1
-            
-            let visibleAreaStartX = 0
-            let visibleAreaStartY = 0
-            let visibleAreaWidth = coordinateSpaceWidth
-            let visibleAreaHeight = coordinateSpaceHeight
-            
-            if (isWider) {
-              const fittedHeight = avatarSize
-              const fittedWidth = fittedHeight * imageAspectRatio
-              const scaleFromFittedToCoordinate = coordinateSpaceWidth / fittedWidth
-              visibleAreaWidth = avatarSize * scaleFromFittedToCoordinate
-              visibleAreaStartX = (coordinateSpaceWidth - visibleAreaWidth) / 2
-            } else {
-              const fittedWidth = avatarSize
-              const fittedHeight = fittedWidth / imageAspectRatio
-              const scaleFromFittedToCoordinate = coordinateSpaceHeight / fittedHeight
-              visibleAreaHeight = avatarSize * scaleFromFittedToCoordinate
-              visibleAreaStartY = (coordinateSpaceHeight - visibleAreaHeight) / 2
-            }
-            
             console.log(
-              '[AvatarUpload] getRect - Coordinate space:',
+              '[AvatarUpload] getRect - Crop coordinates in coordinate space (',
               coordinateSpaceWidth,
               'x',
               coordinateSpaceHeight,
-              ', visible area in crop view:',
-              visibleAreaStartX.toFixed(2),
-              ',',
-              visibleAreaStartY.toFixed(2),
-              'to',
-              (visibleAreaStartX + visibleAreaWidth).toFixed(2),
-              ',',
-              (visibleAreaStartY + visibleAreaHeight).toFixed(2),
-              '(size:',
-              visibleAreaWidth.toFixed(2),
-              'x',
-              visibleAreaHeight.toFixed(2),
-              ')'
-            )
-            
-            const coordinateX = x + visibleAreaStartX
-            const coordinateY = y + visibleAreaStartY
-            
-            const rescaleX = resolution.width / coordinateSpaceWidth
-            const rescaleY = resolution.height / coordinateSpaceHeight
-            const rescale = rescaleX
-            
-            const result = {
-              height: height * rescale,
-              width: width * rescale,
-              x: coordinateX * rescale,
-              y: coordinateY * rescale,
-            }
-            
-            console.log(
-              '[AvatarUpload] getRect - Crop coordinates relative to visible area:',
+              '):',
               'x=',
               x.toFixed(2),
               ', y=',
@@ -310,20 +258,34 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               ', height=',
               height
             )
+            
+            const rescaleX = resolution.width / coordinateSpaceWidth
+            const rescaleY = resolution.height / coordinateSpaceHeight
+            const rescale = rescaleX
+            
             console.log(
-              '[AvatarUpload] getRect - Adjusted to coordinate space:',
-              'x=',
-              coordinateX.toFixed(2),
-              ', y=',
-              coordinateY.toFixed(2),
-              '(added offset:',
-              visibleAreaStartX.toFixed(2),
-              ',',
-              visibleAreaStartY.toFixed(2),
-              ')'
+              '[AvatarUpload] getRect - Rescale factor:',
+              rescale.toFixed(6),
+              '(original/coordinate space)',
+              '=',
+              resolution.width,
+              '/',
+              coordinateSpaceWidth
             )
+            
+            const result = {
+              height: height * rescale,
+              width: width * rescale,
+              x: x * rescale,
+              y: y * rescale,
+            }
+            
             console.log(
-              '[AvatarUpload] getRect - Scaled to original image space:',
+              '[AvatarUpload] getRect - Scaled to original image space (',
+              resolution.width,
+              'x',
+              resolution.height,
+              '):',
               'x=',
               result.x.toFixed(2),
               ', y=',
@@ -333,6 +295,23 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               ', height=',
               result.height.toFixed(2)
             )
+            console.log(
+              '[AvatarUpload] getRect - Bounds check:',
+              'x range:',
+              result.x.toFixed(2),
+              'to',
+              (result.x + result.width).toFixed(2),
+              '(image width:',
+              resolution.width,
+              '),',
+              'y range:',
+              result.y.toFixed(2),
+              'to',
+              (result.y + result.height).toFixed(2),
+              '(image height:',
+              resolution.height,
+              ')'
+            )
             return result
           }
           console.log('[AvatarUpload] getRect - no crop result, returning undefined')
@@ -341,6 +320,12 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
       }
     }, [resolution])
     const czref = React.useRef<CropZoomRefType>(null)
+
+    const imageStyle = React.useMemo(() => {
+      if (!resolution) return cropSize
+      const containerSize = {width: avatarSize, height: avatarSize}
+      return fitContainer(resolution.width / resolution.height, containerSize)
+    }, [resolution])
 
     return (
       <Kb.Box2
@@ -354,7 +339,7 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
       >
         {src && !isFetching && resolution ? (
           <CropZoom cropSize={cropSize} resolution={resolution} ref={czref}>
-            <Kb.Image2 src={src} style={cropSize} />
+            <Kb.Image2 src={src} style={imageStyle} />
           </CropZoom>
         ) : null}
       </Kb.Box2>
