@@ -228,8 +228,9 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               height: c.crop.height,
             })
             console.log('[AvatarUpload] getRect - resolution:', resolution)
-            const rescale = resolution.width / (c.resize?.width ?? 1)
-            console.log('[AvatarUpload] getRect - calculated rescale:', rescale)
+            console.log('[AvatarUpload] getRect - avatarSize (crop display size):', avatarSize)
+            const rescale = (c.resize?.width ?? 1) / avatarSize
+            console.log('[AvatarUpload] getRect - calculated rescale (original/display):', rescale)
             const {originX: x, originY: y, width, height} = c.crop
             const result = {
               height: height * rescale,
