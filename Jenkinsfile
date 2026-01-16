@@ -543,19 +543,19 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     sh "golangci-lint config verify"
 
     // Only test golangci-lint on linux
-    //if (env.CHANGE_TARGET) {
-      //println("Running golangci-lint on new code")
-      //fetchChangeTarget()
-      //def BASE_COMMIT_HASH = getBaseCommitHash()
-      //timeout(activity: true, time: 15, unit: 'MINUTES') {
-        //sh "make golangci-lint GOLANGCI_RUN_OPT='--new-from-rev ${BASE_COMMIT_HASH}'"
-      //}
-    //} else {
+    if (env.CHANGE_TARGET) {
+      println("Running golangci-lint on new code")
+      fetchChangeTarget()
+      def BASE_COMMIT_HASH = getBaseCommitHash()
+      timeout(activity: true, time: 15, unit: 'MINUTES') {
+        sh "make golangci-lint GOLANGCI_RUN_OPT='--new-from-rev ${BASE_COMMIT_HASH}'"
+      }
+    } else {
       println("Running golangci-lint on all code")
       timeout(activity: true, time: 15, unit: 'MINUTES') {
         sh "make golangci-lint"
       }
-    //}
+    }
 
     // Windows `gofmt` pukes on CRLF.
     // Macos pukes on mockgen because ¯\_(ツ)_/¯.
