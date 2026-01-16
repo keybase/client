@@ -28,6 +28,12 @@ const AvatarUploadWrapper = (p: Props) => {
           return acc
         }, undefined)
         if (!result.canceled && first) {
+          console.log('[AvatarUpload] Selected image from picker:', {
+            uri: first.uri,
+            width: first.width,
+            height: first.height,
+            type: first.type,
+          })
           setSelectedImage(first)
         } else if (!props.wizard) {
           navUp()
@@ -64,7 +70,13 @@ const AvatarUploadWrapper = (p: Props) => {
     if (!selectedImage) {
       throw new Error('Missing image when saving avatar')
     }
+    console.log('[AvatarUpload] onSave - selectedImage:', {
+      uri: selectedImage.uri,
+      width: selectedImage.width,
+      height: selectedImage.height,
+    })
     const rect = _zoomRef.current?.getRect()
+    console.log('[AvatarUpload] onSave - rect from getRect():', rect)
     if (rect) {
       const xy = {
         x0: Math.floor(rect.x),
@@ -72,8 +84,10 @@ const AvatarUploadWrapper = (p: Props) => {
         y0: Math.floor(rect.y),
         y1: Math.floor(rect.y + rect.height),
       }
+      console.log('[AvatarUpload] onSave - final crop coordinates (xy):', xy)
       _onSave(selectedImage.uri, xy)
     } else {
+      console.log('[AvatarUpload] onSave - no rect, saving without crop')
       _onSave(selectedImage.uri)
     }
   }, [selectedImage, _onSave])
@@ -191,7 +205,9 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
   function AvatarZoom(p, ref) {
     const {src, width, height} = p
     const resolution = React.useMemo(() => {
-      return {height, width}
+      const res = {height, width}
+      console.log('[AvatarUpload] AvatarZoom resolution from props:', res)
+      return res
     }, [width, height])
 
     React.useImperativeHandle(ref, () => {
@@ -199,16 +215,32 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
       return {
         getRect: () => {
           const c = czref.current?.crop(avatarSize)
+          console.log('[AvatarUpload] getRect - crop result:', c)
           if (c) {
+            console.log('[AvatarUpload] getRect - c.resize:', {
+              width: c.resize?.width,
+              height: c.resize?.height,
+            })
+            console.log('[AvatarUpload] getRect - c.crop:', {
+              originX: c.crop.originX,
+              originY: c.crop.originY,
+              width: c.crop.width,
+              height: c.crop.height,
+            })
+            console.log('[AvatarUpload] getRect - resolution:', resolution)
             const rescale = resolution.width / (c.resize?.width ?? 1)
+            console.log('[AvatarUpload] getRect - calculated rescale:', rescale)
             const {originX: x, originY: y, width, height} = c.crop
-            return {
+            const result = {
               height: height * rescale,
               width: width * rescale,
               x: x * rescale,
               y: y * rescale,
             }
+            console.log('[AvatarUpload] getRect - final rect result:', result)
+            return result
           }
+          console.log('[AvatarUpload] getRect - no crop result, returning undefined')
           return
         },
       }
