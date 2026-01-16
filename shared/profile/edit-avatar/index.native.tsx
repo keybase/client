@@ -316,6 +316,19 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               (x / (c.resize?.width ?? 1) * 100).toFixed(2),
               '% from left'
             )
+            console.log(
+              '[AvatarUpload] getRect - crop view is',
+              avatarSize,
+              'x',
+              avatarSize,
+              ', displayed image is',
+              displayedImageWidth,
+              'x',
+              displayedImageHeight,
+              '- image extends',
+              (displayedImageWidth - avatarSize).toFixed(2),
+              'px beyond crop view width'
+            )
             
             const result = {
               height: height * rescale,
@@ -332,6 +345,11 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               '=',
               (result.x / resolution.width * 100).toFixed(2),
               '% from left of original image'
+            )
+            console.log(
+              '[AvatarUpload] getRect - if crop is shifted left, try adding offset:',
+              ((displayedImageWidth - avatarSize) / 2 * rescale).toFixed(2),
+              'to X coordinate'
             )
             console.log(
               '[AvatarUpload] getRect - crop size in displayed space:',
