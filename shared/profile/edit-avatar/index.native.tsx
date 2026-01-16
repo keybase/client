@@ -5,7 +5,7 @@ import {type Props} from '.'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {ModalTitle} from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {CropZoom, type CropZoomRefType, useImageResolution} from 'react-native-zoom-toolkit'
+import {CropZoom, type CropZoomRefType} from 'react-native-zoom-toolkit'
 import useHooks from './hooks'
 
 const AvatarUploadWrapper = (p: Props) => {
@@ -189,12 +189,10 @@ type AvatarZoomRef = {
 
 const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number; height: number}>(
   function AvatarZoom(p, ref) {
-    const {src, width: pickerWidth, height: pickerHeight} = p
-    const {isFetching, resolution: actualResolution} = useImageResolution({uri: src ?? ''})
+    const {src, width, height} = p
     const resolution = React.useMemo(() => {
-      const res = actualResolution ?? {height: pickerHeight, width: pickerWidth}
-      return res
-    }, [actualResolution, pickerWidth, pickerHeight])
+      return {height, width}
+    }, [width, height])
 
     React.useImperativeHandle(ref, () => {
       // we don't use this in mobile for now, and likely never
@@ -202,17 +200,14 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
         getRect: () => {
           const c = czref.current?.crop(avatarSize)
           if (c) {
+            const rescale = resolution.width / (c.resize?.width ?? 1)
             const {originX: x, originY: y, width, height} = c.crop
-
-            const coordinateSpaceWidth = c.resize?.width ?? resolution.width
-            const rescale = resolution.width / coordinateSpaceWidth
-            const result = {
+            return {
               height: height * rescale,
               width: width * rescale,
               x: x * rescale,
               y: y * rescale,
             }
-            return result
           }
           return
         },
@@ -251,7 +246,7 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
           width: avatarSize,
         }}
       >
-        {src && !isFetching ? (
+        {src ? (
           <CropZoom cropSize={cropSize} resolution={resolution} ref={czref} panMode="clamp" minScale={1}>
             <Kb.Image2 src={src} style={imageStyle} />
           </CropZoom>
