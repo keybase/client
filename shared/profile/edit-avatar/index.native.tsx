@@ -240,13 +240,14 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
             const rescale = resolution.width / (c.resize?.width ?? 1)
             console.log('[AvatarUpload] getRect - calculated rescale (original/resize):', rescale, `= ${resolution.width} / ${c.resize?.width ?? 1}`)
             
-            const {originX: x, originY: y, width, height} = c.crop
+            const {originX: x, originY: y} = c.crop
             const result = {
-              height: height * rescale,
-              width: width * rescale,
+              height: avatarSize,
+              width: avatarSize,
               x: x * rescale,
               y: y * rescale,
             }
+            console.log('[AvatarUpload] getRect - using fixed crop size:', avatarSize, 'x', avatarSize, 'in original image space')
             console.log('[AvatarUpload] getRect - after scaling by', rescale, ':', result)
             console.log('[AvatarUpload] getRect - bounds check: image is', resolution.width, 'x', resolution.height, ', crop goes to x=', result.x + result.width, ', y=', result.y + result.height)
             console.log('[AvatarUpload] getRect - final rect result:', result)
