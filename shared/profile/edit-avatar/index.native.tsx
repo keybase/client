@@ -316,28 +316,34 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               (x / (c.resize?.width ?? 1) * 100).toFixed(2),
               '% from left'
             )
-            const displayedImageAspectRatio = displayedImageWidth / displayedImageHeight
-            const cropViewAspectRatio = 1.0
+            const isZoomedOut = displayedImageWidth === resolution.width && displayedImageHeight === resolution.height
             
             let offsetX = 0
             let offsetY = 0
             
-            if (displayedImageAspectRatio > cropViewAspectRatio) {
-              const fittedHeight = avatarSize
-              const fittedWidth = fittedHeight * displayedImageAspectRatio
-              const scaleFromFittedToDisplayed = displayedImageWidth / fittedWidth
-              const visibleWidthInDisplayedSpace = avatarSize * scaleFromFittedToDisplayed
-              offsetX = (displayedImageWidth - visibleWidthInDisplayedSpace) / 2
-            } else {
-              const fittedWidth = avatarSize
-              const fittedHeight = fittedWidth / displayedImageAspectRatio
-              const scaleFromFittedToDisplayed = displayedImageHeight / fittedHeight
-              const visibleHeightInDisplayedSpace = avatarSize * scaleFromFittedToDisplayed
-              offsetY = (displayedImageHeight - visibleHeightInDisplayedSpace) / 2
+            if (!isZoomedOut) {
+              const displayedImageAspectRatio = displayedImageWidth / displayedImageHeight
+              const cropViewAspectRatio = 1.0
+              
+              if (displayedImageAspectRatio > cropViewAspectRatio) {
+                const fittedHeight = avatarSize
+                const fittedWidth = fittedHeight * displayedImageAspectRatio
+                const scaleFromFittedToDisplayed = displayedImageWidth / fittedWidth
+                const visibleWidthInDisplayedSpace = avatarSize * scaleFromFittedToDisplayed
+                offsetX = (displayedImageWidth - visibleWidthInDisplayedSpace) / 2
+              } else {
+                const fittedWidth = avatarSize
+                const fittedHeight = fittedWidth / displayedImageAspectRatio
+                const scaleFromFittedToDisplayed = displayedImageHeight / fittedHeight
+                const visibleHeightInDisplayedSpace = avatarSize * scaleFromFittedToDisplayed
+                offsetY = (displayedImageHeight - visibleHeightInDisplayedSpace) / 2
+              }
             }
             
             console.log(
-              '[AvatarUpload] getRect - crop view is',
+              '[AvatarUpload] getRect - isZoomedOut:',
+              isZoomedOut,
+              ', crop view is',
               avatarSize,
               'x',
               avatarSize,
@@ -345,9 +351,9 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               displayedImageWidth,
               'x',
               displayedImageHeight,
-              ', offsetX in displayed space=',
+              ', offsetX=',
               offsetX.toFixed(2),
-              ', offsetY in displayed space=',
+              ', offsetY=',
               offsetY.toFixed(2)
             )
             
