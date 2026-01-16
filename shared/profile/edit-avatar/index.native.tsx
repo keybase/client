@@ -227,10 +227,19 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               width: c.crop.width,
               height: c.crop.height,
             })
-            console.log('[AvatarUpload] getRect - resolution:', resolution)
+            console.log('[AvatarUpload] getRect - resolution (original image):', resolution)
+            console.log('[AvatarUpload] getRect - c.resize (from crop result):', c.resize)
             console.log('[AvatarUpload] getRect - avatarSize (crop display size):', avatarSize)
-            const rescale = (c.resize?.width ?? 1) / avatarSize
-            console.log('[AvatarUpload] getRect - calculated rescale (original/display):', rescale)
+            console.log('[AvatarUpload] getRect - c.crop coordinates before scaling:', {
+              x: c.crop.originX,
+              y: c.crop.originY,
+              width: c.crop.width,
+              height: c.crop.height,
+            })
+            
+            const rescale = resolution.width / (c.resize?.width ?? 1)
+            console.log('[AvatarUpload] getRect - calculated rescale (original/resize):', rescale, `= ${resolution.width} / ${c.resize?.width ?? 1}`)
+            
             const {originX: x, originY: y, width, height} = c.crop
             const result = {
               height: height * rescale,
@@ -238,6 +247,8 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               x: x * rescale,
               y: y * rescale,
             }
+            console.log('[AvatarUpload] getRect - after scaling by', rescale, ':', result)
+            console.log('[AvatarUpload] getRect - bounds check: image is', resolution.width, 'x', resolution.height, ', crop goes to x=', result.x + result.width, ', y=', result.y + result.height)
             console.log('[AvatarUpload] getRect - final rect result:', result)
             return result
           }
