@@ -261,11 +261,50 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
             )
 
             const {originX: x, originY: y, width, height} = c.crop
+            
+            const displayedImageWidth = c.resize?.width ?? 1
+            const displayedImageHeight = c.resize?.height ?? 1
+            const cropViewSize = avatarSize
+            
+            const imageAspectRatio = displayedImageWidth / displayedImageHeight
+            const cropAspectRatio = 1.0
+            
+            let offsetX = 0
+            let offsetY = 0
+            
+            if (imageAspectRatio > cropAspectRatio) {
+              const fittedHeight = cropViewSize
+              const fittedWidth = fittedHeight * imageAspectRatio
+              offsetX = (fittedWidth - cropViewSize) / 2
+            } else {
+              const fittedWidth = cropViewSize
+              const fittedHeight = fittedWidth / imageAspectRatio
+              offsetY = (fittedHeight - cropViewSize) / 2
+            }
+            
+            console.log(
+              '[AvatarUpload] getRect - image fitting: displayed=',
+              displayedImageWidth,
+              'x',
+              displayedImageHeight,
+              ', cropView=',
+              cropViewSize,
+              'x',
+              cropViewSize,
+              ', offsetX=',
+              offsetX,
+              ', offsetY=',
+              offsetY
+            )
+            
+            const adjustedX = x - offsetX
+            const adjustedY = y - offsetY
+            
             const result = {
               height: height * rescaleY,
               width: width * rescaleX,
-              x: x * rescaleX,
-              y: y * rescaleY,
+              x: adjustedX * rescaleX,
+              y: adjustedY * rescaleY,
             }
             console.log(
               '[AvatarUpload] getRect - crop size in displayed space:',
