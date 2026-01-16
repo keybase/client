@@ -304,6 +304,26 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
 
             const {originX: x, originY: y, width, height} = c.crop
             
+            const imageAspectRatio = resolution.width / resolution.height
+            const isWider = imageAspectRatio > 1
+            
+            let imageOffsetX = 0
+            let imageOffsetY = 0
+            
+            if (isWider) {
+              const fittedHeight = avatarSize
+              const fittedWidth = fittedHeight * imageAspectRatio
+              if (fittedWidth > avatarSize) {
+                imageOffsetX = (fittedWidth - avatarSize) / 2
+              }
+            } else {
+              const fittedWidth = avatarSize
+              const fittedHeight = fittedWidth / imageAspectRatio
+              if (fittedHeight > avatarSize) {
+                imageOffsetY = (fittedHeight - avatarSize) / 2
+              }
+            }
+            
             console.log(
               '[AvatarUpload] getRect - coordinate analysis:',
               'c.crop.originX in displayed space (',
@@ -316,12 +336,23 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
               (x / (c.resize?.width ?? 1) * 100).toFixed(2),
               '% from left'
             )
+            console.log(
+              '[AvatarUpload] getRect - image offset in crop view:',
+              'offsetX=',
+              imageOffsetX,
+              ', offsetY=',
+              imageOffsetY,
+              '(if image is centered in square crop view)'
+            )
+            
+            const adjustedX = x - imageOffsetX
+            const adjustedY = y - imageOffsetY
             
             const result = {
               height: height * rescale,
               width: width * rescale,
-              x: x * rescale,
-              y: y * rescale,
+              x: adjustedX * rescale,
+              y: adjustedY * rescale,
             }
             
             console.log(
