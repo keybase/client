@@ -177,11 +177,7 @@ class MediaUtils: NSObject {
                           fileSize > MediaProcessingConfig.videoMaxFileSize
         
         if needsScaling {
-            if pixelCount > MediaProcessingConfig.videoMaxPixels {
-                return VideoExportSettings.highQuality
-            } else {
-                return VideoExportSettings.mediumQuality
-            }
+            return VideoExportSettings.mediumQuality
         } else {
             return VideoExportSettings.passthrough
         }
@@ -206,7 +202,7 @@ class MediaUtils: NSObject {
         
         // Set up progress monitoring
         if let progress = progress {
-            let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
                 DispatchQueue.main.async {
                     progress(exportSession.progress)
                 }
