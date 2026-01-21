@@ -382,28 +382,40 @@ class MediaUtils: NSObject {
         
         let videoQueue = DispatchQueue(label: "videoQueue")
         let audioQueue = DispatchQueue(label: "audioQueue")
+        let syncQueue = DispatchQueue(label: "syncQueue")
         
         var videoFinished = false
         var audioFinished = false
+        var writerFinished = false
         let totalDuration = asset.duration
         var lastProgressUpdate: CMTime = .zero
+        
+        func tryFinishWriter() {
+            syncQueue.sync {
+                guard !writerFinished else { return }
+                let shouldFinish = (videoFinished && (audioFinished || !hasAudio))
+                guard shouldFinish else { return }
+                writerFinished = true
+                assetWriter.finishWriting {
+                    exportError = assetWriter.error
+                    semaphore.signal()
+                }
+            }
+        }
         
         videoInput.requestMediaDataWhenReady(on: videoQueue) {
             while videoInput.isReadyForMoreMediaData {
                 guard let sampleBuffer = videoOutput.copyNextSampleBuffer() else {
                     videoInput.markAsFinished()
-                    videoFinished = true
+                    syncQueue.sync {
+                        videoFinished = true
+                    }
                     if let progress = progress {
                         DispatchQueue.main.async {
                             progress(1.0)
                         }
                     }
-                    if audioFinished || !hasAudio {
-                        assetWriter.finishWriting {
-                            exportError = assetWriter.error
-                            semaphore.signal()
-                        }
-                    }
+                    tryFinishWriter()
                     return
                 }
                 
@@ -420,13 +432,11 @@ class MediaUtils: NSObject {
                 
                 if !videoInput.append(sampleBuffer) {
                     videoInput.markAsFinished()
-                    videoFinished = true
-                    exportError = assetWriter.error
-                    if audioFinished || !hasAudio {
-                        assetWriter.finishWriting {
-                            semaphore.signal()
-                        }
+                    syncQueue.sync {
+                        videoFinished = true
+                        exportError = assetWriter.error
                     }
+                    tryFinishWriter()
                     return
                 }
             }
@@ -437,31 +447,29 @@ class MediaUtils: NSObject {
                 while audioInput.isReadyForMoreMediaData {
                     guard let sampleBuffer = audioOutput.copyNextSampleBuffer() else {
                         audioInput.markAsFinished()
-                        audioFinished = true
-                        if videoFinished {
-                            assetWriter.finishWriting {
-                                exportError = assetWriter.error
-                                semaphore.signal()
-                            }
+                        syncQueue.sync {
+                            audioFinished = true
                         }
+                        tryFinishWriter()
                         return
                     }
                     
                     if !audioInput.append(sampleBuffer) {
                         audioInput.markAsFinished()
-                        audioFinished = true
-                        exportError = assetWriter.error
-                        if videoFinished {
-                            assetWriter.finishWriting {
-                                semaphore.signal()
-                            }
+                        syncQueue.sync {
+                            audioFinished = true
+                            exportError = assetWriter.error
                         }
+                        tryFinishWriter()
                         return
                     }
                 }
             }
         } else {
-            audioFinished = true
+            syncQueue.sync {
+                audioFinished = true
+            }
+            tryFinishWriter()
         }
         
         semaphore.wait()
