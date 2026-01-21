@@ -197,6 +197,27 @@ class MediaUtils: NSObject {
         return (frameRate, size)
     }
     
+    private static func getAudioOutputSettings(from formatDescription: CMAudioFormatDescription) -> [String: Any]? {
+        guard let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription) else {
+            return nil
+        }
+        
+        let sampleRate = Int(asbd.pointee.mSampleRate)
+        let channels = Int(asbd.pointee.mChannelsPerFrame)
+        
+        var audioSettings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: sampleRate,
+            AVNumberOfChannelsKey: channels
+        ]
+        
+        if channels > 0 {
+            audioSettings[AVEncoderBitRateKey] = channels * 64000
+        }
+        
+        return audioSettings
+    }
+    
     private static func determineOptimalExportSettings(for asset: AVURLAsset) -> VideoExportSettings {
         return VideoExportSettings(
             maxWidth: MediaProcessingConfig.videoMaxWidth,
@@ -321,14 +342,18 @@ class MediaUtils: NSObject {
         
         var audioInput: AVAssetWriterInput?
         let hasAudio = compositionAudioTrack != nil
-        if hasAudio {
-            audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: nil)
-            audioInput?.expectsMediaDataInRealTime = false
-            if let audioInput = audioInput {
-                guard assetWriter.canAdd(audioInput) else {
-                    throw MediaUtilsError.videoProcessingFailed("Cannot add audio input to asset writer")
+        if hasAudio, let compositionAudioTrack = compositionAudioTrack {
+            let formatDescriptions = compositionAudioTrack.formatDescriptions
+            if let formatDescription = formatDescriptions.first as? CMAudioFormatDescription {
+                let audioSettings = getAudioOutputSettings(from: formatDescription)
+                audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+                audioInput?.expectsMediaDataInRealTime = false
+                if let audioInput = audioInput {
+                    guard assetWriter.canAdd(audioInput) else {
+                        throw MediaUtilsError.videoProcessingFailed("Cannot add audio input to asset writer")
+                    }
+                    assetWriter.add(audioInput)
                 }
-                assetWriter.add(audioInput)
             }
         }
         
