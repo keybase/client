@@ -30,7 +30,14 @@ export const compressVideoWithPicker = async (): Promise<string | null> => {
     const compressedPath = await showVideoPickerForCompression()
     return compressedPath
   } catch (error) {
+    // Check if user cancelled - error message should indicate cancellation
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (errorMessage.includes('cancelled') || errorMessage.includes('cancel')) {
+      // User cancelled - return null to use original video
+      return null
+    }
     console.error('video picker error', error)
+    // For other errors, return null to use original video
     return null
   }
 }

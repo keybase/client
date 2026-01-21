@@ -110,7 +110,12 @@ class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControl
             videoPickerCompletion = completion
             picker.delegate = instance
             
-            rootViewController.present(picker, animated: true, completion: nil)
+            // Present on the topmost view controller to ensure it's visible
+            var topController = rootViewController
+            while let presented = topController.presentedViewController {
+                topController = presented
+            }
+            topController.present(picker, animated: true, completion: nil)
         }
     }
     

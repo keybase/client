@@ -76,19 +76,28 @@ const Container = (ownProps: OwnProps) => {
       return
     }
     const compressVideos = async () => {
-      setIsCompressing(true)
       // For videos from multi-select, use native picker to match expo's compression behavior
       // Process videos sequentially to show picker one at a time
+      // Don't show "compressing" modal until after picker is done (picker needs to be on top)
       const compressed: Array<T.Chat.PathAndOutboxID> = []
       for (const {path, outboxID, url} of initialPathAndOutboxIDs) {
         if (pathToAttachmentType(path) === 'video') {
           // Use native picker for videos (matches expo's allowsEditing=true behavior)
-          const compressedPath = await compressVideoWithPicker()
-          if (compressedPath) {
-            compressed.push({outboxID, path: compressedPath, url})
-          } else {
-            // Fallback to regular compression if picker was cancelled or failed
+          // Picker will be shown first, then we compress if needed
+          try {
+            const compressedPath = await compressVideoWithPicker()
+            if (compressedPath) {
+              compressed.push({outboxID, path: compressedPath, url})
+            } else {
+              // User cancelled picker - use original video (no compression needed)
+              compressed.push({outboxID, path, url})
+            }
+          } catch (error) {
+            console.error('Video picker error:', error)
+            // Fallback to regular compression if picker failed
+            setIsCompressing(true)
             const fallbackPath = await compressVideo(path)
+            setIsCompressing(false)
             compressed.push({outboxID, path: fallbackPath, url})
           }
         } else {
@@ -96,7 +105,6 @@ const Container = (ownProps: OwnProps) => {
         }
       }
       setCompressedPathAndOutboxIDs(compressed)
-      setIsCompressing(false)
     }
     C.ignorePromise(compressVideos())
   }, [initialPathAndOutboxIDs, shouldCompress])
