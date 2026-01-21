@@ -42,28 +42,45 @@ class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControl
     private static var videoPickerCompletion: ((Error?, URL?) -> Void)?
     private static var videoPickerInstance: MediaUtils?
     
+    private static func getRootViewController() -> UIViewController? {
+        // UIApplication.shared is not available in app extensions at compile time
+        // Use fully runtime-based approach to avoid compile errors
+        guard let applicationClass = NSClassFromString("UIApplication") else {
+            return nil
+        }
+        
+        guard let sharedApplicationSelector = NSSelectorFromString("sharedApplication"),
+              let sharedApp = applicationClass.perform(sharedApplicationSelector)?.takeUnretainedValue() as? NSObject else {
+            return nil
+        }
+        
+        if #available(iOS 13.0, *) {
+            // Use KVC to access connectedScenes to avoid compile-time references
+            if let scenes = sharedApp.value(forKey: "connectedScenes") as? NSSet,
+               let scene = scenes.anyObject() as? NSObject,
+               let windows = scene.value(forKey: "windows") as? NSArray,
+               let window = windows.firstObject as? UIWindow {
+                return window.rootViewController
+            }
+        } else {
+            // Fallback for iOS < 13
+            if let keyWindow = sharedApp.value(forKey: "keyWindow") as? UIWindow {
+                return keyWindow.rootViewController
+            }
+        }
+        
+        return nil
+    }
+    
     @objc static func showVideoPickerForCompression(completion: @escaping (Error?, URL?) -> Void) {
         DispatchQueue.main.async {
-            var rootViewController: UIViewController?
-            
             // Check if we're in an app extension
             if Bundle.main.bundlePath.hasSuffix(".appex") {
-                // For app extensions, we can't use UIApplication.shared
-                // This method is not available in extensions, so we reject
                 completion(MediaUtilsError.invalidInput("Video picker is not available in app extensions"), nil)
                 return
-            } else {
-                // For main app, use UIApplication to find root view controller
-                if #available(iOS 13.0, *) {
-                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                        rootViewController = windowScene.windows.first?.rootViewController
-                    }
-                } else {
-                    rootViewController = UIApplication.shared.keyWindow?.rootViewController
-                }
             }
             
-            guard let rootViewController = rootViewController else {
+            guard let rootViewController = getRootViewController() else {
                 completion(MediaUtilsError.invalidInput("No root view controller found"), nil)
                 return
             }
