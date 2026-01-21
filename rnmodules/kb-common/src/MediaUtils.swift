@@ -192,65 +192,102 @@ class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControl
             while let presented = topController.presentedViewController {
                 topController = presented
             }
-            topController.present(picker, animated: true, completion: nil)
+            
+            print("MediaUtils: Presenting PHPickerViewController")
+            topController.present(picker, animated: true) {
+                print("MediaUtils: PHPickerViewController presented")
+            }
         }
     }
     
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        print("MediaUtils: picker didFinishPicking called with \(results.count) results")
         picker.dismiss(animated: true) {
+            print("MediaUtils: Picker dismissed")
             guard let completion = MediaUtils.multiSelectCompletion else {
+                print("MediaUtils: No completion handler found!")
                 return
             }
             
             if results.isEmpty {
-                completion([])
-                MediaUtils.multiSelectCompletion = nil
-                MediaUtils.multiSelectInstance = nil
+                print("MediaUtils: No results selected, calling completion with empty array")
+                DispatchQueue.main.async {
+                    completion([])
+                    MediaUtils.multiSelectCompletion = nil
+                    MediaUtils.multiSelectInstance = nil
+                }
                 return
             }
+            
+            print("MediaUtils: Processing \(results.count) selected items")
             
             let group = DispatchGroup()
             var processedURLs: [String] = []
             let queue = DispatchQueue(label: "com.keybase.mediaProcessing")
+            let lock = NSLock()
             
             for result in results {
                 group.enter()
                 
-                let isVideo = result.itemProvider.hasItemConformingToTypeIdentifier(UTType.movie.identifier)
+                // Check what type of media this is
+                let hasVideo = result.itemProvider.hasItemConformingToTypeIdentifier(UTType.movie.identifier)
+                let hasImage = result.itemProvider.hasItemConformingToTypeIdentifier(UTType.image.identifier)
                 
-                if isVideo {
+                if hasVideo {
+                    // Load video file
                     result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.movie.identifier) { url, error in
-                        defer { group.leave() }
-                        
-                        guard let url = url, error == nil else {
+                        if let error = error {
+                            print("Error loading video: \(error.localizedDescription)")
+                            group.leave()
                             return
                         }
                         
+                        guard let url = url else {
+                            print("No video URL returned")
+                            group.leave()
+                            return
+                        }
+                        
+                        // Compress video automatically - leave group after compression completes
                         MediaUtils.processVideoAsync(fromOriginal: url) { result in
+                            defer { group.leave() }
+                            
                             switch result {
                             case .success(let compressedURL):
-                                queue.async {
-                                    processedURLs.append(compressedURL.path)
-                                }
-                            case .failure:
-                                queue.async {
-                                    processedURLs.append(url.path)
-                                }
+                                print("Video compressed successfully: \(compressedURL.path)")
+                                lock.lock()
+                                processedURLs.append(compressedURL.path)
+                                lock.unlock()
+                            case .failure(let error):
+                                print("Video compression failed: \(error.localizedDescription), using original")
+                                lock.lock()
+                                processedURLs.append(url.path)
+                                lock.unlock()
                             }
                         }
                     }
-                } else {
+                } else if hasImage {
+                    // Load image file
                     result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) { url, error in
                         defer { group.leave() }
                         
-                        guard let url = url, error == nil else {
+                        if let error = error {
+                            print("Error loading image: \(error.localizedDescription)")
                             return
                         }
                         
-                        queue.async {
-                            processedURLs.append(url.path)
+                        guard let url = url else {
+                            print("No image URL returned")
+                            return
                         }
+                        
+                        lock.lock()
+                        processedURLs.append(url.path)
+                        lock.unlock()
                     }
+                } else {
+                    // Unknown type, try to load as data
+                    group.leave()
                 }
             }
             
