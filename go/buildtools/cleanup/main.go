@@ -131,15 +131,14 @@ func cleanupOldPackages(ctx context.Context, client *s3.Client, bucketName, pref
 			fmt.Printf("  Deleting old file: %s (age: %d days, size: %s)\n",
 				file.key, ageDays, formatSize(file.size))
 
-			// Uncomment to actually delete:
-			// _, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{
-			// 	Bucket: aws.String(bucketName),
-			// 	Key:    aws.String(file.key),
-			// })
-			// if err != nil {
-			// 	log.Printf("    Warning: Failed to delete %s: %v", file.key, err)
-			// 	continue
-			// }
+			_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{
+				Bucket: aws.String(bucketName),
+				Key:    aws.String(file.key),
+			})
+			if err != nil {
+				log.Printf("    Warning: Failed to delete %s: %v", file.key, err)
+				continue
+			}
 
 			deletedCount++
 			totalDeletedSize += file.size
