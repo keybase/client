@@ -6,8 +6,9 @@ import ImageIO
 struct MediaProcessingConfig {
     static let imageMaxPixelSize: Int = 1200
     static let imageCompressionQuality: CGFloat = 0.85
-    static let videoMaxPixels: Int = 1920 * 1080
+    static let videoMaxPixels: Int = 1280 * 720
     static let videoMaxFileSize: Int64 = 50 * 1024 * 1024
+    static let videoMaxFrameRate: Int32 = 30
 }
 
 enum MediaUtilsError: Error, LocalizedError {
@@ -168,19 +169,101 @@ class MediaUtils: NSObject {
             return VideoExportSettings.default
         }
         
-        let size = firstVideoTrack.naturalSize
-        let pixelCount = Int(size.width * size.height)
+        let preferredTransform = firstVideoTrack.preferredTransform
+        let naturalSize = firstVideoTrack.naturalSize
+        let actualSize = naturalSize.applying(preferredTransform)
+        let width = abs(actualSize.width)
+        let height = abs(actualSize.height)
+        let pixelCount = Int(width * height)
         let fileSize = getFileSize(for: asset.url)
         
-        // Determine if we need to scale down
         let needsScaling = pixelCount > MediaProcessingConfig.videoMaxPixels ||
                           fileSize > MediaProcessingConfig.videoMaxFileSize
         
         if needsScaling {
-            return VideoExportSettings.mediumQuality
+            let (newWidth, newHeight) = calculateOutputDimensions(width: width, height: height, maxPixels: MediaProcessingConfig.videoMaxPixels)
+            let targetSize = CGSize(width: CGFloat(newWidth), height: CGFloat(newHeight))
+            let trackFrameRate = firstVideoTrack.nominalFrameRate
+            let maxFrameRate: Int32? = trackFrameRate > Float(MediaProcessingConfig.videoMaxFrameRate) ? MediaProcessingConfig.videoMaxFrameRate : nil
+            return VideoExportSettings(preset: AVAssetExportPresetMediumQuality, targetSize: targetSize, maxFrameRate: maxFrameRate)
         } else {
-            return VideoExportSettings.passthrough
+            let trackFrameRate = firstVideoTrack.nominalFrameRate
+            let maxFrameRate: Int32? = trackFrameRate > Float(MediaProcessingConfig.videoMaxFrameRate) ? MediaProcessingConfig.videoMaxFrameRate : nil
+            if maxFrameRate != nil {
+                return VideoExportSettings(preset: AVAssetExportPresetPassthrough, targetSize: nil, maxFrameRate: maxFrameRate)
+            } else {
+                return VideoExportSettings.passthrough
+            }
         }
+    }
+    
+    private static func buildVideoComposition(for asset: AVURLAsset, settings: VideoExportSettings) -> AVMutableVideoComposition? {
+        let videoTracks = asset.tracks(withMediaType: .video)
+        guard let videoTrack = videoTracks.first else {
+            return nil
+        }
+        
+        let naturalSize = videoTrack.naturalSize
+        let preferredTransform = videoTrack.preferredTransform
+        let displaySize = naturalSize.applying(preferredTransform)
+        let displayWidth = abs(displaySize.width)
+        let displayHeight = abs(displaySize.height)
+        
+        var targetDisplaySize: CGSize?
+        var maxFrameRate: Int32?
+        
+        if let settingsTargetSize = settings.targetSize {
+            targetDisplaySize = settingsTargetSize
+        } else {
+            let pixelCount = Int(displayWidth * displayHeight)
+            if pixelCount > MediaProcessingConfig.videoMaxPixels {
+                let (newWidth, newHeight) = calculateOutputDimensions(width: displayWidth, height: displayHeight, maxPixels: MediaProcessingConfig.videoMaxPixels)
+                targetDisplaySize = CGSize(width: CGFloat(newWidth), height: CGFloat(newHeight))
+            }
+        }
+        
+        if let settingsMaxFrameRate = settings.maxFrameRate {
+            maxFrameRate = settingsMaxFrameRate
+        } else {
+            let trackFrameRate = videoTrack.nominalFrameRate
+            if trackFrameRate > Float(MediaProcessingConfig.videoMaxFrameRate) {
+                maxFrameRate = MediaProcessingConfig.videoMaxFrameRate
+            }
+        }
+        
+        guard targetDisplaySize != nil || maxFrameRate != nil else {
+            return nil
+        }
+        
+        let composition = AVMutableVideoComposition()
+        
+        let finalRenderSize: CGSize
+        if let targetDisplaySize = targetDisplaySize {
+            finalRenderSize = targetDisplaySize
+        } else {
+            finalRenderSize = CGSize(width: displayWidth, height: displayHeight)
+        }
+        composition.renderSize = finalRenderSize
+        composition.frameDuration = CMTime(value: 1, timescale: maxFrameRate ?? Int32(videoTrack.nominalFrameRate))
+        
+        let instruction = AVMutableVideoCompositionInstruction()
+        instruction.timeRange = CMTimeRange(start: .zero, duration: asset.duration)
+        
+        let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoTrack)
+        
+        if let targetDisplaySize = targetDisplaySize {
+            let scale = min(targetDisplaySize.width / displayWidth, targetDisplaySize.height / displayHeight)
+            let scaleTransform = CGAffineTransform(scaleX: scale, y: scale)
+            let finalTransform = scaleTransform.concatenating(preferredTransform)
+            layerInstruction.setTransform(finalTransform, at: .zero)
+        } else {
+            layerInstruction.setTransform(preferredTransform, at: .zero)
+        }
+        
+        instruction.layerInstructions = [layerInstruction]
+        composition.instructions = [instruction]
+        
+        return composition
     }
     
     private static func exportVideoWithSettings(asset: AVURLAsset,
@@ -198,7 +281,11 @@ class MediaUtils: NSObject {
         exportSession.outputURL = outputURL
         exportSession.outputFileType = .mp4
         exportSession.shouldOptimizeForNetworkUse = true
-        exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing() // Strips location data
+        exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing()
+        
+        if let videoComposition = buildVideoComposition(for: asset, settings: settings) {
+            exportSession.videoComposition = videoComposition
+        }
         
         // Set up progress monitoring
         if let progress = progress {
@@ -238,6 +325,26 @@ class MediaUtils: NSObject {
         } catch {
             return 0
         }
+    }
+    
+    private static func calculateOutputDimensions(width: CGFloat, height: CGFloat, maxPixels: Int) -> (width: Int, height: Int) {
+        let pixelCount = Int(width * height)
+        if pixelCount <= maxPixels {
+            return (Int(width), Int(height))
+        }
+        
+        let scale = sqrt(Double(maxPixels) / Double(pixelCount))
+        var newWidth = Int(width * scale)
+        var newHeight = Int(height * scale)
+        
+        if newWidth % 2 != 0 {
+            newWidth -= 1
+        }
+        if newHeight % 2 != 0 {
+            newHeight -= 1
+        }
+        
+        return (newWidth, newHeight)
     }
     
     private static func scaleDownCGImageSource(_ img: CGImageSource, dstURL: URL, options: CFDictionary) throws {
@@ -297,6 +404,14 @@ class MediaUtils: NSObject {
 
 struct VideoExportSettings {
     let preset: String
+    let targetSize: CGSize?
+    let maxFrameRate: Int32?
+    
+    init(preset: String, targetSize: CGSize? = nil, maxFrameRate: Int32? = nil) {
+        self.preset = preset
+        self.targetSize = targetSize
+        self.maxFrameRate = maxFrameRate
+    }
     
     static let passthrough = VideoExportSettings(preset: AVAssetExportPresetPassthrough)
     static let highQuality = VideoExportSettings(preset: AVAssetExportPreset1920x1080)
