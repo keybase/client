@@ -198,26 +198,12 @@ class MediaUtils: NSObject {
     }
     
     private static func determineOptimalExportSettings(for asset: AVURLAsset) -> VideoExportSettings {
-        let videoTracks = asset.tracks(withMediaType: .video)
-        guard let firstVideoTrack = videoTracks.first else {
-            return VideoExportSettings.default
-        }
-        
-        let (frameRate, size) = getVideoTrackProperties(track: firstVideoTrack)
-        let pixelCount = Int(size.width * size.height)
-        let maxPixels = MediaProcessingConfig.videoMaxWidth * MediaProcessingConfig.videoMaxHeight
-        
-        let needsTranscoding = size.width > CGFloat(MediaProcessingConfig.videoMaxWidth) ||
-                              size.height > CGFloat(MediaProcessingConfig.videoMaxHeight) ||
-                              frameRate > Float(MediaProcessingConfig.videoMaxFrameRate) ||
-                              pixelCount > maxPixels
-        
         return VideoExportSettings(
             maxWidth: MediaProcessingConfig.videoMaxWidth,
             maxHeight: MediaProcessingConfig.videoMaxHeight,
             maxBitrate: MediaProcessingConfig.videoMaxBitrate,
             maxFrameRate: MediaProcessingConfig.videoMaxFrameRate,
-            needsTranscoding: needsTranscoding
+            needsTranscoding: true
         )
     }
     
@@ -252,6 +238,10 @@ class MediaUtils: NSObject {
         
         videoComposition.renderSize = CGSize(width: outputWidth, height: outputHeight)
         videoComposition.frameDuration = frameDuration
+        
+        if outputWidth == Int(originalSize.width) && outputHeight == Int(originalSize.height) && targetFrameRate == originalFrameRate {
+            videoComposition.renderScale = 1.0
+        }
         
         guard let compositionVideoTrack = composition.addMutableTrack(
             withMediaType: .video,
@@ -479,7 +469,18 @@ class MediaUtils: NSObject {
         }
         
         guard assetWriter.status == .completed else {
-            throw MediaUtilsError.videoProcessingFailed("Export failed with status: \(assetWriter.status.rawValue)")
+            let statusString = String(describing: assetWriter.status)
+            let errorMsg = assetWriter.error?.localizedDescription ?? "Unknown error"
+            throw MediaUtilsError.videoProcessingFailed("Export failed with status: \(statusString), error: \(errorMsg)")
+        }
+        
+        guard FileManager.default.fileExists(atPath: outputURL.path) else {
+            throw MediaUtilsError.videoProcessingFailed("Output file was not created")
+        }
+        
+        let outputSize = getFileSize(for: outputURL)
+        guard outputSize > 0 else {
+            throw MediaUtilsError.videoProcessingFailed("Output file is empty")
         }
     }
     
