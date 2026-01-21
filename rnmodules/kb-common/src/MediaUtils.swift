@@ -272,35 +272,6 @@ class MediaUtils: NSObject {
                                               settings: VideoExportSettings,
                                               progress: ProcessMediaProgressCallback?) throws {
         
-        let videoComposition = buildVideoComposition(for: asset, settings: settings)
-        
-        if videoComposition != nil {
-            do {
-                try exportVideoWithWriter(asset: asset,
-                                        outputURL: outputURL,
-                                        videoComposition: videoComposition!,
-                                        progress: progress)
-            } catch {
-                try exportVideoWithSession(asset: asset,
-                                         outputURL: outputURL,
-                                         settings: settings,
-                                         videoComposition: videoComposition,
-                                         progress: progress)
-            }
-        } else {
-            try exportVideoWithSession(asset: asset,
-                                     outputURL: outputURL,
-                                     settings: settings,
-                                     videoComposition: nil,
-                                     progress: progress)
-        }
-    }
-    
-    private static func exportVideoWithSession(asset: AVURLAsset,
-                                             outputURL: URL,
-                                             settings: VideoExportSettings,
-                                             videoComposition: AVMutableVideoComposition?,
-                                             progress: ProcessMediaProgressCallback?) throws {
         let semaphore = DispatchSemaphore(value: 0)
         var exportError: Error?
         
@@ -313,7 +284,7 @@ class MediaUtils: NSObject {
         exportSession.shouldOptimizeForNetworkUse = true
         exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing()
         
-        if let videoComposition = videoComposition {
+        if let videoComposition = buildVideoComposition(for: asset, settings: settings) {
             exportSession.videoComposition = videoComposition
         }
         
@@ -346,11 +317,6 @@ class MediaUtils: NSObject {
             throw MediaUtilsError.videoProcessingFailed("Export session failed with status: \(exportSession.status)")
         }
     }
-    
-    private static func exportVideoWithWriter(asset: AVURLAsset,
-                                            outputURL: URL,
-                                            videoComposition: AVMutableVideoComposition,
-                                            progress: ProcessMediaProgressCallback?) throws {
         let videoTracks = asset.tracks(withMediaType: .video)
         guard !videoTracks.isEmpty else {
             throw MediaUtilsError.videoProcessingFailed("No video track found")
