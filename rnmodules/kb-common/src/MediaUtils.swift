@@ -185,7 +185,7 @@ class MediaUtils: NSObject {
             let targetSize = CGSize(width: CGFloat(newWidth), height: CGFloat(newHeight))
             let trackFrameRate = firstVideoTrack.nominalFrameRate
             let maxFrameRate: Int32? = trackFrameRate > Float(MediaProcessingConfig.videoMaxFrameRate) ? MediaProcessingConfig.videoMaxFrameRate : nil
-            return VideoExportSettings(preset: AVAssetExportPresetMediumQuality, targetSize: targetSize, maxFrameRate: maxFrameRate)
+            return VideoExportSettings(preset: AVAssetExportPresetHighestQuality, targetSize: targetSize, maxFrameRate: maxFrameRate)
         } else {
             let trackFrameRate = firstVideoTrack.nominalFrameRate
             let maxFrameRate: Int32? = trackFrameRate > Float(MediaProcessingConfig.videoMaxFrameRate) ? MediaProcessingConfig.videoMaxFrameRate : nil
