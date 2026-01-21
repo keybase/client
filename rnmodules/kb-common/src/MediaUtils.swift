@@ -197,7 +197,7 @@ class MediaUtils: NSObject {
         return (frameRate, size)
     }
     
-    private static func getAudioOutputSettings(from formatDescription: CMAudioFormatDescription) -> [String: Any]? {
+    private static func getAudioOutputSettings(from formatDescription: CMFormatDescription) -> [String: Any]? {
         guard let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription) else {
             return nil
         }
@@ -344,7 +344,7 @@ class MediaUtils: NSObject {
         let hasAudio = compositionAudioTrack != nil
         if hasAudio, let compositionAudioTrack = compositionAudioTrack {
             let formatDescriptions = compositionAudioTrack.formatDescriptions
-            if let formatDescription = formatDescriptions.first as? CMAudioFormatDescription {
+            if let formatDescription = formatDescriptions.first {
                 let audioSettings = getAudioOutputSettings(from: formatDescription)
                 audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
                 audioInput?.expectsMediaDataInRealTime = false
