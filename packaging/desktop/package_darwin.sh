@@ -361,8 +361,13 @@ save() { (
 	mv "$out_dir/$update_json_name" "$platform_dir-support"
 ); }
 
-# Source the cleanup function
-source "$dir/cleanup_old_packages.sh"
+# Build cleanup tool
+echo "Loading cleanup tool"
+(
+	cd "$client_dir/go/buildtools/cleanup"
+	go install "github.com/keybase/client/go/buildtools/cleanup"
+)
+cleanup_bin="$GOPATH/bin/cleanup"
 
 s3sync() {
 	if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
@@ -389,17 +394,17 @@ save
 # Cleanup old packages before syncing new ones
 if [ ! "$bucket_name" = "" ]; then
 	echo "Cleaning up old packages from S3..."
-	cleanup_old_packages "darwin-updates/"
-	cleanup_old_packages "darwin/"
-	cleanup_old_packages "darwin-arm64-updates/"
-	cleanup_old_packages "darwin-arm64/"
-	cleanup_old_packages "windows/"
-	cleanup_old_packages "linux_binaries/"
-	cleanup_old_packages "electron-sourcemaps/"
-	cleanup_old_packages "darwin-test-updates/"
-	cleanup_old_packages "darwin-test/"
-	cleanup_old_packages "darwin-arm64-test-updates/"
-	cleanup_old_packages "darwin-arm64-test/"
+	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-updates/"
+	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin/"
+	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-updates/"
+	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64/"
+	"$cleanup_bin" -bucket="$bucket_name" -prefix="windows/"
+	"$cleanup_bin" -bucket="$bucket_name" -prefix="linux_binaries/"
+	"$cleanup_bin" -bucket="$bucket_name" -prefix="electron-sourcemaps/"
+	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-test-updates/"
+	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-test/"
+	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-test-updates/"
+	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-test/"
 fi
 
 s3sync
