@@ -373,6 +373,7 @@ class MediaUtils: NSObject {
         videoOutput.alwaysCopiesSampleData = false
         
         guard assetReader.canAdd(videoOutput) else {
+            assetReader.cancelReading()
             throw MediaUtilsError.videoProcessingFailed("Cannot add video output to asset reader")
         }
         assetReader.add(videoOutput)
@@ -389,6 +390,7 @@ class MediaUtils: NSObject {
             let output = AVAssetReaderTrackOutput(track: compositionAudioTrack, outputSettings: audioDecompressionSettings)
             output.alwaysCopiesSampleData = false
             guard assetReader.canAdd(output) else {
+                assetReader.cancelReading()
                 throw MediaUtilsError.videoProcessingFailed("Cannot add audio output to asset reader")
             }
             assetReader.add(output)
@@ -396,10 +398,12 @@ class MediaUtils: NSObject {
         }
         
         guard assetWriter.startWriting() else {
+            assetReader.cancelReading()
             throw MediaUtilsError.videoProcessingFailed("Failed to start writing: \(assetWriter.error?.localizedDescription ?? "Unknown error")")
         }
         
         guard assetReader.startReading() else {
+            assetReader.cancelReading()
             throw MediaUtilsError.videoProcessingFailed("Failed to start reading: \(assetReader.error?.localizedDescription ?? "Unknown error")")
         }
         
@@ -422,7 +426,9 @@ class MediaUtils: NSObject {
                 guard shouldFinish else { return }
                 writerFinished = true
                 assetWriter.finishWriting {
-                    exportError = assetWriter.error
+                    syncQueue.sync {
+                        exportError = assetWriter.error
+                    }
                     semaphore.signal()
                 }
             }
@@ -447,8 +453,14 @@ class MediaUtils: NSObject {
                 let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
                 if let progress = progress, totalDuration.seconds > 0 {
                     let progressValue = Float(presentationTime.seconds / totalDuration.seconds)
-                    if CMTimeCompare(presentationTime, lastProgressUpdate) > 0 || CMTimeCompare(lastProgressUpdate, .zero) == 0 {
-                        lastProgressUpdate = presentationTime
+                    var shouldUpdate = false
+                    syncQueue.sync {
+                        if CMTimeCompare(presentationTime, lastProgressUpdate) > 0 || CMTimeCompare(lastProgressUpdate, .zero) == 0 {
+                            lastProgressUpdate = presentationTime
+                            shouldUpdate = true
+                        }
+                    }
+                    if shouldUpdate {
                         DispatchQueue.main.async {
                             progress(min(progressValue, 1.0))
                         }
@@ -501,7 +513,10 @@ class MediaUtils: NSObject {
         
         semaphore.wait()
         
-        if let error = exportError {
+        assetReader.cancelReading()
+        
+        let finalError = syncQueue.sync { exportError }
+        if let error = finalError {
             throw MediaUtilsError.videoProcessingFailed("Export failed: \(error.localizedDescription)")
         }
         
