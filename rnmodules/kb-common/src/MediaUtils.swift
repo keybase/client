@@ -49,8 +49,8 @@ class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControl
             return nil
         }
         
-        guard let sharedApplicationSelector = NSSelectorFromString("sharedApplication"),
-              let sharedApp = applicationClass.perform(sharedApplicationSelector)?.takeUnretainedValue() as? NSObject else {
+        let sharedApplicationSelector = NSSelectorFromString("sharedApplication")
+        guard let sharedApp = applicationClass.perform(sharedApplicationSelector)?.takeUnretainedValue() as? NSObject else {
             return nil
         }
         
