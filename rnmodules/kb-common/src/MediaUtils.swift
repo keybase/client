@@ -2,6 +2,7 @@ import Foundation
 import AVFoundation
 import UIKit
 import ImageIO
+import ObjectiveC.runtime
 
 struct MediaProcessingConfig {
     static let imageMaxPixelSize: Int = 1200
@@ -44,14 +45,25 @@ class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControl
     
     private static func getRootViewController() -> UIViewController? {
         // UIApplication.shared is not available in app extensions at compile time
-        // Use fully runtime-based approach to avoid compile errors
-        guard let applicationClass = NSClassFromString("UIApplication") else {
+        // Use fully runtime-based approach with objc_msgSend to avoid compile errors
+        guard let applicationClass: AnyClass = NSClassFromString("UIApplication") else {
             return nil
         }
         
         let sharedApplicationSelector = NSSelectorFromString("sharedApplication")
-        guard let unmanaged = applicationClass.perform(sharedApplicationSelector),
-              let sharedApp = unmanaged.takeUnretainedValue() as? NSObject else {
+        
+        // Use objc_msgSend to call the method at runtime
+        typealias SharedApplicationMethod = @convention(c) (AnyClass, Selector) -> Unmanaged<AnyObject>
+        let methodImplementation = class_getClassMethod(applicationClass, sharedApplicationSelector)
+        guard let imp = methodImplementation else {
+            return nil
+        }
+        
+        let method = unsafeBitCast(method_getImplementation(imp), to: SharedApplicationMethod.self)
+        let unmanaged = method(applicationClass, sharedApplicationSelector)
+        let sharedApp = unmanaged.takeUnretainedValue() as? NSObject
+        
+        guard let sharedApp = sharedApp else {
             return nil
         }
         
