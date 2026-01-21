@@ -9,6 +9,7 @@ struct MediaProcessingConfig {
     static let videoMaxPixels: Int = 1280 * 720
     static let videoMaxFileSize: Int64 = 50 * 1024 * 1024
     static let videoMaxFrameRate: Int32 = 30
+    static let videoMaxBitrate: Int = 4 * 1000 * 1000
 }
 
 enum MediaUtilsError: Error, LocalizedError {
@@ -271,6 +272,25 @@ class MediaUtils: NSObject {
                                               settings: VideoExportSettings,
                                               progress: ProcessMediaProgressCallback?) throws {
         
+        let videoComposition = buildVideoComposition(for: asset, settings: settings)
+        
+        if videoComposition != nil {
+            try exportVideoWithWriter(asset: asset,
+                                    outputURL: outputURL,
+                                    videoComposition: videoComposition!,
+                                    progress: progress)
+        } else {
+            try exportVideoWithSession(asset: asset,
+                                     outputURL: outputURL,
+                                     settings: settings,
+                                     progress: progress)
+        }
+    }
+    
+    private static func exportVideoWithSession(asset: AVURLAsset,
+                                             outputURL: URL,
+                                             settings: VideoExportSettings,
+                                             progress: ProcessMediaProgressCallback?) throws {
         let semaphore = DispatchSemaphore(value: 0)
         var exportError: Error?
         
@@ -283,11 +303,6 @@ class MediaUtils: NSObject {
         exportSession.shouldOptimizeForNetworkUse = true
         exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing()
         
-        if let videoComposition = buildVideoComposition(for: asset, settings: settings) {
-            exportSession.videoComposition = videoComposition
-        }
-        
-        // Set up progress monitoring
         if let progress = progress {
             let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
                 DispatchQueue.main.async {
@@ -315,6 +330,171 @@ class MediaUtils: NSObject {
         
         guard exportSession.status == .completed else {
             throw MediaUtilsError.videoProcessingFailed("Export session failed with status: \(exportSession.status)")
+        }
+    }
+    
+    private static func exportVideoWithWriter(asset: AVURLAsset,
+                                            outputURL: URL,
+                                            videoComposition: AVMutableVideoComposition,
+                                            progress: ProcessMediaProgressCallback?) throws {
+        let videoTracks = asset.tracks(withMediaType: .video)
+        guard let videoTrack = videoTracks.first else {
+            throw MediaUtilsError.videoProcessingFailed("No video track found")
+        }
+        
+        let audioTracks = asset.tracks(withMediaType: .audio)
+        
+        guard let writer = try? AVAssetWriter(outputURL: outputURL, fileType: .mp4) else {
+            throw MediaUtilsError.videoProcessingFailed("Failed to create asset writer")
+        }
+        
+        let videoSettings: [String: Any] = [
+            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoWidthKey: Int(videoComposition.renderSize.width),
+            AVVideoHeightKey: Int(videoComposition.renderSize.height),
+            AVVideoCompressionPropertiesKey: [
+                AVVideoAverageBitRateKey: MediaProcessingConfig.videoMaxBitrate,
+                AVVideoMaxKeyFrameIntervalKey: 30,
+                AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel
+            ]
+        ]
+        
+        let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
+        videoInput.expectsMediaDataInRealTime = false
+        
+        guard writer.canAdd(videoInput) else {
+            throw MediaUtilsError.videoProcessingFailed("Cannot add video input to writer")
+        }
+        writer.add(videoInput)
+        
+        var audioInput: AVAssetWriterInput?
+        if !audioTracks.isEmpty, let audioTrack = audioTracks.first {
+            let audioSettings: [String: Any] = [
+                AVFormatIDKey: kAudioFormatMPEG4AAC,
+                AVSampleRateKey: 44100,
+                AVNumberOfChannelsKey: 2,
+                AVEncoderBitRateKey: 128000
+            ]
+            
+            let input = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+            input.expectsMediaDataInRealTime = false
+            
+            if writer.canAdd(input) {
+                writer.add(input)
+                audioInput = input
+            }
+        }
+        
+        let adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: videoInput, sourcePixelBufferAttributes: [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+            kCVPixelBufferWidthKey as String: Int(videoComposition.renderSize.width),
+            kCVPixelBufferHeightKey as String: Int(videoComposition.renderSize.height)
+        ])
+        
+        guard writer.startWriting() else {
+            throw MediaUtilsError.videoProcessingFailed("Failed to start writing: \(writer.error?.localizedDescription ?? "Unknown error")")
+        }
+        
+        writer.startSession(atSourceTime: .zero)
+        
+        let reader = try AVAssetReader(asset: asset)
+        reader.timeRange = CMTimeRange(start: .zero, duration: asset.duration)
+        
+        let videoReaderOutput = AVAssetReaderVideoCompositionOutput(videoTracks: videoTracks, videoSettings: [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+        ])
+        videoReaderOutput.videoComposition = videoComposition
+        videoReaderOutput.alwaysCopiesSampleData = false
+        
+        guard reader.canAdd(videoReaderOutput) else {
+            throw MediaUtilsError.videoProcessingFailed("Cannot add video output to reader")
+        }
+        reader.add(videoReaderOutput)
+        
+        var audioReaderOutput: AVAssetReaderTrackOutput?
+        if let audioInput = audioInput, let audioTrack = audioTracks.first {
+            let output = AVAssetReaderTrackOutput(track: audioTrack, outputSettings: nil)
+            if reader.canAdd(output) {
+                reader.add(output)
+                audioReaderOutput = output
+            }
+        }
+        
+        guard reader.startReading() else {
+            throw MediaUtilsError.videoProcessingFailed("Failed to start reading: \(reader.error?.localizedDescription ?? "Unknown error")")
+        }
+        
+        let semaphore = DispatchSemaphore(value: 0)
+        var processingError: Error?
+        let processingQueue = DispatchQueue(label: "video.processing")
+        let duration = asset.duration
+        
+        processingQueue.async {
+            videoInput.requestMediaDataWhenReady(on: processingQueue) {
+                while videoInput.isReadyForMoreMediaData {
+                    guard let sampleBuffer = videoReaderOutput.copyNextSampleBuffer() else {
+                        videoInput.markAsFinished()
+                        break
+                    }
+                    
+                    guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+                        CMSampleBufferInvalidate(sampleBuffer)
+                        continue
+                    }
+                    
+                    let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+                    
+                    if !adaptor.append(pixelBuffer, withPresentationTime: presentationTime) {
+                        if let error = writer.error {
+                            processingError = error
+                        }
+                        videoInput.markAsFinished()
+                        break
+                    }
+                    
+                    if let progress = progress {
+                        let progressValue = Float(CMTimeGetSeconds(presentationTime) / CMTimeGetSeconds(duration))
+                        DispatchQueue.main.async {
+                            progress(progressValue)
+                        }
+                    }
+                    
+                    CMSampleBufferInvalidate(sampleBuffer)
+                }
+            }
+            
+            if let audioInput = audioInput, let audioReaderOutput = audioReaderOutput {
+                audioInput.requestMediaDataWhenReady(on: processingQueue) {
+                    while audioInput.isReadyForMoreMediaData {
+                        guard let sampleBuffer = audioReaderOutput.copyNextSampleBuffer() else {
+                            audioInput.markAsFinished()
+                            break
+                        }
+                        
+                        if !audioInput.append(sampleBuffer) {
+                            if let error = writer.error {
+                                processingError = error
+                            }
+                            audioInput.markAsFinished()
+                            break
+                        }
+                    }
+                }
+            }
+            
+            writer.finishWriting {
+                semaphore.signal()
+            }
+        }
+        
+        semaphore.wait()
+        
+        if let error = processingError ?? writer.error {
+            throw MediaUtilsError.videoProcessingFailed("Export failed: \(error.localizedDescription)")
+        }
+        
+        guard writer.status == .completed else {
+            throw MediaUtilsError.videoProcessingFailed("Writer failed with status: \(writer.status)")
         }
     }
     
