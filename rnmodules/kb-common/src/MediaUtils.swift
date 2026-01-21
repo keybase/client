@@ -317,13 +317,6 @@ class MediaUtils: NSObject {
             ]
         ]
         
-        let audioSettings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVSampleRateKey: 44100,
-            AVNumberOfChannelsKey: 2,
-            AVEncoderBitRateKey: 128000
-        ]
-        
         guard let assetWriter = try? AVAssetWriter(outputURL: outputURL, fileType: .mp4) else {
             throw MediaUtilsError.videoProcessingFailed("Failed to create asset writer")
         }
@@ -331,7 +324,7 @@ class MediaUtils: NSObject {
         let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
         videoInput.expectsMediaDataInRealTime = false
         
-        let audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+        let audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: nil)
         audioInput.expectsMediaDataInRealTime = false
         
         guard assetWriter.canAdd(videoInput) else {
