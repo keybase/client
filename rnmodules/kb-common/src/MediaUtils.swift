@@ -8,6 +8,10 @@ struct MediaProcessingConfig {
     static let imageCompressionQuality: CGFloat = 0.85
     static let videoMaxPixels: Int = 1920 * 1080
     static let videoMaxFileSize: Int64 = 50 * 1024 * 1024
+    static let videoMaxWidth: Int = 1280
+    static let videoMaxHeight: Int = 720
+    static let videoMaxBitrate: Int = 4_000_000
+    static let videoMaxFrameRate: Int = 30
 }
 
 enum MediaUtilsError: Error, LocalizedError {
@@ -162,25 +166,59 @@ class MediaUtils: NSObject {
         }
     }
     
+    private static func calculateOutputDimensions(width: CGFloat, height: CGFloat, maxWidth: Int, maxHeight: Int) -> (width: Int, height: Int) {
+        let inputWidth = width
+        let inputHeight = height
+        
+        if inputWidth <= CGFloat(maxWidth) && inputHeight <= CGFloat(maxHeight) {
+            return (Int(inputWidth), Int(inputHeight))
+        }
+        
+        let widthRatio = CGFloat(maxWidth) / inputWidth
+        let heightRatio = CGFloat(maxHeight) / inputHeight
+        let scale = min(widthRatio, heightRatio)
+        
+        var outputWidth = Int(inputWidth * scale)
+        var outputHeight = Int(inputHeight * scale)
+        
+        if outputWidth % 2 != 0 {
+            outputWidth -= 1
+        }
+        if outputHeight % 2 != 0 {
+            outputHeight -= 1
+        }
+        
+        return (outputWidth, outputHeight)
+    }
+    
+    private static func getVideoTrackProperties(track: AVAssetTrack) -> (frameRate: Float, dimensions: CGSize) {
+        let frameRate = track.nominalFrameRate
+        let size = track.naturalSize
+        return (frameRate, size)
+    }
+    
     private static func determineOptimalExportSettings(for asset: AVURLAsset) -> VideoExportSettings {
         let videoTracks = asset.tracks(withMediaType: .video)
         guard let firstVideoTrack = videoTracks.first else {
             return VideoExportSettings.default
         }
         
-        let size = firstVideoTrack.naturalSize
+        let (frameRate, size) = getVideoTrackProperties(track: firstVideoTrack)
         let pixelCount = Int(size.width * size.height)
-        let fileSize = getFileSize(for: asset.url)
+        let maxPixels = MediaProcessingConfig.videoMaxWidth * MediaProcessingConfig.videoMaxHeight
         
-        // Determine if we need to scale down
-        let needsScaling = pixelCount > MediaProcessingConfig.videoMaxPixels ||
-                          fileSize > MediaProcessingConfig.videoMaxFileSize
+        let needsTranscoding = size.width > CGFloat(MediaProcessingConfig.videoMaxWidth) ||
+                              size.height > CGFloat(MediaProcessingConfig.videoMaxHeight) ||
+                              frameRate > Float(MediaProcessingConfig.videoMaxFrameRate) ||
+                              pixelCount > maxPixels
         
-        if needsScaling {
-            return VideoExportSettings.mediumQuality
-        } else {
-            return VideoExportSettings.passthrough
-        }
+        return VideoExportSettings(
+            maxWidth: MediaProcessingConfig.videoMaxWidth,
+            maxHeight: MediaProcessingConfig.videoMaxHeight,
+            maxBitrate: MediaProcessingConfig.videoMaxBitrate,
+            maxFrameRate: MediaProcessingConfig.videoMaxFrameRate,
+            needsTranscoding: needsTranscoding
+        )
     }
     
     private static func exportVideoWithSettings(asset: AVURLAsset,
@@ -188,36 +226,248 @@ class MediaUtils: NSObject {
                                               settings: VideoExportSettings,
                                               progress: ProcessMediaProgressCallback?) throws {
         
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            try? FileManager.default.removeItem(at: outputURL)
+        }
+        
+        let videoTracks = asset.tracks(withMediaType: .video)
+        guard let videoTrack = videoTracks.first else {
+            throw MediaUtilsError.videoProcessingFailed("No video track found")
+        }
+        
+        let audioTracks = asset.tracks(withMediaType: .audio)
+        let composition = AVMutableComposition()
+        
+        let videoComposition = AVMutableVideoComposition()
+        let (originalFrameRate, originalSize) = getVideoTrackProperties(track: videoTrack)
+        let (outputWidth, outputHeight) = calculateOutputDimensions(
+            width: originalSize.width,
+            height: originalSize.height,
+            maxWidth: settings.maxWidth,
+            maxHeight: settings.maxHeight
+        )
+        
+        let targetFrameRate = min(originalFrameRate, Float(settings.maxFrameRate))
+        let frameDuration = CMTime(value: 1, timescale: Int32(targetFrameRate))
+        
+        videoComposition.renderSize = CGSize(width: outputWidth, height: outputHeight)
+        videoComposition.frameDuration = frameDuration
+        
+        guard let compositionVideoTrack = composition.addMutableTrack(
+            withMediaType: .video,
+            preferredTrackID: kCMPersistentTrackID_Invalid
+        ) else {
+            throw MediaUtilsError.videoProcessingFailed("Failed to create composition video track")
+        }
+        
+        do {
+            try compositionVideoTrack.insertTimeRange(
+                CMTimeRange(start: .zero, duration: asset.duration),
+                of: videoTrack,
+                at: .zero
+            )
+            compositionVideoTrack.preferredTransform = videoTrack.preferredTransform
+        } catch {
+            throw MediaUtilsError.videoProcessingFailed("Failed to insert video track: \(error.localizedDescription)")
+        }
+        
+        for audioTrack in audioTracks {
+            guard let compositionAudioTrack = composition.addMutableTrack(
+                withMediaType: .audio,
+                preferredTrackID: kCMPersistentTrackID_Invalid
+            ) else {
+                continue
+            }
+            
+            do {
+                try compositionAudioTrack.insertTimeRange(
+                    CMTimeRange(start: .zero, duration: asset.duration),
+                    of: audioTrack,
+                    at: .zero
+                )
+            } catch {
+                continue
+            }
+        }
+        
+        let instruction = AVMutableVideoCompositionInstruction()
+        instruction.timeRange = CMTimeRange(start: .zero, duration: asset.duration)
+        
+        let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: compositionVideoTrack)
+        let transform = videoTrack.preferredTransform
+        let scaleX = CGFloat(outputWidth) / originalSize.width
+        let scaleY = CGFloat(outputHeight) / originalSize.height
+        let scaleTransform = CGAffineTransform(scaleX: scaleX, y: scaleY)
+        let scaledTransform = transform.concatenating(scaleTransform)
+        layerInstruction.setTransform(scaledTransform, at: .zero)
+        
+        instruction.layerInstructions = [layerInstruction]
+        videoComposition.instructions = [instruction]
+        
+        let videoSettings: [String: Any] = [
+            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoWidthKey: outputWidth,
+            AVVideoHeightKey: outputHeight,
+            AVVideoCompressionPropertiesKey: [
+                AVVideoAverageBitRateKey: settings.maxBitrate,
+                AVVideoMaxKeyFrameIntervalKey: Int(targetFrameRate * 2),
+                AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel
+            ]
+        ]
+        
+        let audioSettings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: 44100,
+            AVNumberOfChannelsKey: 2,
+            AVEncoderBitRateKey: 128000
+        ]
+        
+        guard let assetWriter = try? AVAssetWriter(outputURL: outputURL, fileType: .mp4) else {
+            throw MediaUtilsError.videoProcessingFailed("Failed to create asset writer")
+        }
+        
+        let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
+        videoInput.expectsMediaDataInRealTime = false
+        
+        let audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+        audioInput.expectsMediaDataInRealTime = false
+        
+        guard assetWriter.canAdd(videoInput) else {
+            throw MediaUtilsError.videoProcessingFailed("Cannot add video input to asset writer")
+        }
+        assetWriter.add(videoInput)
+        
+        if !audioTracks.isEmpty {
+            guard assetWriter.canAdd(audioInput) else {
+                throw MediaUtilsError.videoProcessingFailed("Cannot add audio input to asset writer")
+            }
+            assetWriter.add(audioInput)
+        }
+        
         let semaphore = DispatchSemaphore(value: 0)
         var exportError: Error?
         
-        guard let exportSession = AVAssetExportSession(asset: asset, presetName: settings.preset) else {
-            throw MediaUtilsError.videoProcessingFailed("Failed to create export session")
+        guard let assetReader = try? AVAssetReader(asset: composition) else {
+            throw MediaUtilsError.videoProcessingFailed("Failed to create asset reader")
         }
         
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = .mp4
-        exportSession.shouldOptimizeForNetworkUse = true
-        exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing() // Strips location data
+        let videoOutput = AVAssetReaderVideoCompositionOutput(
+            videoTracks: [compositionVideoTrack],
+            videoSettings: nil
+        )
+        videoOutput.videoComposition = videoComposition
+        videoOutput.alwaysCopiesSampleData = false
         
-        // Set up progress monitoring
-        if let progress = progress {
-            let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-                DispatchQueue.main.async {
-                    progress(exportSession.progress)
+        let audioOutput = AVAssetReaderAudioMixOutput(
+            audioTracks: audioTracks.isEmpty ? [] : composition.tracks(withMediaType: .audio),
+            audioSettings: nil
+        )
+        audioOutput.alwaysCopiesSampleData = false
+        
+        guard assetReader.canAdd(videoOutput) else {
+            throw MediaUtilsError.videoProcessingFailed("Cannot add video output to asset reader")
+        }
+        assetReader.add(videoOutput)
+        
+        if !audioTracks.isEmpty {
+            guard assetReader.canAdd(audioOutput) else {
+                throw MediaUtilsError.videoProcessingFailed("Cannot add audio output to asset reader")
+            }
+            assetReader.add(audioOutput)
+        }
+        
+        guard assetWriter.startWriting() else {
+            throw MediaUtilsError.videoProcessingFailed("Failed to start writing: \(assetWriter.error?.localizedDescription ?? "Unknown error")")
+        }
+        
+        guard assetReader.startReading() else {
+            throw MediaUtilsError.videoProcessingFailed("Failed to start reading: \(assetReader.error?.localizedDescription ?? "Unknown error")")
+        }
+        
+        assetWriter.startSession(atSourceTime: .zero)
+        
+        let videoQueue = DispatchQueue(label: "videoQueue")
+        let audioQueue = DispatchQueue(label: "audioQueue")
+        
+        var videoFinished = false
+        var audioFinished = false
+        let totalDuration = asset.duration
+        var lastProgressUpdate: CMTime = .zero
+        
+        videoInput.requestMediaDataWhenReady(on: videoQueue) {
+            while videoInput.isReadyForMoreMediaData {
+                guard let sampleBuffer = videoOutput.copyNextSampleBuffer() else {
+                    videoInput.markAsFinished()
+                    videoFinished = true
+                    if let progress = progress {
+                        DispatchQueue.main.async {
+                            progress(1.0)
+                        }
+                    }
+                    if audioFinished || audioTracks.isEmpty {
+                        assetWriter.finishWriting {
+                            exportError = assetWriter.error
+                            semaphore.signal()
+                        }
+                    }
+                    return
+                }
+                
+                let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+                if let progress = progress, totalDuration.seconds > 0 {
+                    let progressValue = Float(presentationTime.seconds / totalDuration.seconds)
+                    if CMTimeCompare(presentationTime, lastProgressUpdate) > 0 || CMTimeCompare(lastProgressUpdate, .zero) == 0 {
+                        lastProgressUpdate = presentationTime
+                        DispatchQueue.main.async {
+                            progress(min(progressValue, 1.0))
+                        }
+                    }
+                }
+                
+                if !videoInput.append(sampleBuffer) {
+                    videoInput.markAsFinished()
+                    videoFinished = true
+                    exportError = assetWriter.error
+                    if audioFinished || audioTracks.isEmpty {
+                        assetWriter.finishWriting {
+                            semaphore.signal()
+                        }
+                    }
+                    return
                 }
             }
-            
-            exportSession.exportAsynchronously {
-                timer.invalidate()
-                exportError = exportSession.error
-                semaphore.signal()
+        }
+        
+        if !audioTracks.isEmpty {
+            audioInput.requestMediaDataWhenReady(on: audioQueue) {
+                while audioInput.isReadyForMoreMediaData {
+                    guard let sampleBuffer = audioOutput.copyNextSampleBuffer() else {
+                        audioInput.markAsFinished()
+                        audioFinished = true
+                        if videoFinished {
+                            assetWriter.finishWriting {
+                                exportError = assetWriter.error
+                                semaphore.signal()
+                            }
+                        }
+                        return
+                    }
+                    
+                    if !audioInput.append(sampleBuffer) {
+                        audioInput.markAsFinished()
+                        audioFinished = true
+                        exportError = assetWriter.error
+                        if videoFinished {
+                            assetWriter.finishWriting {
+                                semaphore.signal()
+                            }
+                        }
+                        return
+                    }
+                }
             }
         } else {
-            exportSession.exportAsynchronously {
-                exportError = exportSession.error
-                semaphore.signal()
-            }
+            audioFinished = true
         }
         
         semaphore.wait()
@@ -226,8 +476,8 @@ class MediaUtils: NSObject {
             throw MediaUtilsError.videoProcessingFailed("Export failed: \(error.localizedDescription)")
         }
         
-        guard exportSession.status == .completed else {
-            throw MediaUtilsError.videoProcessingFailed("Export session failed with status: \(exportSession.status)")
+        guard assetWriter.status == .completed else {
+            throw MediaUtilsError.videoProcessingFailed("Export failed with status: \(assetWriter.status.rawValue)")
         }
     }
     
@@ -296,12 +546,17 @@ class MediaUtils: NSObject {
 }
 
 struct VideoExportSettings {
-    let preset: String
+    let maxWidth: Int
+    let maxHeight: Int
+    let maxBitrate: Int
+    let maxFrameRate: Int
+    let needsTranscoding: Bool
     
-    static let passthrough = VideoExportSettings(preset: AVAssetExportPresetPassthrough)
-    static let highQuality = VideoExportSettings(preset: AVAssetExportPreset1920x1080)
-    static let mediumQuality = VideoExportSettings(preset: AVAssetExportPresetMediumQuality)
-    static let lowQuality = VideoExportSettings(preset: AVAssetExportPresetLowQuality)
-    
-    static let `default` = mediumQuality
+    static let `default` = VideoExportSettings(
+        maxWidth: MediaProcessingConfig.videoMaxWidth,
+        maxHeight: MediaProcessingConfig.videoMaxHeight,
+        maxBitrate: MediaProcessingConfig.videoMaxBitrate,
+        maxFrameRate: MediaProcessingConfig.videoMaxFrameRate,
+        needsTranscoding: true
+    )
 }
