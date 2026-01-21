@@ -271,22 +271,24 @@ class MediaUtils: NSObject {
             throw MediaUtilsError.videoProcessingFailed("Failed to insert video track: \(error.localizedDescription)")
         }
         
-        for audioTrack in audioTracks {
-            guard let compositionAudioTrack = composition.addMutableTrack(
+        var compositionAudioTrack: AVMutableCompositionTrack?
+        if let firstAudioTrack = audioTracks.first {
+            guard let track = composition.addMutableTrack(
                 withMediaType: .audio,
                 preferredTrackID: kCMPersistentTrackID_Invalid
             ) else {
-                continue
+                throw MediaUtilsError.videoProcessingFailed("Failed to create composition audio track")
             }
             
             do {
-                try compositionAudioTrack.insertTimeRange(
+                try track.insertTimeRange(
                     CMTimeRange(start: .zero, duration: asset.duration),
-                    of: audioTrack,
+                    of: firstAudioTrack,
                     at: .zero
                 )
+                compositionAudioTrack = track
             } catch {
-                continue
+                throw MediaUtilsError.videoProcessingFailed("Failed to insert audio track: \(error.localizedDescription)")
             }
         }
         
@@ -337,7 +339,8 @@ class MediaUtils: NSObject {
         }
         assetWriter.add(videoInput)
         
-        if !audioTracks.isEmpty {
+        let hasAudio = compositionAudioTrack != nil
+        if hasAudio {
             guard assetWriter.canAdd(audioInput) else {
                 throw MediaUtilsError.videoProcessingFailed("Cannot add audio input to asset writer")
             }
@@ -358,22 +361,20 @@ class MediaUtils: NSObject {
         videoOutput.videoComposition = videoComposition
         videoOutput.alwaysCopiesSampleData = false
         
-        let audioOutput = AVAssetReaderAudioMixOutput(
-            audioTracks: audioTracks.isEmpty ? [] : composition.tracks(withMediaType: .audio),
-            audioSettings: nil
-        )
-        audioOutput.alwaysCopiesSampleData = false
-        
         guard assetReader.canAdd(videoOutput) else {
             throw MediaUtilsError.videoProcessingFailed("Cannot add video output to asset reader")
         }
         assetReader.add(videoOutput)
         
-        if !audioTracks.isEmpty {
-            guard assetReader.canAdd(audioOutput) else {
+        var audioOutput: AVAssetReaderTrackOutput?
+        if let compositionAudioTrack = compositionAudioTrack {
+            let output = AVAssetReaderTrackOutput(track: compositionAudioTrack, outputSettings: nil)
+            output.alwaysCopiesSampleData = false
+            guard assetReader.canAdd(output) else {
                 throw MediaUtilsError.videoProcessingFailed("Cannot add audio output to asset reader")
             }
-            assetReader.add(audioOutput)
+            assetReader.add(output)
+            audioOutput = output
         }
         
         guard assetWriter.startWriting() else {
@@ -404,7 +405,7 @@ class MediaUtils: NSObject {
                             progress(1.0)
                         }
                     }
-                    if audioFinished || audioTracks.isEmpty {
+                    if audioFinished || !hasAudio {
                         assetWriter.finishWriting {
                             exportError = assetWriter.error
                             semaphore.signal()
@@ -428,7 +429,7 @@ class MediaUtils: NSObject {
                     videoInput.markAsFinished()
                     videoFinished = true
                     exportError = assetWriter.error
-                    if audioFinished || audioTracks.isEmpty {
+                    if audioFinished || !hasAudio {
                         assetWriter.finishWriting {
                             semaphore.signal()
                         }
@@ -438,7 +439,7 @@ class MediaUtils: NSObject {
             }
         }
         
-        if !audioTracks.isEmpty {
+        if hasAudio, let audioOutput = audioOutput {
             audioInput.requestMediaDataWhenReady(on: audioQueue) {
                 while audioInput.isReadyForMoreMediaData {
                     guard let sampleBuffer = audioOutput.copyNextSampleBuffer() else {
