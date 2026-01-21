@@ -44,8 +44,26 @@ class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControl
     
     @objc static func showVideoPickerForCompression(completion: @escaping (Error?, URL?) -> Void) {
         DispatchQueue.main.async {
-            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                  let rootViewController = windowScene.windows.first?.rootViewController else {
+            var rootViewController: UIViewController?
+            
+            // Check if we're in an app extension
+            if Bundle.main.bundlePath.hasSuffix(".appex") {
+                // For app extensions, we can't use UIApplication.shared
+                // This method is not available in extensions, so we reject
+                completion(MediaUtilsError.invalidInput("Video picker is not available in app extensions"), nil)
+                return
+            } else {
+                // For main app, use UIApplication to find root view controller
+                if #available(iOS 13.0, *) {
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                        rootViewController = windowScene.windows.first?.rootViewController
+                    }
+                } else {
+                    rootViewController = UIApplication.shared.keyWindow?.rootViewController
+                }
+            }
+            
+            guard let rootViewController = rootViewController else {
                 completion(MediaUtilsError.invalidInput("No root view controller found"), nil)
                 return
             }
