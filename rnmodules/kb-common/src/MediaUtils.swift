@@ -3,6 +3,7 @@ import AVFoundation
 import UIKit
 import ImageIO
 import ObjectiveC.runtime
+import PhotosUI
 
 struct MediaProcessingConfig {
     static let imageMaxPixelSize: Int = 1200
@@ -31,7 +32,7 @@ typealias ProcessMediaCompletion = (Result<URL, Error>) -> Void
 typealias ProcessMediaProgressCallback = (Float) -> Void
 
 @objc(MediaUtils)
-class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate, PHPickerViewControllerDelegate {
     private static var scaledImageOptions: CFDictionary {
         return [
             kCGImageSourceCreateThumbnailWithTransform: true,
@@ -42,6 +43,8 @@ class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControl
     
     private static var videoPickerCompletion: ((Error?, URL?) -> Void)?
     private static var videoPickerInstance: MediaUtils?
+    private static var multiSelectCompletion: (([String]) -> Void)?
+    private static var multiSelectInstance: MediaUtils?
     
     private static func getRootViewController() -> UIViewController? {
         // UIApplication.shared is not available in app extensions at compile time
@@ -140,6 +143,107 @@ class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControl
             MediaUtils.videoPickerCompletion?(MediaUtilsError.videoProcessingFailed("User cancelled video selection"), nil)
             MediaUtils.videoPickerCompletion = nil
             MediaUtils.videoPickerInstance = nil
+        }
+    }
+    
+    @objc static func showMultiSelectPicker(mediaTypes: [String], completion: @escaping ([String]) -> Void) {
+        DispatchQueue.main.async {
+            if Bundle.main.bundlePath.hasSuffix(".appex") {
+                completion([])
+                return
+            }
+            
+            guard let rootViewController = getRootViewController() else {
+                completion([])
+                return
+            }
+            
+            var configuration = PHPickerConfiguration(photoLibrary: PHPhotoLibrary.shared())
+            configuration.selectionLimit = 0
+            let utTypes = mediaTypes.compactMap { UTType($0) }
+            if !utTypes.isEmpty {
+                configuration.filter = .any(of: utTypes)
+            }
+            configuration.preferredAssetRepresentationMode = .current
+            
+            let picker = PHPickerViewController(configuration: configuration)
+            
+            let instance = MediaUtils()
+            multiSelectInstance = instance
+            multiSelectCompletion = completion
+            picker.delegate = instance
+            
+            var topController = rootViewController
+            while let presented = topController.presentedViewController {
+                topController = presented
+            }
+            topController.present(picker, animated: true, completion: nil)
+        }
+    }
+    
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true) {
+            guard let completion = MediaUtils.multiSelectCompletion else {
+                return
+            }
+            
+            if results.isEmpty {
+                completion([])
+                MediaUtils.multiSelectCompletion = nil
+                MediaUtils.multiSelectInstance = nil
+                return
+            }
+            
+            let group = DispatchGroup()
+            var processedURLs: [String] = []
+            let queue = DispatchQueue(label: "com.keybase.mediaProcessing")
+            
+            for result in results {
+                group.enter()
+                
+                let isVideo = result.itemProvider.hasItemConformingToTypeIdentifier(UTType.movie.identifier)
+                
+                if isVideo {
+                    result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.movie.identifier) { url, error in
+                        defer { group.leave() }
+                        
+                        guard let url = url, error == nil else {
+                            return
+                        }
+                        
+                        MediaUtils.processVideoAsync(fromOriginal: url) { result in
+                            switch result {
+                            case .success(let compressedURL):
+                                queue.async {
+                                    processedURLs.append(compressedURL.path)
+                                }
+                            case .failure:
+                                queue.async {
+                                    processedURLs.append(url.path)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) { url, error in
+                        defer { group.leave() }
+                        
+                        guard let url = url, error == nil else {
+                            return
+                        }
+                        
+                        queue.async {
+                            processedURLs.append(url.path)
+                        }
+                    }
+                }
+            }
+            
+            group.notify(queue: DispatchQueue.main) {
+                completion(processedURLs)
+                MediaUtils.multiSelectCompletion = nil
+                MediaUtils.multiSelectInstance = nil
+            }
         }
     }
     

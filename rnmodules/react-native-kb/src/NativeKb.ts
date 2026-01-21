@@ -54,6 +54,7 @@ export interface Spec extends TurboModule {
   setEnablePasteImage(enabled: boolean): void
   processVideo(path: string): Promise<string>
   showVideoPickerForCompression(): Promise<string>
+  showMultiSelectPicker(mediaTypes: Array<string>): Promise<Array<string>>
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Kb')

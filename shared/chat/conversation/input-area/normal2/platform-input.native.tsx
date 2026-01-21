@@ -14,6 +14,8 @@ import type {Props} from './platform-input'
 import {Keyboard, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
 import {formatDurationShort} from '@/util/timestamp'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
+import {showMultiSelectPicker} from 'react-native-kb'
+import {Platform} from 'react-native'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
 import {MaxInputAreaContext} from './max-input-area-context'
@@ -206,32 +208,69 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
       const f = async () => {
-        const handleSelection = (result: ImagePicker.ImagePickerResult) => {
+        const handleSelection = async (result: ImagePicker.ImagePickerResult) => {
           if (result.canceled || result.assets.length === 0 || !conversationIDKey) {
             return
           }
+          
           const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
           navigateAppend(conversationIDKey => ({
             props: {conversationIDKey, pathAndOutboxIDs, shouldCompress: true},
             selected: 'chatAttachmentGetTitles',
           }))
         }
+        
+        const handleNativeMultiSelect = async (mediaType: 'photo' | 'video' | 'mixed') => {
+          if (!conversationIDKey) {
+            return
+          }
+          
+          // Use native multi-select picker with automatic video compression
+          const mediaTypes: Array<string> = []
+          if (mediaType === 'photo' || mediaType === 'mixed') {
+            mediaTypes.push('public.image')
+          }
+          if (mediaType === 'video' || mediaType === 'mixed') {
+            mediaTypes.push('public.movie')
+          }
+          
+          try {
+            const paths = await showMultiSelectPicker(mediaTypes)
+            if (paths.length === 0) {
+              return
+            }
+            
+            const pathAndOutboxIDs = paths.map(path => ({path}))
+            navigateAppend(conversationIDKey => ({
+              props: {conversationIDKey, pathAndOutboxIDs, shouldCompress: false},
+              selected: 'chatAttachmentGetTitles',
+            }))
+          } catch (error) {
+            filePickerError(new Error(String(error)))
+          }
+        }
 
         switch (location) {
           case 'camera':
             try {
               const res = await launchCameraAsync(mediaType)
-              handleSelection(res)
+              await handleSelection(res)
             } catch (error) {
               filePickerError(new Error(String(error)))
             }
             break
           case 'library':
-            try {
-              const res = await launchImageLibraryAsync(mediaType, true, true)
-              handleSelection(res)
-            } catch (error) {
-              filePickerError(new Error(String(error)))
+            // On iOS, use native multi-select picker with automatic compression
+            // On Android, fall back to expo-image-picker
+            if (Platform.OS === 'ios') {
+              await handleNativeMultiSelect(mediaType)
+            } else {
+              try {
+                const res = await launchImageLibraryAsync(mediaType, true, true)
+                await handleSelection(res)
+              } catch (error) {
+                filePickerError(new Error(String(error)))
+              }
             }
             break
         }

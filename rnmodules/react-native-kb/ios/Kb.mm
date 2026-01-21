@@ -526,6 +526,19 @@ RCT_EXPORT_METHOD(showVideoPickerForCompression:(RCTPromiseResolveBlock)resolve 
   }];
 }
 
+RCT_EXPORT_METHOD(showMultiSelectPicker:(NSArray<NSString *> *)mediaTypes resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+  NSMutableArray<NSString *> *mediaTypesArray = [NSMutableArray array];
+  for (NSString *type in mediaTypes) {
+    [mediaTypesArray addObject:type];
+  }
+  
+  [MediaUtils showMultiSelectPickerWithMediaTypes:mediaTypesArray completion:^(NSArray<NSString *> * _Nonnull paths) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      resolve(paths);
+    });
+  }];
+}
+
 + (void)setDeviceToken:(NSString *)token {
   kbStoredDeviceToken = token;
 }

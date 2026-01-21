@@ -186,6 +186,13 @@ export const showVideoPickerForCompression = (): Promise<string> => {
   }
   return Kb.showVideoPickerForCompression()
 }
+
+export const showMultiSelectPicker = (mediaTypes: Array<string>): Promise<Array<string>> => {
+  if (Platform.OS !== 'ios') {
+    return Promise.reject(new Error('showMultiSelectPicker is only available on iOS'))
+  }
+  return Kb.showMultiSelectPicker(mediaTypes)
+}
 export const getNativeEmitter = () => {
   return new NativeEventEmitter(Kb as any)
 }
