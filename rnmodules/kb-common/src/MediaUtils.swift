@@ -275,14 +275,23 @@ class MediaUtils: NSObject {
         let videoComposition = buildVideoComposition(for: asset, settings: settings)
         
         if videoComposition != nil {
-            try exportVideoWithWriter(asset: asset,
-                                    outputURL: outputURL,
-                                    videoComposition: videoComposition!,
-                                    progress: progress)
+            do {
+                try exportVideoWithWriter(asset: asset,
+                                        outputURL: outputURL,
+                                        videoComposition: videoComposition!,
+                                        progress: progress)
+            } catch {
+                try exportVideoWithSession(asset: asset,
+                                         outputURL: outputURL,
+                                         settings: settings,
+                                         videoComposition: videoComposition,
+                                         progress: progress)
+            }
         } else {
             try exportVideoWithSession(asset: asset,
                                      outputURL: outputURL,
                                      settings: settings,
+                                     videoComposition: nil,
                                      progress: progress)
         }
     }
@@ -290,6 +299,7 @@ class MediaUtils: NSObject {
     private static func exportVideoWithSession(asset: AVURLAsset,
                                              outputURL: URL,
                                              settings: VideoExportSettings,
+                                             videoComposition: AVMutableVideoComposition?,
                                              progress: ProcessMediaProgressCallback?) throws {
         let semaphore = DispatchSemaphore(value: 0)
         var exportError: Error?
@@ -302,6 +312,10 @@ class MediaUtils: NSObject {
         exportSession.outputFileType = .mp4
         exportSession.shouldOptimizeForNetworkUse = true
         exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing()
+        
+        if let videoComposition = videoComposition {
+            exportSession.videoComposition = videoComposition
+        }
         
         if let progress = progress {
             let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
@@ -338,7 +352,7 @@ class MediaUtils: NSObject {
                                             videoComposition: AVMutableVideoComposition,
                                             progress: ProcessMediaProgressCallback?) throws {
         let videoTracks = asset.tracks(withMediaType: .video)
-        guard let videoTrack = videoTracks.first else {
+        guard !videoTracks.isEmpty else {
             throw MediaUtilsError.videoProcessingFailed("No video track found")
         }
         
@@ -428,12 +442,24 @@ class MediaUtils: NSObject {
         var processingError: Error?
         let processingQueue = DispatchQueue(label: "video.processing")
         let duration = asset.duration
+        var videoFinished = false
+        var audioFinished = false
+        
+        func checkCompletion() {
+            if videoFinished && (audioInput == nil || audioFinished) {
+                writer.finishWriting {
+                    semaphore.signal()
+                }
+            }
+        }
         
         processingQueue.async {
             videoInput.requestMediaDataWhenReady(on: processingQueue) {
-                while videoInput.isReadyForMoreMediaData {
+                while videoInput.isReadyForMoreMediaData && !videoFinished {
                     guard let sampleBuffer = videoReaderOutput.copyNextSampleBuffer() else {
                         videoInput.markAsFinished()
+                        videoFinished = true
+                        checkCompletion()
                         break
                     }
                     
@@ -449,6 +475,8 @@ class MediaUtils: NSObject {
                             processingError = error
                         }
                         videoInput.markAsFinished()
+                        videoFinished = true
+                        checkCompletion()
                         break
                     }
                     
@@ -465,9 +493,11 @@ class MediaUtils: NSObject {
             
             if let audioInput = audioInput, let audioReaderOutput = audioReaderOutput {
                 audioInput.requestMediaDataWhenReady(on: processingQueue) {
-                    while audioInput.isReadyForMoreMediaData {
+                    while audioInput.isReadyForMoreMediaData && !audioFinished {
                         guard let sampleBuffer = audioReaderOutput.copyNextSampleBuffer() else {
                             audioInput.markAsFinished()
+                            audioFinished = true
+                            checkCompletion()
                             break
                         }
                         
@@ -476,14 +506,12 @@ class MediaUtils: NSObject {
                                 processingError = error
                             }
                             audioInput.markAsFinished()
+                            audioFinished = true
+                            checkCompletion()
                             break
                         }
                     }
                 }
-            }
-            
-            writer.finishWriting {
-                semaphore.signal()
             }
         }
         
