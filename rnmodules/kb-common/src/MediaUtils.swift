@@ -160,10 +160,25 @@ class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControl
             
             var configuration = PHPickerConfiguration(photoLibrary: PHPhotoLibrary.shared())
             configuration.selectionLimit = 0
-            let utTypes = mediaTypes.compactMap { UTType($0) }
-            if !utTypes.isEmpty {
-                configuration.filter = .any(of: utTypes)
+            
+            // Convert media types to PHPickerFilter
+            var filters: [PHPickerFilter] = []
+            for mediaType in mediaTypes {
+                if mediaType == "public.image" {
+                    filters.append(.images)
+                } else if mediaType == "public.movie" {
+                    filters.append(.videos)
+                }
             }
+            
+            if !filters.isEmpty {
+                if filters.count == 1 {
+                    configuration.filter = filters.first!
+                } else {
+                    configuration.filter = .any(of: filters)
+                }
+            }
+            
             configuration.preferredAssetRepresentationMode = .current
             
             let picker = PHPickerViewController(configuration: configuration)
