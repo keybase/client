@@ -512,6 +512,20 @@ RCT_EXPORT_METHOD(processVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)
   }];
 }
 
+RCT_EXPORT_METHOD(showVideoPickerForCompression:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+  [MediaUtils showVideoPickerForCompressionWithCompletion:^(NSError * _Nullable error, NSURL * _Nullable videoURL) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (error) {
+        reject(@"picker_error", error.localizedDescription, error);
+      } else if (videoURL) {
+        resolve(videoURL.path);
+      } else {
+        reject(@"picker_error", @"No video URL returned", nil);
+      }
+    });
+  }];
+}
+
 + (void)setDeviceToken:(NSString *)token {
   kbStoredDeviceToken = token;
 }

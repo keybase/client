@@ -53,6 +53,7 @@ export interface Spec extends TurboModule {
   shareListenersRegistered(): void
   setEnablePasteImage(enabled: boolean): void
   processVideo(path: string): Promise<string>
+  showVideoPickerForCompression(): Promise<string>
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Kb')

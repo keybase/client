@@ -30,13 +30,62 @@ typealias ProcessMediaCompletion = (Result<URL, Error>) -> Void
 typealias ProcessMediaProgressCallback = (Float) -> Void
 
 @objc(MediaUtils)
-class MediaUtils: NSObject {
+class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     private static var scaledImageOptions: CFDictionary {
         return [
             kCGImageSourceCreateThumbnailWithTransform: true,
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceThumbnailMaxPixelSize: MediaProcessingConfig.imageMaxPixelSize
         ] as CFDictionary
+    }
+    
+    private static var videoPickerCompletion: ((Error?, URL?) -> Void)?
+    private static var videoPickerInstance: MediaUtils?
+    
+    @objc static func showVideoPickerForCompression(completion: @escaping (Error?, URL?) -> Void) {
+        DispatchQueue.main.async {
+            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let rootViewController = windowScene.windows.first?.rootViewController else {
+                completion(MediaUtilsError.invalidInput("No root view controller found"), nil)
+                return
+            }
+            
+            let picker = UIImagePickerController()
+            picker.sourceType = .photoLibrary
+            picker.mediaTypes = ["public.movie"]
+            picker.allowsEditing = true
+            picker.videoQuality = .typeMedium
+            picker.videoExportPreset = AVAssetExportPresetMediumQuality
+            
+            let instance = MediaUtils()
+            videoPickerInstance = instance
+            videoPickerCompletion = completion
+            picker.delegate = instance
+            
+            rootViewController.present(picker, animated: true, completion: nil)
+        }
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        picker.dismiss(animated: true) {
+            if let videoURL = info[.mediaURL] as? URL {
+                MediaUtils.videoPickerCompletion?(nil, videoURL)
+            } else if let editedVideoURL = info[.editedMediaURL] as? URL {
+                MediaUtils.videoPickerCompletion?(nil, editedVideoURL)
+            } else {
+                MediaUtils.videoPickerCompletion?(MediaUtilsError.videoProcessingFailed("No video URL found"), nil)
+            }
+            MediaUtils.videoPickerCompletion = nil
+            MediaUtils.videoPickerInstance = nil
+        }
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true) {
+            MediaUtils.videoPickerCompletion?(MediaUtilsError.videoProcessingFailed("User cancelled video selection"), nil)
+            MediaUtils.videoPickerCompletion = nil
+            MediaUtils.videoPickerInstance = nil
+        }
     }
     
     @objc static func processImage(fromOriginal url: URL,
@@ -128,15 +177,23 @@ class MediaUtils: NSObject {
         
         try validateVideoAsset(asset)
         
+        // Check if we can use passthrough (return original without export)
+        let exportSettings = determineOptimalExportSettings(for: asset)
+        
+        if exportSettings == nil {
+            // Passthrough: return original file without re-encoding
+            // Similar to expo-image-picker's behavior when videoExportPreset is Passthrough
+            // and no editing/trimming is needed
+            return url
+        }
+        
         let basename = url.deletingPathExtension().lastPathComponent
         let parent = url.deletingLastPathComponent()
         let processedURL = parent.appendingPathComponent("\(basename).processed.mp4")
         
-        let exportSettings = determineOptimalExportSettings(for: asset)
-        
         try exportVideoWithSettings(asset: asset,
                                    outputURL: processedURL,
-                                   settings: exportSettings,
+                                   settings: exportSettings!,
                                    progress: progress)
         
         return processedURL
@@ -162,7 +219,7 @@ class MediaUtils: NSObject {
         }
     }
     
-    private static func determineOptimalExportSettings(for asset: AVURLAsset) -> VideoExportSettings {
+    private static func determineOptimalExportSettings(for asset: AVURLAsset) -> VideoExportSettings? {
         let videoTracks = asset.tracks(withMediaType: .video)
         guard let firstVideoTrack = videoTracks.first else {
             return VideoExportSettings.default
@@ -177,9 +234,26 @@ class MediaUtils: NSObject {
                           fileSize > MediaProcessingConfig.videoMaxFileSize
         
         if needsScaling {
-            return VideoExportSettings.mediumQuality
+            // Match expo-image-picker's compression behavior
+            // Expo uses videoQuality: Medium which compresses more aggressively
+            // Use resolution-based presets to match expo's file sizes
+            if pixelCount > 1920 * 1080 {
+                // For 4K or larger, scale down to 720p (matches expo's aggressive compression)
+                return VideoExportSettings.h264_1280x720
+            } else if pixelCount > 1280 * 720 {
+                // For 1080p, use medium quality (expo's default videoQuality: Medium)
+                return VideoExportSettings.mediumQuality
+            } else if fileSize > MediaProcessingConfig.videoMaxFileSize {
+                // If file size is large but resolution is OK, still compress
+                return VideoExportSettings.mediumQuality
+            } else {
+                return VideoExportSettings.mediumQuality
+            }
         } else {
-            return VideoExportSettings.passthrough
+            // Passthrough: return nil to indicate no export needed
+            // This matches expo-image-picker's behavior when videoExportPreset is Passthrough
+            // and allowsEditing is false - return original asset without re-encoding
+            return nil
         }
     }
     
@@ -197,6 +271,8 @@ class MediaUtils: NSObject {
         
         exportSession.outputURL = outputURL
         exportSession.outputFileType = .mp4
+        // Match expo-image-picker: shouldOptimizeForNetworkUse helps reduce file size
+        // by optimizing encoding for streaming/network transfer (more aggressive compression)
         exportSession.shouldOptimizeForNetworkUse = true
         exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing() // Strips location data
         
@@ -299,9 +375,12 @@ struct VideoExportSettings {
     let preset: String
     
     static let passthrough = VideoExportSettings(preset: AVAssetExportPresetPassthrough)
+    static let highestQuality = VideoExportSettings(preset: AVAssetExportPresetHighestQuality)
     static let highQuality = VideoExportSettings(preset: AVAssetExportPreset1920x1080)
     static let mediumQuality = VideoExportSettings(preset: AVAssetExportPresetMediumQuality)
     static let lowQuality = VideoExportSettings(preset: AVAssetExportPresetLowQuality)
+    static let h264_1280x720 = VideoExportSettings(preset: AVAssetExportPreset1280x720)
+    static let h264_640x480 = VideoExportSettings(preset: AVAssetExportPreset640x480)
     
     static let `default` = mediumQuality
 }
