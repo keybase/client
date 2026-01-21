@@ -235,35 +235,57 @@ class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControl
                 
                 if hasVideo {
                     // Load video file
-                    result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.movie.identifier) { url, error in
+                    result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.movie.identifier) { tempURL, error in
                         if let error = error {
                             print("Error loading video: \(error.localizedDescription)")
                             group.leave()
                             return
                         }
                         
-                        guard let url = url else {
+                        guard let tempURL = tempURL else {
                             print("No video URL returned")
                             group.leave()
                             return
                         }
                         
-                        // Compress video automatically - leave group after compression completes
-                        MediaUtils.processVideoAsync(fromOriginal: url) { result in
-                            defer { group.leave() }
-                            
-                            switch result {
-                            case .success(let compressedURL):
-                                print("Video compressed successfully: \(compressedURL.path)")
-                                lock.lock()
-                                processedURLs.append(compressedURL.path)
-                                lock.unlock()
-                            case .failure(let error):
-                                print("Video compression failed: \(error.localizedDescription), using original")
-                                lock.lock()
-                                processedURLs.append(url.path)
-                                lock.unlock()
+                        // PHPicker returns temporary URLs that may not be readable by AVURLAsset
+                        // Copy to a permanent location first
+                        let fileManager = FileManager.default
+                        let tempDir = fileManager.temporaryDirectory
+                        let permanentURL = tempDir.appendingPathComponent(UUID().uuidString).appendingPathExtension("mov")
+                        
+                        do {
+                            // Copy file to permanent location
+                            if fileManager.fileExists(atPath: permanentURL.path) {
+                                try fileManager.removeItem(at: permanentURL)
                             }
+                            try fileManager.copyItem(at: tempURL, to: permanentURL)
+                            print("Video copied to permanent location: \(permanentURL.path)")
+                            
+                            // Compress video automatically - leave group after compression completes
+                            MediaUtils.processVideoAsync(fromOriginal: permanentURL) { result in
+                                defer {
+                                    // Clean up temporary file
+                                    try? fileManager.removeItem(at: permanentURL)
+                                    group.leave()
+                                }
+                                
+                                switch result {
+                                case .success(let compressedURL):
+                                    print("Video compressed successfully: \(compressedURL.path)")
+                                    lock.lock()
+                                    processedURLs.append(compressedURL.path)
+                                    lock.unlock()
+                                case .failure(let error):
+                                    print("Video compression failed: \(error.localizedDescription), using original")
+                                    lock.lock()
+                                    processedURLs.append(permanentURL.path)
+                                    lock.unlock()
+                                }
+                            }
+                        } catch {
+                            print("Error copying video file: \(error.localizedDescription)")
+                            group.leave()
                         }
                     }
                 } else if hasImage {
