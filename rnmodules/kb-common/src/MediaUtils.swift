@@ -85,12 +85,17 @@ class MediaUtils: NSObject {
         let parent = url.deletingLastPathComponent()
         let scaledURL = parent.appendingPathComponent("\(basename).scaled.jpg")
         
-        guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
-            throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
+        return try autoreleasepool {
+            guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
+                throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
+            }
+            defer {
+                CFRelease(cgSource)
+            }
+            
+            try scaleDownCGImageSource(cgSource, dstURL: scaledURL, options: scaledImageOptions)
+            return scaledURL
         }
-        
-        try scaleDownCGImageSource(cgSource, dstURL: scaledURL, options: scaledImageOptions)
-        return scaledURL
     }
     
     @objc static func processVideo(fromOriginal url: URL,
@@ -234,7 +239,18 @@ class MediaUtils: NSObject {
                                               progress: ProcessMediaProgressCallback?) throws {
         
         if FileManager.default.fileExists(atPath: outputURL.path) {
-            try? FileManager.default.removeItem(at: outputURL)
+            do {
+                try FileManager.default.removeItem(at: outputURL)
+            } catch {
+                throw MediaUtilsError.fileOperationFailed("Failed to remove existing output file: \(error.localizedDescription)")
+            }
+        }
+        
+        var outputFileCreated = false
+        defer {
+            if outputFileCreated {
+                try? FileManager.default.removeItem(at: outputURL)
+            }
         }
         
         let videoTracks = asset.tracks(withMediaType: .video)
@@ -344,8 +360,8 @@ class MediaUtils: NSObject {
         let hasAudio = compositionAudioTrack != nil
         if hasAudio, let compositionAudioTrack = compositionAudioTrack {
             let formatDescriptions = compositionAudioTrack.formatDescriptions
-            if let formatDescriptionAny = formatDescriptions.first {
-                let formatDescription = formatDescriptionAny as! CMFormatDescription
+            if let formatDescriptionAny = formatDescriptions.first,
+               let formatDescription = formatDescriptionAny as? CMFormatDescription {
                 let audioSettings = getAudioOutputSettings(from: formatDescription)
                 audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
                 audioInput?.expectsMediaDataInRealTime = false
@@ -401,6 +417,7 @@ class MediaUtils: NSObject {
             assetReader.cancelReading()
             throw MediaUtilsError.videoProcessingFailed("Failed to start writing: \(assetWriter.error?.localizedDescription ?? "Unknown error")")
         }
+        outputFileCreated = true
         
         guard assetReader.startReading() else {
             assetReader.cancelReading()
@@ -478,7 +495,11 @@ class MediaUtils: NSObject {
                     }
                 }
                 
-                if !videoInput.append(sampleBuffer) {
+                let appendSucceeded = videoInput.append(sampleBuffer)
+                if !appendSucceeded {
+                    autoreleasepool {
+                        _ = sampleBuffer
+                    }
                     assetReader.cancelReading()
                     videoInput.markAsFinished()
                     syncQueue.sync {
@@ -514,7 +535,11 @@ class MediaUtils: NSObject {
                         return
                     }
                     
-                    if !audioInput.append(sampleBuffer) {
+                    let appendSucceeded = audioInput.append(sampleBuffer)
+                    if !appendSucceeded {
+                        autoreleasepool {
+                            _ = sampleBuffer
+                        }
                         assetReader.cancelReading()
                         audioInput.markAsFinished()
                         syncQueue.sync {
@@ -540,6 +565,11 @@ class MediaUtils: NSObject {
         
         if waitResult == .timedOut {
             assetReader.cancelReading()
+            videoInput.markAsFinished()
+            if let audioInput = audioInput {
+                audioInput.markAsFinished()
+            }
+            tryFinishWriter()
             throw MediaUtilsError.videoProcessingFailed("Export timed out after 5 minutes")
         }
         
@@ -564,6 +594,8 @@ class MediaUtils: NSObject {
         guard outputSize > 0 else {
             throw MediaUtilsError.videoProcessingFailed("Output file is empty")
         }
+        
+        outputFileCreated = false
     }
     
     private static func getFileSize(for url: URL) -> Int64 {
@@ -579,6 +611,9 @@ class MediaUtils: NSObject {
         guard let scaledRef = CGImageSourceCreateThumbnailAtIndex(img, 0, options) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create thumbnail")
         }
+        defer {
+            CFRelease(scaledRef)
+        }
         
         guard let scaled = UIImage(cgImage: scaledRef).jpegData(compressionQuality: MediaProcessingConfig.imageCompressionQuality) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create JPEG data")
@@ -592,8 +627,18 @@ class MediaUtils: NSObject {
     }
     
     private static func stripImageExif(at url: URL) throws {
-        guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
+        let cgSource: CGImageSource? = {
+            guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else {
+                return nil
+            }
+            return source
+        }()
+        
+        guard let cgSource = cgSource else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
+        }
+        defer {
+            CFRelease(cgSource)
         }
         
         let type = CGImageSourceGetType(cgSource)
@@ -607,6 +652,9 @@ class MediaUtils: NSObject {
         
         guard let cgDestination = CGImageDestinationCreateWithURL(tmpDstURL as CFURL, type!, count, nil) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image destination")
+        }
+        defer {
+            CFRelease(cgDestination)
         }
         
         let removeExifProperties = [
