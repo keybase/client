@@ -314,29 +314,22 @@ class MediaUtils: NSObject {
         let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
         videoInput.expectsMediaDataInRealTime = false
         
-        var audioInput: AVAssetWriterInput?
-        if !audioTracks.isEmpty {
-            let audioSettings: [String: Any] = [
-                AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVSampleRateKey: 44100,
-                AVNumberOfChannelsKey: 2,
-                AVEncoderBitRateKey: 128000
-            ]
-            audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
-            audioInput?.expectsMediaDataInRealTime = false
-        }
-        
         guard assetWriter.canAdd(videoInput) else {
             throw MediaUtilsError.videoProcessingFailed("Cannot add video input to asset writer")
         }
         assetWriter.add(videoInput)
         
-        let hasAudio = compositionAudioTrack != nil && audioInput != nil
-        if hasAudio, let audioInput = audioInput {
-            guard assetWriter.canAdd(audioInput) else {
-                throw MediaUtilsError.videoProcessingFailed("Cannot add audio input to asset writer")
+        var audioInput: AVAssetWriterInput?
+        let hasAudio = compositionAudioTrack != nil
+        if hasAudio {
+            audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: nil)
+            audioInput?.expectsMediaDataInRealTime = false
+            if let audioInput = audioInput {
+                guard assetWriter.canAdd(audioInput) else {
+                    throw MediaUtilsError.videoProcessingFailed("Cannot add audio input to asset writer")
+                }
+                assetWriter.add(audioInput)
             }
-            assetWriter.add(audioInput)
         }
         
         let semaphore = DispatchSemaphore(value: 0)
@@ -392,7 +385,7 @@ class MediaUtils: NSObject {
         func tryFinishWriter() {
             syncQueue.sync {
                 guard !writerFinished else { return }
-                let shouldFinish = (videoFinished && (audioFinished || !hasAudio))
+                let shouldFinish = videoFinished && (audioFinished || !hasAudio)
                 guard shouldFinish else { return }
                 writerFinished = true
                 assetWriter.finishWriting {
@@ -457,7 +450,9 @@ class MediaUtils: NSObject {
                         audioInput.markAsFinished()
                         syncQueue.sync {
                             audioFinished = true
-                            exportError = assetWriter.error
+                            if exportError == nil {
+                                exportError = assetWriter.error
+                            }
                         }
                         tryFinishWriter()
                         return
