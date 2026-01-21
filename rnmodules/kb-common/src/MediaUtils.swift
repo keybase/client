@@ -351,7 +351,8 @@ class MediaUtils: NSObject {
         let hasAudio = compositionAudioTrack != nil
         if hasAudio, let compositionAudioTrack = compositionAudioTrack {
             let formatDescriptions = compositionAudioTrack.formatDescriptions
-            if let formatDescription = formatDescriptions.first {
+            if let formatDescriptionAny = formatDescriptions.first {
+                let formatDescription = formatDescriptionAny as! CMFormatDescription
                 let audioSettings = getAudioOutputSettings(from: formatDescription)
                 audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
                 audioInput?.expectsMediaDataInRealTime = false
