@@ -141,11 +141,12 @@ class MediaUtils: NSObject {
         let parent = url.deletingLastPathComponent()
         let processedURL = parent.appendingPathComponent("\(basename).processed.mp4")
         
-        let exportSettings = determineOptimalExportSettings(for: asset)
-        
         try exportVideoWithSettings(asset: asset,
                                    outputURL: processedURL,
-                                   settings: exportSettings,
+                                   maxWidth: MediaProcessingConfig.videoMaxWidth,
+                                   maxHeight: MediaProcessingConfig.videoMaxHeight,
+                                   maxBitrate: MediaProcessingConfig.videoMaxBitrate,
+                                   maxFrameRate: MediaProcessingConfig.videoMaxFrameRate,
                                    progress: progress)
         
         return processedURL
@@ -223,19 +224,12 @@ class MediaUtils: NSObject {
         return audioSettings
     }
     
-    private static func determineOptimalExportSettings(for asset: AVURLAsset) -> VideoExportSettings {
-        return VideoExportSettings(
-            maxWidth: MediaProcessingConfig.videoMaxWidth,
-            maxHeight: MediaProcessingConfig.videoMaxHeight,
-            maxBitrate: MediaProcessingConfig.videoMaxBitrate,
-            maxFrameRate: MediaProcessingConfig.videoMaxFrameRate,
-            needsTranscoding: true
-        )
-    }
-    
     private static func exportVideoWithSettings(asset: AVURLAsset,
                                               outputURL: URL,
-                                              settings: VideoExportSettings,
+                                              maxWidth: Int,
+                                              maxHeight: Int,
+                                              maxBitrate: Int,
+                                              maxFrameRate: Int,
                                               progress: ProcessMediaProgressCallback?) throws {
         
         if FileManager.default.fileExists(atPath: outputURL.path) {
@@ -266,11 +260,11 @@ class MediaUtils: NSObject {
         let (outputWidth, outputHeight) = calculateOutputDimensions(
             width: originalSize.width,
             height: originalSize.height,
-            maxWidth: settings.maxWidth,
-            maxHeight: settings.maxHeight
+            maxWidth: maxWidth,
+            maxHeight: maxHeight
         )
         
-        let targetFrameRate = min(originalFrameRate, Float(settings.maxFrameRate))
+        let targetFrameRate = min(originalFrameRate, Float(maxFrameRate))
         let frameDuration = CMTime(value: 1, timescale: Int32(targetFrameRate))
         
         videoComposition.renderSize = CGSize(width: outputWidth, height: outputHeight)
@@ -338,7 +332,7 @@ class MediaUtils: NSObject {
             AVVideoWidthKey: outputWidth,
             AVVideoHeightKey: outputHeight,
             AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: settings.maxBitrate,
+                AVVideoAverageBitRateKey: maxBitrate,
                 AVVideoMaxKeyFrameIntervalKey: Int(targetFrameRate * 2),
                 AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel
             ]
@@ -676,20 +670,4 @@ class MediaUtils: NSObject {
             throw MediaUtilsError.fileOperationFailed("Failed to replace original file: \(error.localizedDescription)")
         }
     }
-}
-
-struct VideoExportSettings {
-    let maxWidth: Int
-    let maxHeight: Int
-    let maxBitrate: Int
-    let maxFrameRate: Int
-    let needsTranscoding: Bool
-    
-    static let `default` = VideoExportSettings(
-        maxWidth: MediaProcessingConfig.videoMaxWidth,
-        maxHeight: MediaProcessingConfig.videoMaxHeight,
-        maxBitrate: MediaProcessingConfig.videoMaxBitrate,
-        maxFrameRate: MediaProcessingConfig.videoMaxFrameRate,
-        needsTranscoding: true
-    )
 }
