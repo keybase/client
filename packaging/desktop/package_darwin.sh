@@ -361,6 +361,9 @@ save() { (
 	mv "$out_dir/$update_json_name" "$platform_dir-support"
 ); }
 
+# Source the cleanup function
+source "$dir/cleanup_old_packages.sh"
+
 s3sync() {
 	if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
 		s3cmd sync --acl-public --disable-multipart "$save_dir"/* s3://"$bucket_name"/
@@ -382,4 +385,21 @@ create_zip
 kbsign
 update_json
 save
+
+# Cleanup old packages before syncing new ones
+if [ ! "$bucket_name" = "" ]; then
+	echo "Cleaning up old packages from S3..."
+	cleanup_old_packages "darwin-updates/"
+	cleanup_old_packages "darwin/"
+	cleanup_old_packages "darwin-arm64-updates/"
+	cleanup_old_packages "darwin-arm64/"
+	cleanup_old_packages "windows/"
+	cleanup_old_packages "linux_binaries/"
+	cleanup_old_packages "electron-sourcemaps/"
+	cleanup_old_packages "darwin-test-updates/"
+	cleanup_old_packages "darwin-test/"
+	cleanup_old_packages "darwin-arm64-test-updates/"
+	cleanup_old_packages "darwin-arm64-test/"
+fi
+
 s3sync
