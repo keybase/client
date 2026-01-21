@@ -132,11 +132,11 @@ class MediaUtils: NSObject {
         let parent = url.deletingLastPathComponent()
         let processedURL = parent.appendingPathComponent("\(basename).processed.mp4")
         
-        let exportSettings = determineOptimalExportSettings(for: asset)
+        let preset = determineOptimalExportSettings(for: asset)
         
         try exportVideoWithSettings(asset: asset,
                                    outputURL: processedURL,
-                                   settings: exportSettings,
+                                   preset: preset,
                                    progress: progress)
         
         return processedURL
@@ -162,10 +162,10 @@ class MediaUtils: NSObject {
         }
     }
     
-    private static func determineOptimalExportSettings(for asset: AVURLAsset) -> VideoExportSettings {
+    private static func determineOptimalExportSettings(for asset: AVURLAsset) -> String {
         let videoTracks = asset.tracks(withMediaType: .video)
         guard let firstVideoTrack = videoTracks.first else {
-            return VideoExportSettings.default
+            return AVAssetExportPresetMediumQuality
         }
         
         let size = firstVideoTrack.naturalSize
@@ -177,21 +177,21 @@ class MediaUtils: NSObject {
                           fileSize > MediaProcessingConfig.videoMaxFileSize
         
         if needsScaling {
-            return VideoExportSettings.mediumQuality
+            return AVAssetExportPresetMediumQuality
         } else {
-            return VideoExportSettings.passthrough
+            return AVAssetExportPresetPassthrough
         }
     }
     
     private static func exportVideoWithSettings(asset: AVURLAsset,
                                               outputURL: URL,
-                                              settings: VideoExportSettings,
+                                              preset: String,
                                               progress: ProcessMediaProgressCallback?) throws {
         
         let semaphore = DispatchSemaphore(value: 0)
         var exportError: Error?
         
-        guard let exportSession = AVAssetExportSession(asset: asset, presetName: settings.preset) else {
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: preset) else {
             throw MediaUtilsError.videoProcessingFailed("Failed to create export session")
         }
         
@@ -293,15 +293,4 @@ class MediaUtils: NSObject {
             throw MediaUtilsError.fileOperationFailed("Failed to replace original file: \(error.localizedDescription)")
         }
     }
-}
-
-struct VideoExportSettings {
-    let preset: String
-    
-    static let passthrough = VideoExportSettings(preset: AVAssetExportPresetPassthrough)
-    static let highQuality = VideoExportSettings(preset: AVAssetExportPreset1920x1080)
-    static let mediumQuality = VideoExportSettings(preset: AVAssetExportPresetMediumQuality)
-    static let lowQuality = VideoExportSettings(preset: AVAssetExportPresetLowQuality)
-    
-    static let `default` = mediumQuality
 }
