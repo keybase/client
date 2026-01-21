@@ -314,16 +314,25 @@ class MediaUtils: NSObject {
         let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
         videoInput.expectsMediaDataInRealTime = false
         
-        let audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: nil)
-        audioInput.expectsMediaDataInRealTime = false
+        var audioInput: AVAssetWriterInput?
+        if !audioTracks.isEmpty {
+            let audioSettings: [String: Any] = [
+                AVFormatIDKey: kAudioFormatMPEG4AAC,
+                AVSampleRateKey: 44100,
+                AVNumberOfChannelsKey: 2,
+                AVEncoderBitRateKey: 128000
+            ]
+            audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+            audioInput?.expectsMediaDataInRealTime = false
+        }
         
         guard assetWriter.canAdd(videoInput) else {
             throw MediaUtilsError.videoProcessingFailed("Cannot add video input to asset writer")
         }
         assetWriter.add(videoInput)
         
-        let hasAudio = compositionAudioTrack != nil
-        if hasAudio {
+        let hasAudio = compositionAudioTrack != nil && audioInput != nil
+        if hasAudio, let audioInput = audioInput {
             guard assetWriter.canAdd(audioInput) else {
                 throw MediaUtilsError.videoProcessingFailed("Cannot add audio input to asset writer")
             }
@@ -432,7 +441,7 @@ class MediaUtils: NSObject {
             }
         }
         
-        if hasAudio, let audioOutput = audioOutput {
+        if hasAudio, let audioOutput = audioOutput, let audioInput = audioInput {
             audioInput.requestMediaDataWhenReady(on: audioQueue) {
                 while audioInput.isReadyForMoreMediaData {
                     guard let sampleBuffer = audioOutput.copyNextSampleBuffer() else {
