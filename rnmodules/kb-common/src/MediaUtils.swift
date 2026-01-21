@@ -379,7 +379,14 @@ class MediaUtils: NSObject {
         
         var audioOutput: AVAssetReaderTrackOutput?
         if let compositionAudioTrack = compositionAudioTrack {
-            let output = AVAssetReaderTrackOutput(track: compositionAudioTrack, outputSettings: nil)
+            let audioDecompressionSettings: [String: Any] = [
+                AVFormatIDKey: kAudioFormatLinearPCM,
+                AVLinearPCMBitDepthKey: 16,
+                AVLinearPCMIsBigEndianKey: false,
+                AVLinearPCMIsFloatKey: false,
+                AVLinearPCMIsNonInterleaved: false
+            ]
+            let output = AVAssetReaderTrackOutput(track: compositionAudioTrack, outputSettings: audioDecompressionSettings)
             output.alwaysCopiesSampleData = false
             guard assetReader.canAdd(output) else {
                 throw MediaUtilsError.videoProcessingFailed("Cannot add audio output to asset reader")
