@@ -426,7 +426,7 @@ class MediaUtils: NSObject {
                 guard shouldFinish else { return }
                 writerFinished = true
                 assetWriter.finishWriting {
-                    syncQueue.sync {
+                    syncQueue.async {
                         exportError = assetWriter.error
                     }
                     semaphore.signal()
@@ -437,6 +437,17 @@ class MediaUtils: NSObject {
         videoInput.requestMediaDataWhenReady(on: videoQueue) {
             while videoInput.isReadyForMoreMediaData {
                 guard let sampleBuffer = videoOutput.copyNextSampleBuffer() else {
+                    if let readerError = assetReader.error {
+                        assetReader.cancelReading()
+                        syncQueue.sync {
+                            videoFinished = true
+                            if exportError == nil {
+                                exportError = readerError
+                            }
+                        }
+                        tryFinishWriter()
+                        return
+                    }
                     videoInput.markAsFinished()
                     syncQueue.sync {
                         videoFinished = true
@@ -468,6 +479,7 @@ class MediaUtils: NSObject {
                 }
                 
                 if !videoInput.append(sampleBuffer) {
+                    assetReader.cancelReading()
                     videoInput.markAsFinished()
                     syncQueue.sync {
                         videoFinished = true
@@ -483,6 +495,17 @@ class MediaUtils: NSObject {
             audioInput.requestMediaDataWhenReady(on: audioQueue) {
                 while audioInput.isReadyForMoreMediaData {
                     guard let sampleBuffer = audioOutput.copyNextSampleBuffer() else {
+                        if let readerError = assetReader.error {
+                            assetReader.cancelReading()
+                            syncQueue.sync {
+                                audioFinished = true
+                                if exportError == nil {
+                                    exportError = readerError
+                                }
+                            }
+                            tryFinishWriter()
+                            return
+                        }
                         audioInput.markAsFinished()
                         syncQueue.sync {
                             audioFinished = true
@@ -492,6 +515,7 @@ class MediaUtils: NSObject {
                     }
                     
                     if !audioInput.append(sampleBuffer) {
+                        assetReader.cancelReading()
                         audioInput.markAsFinished()
                         syncQueue.sync {
                             audioFinished = true
@@ -511,7 +535,13 @@ class MediaUtils: NSObject {
             tryFinishWriter()
         }
         
-        semaphore.wait()
+        let timeout = DispatchTime.now() + .seconds(300)
+        let waitResult = semaphore.wait(timeout: timeout)
+        
+        if waitResult == .timedOut {
+            assetReader.cancelReading()
+            throw MediaUtilsError.videoProcessingFailed("Export timed out after 5 minutes")
+        }
         
         assetReader.cancelReading()
         
