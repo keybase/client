@@ -116,12 +116,11 @@ class MediaUtils: NSObject, UIImagePickerControllerDelegate, UINavigationControl
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         picker.dismiss(animated: true) {
+            // For videos, when allowsEditing is true, the edited video URL is in .mediaURL
+            // There is no separate .editedMediaURL key for videos (that's only for images)
             let mediaURLKey = UIImagePickerController.InfoKey.mediaURL
-            let editedMediaURLKey = UIImagePickerController.InfoKey.editedMediaURL
             
-            if let editedVideoURL = info[editedMediaURLKey] as? URL {
-                MediaUtils.videoPickerCompletion?(nil, editedVideoURL)
-            } else if let videoURL = info[mediaURLKey] as? URL {
+            if let videoURL = info[mediaURLKey] as? URL {
                 MediaUtils.videoPickerCompletion?(nil, videoURL)
             } else {
                 MediaUtils.videoPickerCompletion?(MediaUtilsError.videoProcessingFailed("No video URL found"), nil)
