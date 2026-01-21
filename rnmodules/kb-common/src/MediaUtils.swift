@@ -89,9 +89,6 @@ class MediaUtils: NSObject {
             guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
                 throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
             }
-            defer {
-                CFRelease(cgSource)
-            }
             
             try scaleDownCGImageSource(cgSource, dstURL: scaledURL, options: scaledImageOptions)
             return scaledURL
@@ -605,9 +602,6 @@ class MediaUtils: NSObject {
         guard let scaledRef = CGImageSourceCreateThumbnailAtIndex(img, 0, options) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create thumbnail")
         }
-        defer {
-            CFRelease(scaledRef)
-        }
         
         guard let scaled = UIImage(cgImage: scaledRef).jpegData(compressionQuality: MediaProcessingConfig.imageCompressionQuality) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create JPEG data")
@@ -631,9 +625,6 @@ class MediaUtils: NSObject {
         guard let cgSource = cgSource else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
         }
-        defer {
-            CFRelease(cgSource)
-        }
         
         let type = CGImageSourceGetType(cgSource)
         let count = CGImageSourceGetCount(cgSource)
@@ -646,9 +637,6 @@ class MediaUtils: NSObject {
         
         guard let cgDestination = CGImageDestinationCreateWithURL(tmpDstURL as CFURL, type!, count, nil) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image destination")
-        }
-        defer {
-            CFRelease(cgDestination)
         }
         
         let removeExifProperties = [
