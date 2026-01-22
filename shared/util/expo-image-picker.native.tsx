@@ -4,9 +4,9 @@ const defaultOptions = {
   allowsEditing: false,
   exif: false,
   quality: 0.4,
-  videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
   // even though this is marked as deprecated if its not set it will IGNORE ALL OTHER SETTINGS we pass here
-  // videoExportPreset: ImagePicker.VideoExportPreset.HighestQuality,
+  videoExportPreset: ImagePicker.VideoExportPreset.HighestQuality,
+  videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
 } as const
 
 const mediaTypeToImagePickerMediaType = (
