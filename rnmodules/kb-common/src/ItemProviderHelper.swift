@@ -65,15 +65,14 @@ public class ItemProviderHelper: NSObject {
     // more to process
     objc_sync_enter(self)
     unprocessed -= 1
-    if unprocessed > 0 {
-      objc_sync_exit(self)
-      return
+    let shouldComplete = unprocessed == 0 && !done
+    if shouldComplete {
+      done = true
     }
     objc_sync_exit(self)
     
     // done
-    if !done {
-      done = true
+    if shouldComplete {
       writeManifest()
       completionHandler()
     } else {
@@ -203,7 +202,8 @@ public class ItemProviderHelper: NSObject {
   
   private func handleAndCompleteMediaFile(_ url: URL, isVideo: Bool) {
     if isVideo {
-      MediaUtils.processVideo(fromOriginal: url) { error, scaled in
+      MediaUtils.processVideo(fromOriginal: url) { [weak self] error, scaled in
+        guard let self = self else { return }
         if let error = error {
           self.completeItemAndAppendManifestAndLogError(text: "handleAndCompleteMediaFile", error: error)
           return
@@ -213,7 +213,8 @@ public class ItemProviderHelper: NSObject {
                                            scaledFileURL: scaled!)
       }
     } else {
-      MediaUtils.processImage(fromOriginal: url) { error, scaled in
+      MediaUtils.processImage(fromOriginal: url) { [weak self] error, scaled in
+        guard let self = self else { return }
         if let error = error {
           self.completeItemAndAppendManifestAndLogError(text: "handleAndCompleteMediaFile", error: error)
           return
@@ -376,15 +377,16 @@ public class ItemProviderHelper: NSObject {
   
   @objc public func startProcessing() {
     // Handlers for different types
-    let fileHandler: @Sendable (URL?, Error?) -> Void = { url, error in
-        self.sendFile(url)
+    let fileHandler: @Sendable (URL?, Error?) -> Void = { [weak self] url, error in
+        self?.sendFile(url)
     }
     
-    let movieHandler: @Sendable (URL?, Error?) -> Void = { url, error in
-        self.sendMovie(error == nil ? url : nil)
+    let movieHandler: @Sendable (URL?, Error?) -> Void = { [weak self] url, error in
+        self?.sendMovie(error == nil ? url : nil)
     }
     
-    let imageHandler: @Sendable (NSSecureCoding?, Error?) -> Void = { item, error in
+    let imageHandler: @Sendable (NSSecureCoding?, Error?) -> Void = { [weak self] item, error in
+        guard let self = self else { return }
         var imgData: Data? // Changed to var so we can modify it
         if error == nil {
             if let url = item as? URL {
@@ -400,7 +402,8 @@ public class ItemProviderHelper: NSObject {
         self.sendImage(imgData)
     }
     
-    let contactHandler: @Sendable (Data?, Error?) -> Void = { data, error in
+    let contactHandler: @Sendable (Data?, Error?) -> Void = { [weak self] data, error in
+        guard let self = self else { return }
         if let data = data {
             self.sendContact(data)
         } else {
@@ -411,7 +414,8 @@ public class ItemProviderHelper: NSObject {
         }
     }
     
-    let secureTextHandler: @Sendable (NSSecureCoding?, Error?) -> Void = { item, error in
+    let secureTextHandler: @Sendable (NSSecureCoding?, Error?) -> Void = { [weak self] item, error in
+        guard let self = self else { return }
         var text: String? // Changed to var so we can modify it
         if error == nil {
             if let str = item as? String {
@@ -476,9 +480,9 @@ public class ItemProviderHelper: NSObject {
                 // Plain Text (two attempts - direct and coerced)
                 else if type.conforms(to: .plainText) {
                     incrementUnprocessed()
-                  item.loadItem(forTypeIdentifier: "public.plain-text", options: nil, completionHandler: { (item: NSSecureCoding?, error: Error?) in
+                  item.loadItem(forTypeIdentifier: "public.plain-text", options: nil, completionHandler: { [weak self] (item: NSSecureCoding?, error: Error?) in
                       let text = item as? String ?? ""
-                      self.sendText(text)
+                      self?.sendText(text)
                   })
 
                     
@@ -495,9 +499,9 @@ public class ItemProviderHelper: NSObject {
                 // URLs
                 else if type.conforms(to: .url) {
                     incrementUnprocessed()
-                    item.loadItem(forTypeIdentifier: "public.url", options: nil, completionHandler: { (item: NSSecureCoding?, error: Error?) in
+                    item.loadItem(forTypeIdentifier: "public.url", options: nil, completionHandler: { [weak self] (item: NSSecureCoding?, error: Error?) in
                       let url = item as? URL
-                      self.sendText(url?.absoluteString ?? "")
+                      self?.sendText(url?.absoluteString ?? "")
                   })
 
                     break
