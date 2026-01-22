@@ -41,8 +41,18 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
   var resignImageView: UIImageView?
   var fsPaths: [String: String] = [:]
-  var shutdownTask: UIBackgroundTaskIdentifier = .invalid
+  private let shutdownTaskQueue = DispatchQueue(label: "com.keybase.appdelegate.shutdownTask")
+  private var _shutdownTask: UIBackgroundTaskIdentifier = .invalid
+  var shutdownTask: UIBackgroundTaskIdentifier {
+    get {
+      return shutdownTaskQueue.sync { _shutdownTask }
+    }
+    set {
+      shutdownTaskQueue.sync { _shutdownTask = newValue }
+    }
+  }
   var iph: ItemProviderHelper?
+  var memoryWarningObserver: NSObjectProtocol?
 
   public override func application(
     _ application: UIApplication,
@@ -55,7 +65,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       KbSetInitialNotification(notificationDict)
     }
 
-    NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] notification in
+    self.memoryWarningObserver = NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] notification in
       NSLog("Memory warning received - deferring GC during React Native initialization")
       // see if this helps avoid this crash
       DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -169,7 +179,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.resignImageView?.alpha = 0
     self.resignImageView?.backgroundColor = rootView.backgroundColor
     self.resignImageView?.image = UIImage(named: "LaunchImage")
-    self.window?.addSubview(self.resignImageView!)
+    if let resignImageView = self.resignImageView {
+      self.window?.addSubview(resignImageView)
+    }
 
     UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
   }
@@ -189,14 +201,20 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
+    self.iph = nil
+
     var items: [NSItemProvider] = []
     session.items.forEach { item in items.append(item.itemProvider) }
 
     self.iph = ItemProviderHelper(forShare: false, withItems: [items]) { [weak self] in
-      guard let self else { return }
-      let url = URL(string: "keybase://incoming-share")!
-      _ = self.application(UIApplication.shared, open: url, options: [:])
-      self.iph = nil
+      guard let self = self else { return }
+      defer { self.iph = nil }
+      do {
+        let url = URL(string: "keybase://incoming-share")!
+        _ = self.application(UIApplication.shared, open: url, options: [:])
+      } catch {
+        NSLog("ItemProviderHelper completion error: \(error)")
+      }
     }
     self.iph?.startProcessing()
   }
@@ -220,7 +238,10 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-    guard let type = notification["type"] as? String else { return }
+    guard let type = notification["type"] as? String else {
+      completionHandler(.noData)
+      return
+    }
     if type == "chat.newmessageSilent_2" {
       DispatchQueue.global(qos: .default).async {
         let convID = notification["c"] as? String
@@ -276,7 +297,17 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
   public override func applicationWillTerminate(_ application: UIApplication) {
     self.window?.rootViewController?.view.isHidden = true
+    self.iph = nil
     Keybasego.KeybaseAppWillExit(PushNotifier())
+  }
+
+  deinit {
+    if let observer = memoryWarningObserver {
+      NotificationCenter.default.removeObserver(observer)
+    }
+    if shutdownTask != .invalid {
+      UIApplication.shared.endBackgroundTask(shutdownTask)
+    }
   }
 
   func hideCover() {
@@ -288,7 +319,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   public override func applicationWillResignActive(_ application: UIApplication) {
     NSLog("applicationWillResignActive: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
-    self.resignImageView?.superview?.bringSubviewToFront(self.resignImageView!)
+    if let resignImageView = self.resignImageView, let superview = resignImageView.superview {
+      superview.bringSubviewToFront(resignImageView)
+    }
     NSLog("applicationWillResignActive: rendering keyz screen...")
     UIView.animate(withDuration: 0.3, delay: 0.1, options: .beginFromCurrentState) {
       self.resignImageView?.alpha = 1
@@ -304,6 +337,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.resignImageView?.layer.removeAllAnimations()
     NSLog("applicationDidEnterBackground: setting keyz screen alpha to 1.")
     self.resignImageView?.alpha = 1
+    self.iph = nil
 
     NSLog("applicationDidEnterBackground: notifying go.")
     let requestTime = Keybasego.KeybaseAppDidEnterBackground()
@@ -311,7 +345,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
     if requestTime && (self.shutdownTask == UIBackgroundTaskIdentifier.invalid) {
       let app = UIApplication.shared
-      self.shutdownTask = app.beginBackgroundTask {
+      let taskIdentifier = app.beginBackgroundTask {
         NSLog("applicationDidEnterBackground: shutdown task run.")
         Keybasego.KeybaseAppWillExit(PushNotifier())
         let task = self.shutdownTask
@@ -320,6 +354,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
           self.shutdownTask = .invalid
         }
       }
+      self.shutdownTask = taskIdentifier
 
       DispatchQueue.global(qos: .default).async {
         Keybasego.KeybaseAppBeginBackgroundTask(PushNotifier())
