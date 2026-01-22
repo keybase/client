@@ -81,14 +81,5 @@ func (kt *SharedKeybaseTransport) Finalize() {
 
 // Close is an implementation of the ConnectionTransport interface.
 func (kt *SharedKeybaseTransport) Close() {
-	kt.mutex.Lock()
-	defer kt.mutex.Unlock()
-	if kt.transport != nil {
-		kt.transport.Close()
-	}
-	kt.transport = nil
-	if kt.stagedTransport != nil {
-		kt.stagedTransport.Close()
-	}
-	kt.stagedTransport = nil
+	// Since this is a shared connection, do nothing.
 }
