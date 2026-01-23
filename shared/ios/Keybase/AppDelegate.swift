@@ -154,13 +154,17 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
 
     let now = Date()
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    formatter.timeZone = TimeZone(secondsFromGMT: 0)
-    let timestamp = formatter.string(from: now)
+    let timeInterval = now.timeIntervalSince1970
+    let seconds = Int(timeInterval)
+    let microseconds = Int((timeInterval - Double(seconds)) * 1_000_000)
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+    dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+    let dateString = dateFormatter.string(from: now)
+    let timestamp = String(format: "%@.%06dZ", dateString, microseconds)
     
     let fileName = (file as NSString).lastPathComponent
-    let logMessage = String(format: "%@ ▶ [DEBU keybase %@:%d] {%@}\n", timestamp, fileName, line, message)
+    let logMessage = String(format: "%@ ▶ [DEBU keybase %@:%d] Delegate startup: %@\n", timestamp, fileName, line, message)
 
     guard let logData = logMessage.data(using: .utf8) else {
       return
