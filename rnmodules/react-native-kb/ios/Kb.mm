@@ -474,9 +474,9 @@ RCT_EXPORT_METHOD(removeAllPendingNotificationRequests) {
   [current removeAllPendingNotificationRequests];
 }
 
-RCT_EXPORT_METHOD(addNotificationRequest: (NSDictionary *)config resolve: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
-  NSString *body = config[@"body"];
-  NSString *identifier = config[@"id"];
+RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequestConfig &)config resolve: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
+    NSString *body = config.body();
+    NSString *identifier = config.id_();
 
   if (!body || !identifier) {
     reject(@"invalid_config", @"body and id are required", nil);
