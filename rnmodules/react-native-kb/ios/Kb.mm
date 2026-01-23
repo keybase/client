@@ -498,6 +498,7 @@ RCT_EXPORT_METHOD(addNotificationRequest: (NSDictionary *)config resolve: (RCTPr
   }];
 }
 
+/*
 RCT_EXPORT_METHOD(processVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
   NSURL * videoURL = [NSURL URLWithString:path];
 
@@ -511,6 +512,7 @@ RCT_EXPORT_METHOD(processVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)
     }
   }];
 }
+*/
 
 + (void)setDeviceToken:(NSString *)token {
   kbStoredDeviceToken = token;

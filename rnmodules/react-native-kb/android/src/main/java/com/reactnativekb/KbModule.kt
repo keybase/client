@@ -109,6 +109,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         // not used
     }
 
+    /*
     @ReactMethod
     override fun processVideo(path: String, promise: Promise) {
         Executors.newSingleThreadExecutor().execute {
@@ -164,7 +165,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             }
         }
     }
+    */
 
+    /*
     private fun compressVideo(inputPath: String, outputPath: String, originalWidth: Int, originalHeight: Int, maxPixels: Int) {
         val (outputWidth, outputHeight) = calculateOutputDimensions(originalWidth, originalHeight, maxPixels)
         val targetBitrate = calculateBitrate(outputWidth, outputHeight)
@@ -268,6 +271,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         }
         NativeLogger.info("compressVideo: Output file validated - size=${outputFile.length()} bytes")
     }
+    */
 
     private fun calculateOutputDimensions(width: Int, height: Int, maxPixels: Int): Pair<Int, Int> {
         val pixelCount = width * height
