@@ -128,7 +128,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
   private static var appStartTime: CFAbsoluteTime = 0
 
-  private func writeStartupTimingLog(_ message: String) {
+  private func writeStartupTimingLog(_ message: String, file: String = #file, line: Int = #line) {
     guard let logFilePath = self.fsPaths["logFile"], !logFilePath.isEmpty else {
       return
     }
@@ -153,11 +153,14 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       return
     }
 
-    let elapsed = AppDelegate.appStartTime > 0 ? CFAbsoluteTimeGetCurrent() - AppDelegate.appStartTime : 0
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "yyyy/MM/dd HH:mm:ss.SSS"
-    let timestamp = dateFormatter.string(from: Date())
-    let logMessage = String(format: "%@ [STARTUP] %.3fs: %@\n", timestamp, elapsed, message)
+    let now = Date()
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    let timestamp = formatter.string(from: now)
+    
+    let fileName = (file as NSString).lastPathComponent
+    let logMessage = String(format: "%@ ▶ [DEBU keybase %@:%d] {%@}\n", timestamp, fileName, line, message)
 
     guard let logData = logMessage.data(using: .utf8) else {
       return
