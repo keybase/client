@@ -32,6 +32,7 @@ export interface State extends Store {
   dispatch: {
     checkPassword: (password: string) => void
     dbNuke: () => void
+    clearLogs: () => void
     deleteAccountForever: (passphrase?: string) => void
     loadLockdownMode: () => void
     loadProxyData: () => void
@@ -81,16 +82,16 @@ export const useSettingsState = Z.createZustand<State>(set => {
       }
       ignorePromise(f())
     },
-    dbNuke: () => {
-      const f = async () => {
-        await T.RPCGen.ctlDbNukeRpcPromise(undefined, S.waitingKeySettingsGeneric)
-      }
-      ignorePromise(f())
-    },
     clearLogs: () => {
       const f = async () => {
         const clearLocalLogs = (await import('@/util/clear-logs')).default
         await clearLocalLogs()
+      }
+      ignorePromise(f())
+    },
+    dbNuke: () => {
+      const f = async () => {
+        await T.RPCGen.ctlDbNukeRpcPromise(undefined, S.waitingKeySettingsGeneric)
       }
       ignorePromise(f())
     },

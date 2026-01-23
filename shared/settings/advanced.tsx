@@ -250,12 +250,7 @@ const Developer = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDBNuke = () => navigateAppend('dbNukeConfirm')
   const onMakeIcons = () => navigateAppend('makeIcons')
-  const {clearLogs} = useSettingsState(
-    C.useShallow(s => ({
-      clearLogs: s.dispatch.clearLogs,
-    }))
-  )
-  const onClearLogs = () => clearLogs()
+  const onClearLogs = useSettingsState(s => s.dispatch.clearLogs)
 
   return (
     <Kb.Box style={styles.developerContainer}>
@@ -264,12 +259,14 @@ const Developer = () => {
       </Kb.Text>
       <Kb.Divider style={styles.divider} />
       <Kb.Button style={styles.developerButtons} type="Danger" label="DB Nuke" onClick={onDBNuke} />
-      <Kb.Button
-        style={styles.developerButtons}
-        mode="Secondary"
-        label="Clear Logs"
-        onClick={onClearLogs}
-      />
+      {Kb.Styles.isIOS ? (
+        <Kb.Button
+          style={styles.developerButtons}
+          mode="Secondary"
+          label="Clear Logs"
+          onClick={onClearLogs}
+        />
+      ) : null}
       <Kb.Button
         style={styles.developerButtons}
         mode="Secondary"
