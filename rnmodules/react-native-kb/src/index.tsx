@@ -176,9 +176,9 @@ export const shareListenersRegistered = (): void => {
   return Kb.shareListenersRegistered()
 }
 
-export const processVideo = (path: string): Promise<string> => {
-  return Kb.processVideo(Platform.OS === 'android' ? path.replace('file://', '') : path)
-}
+// export const processVideo = (path: string): Promise<string> => {
+//   return Kb.processVideo(Platform.OS === 'android' ? path.replace('file://', '') : path)
+// }
 export const getNativeEmitter = () => {
   return new NativeEventEmitter(Kb as any)
 }
