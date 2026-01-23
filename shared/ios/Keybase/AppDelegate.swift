@@ -43,11 +43,22 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   var fsPaths: [String: String] = [:]
   var shutdownTask: UIBackgroundTaskIdentifier = .invalid
   var iph: ItemProviderHelper?
+  var startupLogFileHandle: FileHandle?
 
   public override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    if AppDelegate.appStartTime == 0 {
+      AppDelegate.appStartTime = CFAbsoluteTimeGetCurrent()
+    }
+
+    let skipLogFile = false
+    self.fsPaths = FsHelper().setupFs(skipLogFile, setupSharedHome: true)
+    FsPathsHolder.shared().fsPaths = self.fsPaths
+
+    self.writeStartupTimingLog("didFinishLaunchingWithOptions start")
+
     self.didLaunchSetupBefore()
 
     if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
@@ -64,6 +75,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       }
     }
 
+    self.writeStartupTimingLog("Before RN init")
+
     let delegate = ReactNativeDelegate()
     let factory = ExpoReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -79,6 +92,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       in: window,
       launchOptions: launchOptions)
 #endif
+
+    self.writeStartupTimingLog("After RN init")
 
     _ = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
@@ -111,12 +126,62 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
   /////// KB specific
 
+  private static var appStartTime: CFAbsoluteTime = 0
+
+  private func writeStartupTimingLog(_ message: String) {
+    guard let logFilePath = self.fsPaths["logFile"], !logFilePath.isEmpty else {
+      return
+    }
+
+    if self.startupLogFileHandle == nil {
+      do {
+        if !FileManager.default.fileExists(atPath: logFilePath) {
+          FileManager.default.createFile(atPath: logFilePath, contents: nil, attributes: nil)
+        }
+
+        if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
+          fileHandle.seekToEndOfFile()
+          self.startupLogFileHandle = fileHandle
+        }
+      } catch {
+        NSLog("Error opening startup timing log file: \(error)")
+        return
+      }
+    }
+
+    guard let fileHandle = self.startupLogFileHandle else {
+      return
+    }
+
+    let elapsed = AppDelegate.appStartTime > 0 ? CFAbsoluteTimeGetCurrent() - AppDelegate.appStartTime : 0
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "yyyy/MM/dd HH:mm:ss.SSS"
+    let timestamp = dateFormatter.string(from: Date())
+    let logMessage = String(format: "%@ [STARTUP] %.3fs: %@\n", timestamp, elapsed, message)
+
+    guard let logData = logMessage.data(using: .utf8) else {
+      return
+    }
+
+    do {
+      fileHandle.write(logData)
+      fileHandle.synchronizeFile()
+    } catch {
+      NSLog("Error writing startup timing log: \(error)")
+    }
+  }
+
+  private func closeStartupLogFile() {
+    if let fileHandle = self.startupLogFileHandle {
+      fileHandle.synchronizeFile()
+      fileHandle.closeFile()
+      self.startupLogFileHandle = nil
+    }
+  }
+
   func setupGo() {
-    // set to true to see logs in xcode
-    let skipLogFile = false
     // uncomment to get more console.logs
     // RCTSetLogThreshold(RCTLogLevel.info.rawValue - 1)
-    self.fsPaths = FsHelper().setupFs(skipLogFile, setupSharedHome: true)
     FsPathsHolder.shared().fsPaths = self.fsPaths
 
     let systemVer = UIDevice.current.systemVersion
@@ -129,10 +194,13 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     let securityAccessGroupOverride = false
 #endif
 
+    self.writeStartupTimingLog("Before Go init")
+    self.closeStartupLogFile()
+
     // Initialize Go synchronously - happens during splash screen
     NSLog("Starting KeybaseInit (synchronous)...")
     var err: NSError?
-    Keybasego.KeybaseInit(fsPaths["homedir"], fsPaths["sharedHome"], fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
+    Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
     if let err { NSLog("KeybaseInit FAILED: \(err)") }
   }
 
