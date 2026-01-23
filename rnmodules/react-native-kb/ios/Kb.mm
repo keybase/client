@@ -474,6 +474,51 @@ RCT_EXPORT_METHOD(removeAllPendingNotificationRequests) {
   [current removeAllPendingNotificationRequests];
 }
 
+RCT_EXPORT_METHOD(clearLocalLogs: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
+  FsPathsHolder *holder = [FsPathsHolder sharedFsPathsHolder];
+  NSDictionary<NSString *, NSString *> *fsPaths = holder.fsPaths;
+  NSString *logFilePath = fsPaths[@"logFile"];
+  
+  if (!logFilePath || logFilePath.length == 0) {
+    resolve(@YES);
+    return;
+  }
+  
+  NSString *logDir = [logFilePath stringByDeletingLastPathComponent];
+  NSFileManager *fm = [NSFileManager defaultManager];
+  
+  if (![fm fileExistsAtPath:logDir]) {
+    resolve(@YES);
+    return;
+  }
+  
+  NSError *error = nil;
+  NSArray<NSString *> *files = [fm contentsOfDirectoryAtPath:logDir error:&error];
+  
+  if (error) {
+    NSLog(@"Error listing log directory: %@", error.localizedDescription);
+    resolve(@YES);
+    return;
+  }
+  
+  for (NSString *fileName in files) {
+    NSString *filePath = [logDir stringByAppendingPathComponent:fileName];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
+    
+    if (fileHandle) {
+      @try {
+        [fileHandle truncateFileAtOffset:0];
+        [fileHandle synchronizeFile];
+        [fileHandle closeFile];
+      } @catch (NSException *exception) {
+        NSLog(@"Error truncating log file %@: %@", fileName, exception.reason);
+      }
+    }
+  }
+  
+  resolve(@YES);
+}
+
 RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequestConfig &)config resolve: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
     NSString *body = config.body();
     NSString *identifier = config.id_();

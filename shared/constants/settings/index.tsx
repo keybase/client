@@ -87,6 +87,13 @@ export const useSettingsState = Z.createZustand<State>(set => {
       }
       ignorePromise(f())
     },
+    clearLogs: () => {
+      const f = async () => {
+        const clearLocalLogs = (await import('@/util/clear-logs')).default
+        await clearLocalLogs()
+      }
+      ignorePromise(f())
+    },
     deleteAccountForever: passphrase => {
       const f = async () => {
         const username = storeRegistry.getState('current-user').username
