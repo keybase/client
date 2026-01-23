@@ -94,6 +94,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 #endif
 
     self.writeStartupTimingLog("After RN init")
+    self.closeStartupLogFile()
 
     _ = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
@@ -202,13 +203,14 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 #endif
 
     self.writeStartupTimingLog("Before Go init")
-    self.closeStartupLogFile()
 
     // Initialize Go synchronously - happens during splash screen
     NSLog("Starting KeybaseInit (synchronous)...")
     var err: NSError?
     Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
     if let err { NSLog("KeybaseInit FAILED: \(err)") }
+    
+    self.writeStartupTimingLog("After Go init")
   }
 
   func notifyAppState(_ application: UIApplication) {
