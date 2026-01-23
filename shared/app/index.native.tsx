@@ -21,6 +21,9 @@ import {install} from 'react-native-kb'
 import {useEngineState} from '@/constants/engine'
 import * as DarkMode from '@/constants/darkmode'
 import {initPlatformListener} from '@/constants/platform-specific'
+import logger from '@/logger'
+
+logger.info('INIT App index module load')
 
 enableFreeze(true)
 setServiceDecoration(ServiceDecoration)
