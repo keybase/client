@@ -10,7 +10,7 @@ type Store = T.Immutable<{
 
 export type State = Store & {
   dispatch: {
-    dynamic: {
+    defer: {
       onGetDaemonHandshakeState?: () => T.Config.DaemonHandshakeState
       onNavigateToThread?: (
         conversationIDKey: T.Chat.ConversationIDKey,

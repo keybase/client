@@ -19,7 +19,7 @@ const Container = (ownProps: OwnProps) => {
     C.useShallow(s => ({
       _download: s.dispatch.download,
       fileContext: s.fileContext.get(path) || FS.emptyFileContext,
-      openPathInSystemFileManagerDesktop: s.dispatch.dynamic.openPathInSystemFileManagerDesktop,
+      openPathInSystemFileManagerDesktop: s.dispatch.defer.openPathInSystemFileManagerDesktop,
       pathItem: FS.getPathItem(s.pathItems, path),
       sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
     }))

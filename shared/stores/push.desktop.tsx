@@ -16,7 +16,7 @@ export const usePushState = Z.createZustand<State>(() => {
       return Promise.resolve(false)
     },
     deleteToken: () => {},
-    dynamic: {
+    defer: {
       onGetDaemonHandshakeState: () => {
         return 'done'
       },

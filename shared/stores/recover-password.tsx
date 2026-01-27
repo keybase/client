@@ -34,10 +34,12 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    dynamic: {
-      cancel?: () => void
+    defer: {
       onProvisionCancel?: (ignoreWarning?: boolean) => void
       onStartAccountReset?: (skipPassword: boolean, username: string) => void
+    }
+    dynamic: {
+      cancel?: () => void
       submitDeviceSelect?: (name: string) => void
       submitPaperKey?: (key: string) => void
       submitPassword?: (pw: string) => void
@@ -50,14 +52,16 @@ export interface State extends Store {
 
 export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
-    dynamic: {
-      cancel: undefined,
+    defer: {
       onProvisionCancel: () => {
         throw new Error('onProvisionCancel not implemented')
       },
       onStartAccountReset: () => {
         throw new Error('onStartAccountReset not implemented')
       },
+    },
+    dynamic: {
+      cancel: undefined,
       submitDeviceSelect: undefined,
       submitPaperKey: undefined,
       submitPassword: undefined,
@@ -82,7 +86,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         if (p.abortProvisioning) {
-          get().dispatch.dynamic.onProvisionCancel?.()
+          get().dispatch.defer.onProvisionCancel?.()
         }
         let hadError = false
         try {
@@ -146,7 +150,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     })
                   })
                 } else {
-                  get().dispatch.dynamic.onStartAccountReset?.(true, '')
+                  get().dispatch.defer.onStartAccountReset?.(true, '')
                   response.result(T.RPCGen.ResetPromptResponse.nothing)
                 }
               },

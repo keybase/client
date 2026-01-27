@@ -13,7 +13,7 @@ const Container = () => {
   const info = Chat.useChatContext(s => s.commandStatus)
   const _info = info || empty
 
-  const onOpenAppSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onOpenAppSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
   const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
   const onCancel = () => {
     setCommandStatusInfo()

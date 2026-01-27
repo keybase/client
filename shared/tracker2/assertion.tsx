@@ -424,7 +424,7 @@ const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
 
 const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
   const {value, color} = p
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const onCopyAddress = React.useCallback(() => {
     copyToClipboard(value)
   }, [copyToClipboard, value])

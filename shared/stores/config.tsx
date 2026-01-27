@@ -147,7 +147,7 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    dynamic: {
+    defer: {
       copyToClipboard: (s: string) => void
       dumpLogsNative?: (reason: string) => Promise<void>
       onFilePickerError?: (error: Error) => void
@@ -295,10 +295,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
-    dumpLogs: async reason => {
-      await get().dispatch.dynamic.dumpLogsNative?.(reason)
-    },
-    dynamic: {
+    defer: {
       copyToClipboard: () => {
         throw new Error('copyToClipboard not implemented?????')
       },
@@ -312,8 +309,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       showMainNative: undefined,
       showShareActionSheet: undefined,
     },
+    dumpLogs: async reason => {
+      await get().dispatch.defer.dumpLogsNative?.(reason)
+    },
     filePickerError: error => {
-      get().dispatch.dynamic.onFilePickerError?.(error)
+      get().dispatch.defer.onFilePickerError?.(error)
     },
     initAppUpdateLoop: () => {
       const f = async () => {
@@ -509,7 +509,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(registerForGregorNotifications())
 
-      get().dispatch.dynamic.onEngineConnectedDesktop?.()
+      get().dispatch.defer.onEngineConnectedDesktop?.()
       get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     },
     onEngineIncoming: action => {
@@ -854,7 +854,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       })
     },
     showMain: () => {
-      get().dispatch.dynamic.showMainNative?.()
+      get().dispatch.defer.showMainNative?.()
     },
     toggleRuntimeStats: () => {
       const f = async () => {

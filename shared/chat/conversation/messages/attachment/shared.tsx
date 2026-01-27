@@ -103,7 +103,7 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     download(ordinal)
   }, [ordinal, download])
 
-  const openFinder = useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
+  const openFinder = useFSState(s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop)
   const onFinder = React.useCallback(() => {
     downloadPath && openFinder?.(downloadPath)
   }, [openFinder, downloadPath])

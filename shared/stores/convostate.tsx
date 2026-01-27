@@ -1245,7 +1245,7 @@ const createSlice = (
     blockConversation: reportUser => {
       const f = async () => {
         chatStateHook.getState().dispatch.navigateToInbox()
-        useConfigState.getState().dispatch.dynamic.persistRoute?.()
+        useConfigState.getState().dispatch.defer.persistRoute?.()
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
           conversationID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,

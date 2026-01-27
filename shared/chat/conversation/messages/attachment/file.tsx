@@ -57,7 +57,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     [switchTab, saltpackOpenFile]
   )
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const _onShowInFinder = React.useCallback(() => {
     downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)

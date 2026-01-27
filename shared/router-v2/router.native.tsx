@@ -68,7 +68,7 @@ const tabStacks = tabs.map(tab => (
     name={tab}
     listeners={{
       tabLongPress: () => {
-        C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
+        C.useRouterState.getState().dispatch.defer.tabLongPress?.(tab)
       },
     }}
     component={TabStack}

@@ -11,7 +11,7 @@ import {useConfigState} from '@/stores/config'
  * popup.
  */
 const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: () => void}) => {
-  const onOpenSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onOpenSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
 
   const [showingPopup, setShowingPopup] = React.useState(noAccess)
   React.useEffect(() => {

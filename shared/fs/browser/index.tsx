@@ -68,7 +68,7 @@ const DragAndDrop = React.memo(function DragAndDrop(p: {
   rejectReason?: string
 }) {
   const {children, path, rejectReason} = p
-  const uploadFromDragAndDrop = useFSState(s => s.dispatch.dynamic.uploadFromDragAndDropDesktop)
+  const uploadFromDragAndDrop = useFSState(s => s.dispatch.defer.uploadFromDragAndDropDesktop)
   const onAttach = React.useCallback(
     (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths),
     [path, uploadFromDragAndDrop]

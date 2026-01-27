@@ -379,7 +379,7 @@ export interface State extends Store {
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
-    dynamic: {
+    defer: {
       afterDriverDisable?: () => void
       afterDriverDisabling?: () => void
       afterDriverEnabled?: (isRetry: boolean) => void
@@ -743,7 +743,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       ignorePromise(f())
     },
     driverDisable: () => {
-      get().dispatch.dynamic.afterDriverDisable?.()
+      get().dispatch.defer.afterDriverDisable?.()
     },
     driverDisabling: () => {
       set(s => {
@@ -751,7 +751,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           s.sfmi.driverStatus.isDisabling = true
         }
       })
-      get().dispatch.dynamic.afterDriverDisabling?.()
+      get().dispatch.defer.afterDriverDisabling?.()
     },
     driverEnable: isRetry => {
       set(s => {
@@ -759,7 +759,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           s.sfmi.driverStatus.isEnabling = true
         }
       })
-      get().dispatch.dynamic.afterDriverEnabled?.(!!isRetry)
+      get().dispatch.defer.afterDriverEnabled?.(!!isRetry)
     },
     driverKextPermissionError: () => {
       set(s => {
@@ -769,7 +769,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    dynamic: {
+    defer: {
       afterDriverDisable: undefined,
       afterDriverDisabling: undefined,
       afterDriverEnabled: undefined,
@@ -905,7 +905,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             })
             const counts = new Map<Tabs.Tab, number>()
             counts.set(Tabs.fsTab, Constants.computeBadgeNumberForAll(get().tlfs))
-            get().dispatch.dynamic.onSetBadgeCounts?.(counts)
+            get().dispatch.defer.onSetBadgeCounts?.(counts)
           }
         } catch (e) {
           errorToActionOrThrow(e)
@@ -1148,7 +1148,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       }
       subscribeAndLoadJournalStatus()
       // how this works isn't great. This function gets called way early before we set this
-      get().dispatch.dynamic.afterKbfsDaemonRpcStatusChanged?.()
+      get().dispatch.defer.afterKbfsDaemonRpcStatusChanged?.()
     },
     letResetUserBackIn: (id, username) => {
       const f = async () => {
@@ -1645,12 +1645,12 @@ export const useFSState = Z.createZustand<State>((set, get) => {
             if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
               break
             }
-            get().dispatch.dynamic.onBadgeApp?.('kbfsUploading', true)
+            get().dispatch.defer.onBadgeApp?.('kbfsUploading', true)
             await timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
           }
         } finally {
           pollJournalStatusPolling = false
-          get().dispatch.dynamic.onBadgeApp?.('kbfsUploading', false)
+          get().dispatch.defer.onBadgeApp?.('kbfsUploading', false)
           get().dispatch.checkKbfsDaemonRpcStatus()
         }
       }
@@ -1693,7 +1693,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.sfmi.driverStatus = driverStatus
       })
-      get().dispatch.dynamic.refreshMountDirsDesktop?.()
+      get().dispatch.defer.refreshMountDirsDesktop?.()
     },
     setEditName: (editID, name) => {
       set(s => {
@@ -1903,7 +1903,7 @@ export const useFSState = Z.createZustand<State>((set, get) => {
               body: 'You are out of disk space. Some folders could not be synced.',
               sound: true,
             })
-            get().dispatch.dynamic.onBadgeApp?.('outOfSpace', status.outOfSyncSpace)
+            get().dispatch.defer.onBadgeApp?.('outOfSpace', status.outOfSyncSpace)
             break
           }
           case T.FS.DiskSpaceStatus.Warning:

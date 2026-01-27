@@ -62,7 +62,7 @@ const OutOfDate = () => {
     C.ignorePromise(f())
   })
 
-  const onOpenAppStore = useConfigState(s => s.dispatch.dynamic.openAppStore)
+  const onOpenAppStore = useConfigState(s => s.dispatch.defer.openAppStore)
 
   return status !== 'critical' ? null : (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>

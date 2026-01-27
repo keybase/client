@@ -49,7 +49,7 @@ const Container = () => {
       break
   }
   const platformUserName = username
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()

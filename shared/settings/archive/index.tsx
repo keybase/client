@@ -30,7 +30,7 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
     resume(id)
   }, [resume, id])
 
-  const openFinder = useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
+  const openFinder = useFSState(s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop)
   const onShowFinder = React.useCallback(() => {
     if (!job) return
     openFinder?.(job.outPath)
@@ -153,7 +153,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
     loadKBFSJobFreshness(id)
   })
 
-  const openFinder = useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
+  const openFinder = useFSState(s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop)
   const onShowFinder = React.useCallback(() => {
     if (Kb.Styles.isMobile || !job) {
       return

@@ -71,7 +71,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
 
     const {conversationIDKey, unboxPayload, membersType} = notification
 
-    get().dispatch.dynamic.onNavigateToThread?.(conversationIDKey, 'push', unboxPayload)
+    get().dispatch.defer.onNavigateToThread?.(conversationIDKey, 'push', unboxPayload)
     if (unboxPayload && membersType && !isIOS) {
       try {
         await T.RPCChat.localUnboxMobilePushNotificationRpcPromise({
@@ -135,7 +135,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
-    dynamic: {
+    defer: {
       onGetDaemonHandshakeState: () => {
         throw new Error('onGetDaemonHandshakeState not implemented')
       },
@@ -164,13 +164,13 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               // We only care if the user clicked while in session
               if (notification.userInteraction) {
                 const {username} = notification
-                get().dispatch.dynamic.onShowUserProfile?.(username)
+                get().dispatch.defer.onShowUserProfile?.(username)
               }
               break
             case 'chat.extension':
               {
                 const {conversationIDKey} = notification
-                get().dispatch.dynamic.onNavigateToThread?.(conversationIDKey, 'extension')
+                get().dispatch.defer.onNavigateToThread?.(conversationIDKey, 'extension')
               }
               break
             case 'settings.contacts':
@@ -233,13 +233,13 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
           if (shownPushPrompt) {
             // we've already shown the prompt, take them to settings
-            useConfigState.getState().dispatch.dynamic.openAppSettings?.()
+            useConfigState.getState().dispatch.defer.openAppSettings?.()
             get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
             return
           }
         }
         try {
-          useConfigState.getState().dispatch.dynamic.openAppSettings?.()
+          useConfigState.getState().dispatch.defer.openAppSettings?.()
           const {increment} = useWaitingState.getState().dispatch
           increment(S.waitingKeyPushPermissionsRequesting)
           await requestPermissionsFromNative()
@@ -307,7 +307,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         if (
           p.show &&
           useConfigState.getState().loggedIn &&
-          get().dispatch.dynamic.onGetDaemonHandshakeState?.() === 'done' &&
+          get().dispatch.defer.onGetDaemonHandshakeState?.() === 'done' &&
           !get().justSignedUp &&
           !get().hasPermissions
         ) {

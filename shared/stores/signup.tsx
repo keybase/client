@@ -45,7 +45,7 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    dynamic: {
+    defer: {
       onEditEmail?: (p: {email: string; makeSearchable: boolean}) => void
       onShowPermissionsPrompt?: (p: {justSignedUp?: boolean}) => void
     }
@@ -84,7 +84,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       }
 
       try {
-        get().dispatch.dynamic.onShowPermissionsPrompt?.({justSignedUp: true})
+        get().dispatch.defer.onShowPermissionsPrompt?.({justSignedUp: true})
 
         await T.RPCGen.signupSignupRpcListener({
           customResponseIncomingCallMap: {
@@ -125,7 +125,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         }
         // If the email was set to be visible during signup, we need to set that with a separate RPC.
         if (noErrors() && get().emailVisible) {
-          get().dispatch.dynamic.onEditEmail?.({email: get().email, makeSearchable: true})
+          get().dispatch.defer.onEditEmail?.({email: get().email, makeSearchable: true})
         }
       } catch (_error) {
         if (_error instanceof RPCError) {
@@ -134,7 +134,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
             s.signupError = error
           })
           navigateAppend('signupError')
-          get().dispatch.dynamic.onShowPermissionsPrompt?.({justSignedUp: false})
+          get().dispatch.defer.onShowPermissionsPrompt?.({justSignedUp: false})
         }
       }
     }
@@ -232,7 +232,7 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
         s.justSignedUpEmail = ''
       })
     },
-    dynamic: {
+    defer: {
       onEditEmail: () => {
         throw new Error('onEditEmail not implemented')
       },

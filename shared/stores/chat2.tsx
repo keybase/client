@@ -113,7 +113,7 @@ export const getBotsAndParticipants = (
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
   const teamMembers =
-    useChatState.getState().dispatch.dynamic.onGetTeamsTeamIDToMembers(meta.teamID) ??
+    useChatState.getState().dispatch.defer.onGetTeamsTeamIDToMembers(meta.teamID) ??
     new Map<string, T.Teams.MemberInfo>()
   let bots: Array<string> = []
   if (isAdhocTeam) {
@@ -290,7 +290,7 @@ export interface State extends Store {
   dispatch: {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
-    dynamic: {
+    defer: {
       onGetDaemonState: () => {handshakeVersion: number; dispatch: any}
       onGetTeamsTeamIDToMembers: (
         teamID: T.Teams.TeamID
@@ -492,7 +492,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
-    dynamic: {
+    defer: {
       onGetDaemonState: () => {
         throw new Error('onGetDaemonState not properly initialized')
       },
@@ -845,7 +845,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       if (get().staticConfig) {
         return
       }
-      const {handshakeVersion, dispatch} = get().dispatch.dynamic.onGetDaemonState()
+      const {handshakeVersion, dispatch} = get().dispatch.defer.onGetDaemonState()
       const f = async () => {
         const name = 'chat.loadStatic'
         dispatch.wait(name, handshakeVersion, true)
@@ -984,8 +984,8 @@ export const useChatState = Z.createZustand<State>((set, get) => {
       const {isMetaGood, meta} = storeRegistry.getConvoState(selectedConversation)
       if (isMetaGood()) {
         const {teamID} = meta
-        if (!get().dispatch.dynamic.onGetTeamsTeamIDToMembers(teamID) && meta.teamname) {
-          get().dispatch.dynamic.onTeamsGetMembers(teamID)
+        if (!get().dispatch.defer.onGetTeamsTeamIDToMembers(teamID) && meta.teamname) {
+          get().dispatch.defer.onTeamsGetMembers(teamID)
         }
       }
     },
@@ -1158,7 +1158,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           const usernames = update.CanonicalName.split(',')
           const broken = (update.breaks.breaks || []).map(b => b.user.username)
           const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
-          get().dispatch.dynamic.onUsersUpdates(updates)
+          get().dispatch.defer.onUsersUpdates(updates)
           break
         }
         case EngineGen.chat1ChatUiChatInboxUnverified:
@@ -1345,7 +1345,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
                 cs.dispatch.setMeta(meta)
               }
             })
-            get().dispatch.dynamic.onTeamsUpdateTeamRetentionPolicy(metas)
+            get().dispatch.defer.onTeamsUpdateTeamRetentionPolicy(metas)
           }
           // this is a more serious problem, but we don't need to bug the user about it
           logger.error(
@@ -1379,7 +1379,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     },
     onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
       // TODO not reactive
-      const infoMap = get().dispatch.dynamic.onGetUsersInfoMap()
+      const infoMap = get().dispatch.defer.onGetUsersInfoMap()
       const {convs} = action.payload.params
       const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
       const metas: Array<T.Chat.ConversationMeta> = []
@@ -1407,7 +1407,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         })
       })
       if (added) {
-        get().dispatch.dynamic.onUsersUpdates(
+        get().dispatch.defer.onUsersUpdates(
           Object.keys(usernameToFullname).map(name => ({
             info: {fullname: usernameToFullname[name]},
             name,
@@ -1442,7 +1442,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         return map
       }, {})
 
-      get().dispatch.dynamic.onUsersUpdates(
+      get().dispatch.defer.onUsersUpdates(
         Object.keys(usernameToFullname).map(name => ({
           info: {fullname: usernameToFullname[name]},
           name,
