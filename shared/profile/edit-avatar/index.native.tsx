@@ -215,6 +215,27 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
     }, [resolution])
     const czref = React.useRef<CropZoomRefType>(null)
 
+    const imageStyle = React.useMemo(() => {
+      // For CropZoom, we want the image to always cover the crop area
+      // So we fit to the larger dimension to ensure coverage
+      const imageAspectRatio = resolution.width / resolution.height
+      const isWider = imageAspectRatio > 1
+
+      if (isWider) {
+        // Image is wider - fit to height so it covers vertically
+        return {
+          height: avatarSize,
+          width: avatarSize * imageAspectRatio,
+        }
+      } else {
+        // Image is taller - fit to width so it covers horizontally
+        return {
+          height: avatarSize / imageAspectRatio,
+          width: avatarSize,
+        }
+      }
+    }, [resolution])
+
     return (
       <Kb.Box2
         direction="vertical"
@@ -226,8 +247,8 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
         }}
       >
         {src ? (
-          <CropZoom cropSize={cropSize} resolution={resolution} ref={czref}>
-            <Kb.Image2 src={src} style={cropSize} />
+          <CropZoom cropSize={cropSize} resolution={resolution} ref={czref} panMode="clamp" minScale={1}>
+            <Kb.Image2 src={src} style={imageStyle} />
           </CropZoom>
         ) : null}
       </Kb.Box2>

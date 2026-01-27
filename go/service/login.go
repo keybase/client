@@ -5,6 +5,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -24,8 +25,10 @@ func NewLoginHandler(xp rpc.Transporter, g *libkb.GlobalContext) *LoginHandler {
 	}
 }
 
-func (h *LoginHandler) GetConfiguredAccounts(context context.Context, sessionID int) ([]keybase1.ConfiguredAccount, error) {
-	return h.G().GetConfiguredAccounts(context)
+func (h *LoginHandler) GetConfiguredAccounts(ctx context.Context, sessionID int) (res []keybase1.ConfiguredAccount, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace("GetConfiguredAccounts", &err)()
+	return h.G().GetConfiguredAccounts(ctx)
 }
 
 func (h *LoginHandler) Logout(ctx context.Context, arg keybase1.LogoutArg) (err error) {
@@ -38,7 +41,9 @@ func (h *LoginHandler) Logout(ctx context.Context, arg keybase1.LogoutArg) (err 
 	return engine.RunEngine2(mctx, eng)
 }
 
-func (h *LoginHandler) Deprovision(ctx context.Context, arg keybase1.DeprovisionArg) error {
+func (h *LoginHandler) Deprovision(ctx context.Context, arg keybase1.DeprovisionArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace(fmt.Sprintf("Deprovision(%s)", arg.Username), &err)()
 	eng := engine.NewDeprovisionEngine(h.G(), arg.Username, arg.DoRevoke, libkb.LogoutOptions{KeepSecrets: false, Force: true})
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
@@ -49,8 +54,9 @@ func (h *LoginHandler) Deprovision(ctx context.Context, arg keybase1.Deprovision
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) RecoverAccountFromEmailAddress(ctx context.Context, email string) error {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+func (h *LoginHandler) RecoverAccountFromEmailAddress(ctx context.Context, email string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace("RecoverAccountFromEmailAddress", &err)()
 	res, err := mctx.G().API.Post(mctx, libkb.APIArg{
 		Endpoint:    "send-reset-pw",
 		SessionType: libkb.APISessionTypeNONE,
@@ -68,7 +74,9 @@ func (h *LoginHandler) RecoverAccountFromEmailAddress(ctx context.Context, email
 	return nil
 }
 
-func (h *LoginHandler) PaperKey(ctx context.Context, sessionID int) error {
+func (h *LoginHandler) PaperKey(ctx context.Context, sessionID int) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace("PaperKey", &err)()
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(sessionID),
 		LoginUI:   h.getLoginUI(sessionID),
@@ -80,7 +88,9 @@ func (h *LoginHandler) PaperKey(ctx context.Context, sessionID int) error {
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) PaperKeySubmit(ctx context.Context, arg keybase1.PaperKeySubmitArg) error {
+func (h *LoginHandler) PaperKeySubmit(ctx context.Context, arg keybase1.PaperKeySubmitArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace("PaperKeySubmit", &err)()
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
@@ -90,7 +100,9 @@ func (h *LoginHandler) PaperKeySubmit(ctx context.Context, arg keybase1.PaperKey
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) Unlock(ctx context.Context, sessionID int) error {
+func (h *LoginHandler) Unlock(ctx context.Context, sessionID int) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace("Unlock", &err)()
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(sessionID),
 		SecretUI:  h.getSecretUI(sessionID, h.G()),
@@ -101,7 +113,9 @@ func (h *LoginHandler) Unlock(ctx context.Context, sessionID int) error {
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) UnlockWithPassphrase(ctx context.Context, arg keybase1.UnlockWithPassphraseArg) error {
+func (h *LoginHandler) UnlockWithPassphrase(ctx context.Context, arg keybase1.UnlockWithPassphraseArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace("UnlockWithPassphrase", &err)()
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
@@ -112,7 +126,9 @@ func (h *LoginHandler) UnlockWithPassphrase(ctx context.Context, arg keybase1.Un
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
+func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace(fmt.Sprintf("Login(%s)", arg.Username), &err)()
 	uis := libkb.UIs{
 		LogUI:       h.getLogUI(arg.SessionID),
 		LoginUI:     h.getLoginUI(arg.SessionID),
@@ -128,7 +144,9 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) LoginProvisionedDevice(ctx context.Context, arg keybase1.LoginProvisionedDeviceArg) error {
+func (h *LoginHandler) LoginProvisionedDevice(ctx context.Context, arg keybase1.LoginProvisionedDeviceArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace(fmt.Sprintf("LoginProvisionedDevice(%s)", arg.Username), &err)()
 	eng := engine.NewLoginProvisionedDevice(h.G(), arg.Username)
 
 	uis := libkb.UIs{
@@ -147,7 +165,9 @@ func (h *LoginHandler) LoginProvisionedDevice(ctx context.Context, arg keybase1.
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, arg keybase1.LoginWithPaperKeyArg) error {
+func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, arg keybase1.LoginWithPaperKeyArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace(fmt.Sprintf("LoginWithPaperKey(%s)", arg.Username), &err)()
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
@@ -155,11 +175,12 @@ func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, arg keybase1.Login
 	}
 	eng := engine.NewLoginWithPaperKey(h.G(), arg.Username)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	err := engine.RunEngine2(m, eng)
-	return err
+	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) AccountDelete(ctx context.Context, arg keybase1.AccountDeleteArg) error {
+func (h *LoginHandler) AccountDelete(ctx context.Context, arg keybase1.AccountDeleteArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace("AccountDelete", &err)()
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
@@ -170,7 +191,9 @@ func (h *LoginHandler) AccountDelete(ctx context.Context, arg keybase1.AccountDe
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOneshotArg) error {
+func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOneshotArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace(fmt.Sprintf("LoginOneshot(%s)", arg.Username), &err)()
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
@@ -180,11 +203,15 @@ func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOnesh
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) IsOnline(ctx context.Context) (bool, error) {
+func (h *LoginHandler) IsOnline(ctx context.Context) (isOnline bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace("IsOnline", &err)()
 	return h.G().ConnectivityMonitor.IsConnected(ctx) == libkb.ConnectivityMonitorYes, nil
 }
 
-func (h *LoginHandler) RecoverPassphrase(ctx context.Context, arg keybase1.RecoverPassphraseArg) error {
+func (h *LoginHandler) RecoverPassphrase(ctx context.Context, arg keybase1.RecoverPassphraseArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LH")
+	defer mctx.Trace(fmt.Sprintf("RecoverPassphrase(%s)", arg.Username), &err)()
 	uis := libkb.UIs{
 		LogUI:       h.getLogUI(arg.SessionID),
 		LoginUI:     h.getLoginUI(arg.SessionID),

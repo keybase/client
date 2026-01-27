@@ -5,9 +5,9 @@ index 4b7bf34..174f272 100644
 @@ -128,7 +128,7 @@ public class ImagePickerModule: Module, OnMediaPickingResultHandler {
        }
      }
- 
+
 -    picker.videoExportPreset = options.videoExportPreset.toAVAssetExportPreset()
 +    // picker.videoExportPreset = options.videoExportPreset.toAVAssetExportPreset()
      picker.videoQuality = options.videoQuality.toQualityType()
      picker.videoMaximumDuration = options.videoMaxDuration
- 
+

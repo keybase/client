@@ -52,7 +52,8 @@ export interface Spec extends TurboModule {
   notifyJSReady(): void
   shareListenersRegistered(): void
   setEnablePasteImage(enabled: boolean): void
-  processVideo(path: string): Promise<string>
+  clearLocalLogs(): Promise<void>
+  //processVideo(path: string): Promise<string>
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Kb')

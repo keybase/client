@@ -11,3 +11,16 @@ index 4f8f019..10d5c10 100644
  
      const { x, y } = pinchTransform({
        toScale: toScale,
+diff --git a/node_modules/react-native-zoom-toolkit/src/commons/hooks/usePinchCommons.ts b/node_modules/react-native-zoom-toolkit/src/commons/hooks/usePinchCommons.ts
+index 617862f..38ae47c 100644
+--- a/node_modules/react-native-zoom-toolkit/src/commons/hooks/usePinchCommons.ts
++++ b/node_modules/react-native-zoom-toolkit/src/commons/hooks/usePinchCommons.ts
+@@ -170,7 +170,7 @@ export const usePinchCommons = (options: PinchOptions) => {
+     translate.x.value = withTiming(toX);
+     translate.y.value = withTiming(toY);
+     scale.value = withTiming(toScale, undefined, (finished) => {
+-      scaleOffset.value = scale.value;
++      //scaleOffset.value = scale.value;
+       finished && runOnJS(switchGesturesState)(true);
+     });
+ 

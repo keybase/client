@@ -39,7 +39,11 @@ func TestNewTeambotEK(t *testing.T) {
 	// Ensure the bot user has valid ephemeral keys before creating teambot EK.
 	// On slower systems like Windows, the bot's UserEK may not be ready immediately.
 	t.Logf("Ensuring bot user %s has valid UserEK before creating teambot EK", botua.Username)
-	ekLib2 := mctx2.G().GetEKLib()
+	ekLib2, ok := mctx2.G().GetEKLib().(*EKLib)
+	require.True(t, ok)
+	// shutdown to prevent any background ops from running during the test
+	err = ekLib2.Shutdown(mctx2)
+	require.NoError(t, err)
 	err = ekLib2.KeygenIfNeeded(mctx2)
 	require.NoError(t, err)
 

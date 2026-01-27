@@ -16,6 +16,7 @@ import android.view.KeyEvent
 import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.content.IntentCompat
 import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -225,6 +226,36 @@ class MainActivity : ReactActivity() {
 
     private var jsIsListening = false
     private var handledIntentHash: String? = null
+    private fun extractSharedUris(intent: Intent): List<Uri> {
+        val action = intent.action
+        if (Intent.ACTION_SEND != action && Intent.ACTION_SEND_MULTIPLE != action) {
+            return emptyList()
+        }
+
+        val uris = mutableListOf<Uri>()
+
+        intent.clipData?.let { clip ->
+            for (i in 0 until clip.itemCount) {
+                clip.getItemAt(i)?.uri?.let { uris.add(it) }
+            }
+        }
+
+        // Avoid getParcelableArrayListExtra() here: some senders incorrectly use ACTION_SEND_MULTIPLE
+        // but provide a single Uri in EXTRA_STREAM, which would cause a ClassCast log/warning.
+        when (val streamExtra = intent.extras?.get(Intent.EXTRA_STREAM)) {
+            is Uri -> uris.add(streamExtra)
+            is ArrayList<*> -> streamExtra.filterIsInstance<Uri>().forEach { uris.add(it) }
+            else -> {
+            }
+        }
+
+        if (uris.isEmpty()) {
+            IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)?.let { uris.add(it) }
+        }
+
+        return uris.distinct()
+    }
+
     private fun handleIntent() {
         val intent = cachedIntent ?: return
         val rc = reactActivityDelegate?.getCurrentReactContext() ?: return
@@ -237,82 +268,87 @@ class MainActivity : ReactActivity() {
         // Here we are just reading from the notification bundle.
         // If other sources start the app, we can get their intent data the same way.
         val bundleFromNotification = intent.getBundleExtra("notification")
-        if (bundleFromNotification == null) {
-            cachedIntent = null
-            return
-        }
 
-        // Prevent duplicate handling of the same notification
-        val convID = bundleFromNotification.getString("convID") ?: bundleFromNotification.getString("c")
-        val messageId = bundleFromNotification.getString("msgID") ?: bundleFromNotification.getString("d") ?: ""
-        val intentHash = "${convID}_${messageId}"
-        if (handledIntentHash == intentHash) {
-            NativeLogger.info("MainActivity.handleIntent skipping duplicate notification: $intentHash")
-            cachedIntent = null
-            return
-        }
-        handledIntentHash = intentHash
-        NativeLogger.info("MainActivity.handleIntent processing notification: $intentHash")
-        cachedIntent = null
-        intent.removeExtra("notification")
-        val action = intent.action
-        var uris_: Array<Uri?>? = null
-        if (Intent.ACTION_SEND_MULTIPLE == action) {
-            val alUri = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)
-            uris_ = alUri?.toTypedArray<Uri?>()
-        } else if (Intent.ACTION_SEND == action) {
-            val oneUri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
-            uris_ = arrayOf(oneUri)
-        }
-        intent.removeExtra(Intent.EXTRA_STREAM)
-        val uris = uris_
-        val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
-        intent.removeExtra(Intent.EXTRA_SUBJECT)
-        val text = intent.getStringExtra(Intent.EXTRA_TEXT)
-        intent.removeExtra(Intent.EXTRA_TEXT)
-        val sb = StringBuilder()
-        if (subject != null) {
-            sb.append(subject)
-        }
-        if (subject != null && text != null) {
-            sb.append(" ")
-        }
-        if (text != null) {
-            sb.append(text)
-        }
+        var didSomething = false
 
-        val textPayload = sb.toString()
+        if (bundleFromNotification != null) {
+            // Prevent duplicate handling of the same notification
+            val convID = bundleFromNotification.getString("convID") ?: bundleFromNotification.getString("c")
+            val messageId = bundleFromNotification.getString("msgID") ?: bundleFromNotification.getString("d") ?: ""
+            val intentHash = "${convID}_${messageId}"
+            val shouldEmitNotification = handledIntentHash != intentHash
+            if (!shouldEmitNotification) {
+                NativeLogger.info("MainActivity.handleIntent skipping duplicate notification: $intentHash")
+            } else {
+                handledIntentHash = intentHash
+                NativeLogger.info("MainActivity.handleIntent processing notification: $intentHash")
 
-        val filePaths = uris?.mapNotNull { uri ->
-            readFileFromUri(rc, uri)
-        }?.toTypedArray() ?: emptyArray()
-
-        // If there are any other bundle sources we care about, emit them here
-        // bundleFromNotification is already checked for null above, so it's safe here
-        val bundle1 = bundleFromNotification.clone() as Bundle
-        val bundle2 = bundleFromNotification.clone() as Bundle
-        var payload1 = Arguments.fromBundle(bundle1)
-        emitter.emit(
-            "initialIntentFromNotification",
-            payload1
-        )
-        var payload2 = Arguments.fromBundle(bundle2)
-        emitter.emit(
-            "onPushNotification",
-            payload2
-        )
-        if (filePaths.size != 0) {
-            val args = Arguments.createMap()
-            val lPaths = Arguments.createArray()
-            for (path in filePaths) {
-                lPaths.pushString(path)
+                // If there are any other bundle sources we care about, emit them here
+                val bundle1 = bundleFromNotification.clone() as Bundle
+                val bundle2 = bundleFromNotification.clone() as Bundle
+                val payload1 = Arguments.fromBundle(bundle1)
+                emitter.emit(
+                    "initialIntentFromNotification",
+                    payload1
+                )
+                val payload2 = Arguments.fromBundle(bundle2)
+                emitter.emit(
+                    "onPushNotification",
+                    payload2
+                )
+                didSomething = true
             }
-            args.putArray("localPaths", lPaths)
-            emitter.emit("onShareData", args)
-        } else if (textPayload.length > 0) {
-            val args = Arguments.createMap()
-            args.putString("text", textPayload)
-            emitter.emit("onShareData", args)
+
+            intent.removeExtra("notification")
+        }
+
+        val action = intent.action
+        if (Intent.ACTION_SEND == action || Intent.ACTION_SEND_MULTIPLE == action) {
+            val uris = extractSharedUris(intent)
+            val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+            val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+
+            intent.removeExtra(Intent.EXTRA_STREAM)
+            intent.removeExtra(Intent.EXTRA_SUBJECT)
+            intent.removeExtra(Intent.EXTRA_TEXT)
+            intent.setClipData(null)
+
+            val sb = StringBuilder()
+            if (subject != null) {
+                sb.append(subject)
+            }
+            if (subject != null && text != null) {
+                sb.append(" ")
+            }
+            if (text != null) {
+                sb.append(text)
+            }
+
+            val textPayload = sb.toString()
+            val filePaths = uris.mapNotNull { uri ->
+                readFileFromUri(rc, uri)
+            }.toTypedArray()
+
+            if (filePaths.isNotEmpty()) {
+                val args = Arguments.createMap()
+                val lPaths = Arguments.createArray()
+                for (path in filePaths) {
+                    lPaths.pushString(path)
+                }
+                args.putArray("localPaths", lPaths)
+                emitter.emit("onShareData", args)
+                didSomething = true
+            } else if (textPayload.isNotEmpty()) {
+                val args = Arguments.createMap()
+                args.putString("text", textPayload)
+                emitter.emit("onShareData", args)
+                didSomething = true
+            }
+        }
+
+        cachedIntent = null
+        if (!didSomething) {
+            return
         }
     }
 
