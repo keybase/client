@@ -92,7 +92,7 @@ func Listen(bot Bot) error {
 }
 
 func MakeAPI(keybaseBinaryPath string) (*kbchat.API, error) {
-	runOptions := kbchat.RunOptions{KeybaseLocation: keybaseBinaryPath}
+	runOptions := kbchat.RunOptions{KeybaseLocation: keybaseBinaryPath, DebugTag: "tuxbot"}
 	return kbchat.Start(runOptions)
 }
 
