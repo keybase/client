@@ -15,7 +15,6 @@ export const usePushState = Z.createZustand<State>(() => {
     checkPermissions: async () => {
       return Promise.resolve(false)
     },
-    deleteToken: () => {},
     defer: {
       onGetDaemonHandshakeState: () => {
         return 'done'
@@ -23,6 +22,7 @@ export const usePushState = Z.createZustand<State>(() => {
       onNavigateToThread: () => {},
       onShowUserProfile: () => {},
     },
+    deleteToken: () => {},
     handlePush: () => {},
     initialPermissionsCheck: () => {},
     rejectPermissions: () => {},

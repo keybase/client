@@ -109,6 +109,17 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         return false
       }
     },
+    defer: {
+      onGetDaemonHandshakeState: () => {
+        throw new Error('onGetDaemonHandshakeState not implemented')
+      },
+      onNavigateToThread: () => {
+        throw new Error('onNavigateToThread not implemented')
+      },
+      onShowUserProfile: () => {
+        throw new Error('onShowUserProfile not implemented')
+      },
+    },
     deleteToken: version => {
       const f = async () => {
         const waitKey = 'push:deleteToken'
@@ -134,17 +145,6 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    defer: {
-      onGetDaemonHandshakeState: () => {
-        throw new Error('onGetDaemonHandshakeState not implemented')
-      },
-      onNavigateToThread: () => {
-        throw new Error('onNavigateToThread not implemented')
-      },
-      onShowUserProfile: () => {
-        throw new Error('onShowUserProfile not implemented')
-      },
     },
     handlePush: notification => {
       const f = async () => {

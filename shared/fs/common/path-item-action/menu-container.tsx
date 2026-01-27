@@ -32,7 +32,7 @@ const Container = (op: OwnProps) => {
       const fileContext = s.fileContext.get(path) || FS.emptyFileContext
       const {cancelDownload, setPathItemActionMenuView, download, newFolderRow} = s.dispatch
       const {favoriteIgnore, startRename, dismissDownload} = s.dispatch
-      const {openPathInSystemFileManagerDesktop} = s.dispatch.dynamic
+      const {openPathInSystemFileManagerDesktop} = s.dispatch.defer
       const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
       return {
         cancelDownload,

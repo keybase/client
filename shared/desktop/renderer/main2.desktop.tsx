@@ -120,7 +120,7 @@ const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.openFilesFromWidget: {
-      storeRegistry.getState('fs').dispatch.dynamic.openFilesFromWidgetDesktop?.(action.payload.path)
+      storeRegistry.getState('fs').dispatch.defer.openFilesFromWidgetDesktop?.(action.payload.path)
       break
     }
     case RemoteGen.saltpackFileOpen: {
@@ -136,7 +136,7 @@ const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.openPathInSystemFileManager: {
-      storeRegistry.getState('fs').dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
+      storeRegistry.getState('fs').dispatch.defer.openPathInSystemFileManagerDesktop?.(action.payload.path)
       break
     }
     case RemoteGen.unlockFoldersSubmitPaperKey: {

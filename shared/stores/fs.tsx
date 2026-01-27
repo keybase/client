@@ -686,6 +686,30 @@ export const useFSState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
+    defer: {
+      afterDriverDisable: undefined,
+      afterDriverDisabling: undefined,
+      afterDriverEnabled: undefined,
+      afterKbfsDaemonRpcStatusChanged: undefined,
+      finishedDownloadWithIntentMobile: undefined,
+      finishedRegularDownloadMobile: undefined,
+      onBadgeApp: () => {
+        throw new Error('onBadgeApp not implemented')
+      },
+      onSetBadgeCounts: () => {
+        throw new Error('onSetBadgeCounts not implemented')
+      },
+      openAndUploadDesktop: undefined,
+      openFilesFromWidgetDesktop: undefined,
+      openLocalPathInSystemFileManagerDesktop: undefined,
+      openPathInSystemFileManagerDesktop: undefined,
+      openSecurityPreferencesDesktop: undefined,
+      pickAndUploadMobile: undefined,
+      refreshDriverStatusDesktop: undefined,
+      refreshMountDirsDesktop: undefined,
+      setSfmiBannerDismissedDesktop: undefined,
+      uploadFromDragAndDropDesktop: undefined,
+    },
     deleteFile: path => {
       const f = async () => {
         const opID = makeUUID()
@@ -768,30 +792,6 @@ export const useFSState = Z.createZustand<State>((set, get) => {
           s.sfmi.driverStatus.isEnabling = false
         }
       })
-    },
-    defer: {
-      afterDriverDisable: undefined,
-      afterDriverDisabling: undefined,
-      afterDriverEnabled: undefined,
-      afterKbfsDaemonRpcStatusChanged: undefined,
-      finishedDownloadWithIntentMobile: undefined,
-      finishedRegularDownloadMobile: undefined,
-      onBadgeApp: () => {
-        throw new Error('onBadgeApp not implemented')
-      },
-      onSetBadgeCounts: () => {
-        throw new Error('onSetBadgeCounts not implemented')
-      },
-      openAndUploadDesktop: undefined,
-      openFilesFromWidgetDesktop: undefined,
-      openLocalPathInSystemFileManagerDesktop: undefined,
-      openPathInSystemFileManagerDesktop: undefined,
-      openSecurityPreferencesDesktop: undefined,
-      pickAndUploadMobile: undefined,
-      refreshDriverStatusDesktop: undefined,
-      refreshMountDirsDesktop: undefined,
-      setSfmiBannerDismissedDesktop: undefined,
-      uploadFromDragAndDropDesktop: undefined,
     },
     editError: (editID, error) => {
       set(s => {

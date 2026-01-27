@@ -1540,6 +1540,22 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       }))
       get().dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
     },
+    defer: {
+      onChatNavigateToInbox: (_allowSwitchTab?: boolean) => {
+        throw new Error('onChatNavigateToInbox not implemented')
+      },
+      onChatPreviewConversation: (_p: {
+        channelname?: string
+        conversationIDKey?: T.Chat.ConversationIDKey
+        reason?: string
+        teamname?: string
+      }) => {
+        throw new Error('onChatPreviewConversation not implemented')
+      },
+      onUsersUpdates: (_updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+        throw new Error('onUsersUpdates not implemented')
+      },
+    },
     deleteChannelConfirmed: (teamID, conversationIDKey) => {
       const f = async () => {
         // channelName is only needed for confirmation, so since we handle
@@ -1594,22 +1610,6 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    defer: {
-      onChatNavigateToInbox: (_allowSwitchTab?: boolean) => {
-        throw new Error('onChatNavigateToInbox not implemented')
-      },
-      onChatPreviewConversation: (_p: {
-        channelname?: string
-        conversationIDKey?: T.Chat.ConversationIDKey
-        reason?: string
-        teamname?: string
-      }) => {
-        throw new Error('onChatPreviewConversation not implemented')
-      },
-      onUsersUpdates: (_updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-        throw new Error('onUsersUpdates not implemented')
-      },
     },
     dynamic: {
       respondToInviteLink: undefined,
