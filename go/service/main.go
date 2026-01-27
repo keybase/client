@@ -253,7 +253,7 @@ func (d *Service) Run() (err error) {
 		if err != nil {
 			mctx.Info("Service#Run() exiting with error %s (code %d)", err.Error(), d.G().ExitCode)
 		} else {
-			mctx.Debug("Service#Run() clean exit with code %d", d.G().ExitCode)
+			mctx.Info("Service#Run() exiting (code %d)", d.G().ExitCode)
 		}
 	}()
 
