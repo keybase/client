@@ -26,7 +26,7 @@ const useData = () => {
       navigateAppend('feedback')
     }
   }, [navigateAppend, clearModals, loggedIn, setGlobalError])
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const onDismiss = React.useCallback(() => {
     setGlobalError()
   }, [setGlobalError])

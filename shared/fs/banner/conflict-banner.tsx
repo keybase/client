@@ -33,7 +33,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   }, [startManualConflictResolution, path])
 
   const openPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openPathInSystemFileManagerDesktop
   )
 
   const openInSystemFileManager = React.useCallback(

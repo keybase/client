@@ -163,7 +163,7 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    dynamic: {
+    defer: {
       onShowUserProfile?: (username: string) => void
       onUsersUpdates?: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
@@ -231,7 +231,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         s.showTrackerSet.delete(username)
       })
     },
-    dynamic: {
+    defer: {
       onShowUserProfile: () => {
         throw new Error('onShowUserProfile not implemented')
       },
@@ -331,7 +331,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followersCount = d.followers.size
           })
           if (fs.users) {
-            get().dispatch.dynamic.onUsersUpdates?.(
+            get().dispatch.defer.onUsersUpdates?.(
               fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username}))
             )
           }
@@ -357,7 +357,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
             d.followingCount = d.following.size
           })
           if (fs.users) {
-            get().dispatch.dynamic.onUsersUpdates?.(
+            get().dispatch.defer.onUsersUpdates?.(
               fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username}))
             )
           }
@@ -447,7 +447,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         )
         d.hidFromFollowers = hidFromFollowers
       })
-      username && get().dispatch.dynamic.onUsersUpdates?.([{info: {fullname: card.fullName}, name: username}])
+      username && get().dispatch.defer.onUsersUpdates?.([{info: {fullname: card.fullName}, name: username}])
     },
     notifyReset: guiID => {
       set(s => {
@@ -606,7 +606,7 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
       })
       if (!skipNav) {
         // go to profile page
-        get().dispatch.dynamic.onShowUserProfile?.(username)
+        get().dispatch.defer.onShowUserProfile?.(username)
       }
     },
     updateResult: (guiID, result, reason) => {

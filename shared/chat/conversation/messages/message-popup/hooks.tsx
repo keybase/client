@@ -104,7 +104,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     : []
 
   const convLabel = getConversationLabel(participantInfo, meta, true)
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const onCopyLink = React.useCallback(() => {
     copyToClipboard(linkFromConvAndMessage(convLabel, id))
   }, [copyToClipboard, id, convLabel])

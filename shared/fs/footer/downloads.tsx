@@ -33,7 +33,7 @@ const Desktop = () => {
   const {downloadIDs, openLocalPathInSystemFileManagerDesktop} = useFSState(
     C.useShallow(s => ({
       downloadIDs: s.downloads.regularDownloads,
-      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+      openLocalPathInSystemFileManagerDesktop: s.dispatch.defer.openLocalPathInSystemFileManagerDesktop,
     }))
   )
   const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)

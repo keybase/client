@@ -53,7 +53,7 @@ export interface State extends Store {
     cancelTeamBuilding: () => void
     changeSendNotification: (sendNotification: boolean) => void
     closeTeamBuilding: () => void
-      dynamic: {
+    defer: {
       onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
       onFinishedTeamBuildingChat: (users: ReadonlySet<T.TB.User>) => void
       onFinishedTeamBuildingCrypto: (users: ReadonlySet<T.TB.User>) => void
@@ -280,7 +280,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
               // we want the first item
               for (const user of teamSoFar) {
                 const username = user.serviceMap.keybase || user.id
-                get().dispatch.dynamic.onShowUserProfile(username)
+                get().dispatch.defer.onShowUserProfile(username)
                 break
               }
             }, 100)
@@ -307,7 +307,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         navigateUp()
       }
     },
-    dynamic: {
+    defer: {
       onAddMembersWizardPushMembers: (_members: Array<T.Teams.AddingMember>) => {
         throw new Error('onAddMembersWizardPushMembers not properly initialized')
       },
@@ -348,7 +348,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           const contacts = contactRes.map(contactToUser)
           let suggestions = suggestionRes.map(interestingPersonToUser)
           const expectingContacts =
-            get().dispatch.dynamic.onGetSettingsContactsImportEnabled() && includeContacts
+            get().dispatch.defer.onGetSettingsContactsImportEnabled() && includeContacts
           if (expectingContacts) {
             suggestions = suggestions.slice(0, 10)
           }
@@ -371,7 +371,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       get().dispatch.closeTeamBuilding()
       const {teamSoFar} = get()
       if (get().namespace === 'teams') {
-        get().dispatch.dynamic.onAddMembersWizardPushMembers(
+        get().dispatch.defer.onAddMembersWizardPushMembers(
           [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
         )
         get().dispatch.finishedTeamBuilding()
@@ -393,11 +393,11 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const {finishedTeam, namespace} = get()
       switch (namespace) {
         case 'crypto': {
-          get().dispatch.dynamic.onFinishedTeamBuildingCrypto(finishedTeam)
+          get().dispatch.defer.onFinishedTeamBuildingCrypto(finishedTeam)
           break
         }
         case 'chat2': {
-          get().dispatch.dynamic.onFinishedTeamBuildingChat(finishedTeam)
+          get().dispatch.defer.onFinishedTeamBuildingChat(finishedTeam)
           break
         }
         default:
@@ -448,7 +448,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         let users: typeof _users
         if (selectedService === 'keybase') {
           // If we are on Keybase tab, do additional search if query is phone/email.
-          const userRegion = get().dispatch.dynamic.onGetSettingsContactsUserCountryCode()
+          const userRegion = get().dispatch.defer.onGetSettingsContactsUserCountryCode()
           users = await specialContactSearch(_users, searchQuery, userRegion)
         } else {
           users = _users
@@ -465,7 +465,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<{info: {fullname: string}; name: string}>())
-        get().dispatch.dynamic.onUsersUpdates(updates)
+        get().dispatch.defer.onUsersUpdates(updates)
         const blocks = users.reduce((arr, {serviceMap}) => {
           const {keybase} = serviceMap
           if (keybase) {
@@ -474,7 +474,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           return arr
         }, new Array<string>())
         if (blocks.length) {
-          get().dispatch.dynamic.onUsersGetBlockState(blocks)
+          get().dispatch.defer.onUsersGetBlockState(blocks)
         }
       }
       ignorePromise(f())

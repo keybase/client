@@ -84,7 +84,7 @@ const PopAttach = (ownProps: OwnProps) => {
   const onShareAttachment = C.isMobile ? _onShareAttachment : undefined
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const _onShowInFinder = React.useCallback(() => {
     downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)

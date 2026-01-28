@@ -12,7 +12,7 @@ const ChatPDF = (props: Props) => {
   const [error, setError] = React.useState('')
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
-  const showShareActionSheet = useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
+  const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
   const onShare = () => {
     showShareActionSheet?.(url ?? '', '', 'application/pdf')
   }

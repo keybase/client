@@ -62,7 +62,7 @@ const LocationPopup = () => {
   const onClose = () => {
     clearModals()
   }
-  const onSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
   const sendMessage = Chat.useChatContext(s => s.dispatch.sendMessage)
   const onLocationShare = (duration: string) => {
     onClose()

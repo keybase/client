@@ -98,18 +98,20 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    dynamic: {
-      afterCheckProof?: () => void
-      cancelAddProof?: () => void
-      cancelPgpGen?: () => void
-      finishedWithKeyGen?: (shouldStoreKeyOnServer: boolean) => void
-      submitUsername?: () => void
+    defer: {
       onTracker2GetDetails?: (username: string) => T.Tracker.Details | undefined
       onTracker2Load?: (
         params: Parameters<ReturnType<typeof useTrackerState.getState>['dispatch']['load']>[0]
       ) => void
       onTracker2ShowUser?: (username: string, asTracker: boolean, skipNav?: boolean) => void
       onTracker2UpdateResult?: (guiID: string, result: T.Tracker.DetailsState, reason?: string) => void
+    }
+    dynamic: {
+      afterCheckProof?: () => void
+      cancelAddProof?: () => void
+      cancelPgpGen?: () => void
+      finishedWithKeyGen?: (shouldStoreKeyOnServer: boolean) => void
+      submitUsername?: () => void
     }
     addProof: (platform: string, reason: 'appLink' | 'profile') => void
     backToProfile: () => void
@@ -272,7 +274,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         let canceled = false
 
         const loadAfter = () =>
-          get().dispatch.dynamic.onTracker2Load?.({
+          get().dispatch.defer.onTracker2Load?.({
             assertion: useCurrentUserState.getState().username,
             guiID: generateGUIID(),
             inTracker: false,
@@ -491,10 +493,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
         clearErrors(s)
       })
     },
-    dynamic: {
-      cancelAddProof: _cancelAddProof,
-      cancelPgpGen: undefined,
-      finishedWithKeyGen: undefined,
+    defer: {
       onTracker2GetDetails: () => {
         throw new Error('onTracker2GetDetails not implemented')
       },
@@ -507,6 +506,11 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       onTracker2UpdateResult: () => {
         throw new Error('onTracker2UpdateResult not implemented')
       },
+    },
+    dynamic: {
+      cancelAddProof: _cancelAddProof,
+      cancelPgpGen: undefined,
+      finishedWithKeyGen: undefined,
     },
     editAvatar: () => {
       throw new Error('This is overloaded by platform specific')
@@ -521,7 +525,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     finishRevoking: () => {
       const username = useCurrentUserState.getState().username
       get().dispatch.showUserProfile(username)
-      get().dispatch.dynamic.onTracker2Load?.({
+      get().dispatch.defer.onTracker2Load?.({
         assertion: useCurrentUserState.getState().username,
         guiID: generateGUIID(),
         inTracker: false,
@@ -617,7 +621,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         await T.RPCGen.proveCheckProofRpcPromise({sigID}, S.waitingKeyProfile)
-        get().dispatch.dynamic.onTracker2ShowUser?.(useCurrentUserState.getState().username, false)
+        get().dispatch.defer.onTracker2ShowUser?.(useCurrentUserState.getState().username, false)
       }
       ignorePromise(f())
     },
@@ -644,7 +648,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.blockUserModal = undefined
           })
-          get().dispatch.dynamic.onTracker2Load?.({
+          get().dispatch.defer.onTracker2Load?.({
             assertion: username,
             guiID: generateGUIID(),
             inTracker: false,
@@ -665,7 +669,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
     },
     submitRevokeProof: proofId => {
       const f = async () => {
-        const you = get().dispatch.dynamic.onTracker2GetDetails?.(useCurrentUserState.getState().username)
+        const you = get().dispatch.defer.onTracker2GetDetails?.(useCurrentUserState.getState().username)
         if (!you?.assertions) return
         const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
         if (!proof) return
@@ -697,7 +701,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await T.RPCGen.userUnblockUserRpcPromise({username})
-          get().dispatch.dynamic.onTracker2Load?.({
+          get().dispatch.defer.onTracker2Load?.({
             assertion: username,
             guiID: generateGUIID(),
             inTracker: false,
@@ -709,7 +713,7 @@ export const useProfileState = Z.createZustand<State>((set, get) => {
           }
           const error = _error
           logger.warn(`Error unblocking user ${username}`, error)
-          get().dispatch.dynamic.onTracker2UpdateResult?.(
+          get().dispatch.defer.onTracker2UpdateResult?.(
             guiID,
             'error',
             `Failed to unblock ${username}: ${error.desc}`

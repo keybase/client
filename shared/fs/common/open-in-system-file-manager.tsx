@@ -9,7 +9,7 @@ type Props = {path: T.FS.Path}
 
 const OpenInSystemFileManager = React.memo(function OpenInSystemFileManager({path}: Props) {
   const openPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openPathInSystemFileManagerDesktop
   )
   const openInSystemFileManager = React.useCallback(
     () => openPathInSystemFileManagerDesktop?.(path),

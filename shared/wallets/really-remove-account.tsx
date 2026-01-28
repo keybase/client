@@ -17,7 +17,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const attachmentRef = React.useRef<Kb.MeasureRef | null>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
 
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
 
   const [sk, setSK] = React.useState('')
   const loading = !sk

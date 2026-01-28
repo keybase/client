@@ -140,8 +140,8 @@ export const initTeamBuildingCallbacks = () => {
     store.setState({
       dispatch: {
         ...currentState.dispatch,
-        dynamic: {
-          ...currentState.dispatch.dynamic,
+        defer: {
+          ...currentState.dispatch.defer,
           ...commonCallbacks,
           ...(namespace === 'chat2'
             ? {
@@ -168,7 +168,7 @@ export const initAutoResetCallbacks = () => {
   useAutoResetState.setState({
     dispatch: {
       ...currentState.dispatch,
-      dynamic: {
+      defer: {
         onGetRecoverPasswordUsername: () => {
           return storeRegistry.getState('recover-password').username
         },
@@ -185,7 +185,7 @@ export const initChat2Callbacks = () => {
   useChatState.setState({
     dispatch: {
       ...currentState.dispatch,
-      dynamic: {
+      defer: {
         onGetDaemonState: () => {
           const daemonState = storeRegistry.getState('daemon')
           return {dispatch: daemonState.dispatch, handshakeVersion: daemonState.handshakeVersion}
@@ -215,8 +215,8 @@ export const initTeamsCallbacks = () => {
   useTeamsState.setState({
     dispatch: {
       ...currentState.dispatch,
-      dynamic: {
-        ...currentState.dispatch.dynamic,
+      defer: {
+        ...currentState.dispatch.defer,
         onChatNavigateToInbox: (allowSwitchTab?: boolean) => {
           storeRegistry.getState('chat').dispatch.navigateToInbox(allowSwitchTab)
         },
@@ -238,8 +238,8 @@ export const initFSCallbacks = () => {
   useFSState.setState({
     dispatch: {
       ...currentState.dispatch,
-      dynamic: {
-        ...currentState.dispatch.dynamic,
+      defer: {
+        ...currentState.dispatch.defer,
         onBadgeApp: (key: 'kbfsUploading' | 'outOfSpace', on: boolean) => {
           useNotifState.getState().dispatch.badgeApp(key, on)
         },
@@ -256,8 +256,8 @@ export const initNotificationsCallbacks = () => {
   useNotifState.setState({
     dispatch: {
       ...currentState.dispatch,
-      dynamic: {
-        ...currentState.dispatch.dynamic,
+      defer: {
+        ...currentState.dispatch.defer,
         onFavoritesLoad: () => {
           useFSState.getState().dispatch.favoritesLoad()
         },
@@ -271,8 +271,8 @@ export const initProfileCallbacks = () => {
   useProfileState.setState({
     dispatch: {
       ...currentState.dispatch,
-      dynamic: {
-        ...currentState.dispatch.dynamic,
+      defer: {
+        ...currentState.dispatch.defer,
         onTracker2GetDetails: (username: string) => {
           return useTrackerState.getState().getDetails(username)
         },
@@ -297,8 +297,8 @@ export const initPushCallbacks = () => {
   usePushState.setState({
     dispatch: {
       ...currentState.dispatch,
-      dynamic: {
-        ...currentState.dispatch.dynamic,
+      defer: {
+        ...currentState.dispatch.defer,
         onGetDaemonHandshakeState: () => {
           return useDaemonState.getState().handshakeState
         },
@@ -324,8 +324,8 @@ export const initRecoverPasswordCallbacks = () => {
   useRecoverPasswordState.setState({
     dispatch: {
       ...currentState.dispatch,
-      dynamic: {
-        ...currentState.dispatch.dynamic,
+      defer: {
+        ...currentState.dispatch.defer,
         onProvisionCancel: (ignoreWarning?: boolean) => {
           useProvisionState.getState().dispatch.dynamic.cancel?.(ignoreWarning)
         },
@@ -342,8 +342,8 @@ export const initSignupCallbacks = () => {
   useSignupState.setState({
     dispatch: {
       ...currentState.dispatch,
-      dynamic: {
-        ...currentState.dispatch.dynamic,
+      defer: {
+        ...currentState.dispatch.defer,
         onEditEmail: (p: {email: string; makeSearchable: boolean}) => {
           useSettingsEmailState.getState().dispatch.editEmail(p)
         },
@@ -360,8 +360,8 @@ export const initTracker2Callbacks = () => {
   useTrackerState.setState({
     dispatch: {
       ...currentState.dispatch,
-      dynamic: {
-        ...currentState.dispatch.dynamic,
+      defer: {
+        ...currentState.dispatch.defer,
         onShowUserProfile: (username: string) => {
           useProfileState.getState().dispatch.showUserProfile(username)
         },

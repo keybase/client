@@ -6,7 +6,7 @@ import {useFSState} from '@/stores/fs'
 
 const InstallSecurityPrefs = () => {
   const driverStatus = useFSState(s => s.sfmi.driverStatus)
-  const openSecurityPreferencesDesktop = useFSState(s => s.dispatch.dynamic.openSecurityPreferencesDesktop)
+  const openSecurityPreferencesDesktop = useFSState(s => s.dispatch.defer.openSecurityPreferencesDesktop)
   const onCancel = C.useRouterState(s => s.dispatch.navigateUp)
   const openSecurityPrefs = React.useCallback(
     () => openSecurityPreferencesDesktop?.(),

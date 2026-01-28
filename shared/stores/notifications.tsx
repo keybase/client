@@ -29,7 +29,7 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    dynamic: {
+    defer: {
       onFavoritesLoad?: () => void
     }
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
@@ -103,7 +103,7 @@ export const useNotifState = Z.createZustand<State>((set, get) => {
         updateWidgetBadge(s)
       })
     },
-    dynamic: {
+    defer: {
       onFavoritesLoad: () => {
         throw new Error('onFavoritesLoad not implemented')
       },
@@ -133,7 +133,7 @@ export const useNotifState = Z.createZustand<State>((set, get) => {
 
           const counts = badgeStateToBadgeCounts(badgeState)
           if (!isMobile && shouldTriggerTlfLoad(badgeState)) {
-            get().dispatch.dynamic.onFavoritesLoad?.()
+            get().dispatch.defer.onFavoritesLoad?.()
           }
           if (counts) {
             get().dispatch.setBadgeCounts(counts)

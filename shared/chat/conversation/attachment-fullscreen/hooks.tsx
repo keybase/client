@@ -37,7 +37,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   }, [onSwitchAttachment])
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)

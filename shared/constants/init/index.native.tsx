@@ -242,7 +242,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
 export const initPlatformListener = () => {
   let _lastPersist = ''
   useConfigState.setState(s => {
-    s.dispatch.dynamic.persistRoute = wrapErrors((path?: ReadonlyArray<unknown>) => {
+    s.dispatch.defer.persistRoute = wrapErrors((path?: ReadonlyArray<unknown>) => {
       const f = async () => {
         if (!useConfigState.getState().startup.loaded) {
           return
@@ -313,7 +313,7 @@ export const initPlatformListener = () => {
   })
 
   useConfigState.setState(s => {
-    s.dispatch.dynamic.copyToClipboard = wrapErrors((s: string) => {
+    s.dispatch.defer.copyToClipboard = wrapErrors((s: string) => {
       Clipboard.setStringAsync(s)
         .then(() => {})
         .catch(() => {})
@@ -352,10 +352,10 @@ export const initPlatformListener = () => {
   })
 
   useConfigState.setState(s => {
-    s.dispatch.dynamic.onFilePickerError = wrapErrors((error: Error) => {
+    s.dispatch.defer.onFilePickerError = wrapErrors((error: Error) => {
       Alert.alert('Error', String(error))
     })
-    s.dispatch.dynamic.openAppStore = wrapErrors(() => {
+    s.dispatch.defer.openAppStore = wrapErrors(() => {
       Linking.openURL(
         isAndroid
           ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
@@ -412,7 +412,7 @@ export const initPlatformListener = () => {
   })
 
   useConfigState.setState(s => {
-    s.dispatch.dynamic.showShareActionSheet = wrapErrors(
+    s.dispatch.defer.showShareActionSheet = wrapErrors(
       (filePath: string, message: string, mimeType: string) => {
         const f = async () => {
           await showShareActionSheet({filePath, message, mimeType})
@@ -448,7 +448,7 @@ export const initPlatformListener = () => {
     const f = async () => {
       await timeoutPromise(1000)
       const path = getVisiblePath()
-      useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
+      useConfigState.getState().dispatch.defer.persistRoute?.(path)
     }
 
     if (!calledShareListenersRegistered && logState().loggedIn) {
@@ -479,7 +479,7 @@ export const initPlatformListener = () => {
   }
 
   useConfigState.setState(s => {
-    s.dispatch.dynamic.openAppSettings = wrapErrors(() => {
+    s.dispatch.defer.openAppSettings = wrapErrors(() => {
       const f = async () => {
         if (isAndroid) {
           androidOpenSettings()
@@ -498,7 +498,7 @@ export const initPlatformListener = () => {
   })
 
   useRouterState.setState(s => {
-    s.dispatch.dynamic.tabLongPress = wrapErrors((tab: string) => {
+    s.dispatch.defer.tabLongPress = wrapErrors((tab: string) => {
       if (tab !== Tabs.peopleTab) return
       const accountRows = useConfigState.getState().configuredAccounts
       const current = useCurrentUserState.getState().username
@@ -511,7 +511,7 @@ export const initPlatformListener = () => {
   })
 
   useFSState.setState(s => {
-    s.dispatch.dynamic.pickAndUploadMobile = wrapErrors(
+    s.dispatch.defer.pickAndUploadMobile = wrapErrors(
       (type: T.FS.MobilePickType, parentPath: T.FS.Path) => {
         const f = async () => {
           try {
@@ -528,7 +528,7 @@ export const initPlatformListener = () => {
       }
     )
 
-    s.dispatch.dynamic.finishedDownloadWithIntentMobile = wrapErrors(
+    s.dispatch.defer.finishedDownloadWithIntentMobile = wrapErrors(
       (downloadID: string, downloadIntent: T.FS.DownloadIntent, mimeType: string) => {
         const f = async () => {
           const {downloads, dispatch} = useFSState.getState()
@@ -570,7 +570,7 @@ export const initPlatformListener = () => {
 
   if (isAndroid) {
     useFSState.setState(s => {
-      s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = wrapErrors(() => {
+      s.dispatch.defer.afterKbfsDaemonRpcStatusChanged = wrapErrors(() => {
         const f = async () => {
           await T.RPCGen.SimpleFSSimpleFSConfigureDownloadRpcPromise({
             // Android's cache dir is (when I tried) [app]/cache but Go side uses
@@ -582,9 +582,9 @@ export const initPlatformListener = () => {
         ignorePromise(f())
       })
       // needs to be called, TODO could make this better
-      s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged()
+      s.dispatch.defer.afterKbfsDaemonRpcStatusChanged()
 
-      s.dispatch.dynamic.finishedRegularDownloadMobile = wrapErrors(
+      s.dispatch.defer.finishedRegularDownloadMobile = wrapErrors(
         (downloadID: string, mimeType: string) => {
           const f = async () => {
             // This is fired from a hook and can happen more than once per downloadID.

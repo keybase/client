@@ -32,7 +32,7 @@ const initialStore: Store = {
 export interface State extends Store {
   dispatch: {
     cancelReset: () => void
-    dynamic: {
+    defer: {
       onGetRecoverPasswordUsername: () => string
       onStartProvision: (username: string, fromReset: boolean) => void
     }
@@ -85,7 +85,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
-    dynamic: {
+    defer: {
       onGetRecoverPasswordUsername: () => {
         throw new Error('onGetRecoverPasswordUsername not properly initialized')
       },
@@ -129,7 +129,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = ''
                   })
-                  get().dispatch.dynamic.onStartProvision(get().username, true)
+                  get().dispatch.defer.onStartProvision(get().username, true)
                 } else {
                   navUpToScreen('login')
                 }
@@ -175,7 +175,7 @@ export const useAutoResetState = Z.createZustand<State>((set, get) => {
     },
     resetState: 'default',
     startAccountReset: (skipPassword, _username) => {
-      const username = _username || get().dispatch.dynamic.onGetRecoverPasswordUsername() || ''
+      const username = _username || get().dispatch.defer.onGetRecoverPasswordUsername() || ''
       set(s => {
         s.skipPassword = skipPassword
         s.error = ''

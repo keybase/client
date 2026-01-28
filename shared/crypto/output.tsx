@@ -181,7 +181,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const actionsDisabled = waiting || !outputValid
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
     openLocalPathInSystemFileManagerDesktop?.(output.stringValue())
@@ -194,7 +194,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     previewConversation({participants: [username.stringValue()], reason: 'search'})
   }
 
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const onCopyOutput = () => {
     copyToClipboard(output.stringValue())
   }
@@ -369,7 +369,7 @@ export const OperationOutput = (props: OutputProps) => {
   const output = _output.stringValue()
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
     if (!output) return

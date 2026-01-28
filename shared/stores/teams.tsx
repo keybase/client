@@ -865,12 +865,14 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    dynamic: {
+    defer: {
       onChatNavigateToInbox?: (allowSwitchTab?: boolean) => void
       onChatPreviewConversation?: (
         p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
       ) => void
       onUsersUpdates?: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
+    }
+    dynamic: {
       respondToInviteLink?: (accept: boolean) => void
     }
     addMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
@@ -1431,7 +1433,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           get().dispatch.loadTeamChannelList(teamID)
           // Select the new channel, and switch to the chat tab.
           if (navToChatOnSuccess) {
-            get().dispatch.dynamic.onChatPreviewConversation?.({
+            get().dispatch.defer.onChatPreviewConversation?.({
               channelname,
               conversationIDKey: newConversationIDKey,
               reason: 'newChannel',
@@ -1501,8 +1503,8 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
 
           if (fromChat) {
             clearModals()
-            get().dispatch.dynamic.onChatNavigateToInbox?.()
-            get().dispatch.dynamic.onChatPreviewConversation?.({
+            get().dispatch.defer.onChatNavigateToInbox?.()
+            get().dispatch.defer.onChatPreviewConversation?.({
               channelname: 'general',
               reason: 'convertAdHoc',
               teamname,
@@ -1537,6 +1539,22 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
         role: assertion === me ? ('admin' as const) : ('writer' as const),
       }))
       get().dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
+    },
+    defer: {
+      onChatNavigateToInbox: (_allowSwitchTab?: boolean) => {
+        throw new Error('onChatNavigateToInbox not implemented')
+      },
+      onChatPreviewConversation: (_p: {
+        channelname?: string
+        conversationIDKey?: T.Chat.ConversationIDKey
+        reason?: string
+        teamname?: string
+      }) => {
+        throw new Error('onChatPreviewConversation not implemented')
+      },
+      onUsersUpdates: (_updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+        throw new Error('onUsersUpdates not implemented')
+      },
     },
     deleteChannelConfirmed: (teamID, conversationIDKey) => {
       const f = async () => {
@@ -1594,20 +1612,6 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
       ignorePromise(f())
     },
     dynamic: {
-      onChatNavigateToInbox: (_allowSwitchTab?: boolean) => {
-        throw new Error('onChatNavigateToInbox not implemented')
-      },
-      onChatPreviewConversation: (_p: {
-        channelname?: string
-        conversationIDKey?: T.Chat.ConversationIDKey
-        reason?: string
-        teamname?: string
-      }) => {
-        throw new Error('onChatPreviewConversation not implemented')
-      },
-      onUsersUpdates: (_updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-        throw new Error('onUsersUpdates not implemented')
-      },
       respondToInviteLink: undefined,
     },
     eagerLoadTeams: () => {
@@ -1748,7 +1752,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.teamIDToMembers.set(teamID, members)
           })
-          get().dispatch.dynamic.onUsersUpdates?.(
+          get().dispatch.defer.onUsersUpdates?.(
             [...members.values()].map(m => ({
               info: {fullname: m.fullName},
               name: m.username,

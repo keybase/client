@@ -179,7 +179,7 @@ const fuseStatusToActions =
     if (status.kextStarted && previousStatusType === T.FS.DriverStatusType.Disabled) {
       useFSState
         .getState()
-        .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(T.FS.stringToPath('/keybase'))
+        .dispatch.defer.openPathInSystemFileManagerDesktop?.(T.FS.stringToPath('/keybase'))
     }
   }
 
@@ -198,7 +198,7 @@ const driverEnableFuse = async (isRetry: boolean) => {
   } else {
     await T.RPCGen.installInstallKBFSRpcPromise() // restarts kbfsfuse
     await T.RPCGen.kbfsMountWaitForMountsRpcPromise()
-    useFSState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
+    useFSState.getState().dispatch.defer.refreshDriverStatusDesktop?.()
   }
 }
 
@@ -223,7 +223,7 @@ const uninstallDokanConfirm = async () => {
   }
   if (!driverStatus.dokanUninstallExecPath) {
     await uninstallDokanDialog?.()
-    useFSState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
+    useFSState.getState().dispatch.defer.refreshDriverStatusDesktop?.()
     return
   }
   useFSState.getState().dispatch.driverDisabling()
@@ -237,7 +237,7 @@ const onUninstallDokan = async () => {
   try {
     await uninstallDokan?.(execPath)
   } catch {}
-  useFSState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
+  useFSState.getState().dispatch.defer.refreshDriverStatusDesktop?.()
 }
 
 // Invoking the cached installer package has to happen from the topmost process
@@ -246,7 +246,7 @@ const onUninstallDokan = async () => {
 const onInstallCachedDokan = async () => {
   try {
     await installCachedDokan?.()
-    useFSState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
+    useFSState.getState().dispatch.defer.refreshDriverStatusDesktop?.()
   } catch (e) {
     errorToActionOrThrow(e)
   }
@@ -254,10 +254,10 @@ const onInstallCachedDokan = async () => {
 
 export const initPlatformListener = () => {
   useConfigState.setState(s => {
-    s.dispatch.dynamic.dumpLogsNative = dumpLogs
-    s.dispatch.dynamic.showMainNative = wrapErrors(() => showMainWindow?.())
-    s.dispatch.dynamic.copyToClipboard = wrapErrors((s: string) => copyToClipboard?.(s))
-    s.dispatch.dynamic.onEngineConnectedDesktop = wrapErrors(() => {
+    s.dispatch.defer.dumpLogsNative = dumpLogs
+    s.dispatch.defer.showMainNative = wrapErrors(() => showMainWindow?.())
+    s.dispatch.defer.copyToClipboard = wrapErrors((s: string) => copyToClipboard?.(s))
+    s.dispatch.defer.onEngineConnectedDesktop = wrapErrors(() => {
       // Introduce ourselves to the service
       const f = async () => {
         await T.RPCGen.configHelloIAmRpcPromise({details: KB2.constants.helloDetails})
@@ -410,7 +410,7 @@ export const initPlatformListener = () => {
   })
 
   useFSState.setState(s => {
-    s.dispatch.dynamic.uploadFromDragAndDropDesktop = wrapErrors(
+    s.dispatch.defer.uploadFromDragAndDropDesktop = wrapErrors(
       (parentPath: T.FS.Path, localPaths: string[]) => {
         const {upload} = useFSState.getState().dispatch
         const f = async () => {
@@ -428,7 +428,7 @@ export const initPlatformListener = () => {
       }
     )
 
-    s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop = wrapErrors((localPath: string) => {
+    s.dispatch.defer.openLocalPathInSystemFileManagerDesktop = wrapErrors((localPath: string) => {
       const f = async () => {
         try {
           if (getPathType) {
@@ -442,7 +442,7 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.openPathInSystemFileManagerDesktop = wrapErrors((path: T.FS.Path) => {
+    s.dispatch.defer.openPathInSystemFileManagerDesktop = wrapErrors((path: T.FS.Path) => {
       const f = async () => {
         const {sfmi, pathItems} = useFSState.getState()
         return sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled && sfmi.directMountDir
@@ -466,7 +466,7 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.refreshDriverStatusDesktop = wrapErrors(() => {
+    s.dispatch.defer.refreshDriverStatusDesktop = wrapErrors(() => {
       const f = async () => {
         let status = await T.RPCGen.installFuseStatusRpcPromise({
           bundleVersion: '',
@@ -480,7 +480,7 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.refreshMountDirsDesktop = wrapErrors(() => {
+    s.dispatch.defer.refreshMountDirsDesktop = wrapErrors(() => {
       const f = async () => {
         const {sfmi, dispatch} = useFSState.getState()
         const driverStatus = sfmi.driverStatus
@@ -495,16 +495,16 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.setSfmiBannerDismissedDesktop = wrapErrors((dismissed: boolean) => {
+    s.dispatch.defer.setSfmiBannerDismissedDesktop = wrapErrors((dismissed: boolean) => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed})
       }
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.afterDriverEnabled = wrapErrors((isRetry: boolean) => {
+    s.dispatch.defer.afterDriverEnabled = wrapErrors((isRetry: boolean) => {
       const f = async () => {
-        useFSState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
+        useFSState.getState().dispatch.defer.setSfmiBannerDismissedDesktop?.(false)
         if (isWindows) {
           await onInstallCachedDokan()
         } else {
@@ -514,9 +514,9 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.afterDriverDisable = wrapErrors(() => {
+    s.dispatch.defer.afterDriverDisable = wrapErrors(() => {
       const f = async () => {
-        useFSState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
+        useFSState.getState().dispatch.defer.setSfmiBannerDismissedDesktop?.(false)
         if (isWindows) {
           await uninstallDokanConfirm()
         } else {
@@ -526,7 +526,7 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.afterDriverDisabling = wrapErrors(() => {
+    s.dispatch.defer.afterDriverDisabling = wrapErrors(() => {
       const f = async () => {
         if (isWindows) {
           await onUninstallDokan()
@@ -537,14 +537,14 @@ export const initPlatformListener = () => {
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.openSecurityPreferencesDesktop = wrapErrors(() => {
+    s.dispatch.defer.openSecurityPreferencesDesktop = wrapErrors(() => {
       const f = async () => {
         await openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
       }
       ignorePromise(f())
     })
 
-    s.dispatch.dynamic.openFilesFromWidgetDesktop = wrapErrors((path: T.FS.Path) => {
+    s.dispatch.defer.openFilesFromWidgetDesktop = wrapErrors((path: T.FS.Path) => {
       useConfigState.getState().dispatch.showMain()
       if (path) {
         Constants.navToPath(path)
@@ -553,7 +553,7 @@ export const initPlatformListener = () => {
       }
     })
 
-    s.dispatch.dynamic.openAndUploadDesktop = wrapErrors(
+    s.dispatch.defer.openAndUploadDesktop = wrapErrors(
       (type: T.FS.OpenDialogType, parentPath: T.FS.Path) => {
         const f = async () => {
           const localPaths = await (selectFilesToUploadDialog?.(type, parentPath ?? undefined) ??
@@ -565,15 +565,15 @@ export const initPlatformListener = () => {
     )
 
     if (!isLinux) {
-      s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = wrapErrors(() => {
+      s.dispatch.defer.afterKbfsDaemonRpcStatusChanged = wrapErrors(() => {
         const {kbfsDaemonStatus, dispatch} = useFSState.getState()
         if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-          dispatch.dynamic.refreshDriverStatusDesktop?.()
+          dispatch.defer.refreshDriverStatusDesktop?.()
         }
-        dispatch.dynamic.refreshMountDirsDesktop?.()
+        dispatch.defer.refreshMountDirsDesktop?.()
       })
       // force call as it could have happened already
-      s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged()
+      s.dispatch.defer.afterKbfsDaemonRpcStatusChanged()
     }
   })
 

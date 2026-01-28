@@ -493,7 +493,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   )
   const {conversationIDKey, editingOrdinal, centeredOrdinal} = data
   const {containsLatestMessage, messageOrdinals, loaded, messageTypeMap} = data
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const _setListRef = React.useCallback((r: HTMLDivElement | null) => {
     listRef.current = r

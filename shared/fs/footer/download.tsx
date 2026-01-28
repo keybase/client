@@ -37,7 +37,7 @@ const Download = (props: Props) => {
       cancelDownload: s.dispatch.cancelDownload,
       dismissDownload: s.dispatch.dismissDownload,
       dlState: s.downloads.state.get(props.downloadID) || FS.emptyDownloadState,
-      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+      openLocalPathInSystemFileManagerDesktop: s.dispatch.defer.openLocalPathInSystemFileManagerDesktop,
     }))
   )
   const open = dlState.localPath
