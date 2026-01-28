@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {
@@ -15,8 +15,8 @@ import ChannelMemberRow from './rows'
 import BotRow from '../team/rows/bot-row/bot'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
-import {useBotsState} from '@/constants/bots'
-import {useUsersState} from '@/constants/users'
+import {useBotsState} from '@/stores/bots'
+import {useUsersState} from '@/stores/users'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID

@@ -10,8 +10,8 @@ import PublicReminder from '../banner/public-reminder'
 import Root from './root'
 import Rows from './rows/rows-container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -68,7 +68,7 @@ const DragAndDrop = React.memo(function DragAndDrop(p: {
   rejectReason?: string
 }) {
   const {children, path, rejectReason} = p
-  const uploadFromDragAndDrop = useFSState(s => s.dispatch.dynamic.uploadFromDragAndDropDesktop)
+  const uploadFromDragAndDrop = useFSState(s => s.dispatch.defer.uploadFromDragAndDropDesktop)
   const onAttach = React.useCallback(
     (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths),
     [path, uploadFromDragAndDrop]

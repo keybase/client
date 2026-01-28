@@ -6,7 +6,7 @@ import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
 import {sharedNewRoutes} from './routes'
-import {settingsAccountTab} from '@/constants/settings'
+import {settingsAccountTab} from '@/stores/settings'
 
 const settingsSubRoutes = {
   ...sharedNewRoutes,

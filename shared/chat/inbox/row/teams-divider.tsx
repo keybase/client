@@ -1,14 +1,15 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as RowSizes from './sizes'
+import type {ChatInboxRowItem} from '../rowitem'
 
 type Props = {
   hiddenCountDelta?: number
   smallTeamsExpanded: boolean
-  rows: Array<T.Chat.ChatInboxRowItem>
+  rows: Array<ChatInboxRowItem>
   showButton: boolean
   toggle: () => void
   style?: Kb.Styles.StylesCrossPlatform

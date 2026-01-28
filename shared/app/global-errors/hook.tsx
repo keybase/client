@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import type {RPCError} from '@/util/errors'
-import {settingsFeedbackTab} from '@/constants/settings/util'
-import {useDaemonState} from '@/constants/daemon'
+import {settingsFeedbackTab} from '@/constants/settings'
+import {useDaemonState} from '@/stores/daemon'
 
 export type Size = 'Closed' | 'Small' | 'Big'
 
@@ -26,7 +26,7 @@ const useData = () => {
       navigateAppend('feedback')
     }
   }, [navigateAppend, clearModals, loggedIn, setGlobalError])
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const onDismiss = React.useCallback(() => {
     setGlobalError()
   }, [setGlobalError])

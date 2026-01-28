@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import WalletPopup from './wallet-popup'
-import {useState as useWalletsState} from '@/constants/wallets'
+import {useState as useWalletsState} from '@/stores/wallets'
 
 type OwnProps = {accountID: string}
 

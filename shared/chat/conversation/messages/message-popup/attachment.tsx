@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '@/styles'
 import {useItems, useHeader} from './hooks'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -84,7 +84,7 @@ const PopAttach = (ownProps: OwnProps) => {
   const onShareAttachment = C.isMobile ? _onShareAttachment : undefined
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const _onShowInFinder = React.useCallback(() => {
     downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)

@@ -1,11 +1,11 @@
 import * as Kb from '@/common-adapters'
-import type {AcceptedInvite, PendingInvite} from '@/constants/settings-invites'
+import type {AcceptedInvite, PendingInvite} from '@/stores/settings-invites'
 import * as React from 'react'
 import SubHeading from '../subheading'
 import * as dateFns from 'date-fns'
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
-import {useState as useSettingsInvitesState} from '@/constants/settings-invites'
+import {useProfileState} from '@/stores/profile'
+import {useState as useSettingsInvitesState} from '@/stores/settings-invites'
 
 // Like intersperse but takes a function to define the separator
 function intersperseFn<A, B>(

@@ -44,6 +44,8 @@ export const waitingKeyRecoverPassword = 'recover-password:waiting'
 
 export const waitingKeyCrypto = 'cryptoWaiting'
 
+export const searchWaitingKey = 'teamBuilding:search'
+
 export const waitingKeyTeamsLoaded = 'teams:loaded'
 export const waitingKeyTeamsJoinTeam = 'teams:joinTeam'
 export const waitingKeyTeamsTeam = (teamID: T.Teams.TeamID) => `team:${teamID}`
@@ -95,6 +97,13 @@ export const waitingKeyFSFolderList = 'fs:folderList'
 export const waitingKeyFSStat = 'fs:stat'
 export const waitingKeyFSCommitEdit = 'fs:commitEditWaitingKey'
 export const waitingKeyFSSetSyncOnCellular = 'fs:setSyncOnCellular'
+
+export const loadAccountsWaitingKey = 'wallets:loadAccounts'
+
+export const currentVersion: string = '5.5.0'
+export const lastVersion: string = '5.4.0'
+export const lastLastVersion: string = '5.3.0'
+export const keybaseFM = 'Keybase FM 87.7'
 
 export const waitingKeyGitLoading = 'git:loading'
 

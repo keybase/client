@@ -3,8 +3,8 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import logger from '@/logger'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 
@@ -185,8 +185,8 @@ export const useFsWatchDownloadForMobile = C.isMobile
       const {dlState, finishedDownloadWithIntentMobile, finishedRegularDownloadMobile} = useFSState(
         C.useShallow(s => ({
           dlState: s.downloads.state.get(downloadID) || FS.emptyDownloadState,
-          finishedDownloadWithIntentMobile: s.dispatch.dynamic.finishedDownloadWithIntentMobile,
-          finishedRegularDownloadMobile: s.dispatch.dynamic.finishedRegularDownloadMobile,
+          finishedDownloadWithIntentMobile: s.dispatch.defer.finishedDownloadWithIntentMobile,
+          finishedRegularDownloadMobile: s.dispatch.defer.finishedRegularDownloadMobile,
         }))
       )
       const finished = dlState !== FS.emptyDownloadState && !FS.downloadIsOngoing(dlState)

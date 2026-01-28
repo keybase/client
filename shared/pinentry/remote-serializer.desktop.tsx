@@ -1,5 +1,5 @@
 import * as T from '@/constants/types'
-import type * as Constants from '@/constants/pinentry'
+import type * as Constants from '@/stores/pinentry'
 import {produce} from 'immer'
 
 export type ProxyProps = {

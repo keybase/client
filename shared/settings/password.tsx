@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {usePWState} from '@/constants/settings-password'
+import {usePWState} from '@/stores/settings-password'
 
 type Props = {
   error: string

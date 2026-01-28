@@ -3,10 +3,10 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import {ProxySettings} from './proxy'
-import {useSettingsState, traceInProgressKey, processorProfileInProgressKey} from '@/constants/settings'
-import {usePWState} from '@/constants/settings-password'
-import {useFSState} from '@/constants/fs'
-import {useConfigState} from '@/constants/config'
+import {useSettingsState, traceInProgressKey, processorProfileInProgressKey} from '@/stores/settings'
+import {usePWState} from '@/stores/settings-password'
+import {useFSState} from '@/stores/fs'
+import {useConfigState} from '@/stores/config'
 
 let initialUseNativeFrame: boolean | undefined
 

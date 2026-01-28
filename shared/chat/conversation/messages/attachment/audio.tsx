@@ -1,9 +1,9 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useOrdinal} from '../ids-context'
 import AudioPlayer from '@/chat/audio/audio-player'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const missingMessage = Chat.makeMessageAttachment()
 
@@ -25,7 +25,7 @@ const AudioAttachment = () => {
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message)
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)

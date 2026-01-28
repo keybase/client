@@ -1,7 +1,7 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const empty = {
   actions: [],
@@ -13,7 +13,7 @@ const Container = () => {
   const info = Chat.useChatContext(s => s.commandStatus)
   const _info = info || empty
 
-  const onOpenAppSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onOpenAppSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
   const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
   const onCancel = () => {
     setCommandStatusInfo()

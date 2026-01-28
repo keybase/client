@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useDeepLinksState} from '@/constants/deeplinks'
 
 type KeybaseLinkErrorBodyProps = {
   message: string
@@ -21,9 +20,9 @@ export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
   )
 }
 
-const KeybaseLinkError = () => {
-  const deepError = useDeepLinksState(s => s.keybaseLinkError)
-  const message = deepError
+const LinkError = (props: {error?: string}) => {
+  const error = props.error ?? 'Invalid page! (sorry)'
+  const message = error
   const isError = true
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onClose = () => navigateUp()
@@ -48,4 +47,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default KeybaseLinkError
+type OwnProps = C.ViewPropsToPageProps<typeof LinkError>
+const Screen = (p: OwnProps) => <LinkError {...p.route.params} />
+export default Screen

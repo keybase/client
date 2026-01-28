@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
+import * as Chat from '@/stores/chat2'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
@@ -9,8 +9,8 @@ import {Keyboard} from 'react-native'
 // import {DebugChatDumpContext} from '@/constants/chat2/debug'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export const HeaderAreaRight = () => {
   const conversationIDKey = Chat.useChatContext(s => s.id)

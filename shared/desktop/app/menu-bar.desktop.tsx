@@ -8,7 +8,7 @@ import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '@/local-debug'
 import {getMainWindow} from './main-window.desktop'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import type {BadgeType} from '@/constants/notifications'
+import type {BadgeType} from '@/stores/notifications'
 
 const getIcons = (iconType: BadgeType, badges: number) => {
   const size = isWindows ? 16 : 22

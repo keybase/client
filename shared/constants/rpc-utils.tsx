@@ -1,6 +1,12 @@
 import * as T from './types'
 import {uint8ArrayToString} from 'uint8array-extras'
-import {type Device} from './provision'
+
+type Device = {
+  deviceNumberOfType: number
+  id: T.Devices.DeviceID
+  name: string
+  type: T.Devices.DeviceType
+}
 
 export const bodyToJSON = (body?: Uint8Array): unknown => {
   if (!body) return undefined
@@ -27,4 +33,3 @@ export const rpcDeviceToDevice = (d: T.RPCGen.Device): Device => {
       throw new Error('Invalid device type detected: ' + type)
   }
 }
-

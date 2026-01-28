@@ -1,6 +1,6 @@
 import {defaultNotificationThreshold} from '.'
 import * as C from '@/constants'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const useFiles = () => {
   const {areSettingsLoading, setSpaceAvailableNotificationThreshold, spaceAvailableNotificationThreshold} =

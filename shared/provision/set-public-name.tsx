@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
+import * as Devices from '@/stores/devices'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
-import * as Provision from '@/constants/provision'
+import * as Provision from '@/stores/provision'
 
 const SetPublicName = () => {
   const devices = Provision.useProvisionState(s => s.devices)

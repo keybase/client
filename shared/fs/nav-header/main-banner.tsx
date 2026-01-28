@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
   onRetry: () => void

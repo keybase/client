@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
-import {useState as useRecoverState} from '@/constants/recover-password'
-import {useSignupState} from '@/constants/signup'
-import {useProvisionState} from '@/constants/provision'
+import {useState as useRecoverState} from '@/stores/recover-password'
+import {useSignupState} from '@/stores/signup'
+import {useProvisionState} from '@/stores/provision'
 
 const needPasswordError = 'passphrase cannot be empty'
 

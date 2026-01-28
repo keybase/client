@@ -1,10 +1,9 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useConfigState} from '@/constants/config'
+import * as Chat from '@/stores/chat2'
+import {useConfigState} from '@/stores/config'
 import * as React from 'react'
 import Normal from '.'
 import * as T from '@/constants/types'
-import {useActiveState} from '@/constants/active'
 import {FocusProvider, ScrollProvider} from './context'
 import {OrangeLineContext} from '../orange-line-context'
 
@@ -51,7 +50,7 @@ const useOrangeLine = () => {
 
   // just use the rpc for orange line if we're not active
   // if we are active we want to keep whatever state we had so it is maintained
-  const active = useActiveState(s => s.active)
+  const active = useConfigState(s => s.active)
   React.useEffect(() => {
     if (!active) {
       loadOrangeLine()

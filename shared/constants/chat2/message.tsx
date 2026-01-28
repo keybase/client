@@ -1,14 +1,14 @@
 // Message related constants
 import * as T from '../types'
-import * as TeamsUtil from '../teams/util'
-import type * as ConvoConstants from './convostate'
+import * as TeamsUtil from '@/constants/teams'
+import type * as ConvoConstants from '@/stores/convostate'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
-import type * as MessageTypes from '../types/chat2/message'
+import type * as MessageTypes from '@/constants/types/chat2/message'
 import type {ServiceId} from 'util/platforms'
-import {noConversationIDKey} from '../types/chat2/common'
+import {noConversationIDKey} from '@/constants/types/chat2/common'
 import invert from 'lodash/invert'
-import {isIOS, isMobile} from '../platform'
+import {isIOS, isMobile} from '@/constants/platform'
 
 const noString = new HiddenString('')
 

@@ -1,4 +1,4 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 
 export const useHooks = () => {
   const giphy = Chat.useChatContext(s => s.giphyResult)

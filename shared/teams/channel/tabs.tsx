@@ -1,7 +1,7 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {Tab as TabType} from '@/common-adapters/tabs'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 
 export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 

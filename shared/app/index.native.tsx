@@ -1,8 +1,8 @@
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useDeepLinksState} from '@/constants/deeplinks'
+import {handleAppLink} from '@/constants/deeplinks'
 import Main from './main.native'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import Animated, {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
@@ -18,9 +18,8 @@ import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useUnmountAll} from '@/util/debug-react'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
 import {install} from 'react-native-kb'
-import {useEngineState} from '@/constants/engine'
-import * as DarkMode from '@/constants/darkmode'
-import {initPlatformListener} from '@/constants/platform-specific'
+import * as DarkMode from '@/stores/darkmode'
+import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index.native'
 import logger from '@/logger'
 
 logger.info('INIT App index module load')
@@ -110,7 +109,6 @@ const StoreHelper = (p: {children: React.ReactNode}): React.ReactNode => {
   const {children} = p
   useDarkHookup()
   useKeyboardHookup()
-  const handleAppLink = useDeepLinksState(s => s.dispatch.handleAppLink)
 
   React.useEffect(() => {
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
@@ -119,7 +117,7 @@ const StoreHelper = (p: {children: React.ReactNode}): React.ReactNode => {
     return () => {
       linkingSub.remove()
     }
-  }, [handleAppLink])
+  }, [])
 
   return children
 }
@@ -139,11 +137,11 @@ const useInit = () => {
   const {batch} = C.useWaitingState.getState().dispatch
   const eng = makeEngine(batch, c => {
     if (c) {
-      useEngineState.getState().dispatch.onEngineConnected()
+      onEngineConnected()
     } else {
-      useEngineState.getState().dispatch.onEngineDisconnected()
+      onEngineDisconnected()
     }
-  })
+  }, onEngineIncoming)
   initPlatformListener()
   eng.listenersAreReady()
 

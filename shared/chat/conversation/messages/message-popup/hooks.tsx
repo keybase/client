@@ -1,11 +1,11 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
-import {useConfigState} from '@/constants/config'
-import {useProfileState} from '@/constants/profile'
-import {useCurrentUserState} from '@/constants/current-user'
+import * as Chat from '@/stores/chat2'
+import * as Teams from '@/stores/teams'
+import {useConfigState} from '@/stores/config'
+import {useProfileState} from '@/stores/profile'
+import {useCurrentUserState} from '@/stores/current-user'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
 import ReactionItem from './reactionitem'
 import MessagePopupHeader from './header'
@@ -104,7 +104,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     : []
 
   const convLabel = getConversationLabel(participantInfo, meta, true)
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const onCopyLink = React.useCallback(() => {
     copyToClipboard(linkFromConvAndMessage(convLabel, id))
   }, [copyToClipboard, id, convLabel])

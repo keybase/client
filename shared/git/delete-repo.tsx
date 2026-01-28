@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Git from '@/constants/git'
+import * as Git from '@/stores/git'
 
 type OwnProps = {id: string}
 

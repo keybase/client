@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as C from '@/constants'
-import {useDeepLinksState} from '@/constants/deeplinks'
+import {handleAppLink} from '@/constants/deeplinks'
 import * as Styles from '@/styles'
 import Channel from './channel'
 import KbfsPath from '@/fs/common/kbfs-path'
@@ -29,10 +29,9 @@ type KeybaseLinkProps = {
 }
 
 const KeybaseLink = (props: KeybaseLinkProps) => {
-  const handleAppLink = useDeepLinksState(s => s.dispatch.handleAppLink)
   const onClick = React.useCallback(() => {
     handleAppLink(props.link)
-  }, [handleAppLink, props.link])
+  }, [props.link])
 
   return (
     <Text

@@ -1,12 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat2'
+import {useProfileState} from '@/stores/profile'
+import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import Participant from './participant'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 
 type Props = {
   commonSections: ReadonlyArray<Section>

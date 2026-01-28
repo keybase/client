@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
@@ -18,7 +18,7 @@ import {
   type Section,
   type Item,
 } from './rows'
-import {useBotsState} from '@/constants/bots'
+import {useBotsState} from '@/stores/bots'
 
 type Props = {
   teamID: T.Teams.TeamID

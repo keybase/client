@@ -4,11 +4,11 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import FollowButton from './follow-button'
 import ChatButton from '@/chat/chat-button'
-import {useBotsState} from '@/constants/bots'
-import {useTrackerState} from '@/constants/tracker2'
-import * as FS from '@/constants/fs'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useBotsState} from '@/stores/bots'
+import {useTrackerState} from '@/stores/tracker2'
+import * as FS from '@/stores/fs'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {username: string}
 
@@ -28,7 +28,7 @@ const Container = (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAddToTeam = (username: string) => navigateAppend({props: {username}, selected: 'profileAddToTeam'})
   const _onBrowsePublicFolder = (username: string) =>
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/public/${username}`))
+    FS.navToPath(T.FS.stringToPath(`/keybase/public/${username}`))
   const _onEditProfile = () => navigateAppend('profileEdit')
 
   const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
@@ -39,7 +39,7 @@ const Container = (ownProps: OwnProps) => {
   const _onManageBlocking = (username: string) =>
     navigateAppend({props: {username}, selected: 'chatBlockingModal'})
   const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
+    FS.navToPath(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const _onReload = (username: string) => {
     showUser(username, false)
