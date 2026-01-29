@@ -41,6 +41,8 @@ import {useProvisionState} from '@/stores/provision'
 import {usePushState} from '@/stores/push'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useSettingsEmailState} from '@/stores/settings-email'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useSettingsState} from '@/stores/settings'
 import {useSignupState} from '@/stores/signup'
 import {useState as useRecoverPasswordState} from '@/stores/recover-password'
 import {useTeamsState} from '@/stores/teams'
@@ -373,6 +375,27 @@ export const initTracker2Callbacks = () => {
   })
 }
 
+export const initSettingsCallbacks = () => {
+  const currentState = useSettingsState.getState()
+  useSettingsState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      defer: {
+        ...currentState.dispatch.defer,
+        getSettingsPhonePhones: () => {
+          return useSettingsPhoneState.getState().phones
+        },
+        onSettingsEmailNotifyEmailsChanged: (emails: ReadonlyArray<T.RPCChat.Keybase1.Email>) => {
+          useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(emails)
+        },
+        onSettingsPhoneSetNumbers: (phoneNumbers?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => {
+          useSettingsPhoneState.getState().dispatch.setNumbers(phoneNumbers)
+        },
+      },
+    },
+  })
+}
+
 export const initSharedSubscriptions = () => {
   setOtherStores(
     storeRegistry.getStore('chat'),
@@ -651,6 +674,7 @@ export const initSharedSubscriptions = () => {
   initProfileCallbacks()
   initPushCallbacks()
   initRecoverPasswordCallbacks()
+  initSettingsCallbacks()
   initSignupCallbacks()
   initTracker2Callbacks()
 }
