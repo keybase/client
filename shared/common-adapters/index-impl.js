@@ -159,6 +159,9 @@ module.exports = {
   get Input2() {
     return require('./input2').Input2
   },
+  get SyncInput() {
+    return require('./sync-input').SyncInput
+  },
   get KeyboardAvoidingView2() {
     return require('./keyboard-avoiding-view').KeyboardAvoidingView2
   },
