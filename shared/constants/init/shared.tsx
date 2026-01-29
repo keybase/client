@@ -19,7 +19,7 @@ import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker2'
 import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
-import {createTBStore} from '@/stores/team-building'
+import {createTBStore, getTBStore} from '@/stores/team-building'
 import {getSelectedConversation} from '@/constants/chat2/common'
 import {handleKeybaseLink} from '@/constants/deeplinks'
 import {ignorePromise} from '../utils'
@@ -604,7 +604,7 @@ export const initSharedSubscriptions = () => {
         // team building or modal on top of that still
         const isTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(next)?.name
         if (!isTeamBuilding) {
-          storeRegistry.getTBStore(namespace).dispatch.cancelTeamBuilding()
+          getTBStore(namespace).dispatch.cancelTeamBuilding()
         }
       }
     }
