@@ -25,8 +25,9 @@ private struct ShareConversation: Decodable {
 }
 
 class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProtocol {
-  func donateShareConversations(with conversationsJSON: String) {
-    guard let data = conversationsJSON.data(using: .utf8),
+  func donateShareConversations(_ conversationsJSON: String?) {
+    guard let conversationsJSON = conversationsJSON,
+          let data = conversationsJSON.data(using: .utf8),
           let conversations = try? JSONDecoder().decode([ShareConversation].self, from: data),
           !conversations.isEmpty
     else {
