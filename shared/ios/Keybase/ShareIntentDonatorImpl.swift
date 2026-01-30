@@ -25,26 +25,35 @@ private struct ShareConversation: Decodable {
 }
 
 class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProtocol {
+  /// Writes to stderr (fd 2) so output appears in ios.log after Go redirects stderr to the log file.
+  /// NSLog uses os_log on iOS 10+ and does not go to stderr, so it never appears in ios.log.
+  private static func logToStderr(_ message: String) {
+    let line = "ShareIntentDonator: \(message)\n"
+    if let data = line.data(using: .utf8) {
+      FileHandle.standardError.write(data)
+    }
+  }
+
   func donateShareConversations(_ conversationsJSON: String?) {
     if conversationsJSON == nil {
-      NSLog("[ShareIntentDonator] donateShareConversations called with nil JSON")
+      Self.logToStderr("donateShareConversations called with nil JSON")
       return
     }
     guard let conversationsJSON = conversationsJSON,
           let data = conversationsJSON.data(using: .utf8)
     else {
-      NSLog("[ShareIntentDonator] donateShareConversations: failed to get data from JSON")
+      Self.logToStderr("donateShareConversations: failed to get data from JSON")
       return
     }
     guard let conversations = try? JSONDecoder().decode([ShareConversation].self, from: data) else {
-      NSLog("[ShareIntentDonator] donateShareConversations: JSON decode failed, first 200 chars: %@", String(conversationsJSON.prefix(200)))
+      Self.logToStderr("donateShareConversations: JSON decode failed, first 200 chars: \(String(conversationsJSON.prefix(200)))")
       return
     }
     guard !conversations.isEmpty else {
-      NSLog("[ShareIntentDonator] donateShareConversations: empty conversations array")
+      Self.logToStderr("donateShareConversations: empty conversations array")
       return
     }
-    NSLog("[ShareIntentDonator] donateShareConversations: donating %d conversations", conversations.count)
+    Self.logToStderr("donateShareConversations: donating \(conversations.count) conversations")
     INInteraction.deleteAll { [weak self] _ in
       self?.donateConversations(conversations)
     }
@@ -159,9 +168,9 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
 
   private func donateIntent(_ intent: INSendMessageIntent) {
     let interaction = INInteraction(intent: intent, response: nil)
-    interaction.donate { error in
+    interaction.donate { [weak self] error in
       if let error = error {
-        NSLog("[ShareIntentDonator] donateIntent failed for %@: %@", intent.conversationIdentifier ?? "?", error.localizedDescription)
+        ShareIntentDonatorImpl.logToStderr("donateIntent failed for \(intent.conversationIdentifier ?? "?"): \(error.localizedDescription)")
       }
     }
   }
