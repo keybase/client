@@ -67,9 +67,10 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
       let avatarURL2 = conv.avatarURL2
 
       let groupName = INSpeakableString(spokenPhrase: name.isEmpty ? "Keybase" : name)
+      // Note: Omitting outgoingMessageType - it can prevent suggestions from appearing on iPhone
+      // (see https://stackoverflow.com/questions/78399660)
       let intent = INSendMessageIntent(
         recipients: nil,
-        outgoingMessageType: .outgoingMessageText,
         content: nil,
         speakableGroupName: groupName,
         conversationIdentifier: convID,
@@ -92,46 +93,26 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
   }
 
   private func loadAndSetSingleAvatar(url: URL, intent: INSendMessageIntent) {
-    URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
-      if let data = data, let image = UIImage(data: data) {
+    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+      // Use Data(contentsOf:) for file URLs - more reliable than URLSession for local files
+      let data = try? Data(contentsOf: url)
+      if let data = data, UIImage(data: data) != nil {
         intent.setImage(INImage(imageData: data), forParameterNamed: \.speakableGroupName)
       } else {
         self?.setFallbackImage(intent: intent)
       }
       self?.donateIntent(intent)
-    }.resume()
+    }
   }
 
   /// Loads two avatar URLs and composites them (like frontend Avatars: two overlapping circles).
   private func loadAndSetCombinedAvatar(url1: URL, url2: URL, intent: INSendMessageIntent) {
-    let group = DispatchGroup()
-    var img1: UIImage?
-    var img2: UIImage?
-    let lock = NSLock()
-    group.enter()
-    URLSession.shared.dataTask(with: url1) { data, _, _ in
-      defer { group.leave() }
-      if let data = data, let img = UIImage(data: data) {
-        lock.lock()
-        img1 = img
-        lock.unlock()
-      }
-    }.resume()
-    group.enter()
-    URLSession.shared.dataTask(with: url2) { data, _, _ in
-      defer { group.leave() }
-      if let data = data, let img = UIImage(data: data) {
-        lock.lock()
-        img2 = img
-        lock.unlock()
-      }
-    }.resume()
-    group.notify(queue: .global(qos: .userInitiated)) { [weak self] in
+    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+      let img1 = (try? Data(contentsOf: url1)).flatMap { UIImage(data: $0) }
+      let img2 = (try? Data(contentsOf: url2)).flatMap { UIImage(data: $0) }
       var images: [UIImage] = []
-      lock.lock()
       if let i1 = img1 { images.append(i1) }
       if let i2 = img2 { images.append(i2) }
-      lock.unlock()
       let combined = self?.compositeAvatarImages(images)
       if let img = combined, let data = img.pngData() {
         intent.setImage(INImage(imageData: data), forParameterNamed: \.speakableGroupName)
