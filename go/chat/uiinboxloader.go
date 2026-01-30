@@ -522,8 +522,14 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 			// only set widget entries on desktop to the top overall convs
 			res.WidgetList = top5
 		}
+		if !h.G().IsMobileAppType() {
+			h.Debug(ctx, "buildLayout: skipping prepareShareConversations (not mobile)")
+		} else if h.G().ShareIntentDonator == nil {
+			h.Debug(ctx, "buildLayout: skipping prepareShareConversations (ShareIntentDonator nil)")
+		}
 		if h.G().IsMobileAppType() && h.G().ShareIntentDonator != nil {
 			// iOS: donate to share sheet (not in response)
+			h.Debug(ctx, "buildLayout: spawning prepareShareConversations for %d convs", len(top5))
 			go h.prepareShareConversations(ctx, top5)
 		}
 	}
@@ -535,11 +541,13 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 }
 
 func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetList []chat1.UIInboxSmallTeamRow) {
-	defer h.Trace(ctx, nil, "prepareShareConversations")()
+	defer h.Trace(ctx, nil, "prepareShareConversations(%d)", len(widgetList))()
 	donator := h.G().ShareIntentDonator
 	if donator == nil {
+		h.Debug(ctx, "prepareShareConversations: ShareIntentDonator is nil, skipping")
 		return
 	}
+	h.Debug(ctx, "prepareShareConversations: calling DonateShareConversations for %d convs", len(widgetList))
 	conversations := make([]types.ShareConversation, 0, len(widgetList))
 	for _, row := range widgetList {
 		conv := types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name}
@@ -629,6 +637,7 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 			}
 		}
 	}
+	h.Debug(ctx, "prepareShareConversations: DonateShareConversations with %d conversations", len(conversations))
 	donator.DonateShareConversations(conversations)
 }
 
