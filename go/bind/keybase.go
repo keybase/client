@@ -5,6 +5,7 @@ package keybase
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -80,8 +81,26 @@ type NativeVideoHelper interface {
 
 // ShareIntentDonator is implemented by the native iOS layer to donate INSendMessageIntent
 // for recent conversations. When nil (Android, desktop), donations are skipped.
+// Uses JSON string because gomobile does not support []struct in interface methods.
 type ShareIntentDonator interface {
-	DonateShareConversations(conversations []types.ShareConversation)
+	DonateShareConversations(conversationsJSON string)
+}
+
+// shareIntentDonatorAdapter adapts keybase.ShareIntentDonator to types.ShareIntentDonator.
+type shareIntentDonatorAdapter struct {
+	wrapped ShareIntentDonator
+}
+
+func (a shareIntentDonatorAdapter) DonateShareConversations(conversations []types.ShareConversation) {
+	if a.wrapped == nil {
+		return
+	}
+	// Serialize to JSON; gomobile does not support []struct in interface methods.
+	data, err := json.Marshal(conversations)
+	if err != nil {
+		return
+	}
+	a.wrapped.DonateShareConversations(string(data))
 }
 
 // NativeInstallReferrerListener is implemented in Java on Android.
@@ -313,7 +332,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	kbChatCtx = kbSvc.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 	if shareIntentDonator != nil {
-		kbChatCtx.ShareIntentDonator = shareIntentDonator
+		kbChatCtx.ShareIntentDonator = shareIntentDonatorAdapter{wrapped: shareIntentDonator}
 	}
 
 	logs := status.Logs{

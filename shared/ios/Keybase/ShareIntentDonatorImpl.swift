@@ -10,14 +10,34 @@ import Intents
 import Keybasego
 import UIKit
 
+private struct ShareConversation: Decodable {
+  let convID: String
+  let name: String
+  let avatarURL: String
+  let avatarURL2: String
+
+  enum CodingKeys: String, CodingKey {
+    case convID = "ConvID"
+    case name = "Name"
+    case avatarURL = "AvatarURL"
+    case avatarURL2 = "AvatarURL2"
+  }
+}
+
 class ShareIntentDonatorImpl: NSObject, KeybasegoKeybaseShareIntentDonatorProtocol {
-  func donateShareConversations(with conversations: [KeybasegoShareConversation]) {
+  func donateShareConversations(with conversationsJSON: String) {
+    guard let data = conversationsJSON.data(using: .utf8),
+          let conversations = try? JSONDecoder().decode([ShareConversation].self, from: data),
+          !conversations.isEmpty
+    else {
+      return
+    }
     INInteraction.deleteAll { [weak self] _ in
       self?.donateConversations(conversations)
     }
   }
 
-  private func donateConversations(_ conversations: [KeybasegoShareConversation]) {
+  private func donateConversations(_ conversations: [ShareConversation]) {
     for conv in conversations {
       let convID = conv.convID
       let name = conv.name
