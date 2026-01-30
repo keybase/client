@@ -33,6 +33,7 @@ type ChatContext struct {
 	ActivityNotifier     types.ActivityNotifier    // notify clients of chat of new activity
 	AttachmentUploader   types.AttachmentUploader  // upload attachments
 	NativeVideoHelper    types.NativeVideoHelper   // connection to native for doing things with video
+	ShareIntentDonator   types.ShareIntentDonator  // donate share sheet suggestions (iOS only)
 	StellarLoader        types.StellarLoader       // stellar payment/request loader
 	StellarSender        types.StellarSender       // stellar in-chat payment sender
 	StellarPushHandler   types.OobmHandler
@@ -72,6 +73,7 @@ func (c *ChatContext) Describe() string {
   ActivityNotifier: %v,
   AttachmentUploader: %v,
   NativeVideoHelper: %v,
+  ShareIntentDonator: %v,
   StellarLoader: %v,
   StellarSender: %v,
   StellarPushHandler: %v,
@@ -107,6 +109,7 @@ func (c *ChatContext) Describe() string {
 		c.ActivityNotifier != nil,
 		c.AttachmentUploader != nil,
 		c.NativeVideoHelper != nil,
+		c.ShareIntentDonator != nil,
 		c.StellarLoader != nil,
 		c.StellarSender != nil,
 		c.StellarPushHandler != nil,
