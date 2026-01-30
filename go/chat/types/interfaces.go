@@ -449,11 +449,12 @@ type NativeVideoHelper interface {
 // ShareConversation holds data for donating a conversation to the iOS share sheet.
 // For non-team DMs: AvatarURL (and optionally AvatarURL2) are participant avatars, combined in UI like frontend Avatars.
 // For teams: AvatarURL is the team avatar.
+// JSON keys must match Swift ShareIntentDonatorImpl.ShareConversation.CodingKeys.
 type ShareConversation struct {
-	ConvID     string
-	Name       string
-	AvatarURL  string // team avatar, or first participant for non-team
-	AvatarURL2 string // second participant for non-team multi-participant DM
+	ConvID     string `json:"ConvID"`
+	Name       string `json:"Name"`
+	AvatarURL  string `json:"AvatarURL"`  // team avatar, or first participant for non-team
+	AvatarURL2 string `json:"AvatarURL2"` // second participant for non-team multi-participant DM
 }
 
 // ShareIntentDonator is implemented by the native iOS layer to donate INSendMessageIntent
