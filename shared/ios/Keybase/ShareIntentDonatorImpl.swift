@@ -48,6 +48,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
       let groupName = INSpeakableString(spokenPhrase: name.isEmpty ? "Keybase" : name)
       let intent = INSendMessageIntent(
         recipients: nil,
+        outgoingMessageType: .outgoingMessageText,
         content: nil,
         speakableGroupName: groupName,
         conversationIdentifier: convID,
