@@ -197,7 +197,11 @@ type IncomingShareProps = {
   incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
 }
 
-const IncomingShare = (props: IncomingShareProps) => {
+type IncomingShareWithSelectionProps = IncomingShareProps & {
+  selectedConversationIDKey?: string
+}
+
+const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   const useOriginalValue = useConfigState(s => s.incomingShareUseOriginal)
   const {sendPaths, text} = props.incomingShareItems.reduce(
     ({sendPaths, text}, item) => {
@@ -222,7 +226,12 @@ const IncomingShare = (props: IncomingShareProps) => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
-          <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
+          <MobileSendToChat
+            isFromShareExtension={true}
+            selectedConversationIDKey={props.selectedConversationIDKey}
+            sendPaths={sendPaths}
+            text={text}
+          />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>
@@ -298,12 +307,19 @@ const useIncomingShareItems = () => {
   return {incomingShareError, incomingShareItems}
 }
 
-const IncomingShareMain = () => {
+type IncomingShareMainProps = {
+  selectedConversationIDKey?: string
+}
+
+const IncomingShareMain = (props: IncomingShareMainProps) => {
   const {incomingShareError, incomingShareItems} = useIncomingShareItems()
   return incomingShareError ? (
     <IncomingShareError />
   ) : incomingShareItems.length ? (
-    <IncomingShare incomingShareItems={incomingShareItems} />
+    <IncomingShare
+      incomingShareItems={incomingShareItems}
+      selectedConversationIDKey={props.selectedConversationIDKey}
+    />
   ) : (
     <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
       <Kb.ProgressIndicator type="Large" />

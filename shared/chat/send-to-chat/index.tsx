@@ -13,12 +13,13 @@ import {useCurrentUserState} from '@/constants/current-user'
 type Props = {
   canBack?: boolean
   isFromShareExtension?: boolean
+  selectedConversationIDKey?: T.Chat.ConversationIDKey // pre-selected from share sheet suggestion
   text?: string // incoming share (text)
   sendPaths?: Array<string> // KBFS or incoming share (files)
 }
 
 const MobileSendToChatRoutable = (props: Props) => {
-  const {canBack, isFromShareExtension, sendPaths, text} = props
+  const {canBack, isFromShareExtension, selectedConversationIDKey, sendPaths, text} = props
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => clearModals()
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -44,6 +45,7 @@ const MobileSendToChatRoutable = (props: Props) => {
       <MobileSendToChat
         canBack={canBack}
         isFromShareExtension={isFromShareExtension}
+        selectedConversationIDKey={selectedConversationIDKey}
         sendPaths={sendPaths}
         text={text}
       />
@@ -52,8 +54,9 @@ const MobileSendToChatRoutable = (props: Props) => {
 }
 
 export const MobileSendToChat = (props: Props) => {
-  const {isFromShareExtension, sendPaths, text} = props
+  const {isFromShareExtension, selectedConversationIDKey, sendPaths, text} = props
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const fileContext = useFSState(s => s.fileContext)
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
     const {dispatch} = Chat.getConvoState(conversationIDKey)
@@ -72,8 +75,37 @@ export const MobileSendToChat = (props: Props) => {
         selected: 'chatAttachmentGetTitles',
       })
     } else {
+      clearModals()
       dispatch.navigateToThread(isFromShareExtension ? 'extension' : 'files')
     }
+  }
+
+  // When pre-selected from share sheet suggestion, skip ConversationList and go directly
+  const hasSelectedRef = React.useRef(false)
+  const selectConversation = React.useCallback(
+    (conversationIDKey: T.Chat.ConversationIDKey) => {
+      if (hasSelectedRef.current) return
+      hasSelectedRef.current = true
+      const meta = Chat.getConvoState(conversationIDKey).meta
+      const tlfName = meta.conversationIDKey === conversationIDKey ? meta.tlfname : ''
+      onSelect(conversationIDKey, tlfName)
+    },
+    [onSelect]
+  )
+
+  React.useEffect(() => {
+    if (selectedConversationIDKey && T.Chat.isValidConversationIDKey(selectedConversationIDKey)) {
+      selectConversation(selectedConversationIDKey)
+    }
+  }, [selectedConversationIDKey, selectConversation])
+
+  // Show progress only while navigating; if user cancels and returns, show list
+  if (
+    selectedConversationIDKey &&
+    T.Chat.isValidConversationIDKey(selectedConversationIDKey) &&
+    !hasSelectedRef.current
+  ) {
+    return <Kb.ProgressIndicator />
   }
 
   return <ConversationList {...props} onSelect={onSelect} />

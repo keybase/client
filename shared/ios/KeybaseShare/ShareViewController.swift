@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Intents
 import UIKit
 import MobileCoreServices
 import Keybasego
@@ -16,13 +17,15 @@ import KBCommon
 public class ShareViewController: UIViewController {
   var iph: ItemProviderHelper?
   var alert: UIAlertController?
+  var selectedConvID: String?
 
   public override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
   }
 
   func openApp() {
-    guard let url = URL(string: "keybase://incoming-share") else { return }
+    let path = selectedConvID.map { "keybase://incoming-share/\($0)" } ?? "keybase://incoming-share"
+    guard let url = URL(string: path) else { return }
     var responder: UIResponder? = self
     while let r = responder {
       if r.responds(to: #selector(UIApplication.openURL(_:))) {
@@ -70,6 +73,9 @@ public class ShareViewController: UIViewController {
 
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    if let intent = extensionContext?.intent as? INSendMessageIntent {
+      selectedConvID = intent.conversationIdentifier
+    }
     let itemArrs = extensionContext?.inputItems.compactMap {
       ($0 as? NSExtensionItem)?.attachments
     } ?? []

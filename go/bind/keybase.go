@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/status"
 	"golang.org/x/sync/errgroup"
 
@@ -75,6 +76,12 @@ type PushNotifier interface {
 type NativeVideoHelper interface {
 	Thumbnail(filename string) []byte
 	Duration(filename string) int
+}
+
+// ShareIntentDonator is implemented by the native iOS layer to donate INSendMessageIntent
+// for recent conversations. When nil (Android, desktop), donations are skipped.
+type ShareIntentDonator interface {
+	DonateShareConversations(conversations []types.ShareConversation)
 }
 
 // NativeInstallReferrerListener is implemented in Java on Android.
@@ -171,9 +178,10 @@ func setInited() {
 func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
 	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool,
+	shareIntentDonator ShareIntentDonator,
 ) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS); err != nil {
+		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS, shareIntentDonator); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
@@ -183,6 +191,7 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
 	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool,
+	shareIntentDonator ShareIntentDonator,
 ) (err error) {
 	// better crash logging
 	os.Setenv("GOTRACEBACK", "crash")
@@ -303,6 +312,9 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	kbSvc.RunBackgroundOperations(uir)
 	kbChatCtx = kbSvc.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
+	if shareIntentDonator != nil {
+		kbChatCtx.ShareIntentDonator = shareIntentDonator
+	}
 
 	logs := status.Logs{
 		Service: config.GetLogFile(),
