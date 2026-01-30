@@ -19,6 +19,7 @@ import {isMobile, isPhone} from '@/constants/platform'
 import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {fixCrop} from '@/util/crop'
+import {getTBStore} from '@/stores/team-building'
 import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {type useChatState} from '@/stores/chat2'
@@ -1230,7 +1231,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           )
           if (res.notAdded && res.notAdded.length > 0) {
             const usernames = res.notAdded.map(elem => elem.username)
-            storeRegistry.getTBStore('teams').dispatch.finishedTeamBuilding()
+            getTBStore('teams').dispatch.finishedTeamBuilding()
             navigateAppend({
               props: {source: 'teamAddSomeFailed', usernames},
               selected: 'contactRestricted',
@@ -1242,7 +1243,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
             s.errorInAddToTeam = ''
           })
           if (fromTeamBuilder) {
-            storeRegistry.getTBStore('teams').dispatch.finishedTeamBuilding()
+            getTBStore('teams').dispatch.finishedTeamBuilding()
           }
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -1254,7 +1255,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
               ?.filter(elem => elem?.key === 'usernames')
               .map(elem => elem?.value)
             const usernames = users?.[0]?.split(',') ?? []
-            storeRegistry.getTBStore('teams').dispatch.finishedTeamBuilding()
+            getTBStore('teams').dispatch.finishedTeamBuilding()
             navigateAppend({
               props: {source: 'teamAddAllFailed', usernames},
               selected: 'contactRestricted',
@@ -1268,7 +1269,7 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           })
           // TODO this should not error on member already in team
           if (fromTeamBuilder) {
-            storeRegistry.getTBStore('teams').dispatch.setError(msg)
+            getTBStore('teams').dispatch.setError(msg)
           }
         }
       }

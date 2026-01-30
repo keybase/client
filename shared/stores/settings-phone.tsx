@@ -43,7 +43,7 @@ export const makePhoneError = (e: RPCError) => {
   }
 }
 
-type PhoneRow = {
+export type PhoneRow = {
   displayNumber: string
   e164: string
   searchable: boolean

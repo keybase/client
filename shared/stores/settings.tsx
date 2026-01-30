@@ -8,11 +8,11 @@ import {RPCError} from '@/util/errors'
 import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
 import {clearModals, navigateAppend, switchTab} from '@/constants/router2'
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useWaitingState} from '@/stores/waiting'
 import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings'
+import type {PhoneRow} from '@/stores/settings-phone'
 
 export * from '@/constants/settings'
 
@@ -33,8 +33,13 @@ const initialStore: Store = {
 export interface State extends Store {
   dispatch: {
     checkPassword: (password: string) => void
-    dbNuke: () => void
     clearLogs: () => void
+    dbNuke: () => void
+    defer: {
+      getSettingsPhonePhones: () => undefined | ReadonlyMap<string, PhoneRow>
+      onSettingsEmailNotifyEmailsChanged: (list: ReadonlyArray<T.RPCChat.Keybase1.Email>) => void
+      onSettingsPhoneSetNumbers: (phoneNumbers?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
+    }
     deleteAccountForever: (passphrase?: string) => void
     loadLockdownMode: () => void
     loadProxyData: () => void
@@ -52,9 +57,9 @@ export interface State extends Store {
 }
 
 let maybeLoadAppLinkOnce = false
-export const useSettingsState = Z.createZustand<State>(set => {
+export const useSettingsState = Z.createZustand<State>((set, get) => {
   const maybeLoadAppLink = () => {
-    const phones = storeRegistry.getState('settings-phone').phones
+    const phones = get().dispatch.defer.getSettingsPhonePhones()
     if (!phones || phones.size > 0) {
       return
     }
@@ -95,6 +100,17 @@ export const useSettingsState = Z.createZustand<State>(set => {
         await T.RPCGen.ctlDbNukeRpcPromise(undefined, S.waitingKeySettingsGeneric)
       }
       ignorePromise(f())
+    },
+    defer: {
+      getSettingsPhonePhones: () => {
+        throw new Error('getSettingsPhonePhones not implemented')
+      },
+      onSettingsEmailNotifyEmailsChanged: () => {
+        throw new Error('onSettingsEmailNotifyEmailsChanged not implemented')
+      },
+      onSettingsPhoneSetNumbers: () => {
+        throw new Error('onSettingsPhoneSetNumbers not implemented')
+      },
     },
     deleteAccountForever: passphrase => {
       const f = async () => {
@@ -157,10 +173,8 @@ export const useSettingsState = Z.createZustand<State>(set => {
             undefined,
             S.waitingKeySettingsLoadSettings
           )
-          storeRegistry
-            .getState('settings-email')
-            .dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
-          storeRegistry.getState('settings-phone').dispatch.setNumbers(settings.phoneNumbers ?? undefined)
+          get().dispatch.defer.onSettingsEmailNotifyEmailsChanged(settings.emails ?? [])
+          get().dispatch.defer.onSettingsPhoneSetNumbers(settings.phoneNumbers ?? undefined)
           maybeLoadAppLink()
         } catch (error) {
           if (!(error instanceof RPCError)) {

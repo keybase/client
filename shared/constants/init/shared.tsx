@@ -19,7 +19,7 @@ import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker2'
 import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
-import {createTBStore} from '@/stores/team-building'
+import {createTBStore, getTBStore} from '@/stores/team-building'
 import {getSelectedConversation} from '@/constants/chat2/common'
 import {handleKeybaseLink} from '@/constants/deeplinks'
 import {ignorePromise} from '../utils'
@@ -41,6 +41,8 @@ import {useProvisionState} from '@/stores/provision'
 import {usePushState} from '@/stores/push'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useSettingsEmailState} from '@/stores/settings-email'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useSettingsState} from '@/stores/settings'
 import {useSignupState} from '@/stores/signup'
 import {useState as useRecoverPasswordState} from '@/stores/recover-password'
 import {useTeamsState} from '@/stores/teams'
@@ -49,7 +51,7 @@ import {useUsersState} from '@/stores/users'
 import {useWhatsNewState} from '@/stores/whats-new'
 import {useRouterState} from '@/stores/router2'
 import * as Util from '@/constants/router2'
-import {setOtherStores} from '@/stores/convostate'
+import {setConvoDefer} from '@/stores/convostate'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 let _devicesLoaded = false
@@ -373,12 +375,54 @@ export const initTracker2Callbacks = () => {
   })
 }
 
+export const initSettingsCallbacks = () => {
+  const currentState = useSettingsState.getState()
+  useSettingsState.setState({
+    dispatch: {
+      ...currentState.dispatch,
+      defer: {
+        ...currentState.dispatch.defer,
+        getSettingsPhonePhones: () => {
+          return useSettingsPhoneState.getState().phones
+        },
+        onSettingsEmailNotifyEmailsChanged: (emails: ReadonlyArray<T.RPCChat.Keybase1.Email>) => {
+          useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(emails)
+        },
+        onSettingsPhoneSetNumbers: (phoneNumbers?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => {
+          useSettingsPhoneState.getState().dispatch.setNumbers(phoneNumbers)
+        },
+      },
+    },
+  })
+}
+
 export const initSharedSubscriptions = () => {
-  setOtherStores(
-    storeRegistry.getStore('chat'),
-    storeRegistry.getStore('teams'),
-    storeRegistry.getStore('users')
-  )
+  setConvoDefer({
+    chatBlockButtonsMapHas: teamID =>
+      storeRegistry.getState('chat').blockButtonsMap.has(teamID),
+    chatInboxLayoutSmallTeamsFirstConvID: () =>
+      storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID,
+    chatInboxRefresh: reason =>
+      storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
+    chatMetasReceived: metas =>
+      storeRegistry.getState('chat').dispatch.metasReceived(metas),
+    chatNavigateToInbox: () =>
+      storeRegistry.getState('chat').dispatch.navigateToInbox(),
+    chatPaymentInfoReceived: (_messageID, paymentInfo) =>
+      storeRegistry.getState('chat').dispatch.paymentInfoReceived(paymentInfo),
+    chatPreviewConversation: p =>
+      storeRegistry.getState('chat').dispatch.previewConversation(p),
+    chatResetConversationErrored: () =>
+      storeRegistry.getState('chat').dispatch.resetConversationErrored(),
+    chatUnboxRows: (convIDs, force) =>
+      storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
+    chatUpdateInfoPanel: (show, tab) =>
+      storeRegistry.getState('chat').dispatch.updateInfoPanel(show, tab),
+    teamsGetMembers: teamID =>
+      storeRegistry.getState('teams').dispatch.getMembers(teamID),
+    usersGetBio: username =>
+      storeRegistry.getState('users').dispatch.getBio(username),
+  })
   useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase !== old.loadOnStartPhase) {
       if (s.loadOnStartPhase === 'startupOrReloginButNotInARush') {
@@ -581,7 +625,7 @@ export const initSharedSubscriptions = () => {
         // team building or modal on top of that still
         const isTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(next)?.name
         if (!isTeamBuilding) {
-          storeRegistry.getTBStore(namespace).dispatch.cancelTeamBuilding()
+          getTBStore(namespace).dispatch.cancelTeamBuilding()
         }
       }
     }
@@ -651,6 +695,7 @@ export const initSharedSubscriptions = () => {
   initProfileCallbacks()
   initPushCallbacks()
   initRecoverPasswordCallbacks()
+  initSettingsCallbacks()
   initSignupCallbacks()
   initTracker2Callbacks()
 }
