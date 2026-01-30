@@ -79,11 +79,13 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
       )
 
       // Non-team multi-participant: composite AvatarURL + AvatarURL2; else single avatar
+      // Apple requires a non-nil image for share sheet suggestions to appear.
       if !avatarURL2.isEmpty, let url1 = URL(string: avatarURL), let url2 = URL(string: avatarURL2) {
         loadAndSetCombinedAvatar(url1: url1, url2: url2, intent: intent)
       } else if !avatarURL.isEmpty, let url = URL(string: avatarURL) {
         loadAndSetSingleAvatar(url: url, intent: intent)
       } else {
+        setFallbackImage(intent: intent)
         donateIntent(intent)
       }
     }
@@ -93,6 +95,8 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
     URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
       if let data = data, let image = UIImage(data: data) {
         intent.setImage(INImage(imageData: data), forParameterNamed: \.speakableGroupName)
+      } else {
+        self?.setFallbackImage(intent: intent)
       }
       self?.donateIntent(intent)
     }.resume()
@@ -131,8 +135,23 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
       let combined = self?.compositeAvatarImages(images)
       if let img = combined, let data = img.pngData() {
         intent.setImage(INImage(imageData: data), forParameterNamed: \.speakableGroupName)
+      } else {
+        self?.setFallbackImage(intent: intent)
       }
       self?.donateIntent(intent)
+    }
+  }
+
+  /// Fallback image when avatar fetch fails. Apple requires a non-nil image for share sheet suggestions.
+  private func setFallbackImage(intent: INSendMessageIntent) {
+    let size: CGFloat = 64
+    let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size))
+    let image = renderer.image { ctx in
+      UIColor.lightGray.setFill()
+      ctx.fill(CGRect(origin: .zero, size: CGSize(width: size, height: size)))
+    }
+    if let data = image.pngData() {
+      intent.setImage(INImage(imageData: data), forParameterNamed: \.speakableGroupName)
     }
   }
 
@@ -168,7 +187,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
 
   private func donateIntent(_ intent: INSendMessageIntent) {
     let interaction = INInteraction(intent: intent, response: nil)
-    interaction.donate { [weak self] error in
+    interaction.donate { error in
       if let error = error {
         ShareIntentDonatorImpl.logToStderr("donateIntent failed for \(intent.conversationIdentifier ?? "?"): \(error.localizedDescription)")
       }

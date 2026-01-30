@@ -638,6 +638,10 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 		}
 	}
 	h.Debug(ctx, "prepareShareConversations: DonateShareConversations with %d conversations", len(conversations))
+	for i, c := range conversations {
+		h.Debug(ctx, "prepareShareConversations: conv[%d] ConvID=%q Name=%q AvatarURL=%q AvatarURL2=%q",
+			i, c.ConvID, c.Name, c.AvatarURL, c.AvatarURL2)
+	}
 	donator.DonateShareConversations(conversations)
 }
 
