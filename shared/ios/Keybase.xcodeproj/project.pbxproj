@@ -10,6 +10,8 @@
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
 		07C3A80C23FF336200A75BA0 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6EE214039DA005E4864 /* AVFoundation.framework */; };
 		07C3A80D23FF33AF00A75BA0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F121403A2A005E4864 /* CoreMedia.framework */; };
+		07C3A80E23FF33C000A75BA0 /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 07C3A80F23FF33C000A75BA0 /* Intents.framework */; };
+		07C3A81023FF33C000A75BA0 /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 07C3A80F23FF33C000A75BA0 /* Intents.framework */; };
 		0C0438873E1F6630593C183F /* Pods_Keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA28E7771F0B2C0F5E8DEB81 /* Pods_Keybase.framework */; };
 		1790BEACF59E3689E320E5CB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DAA243C38335068656BC36B1 /* PrivacyInfo.xcprivacy */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
@@ -38,6 +40,7 @@
 		DBD252982DF32D5C008A43FF /* Fs.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBD252972DF32D5C008A43FF /* Fs.swift */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
 		DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDF89F52DF7779900EA18C2 /* Pusher.swift */; };
+		DBF123462DF1234500A12345 /* ShareIntentDonatorImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF123452DF1234500A12345 /* ShareIntentDonatorImpl.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,6 +71,7 @@
 		0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		005BF9961BB9C6B000BD8953 /* Keybase.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Keybase.entitlements; sourceTree = "<group>"; };
 		038BCB1F7ED871986D74D02D /* libPods-Keybase-KeybaseShare.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase-KeybaseShare.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		07C3A80F23FF33C000A75BA0 /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
 		0ABADDEB05DAE442686D300D /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
 		1038071745692610070A34DC /* Pods-Keybase For Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase For Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests.release.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -113,6 +117,7 @@
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
 		DBDF89F52DF7779900EA18C2 /* Pusher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pusher.swift; sourceTree = "<group>"; };
+		DBF123452DF1234500A12345 /* ShareIntentDonatorImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareIntentDonatorImpl.swift; sourceTree = "<group>"; };
 		F68DC40B579A1F9AC0F34950 /* Pods_KeybaseShare.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KeybaseShare.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -124,6 +129,7 @@
 				DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */,
 				DBBE59452DF394F700A74A2D /* keybasego.xcframework in Frameworks */,
 				2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */,
+				07C3A80E23FF33C000A75BA0 /* Intents.framework in Frameworks */,
 				0C0438873E1F6630593C183F /* Pods_Keybase.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -133,6 +139,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				07C3A80C23FF336200A75BA0 /* AVFoundation.framework in Frameworks */,
+				07C3A81023FF33C000A75BA0 /* Intents.framework in Frameworks */,
 				279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */,
 				279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */,
 				07C3A80D23FF33AF00A75BA0 /* CoreMedia.framework in Frameworks */,
@@ -238,6 +245,7 @@
 				279FB6F321403A49005E4864 /* MobileCoreServices.framework */,
 				279FB6F121403A2A005E4864 /* CoreMedia.framework */,
 				279FB6EE214039DA005E4864 /* AVFoundation.framework */,
+				07C3A80F23FF33C000A75BA0 /* Intents.framework */,
 				3791A8A220C71FE6001C2E86 /* UserNotifications.framework */,
 				274AFB721E972F5300615A64 /* libresolv.tbd */,
 				97CE18EF12A69D8F947E9CB1 /* libPods-Keybase For Tests.a */,
@@ -267,6 +275,7 @@
 				0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */,
 				DBD252972DF32D5C008A43FF /* Fs.swift */,
 				DBDF89F52DF7779900EA18C2 /* Pusher.swift */,
+				DBF123452DF1234500A12345 /* ShareIntentDonatorImpl.swift */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				DAA243C38335068656BC36B1 /* PrivacyInfo.xcprivacy */,
 			);
@@ -577,6 +586,7 @@
 				DBB8CC212DF336C200D43215 /* AppDelegate.swift in Sources */,
 				DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */,
 				DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */,
+				DBF123462DF1234500A12345 /* ShareIntentDonatorImpl.swift in Sources */,
 				DBD252982DF32D5C008A43FF /* Fs.swift in Sources */,
 				9E1460E4A90E8D73A7347FED /* ExpoModulesProvider.swift in Sources */,
 			);

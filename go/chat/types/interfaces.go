@@ -446,6 +446,23 @@ type NativeVideoHelper interface {
 	ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error)
 }
 
+// ShareConversation holds data for donating a conversation to the iOS share sheet.
+// For non-team DMs: AvatarURL (and optionally AvatarURL2) are participant avatars, combined in UI like frontend Avatars.
+// For teams: AvatarURL is the team avatar.
+// JSON keys must match Swift ShareIntentDonatorImpl.ShareConversation.CodingKeys.
+type ShareConversation struct {
+	ConvID     string `json:"ConvID"`
+	Name       string `json:"Name"`
+	AvatarURL  string `json:"AvatarURL"`  // team avatar, or first participant for non-team
+	AvatarURL2 string `json:"AvatarURL2"` // second participant for non-team multi-participant DM
+}
+
+// ShareIntentDonator is implemented by the native iOS layer to donate INSendMessageIntent
+// for recent conversations. When nil (Android, desktop), donations are skipped.
+type ShareIntentDonator interface {
+	DonateShareConversations(conversations []ShareConversation)
+}
+
 type StellarLoader interface {
 	LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
 	LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
