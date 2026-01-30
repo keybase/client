@@ -67,10 +67,9 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
       let avatarURL2 = conv.avatarURL2
 
       let groupName = INSpeakableString(spokenPhrase: name.isEmpty ? "Keybase" : name)
-      // Note: Omitting outgoingMessageType - it can prevent suggestions from appearing on iPhone
-      // (see https://stackoverflow.com/questions/78399660)
       let intent = INSendMessageIntent(
         recipients: nil,
+        outgoingMessageType: .outgoingMessageText,
         content: nil,
         speakableGroupName: groupName,
         conversationIdentifier: convID,
