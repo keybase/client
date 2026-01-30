@@ -12,6 +12,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useWaitingState} from '@/stores/waiting'
 import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings'
+import type {PhoneRow} from '@/stores/settings-phone'
 
 export * from '@/constants/settings'
 
@@ -35,7 +36,7 @@ export interface State extends Store {
     clearLogs: () => void
     dbNuke: () => void
     defer: {
-      getSettingsPhonePhones: () => Map<string, unknown> | undefined
+      getSettingsPhonePhones: () => undefined | ReadonlyMap<string, PhoneRow>
       onSettingsEmailNotifyEmailsChanged: (list: ReadonlyArray<T.RPCChat.Keybase1.Email>) => void
       onSettingsPhoneSetNumbers: (phoneNumbers?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
     }
