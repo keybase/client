@@ -51,7 +51,7 @@ import {useUsersState} from '@/stores/users'
 import {useWhatsNewState} from '@/stores/whats-new'
 import {useRouterState} from '@/stores/router2'
 import * as Util from '@/constants/router2'
-import {setOtherStores} from '@/stores/convostate'
+import {setConvoDefer} from '@/stores/convostate'
 
 let _emitStartupOnLoadDaemonConnectedOnce = false
 let _devicesLoaded = false
@@ -397,11 +397,32 @@ export const initSettingsCallbacks = () => {
 }
 
 export const initSharedSubscriptions = () => {
-  setOtherStores(
-    storeRegistry.getStore('chat'),
-    storeRegistry.getStore('teams'),
-    storeRegistry.getStore('users')
-  )
+  setConvoDefer({
+    chatBlockButtonsMapHas: teamID =>
+      storeRegistry.getState('chat').blockButtonsMap.has(teamID),
+    chatInboxLayoutSmallTeamsFirstConvID: () =>
+      storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID,
+    chatInboxRefresh: reason =>
+      storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
+    chatMetasReceived: metas =>
+      storeRegistry.getState('chat').dispatch.metasReceived(metas),
+    chatNavigateToInbox: () =>
+      storeRegistry.getState('chat').dispatch.navigateToInbox(),
+    chatPaymentInfoReceived: (_messageID, paymentInfo) =>
+      storeRegistry.getState('chat').dispatch.paymentInfoReceived(paymentInfo),
+    chatPreviewConversation: p =>
+      storeRegistry.getState('chat').dispatch.previewConversation(p),
+    chatResetConversationErrored: () =>
+      storeRegistry.getState('chat').dispatch.resetConversationErrored(),
+    chatUnboxRows: (convIDs, force) =>
+      storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
+    chatUpdateInfoPanel: (show, tab) =>
+      storeRegistry.getState('chat').dispatch.updateInfoPanel(show, tab),
+    teamsGetMembers: teamID =>
+      storeRegistry.getState('teams').dispatch.getMembers(teamID),
+    usersGetBio: username =>
+      storeRegistry.getState('users').dispatch.getBio(username),
+  })
   useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase !== old.loadOnStartPhase) {
       if (s.loadOnStartPhase === 'startupOrReloginButNotInARush') {
