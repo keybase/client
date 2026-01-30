@@ -26,13 +26,25 @@ private struct ShareConversation: Decodable {
 
 class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProtocol {
   func donateShareConversations(_ conversationsJSON: String?) {
-    guard let conversationsJSON = conversationsJSON,
-          let data = conversationsJSON.data(using: .utf8),
-          let conversations = try? JSONDecoder().decode([ShareConversation].self, from: data),
-          !conversations.isEmpty
-    else {
+    if conversationsJSON == nil {
+      NSLog("[ShareIntentDonator] donateShareConversations called with nil JSON")
       return
     }
+    guard let conversationsJSON = conversationsJSON,
+          let data = conversationsJSON.data(using: .utf8)
+    else {
+      NSLog("[ShareIntentDonator] donateShareConversations: failed to get data from JSON")
+      return
+    }
+    guard let conversations = try? JSONDecoder().decode([ShareConversation].self, from: data) else {
+      NSLog("[ShareIntentDonator] donateShareConversations: JSON decode failed, first 200 chars: %@", String(conversationsJSON.prefix(200)))
+      return
+    }
+    guard !conversations.isEmpty else {
+      NSLog("[ShareIntentDonator] donateShareConversations: empty conversations array")
+      return
+    }
+    NSLog("[ShareIntentDonator] donateShareConversations: donating %d conversations", conversations.count)
     INInteraction.deleteAll { [weak self] _ in
       self?.donateConversations(conversations)
     }
@@ -147,6 +159,10 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
 
   private func donateIntent(_ intent: INSendMessageIntent) {
     let interaction = INInteraction(intent: intent, response: nil)
-    interaction.donate { _ in }
+    interaction.donate { error in
+      if let error = error {
+        NSLog("[ShareIntentDonator] donateIntent failed for %@: %@", intent.conversationIdentifier ?? "?", error.localizedDescription)
+      }
+    }
   }
 }
