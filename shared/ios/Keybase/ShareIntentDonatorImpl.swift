@@ -124,14 +124,14 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
   }
 
   /// Composites avatar images like frontend Avatars: two circles overlapping in a square.
-  /// Single avatars fill the circle (aspect fill); background is transparent.
+  /// Single avatars fill the entire circle (full size, aspect fill); background is transparent.
   private func compositeAvatarImages(_ images: [UIImage]) -> UIImage? {
     guard !images.isEmpty else { return nil }
     let size: CGFloat = 192
     let circleSize = size * 0.65
     let leftRect = CGRect(origin: .zero, size: CGSize(width: circleSize, height: circleSize))
     let rightRect = CGRect(x: size - circleSize, y: size - circleSize, width: circleSize, height: circleSize)
-    let centerRect = CGRect(x: (size - circleSize) / 2, y: (size - circleSize) / 2, width: circleSize, height: circleSize)
+    let fullRect = CGRect(origin: .zero, size: CGSize(width: size, height: size))
     let format = UIGraphicsImageRendererFormat()
     format.opaque = false
     let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size), format: format)
@@ -140,12 +140,12 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
       if images.count == 1 {
         let img = images[0]
         let imgSize = img.size
-        let scale = max(circleSize / imgSize.width, circleSize / imgSize.height)
+        let scale = max(size / imgSize.width, size / imgSize.height)
         let scaledW = imgSize.width * scale
         let scaledH = imgSize.height * scale
         let drawRect = CGRect(x: (size - scaledW) / 2, y: (size - scaledH) / 2, width: scaledW, height: scaledH)
         cgContext.saveGState()
-        UIBezierPath(ovalIn: centerRect).addClip()
+        UIBezierPath(ovalIn: fullRect).addClip()
         img.draw(in: drawRect)
         cgContext.restoreGState()
       } else {
