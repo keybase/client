@@ -101,7 +101,6 @@ func (a shareIntentDonatorAdapter) DonateShareConversations(conversations []type
 		log("shareIntentDonatorAdapter: JSON marshal failed: %v", err)
 		return
 	}
-	// Log before native call so we can verify bridge invocation (Swift NSLog may not appear in Keybase log)
 	a.wrapped.DonateShareConversations(string(data))
 }
 
