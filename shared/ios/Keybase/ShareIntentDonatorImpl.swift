@@ -66,7 +66,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
       // Non-team multi-participant: composite AvatarURL + AvatarURL2; else single avatar
       // Apple requires a non-nil image for share sheet suggestions to appear.
       let urls = Self.avatarURLs(avatarURL: avatarURL, avatarURL2: avatarURL2)
-      let onReady = { [weak self] in self?.donateIntent(intent) }
+      let onReady = { [weak self] in _ = self?.donateIntent(intent) }
       if urls.isEmpty {
         setFallbackImage(intent: intent)
         onReady()
