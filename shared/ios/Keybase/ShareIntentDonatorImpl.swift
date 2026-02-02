@@ -46,7 +46,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
       return
     }
     guard let conversations = try? JSONDecoder().decode([ShareConversation].self, from: data) else {
-      Self.logToStderr("donateShareConversations: JSON decode failed, first 200 chars: \(String(conversationsJSON.prefix(200)))")
+      Self.logToStderr("donateShareConversations: JSON decode failed")
       return
     }
     guard !conversations.isEmpty else {

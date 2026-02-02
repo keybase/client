@@ -520,18 +520,11 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 				widgetList = widgetList[:5]
 			}
 			res.WidgetList = widgetList
-		}
-		if !h.G().IsMobileAppType() {
-			h.Debug(ctx, "buildLayout: skipping prepareShareConversations (not mobile)")
-		} else if h.G().ShareIntentDonator == nil {
-			h.Debug(ctx, "buildLayout: skipping prepareShareConversations (ShareIntentDonator nil)")
-		}
-		if h.G().IsMobileAppType() && h.G().ShareIntentDonator != nil {
+		} else {
 			// iOS: donate to share sheet (not in response)
 			if len(widgetList) > 3 {
 				widgetList = widgetList[:3]
 			}
-			h.Debug(ctx, "buildLayout: spawning prepareShareConversations for %d convs", len(widgetList))
 			go h.prepareShareConversations(ctx, widgetList)
 		}
 	}

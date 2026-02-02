@@ -101,14 +101,7 @@ func (a shareIntentDonatorAdapter) DonateShareConversations(conversations []type
 		return
 	}
 	// Log before native call so we can verify bridge invocation (Swift NSLog may not appear in Keybase log)
-	if kbCtx != nil && kbCtx.Log != nil {
-		kbCtx.Log.Debug("shareIntentDonatorAdapter: calling native DonateShareConversations with %d convs, %d bytes JSON", len(conversations), len(data))
-		kbCtx.Log.Debug("shareIntentDonatorAdapter: JSON payload: %s", string(data))
-	}
 	a.wrapped.DonateShareConversations(string(data))
-	if kbCtx != nil && kbCtx.Log != nil {
-		kbCtx.Log.Debug("shareIntentDonatorAdapter: native DonateShareConversations returned")
-	}
 }
 
 // NativeInstallReferrerListener is implemented in Java on Android.
