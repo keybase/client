@@ -56,6 +56,6 @@ linux-clear-test-secrets:
 GOLANGCI_RUN_OPT = --color auto
 
 golangci-lint:
-	golangci-lint run $(GOLANGCI_RUN_OPT) --timeout 15m0s ./...
+	golangci-lint run $(GOLANGCI_RUN_OPT) --timeout 30m0s ./...
 
 .PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean gen-deps golangci-lint
