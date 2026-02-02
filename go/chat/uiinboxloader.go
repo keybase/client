@@ -538,74 +538,68 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetList []chat1.UIInboxSmallTeamRow) {
 	defer h.Trace(ctx, nil, "prepareShareConversations(%d)", len(widgetList))()
 	if h.G().ShareIntentDonator == nil {
+		h.Debug(ctx, "nil ShareIntentDonator, aborting")
 		return
 	}
-	conversations := make([]types.ShareConversation, 0, len(widgetList))
-	for _, row := range widgetList {
-		conversations = append(conversations, types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name})
-	}
 	// Best-effort avatar fetch; donate without avatar on failure
-	if loader := h.G().GetAvatarLoader(); loader != nil {
-		mctx := h.G().MetaContext(ctx)
-		format := keybase1.AvatarFormat("square_192")
-		formats := []keybase1.AvatarFormat{format}
+	mctx := h.G().MetaContext(ctx)
+	format := keybase1.AvatarFormat("square_192")
+	formats := []keybase1.AvatarFormat{format}
 
-		type teamAvatarReq struct {
-			rowIdx   int
-			teamName string
-		}
-		type userAvatarReq struct {
-			rowIdx int
-			users  []string
-		}
-		var teamReqs []teamAvatarReq
-		var userReqs []userAvatarReq
-		var allUserNames []string
-		for i, row := range widgetList {
-			if row.IsTeam {
-				if name := utils.ParseTeamNameFromDisplayName(row.Name); name != "" {
-					teamReqs = append(teamReqs, teamAvatarReq{rowIdx: i, teamName: name})
-				}
-			} else {
-				users := utils.ParseParticipantNamesFromDisplayName(row.Name, 2)
-				if len(users) > 0 {
-					userReqs = append(userReqs, userAvatarReq{rowIdx: i, users: users})
-					allUserNames = append(allUserNames, users...)
-				}
+	type teamAvatarReq struct {
+		rowIdx   int
+		teamName string
+	}
+	type userAvatarReq struct {
+		rowIdx int
+		users  []string
+	}
+	var teamReqs []teamAvatarReq
+	var userReqs []userAvatarReq
+	var allTeamNames []string
+	var allUserNames []string
+	conversations := make([]types.ShareConversation, 0, len(widgetList))
+	for i, row := range widgetList {
+		conversations = append(conversations, types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name})
+
+		if row.IsTeam {
+			if name := utils.ParseTeamNameFromDisplayName(row.Name); name != "" {
+				teamReqs = append(teamReqs, teamAvatarReq{rowIdx: i, teamName: name})
+				allTeamNames = append(allTeamNames, name)
+			}
+		} else {
+			users := utils.ParseParticipantNamesFromDisplayName(row.Name, 2)
+			if len(users) > 0 {
+				userReqs = append(userReqs, userAvatarReq{rowIdx: i, users: users})
+				allUserNames = append(allUserNames, users...)
 			}
 		}
-		if len(teamReqs) > 0 {
-			teamNames := make([]string, len(teamReqs))
-			for j, r := range teamReqs {
-				teamNames[j] = r.teamName
+	}
+
+	if res, err := h.G().GetAvatarLoader().LoadTeams(mctx, allTeamNames, formats); err == nil && res.Picmap != nil {
+		for _, req := range teamReqs {
+			if pm := res.Picmap[req.teamName]; pm != nil && string(pm[format]) != "" {
+				conversations[req.rowIdx].AvatarURL = string(pm[format])
 			}
-			if res, err := loader.LoadTeams(mctx, teamNames, formats); err == nil && res.Picmap != nil {
-				for _, req := range teamReqs {
-					if pm := res.Picmap[req.teamName]; pm != nil && string(pm[format]) != "" {
-						conversations[req.rowIdx].AvatarURL = string(pm[format])
+		}
+	}
+
+	if res, err := h.G().GetAvatarLoader().LoadUsers(mctx, allUserNames, formats); err == nil && res.Picmap != nil {
+		for _, req := range userReqs {
+			var url1, url2 string
+			for j, u := range req.users {
+				if pm := res.Picmap[u]; pm != nil && string(pm[format]) != "" {
+					if j == 0 {
+						url1 = string(pm[format])
+					} else {
+						url2 = string(pm[format])
 					}
 				}
 			}
-		}
-		if len(allUserNames) > 0 {
-			if res, err := loader.LoadUsers(mctx, allUserNames, formats); err == nil && res.Picmap != nil {
-				for _, req := range userReqs {
-					var url1, url2 string
-					for j, u := range req.users {
-						if pm := res.Picmap[u]; pm != nil && string(pm[format]) != "" {
-							if j == 0 {
-								url1 = string(pm[format])
-							} else {
-								url2 = string(pm[format])
-							}
-						}
-					}
-					if url1 != "" {
-						conversations[req.rowIdx].AvatarURL = url1
-						if url2 != "" {
-							conversations[req.rowIdx].AvatarURL2 = url2
-						}
-					}
+			if url1 != "" {
+				conversations[req.rowIdx].AvatarURL = url1
+				if url2 != "" {
+					conversations[req.rowIdx].AvatarURL2 = url2
 				}
 			}
 		}
