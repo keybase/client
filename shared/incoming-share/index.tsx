@@ -225,8 +225,10 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   const selectedConversationIDKey = props.selectedConversationIDKey
   const canDirectNav =
     selectedConversationIDKey && Chat.isValidConversationIDKey(selectedConversationIDKey)
+  const hasNavigatedRef = React.useRef(false)
   React.useEffect(() => {
-    if (!canDirectNav) return
+    if (!canDirectNav || hasNavigatedRef.current) return
+    hasNavigatedRef.current = true
     const {dispatch} = Chat.getConvoState(selectedConversationIDKey!)
     text && dispatch.injectIntoInput(text)
     dispatch.navigateToThread('extension')
