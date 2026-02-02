@@ -49,6 +49,11 @@ const useScrolling = (p: {
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
+  React.useEffect(() => {
+    if (T.Chat.ordinalToNumber(centeredOrdinal) < 0) {
+      lastScrollToCentered.current = -1
+    }
+  }, [centeredOrdinal])
 
   const scrollToCentered = C.useEvent(() => {
     setTimeout(() => {
