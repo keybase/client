@@ -124,6 +124,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
   }
 
   /// Composites avatar images like frontend Avatars: two circles overlapping in a square.
+  /// Single avatars fill the circle (aspect fill); background is transparent.
   private func compositeAvatarImages(_ images: [UIImage]) -> UIImage? {
     guard !images.isEmpty else { return nil }
     let size: CGFloat = 192
@@ -131,13 +132,23 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
     let leftRect = CGRect(origin: .zero, size: CGSize(width: circleSize, height: circleSize))
     let rightRect = CGRect(x: size - circleSize, y: size - circleSize, width: circleSize, height: circleSize)
     let centerRect = CGRect(x: (size - circleSize) / 2, y: (size - circleSize) / 2, width: circleSize, height: circleSize)
-    return UIGraphicsImageRenderer(size: CGSize(width: size, height: size)).image { ctx in
-      UIColor.white.setFill()
-      ctx.fill(CGRect(origin: .zero, size: CGSize(width: size, height: size)))
+    let format = UIGraphicsImageRendererFormat()
+    format.opaque = false
+    let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size), format: format)
+    return renderer.image { ctx in
+      let cgContext = ctx.cgContext
       if images.count == 1 {
-        images[0].draw(in: centerRect)
+        let img = images[0]
+        let imgSize = img.size
+        let scale = max(circleSize / imgSize.width, circleSize / imgSize.height)
+        let scaledW = imgSize.width * scale
+        let scaledH = imgSize.height * scale
+        let drawRect = CGRect(x: (size - scaledW) / 2, y: (size - scaledH) / 2, width: scaledW, height: scaledH)
+        cgContext.saveGState()
+        UIBezierPath(ovalIn: centerRect).addClip()
+        img.draw(in: drawRect)
+        cgContext.restoreGState()
       } else {
-        let cgContext = ctx.cgContext
         cgContext.saveGState()
         UIBezierPath(ovalIn: leftRect).addClip()
         images[0].draw(in: leftRect)

@@ -544,35 +544,25 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 
 func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetList []chat1.UIInboxSmallTeamRow) {
 	defer h.Trace(ctx, nil, "prepareShareConversations(%d)", len(widgetList))()
-	donator := h.G().ShareIntentDonator
-	if donator == nil {
-		h.Debug(ctx, "prepareShareConversations: ShareIntentDonator is nil, skipping")
+	if h.G().ShareIntentDonator == nil {
 		return
 	}
-	h.Debug(ctx, "prepareShareConversations: calling DonateShareConversations for %d convs", len(widgetList))
 	conversations := make([]types.ShareConversation, 0, len(widgetList))
 	for _, row := range widgetList {
-		conv := types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name}
-		conversations = append(conversations, conv)
+		conversations = append(conversations, types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name})
 	}
 	// Best-effort avatar fetch; donate without avatar on failure
-	// Non-team: parse all participants (like frontend layoutName.split(',')) and load up to 2 avatars
-	// Team: load team avatar
 	if loader := h.G().GetAvatarLoader(); loader != nil {
 		mctx := h.G().MetaContext(ctx)
 		formats := []keybase1.AvatarFormat{keybase1.AvatarFormat("square_192")}
 
-		// Collect team avatars (one per row)
-		teamNames := make([]string, 0)
-		teamIndices := make([]int, 0)
+		// Team avatars
+		var teamNames []string
+		var teamIndices []int
 		for i, row := range widgetList {
 			if row.IsTeam {
-				teamPart := row.Name
-				if idx := strings.Index(row.Name, "#"); idx > 0 {
-					teamPart = row.Name[:idx]
-				}
-				if teamPart != "" {
-					teamNames = append(teamNames, teamPart)
+				if name := utils.ParseTeamNameFromDisplayName(row.Name); name != "" {
+					teamNames = append(teamNames, name)
 					teamIndices = append(teamIndices, i)
 				}
 			}
@@ -589,28 +579,18 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 			}
 		}
 
-		// Collect non-team participant avatars (up to 2 per row, like frontend Avatars)
+		// Non-team participant avatars (up to 2 per row)
 		type userAvatarReq struct {
 			rowIdx int
 			users  []string
 		}
 		var nonTeamReqs []userAvatarReq
-		allUserNames := make([]string, 0)
+		var allUserNames []string
 		for i, row := range widgetList {
 			if row.IsTeam {
 				continue
 			}
-			parts := strings.Split(row.Name, ",")
-			users := make([]string, 0, 2)
-			for _, p := range parts {
-				u := strings.TrimSpace(p)
-				if u != "" {
-					users = append(users, u)
-					if len(users) >= 2 {
-						break
-					}
-				}
-			}
+			users := utils.ParseParticipantNamesFromDisplayName(row.Name, 2)
 			if len(users) > 0 {
 				nonTeamReqs = append(nonTeamReqs, userAvatarReq{rowIdx: i, users: users})
 				allUserNames = append(allUserNames, users...)
@@ -639,12 +619,7 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 			}
 		}
 	}
-	h.Debug(ctx, "prepareShareConversations: DonateShareConversations with %d conversations", len(conversations))
-	for i, c := range conversations {
-		h.Debug(ctx, "prepareShareConversations: conv[%d] ConvID=%q Name=%q AvatarURL=%q AvatarURL2=%q",
-			i, c.ConvID, c.Name, c.AvatarURL, c.AvatarURL2)
-	}
-	donator.DonateShareConversations(conversations)
+	h.G().ShareIntentDonator.DonateShareConversations(conversations)
 }
 
 func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbox, err error) {
