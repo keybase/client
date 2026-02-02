@@ -1,9 +1,11 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FsCommon from '@/fs/common'
 import {MobileSendToChat} from '../chat/send-to-chat'
+import {navigateAppend} from '@/constants/router2/util'
 import {settingsFeedbackTab} from '@/constants/settings'
 import * as FS from '@/constants/fs'
 import {useFSState} from '@/constants/fs'
@@ -218,6 +220,42 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
     },
     {sendPaths: new Array<string>(), text: undefined as string | undefined}
   )
+
+  // Pre-selected conv: navToThread + attachments directly (skip MobileSendToChat)
+  const selectedConversationIDKey = props.selectedConversationIDKey
+  const canDirectNav =
+    selectedConversationIDKey && Chat.isValidConversationIDKey(selectedConversationIDKey)
+  React.useEffect(() => {
+    if (!canDirectNav) return
+    const {dispatch} = Chat.getConvoState(selectedConversationIDKey!)
+    text && dispatch.injectIntoInput(text)
+    dispatch.navigateToThread('extension')
+    if (sendPaths.length > 0) {
+      const meta = Chat.getConvoState(selectedConversationIDKey!).meta
+      const tlfName =
+        meta.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''
+      navigateAppend({
+        props: {
+          conversationIDKey: selectedConversationIDKey,
+          pathAndOutboxIDs: sendPaths.map(p => ({
+            path: Kb.Styles.normalizePath(p),
+          })),
+          selectConversationWithReason: 'extension' as const,
+          tlfName,
+        },
+        selected: 'chatAttachmentGetTitles',
+      })
+    }
+  }, [canDirectNav, selectedConversationIDKey, sendPaths, text])
+
+  if (canDirectNav) {
+    return (
+      <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
+        <Kb.ProgressIndicator type="Large" />
+      </Kb.Box2>
+    )
+  }
+
   return (
     <Kb.Modal
       noScrollView={true}
@@ -228,7 +266,6 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
         <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
           <MobileSendToChat
             isFromShareExtension={true}
-            selectedConversationIDKey={props.selectedConversationIDKey}
             sendPaths={sendPaths}
             text={text}
           />
