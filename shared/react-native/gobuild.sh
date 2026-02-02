@@ -62,13 +62,15 @@ build_gomobile() {
 if [ "$arg" = "ios" ]; then
 	ios_dir=${DEST_DIR:-"$client_dir/shared/ios"}
 	ios_dest="$ios_dir/keybasego.xcframework"
+	# Keep in sync with IPHONEOS_DEPLOYMENT_TARGET
+	ios_version="15.1"
 	echo "Building for iOS ($ios_dest)..."
 	set +e
-	OUTPUT="$(go tool gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
+	OUTPUT="$(go tool gomobile bind -target=ios -iosversion="$ios_version" -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
 	set -e
 	if [[ $OUTPUT == *gomobile* ]]; then
 		build_gomobile
-		go tool gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package"
+		go tool gomobile bind -target=ios -iosversion="$ios_version" -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package"
 	else
 		echo $OUTPUT
 	fi

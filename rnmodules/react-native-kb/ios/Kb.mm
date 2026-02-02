@@ -272,10 +272,8 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
   NSString *serverConfig = [self setupServerConfig];
   NSString *guiConfig = [self setupGuiConfig];
 
-  NSString *darkModeSupported = @"0";
-  if (@available(iOS 13.0, *)) {
-    darkModeSupported = @"1";
-  };
+  // Dark mode available since iOS 13.0; app targets iOS 15.1+
+  NSString *darkModeSupported = @"1";
 
   NSString *appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
   if (appVersionString == nil) {
