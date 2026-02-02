@@ -183,6 +183,9 @@ const Container = (ownProps: OwnProps) => {
                 ref={inputRef}
                 style={styles.input}
                 autoFocus={!Kb.Styles.isMobile}
+                onClick={e => {
+                  e.stopPropagation()
+                }}
                 autoCorrect={true}
                 placeholder={titleHint}
                 multiline={true}
