@@ -98,6 +98,7 @@ func (a shareIntentDonatorAdapter) DonateShareConversations(conversations []type
 	// Serialize to JSON; gomobile does not support []struct in interface methods.
 	data, err := json.Marshal(conversations)
 	if err != nil {
+		log("shareIntentDonatorAdapter: JSON marshal failed: %v", err)
 		return
 	}
 	// Log before native call so we can verify bridge invocation (Swift NSLog may not appear in Keybase log)

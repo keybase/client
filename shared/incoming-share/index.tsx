@@ -198,7 +198,7 @@ type IncomingShareProps = {
 }
 
 type IncomingShareWithSelectionProps = IncomingShareProps & {
-  selectedConversationIDKey?: string
+  selectedConversationIDKey?: T.Chat.ConversationIDKey
 }
 
 const IncomingShare = (props: IncomingShareWithSelectionProps) => {
@@ -308,7 +308,7 @@ const useIncomingShareItems = () => {
 }
 
 type IncomingShareMainProps = {
-  selectedConversationIDKey?: string
+  selectedConversationIDKey?: T.Chat.ConversationIDKey
 }
 
 const IncomingShareMain = (props: IncomingShareMainProps) => {
