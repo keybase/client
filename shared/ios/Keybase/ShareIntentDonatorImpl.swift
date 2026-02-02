@@ -80,45 +80,33 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
 
       // Non-team multi-participant: composite AvatarURL + AvatarURL2; else single avatar
       // Apple requires a non-nil image for share sheet suggestions to appear.
-      if !avatarURL2.isEmpty, let url1 = URL(string: avatarURL), let url2 = URL(string: avatarURL2) {
-        loadAndSetCombinedAvatar(url1: url1, url2: url2, intent: intent)
-      } else if !avatarURL.isEmpty, let url = URL(string: avatarURL) {
-        loadAndSetSingleAvatar(url: url, intent: intent)
-      } else {
+      let urls: [URL] = {
+        if !avatarURL2.isEmpty, let u1 = URL(string: avatarURL), let u2 = URL(string: avatarURL2) {
+          return [u1, u2]
+        }
+        if !avatarURL.isEmpty, let u = URL(string: avatarURL) { return [u] }
+        return []
+      }()
+      let onReady: () -> Void = { [weak self] in self?.donateIntent(intent) }
+      if urls.isEmpty {
         setFallbackImage(intent: intent)
-        donateIntent(intent)
+        onReady()
+      } else {
+        loadAvatars(urls: urls, intent: intent, completion: onReady)
       }
     }
   }
 
-  private func loadAndSetSingleAvatar(url: URL, intent: INSendMessageIntent) {
+  /// Loads avatar URL(s) and composites them. Apple requires a non-nil image for share sheet suggestions.
+  private func loadAvatars(urls: [URL], intent: INSendMessageIntent, completion: @escaping () -> Void) {
     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-      // Use Data(contentsOf:) for file URLs - more reliable than URLSession for local files
-      let data = try? Data(contentsOf: url)
-      if let data = data, UIImage(data: data) != nil {
+      let images = urls.compactMap { (try? Data(contentsOf: $0)).flatMap { UIImage(data: $0) } }
+      if let combined = self?.compositeAvatarImages(images), let data = combined.pngData() {
         intent.setImage(INImage(imageData: data), forParameterNamed: \.speakableGroupName)
       } else {
         self?.setFallbackImage(intent: intent)
       }
-      self?.donateIntent(intent)
-    }
-  }
-
-  /// Loads two avatar URLs and composites them (like frontend Avatars: two overlapping circles).
-  private func loadAndSetCombinedAvatar(url1: URL, url2: URL, intent: INSendMessageIntent) {
-    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-      let img1 = (try? Data(contentsOf: url1)).flatMap { UIImage(data: $0) }
-      let img2 = (try? Data(contentsOf: url2)).flatMap { UIImage(data: $0) }
-      var images: [UIImage] = []
-      if let i1 = img1 { images.append(i1) }
-      if let i2 = img2 { images.append(i2) }
-      let combined = self?.compositeAvatarImages(images)
-      if let img = combined, let data = img.pngData() {
-        intent.setImage(INImage(imageData: data), forParameterNamed: \.speakableGroupName)
-      } else {
-        self?.setFallbackImage(intent: intent)
-      }
-      self?.donateIntent(intent)
+      completion()
     }
   }
 
@@ -139,20 +127,17 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
   private func compositeAvatarImages(_ images: [UIImage]) -> UIImage? {
     guard !images.isEmpty else { return nil }
     let size: CGFloat = 192
-    let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size))
-    return renderer.image { ctx in
-      let cgContext = ctx.cgContext
-      let rect = CGRect(origin: .zero, size: CGSize(width: size, height: size))
+    let circleSize = size * 0.65
+    let leftRect = CGRect(origin: .zero, size: CGSize(width: circleSize, height: circleSize))
+    let rightRect = CGRect(x: size - circleSize, y: size - circleSize, width: circleSize, height: circleSize)
+    let centerRect = CGRect(x: (size - circleSize) / 2, y: (size - circleSize) / 2, width: circleSize, height: circleSize)
+    return UIGraphicsImageRenderer(size: CGSize(width: size, height: size)).image { ctx in
       UIColor.white.setFill()
-      ctx.fill(rect)
-      let circleSize: CGFloat = size * 0.65
-      let overlap: CGFloat = size * 0.35
+      ctx.fill(CGRect(origin: .zero, size: CGSize(width: size, height: size)))
       if images.count == 1 {
-        images[0].draw(in: CGRect(x: (size - circleSize) / 2, y: (size - circleSize) / 2, width: circleSize, height: circleSize))
+        images[0].draw(in: centerRect)
       } else {
-        // Two overlapping circles like frontend: left (top-left), right (bottom-right)
-        let leftRect = CGRect(x: 0, y: 0, width: circleSize, height: circleSize)
-        let rightRect = CGRect(x: size - circleSize - overlap, y: size - circleSize - overlap, width: circleSize, height: circleSize)
+        let cgContext = ctx.cgContext
         cgContext.saveGState()
         UIBezierPath(ovalIn: leftRect).addClip()
         images[0].draw(in: leftRect)
