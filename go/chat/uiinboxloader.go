@@ -514,13 +514,12 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 			}
 			return widgetList[i].Time.After(widgetList[j].Time)
 		})
-		top5 := widgetList
-		if len(widgetList) > 5 {
-			top5 = widgetList[:5]
-		}
 		if !h.G().IsMobileAppType() {
 			// only set widget entries on desktop to the top overall convs
-			res.WidgetList = top5
+			if len(widgetList) > 5 {
+				widgetList = widgetList[:5]
+			}
+			res.WidgetList = widgetList
 		}
 		if !h.G().IsMobileAppType() {
 			h.Debug(ctx, "buildLayout: skipping prepareShareConversations (not mobile)")
@@ -529,8 +528,11 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		}
 		if h.G().IsMobileAppType() && h.G().ShareIntentDonator != nil {
 			// iOS: donate to share sheet (not in response)
-			h.Debug(ctx, "buildLayout: spawning prepareShareConversations for %d convs", len(top5))
-			go h.prepareShareConversations(ctx, top5)
+			if len(widgetList) > 3 {
+				widgetList = widgetList[:3]
+			}
+			h.Debug(ctx, "buildLayout: spawning prepareShareConversations for %d convs", len(widgetList))
+			go h.prepareShareConversations(ctx, widgetList)
 		}
 	}
 	if len(btunboxes) > 0 {
