@@ -7,6 +7,7 @@
 
 import Foundation
 import Intents
+import KBCommon
 import Keybasego
 import UIKit
 
@@ -27,18 +28,18 @@ private struct ShareConversation: Decodable {
 class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProtocol {
   func donateShareConversations(_ conversationsJSON: String?) {
     guard let json = conversationsJSON, let data = json.data(using: .utf8) else {
-      NSLog("ShareIntentDonator: donateShareConversations: nil or invalid JSON")
+      kbLog("ShareIntentDonator: donateShareConversations: nil or invalid JSON")
       return
     }
     guard let conversations = try? JSONDecoder().decode([ShareConversation].self, from: data) else {
-      NSLog("ShareIntentDonator: donateShareConversations: JSON decode failed")
+      kbLog("ShareIntentDonator: donateShareConversations: JSON decode failed")
       return
     }
     guard !conversations.isEmpty else {
-      NSLog("ShareIntentDonator: donateShareConversations: empty conversations array")
+      kbLog("ShareIntentDonator: donateShareConversations: empty conversations array")
       return
     }
-    NSLog("ShareIntentDonator: donateShareConversations: donating %d conversations", conversations.count)
+    kbLog("ShareIntentDonator: donateShareConversations: donating %d conversations", conversations.count)
     INInteraction.deleteAll { [weak self] _ in
       self?.donateConversations(conversations)
     }
@@ -152,7 +153,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
     let interaction = INInteraction(intent: intent, response: nil)
     interaction.donate { error in
       if let error = error {
-        NSLog("ShareIntentDonator: donateIntent failed for %@: %@", intent.conversationIdentifier ?? "?", error.localizedDescription)
+        kbLog("ShareIntentDonator: donateIntent failed for %@: %@", intent.conversationIdentifier ?? "?", error.localizedDescription)
       }
     }
   }
