@@ -2264,14 +2264,14 @@ func ParseTeamNameFromDisplayName(displayName string) string {
 	return displayName
 }
 
-// ParseParticipantNamesFromDisplayName extracts up to max usernames from a
+// ParseParticipantNamesFromDisplayName extracts up to maxCount usernames from a
 // comma-separated display name (e.g. "alice,bob,charlie").
-func ParseParticipantNamesFromDisplayName(displayName string, max int) []string {
+func ParseParticipantNamesFromDisplayName(displayName string, maxCount int) []string {
 	var out []string
 	for _, p := range strings.Split(displayName, ",") {
 		if u := strings.TrimSpace(p); u != "" {
 			out = append(out, u)
-			if len(out) >= max {
+			if len(out) >= maxCount {
 				break
 			}
 		}
