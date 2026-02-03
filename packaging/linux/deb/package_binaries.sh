@@ -91,16 +91,6 @@ build_one_architecture() {
   mkdir -p "$sources_dir"
   echo "deb [signed-by=/usr/share/keyrings/keybase.asc] $repo_url stable main" > "$sources_dir/keybase.list"
 
-  # distro-upgrade-handling cron job (sigh...see comments within)
-  cron_file="$dest/build/etc/cron.daily/$name"
-  mkdir -p "$(dirname "$cron_file")"
-  cat "$here/cron.template" \
-    | sed "s/@@NAME@@/$name/g" \
-    | sed "s|@@REPO_URL@@|$repo_url|g" \
-    | sed "s|@@REPO_SSL_URL@@|$repo_ssl_url|g" \
-    > "$cron_file"
-  chmod 755 "$cron_file"
-
   fakeroot dpkg-deb --build "$dest/build" "$dest/$name-$version-$debian_arch.deb"
 }
 
