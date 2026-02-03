@@ -207,7 +207,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     // Initialize Go synchronously - happens during splash screen
     NSLog("Starting KeybaseInit (synchronous)...")
     var err: NSError?
-    Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
+    let shareIntentDonator = ShareIntentDonatorImpl()
+    Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, &err)
     if let err { NSLog("KeybaseInit FAILED: \(err)") }
     
     self.writeStartupTimingLog("After Go init")
@@ -285,9 +286,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       completionHandler(.newData)
       NSLog("Background fetch completed...")
     }
-  }
-
-  func application(_ application: UIApplication, didRegister notificationSettings: UIUserNotificationSettings) {
   }
 
   public override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {

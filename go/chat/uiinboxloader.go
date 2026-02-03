@@ -501,7 +501,8 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		h.Debug(ctx, "buildLayout: adding reselect info: %s", reselect)
 		res.ReselectInfo = &reselect
 	}
-	if !h.G().IsMobileAppType() {
+	// Sort widgetList by badge then time (used for desktop res.WidgetList and iOS prepareShareConversations)
+	if len(widgetList) > 0 {
 		badgeState := h.G().Badger.State()
 		sort.Slice(widgetList, func(i, j int) bool {
 			ibadged := badgeState.ConversationBadgeStr(ctx, widgetList[i].ConvID) > 0
@@ -513,11 +514,18 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 			}
 			return widgetList[i].Time.After(widgetList[j].Time)
 		})
-		// only set widget entries on desktop to the top 3 overall convs
-		if len(widgetList) > 5 {
-			res.WidgetList = widgetList[:5]
-		} else {
+		if !h.G().IsMobileAppType() {
+			// only set widget entries on desktop to the top overall convs
+			if len(widgetList) > 5 {
+				widgetList = widgetList[:5]
+			}
 			res.WidgetList = widgetList
+		} else {
+			// iOS: donate to share sheet (not in response)
+			if len(widgetList) > 3 {
+				widgetList = widgetList[:3]
+			}
+			go h.prepareShareConversations(ctx, widgetList)
 		}
 	}
 	if len(btunboxes) > 0 {
@@ -525,6 +533,78 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		h.queueBigTeamUnbox(btunboxes)
 	}
 	return res
+}
+
+func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetList []chat1.UIInboxSmallTeamRow) {
+	defer h.Trace(ctx, nil, "prepareShareConversations(%d)", len(widgetList))()
+	if h.G().ShareIntentDonator == nil {
+		h.Debug(ctx, "nil ShareIntentDonator, aborting")
+		return
+	}
+	// Best-effort avatar fetch; donate without avatar on failure
+	mctx := h.G().MetaContext(ctx)
+	format := keybase1.AvatarFormat("square_192")
+	formats := []keybase1.AvatarFormat{format}
+
+	type teamAvatarReq struct {
+		rowIdx   int
+		teamName string
+	}
+	type userAvatarReq struct {
+		rowIdx int
+		users  []string
+	}
+	var teamReqs []teamAvatarReq
+	var userReqs []userAvatarReq
+	var allTeamNames []string
+	var allUserNames []string
+	conversations := make([]types.ShareConversation, 0, len(widgetList))
+	for i, row := range widgetList {
+		conversations = append(conversations, types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name})
+
+		if row.IsTeam {
+			if name := utils.ParseTeamNameFromDisplayName(row.Name); name != "" {
+				teamReqs = append(teamReqs, teamAvatarReq{rowIdx: i, teamName: name})
+				allTeamNames = append(allTeamNames, name)
+			}
+		} else {
+			users := utils.ParseParticipantNamesFromDisplayName(row.Name, 2)
+			if len(users) > 0 {
+				userReqs = append(userReqs, userAvatarReq{rowIdx: i, users: users})
+				allUserNames = append(allUserNames, users...)
+			}
+		}
+	}
+
+	if res, err := h.G().GetAvatarLoader().LoadTeams(mctx, allTeamNames, formats); err == nil && res.Picmap != nil {
+		for _, req := range teamReqs {
+			if pm := res.Picmap[req.teamName]; pm != nil && string(pm[format]) != "" {
+				conversations[req.rowIdx].AvatarURL = string(pm[format])
+			}
+		}
+	}
+
+	if res, err := h.G().GetAvatarLoader().LoadUsers(mctx, allUserNames, formats); err == nil && res.Picmap != nil {
+		for _, req := range userReqs {
+			var url1, url2 string
+			for j, u := range req.users {
+				if pm := res.Picmap[u]; pm != nil && string(pm[format]) != "" {
+					if j == 0 {
+						url1 = string(pm[format])
+					} else {
+						url2 = string(pm[format])
+					}
+				}
+			}
+			if url1 != "" {
+				conversations[req.rowIdx].AvatarURL = url1
+				if url2 != "" {
+					conversations[req.rowIdx].AvatarURL2 = url2
+				}
+			}
+		}
+	}
+	h.G().ShareIntentDonator.DonateShareConversations(conversations)
 }
 
 func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbox, err error) {

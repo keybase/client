@@ -2255,6 +2255,30 @@ func SplitTLFName(tlfName string) []string {
 	return strings.Split(strings.Fields(tlfName)[0], ",")
 }
 
+// ParseTeamNameFromDisplayName extracts the team name from a display name.
+// For "team#channel" it returns "team"; for "team" (no channel) it returns "team".
+func ParseTeamNameFromDisplayName(displayName string) string {
+	if idx := strings.Index(displayName, "#"); idx > 0 {
+		return displayName[:idx]
+	}
+	return displayName
+}
+
+// ParseParticipantNamesFromDisplayName extracts up to maxCount usernames from a
+// comma-separated display name (e.g. "alice,bob,charlie").
+func ParseParticipantNamesFromDisplayName(displayName string, maxCount int) []string {
+	var out []string
+	for _, p := range strings.Split(displayName, ",") {
+		if u := strings.TrimSpace(p); u != "" {
+			out = append(out, u)
+			if len(out) >= maxCount {
+				break
+			}
+		}
+	}
+	return out
+}
+
 func UsernamePackageToParticipant(p libkb.UsernamePackage) chat1.ConversationLocalParticipant {
 	var fullName *string
 	if p.FullName != nil {

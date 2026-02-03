@@ -258,7 +258,13 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
         case 'incoming-share':
           // android needs to render first when coming back
           setTimeout(() => {
-            navigateAppend('incomingShareNew')
+            const selectedConversationIDKey = parts[1]
+              ? T.Chat.stringToConversationIDKey(parts[1])
+              : undefined
+            navigateAppend({
+              props: selectedConversationIDKey ? {selectedConversationIDKey} : {},
+              selected: 'incomingShareNew',
+            })
           }, 500)
           return
         case 'team-invite-link':
