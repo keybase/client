@@ -521,10 +521,6 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 			}
 			res.WidgetList = widgetList
 		} else {
-			// iOS: donate to share sheet (not in response)
-			if len(widgetList) > 3 {
-				widgetList = widgetList[:3]
-			}
 			go h.prepareShareConversations(ctx, widgetList)
 		}
 	}
@@ -558,15 +554,23 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 	var userReqs []userAvatarReq
 	var allTeamNames []string
 	var allUserNames []string
-	conversations := make([]types.ShareConversation, 0, len(widgetList))
-	for i, row := range widgetList {
-		conversations = append(conversations, types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name})
+	var conversations []types.ShareConversation
+	i := 0
+	for _, row := range widgetList {
+		// Exclude channels from share suggestions
+		if row.IsTeam && strings.Index(row.Name, "#") > 0 {
+			continue
+		}
+		if len(conversations) >= 2 {
+			// clip to 2 suggested convs
+			break
+		}
 
+		conversations = append(conversations, types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name})
+		i++
 		if row.IsTeam {
-			if name := utils.ParseTeamNameFromDisplayName(row.Name); name != "" {
-				teamReqs = append(teamReqs, teamAvatarReq{rowIdx: i, teamName: name})
-				allTeamNames = append(allTeamNames, name)
-			}
+			teamReqs = append(teamReqs, teamAvatarReq{rowIdx: i, teamName: row.Name})
+			allTeamNames = append(allTeamNames, row.Name)
 		} else {
 			users := utils.ParseParticipantNamesFromDisplayName(row.Name, 2)
 			if len(users) > 0 {
