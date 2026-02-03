@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"sort"
 	"strings"
 	"sync"
@@ -45,6 +46,10 @@ type UIInboxLoader struct {
 	// layout tracking
 	lastLayoutMu sync.Mutex
 	lastLayout   *chat1.UIInboxLayout
+
+	// share donation: skip fetch/donate when sorted convIDs unchanged
+	lastShareDonationMu   sync.Mutex
+	lastShareDonationHash uint64
 
 	// testing
 	testingLayoutForceMode bool
@@ -531,16 +536,28 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	return res
 }
 
+// hashSortedConvIDs returns a rolling hash of the sorted conversation IDs.
+// Used to skip avatar fetch and donation when the suggested set is unchanged.
+func hashSortedConvIDs(convIDs []string) uint64 {
+	if len(convIDs) == 0 {
+		return 0
+	}
+	sorted := make([]string, len(convIDs))
+	copy(sorted, convIDs)
+	sort.Strings(sorted)
+	h := fnv.New64a()
+	for _, id := range sorted {
+		h.Write([]byte(id))
+	}
+	return h.Sum64()
+}
+
 func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetList []chat1.UIInboxSmallTeamRow) {
 	defer h.Trace(ctx, nil, "prepareShareConversations(%d)", len(widgetList))()
 	if h.G().ShareIntentDonator == nil {
 		h.Debug(ctx, "nil ShareIntentDonator, aborting")
 		return
 	}
-	// Best-effort avatar fetch; donate without avatar on failure
-	mctx := h.G().MetaContext(ctx)
-	format := keybase1.AvatarFormat("square_192")
-	formats := []keybase1.AvatarFormat{format}
 
 	type teamAvatarReq struct {
 		rowIdx   int
@@ -555,6 +572,7 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 	var allTeamNames []string
 	var allUserNames []string
 	var conversations []types.ShareConversation
+	var convIDs []string
 	for _, row := range widgetList {
 		// clip to 2 suggested convs
 		if len(conversations) >= 2 {
@@ -566,6 +584,7 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 		}
 
 		conversations = append(conversations, types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name})
+		convIDs = append(convIDs, string(row.ConvID))
 		idx := len(conversations) - 1
 		if row.IsTeam {
 			teamReqs = append(teamReqs, teamAvatarReq{rowIdx: idx, teamName: row.Name})
@@ -578,6 +597,21 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 			}
 		}
 	}
+
+	hash := hashSortedConvIDs(convIDs)
+
+	h.lastShareDonationMu.Lock()
+	lastHash := h.lastShareDonationHash
+	h.lastShareDonationMu.Unlock()
+	if hash == lastHash && lastHash != 0 {
+		h.Debug(ctx, "prepareShareConversations: same conv set (hash %x), skipping donate", hash)
+		return
+	}
+
+	// Best-effort avatar fetch; donate without avatar on failure
+	mctx := h.G().MetaContext(ctx)
+	format := keybase1.AvatarFormat("square_192")
+	formats := []keybase1.AvatarFormat{format}
 
 	if res, err := h.G().GetAvatarLoader().LoadTeams(mctx, allTeamNames, formats); err == nil && res.Picmap != nil {
 		for _, req := range teamReqs {
@@ -607,7 +641,12 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 			}
 		}
 	}
+
 	h.G().ShareIntentDonator.DonateShareConversations(conversations)
+
+	h.lastShareDonationMu.Lock()
+	h.lastShareDonationHash = hash
+	h.lastShareDonationMu.Unlock()
 }
 
 func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbox, err error) {

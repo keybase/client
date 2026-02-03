@@ -2,10 +2,14 @@ package chat
 
 import (
 	"encoding/json"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -280,4 +284,204 @@ func TestUIInboxLoaderReselect(t *testing.T) {
 	require.NotNil(t, layout.ReselectInfo)
 	require.NotNil(t, layout.ReselectInfo.NewConvID)
 	require.Equal(t, conv1.Id.ConvIDStr(), *layout.ReselectInfo.NewConvID)
+}
+
+// TestHashSortedConvIDs verifies the rolling hash is order-independent and stable.
+func TestHashSortedConvIDs(t *testing.T) {
+	// Empty slice => 0
+	require.Equal(t, uint64(0), hashSortedConvIDs(nil))
+	require.Equal(t, uint64(0), hashSortedConvIDs([]string{}))
+
+	// Same set in different order => same hash
+	a, b := "convA", "convB"
+	h1 := hashSortedConvIDs([]string{a, b})
+	h2 := hashSortedConvIDs([]string{b, a})
+	require.Equal(t, h1, h2, "hash should be order-independent")
+
+	// Different sets => different hashes
+	h3 := hashSortedConvIDs([]string{"convC"})
+	require.NotEqual(t, h1, h3)
+	require.NotEqual(t, hashSortedConvIDs([]string{"x"}), hashSortedConvIDs([]string{"y"}))
+}
+
+// mockShareDonator records donated conversations for tests.
+type mockShareDonator struct {
+	mu    sync.Mutex
+	calls [][]types.ShareConversation
+}
+
+func (m *mockShareDonator) DonateShareConversations(conversations []types.ShareConversation) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	// Copy so caller can't mutate after the fact
+	dup := make([]types.ShareConversation, len(conversations))
+	copy(dup, conversations)
+	m.calls = append(m.calls, dup)
+}
+
+func (m *mockShareDonator) getCalls() [][]types.ShareConversation {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	out := make([][]types.ShareConversation, len(m.calls))
+	for i, c := range m.calls {
+		out[i] = c
+	}
+	return out
+}
+
+func (m *mockShareDonator) reset() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.calls = nil
+}
+
+// noopAvatarLoader implements AvatarLoaderSource but returns empty results (no avatars).
+type noopAvatarLoader struct{}
+
+func (noopAvatarLoader) LoadUsers(_ libkb.MetaContext, _ []string, _ []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error) {
+	return keybase1.LoadAvatarsRes{Picmap: nil}, nil
+}
+
+func (noopAvatarLoader) LoadTeams(_ libkb.MetaContext, _ []string, _ []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error) {
+	return keybase1.LoadAvatarsRes{Picmap: nil}, nil
+}
+
+func (noopAvatarLoader) ClearCacheForName(_ libkb.MetaContext, _ string, _ []keybase1.AvatarFormat) error {
+	return nil
+}
+func (noopAvatarLoader) OnDbNuke(_ libkb.MetaContext) error       { return nil }
+func (noopAvatarLoader) StartBackgroundTasks(_ libkb.MetaContext) {}
+func (noopAvatarLoader) StopBackgroundTasks(_ libkb.MetaContext)  {}
+
+func TestPrepareShareConversations(t *testing.T) {
+	useRemoteMock = true
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestPrepareShareConversations", 1)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	ctx := ctc.as(t, users[0]).startCtx
+	tc := ctc.world.Tcs[users[0].Username]
+	// Build a context that has ShareIntentDonator and an avatar loader so prepareShareConversations runs fully.
+	donator := &mockShareDonator{}
+	chatG := *tc.ChatG
+	chatG.ShareIntentDonator = donator
+	g := globals.NewContext(tc.G, &chatG)
+	tc.G.SetAvatarLoader(noopAvatarLoader{})
+
+	loader := NewUIInboxLoader(g)
+
+	row := func(convID, name string, isTeam bool) chat1.UIInboxSmallTeamRow {
+		return chat1.UIInboxSmallTeamRow{
+			ConvID: chat1.ConvIDStr(convID),
+			Name:   name,
+			Time:   gregor1.Time(0),
+			IsTeam: isTeam,
+		}
+	}
+
+	t.Run("nil donator skips", func(t *testing.T) {
+		gNoDonator := globals.NewContext(tc.G, &globals.ChatContext{})
+		h := NewUIInboxLoader(gNoDonator)
+		h.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
+			row("id1", "alice", false),
+		})
+		// No panic; donator is nil so we exit early (no way to assert except no crash)
+	})
+
+	t.Run("donates up to 2 convs with correct names", func(t *testing.T) {
+		donator.reset()
+		loader.lastShareDonationMu.Lock()
+		loader.lastShareDonationHash = 0
+		loader.lastShareDonationMu.Unlock()
+
+		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
+			row("id1", "alice", false),
+			row("id2", "bob", false),
+		})
+		calls := donator.getCalls()
+		require.Len(t, calls, 1)
+		require.Len(t, calls[0], 2)
+		require.Equal(t, "id1", calls[0][0].ConvID)
+		require.Equal(t, "alice", calls[0][0].Name)
+		require.Equal(t, "id2", calls[0][1].ConvID)
+		require.Equal(t, "bob", calls[0][1].Name)
+	})
+
+	t.Run("excludes channels from suggestions", func(t *testing.T) {
+		donator.reset()
+		loader.lastShareDonationMu.Lock()
+		loader.lastShareDonationHash = 0
+		loader.lastShareDonationMu.Unlock()
+
+		// Team with # in name (channel) is skipped; only DM appears
+		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
+			row("team#general", "team#general", true),
+			row("id1", "alice", false),
+			row("id2", "bob", false),
+			row("id3", "charlie", false),
+		})
+		calls := donator.getCalls()
+		require.Len(t, calls, 1)
+		require.Len(t, calls[0], 2)
+		require.Equal(t, "id1", calls[0][0].ConvID)
+		require.Equal(t, "alice", calls[0][0].Name)
+		require.Equal(t, "id2", calls[0][1].ConvID)
+		require.Equal(t, "bob", calls[0][1].Name)
+	})
+
+	t.Run("caps at 2 suggested convs", func(t *testing.T) {
+		donator.reset()
+		loader.lastShareDonationMu.Lock()
+		loader.lastShareDonationHash = 0
+		loader.lastShareDonationMu.Unlock()
+
+		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
+			row("id1", "alice", false),
+			row("id2", "bob", false),
+			row("id3", "charlie", false),
+		})
+		calls := donator.getCalls()
+		require.Len(t, calls, 1)
+		require.Len(t, calls[0], 2)
+		require.Equal(t, "id1", calls[0][0].ConvID)
+		require.Equal(t, "id2", calls[0][1].ConvID)
+	})
+
+	t.Run("same conv set skips second donate", func(t *testing.T) {
+		donator.reset()
+		loader.lastShareDonationMu.Lock()
+		loader.lastShareDonationHash = 0
+		loader.lastShareDonationMu.Unlock()
+
+		widgetList := []chat1.UIInboxSmallTeamRow{
+			row("id1", "alice", false),
+			row("id2", "bob", false),
+		}
+		loader.prepareShareConversations(ctx, widgetList)
+		loader.prepareShareConversations(ctx, widgetList)
+		calls := donator.getCalls()
+		require.Len(t, calls, 1, "second call with same conv set should skip donate")
+		require.Len(t, calls[0], 2)
+	})
+
+	t.Run("different conv set donates again", func(t *testing.T) {
+		donator.reset()
+		loader.lastShareDonationMu.Lock()
+		loader.lastShareDonationHash = 0
+		loader.lastShareDonationMu.Unlock()
+
+		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
+			row("id1", "alice", false),
+		})
+		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
+			row("id2", "bob", false),
+		})
+		calls := donator.getCalls()
+		require.Len(t, calls, 2)
+		require.Len(t, calls[0], 1)
+		require.Equal(t, "id1", calls[0][0].ConvID)
+		require.Len(t, calls[1], 1)
+		require.Equal(t, "id2", calls[1][0].ConvID)
+	})
 }
