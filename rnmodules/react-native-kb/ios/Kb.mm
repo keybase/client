@@ -461,7 +461,9 @@ RCT_EXPORT_METHOD(setApplicationIconBadgeNumber: (double)badgeNumber) {
 
 RCT_EXPORT_METHOD(getInitialNotification: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
   if (kbInitialNotification) {
-    resolve(kbInitialNotification);
+    NSDictionary *notification = kbInitialNotification;
+    kbInitialNotification = nil;
+    resolve(notification);
   } else {
     resolve([NSNull null]);
   }

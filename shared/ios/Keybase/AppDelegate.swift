@@ -424,6 +424,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       if userInteraction {
         NSLog("applicationDidBecomeActive: stored notification has userInteraction=true, emitting")
         KbEmitPushNotification(storedNotification)
+        KbSetInitialNotification(storedNotification)
       } else {
         NSLog("applicationDidBecomeActive: stored notification has userInteraction=false, skipping")
       }
