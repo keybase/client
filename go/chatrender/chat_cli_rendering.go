@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/flexibletable"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -147,18 +148,14 @@ func (v ConversationListView) convNameLite(g *libkb.GlobalContext, convErr chat1
 // before we get to parsing out readers and writers (which itself does more
 // identifying). Instead we get an untrusted TLF name string, and we have the
 // visibility. Cobble together a poor man's conversation name from those, by
-// hacking out the current user's name. This should only be displayed next to
-// an indication that it's unverified.
+// stripping the current user's name when it appears as a complete segment
+// (so e.g. "zoommikem" is not corrupted when removing "mikem").
 func formatUnverifiedConvName(unverifiedTLFName string, visibility keybase1.TLFVisibility, myUsername string) string {
-	// Strip the user's name out if it's got a comma next to it. (Two cases to
-	// handle: leading and trailing.) This both takes care of dangling commas,
-	// and preserves the user's name if it's by itself.
-	strippedTLFName := strings.ReplaceAll(unverifiedTLFName, ","+myUsername, "")
-	strippedTLFName = strings.ReplaceAll(strippedTLFName, myUsername+",", "")
+	unverifiedTLFName = utils.StripUsernameFromConvName(unverifiedTLFName, myUsername)
 	if visibility == keybase1.TLFVisibility_PUBLIC {
-		return publicConvNamePrefix + strippedTLFName
+		return publicConvNamePrefix + unverifiedTLFName
 	}
-	return strippedTLFName
+	return unverifiedTLFName
 }
 
 func without(g *libkb.GlobalContext, slice []string, el string) (res []string) {

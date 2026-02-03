@@ -1315,10 +1315,21 @@ func GetDesktopNotificationSnippet(ctx context.Context, g *globals.Context,
 	}
 }
 
+// StripUsernameFromConvName removes the current user from a comma-separated display name.
+// It only removes the username when it appears as a complete segment (e.g. "alice,mikem,bob" -> "alice,bob"),
+// so that names like "zoommikem" are not corrupted.
 func StripUsernameFromConvName(name string, username string) (res string) {
-	res = strings.ReplaceAll(name, fmt.Sprintf(",%s", username), "")
-	res = strings.ReplaceAll(res, fmt.Sprintf("%s,", username), "")
-	return res
+	if name == username || username == "" {
+		return name
+	}
+	parts := strings.Split(name, ",")
+	var out []string
+	for _, p := range parts {
+		if strings.TrimSpace(p) != username {
+			out = append(out, p)
+		}
+	}
+	return strings.Join(out, ",")
 }
 
 func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.RemoteConversation,

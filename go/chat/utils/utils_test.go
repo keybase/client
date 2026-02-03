@@ -1085,3 +1085,19 @@ func TestSearchableRemoteConversationName(t *testing.T) {
 	require.Equal(t, "joshblum,zoommikem,zoomua",
 		searchableRemoteConversationNameFromStr("joshblum,zoommikem,mikem,zoomua,mikem", "mikem"))
 }
+
+func TestStripUsernameFromConvName(t *testing.T) {
+	// Only the username as a complete segment is removed; "mikem" inside "zoommikem" must not be stripped
+	require.Equal(t, "joshblum,zoommikem,zoomua",
+		StripUsernameFromConvName("joshblum,zoommikem,mikem,zoomua", "mikem"))
+	require.Equal(t, "zoommikem,zoomua",
+		StripUsernameFromConvName("zoommikem,mikem,zoomua", "mikem"))
+	require.Equal(t, "alice,bob",
+		StripUsernameFromConvName("alice,charlie,bob", "charlie"))
+	require.Equal(t, "alice",
+		StripUsernameFromConvName("alice,bob", "bob"))
+	require.Equal(t, "bob",
+		StripUsernameFromConvName("alice,bob", "alice"))
+	require.Equal(t, "alice,bob",
+		StripUsernameFromConvName("alice,bob", "charlie"))
+}
