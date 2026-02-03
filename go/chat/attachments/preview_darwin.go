@@ -4,7 +4,7 @@
 package attachments
 
 /*
-#cgo CFLAGS: -x objective-c -fobjc-arc
+#cgo CFLAGS: -x objective-c -fobjc-arc -Werror=unguarded-availability-new
 #cgo LDFLAGS: -framework AVFoundation -framework CoreFoundation -framework ImageIO -framework CoreMedia -framework Foundation -framework CoreGraphics -framework AppKit -framework UniformTypeIdentifiers -lobjc
 
 #include <TargetConditionals.h>
