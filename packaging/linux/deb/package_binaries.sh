@@ -81,6 +81,16 @@ build_one_architecture() {
     > "$postinst_file"
   chmod 755 "$postinst_file"
 
+  # Copy keyring in
+  keyrings_dir = "$dest/build/usr/share/keyrings"
+  mkdir -p "$keyrings_dir"
+  cp "$here/../../code_signing_key_pub.asc" "$keyrings_dir/keybase.asc"
+
+  # Create sources file for deb repository
+  sources_dir = "$dest/build/etc/apt/sources.list.d"
+  mkdir -p "$sources_dir"
+  echo "deb [signed-by=/usr/share/keyrings/keybase.asc] $repo_url stable main" > "$sources_dir/keybase.list"
+
   # distro-upgrade-handling cron job (sigh...see comments within)
   cron_file="$dest/build/etc/cron.daily/$name"
   mkdir -p "$(dirname "$cron_file")"
