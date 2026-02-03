@@ -323,9 +323,7 @@ func (m *mockShareDonator) getCalls() [][]types.ShareConversation {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	out := make([][]types.ShareConversation, len(m.calls))
-	for i, c := range m.calls {
-		out[i] = c
-	}
+	copy(out, m.calls)
 	return out
 }
 
