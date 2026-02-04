@@ -430,7 +430,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
           KbEmitPushNotification(storedNotification)
           var copy = Dictionary(uniqueKeysWithValues: storedNotification.map { (String(describing: $0.key), $0.value) })
           copy["reEmittedInBecomeActive"] = true
-          KbSetInitialNotification(copy as NSDictionary)
+          KbSetInitialNotification(copy as NSDictionary as! [AnyHashable : Any])
         }
       } else {
         NSLog("applicationDidBecomeActive: stored notification has userInteraction=false, skipping")
