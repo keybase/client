@@ -223,8 +223,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
 
   // Pre-selected conv: navToThread + attachments directly (skip MobileSendToChat)
   const selectedConversationIDKey = props.selectedConversationIDKey
-  const canDirectNav =
-    selectedConversationIDKey && Chat.isValidConversationIDKey(selectedConversationIDKey)
+  const canDirectNav = selectedConversationIDKey && Chat.isValidConversationIDKey(selectedConversationIDKey)
   const hasNavigatedRef = React.useRef(false)
   React.useEffect(() => {
     if (!canDirectNav || hasNavigatedRef.current) return
@@ -234,8 +233,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
     dispatch.navigateToThread('extension')
     if (sendPaths.length > 0) {
       const meta = Chat.getConvoState(selectedConversationIDKey!).meta
-      const tlfName =
-        meta.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''
+      const tlfName = meta.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''
       navigateAppend({
         props: {
           conversationIDKey: selectedConversationIDKey,
@@ -250,6 +248,9 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
     }
   }, [canDirectNav, selectedConversationIDKey, sendPaths, text])
 
+  const header = useHeader(props.incomingShareItems)
+  const footer = useFooter(props.incomingShareItems)
+
   if (canDirectNav) {
     return (
       <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
@@ -259,18 +260,10 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   }
 
   return (
-    <Kb.Modal
-      noScrollView={true}
-      header={useHeader(props.incomingShareItems)}
-      footer={useFooter(props.incomingShareItems)}
-    >
+    <Kb.Modal noScrollView={true} header={header} footer={footer}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
-          <MobileSendToChat
-            isFromShareExtension={true}
-            sendPaths={sendPaths}
-            text={text}
-          />
+          <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>
