@@ -7,7 +7,7 @@ import {useSettingsState} from '@/constants/settings'
 const Notifications = () => {
   const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
   const refresh = useSettingsNotifState(s => s.dispatch.refresh)
-  const onRefresh = () => {
+  const onReload = () => {
     loadSettings()
     refresh()
   }
@@ -15,7 +15,7 @@ const Notifications = () => {
     <Reloadable
       onBack={undefined}
       waitingKeys={[C.refreshNotificationsWaitingKey, C.waitingKeySettingsLoadSettings]}
-      onReload={onRefresh}
+      onReload={onReload}
       reloadOnMount={true}
     >
       <Render />
