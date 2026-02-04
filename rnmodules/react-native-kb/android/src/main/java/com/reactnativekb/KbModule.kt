@@ -103,6 +103,10 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     override fun removeListeners(count: Double) {
     }
 
+    @ReactMethod
+    override fun clearLocalLogs(promise: Promise) {
+        promise.resolve(null)
+    }
 
     @ReactMethod
     override fun setEnablePasteImage(enabled: Boolean) {
