@@ -3,7 +3,7 @@ apply plugin: "com.facebook.react"
 apply plugin: 'com.github.triplet.play'
 
 // KB: app version
-def VERSION_NAME = "6.5.4"
+def VERSION_NAME = "6.5.5"
 
 // KB: Number of commits, like ios
 Integer getVersionCode() {
