@@ -80,7 +80,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   // For boosting the list to scroll not behind the popup on mobile
   const [height, setHeight] = React.useState(0)
   const {bottom} = Kb.useSafeAreaInsets()
-  if (!onSelectableTab || (Kb.Styles.isMobile && !selectedCount) || !focused) {
+  if (!onSelectableTab || !selectedCount || !focused) {
     return null
   }
   const popup = (
