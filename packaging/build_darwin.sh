@@ -19,6 +19,10 @@ else
   # Build both architectures
   "$client_dir/packaging/slack/send.sh" "Starting darwin build"
   ARCH="amd64" PLATFORM="darwin" "$client_dir/packaging/prerelease/pull_build.sh"
+
+  # Clean repo between arch builds
+  cd "$client_dir" && git reset --hard && git clean -fd
+
   # NOTE: We build the arm64 version second to get a later timestamp, so it will
   # be presented as a later version to your updater. This allows the one-time
   # upgrading from the x86 build to the arm64 one.
