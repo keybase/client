@@ -1,3 +1,2 @@
-macOS:
-
-• Fix the KBFS mount to work on macOS 26 (Tahoe).
+• Fix minor chat bugs.
+• Fix option to include transcripts on chat reports.

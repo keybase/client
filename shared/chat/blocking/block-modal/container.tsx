@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Constants from '@/constants/users'
 import * as React from 'react'
-import BlockModal, {type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings} from '.'
+import BlockModal, { type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings } from '.'
 
 type OwnProps = {
   blockUserByDefault?: boolean
@@ -16,7 +16,7 @@ type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {context, conversationIDKey} = ownProps
+  const { context, conversationIDKey } = ownProps
   const teamname = ownProps.team
   const blockUserByDefault = ownProps.blockUserByDefault ?? false
   const filterUserByDefault = ownProps.filterUserByDefault ?? false
@@ -39,7 +39,7 @@ const Container = (ownProps: OwnProps) => {
     adderUsername,
     blockUserByDefault,
     context,
-    conversationIDKey,
+    convID: conversationIDKey,
     filterUserByDefault,
     finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
     flagUserByDefault,
@@ -104,11 +104,11 @@ const Container = (ownProps: OwnProps) => {
     onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean) => {
       let takingAction = false
       if (blockTeam) {
-        const {teamname} = stateProps
+        const { teamname } = stateProps
         if (teamname) {
           takingAction = true
           leaveTeamAndBlock(teamname)
-        } else if (stateProps.conversationIDKey) {
+        } else if (stateProps.convID) {
           takingAction = true
           const anyReported = [...newBlocks.values()].some(v => v.report !== undefined)
           setConversationStatus(anyReported)
@@ -119,7 +119,7 @@ const Container = (ownProps: OwnProps) => {
         setUserBlocks(newBlocks)
       }
       newBlocks.forEach(
-        ({report}, username) => report && reportUser(username, stateProps.conversationIDKey, report)
+        ({ report }, username) => report && reportUser(username, stateProps.convID, report)
       )
       if (!takingAction) {
         onClose()
