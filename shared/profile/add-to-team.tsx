@@ -336,6 +336,8 @@ const styles = Kb.Styles.styleSheetCreate(
           alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
           flexGrow: 1,
+          flexShrink: 1,
+          height: '100%',
           width: '100%',
         },
         isElectron: {maxHeight: '100%'},
