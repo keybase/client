@@ -455,7 +455,7 @@ class MainActivity : ReactActivity() {
             val isIPad = false
             val isIOS = false
             Keybase.initOnce(context.filesDir.path, "", context.getFileStreamPath("service.log").absolutePath, "prod", false,
-                    DNSNSFetcher(), VideoHelper(), mobileOsVersion, isIPad, KBInstallReferrerListener(context), isIOS)
+                    DNSNSFetcher(), VideoHelper(), mobileOsVersion, isIPad, KBInstallReferrerListener(context), isIOS, null)
         }
     }
 }
