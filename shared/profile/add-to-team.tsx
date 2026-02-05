@@ -262,7 +262,9 @@ export type AddToTeamProps = {
 const TeamRow = (props: RowProps) => (
   <Kb.ClickableBox onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>
     <Kb.Box2 direction="horizontal" style={styles.teamRow}>
-      <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
+      <Kb.Box2 direction="horizontal" pointerEvents="none">
+        <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
+      </Kb.Box2>
       <Kb.Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
         <Kb.Avatar
           isTeam={true}
