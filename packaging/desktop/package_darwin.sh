@@ -392,19 +392,19 @@ update_json
 save
 
 # Cleanup old packages before syncing new ones
-if [ ! "$bucket_name" = "" ]; then
-	echo "Cleaning up old packages from S3..."
-	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-updates/"
-	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin/"
-	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-updates/"
-	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64/"
-	"$cleanup_bin" -bucket="$bucket_name" -prefix="windows/"
-	"$cleanup_bin" -bucket="$bucket_name" -prefix="linux_binaries/"
-	"$cleanup_bin" -bucket="$bucket_name" -prefix="electron-sourcemaps/"
-	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-test-updates/"
-	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-test/"
-	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-test-updates/"
-	"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-test/"
-fi
+#if [ ! "$bucket_name" = "" ]; then
+	#echo "Cleaning up old packages from S3..."
+	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-updates/"
+	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin/"
+	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-updates/"
+	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64/"
+	#"$cleanup_bin" -bucket="$bucket_name" -prefix="windows/"
+	#"$cleanup_bin" -bucket="$bucket_name" -prefix="linux_binaries/"
+	#"$cleanup_bin" -bucket="$bucket_name" -prefix="electron-sourcemaps/"
+	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-test-updates/"
+	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-test/"
+	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-test-updates/"
+	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-test/"
+#fi
 
 s3sync
