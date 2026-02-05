@@ -21,7 +21,9 @@ else
   ARCH="amd64" PLATFORM="darwin" "$client_dir/packaging/prerelease/pull_build.sh"
 
   # Clean repo between arch builds
+  echo "Cleaning repo..."
   cd "$client_dir" && git reset --hard && git clean -fd
+  git status
 
   # NOTE: We build the arm64 version second to get a later timestamp, so it will
   # be presented as a later version to your updater. This allows the one-time
