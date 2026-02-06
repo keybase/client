@@ -30,9 +30,10 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
     NSLog("ShareIntentDonator: deleteAllDonations completed")
   }
 
-  func deleteDonationByConversationID(_ conversationID: String) {
-    INInteraction.delete(with: conversationID, completion: nil)
-    NSLog("ShareIntentDonator: deleteDonation completed for %@", conversationID)
+  func deleteDonationByConversationID(_ conversationID: String?) {
+    guard let id = conversationID, !id.isEmpty else { return }
+    INInteraction.delete(with: id, completion: nil)
+    NSLog("ShareIntentDonator: deleteDonation completed for %@", id)
   }
 
   func donateShareConversations(_ conversationsJSON: String?) {
@@ -49,7 +50,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
       return
     }
     NSLog("ShareIntentDonator: donateShareConversations: donating %d conversations", conversations.count)
-    self?.donateConversations(conversations)
+    donateConversations(conversations)
   }
 
   private func donateConversations(_ conversations: [ShareConversation]) {
