@@ -506,26 +506,30 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		h.Debug(ctx, "buildLayout: adding reselect info: %s", reselect)
 		res.ReselectInfo = &reselect
 	}
-	// Sort widgetList by badge then time (used for desktop res.WidgetList and iOS prepareShareConversations)
 	if len(widgetList) > 0 {
-		badgeState := h.G().Badger.State()
-		sort.Slice(widgetList, func(i, j int) bool {
-			ibadged := badgeState.ConversationBadgeStr(ctx, widgetList[i].ConvID) > 0
-			jbadged := badgeState.ConversationBadgeStr(ctx, widgetList[j].ConvID) > 0
-			if ibadged && !jbadged {
-				return true
-			} else if !ibadged && jbadged {
-				return false
-			}
-			return widgetList[i].Time.After(widgetList[j].Time)
-		})
 		if !h.G().IsMobileAppType() {
+			// Sort widgetList by badge then time
+			badgeState := h.G().Badger.State()
+			sort.Slice(widgetList, func(i, j int) bool {
+				ibadged := badgeState.ConversationBadgeStr(ctx, widgetList[i].ConvID) > 0
+				jbadged := badgeState.ConversationBadgeStr(ctx, widgetList[j].ConvID) > 0
+				if ibadged && !jbadged {
+					return true
+				} else if !ibadged && jbadged {
+					return false
+				}
+				return widgetList[i].Time.After(widgetList[j].Time)
+			})
 			// only set widget entries on desktop to the top overall convs
 			if len(widgetList) > 5 {
 				widgetList = widgetList[:5]
 			}
 			res.WidgetList = widgetList
-		} else {
+		} else if h.G().ShareIntentDonator != nil {
+			// Sort by LastSendTime
+			sort.Slice(widgetList, func(i, j int) bool {
+				return widgetList[i].LastSendTime.After(widgetList[j].LastSendTime)
+			})
 			go h.prepareShareConversations(ctx, widgetList)
 		}
 	}
@@ -578,17 +582,14 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 		if len(conversations) >= 2 {
 			break
 		}
-		// Exclude channels from share suggestions
-		if row.IsTeam && strings.Index(row.Name, "#") > 0 {
-			continue
-		}
 
 		conversations = append(conversations, types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name})
 		convIDs = append(convIDs, string(row.ConvID))
 		idx := len(conversations) - 1
 		if row.IsTeam {
-			teamReqs = append(teamReqs, teamAvatarReq{rowIdx: idx, teamName: row.Name})
-			allTeamNames = append(allTeamNames, row.Name)
+			teamName := utils.ParseTeamNameFromDisplayName(row.Name)
+			teamReqs = append(teamReqs, teamAvatarReq{rowIdx: idx, teamName: teamName})
+			allTeamNames = append(allTeamNames, teamName)
 		} else {
 			users := utils.ParseParticipantNamesFromDisplayName(row.Name, 2)
 			if len(users) > 0 {
@@ -647,6 +648,14 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 	h.lastShareDonationMu.Lock()
 	h.lastShareDonationHash = hash
 	h.lastShareDonationMu.Unlock()
+}
+
+// OnLogout clears donated share intents on logout so the next user does not see the previous user's suggestions.
+func (h *UIInboxLoader) OnLogout(mctx libkb.MetaContext) error {
+	if h.G().ShareIntentDonator != nil {
+		h.G().ShareIntentDonator.DeleteAllDonations()
+	}
+	return nil
 }
 
 func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbox, err error) {

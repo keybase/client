@@ -35,6 +35,7 @@ type UIInboxSmallTeamRow struct {
 	ConvID            ConvIDStr         `codec:"convID" json:"convID"`
 	Name              string            `codec:"name" json:"name"`
 	Time              gregor1.Time      `codec:"time" json:"time"`
+	LastSendTime      gregor1.Time      `codec:"lastSendTime" json:"lastSendTime"`
 	Snippet           *string           `codec:"snippet,omitempty" json:"snippet,omitempty"`
 	SnippetDecoration SnippetDecoration `codec:"snippetDecoration" json:"snippetDecoration"`
 	Draft             *string           `codec:"draft,omitempty" json:"draft,omitempty"`
@@ -44,9 +45,10 @@ type UIInboxSmallTeamRow struct {
 
 func (o UIInboxSmallTeamRow) DeepCopy() UIInboxSmallTeamRow {
 	return UIInboxSmallTeamRow{
-		ConvID: o.ConvID.DeepCopy(),
-		Name:   o.Name,
-		Time:   o.Time.DeepCopy(),
+		ConvID:       o.ConvID.DeepCopy(),
+		Name:         o.Name,
+		Time:         o.Time.DeepCopy(),
+		LastSendTime: o.LastSendTime.DeepCopy(),
 		Snippet: (func(x *string) *string {
 			if x == nil {
 				return nil

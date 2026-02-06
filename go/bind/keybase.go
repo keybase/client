@@ -84,6 +84,8 @@ type NativeVideoHelper interface {
 // Uses JSON string because gomobile does not support []struct in interface methods.
 type ShareIntentDonator interface {
 	DonateShareConversations(conversationsJSON string)
+	DeleteAllDonations()
+	DeleteDonation(conversationID string)
 }
 
 // shareIntentDonatorAdapter adapts keybase.ShareIntentDonator to types.ShareIntentDonator.
@@ -102,6 +104,20 @@ func (a shareIntentDonatorAdapter) DonateShareConversations(conversations []type
 		return
 	}
 	a.wrapped.DonateShareConversations(string(data))
+}
+
+func (a shareIntentDonatorAdapter) DeleteAllDonations() {
+	if a.wrapped == nil {
+		return
+	}
+	a.wrapped.DeleteAllDonations()
+}
+
+func (a shareIntentDonatorAdapter) DeleteDonation(conversationID string) {
+	if a.wrapped == nil {
+		return
+	}
+	a.wrapped.DeleteDonation(conversationID)
 }
 
 // NativeInstallReferrerListener is implemented in Java on Android.

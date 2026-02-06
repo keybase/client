@@ -461,6 +461,10 @@ type ShareConversation struct {
 // for recent conversations. When nil (Android, desktop), donations are skipped.
 type ShareIntentDonator interface {
 	DonateShareConversations(conversations []ShareConversation)
+	DeleteAllDonations()
+	// DeleteDonation removes the donated intent for the given conversation ID
+	// (the same identifier used when donating). Call when a conversation is blocked.
+	DeleteDonation(conversationID string)
 }
 
 type StellarLoader interface {

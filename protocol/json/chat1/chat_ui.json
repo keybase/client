@@ -69,6 +69,10 @@
           "name": "time"
         },
         {
+          "type": "gregor1.Time",
+          "name": "lastSendTime"
+        },
+        {
           "type": [
             null,
             "string"

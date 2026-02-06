@@ -319,6 +319,10 @@ func (m *mockShareDonator) DonateShareConversations(conversations []types.ShareC
 	m.calls = append(m.calls, dup)
 }
 
+func (m *mockShareDonator) DeleteAllDonations() {}
+
+func (m *mockShareDonator) DeleteDonation(conversationID string) {}
+
 func (m *mockShareDonator) getCalls() [][]types.ShareConversation {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -412,9 +416,8 @@ func TestPrepareShareConversations(t *testing.T) {
 		loader.lastShareDonationHash = 0
 		loader.lastShareDonationMu.Unlock()
 
-		// Team with # in name (channel) is skipped; only DM appears
 		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
-			row("team#general", "team#general", true),
+			row("teamid", "team#general", true),
 			row("id1", "alice", false),
 			row("id2", "bob", false),
 			row("id3", "charlie", false),
@@ -422,10 +425,10 @@ func TestPrepareShareConversations(t *testing.T) {
 		calls := donator.getCalls()
 		require.Len(t, calls, 1)
 		require.Len(t, calls[0], 2)
-		require.Equal(t, "id1", calls[0][0].ConvID)
-		require.Equal(t, "alice", calls[0][0].Name)
-		require.Equal(t, "id2", calls[0][1].ConvID)
-		require.Equal(t, "bob", calls[0][1].Name)
+		require.Equal(t, "teamid", calls[0][0].ConvID)
+		require.Equal(t, "team#general", calls[0][0].Name)
+		require.Equal(t, "id1", calls[0][1].ConvID)
+		require.Equal(t, "alice", calls[0][1].Name)
 	})
 
 	t.Run("caps at 2 suggested convs", func(t *testing.T) {
