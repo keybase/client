@@ -85,6 +85,7 @@ type NativeVideoHelper interface {
 type ShareIntentDonator interface {
 	DonateShareConversations(conversationsJSON string)
 	DeleteAllDonations()
+	DeleteDonationByConversationID(conversationID string)
 }
 
 // shareIntentDonatorAdapter adapts keybase.ShareIntentDonator to types.ShareIntentDonator.
@@ -110,6 +111,13 @@ func (a shareIntentDonatorAdapter) DeleteAllDonations() {
 		return
 	}
 	a.wrapped.DeleteAllDonations()
+}
+
+func (a shareIntentDonatorAdapter) DeleteDonationByConversationID(conversationID string) {
+	if a.wrapped == nil {
+		return
+	}
+	a.wrapped.DeleteDonationByConversationID(conversationID)
 }
 
 // NativeInstallReferrerListener is implemented in Java on Android.

@@ -462,6 +462,9 @@ type ShareConversation struct {
 type ShareIntentDonator interface {
 	DonateShareConversations(conversations []ShareConversation)
 	DeleteAllDonations()
+	// DeleteDonationByConversationID removes the donated intent for the given conversation ID
+	// (the same identifier used when donating). Call when a conversation is blocked.
+	DeleteDonationByConversationID(conversationID string)
 }
 
 type StellarLoader interface {

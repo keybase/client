@@ -30,6 +30,11 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
     NSLog("ShareIntentDonator: deleteAllDonations completed")
   }
 
+  func deleteDonationByConversationID(_ conversationID: String) {
+    INInteraction.delete(with: conversationID, completion: nil)
+    NSLog("ShareIntentDonator: deleteDonation completed for %@", conversationID)
+  }
+
   func donateShareConversations(_ conversationsJSON: String?) {
     guard let json = conversationsJSON, let data = json.data(using: .utf8) else {
       NSLog("ShareIntentDonator: donateShareConversations: nil or invalid JSON")
