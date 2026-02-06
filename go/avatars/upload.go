@@ -52,9 +52,9 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 	head := make([]byte, 512)
 	n, _ := io.ReadFull(file, head)
-	file.Close()
 	mimeType, err := attachments.DetectMIMEType(mctx.Ctx(), attachments.NewBufReadResetter(head[:n]), filename)
 	if err != nil {
 		return err
