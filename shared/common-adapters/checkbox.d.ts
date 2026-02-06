@@ -4,7 +4,7 @@ import type {TextType} from './text.shared'
 
 export type Props = {
   key?: string
-  label?: string
+  label?: string | React.ReactNode
   checkboxColor?: Styles.Color
   checkboxStyle?: Styles.StylesCrossPlatform
   labelComponent?: React.ReactNode
