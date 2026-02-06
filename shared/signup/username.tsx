@@ -66,6 +66,7 @@ const EnterUsername = (props: Props) => {
     >
       <Kb.Checkbox
         label="I accept the Keybase Acceptable Use Policy"
+        labelType={Kb.Styles.isMobile ? 'BodySmall' : undefined}
         checked={acceptedEULA}
         onCheck={() => setAcceptedEULA(s => !s)}
       />

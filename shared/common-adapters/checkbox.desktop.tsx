@@ -40,7 +40,7 @@ const Checkbox = (props: Props) => {
         fontSize={9}
       />
       <Kb.Box2 direction="vertical">
-        <Kb.Text type="Body">{props.labelComponent || props.label}</Kb.Text>
+        <Kb.Text type={props.labelType ?? 'Body'}>{props.labelComponent || props.label}</Kb.Text>
         {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
       </Kb.Box2>
     </Kb.Box>
