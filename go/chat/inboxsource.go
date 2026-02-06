@@ -1441,7 +1441,7 @@ func (s *HybridInboxSource) Sync(ctx context.Context, uid gregor1.UID, vers chat
 		go func() {
 			for _, c := range convs {
 				if !utils.GetConversationStatusBehavior(c.Metadata.Status).ShowInInbox {
-					s.G().ShareIntentDonator.DeleteDonationByConversationID(c.GetConvID().String())
+					s.G().ShareIntentDonator.DeleteDonation(c.GetConvID().String())
 				}
 			}
 		}()
@@ -1489,7 +1489,7 @@ func (s *HybridInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers
 	}
 	// When status stops showing in inbox (e.g. blocked, reported, ignored), remove share-sheet donation.
 	if s.G().ShareIntentDonator != nil && !utils.GetConversationStatusBehavior(status).ShowInInbox {
-		go s.G().ShareIntentDonator.DeleteDonationByConversationID(convID.String())
+		go s.G().ShareIntentDonator.DeleteDonation(convID.String())
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
 		s.Debug(ctx, "SetStatus: unable to load conversation: convID: %s err: %s", convID, err.Error())
