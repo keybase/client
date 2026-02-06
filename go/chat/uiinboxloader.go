@@ -582,17 +582,14 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 		if len(conversations) >= 2 {
 			break
 		}
-		// Exclude channels from share suggestions
-		if row.IsTeam && strings.Index(row.Name, "#") > 0 {
-			continue
-		}
 
 		conversations = append(conversations, types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name})
 		convIDs = append(convIDs, string(row.ConvID))
 		idx := len(conversations) - 1
 		if row.IsTeam {
-			teamReqs = append(teamReqs, teamAvatarReq{rowIdx: idx, teamName: row.Name})
-			allTeamNames = append(allTeamNames, row.Name)
+			teamName := utils.ParseTeamNameFromDisplayName(row.Name)
+			teamReqs = append(teamReqs, teamAvatarReq{rowIdx: idx, teamName: teamName})
+			allTeamNames = append(allTeamNames, teamName)
 		} else {
 			users := utils.ParseParticipantNamesFromDisplayName(row.Name, 2)
 			if len(users) > 0 {
