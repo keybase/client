@@ -57,6 +57,20 @@ const EnterUsername = (props: Props) => {
     onChangeUsername(usernameTrimmed) // maybe trim the input
     props.onContinue(usernameTrimmed)
   }
+  const eulaLabel = (
+    <Kb.Text type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'} style={{alignSelf: 'center'}}>
+      I accept the{' '}
+      <Kb.Text
+        type={Kb.Styles.isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'}
+        onClickURL="https://keybase.io/docs/acceptable-use-policy"
+      >
+        Keybase Acceptable Use Policy
+      </Kb.Text>
+    </Kb.Text>
+  )
+  const eulaBlock = (
+    <Kb.Checkbox label={eulaLabel} checked={acceptedEULA} onCheck={() => setAcceptedEULA(s => !s)} />
+  )
   return (
     <SignupScreen
       banners={
@@ -88,6 +102,7 @@ const EnterUsername = (props: Props) => {
           waiting: props.waiting,
         },
       ]}
+      footer={Kb.Styles.isMobile ? eulaBlock : undefined}
       onBack={props.onBack}
       title="Create account"
     >
@@ -111,25 +126,7 @@ const EnterUsername = (props: Props) => {
             />
             <Kb.Text type="BodySmall">Your username is unique and can not be changed in the future.</Kb.Text>
           </Kb.Box2>
-          <Kb.Box2
-            direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
-            fullWidth={Kb.Styles.isPhone}
-            gap="tiny"
-            alignItems="flex-start"
-          >
-            <Kb.Checkbox
-              label="I accept the Keybase Acceptable Use Policy"
-              checked={acceptedEULA}
-              onCheck={() => setAcceptedEULA(s => !s)}
-            />
-            <Kb.Text
-              type="BodyPrimaryLink"
-              style={{marginTop: 2}}
-              onClickURL="https://keybase.io/docs/acceptable-use-policy"
-            >
-              (Read it here)
-            </Kb.Text>
-          </Kb.Box2>
+          {!Kb.Styles.isMobile && eulaBlock}
         </Kb.Box2>
       </Kb.ScrollView>
     </SignupScreen>
