@@ -66,13 +66,13 @@ const EnterUsername = (props: Props) => {
     >
       <Kb.Checkbox
         label="I accept the Keybase Acceptable Use Policy"
-        labelType={Kb.Styles.isMobile ? 'BodySmall' : undefined}
+        labelType={Kb.Styles.isMobile ? 'BodyTiny' : undefined}
         checked={acceptedEULA}
         onCheck={() => setAcceptedEULA(s => !s)}
       />
       <Kb.Text
-        type="BodyPrimaryLink"
-        style={{marginTop: 2}}
+        type="BodyTinyLink"
+        style={{alignSelf: 'flex-end', color: Kb.Styles.globalColors.blue}}
         onClickURL="https://keybase.io/docs/acceptable-use-policy"
       >
         (Read it here)
