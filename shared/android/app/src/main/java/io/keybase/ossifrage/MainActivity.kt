@@ -66,6 +66,10 @@ class MainActivity : ReactActivity() {
         NativeLogger.info("Activity onCreate")
         setupKBRuntime(this, true)
         cachedIntent = intent
+        if (Intent.ACTION_SEND == intent.action || Intent.ACTION_SEND_MULTIPLE == intent.action) {
+            normalizeShareIntent(intent)
+            cachedIntent = intent
+        }
         val bundleFromNotification = intent.getBundleExtra("notification")
         if (bundleFromNotification != null) {
             KbModule.setInitialNotification(bundleFromNotification.clone() as Bundle)
@@ -212,6 +216,11 @@ class MainActivity : ReactActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         cachedIntent = intent
+        if (Intent.ACTION_SEND == intent.action || Intent.ACTION_SEND_MULTIPLE == intent.action) {
+            normalizeShareIntent(intent)
+            setIntent(intent)
+            cachedIntent = intent
+        }
         val bundleFromNotification = intent.getBundleExtra("notification")
         if (bundleFromNotification != null) {
             KbModule.setInitialNotification(bundleFromNotification.clone() as Bundle)
@@ -226,6 +235,15 @@ class MainActivity : ReactActivity() {
 
     private var jsIsListening = false
     private var handledIntentHash: String? = null
+
+    private fun normalizeShareIntent(intent: Intent) {
+        val uris = extractSharedUris(intent)
+        intent.removeExtra(Intent.EXTRA_STREAM)
+        if (uris.isNotEmpty()) {
+            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+        }
+    }
+
     private fun extractSharedUris(intent: Intent): List<Uri> {
         val action = intent.action
         if (Intent.ACTION_SEND != action && Intent.ACTION_SEND_MULTIPLE != action) {
