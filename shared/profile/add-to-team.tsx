@@ -187,7 +187,9 @@ const Container = (ownProps: OwnProps) => {
                       key={team.teamName}
                       name={team.teamName}
                       isOpen={team.open}
-                      onCheck={selected => onToggle(team.teamName, selected)}
+                      onCheck={selected => {
+                        onToggle(team.teamName, selected)
+                      }}
                       them={them}
                     />
                   ))
@@ -259,40 +261,42 @@ export type AddToTeamProps = {
   waiting: boolean
 }
 
-const TeamRow = (props: RowProps) => (
-  <Kb.ClickableBox onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>
-    <Kb.Box2 direction="horizontal" style={styles.teamRow}>
-      <Kb.Box2 direction="horizontal" pointerEvents="none">
+const TeamRow = (props: RowProps) => {
+  return (
+    <Kb.ClickableBox onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>
+      <Kb.Box2 direction="horizontal" style={styles.teamRow}>
         <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
-        <Kb.Avatar
-          isTeam={true}
-          size={Kb.Styles.isMobile ? 48 : 32}
-          style={{marginRight: Kb.Styles.globalMargins.tiny}}
-          teamname={props.name}
-        />
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical">
-        <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
-          <Kb.Text
-            style={{color: props.canAddThem ? Kb.Styles.globalColors.black : Kb.Styles.globalColors.black_50}}
-            type="BodySemibold"
-          >
-            {props.name}
-          </Kb.Text>
-          {props.isOpen && (
-            <Kb.Meta title="open" style={styles.meta} backgroundColor={Kb.Styles.globalColors.green} />
-          )}
+        <Kb.Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
+          <Kb.Avatar
+            isTeam={true}
+            size={Kb.Styles.isMobile ? 48 : 32}
+            style={{marginRight: Kb.Styles.globalMargins.tiny}}
+            teamname={props.name}
+          />
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
-          <Kb.Text type="BodySmall">{props.disabledReason}</Kb.Text>
+        <Kb.Box2 direction="vertical">
+          <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
+            <Kb.Text
+              style={{
+                color: props.canAddThem ? Kb.Styles.globalColors.black : Kb.Styles.globalColors.black_50,
+              }}
+              type="BodySemibold"
+            >
+              {props.name}
+            </Kb.Text>
+            {props.isOpen && (
+              <Kb.Meta title="open" style={styles.meta} backgroundColor={Kb.Styles.globalColors.green} />
+            )}
+          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
+            <Kb.Text type="BodySmall">{props.disabledReason}</Kb.Text>
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-    {!Kb.Styles.isMobile && <Kb.Divider style={styles.divider} />}
-  </Kb.ClickableBox>
-)
+      {!Kb.Styles.isMobile && <Kb.Divider style={styles.divider} />}
+    </Kb.ClickableBox>
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
