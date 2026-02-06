@@ -319,6 +319,8 @@ func (m *mockShareDonator) DonateShareConversations(conversations []types.ShareC
 	m.calls = append(m.calls, dup)
 }
 
+func (m *mockShareDonator) DeleteAllDonations() {}
+
 func (m *mockShareDonator) getCalls() [][]types.ShareConversation {
 	m.mu.Lock()
 	defer m.mu.Unlock()

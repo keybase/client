@@ -25,6 +25,11 @@ private struct ShareConversation: Decodable {
 }
 
 class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProtocol {
+  func deleteAllDonations() {
+    INInteraction.deleteAll { _ in }
+    NSLog("ShareIntentDonator: deleteAllDonations completed")
+  }
+
   func donateShareConversations(_ conversationsJSON: String?) {
     guard let json = conversationsJSON, let data = json.data(using: .utf8) else {
       NSLog("ShareIntentDonator: donateShareConversations: nil or invalid JSON")

@@ -541,6 +541,9 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.LiveLocationTracker = maps.NewLiveLocationTracker(g)
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, ri, chat.CreateNameInfoSource)
 	g.UIInboxLoader = chat.NewUIInboxLoader(g)
+	if loader, ok := g.UIInboxLoader.(*chat.UIInboxLoader); ok {
+		g.AddLogoutHook(loader, "chat/UIInboxLoader")
+	}
 	g.UIThreadLoader = chat.NewUIThreadLoader(g, ri)
 	g.ParticipantsSource = chat.NewCachingParticipantSource(g, ri)
 	g.EmojiSource = chat.NewDevConvEmojiSource(g, ri)

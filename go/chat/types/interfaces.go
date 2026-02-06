@@ -461,6 +461,7 @@ type ShareConversation struct {
 // for recent conversations. When nil (Android, desktop), donations are skipped.
 type ShareIntentDonator interface {
 	DonateShareConversations(conversations []ShareConversation)
+	DeleteAllDonations()
 }
 
 type StellarLoader interface {

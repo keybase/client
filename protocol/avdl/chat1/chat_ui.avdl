@@ -20,6 +20,7 @@ protocol chatUi {
     ConvIDStr convID;
     string name;
     gregor1.Time time;
+    gregor1.Time lastSendTime;  // last time the current user sent in this conv; used for share-suggestion ordering
     union { null, string } snippet;
     SnippetDecoration snippetDecoration;
     union { null, string } draft;
