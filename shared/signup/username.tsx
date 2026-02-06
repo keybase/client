@@ -58,22 +58,18 @@ const EnterUsername = (props: Props) => {
     props.onContinue(usernameTrimmed)
   }
   const eulaLabel = (
-    <Kb.Text type={Kb.Styles.isMobile ? 'BodyTiny' : 'Body'}>
-      I accept the Keybase{' '}
+    <Kb.Text type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'} style={{alignSelf: 'center'}}>
+      I accept the{' '}
       <Kb.Text
-        type={Kb.Styles.isMobile ? 'BodyTinyLink' : 'BodyPrimaryLink'}
+        type={Kb.Styles.isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'}
         onClickURL="https://keybase.io/docs/acceptable-use-policy"
       >
-        Acceptable Use Policy
+        Keybase Acceptable Use Policy
       </Kb.Text>
     </Kb.Text>
   )
   const eulaBlock = (
-    <Kb.Checkbox
-      label={eulaLabel}
-      checked={acceptedEULA}
-      onCheck={() => setAcceptedEULA(s => !s)}
-    />
+    <Kb.Checkbox label={eulaLabel} checked={acceptedEULA} onCheck={() => setAcceptedEULA(s => !s)} />
   )
   return (
     <SignupScreen
