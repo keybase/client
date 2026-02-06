@@ -135,11 +135,12 @@ const AvatarUploadWrapper = (p: Props) => {
         }}
         footer={{
           content: (
-            <Kb.Button
+            <Kb.WaitingButton
               fullWidth={true}
               label={wizard ? 'Continue' : 'Save'}
               onClick={onSave}
               disabled={!selectedImage}
+              waitingKey={waitingKey}
             />
           ),
         }}
