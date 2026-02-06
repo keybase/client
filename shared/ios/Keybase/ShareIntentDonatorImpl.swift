@@ -44,9 +44,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
       return
     }
     NSLog("ShareIntentDonator: donateShareConversations: donating %d conversations", conversations.count)
-    INInteraction.deleteAll { [weak self] _ in
-      self?.donateConversations(conversations)
-    }
+    self?.donateConversations(conversations)
   }
 
   private func donateConversations(_ conversations: [ShareConversation]) {
