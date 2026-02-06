@@ -3988,11 +3988,15 @@ func (k *SimpleFS) SimpleFSArchiveAllFiles(
 			return keybase1.SimpleFSArchiveAllFilesResult{}, err
 		}
 		for _, item := range fl {
+			outPath := ""
+			if arg.OutputDir != "" {
+				outPath = filepath.Join(arg.OutputDir, "kbfs-private-"+item.Name+".zip")
+			}
 			startArgs = append(startArgs, keybase1.SimpleFSArchiveStartArg{
 				ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithKbfs(keybase1.KBFSPath{
 					Path: fmt.Sprintf("/private/%s", item.Name),
 				}),
-				OutputPath:   filepath.Join(arg.OutputDir, "kbfs-private-"+item.Name+".zip"),
+				OutputPath:   outPath,
 				OverwriteZip: arg.OverwriteZip,
 			})
 		}
@@ -4004,11 +4008,15 @@ func (k *SimpleFS) SimpleFSArchiveAllFiles(
 		for _, item := range fl {
 			p := fmt.Sprintf("/public/%s", item.Name)
 			if arg.IncludePublicReadonly || item.Writable {
+				outPath := ""
+				if arg.OutputDir != "" {
+					outPath = filepath.Join(arg.OutputDir, "kbfs-public-"+item.Name+".zip")
+				}
 				startArgs = append(startArgs, keybase1.SimpleFSArchiveStartArg{
 					ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithKbfs(keybase1.KBFSPath{
 						Path: p,
 					}),
-					OutputPath:   filepath.Join(arg.OutputDir, "kbfs-public-"+item.Name+".zip"),
+					OutputPath:   outPath,
 					OverwriteZip: arg.OverwriteZip,
 				})
 			} else {
@@ -4021,11 +4029,15 @@ func (k *SimpleFS) SimpleFSArchiveAllFiles(
 			return keybase1.SimpleFSArchiveAllFilesResult{}, err
 		}
 		for _, item := range fl {
+			outPath := ""
+			if arg.OutputDir != "" {
+				outPath = filepath.Join(arg.OutputDir, "kbfs-team-"+item.Name+".zip")
+			}
 			startArgs = append(startArgs, keybase1.SimpleFSArchiveStartArg{
 				ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithKbfs(keybase1.KBFSPath{
 					Path: fmt.Sprintf("/team/%s", item.Name),
 				}),
-				OutputPath:   filepath.Join(arg.OutputDir, "kbfs-team-"+item.Name+".zip"),
+				OutputPath:   outPath,
 				OverwriteZip: arg.OverwriteZip,
 			})
 		}
