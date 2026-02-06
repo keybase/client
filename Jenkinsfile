@@ -525,6 +525,7 @@ def testGo(prefix, packagesToTest, hasKBFSChanges) {
 }
 
 def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
+
   if (prefix == "test_linux_go_") {
     dir("keybase") {
       sh "go build -o keybase_production -ldflags \"-s -w\" -buildmode=pie --tags=production"
