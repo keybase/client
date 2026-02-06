@@ -72,7 +72,7 @@ class MainActivity : ReactActivity() {
             pendingShareUris = extractSharedUris(intent).toMutableList()
             pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
             pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
-            NativeLogger.info("ShareDebug: onCreate SEND intent action=${intent.action} hasClipData=${intent.clipData != null} pendingShareUris=${pendingShareUris.size}")
+            NativeLogger.info("ShareDebug: onCreate SEND intent action=${intent.action} hasClipData=${intent.clipData != null} pendingShareUris=${pendingShareUris?.size ?: 0}")
         }
         val bundleFromNotification = intent.getBundleExtra("notification")
         if (bundleFromNotification != null) {
@@ -233,7 +233,7 @@ class MainActivity : ReactActivity() {
             pendingShareUris = extractSharedUris(intent).toMutableList()
             pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
             pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
-            NativeLogger.info("ShareDebug: onNewIntent SEND pendingShareUris=${pendingShareUris.size}")
+            NativeLogger.info("ShareDebug: onNewIntent SEND pendingShareUris=${pendingShareUris?.size ?: 0}")
         }
         val bundleFromNotification = intent.getBundleExtra("notification")
         if (bundleFromNotification != null) {
