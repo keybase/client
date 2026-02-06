@@ -11,6 +11,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -32,12 +34,46 @@ func addFile(mpart *multipart.Writer, param, filename string) error {
 	return err
 }
 
+func addPartFromBytes(mpart *multipart.Writer, param, filename string, data []byte) error {
+	part, err := mpart.CreateFormFile(param, filename)
+	if err != nil {
+		return err
+	}
+	_, err = part.Write(data)
+	return err
+}
+
 func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamID, crop *keybase1.ImageCropRect) (err error) {
+	defer mctx.Trace(fmt.Sprintf("UploadImage(%s)", filename), &err)()
 	var body bytes.Buffer
 	mpart := multipart.NewWriter(&body)
 
-	if err := addFile(mpart, "avatar", filename); err != nil {
-		mctx.Debug("addFile error: %s", err)
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	head := make([]byte, 512)
+	n, _ := io.ReadFull(file, head)
+	mimeType, err := attachments.DetectMIMEType(mctx.Ctx(), attachments.NewBufReadResetter(head[:n]), filename)
+	if err != nil {
+		return err
+	}
+
+	var toUpload []byte
+	if mimeType == "image/heif" {
+		log := utils.NewDebugLabeler(mctx.G(), "UploadImage", false)
+		toUpload, err = attachments.HEICToJPEG(mctx.Ctx(), log, filename)
+		if err != nil {
+			return err
+		}
+	}
+	if toUpload != nil {
+		err = addPartFromBytes(mpart, "avatar", "image.jpeg", toUpload)
+	} else {
+		err = addFile(mpart, "avatar", filename)
+	}
+	if err != nil {
 		return err
 	}
 

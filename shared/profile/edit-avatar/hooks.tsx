@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '@/constants'
 import {useProfileState} from '@/constants/profile'
 import * as Teams from '@/constants/teams'
@@ -52,6 +53,9 @@ export default (ownProps: Props): Ret => {
   const teamname = Teams.useTeamsState(s => (teamID ? Teams.getTeamNameFromID(s, teamID) : undefined) ?? '')
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
+  React.useEffect(() => {
+    dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
+  }, [dispatchClearWaiting])
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
