@@ -7,6 +7,7 @@ import {useDeepLinksState} from '@/constants/deeplinks'
 import {Linking} from 'react-native'
 import {useColorScheme} from 'react-native'
 import {usePushState} from '@/constants/push'
+import logger from '@/logger'
 
 type InitialStateState = 'init' | 'loading' | 'loaded'
 
@@ -84,14 +85,24 @@ export const useInitialState = (loggedInLoaded: boolean) => {
   const [initialStateState, setInitialStateState] = React.useState<InitialStateState>('init')
 
   React.useEffect(() => {
-    if (!startupLoaded) return
+    if (!startupLoaded) {
+      logger.info('[startup] useInitialState effect: skip (startupLoaded false)')
+      return
+    }
 
     if (!loggedInLoaded) {
+      logger.info('[startup] useInitialState effect: skip (loggedInLoaded false)')
       return
     }
     if (initialStateState !== 'init') {
+      logger.info('[startup] useInitialState effect: skip (initialStateState)', initialStateState)
       return
     }
+    logger.info('[startup] useInitialState effect: running', {
+      startupTab,
+      startupConversation: startupConversation ? 'set' : 'none',
+      startupFollowUser: startupFollowUser || 'none',
+    })
     setInitialStateState('loading')
     const loadInitialURL = async () => {
       let url = await Linking.getInitialURL()
@@ -109,11 +120,13 @@ export const useInitialState = (loggedInLoaded: boolean) => {
       }
 
       if (url && isValidLink(url)) {
+        logger.info('[startup] useInitialState: using deep link', url.slice(0, 50))
         setTimeout(() => url && useDeepLinksState.getState().dispatch.handleAppLink(url), 1)
       } else if (startupFollowUser && !startupConversation) {
         url = `keybase://profile/show/${startupFollowUser}`
 
         if (isValidLink(url)) {
+          logger.info('[startup] useInitialState: using startupFollowUser', startupFollowUser)
           const initialTabState = {
             state: {
               index: 1,
@@ -137,6 +150,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
       } else if (startupTab || startupConversation) {
         try {
           const tab = startupConversation ? Tabs.chatTab : startupTab
+          logger.info('[startup] useInitialState: setting initialState from saved state', {tab, hasConvo: !!startupConversation})
           Chat.useChatState.getState().dispatch.unboxRows([startupConversation])
           Chat.getConvoState(startupConversation).dispatch.loadMoreMessages({
             reason: 'savedLastState',
@@ -167,7 +181,11 @@ export const useInitialState = (loggedInLoaded: boolean) => {
               },
             ],
           })
-        } catch {}
+        } catch (e) {
+          logger.info('[startup] useInitialState: setInitialState failed', e)
+        }
+      } else {
+        logger.info('[startup] useInitialState: no url/followUser/tab/convo, default tab will be used')
       }
     }
 
