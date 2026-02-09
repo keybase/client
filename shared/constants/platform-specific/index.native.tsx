@@ -374,10 +374,7 @@ export const initPlatformListener = () => {
             path: 'ui.routeState2',
             value: {isNull: false, s},
           })
-          logger.info('[persistRoute] persisted', {routeName, hasConvo: Object.keys(param).length > 0})
-        } catch (e) {
-          logger.info('[persistRoute] persist failed', e)
-        }
+        } catch {}
       }
       const run = clear ? doClear : doPersist
       if (immediate) {
