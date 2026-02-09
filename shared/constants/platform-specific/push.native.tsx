@@ -220,7 +220,11 @@ export const initPushListener = () => {
 
       if (isAndroid) {
         RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
-          logger.info('[ShareDebug] onShareData received', {hasText: !!evt.text, hasLocalPaths: !!evt.localPaths, localPathsLen: evt.localPaths?.length ?? 0})
+          logger.info('[ShareDebug] onShareData received', {
+            hasLocalPaths: !!evt.localPaths,
+            hasText: !!evt.text,
+            localPathsLen: evt.localPaths?.length ?? 0,
+          })
           const {setAndroidShare} = storeRegistry.getState('config').dispatch
 
           const text = evt.text
