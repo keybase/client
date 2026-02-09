@@ -149,14 +149,6 @@ const loadStartupDetails = async () => {
     neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
   ] as const)
 
-  // Clear last value to be extra safe bad things don't hose us forever
-  try {
-    await T.RPCGen.configGuiSetValueRpcPromise({
-      path: 'ui.routeState2',
-      value: {isNull: false, s: ''},
-    })
-  } catch {}
-
   let conversation: T.Chat.ConversationIDKey | undefined
   let followUser = ''
   let link = ''
@@ -205,6 +197,14 @@ const loadStartupDetails = async () => {
     link,
     tab: tab as Tabs.Tab,
   })
+
+  // Clear last value to be extra safe bad things don't hose us forever (don't block startup)
+  ignorePromise(
+    T.RPCGen.configGuiSetValueRpcPromise({
+      path: 'ui.routeState2',
+      value: {isNull: false, s: ''},
+    }).catch(() => {})
+  )
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
@@ -334,28 +334,34 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
 export const initPlatformListener = () => {
   let _lastPersist = ''
   storeRegistry.getStore('config').setState(s => {
-    s.dispatch.dynamic.persistRoute = wrapErrors((path?: ReadonlyArray<unknown>) => {
-      const f = async () => {
+    s.dispatch.dynamic.persistRoute = wrapErrors((clear: boolean, immediate: boolean) => {
+      const doClear = async () => {
+        try {
+          await T.RPCGen.configGuiSetValueRpcPromise({
+            path: 'ui.routeState2',
+            value: {isNull: false, s: ''},
+          })
+        } catch {}
+      }
+      const doPersist = async () => {
         if (!storeRegistry.getState('config').startup.loaded) {
           return
         }
         let param = {}
         let routeName = Tabs.peopleTab
-        if (path) {
-          const cur = getTab()
-          if (cur) {
-            routeName = cur
-          }
-          const ap = getVisiblePath()
-          ap.some(r => {
-            if (r.name === 'chatConversation') {
-              const rParams = r.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
-              param = {selectedConversationIDKey: rParams?.conversationIDKey}
-              return true
-            }
-            return false
-          })
+        const cur = getTab()
+        if (cur) {
+          routeName = cur
         }
+        const ap = getVisiblePath()
+        ap.some(r => {
+          if (r.name === 'chatConversation') {
+            const rParams = r.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
+            param = {selectedConversationIDKey: rParams?.conversationIDKey}
+            return true
+          }
+          return false
+        })
         const s = JSON.stringify({param, routeName})
         // don't keep rewriting
         if (_lastPersist === s) {
@@ -363,12 +369,23 @@ export const initPlatformListener = () => {
         }
         _lastPersist = s
 
-        await T.RPCGen.configGuiSetValueRpcPromise({
-          path: 'ui.routeState2',
-          value: {isNull: false, s},
-        })
+        try {
+          await T.RPCGen.configGuiSetValueRpcPromise({
+            path: 'ui.routeState2',
+            value: {isNull: false, s},
+          })
+        } catch {}
       }
-      ignorePromise(f())
+      const run = clear ? doClear : doPersist
+      if (immediate) {
+        ignorePromise(run())
+      } else {
+        const f = async () => {
+          await timeoutPromise(1000)
+          await run()
+        }
+        ignorePromise(f())
+      }
     })
 
     s.dispatch.dynamic.onEngineIncomingNative = wrapErrors((action: EngineGen.Actions) => {
@@ -390,6 +407,7 @@ export const initPlatformListener = () => {
       case 'background':
         appFocused = false
         logState = T.RPCGen.MobileAppState.background
+        storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(false, true)
         break
       case 'inactive':
         appFocused = false
@@ -540,17 +558,12 @@ export const initPlatformListener = () => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
-    const f = async () => {
-      await timeoutPromise(1000)
-      const path = getVisiblePath()
-      storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(path)
-    }
+    storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(false, false)
 
     if (!calledShareListenersRegistered && logState().loggedIn) {
       calledShareListenersRegistered = true
       shareListenersRegistered()
     }
-    ignorePromise(f())
   })
 
   // Start this immediately instead of waiting so we can do more things in parallel
