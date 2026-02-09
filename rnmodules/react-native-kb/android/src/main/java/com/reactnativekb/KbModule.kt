@@ -762,18 +762,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         }
     }
 
-    private fun emitShareDataInternal(payload: WritableMap) {
-        if (reactContext.hasActiveCatalystInstance()) {
-            try {
-                reactContext
-                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                    .emit("onShareData", payload)
-            } catch (e: Exception) {
-                android.util.Log.e("KbModule", "emitShareDataInternal failed to emit: " + e.message)
-            }
-        }
-    }
-
     @ReactMethod
     override fun removeAllPendingNotificationRequests() {
     }
@@ -990,11 +978,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             }
             android.util.Log.d("KbModule", "emitPushNotification called, instance exists")
             instance?.emitPushNotificationInternal(notification)
-        }
-
-        @JvmStatic
-        fun emitShareData(payload: WritableMap) {
-            instance?.emitShareDataInternal(payload)
         }
 
         // Is this a robot controlled test device? (i.e. pre-launch report?)
