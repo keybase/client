@@ -246,11 +246,6 @@ class MainActivity : ReactActivity() {
     private var jsIsListening = false
     private var handledIntentHash: String? = null
 
-    // Normalize EXTRA_STREAM to ArrayList so any code that uses getParcelableArrayListExtra
-    // sees the right type. Note: the system server may still log a ClassCastException when
-    // it first delivers the intent (before onCreate), since it calls getParcelableArrayListExtra
-    // on the sender's intent (which often has a single Uri for ACTION_SEND). We can't fix that
-    // from here; this normalization helps for any use of our intent after we have it.
     private fun normalizeShareIntent(intent: Intent) {
         val uris = extractSharedUris(intent)
         intent.removeExtra(Intent.EXTRA_STREAM)
