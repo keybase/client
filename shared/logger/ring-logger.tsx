@@ -30,9 +30,9 @@ class RingLogger {
   log = (...s: Array<unknown>) => {
     const singleString = s.map(toStringForLog).join(' ')
 
-    if (__DEV__) {
-      this.consoleLog(this.logLevel, ...s)
-    }
+    // TEMP if (__DEV__) {
+    this.consoleLog(this.logLevel, ...s)
+    // }
 
     if (this.ringSize) {
       this.ringBuffer[this.currentWriteIdx] = [Date.now(), singleString]
