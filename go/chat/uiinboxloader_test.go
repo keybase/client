@@ -286,22 +286,30 @@ func TestUIInboxLoaderReselect(t *testing.T) {
 	require.Equal(t, conv1.Id.ConvIDStr(), *layout.ReselectInfo.NewConvID)
 }
 
-// TestHashSortedConvIDs verifies the rolling hash is order-independent and stable.
-func TestHashSortedConvIDs(t *testing.T) {
+// TestHashSortedConvs verifies the rolling hash is order-independent, stable, and includes LastSendTime.
+func TestHashSortedConvs(t *testing.T) {
+	share := func(convID string, lastSendTime gregor1.Time) types.ShareConversation {
+		return types.ShareConversation{ConvID: convID, Name: "", LastSendTime: lastSendTime}
+	}
+
 	// Empty slice => 0
-	require.Equal(t, uint64(0), hashSortedConvIDs(nil))
-	require.Equal(t, uint64(0), hashSortedConvIDs([]string{}))
+	require.Equal(t, uint64(0), hashSortedConvs(nil))
+	require.Equal(t, uint64(0), hashSortedConvs([]types.ShareConversation{}))
 
 	// Same set in different order => same hash
-	a, b := "convA", "convB"
-	h1 := hashSortedConvIDs([]string{a, b})
-	h2 := hashSortedConvIDs([]string{b, a})
+	h1 := hashSortedConvs([]types.ShareConversation{share("convA", 100), share("convB", 200)})
+	h2 := hashSortedConvs([]types.ShareConversation{share("convB", 200), share("convA", 100)})
 	require.Equal(t, h1, h2, "hash should be order-independent")
 
+	// Same conv IDs but different LastSendTime => different hash (so we re-donate when send time changes)
+	h3 := hashSortedConvs([]types.ShareConversation{share("convA", 100), share("convB", 200)})
+	h4 := hashSortedConvs([]types.ShareConversation{share("convA", 999), share("convB", 200)})
+	require.NotEqual(t, h3, h4, "hash should change when LastSendTime changes")
+
 	// Different sets => different hashes
-	h3 := hashSortedConvIDs([]string{"convC"})
-	require.NotEqual(t, h1, h3)
-	require.NotEqual(t, hashSortedConvIDs([]string{"x"}), hashSortedConvIDs([]string{"y"}))
+	h5 := hashSortedConvs([]types.ShareConversation{share("convC", 0)})
+	require.NotEqual(t, h1, h5)
+	require.NotEqual(t, hashSortedConvs([]types.ShareConversation{share("x", 0)}), hashSortedConvs([]types.ShareConversation{share("y", 0)}))
 }
 
 // mockShareDonator records donated conversations for tests.
@@ -373,12 +381,13 @@ func TestPrepareShareConversations(t *testing.T) {
 
 	loader := NewUIInboxLoader(g)
 
-	row := func(convID, name string, isTeam bool) chat1.UIInboxSmallTeamRow {
+	row := func(convID, name string, isTeam bool, lastSendTime gregor1.Time) chat1.UIInboxSmallTeamRow {
 		return chat1.UIInboxSmallTeamRow{
-			ConvID: chat1.ConvIDStr(convID),
-			Name:   name,
-			Time:   gregor1.Time(0),
-			IsTeam: isTeam,
+			ConvID:       chat1.ConvIDStr(convID),
+			Name:         name,
+			Time:         gregor1.Time(0),
+			LastSendTime: lastSendTime,
+			IsTeam:       isTeam,
 		}
 	}
 
@@ -386,7 +395,7 @@ func TestPrepareShareConversations(t *testing.T) {
 		gNoDonator := globals.NewContext(tc.G, &globals.ChatContext{})
 		h := NewUIInboxLoader(gNoDonator)
 		h.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
-			row("id1", "alice", false),
+			row("id1", "alice", false, gregor1.Time(0)),
 		})
 		// No panic; donator is nil so we exit early (no way to assert except no crash)
 	})
@@ -398,8 +407,8 @@ func TestPrepareShareConversations(t *testing.T) {
 		loader.lastShareDonationMu.Unlock()
 
 		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
-			row("id1", "alice", false),
-			row("id2", "bob", false),
+			row("id1", "alice", false, gregor1.Time(0)),
+			row("id2", "bob", false, gregor1.Time(0)),
 		})
 		calls := donator.getCalls()
 		require.Len(t, calls, 1)
@@ -410,6 +419,42 @@ func TestPrepareShareConversations(t *testing.T) {
 		require.Equal(t, "bob", calls[0][1].Name)
 	})
 
+	t.Run("donated convs include LastSendTime", func(t *testing.T) {
+		donator.reset()
+		loader.lastShareDonationMu.Lock()
+		loader.lastShareDonationHash = 0
+		loader.lastShareDonationMu.Unlock()
+
+		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
+			row("id1", "alice", false, gregor1.Time(100)),
+			row("id2", "bob", false, gregor1.Time(200)),
+		})
+		calls := donator.getCalls()
+		require.Len(t, calls, 1)
+		require.Len(t, calls[0], 2)
+		require.Equal(t, gregor1.Time(100), calls[0][0].LastSendTime)
+		require.Equal(t, gregor1.Time(200), calls[0][1].LastSendTime)
+	})
+
+	t.Run("same conv set but LastSendTime change donates again", func(t *testing.T) {
+		donator.reset()
+		loader.lastShareDonationMu.Lock()
+		loader.lastShareDonationHash = 0
+		loader.lastShareDonationMu.Unlock()
+
+		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
+			row("id1", "alice", false, gregor1.Time(100)),
+			row("id2", "bob", false, gregor1.Time(200)),
+		})
+		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
+			row("id1", "alice", false, gregor1.Time(999)), // same convs, different send time
+			row("id2", "bob", false, gregor1.Time(200)),
+		})
+		calls := donator.getCalls()
+		require.Len(t, calls, 2, "second call with different LastSendTime should donate again")
+		require.Equal(t, gregor1.Time(999), calls[1][0].LastSendTime)
+	})
+
 	t.Run("excludes channels from suggestions", func(t *testing.T) {
 		donator.reset()
 		loader.lastShareDonationMu.Lock()
@@ -417,10 +462,10 @@ func TestPrepareShareConversations(t *testing.T) {
 		loader.lastShareDonationMu.Unlock()
 
 		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
-			row("teamid", "team#general", true),
-			row("id1", "alice", false),
-			row("id2", "bob", false),
-			row("id3", "charlie", false),
+			row("teamid", "team#general", true, gregor1.Time(0)),
+			row("id1", "alice", false, gregor1.Time(0)),
+			row("id2", "bob", false, gregor1.Time(0)),
+			row("id3", "charlie", false, gregor1.Time(0)),
 		})
 		calls := donator.getCalls()
 		require.Len(t, calls, 1)
@@ -438,9 +483,9 @@ func TestPrepareShareConversations(t *testing.T) {
 		loader.lastShareDonationMu.Unlock()
 
 		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
-			row("id1", "alice", false),
-			row("id2", "bob", false),
-			row("id3", "charlie", false),
+			row("id1", "alice", false, gregor1.Time(0)),
+			row("id2", "bob", false, gregor1.Time(0)),
+			row("id3", "charlie", false, gregor1.Time(0)),
 		})
 		calls := donator.getCalls()
 		require.Len(t, calls, 1)
@@ -456,8 +501,8 @@ func TestPrepareShareConversations(t *testing.T) {
 		loader.lastShareDonationMu.Unlock()
 
 		widgetList := []chat1.UIInboxSmallTeamRow{
-			row("id1", "alice", false),
-			row("id2", "bob", false),
+			row("id1", "alice", false, gregor1.Time(0)),
+			row("id2", "bob", false, gregor1.Time(0)),
 		}
 		loader.prepareShareConversations(ctx, widgetList)
 		loader.prepareShareConversations(ctx, widgetList)
@@ -473,10 +518,10 @@ func TestPrepareShareConversations(t *testing.T) {
 		loader.lastShareDonationMu.Unlock()
 
 		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
-			row("id1", "alice", false),
+			row("id1", "alice", false, gregor1.Time(0)),
 		})
 		loader.prepareShareConversations(ctx, []chat1.UIInboxSmallTeamRow{
-			row("id2", "bob", false),
+			row("id2", "bob", false, gregor1.Time(0)),
 		})
 		calls := donator.getCalls()
 		require.Len(t, calls, 2)
