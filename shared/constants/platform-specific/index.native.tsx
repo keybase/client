@@ -149,8 +149,6 @@ const loadStartupDetails = async () => {
     neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
   ] as const)
 
-  logger.info('[startup] loadStartupDetails: routeState length', routeState?.length ?? 0, 'initialUrl', !!initialUrl, 'push', !!push)
-
   let conversation: T.Chat.ConversationIDKey | undefined
   let followUser = ''
   let link = ''
@@ -192,8 +190,6 @@ const loadStartupDetails = async () => {
   if (tab === 'blank') {
     tab = ''
   }
-
-  logger.info('[startup] setStartupDetails: tab', tab || '(empty)', 'conversation', conversation ? 'set' : 'none', 'link', link || '(none)')
 
   storeRegistry.getState('config').dispatch.setStartupDetails({
     conversation: conversation ?? noConversationIDKey,
@@ -339,21 +335,16 @@ export const initPlatformListener = () => {
   let _lastPersist = ''
   storeRegistry.getStore('config').setState(s => {
     s.dispatch.dynamic.persistRoute = wrapErrors((clear: boolean, immediate: boolean) => {
-      logger.info('[persistRoute] called', {clear, immediate})
       const doClear = async () => {
         try {
           await T.RPCGen.configGuiSetValueRpcPromise({
             path: 'ui.routeState2',
             value: {isNull: false, s: ''},
           })
-          logger.info('[persistRoute] clear done')
-        } catch (e) {
-          logger.info('[persistRoute] clear failed', e)
-        }
+        } catch {}
       }
       const doPersist = async () => {
         if (!storeRegistry.getState('config').startup.loaded) {
-          logger.info('[persistRoute] skip persist: startup.loaded false')
           return
         }
         let param = {}
@@ -372,8 +363,8 @@ export const initPlatformListener = () => {
           return false
         })
         const s = JSON.stringify({param, routeName})
+        // don't keep rewriting
         if (_lastPersist === s) {
-          logger.info('[persistRoute] skip persist: unchanged', routeName)
           return
         }
         _lastPersist = s
