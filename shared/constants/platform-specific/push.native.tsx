@@ -10,7 +10,6 @@ import {
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
 import {storeRegistry} from '../store-registry'
-import {shareDebugLog} from './native-log.native'
 import {DeviceEventEmitter} from 'react-native'
 
 type DataCommon = {
@@ -221,11 +220,7 @@ export const initPushListener = () => {
       RNEmitter.addListener('onPushNotification', onNotification)
 
       if (isAndroid) {
-        // RCTDeviceEventEmitter.emit() is received only by DeviceEventEmitter, not NativeEventEmitter(Kb).
         DeviceEventEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
-          shareDebugLog(
-            `onShareData received hasText=${!!evt.text} hasLocalPaths=${!!evt.localPaths} localPathsLen=${evt.localPaths?.length ?? 0}`
-          )
           const {setAndroidShare} = storeRegistry.getState('config').dispatch
 
           const text = evt.text
@@ -233,20 +228,14 @@ export const initPushListener = () => {
 
           if (urls) {
             setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
-            shareDebugLog('setAndroidShare file urls=' + urls.length)
           } else if (text) {
             setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
-            shareDebugLog('setAndroidShare text')
           } else {
-            shareDebugLog('onShareData no urls or text skipping')
             return
           }
           try {
-            shareDebugLog('calling handleAppLink keybase://incoming-share')
             storeRegistry.getState('deeplinks').dispatch.handleAppLink('keybase://incoming-share')
-          } catch (e) {
-            shareDebugLog('handleAppLink failed ' + (e instanceof Error ? e.message : String(e)))
-          }
+          } catch {}
         })
       }
     } catch (e) {

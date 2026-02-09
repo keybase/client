@@ -3,16 +3,10 @@ package io.keybase.ossifrage.modules
 import android.util.Log
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
 
 class NativeLogger(reactContext: ReactApplicationContext?) : ReactContextBaseJavaModule(reactContext) {
     override fun getName(): String {
         return NAME
-    }
-
-    @ReactMethod
-    fun log(message: String) {
-        info(message)
     }
 
     companion object {
