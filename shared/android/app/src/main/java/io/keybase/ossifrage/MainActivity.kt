@@ -72,7 +72,6 @@ class MainActivity : ReactActivity() {
             pendingShareUris = extractSharedUris(intent).toMutableList()
             pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
             pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
-            NativeLogger.info("ShareDebug: onCreate SEND intent action=${intent.action} hasClipData=${intent.clipData != null} pendingShareUris=${pendingShareUris?.size ?: 0}")
         }
         val bundleFromNotification = intent.getBundleExtra("notification")
         if (bundleFromNotification != null) {
@@ -95,12 +94,10 @@ class MainActivity : ReactActivity() {
         // Check if React context is already available, otherwise wait for it
         val reactContext = reactActivityDelegate?.getCurrentReactContext()
         if (reactContext != null) {
-            NativeLogger.info("ShareDebug: onCreate calling handleIntent (reactContext already ready)")
             handleIntent()
         } else {
             val listener = object : ReactInstanceEventListener {
                 override fun onReactContextInitialized(c: ReactContext) {
-                    NativeLogger.info("ShareDebug: onReactContextInitialized calling handleIntent")
                     handleIntent()
                     reactActivityDelegate?.reactHost?.removeReactInstanceEventListener(this)
                 }
@@ -233,7 +230,6 @@ class MainActivity : ReactActivity() {
             pendingShareUris = extractSharedUris(intent).toMutableList()
             pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
             pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
-            NativeLogger.info("ShareDebug: onNewIntent SEND pendingShareUris=${pendingShareUris?.size ?: 0}")
         }
         val bundleFromNotification = intent.getBundleExtra("notification")
         if (bundleFromNotification != null) {
@@ -243,7 +239,6 @@ class MainActivity : ReactActivity() {
     }
 
     public fun shareListenersRegistered() {
-        NativeLogger.info("ShareDebug: shareListenersRegistered called jsIsListening=true")
         jsIsListening  = true
         handleIntent()
     }
@@ -296,21 +291,16 @@ class MainActivity : ReactActivity() {
 
     private fun handleIntent() {
         val intent = cachedIntent ?: run {
-            NativeLogger.info("ShareDebug: handleIntent no cachedIntent")
             return
         }
         val rc = reactActivityDelegate?.getCurrentReactContext() ?: run {
-            NativeLogger.info("ShareDebug: handleIntent no reactContext")
             return
         }
         val emitter = rc.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java) ?: run {
-            NativeLogger.info("ShareDebug: handleIntent no emitter")
             return
         }
 
-        NativeLogger.info("ShareDebug: handleIntent entry action=${intent.action} jsIsListening=$jsIsListening")
         if (jsIsListening == false) {
-            NativeLogger.info("ShareDebug: handleIntent returning early (jsIsListening false)")
             return
         }
 
@@ -361,8 +351,6 @@ class MainActivity : ReactActivity() {
             val text = pendingShareText?.also { pendingShareText = null }
                 ?: intent.getStringExtra(Intent.EXTRA_TEXT)
 
-            NativeLogger.info("ShareDebug: handleIntent SEND uris=${uris.size} hadPendingUris=$hadPendingUris")
-
             intent.removeExtra(Intent.EXTRA_STREAM)
             intent.removeExtra(Intent.EXTRA_SUBJECT)
             intent.removeExtra(Intent.EXTRA_TEXT)
@@ -384,15 +372,11 @@ class MainActivity : ReactActivity() {
                 try {
                     readFileFromUri(rc, uri)
                 } catch (e: SecurityException) {
-                    NativeLogger.warn("ShareDebug: readFileFromUri SecurityException: $uri")
                     null
                 }
             }.toTypedArray()
 
-            NativeLogger.info("ShareDebug: handleIntent SEND filePaths=${filePaths.size} textPayloadLen=${textPayload.length}")
-
             if (filePaths.isNotEmpty()) {
-                NativeLogger.info("ShareDebug: handleIntent emitting onShareData localPaths=${filePaths.size}")
                 val args = Arguments.createMap()
                 val lPaths = Arguments.createArray()
                 for (path in filePaths) {
@@ -402,25 +386,21 @@ class MainActivity : ReactActivity() {
                 emitter.emit("onShareData", args)
                 didSomething = true
             } else if (textPayload.isNotEmpty()) {
-                NativeLogger.info("ShareDebug: handleIntent emitting onShareData text")
                 val args = Arguments.createMap()
                 args.putString("text", textPayload)
                 emitter.emit("onShareData", args)
                 didSomething = true
             } else if (uris.isNotEmpty()) {
-                NativeLogger.info("ShareDebug: handleIntent emitting onShareData localPaths=0 (read failed)")
                 val args = Arguments.createMap()
                 args.putArray("localPaths", Arguments.createArray())
                 emitter.emit("onShareData", args)
                 didSomething = true
             } else {
-                NativeLogger.info("ShareDebug: handleIntent SEND but no uris no text not emitting")
             }
         }
 
         cachedIntent = null
         if (!didSomething) {
-            NativeLogger.info("ShareDebug: handleIntent didSomething=false return")
             return
         }
     }
