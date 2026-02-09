@@ -220,7 +220,6 @@ export const initPushListener = () => {
       RNEmitter.addListener('onPushNotification', onNotification)
 
       if (isAndroid) {
-        // RCTDeviceEventEmitter.emit() is received only by DeviceEventEmitter, not NativeEventEmitter(Kb).
         DeviceEventEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
           const {setAndroidShare} = storeRegistry.getState('config').dispatch
 
