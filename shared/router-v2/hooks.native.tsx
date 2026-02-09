@@ -112,10 +112,11 @@ export const useInitialState = (loggedInLoaded: boolean) => {
         return
       }
 
-      if (!url && showMonster) {
+      const haveSavedTab = !!(startupTab || startupConversation)
+      if (!url && showMonster && !haveSavedTab) {
         url = 'keybase://settingsPushPrompt'
       }
-      if (!url && androidShare) {
+      if (!url && androidShare && !haveSavedTab) {
         url = `keybase://incoming-share`
       }
 
