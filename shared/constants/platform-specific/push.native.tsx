@@ -235,7 +235,7 @@ export const initPushListener = () => {
           }
           try {
             storeRegistry.getState('deeplinks').dispatch.handleAppLink('keybase://incoming-share')
-          } catch (e) {}
+          } catch {}
         })
       }
     } catch (e) {
