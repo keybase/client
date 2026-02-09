@@ -392,7 +392,11 @@ export const initPlatformListener = () => {
       if (immediate) {
         ignorePromise(run())
       } else {
-        ignorePromise(timeoutPromise(1000).then(() => run()))
+        const f = async () => {
+          await timeoutPromise(1000)
+          await run()
+        }
+        ignorePromise(f())
       }
     })
 
