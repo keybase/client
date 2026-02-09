@@ -132,6 +132,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     handleAppLink: link => {
       if (link.startsWith('keybase://')) {
+        logger.info('[ShareDebug] handleAppLink keybase link', link)
         get().dispatch.handleKeybaseLink(link.replace('keybase://', ''))
         return
       } else {
@@ -158,6 +159,7 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
     },
     handleKeybaseLink: link => {
       if (!link) return
+      logger.info('[ShareDebug] handleKeybaseLink', link)
       const error =
         "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and needs to be updated."
       const parts = link.split('/')
@@ -256,11 +258,13 @@ export const useDeepLinksState = Z.createZustand<State>((set, get) => {
           }
           break
         case 'incoming-share':
+          logger.info('[ShareDebug] handleKeybaseLink incoming-share case, scheduling navigateAppend')
           // android needs to render first when coming back
           setTimeout(() => {
             const selectedConversationIDKey = parts[1]
               ? T.Chat.stringToConversationIDKey(parts[1])
               : undefined
+            logger.info('[ShareDebug] navigateAppend incomingShareNew')
             navigateAppend({
               props: selectedConversationIDKey ? {selectedConversationIDKey} : {},
               selected: 'incomingShareNew',

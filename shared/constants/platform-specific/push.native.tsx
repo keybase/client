@@ -220,6 +220,11 @@ export const initPushListener = () => {
 
       if (isAndroid) {
         RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
+          logger.info('[ShareDebug] onShareData received', {
+            hasLocalPaths: !!evt.localPaths,
+            hasText: !!evt.text,
+            localPathsLen: evt.localPaths?.length ?? 0,
+          })
           const {setAndroidShare} = storeRegistry.getState('config').dispatch
 
           const text = evt.text
@@ -227,12 +232,20 @@ export const initPushListener = () => {
 
           if (urls) {
             setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
+            logger.info('[ShareDebug] setAndroidShare file urls=' + urls.length)
           } else if (text) {
             setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
+            logger.info('[ShareDebug] setAndroidShare text')
           } else {
+            logger.info('[ShareDebug] onShareData no urls or text, skipping')
             return
           }
-          storeRegistry.getState('deeplinks').dispatch.handleAppLink('keybase://incoming-share')
+          try {
+            logger.info('[ShareDebug] calling handleAppLink keybase://incoming-share')
+            storeRegistry.getState('deeplinks').dispatch.handleAppLink('keybase://incoming-share')
+          } catch (e) {
+            logger.error('[ShareDebug] handleAppLink failed', e)
+          }
         })
       }
     } catch (e) {
