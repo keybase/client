@@ -155,7 +155,7 @@ export interface State extends Store {
       onEngineConnectedDesktop?: () => void
       onEngineIncomingDesktop?: (action: EngineGen.Actions) => void
       onEngineIncomingNative?: (action: EngineGen.Actions) => void
-      persistRoute?: (path?: ReadonlyArray<unknown>, options?: {immediate?: boolean}) => void
+      persistRoute?: (clear: boolean, immediate: boolean) => void
       setNavigatorExistsNative?: () => void
       showMainNative?: () => void
       showShareActionSheet?: (filePath: string, message: string, mimeType: string) => void

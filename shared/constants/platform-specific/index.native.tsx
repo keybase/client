@@ -334,46 +334,52 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
 export const initPlatformListener = () => {
   let _lastPersist = ''
   storeRegistry.getStore('config').setState(s => {
-    s.dispatch.dynamic.persistRoute = wrapErrors(
-      (path?: ReadonlyArray<unknown>, options?: {immediate?: boolean}) => {
-        const doPersist = async () => {
-          if (!storeRegistry.getState('config').startup.loaded) {
-            return
-          }
-          let param = {}
-          let routeName = Tabs.peopleTab
-          const cur = getTab()
-          if (cur) {
-            routeName = cur
-          }
-          const ap = getVisiblePath()
-          ap.some(r => {
-            if (r.name === 'chatConversation') {
-              const rParams = r.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
-              param = {selectedConversationIDKey: rParams?.conversationIDKey}
-              return true
-            }
-            return false
-          })
-          const s = JSON.stringify({param, routeName})
-          // don't keep rewriting
-          if (_lastPersist === s) {
-            return
-          }
-          _lastPersist = s
-
+    s.dispatch.dynamic.persistRoute = wrapErrors((clear: boolean, immediate: boolean) => {
+      const doClear = async () => {
+        try {
           await T.RPCGen.configGuiSetValueRpcPromise({
             path: 'ui.routeState2',
-            value: {isNull: false, s},
+            value: {isNull: false, s: ''},
           })
-        }
-        if (options?.immediate) {
-          ignorePromise(doPersist())
-        } else {
-          ignorePromise(timeoutPromise(1000).then(() => doPersist()))
-        }
+        } catch {}
       }
-    )
+      const doPersist = async () => {
+        if (!storeRegistry.getState('config').startup.loaded) {
+          return
+        }
+        let param = {}
+        let routeName = Tabs.peopleTab
+        const cur = getTab()
+        if (cur) {
+          routeName = cur
+        }
+        const ap = getVisiblePath()
+        ap.some(r => {
+          if (r.name === 'chatConversation') {
+            const rParams = r.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
+            param = {selectedConversationIDKey: rParams?.conversationIDKey}
+            return true
+          }
+          return false
+        })
+        const s = JSON.stringify({param, routeName})
+        if (_lastPersist === s) {
+          return
+        }
+        _lastPersist = s
+
+        await T.RPCGen.configGuiSetValueRpcPromise({
+          path: 'ui.routeState2',
+          value: {isNull: false, s},
+        })
+      }
+      const run = clear ? doClear : doPersist
+      if (immediate) {
+        ignorePromise(run())
+      } else {
+        ignorePromise(timeoutPromise(1000).then(() => run()))
+      }
+    })
 
     s.dispatch.dynamic.onEngineIncomingNative = wrapErrors((action: EngineGen.Actions) => {
       switch (action.type) {
@@ -394,7 +400,7 @@ export const initPlatformListener = () => {
       case 'background':
         appFocused = false
         logState = T.RPCGen.MobileAppState.background
-        storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(undefined, {immediate: true})
+        storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(false, true)
         break
       case 'inactive':
         appFocused = false
@@ -545,8 +551,7 @@ export const initPlatformListener = () => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
-    const path = getVisiblePath()
-    storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(path)
+    storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(false, false)
 
     if (!calledShareListenersRegistered && logState().loggedIn) {
       calledShareListenersRegistered = true
