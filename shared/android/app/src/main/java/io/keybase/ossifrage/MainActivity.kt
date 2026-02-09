@@ -399,19 +399,19 @@ class MainActivity : ReactActivity() {
                     lPaths.pushString(path)
                 }
                 args.putArray("localPaths", lPaths)
-                emitter.emit("onShareData", args)
+                KbModule.emitShareData(args)
                 didSomething = true
             } else if (textPayload.isNotEmpty()) {
                 NativeLogger.info("ShareDebug: handleIntent emitting onShareData text")
                 val args = Arguments.createMap()
                 args.putString("text", textPayload)
-                emitter.emit("onShareData", args)
+                KbModule.emitShareData(args)
                 didSomething = true
             } else if (uris.isNotEmpty()) {
                 NativeLogger.info("ShareDebug: handleIntent emitting onShareData localPaths=0 (read failed)")
                 val args = Arguments.createMap()
                 args.putArray("localPaths", Arguments.createArray())
-                emitter.emit("onShareData", args)
+                KbModule.emitShareData(args)
                 didSomething = true
             } else {
                 NativeLogger.info("ShareDebug: handleIntent SEND but no uris no text not emitting")

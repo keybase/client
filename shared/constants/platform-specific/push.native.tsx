@@ -11,7 +11,6 @@ import {
 } from 'react-native-kb'
 import {storeRegistry} from '../store-registry'
 import {shareDebugLog} from './native-log.native'
-import {DeviceEventEmitter} from 'react-native'
 
 type DataCommon = {
   userInteraction: boolean
@@ -221,8 +220,7 @@ export const initPushListener = () => {
       RNEmitter.addListener('onPushNotification', onNotification)
 
       if (isAndroid) {
-        // MainActivity emits via RCTDeviceEventEmitter; NativeEventEmitter(Kb) only receives Kb module events.
-        DeviceEventEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
+        RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
           shareDebugLog(
             `onShareData received hasText=${!!evt.text} hasLocalPaths=${!!evt.localPaths} localPathsLen=${evt.localPaths?.length ?? 0}`
           )
