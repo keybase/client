@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -540,18 +541,23 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	return res
 }
 
-// hashSortedConvIDs returns a rolling hash of the sorted conversation IDs.
+// hashSortedConvs returns a rolling hash of the sorted conversation IDs.
 // Used to skip avatar fetch and donation when the suggested set is unchanged.
-func hashSortedConvIDs(convIDs []string) uint64 {
-	if len(convIDs) == 0 {
+func hashSortedConvs(convs []types.ShareConversation) uint64 {
+	if len(convs) == 0 {
 		return 0
 	}
-	sorted := make([]string, len(convIDs))
-	copy(sorted, convIDs)
-	sort.Strings(sorted)
+	sorted := make([]types.ShareConversation, len(convs))
+	copy(sorted, convs)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].ConvID < sorted[j].ConvID
+	})
 	h := fnv.New64a()
-	for _, id := range sorted {
-		h.Write([]byte(id))
+	for _, conv := range sorted {
+		h.Write([]byte(conv.ConvID))
+		buf := make([]byte, 8)
+		binary.BigEndian.PutUint64(buf, uint64(conv.LastSendTime))
+		h.Write(buf)
 	}
 	return h.Sum64()
 }
@@ -576,15 +582,13 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 	var allTeamNames []string
 	var allUserNames []string
 	var conversations []types.ShareConversation
-	var convIDs []string
 	for _, row := range widgetList {
 		// clip to 2 suggested convs
 		if len(conversations) >= 2 {
 			break
 		}
 
-		conversations = append(conversations, types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name})
-		convIDs = append(convIDs, string(row.ConvID))
+		conversations = append(conversations, types.ShareConversation{ConvID: string(row.ConvID), Name: row.Name, LastSendTime: row.LastSendTime})
 		idx := len(conversations) - 1
 		if row.IsTeam {
 			teamName := utils.ParseTeamNameFromDisplayName(row.Name)
@@ -599,7 +603,7 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 		}
 	}
 
-	hash := hashSortedConvIDs(convIDs)
+	hash := hashSortedConvs(conversations)
 
 	h.lastShareDonationMu.Lock()
 	lastHash := h.lastShareDonationHash

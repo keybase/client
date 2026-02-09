@@ -451,10 +451,11 @@ type NativeVideoHelper interface {
 // For teams: AvatarURL is the team avatar.
 // JSON keys must match Swift ShareIntentDonatorImpl.ShareConversation.CodingKeys.
 type ShareConversation struct {
-	ConvID     string `json:"ConvID"`
-	Name       string `json:"Name"`
-	AvatarURL  string `json:"AvatarURL"`  // team avatar, or first participant for non-team
-	AvatarURL2 string `json:"AvatarURL2"` // second participant for non-team multi-participant DM
+	ConvID       string       `json:"ConvID"`
+	Name         string       `json:"Name"`
+	AvatarURL    string       `json:"AvatarURL"`  // team avatar, or first participant for non-team
+	AvatarURL2   string       `json:"AvatarURL2"` // second participant for non-team multi-participant DM
+	LastSendTime gregor1.Time `json:"LastSendTime"`
 }
 
 // ShareIntentDonator is implemented by the native iOS layer to donate INSendMessageIntent

@@ -15,12 +15,14 @@ private struct ShareConversation: Decodable {
   let name: String
   let avatarURL: String
   let avatarURL2: String
+  let lastSendTime: Double  // Unix ms; used so we re-donate when send time changes
 
   enum CodingKeys: String, CodingKey {
     case convID = "ConvID"
     case name = "Name"
     case avatarURL = "AvatarURL"
     case avatarURL2 = "AvatarURL2"
+    case lastSendTime = "LastSendTime"
   }
 }
 
