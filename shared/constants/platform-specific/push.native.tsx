@@ -229,7 +229,10 @@ export const initPushListener = () => {
             setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
           } else if (text) {
             setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
+          } else {
+            return
           }
+          storeRegistry.getState('deeplinks').dispatch.handleAppLink('keybase://incoming-share')
         })
       }
     } catch (e) {
