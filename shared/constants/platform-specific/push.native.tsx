@@ -220,7 +220,7 @@ export const initPushListener = () => {
       RNEmitter.addListener('onPushNotification', onNotification)
 
       if (isIOS) {
-        RNEmitter.addListener('onPushToken', (payload: {token?: string}) => {
+        RNEmitter.addListener('onPushToken', (payload?: {token?: string}) => {
           const token = payload?.token
           if (token) {
             logger.debug('[PushToken] received token via onPushToken event: ', token)
