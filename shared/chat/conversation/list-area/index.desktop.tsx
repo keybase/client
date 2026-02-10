@@ -116,19 +116,13 @@ const useScrolling = (p: {
 
   const performScrollToCentered = React.useCallback(() => {
     const list = listRef.current
-    const waypoint = list?.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)?.[0] as HTMLElement | undefined
+    const waypoint = list?.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)[0] as HTMLElement | undefined
     if (!list || !waypoint) return
     const listRect = list.getBoundingClientRect()
     const waypointRect = waypoint.getBoundingClientRect()
     const targetScrollTop =
-      list.scrollTop +
-      (waypointRect.top - listRect.top) -
-      listRect.height / 2 +
-      waypointRect.height / 2
-    const clamped = Math.max(
-      0,
-      Math.min(targetScrollTop, list.scrollHeight - list.clientHeight)
-    )
+      list.scrollTop + (waypointRect.top - listRect.top) - listRect.height / 2 + waypointRect.height / 2
+    const clamped = Math.max(0, Math.min(targetScrollTop, list.scrollHeight - list.clientHeight))
     adjustScrollAndIgnoreOnScroll(() => {
       list.scrollTop = clamped
     })
