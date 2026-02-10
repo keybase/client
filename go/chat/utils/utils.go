@@ -1315,10 +1315,21 @@ func GetDesktopNotificationSnippet(ctx context.Context, g *globals.Context,
 	}
 }
 
+// StripUsernameFromConvName removes the current user from a comma-separated display name.
+// It only removes the username when it appears as a complete segment (e.g. "alice,mikem,bob" -> "alice,bob"),
+// so that names like "zoommikem" are not corrupted.
 func StripUsernameFromConvName(name string, username string) (res string) {
-	res = strings.ReplaceAll(name, fmt.Sprintf(",%s", username), "")
-	res = strings.ReplaceAll(res, fmt.Sprintf("%s,", username), "")
-	return res
+	if name == username || username == "" {
+		return name
+	}
+	parts := strings.Split(name, ",")
+	var out []string
+	for _, p := range parts {
+		if strings.TrimSpace(p) != username {
+			out = append(out, p)
+		}
+	}
+	return strings.Join(out, ",")
 }
 
 func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.RemoteConversation,
@@ -1328,6 +1339,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 	res.IsTeam = rc.GetTeamType() != chat1.TeamType_NONE
 	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
 	res.Time = GetConvMtime(rc)
+	res.LastSendTime = GetConvLastSendTime(rc)
 	if rc.LocalMetadata != nil {
 		res.SnippetDecoration = rc.LocalMetadata.SnippetDecoration
 		res.Snippet = &rc.LocalMetadata.Snippet
@@ -2253,6 +2265,30 @@ func PluckConvs(rcs []types.RemoteConversation) (res []chat1.Conversation) {
 
 func SplitTLFName(tlfName string) []string {
 	return strings.Split(strings.Fields(tlfName)[0], ",")
+}
+
+// ParseTeamNameFromDisplayName extracts the team name from a display name.
+// For "team#channel" it returns "team"; for "team" (no channel) it returns "team".
+func ParseTeamNameFromDisplayName(displayName string) string {
+	if idx := strings.Index(displayName, "#"); idx > 0 {
+		return displayName[:idx]
+	}
+	return displayName
+}
+
+// ParseParticipantNamesFromDisplayName extracts up to maxCount usernames from a
+// comma-separated display name (e.g. "alice,bob,charlie").
+func ParseParticipantNamesFromDisplayName(displayName string, maxCount int) []string {
+	var out []string
+	for _, p := range strings.Split(displayName, ",") {
+		if u := strings.TrimSpace(p); u != "" {
+			out = append(out, u)
+			if len(out) >= maxCount {
+				break
+			}
+		}
+	}
+	return out
 }
 
 func UsernamePackageToParticipant(p libkb.UsernamePackage) chat1.ConversationLocalParticipant {

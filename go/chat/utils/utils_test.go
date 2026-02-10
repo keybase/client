@@ -19,6 +19,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestParseTeamNameFromDisplayName(t *testing.T) {
+	cases := []struct {
+		input    string
+		expected string
+	}{
+		{"team#channel", "team"},
+		{"team", "team"},
+		{"teamname#channelname", "teamname"},
+		{"", ""},
+		{"a", "a"},
+		{"#channel", "#channel"},
+		{"keybase.staff#general", "keybase.staff"},
+	}
+	for _, c := range cases {
+		got := ParseTeamNameFromDisplayName(c.input)
+		require.Equal(t, c.expected, got, "ParseTeamNameFromDisplayName(%q)", c.input)
+	}
+}
+
+func TestParseParticipantNamesFromDisplayName(t *testing.T) {
+	cases := []struct {
+		input    string
+		max      int
+		expected []string
+	}{
+		{"alice,bob,charlie", 2, []string{"alice", "bob"}},
+		{"alice,bob,charlie", 3, []string{"alice", "bob", "charlie"}},
+		{"alice,bob", 2, []string{"alice", "bob"}},
+		{"alice", 2, []string{"alice"}},
+		{"", 2, nil},
+		{"alice, ,bob", 2, []string{"alice", "bob"}},
+		{" alice , bob ", 2, []string{"alice", "bob"}},
+		{"alice,bob,charlie", 1, []string{"alice"}},
+		{",", 2, nil},
+		{",alice,", 2, []string{"alice"}},
+		{"alice,bob", 10, []string{"alice", "bob"}},
+	}
+	for _, c := range cases {
+		got := ParseParticipantNamesFromDisplayName(c.input, c.max)
+		require.Equal(t, c.expected, got, "ParseParticipantNamesFromDisplayName(%q, %d)", c.input, c.max)
+	}
+}
+
 func TestParseDurationExtended(t *testing.T) {
 	test := func(input string, expected time.Duration) {
 		d, err := ParseDurationExtended(input)
@@ -1041,4 +1084,20 @@ func TestSearchableRemoteConversationName(t *testing.T) {
 		searchableRemoteConversationNameFromStr("joshblum,zoommikem,mikem,zoomua", "mikem"))
 	require.Equal(t, "joshblum,zoommikem,zoomua",
 		searchableRemoteConversationNameFromStr("joshblum,zoommikem,mikem,zoomua,mikem", "mikem"))
+}
+
+func TestStripUsernameFromConvName(t *testing.T) {
+	// Only the username as a complete segment is removed; "mikem" inside "zoommikem" must not be stripped
+	require.Equal(t, "joshblum,zoommikem,zoomua",
+		StripUsernameFromConvName("joshblum,zoommikem,mikem,zoomua", "mikem"))
+	require.Equal(t, "zoommikem,zoomua",
+		StripUsernameFromConvName("zoommikem,mikem,zoomua", "mikem"))
+	require.Equal(t, "alice,bob",
+		StripUsernameFromConvName("alice,charlie,bob", "charlie"))
+	require.Equal(t, "alice",
+		StripUsernameFromConvName("alice,bob", "bob"))
+	require.Equal(t, "bob",
+		StripUsernameFromConvName("alice,bob", "alice"))
+	require.Equal(t, "alice,bob",
+		StripUsernameFromConvName("alice,bob", "charlie"))
 }

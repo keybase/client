@@ -64,14 +64,6 @@ const loadStartupDetails = async () => {
     neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
   ] as const)
 
-  // Clear last value to be extra safe bad things don't hose us forever
-  try {
-    await T.RPCGen.configGuiSetValueRpcPromise({
-      path: 'ui.routeState2',
-      value: {isNull: false, s: ''},
-    })
-  } catch {}
-
   let conversation: T.Chat.ConversationIDKey | undefined
   let followUser = ''
   let link = ''
@@ -120,6 +112,14 @@ const loadStartupDetails = async () => {
     link,
     tab: tab as Tabs.Tab,
   })
+
+  // Clear last value to be extra safe bad things don't hose us forever (don't block startup)
+  ignorePromise(
+    T.RPCGen.configGuiSetValueRpcPromise({
+      path: 'ui.routeState2',
+      value: {isNull: false, s: ''},
+    }).catch(() => {})
+  )
 }
 
 const locationTaskName = 'background-location-task'
@@ -242,28 +242,34 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
 export const initPlatformListener = () => {
   let _lastPersist = ''
   useConfigState.setState(s => {
-    s.dispatch.defer.persistRoute = wrapErrors((path?: ReadonlyArray<unknown>) => {
-      const f = async () => {
+    s.dispatch.defer.persistRoute = wrapErrors((clear: boolean, immediate: boolean) => {
+      const doClear = async () => {
+        try {
+          await T.RPCGen.configGuiSetValueRpcPromise({
+            path: 'ui.routeState2',
+            value: {isNull: false, s: ''},
+          })
+        } catch {}
+      }
+      const doPersist = async () => {
         if (!useConfigState.getState().startup.loaded) {
           return
         }
         let param = {}
         let routeName = Tabs.peopleTab
-        if (path) {
-          const cur = getTab()
-          if (cur) {
-            routeName = cur
-          }
-          const ap = getVisiblePath()
-          ap.some(r => {
-            if (r.name === 'chatConversation') {
-              const rParams = r.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
-              param = {selectedConversationIDKey: rParams?.conversationIDKey}
-              return true
-            }
-            return false
-          })
+        const cur = getTab()
+        if (cur) {
+          routeName = cur
         }
+        const ap = getVisiblePath()
+        ap.some(r => {
+          if (r.name === 'chatConversation') {
+            const rParams = r.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
+            param = {selectedConversationIDKey: rParams?.conversationIDKey}
+            return true
+          }
+          return false
+        })
         const s = JSON.stringify({param, routeName})
         // don't keep rewriting
         if (_lastPersist === s) {
@@ -271,12 +277,23 @@ export const initPlatformListener = () => {
         }
         _lastPersist = s
 
-        await T.RPCGen.configGuiSetValueRpcPromise({
-          path: 'ui.routeState2',
-          value: {isNull: false, s},
-        })
+        try {
+          await T.RPCGen.configGuiSetValueRpcPromise({
+            path: 'ui.routeState2',
+            value: {isNull: false, s},
+          })
+        } catch {}
       }
-      ignorePromise(f())
+      const run = clear ? doClear : doPersist
+      if (immediate) {
+        ignorePromise(run())
+      } else {
+        const f = async () => {
+          await timeoutPromise(1000)
+          await run()
+        }
+        ignorePromise(f())
+      }
     })
   })
 
@@ -292,6 +309,7 @@ export const initPlatformListener = () => {
       case 'background':
         appFocused = false
         logState = T.RPCGen.MobileAppState.background
+        useConfigState.getState().dispatch.defer.persistRoute?.(false, true)
         break
       case 'inactive':
         appFocused = false
@@ -445,17 +463,12 @@ export const initPlatformListener = () => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
-    const f = async () => {
-      await timeoutPromise(1000)
-      const path = getVisiblePath()
-      useConfigState.getState().dispatch.defer.persistRoute?.(path)
-    }
+    useConfigState.getState().dispatch.defer.persistRoute?.(false, false)
 
     if (!calledShareListenersRegistered && logState().loggedIn) {
       calledShareListenersRegistered = true
       shareListenersRegistered()
     }
-    ignorePromise(f())
   })
 
   // Start this immediately instead of waiting so we can do more things in parallel

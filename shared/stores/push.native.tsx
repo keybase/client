@@ -12,8 +12,9 @@ import * as T from '@/constants/types'
 import {isDevApplePushToken} from '@/local-debug'
 import {isIOS} from '@/constants/platform'
 import {
-  iosGetHasShownPushPrompt,
   checkPushPermissions,
+  getRegistrationToken,
+  iosGetHasShownPushPrompt,
   requestPushPermissions,
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
@@ -99,6 +100,11 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           await requestPermissionsFromNative()
         } else {
           logger.info('[PushCheck] enabled already')
+        }
+        if (isIOS && !get().token) {
+          getRegistrationToken()
+            .then(token => get().dispatch.setPushToken(token))
+            .catch(() => {})
         }
         return true
       } else {
@@ -196,6 +202,11 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         if (hasPermissions) {
           // Get the token
           await requestPermissionsFromNative()
+          if (isIOS && !get().token) {
+            getRegistrationToken()
+              .then(token => get().dispatch.setPushToken(token))
+              .catch(() => {})
+          }
         } else {
           const shownNativePushPromptTask = askNativeIfSystemPushPromptHasBeenShown
           const shownMonsterPushPromptTask = async () => {

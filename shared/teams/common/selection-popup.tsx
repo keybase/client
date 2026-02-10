@@ -80,7 +80,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   // For boosting the list to scroll not behind the popup on mobile
   const [height, setHeight] = React.useState(0)
   const {bottom} = Kb.useSafeAreaInsets()
-  if (!onSelectableTab || (Kb.Styles.isMobile && !selectedCount) || !focused) {
+  if (!onSelectableTab || !selectedCount || !focused) {
     return null
   }
   const popup = (
@@ -266,12 +266,14 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
 
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsEditMembership(teamID, ...members))
   const teamWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsTeam(teamID))
+  const prevTeamWaitingRef = React.useRef(teamWaiting)
 
-  // We wait for the teamLoaded
+  // We wait for the teamLoaded (close only when teamWaiting transitions true -> false after an edit)
   React.useEffect(() => {
-    if (showingPicker && !teamWaiting) {
+    if (showingPicker && prevTeamWaitingRef.current && !teamWaiting) {
       setShowingPicker(false)
     }
+    prevTeamWaitingRef.current = teamWaiting
   }, [showingPicker, teamWaiting])
 
   const disableButton = disabledReasons.admin !== undefined

@@ -1,7 +1,8 @@
 import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import logger from '@/logger'
-import {isAndroid} from '@/constants/platform'
+import {handleAppLink} from '@/constants/deeplinks'
+import {isAndroid, isIOS} from '@/constants/platform'
 import {
   getRegistrationToken,
   setApplicationIconBadgeNumber,
@@ -220,6 +221,16 @@ export const initPushListener = () => {
       // Other notification types are handled natively first, then emitted to JS via onPushNotification
       RNEmitter.addListener('onPushNotification', onNotification)
 
+      if (isIOS) {
+        RNEmitter.addListener('onPushToken', (payload?: {token?: string}) => {
+          const token = payload?.token
+          if (token) {
+            logger.debug('[PushToken] received token via onPushToken event: ', token)
+            usePushState.getState().dispatch.setPushToken(token)
+          }
+        })
+      }
+
       if (isAndroid) {
         RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
           const {setAndroidShare} = useConfigState.getState().dispatch
@@ -231,7 +242,12 @@ export const initPushListener = () => {
             setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
           } else if (text) {
             setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
+          } else {
+            return
           }
+          try {
+            handleAppLink('keybase://incoming-share')
+          } catch {}
         })
       }
     } catch (e) {

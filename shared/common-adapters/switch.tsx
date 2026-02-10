@@ -7,6 +7,7 @@ import Text from './text'
 import SwitchToggle from './switch-toggle'
 import WithTooltip from './with-tooltip'
 import type {MeasureRef} from './measure-ref'
+import type {TextType} from './text.shared'
 
 const Kb = {
   Box,
@@ -28,6 +29,7 @@ type Props = {
   label: string | React.ReactNode
   labelSubtitle?: string // only effective when label is a string,
   labelTooltip?: string // only effective when label is a string,
+  labelType?: TextType // only effective when label is a string,
   on: boolean
   onClick: () => void
   style?: Styles.StylesCrossPlatform
@@ -77,7 +79,7 @@ const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props,
       {!!props.gapSize && <Kb.Box style={{width: props.gapSize}} />}
       {typeof props.label === 'string' ? (
         <LabelContainer {...props}>
-          <Kb.Text type="BodySemibold">{props.label}</Kb.Text>
+          <Kb.Text type={props.labelType ?? 'BodySemibold'}>{props.label}</Kb.Text>
           {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
         </LabelContainer>
       ) : props.labelSubtitle ? (

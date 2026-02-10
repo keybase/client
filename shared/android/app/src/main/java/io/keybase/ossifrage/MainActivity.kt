@@ -66,6 +66,13 @@ class MainActivity : ReactActivity() {
         NativeLogger.info("Activity onCreate")
         setupKBRuntime(this, true)
         cachedIntent = intent
+        if (Intent.ACTION_SEND == intent.action || Intent.ACTION_SEND_MULTIPLE == intent.action) {
+            normalizeShareIntent(intent)
+            cachedIntent = intent
+            pendingShareUris = extractSharedUris(intent).toMutableList()
+            pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+            pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
+        }
         val bundleFromNotification = intent.getBundleExtra("notification")
         if (bundleFromNotification != null) {
             KbModule.setInitialNotification(bundleFromNotification.clone() as Bundle)
@@ -208,10 +215,22 @@ class MainActivity : ReactActivity() {
 
     private var cachedIntent: Intent? = null
 
+    private var pendingShareUris: MutableList<Uri>? = null
+    private var pendingShareSubject: String? = null
+    private var pendingShareText: String? = null
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         cachedIntent = intent
+        if (Intent.ACTION_SEND == intent.action || Intent.ACTION_SEND_MULTIPLE == intent.action) {
+            normalizeShareIntent(intent)
+            setIntent(intent)
+            cachedIntent = intent
+            pendingShareUris = extractSharedUris(intent).toMutableList()
+            pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+            pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
+        }
         val bundleFromNotification = intent.getBundleExtra("notification")
         if (bundleFromNotification != null) {
             KbModule.setInitialNotification(bundleFromNotification.clone() as Bundle)
@@ -226,6 +245,15 @@ class MainActivity : ReactActivity() {
 
     private var jsIsListening = false
     private var handledIntentHash: String? = null
+
+    private fun normalizeShareIntent(intent: Intent) {
+        val uris = extractSharedUris(intent)
+        intent.removeExtra(Intent.EXTRA_STREAM)
+        if (uris.isNotEmpty()) {
+            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+        }
+    }
+
     private fun extractSharedUris(intent: Intent): List<Uri> {
         val action = intent.action
         if (Intent.ACTION_SEND != action && Intent.ACTION_SEND_MULTIPLE != action) {
@@ -257,9 +285,15 @@ class MainActivity : ReactActivity() {
     }
 
     private fun handleIntent() {
-        val intent = cachedIntent ?: return
-        val rc = reactActivityDelegate?.getCurrentReactContext() ?: return
-        val emitter = rc.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java) ?: return
+        val intent = cachedIntent ?: run {
+            return
+        }
+        val rc = reactActivityDelegate?.getCurrentReactContext() ?: run {
+            return
+        }
+        val emitter = rc.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java) ?: run {
+            return
+        }
 
         if (jsIsListening == false) {
             return
@@ -304,9 +338,13 @@ class MainActivity : ReactActivity() {
 
         val action = intent.action
         if (Intent.ACTION_SEND == action || Intent.ACTION_SEND_MULTIPLE == action) {
-            val uris = extractSharedUris(intent)
-            val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
-            val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+            val hadPendingUris = pendingShareUris != null
+            val uris = pendingShareUris?.also { pendingShareUris = null }
+                ?: extractSharedUris(intent)
+            val subject = pendingShareSubject?.also { pendingShareSubject = null }
+                ?: intent.getStringExtra(Intent.EXTRA_SUBJECT)
+            val text = pendingShareText?.also { pendingShareText = null }
+                ?: intent.getStringExtra(Intent.EXTRA_TEXT)
 
             intent.removeExtra(Intent.EXTRA_STREAM)
             intent.removeExtra(Intent.EXTRA_SUBJECT)
@@ -326,7 +364,11 @@ class MainActivity : ReactActivity() {
 
             val textPayload = sb.toString()
             val filePaths = uris.mapNotNull { uri ->
-                readFileFromUri(rc, uri)
+                try {
+                    readFileFromUri(rc, uri)
+                } catch (e: SecurityException) {
+                    null
+                }
             }.toTypedArray()
 
             if (filePaths.isNotEmpty()) {
@@ -343,6 +385,12 @@ class MainActivity : ReactActivity() {
                 args.putString("text", textPayload)
                 emitter.emit("onShareData", args)
                 didSomething = true
+            } else if (uris.isNotEmpty()) {
+                val args = Arguments.createMap()
+                args.putArray("localPaths", Arguments.createArray())
+                emitter.emit("onShareData", args)
+                didSomething = true
+            } else {
             }
         }
 
@@ -455,7 +503,7 @@ class MainActivity : ReactActivity() {
             val isIPad = false
             val isIOS = false
             Keybase.initOnce(context.filesDir.path, "", context.getFileStreamPath("service.log").absolutePath, "prod", false,
-                    DNSNSFetcher(), VideoHelper(), mobileOsVersion, isIPad, KBInstallReferrerListener(context), isIOS)
+                    DNSNSFetcher(), VideoHelper(), mobileOsVersion, isIPad, KBInstallReferrerListener(context), isIOS, null)
         }
     }
 }

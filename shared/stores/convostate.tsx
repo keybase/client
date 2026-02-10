@@ -1315,7 +1315,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     blockConversation: reportUser => {
       const f = async () => {
         get().dispatch.defer.chatNavigateToInbox()
-        useConfigState.getState().dispatch.defer.persistRoute?.()
+        useConfigState.getState().dispatch.defer.persistRoute?.(false, false)
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
           conversationID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -6,8 +7,9 @@ import * as FsCommon from '@/fs/common'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/stores/settings'
 import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
+import {useFSState} from '@/stores/fs'
+import {useRouterState} from '@/stores/router2'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
@@ -197,7 +199,12 @@ type IncomingShareProps = {
   incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
 }
 
-const IncomingShare = (props: IncomingShareProps) => {
+type IncomingShareWithSelectionProps = IncomingShareProps & {
+  selectedConversationIDKey?: T.Chat.ConversationIDKey
+}
+
+const IncomingShare = (props: IncomingShareWithSelectionProps) => {
+  const navigateAppend = useRouterState(s => s.dispatch.navigateAppend)
   const useOriginalValue = useConfigState(s => s.incomingShareUseOriginal)
   const {sendPaths, text} = props.incomingShareItems.reduce(
     ({sendPaths, text}, item) => {
@@ -214,12 +221,47 @@ const IncomingShare = (props: IncomingShareProps) => {
     },
     {sendPaths: new Array<string>(), text: undefined as string | undefined}
   )
+
+  // Pre-selected conv: navToThread + attachments directly (skip MobileSendToChat)
+  const selectedConversationIDKey = props.selectedConversationIDKey
+  const canDirectNav = selectedConversationIDKey && Chat.isValidConversationIDKey(selectedConversationIDKey)
+  const hasNavigatedRef = React.useRef(false)
+  React.useEffect(() => {
+    if (!canDirectNav || hasNavigatedRef.current) return
+    hasNavigatedRef.current = true
+    const {dispatch} = Chat.getConvoState(selectedConversationIDKey!)
+    text && dispatch.injectIntoInput(text)
+    dispatch.navigateToThread('extension')
+    if (sendPaths.length > 0) {
+      const meta = Chat.getConvoState(selectedConversationIDKey!).meta
+      const tlfName = meta.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''
+      navigateAppend({
+        props: {
+          conversationIDKey: selectedConversationIDKey,
+          pathAndOutboxIDs: sendPaths.map(p => ({
+            path: Kb.Styles.normalizePath(p),
+          })),
+          selectConversationWithReason: 'extension' as const,
+          tlfName,
+        },
+        selected: 'chatAttachmentGetTitles',
+      })
+    }
+  }, [canDirectNav, selectedConversationIDKey, sendPaths, text])
+
+  const header = useHeader(props.incomingShareItems)
+  const footer = useFooter(props.incomingShareItems)
+
+  if (canDirectNav) {
+    return (
+      <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
+        <Kb.ProgressIndicator type="Large" />
+      </Kb.Box2>
+    )
+  }
+
   return (
-    <Kb.Modal
-      noScrollView={true}
-      header={useHeader(props.incomingShareItems)}
-      footer={useFooter(props.incomingShareItems)}
-    >
+    <Kb.Modal noScrollView={true} header={header} footer={footer}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
           <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
@@ -298,12 +340,19 @@ const useIncomingShareItems = () => {
   return {incomingShareError, incomingShareItems}
 }
 
-const IncomingShareMain = () => {
+type IncomingShareMainProps = {
+  selectedConversationIDKey?: T.Chat.ConversationIDKey
+}
+
+const IncomingShareMain = (props: IncomingShareMainProps) => {
   const {incomingShareError, incomingShareItems} = useIncomingShareItems()
   return incomingShareError ? (
     <IncomingShareError />
   ) : incomingShareItems.length ? (
-    <IncomingShare incomingShareItems={incomingShareItems} />
+    <IncomingShare
+      incomingShareItems={incomingShareItems}
+      selectedConversationIDKey={props.selectedConversationIDKey}
+    />
   ) : (
     <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
       <Kb.ProgressIndicator type="Large" />

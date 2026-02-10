@@ -8,6 +8,7 @@ const Checkbox = (props: Props) => (
     color="blue"
     disabled={props.disabled}
     label={props.labelComponent || props.label || ''}
+    labelType={props.labelType}
     on={props.checked}
     onClick={() => {
       props.onCheck?.(!props.checked)

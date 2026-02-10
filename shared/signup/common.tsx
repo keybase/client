@@ -140,6 +140,7 @@ type SignupScreenProps = {
   headerStyle?: Kb.Styles.StylesCrossPlatform
   containerStyle?: Kb.Styles.StylesCrossPlatform
   contentContainerStyle?: Kb.Styles.StylesCrossPlatform
+  footer?: React.ReactNode
   title?: string
   titleComponent?: React.ReactNode
   header?: React.ReactNode
@@ -217,6 +218,11 @@ export const SignupScreen = (props: SignupScreenProps) => (
       >
         {props.children}
       </Kb.Box2>
+      {!!props.footer && (
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.footer}>
+          {props.footer}
+        </Kb.Box2>
+      )}
       {/* Banners after children so they go on top */}
       {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
       {!!props.buttons && (
@@ -309,6 +315,11 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'relative',
         top: 2,
       },
+      footer: Kb.Styles.platformStyles({
+        isMobile: {
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
+        },
+      }),
       headerContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
       },

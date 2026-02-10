@@ -84,7 +84,9 @@ export const useInitialState = (loggedInLoaded: boolean) => {
   const [initialStateState, setInitialStateState] = React.useState<InitialStateState>('init')
 
   React.useEffect(() => {
-    if (!startupLoaded) return
+    if (!startupLoaded) {
+      return
+    }
 
     if (!loggedInLoaded) {
       return
@@ -101,10 +103,11 @@ export const useInitialState = (loggedInLoaded: boolean) => {
         return
       }
 
-      if (!url && showMonster) {
+      const haveSavedTab = !!(startupTab || startupConversation)
+      if (!url && showMonster && !haveSavedTab) {
         url = 'keybase://settingsPushPrompt'
       }
-      if (!url && androidShare) {
+      if (!url && androidShare && !haveSavedTab) {
         url = `keybase://incoming-share`
       }
 
@@ -168,6 +171,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
             ],
           })
         } catch {}
+      } else {
       }
     }
 

@@ -4,7 +4,7 @@
 package attachments
 
 /*
-#cgo CFLAGS: -x objective-c -fobjc-arc
+#cgo CFLAGS: -x objective-c -fobjc-arc -Werror=unguarded-availability-new
 #cgo LDFLAGS: -framework AVFoundation -framework CoreFoundation -framework ImageIO -framework CoreMedia -framework Foundation -framework CoreGraphics -framework AppKit -framework UniformTypeIdentifiers -lobjc
 
 #include <TargetConditionals.h>
@@ -40,19 +40,9 @@ VideoPreviewResult MakeVideoThumbnail(const char* inFilename) {
 	AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
 	[generateImg setAppliesPreferredTrackTransform:YES];
 	CMTime time = CMTimeMake(1, 1);
-
-    // Use the modern async API wrapped with a semaphore for synchronous behavior
-	__block CGImageRef image = NULL;
-	dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-
-	[generateImg generateCGImageAsynchronouslyForTime:time completionHandler:^(CGImageRef _Nullable imageRef, CMTime actualTime, NSError * _Nullable error) {
-		if (imageRef != NULL) {
-			image = CGImageRetain(imageRef);
-		}
-		dispatch_semaphore_signal(semaphore);
-	}];
-
-	dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+	// NOTE Once iOS <16 support is dropped generateCGImageAsynchronouslyForTime can be used. https://github.com/keybase/client/pull/28530
+	NSError *error = NULL;
+	CGImageRef image = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
 	result.duration = (int)CMTimeGetSeconds([asset duration]);
 
 	if (image != NULL) {

@@ -547,12 +547,12 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
       println("Running golangci-lint on new code")
       fetchChangeTarget()
       def BASE_COMMIT_HASH = getBaseCommitHash()
-      timeout(activity: true, time: 15, unit: 'MINUTES') {
+      timeout(activity: true, time: 30, unit: 'MINUTES') {
         sh "make golangci-lint GOLANGCI_RUN_OPT='--new-from-rev ${BASE_COMMIT_HASH}'"
       }
     } else {
       println("Running golangci-lint on all code")
-      timeout(activity: true, time: 15, unit: 'MINUTES') {
+      timeout(activity: true, time: 30, unit: 'MINUTES') {
         sh "make golangci-lint"
       }
     }

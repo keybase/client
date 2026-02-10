@@ -37,7 +37,7 @@ const PeopleReloadable = () => {
   const onClickUser = React.useCallback((username: string) => showUserProfile(username), [showUserProfile])
 
   const onReload = React.useCallback(
-    () => getData(false, !followSuggestions.length),
+    (isRetry?: boolean) => getData(false, isRetry === true || !followSuggestions.length),
     [getData, followSuggestions.length]
   )
 

@@ -996,7 +996,12 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 
 	workspaceDir := getWorkspaceDir(jobDesc)
 
-	err = os.MkdirAll(filepath.Dir(jobDesc.ZipFilePath), 0o755) //nolint:gosec // G301: Zip file parent dir needs standard permissions
+	zipFilePath := jobDesc.ZipFilePath
+	if filepath.Dir(zipFilePath) == "." {
+		zipFilePath = filepath.Join(jobDesc.StagingPath, filepath.Base(zipFilePath))
+	}
+
+	err = os.MkdirAll(filepath.Dir(zipFilePath), 0o755) //nolint:gosec // G301: Zip file parent dir needs standard permissions
 	if err != nil {
 		m.simpleFS.log.CErrorf(ctx, "os.MkdirAll error: %v", err)
 		return err
@@ -1007,9 +1012,9 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 		if jobDesc.OverwriteZip {
 			flag = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 		}
-		zipFile, err := os.OpenFile(jobDesc.ZipFilePath, flag, 0o600)
+		zipFile, err := os.OpenFile(zipFilePath, flag, 0o600)
 		if err != nil {
-			return fmt.Errorf("os.Create(%s) error: %v", jobDesc.ZipFilePath, err)
+			return fmt.Errorf("os.Create(%s) error: %v", zipFilePath, err)
 		}
 		defer func() {
 			closeErr := zipFile.Close()
@@ -1017,15 +1022,15 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 				err = closeErr
 			}
 			if closeErr != nil {
-				m.simpleFS.log.CWarningf(ctx, "zipFile.Close %s error %v", jobDesc.ZipFilePath, err)
+				m.simpleFS.log.CWarningf(ctx, "zipFile.Close %s error %v", zipFilePath, err)
 			}
 			// Call Quarantine even if close failed just in case.
-			qerr := Quarantine(ctx, jobDesc.ZipFilePath)
+			qerr := Quarantine(ctx, zipFilePath)
 			if err == nil {
 				err = qerr
 			}
 			if qerr != nil {
-				m.simpleFS.log.CWarningf(ctx, "Quarantine %s error %v", jobDesc.ZipFilePath, err)
+				m.simpleFS.log.CWarningf(ctx, "Quarantine %s error %v", zipFilePath, err)
 			}
 		}()
 
@@ -1036,13 +1041,13 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 				err = closeErr
 			}
 			if closeErr != nil {
-				m.simpleFS.log.CWarningf(ctx, "zipWriter.Close %s error %v", jobDesc.ZipFilePath, err)
+				m.simpleFS.log.CWarningf(ctx, "zipWriter.Close %s error %v", zipFilePath, err)
 			}
 		}()
 
 		err = zipWriterAddDir(ctx, zipWriter, workspaceDir, updateBytesZipped)
 		if err != nil {
-			return fmt.Errorf("zipWriterAddDir into %s error: %v", jobDesc.ZipFilePath, err)
+			return fmt.Errorf("zipWriterAddDir into %s error: %v", zipFilePath, err)
 		}
 
 		{ // write the manifest and desc down
@@ -1053,11 +1058,11 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 			header.Modified = time.Now()
 			w, err := zipWriter.CreateHeader(header)
 			if err != nil {
-				return fmt.Errorf("zipWriter.Create(receipt.json) into %s error: %v", jobDesc.ZipFilePath, err)
+				return fmt.Errorf("zipWriter.Create(receipt.json) into %s error: %v", zipFilePath, err)
 			}
 			_, err = w.Write(receiptBytes)
 			if err != nil {
-				return fmt.Errorf("w.Write(receiptBytes) into %s error: %v", jobDesc.ZipFilePath, err)
+				return fmt.Errorf("w.Write(receiptBytes) into %s error: %v", zipFilePath, err)
 			}
 		}
 

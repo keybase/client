@@ -154,7 +154,9 @@ export interface State extends Store {
       openAppSettings?: () => void
       openAppStore?: () => void
       onEngineConnectedDesktop?: () => void
-      persistRoute?: (path?: ReadonlyArray<unknown>) => void
+      onEngineIncomingDesktop?: (action: EngineGen.Actions) => void
+      onEngineIncomingNative?: (action: EngineGen.Actions) => void
+      persistRoute?: (clear: boolean, immediate: boolean) => void
       setNavigatorExistsNative?: () => void
       showMainNative?: () => void
       showShareActionSheet?: (filePath: string, message: string, mimeType: string) => void
@@ -301,6 +303,8 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       },
       dumpLogsNative: undefined,
       onEngineConnectedDesktop: undefined,
+      onEngineIncomingDesktop: undefined,
+      onEngineIncomingNative: undefined,
       onFilePickerError: undefined,
       openAppSettings: undefined,
       openAppStore: undefined,

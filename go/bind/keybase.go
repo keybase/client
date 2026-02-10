@@ -5,6 +5,7 @@ package keybase
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -18,6 +19,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/status"
 	"golang.org/x/sync/errgroup"
 
@@ -75,6 +77,47 @@ type PushNotifier interface {
 type NativeVideoHelper interface {
 	Thumbnail(filename string) []byte
 	Duration(filename string) int
+}
+
+// ShareIntentDonator is implemented by the native iOS layer to donate INSendMessageIntent
+// for recent conversations. When nil (Android, desktop), donations are skipped.
+// Uses JSON string because gomobile does not support []struct in interface methods.
+type ShareIntentDonator interface {
+	DonateShareConversations(conversationsJSON string)
+	DeleteAllDonations()
+	DeleteDonation(conversationID string)
+}
+
+// shareIntentDonatorAdapter adapts keybase.ShareIntentDonator to types.ShareIntentDonator.
+type shareIntentDonatorAdapter struct {
+	wrapped ShareIntentDonator
+}
+
+func (a shareIntentDonatorAdapter) DonateShareConversations(conversations []types.ShareConversation) {
+	if a.wrapped == nil {
+		return
+	}
+	// Serialize to JSON; gomobile does not support []struct in interface methods.
+	data, err := json.Marshal(conversations)
+	if err != nil {
+		log("shareIntentDonatorAdapter: JSON marshal failed: %v", err)
+		return
+	}
+	a.wrapped.DonateShareConversations(string(data))
+}
+
+func (a shareIntentDonatorAdapter) DeleteAllDonations() {
+	if a.wrapped == nil {
+		return
+	}
+	a.wrapped.DeleteAllDonations()
+}
+
+func (a shareIntentDonatorAdapter) DeleteDonation(conversationID string) {
+	if a.wrapped == nil {
+		return
+	}
+	a.wrapped.DeleteDonation(conversationID)
 }
 
 // NativeInstallReferrerListener is implemented in Java on Android.
@@ -171,9 +214,10 @@ func setInited() {
 func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
 	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool,
+	shareIntentDonator ShareIntentDonator,
 ) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS); err != nil {
+		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS, shareIntentDonator); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
@@ -183,6 +227,7 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
 	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool,
+	shareIntentDonator ShareIntentDonator,
 ) (err error) {
 	// better crash logging
 	os.Setenv("GOTRACEBACK", "crash")
@@ -303,6 +348,9 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	kbSvc.RunBackgroundOperations(uir)
 	kbChatCtx = kbSvc.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
+	if shareIntentDonator != nil {
+		kbChatCtx.ShareIntentDonator = shareIntentDonatorAdapter{wrapped: shareIntentDonator}
+	}
 
 	logs := status.Logs{
 		Service: config.GetLogFile(),

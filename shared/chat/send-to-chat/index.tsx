@@ -54,6 +54,7 @@ const MobileSendToChatRoutable = (props: Props) => {
 export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const fileContext = useFSState(s => s.fileContext)
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
     const {dispatch} = Chat.getConvoState(conversationIDKey)
@@ -72,10 +73,10 @@ export const MobileSendToChat = (props: Props) => {
         selected: 'chatAttachmentGetTitles',
       })
     } else {
+      clearModals()
       dispatch.navigateToThread(isFromShareExtension ? 'extension' : 'files')
     }
   }
-
   return <ConversationList {...props} onSelect={onSelect} />
 }
 

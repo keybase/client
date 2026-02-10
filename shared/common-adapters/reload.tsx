@@ -24,7 +24,7 @@ const Kb = {
 type ReloadProps = {
   onBack?: () => void
   onFeedback: () => void
-  onReload: () => void
+  onReload: (isRetry?: boolean) => void
   reason: string
   style?: Styles.StylesCrossPlatform
   title?: string
@@ -53,7 +53,7 @@ const Reload = React.memo(function Reload(props: ReloadProps) {
             {expanded ? 'Hide details' : 'Show details'}
           </Kb.Text>
           <Kb.Box2 direction="horizontal" gap="tiny">
-            <Kb.Button label="Retry" mode="Secondary" onClick={props.onReload} />
+            <Kb.Button label="Retry" mode="Secondary" onClick={() => props.onReload(true)} />
             <Kb.Button label="Feedback" mode="Primary" onClick={props.onFeedback} />
           </Kb.Box2>
         </Kb.Box2>
@@ -66,8 +66,8 @@ export type Props = {
   children: React.ReactNode
   needsReload: boolean
   onBack?: () => void
-  onReload: () => void
   onFeedback: () => void
+  onReload: (isRetry?: boolean) => void
   reason: string
   reloadOnMount?: boolean
   style?: Styles.StylesCrossPlatform
@@ -89,8 +89,8 @@ const Reloadable = (props: Props) => {
   return (
     <Reload
       onBack={props.onBack}
-      onReload={onReload}
       onFeedback={props.onFeedback}
+      onReload={onReload}
       reason={props.reason}
       style={props.style}
     />
@@ -140,7 +140,7 @@ const styles = Styles.styleSheetCreate(
 export type OwnProps = {
   children: React.ReactNode
   onBack?: () => void
-  onReload: () => void
+  onReload: (isRetry?: boolean) => void
   reloadOnMount?: boolean
   style?: Styles.StylesCrossPlatform
   title?: string

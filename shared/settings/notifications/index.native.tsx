@@ -10,7 +10,7 @@ const MobileNotifications = () => {
   const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
   const refresh = useSettingsNotifState(s => s.dispatch.refresh)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onRefresh = () => {
+  const onReload = () => {
     loadSettings()
     refresh()
   }
@@ -18,7 +18,7 @@ const MobileNotifications = () => {
     <Reloadable
       onBack={navigateUp}
       waitingKeys={[C.refreshNotificationsWaitingKey, C.waitingKeySettingsLoadSettings]}
-      onReload={onRefresh}
+      onReload={onReload}
       reloadOnMount={true}
     >
       <Kb.ScrollView style={{...Kb.Styles.globalStyles.flexBoxColumn, flex: 1}}>
