@@ -9,6 +9,7 @@
 #import <React/RCTEventDispatcher.h>
 #import <ReactCommon/CallInvoker.h>
 #import <React/RCTCallInvoker.h>
+#import <UIKit/UIKit.h>
 #import <UserNotifications/UserNotifications.h>
 #import <cstring>
 #import <jsi/jsi.h>
@@ -172,7 +173,7 @@ RCT_EXPORT_MODULE()
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-return @[ metaEventName, @"hardwareKeyPressed", @"onPasteImage", @"onPushNotification" ];
+return @[ metaEventName, @"hardwareKeyPressed", @"onPasteImage", @"onPushNotification", @"onPushToken" ];
 }
 
 RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
@@ -429,6 +430,11 @@ RCT_EXPORT_METHOD(checkPushPermissions: (RCTPromiseResolveBlock)resolve reject: 
   UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
   [current getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings *_Nonnull settings) {
     BOOL hasPermission = settings.authorizationStatus == UNAuthorizationStatusAuthorized;
+    if (hasPermission) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [[UIApplication sharedApplication] registerForRemoteNotifications];
+      });
+    }
     resolve(@(hasPermission));
   }];
 }
@@ -440,6 +446,11 @@ RCT_EXPORT_METHOD(requestPushPermissions: (RCTPromiseResolveBlock)resolve reject
     if (error) {
       reject(@"permission_error", error.localizedDescription, error);
     } else {
+      if (granted) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [[UIApplication sharedApplication] registerForRemoteNotifications];
+        });
+      }
       resolve(@(granted));
     }
   }];
@@ -561,6 +572,11 @@ RCT_EXPORT_METHOD(processVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)
 
 + (void)setDeviceToken:(NSString *)token {
   kbStoredDeviceToken = token;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (kbSharedInstance && token) {
+      [kbSharedInstance sendEventWithName:@"onPushToken" body:@{@"token": token}];
+    }
+  });
 }
 
 + (void)setInitialNotification:(NSDictionary *)notification {
