@@ -1,7 +1,7 @@
 import * as T from '../types'
 import {ignorePromise, timeoutPromise} from '../utils'
 import logger from '@/logger'
-import {isAndroid} from '../platform'
+import {isAndroid, isIOS} from '../platform'
 import {
   getRegistrationToken,
   setApplicationIconBadgeNumber,
@@ -218,6 +218,16 @@ export const initPushListener = () => {
       // Silent notifications (chat.newmessageSilent_2) are handled entirely natively
       // Other notification types are handled natively first, then emitted to JS via onPushNotification
       RNEmitter.addListener('onPushNotification', onNotification)
+
+      if (isIOS) {
+        RNEmitter.addListener('onPushToken', (payload: {token?: string}) => {
+          const token = payload?.token
+          if (token) {
+            logger.debug('[PushToken] received token via onPushToken event: ', token)
+            storeRegistry.getState('push').dispatch.setPushToken(token)
+          }
+        })
+      }
 
       if (isAndroid) {
         DeviceEventEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
