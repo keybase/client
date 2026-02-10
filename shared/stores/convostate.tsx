@@ -48,7 +48,7 @@ import * as Strings from '@/constants/strings'
 
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import type {useChatState} from '@/stores/chat2'
+import type {useChatState, RefreshReason} from '@/stores/chat2'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -228,23 +228,15 @@ export interface ConvoState extends ConvoStore {
     defer: {
       chatBlockButtonsMapHas: (teamID: T.RPCGen.TeamID) => boolean
       chatInboxLayoutSmallTeamsFirstConvID: () => T.Chat.ConversationIDKey | undefined
-      chatInboxRefresh: (reason: string) => void
+      chatInboxRefresh: (reason: RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       chatNavigateToInbox: () => void
-      chatPaymentInfoReceived: (
-        messageID: T.Chat.MessageID,
-        paymentInfo: T.Chat.ChatPaymentInfo
-      ) => void
+      chatPaymentInfoReceived: (messageID: T.Chat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => void
       chatPreviewConversation: (
-        p: Parameters<
-          ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']
-        >[0]
+        p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
       ) => void
       chatResetConversationErrored: () => void
-      chatUnboxRows: (
-        convIDs: ReadonlyArray<T.Chat.ConversationIDKey>,
-        force: boolean
-      ) => void
+      chatUnboxRows: (convIDs: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => void
       chatUpdateInfoPanel: (
         show: boolean,
         tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
@@ -716,7 +708,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       logger.error(errMsg)
       throw new Error(errMsg)
     }
-    get().dispatch.defer.chatPaymentInfoReceived(msgID, paymentInfo)
+    get().dispatch.defer.chatPaymentInfoReceived(T.Chat.numberToMessageID(msgID), paymentInfo)
     getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
   }
 
@@ -1355,6 +1347,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         s.attachmentViewMap = new Map()
       })
     },
+    defer,
     dismissBlockButtons: teamID => {
       const f = async () => {
         try {
@@ -1386,7 +1379,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       }
       ignorePromise(f())
     },
-    defer,
     editBotSettings: (username, allowCommands, allowMentions, convs) => {
       const f = async () => {
         try {

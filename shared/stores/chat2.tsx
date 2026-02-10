@@ -286,6 +286,19 @@ const initialStore: Store = {
   userReacjis: defaultUserReacjis,
 }
 
+export type RefreshReason =
+  | 'bootstrap'
+  | 'componentNeverLoaded'
+  | 'inboxStale'
+  | 'inboxSyncedClear'
+  | 'inboxSyncedUnknown'
+  | 'joinedAConversation'
+  | 'leftAConversation'
+  | 'teamTypeChanged'
+  | 'maybeKickedFromTeam'
+  | 'widgetRefresh'
+  | 'shareConfigSearch'
+
 export interface State extends Store {
   dispatch: {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
@@ -310,20 +323,7 @@ export interface State extends Store {
     ensureWidgetMetas: () => void
     findGeneralConvIDFromTeamID: (teamID: T.Teams.TeamID) => void
     fetchUserEmoji: (conversationIDKey?: T.Chat.ConversationIDKey, onlyInTeam?: boolean) => void
-    inboxRefresh: (
-      reason:
-        | 'bootstrap'
-        | 'componentNeverLoaded'
-        | 'inboxStale'
-        | 'inboxSyncedClear'
-        | 'inboxSyncedUnknown'
-        | 'joinedAConversation'
-        | 'leftAConversation'
-        | 'teamTypeChanged'
-        | 'maybeKickedFromTeam'
-        | 'widgetRefresh'
-        | 'shareConfigSearch'
-    ) => void
+    inboxRefresh: (reason: RefreshReason) => void
     inboxSearch: (query: string) => void
     inboxSearchMoveSelectedIndex: (increment: boolean) => void
     inboxSearchSelect: (
