@@ -48,9 +48,7 @@ import * as Strings from '@/constants/strings'
 
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import type {useChatState} from '@/stores/chat2'
-import type {useTeamsState} from '@/stores/teams'
-import type {useUsersState} from '@/stores/users'
+import type {useChatState, RefreshReason} from '@/stores/chat2'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -227,6 +225,25 @@ export interface ConvoState extends ConvoStore {
     botCommandsUpdateStatus: (b: T.RPCChat.UIBotCommandsUpdateStatus) => void
     channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
+    defer: {
+      chatBlockButtonsMapHas: (teamID: T.RPCGen.TeamID) => boolean
+      chatInboxLayoutSmallTeamsFirstConvID: () => T.Chat.ConversationIDKey | undefined
+      chatInboxRefresh: (reason: RefreshReason) => void
+      chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
+      chatNavigateToInbox: () => void
+      chatPaymentInfoReceived: (messageID: T.Chat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => void
+      chatPreviewConversation: (
+        p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
+      ) => void
+      chatResetConversationErrored: () => void
+      chatUnboxRows: (convIDs: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => void
+      chatUpdateInfoPanel: (
+        show: boolean,
+        tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
+      ) => void
+      teamsGetMembers: (teamID: T.RPCGen.TeamID) => void
+      usersGetBio: (username: string) => void
+    }
     dismissBottomBanner: () => void
     dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
@@ -375,15 +392,68 @@ type ScrollDirection = 'none' | 'back' | 'forward'
 export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
-const createSlice = (
-  chatStateHook: typeof useChatState,
-  teamsStateHook: typeof useTeamsState,
-  usersStateHook: typeof useUsersState
-): Z.ImmerStateCreator<ConvoState> => (set, get) => {
+const stubDefer: ConvoState['dispatch']['defer'] = {
+  chatBlockButtonsMapHas: () => {
+    throw new Error('convostate defer not initialized')
+  },
+  chatInboxLayoutSmallTeamsFirstConvID: () => {
+    throw new Error('convostate defer not initialized')
+  },
+  chatInboxRefresh: () => {
+    throw new Error('convostate defer not initialized')
+  },
+  chatMetasReceived: () => {
+    throw new Error('convostate defer not initialized')
+  },
+  chatNavigateToInbox: () => {
+    throw new Error('convostate defer not initialized')
+  },
+  chatPaymentInfoReceived: () => {
+    throw new Error('convostate defer not initialized')
+  },
+  chatPreviewConversation: () => {
+    throw new Error('convostate defer not initialized')
+  },
+  chatResetConversationErrored: () => {
+    throw new Error('convostate defer not initialized')
+  },
+  chatUnboxRows: () => {
+    throw new Error('convostate defer not initialized')
+  },
+  chatUpdateInfoPanel: () => {
+    throw new Error('convostate defer not initialized')
+  },
+  teamsGetMembers: () => {
+    throw new Error('convostate defer not initialized')
+  },
+  usersGetBio: () => {
+    throw new Error('convostate defer not initialized')
+  },
+}
+
+let convoDeferImpl: ConvoState['dispatch']['defer'] | undefined
+
+export const setConvoDefer = (impl: ConvoState['dispatch']['defer']) => {
+  convoDeferImpl = impl
+  for (const store of chatStores.values()) {
+    const s = store.getState()
+    store.setState({
+      ...s,
+      dispatch: {
+        ...s.dispatch,
+        defer: impl,
+      },
+    })
+  }
+}
+
+const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
+  const defer = convoDeferImpl ?? stubDefer
+
   const closeBotModal = () => {
     clearModals()
     if (get().meta.teamname) {
-      teamsStateHook.getState().dispatch.getMembers(get().meta.teamID)
+      get().dispatch.defer.teamsGetMembers(get().meta.teamID)
     }
   }
 
@@ -501,7 +571,7 @@ const createSlice = (
 
     const onClick = () => {
       useConfigState.getState().dispatch.showMain()
-      chatStateHook.getState().dispatch.navigateToInbox()
+      get().dispatch.defer.chatNavigateToInbox()
       get().dispatch.navigateToThread('desktopNotification')
     }
     const onClose = () => {}
@@ -638,7 +708,7 @@ const createSlice = (
       logger.error(errMsg)
       throw new Error(errMsg)
     }
-    chatStateHook.getState().dispatch.paymentInfoReceived(paymentInfo)
+    get().dispatch.defer.chatPaymentInfoReceived(T.Chat.numberToMessageID(msgID), paymentInfo)
     getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
   }
 
@@ -1076,7 +1146,7 @@ const createSlice = (
       }
 
       // If there are block buttons on this conversation, clear them.
-      if (chatStateHook.getState().blockButtonsMap.has(meta.teamID)) {
+      if (get().dispatch.defer.chatBlockButtonsMapHas(meta.teamID)) {
         get().dispatch.dismissBlockButtons(meta.teamID)
       }
 
@@ -1244,7 +1314,7 @@ const createSlice = (
     },
     blockConversation: reportUser => {
       const f = async () => {
-        chatStateHook.getState().dispatch.navigateToInbox()
+        get().dispatch.defer.chatNavigateToInbox()
         useConfigState.getState().dispatch.defer.persistRoute?.()
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
           conversationID: get().getConvID(),
@@ -1277,6 +1347,7 @@ const createSlice = (
         s.attachmentViewMap = new Map()
       })
     },
+    defer,
     dismissBlockButtons: teamID => {
       const f = async () => {
         try {
@@ -1348,7 +1419,7 @@ const createSlice = (
           // Nav to inbox but don't use findNewConversation since changeSelectedConversation
           // does that with better information. It knows the conversation is hidden even before
           // that state bounces back.
-          chatStateHook.getState().dispatch.navigateToInbox()
+          get().dispatch.defer.chatNavigateToInbox()
           get().dispatch.showInfoPanel(false, undefined)
         }
 
@@ -1401,7 +1472,7 @@ const createSlice = (
           const params = vs?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
           if (params?.conversationIDKey === get().id) {
             // select a convo
-            const next = chatStateHook.getState().inboxLayout?.smallTeams?.[0]?.convID
+            const next = get().dispatch.defer.chatInboxLayoutSmallTeamsFirstConvID()
             if (next) {
               getConvoState(next).dispatch.navigateToThread('findNewestConversationFromLayout')
             }
@@ -1666,8 +1737,8 @@ const createSlice = (
             logger.warn(`loadMoreMessages: error: ${error.desc}`)
             // no longer in team
             if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
-              chatStateHook.getState().dispatch.inboxRefresh('maybeKickedFromTeam')
-              chatStateHook.getState().dispatch.navigateToInbox()
+              get().dispatch.defer.chatInboxRefresh('maybeKickedFromTeam')
+              get().dispatch.defer.chatNavigateToInbox()
             }
             if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
               // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
@@ -1994,7 +2065,7 @@ const createSlice = (
 
         const text = formatTextForQuoting(message.text.stringValue())
         getConvoState(newThreadCID).dispatch.injectIntoInput(text)
-        chatStateHook.getState().dispatch.metasReceived([meta])
+        get().dispatch.defer.chatMetasReceived([meta])
         getConvoState(newThreadCID).dispatch.navigateToThread('createdMessagePrivately')
       }
       ignorePromise(f())
@@ -2139,7 +2210,7 @@ const createSlice = (
       loadMessages()
 
       // load meta
-      chatStateHook.getState().dispatch.unboxRows([get().id], true)
+      get().dispatch.defer.chatUnboxRows([get().id], true)
 
       const updateNav = () => {
         const reason = _reason
@@ -2465,7 +2536,7 @@ const createSlice = (
       // remove all bad people
       const goodParticipants = new Set(participantInfo.all)
       meta.resetParticipants.forEach(r => goodParticipants.delete(r))
-      chatStateHook.getState().dispatch.previewConversation({
+      get().dispatch.defer.chatPreviewConversation({
         participants: [...goodParticipants],
         reason: 'resetChatWithoutThem',
       })
@@ -2508,7 +2579,7 @@ const createSlice = (
             return
           }
 
-          usersStateHook.getState().dispatch.getBio(username)
+          get().dispatch.defer.usersGetBio(username)
         }
       }
 
@@ -2518,19 +2589,19 @@ const createSlice = (
         if (isMetaGood()) {
           const {teamID, teamname} = meta
           if (teamname) {
-            teamsStateHook.getState().dispatch.getMembers(teamID)
+            get().dispatch.defer.teamsGetMembers(teamID)
           }
         }
       }
       ensureSelectedTeamLoaded()
       const participantInfo = get().participants
       const force = !get().isMetaGood() || participantInfo.all.length === 0
-      chatStateHook.getState().dispatch.unboxRows([conversationIDKey], force)
+      get().dispatch.defer.chatUnboxRows([conversationIDKey], force)
       set(s => {
         s.threadLoadStatus = T.RPCChat.UIChatThreadStatusTyp.none
       })
       fetchConversationBio()
-      chatStateHook.getState().dispatch.resetConversationErrored()
+      get().dispatch.defer.chatResetConversationErrored()
     },
     sendAudioRecording: async (path, duration, amps) => {
       const outboxID = Common.generateOutboxID()
@@ -2851,7 +2922,7 @@ const createSlice = (
       })
     }, 1000),
     showInfoPanel: (show, tab) => {
-      chatStateHook.getState().dispatch.updateInfoPanel(show, tab)
+      get().dispatch.defer.chatUpdateInfoPanel(show, tab)
       const conversationIDKey = get().id
       if (Platform.isPhone) {
         const visibleScreen = getVisibleScreen()
@@ -3252,33 +3323,10 @@ registerDebugClear(() => {
   clearChatStores()
 })
 
-let chatStore: typeof useChatState | undefined
-let teamsStore: typeof useTeamsState | undefined
-let usersStore: typeof useUsersState | undefined
-
-export const setOtherStores = (
-  chat: typeof useChatState,
-  teams: typeof useTeamsState,
-  users: typeof useUsersState
-) => {
-  chatStore = chat
-  teamsStore = teams
-  usersStore = users
-}
-
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const existing = chatStores.get(id)
   if (existing) return existing
-  if (!chatStore || !teamsStore || !usersStore) {
-    throw new Error('Stores not initialized. Call setOtherStores before creating conversation stores.')
-  }
-  const next = Z.createZustand<ConvoState>(
-    createSlice(
-      chatStore,
-      teamsStore,
-      usersStore
-    )
-  )
+  const next = Z.createZustand<ConvoState>(createSlice())
   next.setState({id})
   chatStores.set(id, next)
   return next

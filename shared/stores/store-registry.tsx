@@ -1,7 +1,6 @@
 // used to allow non-circular cross-calls between stores
 // ONLY for zustand stores
 import type * as T from '@/constants/types'
-import type * as TBType from '@/stores/team-building'
 import type * as ConvoStateType from '@/stores/convostate'
 import type {ConvoState} from '@/stores/convostate'
 import type {State as ChatState, useChatState} from '@/stores/chat2'
@@ -147,12 +146,6 @@ class StoreRegistry {
 
   getState<T extends StoreName>(storeName: T): StoreStates[T] {
     return this.getStore(storeName).getState() as StoreStates[T]
-  }
-
-  getTBStore(name: T.TB.AllowedNamespace): TBType.State {
-    const {createTBStore} = require('@/stores/team-building') as typeof TBType
-    const store = createTBStore(name)
-    return store.getState()
   }
 
   getConvoState(id: T.Chat.ConversationIDKey): ConvoState {
