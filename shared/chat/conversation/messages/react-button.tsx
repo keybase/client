@@ -119,6 +119,7 @@ const markdownOverride: StyleOverride = Kb.Styles.isMobile
         fontSize: 15,
       },
       emojiSize: {size: 24},
+      paragraph: {lineHeight: C.isAndroid ? 26 : 28.5},
     }
   : {
       customEmoji: {height: 18, width: 18},
