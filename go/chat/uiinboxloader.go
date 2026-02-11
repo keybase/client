@@ -556,7 +556,12 @@ func hashSortedConvs(convs []types.ShareConversation) uint64 {
 	for _, conv := range sorted {
 		h.Write([]byte(conv.ConvID))
 		buf := make([]byte, 8)
-		binary.BigEndian.PutUint64(buf, uint64(conv.LastSendTime))
+		lastSend := conv.LastSendTime
+		if lastSend < 0 {
+			lastSend = 0
+		}
+		// lastSend is in [0, maxint64] here; conversion to uint64 is safe (G115)
+		binary.BigEndian.PutUint64(buf, uint64(lastSend)) //nolint:gosec // G115: clamped above
 		h.Write(buf)
 	}
 	return h.Sum64()
