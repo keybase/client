@@ -6,7 +6,7 @@ import Text from '../text'
 
 import type {Props} from './native-emoji'
 
-const familyOverride = isAndroid ? {fontFamily: ''} : {}
+const familyOverride = {} // isAndroid ? {fontFamily: ''} : {}
 
 const sizes = [16, 18, 22, 24, 26, 28, 32, 36] as const
 const sizeStyle = new Map<(typeof sizes)[number], Styles.StylesCrossPlatform>(
@@ -16,6 +16,8 @@ const sizeStyle = new Map<(typeof sizes)[number], Styles.StylesCrossPlatform>(
 const EmojiWrapper = React.memo(function EmojiWrapper(props: Props) {
   const {emojiName, size} = props
   const emojiVariantSuffix = '\ufe0f' // see http://mts.io/2015/04/21/unicode-symbol-render-text-emoji/
+
+  console.log('aaaa', [sizeStyle.get(size), props.style])
   return (
     <Text
       type="Body"
