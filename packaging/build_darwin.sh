@@ -3,6 +3,9 @@
 gopath=${GOPATH:-}
 client_dir="$gopath/src/github.com/keybase/client"
 
+echo "Cleaning yarn cache to free up disk space"
+yarn cache clean
+
 if [[ -n "${ARCH:-}" ]]; then
   # If ARCH is specified, only build that one
   if [[ "$ARCH" == "amd64" ]]; then
