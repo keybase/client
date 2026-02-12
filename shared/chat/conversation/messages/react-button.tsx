@@ -119,7 +119,9 @@ const markdownOverride: StyleOverride = Kb.Styles.isMobile
         fontSize: 15,
       },
       emojiSize: {size: 24},
-      paragraph: C.isAndroid ? {height: 28, textAlignVertical: 'center'} : {},
+      paragraph: C.isAndroid
+        ? ({height: 28, textAlignVertical: 'center'} as StyleOverride['paragraph'])
+        : {},
     }
   : {
       customEmoji: {height: 18, width: 18},
