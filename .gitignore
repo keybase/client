@@ -87,3 +87,5 @@ go/keybase_netbsd
 go/keybase_openbsd
 
 .cursor
+.claude
+CLAUDE.md
