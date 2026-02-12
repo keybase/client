@@ -109,14 +109,15 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
 const markdownOverride: StyleOverride = Kb.Styles.isMobile
   ? {
       customEmoji: {
-        height: 24,
-        transform: [{translateY: C.isAndroid ? 0 : 3.5}],
-        width: 24,
+        height: 20,
+        transform: [{translateY: 4}],
+        width: 20,
       },
       emoji: {
-        lineHeight: C.isAndroid ? 26 : 28.5,
+        fontSize: 15,
       },
       emojiSize: {size: 24},
+      paragraph: C.isAndroid ? ({height: 28, textAlignVertical: 'center'} as StyleOverride['paragraph']) : {},
     }
   : {
       customEmoji: {height: 18, width: 18},

@@ -6,20 +6,22 @@ import Text from '../text'
 
 import type {Props} from './native-emoji'
 
-const familyOverride = isAndroid ? {fontFamily: ''} : {}
-
 const sizes = [16, 18, 22, 24, 26, 28, 32, 36] as const
 const sizeStyle = new Map<(typeof sizes)[number], Styles.StylesCrossPlatform>(
-  sizes.map(size => [size, {fontSize: size - 2, lineHeight: undefined, ...familyOverride}])
+  sizes.map(size => [size, {fontSize: size - 2, lineHeight: undefined}])
 )
+
+// Android fails to paint emoji glyphs in mixed-content Text nodes when the
+// variant selector (VS16 / U+FE0F) is appended to codepoints that already
+// have Emoji_Presentation. iOS and desktop handle it fine.
+const emojiVariantSuffix = isAndroid ? '' : '\ufe0f'
 
 const EmojiWrapper = React.memo(function EmojiWrapper(props: Props) {
   const {emojiName, size} = props
-  const emojiVariantSuffix = '\ufe0f' // see http://mts.io/2015/04/21/unicode-symbol-render-text-emoji/
   return (
     <Text
       type="Body"
-      style={Styles.collapseStyles([sizeStyle.get(size), props.style])} // Mobile emoji need to be smaller with Proxima Nova
+      style={Styles.collapseStyles([sizeStyle.get(size), props.style])}
       allowFontScaling={props.allowFontScaling}
     >
       {emojiIndexByName[emojiName] ? emojiIndexByName[emojiName] + emojiVariantSuffix : emojiName}
