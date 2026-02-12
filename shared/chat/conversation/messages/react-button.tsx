@@ -49,7 +49,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
 
   const text = decorated.length ? decorated : emoji
 
-  console.log('aaaa readctr button2', emoji)
+
   return emoji ? (
     <Kb.ClickableBox2
       className={Kb.Styles.classNames('react-button', className, {noShadow: active})}

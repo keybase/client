@@ -107,7 +107,7 @@ const Emoji = (props: EmojiProps) => {
   } else {
     emoji = props.emoji
   }
-  console.log('aaaa2', emoji)
+
 
   if (emoji.renderUrl) {
     return (
