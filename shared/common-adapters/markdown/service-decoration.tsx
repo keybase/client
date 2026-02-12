@@ -105,7 +105,6 @@ export type Props = {
 }
 
 const ServiceDecoration = (p: Props) => {
-
   const {json, allowFontScaling, styles, styleOverride} = p
   const {disableBigEmojis, disableEmojiAnimation, messageType} = p
   // Parse JSON to get the type of the decoration

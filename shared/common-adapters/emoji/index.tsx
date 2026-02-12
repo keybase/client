@@ -108,7 +108,6 @@ const Emoji = (props: EmojiProps) => {
     emoji = props.emoji
   }
 
-
   if (emoji.renderUrl) {
     return (
       <CustomEmoji

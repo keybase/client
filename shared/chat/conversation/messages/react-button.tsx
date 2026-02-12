@@ -49,7 +49,6 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
 
   const text = decorated.length ? decorated : emoji
 
-
   return emoji ? (
     <Kb.ClickableBox2
       className={Kb.Styles.classNames('react-button', className, {noShadow: active})}
@@ -119,9 +118,7 @@ const markdownOverride: StyleOverride = Kb.Styles.isMobile
         fontSize: 15,
       },
       emojiSize: {size: 24},
-      paragraph: C.isAndroid
-        ? ({height: 28, textAlignVertical: 'center'} as StyleOverride['paragraph'])
-        : {},
+      paragraph: C.isAndroid ? ({height: 28, textAlignVertical: 'center'} as StyleOverride['paragraph']) : {},
     }
   : {
       customEmoji: {height: 18, width: 18},
