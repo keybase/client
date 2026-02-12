@@ -6,11 +6,9 @@ import Text from '../text'
 
 import type {Props} from './native-emoji'
 
-const familyOverride = {} // isAndroid ? {fontFamily: ''} : {}
-
 const sizes = [16, 18, 22, 24, 26, 28, 32, 36] as const
 const sizeStyle = new Map<(typeof sizes)[number], Styles.StylesCrossPlatform>(
-  sizes.map(size => [size, {fontSize: size - 2, lineHeight: undefined, ...familyOverride}])
+  sizes.map(size => [size, {fontSize: size - 2, lineHeight: undefined}])
 )
 
 // Android fails to paint emoji glyphs in mixed-content Text nodes when the
