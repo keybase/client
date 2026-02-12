@@ -1,8 +1,8 @@
-android:
+TOOD:
+react-native-screens header doesn't handle dyanmic colors still https://github.com/software-mansion/react-native-screens/issues/3570
+
 
 ios:
-input paste view removed <<<<<<<<<<<<
-
 ipad:
 
 expo-av to expo-video / expo-audio (not ready yet can't get video size...), missing stuff we need like on full screen change
