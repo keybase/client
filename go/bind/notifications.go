@@ -26,6 +26,7 @@ import (
 const seenNotificationsCacheSize = 100
 
 var (
+	seenNotificationsMtx  sync.Mutex
 	seenNotifications     *lru.Cache
 	seenNotificationsOnce sync.Once
 )
@@ -125,6 +126,9 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	mp := chat.NewMobilePush(gc)
 	// Dedupe by convID||msgID
 	dupKey := strConvID + "||" + strconv.Itoa(intMessageID)
+	// Check if we've already processed this notification but without
+	// serializing the whole function. We check the map again while holding
+	// a lock before anything is displayed.
 	if _, ok := getSeenNotificationsCache().Get(dupKey); ok {
 		// Cancel any duplicate visible notifications
 		if len(pushID) > 0 {
@@ -223,6 +227,18 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 
 	// only display and ack this notification if we actually have something to display
 	if pusher != nil && (len(chatNotification.Message.Plaintext) > 0 || len(chatNotification.Message.ServerMessage) > 0) {
+		// Lock and check if we've already processed this notification.
+		seenNotificationsMtx.Lock()
+		defer seenNotificationsMtx.Unlock()
+		if _, ok := getSeenNotificationsCache().Get(dupKey); ok {
+			// Cancel any duplicate visible notifications
+			if len(pushID) > 0 {
+				mp.AckNotificationSuccess(ctx, []string{pushID})
+			}
+			kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: duplicate notification convID=%s msgID=%d", strConvID, intMessageID)
+			// Return nil (not an error) so Android does not treat this as failure and show a fallback notification.
+			return nil
+		}
 		pusher.DisplayChatNotification(&chatNotification)
 		getSeenNotificationsCache().Add(dupKey, struct{}{})
 		if len(pushID) > 0 {
