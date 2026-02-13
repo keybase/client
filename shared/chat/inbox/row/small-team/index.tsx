@@ -37,7 +37,7 @@ const SmallTeamInner = (p: Props) => {
 
   const you = useCurrentUserState(s => s.username)
 
-  const {snippet, snippetDecoration, isMuted, isLocked, hasUnread, hasBadge, timestamp, navigateToThread} =
+  const {snippet, snippetDecoration, isMuted, isLocked, hasUnread, hasBadge, timestamp, navigateToThread, teamDisplayName} =
     Chat.useChatContext(
       C.useShallow(s => {
         const typingSnippet = (() => {
@@ -58,6 +58,11 @@ const SmallTeamInner = (p: Props) => {
           meta.conversationIDKey === Chat.noConversationIDKey
             ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
             : meta.snippetDecoration
+        const metaTeamname = (meta.teamname || (layoutIsTeam ? layoutName : '')) || ''
+        const channelname = isInWidget ? meta.channelname : ''
+        const teamDisplayName = metaTeamname
+          ? channelname ? `${metaTeamname}#${channelname}` : metaTeamname
+          : ''
 
         return {
           hasBadge: s.badge > 0,
@@ -67,6 +72,7 @@ const SmallTeamInner = (p: Props) => {
           navigateToThread: s.dispatch.navigateToThread,
           snippet,
           snippetDecoration,
+          teamDisplayName,
           timestamp: meta.timestamp || layoutTime || 0,
         }
       })
@@ -74,20 +80,14 @@ const SmallTeamInner = (p: Props) => {
 
   const participants = Chat.useChatContext(
     C.useShallow(s => {
-      const {meta} = s
       const participantInfo = s.participants
-      const teamname = (meta.teamname || layoutIsTeam ? layoutName : '') || ''
-      const channelname = isInWidget ? meta.channelname : ''
-      if (teamname && channelname) {
-        return `${teamname}#${channelname}`
-      }
       if (participantInfo.name.length) {
         return participantInfo.name.filter((participant, _, list) =>
           list.length === 1 ? true : participant !== you
         )
       }
-      if (layoutIsTeam && layoutName) {
-        return [layoutName]
+      if (layoutIsTeam) {
+        return []
       }
       return (
         layoutName
@@ -114,17 +114,9 @@ const SmallTeamInner = (p: Props) => {
         ? Kb.Styles.globalColors.fastBlank
         : Kb.Styles.globalColors.blueGrey
 
-  let participantOne = ''
-  let participantTwo = ''
-  let teamname = ''
-  if (typeof participants === 'string') {
-    teamname = participants.split('#')[0] ?? ''
-  } else if (layoutIsTeam) {
-    teamname = participants[0] ?? ''
-  } else {
-    participantOne = participants[0] ?? ''
-    participantTwo = participants[1] ?? ''
-  }
+  const teamname = teamDisplayName ? teamDisplayName.split('#')[0] ?? '' : ''
+  const participantOne = teamname ? '' : participants[0] ?? ''
+  const participantTwo = teamname ? '' : participants[1] ?? ''
 
   return (
     <SwipeConvActions>
@@ -157,6 +149,8 @@ const SmallTeamInner = (p: Props) => {
                 isInWidget={isInWidget}
                 hasUnread={hasUnread}
                 hasBadge={hasBadge}
+                backgroundColor={backgroundColor}
+                teamDisplayName={teamDisplayName}
                 participants={participants}
                 timestamp={timestamp}
               />
@@ -179,12 +173,14 @@ type TopLineProps = {
   isInWidget: boolean
   hasUnread: boolean
   hasBadge: boolean
-  participants: Array<string> | string
+  backgroundColor: string
+  teamDisplayName: string
+  participants: Array<string>
   timestamp: number
 }
 
 const TopLine = (p: TopLineProps) => {
-  const {isSelected, isInWidget, hasUnread, hasBadge, participants, timestamp} = p
+  const {isSelected, isInWidget, hasUnread, hasBadge, backgroundColor, teamDisplayName, participants, timestamp} = p
   const showGear = !isInWidget
   const showBold = !isSelected && hasUnread
   const subColor = isSelected
@@ -211,18 +207,11 @@ const TopLine = (p: TopLineProps) => {
   const timestampText = timestamp ? formatTimeForConversationList(timestamp) : ''
 
   const usernameColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black
-  const nameBackgroundColor = isInWidget
-    ? Kb.Styles.globalColors.white
-    : isSelected
-      ? Kb.Styles.globalColors.blue
-      : Kb.Styles.isPhone
-        ? Kb.Styles.globalColors.fastBlank
-        : Kb.Styles.globalColors.blueGrey
   const nameContainerStyle = Kb.Styles.collapseStyles([
     styles.name,
     showBold && styles.bold,
     {color: usernameColor},
-    Kb.Styles.isMobile && {backgroundColor: nameBackgroundColor},
+    Kb.Styles.isMobile && {backgroundColor},
   ])
   const teamContainerStyle = Kb.Styles.collapseStyles([
     styles.teamTextStyle,
@@ -235,10 +224,10 @@ const TopLine = (p: TopLineProps) => {
       {showGear && showingPopup && popup}
       <Kb.Box2 direction="horizontal" style={styles.insideContainer}>
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.nameContainer}>
-          {typeof participants === 'string' ? (
+          {teamDisplayName ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Text type="BodySemibold" style={teamContainerStyle}>
-                {participants}
+                {teamDisplayName}
               </Kb.Text>
             </Kb.Box2>
           ) : (
