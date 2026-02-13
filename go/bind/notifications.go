@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"regexp"
 	"runtime"
+	"strconv"
+	"sync"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -19,6 +22,20 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/kyokomi/emoji"
 )
+
+const seenNotificationsCacheSize = 100
+
+var (
+	seenNotifications     *lru.Cache
+	seenNotificationsOnce sync.Once
+)
+
+func getSeenNotificationsCache() *lru.Cache {
+	seenNotificationsOnce.Do(func() {
+		seenNotifications, _ = lru.New(seenNotificationsCacheSize)
+	})
+	return seenNotifications
+}
 
 type Person struct {
 	KeybaseUsername string
@@ -106,6 +123,17 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		return libkb.LoginRequiredError{}
 	}
 	mp := chat.NewMobilePush(gc)
+	// Dedupe by convID||msgID
+	dupKey := strConvID + "||" + strconv.Itoa(intMessageID)
+	if _, ok := getSeenNotificationsCache().Get(dupKey); ok {
+		// Cancel any duplicate visible notifications
+		if len(pushID) > 0 {
+			mp.AckNotificationSuccess(ctx, []string{pushID})
+		}
+		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: duplicate notification convID=%s msgID=%d", strConvID, intMessageID)
+		// Return nil (not an error) so Android does not treat this as failure and show a fallback notification.
+		return nil
+	}
 	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
 	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
@@ -196,6 +224,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	// only display and ack this notification if we actually have something to display
 	if pusher != nil && (len(chatNotification.Message.Plaintext) > 0 || len(chatNotification.Message.ServerMessage) > 0) {
 		pusher.DisplayChatNotification(&chatNotification)
+		getSeenNotificationsCache().Add(dupKey, struct{}{})
 		if len(pushID) > 0 {
 			mp.AckNotificationSuccess(ctx, []string{pushID})
 		}
