@@ -37,67 +37,63 @@ const SmallTeamInner = (p: Props) => {
 
   const you = useCurrentUserState(s => s.username)
 
-  const {
-    snippet,
-    snippetDecoration,
-    participants,
-    isMuted,
-    isLocked,
-    hasUnread,
-    hasBadge,
-    timestamp,
-    navigateToThread,
-  } = Chat.useChatContext(
-    C.useShallow(s => {
-      const typingSnippet = (() => {
-        const typers = !isInWidget ? s.typing : undefined
-        if (!typers?.size) return undefined
-        if (typers.size === 1) {
-          const [t] = typers
-          return `${t} is typing...`
-        } else {
-          return 'Multiple people typing...'
-        }
-      })()
-      const {meta} = s
-      const maybeLayoutSnippet =
-        meta.conversationIDKey === Chat.noConversationIDKey ? layoutSnippet : undefined
-      const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
-      const snippetDecoration =
-        meta.conversationIDKey === Chat.noConversationIDKey
-          ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
-          : meta.snippetDecoration
+  const {snippet, snippetDecoration, isMuted, isLocked, hasUnread, hasBadge, timestamp, navigateToThread} =
+    Chat.useChatContext(
+      C.useShallow(s => {
+        const typingSnippet = (() => {
+          const typers = !isInWidget ? s.typing : undefined
+          if (!typers?.size) return undefined
+          if (typers.size === 1) {
+            const [t] = typers
+            return `${t} is typing...`
+          } else {
+            return 'Multiple people typing...'
+          }
+        })()
+        const {meta} = s
+        const maybeLayoutSnippet =
+          meta.conversationIDKey === Chat.noConversationIDKey ? layoutSnippet : undefined
+        const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
+        const snippetDecoration =
+          meta.conversationIDKey === Chat.noConversationIDKey
+            ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
+            : meta.snippetDecoration
 
+        return {
+          hasBadge: s.badge > 0,
+          hasUnread: s.unread > 0,
+          isLocked: meta.rekeyers.has(you) || meta.rekeyers.size > 0 || !!meta.wasFinalizedBy,
+          isMuted: meta.isMuted,
+          navigateToThread: s.dispatch.navigateToThread,
+          snippet,
+          snippetDecoration,
+          timestamp: meta.timestamp || layoutTime || 0,
+        }
+      })
+    )
+
+  const participants = Chat.useChatContext(
+    C.useShallow(s => {
+      const {meta} = s
       const participantInfo = s.participants
       const teamname = (meta.teamname || layoutIsTeam ? layoutName : '') || ''
       const channelname = isInWidget ? meta.channelname : ''
-      let participants: Array<string> | string
       if (teamname && channelname) {
-        participants = `${teamname}#${channelname}`
-      } else if (participantInfo.name.length) {
-        participants = participantInfo.name.filter((participant, _, list) =>
+        return `${teamname}#${channelname}`
+      }
+      if (participantInfo.name.length) {
+        return participantInfo.name.filter((participant, _, list) =>
           list.length === 1 ? true : participant !== you
         )
-      } else if (layoutIsTeam && layoutName) {
-        participants = [layoutName]
-      } else {
-        participants =
-          layoutName
-            ?.split(',')
-            .filter((participant, _, list) => (list.length === 1 ? true : participant !== you)) ?? []
       }
-
-      return {
-        hasBadge: s.badge > 0,
-        hasUnread: s.unread > 0,
-        isLocked: meta.rekeyers.has(you) || meta.rekeyers.size > 0 || !!meta.wasFinalizedBy,
-        isMuted: meta.isMuted,
-        navigateToThread: s.dispatch.navigateToThread,
-        participants,
-        snippet,
-        snippetDecoration,
-        timestamp: meta.timestamp || layoutTime || 0,
+      if (layoutIsTeam && layoutName) {
+        return [layoutName]
       }
+      return (
+        layoutName
+          ?.split(',')
+          .filter((participant, _, list) => (list.length === 1 ? true : participant !== you)) ?? []
+      )
     })
   )
 
@@ -141,10 +137,7 @@ const SmallTeamInner = (p: Props) => {
             : styles.container
         }
       >
-        <Kb.Box2
-          direction="horizontal"
-          style={Kb.Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}
-        >
+        <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={Kb.Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
           {teamname ? (
             <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
           ) : (
@@ -157,10 +150,7 @@ const SmallTeamInner = (p: Props) => {
               participantTwo={participantTwo}
             />
           )}
-          <Kb.Box2
-            direction="vertical"
-            style={Kb.Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}
-          >
+          <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
             <Kb.Box2 direction="vertical" style={styles.withBottomLine} fullWidth={true}>
               <TopLine
                 isSelected={isSelected}
@@ -174,7 +164,6 @@ const SmallTeamInner = (p: Props) => {
             <BottomLine
               snippet={snippet}
               snippetDecoration={snippetDecoration}
-              isInWidget={isInWidget}
               backgroundColor={backgroundColor}
               isSelected={isSelected}
             />
@@ -242,10 +231,10 @@ const TopLine = (p: TopLineProps) => {
   ])
 
   return (
-    <Kb.Box2 direction="horizontal" style={styles.topContainer}>
+    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
       {showGear && showingPopup && popup}
       <Kb.Box2 direction="horizontal" style={styles.insideContainer}>
-        <Kb.Box2 direction="horizontal" style={styles.nameContainer}>
+        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.nameContainer}>
           {typeof participants === 'string' ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Text type="BodySemibold" style={teamContainerStyle}>
@@ -294,18 +283,16 @@ type BottomLineProps = {
   snippetDecoration?: T.RPCChat.SnippetDecoration
   backgroundColor?: string
   isSelected?: boolean
-  isInWidget?: boolean
   allowBold?: boolean
 }
 
 const BottomLine = (p: BottomLineProps) => {
-  const {allowBold = true, isSelected, backgroundColor, isInWidget} = p
+  const {allowBold = true, isSelected, backgroundColor} = p
   const snippet = p.snippet ?? ''
   const snippetDecoration = p.snippetDecoration ?? T.RPCChat.SnippetDecoration.none
 
   const you = useCurrentUserState(s => s.username)
   const {
-    isTypingSnippet,
     hasUnread,
     draft: _draft,
     hasResetUsers,
@@ -316,14 +303,12 @@ const BottomLine = (p: BottomLineProps) => {
     hasId,
   } = Chat.useChatContext(
     C.useShallow(s => {
-      const typers = !isInWidget ? s.typing : undefined
       const {membershipType, rekeyers, resetParticipants, trustedState} = s.meta
       return {
         draft: s.meta.draft,
         hasId: !!s.id,
         hasResetUsers: resetParticipants.size > 0,
         hasUnread: s.unread > 0,
-        isTypingSnippet: !!typers?.size,
         participantNeedToRekey: rekeyers.size > 0,
         trustedState,
         youAreReset: membershipType === 'youAreReset',
@@ -345,7 +330,6 @@ const BottomLine = (p: BottomLineProps) => {
   const style = Kb.Styles.collapseStyles([
     styles.bottomLine,
     {color: subColor, ...(showBold ? Kb.Styles.globalStyles.fontBold : {})},
-    isTypingSnippet && styles.typingSnippet,
   ])
 
   let content: React.ReactNode
@@ -400,10 +384,7 @@ const BottomLine = (p: BottomLineProps) => {
 
   return (
     <Kb.Box2 direction="vertical" style={styles.bottom} fullWidth={true}>
-      <Kb.Box2
-        direction="horizontal"
-        style={{backgroundColor: Kb.Styles.isMobile ? backgroundColor : undefined}}
-      >
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.isMobile ? {backgroundColor} : undefined}>
         {hasResetUsers && (
           <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
         )}
@@ -414,7 +395,7 @@ const BottomLine = (p: BottomLineProps) => {
             backgroundColor={Kb.Styles.globalColors.red}
           />
         )}
-        <Kb.Box2 direction="horizontal" style={styles.innerBox}>{content}</Kb.Box2>
+        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -561,7 +542,6 @@ const styles = Kb.Styles.styleSheetCreate(
       icon: {position: 'relative'} as const,
       innerBox: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
           flexGrow: 1,
           height: 17,
           position: 'relative',
@@ -576,11 +556,9 @@ const styles = Kb.Styles.styleSheetCreate(
       name: {paddingRight: Kb.Styles.globalMargins.tiny},
       nameContainer: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        alignItems: 'center',
       },
       rowContainer: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
           height: '100%',
           paddingLeft: Kb.Styles.globalMargins.xsmall,
           paddingRight: Kb.Styles.globalMargins.xsmall,
@@ -606,10 +584,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isTablet: {backgroundColor: undefined},
       }),
-      topContainer: {
-        alignItems: 'center',
-      },
-      typingSnippet: Kb.Styles.platformStyles({}),
       unreadDotStyle: {
         backgroundColor: Kb.Styles.globalColors.orange,
         borderRadius: 6,
