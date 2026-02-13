@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Git from '@/constants/git'
+import * as Git from '@/stores/git'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Row, {NewContext} from './row'

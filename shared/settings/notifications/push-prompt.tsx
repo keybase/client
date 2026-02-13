@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 
 const PushPrompt = () => {
   const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)

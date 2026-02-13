@@ -1,9 +1,17 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import Inbox, {type Props} from '.'
 import {useIsFocused} from '@react-navigation/core'
+import type {
+  ChatInboxRowItemBig,
+  ChatInboxRowItemBigHeader,
+  ChatInboxRowItemTeamBuilder,
+  ChatInboxRowItemSmall,
+  ChatInboxRowItemDivider,
+  ChatInboxRowItem,
+} from './rowitem'
 
 type OwnProps = {
   navKey: string
@@ -12,9 +20,7 @@ type OwnProps = {
 
 const makeBigRows = (
   bigTeams: ReadonlyArray<T.RPCChat.UIInboxBigTeamRow>
-): Array<
-  T.Chat.ChatInboxRowItemBig | T.Chat.ChatInboxRowItemBigHeader | T.Chat.ChatInboxRowItemTeamBuilder
-> => {
+): Array<ChatInboxRowItemBig | ChatInboxRowItemBigHeader | ChatInboxRowItemTeamBuilder> => {
   return bigTeams.map(t => {
     switch (t.state) {
       case T.RPCChat.UIInboxBigTeamRowTyp.channel: {
@@ -43,7 +49,7 @@ const makeBigRows = (
 
 const makeSmallRows = (
   smallTeams: ReadonlyArray<T.RPCChat.UIInboxSmallTeamRow>
-): Array<T.Chat.ChatInboxRowItemSmall | T.Chat.ChatInboxRowItemTeamBuilder> => {
+): Array<ChatInboxRowItemSmall | ChatInboxRowItemTeamBuilder> => {
   return smallTeams.map(t => {
     const conversationIDKey = T.Chat.stringToConversationIDKey(t.convID)
     return {
@@ -180,18 +186,17 @@ const Connected = (ownProps: OwnProps) => {
 
   const hasAllSmallTeamConvs =
     (_inboxLayout?.smallTeams?.length ?? 0) === (_inboxLayout?.totalSmallTeams ?? 0)
-  const divider: Array<T.Chat.ChatInboxRowItemDivider | T.Chat.ChatInboxRowItemTeamBuilder> =
-    React.useMemo(() => {
-      return bigRows.length !== 0 || !hasAllSmallTeamConvs
-        ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
-        : []
-    }, [bigRows.length, hasAllSmallTeamConvs, smallTeamsBelowTheFold])
+  const divider: Array<ChatInboxRowItemDivider | ChatInboxRowItemTeamBuilder> = React.useMemo(() => {
+    return bigRows.length !== 0 || !hasAllSmallTeamConvs
+      ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
+      : []
+  }, [bigRows.length, hasAllSmallTeamConvs, smallTeamsBelowTheFold])
 
-  const rows: Array<T.Chat.ChatInboxRowItem> = React.useMemo(() => {
-    const builderAfterSmall = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
-    const builderAfterDivider = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
-    const builderAfterBig = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
-    const teamBuilder: T.Chat.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
+  const rows: Array<ChatInboxRowItem> = React.useMemo(() => {
+    const builderAfterSmall = new Array<ChatInboxRowItemTeamBuilder>()
+    const builderAfterDivider = new Array<ChatInboxRowItemTeamBuilder>()
+    const builderAfterBig = new Array<ChatInboxRowItemTeamBuilder>()
+    const teamBuilder: ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
     if (smallRows.length !== 0) {
       if (bigRows.length === 0) {
         if (divider.length !== 0) {

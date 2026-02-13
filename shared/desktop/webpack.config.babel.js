@@ -8,22 +8,19 @@ import path from 'path'
 import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
-import CircularDependencyPlugin from 'circular-dependency-plugin'
 
 const ignoredModules = require('../ignored-modules')
 const enableWDYR = require('../util/why-did-you-render-enabled')
 const elecVersion = require('../package.json').devDependencies.electron
 // true if you want to debug unused code. This makes single chunks so you can grep for 'unused harmony' in the output in desktop/dist
 const debugUnusedChunks = false
-const enableCircularDepCheck = false
 const evalDevtools = false
 
-if (enableWDYR || debugUnusedChunks || enableCircularDepCheck || evalDevtools) {
+if (enableWDYR || debugUnusedChunks || evalDevtools) {
   for (let i = 0; i < 10; ++i) {
     console.error('Webpack debugging on!!!', {
       enableWDYR,
       debugUnusedChunks,
-      enableCircularDepCheck,
       evalDevtools,
     })
   }
@@ -188,23 +185,6 @@ const config = (_, {mode}) => {
         new webpack.DefinePlugin(defines), // Inject some defines
         new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}), // Skip a bunch of crap moment pulls in
         ...(enableWDYR ? [] : [new webpack.IgnorePlugin({resourceRegExp: /^lodash$/})]), // Disallow entire lodash, but needed by why did
-        ...(isDev && enableCircularDepCheck
-          ? [
-              new CircularDependencyPlugin({
-                // exclude detection of files based on a RegExp
-                exclude: /node_modules/,
-                // include specific files based on a RegExp
-                // include: /dir/,
-                // add errors to webpack instead of warnings
-                failOnError: true,
-                // allow import cycles that include an asyncronous import,
-                // e.g. via import(/* webpackMode: "weak" */ './file.js')
-                allowAsyncCycles: false,
-                // set the current working directory for displaying module paths
-                cwd: process.cwd(),
-              }),
-            ]
-          : []),
       ],
       resolve: {
         alias,

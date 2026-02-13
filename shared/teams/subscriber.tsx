@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import type * as T from '@/constants/types'
 
 // NOTE: If you are in a floating box or otherwise outside the navigation

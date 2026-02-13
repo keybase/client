@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from './common'
-import {useSettingsEmailState} from '@/constants/settings-email'
-import {useSignupState} from '@/constants/signup'
-import {usePushState} from '@/constants/push'
+import {useSettingsEmailState} from '@/stores/settings-email'
+import {useSignupState} from '@/stores/signup'
+import {usePushState} from '@/stores/push'
 
 const ConnectedEnterEmail = () => {
   const _showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)

@@ -51,11 +51,6 @@ export const outboxIDToString = (o: OutboxID): string => o
 export type MentionsAt = ReadonlySet<string>
 export type MentionsChannel = 'none' | 'all' | 'here'
 
-export interface MessageExplodeDescription {
-  text: string
-  seconds: number
-}
-
 export interface PathAndOutboxID {
   path: string
   outboxID?: T.RPCChat.OutboxID

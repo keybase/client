@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useTrackerState} from '@/constants/tracker2'
-import {useFollowerState} from '@/constants/followers'
+import {useTrackerState} from '@/stores/tracker2'
+import {useFollowerState} from '@/stores/followers'
 
 type OwnProps = {
   inTracker: boolean

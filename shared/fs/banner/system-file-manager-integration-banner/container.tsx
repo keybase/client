@@ -3,8 +3,8 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type OwnProps = {alwaysShow?: boolean}
 
@@ -14,7 +14,7 @@ const SFMIContainer = (op: OwnProps) => {
       driverDisable: s.dispatch.driverDisable,
       driverEnable: s.dispatch.driverEnable,
       driverStatus: s.sfmi.driverStatus,
-      setSfmiBannerDismissedDesktop: s.dispatch.dynamic.setSfmiBannerDismissedDesktop,
+      setSfmiBannerDismissedDesktop: s.dispatch.defer.setSfmiBannerDismissedDesktop,
       settings: s.settings,
     }))
   )
@@ -218,7 +218,7 @@ const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const {displayingMountDir, openLocalPathInSystemFileManagerDesktop} = useFSState(
     C.useShallow(s => ({
       displayingMountDir: s.sfmi.preferredMountDirs[0] ?? '',
-      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+      openLocalPathInSystemFileManagerDesktop: s.dispatch.defer.openLocalPathInSystemFileManagerDesktop,
     }))
   )
   const open = displayingMountDir

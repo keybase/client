@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const ErrsContainer = () => {
   const {_errors, _dismiss} = useFSState(

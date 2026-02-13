@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Crypto from '@/constants/crypto/util'
+import * as Crypto from '@/constants/crypto'
 import {HeaderLeftCancel2, type HeaderBackButtonProps} from '@/common-adapters/header-hoc'
 import cryptoTeamBuilder from '../team-building/page'
 

@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import Feedback from '.'
 import type {Props} from './container'
 import {useSendFeedback} from './shared'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const Container = (ownProps: Props) => {
   const {sendFeedback, error} = useSendFeedback()

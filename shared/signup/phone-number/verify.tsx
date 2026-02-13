@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import {SignupScreen} from '../common'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import VerifyBody from './verify-body'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
 
 const Container = () => {
   const error = useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))

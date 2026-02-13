@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Crypto from '@/constants/crypto'
+import * as Chat from '@/stores/chat2'
+import * as Crypto from '@/stores/crypto'
 import * as Kb from '@/common-adapters'
 import * as Path from '@/util/path'
 import * as React from 'react'
@@ -8,9 +8,9 @@ import capitalize from 'lodash/capitalize'
 import type * as T from '@/constants/types'
 import {pickFiles} from '@/util/pick-files'
 import type HiddenString from '@/util/hidden-string'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 import * as FS from '@/constants/fs'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 type OutputProps = {operation: T.Crypto.Operations}
 type OutputActionsBarProps = {operation: T.Crypto.Operations}
@@ -181,7 +181,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const actionsDisabled = waiting || !outputValid
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
     openLocalPathInSystemFileManagerDesktop?.(output.stringValue())
@@ -194,7 +194,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     previewConversation({participants: [username.stringValue()], reason: 'search'})
   }
 
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const onCopyOutput = () => {
     copyToClipboard(output.stringValue())
   }
@@ -369,7 +369,7 @@ export const OperationOutput = (props: OutputProps) => {
   const output = _output.stringValue()
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
     if (!output) return

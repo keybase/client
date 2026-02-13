@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 const useQR = () => {
   const submitTextCode = useProvisionState(s => s.dispatch.dynamic.submitTextCode)

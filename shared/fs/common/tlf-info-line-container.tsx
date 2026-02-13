@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import TlfInfoLine from './tlf-info-line'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {
   path: T.FS.Path

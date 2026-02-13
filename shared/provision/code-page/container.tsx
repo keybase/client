@@ -1,13 +1,13 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
+import * as Devices from '@/stores/devices'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import QRImage from './qr-image'
 import QRScan from './qr-scan'
 import Troubleshooting from '../troubleshooting'
 import type * as T from '@/constants/types'
-import {useCurrentUserState} from '@/constants/current-user'
-import {type Device, useProvisionState} from '@/constants/provision'
+import {useCurrentUserState} from '@/stores/current-user'
+import {type Device, useProvisionState} from '@/stores/provision'
 
 const CodePageContainer = () => {
   const {deviceID, storeDeviceName} = useCurrentUserState(

@@ -1,7 +1,7 @@
 import type * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {TBProvider} from '@/constants/team-building'
+import {TBProvider} from '@/stores/team-building'
 
 const getOptions = ({route}: OwnProps) => {
   const namespace: unknown = route.params.namespace

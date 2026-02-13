@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
 import openUrl from '@/util/open-url'
 import Modal from './modal'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const Container = () => {
   const platform = useProfileState(s => s.platform)
@@ -49,7 +49,7 @@ const Container = () => {
       break
   }
   const platformUserName = username
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()

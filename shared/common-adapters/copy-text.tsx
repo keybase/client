@@ -8,7 +8,7 @@ import {useTimeout} from './use-timers'
 import * as Styles from '@/styles'
 import logger from '@/logger'
 import type {MeasureRef} from './measure-ref'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const Kb = {
   Box2Measure,
@@ -61,8 +61,8 @@ const CopyText = (props: Props) => {
 
   const popupAnchor = React.useRef<MeasureRef | null>(null)
   const textRef = React.useRef<TextMeasureRef | null>(null)
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const showShareActionSheet = useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
+  const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
   const copy = React.useCallback(() => {
     if (!text) {
       if (!loadText) {

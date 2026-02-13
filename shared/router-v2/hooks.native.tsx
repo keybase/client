@@ -1,12 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useConfigState} from '@/constants/config'
+import * as Chat from '@/stores/chat2'
+import {useConfigState} from '@/stores/config'
 import * as Tabs from '@/constants/tabs'
 import * as React from 'react'
-import {useDeepLinksState} from '@/constants/deeplinks'
+import {handleAppLink} from '@/constants/deeplinks'
 import {Linking} from 'react-native'
 import {useColorScheme} from 'react-native'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 
 type InitialStateState = 'init' | 'loading' | 'loaded'
 
@@ -112,7 +112,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
       }
 
       if (url && isValidLink(url)) {
-        setTimeout(() => url && useDeepLinksState.getState().dispatch.handleAppLink(url), 1)
+        setTimeout(() => url && handleAppLink(url), 1)
       } else if (startupFollowUser && !startupConversation) {
         url = `keybase://profile/show/${startupFollowUser}`
 

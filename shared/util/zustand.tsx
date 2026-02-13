@@ -9,7 +9,13 @@ import {wrapErrors} from '@/util/debug'
 // needed for tsc
 export type {WritableDraft} from 'immer'
 
-type HasReset = {dispatch: {resetDeleteMe?: boolean; resetState: 'default' | (() => void)}}
+type HasReset = {
+  dispatch: {
+    defer?: Record<string, unknown>
+    resetDeleteMe?: boolean
+    resetState: 'default' | (() => void)
+  }
+}
 
 const resetters: ((isDebug?: boolean) => void)[] = []
 const resettersAndDelete: ((isDebug?: boolean) => void)[] = []
@@ -39,8 +45,9 @@ export const createZustand = <T extends HasReset>(
   let resetFunc: () => void
   if (reset === 'default') {
     resetFunc = () => {
+      const currentDefer = store.getState().dispatch.defer
       // eslint-disable-next-line
-      store.setState(initialState as any, true)
+      store.setState({...initialState, dispatch: {...initialState.dispatch, defer: currentDefer}} as any, true)
     }
   } else {
     resetFunc = reset

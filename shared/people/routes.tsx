@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import peopleTeamBuilder from '../team-building/page'
 import ProfileSearch from '../profile/search'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const HeaderAvatar = () => {
   const myUsername = useCurrentUserState(s => s.username)

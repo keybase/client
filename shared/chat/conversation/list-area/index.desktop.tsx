@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
 import * as Hooks from './hooks'
 import * as React from 'react'
@@ -17,7 +17,7 @@ import logger from '@/logger'
 import shallowEqual from 'shallowequal'
 import useResizeObserver from '@/util/use-resize-observer.desktop'
 import useIntersectionObserver from '@/util/use-intersection-observer'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -506,7 +506,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   )
   const {conversationIDKey, editingOrdinal, centeredOrdinal} = data
   const {containsLatestMessage, messageOrdinals, loaded, messageTypeMap} = data
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const _setListRef = React.useCallback((r: HTMLDivElement | null) => {
     listRef.current = r

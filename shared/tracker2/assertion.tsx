@@ -1,16 +1,16 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import type * as T from '@/constants/types'
 import openUrl from '@/util/open-url'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from '@/profile/generic/shared'
 import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
-import * as Tracker from '@/constants/tracker2'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
+import * as Tracker from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker2'
+import {useProfileState} from '@/stores/profile'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -424,7 +424,7 @@ const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
 
 const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
   const {value, color} = p
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const onCopyAddress = React.useCallback(() => {
     copyToClipboard(value)
   }, [copyToClipboard, value])

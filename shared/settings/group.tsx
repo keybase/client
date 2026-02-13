@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {NotificationsSettingsState} from '@/constants/settings-notifications'
+import type {NotificationsSettingsState} from '@/stores/settings-notifications'
 
 type GroupProps = {
   allowEdit: boolean

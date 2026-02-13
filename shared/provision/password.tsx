@@ -3,8 +3,8 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {useState as useRecoverState} from '@/constants/recover-password'
-import {useProvisionState} from '@/constants/provision'
+import {useState as useRecoverState} from '@/stores/recover-password'
+import {useProvisionState} from '@/stores/provision'
 
 const Password = () => {
   const error = useProvisionState(s => s.error)

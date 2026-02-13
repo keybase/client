@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import DeviceIcon from '../devices/device-icon'
 import {SignupScreen} from '../signup/common'
-import {type Device} from '@/constants/provision'
+import {type Device} from '@/stores/provision'
 
 type Props = {
   passwordRecovery?: boolean

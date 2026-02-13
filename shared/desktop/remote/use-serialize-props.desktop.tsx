@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import KB2 from '@/util/electron.desktop'
 import isEqual from 'lodash/isEqual'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const {rendererNewProps} = KB2.functions
 

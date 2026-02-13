@@ -1,7 +1,7 @@
-import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 import useHooks from './hooks'
+import type {MessageExplodeDescription} from './hooks'
 
 const quantityTextStyle = Kb.Styles.platformStyles({
   common: {
@@ -13,7 +13,7 @@ const quantityTextStyle = Kb.Styles.platformStyles({
 })
 
 type ItemProps = {
-  desc: T.Chat.MessageExplodeDescription
+  desc: MessageExplodeDescription
   selected: boolean
 }
 

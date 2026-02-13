@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import openURL from '@/util/open-url'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'

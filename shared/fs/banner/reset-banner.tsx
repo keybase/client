@@ -4,10 +4,10 @@ import * as T from '@/constants/types'
 import {folderNameWithoutUsers} from '@/util/kbfs'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from '@/fs/browser/rows/types'
-import {useTrackerState} from '@/constants/tracker2'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useProfileState} from '@/constants/profile'
+import {useTrackerState} from '@/stores/tracker2'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
+import {useProfileState} from '@/stores/profile'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -21,7 +21,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       if (pathElems.length < 3) return
       const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
       const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-      FS.makeActionForOpenPathInFilesTab(filteredPath)
+      FS.navToPath(filteredPath)
     },
     []
   )

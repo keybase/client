@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
@@ -62,7 +62,7 @@ const OutOfDate = () => {
     C.ignorePromise(f())
   })
 
-  const onOpenAppStore = useConfigState(s => s.dispatch.dynamic.openAppStore)
+  const onOpenAppStore = useConfigState(s => s.dispatch.defer.openAppStore)
 
   return status !== 'critical' ? null : (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>

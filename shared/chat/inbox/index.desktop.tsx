@@ -4,6 +4,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import type * as TInbox from './index.d'
 import type * as T from '@/constants/types'
+import type {ChatInboxRowItem} from './rowitem'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider'
@@ -47,7 +48,7 @@ const DragLine = (p: {
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
   style: object
-  rows: T.Chat.ChatInboxRowItem[]
+  rows: ChatInboxRowItem[]
 }) => {
   const {inboxNumSmallRows, showButton, style, scrollDiv} = p
   const {smallTeamsExpanded, toggleSmallTeamsExpanded, rows, setInboxNumSmallRows} = p
@@ -185,7 +186,7 @@ const DragLine = (p: {
 type InboxRowData = {
   inboxNumSmallRows: number
   navKey: string
-  rows: T.Chat.ChatInboxRowItem[]
+  rows: ChatInboxRowItem[]
   scrollDiv: React.RefObject<HTMLDivElement | null>
   selectedConversationIDKey: string
   setInboxNumSmallRows: (rows: number) => void
