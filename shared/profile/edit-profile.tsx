@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useTrackerState} from '@/stores/tracker2'
+import {useProfileState} from '@/stores/profile'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const Container = () => {
   const username = useCurrentUserState(s => s.username)

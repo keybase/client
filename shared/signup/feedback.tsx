@@ -4,7 +4,7 @@ import * as React from 'react'
 import FeedbackForm from '../settings/feedback/index'
 import {SignupScreen, errorBanner} from './common'
 import {useSendFeedback} from '../settings/feedback/shared'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const SignupFeedback = () => {
   const {error: sendError, sendFeedback: onSendFeedback} = useSendFeedback()

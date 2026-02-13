@@ -1,8 +1,8 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
+import * as Devices from '@/stores/devices'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 type OwnProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>

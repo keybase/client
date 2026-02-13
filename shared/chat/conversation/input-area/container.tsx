@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import Normal from './normal2'
 import Preview from './preview'
 import ThreadSearch from '../search'

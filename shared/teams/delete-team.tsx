@@ -6,8 +6,8 @@ import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import {useTeamDetailsSubscribe} from './subscriber'
 import noop from 'lodash/noop'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 
 type OwnProps = {teamID: T.Teams.TeamID}
 

@@ -6,7 +6,7 @@ import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize, type ProxyProps} from './remote-serializer.desktop'
 import {useColorScheme} from 'react-native'
-import {usePinentryState} from '@/constants/pinentry'
+import {usePinentryState} from '@/stores/pinentry'
 
 const windowOpts = {height: 230, width: 440}
 

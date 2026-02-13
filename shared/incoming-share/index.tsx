@@ -1,15 +1,15 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FsCommon from '@/fs/common'
 import {MobileSendToChat} from '../chat/send-to-chat'
-import {navigateAppend} from '@/constants/router2/util'
-import {settingsFeedbackTab} from '@/constants/settings'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
-import {useConfigState} from '@/constants/config'
+import {settingsFeedbackTab} from '@/stores/settings'
+import * as FS from '@/stores/fs'
+import {useConfigState} from '@/stores/config'
+import {useFSState} from '@/stores/fs'
+import {useRouterState} from '@/stores/router2'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
@@ -204,6 +204,7 @@ type IncomingShareWithSelectionProps = IncomingShareProps & {
 }
 
 const IncomingShare = (props: IncomingShareWithSelectionProps) => {
+  const navigateAppend = useRouterState(s => s.dispatch.navigateAppend)
   const useOriginalValue = useConfigState(s => s.incomingShareUseOriginal)
   const {sendPaths, text} = props.incomingShareItems.reduce(
     ({sendPaths, text}, item) => {
@@ -223,7 +224,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
 
   // Pre-selected conv: navToThread + attachments directly (skip MobileSendToChat)
   const selectedConversationIDKey = props.selectedConversationIDKey
-  const canDirectNav = selectedConversationIDKey && Chat.isValidConversationIDKey(selectedConversationIDKey)
+  const canDirectNav = selectedConversationIDKey && T.Chat.isValidConversationIDKey(selectedConversationIDKey)
   const hasNavigatedRef = React.useRef(false)
   React.useEffect(() => {
     if (!canDirectNav || hasNavigatedRef.current) return
@@ -246,7 +247,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
         selected: 'chatAttachmentGetTitles',
       })
     }
-  }, [canDirectNav, selectedConversationIDKey, sendPaths, text])
+  }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend])
 
   const header = useHeader(props.incomingShareItems)
   const footer = useFooter(props.incomingShareItems)

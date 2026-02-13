@@ -3,9 +3,9 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import WalletPopup from './wallet-popup'
-import * as Wallets from '@/constants/wallets'
-import {useState as useWalletsState} from '@/constants/wallets'
-import {useConfigState} from '@/constants/config'
+import * as Wallets from '@/stores/wallets'
+import {useState as useWalletsState} from '@/stores/wallets'
+import {useConfigState} from '@/stores/config'
 
 type OwnProps = {accountID: string}
 
@@ -17,7 +17,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const attachmentRef = React.useRef<Kb.MeasureRef | null>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
 
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
 
   const [sk, setSK] = React.useState('')
   const loading = !sk

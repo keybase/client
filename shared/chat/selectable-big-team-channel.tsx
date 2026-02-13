@@ -2,9 +2,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '@/util/string'
-import {BottomLine} from './inbox/row/small-team/bottom-line'
+import {BottomLine} from './inbox/row/small-team'
 import type * as T from '@/constants/types'
-import {SnippetContext} from './inbox/row/small-team/contexts'
 
 type Props = {
   isSelected: boolean
@@ -68,9 +67,12 @@ const SelectableBigTeamChannel = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         {!props.numSearchHits && (
-          <SnippetContext.Provider value={props.snippet ?? ''}>
-            <BottomLine isSelected={props.isSelected} allowBold={false} />
-          </SnippetContext.Provider>
+          <BottomLine
+            snippet={props.snippet}
+            snippetDecoration={props.snippetDecoration}
+            isSelected={props.isSelected}
+            allowBold={false}
+          />
         )}
         {!!props.numSearchHits && (
           <Kb.Text

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Crypto from '@/constants/crypto'
+import * as Crypto from '@/stores/crypto'
 import * as Common from '@/router-v2/common.desktop'
 import LeftNav from './left-nav.desktop'
 import {

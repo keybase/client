@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as Constants from '@/constants/router2'
-import {useConfigState} from '@/constants/config'
-import {useDarkModeState} from '@/constants/darkmode'
+import * as Constants from '@/stores/router2'
+import {useConfigState} from '@/stores/config'
+import {useDarkModeState} from '@/stores/darkmode'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
@@ -20,7 +20,7 @@ import * as Hooks from './hooks.native'
 import * as TabBar from './tab-bar.native'
 import type {RootParamList} from '@/router-v2/route-params'
 import {useColorScheme} from 'react-native'
-import {useDaemonState} from '@/constants/daemon'
+import {useDaemonState} from '@/stores/daemon'
 
 if (module.hot) {
   module.hot.accept('', () => {})
@@ -68,7 +68,7 @@ const tabStacks = tabs.map(tab => (
     name={tab}
     listeners={{
       tabLongPress: () => {
-        C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
+        C.useRouterState.getState().dispatch.defer.tabLongPress?.(tab)
       },
     }}
     component={TabStack}

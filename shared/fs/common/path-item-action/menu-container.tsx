@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common/hooks'
 import * as React from 'react'
@@ -8,9 +8,9 @@ import * as Util from '@/util/kbfs'
 import Header from './header'
 import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -32,7 +32,7 @@ const Container = (op: OwnProps) => {
       const fileContext = s.fileContext.get(path) || FS.emptyFileContext
       const {cancelDownload, setPathItemActionMenuView, download, newFolderRow} = s.dispatch
       const {favoriteIgnore, startRename, dismissDownload} = s.dispatch
-      const {openPathInSystemFileManagerDesktop} = s.dispatch.dynamic
+      const {openPathInSystemFileManagerDesktop} = s.dispatch.defer
       const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
       return {
         cancelDownload,

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Image2} from '@/common-adapters'
-import QRCodeGen from 'qrcode-generator'
+import generateQRDataURL from '@/util/qr-code'
 
 const Kb = {
   Image2,
@@ -13,11 +13,8 @@ type Props = {
 
 const QrImage = React.memo(function QrImage(p: Props) {
   const {code, cellSize = 8} = p
-  const qr = QRCodeGen(4, 'L')
-  qr.addData(code)
-  qr.make()
-  const size = qr.getModuleCount() * (cellSize / 2) // retina
-  const url = qr.createDataURL(cellSize)
+  const {url, moduleCount} = generateQRDataURL(code, cellSize)
+  const size = moduleCount * (cellSize / 2) // retina
   return <Kb.Image2 src={url} style={{height: size, width: size}} />
 })
 

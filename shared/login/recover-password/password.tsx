@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import {UpdatePassword} from '@/settings/password'
-import {useState as useRecoverState} from '@/constants/recover-password'
+import {useState as useRecoverState} from '@/stores/recover-password'
 
 const Password = () => {
   const error = useRecoverState(s => s.passwordError)

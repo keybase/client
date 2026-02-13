@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -11,7 +11,7 @@ import ProfileResetNotice from './system-profile-reset-notice'
 import RetentionNotice from './retention-notice'
 import {usingFlashList} from '../list-area/flashlist-config'
 import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const ErrorMessage = () => {
   const createConversationError = Chat.useChatState(s => s.createConversationError)
@@ -178,7 +178,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   }, [])
 
   const openPrivateFolder = React.useCallback(() => {
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
+    FS.navToPath(T.FS.stringToPath(`/keybase/private/${username}`))
   }, [username])
 
   return (

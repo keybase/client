@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SettingsSection} from './account'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
-import {settingsFeedbackTab} from '@/constants/settings'
-import {useConfigState} from '@/constants/config'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {settingsFeedbackTab} from '@/stores/settings'
+import {useConfigState} from '@/stores/config'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
@@ -72,7 +72,7 @@ const ManageContactsBanner = () => {
       status: s.permissionStatus,
     }))
   )
-  const onOpenAppSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onOpenAppSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
   const {appendNewChatBuilder, navigateAppend, switchTab} = C.useRouterState(
     C.useShallow(s => ({
       appendNewChatBuilder: s.appendNewChatBuilder,

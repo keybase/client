@@ -1,10 +1,11 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
 import {shallowEqual} from '../utils'
-import * as T from '../types'
-import * as Teams from '../teams/util'
+import * as T from '@/constants/types'
+import * as Teams from '@/constants/teams'
 import * as Message from './message'
 import {base64ToUint8Array, uint8ArrayToHex} from 'uint8array-extras'
-import {storeRegistry} from '../store-registry'
+import {storeRegistry} from '@/stores/store-registry'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {
   switch (m) {
@@ -40,9 +41,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
   // We only treat implicit adhoc teams as having resetParticipants
   const resetParticipants: Set<string> = new Set(
     i.localMetadata &&
-    (i.membersType === T.RPCChat.ConversationMembersType.impteamnative ||
-      i.membersType === T.RPCChat.ConversationMembersType.impteamupgrade) &&
-    i.localMetadata.resetParticipants
+      (i.membersType === T.RPCChat.ConversationMembersType.impteamnative ||
+        i.membersType === T.RPCChat.ConversationMembersType.impteamupgrade) &&
+      i.localMetadata.resetParticipants
       ? i.localMetadata.resetParticipants
       : []
   )
@@ -236,7 +237,7 @@ export const inboxUIItemToConversationMeta = (
   const resetParticipants = new Set(
     (i.membersType === T.RPCChat.ConversationMembersType.impteamnative ||
       i.membersType === T.RPCChat.ConversationMembersType.impteamupgrade) &&
-    i.resetParticipants
+      i.resetParticipants
       ? i.resetParticipants
       : []
   )
@@ -263,8 +264,8 @@ export const inboxUIItemToConversationMeta = (
   const conversationIDKey = T.Chat.stringToConversationIDKey(i.convID)
   let pinnedMsg: T.Chat.PinnedMessageInfo | undefined
   if (i.pinnedMsg) {
-    const username = storeRegistry.getState('current-user').username
-    const devicename = storeRegistry.getState('current-user').deviceName
+    const username = useCurrentUserState.getState().username
+    const devicename = useCurrentUserState.getState().deviceName
     const getLastOrdinal = () =>
       storeRegistry.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const message = Message.uiMessageToMessage(

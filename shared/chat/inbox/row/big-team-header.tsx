@@ -1,8 +1,7 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
-import * as React from 'react'
+import * as Teams from '@/stores/teams'
 import * as RowSizes from './sizes'
 import type * as T from '@/constants/types'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
@@ -13,37 +12,34 @@ type Props = {
   teamID: T.Teams.TeamID
 }
 
-const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
+const BigTeamHeader = (props: Props) => {
   return (
     <Chat.ChatProvider id={Chat.dummyConversationIDKey}>
-      <BigTeamHeaderImpl {...props} />
+      <BigTeamHeaderInner {...props} />
     </Chat.ChatProvider>
   )
-})
-const BigTeamHeaderImpl = (props: Props) => {
+}
+const BigTeamHeaderInner = (props: Props) => {
   const {teamID, teamname} = props
   const badgeSubscribe = Teams.useTeamsState(s => !Teams.isTeamWithChosenChannels(s, teamname))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => navigateAppend({props: {teamID}, selected: 'team'})
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Chat.ChatProvider id="" canBeNull={true}>
-          <TeamMenu
-            attachTo={attachTo}
-            visible={true}
-            onHidden={hidePopup}
-            teamID={teamID}
-            hasHeader={true}
-            isSmallTeam={false}
-          />
-        </Chat.ChatProvider>
-      )
-    },
-    [teamID]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Chat.ChatProvider id="" canBeNull={true}>
+        <TeamMenu
+          attachTo={attachTo}
+          visible={true}
+          onHidden={hidePopup}
+          teamID={teamID}
+          hasHeader={true}
+          isSmallTeam={false}
+        />
+      </Chat.ChatProvider>
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
@@ -97,9 +93,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderWidth: 2,
       },
       showMenu: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
-        },
         isElectron: {
           alignSelf: 'center',
           position: 'relative',

@@ -3,8 +3,8 @@ import * as React from 'react'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import logger from '@/logger'
 import {getDefaultCountryCode} from 'react-native-kb'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
-import {getE164} from '@/constants/settings-phone'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {getE164} from '@/util/phone-numbers'
 
 // Contact info coming from the native contacts library.
 export type Contact = {

@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text'
 import * as T from '@/constants/types'
@@ -8,7 +8,7 @@ import chunk from 'lodash/chunk'
 import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp'
 import {infoPanelWidth} from './common'
 import {useMessagePopup} from '../messages/message-popup'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -499,7 +499,7 @@ export const useAttachmentSections = (
   }
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = (message: T.Chat.MessageAttachment) =>
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)

@@ -1,10 +1,11 @@
 import * as C from '@/constants'
-import * as TB from '@/constants/team-building'
+import * as TB from '@/stores/team-building'
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
-import type * as T from 'constants/types'
+import type * as T from '@/constants/types'
 import ContinueButton from './continue-button'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {searchWaitingKey} from '@/constants/strings'
 
 type PhoneSearchProps = {
   continueLabel: string
@@ -18,7 +19,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
   const [phoneNumber, setPhoneNumber] = React.useState('')
   const [phoneInputKey, setPhoneInputKey] = React.useState(0)
-  const waiting = C.Waiting.useAnyWaiting(TB.searchWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(searchWaitingKey)
   const loadDefaultPhoneCountry = useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   // trigger a default phone number country rpc if it's not already loaded
   const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)

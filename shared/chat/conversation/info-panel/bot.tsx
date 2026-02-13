@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat2'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {getFeaturedSorted, useBotsState} from '@/constants/bots'
-import {useUsersState} from '@/constants/users'
+import {getFeaturedSorted, useBotsState} from '@/stores/bots'
+import {useUsersState} from '@/stores/users'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey

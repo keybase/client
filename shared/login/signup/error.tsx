@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {Wrapper, ContinueButton} from './common'
-import {useSignupState} from '@/constants/signup'
+import {useSignupState} from '@/stores/signup'
 
 const ConnectedSignupError = () => {
   const error = useSignupState(s => s.signupError)

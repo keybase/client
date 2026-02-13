@@ -1,6 +1,7 @@
-import * as Chat from '@/constants/chat2'
+import * as C from '@/constants'
+import * as Chat from '@/stores/chat2'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
 
@@ -12,36 +13,43 @@ type Props = {
   layoutSnippetDecoration?: T.RPCChat.SnippetDecoration
 }
 
-const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
+const BigTeamChannel = (props: Props) => {
   return (
     <Chat.ChatProvider id={props.conversationIDKey}>
-      <BigTeamChannelImpl {...props} />
+      <BigTeamChannelInner {...props} />
     </Chat.ChatProvider>
   )
-})
-const BigTeamChannelImpl = (props: Props) => {
+}
+const BigTeamChannelInner = (props: Props) => {
   const {selected, layoutChannelname, layoutSnippetDecoration} = props
-  const channelname = Chat.useChatContext(s => s.meta.channelname || layoutChannelname)
-  const isError = Chat.useChatContext(s => s.meta.trustedState === 'error')
-  const snippetDecoration = Chat.useChatContext(s => {
-    const d =
-      s.meta.conversationIDKey === Chat.noConversationIDKey
-        ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
-        : s.meta.snippetDecoration
-
-    switch (d) {
-      case T.RPCChat.SnippetDecoration.pendingMessage:
-      case T.RPCChat.SnippetDecoration.failedPendingMessage:
-        return d
-      default:
-        return 0
-    }
-  })
-  const hasBadge = Chat.useChatContext(s => s.badge > 0)
-  const hasDraft = Chat.useChatContext(s => !!s.meta.draft)
-  const hasUnread = Chat.useChatContext(s => s.unread > 0)
-  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
-  const navigateToThread = Chat.useChatContext(s => s.dispatch.navigateToThread)
+  const {channelname, isError, snippetDecoration, hasBadge, hasDraft, hasUnread, isMuted, navigateToThread} =
+    Chat.useChatContext(
+      C.useShallow(s => {
+        const d =
+          s.meta.conversationIDKey === Chat.noConversationIDKey
+            ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
+            : s.meta.snippetDecoration
+        let snippetDecoration: number
+        switch (d) {
+          case T.RPCChat.SnippetDecoration.pendingMessage:
+          case T.RPCChat.SnippetDecoration.failedPendingMessage:
+            snippetDecoration = d
+            break
+          default:
+            snippetDecoration = 0
+        }
+        return {
+          channelname: s.meta.channelname || layoutChannelname,
+          hasBadge: s.badge > 0,
+          hasDraft: !!s.meta.draft,
+          hasUnread: s.unread > 0,
+          isError: s.meta.trustedState === 'error',
+          isMuted: s.meta.isMuted,
+          navigateToThread: s.dispatch.navigateToThread,
+          snippetDecoration,
+        }
+      })
+    )
   const onSelectConversation = () => navigateToThread('inboxBig')
 
   let outboxTooltip: string | undefined
@@ -155,7 +163,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       channelBackground: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
           marginLeft: Kb.Styles.globalMargins.large,
           paddingRight: Kb.Styles.globalMargins.xsmall,

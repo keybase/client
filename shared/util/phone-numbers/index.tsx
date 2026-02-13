@@ -2,10 +2,10 @@ import * as C from '@/constants'
 import libphonenumber from 'google-libphonenumber'
 
 const PNF = libphonenumber.PhoneNumberFormat
-export const PhoneNumberFormat = PNF
+const PhoneNumberFormat = PNF
 
-export const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
-export const ValidationResult = libphonenumber.PhoneNumberUtil.ValidationResult
+const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
+const ValidationResult = libphonenumber.PhoneNumberUtil.ValidationResult
 const supported = phoneUtil.getSupportedRegions()
 
 export type CountryData = {
@@ -186,5 +186,19 @@ export const formatPhoneNumberInternational = (rawNumber: string): string | unde
     return phoneUtil.format(phoneNumber, PNF.INTERNATIONAL)
   } catch {
     return undefined
+  }
+}
+
+// Get phone number in e.164, or null if we can't parse it.
+export const getE164 = (phoneNumber: string, countryCode?: string) => {
+  try {
+    const parsed = countryCode ? phoneUtil.parse(phoneNumber, countryCode) : phoneUtil.parse(phoneNumber)
+    const reason = phoneUtil.isPossibleNumberWithReason(parsed)
+    if (reason !== ValidationResult.IS_POSSIBLE) {
+      return null
+    }
+    return phoneUtil.format(parsed, PhoneNumberFormat.E164)
+  } catch {
+    return null
   }
 }

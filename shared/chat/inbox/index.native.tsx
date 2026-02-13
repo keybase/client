@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as RowSizes from './row/sizes'
@@ -16,8 +16,9 @@ import {FlatList} from 'react-native-gesture-handler'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
+import type {ChatInboxRowItem} from './rowitem'
 
-type RowItem = T.Chat.ChatInboxRowItem
+type RowItem = ChatInboxRowItem
 
 const usingFlashList = false as boolean
 const List = /*usingFlashList ? FlashList :*/ FlatList
@@ -399,11 +400,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {width: '100%'},
-      buttonBar: {
-        alignItems: 'flex-end',
-        alignSelf: 'flex-end',
-        justifyContent: 'flex-end',
-      },
       container: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.flexBoxColumn,

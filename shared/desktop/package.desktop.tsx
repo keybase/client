@@ -1,7 +1,7 @@
 import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
 import os from 'os'
-import packager, {type Options} from '@electron/packager'
+import {packager, type Options} from '@electron/packager'
 import path from 'path'
 import webpack from 'webpack'
 import rootConfig from './webpack.config.babel'
@@ -237,14 +237,14 @@ async function pack(plat: string, arch: string) {
   if (packageOutDir === '') packageOutDir = desktopPath(`release/${plat}-${arch}`)
   console.log('Packaging to', packageOutDir)
 
-  const opts = {
+  const opts: Options = {
     ...packagerOpts,
-    arch,
+    arch: arch as Options['arch'],
     out: packageOutDir,
-    platform: plat,
+    platform: plat as Options['platform'],
     ...(plat === 'win32'
       ? {
-          'version-string': {
+          win32metadata: {
             CompanyName: companyName,
             FileDescription: appName,
             OriginalFilename: appName + '.exe',
@@ -256,8 +256,7 @@ async function pack(plat: string, arch: string) {
   console.log('Building using options', opts)
 
   const ret = await packager(opts)
-  // sometimes returns bools, unclear why
-  return ret.filter(o => typeof o === 'string')
+  return ret
 }
 
 function postPack(appPaths: Array<string>, plat: string, arch: string) {

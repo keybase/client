@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
-import {useTBContext} from '@/constants/team-building'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {useTBContext} from '@/stores/team-building'
 
 const useContactsProps = () => {
   const contactsImported = useSettingsContactsState(s => s.importEnabled)

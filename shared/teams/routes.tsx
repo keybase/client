@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
 import teamsRootGetOptions from './get-options'

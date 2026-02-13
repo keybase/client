@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {ModalTitle} from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 
 const MakeBigTeam = () => {
   const nav = useSafeNavigation()

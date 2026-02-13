@@ -1,9 +1,14 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import type {Props} from '.'
 
-const messageExplodeDescriptions: T.Chat.MessageExplodeDescription[] = [
+export type MessageExplodeDescription = {
+  text: string
+  seconds: number
+}
+
+const messageExplodeDescriptions: MessageExplodeDescription[] = [
   {seconds: 30, text: '30 seconds'},
   {seconds: 300, text: '5 minutes'},
   {seconds: 3600, text: '60 minutes'},

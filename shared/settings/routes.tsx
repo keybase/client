@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
-import * as Settings from '@/constants/settings/util'
+import * as Settings from '@/constants/settings'
 
 const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet'))
 

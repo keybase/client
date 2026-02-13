@@ -7,8 +7,8 @@ import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import type {Props} from '.'
 import Todo from './todo'
-import {useSignupState} from '@/constants/signup'
-import {usePeopleState} from '@/constants/people'
+import {useSignupState} from '@/stores/signup'
+import {usePeopleState} from '@/stores/people'
 // import WotTask from './wot-task'
 
 const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Props) => React.ReactNode = (
