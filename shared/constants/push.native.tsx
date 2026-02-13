@@ -22,6 +22,7 @@ export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 
 const initialStore: Store = {
   hasPermissions: true,
   justSignedUp: false,
+  pendingPushNotification: undefined,
   showPushPrompt: false,
   token: '',
 }
@@ -112,6 +113,11 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         return false
       }
     },
+    clearPendingPushNotification: () => {
+      set(s => {
+        s.pendingPushNotification = undefined
+      })
+    },
     deleteToken: version => {
       const f = async () => {
         const waitKey = 'push:deleteToken'
@@ -141,6 +147,31 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     handlePush: notification => {
       const f = async () => {
         try {
+          const forUid = 'forUid' in notification ? notification.forUid : undefined
+
+          if (forUid) {
+            const currentUid = storeRegistry.getState('current-user').uid
+            if (forUid !== currentUid) {
+              const {configuredAccounts, dispatch: configDispatch} = storeRegistry.getState('config')
+              const account = configuredAccounts.find(acc => acc.uid === forUid)
+              if (!account) {
+                logger.info('[Push] notification forUid not in configured accounts, skipping')
+                return
+              }
+              if (!account.hasStoredSecret) {
+                logger.info('[Push] account has no stored secret, cannot switch')
+                return
+              }
+              logger.info('[Push] switching to account for notification tap')
+              set(s => {
+                s.pendingPushNotification = notification
+              })
+              configDispatch.setUserSwitching(true)
+              configDispatch.login(account.username, '')
+              return
+            }
+          }
+
           switch (notification.type) {
             case 'chat.readmessage':
               if (notification.badges === 0) {
@@ -176,8 +207,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           if (__DEV__) {
             console.error(e)
           }
-
-          logger.error('[Push] unhandled!!')
+          logger.error('[Push] unhandled', e)
         }
       }
       ignorePromise(f())

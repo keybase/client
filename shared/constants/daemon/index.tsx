@@ -217,14 +217,14 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       const usernameToFullname: {[username: string]: string} = {}
 
       configuredAccounts.forEach(account => {
-        const {username, isCurrent, fullname, hasStoredSecret} = account
+        const {username, isCurrent, fullname, hasStoredSecret, uid} = account
         if (username === defaultUsername) {
           existingDefaultFound = true
         }
         if (isCurrent) {
           currentName = account.username
         }
-        nextConfiguredAccounts.push({hasStoredSecret, username})
+        nextConfiguredAccounts.push({hasStoredSecret, uid, username})
         usernameToFullname[username] = fullname
       })
       if (!existingDefaultFound) {

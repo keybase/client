@@ -9,6 +9,7 @@ export type OutOfDate = {
 export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
 export type ConfiguredAccount = {
   hasStoredSecret: boolean
+  uid?: string
   username: string
 }
 // 'notavailable' is the desktop default
