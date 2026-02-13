@@ -462,10 +462,6 @@ const styles = Kb.Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
-      divider: {
-        backgroundColor: 'purple',
-        overflow: 'hidden',
-      },
       fakeAvatar: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.black_10,
@@ -482,11 +478,6 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      fakeRemovingRowDivider: {
-        position: 'absolute',
-        top: 0,
-        width: '100%',
-      },
       fakeRow: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,
@@ -501,11 +492,6 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
         zIndex: 9999,
-      },
-      fakeRowDivider: {
-        bottom: 0,
-        position: 'absolute',
-        width: '100%',
       },
       fakeText: {
         flexGrow: 1,
@@ -554,13 +540,9 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingTop: 1,
         width: Kb.Styles.globalMargins.small,
       },
-      hover: {backgroundColor: Kb.Styles.globalColors.blueGreyDark},
       list: {
         flex: 1,
         height: '100%',
-      },
-      rowWithDragger: {
-        height: 68,
       },
       spacer: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
