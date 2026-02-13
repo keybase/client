@@ -117,19 +117,22 @@ func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreA
 		allUsernames = append(allUsernames, currentUsername)
 	}
 
-	accounts := make(map[NormalizedUsername]keybase1.ConfiguredAccount)
-	for _, username := range allUsernames {
-		accounts[username] = keybase1.ConfiguredAccount{
-			Username:  username.String(),
-			IsCurrent: username.Eq(currentUsername),
-		}
-	}
-
-	// Get the full names
+	// Build UIDs first so we can attach them to each account
 	uids := make([]keybase1.UID, len(allUsernames))
 	for idx, username := range allUsernames {
 		uids[idx] = GetUIDByNormalizedUsername(m.G(), username)
 	}
+
+	accounts := make(map[NormalizedUsername]keybase1.ConfiguredAccount)
+	for idx, username := range allUsernames {
+		accounts[username] = keybase1.ConfiguredAccount{
+			Username:  username.String(),
+			IsCurrent: username.Eq(currentUsername),
+			Uid:       uids[idx],
+		}
+	}
+
+	// Get the full names
 	usernamePackages, err := m.G().UIDMapper.MapUIDsToUsernamePackages(m.Ctx(), m.G(),
 		uids, time.Hour*24, time.Second*10, false)
 	if err != nil {
