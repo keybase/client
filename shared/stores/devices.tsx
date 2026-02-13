@@ -1,20 +1,16 @@
 import * as React from 'react'
 import * as Z from '@/util/zustand'
 import * as S from '@/constants/strings'
-import {ignorePromise, updateImmerMap} from '@/constants/utils'
+import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import debounce from 'lodash/debounce'
 
 const initialStore: T.Devices.State = {
-  deviceMap: new Map(),
   isNew: new Set(),
 }
 
 export interface State extends T.Devices.State {
   dispatch: {
-    load: () => void
-    clearBadges: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: 'default'
     setBadges: (set: Set<string>) => void
@@ -23,30 +19,6 @@ export interface State extends T.Devices.State {
 
 export const useDevicesState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
-    clearBadges: () => {
-      ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
-    },
-    load: debounce(
-      () => {
-        const f = async () => {
-          const results = await T.RPCGen.deviceDeviceHistoryListRpcPromise(undefined, S.waitingKeyDevices)
-          set(s => {
-            updateImmerMap(
-              s.deviceMap,
-              new Map(
-                results?.map(r => {
-                  const d = rpcDeviceToDevice(r)
-                  return [d.deviceID, d]
-                })
-              )
-            )
-          })
-        }
-        ignorePromise(f())
-      },
-      1000,
-      {leading: true, trailing: false}
-    ),
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyBadgesBadgeState: {
@@ -100,38 +72,34 @@ export const emptyDevice: T.Devices.Device = {
 const makeDevice = (d?: Partial<T.Devices.Device>): T.Devices.Device =>
   d ? {...emptyDevice, ...d} : emptyDevice
 
-export const useActiveDeviceCounts = () => {
-  const ds = useDevicesState(s => s.deviceMap)
-  return [...ds.values()].reduce((c, v) => (!v.revokedAt ? c + 1 : c), 0)
-}
-
-export const useRevokedDeviceCounts = () => {
-  const ds = useDevicesState(s => s.deviceMap)
-  return [...ds.values()].reduce((c, v) => (v.revokedAt ? c + 1 : c), 0)
-}
-
 // Icons are numbered 1-10, so this focuses on mapping
 // Device -> [1, 10]
 // We split devices by type and order them by creation time. Then, we use (index mod 10)
 // as the background #
 export const numBackgrounds = 10
 
-export const useDeviceIconNumber = (deviceID: T.Devices.DeviceID) => {
-  const devices = useDevicesState(s => s.deviceMap)
-  return (((devices.get(deviceID)?.deviceNumberOfType ?? 0) % numBackgrounds) + 1) as T.Devices.IconNumber
+export const loadDevices = async (): Promise<Map<T.Devices.DeviceID, T.Devices.Device>> => {
+  const results = await T.RPCGen.deviceDeviceHistoryListRpcPromise(undefined, S.waitingKeyDevices)
+  return new Map(
+    results?.map(r => {
+      const d = rpcDeviceToDevice(r)
+      return [d.deviceID, d] as const
+    })
+  )
 }
 
-export const useNextDeviceIconNumber = () => {
-  const dm = useDevicesState(s => s.deviceMap)
-  const next = React.useMemo(() => {
-    // Find the max device number and add one (+ one more since these are 1-indexed)
-    const result = {backup: 1, desktop: 1, mobile: 1}
-    dm.forEach(device => {
-      if (device.deviceNumberOfType >= result[device.type]) {
-        result[device.type] = device.deviceNumberOfType + 1
-      }
-    })
-    return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
-  }, [dm])
-  return next
+export const clearBadges = () => {
+  ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
+}
+
+export const useLoadDevices = () => {
+  const [deviceMap, setDeviceMap] = React.useState<Map<T.Devices.DeviceID, T.Devices.Device>>(new Map())
+  React.useEffect(() => {
+    const f = async () => {
+      const map = await loadDevices()
+      setDeviceMap(map)
+    }
+    ignorePromise(f())
+  }, [])
+  return deviceMap
 }

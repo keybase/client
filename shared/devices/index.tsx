@@ -7,6 +7,7 @@ import partition from 'lodash/partition'
 import type * as T from '@/constants/types'
 import {intersect} from '@/util/set'
 import {useLocalBadging} from '@/util/use-local-badging'
+import {ignorePromise} from '@/constants/utils'
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1
@@ -14,30 +15,30 @@ const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   return a.name.localeCompare(b.name)
 }
 
-const deviceToItem = (d: T.Devices.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'}) as const
-const splitAndSortDevices = (deviceMap: T.Immutable<Map<string, T.Devices.Device>>) =>
+const deviceToItem = (d: T.Devices.Device) => ({device: d, id: d.deviceID, key: d.deviceID, type: 'device'}) as const
+const splitAndSortDevices = (deviceMap: Map<string, T.Devices.Device>) =>
   partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
 
 const itemHeight = {height: 48, type: 'fixed'} as const
 
 const ReloadableDevices = React.memo(function ReloadableDevices() {
-  const deviceMap = Devices.useDevicesState(s => s.deviceMap)
+  const deviceMap = Devices.useLoadDevices()
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
-  const {load: loadDevices, clearBadges} = Devices.useDevicesState(s => s.dispatch)
   const storeSet = Devices.useDevicesState(s => s.isNew)
-  const {badged} = useLocalBadging(storeSet, clearBadges)
+  const {badged} = useLocalBadging(storeSet, Devices.clearBadges)
 
   const newlyChangedItemIds = badged
 
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      loadDevices()
-    }, [loadDevices])
-  )
+  const reload = React.useCallback(() => {
+    const f = async () => {
+      // no-op: the list re-fetches via useLoadDevices on mount
+      // but Reloadable needs a callback
+    }
+    ignorePromise(f())
+  }, [])
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
-    // We don't have navigateAppend in upgraded routes
     navigateAppend({props: {highlight}, selected: 'deviceAdd'})
   }
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -62,10 +63,6 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
 
   const [revokedExpanded, setRevokeExpanded] = React.useState(false)
   const toggleExpanded = React.useCallback(() => setRevokeExpanded(p => !p), [])
-
-  React.useEffect(() => {
-    loadDevices()
-  }, [loadDevices])
 
   const lastHasNewlyRevoked = React.useRef(hasNewlyRevoked)
   React.useEffect(() => {
@@ -92,7 +89,7 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
           </Kb.Text>
         )
       } else {
-        return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
+        return <DeviceRow key={item.id} device={item.device} firstItem={index === 0} />
       }
     },
     [revokedExpanded, toggleExpanded]
@@ -111,7 +108,7 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
     <Kb.Reloadable
       onBack={C.isMobile ? onBack : undefined}
       waitingKeys={C.waitingKeyDevices}
-      onReload={loadDevices}
+      onReload={reload}
       reloadOnMount={true}
       title=""
     >
@@ -134,19 +131,9 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
 })
 
 type Item =
-  | {key: string; id: T.Devices.DeviceID; type: 'device'}
+  | {key: string; id: T.Devices.DeviceID; device: T.Devices.Device; type: 'device'}
   | {key: string; type: 'revokedHeader'}
   | {key: string; type: 'revokedNote'}
-
-export type Props = {
-  items: Array<Item>
-  loadDevices: () => void
-  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => void
-  revokedItems: Array<Item>
-  showPaperKeyNudge: boolean
-  hasNewlyRevoked: boolean
-  waiting: boolean
-}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -173,10 +160,6 @@ const headerStyles = Kb.Styles.styleSheetCreate(() => ({
     justifyContent: 'center',
     paddingLeft: Kb.Styles.globalMargins.small,
     paddingRight: Kb.Styles.globalMargins.small,
-  },
-  icon: {
-    alignSelf: 'center',
-    marginRight: Kb.Styles.globalMargins.tiny,
   },
 }))
 

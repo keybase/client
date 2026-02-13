@@ -11,7 +11,16 @@ const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
 
 export default function AddDevice(ownProps: OwnProps) {
   const highlight = ownProps.highlight ?? noHighlight
-  const iconNumbers = Devices.useNextDeviceIconNumber()
+  const deviceMap = Devices.useLoadDevices()
+  const iconNumbers = React.useMemo(() => {
+    const result = {backup: 1, desktop: 1, mobile: 1}
+    deviceMap.forEach(device => {
+      if (device.deviceNumberOfType >= result[device.type]) {
+        result[device.type] = device.deviceNumberOfType + 1
+      }
+    })
+    return {desktop: (result.desktop % Devices.numBackgrounds) + 1, mobile: (result.mobile % Devices.numBackgrounds) + 1}
+  }, [deviceMap])
   const addNewDevice = useProvisionState(s => s.dispatch.addNewDevice)
 
   const onAddComputer = React.useCallback(() => {

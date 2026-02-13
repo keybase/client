@@ -93,9 +93,10 @@ const Timeline = (p: {device: T.Devices.Device}) => {
 
 const DevicePage = (ownProps: OwnProps) => {
   const id = ownProps.deviceID
-  const iconNumber = Devices.useDeviceIconNumber(id)
-  const device = Devices.useDevicesState(s => s.deviceMap.get(id))
-  const canRevoke = Devices.useActiveDeviceCounts() > 1
+  const deviceMap = Devices.useLoadDevices()
+  const device = deviceMap.get(id)
+  const iconNumber = (((device?.deviceNumberOfType ?? 0) % Devices.numBackgrounds) + 1) as T.Devices.IconNumber
+  const canRevoke = [...deviceMap.values()].reduce((c, v) => (!v.revokedAt ? c + 1 : c), 0) > 1
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showRevokeDevicePage = React.useCallback(() => {
     navigateAppend({props: {deviceID: id}, selected: 'deviceRevoke'})

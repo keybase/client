@@ -17,7 +17,6 @@ export type Device = {
 }
 
 export type State = T.Immutable<{
-  deviceMap: Map<DeviceID, Device>
   isNew: Set<string>
 }>
 

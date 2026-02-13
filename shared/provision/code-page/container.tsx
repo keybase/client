@@ -28,8 +28,10 @@ const CodePageContainer = () => {
   )
   const {error, otherDevice, provisionDeviceName, submitTextCode, textCode} = provisionState
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
-  const currentDevice = Devices.useDevicesState(s => s.deviceMap.get(deviceID)) ?? Devices.emptyDevice
-  const iconNumber = Devices.useDeviceIconNumber(otherDevice.id)
+  const deviceMap = Devices.useLoadDevices()
+  const currentDevice = deviceMap.get(deviceID) ?? Devices.emptyDevice
+  const otherDeviceData = deviceMap.get(otherDevice.id)
+  const iconNumber = (((otherDeviceData?.deviceNumberOfType ?? 0) % Devices.numBackgrounds) + 1) as T.Devices.IconNumber
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
