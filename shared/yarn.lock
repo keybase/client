@@ -1253,10 +1253,10 @@
     plist "^3.0.5"
     semver "^7.7.1"
 
-"@electron/packager@19.0.3":
-  version "19.0.3"
-  resolved "https://registry.yarnpkg.com/@electron/packager/-/packager-19.0.3.tgz#021b342a64a322c4503e69b70e80ce467c880298"
-  integrity sha512-0pVvEvvABVxpViKettjpGeK8hp08CtRy2B+vyNVDXYB630SJTZF4oSa7hW5Vhq6j7JA1vJSyyPYTBG/GAqWBzQ==
+"@electron/packager@19.0.4":
+  version "19.0.4"
+  resolved "https://registry.yarnpkg.com/@electron/packager/-/packager-19.0.4.tgz#9ca69f681b0c56c026b54937a28afe9b2ab2ff4d"
+  integrity sha512-QWW7dESKo8XWmeDCYgCdRC4yTdNtqZCchhKW6d7a84wnkgnz8FL3l2+/uY2CGD/KI7pTJGwUd8d47QQJkqq9Xw==
   dependencies:
     "@electron/asar" "^4.0.1"
     "@electron/get" "^4.0.2"
@@ -8069,10 +8069,10 @@ loose-envify@^1.0.0, loose-envify@^1.4.0:
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
-lottie-react-native@7.3.5:
-  version "7.3.5"
-  resolved "https://registry.yarnpkg.com/lottie-react-native/-/lottie-react-native-7.3.5.tgz#515c703e8a8845c54dbd54d489467c0c1f21d8bd"
-  integrity sha512-5VPrHGbEmpNxrcEfmxyFZBvDksMaZ6LhyQZL0S0VIDwMRVrhGwOZQZKVFSEFU5HxNuDjxm/vPSoEhlKKfbYKHw==
+lottie-react-native@7.3.6:
+  version "7.3.6"
+  resolved "https://registry.yarnpkg.com/lottie-react-native/-/lottie-react-native-7.3.6.tgz#b5ab46bff3ec9e48d5efa8d31166dd53758a1aa9"
+  integrity sha512-TevFHRvFURh6GlaqLKrSNXuKAxvBvFCiXfS7FXQI1K/ikOStgAwWLFPGjW0i1qB2/VzPACKmRs+535VjHUZZZQ==
 
 lottie-web@5.13.0:
   version "5.13.0"
