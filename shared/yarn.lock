@@ -3045,6 +3045,11 @@
   resolved "https://registry.yarnpkg.com/@sec-ant/readable-stream/-/readable-stream-0.4.1.tgz#60de891bb126abfdc5410fdc6166aca065f10a0c"
   integrity sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==
 
+"@shopify/flash-list@^2.2.2":
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@shopify/flash-list/-/flash-list-2.2.2.tgz#552c4959f2ab3bc5cc69fac1e3fb514b5502e6ad"
+  integrity sha512-YrvLBK5FCpvuX+d9QvJvjVqyi4eBUaEamkyfh9CjPdF6c+AukP0RSBh97qHyTwOEaVq21A5ukwgyWMDIbmxpmQ==
+
 "@sideway/address@^4.1.5":
   version "4.1.5"
   resolved "https://registry.yarnpkg.com/@sideway/address/-/address-4.1.5.tgz#4bc149a0076623ced99ca8208ba780d65a99b9d5"
