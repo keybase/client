@@ -26,6 +26,10 @@
         {
           "type": "boolean",
           "name": "isCurrent"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
         }
       ]
     }
