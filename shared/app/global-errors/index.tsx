@@ -8,7 +8,6 @@ import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {useDaemonState} from '@/stores/daemon'
 
-// Hook types and helpers
 type Size = 'Closed' | 'Small' | 'Big'
 
 const summaryForError = (err?: Error | RPCError) => err?.message ?? ''
@@ -22,7 +21,6 @@ const maxHeightForSize = (size: Size) => {
   }[size]
 }
 
-// Hook (inlined from hook.tsx)
 const useData = () => {
   const loggedIn = useConfigState(s => s.loggedIn)
   const daemonError = useDaemonState(s => s.error)
@@ -113,7 +111,6 @@ const useData = () => {
   }
 }
 
-// Component
 const GlobalError = () => {
   const d = useData()
   const {daemonError, error, onDismiss, onFeedback} = d
@@ -205,7 +202,6 @@ const GlobalError = () => {
     )
   }
 
-  // Desktop error rendering
   const summary = cachedSummary
   const details = cachedDetails
 
