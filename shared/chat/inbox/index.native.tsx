@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as RowSizes from './row/sizes'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import SearchRow from './search-row'
@@ -12,16 +11,10 @@ import UnreadShortcut from './unread-shortcut'
 import type * as TInbox from './index.d'
 import type * as T from '@/constants/types'
 import {type ViewToken, Alert} from 'react-native'
-import {FlatList} from 'react-native-gesture-handler'
-// import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
+import {FlashList, type FlashListRef} from '@shopify/flash-list'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
 import type {ChatInboxRowItem} from './rowitem'
-
-type RowItem = ChatInboxRowItem
-
-const usingFlashList = false as boolean
-const List = /*usingFlashList ? FlashList :*/ FlatList
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
@@ -54,7 +47,34 @@ const viewabilityConfig = {
   viewAreaCoveragePercentThreshold: 30,
 }
 
-const Inbox = React.memo(function Inbox(p: TInbox.Props) {
+function computeUnreadState(unreadIndices: ReadonlyMap<number, number>, lastVisibleIdx: number) {
+  if (!unreadIndices.size || lastVisibleIdx < 0) {
+    return {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
+  }
+  let uc = 0
+  let firstOffscreenIdx = 0
+  unreadIndices.forEach((count, idx) => {
+    if (idx > lastVisibleIdx) {
+      if (firstOffscreenIdx <= 0) {
+        firstOffscreenIdx = idx
+      }
+      uc += count
+    }
+  })
+  if (firstOffscreenIdx) {
+    return {firstOffscreenIdx, showUnread: true, unreadCount: uc}
+  }
+  return {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
+}
+
+function computeShowFloating(rows: ReadonlyArray<ChatInboxRowItem>, lastVisibleIdx: number) {
+  if (lastVisibleIdx < 0) return undefined
+  const row = rows[lastVisibleIdx]
+  if (!row) return undefined
+  return row.type === 'small'
+}
+
+function Inbox(p: TInbox.Props) {
   const [showFloating, setShowFloating] = React.useState(false)
   const [showUnread, setShowUnread] = React.useState(false)
   const [unreadCount, setUnreadCount] = React.useState(0)
@@ -66,10 +86,20 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
   // stash first offscreen index for callback
   const firstOffscreenIdxRef = React.useRef(-1)
   const lastVisibleIdxRef = React.useRef(-1)
-  const listRef = React.useRef</*FlashList<RowItem> | */ FlatList<RowItem> | null>(null)
+  const listRef = React.useRef<FlashListRef<ChatInboxRowItem> | null>(null)
+
+  const askForUnboxing = (items: Array<ChatInboxRowItem>) => {
+    const toUnbox = items.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
+      if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
+        arr.push(r.conversationIDKey)
+      }
+      return arr
+    }, [])
+    onUntrustedInboxVisible(toUnbox)
+  }
 
   const onScrollUnbox = C.useDebouncedCallback(
-    (data: {viewableItems: Array<ViewToken<RowItem>>; changed: Array<ViewToken<RowItem>>}) => {
+    (data: {viewableItems: Array<ViewToken<ChatInboxRowItem>>; changed: Array<ViewToken<ChatInboxRowItem>>}) => {
       const {viewableItems} = data
       const item = viewableItems[0]
       if (item && Object.hasOwn(item, 'index')) {
@@ -79,189 +109,86 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
     1000
   )
 
-  const getItemType = React.useCallback((item: RowItem) => {
+  const getItemType = (item: ChatInboxRowItem) => {
     return item.type
-  }, [])
+  }
 
-  const overrideItemLayout = React.useCallback((layout: {span?: number; size?: number}, item: RowItem) => {
-    switch (item.type) {
-      case 'small':
-        layout.size = RowSizes.smallRowHeight
-        break
-      case 'bigTeamsLabel':
-        layout.size = 32
-        break
-      case 'bigHeader':
-        layout.size = RowSizes.bigHeaderHeight
-        break
-      case 'big':
-        layout.size = RowSizes.bigRowHeight
-        break
-      case 'divider':
-        layout.size = 68
-        break
-      case 'teamBuilder':
-        layout.size = 120
-        break
-    }
-  }, [])
-
-  const scrollToUnread = React.useCallback(() => {
+  const scrollToUnread = () => {
     if (firstOffscreenIdxRef.current <= 0) {
       return
     }
-    listRef.current?.scrollToIndex({
+    void listRef.current?.scrollToIndex({
       animated: true,
       index: firstOffscreenIdxRef.current,
       viewPosition: 0.5,
     })
-  }, [])
+  }
 
-  const askForUnboxing = React.useCallback(
-    (rows: Array<RowItem>) => {
-      const toUnbox = rows.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
-        if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
-          arr.push(r.conversationIDKey)
-        }
-        return arr
-      }, [])
-      onUntrustedInboxVisible(toUnbox)
-    },
-    [onUntrustedInboxVisible]
-  )
+  const applyUnreadState = () => {
+    const state = computeUnreadState(unreadIndices, lastVisibleIdxRef.current)
+    setShowUnread(state.showUnread)
+    setUnreadCount(state.unreadCount)
+    firstOffscreenIdxRef.current = state.firstOffscreenIdx
+  }
 
-  const updateShowUnread = React.useCallback(() => {
-    if (!unreadIndices.size || lastVisibleIdxRef.current < 0) {
-      setShowUnread(false)
-      return
-    }
-
-    let uc = 0
-    let firstOffscreenIdx = 0
-    unreadIndices.forEach((count, idx) => {
-      if (idx > lastVisibleIdxRef.current) {
-        if (firstOffscreenIdx <= 0) {
-          firstOffscreenIdx = idx
-        }
-        uc += count
-      }
-    })
-    if (firstOffscreenIdx) {
-      setShowUnread(true)
-      setUnreadCount(uc)
-      firstOffscreenIdxRef.current = firstOffscreenIdx
-    } else {
-      setShowUnread(false)
-      setUnreadCount(0)
-      firstOffscreenIdxRef.current = -1
-    }
-  }, [unreadIndices])
-
-  const updateShowFloating = React.useCallback(() => {
-    if (lastVisibleIdxRef.current < 0) {
-      return
-    }
-    let show = true
-    const row = rows[lastVisibleIdxRef.current]
-    if (!row) {
-      return
-    }
-
-    if (row.type !== 'small') {
-      show = false
-    }
-
-    if (showFloating !== show) {
+  const applyShowFloating = () => {
+    const show = computeShowFloating(rows, lastVisibleIdxRef.current)
+    if (show !== undefined) {
       setShowFloating(show)
     }
-  }, [rows, showFloating])
+  }
 
-  const renderItem = React.useCallback(
-    ({item}: {item: RowItem}): React.ReactElement | null => {
-      const row = item
-      let element: React.ReactElement | null
-      if (row.type === 'divider') {
-        element = (
-          <TeamsDivider
-            showButton={row.showButton}
-            toggle={toggleSmallTeamsExpanded}
-            rows={rows}
-            smallTeamsExpanded={smallTeamsExpanded}
-          />
-        )
-      } else if (row.type === 'teamBuilder') {
-        element = <BuildTeam />
-      } else {
-        element = makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)
-      }
+  const renderItem = ({item}: {item: ChatInboxRowItem}): React.ReactElement | null => {
+    if (item.type === 'divider') {
+      return (
+        <TeamsDivider
+          showButton={item.showButton}
+          toggle={toggleSmallTeamsExpanded}
+          rows={rows}
+          smallTeamsExpanded={smallTeamsExpanded}
+        />
+      )
+    } else if (item.type === 'teamBuilder') {
+      return <BuildTeam />
+    } else {
+      return makeRow(item, navKey, selectedConversationIDKey === item.conversationIDKey)
+    }
+  }
 
-      return element
-    },
-    [navKey, rows, selectedConversationIDKey, smallTeamsExpanded, toggleSmallTeamsExpanded]
-  )
-
-  const keyExtractor = React.useCallback((item: RowItem, idx: number) => {
-    const row = item
-    switch (row.type) {
-      case 'divider': // fallthrough
-      case 'teamBuilder': // fallthrough
+  const keyExtractor = (item: ChatInboxRowItem, idx: number) => {
+    switch (item.type) {
+      case 'divider':
+      case 'teamBuilder':
       case 'bigTeamsLabel':
-        return row.type
-      case 'small': // fallthrough
+        return item.type
+      case 'small':
       case 'big':
-        return row.conversationIDKey
+        return item.conversationIDKey
       case 'bigHeader':
-        return row.teamname
+        return item.teamname
       default:
         return String(idx)
     }
-  }, [])
+  }
 
   const onViewChangedImpl = (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
     onScrollUnbox(data)
     lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
-    updateShowUnread()
-    updateShowFloating()
+    applyUnreadState()
+    applyShowFloating()
   }
 
   const onViewChangedImplRef = React.useRef(onViewChangedImpl)
-  onViewChangedImplRef.current = onViewChangedImpl
+  React.useEffect(() => {
+    onViewChangedImplRef.current = onViewChangedImpl
+  })
 
   // must never change
-  const onViewChanged = React.useRef((data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
-    onViewChangedImplRef.current(data)
-  }).current
-
-  // Help us calculate row heights and offsets quickly
-  const dividerIndexRef = React.useRef(-1)
-  const dividerShowButtonRef = React.useRef(false)
-  const getItemLayout = React.useCallback((data: ArrayLike<RowItem> | undefined | null, index: number) => {
-    // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
-    // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
-    const smallHeight = RowSizes.smallRowHeight
-    if (index < dividerIndexRef.current || dividerIndexRef.current === -1) {
-      const offset = index ? smallHeight * index : 0
-      const length = smallHeight
-      return {index, length, offset}
+  const [onViewChanged] = React.useState(
+    () => (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
+      onViewChangedImplRef.current(data)
     }
-
-    const dividerHeight = RowSizes.dividerHeight(dividerShowButtonRef.current)
-    if (index === dividerIndexRef.current) {
-      const offset = smallHeight * index
-      const length = dividerHeight
-      return {index, length, offset}
-    }
-
-    let offset = smallHeight * dividerIndexRef.current + dividerHeight
-    let i = dividerIndexRef.current + 1
-
-    for (; i < index; ++i) {
-      const h = data?.[i]?.type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
-      offset += h
-    }
-    const length = data?.[i]?.type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
-    return {index, length, offset}
-  }, [])
+  )
 
   const setOpenRow = useOpenedRowState(s => s.dispatch.setOpenRow)
 
@@ -271,46 +198,21 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
     }, [setOpenRow])
   )
 
-  const rowLength = rows.length
-  const lastUnreadIndicesRef = React.useRef(unreadIndices)
-  const lastUnreadTotalRef = React.useRef(unreadTotal)
-  const lastRowLengthRef = React.useRef(rowLength)
+  React.useEffect(() => {
+    const state = computeUnreadState(unreadIndices, lastVisibleIdxRef.current)
+    setShowUnread(state.showUnread)
+    setUnreadCount(state.unreadCount)
+    firstOffscreenIdxRef.current = state.firstOffscreenIdx
+  }, [unreadIndices, unreadTotal])
 
-  if (
-    !C.shallowEqual(lastUnreadIndicesRef.current, unreadIndices) ||
-    lastUnreadTotalRef.current !== unreadTotal
-  ) {
-    updateShowUnread()
-  }
+  React.useEffect(() => {
+    const show = computeShowFloating(rows, lastVisibleIdxRef.current)
+    if (show !== undefined) {
+      setShowFloating(show)
+    }
+  }, [rows])
 
-  lastUnreadTotalRef.current = unreadTotal
-  lastUnreadIndicesRef.current = unreadIndices
-
-  if (lastRowLengthRef.current !== rowLength) {
-    // list has changed, floating divider is likely to change
-    updateShowFloating()
-  }
-
-  lastRowLengthRef.current = rowLength
-
-  if (!usingFlashList) {
-    dividerShowButtonRef.current = false
-    dividerIndexRef.current = rows.findIndex(r => {
-      if (r.type === 'divider') {
-        dividerShowButtonRef.current = r.showButton
-        return true
-      }
-      return false
-    })
-  }
-
-  const debugWhichList = __DEV__ ? (
-    <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
-      {usingFlashList ? 'FLASH' : 'old'}
-    </Kb.Text>
-  ) : null
-
-  const promptSmallTeamsNum = React.useCallback(() => {
+  const promptSmallTeamsNum = () => {
     if (C.isIOS) {
       Alert.prompt(
         'Change shown',
@@ -325,14 +227,14 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
         String(inboxNumSmallRows)
       )
     }
-  }, [inboxNumSmallRows, setInboxNumSmallRows])
+  }
 
-  const scrollToBigTeams = React.useCallback(() => {
+  const scrollToBigTeams = () => {
     if (smallTeamsExpanded) {
       toggleSmallTeamsExpanded()
     }
-    listRef.current?.scrollToIndex({animated: true, index: inboxNumSmallRows, viewPosition: 0.5})
-  }, [smallTeamsExpanded, toggleSmallTeamsExpanded, inboxNumSmallRows])
+    void listRef.current?.scrollToIndex({animated: true, index: inboxNumSmallRows, viewPosition: 0.5})
+  }
 
   const noChats = !neverLoaded && !isSearching && !rows.length && <NoChats onNewChat={onNewChat} />
   const floatingDivider = showFloating && !isSearching && allowShowFloatingButton && (
@@ -341,31 +243,24 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
 
   return (
     <Kb.ErrorBoundary>
-      <Kb.Box style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <LoadingLine />
         {isSearching ? (
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <InboxSearch header={HeadComponent} />
           </Kb.Box2>
         ) : (
-          <List
-            // @ts-ignore flashlist props, leave for now
-            disableAutoLayout={true}
+          <FlashList
             ListHeaderComponent={HeadComponent}
             data={rows}
-            estimatedItemSize={64}
             getItemType={getItemType}
             keyExtractor={keyExtractor}
             keyboardShouldPersistTaps="handled"
             onViewableItemsChanged={onViewChanged}
             viewabilityConfig={viewabilityConfig}
             overScrollMode="never"
-            overrideItemLayout={overrideItemLayout}
             ref={listRef}
-            removeClippedSubviews={Kb.Styles.isAndroid}
             renderItem={renderItem}
-            windowSize={5 /* 21*/}
-            getItemLayout={getItemLayout}
           />
         )}
         {noChats}
@@ -373,11 +268,10 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
         {showUnread && !isSearching && !showFloating && (
           <UnreadShortcut onClick={scrollToUnread} unreadCount={unreadCount} />
         )}
-        {debugWhichList}
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ErrorBoundary>
   )
-})
+}
 
 const NoRowsBuildTeam = () => {
   const isLoading = C.useWaitingState(s => [...s.counts.keys()].some(k => k.startsWith('chat:')))
@@ -390,9 +284,9 @@ const LoadingLine = () => {
     C.waitingKeyChatInboxSyncStarted,
   ])
   return isLoading ? (
-    <Kb.Box style={styles.loadingContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.loadingContainer}>
       <Kb.LoadingLine />
-    </Kb.Box>
+    </Kb.Box2>
   ) : null
 }
 
@@ -402,7 +296,6 @@ const styles = Kb.Styles.styleSheetCreate(
       button: {width: '100%'},
       container: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
           backgroundColor: Kb.Styles.globalColors.fastBlank,
           flexGrow: 1,
           position: 'relative',
