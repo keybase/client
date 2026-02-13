@@ -37,7 +37,6 @@ const useData = () => {
       navigateAppend('feedback')
     }
   }, [navigateAppend, clearModals, loggedIn, setGlobalError])
-  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const onDismiss = React.useCallback(() => {
     setGlobalError()
   }, [setGlobalError])
@@ -101,7 +100,6 @@ const useData = () => {
   return {
     cachedDetails,
     cachedSummary,
-    copyToClipboard,
     daemonError,
     error,
     onDismiss,
@@ -227,14 +225,13 @@ const GlobalError = () => {
           onClick={onFeedback}
           small={true}
           type="Dim"
-          style={styles.feedbackButton}
+
         />
         {summary && (
           <Kb.Icon
             color={Kb.Styles.globalColors.white_75}
             hoverColor={Kb.Styles.globalColors.white}
             onClick={onDismiss}
-            style={styles.closeIcon}
             type="iconfont-close"
           />
         )}
@@ -251,29 +248,20 @@ const GlobalError = () => {
 const styles = Kb.Styles.styleSheetCreate(() => {
   const containerBase = {
     left: 0,
-    overflow: 'hidden',
-    position: 'absolute',
+    overflow: 'hidden' as const,
+    position: 'absolute' as const,
     right: 0,
     top: 40,
     zIndex: 1000,
     ...Kb.Styles.transition('max-height'),
-  } as const
+  }
 
   return {
-    closeIcon: {
-      position: 'absolute' as const,
-      right: Kb.Styles.globalMargins.xsmall,
-      top: 10,
-    },
     containerBig: Kb.Styles.platformStyles({
       isElectron: {...containerBase, maxHeight: maxHeightForSize('Big')},
     }),
     containerOverlay: {
-      bottom: 0,
-      left: 0,
-      position: 'absolute' as const,
-      right: 0,
-      top: 0,
+      ...Kb.Styles.globalStyles.fillAbsolute,
       zIndex: 1000,
     },
     containerSmall: Kb.Styles.platformStyles({
@@ -282,36 +270,29 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     details: {
       backgroundColor: Kb.Styles.globalColors.black,
       color: Kb.Styles.globalColors.white_75,
-      padding: 8,
-      paddingLeft: Kb.Styles.globalMargins.xlarge,
-      paddingRight: Kb.Styles.globalMargins.xlarge,
-    },
-    feedbackButton: {
-      marginRight: Kb.Styles.globalMargins.large,
+      ...Kb.Styles.padding(8, Kb.Styles.globalMargins.xlarge),
     },
     innerContainer: {
-      alignItems: 'center' as const,
+      ...Kb.Styles.globalStyles.flexBoxCenter,
       backgroundColor: Kb.Styles.globalColors.black,
       flex: 1,
-      justifyContent: 'center' as const,
+      gap: Kb.Styles.globalMargins.small,
       minHeight: maxHeightForSize('Small'),
-      padding: Kb.Styles.globalMargins.xtiny,
-      position: 'relative' as const,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.small),
     },
     message: {
       color: Kb.Styles.globalColors.white,
     },
     mobileContainer: {
       backgroundColor: Kb.Styles.globalColors.black,
-      position: 'absolute' as const,
+      position: 'absolute',
       top: 0,
     },
     mobileDetails: {
       color: Kb.Styles.globalColors.white_75,
       fontSize: 14,
       lineHeight: 19,
-      padding: Kb.Styles.globalMargins.xtiny,
-      paddingTop: Kb.Styles.globalMargins.tiny,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.xtiny),
     },
     mobileErrorText: {
       color: Kb.Styles.globalColors.white,
@@ -319,31 +300,26 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     },
     mobileErrorTextContainer: {
       paddingBottom: Kb.Styles.globalMargins.xtiny,
-      position: 'relative' as const,
+      position: 'relative',
     },
     mobileSafeAreaView: {
       backgroundColor: Kb.Styles.globalColors.transparent,
       flexGrow: 0,
     },
     mobileSummaryRow: {
-      alignItems: 'center' as const,
+      alignItems: 'center',
       flexShrink: 0,
-      justifyContent: 'center' as const,
-      paddingBottom: Kb.Styles.globalMargins.tiny,
-      paddingLeft: Kb.Styles.globalMargins.xsmall,
-      paddingRight: Kb.Styles.globalMargins.xsmall,
-      paddingTop: Kb.Styles.globalMargins.tiny,
+      justifyContent: 'center',
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
     },
     overlayFill: {
-      alignItems: 'center' as const,
+      ...Kb.Styles.globalStyles.flexBoxCenter,
       backgroundColor: Kb.Styles.globalColors.white,
       flex: 1,
-      justifyContent: 'center' as const,
     },
     overlayRow: {
-      alignItems: 'center' as const,
+      ...Kb.Styles.globalStyles.flexBoxCenter,
       backgroundColor: Kb.Styles.globalColors.blue,
-      justifyContent: 'center' as const,
       padding: 8,
     },
     summary: {
