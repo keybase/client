@@ -1,5 +1,4 @@
 import * as Chat from '@/stores/chat2'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
@@ -10,7 +9,7 @@ type Props = {
   onEdit?: () => void
 }
 
-const BigTeamsDivider = React.memo(function BigTeamsDivider(props: Props) {
+const BigTeamsDivider = (props: Props) => {
   const {toggle, onEdit} = props
   const badgeCount = Chat.useChatState(s => s.bigTeamBadgeCount)
   return (
@@ -29,9 +28,9 @@ const BigTeamsDivider = React.memo(function BigTeamsDivider(props: Props) {
       >
         <BigTeamsLabel />
         {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
-        <Kb.Box style={styles.icon}>
+        <Kb.Box2 direction="horizontal" alignItems="flex-start" style={styles.icon}>
           <Kb.Icon type="iconfont-arrow-up" inheritColor={true} fontSize={Kb.Styles.isMobile ? 20 : 16} />
-        </Kb.Box>
+        </Kb.Box2>
         {onEdit ? (
           <Kb.BoxGrow2>
             <Kb.Box2 fullWidth={true} direction="vertical" alignItems="flex-end" style={styles.edit}>
@@ -42,7 +41,7 @@ const BigTeamsDivider = React.memo(function BigTeamsDivider(props: Props) {
       </Kb.Box2>
     </Kb.ClickableBox>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -94,8 +93,6 @@ const styles = Kb.Styles.styleSheetCreate(
       edit: {justifyContent: 'center'},
       icon: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'flex-start',
         justifyContent: 'center',
         marginTop: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.xtiny,
       },
