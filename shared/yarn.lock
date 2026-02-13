@@ -1253,10 +1253,10 @@
     plist "^3.0.5"
     semver "^7.7.1"
 
-"@electron/packager@19.0.4":
-  version "19.0.4"
-  resolved "https://registry.yarnpkg.com/@electron/packager/-/packager-19.0.4.tgz#9ca69f681b0c56c026b54937a28afe9b2ab2ff4d"
-  integrity sha512-QWW7dESKo8XWmeDCYgCdRC4yTdNtqZCchhKW6d7a84wnkgnz8FL3l2+/uY2CGD/KI7pTJGwUd8d47QQJkqq9Xw==
+"@electron/packager@19.0.5":
+  version "19.0.5"
+  resolved "https://registry.yarnpkg.com/@electron/packager/-/packager-19.0.5.tgz#9c35a7e1314555be2c675cd289a1741a3074b913"
+  integrity sha512-HSWJp5ZTYkavzoLViPBK8sUaINrHbhHMueMrYpQea5DkzOplxYCgAKmy+FKsBk7WUm6iYZZ0gJe8f8nIEScqJQ==
   dependencies:
     "@electron/asar" "^4.0.1"
     "@electron/get" "^4.0.2"
