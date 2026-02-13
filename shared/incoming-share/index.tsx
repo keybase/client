@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -224,7 +224,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
 
   // Pre-selected conv: navToThread + attachments directly (skip MobileSendToChat)
   const selectedConversationIDKey = props.selectedConversationIDKey
-  const canDirectNav = selectedConversationIDKey && Chat.isValidConversationIDKey(selectedConversationIDKey)
+  const canDirectNav = selectedConversationIDKey && T.Chat.isValidConversationIDKey(selectedConversationIDKey)
   const hasNavigatedRef = React.useRef(false)
   React.useEffect(() => {
     if (!canDirectNav || hasNavigatedRef.current) return
@@ -247,7 +247,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
         selected: 'chatAttachmentGetTitles',
       })
     }
-  }, [canDirectNav, selectedConversationIDKey, sendPaths, text])
+  }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend])
 
   const header = useHeader(props.incomingShareItems)
   const footer = useFooter(props.incomingShareItems)
