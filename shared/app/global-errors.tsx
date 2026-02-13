@@ -135,16 +135,16 @@ const GlobalError = () => {
 
     const message = daemonError.message || 'Keybase is currently unreachable. Trying to reconnect you…'
     return (
-      <Kb.Box style={styles.containerOverlay}>
-        <Kb.Box style={styles.overlayRow}>
+      <Kb.Box2 direction="vertical" style={styles.containerOverlay}>
+        <Kb.Box2 direction="horizontal" style={styles.overlayRow}>
           <Kb.Text center={true} type="BodySmallSemibold" style={styles.message}>
             {message}
           </Kb.Text>
-        </Kb.Box>
-        <Kb.Box style={styles.overlayFill}>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.overlayFill}>
           <Kb.Animation animationType="disconnected" height={175} width={600} />
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     )
   }
 
@@ -158,8 +158,9 @@ const GlobalError = () => {
         ])}
       >
         <Kb.SafeAreaViewTop style={styles.mobileSafeAreaView} />
-        <Kb.Box style={Kb.Styles.globalStyles.flexBoxColumn}>
-          <Kb.Box
+        <Kb.Box2 direction="vertical">
+          <Kb.Box2
+            direction="horizontal"
             style={Kb.Styles.collapseStyles([styles.mobileSummaryRow, styles.mobileErrorTextContainer])}
           >
             <Kb.Text
@@ -184,11 +185,11 @@ const GlobalError = () => {
               color={Kb.Styles.globalColors.white_75}
               fontSize={21}
             />
-          </Kb.Box>
-          <Kb.Box style={styles.mobileSummaryRow}>
+          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" style={styles.mobileSummaryRow}>
             <Kb.Button fullWidth={true} label="Please tell us" onClick={onFeedback} small={true} type="Dim" />
-          </Kb.Box>
-        </Kb.Box>
+          </Kb.Box2>
+        </Kb.Box2>
         {size === 'Big' && (
           <Kb.ScrollView>
             <Kb.Text type="BodySmall" selectable={true} style={styles.mobileDetails}>
@@ -216,8 +217,8 @@ const GlobalError = () => {
   }
 
   return (
-    <Kb.Box style={stylesContainer} onClick={onExpandClick}>
-      <Kb.Box style={styles.innerContainer}>
+    <Kb.ClickableBox style={stylesContainer} onClick={onExpandClick}>
+      <Kb.Box2 direction="horizontal" style={styles.innerContainer}>
         <Kb.Text center={true} type="BodyBig" style={styles.summary}>
           {summary}
         </Kb.Text>
@@ -237,19 +238,18 @@ const GlobalError = () => {
             type="iconfont-close"
           />
         )}
-      </Kb.Box>
+      </Kb.Box2>
       <Kb.ScrollView>
         <Kb.Text center={true} type="BodyBig" selectable={true} style={styles.details}>
           {details}
         </Kb.Text>
       </Kb.ScrollView>
-    </Kb.Box>
+    </Kb.ClickableBox>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => {
   const containerBase = {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
     left: 0,
     overflow: 'hidden',
     position: 'absolute',
@@ -269,7 +269,6 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       isElectron: {...containerBase, maxHeight: maxHeightForSize('Big')},
     }),
     containerOverlay: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
       bottom: 0,
       left: 0,
       position: 'absolute' as const,
@@ -291,7 +290,6 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       marginRight: Kb.Styles.globalMargins.large,
     },
     innerContainer: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center' as const,
       backgroundColor: Kb.Styles.globalColors.black,
       flex: 1,
@@ -328,7 +326,6 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       flexGrow: 0,
     },
     mobileSummaryRow: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center' as const,
       flexShrink: 0,
       justifyContent: 'center' as const,
@@ -338,14 +335,12 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       paddingTop: Kb.Styles.globalMargins.tiny,
     },
     overlayFill: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'center' as const,
       backgroundColor: Kb.Styles.globalColors.white,
       flex: 1,
       justifyContent: 'center' as const,
     },
     overlayRow: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center' as const,
       backgroundColor: Kb.Styles.globalColors.blue,
       justifyContent: 'center' as const,
