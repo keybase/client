@@ -400,11 +400,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {width: '100%'},
-      buttonBar: {
-        alignItems: 'flex-end',
-        alignSelf: 'flex-end',
-        justifyContent: 'flex-end',
-      },
       container: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.flexBoxColumn,
