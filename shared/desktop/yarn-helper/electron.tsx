@@ -5,6 +5,7 @@ import {spawn} from 'child_process'
 
 const isLinux = process.platform === 'linux'
 const debugInNode = (false as boolean) ? '--inspect-brk' : ''
+const remoteDebug = process.env.KB_ENABLE_REMOTE_DEBUG === '1' ? '--remote-debugging-port=9222' : ''
 
 const commands = {
   'inject-code-prod': {
@@ -56,7 +57,11 @@ function startHot() {
     const req = http.get('http://localhost:4000/dist/node.dev.bundle.js', () => {
       // require in case we're trying to yarn install electron!
       const electron = require('electron') as unknown as string
-      spawn(electron, [...params, ...(isLinux ? ['--disable-gpu'] : [])], {stdio: 'inherit'})
+      spawn(
+        electron,
+        [...params, ...(remoteDebug ? [remoteDebug] : []), ...(isLinux ? ['--disable-gpu'] : [])],
+        {stdio: 'inherit'}
+      )
     })
     req.on('error', e => {
       console.log('Error: ', e)
