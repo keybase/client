@@ -19,6 +19,8 @@ import {wrapErrors} from '@/util/debug'
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions
 
+export const fsCacheDir = ''
+
 export const requestPermissionsToWrite = async () => {
   return Promise.resolve(true)
 }

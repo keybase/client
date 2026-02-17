@@ -31,6 +31,8 @@ import {initPushListener, getStartupDetailsFromInitialPush} from './push.native'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from '@/constants/types/chat2/common'
 
+export {fsCacheDir}
+
 export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
     const p = await MediaLibrary.requestPermissionsAsync(false)

@@ -17,3 +17,4 @@ export declare function watchPositionForMap(conversationIDKey: T.Chat.Conversati
 
 export declare function initPlatformListener(): void
 export declare function requestPermissionsToWrite(): Promise<void>
+export declare const fsCacheDir: string
