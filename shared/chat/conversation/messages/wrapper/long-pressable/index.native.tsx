@@ -111,10 +111,6 @@ const styles = Kb.Styles.styleSheetCreate(
         justifyContent: 'flex-end',
       },
       replyIcon: {paddingRight: Kb.Styles.globalMargins.small},
-      view: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        position: 'relative',
-      },
     }) as const
 )
 

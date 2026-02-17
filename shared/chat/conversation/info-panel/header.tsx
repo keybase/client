@@ -172,11 +172,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: Kb.Styles.globalMargins.small,
         marginRight: Kb.Styles.globalMargins.small,
       },
-      adhocPartContainer: {padding: Kb.Styles.globalMargins.tiny},
-      adhocScrollContainer: Kb.Styles.platformStyles({
-        isElectron: {maxHeight: 230},
-        isMobile: {maxHeight: 220},
-      }),
       channelName: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
@@ -185,13 +180,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
       },
-      editBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        position: 'absolute',
-        right: -50,
-        top: Kb.Styles.isMobile ? 2 : 1,
-      },
-      editIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
       flexOne: {flex: 1},
       floatingMenuContainerStyle: Kb.Styles.platformStyles({
         isElectron: {

@@ -128,7 +128,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.tiny,
         paddingRight: Kb.Styles.globalMargins.xtiny,
       },
-      visibilityHidden: Kb.Styles.platformStyles({isElectron: {visibility: 'hidden'}}),
     }) as const
 )
 

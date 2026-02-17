@@ -262,7 +262,6 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.tiny,
       },
       firstIsUnWrapped: {paddingTop: 0},
-      flexOne: {flex: 1},
       iconBadge: {
         backgroundColor: Styles.globalColors.blue,
         height: Styles.globalMargins.tiny,

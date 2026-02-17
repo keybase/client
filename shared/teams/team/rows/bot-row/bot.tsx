@@ -113,7 +113,6 @@ export const TeamBotRow = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  buttonBarContainer: {...Kb.Styles.globalStyles.flexBoxRow, flexShrink: 1},
   clickable: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -131,11 +130,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   containerReset: {
     backgroundColor: Kb.Styles.globalColors.blueLighter2,
   },
-  crownIcon: {
-    marginRight: Kb.Styles.globalMargins.xtiny,
-  },
   fullNameLabel: {marginRight: Kb.Styles.globalMargins.xtiny},
-  innerContainerBottom: {...Kb.Styles.globalStyles.flexBoxRow, flexShrink: 1},
   innerContainerTop: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
@@ -143,14 +138,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     flexShrink: 0,
     height: Kb.Styles.isMobile ? 56 : 48,
     width: '100%',
-  },
-  lockedOutOrDeleted: {
-    ...Kb.Styles.globalStyles.fontBold,
-    backgroundColor: Kb.Styles.globalColors.red,
-    color: Kb.Styles.globalColors.white,
-    marginRight: Kb.Styles.globalMargins.xtiny,
-    paddingLeft: Kb.Styles.globalMargins.xtiny,
-    paddingRight: Kb.Styles.globalMargins.xtiny,
   },
   menuButtonDesktop: {
     marginLeft: Kb.Styles.globalMargins.small,

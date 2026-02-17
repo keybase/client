@@ -129,11 +129,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginRight: Kb.Styles.globalMargins.xtiny,
       },
-      footer: {paddingBottom: Kb.Styles.globalMargins.large},
-      header: {
-        backgroundColor: Kb.Styles.globalColors.red,
-        height: 40,
-      },
       main: {...Kb.Styles.globalStyles.flexGrow},
       textYouDontHave: Kb.Styles.platformStyles({
         isElectron: {marginTop: Kb.Styles.globalMargins.medium},

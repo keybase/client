@@ -732,12 +732,6 @@ const BlockDropdown = (props: {username: string}) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  backButton: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
   container: {
     ...Kb.Styles.globalStyles.flexBoxColumn,
     flex: 1,
@@ -814,20 +808,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   membershipTeamTextExpanded: Kb.Styles.platformStyles({
     isMobile: {paddingTop: Kb.Styles.globalMargins.tiny},
   }),
-  mobileHeader: {
-    backgroundColor: Kb.Styles.globalColors.white,
-    height: 40,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
   paddingBottomMobile: Kb.Styles.platformStyles({
     isPhone: {paddingBottom: Kb.Styles.globalMargins.small},
   }),
-  reloadButton: {
-    marginTop: Kb.Styles.globalMargins.tiny,
-    minWidth: 56,
-  },
   roleButton: {paddingRight: 0},
   roleButtonExpanded: Kb.Styles.platformStyles({
     isElectron: {
@@ -845,7 +828,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       height: 65,
     },
   }),
-  smallHeader: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge)},
   teamNameLink: {color: Kb.Styles.globalColors.black},
 }))
 

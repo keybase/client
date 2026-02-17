@@ -156,11 +156,6 @@ const styles = Styles.styleSheetCreate(
           right: -6,
         },
       }),
-      editTeamOld: {
-        bottom: -2,
-        position: 'absolute',
-        right: -18,
-      },
       poopContainer: {
         alignItems: 'center',
         display: 'flex',

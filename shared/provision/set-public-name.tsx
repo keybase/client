@@ -102,16 +102,6 @@ const SetPublicName = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  backButton: Kb.Styles.platformStyles({
-    isElectron: {
-      marginLeft: Kb.Styles.globalMargins.medium,
-      marginTop: Kb.Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginLeft: 0,
-      marginTop: 0,
-    },
-  }),
   contents: Kb.Styles.platformStyles({
     common: {width: '100%'},
     isTablet: {width: undefined},

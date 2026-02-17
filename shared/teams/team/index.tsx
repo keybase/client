@@ -189,12 +189,6 @@ const Team = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  backButton: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
   container: {
     ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
@@ -204,14 +198,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     position: 'relative',
     width: '100%',
   },
-  header: {
-    backgroundColor: Kb.Styles.globalColors.white,
-    height: 40,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
   list: Kb.Styles.platformStyles({}),
   listContentContainer: Kb.Styles.platformStyles({
     isMobile: {
@@ -219,7 +205,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       flexGrow: 1,
     },
   }),
-  smallHeader: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge)},
 }))
 
 export default Team

@@ -124,7 +124,6 @@ export const UserMatchMention = ({username}: UserMatchMentionProps) => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      button: {flexGrow: 0},
       containerStyle: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,

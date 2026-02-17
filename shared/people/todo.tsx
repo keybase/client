@@ -402,12 +402,6 @@ const Task = (props: Props) => (
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   instructions: {marginTop: 2},
-  search: {
-    alignSelf: undefined,
-    flexGrow: 0,
-    marginBottom: Kb.Styles.globalMargins.xsmall,
-    marginTop: Kb.Styles.globalMargins.xsmall,
-  },
 }))
 
 export default TaskChooser

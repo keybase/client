@@ -34,9 +34,6 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  closeIcon: {
-    padding: Kb.Styles.globalMargins.xtiny,
-  },
   closeIconContainer: Kb.Styles.platformStyles({
     common: {
       position: 'absolute',

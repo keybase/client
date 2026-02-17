@@ -37,20 +37,6 @@ const YouResult = React.memo(function YouResult(props: ResultProps) {
 })
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  actionButton: Kb.Styles.platformStyles({
-    common: {
-      marginLeft: Kb.Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      height: Kb.Styles.globalMargins.small,
-      width: Kb.Styles.globalMargins.small,
-    },
-    isMobile: {
-      height: Kb.Styles.globalMargins.large,
-      marginRight: Kb.Styles.globalMargins.tiny,
-      width: Kb.Styles.globalMargins.large,
-    },
-  }),
   rowContainer: {
     ...Kb.Styles.padding(
       Kb.Styles.globalMargins.tiny,

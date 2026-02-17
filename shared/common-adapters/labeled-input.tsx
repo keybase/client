@@ -131,9 +131,6 @@ const styles = Styles.styleSheetCreate(
       }),
       containerError: {borderColor: Styles.globalColors.red},
       containerFocused: {borderColor: Styles.globalColors.blue},
-      displayFlex: {display: 'flex'},
-      hideBorder: {borderWidth: 0},
-      icon: {marginRight: Styles.globalMargins.xtiny},
       input: {
         backgroundColor: Styles.globalColors.transparent,
         flexGrow: 1,

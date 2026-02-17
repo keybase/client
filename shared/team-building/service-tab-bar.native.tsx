@@ -249,7 +249,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: Kb.Styles.globalMargins.xtiny,
         overflow: 'hidden',
       },
-      pendingAnimation: {height: 17, width: 17},
       scroll: {
         flexGrow: 0,
         flexShrink: 0,
@@ -260,11 +259,6 @@ const styles = Kb.Styles.styleSheetCreate(
         height: '100%',
         paddingTop: Kb.Styles.globalMargins.tiny,
         position: 'relative',
-      },
-      tabBarContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
-        shadowOffset: {height: 3, width: 0},
-        shadowRadius: 2,
       },
     }) as const
 )

@@ -168,26 +168,10 @@ const styles = Kb.Styles.styleSheetCreate(
       flipAgainContainer: {paddingTop: Kb.Styles.globalMargins.tiny},
       flipAgainContainerHidden: {opacity: 0, paddingTop: Kb.Styles.globalMargins.tiny},
       placeholder: {backgroundColor: Kb.Styles.globalColors.grey},
-      progress: Kb.Styles.platformStyles({
-        isElectron: {
-          cursor: 'text',
-          userSelect: 'text',
-          wordBreak: 'break-all',
-        },
-      }),
       progressVis: {
         height: 40,
         width: 64,
       },
-      result: Kb.Styles.platformStyles({
-        common: {fontWeight: '600'},
-        isElectron: {
-          cursor: 'text',
-          userSelect: 'text',
-          wordBreak: 'break-all',
-        },
-      }),
-      statusContainer: {paddingTop: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 

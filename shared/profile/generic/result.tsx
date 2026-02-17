@@ -76,10 +76,6 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'absolute',
         right: -5,
       },
-      serviceIcon: {
-        height: 64,
-        width: 64,
-      },
       serviceIconContainer: Kb.Styles.platformStyles({
         common: {
           marginBottom: Kb.Styles.globalMargins.tiny,

@@ -142,7 +142,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       alignItemsCenter: {alignItems: 'center'},
-      colorBlack40: {color: Kb.Styles.globalColors.black_50},
       headerContainer: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.flexBoxColumn,
@@ -155,11 +154,6 @@ const styles = Kb.Styles.styleSheetCreate(
           minWidth: 200,
         },
       }),
-      headerDetailsContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-      },
       headerIcon: Kb.Styles.platformStyles({
         common: {
           height: headerIconHeight,

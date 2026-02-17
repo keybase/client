@@ -92,7 +92,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       alignSelf: 'center',
     },
   }),
-  opaque: {opacity: 1},
   semiTransparent: {opacity: 0.4},
   transparent: {opacity: 0},
 }))

@@ -397,9 +397,6 @@ const styles = Kb.Styles.styleSheetCreate(
         alignSelf: 'flex-start',
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       },
-      hidden: {
-        display: 'none',
-      },
       input: Kb.Styles.platformStyles({
         common: {
           color: Kb.Styles.globalColors.black,

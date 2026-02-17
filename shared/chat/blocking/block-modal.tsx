@@ -541,6 +541,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
   popupStyleContainer: {height: 450},
   radioButton: {marginLeft: Kb.Styles.globalMargins.large},
-  scroll: Kb.Styles.platformStyles({isMobile: {height: '100%'}}),
   shrink: {flexShrink: 1},
 }))

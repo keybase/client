@@ -241,13 +241,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {marginLeft: Kb.Styles.globalMargins.tiny},
       }),
-      avatarTeamSettings: Kb.Styles.platformStyles({
-        isElectron: {
-          marginLeft: Kb.Styles.globalMargins.tiny,
-          marginTop: 0,
-        },
-        isMobile: {marginLeft: Kb.Styles.globalMargins.xtiny},
-      }),
       bottomLine: {
         ...Kb.Styles.globalStyles.flexGrow,
         alignItems: 'baseline',
@@ -274,37 +267,9 @@ const styles = Kb.Styles.styleSheetCreate(
             Kb.Styles.globalMargins.mediumLarge, // avatar
         },
       }),
-      contentHorizontalPadTeamSettings: Kb.Styles.platformStyles({
-        isElectron: {
-          paddingLeft:
-            // Space for below the avatar
-            Kb.Styles.globalMargins.tiny + // right margin
-            Kb.Styles.globalMargins.tiny + // left margin
-            Kb.Styles.globalMargins.mediumLarge, // avatar
-          paddingRight: Kb.Styles.globalMargins.tiny,
-        },
-        isMobile: {
-          paddingLeft:
-            // Space for below the avatar
-            Kb.Styles.globalMargins.tiny + // right margin
-            Kb.Styles.globalMargins.tiny + // left margin
-            Kb.Styles.globalMargins.mediumLarge, // avatar
-        },
-      }),
       contentWithImage: {minHeight: 70},
       image: Kb.Styles.platformStyles({
         isElectron: {marginTop: -33},
-      }),
-      imageSettingsTab: Kb.Styles.platformStyles({
-        common: {
-          position: 'absolute',
-          top: 0,
-        },
-        isElectron: {
-          left: '50%',
-          marginLeft: 15,
-        },
-        isMobile: {right: 25},
       }),
       teamnameText: {color: Kb.Styles.globalColors.black},
       text: {maxWidth: Kb.Styles.isMobile ? '70%' : 320},

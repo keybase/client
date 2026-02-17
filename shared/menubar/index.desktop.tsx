@@ -431,9 +431,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   flexOne: {flexGrow: 1},
   footer: {width: 360},
-  hamburgerIcon: {
-    marginRight: Kb.Styles.globalMargins.tiny,
-  },
   headerBadgesContainer: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',

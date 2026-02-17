@@ -550,15 +550,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
-      editingTabStyle: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'flex-start',
-        backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt,
-        flexShrink: 0,
-        height: '100%',
-        minWidth: 32,
-        padding: Kb.Styles.globalMargins.xtiny,
-      },
       exploding: {
         backgroundColor: Kb.Styles.globalColors.black,
         borderRadius: Kb.Styles.globalMargins.mediumLarge / 2,
@@ -583,7 +574,6 @@ const styles = Kb.Styles.styleSheetCreate(
         justifyContent: 'center',
         width: 36,
       },
-      hidden: {height: 0, maxHeight: 0, maxWidth: 0, width: 0},
       iconBottom: {
         bottom: 0,
         left: 1,

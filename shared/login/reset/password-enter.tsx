@@ -55,11 +55,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: 368,
     },
   }),
-  topGap: Kb.Styles.platformStyles({
-    isMobile: {
-      justifyContent: 'flex-start',
-      marginTop: '20%',
-    },
-  }),
 }))
 export default EnterPassword

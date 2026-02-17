@@ -71,10 +71,6 @@ const MultiUserJoinedNotice = (p: {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      avatarLine: Kb.Styles.platformStyles({
-        isElectron: {marginLeft: -2 + 48},
-        isMobile: {marginLeft: -Kb.Styles.globalMargins.xsmall},
-      }),
       container: {marginLeft: -40, paddingBottom: 4},
       timestamp: Kb.Styles.platformStyles({isElectron: {lineHeight: 19}}),
     }) as const

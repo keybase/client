@@ -86,7 +86,6 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: Kb.Styles.isMobile ? undefined : 560,
         padding: Kb.Styles.globalMargins.medium,
       },
-      header: {position: 'absolute'},
       intro: {textAlign: 'center'},
       keyBox: {
         backgroundColor: Kb.Styles.globalColors.white,

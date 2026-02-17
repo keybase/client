@@ -273,12 +273,6 @@ const Channel = (props: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backButton: {
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        top: 0,
-      },
       container: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'stretch',
@@ -287,11 +281,6 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'relative',
         width: '100%',
       },
-      endAnchor: {
-        flex: 1,
-        height: 0,
-      },
-      header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
       list: {},
       listContentContainer: Kb.Styles.platformStyles({
         isElectron: {
@@ -304,9 +293,6 @@ const styles = Kb.Styles.styleSheetCreate(
           flexGrow: 1,
         },
       }),
-      smallHeader: {
-        ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge),
-      },
     }) as const
 )
 

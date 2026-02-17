@@ -52,14 +52,6 @@ const styles = Styles.styleSheetCreate(() => ({
     overflow: 'hidden',
     width: '100%',
   },
-  video: Styles.platformStyles({
-    isElectron: {
-      maxHeight: '100%',
-      maxWidth: '100%',
-      objectFit: 'contain',
-      position: 'absolute',
-    },
-  }),
 }))
 
 export default Video

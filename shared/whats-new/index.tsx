@@ -119,11 +119,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       marginTop: Kb.Styles.globalMargins.small,
     },
   }),
-  versionTitle: {
-    color: Kb.Styles.globalColors.black_50,
-    marginBottom: Kb.Styles.globalMargins.tiny,
-    marginTop: Kb.Styles.globalMargins.xsmall,
-  },
 }))
 
 export default WhatsNew

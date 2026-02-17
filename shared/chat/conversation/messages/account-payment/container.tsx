@@ -229,11 +229,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {justifyContent: 'space-between'},
       }),
-      button: {
-        alignSelf: 'flex-start',
-        marginTop: Kb.Styles.globalMargins.xtiny,
-      },
-      buttonText: {color: Kb.Styles.globalColors.white},
       flexWrap: {flexWrap: 'wrap'},
       lineThrough: {textDecorationLine: 'line-through'},
       memo: Kb.Styles.platformStyles({
@@ -252,9 +247,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       purple: {color: Kb.Styles.globalColors.purpleDark},
       purpleOrWhite: {color: Kb.Styles.globalColors.purpleDarkOrWhite},
-      tooltipText: Kb.Styles.platformStyles({
-        isElectron: {wordBreak: 'normal'},
-      }),
     }) as const
 )
 

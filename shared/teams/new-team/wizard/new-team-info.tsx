@@ -252,9 +252,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
   extraLineText: {
     height: 36,
   },
@@ -265,11 +262,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
-  wordBreak: Kb.Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
 }))
 
 export default NewTeamInfo

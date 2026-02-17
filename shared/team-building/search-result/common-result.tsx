@@ -343,18 +343,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignItems: 'baseline',
     display: 'flex',
   },
-  contactName: {
-    lineHeight: 22,
-  },
   highlighted: Kb.Styles.platformStyles({
     isElectron: {
       backgroundColor: Kb.Styles.globalColors.blueLighter2,
       borderRadius: Kb.Styles.borderRadius,
     },
   }),
-  keybaseServiceIcon: {
-    marginRight: Kb.Styles.globalMargins.xtiny,
-  },
   // Default padding to people search vlaues:
   // top/bottom: 8, left/right: 12
   //

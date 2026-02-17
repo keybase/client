@@ -86,16 +86,6 @@ const styles = Kb.Styles.styleSheetCreate(
       confirmTextBox: {
         padding: Kb.Styles.globalMargins.medium,
       },
-      menuRowText: {
-        color: Kb.Styles.globalColors.blueDark,
-      },
-      menuRowTextDisabled: {
-        color: Kb.Styles.globalColors.blueDark,
-        opacity: 0.6,
-      },
-      progressIndicator: {
-        marginRight: Kb.Styles.globalMargins.xtiny,
-      },
     }) as const
 )
 

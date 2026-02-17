@@ -195,10 +195,6 @@ const styles = Kb.Styles.styleSheetCreate(
         flexGrow: 1,
         padding: Kb.Styles.globalMargins.small,
       },
-      headerText: {
-        paddingBottom: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.small,
-      },
       passwordBackground: Kb.Styles.platformStyles({
         isTablet: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,

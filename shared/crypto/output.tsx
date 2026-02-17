@@ -495,8 +495,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       outputPlaceholder: {backgroundColor: Kb.Styles.globalColors.blueGreyLight},
-      outputVerifiedContainer: {marginBottom: Kb.Styles.globalMargins.xlarge},
-      placeholder: {color: Kb.Styles.globalColors.black_50},
       progressBar: {
         width: 200,
       },
@@ -533,7 +531,6 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
         },
       }),
-      signedIcon: {color: Kb.Styles.globalColors.green},
       signedSender: {
         ...Kb.Styles.globalStyles.flexGrow,
       },

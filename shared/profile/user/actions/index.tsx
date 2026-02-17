@@ -240,7 +240,6 @@ const DropdownButton = (p: DropdownProps) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  chatIcon: {marginRight: Kb.Styles.globalMargins.tiny},
   dropdownButton: {minWidth: undefined},
 }))
 

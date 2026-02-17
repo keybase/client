@@ -43,15 +43,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginBottom: Kb.Styles.globalMargins.tiny,
     marginTop: Kb.Styles.globalMargins.tiny,
   },
-  go: Kb.Styles.platformStyles({
-    common: {color: Kb.Styles.globalColors.white},
-    isElectron: {lineHeight: 40},
-  }),
-  goIcon: Kb.Styles.platformStyles({
-    isElectron: {
-      lineHeight: 40,
-    },
-  }),
   goTooltipIcon: Kb.Styles.platformStyles({
     isElectron: {
       marginRight: Kb.Styles.globalMargins.xtiny,
@@ -61,12 +52,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   goTooltipIconContainer: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.globalStyles.fullHeight,
-    },
-  }),
-  hoverContainerStyle: Kb.Styles.platformStyles({
-    isElectron: {
-      justifyContent: 'center',
-      width: '100%',
     },
   }),
 }))

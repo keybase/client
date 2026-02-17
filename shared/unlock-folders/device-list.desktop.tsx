@@ -53,7 +53,6 @@ const DeviceList = (props: Props) => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      accessFolders: {marginRight: 0},
       buttonsContainer: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         alignSelf: 'center',

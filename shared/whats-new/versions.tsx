@@ -190,17 +190,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     justifyContent: 'center',
   },
   ponyIcon: {marginLeft: Kb.Styles.globalMargins.tiny},
-  roundedImage: Kb.Styles.platformStyles({
-    common: {
-      borderColor: Kb.Styles.globalColors.grey,
-      borderWidth: Kb.Styles.globalMargins.xxtiny,
-    },
-    isElectron: {
-      // Pass borderRadius as a number to the image on mobile using collapseStyles
-      borderRadius: '100%',
-      borderStyle: 'solid',
-    },
-  }),
   versionTitle: {
     color: Kb.Styles.globalColors.black_50,
     marginBottom: Kb.Styles.globalMargins.tiny,

@@ -142,10 +142,6 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      animationInvisible: Kb.Styles.platformStyles({
-        common: {height: 20, opacity: 0, width: 20},
-        isMobile: {backgroundColor: Kb.Styles.globalColors.white},
-      }),
       animationVisible: Kb.Styles.platformStyles({
         common: {height: 20, opacity: 1, width: 20},
         isMobile: {

@@ -326,11 +326,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {paddingRight: Kb.Styles.globalMargins.tiny, paddingTop: 4},
       }),
       canText: {color: Kb.Styles.globalColors.black},
-      checkIcon: {
-        left: -24,
-        paddingTop: 2,
-        position: 'absolute',
-      },
       checkbox: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         flexGrow: 0,
@@ -404,9 +399,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       rowSelected: {
         position: 'relative',
-      },
-      scroll: {
-        backgroundColor: Kb.Styles.globalColors.white,
       },
       text: {
         textAlign: 'left',

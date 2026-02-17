@@ -78,12 +78,6 @@ const styles = Styles.styleSheetCreate(() => {
         paddingRight: 2,
       },
     }),
-    tip: Styles.platformStyles({
-      isElectron: {
-        alignItems: 'flex-start',
-        display: 'inline-flex',
-      },
-    }),
   } as const
 })
 

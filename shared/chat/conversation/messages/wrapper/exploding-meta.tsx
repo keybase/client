@@ -282,19 +282,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       countdownContainerHighlighted: {backgroundColor: Kb.Styles.globalColors.blackOrBlack},
       countdownHighlighted: {color: Kb.Styles.globalColors.whiteOrWhite},
-      explodingTooltip: {marginRight: -Kb.Styles.globalMargins.xxtiny},
       hidden: {opacity: 0},
-      progressContainer: Kb.Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        isElectron: {width: 28},
-        isMobile: {
-          height: 15,
-          width: 32,
-        },
-      }),
     }) as const
 )
 
