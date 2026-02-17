@@ -377,7 +377,7 @@ class MainActivity : ReactActivity() {
             if (isTextMime && textPayload.isNotEmpty()) {
                 // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
                 val args = Arguments.createMap()
-                args.putString("text", textPayload)
+                args.putString("text", text ?: textPayload)
                 emitter.emit("onShareData", args)
                 didSomething = true
             } else if (filePaths.isNotEmpty()) {
