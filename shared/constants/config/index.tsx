@@ -14,7 +14,7 @@ import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from 
 import {defaultUseNativeFrame, isMobile} from '../platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from './util'
-import {navigateAppend, switchTab} from '../router2/util'
+import {switchTab} from '../router2/util'
 import {storeRegistry} from '../store-registry'
 import {getSelectedConversation} from '@/constants/chat2/common'
 
@@ -934,13 +934,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.androidShare = T.castDraft(share)
       })
-      // already loaded, so just go now
-      if (get().startup.loaded) {
-        // android needs the nav to render first sadly
-        setTimeout(() => {
-          navigateAppend('incomingShareNew')
-        }, 500)
-      }
     },
     setBadgeState: b => {
       if (get().badgeState === b) return

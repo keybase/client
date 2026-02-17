@@ -8,6 +8,7 @@ import {
   getNativeEmitter,
   getInitialNotification,
   removeAllPendingNotificationRequests,
+  shareListenersRegistered,
 } from 'react-native-kb'
 import {storeRegistry} from '../store-registry'
 import {DeviceEventEmitter} from 'react-native'
@@ -247,6 +248,7 @@ export const initPushListener = () => {
             storeRegistry.getState('deeplinks').dispatch.handleAppLink('keybase://incoming-share')
           } catch {}
         })
+        shareListenersRegistered()
       }
     } catch (e) {
       logger.error('[Push] failed to set up listeners: ', e)

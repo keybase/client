@@ -14,7 +14,7 @@ import logger from '@/logger'
 import {Alert, Linking, ActionSheetIOS} from 'react-native'
 import {isIOS, isAndroid} from '../platform.native'
 import {wrapErrors} from '@/util/debug'
-import {getTab, getVisiblePath, logState} from '../router2'
+import {getTab, getVisiblePath} from '../router2'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
 import {
@@ -26,7 +26,6 @@ import {
   fsDownloadDir,
   androidAppColorSchemeChanged,
   guiConfig,
-  shareListenersRegistered,
 } from 'react-native-kb'
 import {initPushListener, getStartupDetailsFromInitialPush} from './push.native'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
@@ -551,19 +550,11 @@ export const initPlatformListener = () => {
     })
   }
 
-  // we call this when we're logged in.
-  let calledShareListenersRegistered = false
-
   storeRegistry.getStore('router').subscribe((s, old) => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
     storeRegistry.getState('config').dispatch.dynamic.persistRoute?.(false, false)
-
-    if (!calledShareListenersRegistered && logState().loggedIn) {
-      calledShareListenersRegistered = true
-      shareListenersRegistered()
-    }
   })
 
   // Start this immediately instead of waiting so we can do more things in parallel

@@ -21,7 +21,6 @@ import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.ReactApplication
-import com.facebook.react.ReactInstanceEventListener
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
@@ -91,19 +90,7 @@ class MainActivity : ReactActivity() {
         KeybasePushNotificationListenerService.createNotificationChannel(this)
         updateIsUsingHardwareKeyboard()
 
-        // Check if React context is already available, otherwise wait for it
-        val reactContext = reactActivityDelegate?.getCurrentReactContext()
-        if (reactContext != null) {
-            handleIntent()
-        } else {
-            val listener = object : ReactInstanceEventListener {
-                override fun onReactContextInitialized(c: ReactContext) {
-                    handleIntent()
-                    reactActivityDelegate?.reactHost?.removeReactInstanceEventListener(this)
-                }
-            }
-            reactActivityDelegate?.reactHost?.addReactInstanceEventListener(listener)
-        }
+        scheduleHandleIntent()
 
         // fix for keyboard avoiding not working on 35
         if (Build.VERSION.SDK_INT >= 35) {
@@ -199,6 +186,7 @@ class MainActivity : ReactActivity() {
         NativeLogger.info("Activity onResume")
         super.onResume()
         Keybase.setAppStateForeground()
+        handleIntent(requireJsListening = false)
     }
 
     override fun onStart() {
@@ -235,15 +223,16 @@ class MainActivity : ReactActivity() {
         if (bundleFromNotification != null) {
             KbModule.setInitialNotification(bundleFromNotification.clone() as Bundle)
         }
-        handleIntent()
-    }
-
-    public fun shareListenersRegistered() {
-        jsIsListening  = true
-        handleIntent()
+        NativeLogger.info("MainActivity.onNewIntent: action=${intent.action}, uriCount=${pendingShareUris?.size ?: 0}, hasNotification=${bundleFromNotification != null}")
     }
 
     private var jsIsListening = false
+
+    public fun shareListenersRegistered() {
+        jsIsListening = true
+        tryHandleIntentWithRetry()
+    }
+
     private var handledIntentHash: String? = null
 
     private fun normalizeShareIntent(intent: Intent) {
@@ -284,20 +273,42 @@ class MainActivity : ReactActivity() {
         return uris.distinct()
     }
 
-    private fun handleIntent() {
-        val intent = cachedIntent ?: run {
+    private var handleIntentRetryCount = 0
+    private val maxHandleIntentRetries = 20 // 20 * 500ms = 10s max
+
+    private fun scheduleHandleIntent() {
+        if (cachedIntent == null) return
+        handleIntentRetryCount = 0
+        tryHandleIntentWithRetry()
+    }
+
+    private fun tryHandleIntentWithRetry() {
+        if (cachedIntent == null) return
+        if (handleIntent()) return
+        handleIntentRetryCount++
+        if (handleIntentRetryCount >= maxHandleIntentRetries) {
+            NativeLogger.info("MainActivity: giving up on handleIntent after $maxHandleIntentRetries retries")
             return
         }
+        NativeLogger.info("MainActivity: scheduling handleIntent retry #$handleIntentRetryCount")
+        Handler(Looper.getMainLooper()).postDelayed({ tryHandleIntentWithRetry() }, 500)
+    }
+
+    private fun handleIntent(requireJsListening: Boolean = true): Boolean {
+        val intent = cachedIntent ?: return true
         val rc = reactActivityDelegate?.getCurrentReactContext() ?: run {
-            return
+            NativeLogger.info("MainActivity.handleIntent: no react context, will retry")
+            return false
         }
         val emitter = rc.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java) ?: run {
-            return
+            NativeLogger.info("MainActivity.handleIntent: no emitter, will retry")
+            return false
         }
-
-        if (jsIsListening == false) {
-            return
+        if (requireJsListening && !jsIsListening) {
+            NativeLogger.info("MainActivity.handleIntent: JS not listening yet, will retry")
+            return false
         }
+        NativeLogger.info("MainActivity.handleIntent: processing intent action=${intent.action}")
 
         // Here we are just reading from the notification bundle.
         // If other sources start the app, we can get their intent data the same way.
@@ -338,7 +349,6 @@ class MainActivity : ReactActivity() {
 
         val action = intent.action
         if (Intent.ACTION_SEND == action || Intent.ACTION_SEND_MULTIPLE == action) {
-            val hadPendingUris = pendingShareUris != null
             val uris = pendingShareUris?.also { pendingShareUris = null }
                 ?: extractSharedUris(intent)
             val subject = pendingShareSubject?.also { pendingShareSubject = null }
@@ -404,9 +414,7 @@ class MainActivity : ReactActivity() {
         }
 
         cachedIntent = null
-        if (!didSomething) {
-            return
-        }
+        return true
     }
 
     override fun getMainComponentName(): String = "Keybase"
