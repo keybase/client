@@ -371,7 +371,16 @@ class MainActivity : ReactActivity() {
                 }
             }.toTypedArray()
 
-            if (filePaths.isNotEmpty()) {
+            val intentType = intent.type
+            val isTextMime = intentType?.startsWith("text/") == true
+
+            if (isTextMime && textPayload.isNotEmpty()) {
+                // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
+                val args = Arguments.createMap()
+                args.putString("text", textPayload)
+                emitter.emit("onShareData", args)
+                didSomething = true
+            } else if (filePaths.isNotEmpty()) {
                 val args = Arguments.createMap()
                 val lPaths = Arguments.createArray()
                 for (path in filePaths) {
@@ -381,6 +390,7 @@ class MainActivity : ReactActivity() {
                 emitter.emit("onShareData", args)
                 didSomething = true
             } else if (textPayload.isNotEmpty()) {
+                // Fallback: non-text MIME but no files resolved, send text
                 val args = Arguments.createMap()
                 args.putString("text", textPayload)
                 emitter.emit("onShareData", args)
@@ -390,7 +400,6 @@ class MainActivity : ReactActivity() {
                 args.putArray("localPaths", Arguments.createArray())
                 emitter.emit("onShareData", args)
                 didSomething = true
-            } else {
             }
         }
 
