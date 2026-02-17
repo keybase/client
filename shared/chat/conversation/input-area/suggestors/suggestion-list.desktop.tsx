@@ -60,7 +60,6 @@ const styles = Kb.Styles.styleSheetCreate(
         justifyContent: 'center',
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, 0),
       },
-      fullHeight: {height: '100%'},
       listContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
         borderRadius: 4,

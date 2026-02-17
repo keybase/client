@@ -384,7 +384,6 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: 0,
     paddingRight: 0,
   },
-  inputNoGrow: {flexGrow: 0},
   leftIconTiny: {marginRight: Styles.globalMargins.tiny},
   leftIconXTiny: {marginRight: Styles.globalMargins.xtiny},
   light: {backgroundColor: Styles.globalColors.black_05},

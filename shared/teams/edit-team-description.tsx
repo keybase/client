@@ -88,11 +88,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     width: '100%',
   },
-  headerIcon: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0, 0),
-  title: {
-    paddingBottom: Kb.Styles.globalMargins.medium,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
-  },
 }))
 
 export default EditTeamDescription

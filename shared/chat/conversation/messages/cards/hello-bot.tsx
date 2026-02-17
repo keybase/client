@@ -37,12 +37,6 @@ const styles = Kb.Styles.styleSheetCreate(
       header: {
         maxWidth: Kb.Styles.isMobile ? 126 : undefined,
       },
-      icon: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'block',
-          marginTop: 4,
-        },
-      }),
       image: Kb.Styles.platformStyles({
         common: {
           marginLeft: Kb.Styles.globalMargins.medium,
@@ -55,7 +49,6 @@ const styles = Kb.Styles.styleSheetCreate(
           marginTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-      link: {color: Kb.Styles.isMobile ? Kb.Styles.globalColors.blueLighter : undefined},
       textContainer: {padding: Kb.Styles.globalMargins.medium},
     }) as const
 )

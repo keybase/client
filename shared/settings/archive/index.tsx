@@ -424,7 +424,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {padding: Kb.Styles.isMobile ? 8 : 16},
   errorTip: {justifyContent: 'center'},
   jobLeft: {flexGrow: 1, flexShrink: 1},
-  jobSub: {height: 22},
   jobs: {
     flexGrow: 1,
     flexShrink: 1,

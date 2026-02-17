@@ -474,21 +474,6 @@ const TeamHeader = (props: TeamHeaderProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      badge: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.blue,
-          borderRadius: 6,
-          height: 8,
-          margin: 6,
-          width: 8,
-        },
-        isElectron: {
-          margin: 4,
-          marginTop: 5,
-          position: 'absolute',
-          right: Kb.Styles.globalMargins.tiny,
-        },
-      }),
       channelHeader: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGreyLight,
@@ -529,28 +514,12 @@ const styles = Kb.Styles.styleSheetCreate(
           wordBreak: 'break-word',
         } as const,
       }),
-      muteAction: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-      },
-      noTopborder: {
-        borderTopWidth: 0,
-      },
       teamHeader: {
         borderStyle: 'solid',
         borderTopColor: Kb.Styles.globalColors.black_10,
         borderTopWidth: 1,
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      teamText: {
-        flex: 1,
-        justifyContent: 'space-between',
-      },
-      text: Kb.Styles.platformStyles({
-        isMobile: {
-          color: Kb.Styles.globalColors.blueDark,
-        },
-      }),
     }) as const
 )
 

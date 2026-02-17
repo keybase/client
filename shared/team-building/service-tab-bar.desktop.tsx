@@ -228,7 +228,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       moreText: {color: Kb.Styles.globalColors.black_50},
-      pendingAnimation: {height: 10, width: 10},
       serviceIconBox: {marginTop: 14},
       serviceIconContainer: {
         flex: 1,

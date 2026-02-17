@@ -114,17 +114,6 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'relative',
       },
       offline: {padding: Kb.Styles.globalMargins.xxtiny},
-      outerContainer: Kb.Styles.platformStyles({
-        isTablet: {
-          flex: 1,
-          position: 'relative',
-        },
-      }),
-      sav: {
-        flexGrow: 1,
-        maxHeight: '100%',
-        position: 'relative',
-      },
     }) as const
 )
 

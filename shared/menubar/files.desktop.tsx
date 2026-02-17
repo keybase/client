@@ -214,24 +214,5 @@ const styles = Kb.Styles.styleSheetCreate(
       tlfTopLine: {
         justifyContent: 'space-between',
       },
-      toggleButton: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.black_05,
-          borderRadius: Kb.Styles.borderRadius,
-          marginTop: Kb.Styles.globalMargins.xtiny,
-          paddingBottom: Kb.Styles.globalMargins.xtiny,
-          paddingTop: Kb.Styles.globalMargins.xtiny,
-        },
-        isElectron: {
-          marginRight: Kb.Styles.globalMargins.tiny,
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
-        },
-      }),
-      wordWrapFilename: Kb.Styles.platformStyles({
-        isElectron: {
-          wordBreak: 'break-all',
-        },
-      }),
     }) as const
 )

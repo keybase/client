@@ -71,13 +71,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   container: {backgroundColor: Kb.Styles.globalColors.white},
-  inlineProgressIndicator: {
-    height: 17,
-    position: 'absolute',
-    right: Kb.Styles.globalMargins.small,
-    top: Kb.Styles.globalMargins.small,
-    width: 17,
-  },
   tab: Kb.Styles.platformStyles({
     isElectron: {flexGrow: 1},
     isMobile: {

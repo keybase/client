@@ -85,16 +85,6 @@ export const PaperKey = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backButton: Kb.Styles.platformStyles({
-        isElectron: {
-          marginLeft: Kb.Styles.globalMargins.medium,
-          marginTop: Kb.Styles.globalMargins.medium,
-        },
-        isMobile: {
-          marginLeft: 0,
-          marginTop: 0,
-        },
-      }),
       contents: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,

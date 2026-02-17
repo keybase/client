@@ -28,11 +28,6 @@ const StartNewChat = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backButton: {
-        left: 0,
-        position: 'absolute',
-        top: Kb.Styles.globalMargins.xxtiny,
-      },
       button: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,
@@ -41,9 +36,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
-      buttonIcon: {
-        marginRight: Kb.Styles.globalMargins.tiny,
-      },
       clickableBox: {
         alignItems: 'center',
         flexDirection: 'row',
@@ -72,12 +64,6 @@ const styles = Kb.Styles.styleSheetCreate(
           padding: Kb.Styles.globalMargins.xtiny,
         },
       }),
-      rabbitEmoji: {
-        marginLeft: Kb.Styles.globalMargins.xtiny,
-      },
-      startNewChatText: {
-        color: Kb.Styles.globalColors.white,
-      },
     }) as const
 )
 

@@ -239,7 +239,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small, 0),
       }),
-      cancelButton: {marginRight: Kb.Styles.globalMargins.tiny},
       container: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
@@ -277,20 +276,6 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: '100%',
         width: '100%',
       },
-      imageContainer: Kb.Styles.platformStyles({
-        common: {justifyContent: 'center'},
-        isElectron: {
-          flex: 1,
-          height: 325,
-          paddingBottom: Kb.Styles.globalMargins.medium,
-          paddingTop: Kb.Styles.globalMargins.medium,
-          width: 325,
-        },
-        isMobile: {
-          height: '100%',
-          width: '100%',
-        },
-      }),
       input: Kb.Styles.platformStyles({
         common: {
           borderColor: Kb.Styles.globalColors.blue,
@@ -311,18 +296,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingLeft: Kb.Styles.globalMargins.small,
           paddingRight: Kb.Styles.globalMargins.small,
         },
-      }),
-      nonImage: {
-        alignSelf: 'center',
-        justifyContentSelf: 'center',
-      },
-      scrollView: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
-          height: '100%',
-          width: '100%',
-        },
-        isElectron: {borderRadius: Kb.Styles.borderRadius},
       }),
     }) as const
 )

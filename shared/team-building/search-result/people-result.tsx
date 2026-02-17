@@ -166,12 +166,6 @@ const DropdownButton = (p: DropdownProps) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   chatIcon: {marginRight: Kb.Styles.globalMargins.tiny},
   dropdownButton: {minWidth: undefined},
-  highlighted: Kb.Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Kb.Styles.globalColors.blueLighter2,
-      borderRadius: Kb.Styles.borderRadius,
-    },
-  }),
   rowContainer: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
   },

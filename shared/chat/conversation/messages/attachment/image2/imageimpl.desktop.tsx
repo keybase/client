@@ -19,18 +19,6 @@ const Image2Impl = () => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      actionContainer: {
-        alignSelf: 'flex-end',
-        backgroundColor: Kb.Styles.globalColors.black_50,
-        borderRadius: 2,
-        overflow: 'hidden',
-        padding: 1,
-        paddingLeft: 4,
-        paddingRight: 4,
-        position: 'absolute',
-        right: Kb.Styles.globalMargins.tiny,
-        top: Kb.Styles.globalMargins.tiny,
-      },
       image: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.rounded,

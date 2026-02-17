@@ -196,17 +196,9 @@ const styles = Kb.Styles.styleSheetCreate(
         right: 0,
         top: 0,
       },
-      assetWrapper: {
-        ...Kb.Styles.globalStyles.flexBoxCenter,
-        flex: 1,
-      },
       close: {
         color: Kb.Styles.globalColors.blueDark,
         padding: Kb.Styles.globalMargins.small,
-      },
-      fastImage: {
-        height: Kb.Styles.dimensionHeight,
-        width: Kb.Styles.dimensionWidth,
       },
       headerFooter: {
         ...Kb.Styles.globalStyles.flexBoxRow,
@@ -223,11 +215,6 @@ const styles = Kb.Styles.styleSheetCreate(
       headerWrapper: {backgroundColor: Kb.Styles.globalColors.blackOrBlack},
       progressIndicator: {width: 48},
       progressWrapper: {position: 'absolute'},
-      safeAreaTop: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        ...Kb.Styles.globalStyles.fillAbsolute,
-        backgroundColor: Kb.Styles.globalColors.blackOrBlack,
-      },
       videoWrapper: {
         alignItems: 'center',
         height: '100%',
@@ -240,10 +227,6 @@ const styles = Kb.Styles.styleSheetCreate(
         height: '100%',
         position: 'relative',
         width: '100%',
-      },
-      zoomableBoxContainer: {
-        flex: 1,
-        position: 'relative',
       },
     }) as const
 )

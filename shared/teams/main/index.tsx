@@ -182,12 +182,6 @@ const Teams = React.memo(function Teams(p: Props) {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      avatarContainer: {position: 'relative'},
-      badge: {
-        position: 'absolute',
-        right: -5,
-        top: -5,
-      },
       bigButton: Kb.Styles.platformStyles({
         common: {
           borderColor: Kb.Styles.globalColors.black_10,
@@ -204,9 +198,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: {backgroundColor: Kb.Styles.globalColors.blueGrey},
       emptyNote: Kb.Styles.padding(60, 42, Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.medium),
-      kerning: {letterSpacing: 0.2},
-      maxWidth: {maxWidth: '100%'},
-      openMeta: {alignSelf: 'center'},
       relative: {position: 'relative'},
       sortHeader: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.blueGrey},

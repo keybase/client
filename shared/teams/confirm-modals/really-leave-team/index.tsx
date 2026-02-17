@@ -107,14 +107,6 @@ const styles = Kb.Styles.styleSheetCreate(
         zIndex: 1,
       },
       prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
-      spinnerContainer: {
-        alignItems: 'center',
-        flex: 1,
-        padding: Kb.Styles.globalMargins.xlarge,
-      },
-      spinnerProgressIndicator: {
-        width: Kb.Styles.globalMargins.medium,
-      },
     }) as const
 )
 

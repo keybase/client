@@ -113,10 +113,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       flex: 1,
     },
   }),
-  icon: {
-    marginBottom: Kb.Styles.globalMargins.medium,
-    marginTop: Kb.Styles.globalMargins.xlarge,
-  },
   text: {
     margin: Kb.Styles.globalMargins.small,
   },

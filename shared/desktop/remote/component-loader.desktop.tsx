@@ -78,7 +78,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       errorFallback: {backgroundColor: Kb.Styles.globalColors.white},
-      loading: {backgroundColor: Kb.Styles.globalColors.greyDark},
     }) as const
 )
 

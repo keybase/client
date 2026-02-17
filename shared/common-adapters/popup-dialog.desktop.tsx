@@ -69,15 +69,6 @@ function PopupDialog(p: Props) {
 const styles = Styles.styleSheetCreate(() => ({
   get clipContainer() {
     return Styles.platformStyles({
-      isElectron: {
-        ...Styles.desktopStyles.boxShadow,
-        ...Styles.globalStyles.flexBoxColumn,
-        backgroundColor: Styles.globalColors.white,
-        borderRadius: Styles.borderRadius,
-        flex: 1,
-        maxWidth: '100%',
-        position: 'relative',
-      },
     })
   },
   close: Styles.platformStyles({
@@ -109,17 +100,6 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingBottom: Styles.globalMargins.small,
     paddingLeft: Styles.globalMargins.large,
     paddingRight: Styles.globalMargins.large,
-    paddingTop: Styles.globalMargins.large,
-  },
-  coverTabBarShim: {
-    ...Styles.globalStyles.flexBoxRow,
-    ...Styles.globalStyles.fillAbsolute,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_50OrBlack_60,
-    justifyContent: 'center',
-    paddingBottom: Styles.globalMargins.small,
-    paddingLeft: 0,
-    paddingRight: 0,
     paddingTop: Styles.globalMargins.large,
   },
 }))

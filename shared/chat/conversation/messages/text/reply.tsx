@@ -168,18 +168,6 @@ const styles = Kb.Styles.styleSheetCreate(
         overflow: 'hidden',
         position: 'relative',
       },
-      replyProgress: {
-        bottom: '50%',
-        left: '50%',
-        marginBottom: -12,
-        marginLeft: -12,
-        marginRight: -12,
-        marginTop: -12,
-        position: 'absolute',
-        right: '50%',
-        top: '50%',
-        width: 24,
-      },
       replyTextContainer: {
         alignSelf: 'flex-start',
         flex: 1,

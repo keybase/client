@@ -543,8 +543,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     height: '100%',
     width: '100%',
   },
-  noGrow: {flexGrow: 0},
-  profileSearch: {marginTop: Kb.Styles.globalMargins.xtiny},
   progress: {position: 'absolute'},
   proofs: Kb.Styles.platformStyles({
     isElectron: {
@@ -566,20 +564,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {padding: Kb.Styles.globalMargins.tiny},
   }),
   reloadable: {paddingTop: 60},
-  search: Kb.Styles.platformStyles({
-    common: {
-      backgroundColor: Kb.Styles.globalColors.black_10,
-      borderRadius: Kb.Styles.borderRadius,
-    },
-    isElectron: {
-      minHeight: 24,
-      minWidth: 240,
-    },
-    isMobile: {
-      minHeight: 32,
-      minWidth: 200,
-    },
-  }),
   sectionList: Kb.Styles.platformStyles({
     common: {width: '100%'},
     isElectron: {

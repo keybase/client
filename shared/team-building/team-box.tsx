@@ -154,32 +154,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-      search: Kb.Styles.platformStyles({
-        common: {
-          flex: 1,
-          flexWrap: 'wrap',
-        },
-        isElectron: {
-          ...Kb.Styles.globalStyles.rounded,
-          backgroundColor: Kb.Styles.globalColors.white,
-          borderColor: Kb.Styles.globalColors.black_20,
-          borderStyle: 'solid',
-          borderWidth: 1,
-          maxHeight: 170,
-          minHeight: 40,
-          overflowY: 'scroll',
-        },
-        isMobile: {
-          borderBottomColor: Kb.Styles.globalColors.black_10,
-          borderBottomWidth: 1,
-          borderStyle: 'solid',
-          minHeight: 48,
-        },
-      }),
-      searchIcon: {
-        alignSelf: 'center',
-        marginLeft: 10,
-      },
     }) as const
 )
 

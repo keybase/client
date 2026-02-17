@@ -150,7 +150,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginRight: Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
       },
-      addButton: {marginLeft: Kb.Styles.globalMargins.tiny},
       botHeaders: {
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginLeft: Kb.Styles.globalMargins.small,
@@ -165,27 +164,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginRight: Kb.Styles.globalMargins.tiny,
         },
       }),
-      divider: Kb.Styles.platformStyles({
-        common: {marginTop: Kb.Styles.globalMargins.tiny},
-        isElectron: {marginLeft: 56},
-        isMobile: {marginLeft: 81},
-      }),
       listItemContainer: {paddingRight: Kb.Styles.globalMargins.tiny},
-      row: {
-        alignItems: 'center',
-        flex: 1,
-        marginRight: Kb.Styles.globalMargins.tiny,
-      },
-      rowContainer: Kb.Styles.platformStyles({
-        common: {
-          minHeight: 48,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
-        },
-        isElectron: {
-          ...Kb.Styles.desktopStyles.clickable,
-        },
-      }),
     }) as const
 )
 

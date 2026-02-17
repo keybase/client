@@ -113,19 +113,6 @@ const styles = Kb.Styles.styleSheetCreate(
           marginRight: Kb.Styles.globalMargins.tiny,
         },
       }),
-      typingIcon: Kb.Styles.platformStyles({
-        common: {
-          position: 'absolute',
-          width: 24,
-        },
-        isElectron: {
-          bottom: 7,
-          left: 21,
-        },
-        isMobile: {
-          bottom: 0,
-        },
-      }),
       typingIconContainer: Kb.Styles.platformStyles({
         isMobile: {
           alignItems: 'center',

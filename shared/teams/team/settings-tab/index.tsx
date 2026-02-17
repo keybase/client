@@ -301,11 +301,6 @@ export const Settings = (p: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  button: {
-    justifyContent: 'center',
-    paddingBottom: C.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.small,
-    paddingTop: C.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.small,
-  },
   floatingRolePicker: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',
@@ -313,10 +308,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   grey: {color: Kb.Styles.globalColors.black_50},
-  header: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    marginBottom: Kb.Styles.globalMargins.tiny,
-  },
   joinAs: Kb.Styles.platformStyles({
     isElectron: {paddingRight: Kb.Styles.globalMargins.xtiny},
   }),
@@ -342,16 +333,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingTop: Kb.Styles.globalMargins.small,
   },
   shrink: {flex: 1},
-  spinner: {paddingLeft: Kb.Styles.globalMargins.xtiny},
   teamPadding: {paddingTop: Kb.Styles.globalMargins.small},
-  welcomeMessage: {paddingRight: Kb.Styles.globalMargins.small},
-  welcomeMessageBorder: {
-    alignSelf: 'stretch',
-    backgroundColor: Kb.Styles.globalColors.grey,
-    paddingLeft: Kb.Styles.globalMargins.xtiny,
-  },
-  welcomeMessageCard: {paddingBottom: Kb.Styles.globalMargins.tiny},
-  welcomeMessageContainer: {position: 'relative'},
 }))
 
 import {useSettingsTabState} from './use-settings'

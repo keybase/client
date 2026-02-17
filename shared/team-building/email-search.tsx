@@ -112,9 +112,6 @@ const styles = Kb.Styles.styleSheetCreate(
           zIndex: -1,
         },
       }),
-      bottomContainer: {
-        flexGrow: 1,
-      },
       emptyContainer: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
@@ -144,10 +141,6 @@ const styles = Kb.Styles.styleSheetCreate(
           height: 48,
         },
       }),
-      userMatchMention: {
-        alignSelf: 'flex-start',
-        marginLeft: Kb.Styles.globalMargins.small,
-      },
     }) as const
 )
 

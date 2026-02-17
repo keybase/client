@@ -821,10 +821,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   bigBackgroundStyle: {
     ...circleAroundIcon(Kb.Styles.isTablet ? 2000 : 750),
   },
-  cancelHintIcon: {
-    left: 0,
-    position: 'absolute',
-  },
   cancelHintStyle: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',

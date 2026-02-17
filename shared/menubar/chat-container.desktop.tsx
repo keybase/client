@@ -66,22 +66,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.white,
     color: Kb.Styles.globalColors.black,
   },
-  toggleButton: Kb.Styles.platformStyles({
-    common: {
-      backgroundColor: Kb.Styles.globalColors.black_05,
-      borderRadius: Kb.Styles.borderRadius,
-      marginBottom: Kb.Styles.globalMargins.xtiny,
-      marginTop: Kb.Styles.globalMargins.xtiny,
-      paddingBottom: Kb.Styles.globalMargins.xtiny,
-      paddingTop: Kb.Styles.globalMargins.xtiny,
-    },
-    isElectron: {
-      marginLeft: Kb.Styles.globalMargins.tiny,
-      marginRight: Kb.Styles.globalMargins.tiny,
-      paddingLeft: Kb.Styles.globalMargins.tiny,
-      paddingRight: Kb.Styles.globalMargins.tiny,
-    },
-  }),
 }))
 
 export default ChatPreview

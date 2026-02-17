@@ -199,21 +199,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.tiny,
         width: '100%',
       },
-      imgOrig: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'flex',
-          margin: 'auto',
-          maxHeight: '100%',
-          maxWidth: '100%',
-          transform: '',
-        },
-      }),
-      imgZoomed: Kb.Styles.platformStyles({
-        isElectron: {
-          position: 'absolute',
-          transformOrigin: 'top left',
-        },
-      }),
       link: Kb.Styles.platformStyles({
         isElectron: {color: Kb.Styles.globalColors.black_50, cursor: 'pointer'},
       }),
@@ -221,27 +206,6 @@ const styles = Kb.Styles.styleSheetCreate(
         color: Kb.Styles.globalColors.redDark,
         textDecorationLine: 'underline',
       },
-      scrollAttachOrig: Kb.Styles.platformStyles({
-        isElectron: {
-          alignItems: 'center',
-          cursor: 'zoom-in',
-          display: 'flex',
-          height: '100%',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          position: 'relative',
-          width: '100%',
-        },
-      }),
-      scrollAttachZoomed: Kb.Styles.platformStyles({
-        isElectron: {
-          cursor: 'zoom-out',
-          height: '100%',
-          overflow: 'hidden',
-          position: 'relative',
-          width: '100%',
-        },
-      }),
       videoFit: Kb.Styles.platformStyles({
         isElectron: {
           cursor: 'normal',

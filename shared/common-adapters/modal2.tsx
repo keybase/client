@@ -176,15 +176,6 @@ const styles = Styles.styleSheetCreate(() => {
       borderTopColor: Styles.globalColors.black_10,
       borderTopWidth: 1,
     },
-    footerFullscreen: Styles.platformStyles({
-      isElectron: {
-        ...Styles.padding(
-          Styles.globalMargins.xsmall,
-          Styles.globalMargins.small,
-          Styles.globalMargins.xlarge
-        ),
-      },
-    }),
     footerWide: Styles.platformStyles({
       isElectron: {
         ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
@@ -211,26 +202,6 @@ const styles = Styles.styleSheetCreate(() => {
       ...headerCommon,
       minHeight: 64,
     },
-    measured: {
-      alignItems: 'center',
-      flex: 1,
-      justifyContent: 'center',
-    },
-    overflowVisible: {overflow: 'visible'},
-    scroll: Styles.platformStyles({
-      isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
-    }),
-    scrollContentContainer: Styles.platformStyles({
-      common: {
-        ...Styles.globalStyles.flexBoxColumn,
-        flexGrow: 1,
-        width: '100%',
-      },
-      isTablet: {
-        alignSelf: 'center',
-        maxWidth: 600,
-      },
-    }),
   }
 })
 

@@ -124,19 +124,6 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.white,
         justifyContent: 'flex-end',
       },
-      overlay: {
-        ...Styles.globalStyles.flexBoxColumn,
-        alignItems: 'stretch',
-        backgroundColor: Styles.globalColors.black_50,
-        justifyContent: 'flex-end',
-      },
-      overlayContainer: {
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      },
       picker: Styles.platformStyles({
         isAndroid: {
           color: Styles.globalColors.black,

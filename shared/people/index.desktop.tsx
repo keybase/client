@@ -17,7 +17,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.globalStyles.fullHeight,
   },
-  header: {flexGrow: 1},
   progress: {
     height: 24,
     left: 40,
@@ -25,8 +24,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     top: -72,
     width: 24,
   },
-  searchContainer: {paddingBottom: Kb.Styles.globalMargins.xsmall},
-  sectionTitle: {flexGrow: 1},
 }))
 
 export default People

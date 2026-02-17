@@ -74,25 +74,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       bubbleContainer: Kb.Styles.platformStyles({common: {position: 'relative'}, isMobile: {width: 91}}),
-      container: Kb.Styles.platformStyles({
-        common: {
-          marginBottom: Kb.Styles.globalMargins.xtiny,
-          marginLeft: Kb.Styles.globalMargins.tiny,
-          marginTop: Kb.Styles.globalMargins.xtiny,
-        },
-      }),
-      generalService: Kb.Styles.platformStyles({
-        isElectron: {
-          lineHeight: '35px',
-        },
-      }),
       // TODO: the service icons are too high without this - are they right?
-      iconBox: Kb.Styles.platformStyles({
-        isElectron: {
-          marginBottom: -3,
-          marginTop: 3,
-        },
-      }),
       remove: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',

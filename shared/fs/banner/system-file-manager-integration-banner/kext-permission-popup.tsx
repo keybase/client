@@ -90,14 +90,6 @@ const styles = Kb.Styles.styleSheetCreate(
         right: 0,
         top: 0,
       },
-      highlight: {
-        backgroundColor: Kb.Styles.globalColors.black_05,
-        borderColor: Kb.Styles.globalColors.blue,
-        borderRadius: Kb.Styles.borderRadius,
-        borderStyle: 'solid',
-        borderWidth: 2,
-        position: 'absolute',
-      },
       illustrationContainer: {
         position: 'relative',
       },

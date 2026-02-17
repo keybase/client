@@ -134,17 +134,11 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
-      dropdown: {
-        marginLeft: -Kb.Styles.globalMargins.tiny, // the icon has padding, so offset it to align with the name below
-      },
       floating: Kb.Styles.platformStyles({
         isElectron: {
           width: 196,
         },
       }),
-      icon: {
-        padding: Kb.Styles.globalMargins.tiny,
-      },
       mainTitleText: Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
       rootTitle: {
         alignSelf: 'center',

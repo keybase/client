@@ -74,11 +74,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      title: Kb.Styles.platformStyles({
-        isElectron: {
-          paddingTop: Kb.Styles.globalMargins.xtiny,
-        },
-      }),
     }) as const
 )
 

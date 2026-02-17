@@ -160,17 +160,10 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       bold: {...Kb.Styles.globalStyles.fontBold},
       container: {backgroundColor: Kb.Styles.globalColors.white, flexShrink: 0},
-      floatingContainer: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.purple},
-        isElectron: {maxWidth: 200},
-      }),
-      fullName: Kb.Styles.platformStyles({isElectron: {wordBreak: 'break-all'} as const}),
       fullNameContainer: {
         paddingLeft: Kb.Styles.globalMargins.mediumLarge,
         paddingRight: Kb.Styles.globalMargins.mediumLarge,
       },
-      learnButton: {alignSelf: 'center', marginTop: Kb.Styles.globalMargins.tiny},
-      star: {alignSelf: 'center', marginBottom: Kb.Styles.globalMargins.tiny},
       text: Kb.Styles.platformStyles({
         common: {
           paddingLeft: Kb.Styles.globalMargins.mediumLarge,

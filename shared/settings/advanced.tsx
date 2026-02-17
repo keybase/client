@@ -317,13 +317,6 @@ const Developer = () => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      checkboxContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingTop: Kb.Styles.globalMargins.tiny,
-        width: '100%',
-      },
       developerButtons: {
         marginTop: Kb.Styles.globalMargins.small,
       },
@@ -343,12 +336,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       filler: {
         flex: 1,
-      },
-      progressContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 32,
       },
       proxyDivider: {
         marginBottom: Kb.Styles.globalMargins.small,

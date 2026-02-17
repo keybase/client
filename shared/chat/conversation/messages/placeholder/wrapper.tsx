@@ -53,11 +53,6 @@ const styles = Kb.Styles.styleSheetCreate(
         height: Kb.Styles.isMobile ? 22 : 17, // to match a line of text
         width: '100%',
       },
-      spinner: {
-        height: 16,
-        marginLeft: 0,
-        width: 16,
-      },
     }) as const
 )
 

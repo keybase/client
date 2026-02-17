@@ -250,9 +250,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
-      bottomExpandable: {minHeight: 40 - 1},
       bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
-      flexOne: {flex: 1},
       headerBack: Kb.Styles.platformStyles({
         isElectron: {
           alignItems: 'center',

@@ -152,23 +152,11 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: {...Kb.Styles.transition('border-color', 'background-color', 'box-shadow')},
       }),
-      containerInner: {
-        alignItems: 'center',
-        height: 24,
-      },
       count: {
         color: Kb.Styles.globalColors.black_50,
         position: 'relative',
       },
       countActive: {color: Kb.Styles.globalColors.blueDark},
-      emoji: {height: 25},
-      emojiContainer: Kb.Styles.platformStyles({
-        isElectron: {
-          ...Kb.Styles.desktopStyles.boxShadow,
-          borderRadius: 4,
-          marginRight: Kb.Styles.globalMargins.small,
-        },
-      }),
       emojiIconWrapper: Kb.Styles.platformStyles({
         isElectron: {position: 'absolute'},
         isMobile: {marginTop: 2},
