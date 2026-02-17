@@ -186,7 +186,7 @@ class MainActivity : ReactActivity() {
         NativeLogger.info("Activity onResume")
         super.onResume()
         Keybase.setAppStateForeground()
-        handleIntent(requireJsListening = false)
+        handleIntent()
     }
 
     override fun onStart() {
@@ -294,7 +294,7 @@ class MainActivity : ReactActivity() {
         Handler(Looper.getMainLooper()).postDelayed({ tryHandleIntentWithRetry() }, 500)
     }
 
-    private fun handleIntent(requireJsListening: Boolean = true): Boolean {
+    private fun handleIntent(): Boolean {
         val intent = cachedIntent ?: return true
         val rc = reactActivityDelegate?.getCurrentReactContext() ?: run {
             NativeLogger.info("MainActivity.handleIntent: no react context, will retry")
@@ -304,7 +304,7 @@ class MainActivity : ReactActivity() {
             NativeLogger.info("MainActivity.handleIntent: no emitter, will retry")
             return false
         }
-        if (requireJsListening && !jsIsListening) {
+        if (!jsIsListening) {
             NativeLogger.info("MainActivity.handleIntent: JS not listening yet, will retry")
             return false
         }
