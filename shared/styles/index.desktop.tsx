@@ -119,18 +119,12 @@ export const initDesktopStyles = () => {
   const colorVars = `
         :root { ${colorNames
           .reduce((s, name) => {
-            s.push(`--color-${name}: ${colors[name]};`)
+            const light = colors[name] as string
+            const dark = darkColors[name] as string
+            s.push(`--color-${name}: ${light === dark ? light : `light-dark(${light}, ${dark})`};`)
             return s
           }, new Array<string>())
           .join(' ')} }
-        @media (prefers-color-scheme: dark) {
-          :root { ${colorNames
-            .reduce((s, name) => {
-              s.push(`--color-${name}: ${darkColors[name]};`)
-              return s
-            }, new Array<string>())
-            .join(' ')} }
-        }
 `
   const helpers = colorNames.reduce((s, name) => {
     return (

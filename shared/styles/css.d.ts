@@ -65,6 +65,7 @@ type StyleKeys =
   | 'fontVariant'
   | 'fontWeight'
   | 'height'
+  | 'inset'
   | 'justifyContent'
   | 'left'
   | 'letterSpacing'

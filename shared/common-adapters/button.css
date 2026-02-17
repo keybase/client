@@ -21,10 +21,7 @@
 
 .button__underlay {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  top: 0;
+  inset: 0;
   border-radius: 4px;
   transition: background-color 0.2s ease-out;
 }
@@ -44,13 +41,7 @@
   background-color: rgba(112, 78, 186, 0.05);
 }
 .button__underlay_black:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-@media (prefers-color-scheme: dark) {
-  .button__underlay_black:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-  }
+  background-color: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.05));
 }
 
 .button__underlay_yellow:hover {

@@ -56,7 +56,7 @@ export const backgroundModeToTextColor = (backgroundMode: Background) => {
 
 const flexCommon = isMobile ? {} : ({display: 'flex'} as const)
 export const util = {
-  fillAbsolute: {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0},
+  fillAbsolute: {inset: 0, position: 'absolute'},
   flexBoxCenter: {...flexCommon, alignItems: 'center', justifyContent: 'center'},
   flexBoxColumn: {...flexCommon, flexDirection: 'column'},
   flexBoxColumnReverse: {...flexCommon, flexDirection: 'column-reverse'},
