@@ -5,7 +5,7 @@ import {spawn} from 'child_process'
 
 const isLinux = process.platform === 'linux'
 const debugInNode = (false as boolean) ? '--inspect-brk' : ''
-const remoteDebug = process.env.KB_ENABLE_REMOTE_DEBUG === '1' ? '--remote-debugging-port=9222' : ''
+const remoteDebug = process.env['KB_ENABLE_REMOTE_DEBUG'] === '1' ? '--remote-debugging-port=9222' : ''
 
 const commands = {
   'inject-code-prod': {
