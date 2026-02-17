@@ -12,6 +12,7 @@ import type * as TInbox from './index.d'
 import type * as T from '@/constants/types'
 import {type ViewToken, Alert} from 'react-native'
 import {FlashList, type FlashListRef} from '@shopify/flash-list'
+import * as RowSizes from './row/sizes'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
 import type {ChatInboxRowItem} from './rowitem'
@@ -72,6 +73,29 @@ function computeShowFloating(rows: ReadonlyArray<ChatInboxRowItem>, lastVisibleI
   const row = rows[lastVisibleIdx]
   if (!row) return undefined
   return row.type === 'small'
+}
+
+const overrideItemLayout = (layout: {span?: number; size?: number}, item: ChatInboxRowItem) => {
+  switch (item.type) {
+    case 'small':
+      layout.size = RowSizes.smallRowHeight
+      break
+    case 'bigTeamsLabel':
+      layout.size = 32
+      break
+    case 'bigHeader':
+      layout.size = RowSizes.bigHeaderHeight
+      break
+    case 'big':
+      layout.size = RowSizes.bigRowHeight
+      break
+    case 'divider':
+      layout.size = 68
+      break
+    case 'teamBuilder':
+      layout.size = 120
+      break
+  }
 }
 
 function Inbox(p: TInbox.Props) {
@@ -253,10 +277,12 @@ function Inbox(p: TInbox.Props) {
           <FlashList
             ListHeaderComponent={HeadComponent}
             data={rows}
+            drawDistance={300}
             getItemType={getItemType}
             keyExtractor={keyExtractor}
             keyboardShouldPersistTaps="handled"
             onViewableItemsChanged={onViewChanged}
+            overrideItemLayout={overrideItemLayout}
             viewabilityConfig={viewabilityConfig}
             overScrollMode="never"
             ref={listRef}
