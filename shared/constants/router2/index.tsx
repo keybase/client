@@ -21,6 +21,7 @@ export {
   getRouteLoggedIn,
   useSafeFocusEffect,
   makeScreen,
+  switchTab,
 } from './util'
 export type {PathParam, Navigator} from './util'
 

@@ -14,7 +14,7 @@ import logger from '@/logger'
 import {Alert, Linking, ActionSheetIOS} from 'react-native'
 import {isIOS, isAndroid} from '../platform.native'
 import {wrapErrors} from '@/util/debug'
-import {getTab, getVisiblePath} from '../router2'
+import {getTab, getVisiblePath, switchTab} from '../router2'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
 import {
@@ -622,6 +622,7 @@ export const initPlatformListener = () => {
     })
   })
 
+  let _pendingFastSwitchTab: string | undefined
   storeRegistry.getStore('router').setState(s => {
     s.dispatch.dynamic.tabLongPress = wrapErrors((tab: string) => {
       if (tab !== Tabs.peopleTab) return
@@ -629,10 +630,29 @@ export const initPlatformListener = () => {
       const current = storeRegistry.getState('current-user').username
       const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
       if (row) {
+        _pendingFastSwitchTab = getTab() ?? undefined
         storeRegistry.getState('config').dispatch.setUserSwitching(true)
         storeRegistry.getState('config').dispatch.login(row.username, '')
       }
     })
+  })
+
+  storeRegistry.getStore('config').subscribe((state, prevState) => {
+    const tab = _pendingFastSwitchTab
+    if (!tab) return
+    if (state.loggedIn && !prevState.loggedIn) {
+      _pendingFastSwitchTab = undefined
+      let attempts = 0
+      const trySwitch = () => {
+        if (attempts++ > 20) return
+        if (getTab()) {
+          switchTab(tab as Tabs.AppTab)
+        } else {
+          setTimeout(trySwitch, 100)
+        }
+      }
+      setTimeout(trySwitch, 100)
+    }
   })
 
   ignorePromise(storeRegistry.getState('fs').dispatch.setupSubscriptions())
