@@ -617,19 +617,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       failUnderline: {color: Kb.Styles.globalColors.redDark, textDecorationLine: 'underline'},
-      highlighted: {
-        backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt,
-      },
-      menuButtons: Kb.Styles.platformStyles({
-        common: {
-          alignSelf: 'flex-start',
-          flexShrink: 0,
-          justifyContent: 'flex-end',
-          overflow: 'hidden',
-        },
-        isElectron: {height: 20},
-        isMobile: {height: 24},
-      }),
       messagePopupContainer: {marginRight: Kb.Styles.globalMargins.small},
       middle: {
         flexGrow: 1,
@@ -638,8 +625,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: 4,
         position: 'relative',
       },
-      moreActionsTooltip: {marginRight: -Kb.Styles.globalMargins.xxtiny},
-      paddingLeftTiny: {paddingLeft: Kb.Styles.globalMargins.tiny},
       rightSide: Kb.Styles.platformStyles({
         common: {
           borderRadius: Kb.Styles.borderRadius,
@@ -662,16 +647,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingLeft: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {minHeight: 14},
-      }),
-      sendIndicatorPlaceholder: {
-        height: 20,
-        width: 20,
-      },
-      timestamp: Kb.Styles.platformStyles({
-        isElectron: {
-          flexShrink: 0,
-          lineHeight: 19,
-        },
       }),
     }) as const
 )

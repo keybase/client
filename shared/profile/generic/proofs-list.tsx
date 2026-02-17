@@ -196,20 +196,6 @@ const styles = Kb.Styles.styleSheetCreate(
         justifyContent: 'flex-start',
       },
       description: {...rightColumnStyle},
-      flexOne: {flex: 1},
-      footer: {
-        alignItems: 'center',
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        padding: Kb.Styles.globalMargins.xsmall,
-      },
-      footerText: {
-        ...rightColumnStyle,
-        color: Kb.Styles.globalColors.black_50,
-        marginLeft: Kb.Styles.globalMargins.tiny,
-      },
       header: {
         color: Kb.Styles.globalColors.black,
         marginTop: Kb.Styles.globalMargins.tiny,

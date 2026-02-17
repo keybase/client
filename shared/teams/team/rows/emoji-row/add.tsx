@@ -72,7 +72,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       flexGrow: 1,
     },
   }),
-  text: {padding: Kb.Styles.globalMargins.xtiny},
 }))
 
 export default AddEmoji

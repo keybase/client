@@ -198,9 +198,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {bottom: 4, right: -5},
   }),
   darkerAdminIcon: {color: Kb.Styles.globalColors.greyDark},
-  openMeta: {
-    alignSelf: 'center',
-  },
   white: {backgroundColor: Kb.Styles.globalColors.white},
 }))
 

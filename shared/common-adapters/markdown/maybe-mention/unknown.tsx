@@ -137,9 +137,6 @@ const styles = Kb.Styles.styleSheetCreate(
           display: 'inline-block',
         },
       }),
-      warning: {
-        color: Kb.Styles.globalColors.redDark,
-      },
     }) as const
 )
 

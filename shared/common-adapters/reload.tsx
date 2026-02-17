@@ -128,12 +128,6 @@ const styles = Styles.styleSheetCreate(
         maxWidth: '100%',
         padding: Styles.globalMargins.small,
       },
-      scrollInside: {
-        height: '100%',
-        maxHeight: '100%',
-        maxWidth: '100%',
-        width: '100%',
-      },
     }) as const
 )
 

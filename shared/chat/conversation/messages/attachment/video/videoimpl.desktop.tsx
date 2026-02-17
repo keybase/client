@@ -59,13 +59,6 @@ const VideoImpl = (p: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      downloadIcon: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline-flex',
-          opacity: 0.75,
-          paddingTop: 2,
-        },
-      }),
       durationContainer: {
         alignSelf: 'flex-end',
         backgroundColor: Kb.Styles.globalColors.black_50,
@@ -81,17 +74,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: 3,
         paddingRight: 3,
       },
-      infoIcon: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline-flex',
-          opacity: 0.75,
-          paddingTop: 2,
-        },
-      }),
-      link: {
-        color: Kb.Styles.globalColors.black_50,
-        flexGrow: 1,
-      },
       playButton: {
         left: '50%',
         marginLeft: -32,
@@ -104,7 +86,6 @@ const styles = Kb.Styles.styleSheetCreate(
         flexShrink: 1,
         position: 'relative',
       },
-      tipText: {color: Kb.Styles.globalColors.white_75},
       video: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.rounded,

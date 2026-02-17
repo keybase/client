@@ -180,12 +180,6 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.tiny,
       },
       inputContainerError: {borderColor: Kb.Styles.globalColors.red},
-      prefix: Kb.Styles.platformStyles({
-        isMobile: {
-          position: 'relative',
-          top: 1,
-        },
-      }),
       teamnameHeader: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-word'} as const,
       }),

@@ -377,11 +377,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingRight: Kb.Styles.globalMargins.tiny,
         },
       }),
-      wrapper: Kb.Styles.platformStyles({
-        common: {},
-        isElectron: {maxHeight: '80%'},
-        isMobile: {flexGrow: 1},
-      }),
     }) as const
 )
 

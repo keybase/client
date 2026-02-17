@@ -316,10 +316,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       avatar: {marginRight: Kb.Styles.globalMargins.tiny},
-      container: {
-        flex: 1,
-        height: '100%',
-      },
       docBottom: {padding: Kb.Styles.globalMargins.tiny},
       docIcon: {height: 32},
       docProgress: {alignSelf: 'center'},
@@ -358,18 +354,6 @@ const styles = Kb.Styles.styleSheetCreate(
       loadMoreProgress: {
         alignSelf: 'center',
         marginTop: Kb.Styles.globalMargins.tiny,
-      },
-      loading: {
-        bottom: '50%',
-        left: '50%',
-        marginBottom: -12,
-        marginLeft: -12,
-        marginRight: -12,
-        marginTop: -12,
-        position: 'absolute',
-        right: '50%',
-        top: '50%',
-        width: 24,
       },
       selectorContainer: {
         maxWidth: 460,

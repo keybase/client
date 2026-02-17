@@ -321,13 +321,6 @@ const styles = Kb.Styles.styleSheetCreate(
           height: Kb.Styles.globalMargins.mediumLarge + Kb.Styles.globalMargins.small,
         },
       }),
-      input: {
-        borderBottomWidth: 1,
-        borderColor: Kb.Styles.globalColors.black_10,
-        borderRadius: 0,
-        borderWidth: 0,
-        padding: Kb.Styles.globalMargins.small,
-      },
       searchFilter: Kb.Styles.platformStyles({
         isMobile: {
           flexGrow: 1,

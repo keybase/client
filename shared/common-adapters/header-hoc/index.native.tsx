@@ -180,7 +180,6 @@ const styles = Styles.styleSheetCreate(
           paddingLeft: Styles.globalMargins.tiny,
         },
       }),
-      actionPressable: {opacity: 0.3},
       borderless: {borderBottomWidth: 0},
       container: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -206,7 +205,6 @@ const styles = Styles.styleSheetCreate(
           height: 40 + Styles.headerExtraHeight,
         },
       }),
-      innerWrapper: {...Styles.globalStyles.fillAbsolute},
       leftAction: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxColumn,

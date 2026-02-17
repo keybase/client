@@ -67,7 +67,6 @@ const Notifications = () => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      checkbox: {marginRight: 0, marginTop: Kb.Styles.globalMargins.xtiny},
       divider: {
         marginBottom: Kb.Styles.globalMargins.small,
         marginLeft: -Kb.Styles.globalMargins.small,

@@ -24,8 +24,6 @@ const sizeToTeamBorderRadius = new Map<AvatarSize, number>([
 ])
 
 const backgroundOffset = 1
-const borderOffset = -1
-const borderSize = 1
 // Layer on top to extend outside of the image
 
 const Avatar = React.memo(function Avatar(p: Props) {
@@ -135,15 +133,6 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: backgroundOffset,
         top: backgroundOffset,
-      },
-      borderBase: {
-        borderWidth: borderSize,
-        bottom: borderOffset,
-        left: borderOffset,
-        margin: borderSize / 2,
-        position: 'absolute',
-        right: borderOffset,
-        top: borderOffset,
       },
       edit: {
         bottom: 0,

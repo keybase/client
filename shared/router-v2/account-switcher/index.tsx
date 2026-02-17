@@ -213,10 +213,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {wordBreak: 'break-all'},
   }),
   progressIndicator: {bottom: 0, position: 'absolute', right: 0},
-  row: {
-    paddingBottom: -Kb.Styles.globalMargins.small,
-    paddingTop: -Kb.Styles.globalMargins.small,
-  },
   text2: {flexShrink: 0},
   userBox: {
     paddingLeft: Kb.Styles.globalMargins.small,

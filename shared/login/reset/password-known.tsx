@@ -54,11 +54,6 @@ const KnowPassword = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  input: Kb.Styles.platformStyles({
-    isElectron: {
-      width: 368,
-    },
-  }),
   topGap: Kb.Styles.platformStyles({
     isMobile: {
       justifyContent: 'flex-start',

@@ -24,18 +24,6 @@ export default NormalPreview
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      contentContainer: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          ...Kb.Styles.globalStyles.flexGrow,
-          height: '100%',
-          width: '100%',
-        },
-        isElectron: {
-          paddingLeft: Kb.Styles.globalMargins.medium,
-          paddingRight: Kb.Styles.globalMargins.medium,
-        },
-      }),
       greyContainer: {
         backgroundColor: Kb.Styles.globalColors.blueLighter3,
         flexGrow: 1,

@@ -160,33 +160,6 @@ const styleCharm = {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   bg: {backgroundColor: Kb.Styles.globalColors.white},
-  clickContainer: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      flexGrow: 0,
-      flexShrink: 1,
-    },
-    isElectron: {width: 'initial'},
-  }),
-  container: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-      alignItems: 'center',
-      flexDirection: 'row',
-      flexGrow: 0,
-      flexShrink: 1,
-      height: 48,
-      justifyContent: 'space-between',
-      width: '100%',
-    },
-    isPhone: {
-      flexDirection: 'column',
-      height: 112,
-    },
-    isTablet: {height: 56},
-  }),
   disabled: {backgroundColor: Kb.Styles.globalColors.white, opacity: 0.4},
   floatingRolePicker: Kb.Styles.platformStyles({
     isElectron: {
@@ -194,18 +167,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       top: -32,
     },
   }),
-  floatingRolePickerContainer: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      marginTop: 0,
-    },
-    isMobile: {marginTop: Kb.Styles.globalMargins.tiny},
-  }),
-  icon: {
-    marginLeft: Kb.Styles.globalMargins.small,
-    marginRight: Kb.Styles.globalMargins.tiny,
-  },
   ignoreButton: {marginLeft: Kb.Styles.globalMargins.xtiny},
   letInButton: {
     backgroundColor: Kb.Styles.globalColors.green,
@@ -214,11 +175,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   newFullName: {
     ...Kb.Styles.globalStyles.flexOne,
     paddingRight: Kb.Styles.globalMargins.xtiny,
-  },
-  userDetails: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    flexGrow: 1,
-    marginLeft: Kb.Styles.globalMargins.small,
   },
 }))
 

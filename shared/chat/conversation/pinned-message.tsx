@@ -187,10 +187,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: {maxWidth: 200},
       }),
-      styleOverride: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.black_50},
-        isElectron: {transition: 'color 0.25s ease-in-out'},
-      }),
       text: Kb.Styles.platformStyles({
         common: {color: Kb.Styles.globalColors.black_50},
         isElectron: {

@@ -116,12 +116,6 @@ const AudioPlayer = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  button: {
-    borderRadius: 15,
-    height: 30,
-    position: 'relative',
-    width: 30,
-  },
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, Kb.Styles.globalMargins.tiny),
     backgroundColor: Kb.Styles.globalColors.white,
@@ -129,9 +123,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     borderRadius: Kb.Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
-  },
-  vis: {
-    alignSelf: 'flex-start',
   },
   visContainer: {
     alignItems: 'flex-start',

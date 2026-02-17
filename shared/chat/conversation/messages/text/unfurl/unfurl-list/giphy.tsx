@@ -109,12 +109,6 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 16,
         width: 16,
       },
-      imageContainer: Kb.Styles.platformStyles({
-        isMobile: {
-          alignSelf: 'flex-start',
-          padding: Kb.Styles.globalMargins.xxtiny,
-        },
-      }),
       innerContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',

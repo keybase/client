@@ -272,10 +272,6 @@ const styles = Kb.Styles.styleSheetCreate(
       flexReallyGrow: {
         flexGrow: 1000,
       },
-      image: {
-        overflow: 'hidden',
-        position: 'relative',
-      },
       placeholder: {
         alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.black_05,
@@ -285,20 +281,10 @@ const styles = Kb.Styles.styleSheetCreate(
         display: 'flex',
         justifyContent: 'center',
       },
-      standardScreen: {...Kb.Styles.padding(0), flexGrow: 1},
       wizardContainer: {
         ...Kb.Styles.padding(64, Kb.Styles.globalMargins.large),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
       },
-      zoomContainer: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.grey,
-          marginBottom: Kb.Styles.globalMargins.tiny,
-          overflow: 'hidden',
-          position: 'relative',
-        },
-        isTablet: {alignSelf: 'center'},
-      }),
     }) as const
 )
 

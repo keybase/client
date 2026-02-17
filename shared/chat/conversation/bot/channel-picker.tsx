@@ -145,10 +145,6 @@ const ChannelPicker = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      channelCheckbox: {
-        marginRight: Kb.Styles.globalMargins.tiny,
-        paddingTop: 0,
-      },
       channelHash: {
         alignSelf: 'center',
         color: Kb.Styles.globalColors.black_50,

@@ -50,9 +50,6 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.globalStyles.fillAbsolute,
         justifyContent: 'center',
       },
-      learn: {
-        color: Kb.Styles.globalColors.blueDark,
-      },
       loading: {
         bottom: '50%',
         left: '50%',
@@ -65,10 +62,5 @@ const styles = Kb.Styles.styleSheetCreate(
         top: '50%',
         width: 24,
       },
-      mapImage: Kb.Styles.platformStyles({
-        isTablet: {
-          resizeMode: 'cover',
-        },
-      }),
     }) as const
 )

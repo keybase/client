@@ -87,18 +87,6 @@ const Intro = () => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      banner: {
-        backgroundColor: Kb.Styles.globalColors.blue,
-        justifyContent: 'center',
-        minHeight: 40,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.xlarge,
-        paddingRight: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.xlarge,
-        paddingTop: Kb.Styles.globalMargins.tiny,
-        position: 'absolute',
-        top: 50,
-      },
-      bannerMessage: {color: Kb.Styles.globalColors.white},
       buttonBar: Kb.Styles.platformStyles({
         isElectron: {
           paddingBottom: Kb.Styles.globalMargins.xlarge - Kb.Styles.globalMargins.tiny, // tiny added inside buttonbar

@@ -192,7 +192,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingTop: Kb.Styles.globalMargins.small,
       },
       addReactionButtonIcon: {marginRight: Kb.Styles.globalMargins.tiny},
-      addReactionButtonText: {color: Kb.Styles.globalColors.black_50},
       buttonContainer: {
         alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.white,

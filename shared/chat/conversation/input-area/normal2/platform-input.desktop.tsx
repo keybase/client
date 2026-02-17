@@ -475,17 +475,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.white,
         width: '100%',
       },
-      emojiPickerContainer: Kb.Styles.platformStyles({
-        common: {
-          borderRadius: 4,
-          bottom: 32,
-          position: 'absolute',
-          right: -64,
-        },
-        isElectron: {...Kb.Styles.desktopStyles.boxShadow},
-      }),
-      emojiPickerContainerWrapper: {...Kb.Styles.globalStyles.fillAbsolute},
-      emojiPickerRelative: {position: 'relative'},
       explodingIconContainer: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.flexBoxColumn,
@@ -563,11 +552,6 @@ const styles = Kb.Styles.styleSheetCreate(
         bottom: Kb.Styles.globalMargins.tiny,
         position: 'absolute',
         right: Kb.Styles.globalMargins.medium,
-      },
-      walletsIcon: {
-        alignSelf: 'flex-end',
-        marginBottom: 2,
-        marginRight: Kb.Styles.globalMargins.xtiny,
       },
     }) as const
 )

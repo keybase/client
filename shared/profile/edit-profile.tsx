@@ -92,7 +92,6 @@ const Container = () => {
 const maxBio = 255
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bio: {maxHeight: undefined},
   container: Kb.Styles.platformStyles({
     common: {padding: Kb.Styles.globalMargins.small},
     isElectron: {

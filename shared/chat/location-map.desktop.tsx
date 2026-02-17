@@ -53,9 +53,6 @@ const styles = Kb.Styles.styleSheetCreate(
         alignItems: 'center',
         justifyContent: 'center',
       },
-      learn: {
-        color: Kb.Styles.globalColors.blueDark,
-      },
       loading: {
         bottom: '50%',
         left: '50%',

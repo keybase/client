@@ -348,11 +348,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       avatar: {marginLeft: 14},
-      badgeIcon: {
-        bottom: -4,
-        position: 'absolute',
-        right: 8,
-      },
       badgeIconUpload: {
         bottom: -Kb.Styles.globalMargins.xxtiny,
         height: Kb.Styles.globalMargins.xsmall,

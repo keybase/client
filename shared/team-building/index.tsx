@@ -300,30 +300,6 @@ const TeamBuilding = (p: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Kb.Styles.platformStyles({
-        common: {position: 'relative'},
-      }),
-      headerContainer: Kb.Styles.platformStyles({
-        isElectron: {
-          marginBottom: Kb.Styles.globalMargins.xtiny,
-          marginTop: Kb.Styles.globalMargins.small + 2,
-        },
-      }),
-      mobileFlex: Kb.Styles.platformStyles({
-        isMobile: {flex: 1},
-      }),
-      newChatHeader: Kb.Styles.platformStyles({
-        isElectron: {margin: Kb.Styles.globalMargins.xsmall},
-      }),
-      peoplePopupStyleClose: Kb.Styles.platformStyles({isElectron: {display: 'none'}}),
-      shrinkingGap: {flexShrink: 1, height: Kb.Styles.globalMargins.xtiny},
-      teamAvatar: Kb.Styles.platformStyles({
-        isElectron: {
-          alignSelf: 'center',
-          position: 'absolute',
-          top: -16,
-        },
-      }),
       waiting: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         backgroundColor: Kb.Styles.globalColors.black_20,

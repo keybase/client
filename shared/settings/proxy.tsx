@@ -191,25 +191,9 @@ const ProxySettingsPopup = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  divider: {
-    marginTop: Kb.Styles.globalMargins.xsmall,
-    width: '100%',
-  },
-  flexButtons: {
-    display: 'flex',
-    flexShrink: 0,
-    flexWrap: 'wrap',
-    marginTop: Kb.Styles.globalMargins.tiny,
-  },
   popupBox: {
     minHeight: '40%',
     padding: Kb.Styles.globalMargins.small,
-  },
-  proxyContainer: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
-    paddingBottom: Kb.Styles.globalMargins.medium,
-    paddingTop: Kb.Styles.globalMargins.medium,
   },
   proxySetting: {marginBottom: Kb.Styles.globalMargins.small},
   proxySettingPopupBox: {padding: Kb.Styles.globalMargins.xlarge},
