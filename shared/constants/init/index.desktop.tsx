@@ -252,7 +252,19 @@ const onInstallCachedDokan = async () => {
   }
 }
 
+const _platformUnsubs: Array<() => void> = __DEV__
+  ? ((globalThis as any).__hmr_platformUnsubs ??= [])
+  : []
+
+let _oneTimeInitDone: boolean = __DEV__
+  ? ((globalThis as any).__hmr_oneTimeInitDone ?? false)
+  : false
+
 export const initPlatformListener = () => {
+  // HMR cleanup: unsubscribe old store subscriptions before re-subscribing
+  for (const unsub of _platformUnsubs) unsub()
+  _platformUnsubs.length = 0
+
   useConfigState.setState(s => {
     s.dispatch.defer.dumpLogsNative = dumpLogs
     s.dispatch.defer.showMainNative = wrapErrors(() => showMainWindow?.())
@@ -266,12 +278,12 @@ export const initPlatformListener = () => {
     })
   })
 
-  useConfigState.subscribe((s, old) => {
+  _platformUnsubs.push(useConfigState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
     useFSState.getState().dispatch.onChangedFocus(s.appFocused)
-  })
+  }))
 
-  useConfigState.subscribe((s, old) => {
+  _platformUnsubs.push(useConfigState.subscribe((s, old) => {
     if (s.loggedIn !== old.loggedIn) {
       s.dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)
     }
@@ -310,32 +322,60 @@ export const initPlatformListener = () => {
       }
       ignorePromise(f())
     }
-  })
+  }))
 
-  const handleWindowFocusEvents = () => {
-    const handle = (appFocused: boolean) => {
-      if (skipAppFocusActions) {
-        console.log('Skipping app focus actions!')
-      } else {
-        useConfigState.getState().dispatch.changedFocus(appFocused)
+  // One-time setup: window event listeners and input monitor (skip on HMR to avoid duplicates)
+  if (!_oneTimeInitDone) {
+    _oneTimeInitDone = true
+    if (__DEV__) (globalThis as any).__hmr_oneTimeInitDone = true
+
+    const handleWindowFocusEvents = () => {
+      const handle = (appFocused: boolean) => {
+        if (skipAppFocusActions) {
+          console.log('Skipping app focus actions!')
+        } else {
+          useConfigState.getState().dispatch.changedFocus(appFocused)
+        }
+      }
+      window.addEventListener('focus', () => handle(true))
+      window.addEventListener('blur', () => handle(false))
+    }
+    handleWindowFocusEvents()
+
+    const setupReachabilityWatcher = () => {
+      window.addEventListener('online', () =>
+        useConfigState.getState().dispatch.osNetworkStatusChanged(true, 'notavailable')
+      )
+      window.addEventListener('offline', () =>
+        useConfigState.getState().dispatch.osNetworkStatusChanged(false, 'notavailable')
+      )
+    }
+    setupReachabilityWatcher()
+
+    if (isLinux) {
+      useConfigState.getState().dispatch.initUseNativeFrame()
+    }
+    useConfigState.getState().dispatch.initNotifySound()
+    useConfigState.getState().dispatch.initForceSmallNav()
+    useConfigState.getState().dispatch.initOpenAtLogin()
+    useConfigState.getState().dispatch.initAppUpdateLoop()
+
+    const initializeInputMonitor = () => {
+      const inputMonitor = new InputMonitor()
+      inputMonitor.notifyActive = (userActive: boolean) => {
+        if (skipAppFocusActions) {
+          console.log('Skipping app focus actions!')
+        } else {
+          useConfigState.getState().dispatch.setActive(userActive)
+          // let node thread save file
+          activeChanged?.(Date.now(), userActive)
+        }
       }
     }
-    window.addEventListener('focus', () => handle(true))
-    window.addEventListener('blur', () => handle(false))
+    initializeInputMonitor()
   }
-  handleWindowFocusEvents()
 
-  const setupReachabilityWatcher = () => {
-    window.addEventListener('online', () =>
-      useConfigState.getState().dispatch.osNetworkStatusChanged(true, 'notavailable')
-    )
-    window.addEventListener('offline', () =>
-      useConfigState.getState().dispatch.osNetworkStatusChanged(false, 'notavailable')
-    )
-  }
-  setupReachabilityWatcher()
-
-  useDaemonState.subscribe((s, old) => {
+  _platformUnsubs.push(useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion !== old.handshakeVersion) {
       if (!isWindows) return
 
@@ -368,15 +408,7 @@ export const initPlatformListener = () => {
         tab: undefined,
       })
     }
-  })
-
-  if (isLinux) {
-    useConfigState.getState().dispatch.initUseNativeFrame()
-  }
-  useConfigState.getState().dispatch.initNotifySound()
-  useConfigState.getState().dispatch.initForceSmallNav()
-  useConfigState.getState().dispatch.initOpenAtLogin()
-  useConfigState.getState().dispatch.initAppUpdateLoop()
+  }))
 
   useProfileState.setState(s => {
     s.dispatch.editAvatar = () => {
@@ -385,20 +417,6 @@ export const initPlatformListener = () => {
         .dispatch.navigateAppend({props: {image: undefined}, selected: 'profileEditAvatar'})
     }
   })
-
-  const initializeInputMonitor = () => {
-    const inputMonitor = new InputMonitor()
-    inputMonitor.notifyActive = (userActive: boolean) => {
-      if (skipAppFocusActions) {
-        console.log('Skipping app focus actions!')
-      } else {
-        useConfigState.getState().dispatch.setActive(userActive)
-        // let node thread save file
-        activeChanged?.(Date.now(), userActive)
-      }
-    }
-  }
-  initializeInputMonitor()
 
   useDaemonState.setState(s => {
     s.dispatch.onRestartHandshakeNative = () => {
