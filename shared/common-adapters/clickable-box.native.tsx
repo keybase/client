@@ -40,11 +40,10 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBoxIn
         <TouchableWithoutFeedback
           onPressIn={onPressIn}
           onPressOut={onPressOut}
-          style={clickStyle}
           onPress={onClick}
           onLongPress={onLongPress}
         >
-          {children}
+          <View style={clickStyle}>{children}</View>
         </TouchableWithoutFeedback>
       )
     }

@@ -133,7 +133,7 @@ const RightActions = (p: {hasTextTitle: boolean; rightAction: RightAction}) => {
   const {hasTextTitle, rightAction} = p
   return (
     <Kb.Box2 direction="vertical" alignItems="flex-end" style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
-      <Kb.Box2 direction="horizontal">{renderAction(rightAction, 0)}</Kb.Box2>
+      <Kb.Box2 direction="horizontal" alignSelf="flex-end">{renderAction(rightAction, 0)}</Kb.Box2>
     </Kb.Box2>
   )
 }
