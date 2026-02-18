@@ -248,13 +248,7 @@
 }
 
 .text_Terminal {
-  color: #a8ccff;
-}
-
-@media (prefers-color-scheme: dark) {
-  .text_Terminal {
-    color: #4c8eff;
-  }
+  color: light-dark(#a8ccff, #4c8eff);
 }
 
 .text_TerminalComment {
@@ -268,18 +262,12 @@
 
 .text_TerminalInline {
   line-height: 16px;
-  color: #2645a3;
+  color: light-dark(#2645a3, #f00);
   background-color: var(--color-blueLighter2);
   border-radius: 2px;
   height: 17px;
   padding: 2px;
   word-wrap: break-word;
-}
-
-@media (prefers-color-scheme: dark) {
-  .text_TerminalInline {
-    color: #f00;
-  }
 }
 
 .text_center {

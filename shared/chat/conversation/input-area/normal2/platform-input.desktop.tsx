@@ -515,7 +515,6 @@ const styles = Kb.Styles.styleSheetCreate(
       input: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.transparent,
-          height: 22,
           // Line height change is so that emojis (unicode characters inside
           // textarea) are not clipped at the top. This change is accompanied by
           // a change in padding to offset the increased line height

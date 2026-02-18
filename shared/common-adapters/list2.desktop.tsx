@@ -32,7 +32,8 @@ function List2<T>(props: Props<T>) {
         style={
           {
             height: '100%',
-            overflowY: 'scroll',
+            overflowY: 'auto',
+            scrollbarGutter: 'stable',
             width: '100%',
             ...Styles.castStyleDesktop(style),
           } as const
@@ -68,7 +69,8 @@ function List2<T>(props: Props<T>) {
           style={
             {
               height: '100%',
-              overflowY: 'scroll',
+              overflowY: 'auto',
+              scrollbarGutter: 'stable',
               width: '100%',
               ...Styles.castStyleDesktop(style),
             } as const
@@ -89,7 +91,8 @@ function List2<T>(props: Props<T>) {
           style={
             {
               height: '100%',
-              overflowY: 'scroll',
+              overflowY: 'auto',
+              scrollbarGutter: 'stable',
               width: '100%',
               ...Styles.castStyleDesktop(style),
             } as const
