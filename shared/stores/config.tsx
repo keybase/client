@@ -684,13 +684,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.androidShare = T.castDraft(share)
       })
-      // already loaded, so just go now
-      if (get().startup.loaded) {
-        // android needs the nav to render first sadly
-        setTimeout(() => {
-          navigateAppend('incomingShareNew')
-        }, 500)
-      }
     },
     setBadgeState: b => {
       if (get().badgeState === b) return

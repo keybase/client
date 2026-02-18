@@ -9,6 +9,7 @@ import {
   getNativeEmitter,
   getInitialNotification,
   removeAllPendingNotificationRequests,
+  shareListenersRegistered,
 } from 'react-native-kb'
 import {useConfigState} from '@/stores/config'
 import {useLogoutState} from '@/stores/logout'
@@ -249,6 +250,7 @@ export const initPushListener = () => {
             handleAppLink('keybase://incoming-share')
           } catch {}
         })
+        shareListenersRegistered()
       }
     } catch (e) {
       logger.error('[Push] failed to set up listeners: ', e)
