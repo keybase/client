@@ -28,8 +28,6 @@ type NativeTextRef = {
   focus: () => void
   blur: () => void
   value: string
-  style: {height: string}
-  scrollHeight: number
   selectionStart: number | null
   selectionEnd: number | null
 }
@@ -44,7 +42,6 @@ const PlainInput = React.memo(
     const inputRef = React.useRef<NativeTextRef>(null)
     const isComposingIMERef = React.useRef(false)
     const mountedRef = React.useRef(true)
-    const autoResizeLastRef = React.useRef('')
     const isDarkMode = useColorScheme() === 'dark'
 
     const focus = React.useCallback(() => {
@@ -81,32 +78,6 @@ const PlainInput = React.memo(
       },
       [_onKeyUp]
     )
-
-    const autoResize = React.useCallback(() => {
-      if (!multiline) {
-        // no resizing height on single-line inputs
-        return
-      }
-
-      // Allow textarea to layout automatically
-      if (growAndScroll) {
-        return
-      }
-
-      const n = inputRef.current
-      if (!n) {
-        return
-      }
-
-      // ignore if value hasn't changed
-      if (n.value === autoResizeLastRef.current) {
-        return
-      }
-      autoResizeLastRef.current = n.value
-
-      n.style.height = '1px'
-      n.style.height = `${n.scrollHeight}px`
-    }, [multiline, growAndScroll])
 
     // This is controlled if a value prop is passed
     const isControlled = typeof p.value === 'string'
@@ -151,9 +122,8 @@ const PlainInput = React.memo(
         }
 
         onChangeText?.(value)
-        autoResize()
       },
-      [maxBytes, onChangeText, autoResize]
+      [maxBytes, onChangeText]
     )
 
     const globalKeyDownHandler = React.useCallback(
@@ -227,7 +197,7 @@ const PlainInput = React.memo(
     const getMultilineProps = () => {
       const rows = rowsMin || Math.min(2, rowsMax || 2)
       const textStyle = getTextStyle(textType ?? 'Body', isDarkMode)
-      const heightStyles: {minHeight: number; maxHeight?: number; overflowY?: 'hidden'} = {
+      const heightStyles: {minHeight: number; maxHeight?: number} = {
         minHeight:
           rows * (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20) +
           (padding ? Styles.globalMargins[padding] * 2 : 0),
@@ -235,8 +205,6 @@ const PlainInput = React.memo(
       if (rowsMax) {
         heightStyles.maxHeight =
           rowsMax * (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20)
-      } else {
-        heightStyles.overflowY = 'hidden'
       }
 
       const paddingStyles = padding ? Styles.padding(Styles.globalMargins[padding]) : {}
@@ -301,11 +269,9 @@ const PlainInput = React.memo(
           if (reflectChange) {
             onChange({target: inputRef.current ?? {value: ''}})
           }
-
-          autoResize()
         }
       },
-      [autoResize, isControlled, onChange]
+      [isControlled, onChange]
     )
 
     React.useImperativeHandle(ref, () => {
@@ -363,13 +329,15 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   growAndScroll: Styles.platformStyles({
     isElectron: {
+      fieldSizing: 'fixed',
       maxHeight: '100%',
-      overflowY: 'scroll',
+      overflowY: 'auto',
+      scrollbarGutter: 'stable',
     },
   }),
   multiline: Styles.platformStyles({
     isElectron: {
-      height: 'initial',
+      fieldSizing: 'content',
       paddingBottom: 0,
       paddingTop: 0,
       resize: 'none',
