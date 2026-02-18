@@ -2,6 +2,7 @@ import * as Shared from './shared'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import type * as CSS from './css'
 import {themed, colors, darkColors} from './colors'
+import {getAssetPath} from '@/constants/platform.desktop'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -144,6 +145,29 @@ export const initDesktopStyles = () => {
   const helperStyle = document.createElement('style')
   helperStyle.appendChild(document.createTextNode(helpers))
   head.appendChild(helperStyle)
+
+  // Generate background-image CSS classes with dark mode variants
+  const makeImgSet = (dir: string, name: string) => {
+    const url = getAssetPath('images', dir, name)
+    return `-webkit-image-set(url('${url}') 1x)`
+  }
+  const makeMultiResImgSet = (baseName: string) => {
+    const ext = baseName.slice(baseName.lastIndexOf('.'))
+    const base = baseName.slice(0, baseName.lastIndexOf('.'))
+    const images = [1, 2, 3].map(
+      mult => `url('${getAssetPath('images', base)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
+    )
+    return `-webkit-image-set(${images.join(', ')})`
+  }
+  const imageCss =
+    `.ashes-bg { background-image: ${makeImgSet('icons', 'pattern-ashes-desktop-400-68.png')}; }\n` +
+    `@media (prefers-color-scheme: dark) { .ashes-bg { background-image: ${makeImgSet('icons', 'dark-pattern-ashes-desktop-400-68.png')}; } }\n` +
+    `.upload-bg { background-image: ${makeMultiResImgSet('upload-pattern-80.png')}; }\n` +
+    `@media (prefers-color-scheme: dark) { .upload-bg { background-image: ${makeMultiResImgSet('dark-upload-pattern-80.png')}; } }\n`
+  const imageStyle = document.createElement('style')
+  imageStyle.appendChild(document.createTextNode(imageCss))
+  head.appendChild(imageStyle)
+
   fixScrollbars()
 }
 
