@@ -74,6 +74,9 @@ git log -n 3
 
 cd "$shared_dir"
 
+echo "Cleaning yarn cache to free up disk space"
+yarn cache clean
+
 echo "Cleaning up main node_modules from previous runs"
 rm -rf node_modules
 yarn modules

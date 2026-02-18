@@ -500,6 +500,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             // note in JS initPlatformSpecific changes the cache dir so this works
             val fileUri: Uri = FileProvider.getUriForFile(reactContext, reactContext.getPackageName() + ".fileprovider", file)
             intent.putExtra(Intent.EXTRA_STREAM, fileUri)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             startSharing(intent, promise)
         } catch (ex: Exception) {
             promise.reject(Error("Error sharing file " + ex.getLocalizedMessage()))

@@ -88,4 +88,5 @@ go/keybase_openbsd
 
 .cursor
 .claude
+.*-mcp
 CLAUDE.md

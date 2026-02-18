@@ -5,7 +5,7 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import {pathToRPCPath} from '@/constants/fs'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {uint8ArrayToHex} from 'uint8array-extras'
-import {isMobile} from '@/constants/platform'
+import {fsCacheDir, isAndroid, isMobile} from '@/constants/platform'
 
 type ChatJob = {
   id: string
@@ -171,13 +171,14 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
     const f = async () => {
       const jobID = Uint8Array.from([...Array<number>(8)], () => Math.floor(Math.random() * 256))
       const id = uint8ArrayToHex(jobID)
+      const actualOutPath = outPath || (isAndroid && fsCacheDir ? `${fsCacheDir}/kbchat-${id}` : '')
       try {
         await T.RPCChat.localArchiveChatRpcPromise({
           req: {
             compress: true,
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
             jobID: id,
-            outputPath: outPath,
+            outputPath: actualOutPath,
             query,
           },
         })
@@ -274,12 +275,13 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
 
   const startFSArchive = (path: string, outPath: string) => {
     const f = async () => {
+      const actualPath = outPath || (isAndroid && fsCacheDir ? `${fsCacheDir}/kbfs-backup-${Date.now()}` : '')
       await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
         archiveJobStartPath: {
           archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.kbfs,
           kbfs: pathToRPCPath(path).kbfs,
         },
-        outputPath: outPath,
+        outputPath: actualPath,
         overwriteZip: true,
       })
     }
@@ -291,9 +293,10 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
       s.archiveAllFilesResponseWaiter.state = 'waiting'
     })
     const f = async () => {
+      const actualDir = outputDir || (isAndroid && fsCacheDir ? fsCacheDir : '')
       const response = await T.RPCGen.SimpleFSSimpleFSArchiveAllFilesRpcPromise({
         includePublicReadonly: false,
-        outputDir,
+        outputDir: actualDir,
         overwriteZip: false,
       })
       set(s => {
@@ -313,12 +316,14 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
 
   const startGitArchive = (gitRepo: string, outPath: string) => {
     const f = async () => {
+      const actualPath =
+        outPath || (isAndroid && fsCacheDir ? `${fsCacheDir}/git-backup-${Date.now()}` : '')
       await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
         archiveJobStartPath: {
           archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.git,
           git: gitRepo,
         },
-        outputPath: outPath,
+        outputPath: actualPath,
         overwriteZip: true,
       })
     }
@@ -330,8 +335,9 @@ export const useArchiveState = Z.createZustand<State>((set, get) => {
       s.archiveAllGitResponseWaiter.state = 'waiting'
     })
     const f = async () => {
+      const actualDir = outputDir || (isAndroid && fsCacheDir ? fsCacheDir : '')
       const response = await T.RPCGen.SimpleFSSimpleFSArchiveAllGitReposRpcPromise({
-        outputDir,
+        outputDir: actualDir,
         overwriteZip: false,
       })
       set(s => {

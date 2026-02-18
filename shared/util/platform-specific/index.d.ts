@@ -16,3 +16,4 @@ export declare function requestLocationPermission(mode: T.RPCChat.UIWatchPositio
 export declare function watchPositionForMap(conversationIDKey: T.Chat.ConversationIDKey): Promise<() => void>
 
 export declare function requestPermissionsToWrite(): Promise<void>
+export declare const fsCacheDir: string
