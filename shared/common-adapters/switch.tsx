@@ -93,7 +93,7 @@ const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props,
   )
 
   return Styles.isMobile || !props.labelTooltip ? (
-    <Kb.Box2 direction={props.align !== 'right' ? 'horizontal' : 'horizontalReverse'} style={Styles.collapseStyles([styles.container, props.style])}>{content}</Kb.Box2>
+    <Kb.Box2 direction={props.align !== 'right' ? 'horizontal' : 'horizontalReverse'} fullWidth={true} style={Styles.collapseStyles([styles.container, props.style])}>{content}</Kb.Box2>
   ) : (
     <Kb.WithTooltip
       containerStyle={getStyle(props)}
