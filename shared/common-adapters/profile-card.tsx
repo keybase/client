@@ -5,7 +5,7 @@ import * as Platforms from '@/util/platforms'
 import * as Tracker from '@/stores/tracker2'
 import type * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
-import Box, {Box2, Box2Measure} from './box'
+import {Box2, Box2Measure} from './box'
 import ClickableBox from './clickable-box'
 import ConnectedNameWithIcon from './name-with-icon'
 import {_setWithProfileCardPopup} from './usernames'
@@ -27,7 +27,6 @@ import type {MeasureRef} from './measure-ref'
 const positionFallbacks = ['top center', 'bottom center'] as const
 
 const Kb = {
-  Box,
   Box2,
   Box2Measure,
   ClickableBox,

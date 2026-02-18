@@ -10,11 +10,11 @@ type OwnProps = {deviceID: string}
 const TimelineMarker = (p: {first: boolean; last: boolean; closedCircle: boolean}) => {
   const {first, last, closedCircle} = p
   return (
-    <Kb.Box style={styles.marker}>
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
-      <Kb.Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
-    </Kb.Box>
+    <Kb.Box2 direction="vertical" alignItems="center">
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
+      <Kb.Box2 direction="vertical" style={closedCircle ? styles.circleClosed : styles.circleOpen} />
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
+    </Kb.Box2>
   )
 }
 
@@ -37,7 +37,7 @@ const TimelineLabel = (p: {
         </Kb.Text>
       )}
       {!!subDesc && !subDescIsName && <Kb.Text type="BodySmall">{subDesc}</Kb.Text>}
-      {spacerOnBottom && <Kb.Box style={{height: 15}} />}
+      {spacerOnBottom && <Kb.Box2 direction="vertical" style={{height: 15}} />}
     </Kb.Box2>
   )
 }
@@ -175,10 +175,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 8,
       },
       invisible: {opacity: 0},
-      marker: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
-      },
       meta: {
         alignSelf: 'center',
         marginTop: 4,

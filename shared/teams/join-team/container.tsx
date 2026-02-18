@@ -73,13 +73,13 @@ const Container = (ownProps: OwnProps) => {
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
                 <Kb.Icon type="icon-illustration-teams-zen-460-96" />
               </Kb.Box2>
-              <Kb.Box style={styles.container}>
+              <Kb.Box2 direction="vertical" style={styles.container}>
                 <Kb.Text center={true} type="Body">
                   Your request was sent to the admins of{' '}
                   {successTeamName ? <Kb.Text type="BodySemibold">{successTeamName}</Kb.Text> : 'the team'}.
                   {"Hang tight, you'll get notified as soon as you're let in."}
                 </Kb.Text>
-              </Kb.Box>
+              </Kb.Box2>
             </Kb.Box2>
           )}
         </Kb.Box2>

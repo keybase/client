@@ -149,7 +149,7 @@ const BigTeamChannelInner = (props: Props) => {
             >
               {draftIcon}
               {outboxIcon}
-              {hasBadge && <Kb.Box style={styles.unread} />}
+              {hasBadge && <Kb.Box2 direction="vertical" style={styles.unread} />}
             </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>

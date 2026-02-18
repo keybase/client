@@ -324,9 +324,9 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
         item.emojiToAdd.error && styles.emojiToAddRowWithError,
       ])}
     >
-      <Kb.Box style={styles.emojiToAddImageContainer}>
+      <Kb.Box2 direction="vertical" style={styles.emojiToAddImageContainer}>
         <Kb.Image2 src={item.emojiToAdd.path} style={styles.emojiToAddImage} />
-      </Kb.Box>
+      </Kb.Box2>
       <AliasInput
         error={item.emojiToAdd.error}
         alias={item.emojiToAdd.alias}

@@ -28,7 +28,7 @@ const GiphySearch = () => {
     )
   }
   return (
-    <Kb.Box style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" style={styles.outerContainer}>
       <Kb.Box2Div
         direction="vertical"
         ref={divRef}
@@ -56,7 +56,7 @@ const GiphySearch = () => {
                 const margin = -margins[index]! / 2 - 1
                 return p.targetUrl ? (
                   <Kb.Box2 key={String(index)} direction="horizontal" style={styles.imageContainer}>
-                    <Kb.Box style={Kb.Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
+                    <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
                       <UnfurlImage
                         autoplayVideo={true}
                         height={gridHeight}
@@ -66,7 +66,7 @@ const GiphySearch = () => {
                         url={p.previewUrl}
                         width={scaledWidth(p.previewWidth)}
                       />
-                    </Kb.Box>
+                    </Kb.Box2>
                   </Kb.Box2>
                 ) : null
               })}
@@ -84,7 +84,7 @@ const GiphySearch = () => {
           ))}
       </Kb.Box2Div>
       <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

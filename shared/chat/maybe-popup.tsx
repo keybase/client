@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import Box from '../common-adapters/box'
+import {Box2} from '../common-adapters/box'
 import PopupDialog from '../common-adapters/popup-dialog'
 import * as Styles from '@/styles'
 
@@ -16,7 +16,11 @@ type Props = {
 }
 
 const MaybePopup = Styles.isMobile
-  ? (props: Props) => <Box style={{height: '100%', width: '100%'}} children={props.children} />
+  ? (props: Props) => (
+      <Box2 direction="vertical" style={styles.mobileContainer}>
+        {props.children}
+      </Box2>
+    )
   : (props: Props) => (
       <PopupDialog
         onClose={props.onClose}
@@ -29,6 +33,16 @@ const MaybePopup = Styles.isMobile
         children={props.children}
       />
     )
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      mobileContainer: {
+        height: '100%',
+        width: '100%',
+      },
+    }) as const
+)
 
 const _styleCover = {
   alignItems: 'stretch',

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
-import Box, {Box2} from './box'
+import {Box2} from './box'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import SwitchToggle from './switch-toggle'
@@ -10,7 +10,6 @@ import type {MeasureRef} from './measure-ref'
 import type {TextType} from './text.shared'
 
 const Kb = {
-  Box,
   Box2,
   ClickableBox,
   ProgressIndicator,
@@ -75,8 +74,8 @@ const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props,
           ] as const)}
         />
       </Kb.ClickableBox>
-      {!!props.gapInBetween && <Kb.Box style={styles.gap} />}
-      {!!props.gapSize && <Kb.Box style={{width: props.gapSize}} />}
+      {!!props.gapInBetween && <Kb.Box2 direction="vertical" style={styles.gap} />}
+      {!!props.gapSize && <Kb.Box2 direction="vertical" style={{width: props.gapSize}} />}
       {typeof props.label === 'string' ? (
         <LabelContainer {...props}>
           <Kb.Text type={props.labelType ?? 'BodySemibold'}>{props.label}</Kb.Text>
@@ -94,7 +93,7 @@ const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props,
   )
 
   return Styles.isMobile || !props.labelTooltip ? (
-    <Kb.Box style={getStyle(props)}>{content}</Kb.Box>
+    <Kb.Box2 direction={props.align !== 'right' ? 'horizontal' : 'horizontalReverse'} style={Styles.collapseStyles([styles.container, props.style])}>{content}</Kb.Box2>
   ) : (
     <Kb.WithTooltip
       containerStyle={getStyle(props)}

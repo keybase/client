@@ -36,9 +36,9 @@ export const Video = (p: Props) => {
 
   return (
     <Kb.Box2 direction="horizontal" style={styles.container}>
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
         {!playing && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
-      </Kb.Box>
+      </Kb.Box2>
       <video
         ref={videoRef}
         onClick={_onClick}

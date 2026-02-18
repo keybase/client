@@ -69,7 +69,7 @@ const BigTeamHeaderInner = (props: Props) => {
           color={Kb.Styles.globalColors.black_35}
           type="iconfont-gear"
         />
-        <Kb.Box style={Kb.Styles.collapseStyles([styles.badge, badgeSubscribe && styles.badgeVisible])} />
+        <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.badge, badgeSubscribe && styles.badgeVisible])} />
       </Kb.ClickableBox>
     </Kb.Box2>
   )

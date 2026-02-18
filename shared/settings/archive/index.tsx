@@ -233,7 +233,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
               <Kb.Text type="BodyBold" lineClamp={1} style={{flexShrink: 1}} ellipsizeMode="head">
                 {job.gitRepo ?? job.kbfsPath}
               </Kb.Text>
-              {C.isMobile ? null : <Kb.Box style={{flex: 1}} />}
+              {C.isMobile ? null : <Kb.Box2 direction="horizontal" style={{flex: 1}} />}
               {C.isMobile ? null : job.bytesTotal ? (
                 <Kb.Text type="BodySmall">{FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
               ) : null}
@@ -252,7 +252,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
             >
               <Kb.ProgressBar ratio={progress} />
               <Kb.Text type="Body">{Math.round(progress * 100) + '%'}</Kb.Text>
-              <Kb.Box style={{flex: 1}} />
+              <Kb.Box2 direction="horizontal" style={{flex: 1}} />
               {errorStr && (
                 <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>
                   <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} fontSize={14} />

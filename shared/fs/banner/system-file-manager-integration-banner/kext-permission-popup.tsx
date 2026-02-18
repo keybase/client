@@ -31,18 +31,18 @@ const InstallSecurityPrefs = () => {
           </Kb.Text>
           <Kb.Text type="Body">Open your macOS Security & Privacy Settings and follow these steps.</Kb.Text>
           <Kb.Box2 direction="horizontal">
-            <Kb.Box style={styles.illustrationContainer}>
+            <Kb.Box2 direction="vertical" style={styles.illustrationContainer}>
               <Kb.Icon style={styles.image} type="illustration-security-preferences" />
-            </Kb.Box>
+            </Kb.Box2>
             <Kb.Box2 direction="vertical" fullHeight={true} style={styles.numberListContainer}>
-              <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
+              <Kb.Box2 direction="horizontal">
                 <Kb.Text type="BodyBig" style={styles.numberList} negative={false}>
                   •
                 </Kb.Text>
                 <Kb.Text type="BodySemibold" style={styles.listText}>
                   {'Change "Allow applications downloaded from" to "App Store and identified developers"'}
                 </Kb.Text>
-              </Kb.Box>
+              </Kb.Box2>
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Text type="BodySemiboldLink" onClick={openSecurityPrefs}>
@@ -50,7 +50,7 @@ const InstallSecurityPrefs = () => {
           </Kb.Text>
         </Kb.Box2>
         {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling && (
-          <Kb.Box style={styles.enablingContainer}>
+          <Kb.Box2 direction="vertical" style={styles.enablingContainer}>
             <Kb.Box2
               direction="vertical"
               gap="small"
@@ -63,7 +63,7 @@ const InstallSecurityPrefs = () => {
                 Checking ...
               </Kb.Text>
             </Kb.Box2>
-          </Kb.Box>
+          </Kb.Box2>
         )}
       </>
     </Kb.PopupWrapper>

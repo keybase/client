@@ -341,7 +341,7 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
 
   return (
     <Kb.ErrorBoundary>
-      <Kb.Box style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <LoadingLine />
         {isSearching ? (
           <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -374,7 +374,7 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
           <UnreadShortcut onClick={scrollToUnread} unreadCount={unreadCount} />
         )}
         {debugWhichList}
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ErrorBoundary>
   )
 })
@@ -390,9 +390,9 @@ const LoadingLine = () => {
     C.waitingKeyChatInboxSyncStarted,
   ])
   return isLoading ? (
-    <Kb.Box style={styles.loadingContainer}>
+    <Kb.Box2 direction="vertical" style={styles.loadingContainer}>
       <Kb.LoadingLine />
-    </Kb.Box>
+    </Kb.Box2>
   ) : null
 }
 
@@ -402,7 +402,6 @@ const styles = Kb.Styles.styleSheetCreate(
       button: {width: '100%'},
       container: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
           backgroundColor: Kb.Styles.globalColors.fastBlank,
           flexGrow: 1,
           position: 'relative',

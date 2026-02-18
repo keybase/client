@@ -57,14 +57,14 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   }
 
   const reloadBanner = loadedLastModifiedTimestamp !== pathItem.lastModifiedTimestamp && (
-    <Kb.Box style={styles.bannerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bannerContainer}>
       <Kb.Banner color="blue" style={styles.banner}>
         <Kb.BannerParagraph
           bannerColor="blue"
           content={['The content of this file has updated. ', {onClick: reload, text: 'Reload'}, '.']}
         />
       </Kb.Banner>
-    </Kb.Box>
+    </Kb.Box2>
   )
 
   // Electron caches <img> aggressively and doesn't really probe server to
@@ -141,7 +141,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       bannerContainer: {
         position: 'relative',
-        width: '100%',
         zIndex: 200, // needed for mobile
       },
       container: {

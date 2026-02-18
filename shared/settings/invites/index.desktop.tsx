@@ -75,16 +75,17 @@ const Invites = () => {
   }
 
   return (
-    <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, flex: 1}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
       {!!error && (
         <Kb.Banner color="red">
           <Kb.BannerParagraph bannerColor="red" content={error} />
         </Kb.Banner>
       )}
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
         style={Kb.Styles.platformStyles({
           isElectron: {
-            ...Kb.Styles.globalStyles.flexBoxColumn,
             flex: 1,
             overflow: 'auto',
             padding: Kb.Styles.globalMargins.medium,
@@ -114,7 +115,7 @@ const Invites = () => {
           />
         </Kb.Box2>
         {pendingInvites.length > 0 && (
-          <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, flexShrink: 0, marginBottom: 16}}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={{flexShrink: 0, marginBottom: 16}}>
             <SubHeading>Pending invites ({pendingInvites.length})</SubHeading>
             {intersperseDividers(
               pendingInvites.map(invite => (
@@ -126,9 +127,9 @@ const Invites = () => {
                 />
               ))
             )}
-          </Kb.Box>
+          </Kb.Box2>
         )}
-        <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, flexShrink: 0}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{flexShrink: 0}}>
           <SubHeading>Accepted invites ({acceptedInvites.length})</SubHeading>
           {intersperseDividers(
             acceptedInvites.map(invite => (
@@ -139,9 +140,9 @@ const Invites = () => {
               />
             ))
           )}
-        </Kb.Box>
-      </Kb.Box>
-    </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -159,13 +160,13 @@ function PendingInviteItem({
   onSelectPendingInvite: (invite: PendingInvite) => void
 }) {
   return (
-    <Kb.Box style={styles.inviteItem}>
+    <Kb.Box2 direction="horizontal" alignItems="center" style={styles.inviteItem}>
       {invite.email ? (
         <PendingEmailContent invite={invite} onSelectPendingInvite={onSelectPendingInvite} />
       ) : (
         <PendingURLContent invite={invite} />
       )}
-      <Kb.Box style={{flex: 1}} />
+      <Kb.Box2 direction="horizontal" style={{flex: 1}} />
       <Kb.Text
         type="BodyPrimaryLink"
         onClick={() => onReclaimInvitation(invite.id)}
@@ -173,7 +174,7 @@ function PendingInviteItem({
       >
         Reclaim
       </Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -185,23 +186,23 @@ function PendingEmailContent({
   onSelectPendingInvite: (invite: PendingInvite) => void
 }) {
   return (
-    <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
+    <Kb.Box2 direction="horizontal" alignItems="center">
       <Kb.Avatar size={32} />
-      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, marginLeft: Kb.Styles.globalMargins.small}}>
+      <Kb.Box2 direction="vertical" style={{marginLeft: Kb.Styles.globalMargins.small}}>
         <Kb.Text type="BodySemibold" onClick={() => onSelectPendingInvite(invite)}>
           {invite.email}
         </Kb.Text>
         <Kb.Text type="BodySmall">
           Invited {dateFns.format(dateFns.fromUnixTime(invite.created), 'MMM d, yyyy')}
         </Kb.Text>
-      </Kb.Box>
-    </Kb.Box>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
 function PendingURLContent({invite}: {invite: PendingInvite}) {
   return (
-    <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
+    <Kb.Box2 direction="horizontal" alignItems="center">
       <Kb.Icon
         type="iconfont-link"
         style={{
@@ -214,24 +215,24 @@ function PendingURLContent({invite}: {invite: PendingInvite}) {
       <Kb.Text type="Body" selectable={true} style={{color: Kb.Styles.globalColors.blueDark}}>
         {invite.url}
       </Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
 function AcceptedInviteItem(p: {invite: AcceptedInvite; onClick: () => void}) {
   const {invite, onClick} = p
   return (
-    <Kb.Box
+    <Kb.ClickableBox
       style={Kb.Styles.platformStyles({
         isElectron: {...styles.inviteItem, ...Kb.Styles.desktopStyles.clickable, flexShrink: 0},
       })}
       onClick={onClick}
     >
       <Kb.Avatar username={invite.username} size={32} />
-      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, marginLeft: Kb.Styles.globalMargins.small}}>
+      <Kb.Box2 direction="vertical" style={{marginLeft: Kb.Styles.globalMargins.small}}>
         <Kb.ConnectedUsernames type="BodyBold" usernames={invite.username} />
-      </Kb.Box>
-    </Kb.Box>
+      </Kb.Box2>
+    </Kb.ClickableBox>
   )
 }
 
@@ -242,8 +243,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     width: 400,
   },
   inviteItem: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
     flexShrink: 0,
     height: 40,
     marginLeft: Kb.Styles.globalMargins.tiny,

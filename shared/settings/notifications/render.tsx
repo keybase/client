@@ -39,7 +39,7 @@ const Notifications = () => {
       <Kb.ProgressIndicator type="Small" style={{width: Kb.Styles.globalMargins.medium}} />
     </Kb.Box2>
   ) : (
-    <Kb.Box style={styles.main}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.main}>
       {props.showEmailSection ? (
         <EmailSection {...props} />
       ) : (
@@ -60,7 +60,7 @@ const Notifications = () => {
           <PhoneSection {...props} />
         </>
       ) : null}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -74,7 +74,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       loading: {alignItems: 'center', flex: 1, justifyContent: 'center'},
       main: Kb.Styles.platformStyles({
-        common: {flex: 1, padding: Kb.Styles.globalMargins.small, paddingRight: 0, width: '100%'},
+        common: {flex: 1, padding: Kb.Styles.globalMargins.small, paddingRight: 0},
         isElectron: Kb.Styles.desktopStyles.scrollable,
       }),
     }) as const

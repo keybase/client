@@ -48,9 +48,9 @@ const ReplyImage = () => {
   const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 80) : undefined
   return (
     <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
-      <Kb.Box style={sizing?.margins}>
+      <Kb.Box2 direction="vertical" style={sizing?.margins}>
         <Kb.Image2 src={imageURL} style={sizing?.dims} />
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.Box2>
   )
 }

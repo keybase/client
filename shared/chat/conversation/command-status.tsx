@@ -39,7 +39,7 @@ const Container = () => {
   }
 
   return (
-    <Kb.Box style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
@@ -73,7 +73,7 @@ const Container = () => {
           })}
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

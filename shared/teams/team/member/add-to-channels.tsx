@@ -232,9 +232,9 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
       onClose={onCancel}
     >
       {loadingChannels && !channelMetas.size ? (
-        <Kb.Box style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
           <Kb.ProgressIndicator type="Large" />
-        </Kb.Box>
+        </Kb.Box2>
       ) : (
         <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
@@ -293,7 +293,7 @@ const HeaderRow = React.memo(function HeaderRow(p: {
         icon="iconfont-new"
       />
       {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
-        <Kb.Box /> // box so that the other item aligns to the left
+        <Kb.Box2 direction="vertical" /> // box so that the other item aligns to the left
       ) : (
         <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
           {onSelectAll ? 'Select all' : 'Clear'}

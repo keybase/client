@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Box, {Box2, Box2Measure} from './box'
+import {Box2, Box2Measure} from './box'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Text from './text'
@@ -14,7 +14,6 @@ import type {MeasureRef} from './measure-ref'
 import {useSafeAreaInsets} from './safe-area-view'
 
 const Kb = {
-  Box,
   Box2,
   Box2Measure,
   ClickableBox,
@@ -64,9 +63,9 @@ export const DropdownButton = (props: DropdownButtonProps) => {
           {width: inline ? undefined : '100%'},
         ])}
       >
-        <Kb.Box style={Styles.collapseStyles([styles.selectedBox, selectedBoxStyle])}>
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Styles.collapseStyles([styles.selectedBox, selectedBoxStyle])}>
           {loading ? <Kb.ProgressIndicator type="Small" /> : selected}
-        </Kb.Box>
+        </Kb.Box2>
         <Kb.Icon
           type="iconfont-caret-down"
           inheritColor={true}
@@ -148,7 +147,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
   )
 
   return (
-    <Kb.Box style={Styles.collapseStyles([styles.overlayContainer, style])}>
+    <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.overlayContainer, style])}>
       <DropdownButton
         disabled={disabled}
         selected={selected}
@@ -157,7 +156,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
         toggleOpen={toggleOpen}
       />
       {popup}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -288,9 +287,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       selectedBox: {
-        ...Styles.globalStyles.flexBoxCenter,
         minHeight: regularHeight,
-        width: '100%',
       },
     }) as const
 )

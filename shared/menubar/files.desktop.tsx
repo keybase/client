@@ -37,9 +37,9 @@ export const FileUpdate = (props: FileUpdateProps) => (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow} alignItems="flex-start">
       <Kb.Icon type="icon-file-16" style={styles.iconStyle} />
       {props.uploading && (
-        <Kb.Box style={styles.iconBadgeBox}>
+        <Kb.Box2 direction="vertical" style={styles.iconBadgeBox}>
           <Kb.Icon type="icon-addon-file-uploading" style={styles.iconBadge} />
-        </Kb.Box>
+        </Kb.Box2>
       )}
       <Filename type="Body" path={props.path} />
     </Kb.Box2>

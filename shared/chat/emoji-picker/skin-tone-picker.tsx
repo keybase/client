@@ -5,16 +5,17 @@ import {emojiData} from '@/common-adapters/emoji'
 
 const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
   return (
-    <Kb.Box style={{position: 'relative'}}>
-      {outerCircle && <Kb.Box style={styles.circleOuter} />}
-      <Kb.Box
+    <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
+      {outerCircle && <Kb.Box2 direction="vertical" style={styles.circleOuter} />}
+      <Kb.Box2
+        direction="vertical"
         style={Kb.Styles.collapseStyles([
           !isExpanded && styles.circleCollapsed,
           isExpanded && styles.circleExpanded,
           {backgroundColor: T.Chat.SkinToneToDotColor(skinTone)},
         ])}
-      ></Kb.Box>
-    </Kb.Box>
+      />
+    </Kb.Box2>
   )
 }
 
@@ -71,7 +72,7 @@ const SkinTonePicker = React.memo(function SkinTonePicker(props: Props) {
       </Kb.ClickableBox>
     )
   ) : (
-    <Kb.Box style={styles.relative}>
+    <Kb.Box2 direction="vertical" style={styles.relative}>
       {expanded ? (
         <Kb.Box2 direction="vertical" style={styles.popupContainer}>
           {optionSkinTones}
@@ -83,8 +84,8 @@ const SkinTonePicker = React.memo(function SkinTonePicker(props: Props) {
           </Kb.ClickableBox>
         </Kb.WithTooltip>
       )}
-      <Kb.Box style={styles.dotPlaceholder} />
-    </Kb.Box>
+      <Kb.Box2 direction="vertical" style={styles.dotPlaceholder} />
+    </Kb.Box2>
   )
 })
 

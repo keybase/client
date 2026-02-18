@@ -3,7 +3,7 @@ import * as SM from '@khanacademy/simple-markdown'
 import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
 import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
-import Box from '@/common-adapters/box'
+import {Box2} from '@/common-adapters/box'
 import Spoiler from './spoiler'
 import NativeEmoji from '@/common-adapters/emoji/native-emoji'
 import type {StyleOverride} from '.'
@@ -180,7 +180,7 @@ const InlineCode = (p: {children: React.ReactNode; state: State}) => {
 const Fence = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p
   return Styles.isMobile ? (
-    <Box>
+    <Box2 direction="vertical">
       <Text
         type="Body"
         style={Styles.collapseStyles([markdownStyles.codeSnippetBlockTextStyle, state.styleOverride?.fence])}
@@ -188,7 +188,7 @@ const Fence = (p: {children: React.ReactNode; state: State}) => {
       >
         {children}
       </Text>
-    </Box>
+    </Box2>
   ) : (
     <Text
       type="Body"
@@ -232,9 +232,9 @@ const reactComponentsForMarkdownType = {
       state.inBlockQuote = true
 
       const ret = (
-        <Box key={state.key} style={markdownStyles.quoteStyle}>
+        <Box2 direction="vertical" key={state.key} style={markdownStyles.quoteStyle}>
           {output(node['content'], state)}
-        </Box>
+        </Box2>
       )
       state.inBlockQuote = oldInBlockQuote
       return ret

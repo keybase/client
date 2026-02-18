@@ -14,16 +14,17 @@ export type Props = {
 
 const getProgress = (dlState: T.FS.DownloadState) => (
   <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny">
-    <Kb.Box style={styles.tubeBox}>
-      <Kb.Box style={styles.tube} />
-      <Kb.Box
+    <Kb.Box2 direction="vertical" style={styles.tubeBox}>
+      <Kb.Box2 direction="vertical" style={styles.tube} />
+      <Kb.Box2
+        direction="vertical"
         style={Kb.Styles.collapseStyles([
           styles.tube,
           styles.tubeStuffing,
           {width: `${Math.round(100 * dlState.progress)}%`},
         ])}
       />
-    </Kb.Box>
+    </Kb.Box2>
     <Kb.Text type="BodyTinySemibold" negative={true}>
       {formatDurationFromNowTo(dlState.endEstimate)}
     </Kb.Text>

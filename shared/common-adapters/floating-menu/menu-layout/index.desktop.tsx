@@ -1,6 +1,7 @@
 import type * as React from 'react'
 import type {MenuLayoutProps, MenuItem} from '.'
-import Box from '@/common-adapters/box'
+import {Box2} from '@/common-adapters/box'
+import ClickableBox from '@/common-adapters/clickable-box'
 import Divider from '@/common-adapters/divider'
 import Icon from '@/common-adapters/icon'
 import Text from '@/common-adapters/text'
@@ -29,7 +30,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
     return item.unWrapped ? (
       item.view
     ) : (
-      <Box
+      <ClickableBox
         key={index}
         className={hoverClassName}
         style={Styles.collapseStyles([styles.itemContainer, styleClickable])}
@@ -42,7 +43,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
       >
         {item.view}
         {!item.view && (
-          <Box style={styles.horizBox}>
+          <Box2 direction="horizontal" fullWidth={true}>
             <Text
               className="title"
               type="Body"
@@ -70,7 +71,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
                 style={{paddingLeft: Styles.globalMargins.tiny}}
               />
             )}
-          </Box>
+          </Box2>
         )}
         {!item.view && item.subTitle && (
           <Text
@@ -83,7 +84,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
           </Text>
         )}
         {!!item.progressIndicator && <ProgressIndicator type="Large" style={styles.progressIndicator} />}
-      </Box>
+      </ClickableBox>
     )
   }
 
@@ -96,26 +97,35 @@ const MenuLayout = (props: MenuLayoutProps) => {
   }, [])
 
   return (
-    <Box
+    <ClickableBox
       onClick={event => {
         // never allow a click to go through
         event.stopPropagation()
       }}
     >
-      <Box style={Styles.collapseStyles([styles.menuContainer, props.style])}>
+      <Box2
+        direction="vertical"
+        alignItems="stretch"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.menuContainer, props.style])}
+      >
         {/* Display header if there is one */}
         {props.header}
         {/* Display menu items */}
         {items.some(item => item !== 'Divider') && (
-          <Box style={Styles.collapseStyles([styles.menuItemList, props.listStyle])}>
+          <Box2
+            direction="vertical"
+            fullWidth={true}
+            style={Styles.collapseStyles([styles.menuItemList, props.listStyle])}
+          >
             {items.map(
               (item, index): React.ReactNode =>
                 item === 'Divider' ? renderDivider(index) : renderMenuItem(item, index)
             )}
-          </Box>
+          </Box2>
         )}
-      </Box>
-    </Box>
+      </Box2>
+    </ClickableBox>
   )
 }
 
@@ -133,7 +143,6 @@ const styles = Styles.styleSheetCreate(
       dividerFirst: {
         marginBottom: 8,
       },
-      horizBox: {...Styles.globalStyles.flexBoxRow},
       icon: {marginLeft: Styles.globalMargins.xtiny},
       iconBadge: {
         backgroundColor: Styles.globalColors.blue,
@@ -154,8 +163,6 @@ const styles = Styles.styleSheetCreate(
       menuContainer: Styles.platformStyles({
         isElectron: {
           ...Styles.desktopStyles.boxShadow,
-          ...Styles.globalStyles.flexBoxColumn,
-          alignItems: 'stretch',
           backgroundColor: Styles.globalColors.white,
           borderRadius: Styles.borderRadius,
           justifyContent: 'flex-start',
@@ -165,7 +172,6 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       menuItemList: {
-        ...Styles.globalStyles.flexBoxColumn,
         flexShrink: 0,
         paddingBottom: Styles.globalMargins.tiny,
         paddingTop: Styles.globalMargins.tiny,

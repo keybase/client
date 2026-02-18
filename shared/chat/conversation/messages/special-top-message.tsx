@@ -182,43 +182,43 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   }, [username])
 
   return (
-    <Kb.Box>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       {loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
-      <Kb.Box style={styles.spacer} />
+      <Kb.Box2 direction="vertical" style={styles.spacer} />
       {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
-        <Kb.Box style={styles.more}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <Kb.Text type="BodySmall">Loading...</Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {pendingState === 'error' && <ErrorMessage />}
       {loadMoreType === 'noMoreToLoad' && !showRetentionNotice && pendingState === 'done' && (
-        <Kb.Box style={styles.more}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           {isHelloBotConversation ? (
             <HelloBotCard />
           ) : (
             <NewChatCard self={isSelfConversation} openPrivateFolder={openPrivateFolder} />
           )}
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {showTeamOffer && (
-        <Kb.Box style={styles.more}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <MakeTeamCard />
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {allowDigging && loadMoreType === 'moreToLoad' && pendingState === 'done' && (
-        <Kb.Box style={styles.more}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <Kb.Text type="BodyBig">
             <Kb.NativeEmoji size={16} emojiName=":moyai:" />
           </Kb.Text>
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {!Kb.Styles.isMobile || usingFlashList ? null : (
         // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useStateFast
         <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={ordinal} />
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
 })
 
@@ -228,10 +228,7 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBar: {padding: Kb.Styles.globalMargins.small},
       errorText: {padding: Kb.Styles.globalMargins.small},
       more: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         paddingBottom: Kb.Styles.globalMargins.medium,
-        width: '100%',
       },
       spacer: {height: Kb.Styles.globalMargins.small},
     }) as const

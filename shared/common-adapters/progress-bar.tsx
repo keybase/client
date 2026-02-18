@@ -1,4 +1,4 @@
-import Box from './box'
+import {Box2} from './box'
 import * as Styles from '@/styles'
 
 type Props = {
@@ -18,7 +18,8 @@ const ProgressBar = ({ratio, style, fillStyle, flatLeft, flatRight}: Props) => {
     width: `${Math.max(0, Math.min(1, ratio)) * 100}%`,
   } as const
   return (
-    <Box
+    <Box2
+      direction="vertical"
       style={Styles.collapseStyles([
         styles.outer,
         style,
@@ -26,8 +27,8 @@ const ProgressBar = ({ratio, style, fillStyle, flatLeft, flatRight}: Props) => {
         flatRight ? styles.flatRight : {},
       ])}
     >
-      <Box style={animatedStyles} />
-    </Box>
+      <Box2 direction="vertical" style={animatedStyles} />
+    </Box2>
   )
 }
 

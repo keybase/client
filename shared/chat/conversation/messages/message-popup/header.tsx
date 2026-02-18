@@ -64,10 +64,10 @@ const MessagePopupHeader = (props: Props) => {
   )
 
   return (
-    <Kb.Box style={styles.headerContainer}>
+    <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
       {Kb.Styles.isMobile ? null : <Kb.Icon type={iconName} style={styles.headerIcon} />}
       {Kb.Styles.isMobile ? null : (
-        <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
+        <Kb.Box2 direction="horizontal">
           <Kb.Text
             type="BodySmall"
             style={{
@@ -76,7 +76,7 @@ const MessagePopupHeader = (props: Props) => {
           >
             ENCRYPTED & SIGNED
           </Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )}
       <Kb.Box2 direction="horizontal">
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
@@ -134,7 +134,7 @@ const MessagePopupHeader = (props: Props) => {
           width: '100%',
         }}
       />
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -144,8 +144,6 @@ const styles = Kb.Styles.styleSheetCreate(
       alignItemsCenter: {alignItems: 'center'},
       headerContainer: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
           paddingTop: Kb.Styles.globalMargins.tiny,
           width: '100%',
         },

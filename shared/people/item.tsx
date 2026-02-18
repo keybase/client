@@ -25,11 +25,11 @@ export type Props = {
 }
 
 const PeopleItem = (props: Props) => (
-  <Kb.Box style={Kb.Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
     {!!props.icon && (
-      <Kb.Box key="icon" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
+      <Kb.Box2 key="icon" direction="vertical" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
         {props.icon}
-      </Kb.Box>
+      </Kb.Box2>
     )}
 
     <Kb.Box2
@@ -43,16 +43,18 @@ const PeopleItem = (props: Props) => (
           props.buttons.length > 0 &&
           props.buttons.map((b, idx) =>
             React.isValidElement(b) ? (
-              <Kb.Box key={idx} style={styles.button}>
+              <Kb.Box2 key={idx} direction="vertical" style={styles.button}>
                 {b}
-              </Kb.Box>
+              </Kb.Box2>
             ) : (
               <Kb.Button key={b.label} small={true} style={styles.button} {...b} />
             )
           )}
       </Kb.Box2>
     </Kb.Box2>
-    <Kb.Box
+    <Kb.Box2
+      direction="horizontal"
+      alignItems="center"
       style={Kb.Styles.collapseStyles([
         styles.timestampContainer,
         props.format === 'multi' && styles.timestampContainerMulti,
@@ -62,8 +64,8 @@ const PeopleItem = (props: Props) => (
       {props.badged && (
         <Kb.Badge badgeStyle={styles.badge} height={Kb.Styles.globalMargins.tiny} leftRightPadding={0} />
       )}
-    </Kb.Box>
-  </Kb.Box>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 export default PeopleItem
 
@@ -84,7 +86,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   container: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
       backgroundColor: Kb.Styles.globalColors.white,
       borderBottomColor: Kb.Styles.globalColors.black_10,
       borderBottomWidth: 1,
@@ -105,8 +106,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   timestampContainer: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
       alignSelf: 'center',
       marginLeft: 'auto',
       marginRight: Kb.Styles.globalMargins.small,

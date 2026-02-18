@@ -80,7 +80,7 @@ const FinderIntegration = () => {
   return Platform.isDarwin || Platform.isWindows ? (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.finderIntegrationContent}>
-        <Kb.Box>
+        <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending && <Kb.ProgressIndicator style={styles.spinner} />}
@@ -124,7 +124,7 @@ const FinderIntegration = () => {
               </Kb.Box2>
             </Kb.Box2>
           )}
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box2>
       <Kb.Divider style={styles.divider} />
     </>
@@ -141,7 +141,7 @@ const FilesSettings = () => {
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <FinderIntegration />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
-          <Kb.Box>
+          <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
               <Kb.Text type="Header">File sync</Kb.Text>
             </Kb.Box2>
@@ -161,7 +161,7 @@ const FilesSettings = () => {
               disabled={props.areSettingsLoading}
               style={styles.syncNotificationCheckbox}
             />
-          </Kb.Box>
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     </>

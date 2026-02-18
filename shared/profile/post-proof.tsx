@@ -157,7 +157,7 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
   const root = `${platformUserName}/keybase.txt`
   const wellKnown = `${platformUserName}/.well-known/keybase.txt`
   return (
-    <Kb.Box style={Kb.Styles.globalStyles.flexBoxColumn}>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text center={true} type="BodySemibold">
         Please serve the text below <Kb.Text type="BodySemiboldItalic">exactly as it appears</Kb.Text>
         {" at one of these URL's."}
@@ -178,7 +178,7 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
       >
         {wellKnown}
       </Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

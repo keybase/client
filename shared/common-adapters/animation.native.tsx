@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Box from './box'
+import {Box2} from './box'
 import LottieView from 'lottie-react-native'
 import type {Props, AnimationType} from './animation'
 // prettier-ignore
@@ -16,9 +16,9 @@ const Animation = React.memo(function Animation(props: Props) {
   const source = data[animationType]
 
   return (
-    <Box style={props.containerStyle}>
+    <Box2 direction="vertical" style={props.containerStyle}>
       <LottieView autoPlay={true} loop={true} source={source} style={props.style ?? noStyle} />
-    </Box>
+    </Box2>
   )
 })
 

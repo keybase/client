@@ -8,7 +8,7 @@ export type Props = {
 }
 
 const GoButton = (props: Props) => (
-  <Kb.Box style={styles.container}>
+  <Kb.Box2 direction="vertical" style={styles.container}>
     <Kb.WithTooltip
       tooltip={
         <Kb.Box2 direction="horizontal">
@@ -32,7 +32,7 @@ const GoButton = (props: Props) => (
         waitingKey={props.waitingKey}
       />
     </Kb.WithTooltip>
-  </Kb.Box>
+  </Kb.Box2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

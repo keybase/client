@@ -214,11 +214,11 @@ const RetentionPicker = (p: Props) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box style={Kb.Styles.collapseStyles([Kb.Styles.globalStyles.flexBoxColumn, containerStyle])}>
+    <Kb.Box2 direction="vertical" style={containerStyle} fullWidth={true}>
       {popup}
-      <Kb.Box style={styles.heading}>
+      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.heading} fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
       <Kb.ClickableBox
         onClick={showPopup}
         ref={popupAnchor}
@@ -238,7 +238,7 @@ const RetentionPicker = (p: Props) => {
       )}
       {showOverrideNotice && <Kb.Text type="BodySmall">Individual channels can override this.</Kb.Text>}
       {showSaveIndicator && <SaveIndicator saving={saving} style={styles.saveState} />}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -263,12 +263,12 @@ const RetentionDisplay = (
   }
   const text = policyToExplanation(convType, props.policy, props.teamPolicy)
   return (
-    <Kb.Box style={Kb.Styles.collapseStyles([Kb.Styles.globalStyles.flexBoxColumn, props.containerStyle])}>
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.heading, styles.displayHeading])}>
+    <Kb.Box2 direction="vertical" style={props.containerStyle} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={Kb.Styles.collapseStyles([styles.heading, styles.displayHeading])}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
       <Kb.Text type="BodySmall">{text}</Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -279,8 +279,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: 2,
       },
       heading: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         marginBottom: Kb.Styles.globalMargins.tiny,
       },
       label: {

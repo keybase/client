@@ -74,7 +74,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
       <Kb.ListItem2
         type="Small"
         body={
@@ -127,7 +127,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
         fullDivider={true}
         height={Kb.Styles.isMobile ? 48 : 42}
       />
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

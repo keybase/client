@@ -98,7 +98,7 @@ const PathStatusIcon = React.memo(function PathStatusIcon(props: Props) {
   ) : props.isTlfType ? (
     <Kb.Icon fixOverdraw={true} type="iconfont-root" sizeType="Small" style={styles.iconFont} />
   ) : (
-    <Kb.Box style={styles.placeholder} />
+    <Kb.Box2 direction="vertical" style={styles.placeholder} />
   )
 })
 

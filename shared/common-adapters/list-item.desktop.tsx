@@ -1,43 +1,45 @@
-import Box from './box'
-import {globalStyles, desktopStyles} from '@/styles'
+import {Box2} from './box'
+import {desktopStyles} from '@/styles'
 import type {Props} from './list-item'
 
 const ListItem = (p: Props) => {
   const clickable = !!p.onClick
   const minHeight = {Large: 56, Small: 40}[p.type]
   return (
-    <Box
+    <Box2
+      direction="horizontal"
+      fullWidth={true}
       style={{
-        ...globalStyles.flexBoxRow,
         ...containerStyle(clickable),
         minHeight,
         ...p.containerStyle,
       }}
     >
-      <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start'}}>
-        <Box
+      <Box2 direction="vertical">
+        <Box2
+          direction="vertical"
+          centerChildren={true}
           style={{
-            ...globalStyles.flexBoxColumn,
-            alignItems: 'center',
             height: minHeight,
-            justifyContent: 'center',
             width: minHeight,
           }}
         >
           {p.icon}
-        </Box>
-      </Box>
-      <Box style={{...globalStyles.flexBoxColumn, ...bodyContainerStyle(p.type)}}>{p.body}</Box>
-      <Box
+        </Box2>
+      </Box2>
+      <Box2 direction="vertical" style={bodyContainerStyle(p.type)}>
+        {p.body}
+      </Box2>
+      <Box2
+        direction="vertical"
         style={{
-          ...globalStyles.flexBoxColumn,
           ...actionStyle(!!p.extraRightMarginAction),
           justifyContent: 'center',
         }}
       >
         {p.action}
-      </Box>
-    </Box>
+      </Box2>
+    </Box2>
   )
 }
 

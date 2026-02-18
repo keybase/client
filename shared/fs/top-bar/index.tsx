@@ -22,7 +22,7 @@ const TopBar = (props: Props) => (
   >
     {!Kb.Styles.isMobile && <Sort path={props.path} />}
     <Loading path={props.path} />
-    <Kb.Box style={styles.flex} />
+    <Kb.Box2 direction="horizontal" style={styles.flex} />
     {T.FS.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
   </Kb.Box2>
 )

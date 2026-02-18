@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import * as C from '@/constants'
 import {useTeamsState} from '@/stores/teams'
 import Avatar, {type AvatarSize} from './avatar'
-import {Box} from './box'
+import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon, {type IconType} from './icon'
 import Text, {
@@ -71,7 +71,6 @@ const NameWithIcon = (props: NameWithIconProps) => {
 
   const isAvatar = !!(username || teamname) && !props.icon
   const commonHeight = size === 'big' ? 64 : Styles.isMobile ? 48 : 32
-  const BoxComponent = onClick ? ClickableBox : Box
   const adapterProps = getAdapterProps(size || 'default')
 
   let avatarOrIcon: React.ReactNode
@@ -158,11 +157,11 @@ const NameWithIcon = (props: NameWithIconProps) => {
     />
   )
   const metas = props.horizontal ? (
-    <Box style={styles.metasBox}>
+    <Box2 direction="horizontal" fullWidth={true} style={styles.metasBox}>
       {metaOne}
       {!!(props.metaTwo && props.metaOne) && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
       {metaTwo}
-    </Box>
+    </Box2>
   ) : (
     <>
       {metaOne}
@@ -170,43 +169,49 @@ const NameWithIcon = (props: NameWithIconProps) => {
     </>
   )
 
-  return (
-    <BoxComponent
-      onClick={_onClickWrapper}
-      style={Styles.collapseStyles([
-        props.horizontal
-          ? size === 'big'
-            ? styles.hbContainerStyle
-            : styles.hContainerStyle
-          : styles.vContainerStyle,
-        props.containerStyle,
-      ])}
-    >
+  const containerStyle = Styles.collapseStyles([
+    props.horizontal
+      ? size === 'big'
+        ? styles.hbContainerStyle
+        : styles.hContainerStyle
+      : styles.vContainerStyle,
+    props.containerStyle,
+  ])
+
+  const metaContainerStyle = props.horizontal
+    ? Styles.collapseStyles([size === 'big' && styles.textContainer, props.metaStyle])
+    : Styles.collapseStyles([
+        styles.metaStyle,
+        size === 'smaller' && styles.smallerWidthTextContainer,
+        size !== 'smaller' && styles.fullWidthTextContainer,
+        {marginTop: adapterProps.metaMargin},
+        props.metaStyle,
+        size === 'smaller' ? styles.smallerWidthTextContainer : {},
+      ] as const)
+
+  const children = (
+    <>
       {avatarOrIcon}
-      <Box
-        style={
-          props.horizontal
-            ? Styles.collapseStyles([
-                Styles.globalStyles.flexBoxColumn,
-                size === 'big' && styles.textContainer,
-                props.metaStyle,
-              ])
-            : Styles.collapseStyles([
-                Styles.globalStyles.flexBoxRow,
-                styles.metaStyle,
-                size === 'smaller' && styles.smallerWidthTextContainer,
-                size !== 'smaller' && styles.fullWidthTextContainer,
-                {marginTop: adapterProps.metaMargin},
-                props.metaStyle,
-                size === 'smaller' ? styles.smallerWidthTextContainer : {},
-              ] as const)
-        }
-      >
+      <Box2 direction="vertical" centerChildren={!props.horizontal} style={metaContainerStyle}>
         {botAlias}
         {usernameOrTitle}
         {metas}
-      </Box>
-    </BoxComponent>
+      </Box2>
+    </>
+  )
+
+  return _onClickWrapper ? (
+    <ClickableBox onClick={_onClickWrapper} style={containerStyle}>
+      {children}
+    </ClickableBox>
+  ) : (
+    <Box2
+      direction={props.horizontal ? 'horizontal' : 'vertical'}
+      alignItems="center"
+      style={containerStyle}
+    >
+      {children}
+    </Box2>
   )
 }
 
@@ -240,10 +245,7 @@ const styles = Styles.styleSheetCreate(() => ({
       marginRight: Styles.globalMargins.small,
     },
   }),
-  hContainerStyle: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-  },
+  hContainerStyle: {},
   hIconStyle: Styles.platformStyles({
     isElectron: {
       height: 32,
@@ -262,7 +264,6 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 64,
   },
   hbContainerStyle: {
-    ...Styles.globalStyles.flexBoxRow,
     width: '100%',
   },
   hbIconStyle: Styles.platformStyles({
@@ -278,14 +279,10 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   metaStyle: {
-    ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.globalStyles.flexBoxCenter,
     marginTop: Styles.globalMargins.tiny,
   },
   metasBox: {
-    ...Styles.globalStyles.flexBoxRow,
     maxWidth: '100%',
-    width: '100%',
   },
   smallerWidthTextContainer: Styles.platformStyles({
     isElectron: {
@@ -298,10 +295,7 @@ const styles = Styles.styleSheetCreate(() => ({
   textContainer: {
     flex: 1,
   },
-  vContainerStyle: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-  },
+  vContainerStyle: {},
   vUsernameContainerStyle: Styles.platformStyles({
     isElectron: {
       textAlign: 'center',

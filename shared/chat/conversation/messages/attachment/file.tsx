@@ -127,7 +127,9 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   return (
     <Kb.ClickableBox2 onLongPress={showMessageMenu} onClick={onDownload}>
       <ShowToastAfterSaving transferState={transferState} />
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
         style={Kb.Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing), styles.filename])}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
@@ -171,7 +173,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
           </Kb.Box2>
         </Kb.Box2>
         {!Kb.Styles.isMobile && isSaltpackFile && operation && (
-          <Kb.Box style={styles.saltpackOperationContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.saltpackOperationContainer}>
             <Kb.Button
               mode="Secondary"
               small={true}
@@ -179,37 +181,37 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
               style={styles.saltpackOperation}
               onClick={() => onSaltpackFileOpen(fileName, operation)}
             />
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {!!arrowColor && (
-          <Kb.Box style={styles.downloadedIconWrapperStyle}>
+          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.downloadedIconWrapperStyle}>
             <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={arrowColor} />
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {!!progressLabel && (
-          <Kb.Box style={styles.progressContainerStyle}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
               {progressLabel}
             </Kb.Text>
             {hasProgress && <Kb.ProgressBar ratio={progress} />}
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {!!errorMsg && (
-          <Kb.Box style={styles.progressContainerStyle}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall" style={styles.error}>
               Failed to download.{' '}
               <Kb.Text type="BodySmall" style={styles.retry} onClick={onDownload}>
                 Retry
               </Kb.Text>
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {onShowInFinder && (
           <Kb.Text type="BodySmallPrimaryLink" onClick={onShowInFinder} style={styles.linkStyle}>
             Show in {Kb.Styles.fileUIName}
           </Kb.Text>
         )}
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ClickableBox2>
   )
 })
@@ -218,10 +220,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       containerStyle: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          width: '100%',
-        },
         isElectron: {...Kb.Styles.desktopStyles.clickable},
       }),
       downloadedIcon: {
@@ -230,7 +228,6 @@ const styles = Kb.Styles.styleSheetCreate(
         top: 1,
       },
       downloadedIconWrapperStyle: {
-        ...Kb.Styles.globalStyles.flexBoxCenter,
         ...Kb.Styles.padding(3, 0, 3, 3),
         borderRadius: 20,
         bottom: 0,
@@ -251,10 +248,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       linkStyle: {color: Kb.Styles.globalColors.black_50},
-      progressContainerStyle: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-      },
       progressLabelStyle: {
         color: Kb.Styles.globalColors.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
