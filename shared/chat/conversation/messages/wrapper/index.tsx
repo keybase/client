@@ -53,7 +53,7 @@ const typeMap = {
   systemText: SystemText,
   systemUsersAddedToConversation: SystemUsersAddedToConv,
   text: Text,
-} satisfies Partial<Record<T.Chat.RenderMessageType, React.NamedExoticComponent<Props>>> as Record<
+} satisfies Partial<Record<T.Chat.RenderMessageType, React.NamedExoticComponent<Props>>> as unknown as Record<
   T.Chat.RenderMessageType,
   React.NamedExoticComponent<Props> | undefined
 >
