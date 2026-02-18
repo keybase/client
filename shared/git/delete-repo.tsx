@@ -56,20 +56,20 @@ const Container = (ownProps: OwnProps) => {
   return (
     <Kb.PopupWrapper onCancel={onClose} title="Delete repo?">
       <Kb.ScrollView>
-        <Kb.Box style={styles.container}>
+        <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
           {!!error && (
-            <Kb.Box style={styles.error}>
+            <Kb.Box2 direction="vertical" style={styles.error}>
               <Kb.Text type="Body" negative={true}>
                 {error.message}
               </Kb.Text>
-            </Kb.Box>
+            </Kb.Box2>
           )}
           <Kb.Text center={true} type="Header" style={{marginBottom: 27}}>
             Are you sure you want to delete this {teamname ? 'team ' : ''}
             repository?
           </Kb.Text>
           <Kb.Icon type={teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
-          <Kb.Box style={styles.avatarBox}>
+          <Kb.Box2 direction="horizontal" alignItems="center" style={styles.avatarBox}>
             {!!teamname && (
               <Kb.Avatar
                 isTeam={true}
@@ -84,7 +84,7 @@ const Container = (ownProps: OwnProps) => {
             >
               {teamname ? `${teamname}/${_name}` : _name}
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
           <Kb.Text center={true} type="Body" style={{marginBottom: Kb.Styles.globalMargins.medium}}>
             {teamname
               ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
@@ -125,7 +125,7 @@ const Container = (ownProps: OwnProps) => {
               waitingKey={waitingKey}
             />
           </Kb.ButtonBar>
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.ScrollView>
     </Kb.PopupWrapper>
   )
@@ -133,8 +133,6 @@ const Container = (ownProps: OwnProps) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   avatarBox: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
     marginBottom: Kb.Styles.globalMargins.medium,
   },
   buttonBar: {alignItems: 'center'},
@@ -149,8 +147,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   container: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
       flex: 1,
       height: '100%',
     },

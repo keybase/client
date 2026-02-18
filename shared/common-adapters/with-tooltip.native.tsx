@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import {Portal} from './portal.native'
 import {useTimeout} from './use-timers'
-import Box from './box'
+import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import * as Styles from '@/styles'
@@ -17,7 +17,7 @@ import {useSafeAreaFrame} from 'react-native-safe-area-context'
 // "top center" for now.
 
 const Kb = {
-  Box,
+  Box2,
   ClickableBox,
   Portal,
   Text,
@@ -32,12 +32,13 @@ type Dims = {
 
 const FloatingBox = (props: {children: React.ReactNode; style: Styles.StylesCrossPlatform}) => (
   <Kb.Portal hostName="popup-root">
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
       pointerEvents="box-none"
       style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, props.style])}
     >
       {props.children}
-    </Kb.Box>
+    </Kb.Box2>
   </Kb.Portal>
 )
 

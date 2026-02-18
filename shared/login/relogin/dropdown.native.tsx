@@ -99,30 +99,30 @@ const Dropdown = (props: Props) => {
   if (Kb.Styles.isIOS) {
     return (
       <TouchableWithoutFeedback onPress={() => showModal(true)}>
-        <Kb.Box style={styles.container}>
+        <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
           <Modal
             animationType="slide"
             transparent={true}
             visible={modalVisible}
             onRequestClose={() => showModal(false)}
           >
-            <Kb.Box style={styles.pickerContainer}>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.pickerContainer}>
               <TouchableWithoutFeedback onPress={() => showModal(false)}>
-                <Kb.Box style={{flex: 1}} />
+                <Kb.Box2 direction="vertical" style={{flex: 1}} />
               </TouchableWithoutFeedback>
               {picker}
-            </Kb.Box>
+            </Kb.Box2>
           </Modal>
           {labelAndCaret}
-        </Kb.Box>
+        </Kb.Box2>
       </TouchableWithoutFeedback>
     )
   } else {
     return (
-      <Kb.Box style={styles.container}>
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
         {labelAndCaret}
         {picker}
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
 }
@@ -131,8 +131,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.white,
         borderColor: Kb.Styles.globalColors.black_10,
         borderRadius: Kb.Styles.borderRadius,

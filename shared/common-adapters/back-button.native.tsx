@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import {Pressable, Keyboard} from 'react-native'
 import Badge from './badge'
-import Box from './box'
+import {Box2} from './box'
 import Icon from './icon'
 import * as Styles from '@/styles'
 import type {Props} from './back-button'
@@ -10,7 +10,7 @@ import noop from 'lodash/noop'
 
 const Kb = {
   Badge,
-  Box,
+  Box2,
   Icon,
 }
 
@@ -25,7 +25,7 @@ const BackButton = React.memo(function BackButton(props: Props) {
   const onBack = props.disabled ? noop : (props.onClick ?? onNavUp)
   return (
     <Pressable onPress={onBack}>
-      <Kb.Box style={Styles.collapseStyles([styles.container, props.style])}>
+      <Kb.Box2 direction="horizontal" alignItems="center" style={Styles.collapseStyles([styles.container, props.style])}>
         <Kb.Icon
           fixOverdraw={canFixOverdraw}
           type="iconfont-arrow-left"
@@ -33,7 +33,7 @@ const BackButton = React.memo(function BackButton(props: Props) {
           style={styles.arrow}
         />
         {!!props.badgeNumber && <Kb.Badge badgeNumber={props.badgeNumber} />}
-      </Kb.Box>
+      </Kb.Box2>
     </Pressable>
   )
 })
@@ -44,8 +44,6 @@ const styles = Styles.styleSheetCreate(() => ({
     marginTop: 2,
   },
   container: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
     marginRight: 8,
     minWidth: 32,
     padding: Styles.globalMargins.tiny,

@@ -2,13 +2,13 @@ import * as C from '@/constants'
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
-import Box from '@/common-adapters/box'
+import {Box2} from '@/common-adapters/box'
 import Icon from '@/common-adapters/icon'
 import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
 import type {Props, LeftActionProps} from '.'
 
-const Kb = {BackButton, Box, Icon, Text}
+const Kb = {BackButton, Box2, Icon, Text}
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -18,7 +18,7 @@ export const HeaderHocHeader = ({
   onCancel,
   theme = 'light',
 }: Props) => (
-  <Kb.Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+  <Kb.Box2 direction="horizontal" alignItems="center" style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
     {onCancel && (
       <Kb.Icon
@@ -28,12 +28,12 @@ export const HeaderHocHeader = ({
       />
     )}
     {title && (
-      <Kb.Box style={_titleStyle}>
+      <Kb.Box2 direction="horizontal" centerChildren={true} style={_titleStyle}>
         <Kb.Text type="Header">{title}</Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
     )}
     {titleComponent}
-  </Kb.Box>
+  </Kb.Box2>
 )
 
 // TODO use LeftAction above
@@ -48,7 +48,7 @@ const LeftAction = ({
   onLeftAction,
   theme,
 }: LeftActionProps) => (
-  <Kb.Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
+  <Kb.Box2 direction="vertical" alignItems="flex-start" style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction && leftAction === 'cancel' ? (
       <Kb.Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
         {leftActionText || customCancelText || 'Cancel'}
@@ -69,7 +69,7 @@ const LeftAction = ({
         onClick={disabled ? undefined : onLeftAction}
       />
     ) : null}
-  </Kb.Box>
+  </Kb.Box2>
 )
 
 export const HeaderHocWrapper = (props: Props & {children: React.ReactNode}): React.ReactNode => {
@@ -77,8 +77,6 @@ export const HeaderHocWrapper = (props: Props & {children: React.ReactNode}): Re
 }
 
 const _headerStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
   flexShrink: 0,
   justifyContent: 'flex-start',
   minHeight: undefined,
@@ -111,11 +109,8 @@ const _styleCloseThemed = {
 }
 
 const _titleStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
   bottom: 0,
   flex: 1,
-  justifyContent: 'center',
   left: 0,
   position: 'absolute', // This is always centered so we never worry about items to the left/right. If you have overlap or other issues you likely have to fix the content
   right: 0,
@@ -142,8 +137,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   leftAction: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'flex-start',
       flexShrink: 1,
       justifyContent: 'flex-start',
     },

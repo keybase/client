@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import FloatingBox from './floating-box'
-import Box from './box'
+import {Box2} from './box'
 import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 import {useTimeout} from './use-timers'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
@@ -12,7 +12,7 @@ import noop from 'lodash/noop'
 import {useColorScheme} from 'react-native'
 
 const Kb = {
-  Box,
+  Box2,
   FloatingBox,
   KeyboardAvoidingView2,
 }
@@ -74,7 +74,7 @@ const Toast = (props: Props) => {
   return shouldRender ? (
     <Kb.FloatingBox>
       <Kb.KeyboardAvoidingView2>
-        <Kb.Box pointerEvents="none" style={styles.wrapper}>
+        <Kb.Box2 direction="vertical" pointerEvents="none" style={styles.wrapper}>
           <NativeAnimated.View
             style={Styles.collapseStyles([
               styles.container,
@@ -89,7 +89,7 @@ const Toast = (props: Props) => {
           >
             {props.children}
           </NativeAnimated.View>
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.KeyboardAvoidingView2>
     </Kb.FloatingBox>
   ) : null

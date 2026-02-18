@@ -166,11 +166,11 @@ const EditAvatar = (_p: Props) => {
         ])}
       >
         {type === 'team' && createdTeam && !wizard && (
-          <Kb.Box style={styles.createdBanner}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.createdBanner}>
             <Kb.Text type="BodySmallSemibold" negative={true}>
               Hoorah! Your team {teamname} was created.
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
         )}
         <Kb.Text center={true} type="Body" style={styles.instructions}>
           Drag and drop a {type} avatar or{' '}
@@ -179,7 +179,7 @@ const EditAvatar = (_p: Props) => {
           </Kb.Text>{' '}
           for one.
         </Kb.Text>
-        <Kb.Box
+        <Kb.ClickableBox
           className={Kb.Styles.classNames('hoverbox', {filled: loading !== 'loaded'})}
           onClick={!loading ? filePickerOpen : undefined}
           style={{
@@ -211,7 +211,7 @@ const EditAvatar = (_p: Props) => {
               type="iconfont-camera"
             />
           )}
-        </Kb.Box>
+        </Kb.ClickableBox>
         {loading === 'loaded' ? <Kb.Text type="Body">Click to select. Scroll to zoom.</Kb.Text> : null}
       </div>
     </Kb.Modal>

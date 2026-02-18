@@ -42,12 +42,12 @@ const Editing = React.memo(function Editing({editID}: Props) {
         />
       }
       icon={
-        <Kb.Box style={rowStyles.pathItemIcon}>
+        <Kb.Box2 direction="vertical" style={rowStyles.pathItemIcon}>
           <Kb.Icon type="icon-folder-32" />
-        </Kb.Box>
+        </Kb.Box2>
       }
       body={
-        <Kb.Box key="main" style={rowStyles.itemBox}>
+        <Kb.Box2 direction="vertical" key="main" style={rowStyles.itemBox}>
           <Kb.PlainInput
             value={filename}
             placeholder={edit.originalName}
@@ -58,10 +58,10 @@ const Editing = React.memo(function Editing({editID}: Props) {
             autoFocus={true}
             onKeyUp={onKeyUp}
           />
-        </Kb.Box>
+        </Kb.Box2>
       }
       action={
-        <Kb.Box key="right" style={styles.rightBox}>
+        <Kb.Box2 direction="horizontal" alignItems="center" key="right" style={styles.rightBox}>
           {!!edit.error && (
             <Kb.WithTooltip tooltip={edit.error} showOnPressMobile={true}>
               <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
@@ -82,7 +82,7 @@ const Editing = React.memo(function Editing({editID}: Props) {
             hoverColor={Kb.Styles.globalColors.black}
             style={styles.iconCancel}
           />
-        </Kb.Box>
+        </Kb.Box2>
       }
     />
   )
@@ -104,8 +104,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       rightBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         flexShrink: 1,
         justifyContent: 'flex-end',
       },

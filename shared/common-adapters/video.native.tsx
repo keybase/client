@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Box from './box'
+import {Box2} from './box'
 import type {Props} from './video'
 import {StatusBar} from 'react-native'
 import {Video as AVVideo, VideoFullscreenUpdate} from 'expo-av'
 import {useCheckURL} from './video.shared'
 
-const Kb = {Box}
+const Kb = {Box2}
 
 // There seems to be a race between navigation animation and the measurement stuff
 // here that causes stuff to be rendered off-screen. So delay mounting to avoid
@@ -32,7 +32,7 @@ const Video = (props: Props) => {
 
   const content = (
     <DelayMount>
-      <Kb.Box style={styles.container}>
+      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.container}>
         <AVVideo
           isMuted={muted}
           source={source}
@@ -48,7 +48,7 @@ const Video = (props: Props) => {
           }}
           style={styles.video}
         />
-      </Kb.Box>
+      </Kb.Box2>
     </DelayMount>
   )
 
@@ -58,10 +58,7 @@ export default Video
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
     height: '100%',
-    justifyContent: 'center',
     width: '100%',
   },
   video: {

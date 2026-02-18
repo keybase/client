@@ -170,22 +170,22 @@ const ProxySettingsPopup = (props: Props) => {
   if (Kb.Styles.isMobile) {
     return (
       <Kb.HeaderHocWrapper onBack={props.onBack}>
-        <Kb.Box style={styles.popupBox}>
-          <Kb.Box style={styles.proxySettingPopupBox}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proxySettingPopupBox}>
             <ProxySettingsComponent {...props} />
-          </Kb.Box>
-        </Kb.Box>
+          </Kb.Box2>
+        </Kb.Box2>
       </Kb.HeaderHocWrapper>
     )
   }
   return (
     <Kb.PopupDialog>
-      <Kb.Box style={styles.popupBox}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
         <Kb.BackButton onClick={props.onBack} />
-        <Kb.Box style={styles.proxySettingPopupBox}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proxySettingPopupBox}>
           <ProxySettingsComponent {...props} />
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     </Kb.PopupDialog>
   )
 }

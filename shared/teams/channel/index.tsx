@@ -255,7 +255,7 @@ const Channel = (props: OwnProps) => {
   }
 
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.SectionList
         renderSectionHeader={({section}) =>
           section.title ? <Kb.SectionDivider label={section.title} /> : null
@@ -266,7 +266,7 @@ const Channel = (props: OwnProps) => {
         style={styles.list}
       />
       <SelectionPopup selectedTab={selectedTab === 'members' ? 'channelMembers' : ''} teamID={teamID} />
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -274,12 +274,8 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'stretch',
         flex: 1,
-        height: '100%',
         position: 'relative',
-        width: '100%',
       },
       list: {},
       listContentContainer: Kb.Styles.platformStyles({

@@ -112,14 +112,14 @@ const Upload = (props: UploadProps) => {
       {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}
       {showing && (
         <NativeAnimated.View style={{position: 'relative', top: uploadTop}}>
-          <Kb.Box style={styles.backgroundBox}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.backgroundBox}>
             <NativeAnimated.Image
               resizeMode="repeat"
               source={isDarkMode ? darkPatternImage : lightPatternImage}
               style={{...styles.backgroundImage, marginTop: backgroundTop}}
             />
-          </Kb.Box>
-          <Kb.Box style={styles.box}>
+          </Kb.Box2>
+          <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.box}>
             <Kb.Text key="files" type="BodySmallSemibold" style={styles.text}>
               {files
                 ? `Encrypting and uploading ${files} files...`
@@ -130,7 +130,7 @@ const Upload = (props: UploadProps) => {
             {!!timeLeft.length && (
               <Kb.Text key="left" type="BodyTiny" style={styles.text}>{`${timeLeft} left`}</Kb.Text>
             )}
-          </Kb.Box>
+          </Kb.Box2>
         </NativeAnimated.View>
       )}
     </>
@@ -144,7 +144,6 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           height: 48,
           overflow: 'hidden',
-          width: '100%',
         },
       }),
       backgroundImage: {
@@ -152,10 +151,7 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       box: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         height: 48,
-        justifyContent: 'center',
         marginTop: -48,
       },
       text: {

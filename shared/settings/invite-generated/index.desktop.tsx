@@ -6,14 +6,11 @@ const InviteGeneratedRender = (props: Props) => {
   const {link, email} = props
   const onClose = C.useRouterState(s => s.dispatch.navigateUp)
   return (
-    <Kb.Box
-      style={{
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        flex: 1,
-        justifyContent: 'center',
-        position: 'relative',
-      }}
+    <Kb.Box2
+      direction="vertical"
+      centerChildren={true}
+      fullWidth={true}
+      style={{flex: 1, position: 'relative'}}
     >
       <Kb.Icon type="iconfont-close" style={styles.icon} onClick={onClose} />
       <Kb.Icon type="icon-invite-link-48" />
@@ -27,7 +24,7 @@ const InviteGeneratedRender = (props: Props) => {
           Yay! Please share the below link with your friend. It contains signup &amp; install instructions.
         </Kb.Text>
       )}
-      <Kb.Box style={styles.linkContainer}>
+      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.linkContainer}>
         <Kb.Icon
           type="iconfont-link"
           style={{height: 14, marginRight: Kb.Styles.globalMargins.tiny}}
@@ -36,9 +33,9 @@ const InviteGeneratedRender = (props: Props) => {
         <Kb.Text type="BodySemibold" selectable={true} style={{color: Kb.Styles.globalColors.greenDark}}>
           {link}
         </Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
       <Kb.Button style={{marginTop: Kb.Styles.globalMargins.medium}} label="Close" onClick={onClose} />
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -52,8 +49,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   linkContainer: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
     backgroundColor: Kb.Styles.globalColors.greenLighter,
     borderRadius: Kb.Styles.borderRadius,
     height: 32,

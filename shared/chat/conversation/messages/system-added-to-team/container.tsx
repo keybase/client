@@ -120,11 +120,11 @@ const ManageComponent = (props: Props) => {
   }
   if (addee === you) {
     return (
-      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn}}>
+      <Kb.Box2 direction="vertical">
         <Kb.Text onClick={onManageNotifications} type={textType}>
           Manage phone and computer notifications
         </Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
     )
   } else if (bot) {
     return (
