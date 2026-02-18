@@ -92,11 +92,11 @@ const ConnectedBanner = (ownProps: OwnProps) => {
           If you want to let them into this folder and the matching chat, you should either:
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={styles.listTextContainer}>
-        <Kb.Text type="BodySemibold" negative={true} style={styles.listTextContent}>
+      <Kb.Box2 direction="vertical" style={styles.listTextContainer} gap="tiny" gapStart={true}>
+        <Kb.Text type="BodySemibold" negative={true}>
           1. Be satisfied with their new proofs, or
         </Kb.Text>
-        <Kb.Text type="BodySemibold" negative={true} style={styles.listTextContent}>
+        <Kb.Text type="BodySemibold" negative={true}>
           2. Know them outside Keybase and have gotten a thumbs up from them.
         </Kb.Text>
       </Kb.Box2>
@@ -188,7 +188,6 @@ const styles = Kb.Styles.styleSheetCreate(
         justifyContent: 'center',
         maxWidth: C.isMobile ? 280 : 400,
       },
-      listTextContent: {marginTop: Kb.Styles.globalMargins.tiny},
       textDontLetThemIn: {
         ...fixedHeight(Kb.Styles.globalMargins.mediumLarge),
         marginBottom: Kb.Styles.globalMargins.tiny,

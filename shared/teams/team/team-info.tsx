@@ -132,7 +132,6 @@ const TeamInfo = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   avatar: {
     alignSelf: 'center',
-    marginBottom: Kb.Styles.globalMargins.tiny,
     marginRight: Kb.Styles.globalMargins.tiny,
   },
   bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
