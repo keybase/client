@@ -1,5 +1,4 @@
-import {Box2} from './box'
-import {TouchableWithoutFeedback} from 'react-native'
+import {View, TouchableWithoutFeedback} from 'react-native'
 import * as Styles from '@/styles'
 
 import type {Props} from './popup-dialog'
@@ -7,13 +6,13 @@ import type {Props} from './popup-dialog'
 export function PopupDialog({children, onClose, styleCover, styleContainer}: Props) {
   return (
     <TouchableWithoutFeedback onPress={onClose || undefined}>
-      <Box2 direction="vertical" centerChildren={true} style={Styles.collapseStyles([styles.cover, styleCover])}>
+      <View style={Styles.collapseStyles([styles.cover, styleCover])}>
         <TouchableWithoutFeedback>
-          <Box2 direction="vertical" style={Styles.collapseStyles([styles.container, styleContainer])}>
+          <View style={Styles.collapseStyles([styles.container, styleContainer])}>
             {children}
-          </Box2>
+          </View>
         </TouchableWithoutFeedback>
-      </Box2>
+      </View>
     </TouchableWithoutFeedback>
   )
 }
@@ -29,6 +28,7 @@ const styles = Styles.styleSheetCreate(
       },
       cover: {
         ...Styles.globalStyles.fillAbsolute,
+        ...Styles.globalStyles.flexBoxCenter,
         backgroundColor: Styles.globalColors.black,
         paddingBottom: Styles.globalMargins.small,
         paddingLeft: Styles.globalMargins.large,

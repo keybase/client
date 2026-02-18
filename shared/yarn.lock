@@ -3361,13 +3361,6 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-list@0.8.12":
-  version "0.8.12"
-  resolved "https://registry.yarnpkg.com/@types/react-list/-/react-list-0.8.12.tgz#ead6a7bdd24d237ca2d2adc9ecbe895e0c86f5f2"
-  integrity sha512-X09dFxEJUeqiLe2KNuYl4JyIcvuOzmz3Im2jBH3X3VTH46Mo10wnAYWEsUbDNDIdQ2mGbWgmToqCofXPNGlWXA==
-  dependencies:
-    "@types/react" "*"
-
 "@types/react-measure@2.0.12":
   version "2.0.12"
   resolved "https://registry.yarnpkg.com/@types/react-measure/-/react-measure-2.0.12.tgz#e8ba05057357b9529aa4115064fe7ea77549f54c"
@@ -9608,11 +9601,6 @@ react-is@^19.1.0:
   version "19.2.4"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-19.2.4.tgz#a080758243c572ccd4a63386537654298c99d135"
   integrity sha512-W+EWGn2v0ApPKgKKCy/7s7WHXkboGcsrXE+2joLyVxkbyVQfO3MUEaUQDHoSmb8TFFrSKYa9mw64WZHNHSDzYA==
-
-react-list@0.8.18:
-  version "0.8.18"
-  resolved "https://registry.yarnpkg.com/react-list/-/react-list-0.8.18.tgz#682b6957ad680db496a376e75cd37b1d38409857"
-  integrity sha512-1OSdDvzuKuwDJvQNuhXxxL+jTmmdtKg1i6KtYgxI9XR98kbOql1FcSGP+Lcvo91fk3cYng+Z6YkC6X9HRJwxfw==
 
 react-native-gesture-handler@2.30.0:
   version "2.30.0"

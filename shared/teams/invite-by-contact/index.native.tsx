@@ -120,18 +120,16 @@ export const InviteByContact = (props: InviteByContactProps) => {
             position="bottom center"
             disabledRoles={{owner: 'Cannot invite an owner via email.'}}
           />
-          <Kb.List
+          <Kb.ClickableBox onClick={() => controlRolePicker(true)} style={styles.rolePickerBox}>
+            <Kb.Text center={true} type="BodySmall">
+              Users will be invited to {props.teamName} as
+              <Kb.Text type="BodySmallPrimaryLink">{' ' + props.selectedRole + 's'}</Kb.Text>.
+            </Kb.Text>
+          </Kb.ClickableBox>
+          <Kb.List2
             keyProperty="id"
             items={listItems}
-            fixedHeight={56}
-            ListHeaderComponent={
-              <Kb.ClickableBox onClick={() => controlRolePicker(true)} style={styles.rolePickerBox}>
-                <Kb.Text center={true} type="BodySmall">
-                  Users will be invited to {props.teamName} as
-                  <Kb.Text type="BodySmallPrimaryLink">{' ' + props.selectedRole + 's'}</Kb.Text>.
-                </Kb.Text>
-              </Kb.ClickableBox>
-            }
+            itemHeight={{height: 56, type: 'fixed'}}
             renderItem={contactRow}
             style={styles.contactList}
           />

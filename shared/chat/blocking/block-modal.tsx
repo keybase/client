@@ -123,9 +123,6 @@ const ReportOptions = (props: ReportOptionsProps) => {
   )
 }
 
-// In order to have this play nicely with scrolling and keyboards, put all the stuff in a List.
-type Item = 'topStuff' | {username: string}
-
 const Container = React.memo(function BlockModal(ownProps: OwnProps) {
   const {context, conversationIDKey, blockUserByDefault = false, filterUserByDefault = false} = ownProps
   const {flagUserByDefault = false, reportsUserByDefault = false, team: teamname} = ownProps
@@ -433,30 +430,58 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
   const teamCheckboxDisabled = !!teamname && !otherUsernames?.length && !adderUsername
   const teamLabel = context === 'message-popup'
 
-  const topStuff = (
-    <React.Fragment key="topStuff">
-      {(!!teamname || !adderUsername) && (
-        <>
-          <CheckboxRow
-            text={`Leave and block ${teamname || 'this conversation'}`}
-            onCheck={setBlockTeam}
-            checked={blockTeam}
-            disabled={teamCheckboxDisabled}
-          />
-          <Kb.Divider />
-        </>
-      )}
-      {!!adderUsername && renderRowsForUsername(adderUsername, true, teamLabel)}
-      {!!otherUsernames?.length && (
-        <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
-          <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
-        </Kb.Box2>
-      )}
-    </React.Fragment>
-  )
-
+  type Item = 'topStuff' | {username: string}
   const items: Array<Item> = ['topStuff']
   otherUsernames?.forEach(username => items.push({username}))
+
+  const topStuffHeight =
+    120 +
+    (!!adderUsername && getShouldReport(adderUsername)
+      ? reasons.length * 18 + 54 + 40
+      : 0) +
+    (otherUsernames?.length ? 41 : 0)
+  // Each username row is 2 checkboxes (40px each) + 1px divider = 81px
+  const usernameRowHeight = 81
+
+  const itemHeight = {
+    getItemLayout: (index: number, item?: Item) => {
+      const length = item === 'topStuff' ? topStuffHeight : usernameRowHeight
+      let offset = 0
+      for (let i = 0; i < index; i++) {
+        offset += items[i] === 'topStuff' ? topStuffHeight : usernameRowHeight
+      }
+      return {index, length, offset}
+    },
+    type: 'variable' as const,
+  }
+
+  const renderItem = (_: number, item: Item) => {
+    if (item === 'topStuff') {
+      return (
+        <>
+          {(!!teamname || !adderUsername) && (
+            <>
+              <CheckboxRow
+                text={`Leave and block ${teamname || 'this conversation'}`}
+                onCheck={setBlockTeam}
+                checked={blockTeam}
+                disabled={teamCheckboxDisabled}
+              />
+              <Kb.Divider />
+            </>
+          )}
+          {!!adderUsername && renderRowsForUsername(adderUsername, true, teamLabel)}
+          {!!otherUsernames?.length && (
+            <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
+              <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
+            </Kb.Box2>
+          )}
+        </>
+      )
+    }
+    return renderRowsForUsername(item.username, item === items[items.length - 1])
+  }
+
   return (
     <Kb.Modal
       mode="Default"
@@ -475,15 +500,11 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
       }}
       noScrollView={true}
     >
-      <Kb.List
-        keyboardDismissMode="none"
+      <Kb.List2
         items={items}
-        renderItem={(idx: number, item: Item) =>
-          item === 'topStuff'
-            ? topStuff
-            : renderRowsForUsername(item.username, idx === otherUsernames?.length)
-        }
+        renderItem={renderItem}
         indexAsKey={true}
+        itemHeight={itemHeight}
         style={
           Kb.Styles.isMobile
             ? styles.grow

@@ -9,6 +9,8 @@ import {useTrackerState} from '@/stores/tracker2'
 import {useFollowerState} from '@/stores/followers'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
+type ItemHeight = React.ComponentProps<typeof Kb.List2<T.RPCGen.ProcessedContact>>['itemHeight']
+const itemHeight: ItemHeight = {height: 96, type: 'fixed'}
 
 type FollowProps = {
   username: string
@@ -55,10 +57,6 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
   const username = item.username
   const label = item.contactName || item.component.phoneNumber || item.component.email || ''
 
-  const followThem = useFollowerState(s => s.following.has(username))
-  if (followThem) {
-    return null
-  }
   return (
     <Kb.Box2 direction="horizontal" key={username} fullWidth={true}>
       <Kb.Box2 direction="vertical" style={styles.avatar}>
@@ -79,6 +77,8 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
 
 const ContactsJoinedModal = () => {
   const people = useSettingsContactsState(s => s.alreadyOnKeybase)
+  const following = useFollowerState(s => s.following)
+  const filteredPeople = people.filter(p => !following.has(p.username))
   const nav = useSafeNavigation()
   const onClose = () => nav.safeNavigateUp()
   return (
@@ -95,7 +95,7 @@ const ContactsJoinedModal = () => {
       <Kb.Text type="Body" style={styles.woot} center={true}>
         Woot! Some of your contacts are already on Keybase.
       </Kb.Text>
-      <Kb.List items={people} renderItem={renderItem} indexAsKey={true} />
+      <Kb.List2 items={filteredPeople} renderItem={renderItem} indexAsKey={true} itemHeight={itemHeight} />
     </Kb.Modal>
   )
 }

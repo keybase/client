@@ -351,37 +351,38 @@ export const ListBody = (
   return (
     <>
       {searchResults?.length ? (
-        <Kb.List
-          reAnimated={true}
-          items={searchResults}
-          selectedIndex={highlightedIndex || 0}
-          style={styles.list}
-          contentContainerStyle={styles.listContentContainer}
-          keyboardShouldPersistTaps="handled"
-          keyProperty="key"
-          onEndReached={_onEndReached}
-          onEndReachedThreshold={0.1}
-          renderItem={(index, result) => (
-            <ResultRow
-              key={result.username}
-              resultForService={selectedService}
-              username={result.username}
-              prettyName={result.prettyName}
-              pictureUrl={result.pictureUrl}
-              displayLabel={result.displayLabel}
-              services={result.services}
-              namespace={namespace}
-              inTeam={result.inTeam}
-              isPreExistingTeamMember={result.isPreExistingTeamMember}
-              isYou={result.isYou}
-              followingState={result.followingState}
-              highlight={!Kb.Styles.isMobile && index === highlightedIndex}
-              userId={result.userId}
-              onAdd={onAdd}
-              onRemove={onRemove}
-            />
-          )}
-        />
+        <Kb.BoxGrow>
+          <Kb.List2
+            reAnimated={true}
+            items={searchResults}
+            selectedIndex={highlightedIndex || 0}
+            style={styles.list}
+            keyboardShouldPersistTaps="handled"
+            keyProperty="key"
+            onEndReached={_onEndReached}
+            itemHeight={{height: Kb.Styles.isMobile ? 64 : 48, type: 'fixed'}}
+            renderItem={(index: number, result: (typeof searchResults)[number]) => (
+              <ResultRow
+                key={result.username}
+                resultForService={selectedService}
+                username={result.username}
+                prettyName={result.prettyName}
+                pictureUrl={result.pictureUrl}
+                displayLabel={result.displayLabel}
+                services={result.services}
+                namespace={namespace}
+                inTeam={result.inTeam}
+                isPreExistingTeamMember={result.isPreExistingTeamMember}
+                isYou={result.isYou}
+                followingState={result.followingState}
+                highlight={!Kb.Styles.isMobile && index === highlightedIndex}
+                userId={result.userId}
+                onAdd={onAdd}
+                onRemove={onRemove}
+              />
+            )}
+          />
+        </Kb.BoxGrow>
       ) : (
         <Kb.Text type="BodySmall" style={styles.noResults}>
           Sorry, no results were found.
@@ -410,8 +411,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       list: Kb.Styles.platformStyles({
         common: {paddingBottom: Kb.Styles.globalMargins.small},
-      }),
-      listContentContainer: Kb.Styles.platformStyles({
         isMobile: {paddingTop: Kb.Styles.globalMargins.xtiny},
       }),
       loadingAnimation: Kb.Styles.platformStyles({

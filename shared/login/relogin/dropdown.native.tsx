@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {Picker} from '@react-native-picker/picker'
-import {TouchableWithoutFeedback, Modal} from 'react-native'
+import {View, TouchableWithoutFeedback, Modal} from 'react-native'
 
 /*
  * A dropdown on iOS and Android.
@@ -99,7 +99,7 @@ const Dropdown = (props: Props) => {
   if (Kb.Styles.isIOS) {
     return (
       <TouchableWithoutFeedback onPress={() => showModal(true)}>
-        <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
+        <View style={styles.container}>
           <Modal
             animationType="slide"
             transparent={true}
@@ -108,13 +108,13 @@ const Dropdown = (props: Props) => {
           >
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.pickerContainer}>
               <TouchableWithoutFeedback onPress={() => showModal(false)}>
-                <Kb.Box2 direction="vertical" style={{flex: 1}} />
+                <View style={{flex: 1}} />
               </TouchableWithoutFeedback>
               {picker}
             </Kb.Box2>
           </Modal>
           {labelAndCaret}
-        </Kb.Box2>
+        </View>
       </TouchableWithoutFeedback>
     )
   } else {
@@ -131,13 +131,17 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
+        ...Kb.Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.white,
         borderColor: Kb.Styles.globalColors.black_10,
         borderRadius: Kb.Styles.borderRadius,
         borderWidth: 1,
         height: 48,
+        maxWidth: '100%',
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
+        width: '100%',
       },
       icon: {width: 10},
       item: {color: Kb.Styles.globalColors.black},
