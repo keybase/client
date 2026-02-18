@@ -165,9 +165,6 @@ module.exports = {
   get LabeledInput() {
     return require('./labeled-input').default
   },
-  get List() {
-    return require('./list').default
-  },
   get List2() {
     return require('./list2').default
   },

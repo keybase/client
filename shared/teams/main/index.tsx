@@ -122,6 +122,23 @@ type Row = {key: React.Key} & (
   | {team: T.Teams.TeamMeta; type: 'team'}
 )
 
+const getRowHeight = (item: Row | undefined): number => {
+  switch (item?.type) {
+    case '_buttons':
+      return Kb.Styles.isMobile ? 180 : 160
+    case '_sortHeader':
+      return Kb.Styles.isMobile ? 44 : 36
+    case 'deletedTeam':
+      return 50
+    case 'team':
+      return Kb.Styles.isMobile ? 72 : 48
+    case '_footer':
+      return 56
+    default:
+      return 48
+  }
+}
+
 const Teams = React.memo(function Teams(p: Props) {
   const {deletedTeams, teams, onReadMore, onCreateTeam, onHideChatBanner, onJoinTeam} = p
 
@@ -137,6 +154,21 @@ const Teams = React.memo(function Teams(p: Props) {
         {key: '_footer', type: '_footer'},
       ] as const,
     [deletedTeams, teams]
+  )
+
+  const itemHeight = React.useMemo(
+    () => ({
+      getItemLayout: (index: number, item?: Row) => {
+        const length = getRowHeight(item)
+        let offset = 0
+        for (let i = 0; i < index; i++) {
+          offset += getRowHeight(items[i])
+        }
+        return {index, length, offset}
+      },
+      type: 'variable' as const,
+    }),
+    [items]
   )
 
   const renderItem = React.useCallback(
@@ -174,7 +206,9 @@ const Teams = React.memo(function Teams(p: Props) {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Kb.List items={items} renderItem={renderItem} style={Kb.Styles.globalStyles.fullHeight} />
+      <Kb.BoxGrow>
+        <Kb.List2 items={items} renderItem={renderItem} itemHeight={itemHeight} />
+      </Kb.BoxGrow>
     </Kb.Box2>
   )
 })
