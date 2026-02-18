@@ -53,9 +53,15 @@ import {useRouterState} from '@/stores/router2'
 import * as Util from '@/constants/router2'
 import {setConvoDefer} from '@/stores/convostate'
 
-let _emitStartupOnLoadDaemonConnectedOnce = false
-let _devicesLoaded = false
-let _gitLoaded = false
+let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__
+  ? ((globalThis as any).__hmr_startupOnce ?? false)
+  : false
+let _devicesLoaded: boolean = __DEV__ ? ((globalThis as any).__hmr_devicesLoaded ?? false) : false
+let _gitLoaded: boolean = __DEV__ ? ((globalThis as any).__hmr_gitLoaded ?? false) : false
+
+const _sharedUnsubs: Array<() => void> = __DEV__
+  ? ((globalThis as any).__hmr_sharedUnsubs ??= [])
+  : []
 
 export const onEngineConnected = () => {
   {
@@ -397,6 +403,10 @@ export const initSettingsCallbacks = () => {
 }
 
 export const initSharedSubscriptions = () => {
+  // HMR cleanup: unsubscribe old store subscriptions before re-subscribing
+  for (const unsub of _sharedUnsubs) unsub()
+  _sharedUnsubs.length = 0
+
   setConvoDefer({
     chatBlockButtonsMapHas: teamID =>
       storeRegistry.getState('chat').blockButtonsMap.has(teamID),
@@ -423,7 +433,7 @@ export const initSharedSubscriptions = () => {
     usersGetBio: username =>
       storeRegistry.getState('users').dispatch.getBio(username),
   })
-  useConfigState.subscribe((s, old) => {
+  _sharedUnsubs.push(useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase !== old.loadOnStartPhase) {
       if (s.loadOnStartPhase === 'startupOrReloginButNotInARush') {
         const getFollowerInfo = () => {
@@ -546,9 +556,9 @@ export const initSharedSubscriptions = () => {
       const cs = storeRegistry.getConvoState(getSelectedConversation())
       cs.dispatch.markThreadAsRead()
     }
-  })
+  }))
 
-  useDaemonState.subscribe((s, old) => {
+  _sharedUnsubs.push(useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion !== old.handshakeVersion) {
       useDarkModeState.getState().dispatch.loadDarkPrefs()
       storeRegistry.getState('chat').dispatch.loadStaticConfig()
@@ -587,13 +597,14 @@ export const initSharedSubscriptions = () => {
       if (s.handshakeState === 'done') {
         if (!_emitStartupOnLoadDaemonConnectedOnce) {
           _emitStartupOnLoadDaemonConnectedOnce = true
+          if (__DEV__) (globalThis as any).__hmr_startupOnce = true
           useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
         }
       }
     }
-  })
+  }))
 
-  useProvisionState.subscribe((s, old) => {
+  _sharedUnsubs.push(useProvisionState.subscribe((s, old) => {
     if (s.startProvisionTrigger !== old.startProvisionTrigger) {
       useConfigState.getState().dispatch.setLoginError()
       useConfigState.getState().dispatch.resetRevokedSelf()
@@ -605,9 +616,9 @@ export const initSharedSubscriptions = () => {
       }
       ignorePromise(f())
     }
-  })
+  }))
 
-  useRouterState.subscribe((s, old) => {
+  _sharedUnsubs.push(useRouterState.subscribe((s, old) => {
     const next = s.navState as Util.NavState
     const prev = old.navState as Util.NavState
     if (prev === next) return
@@ -684,7 +695,7 @@ export const initSharedSubscriptions = () => {
     }
 
     storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
-  })
+  }))
 
   initAutoResetCallbacks()
   initChat2Callbacks()
@@ -721,6 +732,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const hasValue = (newDevices?.length ?? 0) + (revokedDevices?.length ?? 0) > 0
         if (_devicesLoaded || hasValue) {
           _devicesLoaded = true
+          if (__DEV__) (globalThis as any).__hmr_devicesLoaded = true
           const {useDevicesState} = require('@/stores/devices') as typeof UseDevicesStateType
           useDevicesState.getState().dispatch.onEngineIncomingImpl(action)
         }
@@ -728,6 +740,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const badges = new Set(badgeState.newGitRepoGlobalUniqueIDs)
         if (_gitLoaded || badges.size) {
           _gitLoaded = true
+          if (__DEV__) (globalThis as any).__hmr_gitLoaded = true
           const {useGitState} = require('@/stores/git') as typeof UseGitStateType
           useGitState.getState().dispatch.onEngineIncomingImpl(action)
         }

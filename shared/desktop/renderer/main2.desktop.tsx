@@ -347,8 +347,9 @@ const setupHMR = () => {
 
 const load = () => {
   if (global.DEBUGLoaded) {
-    // only load once
-    console.log('Bail on load() on HMR')
+    // HMR detected — reinit subscriptions on new store instances
+    console.log('HMR: reinitializing store subscriptions')
+    initPlatformListener()
     return
   }
   global.DEBUGLoaded = true
