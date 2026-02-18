@@ -1,13 +1,12 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import ScrollView from './scroll-view'
-import {Box2, Box, type LayoutEvent} from './box'
+import {Box2, type LayoutEvent} from './box'
 import BoxGrow from './box-grow'
 import Text from './text'
 import {useTimeout} from './use-timers'
 
 const Kb = {
-  Box,
   Box2,
   BoxGrow,
   ScrollView,
@@ -107,7 +106,7 @@ const Header2 = (props: HeaderProps) => {
           </Kb.Box2>
         </Kb.Box2>
         {
-          <Kb.Box>
+          <Kb.Box2 direction="vertical">
             {!!subTitle && props.subTitleAbove && subTitle}
             {typeof props.title === 'string' ? (
               <Kb.Text type={Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
@@ -117,7 +116,7 @@ const Header2 = (props: HeaderProps) => {
               props.title
             )}
             {!!subTitle && !props.subTitleAbove && subTitle}
-          </Kb.Box>
+          </Kb.Box2>
         }
         <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.headerRight])}>
           <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>

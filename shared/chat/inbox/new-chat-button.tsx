@@ -23,10 +23,10 @@ const HeaderNewChatButton = () => {
       className="tooltip-right"
     >
       <Kb.Box2 direction="vertical" style={styles.gradientContainer} pointerEvents="none">
-        <Kb.Box style={styles.gradientRed} />
-        <Kb.Box style={styles.gradientOrange} />
-        <Kb.Box style={styles.gradientYellow} />
-        <Kb.Box style={styles.gradientGreen} />
+        <Kb.Box2 direction="vertical" style={styles.gradientRed} />
+        <Kb.Box2 direction="vertical" style={styles.gradientOrange} />
+        <Kb.Box2 direction="vertical" style={styles.gradientYellow} />
+        <Kb.Box2 direction="vertical" style={styles.gradientGreen} />
       </Kb.Box2>
       <Kb.Button
         label="New chat"

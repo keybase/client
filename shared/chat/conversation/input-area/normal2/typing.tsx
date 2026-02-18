@@ -56,18 +56,18 @@ const Typing = React.memo(function Typing() {
     })
   )
   return (
-    <Kb.Box style={styles.isTypingContainer}>
+    <Kb.Box2 direction="horizontal" style={styles.isTypingContainer}>
       {names.size > 0 && (
-        <Kb.Box style={styles.typingIconContainer}>
+        <Kb.Box2 direction="vertical" style={styles.typingIconContainer}>
           <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {names.size > 0 && (
         <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
           <Names names={names} />
         </Kb.Text>
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
 })
 
@@ -91,7 +91,6 @@ const styles = Kb.Styles.styleSheetCreate(
           opacity: 1,
         },
         isMobile: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'flex-end',
           backgroundColor: Kb.Styles.globalColors.white,
           height: mobileTypingContainerHeight,

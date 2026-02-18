@@ -2,13 +2,12 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import PopupDialog from './popup-dialog'
 import ScrollView, {type ScrollViewRef} from '@/common-adapters/scroll-view'
-import {Box2, Box, type LayoutEvent} from '@/common-adapters/box'
+import {Box2, type LayoutEvent} from '@/common-adapters/box'
 import BoxGrow from './box-grow'
 import Text from '@/common-adapters/text'
 import {useTimeout} from './use-timers'
 
 const Kb = {
-  Box,
   Box2,
   BoxGrow,
   ScrollView,
@@ -175,7 +174,7 @@ const Header = (props: HeaderProps) => {
           </Kb.Box2>
         </Kb.Box2>
         {showTitle && (
-          <Kb.Box style={useMeasuredStyles ? styles.measured : undefined}>
+          <Kb.Box2 direction="vertical" style={useMeasuredStyles ? styles.measured : undefined} centerChildren={useMeasuredStyles}>
             {!!subTitle && props.subTitleAbove && subTitle}
             {typeof props.title === 'string' ? (
               <Kb.Text type={Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
@@ -185,7 +184,7 @@ const Header = (props: HeaderProps) => {
               props.title
             )}
             {!!subTitle && !props.subTitleAbove && subTitle}
-          </Kb.Box>
+          </Kb.Box2>
         )}
         <Kb.Box2
           direction="horizontal"
@@ -300,9 +299,7 @@ const styles = Styles.styleSheetCreate(() => {
       minHeight: 64,
     },
     measured: {
-      alignItems: 'center',
       flex: 1,
-      justifyContent: 'center',
     },
     modeDefault: Styles.platformStyles({
       isElectron: {

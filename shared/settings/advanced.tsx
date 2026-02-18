@@ -253,7 +253,7 @@ const Developer = () => {
   const onClearLogs = useSettingsState(s => s.dispatch.clearLogs)
 
   return (
-    <Kb.Box style={styles.developerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.developerContainer}>
       <Kb.Text center={true} type="BodySmallSemibold" onClick={onLabelClick} style={styles.text}>
         {"Please don't do anything below here unless instructed to by a developer."}
       </Kb.Text>
@@ -309,8 +309,8 @@ const Developer = () => {
           </Kb.Text>
         </>
       )}
-      <Kb.Box style={styles.filler} />
-    </Kb.Box>
+      <Kb.Box2 direction="vertical" style={styles.filler} />
+    </Kb.Box2>
   )
 }
 
@@ -321,8 +321,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: Kb.Styles.globalMargins.small,
       },
       developerContainer: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         flex: 1,
         paddingBottom: Kb.Styles.globalMargins.medium,
       },

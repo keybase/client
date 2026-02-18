@@ -32,14 +32,14 @@ const Container = () => {
 
   return (
     <Kb.PopupWrapper onCancel={onCancel}>
-      <Kb.Box style={styles.mobileFlex}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileFlex}>
         <Kb.Box2 direction="vertical" style={styles.container}>
           {!Kb.Styles.isMobile && (
             <Kb.Text center={true} type="Header" style={styles.header}>
               Prove your...
             </Kb.Text>
           )}
-          <Kb.Box style={styles.inputContainer}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.inputContainer}>
             <Kb.Icon
               type="iconfont-search"
               color={Kb.Styles.globalColors.black_50}
@@ -55,7 +55,7 @@ const Container = () => {
               style={styles.text}
               value={filter}
             />
-          </Kb.Box>
+          </Kb.Box2>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
             <Providers
               filter={filter}
@@ -67,7 +67,7 @@ const Container = () => {
             <Kb.Divider />
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.PopupWrapper>
   )
 }
@@ -208,8 +208,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       iconArrow: {marginRight: Kb.Styles.globalMargins.small},
       inputContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.black_10,
         borderRadius: Kb.Styles.borderRadius,
         marginBottom: Kb.Styles.globalMargins.xsmall,

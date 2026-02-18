@@ -33,14 +33,14 @@ const ResetUser = () => {
             }
           </Kb.Text>
         </Kb.Text>
-        <Kb.Box style={styles.bullet}>
+        <Kb.Box2 direction="vertical" style={styles.bullet}>
           <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Kb.Styles.globalMargins.tiny}}>
             1. Be satisfied with their new proofs, or
           </Kb.Text>
           <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Kb.Styles.globalMargins.tiny}}>
             2. Know them outside Keybase and have gotten a thumbs up from them.
           </Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
         <Kb.Text type="BodySemibold" negative={true} style={styles.lastSentence}>
           Don&apos;t let them in until one of the above is&nbsp;true.
         </Kb.Text>
@@ -78,7 +78,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bullet: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         maxWidth: 320,
       },
       buttonContainer: {

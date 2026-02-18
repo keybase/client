@@ -29,7 +29,7 @@ const SFMIPopup = (props: Props) => {
 
       return (
         <Kb.Overlay style={styles.popup} attachTo={attachTo} onHidden={hidePopup} position="bottom right">
-          <Kb.Box
+          <Kb.ClickableBox
             style={styles.container}
             onClick={e => {
               e.stopPropagation()
@@ -56,7 +56,7 @@ const SFMIPopup = (props: Props) => {
                 onClick={enableDriver}
               />
             </Kb.Box2>
-          </Kb.Box>
+          </Kb.ClickableBox>
         </Kb.Overlay>
       )
     },

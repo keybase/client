@@ -8,14 +8,14 @@ type Props = {
 const StartNewChat = (props: Props) => {
   if (Kb.Styles.isMobile) {
     return (
-      <Kb.Box style={styles.container}>
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
         <Kb.ClickableBox style={styles.clickableBox} onClick={props.onNewChat}>
           <Kb.Icon type="iconfont-compose" style={styles.iconCompose} hoverColor="inital" />
           <Kb.Text type="BodyBigLink" style={{margin: Kb.Styles.globalMargins.tiny}}>
             Start a new chat
           </Kb.Text>
         </Kb.ClickableBox>
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
   return (
@@ -41,8 +41,6 @@ const styles = Kb.Styles.styleSheetCreate(
         flexDirection: 'row',
       },
       container: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         backgroundColor: Kb.Styles.isMobile
           ? Kb.Styles.globalColors.fastBlank
           : Kb.Styles.globalColors.blueGrey,

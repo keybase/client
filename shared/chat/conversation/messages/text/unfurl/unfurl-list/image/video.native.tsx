@@ -50,9 +50,9 @@ export const Video = (props: Props) => {
         isMuted={true}
         shouldPlay={playing}
       />
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
         {!playing && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ClickableBox>
   )
 }

@@ -52,7 +52,7 @@ const CheckboxRow = (props: CheckboxRowProps) => (
       onClick={() => props.onCheck(!props.checked)}
       style={styles.shrink}
     />
-    <Kb.Box style={styles.iconBox} />
+    <Kb.Box2 direction="vertical" style={styles.iconBox} />
     {props.info && (
       <Kb.WithTooltip
         tooltip={props.info}
@@ -94,7 +94,9 @@ const ReportOptions = (props: ReportOptionsProps) => {
           style={styles.radioButton}
         />
       ))}
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
         style={Kb.Styles.collapseStyles([
           styles.feedback,
           !showIncludeTranscript && styles.feedbackPaddingBottom,
@@ -109,7 +111,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
           onChangeText={props.setExtraNotes}
           value={props.extraNotes}
         />
-      </Kb.Box>
+      </Kb.Box2>
       {showIncludeTranscript && (
         <CheckboxRow
           text="Include the transcript of this chat"
@@ -421,9 +423,9 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
   if (loadingWaiting) {
     return (
       <Kb.Modal mode="Default" header={header}>
-        <Kb.Box style={styles.loadingAnimationBox}>
+        <Kb.Box2 direction="vertical" style={styles.loadingAnimationBox}>
           <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Modal>
     )
   }

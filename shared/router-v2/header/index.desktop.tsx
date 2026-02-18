@@ -185,7 +185,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
         >
           {/* TODO have headerLeft be the back button */}
           {headerLeft !== null && (
-            <Kb.Box
+            <Kb.ClickableBox
               className={Kb.Styles.classNames('hover_container', {
                 hover_background_color_black_10: !!back,
               })}
@@ -198,7 +198,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
                 className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
                 boxStyle={styles.icon}
               />
-            </Kb.Box>
+            </Kb.ClickableBox>
           )}
           <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
             <SyncingFolders

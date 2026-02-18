@@ -64,7 +64,7 @@ const Desktop = () => {
             />
           </Kb.WithTooltip>
         )}
-        <Kb.Box style={styles.space} />
+        <Kb.Box2 direction="horizontal" style={styles.space} />
         <Kb.WithTooltip tooltip="Open Downloads folder">
           <Kb.Icon
             type="iconfont-folder-downloads"

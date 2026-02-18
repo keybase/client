@@ -41,7 +41,8 @@ export type Props = Pick<DeserializeProps, 'remoteTlfUpdates' | 'conversationsTo
 const ArrowTick = () => {
   const isDarkMode = useColorScheme() === 'dark'
   return (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.arrowTick,
         {borderBottomColor: isDarkMode ? '#2d2d2d' : Kb.Styles.globalColors.blueDark},
@@ -205,20 +206,24 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   const badgeCountInMenu = badgesInMenu.reduce((acc, val) => navBadges.get(val) ?? 0 + acc, 0)
   const isDarkMode = useColorScheme() === 'dark'
   return (
-    <Kb.Box
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      alignItems="center"
       style={Kb.Styles.collapseStyles([
         styles.topRow,
         {backgroundColor: isDarkMode ? '#2d2d2d' : Kb.Styles.globalColors.blueDark},
       ])}
     >
-      <Kb.Box style={styles.headerBadgesContainer}>
+      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.headerBadgesContainer}>
         {showBadges
           ? badgeTypesInHeader.map(tab => (
               <BadgeIcon key={tab} tab={tab} countMap={navBadges} openApp={openApp} />
             ))
           : null}
-      </Kb.Box>
-      <Kb.Box
+      </Kb.Box2>
+      <Kb.Box2
+        direction="vertical"
         style={Kb.Styles.platformStyles({
           isElectron: {
             ...Kb.Styles.desktopStyles.clickable,
@@ -236,9 +241,9 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
           ref={popupAnchor}
         />
         {!!badgeCountInMenu && <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={styles.badge} />}
-      </Kb.Box>
+      </Kb.Box2>
       {popup}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -269,7 +274,7 @@ const LoggedIn = (p: Props) => {
           </Kb.Box2>
         )}
       </Kb.ScrollView>
-      <Kb.Box style={styles.footer}>
+      <Kb.Box2 direction="vertical" style={styles.footer}>
         <UploadWithCountdown
           endEstimate={endEstimate}
           isOnline={kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline}
@@ -278,7 +283,7 @@ const LoggedIn = (p: Props) => {
           totalSyncingBytes={totalSyncingBytes}
           smallMode={true}
         />
-      </Kb.Box>
+      </Kb.Box2>
     </>
   )
 }
@@ -355,10 +360,10 @@ const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
   const {count, iconType, title} = p
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'center'}}>
-      <Kb.Box style={{marginRight: Kb.Styles.globalMargins.tiny, position: 'relative'}}>
+      <Kb.Box2 direction="vertical" style={{marginRight: Kb.Styles.globalMargins.tiny, position: 'relative'}}>
         <Kb.Icon type={iconType} color={Kb.Styles.globalColors.blue} sizeType="Big" />
         {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
-      </Kb.Box>
+      </Kb.Box2>
       <Kb.Text className="title" type="BodySemibold" style={Kb.Styles.collapseStyles([{color: undefined}])}>
         {title}
       </Kb.Text>
@@ -389,7 +394,8 @@ const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp
   }
 
   return (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
       style={Kb.Styles.platformStyles({
         isElectron: {...Kb.Styles.desktopStyles.clickable, position: 'relative'},
       })}
@@ -403,7 +409,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp
         type={iconType}
       />
       {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -432,8 +438,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   flexOne: {flexGrow: 1},
   footer: {width: 360},
   headerBadgesContainer: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
     marginLeft: 24 + 8,
@@ -444,8 +448,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   navIcons: {paddingLeft: Kb.Styles.globalMargins.xtiny, paddingRight: Kb.Styles.globalMargins.xtiny},
   topRow: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
     borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
     borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
     flex: 1,

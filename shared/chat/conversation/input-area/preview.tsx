@@ -19,7 +19,7 @@ const Preview = () => {
   }
 
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
       <Kb.Text type="BodySemibold" negative={true}>
         Would you like to join #{channelname}?
       </Kb.Text>
@@ -38,7 +38,7 @@ const Preview = () => {
           {clicked === 'join' ? 'Joining...' : 'Leaving...'}
         </Kb.Text>
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -46,8 +46,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.blue,
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingTop: Kb.Styles.globalMargins.tiny,

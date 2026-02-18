@@ -264,7 +264,8 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
             : bookmarkIndex === 0
           const secKey = bookmark.coveredSectionKeys.values().next().value ?? ''
           return (
-            <Kb.Box
+            <Kb.Box2
+              direction="vertical"
               key={bookmark.sectionIndex}
               className="emoji-picker-emoji-box"
               style={isActive ? styles.activeBookmark : undefined}
@@ -282,7 +283,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
                   })
                 }}
               />
-            </Kb.Box>
+            </Kb.Box2>
           )
         })}
       </Kb.Box2>
@@ -413,7 +414,7 @@ export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: T
 }
 
 const makeEmojiPlaceholder = (index: number) => (
-  <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
+  <Kb.Box2 direction="vertical" key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
 )
 
 const styles = Kb.Styles.styleSheetCreate(

@@ -143,7 +143,7 @@ const DragLine = (p: {
               <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
             </Kb.Box2>
           </div>
-          <Kb.Box style={styles.spacer} />
+          <Kb.Box2 direction="vertical" style={styles.spacer} />
         </>
       )}
       {dragY !== -1 && (
@@ -374,7 +374,7 @@ function Inbox(props: TInbox.Props) {
 
   return (
     <Kb.ErrorBoundary>
-      <Kb.Box className="inbox-hover-container" style={styles.container}>
+      <Kb.Box2 direction="vertical" className="inbox-hover-container" style={styles.container}>
         <div style={styles.list} ref={scrollDiv}>
           {rows.length ? (
             <List
@@ -389,7 +389,7 @@ function Inbox(props: TInbox.Props) {
         </div>
         {floatingDivider || (rows.length === 0 && <BuildTeam />)}
         {showUnread && !showFloating && <UnreadShortcut onClick={scrollToUnread} unreadCount={unreadCount} />}
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ErrorBoundary>
   )
 }
@@ -399,7 +399,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
           backgroundColor: Kb.Styles.globalColors.blueGrey,
           contain: 'strict',
           height: '100%',

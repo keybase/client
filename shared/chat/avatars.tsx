@@ -28,7 +28,7 @@ const OverlayIcon = React.memo(function OverlayIcon(p: {
   if (!type) return null
 
   return (
-    <Kb.Box style={styles.mutedIcon}>
+    <Kb.Box2 direction="vertical" style={styles.mutedIcon}>
       <Kb.Icon
         className={Kb.Styles.classNames('overlay-icon', 'stroked', {
           hovered: isHovered,
@@ -49,7 +49,7 @@ const OverlayIcon = React.memo(function OverlayIcon(p: {
         type={type}
         fontSize={16}
       />
-    </Kb.Box>
+    </Kb.Box2>
   )
 })
 
@@ -102,12 +102,12 @@ const Avatars = React.memo(function Avatars(p: Props) {
 
   if (!participantTwo) {
     return (
-      <Kb.Box style={containerStyle}>
-        <Kb.Box style={styles.outerBox}>
+      <Kb.Box2 direction="vertical" style={containerStyle}>
+        <Kb.Box2 direction="vertical" style={styles.outerBox}>
           <Kb.Avatar username={participantOne} size={singleSize} style={{opacity}} />
           <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     )
   }
 
@@ -144,10 +144,10 @@ const TeamAvatar = React.memo(function TeamAvatar(p: {
 }) {
   const {teamname, size, isSelected, isMuted, isHovered} = p
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box2 direction="vertical" style={styles.container}>
       <Kb.Avatar teamname={teamname} size={size || 48} />
       <OverlayIcon isSelected={isSelected} isMuted={isMuted} isHovered={isHovered} isLocked={false} />
-    </Kb.Box>
+    </Kb.Box2>
   )
 })
 

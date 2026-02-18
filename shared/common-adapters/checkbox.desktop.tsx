@@ -1,12 +1,13 @@
-import Box, {Box2} from './box'
+import {Box2} from './box'
+import ClickableBox from './clickable-box'
 import Icon from './icon'
 import Text from './text'
 import type {Props} from './checkbox'
 import * as Styles from '@/styles'
 
 const Kb = {
-  Box,
   Box2,
+  ClickableBox,
   Icon,
   Styles,
   Text,
@@ -17,7 +18,7 @@ const CHECKBOX_MARGIN = 8
 
 const Checkbox = (props: Props) => {
   return (
-    <Kb.Box
+    <Kb.ClickableBox
       style={Kb.Styles.collapseStyles([styles.container, !props.disabled && styles.clickable, props.style])}
       onClick={e =>
         // If something in labelComponent needs to catch a click without calling this, use
@@ -47,7 +48,7 @@ const Checkbox = (props: Props) => {
         ))}
         {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
       </Kb.Box2>
-    </Kb.Box>
+    </Kb.ClickableBox>
   )
 }
 

@@ -162,7 +162,7 @@ const WrapperMobile = (props: Props) => {
           onExpandChange={setSkinTonePickerExpanded}
           setSkinTone={setSkinTone}
         />
-        <Kb.Box style={Kb.Styles.globalStyles.flexOne} />
+        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
         {!props.small && !skinTonePickerExpanded && canManageEmoji && (
           <Kb.Button
             mode="Secondary"
@@ -295,7 +295,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       containerDesktop: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         backgroundColor: Kb.Styles.globalColors.white,
         height: 561,
         maxWidth: 336,

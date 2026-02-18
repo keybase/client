@@ -41,9 +41,9 @@ const AudioSend = (props: Props) => {
     <Portal hostName="audioSend" useFullScreenOverlay={false}>
       <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="horizontal" alignItems="center">
-          <Kb.Box style={styles.icon}>
+          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.icon}>
             <Kb.Icon type="iconfont-remove" onClick={cancelRecording} />
-          </Kb.Box>
+          </Kb.Box2>
           {player}
         </Kb.Box2>
         <Kb.Button type="Default" small={true} style={styles.send} onClick={sendRecording} label="Send" />
@@ -63,9 +63,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingRight: Kb.Styles.globalMargins.tiny,
   },
   icon: {
-    alignItems: 'center',
     height: 32,
-    justifyContent: 'center',
     marginRight: Kb.Styles.globalMargins.tiny,
     width: 32,
   },

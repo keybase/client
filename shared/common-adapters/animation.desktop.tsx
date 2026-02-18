@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Box from './box'
+import {Box2} from './box'
 import lottie from 'lottie-web'
 import type {Props, AnimationType} from './animation'
 
@@ -26,7 +26,7 @@ const Animation = React.memo(function Animation(props: Props) {
     }
   }, [animationType])
   return (
-    <Box className={props.className} style={props.containerStyle}>
+    <Box2 direction="vertical" className={props.className} style={props.containerStyle}>
       <div
         style={
           {
@@ -37,7 +37,7 @@ const Animation = React.memo(function Animation(props: Props) {
         }
         ref={elementRef}
       />
-    </Box>
+    </Box2>
   )
 })
 

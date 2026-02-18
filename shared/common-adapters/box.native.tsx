@@ -5,8 +5,6 @@ import type {Box2Props} from './box'
 import type {MeasureRef} from './measure-ref'
 import Reanimated from 'react-native-reanimated'
 
-export const Box = View
-
 type Margins = keyof typeof Styles.globalMargins
 const marginKeys = Object.keys(Styles.globalMargins) as Array<Margins>
 
@@ -173,4 +171,3 @@ const styles = {
   },
 } as const
 
-export default Box

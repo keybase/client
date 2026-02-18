@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Animation from './animation'
-import Box, {Box2, Box2Measure} from './box'
+import {Box2, Box2Measure} from './box'
 import ClickableBox, {ClickableBox2} from './clickable-box'
 import NewInput from './new-input'
 import PlainInput, {type PlainInputRef} from './plain-input'
@@ -15,7 +15,6 @@ import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Animation,
-  Box,
   Box2,
   Box2Measure,
   ClickableBox,

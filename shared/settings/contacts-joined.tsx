@@ -61,9 +61,9 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
   }
   return (
     <Kb.Box2 direction="horizontal" key={username} fullWidth={true}>
-      <Kb.Box style={styles.avatar}>
+      <Kb.Box2 direction="vertical" style={styles.avatar}>
         <Kb.Avatar username={username} size={48} />
-      </Kb.Box>
+      </Kb.Box2>
       <Kb.Box2 direction="vertical" style={styles.rightBox}>
         <Kb.ConnectedUsernames colorFollowing={true} type="BodyBold" usernames={username} />
         <Kb.Text type="BodySmall">{label}</Kb.Text>

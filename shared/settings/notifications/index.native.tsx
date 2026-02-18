@@ -35,17 +35,18 @@ const TurnOnNotifications = () => {
   if (mobileHasPermissions) return null
   const onEnable = requestPermissions
   return (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
       style={{
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         backgroundColor: Kb.Styles.globalColors.red,
         height: 330,
         overflow: 'hidden',
         position: 'relative',
-        width: '100%',
       }}
     >
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
         style={{
           height: 270,
           left: Kb.Styles.globalMargins.medium,
@@ -55,7 +56,7 @@ const TurnOnNotifications = () => {
         }}
       >
         <Kb.Icon type="illustration-turn-on-notifications" />
-      </Kb.Box>
+      </Kb.Box2>
       <Kb.Text
         type="BodySemibold"
         center={true}
@@ -77,7 +78,7 @@ const TurnOnNotifications = () => {
           Enable notifications
         </Kb.Text>
       </Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

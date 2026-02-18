@@ -66,9 +66,9 @@ const PinnedMessage = React.memo(function PinnedMessage() {
         <Kb.Box2 direction="horizontal" style={styles.blueBar} />
         {!!imageURL && (
           <Kb.Box2 direction="vertical" style={styles.imageContainer}>
-            <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
+            <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
               <Kb.Image2 src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
-            </Kb.Box>
+            </Kb.Box2>
           </Kb.Box2>
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>

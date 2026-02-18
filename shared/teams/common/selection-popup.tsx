@@ -113,12 +113,12 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
       {!Kb.Styles.isPhone && <Kb.BoxGrow />}
       {children}
       {/* bottom safe area */}
-      {Kb.Styles.isPhone && <Kb.Box style={{height: bottom}} />}
+      {Kb.Styles.isPhone && <Kb.Box2 direction="vertical" style={{height: bottom}} />}
     </Kb.Box2>
   )
   return Kb.Styles.isMobile ? (
     <>
-      {<Kb.Box style={{height: height > 48 ? height - 48 - bottom : -bottom}} />}
+      {<Kb.Box2 direction="vertical" style={{height: height > 48 ? height - 48 - bottom : -bottom}} />}
       <Kb.FloatingBox>{popup}</Kb.FloatingBox>
     </>
   ) : (

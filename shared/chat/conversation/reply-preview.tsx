@@ -37,7 +37,7 @@ const ReplyPreview = () => {
   }, [setReplyTo])
 
   return (
-    <Kb.Box style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
       <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny" fullWidth={true}>
         <Kb.Box2 direction="vertical" style={styles.title} fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Replying to:</Kb.Text>
@@ -53,9 +53,9 @@ const ReplyPreview = () => {
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
               {!!imageURL && (
                 <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
-                  <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
+                  <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
                     <Kb.Image2 src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
-                  </Kb.Box>
+                  </Kb.Box2>
                 </Kb.Box2>
               )}
               <Kb.Text type="BodySmall" style={styles.text} lineClamp={1}>
@@ -66,7 +66,7 @@ const ReplyPreview = () => {
           <Kb.Icon onClick={onCancel} type="iconfont-remove" style={styles.close} boxStyle={styles.close} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

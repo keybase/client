@@ -526,7 +526,7 @@ const Value = (p: {
 }
 
 const HoverOpacity = (p: {children: React.ReactNode}) => (
-  <Kb.Box className="hover-opacy inverted">{p.children}</Kb.Box>
+  <Kb.Box2 direction="vertical" className="hover-opacy inverted">{p.children}</Kb.Box2>
 )
 
 type SIProps = {

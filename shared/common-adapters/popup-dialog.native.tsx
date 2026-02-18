@@ -1,4 +1,4 @@
-import Box from './box'
+import {Box2} from './box'
 import {TouchableWithoutFeedback} from 'react-native'
 import * as Styles from '@/styles'
 
@@ -7,31 +7,35 @@ import type {Props} from './popup-dialog'
 export function PopupDialog({children, onClose, styleCover, styleContainer}: Props) {
   return (
     <TouchableWithoutFeedback onPress={onClose || undefined}>
-      <Box style={{...coverStyle, ...styleCover}}>
+      <Box2 direction="vertical" centerChildren={true} style={Styles.collapseStyles([styles.cover, styleCover])}>
         <TouchableWithoutFeedback>
-          <Box style={{...containerStyle, ...styleContainer}}>{children}</Box>
+          <Box2 direction="vertical" style={Styles.collapseStyles([styles.container, styleContainer])}>
+            {children}
+          </Box2>
         </TouchableWithoutFeedback>
-      </Box>
+      </Box2>
     </TouchableWithoutFeedback>
   )
 }
 
-const coverStyle = {
-  ...Styles.globalStyles.flexBoxCenter,
-  ...Styles.globalStyles.fillAbsolute,
-  backgroundColor: Styles.globalColors.black,
-  paddingBottom: Styles.globalMargins.small,
-  paddingLeft: Styles.globalMargins.large,
-  paddingRight: Styles.globalMargins.large,
-  paddingTop: Styles.globalMargins.small,
-} as const
-
-const containerStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  backgroundColor: Styles.globalColors.white,
-  borderRadius: 4,
-  flexGrow: 1,
-  position: 'relative',
-} as const
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        backgroundColor: Styles.globalColors.white,
+        borderRadius: 4,
+        flexGrow: 1,
+        position: 'relative',
+      },
+      cover: {
+        ...Styles.globalStyles.fillAbsolute,
+        backgroundColor: Styles.globalColors.black,
+        paddingBottom: Styles.globalMargins.small,
+        paddingLeft: Styles.globalMargins.large,
+        paddingRight: Styles.globalMargins.large,
+        paddingTop: Styles.globalMargins.small,
+      },
+    }) as const
+)
 
 export default PopupDialog

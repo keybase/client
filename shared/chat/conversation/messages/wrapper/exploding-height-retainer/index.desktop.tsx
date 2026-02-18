@@ -102,15 +102,15 @@ const FlameFront = React.memo(function FlameFront(props: {height: number; stop: 
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < numBoxes; i++) {
     children.push(
-      <Kb.Box key={String(i)} style={styles.flame}>
+      <Kb.Box2 direction="vertical" key={String(i)} style={styles.flame}>
         <Kb.Animation animationType={isDarkMode ? 'darkExploding' : 'exploding'} width={64} height={64} />
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
   return (
-    <Kb.Box className="flame-container" style={styles.flameContainer}>
+    <Kb.Box2 direction="vertical" className="flame-container" style={styles.flameContainer}>
       {children}
-    </Kb.Box>
+    </Kb.Box2>
   )
 })
 
@@ -128,7 +128,7 @@ const styles = Kb.Styles.styleSheetCreate(
           top: 0,
         },
       }),
-      container: {...Kb.Styles.globalStyles.flexBoxColumn, flex: 1},
+      container: {flex: 1},
       exploded: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.white,

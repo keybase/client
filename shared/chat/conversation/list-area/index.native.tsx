@@ -272,7 +272,7 @@ const ConversationList = React.memo(function ConversationList() {
     <Kb.ErrorBoundary>
       <SetRecycleTypeContext.Provider value={setRecycleType}>
         <ForceListRedrawContext.Provider value={forceListRedraw}>
-          <Kb.Box style={styles.container}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
             <List
               onScrollToIndexFailed={noop}
               extraData={extraData}
@@ -302,7 +302,7 @@ const ConversationList = React.memo(function ConversationList() {
             />
             {jumpToRecent}
             {debugWhichList}
-          </Kb.Box>
+          </Kb.Box2>
         </ForceListRedrawContext.Provider>
       </SetRecycleTypeContext.Provider>
     </Kb.ErrorBoundary>

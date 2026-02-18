@@ -45,7 +45,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box style={styles.container}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
         {Kb.Styles.isMobile ? (
           <Kb.ScrollView
             horizontal={true}
@@ -57,7 +57,7 @@ const TeamTabs = (props: TeamTabsProps) => {
         ) : (
           tabContent
         )}
-      </Kb.Box>
+      </Kb.Box2>
       {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
     </Kb.Box2>
   )

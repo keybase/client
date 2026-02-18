@@ -25,7 +25,9 @@ const ExplodingHeightRetainer = (p: Props) => {
   const numImages = Math.ceil(height / 80)
 
   return (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
       onLayout={onLayout}
       style={Kb.Styles.collapseStyles([
         styles.container,
@@ -41,7 +43,7 @@ const ExplodingHeightRetainer = (p: Props) => {
         messageKey={messageKey}
         numImages={numImages}
       />
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -157,7 +159,7 @@ const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value})
     setChildren(children)
   }, [running, numImages])
 
-  return <Kb.Box style={styles.emojiTower}>{children}</Kb.Box>
+  return <Kb.Box2 direction="vertical" style={styles.emojiTower}>{children}</Kb.Box2>
 }
 
 const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
@@ -199,7 +201,7 @@ const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: bool
   return (
     <>
       {children}
-      <Kb.Box style={styles.tagBox}>{exploded}</Kb.Box>
+      <Kb.Box2 direction="vertical" alignItems="flex-end" style={styles.tagBox}>{exploded}</Kb.Box2>
     </>
   )
 }
@@ -211,9 +213,8 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 80,
         width: 400,
       },
-      container: {...Kb.Styles.globalStyles.flexBoxColumn, flex: 1},
+      container: {flex: 1},
       emojiTower: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         bottom: 0,
         overflow: 'hidden',
         position: 'absolute',
@@ -238,8 +239,6 @@ const styles = Kb.Styles.styleSheetCreate(
         top: 0,
       },
       tagBox: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'flex-end',
         backgroundColor: Kb.Styles.globalColors.fastBlank,
         bottom: 2,
         minWidth: 80,

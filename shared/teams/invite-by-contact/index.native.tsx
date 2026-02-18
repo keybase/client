@@ -16,23 +16,23 @@ const contactRow = (_: number, props: ContactRowProps) => {
   const hasThumbnail = !!props.pictureUri
 
   return (
-    <Kb.Box style={styles.contactRowBox}>
-      <Kb.Box style={styles.contactRowInnerBox}>
-        <Kb.Box style={styles.contactRowInnerBox}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.contactRowBox}>
+      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.contactRowInnerBox}>
+        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.contactRowInnerBox}>
           {!!hasThumbnail && !!props.pictureUri && (
             <Kb.Image2 style={styles.thumbnail} src={props.pictureUri} />
           )}
           {!hasThumbnail && <Kb.Avatar size={48} style={styles.placeHolderAvatar} />}
-          <Kb.Box>
-            <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
+          <Kb.Box2 direction="vertical">
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
-            </Kb.Box>
-            <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
+            </Kb.Box2>
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Text type="BodySmall">{props.valueFormatted || props.value}</Kb.Text>
-            </Kb.Box>
-          </Kb.Box>
-        </Kb.Box>
-        <Kb.Box>
+            </Kb.Box2>
+          </Kb.Box2>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical">
           <Kb.Button
             type="Success"
             mode={props.alreadyInvited ? 'Secondary' : 'Primary'}
@@ -42,9 +42,9 @@ const contactRow = (_: number, props: ContactRowProps) => {
             onClick={props.onClick}
             style={styles.inviteButton}
           />
-        </Kb.Box>
-      </Kb.Box>
-    </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -99,7 +99,7 @@ export const InviteByContact = (props: InviteByContactProps) => {
         </Kb.Box2>
       )}
       {hasItems && (
-        <Kb.Box style={styles.listContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
           <Kb.Box2 direction="horizontal" style={styles.filterContainer}>
             <Kb.PlainInput
               autoFocus={true}
@@ -135,7 +135,7 @@ export const InviteByContact = (props: InviteByContactProps) => {
             renderItem={contactRow}
             style={styles.contactList}
           />
-        </Kb.Box>
+        </Kb.Box2>
       )}
     </Kb.Box2>
   )
@@ -148,15 +148,10 @@ const styles = Kb.Styles.styleSheetCreate(
         alignSelf: 'stretch',
       },
       contactRowBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         height: 56,
         padding: Kb.Styles.globalMargins.small,
-        width: '100%',
       },
       contactRowInnerBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         flex: 1,
       },
       errorMessageContainer: {
@@ -179,7 +174,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 100,
       },
       listContainer: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         flex: 1,
         paddingBottom: Kb.Styles.globalMargins.xtiny,
       },

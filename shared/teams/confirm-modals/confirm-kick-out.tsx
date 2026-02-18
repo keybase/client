@@ -65,7 +65,7 @@ const ConfirmKickOut = (props: Props) => {
     </Kb.Text>
   )
   const header = (
-    <Kb.Box style={styles.positionRelative}>
+    <Kb.Box2 direction="vertical" style={styles.positionRelative}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
       <Kb.Box2
         direction="horizontal"
@@ -82,7 +82,7 @@ const ConfirmKickOut = (props: Props) => {
           style={styles.headerIcon}
         />
       </Kb.Box2>
-    </Kb.Box>
+    </Kb.Box2>
   )
   return (
     <Kb.ConfirmModal

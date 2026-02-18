@@ -292,8 +292,8 @@ const Links = () => {
             {getUnfurlWhitelist(false).map((w, idx) => {
               const wlremoved = unfurlWhitelistRemoved[w]
               return (
-                <Kb.Box key={w} style={styles.whitelistInner}>
-                  {idx === 0 && <Kb.Box style={styles.whitelistOuter} />}
+                <Kb.Box2 direction="vertical" key={w} style={styles.whitelistInner}>
+                  {idx === 0 && <Kb.Box2 direction="vertical" style={styles.whitelistOuter} />}
                   <Kb.Box2
                     fullWidth={true}
                     direction="horizontal"
@@ -312,7 +312,7 @@ const Links = () => {
                         Restore
                       </Kb.Text>
                     ) : (
-                      <Kb.Box style={{position: 'relative'}}>
+                      <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
                         <Kb.WithTooltip tooltip="Remove">
                           <Kb.Icon
                             onClick={() => toggleUnfurlWhitelist(w)}
@@ -320,10 +320,10 @@ const Links = () => {
                             type="iconfont-trash"
                           />
                         </Kb.WithTooltip>
-                      </Kb.Box>
+                      </Kb.Box2>
                     )}
                   </Kb.Box2>
-                </Kb.Box>
+                </Kb.Box2>
               )
             })}
           </Kb.ScrollView>

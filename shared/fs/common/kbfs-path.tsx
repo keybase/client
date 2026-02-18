@@ -87,14 +87,15 @@ const KbfsPath = (props: Props) => {
       {popup}
     </>
   ) : (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
       style={styles.textContainer}
       onMouseOver={() => setShowing(true)}
       onMouseLeave={() => setShowing(false)}
     >
       {text}
       {popup}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

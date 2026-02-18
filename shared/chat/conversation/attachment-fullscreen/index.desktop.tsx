@@ -13,7 +13,7 @@ type ArrowProps = {
 const Arrow = (props: ArrowProps) => {
   const {left, onClick} = props
   return (
-    <Kb.Box
+    <Kb.ClickableBox
       className="hover_background_color_black background_color_black_50 fade-background-color"
       onClick={e => {
         e.stopPropagation()
@@ -26,7 +26,7 @@ const Arrow = (props: ArrowProps) => {
         color={Kb.Styles.globalColors.white}
         style={Kb.Styles.collapseStyles([styles.arrow, left && styles.arrowLeft, !left && styles.arrowRight])}
       />
-    </Kb.Box>
+    </Kb.ClickableBox>
   )
 }
 
@@ -80,8 +80,8 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
 
   return (
     <Kb.PopupDialog onClose={onClose} fill={true}>
-      <Kb.Box style={styles.container}>
-        <Kb.Box style={styles.headerFooter}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
           <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
             {title}
           </Kb.Markdown>
@@ -96,7 +96,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
             onClick={showPopup}
           />
           {popup}
-        </Kb.Box>
+        </Kb.Box2>
         {path && (
           <Kb.BoxGrow>
             <Kb.ClickableBox style={styles.contentsFit} key={path}>
@@ -126,7 +126,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
             </Kb.ClickableBox>
           </Kb.BoxGrow>
         )}
-        <Kb.Box style={styles.headerFooter}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
           {!!progressLabel && (
             <Kb.Text
               type="BodySmall"
@@ -154,8 +154,8 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
               Show in {Kb.Styles.fileUIName}
             </Kb.Text>
           )}
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     </Kb.PopupDialog>
   )
 })
@@ -183,7 +183,6 @@ const styles = Kb.Styles.styleSheetCreate(
           width: 36,
         },
       }),
-      container: {...Kb.Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
       contentsFit: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         flex: 1,
@@ -192,12 +191,9 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       error: {color: Kb.Styles.globalColors.redDark},
       headerFooter: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         height: 32,
         paddingLeft: Kb.Styles.globalMargins.tiny,
         paddingRight: Kb.Styles.globalMargins.tiny,
-        width: '100%',
       },
       link: Kb.Styles.platformStyles({
         isElectron: {color: Kb.Styles.globalColors.black_50, cursor: 'pointer'},

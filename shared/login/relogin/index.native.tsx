@@ -21,18 +21,20 @@ const LoginRender = (props: Props) => {
   }
 
   return (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
       onLayout={evt => setScrollViewHeight(evt.nativeEvent.layout.height)}
       style={Kb.Styles.globalStyles.flexOne}
     >
       <NativeScrollView style={styles.scrollView} contentContainerStyle={{minHeight: scrollViewHeight}}>
-        <Kb.Box style={styles.container}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
           {C.isAndroid && !C.isDeviceSecureAndroid && !C.isAndroidNewerThanM && (
-            <Kb.Box style={styles.deviceNotSecureContainer}>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.deviceNotSecureContainer}>
               <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
                 {"Since you don't have a lock screen, you'll have to type your password everytime."}
               </Kb.Text>
-            </Kb.Box>
+            </Kb.Box2>
           )}
           {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
           <UserCard username={props.selectedUser} outerStyle={styles.card} style={styles.cardInner}>
@@ -90,9 +92,9 @@ const LoginRender = (props: Props) => {
               style={{flexGrow: 0}}
             />
           </Kb.Box2>
-        </Kb.Box>
+        </Kb.Box2>
       </NativeScrollView>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -107,8 +109,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isTablet: {paddingBottom: 0},
       }),
       container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.blueGrey,
         flex: 1,
       },

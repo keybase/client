@@ -17,13 +17,13 @@ export default function Import() {
         To register your existing PGP public key on Keybase, please run the following command from your
         terminal:
       </Kb.Text>
-      <Kb.Box style={styleTerminal}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styleTerminal}>
         <Kb.Text type="TerminalComment">{"# import a key from gpg's key chain"}</Kb.Text>
         <Kb.Text type="Terminal">keybase pgp select</Kb.Text>
         <Kb.Text type="TerminalEmpty" />
         <Kb.Text type="TerminalComment"># for more options</Kb.Text>
         <Kb.Text type="Terminal">keybase pgp help</Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
     </Modal>
   )
 }
@@ -38,8 +38,6 @@ const styleBody = {
 }
 
 const styleTerminal = {
-  ...Kb.Styles.globalStyles.flexBoxColumn,
-  alignItems: 'stretch',
   backgroundColor: Kb.Styles.globalColors.blueDarker2,
   borderRadius: 4,
   boxSizing: 'content-box',

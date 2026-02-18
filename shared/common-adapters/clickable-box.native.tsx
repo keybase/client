@@ -1,12 +1,10 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Box from './box'
 import {Pressable, View, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import type {Props, Props2} from './clickable-box'
 import type {MeasureRef} from './measure-ref'
 
 const Kb = {
-  Box,
   Styles,
 }
 
@@ -42,11 +40,10 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBoxIn
         <TouchableWithoutFeedback
           onPressIn={onPressIn}
           onPressOut={onPressOut}
-          style={clickStyle}
           onPress={onClick}
           onLongPress={onLongPress}
         >
-          {children}
+          <View style={clickStyle}>{children}</View>
         </TouchableWithoutFeedback>
       )
     }

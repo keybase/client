@@ -1,6 +1,6 @@
 // A box that flex grows but constrains children
 import * as Styles from '@/styles'
-import Box, {Box2, type LayoutEvent} from './box'
+import {Box2, type LayoutEvent} from './box'
 
 type Props = {
   children?: React.ReactNode
@@ -10,9 +10,11 @@ type Props = {
 
 const BoxGrow = (p: Props) => {
   return (
-    <Box style={Styles.collapseStyles([styles.outer, p.style])} onLayout={p.onLayout}>
-      <Box style={styles.inner}>{p.children}</Box>
-    </Box>
+    <Box2 direction="vertical" fullWidth={true} style={Styles.collapseStyles([styles.outer, p.style])} onLayout={p.onLayout}>
+      <Box2 direction="vertical" style={styles.inner}>
+        {p.children}
+      </Box2>
+    </Box2>
   )
 }
 

@@ -104,7 +104,7 @@ const JoinFromInvite = () => {
         gap="xtiny"
         style={styles.body}
       >
-        <Kb.Box style={styles.avatar}>
+        <Kb.Box2 direction="vertical" style={styles.avatar}>
           <Kb.Avatar
             size={96}
             teamname={teamname}
@@ -121,7 +121,7 @@ const JoinFromInvite = () => {
               <Kb.Meta backgroundColor={Kb.Styles.globalColors.green} title="open" size="Small" />
             </Kb.Box2>
           )}
-        </Kb.Box>
+        </Kb.Box2>
         <Kb.Text type="Header">Join {teamname}</Kb.Text>
         <Kb.Text type="BodySmall">{details.teamNumMembers.toLocaleString()} members</Kb.Text>
         <Kb.Text type="Body" lineClamp={3} style={styles.description}>
@@ -144,7 +144,7 @@ const JoinFromInvite = () => {
           <Kb.Button type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
         </Kb.Box2>
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
-        <Kb.Box style={Kb.Styles.globalStyles.flexOne} />
+        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
         <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
           <Kb.Avatar
             size={16}

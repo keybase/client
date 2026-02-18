@@ -1,10 +1,9 @@
 import * as React from 'react'
-import {Box, Box2} from './box'
+import {Box2} from './box'
 import Text from './text'
 import * as Styles from '@/styles'
 
 const Kb = {
-  Box,
   Box2,
   Text,
 }

@@ -1,47 +1,45 @@
 import type {Props} from './list-item'
-import Box from './box'
+import {Box2} from './box'
 import ClickableBox from './clickable-box'
-import {globalStyles} from '@/styles'
 
 const ListItem = (p: Props) => {
   const height = {Large: 64, Small: 48}[p.type] // minimum height
   const listItem = (
-    <Box style={{...globalStyles.flexBoxRow, ...p.containerStyle}}>
-      <Box style={{height, width: 0}} />
-      <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start'}}>
-        <Box
+    <Box2 direction="horizontal" fullWidth={true} style={p.containerStyle}>
+      <Box2 direction="vertical" style={{height, width: 0}} />
+      <Box2 direction="vertical">
+        <Box2
+          direction="vertical"
+          centerChildren={true}
           style={{
-            ...globalStyles.flexBoxColumn,
             ...iconContainerThemed[p.type],
-            alignItems: 'center',
             height,
-            justifyContent: 'center',
           }}
         >
           {p.icon}
-        </Box>
-      </Box>
-      <Box
+        </Box2>
+      </Box2>
+      <Box2
+        direction="vertical"
         style={{
-          ...globalStyles.flexBoxColumn,
           ...bodyContainerStyle(p.swipeToAction),
           ...p.bodyContainerStyle,
         }}
       >
         {p.body}
-      </Box>
+      </Box2>
       {!p.swipeToAction && (
-        <Box
+        <Box2
+          direction="vertical"
           style={{
-            ...globalStyles.flexBoxColumn,
             ...actionStyle(!!p.extraRightMarginAction),
             justifyContent: 'center',
           }}
         >
           {p.action}
-        </Box>
+        </Box2>
       )}
-    </Box>
+    </Box2>
   )
   return <ClickableBox onClick={p.onClick}>{listItem}</ClickableBox>
 }

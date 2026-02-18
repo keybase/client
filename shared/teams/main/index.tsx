@@ -40,10 +40,10 @@ const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
     >
       <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
         <Kb.Text type="BodyBig">Create a team</Kb.Text>
-        <Kb.Box style={styles.relative}>
+        <Kb.Box2 direction="vertical" style={styles.relative}>
           <Kb.Avatar isTeam={true} size={96} />
           <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.ClickableBox>
     <Kb.ClickableBox

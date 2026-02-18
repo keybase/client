@@ -46,7 +46,7 @@ export const IconWithPopupDesktop = (p: PopupOwnProps) => {
   const popupVisibleColor = color || Kb.Styles.globalColors.black
   return (
     <>
-      <Kb.Box style={styles.iconContainerMargins} onClick={showPopup}>
+      <Kb.ClickableBox style={styles.iconContainerMargins} onClick={showPopup}>
         <Kb.Box2Measure
           ref={popupAnchor}
           direction="vertical"
@@ -66,7 +66,7 @@ export const IconWithPopupDesktop = (p: PopupOwnProps) => {
             newRelease={newRelease}
           />
         </Kb.Box2Measure>
-      </Kb.Box>
+      </Kb.ClickableBox>
       {popup}
     </>
   )

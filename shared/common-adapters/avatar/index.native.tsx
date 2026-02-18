@@ -3,12 +3,12 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from '../clickable-box'
 import Image2 from '../image2'
-import Box from '../box'
+import {Box2} from '../box'
 import type {Props, AvatarSize} from '.'
 import useHook from './hooks'
 
 const Kb = {
-  Box,
+  Box2,
   ClickableBox,
   Icon,
   Image2,
@@ -34,14 +34,17 @@ const Avatar = React.memo(function Avatar(p: Props) {
 
   return (
     <Kb.ClickableBox onClick={props.onClick} feedback={false} style={containerStyle}>
-      <Kb.Box style={containerStyle}>
+      <Kb.Box2 direction="vertical" style={containerStyle}>
         {!props.skipBackground && (
-          <Kb.Box style={[styles.background, {backgroundColor: Styles.globalColors.white, borderRadius}]} />
+          <Kb.Box2
+            direction="vertical"
+            style={Styles.collapseStyles([styles.background, {backgroundColor: Styles.globalColors.white, borderRadius}])}
+          />
         )}
         {!!props.blocked && (
-          <Kb.Box style={[imageStyles[props.size], {borderRadius}]}>
+          <Kb.Box2 direction="vertical" style={Styles.collapseStyles([imageStyles[props.size], {borderRadius}])}>
             <Icon type="icon-poop-96" style={iconStyles[props.size]} />
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {!!props.url && (
           <Kb.Image2
@@ -67,7 +70,7 @@ const Avatar = React.memo(function Avatar(p: Props) {
           />
         )}
         {props.children}
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ClickableBox>
   )
 })

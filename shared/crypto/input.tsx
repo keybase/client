@@ -134,7 +134,7 @@ const TextInput = (props: TextProps) => {
   ) : null
 
   return (
-    <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
+    <Kb.ClickableBox onClick={onFocusInput} style={styles.containerInputFocus}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
         <Kb.Box2
           direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
@@ -166,7 +166,7 @@ const TextInput = (props: TextProps) => {
         </Kb.Box2>
       </Kb.Box2>
       {!Kb.Styles.isMobile && clearButton}
-    </Kb.Box>
+    </Kb.ClickableBox>
   )
 }
 

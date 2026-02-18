@@ -7,7 +7,7 @@ const CreateChannel = (p: Props) => {
   const props = useHook(p)
   return (
     <Kb.PopupDialog onClose={props.onBack} styleCover={styles.cover} styleContainer={styles.container}>
-      <Kb.Box style={{...styles.box, paddingTop: Kb.Styles.globalMargins.medium}}>
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.boxTop}>
         <Kb.Avatar isTeam={true} teamname={props.teamname} size={32} />
         <Kb.Text type="BodySmallSemibold" style={{marginTop: Kb.Styles.globalMargins.xtiny}}>
           {props.teamname}
@@ -18,17 +18,17 @@ const CreateChannel = (p: Props) => {
         >
           New chat channel
         </Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
       {!!props.errorText && (
         <Kb.Banner color="red">
           <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
         </Kb.Banner>
       )}
-      <Kb.Box style={styles.box}>
-        <Kb.Box style={styles.back} onClick={props.onBack}>
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.box}>
+        <Kb.ClickableBox style={styles.back} onClick={props.onBack}>
           <Kb.Icon style={styles.backIcon} type="iconfont-arrow-left" />
           <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
-        </Kb.Box>
+        </Kb.ClickableBox>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>
           <Kb.LabeledInput
             autoFocus={true}
@@ -62,7 +62,7 @@ const CreateChannel = (p: Props) => {
             label="Save"
           />
         </Kb.ButtonBar>
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.PopupDialog>
   )
 }
@@ -81,10 +81,13 @@ const styles = Kb.Styles.styleSheetCreate(
         marginRight: Kb.Styles.globalMargins.xtiny,
       },
       box: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         paddingLeft: Kb.Styles.globalMargins.large,
         paddingRight: Kb.Styles.globalMargins.large,
+      },
+      boxTop: {
+        paddingLeft: Kb.Styles.globalMargins.large,
+        paddingRight: Kb.Styles.globalMargins.large,
+        paddingTop: Kb.Styles.globalMargins.medium,
       },
       buttonBar: {alignItems: 'center'},
       container: {

@@ -481,9 +481,9 @@ const RightSide = React.memo(function RightSide(p: RProps) {
           'tooltip-left'
         )}
       >
-        <Kb.Box style={styles.ellipsis}>
+        <Kb.Box2 direction="vertical" style={styles.ellipsis}>
           <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box2>
     )
 

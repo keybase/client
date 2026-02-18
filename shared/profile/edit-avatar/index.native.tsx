@@ -147,7 +147,7 @@ const AvatarUploadWrapper = (p: Props) => {
       >
         <Kb.Box2 direction="vertical" style={styles.wizardContainer} fullHeight={true} gap="small">
           {renderImageZoomer()}
-          <Kb.Box style={styles.flexReallyGrow} />
+          <Kb.Box2 direction="vertical" style={styles.flexReallyGrow} />
           <Kb.Button
             label={selectedImage ? 'Pick a new avatar' : 'Pick an avatar'}
             mode="Secondary"
@@ -165,8 +165,8 @@ const AvatarUploadWrapper = (p: Props) => {
           <Kb.Text type="Body">{error}</Kb.Text>
         </Kb.Banner>
       ) : null}
-      <Kb.Box style={styles.container}>
-        <Kb.Box>{renderImageZoomer()}</Kb.Box>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+        <Kb.Box2 direction="vertical">{renderImageZoomer()}</Kb.Box2>
         <Kb.ButtonBar direction="column">
           <Kb.WaitingButton
             fullWidth={true}
@@ -176,7 +176,7 @@ const AvatarUploadWrapper = (p: Props) => {
             waitingKey={waitingKey}
           />
         </Kb.ButtonBar>
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.Box2>
   )
 }

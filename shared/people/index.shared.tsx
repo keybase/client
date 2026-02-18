@@ -114,7 +114,7 @@ const ResentEmailVerificationBanner = React.memo(function ResentEmailVerificatio
 
 export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
   return (
-    <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
       <EmailVerificationBanner />
       <ResentEmailVerificationBanner />
       {props.newItems
@@ -132,6 +132,6 @@ export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
 
       <FollowSuggestions suggestions={props.followSuggestions} />
       {props.oldItems.map((item): React.ReactNode => itemToComponent(item, props))}
-    </Kb.Box>
+    </Kb.Box2>
   )
 })

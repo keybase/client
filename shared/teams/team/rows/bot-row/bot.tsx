@@ -70,19 +70,19 @@ export const TeamBotRow = (props: Props) => {
 
   // TODO: switch this to a ListItem2 so that we get dividers, free styling, etc
   return (
-    <Kb.Box style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
-      <Kb.Box style={styles.innerContainerTop}>
-        <Kb.Box style={styles.clickable}>
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.innerContainerTop}>
+        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.clickable}>
           <Kb.Avatar
             username={props.username}
             size={Kb.Styles.isMobile ? 48 : 32}
             onClick={props.onShowTracker}
           />
-          <Kb.Box style={styles.nameContainer}>
-            <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>{usernameDisplay}</Kb.Box>
-            <Kb.Box style={styles.nameContainerInner}>{descriptionLabel}</Kb.Box>
-          </Kb.Box>
-        </Kb.Box>
+          <Kb.Box2 direction="vertical" style={styles.nameContainer}>
+            <Kb.Box2 direction="horizontal" fullWidth={true}>{usernameDisplay}</Kb.Box2>
+            <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">{descriptionLabel}</Kb.Box2>
+          </Kb.Box2>
+        </Kb.Box2>
         <Kb.Box2Measure direction="vertical" style={styles.menuIconContainer} ref={popupAnchor}>
           {(active || C.isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
@@ -107,37 +107,29 @@ export const TeamBotRow = (props: Props) => {
             onHidden={_onHideMenu}
           />
         </Kb.Box2Measure>
-      </Kb.Box>
-    </Kb.Box>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   clickable: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
     flexGrow: 1,
   },
   container: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
     backgroundColor: Kb.Styles.globalColors.white,
     flex: 1,
     height: '100%',
     position: 'relative',
-    width: '100%',
   },
   containerReset: {
     backgroundColor: Kb.Styles.globalColors.blueLighter2,
   },
   fullNameLabel: {marginRight: Kb.Styles.globalMargins.xtiny},
   innerContainerTop: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-    alignItems: 'center',
     flexShrink: 0,
     height: Kb.Styles.isMobile ? 56 : 48,
-    width: '100%',
   },
   menuButtonDesktop: {
     marginLeft: Kb.Styles.globalMargins.small,
@@ -153,13 +145,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     top: 12,
   },
   menuIconContainer: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
     flexShrink: 1,
     height: '100%',
   },
-  nameContainer: {...Kb.Styles.globalStyles.flexBoxColumn, marginLeft: Kb.Styles.globalMargins.small},
-  nameContainerInner: {...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'},
+  nameContainer: {marginLeft: Kb.Styles.globalMargins.small},
 }))
 
 type OwnProps = {

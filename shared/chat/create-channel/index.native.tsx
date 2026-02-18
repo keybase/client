@@ -7,13 +7,13 @@ const CreateChannel = (p: Props) => {
   const props = useHook(p)
   return (
     <Kb.HeaderHocWrapper onBack={props.onBack}>
-      <Kb.Box>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
         {!!props.errorText && (
           <Kb.Banner color="red">
             <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
           </Kb.Banner>
         )}
-        <Kb.Box style={styles.box}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.box}>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
             <Kb.LabeledInput
               autoFocus={true}
@@ -42,8 +42,8 @@ const CreateChannel = (p: Props) => {
               label="Save"
             />
           </Kb.ButtonBar>
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     </Kb.HeaderHocWrapper>
   )
 }

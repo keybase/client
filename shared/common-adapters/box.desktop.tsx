@@ -1,20 +1,8 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import type {Box2Props, Props} from './box'
+import type {Box2Props} from './box'
 import type {MeasureRef} from './measure-ref'
 import './box.css'
-
-export const Box = (p: Props) => {
-  const {style, onLayout, tooltip, className, ...rest} = p
-  return (
-    <div
-      {...rest}
-      style={Styles.castStyleDesktop(style)}
-      className={Styles.classNames(className, {tooltip})}
-      data-tooltip={tooltip}
-    />
-  )
-}
 
 const getProps = (p: Box2Props) => {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = p
@@ -102,4 +90,3 @@ export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2
   return <div ref={divRef} {...props} />
 })
 
-export default Box

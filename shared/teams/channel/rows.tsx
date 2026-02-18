@@ -106,11 +106,11 @@ const ChannelMemberRow = (props: Props) => {
       <Kb.Avatar username={username} size={32} />
 
       <Kb.Box2 direction="vertical" style={styles.nameContainer}>
-        <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.ConnectedUsernames type="BodySemibold" usernames={props.username} />
-        </Kb.Box>
+        </Kb.Box2>
 
-        <Kb.Box style={styles.nameContainerInner}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
           {fullNameLabel}
           {crown}
           {!active && (
@@ -123,7 +123,7 @@ const ChannelMemberRow = (props: Props) => {
             {!!active && Teams.typeToLabel[teamMemberInfo.type]}
             {resetLabel}
           </Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -294,7 +294,6 @@ const styles = Kb.Styles.styleSheetCreate(
       marginRight: {marginRight: Kb.Styles.globalMargins.xtiny},
       mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
       nameContainer: {flex: 1, marginLeft: Kb.Styles.globalMargins.small},
-      nameContainerInner: {...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'},
       selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
       widenClickableArea: {margin: -5, padding: 5},
     }) as const

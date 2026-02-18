@@ -10,7 +10,8 @@ const addSpacer = (into: string, add: string) => {
 }
 
 const Badge = (p: {backgroundColor: string; menuItem?: boolean}) => (
-  <Kb.Box
+  <Kb.Box2
+    direction="vertical"
     style={Kb.Styles.collapseStyles([
       styles.badge,
       p.menuItem ? styles.badgeMenuItem : styles.badgeGearIcon,

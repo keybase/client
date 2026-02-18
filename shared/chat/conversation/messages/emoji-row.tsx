@@ -69,28 +69,28 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
       </Kb.Box2>
       <Kb.Box2 direction="horizontal">
         <Kb.Divider style={styles.divider} vertical={true} />
-        <Kb.Box
+        <Kb.ClickableBox
           className="hover_container"
           onClick={_showPicker}
           style={styles.iconContainer}
           tooltip="React"
         >
           <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
-        </Kb.Box>
+        </Kb.ClickableBox>
         {!!onReply && (
-          <Kb.Box className="hover_container" onClick={onReply} style={styles.iconContainer} tooltip="Reply">
+          <Kb.ClickableBox className="hover_container" onClick={onReply} style={styles.iconContainer} tooltip="Reply">
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
-          </Kb.Box>
+          </Kb.ClickableBox>
         )}
         {!!onForward && (
-          <Kb.Box
+          <Kb.ClickableBox
             className="hover_container"
             onClick={onForward}
             style={styles.iconContainer}
             tooltip="Forward"
           >
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
-          </Kb.Box>
+          </Kb.ClickableBox>
         )}
       </Kb.Box2>
       {showingPicker && (

@@ -93,17 +93,16 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
   const url = gitURL
   // TODO use ListItem2
   return (
-    <Kb.Box style={styles.container}>
-      <Kb.Box style={styles.containerMobile}>
-        <Kb.Box
-          style={{
-            ...styles.rowStyle,
-            ...(expanded
-              ? {
-                  backgroundColor: Kb.Styles.globalColors.white,
-                }
-              : {}),
-          }}
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.containerMobile}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          alignItems="flex-start"
+          style={Kb.Styles.collapseStyles([
+            styles.rowStyle,
+            expanded && {backgroundColor: Kb.Styles.globalColors.white},
+          ])}
         >
           <Kb.ClickableBox
             onClick={onToggleExpand}
@@ -111,7 +110,7 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
             hoverColor={Kb.Styles.isMobile ? undefined : Kb.Styles.globalColors.transparent}
             underlayColor={Kb.Styles.globalColors.transparent}
           >
-            <Kb.Box style={styles.rowTop}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowTop}>
               <Kb.Icon
                 type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
                 style={styles.iconCaret}
@@ -130,14 +129,15 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
               {isNew && (
                 <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
               )}
-            </Kb.Box>
+            </Kb.Box2>
           </Kb.ClickableBox>
           {expanded && (
-            <Kb.Box style={styles.rowBottom}>
-              <Kb.Box
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowBottom}>
+              <Kb.Box2
+                direction="horizontal"
+                fullWidth={true}
+                alignItems="center"
                 style={{
-                  ...Kb.Styles.globalStyles.flexBoxRow,
-                  alignItems: 'center',
                   maxWidth: '100%',
                   position: 'relative',
                 }}
@@ -146,12 +146,13 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                 <Kb.Box2 direction="horizontal" style={styles.copyTextContainer}>
                   <Kb.CopyText text={url} containerStyle={{width: '100%'}} />
                 </Kb.Box2>
-              </Kb.Box>
-              <Kb.Box
+              </Kb.Box2>
+              <Kb.Box2
+                direction="horizontal"
+                fullWidth={true}
+                alignItems="center"
+                alignSelf="flex-start"
                 style={{
-                  ...Kb.Styles.globalStyles.flexBoxRow,
-                  alignItems: 'center',
-                  alignSelf: 'flex-start',
                   flexWrap: 'wrap',
                   marginTop: Kb.Styles.globalMargins.tiny,
                 }}
@@ -167,7 +168,7 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                   />
                 )}
                 {!!teamname && !!lastEditUser && (
-                  <Kb.Box style={{marginLeft: 2}}>
+                  <Kb.Box2 direction="vertical" style={{marginLeft: 2}}>
                     <Kb.ConnectedUsernames
                       type="BodySmallBold"
                       underline={true}
@@ -175,7 +176,7 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                       usernames={lastEditUser}
                       onUsernameClicked={() => openUserTracker(lastEditUser)}
                     />
-                  </Kb.Box>
+                  </Kb.Box2>
                 )}
                 {Kb.Styles.isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
                 <Kb.Text type="BodySmall">
@@ -190,9 +191,9 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                   </Kb.Text>
                   <Kb.Text type="BodySmall">.</Kb.Text>
                 </Kb.Text>
-              </Kb.Box>
+              </Kb.Box2>
               {!!teamname && (
-                <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
+                <Kb.Box2 direction="horizontal" alignItems="center">
                   {canEdit && (
                     <Kb.Checkbox
                       checked={!chatDisabled}
@@ -218,7 +219,7 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                         : `Pushes are announced in ${teamname}${channelNameToString(channelName)}`}
                     </Kb.Text>
                   )}
-                </Kb.Box>
+                </Kb.Box2>
               )}
               <Kb.Box2
                 direction="horizontal"
@@ -264,30 +265,23 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                   />
                 )}
               </Kb.Box2>
-            </Kb.Box>
+            </Kb.Box2>
           )}
-        </Kb.Box>
-      </Kb.Box>
-      <Kb.Box
-        style={{
-          ...(expanded
-            ? {
-                backgroundColor: Kb.Styles.globalColors.blueLighter3,
-                height: 6,
-              }
-            : {}),
-        }}
+        </Kb.Box2>
+      </Kb.Box2>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        style={expanded ? styles.expandedSpacer : undefined}
       />
-    </Kb.Box>
+    </Kb.Box2>
   )
 })
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {width: '100%'},
       containerMobile: Kb.Styles.platformStyles({
-        common: {width: '100%'},
         isMobile: {
           paddingLeft: Kb.Styles.globalMargins.small,
           paddingRight: Kb.Styles.globalMargins.small,
@@ -305,6 +299,10 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.globalStyles.italic,
         color: Kb.Styles.globalColors.black_50,
       },
+      expandedSpacer: {
+        backgroundColor: Kb.Styles.globalColors.blueLighter3,
+        height: 6,
+      },
       iconCaret: Kb.Styles.platformStyles({
         common: {
           marginBottom: 2,
@@ -319,10 +317,8 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: 6,
       },
       rowBottom: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingLeft: Kb.Styles.globalMargins.medium,
-        width: '100%',
       },
       rowClick: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
@@ -338,19 +334,13 @@ const styles = Kb.Styles.styleSheetCreate(
       },
 
       rowStyle: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'flex-start',
         flexShrink: 0,
         minHeight: Kb.Styles.globalMargins.large,
         paddingLeft: 0,
-        width: '100%',
       },
       rowTop: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
           marginBottom: Kb.Styles.globalMargins.xtiny,
-          width: '100%',
         },
         isElectron: {paddingLeft: Kb.Styles.globalMargins.tiny},
       }),

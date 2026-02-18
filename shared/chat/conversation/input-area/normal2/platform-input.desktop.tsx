@@ -137,9 +137,9 @@ const GiphyButton = React.memo(function GiphyButton() {
   const onGiphyToggle = toggleGiphyPrefill
 
   return (
-    <Kb.Box style={styles.icon} tooltip="GIF" className="tooltip-top-left">
+    <Kb.Box2 direction="vertical" style={styles.icon} tooltip="GIF" className="tooltip-top-left">
       <Kb.Icon onClick={onGiphyToggle} type="iconfont-gif" />
-    </Kb.Box>
+    </Kb.Box2>
   )
 })
 
@@ -184,21 +184,21 @@ const FileButton = React.memo(function FileButton(p: {
   )
 
   return (
-    <Kb.Box style={styles.icon} tooltip="Attachment" className="tooltip-top-left">
+    <Kb.Box2 direction="vertical" style={styles.icon} tooltip="Attachment" className="tooltip-top-left">
       <Kb.Icon onClick={filePickerOpen} type="iconfont-attachment" />
       <input type="file" style={styles.hidden} ref={setRef} onChange={pickFile} multiple={true} />
-    </Kb.Box>
+    </Kb.Box2>
   )
 })
 
 const Footer = () => {
   return (
-    <Kb.Box style={styles.footerContainer}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.footerContainer}>
       <Typing />
       <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} selectable={true}>
         {`*bold*, _italics_, \`code\`, >quote, !>spoiler<!, @user, @team, #channel`}
       </Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -418,8 +418,10 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     <>
       {popup}
       <KeyEventHandler onKeyDown={globalKeyDownPressHandler} onKeyPress={globalKeyDownPressHandler}>
-        <Kb.Box style={styles.container}>
-          <Kb.Box
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+          <Kb.Box2
+            direction="horizontal"
+            alignItems="flex-end"
             style={Kb.Styles.collapseStyles([
               styles.inputWrapper,
               isEditing && styles.inputWrapperEditing,
@@ -458,9 +460,9 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
               />
             </Kb.Box2>
             <SideButtons cannotWrite={cannotWrite} setHtmlInputRef={setHtmlInputRef} inputRef={inputRef} />
-          </Kb.Box>
+          </Kb.Box2>
           <Footer />
-        </Kb.Box>
+        </Kb.Box2>
       </KeyEventHandler>
     </>
   )
@@ -471,9 +473,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       cancelEditingBtn: {margin: Kb.Styles.globalMargins.xtiny},
       container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         backgroundColor: Kb.Styles.globalColors.white,
-        width: '100%',
       },
       explodingIconContainer: Kb.Styles.platformStyles({
         common: {
@@ -501,8 +501,6 @@ const styles = Kb.Styles.styleSheetCreate(
         textAlign: 'right',
       },
       footerContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'flex-start',
         justifyContent: 'space-between',
       },
       hidden: {display: 'none'},
@@ -533,8 +531,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       inputEditing: {color: Kb.Styles.globalColors.blackOrBlack},
       inputWrapper: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'flex-end',
+        alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.white,
         borderColor: Kb.Styles.globalColors.black_20,
         borderRadius: 4,
