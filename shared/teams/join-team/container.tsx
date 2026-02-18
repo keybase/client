@@ -84,8 +84,8 @@ const Container = (ownProps: OwnProps) => {
           )}
         </Kb.Box2>
       ) : (
-        <Kb.Box2 direction="vertical" style={styles.container}>
-          <Kb.RoundedBox style={styles.roundedBox}>
+        <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
+          <Kb.RoundedBox>
             <Kb.PlainInput
               autoFocus={true}
               onChangeText={setName}
@@ -124,7 +124,6 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.small,
         width: '100%',
       },
-      roundedBox: {marginBottom: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 

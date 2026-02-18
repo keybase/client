@@ -33,11 +33,11 @@ const ResetUser = () => {
             }
           </Kb.Text>
         </Kb.Text>
-        <Kb.Box2 direction="vertical" style={styles.bullet}>
-          <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Kb.Styles.globalMargins.tiny}}>
+        <Kb.Box2 direction="vertical" style={styles.bullet} gap="tiny" gapStart={true}>
+          <Kb.Text type="BodySemibold" negative={true}>
             1. Be satisfied with their new proofs, or
           </Kb.Text>
-          <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Kb.Styles.globalMargins.tiny}}>
+          <Kb.Text type="BodySemibold" negative={true}>
             2. Know them outside Keybase and have gotten a thumbs up from them.
           </Kb.Text>
         </Kb.Box2>
