@@ -8,7 +8,7 @@ const Kb = {Box2}
 const LoadingLine = React.memo(function LoadingLine() {
   return (
     <Kb.Box2 direction="vertical" style={styles.container}>
-      <Kb.Box2 direction="vertical" className="loading-line" style={styles.line} />
+      <Kb.Box2 direction="vertical" fullWidth={true} className="loading-line" style={styles.line} />
     </Kb.Box2>
   )
 })

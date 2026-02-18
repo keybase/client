@@ -28,7 +28,7 @@ const CopyableText = (props: Props) => {
       onPress={() => handleCopy()}
       style={props.style}
     >
-      <Box2 direction="vertical" alignItems="flex-start" style={styles.base}>
+      <Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.base}>
         <Text style={{...styleText, ...props.textStyle}} type="BodySmall">
           {props.value}
         </Text>

@@ -41,6 +41,7 @@ export const HeaderHocHeader = (props: Props) => {
     <Kb.Box2
       direction="horizontal"
       alignItems="center"
+      fullWidth={true}
       style={Styles.collapseStyles([styles.header, props.borderless && styles.borderless, props.headerStyle])}
     >
       {props.customComponent}

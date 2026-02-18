@@ -17,7 +17,7 @@ const ChoiceList = (props: Props) => {
   }, [options])
 
   return (
-    <Kb.Box2 direction="vertical">
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       {options.map((op, idx) => {
         const iconType = op.icon
         return (
@@ -28,7 +28,7 @@ const ChoiceList = (props: Props) => {
             onPressIn={() => setActiveIndex(idx)}
             onPressOut={() => setActiveIndex(undefined)}
           >
-            <Kb.Box2 direction="horizontal" style={styleEntry}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styleEntry}>
               <Kb.Box2 direction="vertical" centerChildren={true} style={styleIconContainer(activeIndex === idx)}>
                 {typeof op.icon === 'string' ? (
                   <Icon style={styleIcon} type={iconType} />
