@@ -81,7 +81,7 @@ const FinderIntegration = () => {
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.finderIntegrationContent}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending && <Kb.ProgressIndicator style={styles.spinner} />}
             {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.kextPermissionError && (
@@ -142,7 +142,7 @@ const FilesSettings = () => {
         <FinderIntegration />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
               <Kb.Text type="Header">File sync</Kb.Text>
             </Kb.Box2>
             <Kb.Checkbox

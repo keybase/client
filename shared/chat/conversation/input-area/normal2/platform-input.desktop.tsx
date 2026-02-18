@@ -421,7 +421,6 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.Box2
             direction="horizontal"
-            fullWidth={true}
             alignItems="flex-end"
             style={Kb.Styles.collapseStyles([
               styles.inputWrapper,
@@ -532,6 +531,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       inputEditing: {color: Kb.Styles.globalColors.blackOrBlack},
       inputWrapper: {
+        alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.white,
         borderColor: Kb.Styles.globalColors.black_20,
         borderRadius: 4,

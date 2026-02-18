@@ -18,7 +18,7 @@ export const HeaderHocHeader = ({
   onCancel,
   theme = 'light',
 }: Props) => (
-  <Kb.Box2 direction="horizontal" alignItems="center" style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
     {onCancel && (
       <Kb.Icon

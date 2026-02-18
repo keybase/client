@@ -238,11 +238,14 @@ function AcceptedInviteItem(p: {invite: AcceptedInvite; onClick: () => void}) {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
+    alignSelf: 'flex-start' as const,
     marginTop: Kb.Styles.globalMargins.small,
     minHeight: 269,
     width: 400,
   },
   inviteItem: {
+    ...Kb.Styles.globalStyles.flexBoxRow,
+    alignItems: 'center' as const,
     flexShrink: 0,
     height: 40,
     marginLeft: Kb.Styles.globalMargins.tiny,

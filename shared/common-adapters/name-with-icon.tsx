@@ -245,7 +245,10 @@ const styles = Styles.styleSheetCreate(() => ({
       marginRight: Styles.globalMargins.small,
     },
   }),
-  hContainerStyle: {},
+  hContainerStyle: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center' as const,
+  },
   hIconStyle: Styles.platformStyles({
     isElectron: {
       height: 32,
@@ -264,6 +267,7 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 64,
   },
   hbContainerStyle: {
+    ...Styles.globalStyles.flexBoxRow,
     width: '100%',
   },
   hbIconStyle: Styles.platformStyles({
@@ -295,7 +299,10 @@ const styles = Styles.styleSheetCreate(() => ({
   textContainer: {
     flex: 1,
   },
-  vContainerStyle: {},
+  vContainerStyle: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center' as const,
+  },
   vUsernameContainerStyle: Styles.platformStyles({
     isElectron: {
       textAlign: 'center',
