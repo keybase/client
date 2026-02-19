@@ -56,6 +56,8 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
     ordinal
   )
 
+  const titleUrlProps = Kb.useClickURL(data?.url ?? '')
+
   if (!data) return null
 
   const {description, favicon, height, isCollapsed, isVideo, publishTime} = data
@@ -131,9 +133,9 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
       {!Kb.Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical" fullWidth={true}>
         {publisher}
-        <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={url}>
+        <Kb.Text3 type="BodyPrimaryLink" style={styles.url} {...titleUrlProps}>
           {title}
-        </Kb.Text>
+        </Kb.Text3>
         {snippet}
         {bottomImage}
       </Kb.Box2>

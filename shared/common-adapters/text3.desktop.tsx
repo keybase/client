@@ -51,6 +51,7 @@ export function Text3(p: Props) {
       title={p.title}
       className={cn}
       onClick={p.onClick ?? undefined}
+      onContextMenuCapture={p.onContextMenu ?? undefined}
       style={style}
       data-tooltip={p.tooltip}
       data-virtual-text={p.virtualText ? p.children : undefined}

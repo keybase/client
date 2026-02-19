@@ -10,6 +10,7 @@ const GiphySearch = () => {
   const props = useHooks()
   const [width, setWidth] = React.useState<number | undefined>(undefined)
   const divRef = React.useRef<HTMLDivElement>(null)
+  const learnMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/chat/linkpreviews')
 
   React.useEffect(() => {
     if (!divRef.current) return
@@ -41,13 +42,13 @@ const GiphySearch = () => {
           <Kb.Text3 style={styles.instructions} type="BodySmall">
             {"Tip: hit 'Enter' now to send a random GIF."}
           </Kb.Text3>
-          <Kb.Text
+          <Kb.Text3
             style={styles.instructions}
             type="BodySmallSecondaryLink"
-            onClickURL="https://keybase.io/docs/chat/linkpreviews"
+            {...learnMoreUrlProps}
           >
             Learn more about GIFs & encryption
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
         {width &&
           (props.previews ? (

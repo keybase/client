@@ -117,6 +117,7 @@ const ProveIt = (p: BioTeamProofsProps) => {
       break
   }
   const url = 'https://keybase.io/install'
+  const installUrlProps = Kb.useClickURL(url)
   return (
     <>
       <Kb.Text3 type="BodySmall" style={styles.proveIt}>
@@ -124,9 +125,9 @@ const ProveIt = (p: BioTeamProofsProps) => {
       </Kb.Text3>
       <Kb.Text3 type="BodySmall" style={styles.proveIt}>
         Send them this link:{' '}
-        <Kb.Text type="BodySmallPrimaryLink" onClickURL={url} selectable={true}>
+        <Kb.Text3 type="BodySmallPrimaryLink" {...installUrlProps} selectable={true}>
           {url}
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Text3>
     </>
   )

@@ -8,6 +8,7 @@ type Props = {
   children?: React.ReactNode
   style?: CSS.StylesCrossPlatform
   onClick?: (e: React.BaseSyntheticEvent) => void
+  onContextMenu?: (e: React.BaseSyntheticEvent) => void
   onLongPress?: () => void
   center?: boolean
   negative?: boolean

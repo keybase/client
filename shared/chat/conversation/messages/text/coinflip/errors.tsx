@@ -46,26 +46,29 @@ type AbsenteeProps = {
   error: T.RPCChat.UICoinFlipAbsenteeError
 }
 
-const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
-    <Kb.Text3 selectable={true} type="Body">
-      Uh oh, a participant disappeared:
-    </Kb.Text3>
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text3 selectable={true} style={styles.error} type="BodySemibold">
-        {(props.error.absentees || []).map(a => `${a.user} (device: ${a.device})`).join(', ')}
-      </Kb.Text3>
-    </Kb.Box2>
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+const CoinFlipAbsenteeError = (props: AbsenteeProps) => {
+  const learnMoreUrlProps = Kb.useClickURL('https://keybase.io/coin-flip')
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
       <Kb.Text3 selectable={true} type="Body">
-        It was likely a network problem, but they could be trying to pull a fast one.
+        Uh oh, a participant disappeared:
       </Kb.Text3>
-      <Kb.Text type="BodyPrimaryLink" onClickURL="https://keybase.io/coin-flip">
-        Learn More
-      </Kb.Text>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Text3 selectable={true} style={styles.error} type="BodySemibold">
+          {(props.error.absentees || []).map(a => `${a.user} (device: ${a.device})`).join(', ')}
+        </Kb.Text3>
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+        <Kb.Text3 selectable={true} type="Body">
+          It was likely a network problem, but they could be trying to pull a fast one.
+        </Kb.Text3>
+        <Kb.Text3 type="BodyPrimaryLink" {...learnMoreUrlProps}>
+          Learn More
+        </Kb.Text3>
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const CoinFlipTimeoutError = () => (
   <Kb.Text3 selectable={true} style={styles.error} type="BodySmall">

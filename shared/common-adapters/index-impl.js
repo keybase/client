@@ -333,6 +333,9 @@ module.exports = {
   get urlsToImgSet() {
     return require('./icon').urlsToImgSet
   },
+  get useClickURL() {
+    return require('./text3-url').useClickURL
+  },
   get useHotKey() {
     return require('./hot-key').useHotKey
   },

@@ -49,6 +49,7 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
     }))
   )
   const onChangeLockdownMode = setLockdownMode
+  const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/lockdown/index')
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
   const checked = hasRandomPW || !!lockdownModeEnabled
   const disabled = hasRandomPW || settingLockdownMode
@@ -65,7 +66,7 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
             With this setting on you will not be able to reset your account, even from the app. Protect your
             account by installing Keybase on several devices, or by keeping a paper key in a safe place.
           </Kb.Text3>
-          <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/docs/lockdown/index">
+          <Kb.Text3 type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
             <Kb.Icon
               type="iconfont-open-browser"
@@ -73,7 +74,7 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
               boxStyle={styles.displayInline}
               color={Kb.Styles.globalColors.blueDark}
             />
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       }
     />

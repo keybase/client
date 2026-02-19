@@ -84,6 +84,7 @@ const PublicityAnyMember = (props: {
 const teamsLink = 'keybase.io/popular-teams'
 
 const PublicityTeam = (props: {newPublicityTeam: boolean; setNewPublicityTeam: (s: boolean) => void}) => {
+  const teamsLinkUrlProps = Kb.useClickURL(`https://${teamsLink}`)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
       <Kb.Checkbox
@@ -92,9 +93,9 @@ const PublicityTeam = (props: {newPublicityTeam: boolean; setNewPublicityTeam: (
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.shrink}>
             <Kb.Text3 type="Body">
               Publicize this team on{' '}
-              <Kb.Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
+              <Kb.Text3 type="BodyPrimaryLink" {...teamsLinkUrlProps}>
                 {teamsLink}
-              </Kb.Text>
+              </Kb.Text3>
             </Kb.Text3>
             <Kb.Text3 type="BodySmall">Team descriptions and number of members will be public.</Kb.Text3>
           </Kb.Box2>

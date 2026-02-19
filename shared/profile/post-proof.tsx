@@ -156,28 +156,30 @@ const noteMap = new Map([
 const WebDescription = ({platformUserName}: {platformUserName: string}) => {
   const root = `${platformUserName}/keybase.txt`
   const wellKnown = `${platformUserName}/.well-known/keybase.txt`
+  const rootUrlProps = Kb.useClickURL(`https://${root}`)
+  const wellKnownUrlProps = Kb.useClickURL(`https://${wellKnown}`)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text3 center={true} type="BodySemibold">
         Please serve the text below <Kb.Text3 type="BodySemiboldItalic">exactly as it appears</Kb.Text3>
         {" at one of these URL's."}
       </Kb.Text3>
-      <Kb.Text
+      <Kb.Text3
         type="BodyPrimaryLink"
         center={true}
-        onClickURL={`https://${root}`}
+        {...rootUrlProps}
         style={{color: Kb.Styles.globalColors.blueDark, marginTop: Kb.Styles.globalMargins.tiny}}
       >
         {root}
-      </Kb.Text>
-      <Kb.Text
+      </Kb.Text3>
+      <Kb.Text3
         type="BodyPrimaryLink"
         center={true}
-        onClickURL={`https://${wellKnown}`}
+        {...wellKnownUrlProps}
         style={{color: Kb.Styles.globalColors.blueDark}}
       >
         {wellKnown}
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
   )
 }

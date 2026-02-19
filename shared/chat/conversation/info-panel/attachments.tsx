@@ -300,6 +300,22 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
   </Kb.Box2>
 )
 
+const LinkTitle = (p: {title: string; url?: string}) => {
+  const urlProps = Kb.useClickURL(p.url ?? '')
+  return (
+    <Kb.Text3
+      type="BodySmallPrimaryLink"
+      {...urlProps}
+      style={Kb.Styles.collapseStyles([
+        styles.linkStyle,
+        {color: Kb.Styles.globalColors.blueDark},
+      ])}
+    >
+      {p.title}
+    </Kb.Text3>
+  )
+}
+
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
@@ -705,16 +721,7 @@ export const useAttachmentSections = (
                       </Kb.Markdown>
                     </Kb.Box2>
                     {!!item.title && (
-                      <Kb.Text
-                        type="BodySmallPrimaryLink"
-                        onClickURL={item.url}
-                        style={Kb.Styles.collapseStyles([
-                          styles.linkStyle,
-                          {color: Kb.Styles.globalColors.blueDark},
-                        ])}
-                      >
-                        {item.title}
-                      </Kb.Text>
+                      <LinkTitle title={item.title} url={item.url} />
                     )}
                     <Kb.Divider />
                   </Kb.Box2>

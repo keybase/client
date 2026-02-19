@@ -38,6 +38,7 @@ const EmailPhone = () => {
   const tooManyEmails = _emails.size >= 10 // If you change this, also change in keybase/config/prod/email.iced
   const tooManyPhones = !!_phones && _phones.size >= 10 // If you change this, also change in keybase/config/prod/phone_numbers.iced
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsLoadSettings)
+  const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/chat/phones-and-emails')
   const onAddEmail = () => {
     navigateAppend('settingsAddEmail')
   }
@@ -54,7 +55,7 @@ const EmailPhone = () => {
         <Kb.Text3 type="BodySmall">
           Secures your account by letting us send important notifications, and allows friends and teammates to
           find you by phone number or email.{' '}
-          <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/docs/chat/phones-and-emails">
+          <Kb.Text3 type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
             <Kb.Icon
               type="iconfont-open-browser"
@@ -62,7 +63,7 @@ const EmailPhone = () => {
               boxStyle={styles.displayInline}
               color={Kb.Styles.globalColors.blueDark}
             />
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Text3>
       </Kb.Box2>
       {!!contactKeys.length && (
