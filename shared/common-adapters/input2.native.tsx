@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input2'
 import {isIOS} from '@/constants/platform'
-import {getTextStyle} from './text'
+import {getTextStyle} from './text3.styles'
 import {
   TextInput,
   type NativeSyntheticEvent,

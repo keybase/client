@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input2'
-import {getTextStyle} from './text'
+import {getTextStyle} from './text3.styles'
 import {useColorScheme} from 'react-native'
 
 const maybeParseInt = (input: string | number, radix: number): number =>

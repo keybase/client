@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type {globalMargins, CustomStyles} from '@/styles'
-import type {TextType} from './text'
+import type {TextType} from './text3.shared'
 import type {NativeSyntheticEvent} from 'react-native'
 
 export type KeyboardType =

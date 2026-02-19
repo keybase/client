@@ -7,7 +7,7 @@ import {Text3} from './text3'
 import SwitchToggle from './switch-toggle'
 import WithTooltip from './with-tooltip'
 import type {MeasureRef} from './measure-ref'
-import type {TextType} from './text.shared'
+import type {TextType} from './text3.shared'
 
 const Kb = {
   Box2,

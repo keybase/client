@@ -1,7 +1,7 @@
 import * as Chat from '@/stores/chat2'
 import type * as T from '@/constants/types'
 import {Text3} from '../text3'
-import type {StylesTextCrossPlatform} from '../text'
+import type {StylesTextCrossPlatform} from '../text3.shared'
 import * as React from 'react'
 
 type OwnProps = {

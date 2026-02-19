@@ -2,7 +2,7 @@ import * as React from 'react'
 import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
 import {Box2} from './box'
 import {Text3} from './text3'
-import {getTextStyle} from './text'
+import {getTextStyle} from './text3.styles'
 import * as Styles from '@/styles'
 import {isMobile} from '@/constants/platform'
 import {useColorScheme} from 'react-native'
@@ -53,7 +53,7 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
   const collapsed = focused || populated || multiline
 
   // We're using fontSize to derive heights
-  const fontSize = getTextStyle(props.textType || 'BodySemibold', isDarkMode).fontSize
+  const fontSize = getTextStyle(props.textType || 'BodySemibold', isDarkMode).fontSize ?? 14
   const computedContainerSize = fontSize + (isMobile ? 48 : 38) + (multiline ? fontSize : 0)
 
   return (

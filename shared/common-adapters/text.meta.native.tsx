@@ -1,5 +1,5 @@
 import * as Styles from '@/styles'
-import type {MetaType, TextType} from './text'
+import type {MetaType, TextType} from './text3.shared'
 
 // need to be `undefined` instead of `null` since `null` doesn't ellipsize at
 // all.

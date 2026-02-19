@@ -1,5 +1,5 @@
 import * as Styles from '@/styles'
-import type {MetaType, TextType} from './text'
+import type {MetaType, TextType} from './text3.shared'
 
 export const lineClamp = (lines: number) => ({
   WebkitBoxOrient: 'vertical',

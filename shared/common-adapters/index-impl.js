@@ -288,12 +288,6 @@ module.exports = {
   get TeamWithPopup() {
     return require('./team-with-popup').default
   },
-  get Text() {
-    return require('./text').default
-  },
-  get Text2() {
-    return require('./text2').Text2
-  },
   get Text3() {
     return require('./text3').Text3
   },

@@ -3,7 +3,7 @@ import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input
 import {Box2} from './box'
 import Icon, {type IconType} from './icon'
 import {Text3} from './text3'
-import {getTextStyle} from './text'
+import {getTextStyle} from './text3.styles'
 import * as Styles from '@/styles'
 import './input.css'
 

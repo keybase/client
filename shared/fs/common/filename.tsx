@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import type {TextType} from '@/common-adapters/text.shared'
+import type {TextType} from '@/common-adapters/text3.shared'
 
 type Props = {
   path?: T.FS.Path

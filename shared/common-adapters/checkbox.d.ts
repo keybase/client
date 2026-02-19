@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type * as Styles from '@/styles'
-import type {TextType} from './text.shared'
+import type {TextType} from './text3.shared'
 
 export type Props = {
   key?: string
