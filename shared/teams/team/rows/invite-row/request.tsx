@@ -97,9 +97,9 @@ export const TeamRequestRow = (props: Props) => {
               />
               {Kb.Styles.isMobile ? (
                 C.isLargeScreen && (
-                  <Kb.Text type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
+                  <Kb.Text3 type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
                     {fullName !== '' && `${fullName}`}
-                  </Kb.Text>
+                  </Kb.Text3>
                 )
               ) : (
                 <Kb.Text3 type="BodySmall" lineClamp={1}>

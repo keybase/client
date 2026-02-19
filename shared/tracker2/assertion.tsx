@@ -453,14 +453,14 @@ const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const label = (
-    <Kb.Text
+    <Kb.Text3
       type="BodyPrimaryLink"
       onClick={Kb.Styles.isMobile ? undefined : showPopup}
       tooltip={popup ? undefined : 'Stellar Federation Address'}
       style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
     >
       {value}
-    </Kb.Text>
+    </Kb.Text3>
   )
 
   return Kb.Styles.isMobile ? (

@@ -20,14 +20,13 @@ const TLFTypeContainer = (p: OwnProps) => {
       onOpen={onOpen}
       writingToJournal={false}
       content={
-        <Kb.Text
-          fixOverdraw={true}
+        <Kb.Text3
           type={FS.pathTypeToTextType(T.FS.PathType.Folder)}
           style={rowStyles.rowText}
           lineClamp={Kb.Styles.isMobile ? 1 : undefined}
         >
           {T.FS.getPathName(path)}
-        </Kb.Text>
+        </Kb.Text3>
       }
     />
   )

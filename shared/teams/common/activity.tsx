@@ -52,9 +52,9 @@ export const ModalTitle = ({title, teamID}: MTProps) => {
   return Kb.Styles.isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">
       {!!teamname && (
-        <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
+        <Kb.Text3 type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
           {teamname}
-        </Kb.Text>
+        </Kb.Text3>
       )}
       <Kb.Text3 type="BodyBig">{title}</Kb.Text3>
     </Kb.Box2>

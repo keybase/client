@@ -135,7 +135,6 @@ const ServiceDecoration = (p: Props) => {
         paymentID={paymentID}
         error={error}
         text={parsed.payment.paymentText}
-        allowFontScaling={allowFontScaling}
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.atmention && parsed.atmention) {

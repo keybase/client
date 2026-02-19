@@ -326,9 +326,8 @@ const BottomLine = (p: BottomLineProps) => {
     content = null
   } else if (youAreReset) {
     content = (
-      <Kb.Text
+      <Kb.Text3
         type="BodySmallSemibold"
-        fixOverdraw={Kb.Styles.isPhone}
         negative={true}
         style={Kb.Styles.collapseStyles([
           styles.youAreResetText,
@@ -336,7 +335,7 @@ const BottomLine = (p: BottomLineProps) => {
         ])}
       >
         You are locked out.
-      </Kb.Text>
+      </Kb.Text3>
     )
   } else if (participantNeedToRekey) {
     content = (

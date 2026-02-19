@@ -180,7 +180,7 @@ const ChannelHeader = () => {
           teamname={teamname || undefined}
           size={smallTeam ? 16 : (12 as 16) /* not really allowed a one off */}
         />
-        <Kb.Text
+        <Kb.Text3
           type={textType}
           lineClamp={1}
           ellipsizeMode="middle"
@@ -189,14 +189,14 @@ const ChannelHeader = () => {
         >
           &nbsp;
           {teamname}
-        </Kb.Text>
+        </Kb.Text3>
         {smallTeam && <ShhIcon />}
       </Kb.Box2>
       {!smallTeam && (
         <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-          <Kb.Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
+          <Kb.Text3 type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
             #{channelname}
-          </Kb.Text>
+          </Kb.Text3>
           <ShhIcon />
         </Kb.Box2>
       )}
@@ -238,9 +238,9 @@ const UsernameHeader = () => {
       style={Kb.Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
     >
       {!!theirFullname && (
-        <Kb.Text lineClamp={1} type="BodyBig" fixOverdraw={true}>
+        <Kb.Text3 lineClamp={1} type="BodyBig">
           {theirFullname}
-        </Kb.Text>
+        </Kb.Text3>
       )}
       <Kb.Box2 direction="horizontal" style={styles.nameMutedContainer}>
         <Kb.ConnectedUsernames
@@ -274,9 +274,9 @@ const PhoneOrEmailHeader = () => {
       style={Kb.Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
     >
       <Kb.Box2 direction="horizontal" style={styles.lessMargins}>
-        <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
+        <Kb.Text3 type="BodyBig" lineClamp={1} ellipsizeMode="middle">
           {formattedPhoneOrEmail}
-        </Kb.Text>
+        </Kb.Text3>
         <ShhIcon />
       </Kb.Box2>
       {!!name && <Kb.Text3 type="BodyTiny">{name}</Kb.Text3>}

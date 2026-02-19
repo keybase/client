@@ -230,9 +230,9 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
           )}
           <Kb.Box2 direction="vertical" fullHeight={true} style={styles.kbfsJobLeft}>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="flex-end">
-              <Kb.Text type="BodyBold" lineClamp={1} style={{flexShrink: 1}} ellipsizeMode="head">
+              <Kb.Text3 type="BodyBold" lineClamp={1} style={{flexShrink: 1}} ellipsizeMode="head">
                 {job.gitRepo ?? job.kbfsPath}
-              </Kb.Text>
+              </Kb.Text3>
               {C.isMobile ? null : <Kb.Box2 direction="horizontal" style={{flex: 1}} />}
               {C.isMobile ? null : job.bytesTotal ? (
                 <Kb.Text3 type="BodySmall">{FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text3>

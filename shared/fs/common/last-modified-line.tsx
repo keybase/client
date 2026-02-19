@@ -41,30 +41,30 @@ const Container = (ownProps: OwnProps) => {
     case 'menu':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          <Kb.Text fixOverdraw={true} type="BodyTiny" center={true}>
+          <Kb.Text3 type="BodyTiny" center={true}>
             {time}
-          </Kb.Text>
-          <Kb.Text fixOverdraw={true} type="BodyTiny" center={true}>
+          </Kb.Text3>
+          <Kb.Text3 type="BodyTiny" center={true}>
             {by}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       )
     case 'row':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text fixOverdraw={true} type="BodySmall" lineClamp={1}>
+          <Kb.Text3 type="BodySmall" lineClamp={1}>
             {time}
             {by}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       )
     case 'default':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          <Kb.Text fixOverdraw={true} type="BodySmall" center={true}>
+          <Kb.Text3 type="BodySmall" center={true}>
             {time}
             {by}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       )
   }

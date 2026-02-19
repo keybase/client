@@ -47,7 +47,7 @@ const BigTeamHeaderInner = (props: Props) => {
       {popup}
       <Kb.Avatar onClick={onClick} teamname={teamname} size={32} />
       <Kb.BoxGrow2>
-        <Kb.Text
+        <Kb.Text3
           ellipsizeMode="middle"
           onClick={onClick}
           type="BodySmallSemibold"
@@ -55,7 +55,7 @@ const BigTeamHeaderInner = (props: Props) => {
           lineClamp={1}
         >
           {teamname}
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.BoxGrow2>
       <Kb.ClickableBox
         className="hover_container"

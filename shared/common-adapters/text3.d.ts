@@ -7,11 +7,14 @@ type Props = {
   children?: React.ReactNode
   style?: CSS.StylesCrossPlatform
   onClick?: (e: React.BaseSyntheticEvent) => void
+  onLongPress?: () => void
   center?: boolean
   negative?: boolean
   lineClamp?: number
+  ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip'
   selectable?: boolean
   title?: string
+  tooltip?: string
   className?: string
 }
 export declare const Text3: (p: Props) => React.ReactNode

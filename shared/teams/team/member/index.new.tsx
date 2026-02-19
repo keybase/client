@@ -559,14 +559,14 @@ const NodeInRow = (props: NodeInRowProps) => {
                       color={Kb.Styles.globalColors.black_20}
                       boxStyle={styles.membershipIcon}
                     />
-                    <Kb.Text
+                    <Kb.Text3
                       type="BodySmall"
                       style={Kb.Styles.globalStyles.flexOne}
                       lineClamp={4}
                       ellipsizeMode="tail"
                     >
                       {loadingChannels ? 'Loading channels...' : `Member of #${channelsJoined}`}
-                    </Kb.Text>
+                    </Kb.Text3>
                   </Kb.Box2>
                 )}
                 {expanded && (props.node.canAdminister || isMe) && (

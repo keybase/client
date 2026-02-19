@@ -17,9 +17,10 @@ export function Text3(p: Props) {
     <RNText
       style={mergedStyle}
       onPress={p.onClick ?? undefined}
+      onLongPress={p.onLongPress ?? undefined}
       selectable={p.selectable}
       numberOfLines={p.lineClamp}
-      ellipsizeMode={p.lineClamp ? 'tail' : undefined}
+      ellipsizeMode={p.lineClamp ? (p.ellipsizeMode ?? 'tail') : undefined}
     >
       {p.children}
     </RNText>

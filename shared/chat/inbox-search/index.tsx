@@ -444,7 +444,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
       >
         <TeamAvatar teamname={name} isMuted={false} isSelected={isSelected} isHovered={hovering} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-          <Kb.Text
+          <Kb.Text3
             type="BodySemibold"
             style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black}}
             title={name}
@@ -452,8 +452,8 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             ellipsizeMode="tail"
           >
             {name}
-          </Kb.Text>
-          <Kb.Text
+          </Kb.Text3>
+          <Kb.Text3
             type="BodySmall"
             style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}}
             title={`#${description}`}
@@ -461,7 +461,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             ellipsizeMode="tail"
           >
             {description}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       </Kb.Box2Measure>
       {popup}

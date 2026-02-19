@@ -16,6 +16,7 @@ export function Text3(p: Props) {
     t3_lineClamp5: p.lineClamp === 5,
     t3_negative: p.negative,
     t3_selectable: p.selectable,
+    tooltip: !!p.tooltip,
   })
   const lcStyle: React.CSSProperties | undefined =
     p.lineClamp && p.lineClamp > 5
@@ -35,7 +36,7 @@ export function Text3(p: Props) {
       : undefined
 
   return (
-    <span title={p.title} className={cn} onClick={p.onClick ?? undefined} style={style}>
+    <span title={p.title} className={cn} onClick={p.onClick ?? undefined} style={style} data-tooltip={p.tooltip}>
       {p.children}
     </span>
   )
