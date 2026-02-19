@@ -327,7 +327,6 @@ func IdentifyUserList(ctx context.Context, nug idutil.NormalizedUsernameGetter,
 	// TODO: limit the number of concurrent identifies?
 	// TODO: implement concurrency limited version of errgroup.
 	for _, id := range ids {
-		// Capture range variable.
 		eg.Go(func() error {
 			return identifyUID(
 				ctx, nug, identifier, id, t, offline)

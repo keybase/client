@@ -324,7 +324,6 @@ func testFileDataWriteNewLevel(t *testing.T, levels float64) {
 
 func TestFileDataWriteNewLevel(t *testing.T) {
 	for _, level := range []float64{1, 2, 3, 10} {
-		// capture range variable.
 		t.Run(fmt.Sprintf("%dLevels", int(level)), func(t *testing.T) {
 			testFileDataWriteNewLevel(t, level)
 		})
@@ -491,7 +490,6 @@ func testFileDataExtendExistingLevels(t *testing.T, levels float64) {
 
 func TestFileDataExtendExistingLevels(t *testing.T) {
 	for _, level := range []float64{1, 2, 3, 10} {
-		// capture range variable.
 		t.Run(fmt.Sprintf("%dLevels", int(level)), func(t *testing.T) {
 			testFileDataExtendExistingLevels(t, level)
 		})
@@ -606,7 +604,6 @@ func TestFileDataWriteHole(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		// capture range variable.
 		t.Run(test.name, func(t *testing.T) {
 			testFileDataOverwriteExistingFile(t, 2, 2, 10,
 				[]testFileDataHole{{5, 10}}, test.start, test.end, test.final)
@@ -698,7 +695,6 @@ func TestFileDataTruncateExtendLevel(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		// capture range variable.
 		t.Run(test.name, func(t *testing.T) {
 			testFileDataTruncateExtendFile(
 				t, 2, 2, test.currLen, test.newSize, nil)
@@ -788,7 +784,6 @@ func TestFileDataTruncateShrink(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		// capture range variable.
 		t.Run(test.name, func(t *testing.T) {
 			testFileDataShrinkExistingFile(t, 2, 2, test.currLen, test.newSize)
 		})
@@ -870,7 +865,6 @@ func TestFileDataWriteExtendExistingFileWithGap(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		// capture range variable.
 		t.Run(test.name, func(t *testing.T) {
 			testFileDataWriteExtendExistingFileWithGap(
 				t, 2, 2, test.currLen, test.newSize, test.startWrite,
