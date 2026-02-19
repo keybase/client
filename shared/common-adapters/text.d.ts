@@ -3,7 +3,7 @@ import type * as React from 'react'
 import type {MeasureRef} from './measure-ref'
 import type {TextType} from './text.shared'
 
-type Props = {
+export type Props = {
   type?: TextType
   children?: React.ReactNode
   style?: CSS.StylesCrossPlatform
@@ -24,3 +24,4 @@ type Props = {
   className?: string
 }
 export declare const Text: (p: Props) => React.ReactNode
+export default Text

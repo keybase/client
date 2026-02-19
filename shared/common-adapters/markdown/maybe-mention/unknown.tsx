@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Text} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
 import Button from '@/common-adapters/button'
 import {Box2} from '@/common-adapters/box'
 import type {MeasureRef} from '@/common-adapters/measure-ref'

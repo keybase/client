@@ -4,7 +4,7 @@ import PopupDialog from './popup-dialog'
 import ScrollView, {type ScrollViewRef} from '@/common-adapters/scroll-view'
 import {Box2, type LayoutEvent} from '@/common-adapters/box'
 import BoxGrow from './box-grow'
-import {Text} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
 import {useTimeout} from './use-timers'
 
 const Kb = {

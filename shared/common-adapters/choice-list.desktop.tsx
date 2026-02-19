@@ -1,6 +1,6 @@
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
-import {Text} from './text'
+import Text from './text'
 import Icon from './icon'
 import * as Styles from '@/styles'
 import type {Props} from './choice-list'

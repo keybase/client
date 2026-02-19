@@ -1,5 +1,5 @@
 import {Box2} from './box'
-import {Text} from './text'
+import Text from './text'
 import Icon from './icon'
 import type {IconType} from './icon.constants-gen'
 import * as Styles from '@/styles'

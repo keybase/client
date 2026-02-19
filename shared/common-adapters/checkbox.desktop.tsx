@@ -1,7 +1,7 @@
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
-import {Text} from './text'
+import Text from './text'
 import type {Props} from './checkbox'
 import * as Styles from '@/styles'
 

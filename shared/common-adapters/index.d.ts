@@ -91,7 +91,7 @@ export {default as SectionList, type SectionListRef, type SectionType} from './s
 export {default as Switch} from './switch'
 export {default as Tabs} from './tabs'
 export {default as TeamWithPopup} from './team-with-popup'
-export {Text} from './text'
+export {default as Text} from './text'
 export {useClickURL} from './text-url'
 export {default as Toast} from './toast'
 export {default as SimpleToast} from './simple-toast'

@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import ScrollView from './scroll-view'
 import {Box2, type LayoutEvent} from './box'
 import BoxGrow from './box-grow'
-import {Text} from './text'
+import Text from './text'
 import {useTimeout} from './use-timers'
 
 const Kb = {

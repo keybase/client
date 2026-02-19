@@ -1,6 +1,6 @@
 import * as Chat from '@/stores/chat2'
 import type * as T from '@/constants/types'
-import {Text} from '../text'
+import Text from '../text'
 import type {StylesTextCrossPlatform} from '../text.shared'
 import * as React from 'react'
 

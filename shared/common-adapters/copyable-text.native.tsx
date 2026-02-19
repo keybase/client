@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type {Props as PropsCommon} from './copyable-text'
 import {useTimeout} from './use-timers'
-import {Text} from './text'
+import Text from './text'
 import {Box2} from './box'
 import {TouchableHighlight} from 'react-native'
 import * as Styles from '@/styles'

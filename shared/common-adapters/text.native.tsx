@@ -27,6 +27,8 @@ export function Text(p: Props) {
   )
 }
 
+export default Text
+
 const styles = Styles.styleSheetCreate(() => ({
   center: {textAlign: 'center'},
 }) as const)

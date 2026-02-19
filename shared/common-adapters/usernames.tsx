@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Text} from './text'
+import Text from './text'
 import {backgroundModeIsNegative} from './text.shared'
 import type {TextType, Background, StylesTextCrossPlatform, AllowedColors, LineClampType, TextTypeBold} from './text.shared'
 import isArray from 'lodash/isArray'

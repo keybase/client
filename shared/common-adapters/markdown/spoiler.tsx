@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Text} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
 
 type Props = {
   children: React.ReactNode

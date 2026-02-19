@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
-import {Text} from './text'
+import Text from './text'
 import Icon from './icon'
 import logger from '@/logger'
 import * as Styles from '@/styles'

@@ -61,3 +61,4 @@ export function Text(p: Props) {
     </span>
   )
 }
+export default Text

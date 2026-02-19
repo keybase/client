@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import {Box2} from './box'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
-import {Text} from './text'
+import Text from './text'
 
 const Kb = {
   Box2,

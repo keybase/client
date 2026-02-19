@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Box2} from './box'
-import {Text} from './text'
+import Text from './text'
 import * as Styles from '@/styles'
 
 const Kb = {

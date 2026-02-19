@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2Measure} from './box'
 import Toast from './toast'
-import {Text} from './text'
+import Text from './text'
 import type {Props} from './with-tooltip'
 import type {MeasureRef} from './measure-ref'
 

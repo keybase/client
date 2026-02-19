@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from './box'
-import {Text} from './text'
+import Text from './text'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'

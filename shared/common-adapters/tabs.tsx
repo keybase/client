@@ -4,7 +4,7 @@ import ClickableBox from './clickable-box'
 import Divider from './divider'
 import Icon, {type IconType} from './icon'
 import ProgressIndicator from './progress-indicator'
-import {Text} from './text'
+import Text from './text'
 import {Box2} from './box'
 import capitalize from 'lodash/capitalize'
 

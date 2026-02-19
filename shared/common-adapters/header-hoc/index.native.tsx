@@ -6,7 +6,7 @@ import BoxGrow from '@/common-adapters/box-grow'
 import FloatingMenu from '@/common-adapters/floating-menu'
 import Icon, {type IconType} from '@/common-adapters/icon'
 import SafeAreaView, {SafeAreaViewTop} from '@/common-adapters/safe-area-view'
-import {Text} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
 import type {Props, LeftActionProps} from '.'
 

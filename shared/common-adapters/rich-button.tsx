@@ -4,7 +4,7 @@ import * as Styles from '@/styles'
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Avatar from './avatar'
-import {Text} from './text'
+import Text from './text'
 import type {IconType} from './icon.constants-gen'
 import Icon from './icon'
 

@@ -1,7 +1,7 @@
 import * as Styles from '@/styles'
 import * as React from 'react'
 import * as SM from '@khanacademy/simple-markdown'
-import {Text} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
 import logger from '@/logger'
 import type {Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'

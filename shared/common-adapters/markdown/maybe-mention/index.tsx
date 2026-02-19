@@ -1,6 +1,6 @@
 import * as Chat from '@/stores/chat2'
 import * as T from '@/constants/types'
-import {Text} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import Mention from '../../mention-container'
 import TeamMention from './team'

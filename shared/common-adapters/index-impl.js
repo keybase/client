@@ -289,7 +289,7 @@ module.exports = {
     return require('./team-with-popup').default
   },
   get Text() {
-    return require('./text').Text
+    return require('./text').default
   },
   get TimelineMarker() {
     return require('./timeline-marker').default

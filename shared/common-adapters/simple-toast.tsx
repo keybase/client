@@ -1,7 +1,7 @@
 import Toast from './toast'
 import {Box2} from './box'
 import Icon, {type IconType} from './icon'
-import {Text} from './text'
+import Text from './text'
 import type {MeasureRef} from './measure-ref'
 import * as Styles from '@/styles'
 

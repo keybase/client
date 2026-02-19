@@ -4,7 +4,7 @@ import SafeAreaView from './safe-area-view'
 import {Picker} from '@react-native-picker/picker'
 import {Box2} from './box'
 import Overlay from './overlay'
-import {Text} from './text'
+import Text from './text'
 import type {Props} from './floating-picker'
 
 const Kb = {

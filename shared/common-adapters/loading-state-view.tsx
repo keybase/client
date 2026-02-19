@@ -1,5 +1,5 @@
 import * as Styles from '@/styles'
-import {Text} from './text'
+import Text from './text'
 import {Box2} from './box'
 import ProgressBar from './progress-bar'
 import ProgressIndicator from './progress-indicator'
