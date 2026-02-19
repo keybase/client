@@ -71,8 +71,8 @@ const UnknownMention = (props: Props) => {
     <Kb.Text
       textRef={mentionRef}
       type="BodySemibold"
-      allowFontScaling={props.allowFontScaling}
       className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
+      allowFontScaling={props.allowFontScaling}
       style={Kb.Styles.collapseStyles([props.style, styles.text])}
       onClick={handleMouseOver}
     >

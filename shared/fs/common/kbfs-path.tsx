@@ -70,9 +70,9 @@ const KbfsPath = (props: Props) => {
   const text = (
     <Kb.Text
       type="BodyPrimaryLink"
-      allowFontScaling={true}
       onClick={openInFilesTab}
       onLongPress={() => setShowing(true)}
+      allowFontScaling={true}
       textRef={textRef}
     >
       {props.rawPath}

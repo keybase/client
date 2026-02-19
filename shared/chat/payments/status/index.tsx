@@ -75,11 +75,11 @@ const PaymentStatus = (props: Props) => {
     <Kb.Text
       textRef={statusRef}
       type="BodyExtrabold"
-      allowFontScaling={props.allowFontScaling}
+      allowFontScaling={!!props.allowFontScaling}
       onClick={_showPopup}
     >
       {' '}
-      <Kb.Text type="BodyExtrabold" allowFontScaling={props.allowFontScaling} style={styles[props.status]}>
+      <Kb.Text type="BodyExtrabold" allowFontScaling={!!props.allowFontScaling} style={styles[props.status]}>
         {props.text}{' '}
         <Kb.Icon
           type={getIcon(props.status)}
@@ -186,7 +186,7 @@ const reduceStatus = (status: string): Status => {
 }
 
 const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: OwnProps) {
-  const {allowFontScaling, error, paymentID, text} = p
+  const {error, paymentID, text, allowFontScaling} = p
   const ordinal = useOrdinal()
   const paymentInfo = Chat.useChatState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
   const status = error ? 'error' : (paymentInfo?.status ?? 'pending')

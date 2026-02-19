@@ -77,15 +77,15 @@ const TeamMention = (ownProps: OwnProps) => {
     <Kb.Text
       textRef={mentionRef}
       type="BodyBold"
-      allowFontScaling={allowFontScaling}
       className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
       style={Kb.Styles.collapseStyles([style, styles.text])}
+      allowFontScaling={allowFontScaling}
       onClick={handleClick}
     >
       <Kb.Text
         type="BodyBold"
-        allowFontScaling={allowFontScaling}
         style={Kb.Styles.collapseStyles([style, styles.resolved, styles.text])}
+        allowFontScaling={allowFontScaling}
       >
         {text}
       </Kb.Text>
@@ -127,7 +127,7 @@ const TeamMention = (ownProps: OwnProps) => {
       </Kb.Box2>
     )
   ) : (
-    <Kb.Text type="BodySemibold" allowFontScaling={allowFontScaling} style={style}>
+    <Kb.Text type="BodySemibold" style={style} allowFontScaling={allowFontScaling}>
       {text}
     </Kb.Text>
   )

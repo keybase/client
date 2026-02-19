@@ -89,6 +89,7 @@ export type Props = {
   //
   // TODO type this up or remove it
   style?: Styles.StylesCrossPlatform
+  allowFontScaling?: boolean
   messageType?: T.Chat.MessageType
   // This changes the specific style for specific types of text
   // for example you may want to make paragraphs, italics, etc to be black_50
@@ -96,7 +97,6 @@ export type Props = {
   styleOverride?: StyleOverride
 
   virtualText?: boolean // desktop only, see text.desktop
-  allowFontScaling?: boolean
 }
 
 const serviceBeginDecorationTag = /\$>kb\$/
@@ -418,9 +418,9 @@ const ErrorComponent = (p: {children: React.ReactNode}) => {
 }
 
 const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: MarkdownProps) {
-  const {styleOverride = {}, paragraphTextClassName, messageType, children} = p
+  const {allowFontScaling, styleOverride = {}, paragraphTextClassName, messageType, children} = p
   const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
-  const {serviceOnlyNoWrap, disallowAnimation, context, allowFontScaling} = p
+  const {serviceOnlyNoWrap, disallowAnimation, context} = p
   let parseTree: Array<SM.SingleASTNode>
   let output: React.ReactNode
   try {

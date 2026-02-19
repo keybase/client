@@ -19,8 +19,8 @@ export const setServiceDecoration = (SDT: typeof ServiceDecorationType) => {
 }
 
 interface State {
-  allowFontScaling?: boolean
   context?: string
+  allowFontScaling?: boolean
   disallowAnimation?: boolean
   messageType?: T.Chat.MessageType
   paragraphTextClassName?: string
@@ -170,8 +170,8 @@ const InlineCode = (p: {children: React.ReactNode; state: State}) => {
   return (
     <Text
       type="Body"
-      allowFontScaling={state.allowFontScaling}
       style={Styles.collapseStyles([markdownStyles.codeSnippetStyle, state.styleOverride?.inlineCode])}
+      allowFontScaling={state.allowFontScaling}
     >
       {children}
     </Text>
@@ -184,8 +184,8 @@ const Fence = (p: {children: React.ReactNode; state: State}) => {
     <Box2 direction="vertical">
       <Text
         type="Body"
-        allowFontScaling={state.allowFontScaling}
         style={Styles.collapseStyles([markdownStyles.codeSnippetBlockTextStyle, state.styleOverride?.fence])}
+        allowFontScaling={state.allowFontScaling}
       >
         {children}
       </Text>
@@ -193,8 +193,8 @@ const Fence = (p: {children: React.ReactNode; state: State}) => {
   ) : (
     <Text
       type="Body"
-      allowFontScaling={state.allowFontScaling}
       style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state.styleOverride?.fence])}
+      allowFontScaling={state.allowFontScaling}
     >
       {children}
     </Text>
@@ -247,8 +247,8 @@ const reactComponentsForMarkdownType = {
       <Text
         type="Body"
         key={state.key}
-        allowFontScaling={state.allowFontScaling}
         style={Styles.collapseStyles([markdownStyles.strikeStyle, state.styleOverride?.del])}
+        allowFontScaling={state.allowFontScaling}
       >
         {output(node['content'], state)}
       </Text>
@@ -262,12 +262,12 @@ const reactComponentsForMarkdownType = {
         <Text
           type="Body"
           key={state.key}
-          allowFontScaling={state.allowFontScaling}
           style={Styles.collapseStyles([
             markdownStyles.italicStyle,
             state.insideStrong && markdownStyles.boldStyle,
             state.styleOverride?.em,
           ])}
+          allowFontScaling={state.allowFontScaling}
         >
           {output(node['content'], state)}
         </Text>
@@ -279,7 +279,6 @@ const reactComponentsForMarkdownType = {
   emoji: {
     react: (node: Node, _output: SM.ReactOutput, state: State) => (
       <NativeEmoji
-        allowFontScaling={state.allowFontScaling}
         emojiName={
           //eslint-disable-next-line
           String(node['content']).toLowerCase()
@@ -287,6 +286,7 @@ const reactComponentsForMarkdownType = {
         size={state.styleOverride?.emojiSize?.size ?? 16}
         key={state.key}
         disableSelecting={state.virtualText}
+        allowFontScaling={state.allowFontScaling}
         style={state.styleOverride?.emoji}
       />
     ),
@@ -317,8 +317,8 @@ const reactComponentsForMarkdownType = {
         <Text
           type="Body"
           key={state.key}
-          allowFontScaling={state.allowFontScaling}
           style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride?.paragraph])}
+          allowFontScaling={state.allowFontScaling}
         >
           {'\n'}
         </Text>
@@ -333,12 +333,12 @@ const reactComponentsForMarkdownType = {
           className={state.paragraphTextClassName}
           type="Body"
           key={state.key}
-          allowFontScaling={state.allowFontScaling}
           style={Styles.collapseStyles([
             markdownStyles.textBlockStyle,
             state.styleOverride?.paragraph,
             state.inBlockQuote && markdownStyles.quoteStyleText,
           ])}
+          allowFontScaling={state.allowFontScaling}
         >
           {output(node['content'], state)}
         </Text>
@@ -350,9 +350,9 @@ const reactComponentsForMarkdownType = {
   serviceDecoration: {
     react: (node: Node, _output: SM.ReactOutput, state: State) => (
       <ServiceDecoration
-        allowFontScaling={state.allowFontScaling}
         json={node['content'] as unknown as string}
         key={state.key}
+        allowFontScaling={state.allowFontScaling}
         messageType={state.messageType}
         styleOverride={state.styleOverride}
         styles={markdownStyles}
@@ -378,12 +378,12 @@ const reactComponentsForMarkdownType = {
         <Text
           type="BodySemibold"
           key={state.key}
-          allowFontScaling={state.allowFontScaling}
           style={Styles.collapseStyles([
             markdownStyles.boldStyle,
             state.insideEM && markdownStyles.italicStyle,
             state.styleOverride?.strong,
           ])}
+          allowFontScaling={state.allowFontScaling}
         >
           {output(node['content'], state)}
         </Text>
@@ -422,7 +422,6 @@ export const bigEmojiOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputF
     emoji: {
       react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <NativeEmoji
-          allowFontScaling={state.allowFontScaling}
           style={state.styleOverride?.paragraph}
           emojiName={
             //eslint-disable-next-line
@@ -430,6 +429,7 @@ export const bigEmojiOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputF
           }
           size={32}
           key={state.key}
+          allowFontScaling={state.allowFontScaling}
         />
       ),
     },
@@ -441,8 +441,8 @@ export const bigEmojiOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputF
           <Text
             type="Body"
             key={state.key}
-            allowFontScaling={state.allowFontScaling}
             style={markdownStyles.bigTextBlockStyle}
+            allowFontScaling={state.allowFontScaling}
           >
             {output(node['content'], state)}
           </Text>
@@ -483,9 +483,9 @@ export const previewOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFo
     serviceDecoration: {
       react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <ServiceDecoration
-          allowFontScaling={state.allowFontScaling}
           json={node['content'] as unknown as string}
           key={state.key}
+          allowFontScaling={state.allowFontScaling}
           styleOverride={state.styleOverride}
           styles={markdownStyles}
           disableBigEmojis={true}
@@ -518,9 +518,9 @@ export const serviceOnlyOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outp
     serviceDecoration: {
       react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <ServiceDecoration
-          allowFontScaling={state.allowFontScaling}
           json={node['content'] as unknown as string}
           key={state.key}
+          allowFontScaling={state.allowFontScaling}
           styleOverride={state.styleOverride}
           styles={markdownStyles}
           disableBigEmojis={true}
@@ -568,9 +568,9 @@ export const serviceOnlyNoWrapOutput: SM.Output<React.ReactNode> = SimpleMarkdow
     serviceDecoration: {
       react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <ServiceDecoration
-          allowFontScaling={state.allowFontScaling}
           json={node['content'] as unknown as string}
           key={state.key}
+          allowFontScaling={state.allowFontScaling}
           styleOverride={state.styleOverride}
           styles={markdownStyles}
           disableBigEmojis={true}

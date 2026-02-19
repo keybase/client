@@ -24,7 +24,7 @@ const MaybeMention = (props: Props) => {
       text += `#${props.channel}`
     }
     return (
-      <Kb.Text type="Body" allowFontScaling={props.allowFontScaling} style={props.style}>
+      <Kb.Text type="Body" style={props.style} allowFontScaling={props.allowFontScaling}>
         {text}
       </Kb.Text>
     )

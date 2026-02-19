@@ -5,14 +5,14 @@ import type {StylesTextCrossPlatform} from '../text.shared'
 import * as React from 'react'
 
 type OwnProps = {
-  allowFontScaling?: boolean
   name: string
   convID: T.Chat.ConversationIDKey
   style: StylesTextCrossPlatform
+  allowFontScaling?: boolean
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {allowFontScaling, name, convID, style} = ownProps
+  const {name, convID, style, allowFontScaling} = ownProps
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const _onClick = React.useCallback(
     (name: string, convID: T.Chat.ConversationIDKey) =>
@@ -27,7 +27,7 @@ const Container = (ownProps: OwnProps) => {
   const onClick = () => _onClick(name, convID)
 
   return (
-    <Text type="BodyPrimaryLink" allowFontScaling={!!allowFontScaling} onClick={onClick} style={style}>
+    <Text type="BodyPrimaryLink" onClick={onClick} style={style} allowFontScaling={!!allowFontScaling}>
       #{name}
     </Text>
   )
