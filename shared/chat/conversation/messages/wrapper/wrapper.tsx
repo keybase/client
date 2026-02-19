@@ -351,28 +351,28 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
 
   const cancel =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
-      <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel} virtualText={true}>
+      <Kb.Text3 type="BodySmall" style={styles.failUnderline} onClick={onCancel} virtualText={true}>
         Cancel
-      </Kb.Text>
+      </Kb.Text3>
     ) : null
 
   const or =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
-      <Kb.Text type="BodySmall" virtualText={true}>
+      <Kb.Text3 type="BodySmall" virtualText={true}>
         {' or '}
-      </Kb.Text>
+      </Kb.Text3>
     ) : null
 
   const action: React.ReactNode =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
-      <Kb.Text
+      <Kb.Text3
         type="BodySmall"
         style={styles.failUnderline}
         onClick={ecrType === EditCancelRetryType.EDIT_CANCEL ? onEdit : onRetry}
         virtualText={true}
       >
         {ecrType === EditCancelRetryType.EDIT_CANCEL ? 'Edit' : 'Retry'}
-      </Kb.Text>
+      </Kb.Text3>
     ) : null
 
   return (

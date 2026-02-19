@@ -174,7 +174,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
               pending && styles.hidden,
             ])}
           >
-            <Kb.Text
+            <Kb.Text3
               className="explodingTimeText"
               type="Body"
               style={Kb.Styles.collapseStyles([
@@ -184,7 +184,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
               virtualText={true}
             >
               {pending ? '' : formatDurationShort(explodesAt - now)}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         </Kb.Box2>
       )

@@ -35,9 +35,9 @@ const CoinFlipGenericError = () => {
   return (
     <Kb.Text3 selectable={true} style={styles.error} type="BodySmall">
       An unexpected error occurred, unable to determine the result of the flip.{' '}
-      <Kb.Text onClick={sendFeedback} style={styles.error} type="BodySmallPrimaryLink" underline={true}>
+      <Kb.Text3 onClick={sendFeedback} style={styles.error} type="BodySmallPrimaryLink" underline={true}>
         Please send feedback.
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Text3>
   )
 }

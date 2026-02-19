@@ -27,14 +27,14 @@ const OutOfDate = ({outOfDate}: Props) => {
           style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}
         >
           Please{' '}
-          <Kb.Text
+          <Kb.Text3
             type="BodySmallSemibold"
             underline={!!updateNow}
             style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}
             onClick={updateNow}
           >
             update now
-          </Kb.Text>
+          </Kb.Text3>
           .
         </Kb.Text3>
       )}

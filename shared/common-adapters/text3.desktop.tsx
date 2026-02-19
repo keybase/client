@@ -5,6 +5,14 @@ import './text3.css'
 
 export function Text3(p: Props) {
   const type = p.type ?? 'BodySmall'
+  const {textRef} = p
+  const setRef = textRef
+    ? (r: HTMLSpanElement | null) => {
+        textRef.current = r
+          ? {divRef: {current: null}, measure: () => r.getBoundingClientRect()}
+          : null
+      }
+    : undefined
   const cn = Styles.classNames(`t3_${type}`, p.className, {
     t3_center: p.center,
     t3_clickable: !!p.onClick,
@@ -16,6 +24,8 @@ export function Text3(p: Props) {
     t3_lineClamp5: p.lineClamp === 5,
     t3_negative: p.negative,
     t3_selectable: p.selectable,
+    t3_underline: p.underline,
+    t3_virtualText: p.virtualText,
     tooltip: !!p.tooltip,
   })
   const lcStyle: React.CSSProperties | undefined =
@@ -36,8 +46,16 @@ export function Text3(p: Props) {
       : undefined
 
   return (
-    <span title={p.title} className={cn} onClick={p.onClick ?? undefined} style={style} data-tooltip={p.tooltip}>
-      {p.children}
+    <span
+      ref={setRef}
+      title={p.title}
+      className={cn}
+      onClick={p.onClick ?? undefined}
+      style={style}
+      data-tooltip={p.tooltip}
+      data-virtual-text={p.virtualText ? p.children : undefined}
+    >
+      {p.virtualText ? null : p.children}
     </span>
   )
 }

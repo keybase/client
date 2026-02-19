@@ -459,14 +459,14 @@ const InstallBotPopup = (props: Props) => {
                   {!!error && (
                     <Kb.Text3 type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
                       {'Something went wrong! Please try again, or send '}
-                      <Kb.Text
+                      <Kb.Text3
                         type="Body"
                         style={{color: Kb.Styles.globalColors.redDark}}
                         underline={true}
                         onClick={onFeedback}
                       >
                         {'feedback'}
-                      </Kb.Text>
+                      </Kb.Text3>
                     </Kb.Text3>
                   )}
                 </Kb.Box2>

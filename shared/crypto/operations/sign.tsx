@@ -14,13 +14,13 @@ const SignOutputBanner = () => {
     <OutputInfoBanner operation={operation}>
       <Kb.Text3 type="BodySmallSemibold" center={true}>
         This is your signed {outputType === 'file' ? 'file' : 'message'}, using{` `}
-        <Kb.Text
+        <Kb.Text3
           type="BodySecondaryLink"
           underline={true}
           onClick={() => openURL(Crypto.saltpackDocumentation)}
         >
           Saltpack
-        </Kb.Text>
+        </Kb.Text3>
         .{` `}Anyone who has it can verify you signed it.
       </Kb.Text3>
     </OutputInfoBanner>

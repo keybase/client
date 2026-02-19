@@ -341,3 +341,11 @@
 .t3_lineClamp5 {
   -webkit-line-clamp: 5;
 }
+
+.t3_underline {
+  text-decoration: underline;
+}
+
+.t3_virtualText::before {
+  content: attr(data-virtual-text);
+}

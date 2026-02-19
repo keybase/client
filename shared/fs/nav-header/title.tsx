@@ -69,9 +69,9 @@ const Breadcrumb = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       {ancestors.length > 2 && (
         <React.Fragment key="dropdown">
-          <Kb.Text key="dots" type="BodyTinyLink" onClick={showPopup} textRef={popupAnchor}>
+          <Kb.Text3 key="dots" type="BodyTinyLink" onClick={showPopup} textRef={popupAnchor}>
             •••
-          </Kb.Text>
+          </Kb.Text3>
           {popup}
         </React.Fragment>
       )}

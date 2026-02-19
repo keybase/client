@@ -68,15 +68,14 @@ const KbfsPath = (props: Props) => {
   const textRef = React.useRef<Kb.MeasureRef | null>(null)
   const openInFilesTab = useOpenInFilesTab(props.standardPath)
   const text = (
-    <Kb.Text
+    <Kb.Text3
       type="BodyPrimaryLink"
       onClick={openInFilesTab}
       onLongPress={() => setShowing(true)}
-      allowFontScaling={true}
       textRef={textRef}
     >
       {props.rawPath}
-    </Kb.Text>
+    </Kb.Text3>
   )
   const popup = showing ? (
     <KbfsPathPopup attachRef={textRef} visible={showing} onHidden={() => setShowing(false)} {...props} />

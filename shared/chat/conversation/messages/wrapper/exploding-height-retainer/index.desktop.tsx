@@ -61,9 +61,9 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
   if (doneExploding) {
     explodedTag = explodedBy ? (
       <Kb.Text3 type="BodyTiny" style={styles.exploded}>
-        <Kb.Text type="BodyTiny" virtualText={true}>
+        <Kb.Text3 type="BodyTiny" virtualText={true}>
           {'EXPLODED BY '}
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.ConnectedUsernames
           type="BodySmallBold"
           onUsernameClicked="profile"
@@ -76,9 +76,9 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
         />
       </Kb.Text3>
     ) : (
-      <Kb.Text type="BodyTiny" style={styles.exploded} virtualText={true}>
+      <Kb.Text3 type="BodyTiny" style={styles.exploded} virtualText={true}>
         EXPLODED
-      </Kb.Text>
+      </Kb.Text3>
     )
   }
 

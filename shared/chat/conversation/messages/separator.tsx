@@ -162,9 +162,9 @@ const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUse
   )
 
   const timestampNode = (
-    <Kb.Text2 type="BodyTiny" virtualText={true} className="separator-text">
+    <Kb.Text3 type="BodyTiny" virtualText={true} className="separator-text">
       {formatTimeForChat(timestamp)}
-    </Kb.Text2>
+    </Kb.Text3>
   )
 
   return (

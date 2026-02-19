@@ -59,7 +59,7 @@ const Container = () => {
           </Kb.Text3>
           {props.actions.map((a, i) => {
             return (
-              <Kb.Text
+              <Kb.Text3
                 key={i}
                 negative={true}
                 type="BodySmallSemiboldPrimaryLink"
@@ -68,7 +68,7 @@ const Container = () => {
                 underline={true}
               >
                 {a.displayText}
-              </Kb.Text>
+              </Kb.Text3>
             )
           })}
         </Kb.Box2>
