@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as SM from '@khanacademy/simple-markdown'
 import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
-import {Text3} from '@/common-adapters/text3'
-import type {StylesTextCrossPlatform} from '@/common-adapters/text3.shared'
+import {Text} from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import {Box2} from '@/common-adapters/box'
 import Spoiler from './spoiler'
 import NativeEmoji from '@/common-adapters/emoji/native-emoji'
@@ -167,12 +167,12 @@ export const markdownStyles = _markdownStyles as MakeText<typeof _markdownStyles
 const InlineCode = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p
   return (
-    <Text3
+    <Text
       type="Body"
       style={Styles.collapseStyles([markdownStyles.codeSnippetStyle, state.styleOverride?.inlineCode])}
     >
       {children}
-    </Text3>
+    </Text>
   )
 }
 
@@ -180,20 +180,20 @@ const Fence = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p
   return Styles.isMobile ? (
     <Box2 direction="vertical">
-      <Text3
+      <Text
         type="Body"
         style={Styles.collapseStyles([markdownStyles.codeSnippetBlockTextStyle, state.styleOverride?.fence])}
       >
         {children}
-      </Text3>
+      </Text>
     </Box2>
   ) : (
-    <Text3
+    <Text
       type="Body"
       style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state.styleOverride?.fence])}
     >
       {children}
-    </Text3>
+    </Text>
   )
 }
 
@@ -240,13 +240,13 @@ const reactComponentsForMarkdownType = {
   },
   del: {
     react: (node: Node, output: SM.ReactOutput, state: State) => (
-      <Text3
+      <Text
         type="Body"
         key={state.key}
         style={Styles.collapseStyles([markdownStyles.strikeStyle, state.styleOverride?.del])}
       >
         {output(node['content'], state)}
-      </Text3>
+      </Text>
     ),
   },
   em: {
@@ -254,7 +254,7 @@ const reactComponentsForMarkdownType = {
       const oldInsideEM = state.insideEM
       state.insideEM = true
       const ret = (
-        <Text3
+        <Text
           type="Body"
           key={state.key}
           style={Styles.collapseStyles([
@@ -264,7 +264,7 @@ const reactComponentsForMarkdownType = {
           ])}
         >
           {output(node['content'], state)}
-        </Text3>
+        </Text>
       )
       state.insideEM = oldInsideEM
       return ret
@@ -307,13 +307,13 @@ const reactComponentsForMarkdownType = {
       !Styles.isMobile || state.inParagraph ? (
         output({content: '\n', type: 'text'}, state)
       ) : (
-        <Text3
+        <Text
           type="Body"
           key={state.key}
           style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride?.paragraph])}
         >
           {'\n'}
-        </Text3>
+        </Text>
       ),
   },
   paragraph: {
@@ -321,7 +321,7 @@ const reactComponentsForMarkdownType = {
       const oldInParagraph = state.inParagraph
       state.inParagraph = true
       const ret = (
-        <Text3
+        <Text
           className={state.paragraphTextClassName}
           type="Body"
           key={state.key}
@@ -332,7 +332,7 @@ const reactComponentsForMarkdownType = {
           ])}
         >
           {output(node['content'], state)}
-        </Text3>
+        </Text>
       )
       state.inParagraph = oldInParagraph
       return ret
@@ -365,7 +365,7 @@ const reactComponentsForMarkdownType = {
       const oldInsideStrong = state.insideStrong
       state.insideStrong = true
       const ret = (
-        <Text3
+        <Text
           type="BodySemibold"
           key={state.key}
           style={Styles.collapseStyles([
@@ -375,7 +375,7 @@ const reactComponentsForMarkdownType = {
           ])}
         >
           {output(node['content'], state)}
-        </Text3>
+        </Text>
       )
       state.insideStrong = oldInsideStrong
       return ret
@@ -426,13 +426,13 @@ export const bigEmojiOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputF
         const oldInParagraph = state.inParagraph
         state.inParagraph = true
         const ret = (
-          <Text3
+          <Text
             type="Body"
             key={state.key}
             style={markdownStyles.bigTextBlockStyle}
           >
             {output(node['content'], state)}
-          </Text3>
+          </Text>
         )
         state.inParagraph = oldInParagraph
         return ret

@@ -68,14 +68,14 @@ const MessagePopupHeader = (props: Props) => {
       {Kb.Styles.isMobile ? null : <Kb.Icon type={iconName} style={styles.headerIcon} />}
       {Kb.Styles.isMobile ? null : (
         <Kb.Box2 direction="horizontal">
-          <Kb.Text3
+          <Kb.Text
             type="BodySmall"
             style={{
               color: deviceRevokedAt ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.greenDark,
             }}
           >
             ENCRYPTED & SIGNED
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       )}
       <Kb.Box2 direction="horizontal">
@@ -89,12 +89,12 @@ const MessagePopupHeader = (props: Props) => {
             underline={true}
             type="BodySmallBold"
           />
-          <Kb.Text3 type="BodySmallSemibold">{deviceName}</Kb.Text3>
+          <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
       {botUsername && (
         <Kb.Box2 direction="horizontal">
-          <Kb.Text3 type="BodySmall">also encrypted for</Kb.Text3>
+          <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
           <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
             <Kb.Avatar username={botUsername} size={16} onClick="profile" />
             <Kb.ConnectedUsernames
@@ -108,9 +108,9 @@ const MessagePopupHeader = (props: Props) => {
           </Kb.Box2>
         </Kb.Box2>
       )}
-      <Kb.Text3 center={true} type="BodySmall">
+      <Kb.Text center={true} type="BodySmall">
         {formatTimeForPopup(timestamp)}
-      </Kb.Text3>
+      </Kb.Text>
       {!!deviceRevokedAt && (
         <Kb.Box2
           gap="small"

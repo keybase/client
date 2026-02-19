@@ -139,9 +139,9 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
               value={username}
               textType="BodySemibold"
             />
-            <Kb.Text3 style={styles.forgotUsername} type="BodySmallSecondaryLink" onClick={onForgotUsername}>
+            <Kb.Text style={styles.forgotUsername} type="BodySmallSecondaryLink" onClick={onForgotUsername}>
               Forgot username?
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         </UserCard>
       </Kb.ScrollView>

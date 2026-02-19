@@ -81,7 +81,7 @@ export const CreateChannelsModal = (props: Props) => {
         style={styles.body}
         gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
-        <Kb.Text3 type="BodySmall">Channels can be joined by anyone in the team, unlike subteams.</Kb.Text3>
+        <Kb.Text type="BodySmall">Channels can be joined by anyone in the team, unlike subteams.</Kb.Text>
         <ChannelInput isGeneral={true} />
         {channels.map((value, idx) => (
           <ChannelInput
@@ -93,10 +93,10 @@ export const CreateChannelsModal = (props: Props) => {
         ))}
         <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
         {numChannels === 0 && !props.onSubmitChannels && (
-          <Kb.Text3 type="BodySmall" style={styles.noChannelsText}>
+          <Kb.Text type="BodySmall" style={styles.noChannelsText}>
             Your team will be a simple conversation. You can always make it a big team later by adding
             channels.
-          </Kb.Text3>
+          </Kb.Text>
         )}
       </Kb.Box2>
     </Kb.Modal>

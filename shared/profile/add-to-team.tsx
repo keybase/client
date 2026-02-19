@@ -125,9 +125,9 @@ const Container = (ownProps: OwnProps) => {
         Kb.Styles.isMobile
           ? {
               leftButton: (
-                <Kb.Text3 type="BodyBigLink" onClick={onBack}>
+                <Kb.Text type="BodyBigLink" onClick={onBack}>
                   Cancel
-                </Kb.Text3>
+                </Kb.Text>
               ),
             }
           : undefined
@@ -156,13 +156,13 @@ const Container = (ownProps: OwnProps) => {
             noShrink={true}
             style={styles.addUserToTeamsResultsBox}
           >
-            <Kb.Text3 style={styles.addUserToTeamsResultsText} type="BodySemibold" negative={true}>
+            <Kb.Text style={styles.addUserToTeamsResultsText} type="BodySemibold" negative={true}>
               {addUserToTeamsResults}
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal">
-          <Kb.Text3 type="Header">Add</Kb.Text3>
+          <Kb.Text type="Header">Add</Kb.Text>
           <Kb.Avatar
             isTeam={false}
             size={16}
@@ -172,7 +172,7 @@ const Container = (ownProps: OwnProps) => {
             }}
             username={them}
           />
-          <Kb.Text3 type="Header">{them} to...</Kb.Text3>
+          <Kb.Text type="Header">{them} to...</Kb.Text>
         </Kb.Box2>
         <Kb.BoxGrow style={{width: '100%'}}>
           <Kb.ScrollView style={{height: '100%', width: '100%'}}>
@@ -195,12 +195,12 @@ const Container = (ownProps: OwnProps) => {
                   ))
                 ) : (
                   <Kb.Box2 direction="vertical" centerChildren={true}>
-                    <Kb.Text3 center={true} type="Body">
+                    <Kb.Text center={true} type="Body">
                       {"Looks like you haven't joined any teams yet yourself!"}
-                    </Kb.Text3>
-                    <Kb.Text3 center={true} type="Body">
+                    </Kb.Text>
+                    <Kb.Text center={true} type="Body">
                       You can join teams over in the Teams tab.
-                    </Kb.Text3>
+                    </Kb.Text>
                   </Kb.Box2>
                 )
               ) : (
@@ -212,9 +212,9 @@ const Container = (ownProps: OwnProps) => {
           </Kb.ScrollView>
         </Kb.BoxGrow>
         <Kb.Box2 direction="horizontal" style={styles.addToTeam}>
-          <Kb.Text3 style={styles.addToTeamTitle} type="BodySmall">
+          <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
             {them} will be added as a
-          </Kb.Text3>
+          </Kb.Text>
           <FloatingRolePicker
             presetRole={selectedRole}
             floatingContainerStyle={styles.floatingRolePicker}
@@ -276,20 +276,20 @@ const TeamRow = (props: RowProps) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical">
           <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
-            <Kb.Text3
+            <Kb.Text
               style={{
                 color: props.canAddThem ? Kb.Styles.globalColors.black : Kb.Styles.globalColors.black_50,
               }}
               type="BodySemibold"
             >
               {props.name}
-            </Kb.Text3>
+            </Kb.Text>
             {props.isOpen && (
               <Kb.Meta title="open" style={styles.meta} backgroundColor={Kb.Styles.globalColors.green} />
             )}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
-            <Kb.Text3 type="BodySmall">{props.disabledReason}</Kb.Text3>
+            <Kb.Text type="BodySmall">{props.disabledReason}</Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>

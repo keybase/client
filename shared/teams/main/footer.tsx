@@ -15,16 +15,16 @@ const TeamsFooter = (props: {empty: boolean}) => {
               <Kb.Box2 direction="vertical">
                 <Kb.Icon type="icon-dark-empty-lone-wolf-116-96" />
               </Kb.Box2>
-              <Kb.Text3 type="BodySmall">You are not a part of any team, lone wolf.</Kb.Text3>
+              <Kb.Text type="BodySmall">You are not a part of any team, lone wolf.</Kb.Text>
               <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
             </Kb.Box2>
           )}
           <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
           {(Kb.Styles.isMobile || !props.empty) && (
-            <Kb.Text3 type="BodySmall" center={true}>
+            <Kb.Text type="BodySmall" center={true}>
               Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual
               friends to large communities.
-            </Kb.Text3>
+            </Kb.Text>
           )}
         </>
       )}

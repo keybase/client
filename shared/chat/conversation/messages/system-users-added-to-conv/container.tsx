@@ -21,20 +21,20 @@ const UsersAddedToConversationContainer = React.memo(function UsersAddedToConver
   }
   return otherUsers ? (
     <UserNotice>
-      <Kb.Text3 type="BodySmall">
+      <Kb.Text type="BodySmall">
         added you
         {!!otherUsers.length && [
           otherUsers.length === 1 ? ' and ' : ', ',
           ...getAddedUsernames(otherUsers),
         ]}{' '}
         to #{channelname}.
-      </Kb.Text3>
+      </Kb.Text>
     </UserNotice>
   ) : (
     <UserNotice>
-      <Kb.Text3 type="BodySmall" style={styles.text}>
+      <Kb.Text type="BodySmall" style={styles.text}>
         added {getAddedUsernames(usernames)} to #{channelname}.
-      </Kb.Text3>
+      </Kb.Text>
     </UserNotice>
   )
 })

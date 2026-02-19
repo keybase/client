@@ -35,14 +35,14 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
   const manageText = canManage ? 'Retention settings' : ''
   return (
     <UserNotice>
-      <Kb.Text3 type="BodySmall" selectable={true}>
+      <Kb.Text type="BodySmall" selectable={true}>
         {changedBy}changed the {convType} retention policy{inheritDescription}. Messages will {policySummary}.
         {` `}
-      </Kb.Text3>
+      </Kb.Text>
       {manageText ? (
-        <Kb.Text3 onClick={onManageRetention} type="BodySmallSemiboldPrimaryLink">
+        <Kb.Text onClick={onManageRetention} type="BodySmallSemiboldPrimaryLink">
           {manageText}
-        </Kb.Text3>
+        </Kb.Text>
       ) : null}
     </UserNotice>
   )

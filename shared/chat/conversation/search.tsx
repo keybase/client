@@ -190,12 +190,12 @@ const ThreadSearchDesktop = React.memo(function ThreadSearchDesktop(p: OwnProps)
     return (
       <Kb.ClickableBox key={index} onClick={() => selectResult(index)} style={styles.hitRow}>
         <Kb.Avatar username={item.author} size={24} />
-        <Kb.Text3 type="Body" style={styles.hitSummary}>
+        <Kb.Text type="Body" style={styles.hitSummary}>
           {item.summary}
-        </Kb.Text3>
-        <Kb.Text3 type="BodySmall" style={styles.time}>
+        </Kb.Text>
+        <Kb.Text type="BodySmall" style={styles.time}>
           {formatTimeForMessages(item.timestamp)}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.ClickableBox>
     )
   }
@@ -227,9 +227,9 @@ const ThreadSearchDesktop = React.memo(function ThreadSearchDesktop(p: OwnProps)
             {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
             {hasResults && (
               <Kb.Box2 direction="horizontal" gap="tiny">
-                <Kb.Text3 type="BodySmall" style={styles.results}>
+                <Kb.Text type="BodySmall" style={styles.results}>
                   {noResults ? 'No results' : `${selectedIndex + 1} of ${hits.length}`}
-                </Kb.Text3>
+                </Kb.Text>
                 <Kb.Icon
                   color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
                   onClick={!noResults ? onUp : undefined}
@@ -279,9 +279,9 @@ const ThreadSearchMobile = React.memo(function ThreadSearchMobile(p: OwnProps) {
     <Kb.Box2 direction="horizontal" style={style}>
       <Kb.Box2 direction="horizontal" style={styles.outerContainer} gap="tiny">
         <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.doneContainer}>
-          <Kb.Text3 type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>
+          <Kb.Text type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>
             Cancel
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
@@ -300,9 +300,9 @@ const ThreadSearchMobile = React.memo(function ThreadSearchMobile(p: OwnProps) {
             {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
             {hasResults && (
               <Kb.Box2 direction="horizontal" gap="tiny">
-                <Kb.Text3 type="BodySmall" style={styles.results}>
+                <Kb.Text type="BodySmall" style={styles.results}>
                   {status === 'done' && numHits === 0 ? 'No results' : `${selectedIndex + 1} of ${numHits}`}
-                </Kb.Text3>
+                </Kb.Text>
               </Kb.Box2>
             )}
           </Kb.Box2>

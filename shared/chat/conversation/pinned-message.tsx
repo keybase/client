@@ -73,12 +73,12 @@ const PinnedMessage = React.memo(function PinnedMessage() {
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-            <Kb.Text3 type="BodyTinyBold" style={styles.author}>
+            <Kb.Text type="BodyTinyBold" style={styles.author}>
               {author}
-            </Kb.Text3>
-            <Kb.Text3 type="BodyTinySemibold" style={styles.label}>
+            </Kb.Text>
+            <Kb.Text type="BodyTinySemibold" style={styles.label}>
               Pinned
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
           <Kb.Markdown smallStandaloneEmoji={true} lineClamp={1} style={styles.text} serviceOnly={true}>
             {text}
@@ -127,10 +127,10 @@ type UnpinProps = {
 const UnpinPrompt = (props: UnpinProps) => {
   const header = (
     <Kb.Box2 direction="vertical" centerChildren={true} gap="xsmall" style={styles.popup}>
-      <Kb.Text3 type="BodyBig">Unpin this message?</Kb.Text3>
+      <Kb.Text type="BodyBig">Unpin this message?</Kb.Text>
       <Kb.Box2 direction="vertical" centerChildren={true}>
-        <Kb.Text3 type="BodySmall">This will remove the pin from</Kb.Text3>
-        <Kb.Text3 type="BodySmall">{"everyone's view."}</Kb.Text3>
+        <Kb.Text type="BodySmall">This will remove the pin from</Kb.Text>
+        <Kb.Text type="BodySmall">{"everyone's view."}</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )

@@ -1,14 +1,14 @@
 import Avatar from '.'
 import {avatarSizes, type AvatarSize} from './hooks'
 import {Box2} from '../box'
-import {Text3} from '../text3'
+import {Text} from '../text'
 import * as Styles from '@/styles'
 
 const Kb = {
   Avatar,
   Box2,
   Styles,
-  Text3,
+  Text,
 }
 
 type Props = {
@@ -31,9 +31,9 @@ const AvatarLine = (props: Props) => {
     <Kb.Box2 direction={reverse[props.layout]} style={styles.container} alignSelf={props.alignSelf}>
       {!!extra && (
         <Kb.Box2 direction={props.layout} alignItems="center" style={styles.overflowBox}>
-          <Kb.Text3 type={getTextSize(props.size)} style={styles.text}>
+          <Kb.Text type={getTextSize(props.size)} style={styles.text}>
             +{extra}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       )}
       {usernamesToShow

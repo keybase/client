@@ -23,7 +23,7 @@ const AvatarHolder = () => {
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
       <Kb.Avatar username={author} size={16} />
-      <Kb.Text3
+      <Kb.Text
         type="BodySmallBold"
         style={
           showCenteredHighlight
@@ -33,7 +33,7 @@ const AvatarHolder = () => {
         virtualText={true}
       >
         {author}
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   )
 }
@@ -67,13 +67,13 @@ const ReplyText = () => {
         : ''
 
   return text ? (
-    <Kb.Text3
+    <Kb.Text
       type="BodySmall"
       style={showCenteredHighlight ? styles.textHighlighted : undefined}
       lineClamp={3}
     >
       {text}
-    </Kb.Text3>
+    </Kb.Text>
   ) : null
 }
 
@@ -105,18 +105,18 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
             {showImage && <ReplyImage />}
             <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
               {isDeleted ? (
-                <Kb.Text3 type="BodyTiny" style={styles.replyEdited} virtualText={true}>
+                <Kb.Text type="BodyTiny" style={styles.replyEdited} virtualText={true}>
                   The original message was deleted.
-                </Kb.Text3>
+                </Kb.Text>
               ) : (
                 <ReplyText />
               )}
             </Kb.Box2>
           </Kb.Box2>
           {showEdited && (
-            <Kb.Text3 type="BodyTiny" style={styles.replyEdited} virtualText={true}>
+            <Kb.Text type="BodyTiny" style={styles.replyEdited} virtualText={true}>
               EDITED
-            </Kb.Text3>
+            </Kb.Text>
           )}
         </Kb.Box2>
       </Kb.Box2>

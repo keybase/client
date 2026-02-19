@@ -21,19 +21,19 @@ const DeviceRow = ({device}: {device: Device}) => {
       <div style={styles.iconWrapper}>
         <Kb.Icon type={icon} style={{height: 22}} />
       </div>
-      <Kb.Text3 type="BodySemibold" style={{marginLeft: 16}}>
+      <Kb.Text type="BodySemibold" style={{marginLeft: 16}}>
         {device.name}
-      </Kb.Text3>
+      </Kb.Text>
     </div>
   )
 }
 
 const DeviceList = (props: Props) => (
   <div style={{...Kb.Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
-    <Kb.Text3 center={true} type="Body" style={styles.infoText}>
+    <Kb.Text center={true} type="Body" style={styles.infoText}>
       This computer and possibly others are unable to read some of your folders. To avoid losing data forever,
       please turn on one of the devices below:
-    </Kb.Text3>
+    </Kb.Text>
     <div style={Kb.Styles.collapseStylesDesktop([styles.devicesContainer])}>
       {props.devices.map(d => (
         <DeviceRow key={d.deviceID} device={d} />

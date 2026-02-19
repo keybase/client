@@ -17,7 +17,7 @@ export default function Choice() {
   return (
     <Modal onCancel={onCancel}>
       <Kb.Box2 direction="vertical" gap="small">
-        <Kb.Text3 type="Header">Add a PGP key</Kb.Text3>
+        <Kb.Text type="Header">Add a PGP key</Kb.Text>
         <Kb.ChoiceList
           options={[
             {

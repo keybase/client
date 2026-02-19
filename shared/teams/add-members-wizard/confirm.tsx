@@ -110,9 +110,9 @@ const AddMembersConfirm = () => {
         leftButton: fromNewTeamWizard ? (
           <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
         ) : (
-          <Kb.Text3 type="BodyBigLink" onClick={onLeave}>
+          <Kb.Text type="BodyBigLink" onClick={onLeave}>
             Cancel
-          </Kb.Text3>
+          </Kb.Text>
         ),
         title: <ModalTitle teamID={teamID} title={`Inviting ${addingMembers.length} ${noun}`} />,
       }}
@@ -142,11 +142,11 @@ const AddMembersConfirm = () => {
         {isBigTeam && someKeybaseUsers && isInTeam && <DefaultChannels teamID={teamID} />}
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-            <Kb.Text3 type="BodySmallSemibold">Custom note</Kb.Text3>
+            <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
             {emailMessage === '' ? (
-              <Kb.Text3 type="BodySmallPrimaryLink" onClick={() => setEmailMessage('')}>
+              <Kb.Text type="BodySmallPrimaryLink" onClick={() => setEmailMessage('')}>
                 Include a note in your email
-              </Kb.Text3>
+              </Kb.Text>
             ) : (
               <Kb.LabeledInput
                 autoFocus={true}
@@ -163,7 +163,7 @@ const AddMembersConfirm = () => {
           </Kb.Box2>
         )}
         {membersAlreadyInTeam.length > 0 && <AlreadyInTeam assertions={membersAlreadyInTeam} />}
-        {!!error && <Kb.Text3 type="BodySmallError">{error}</Kb.Text3>}
+        {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -206,9 +206,9 @@ const AlreadyInTeam = ({assertions}: {assertions: ReadonlyArray<string>}) => {
     return 'people'
   }, [assertions])
   return (
-    <Kb.Text3 type="BodySmallSuccess" selectable={true}>
+    <Kb.Text type="BodySmallSuccess" selectable={true}>
       Some {noun} were already invited to the team and are not shown here: {invitedStr}
-    </Kb.Text3>
+    </Kb.Text>
   )
 }
 
@@ -275,7 +275,7 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
   }
   return (
     <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
-      <Kb.Text3 type="BodySmall">Invite as: </Kb.Text3>
+      <Kb.Text type="BodySmall">Invite as: </Kb.Text>
       <FloatingRolePicker<true>
         open={showingMenu}
         presetRole={storeRole}
@@ -329,9 +329,9 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
             style={styles.addingMemberDivider}
             centerChildren={true}
           >
-            <Kb.Text3 type="BodySemibold" negative={true}>
+            <Kb.Text type="BodySemibold" negative={true}>
               {expanded ? 'Show less' : `+${addingMembers.length - 4} more`}
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         </Kb.ClickableBox>
       )}
@@ -401,9 +401,9 @@ const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRole
           style={styles.flexShrink}
         />
         {props.resolvedFrom && (
-          <Kb.Text3 lineClamp={1} type="BodySemibold" style={styles.flexDefinitelyShrink}>
+          <Kb.Text lineClamp={1} type="BodySemibold" style={styles.flexDefinitelyShrink}>
             ({assertionToDisplay(props.resolvedFrom)})
-          </Kb.Text3>
+          </Kb.Text>
         )}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
@@ -452,31 +452,31 @@ const DefaultChannels = ({teamID}: {teamID: T.Teams.TeamID}) => {
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-      <Kb.Text3 type="BodySmallSemibold">Join channels</Kb.Text3>
+      <Kb.Text type="BodySmallSemibold">Join channels</Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         {defaultChannelsWaiting ? (
           <Kb.ProgressIndicator />
         ) : (
           <>
-            <Kb.Text3 type="BodySmall">
+            <Kb.Text type="BodySmall">
               {allKeybaseUsers ? 'Your invitees' : 'Invitees that are Keybase users'} will be added to{' '}
               {defaultChannels.length} {pluralize('channel', defaultChannels.length)}.
-            </Kb.Text3>
-            <Kb.Text3 type="BodySmall">
+            </Kb.Text>
+            <Kb.Text type="BodySmall">
               {defaultChannels.map((channel, index) => (
-                <Kb.Text3 key={channel.conversationIDKey} type="BodySmallSemibold">
+                <Kb.Text key={channel.conversationIDKey} type="BodySmallSemibold">
                   #{channel.channelname}
                   {defaultChannels.length > 2 && index < defaultChannels.length - 1 && ', '}
-                  {index === defaultChannels.length - 2 && <Kb.Text3 type="BodySmall"> and </Kb.Text3>}
-                </Kb.Text3>
+                  {index === defaultChannels.length - 2 && <Kb.Text type="BodySmall"> and </Kb.Text>}
+                </Kb.Text>
               ))}
               .{' '}
               {!addToChannels && (
-                <Kb.Text3 type="BodySmallPrimaryLink" onClick={onChangeFromDefault}>
+                <Kb.Text type="BodySmallPrimaryLink" onClick={onChangeFromDefault}>
                   Add channels
-                </Kb.Text3>
+                </Kb.Text>
               )}
-            </Kb.Text3>
+            </Kb.Text>
           </>
         )}
       </Kb.Box2>

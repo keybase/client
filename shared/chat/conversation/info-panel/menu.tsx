@@ -176,9 +176,9 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
         key="channelHeader"
         style={styles.channelHeader}
       >
-        <Kb.Text3 lineClamp={1} type="Body" style={styles.channelName}>
-          # <Kb.Text3 type="BodyBold">{channelname}</Kb.Text3>
-        </Kb.Text3>
+        <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
+          # <Kb.Text type="BodyBold">{channelname}</Kb.Text>
+        </Kb.Text>
       </Kb.Box2>
     ),
   } as const
@@ -210,7 +210,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       >
         <Kb.Box2 direction="horizontal" gap="tiny">
           <Kb.Avatar teamname={teamname} size={16} />
-          <Kb.Text3 type="BodyBold">{teamname}</Kb.Text3>
+          <Kb.Text type="BodyBold">{teamname}</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     ),
@@ -427,7 +427,7 @@ const AdhocHeader = (props: AdhocHeaderProps) => {
           usernames={channelHumans}
           onUsernameClicked="profile"
         />
-        {!!props.fullname && <Kb.Text3 type="BodySmall">{props.fullname}</Kb.Text3>}
+        {!!props.fullname && <Kb.Text type="BodySmall">{props.fullname}</Kb.Text>}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -451,9 +451,9 @@ const TeamHeader = (props: TeamHeaderProps) => {
         isHovered={false}
         size={32}
       />
-      <Kb.Text3 type="BodySemibold" style={styles.maybeLongText} onClick={props.onViewTeam}>
+      <Kb.Text type="BodySemibold" style={styles.maybeLongText} onClick={props.onViewTeam}>
         {props.teamname}
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.BoxGrow2 />
       {teamHumanCount ? (
         <Kb.Meta

@@ -81,9 +81,9 @@ const CodePageContainer = () => {
     return Kb.Styles.isMobile
       ? {
           leftButton: (
-            <Kb.Text3 type="BodyBig" onClick={onBack} negative={true}>
+            <Kb.Text type="BodyBig" onClick={onBack} negative={true}>
               {currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
-            </Kb.Text3>
+            </Kb.Text>
           ),
           style: {backgroundColor: tabBackground()},
         }
@@ -306,14 +306,14 @@ const SwitchTab = (props: {
 
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.switchTabContainer}>
-      <Kb.Text3
+      <Kb.Text
         type="BodySmallPrimaryLink"
         negative={true}
         onClick={() => props.onSelect(tab)}
         style={styles.switchTab}
       >
         {label}
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   )
 }
@@ -372,9 +372,9 @@ const EnterText = (props: {
 
 const ViewText = (props: {textCode: string}) => (
   <Kb.Box2 direction="vertical" style={styles.viewTextContainer}>
-    <Kb.Text3 center={true} type="Terminal" style={styles.viewTextCode}>
+    <Kb.Text center={true} type="Terminal" style={styles.viewTextCode}>
       {props.textCode}
-    </Kb.Text3>
+    </Kb.Text>
   </Kb.Box2>
 )
 
@@ -418,13 +418,13 @@ const Instructions = (p: {
   if (p.currentDeviceAlreadyProvisioned) {
     content = (
       <Kb.Box2 alignItems="center" direction="horizontal" style={styles.flexWrap}>
-        <Kb.Text3 type={textType} style={styles.instructions}>
+        <Kb.Text type={textType} style={styles.instructions}>
           Ready to authorize using
-        </Kb.Text3>
+        </Kb.Text>
         {icon}
-        <Kb.Text3 type={textType} style={styles.instructions}>
+        <Kb.Text type={textType} style={styles.instructions}>
           {p.currentDeviceName}.
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     )
   } else {
@@ -444,37 +444,37 @@ const Instructions = (p: {
             style={styles.hamburger}
           />
           <Kb.Icon type="iconfont-arrow-right" color={Kb.Styles.globalColors.white} sizeType="Tiny" />
-          <Kb.Text3 type={textType} style={styles.instructions}>
+          <Kb.Text type={textType} style={styles.instructions}>
             Devices
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       ) : null
     content = (
       <>
         <Kb.Box2 alignItems="flex-end" direction="horizontal" gap="xtiny">
-          <Kb.Text3
+          <Kb.Text
             type={textType}
             style={Kb.Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
           >
             On
-          </Kb.Text3>
+          </Kb.Text>
           {icon}
-          <Kb.Text3
+          <Kb.Text
             type={textType}
             style={Kb.Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
           >
             {p.otherDevice.name}, go to {p.otherDevice.type === 'desktop' && 'Devices'}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
         {hamburger}
-        <Kb.Text3 type={textType} style={styles.instructionsContainer} center={true}>
-          <Kb.Text3
+        <Kb.Text type={textType} style={styles.instructionsContainer} center={true}>
+          <Kb.Text
             type={textType}
             style={Kb.Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
           >
             {`and authorize a new ${p.currentDevice.type === 'desktop' ? 'computer' : 'phone'}.`}
-          </Kb.Text3>
-        </Kb.Text3>
+          </Kb.Text>
+        </Kb.Text>
       </>
     )
   }

@@ -172,10 +172,10 @@ const Container = (ownProps: OwnProps) => {
             <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
             {pathAndInfos.length > 0 && !Kb.Styles.isMobile && (
               <Kb.Box2 direction="vertical" style={styles.filename}>
-                <Kb.Text3 type="BodySmallSemibold">Filename</Kb.Text3>
-                <Kb.Text3 type="BodySmall" center={true}>
+                <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
+                <Kb.Text type="BodySmall" center={true}>
                   {info.filename} ({index + 1} of {pathAndInfos.length})
-                </Kb.Text3>
+                </Kb.Text>
               </Kb.Box2>
             )}
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>

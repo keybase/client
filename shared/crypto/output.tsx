@@ -75,9 +75,9 @@ export const SignedSender = (props: SignedSenderProps) => {
 
             {isSelfSigned ? (
               <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.signedByText}>
-                <Kb.Text3 key="signedByUsername" type="BodySmall">
+                <Kb.Text key="signedByUsername" type="BodySmall">
                   {signedByText}
-                </Kb.Text3>
+                </Kb.Text>
                 <Kb.ConnectedUsernames
                   key="username"
                   type={usernameType}
@@ -95,7 +95,7 @@ export const SignedSender = (props: SignedSenderProps) => {
                   colorYou={true}
                 />
                 {signedByFullname?.stringValue() ? (
-                  <Kb.Text3 type="BodySmall">{signedByFullname.stringValue()}</Kb.Text3>
+                  <Kb.Text type="BodySmall">{signedByFullname.stringValue()}</Kb.Text>
                 ) : null}
               </Kb.Box2>
             )}
@@ -104,13 +104,13 @@ export const SignedSender = (props: SignedSenderProps) => {
           <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
             <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />
             {isSelfSigned ? null : (
-              <Kb.Text3 key="username" type="BodySmallSemibold">
+              <Kb.Text key="username" type="BodySmallSemibold">
                 Anonymous sender
-              </Kb.Text3>
+              </Kb.Text>
             )}
-            <Kb.Text3 key="signedByUsername" type="BodySmall">
+            <Kb.Text key="signedByUsername" type="BodySmall">
               {isSelfSigned ? `Not signed (Sending anonymously)` : `(Not signed)`}
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         )}
         {waiting && <Kb.ProgressIndicator type="Small" white={false} />}
@@ -135,7 +135,7 @@ const OutputProgress = (props: OutputProgressProps) => {
   return inProgress ? (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
       <Kb.ProgressBar ratio={ratio} style={styles.progressBar} />
-      <Kb.Text3 type="Body">{`${FS.humanizeBytes(bytesComplete, 1)} / ${FS.humanizeBytes(bytesTotal, 1)}`}</Kb.Text3>
+      <Kb.Text type="Body">{`${FS.humanizeBytes(bytesComplete, 1)} / ${FS.humanizeBytes(bytesTotal, 1)}`}</Kb.Text>
     </Kb.Box2>
   ) : null
 }
@@ -262,9 +262,9 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
           )}
           <Kb.Box2Measure direction="horizontal" ref={popupAnchor}>
             <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
-              <Kb.Text3 type="BodySmall" style={styles.toastText}>
+              <Kb.Text type="BodySmall" style={styles.toastText}>
                 Copied to clipboard
-              </Kb.Text3>
+              </Kb.Text>
             </Kb.Toast>
             {Kb.Styles.isMobile && canReplyInChat ? null : (
               <Kb.Button
@@ -413,13 +413,13 @@ export const OperationOutput = (props: OutputProps) => {
           style={styles.fileOutputContainer}
         >
           {fileIcon ? <Kb.Icon type={fileIcon} sizeType="Huge" /> : null}
-          <Kb.Text3
+          <Kb.Text
             type="BodyPrimaryLink"
             style={Kb.Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
             onClick={() => onShowInFinder()}
           >
             {output}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -430,13 +430,13 @@ export const OperationOutput = (props: OutputProps) => {
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <MobileScroll>
-        <Kb.Text3
+        <Kb.Text
           type={textType === 'cipher' ? 'Terminal' : 'Body'}
           selectable={!actionsDisabled}
           style={styles.output}
         >
           {output}
-        </Kb.Text3>
+        </Kb.Text>
       </MobileScroll>
     </Kb.Box2>
   )

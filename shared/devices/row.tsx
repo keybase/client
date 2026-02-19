@@ -42,18 +42,18 @@ const Container = React.memo(function Container(ownProps: OwnProps) {
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={{justifyContent: 'center'}}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <Kb.Text3 lineClamp={1} style={isRevoked ? styles.text : undefined} type="BodySemibold">
-              {name} {currentDevice && <Kb.Text3 type="BodySmall">(Current device)</Kb.Text3>}
-            </Kb.Text3>
+            <Kb.Text lineClamp={1} style={isRevoked ? styles.text : undefined} type="BodySemibold">
+              {name} {currentDevice && <Kb.Text type="BodySmall">(Current device)</Kb.Text>}
+            </Kb.Text>
             {isNew && !currentDevice && (
               <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
             )}
           </Kb.Box2>
-          <Kb.Text3 type="BodySmall">
+          <Kb.Text type="BodySmall">
             {isRevoked
               ? `Revoked ${revokedAt ? formatTimeRelativeToNow(revokedAt) : 'device'}`
               : `Last used ${formatTimeRelativeToNow(lastUsed)}`}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       }
     />

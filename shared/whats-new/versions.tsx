@@ -24,9 +24,9 @@ const Version = ({children}: {children: React.ReactNode}) => {
 
 const VersionTitle = ({title}: {title: string}) => (
   <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
-    <Kb.Text3 type="BodySmallSemibold" style={styles.versionTitle}>
+    <Kb.Text type="BodySmallSemibold" style={styles.versionTitle}>
       {title}
-    </Kb.Text3>
+    </Kb.Text>
   </Kb.Box2>
 )
 
@@ -53,23 +53,23 @@ export const Last = ({seen}: VersionProps) => {
       <VersionTitle title="Last release" />
       <NewFeatureRow image="release-5.4.0-emoji" noSeparator={true} seen={seen} unwrapped={true}>
         <Kb.Box2 alignSelf="flex-start" direction="vertical">
-          <Kb.Text3 type="BodySmall">
+          <Kb.Text type="BodySmall">
             Browse your image library
-          </Kb.Text3>
+          </Kb.Text>
           <Kb.Box2 direction="horizontal" style={styles.ponyAlignment}>
-            <Kb.Text3 type="BodySmall">
+            <Kb.Text type="BodySmall">
               And unleash that cute little pony
-            </Kb.Text3>
+            </Kb.Text>
             <Kb.Icon type="release-5.4.0-pony" style={styles.ponyIcon} />
           </Kb.Box2>
-          <Kb.Text3 type="BodySmall">
+          <Kb.Text type="BodySmall">
             Keybase now supports custom emoji{' '}
             <Kb.NativeEmoji
 
               size={Kb.Styles.globalMargins.small}
               emojiName=":sparkles:"
             />
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       </NewFeatureRow>
     </Version>
@@ -169,7 +169,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
           sizeType={Kb.Styles.isMobile ? 'Small' : 'Default'}
         />
         {` `}
-        <Kb.Text3 type="BodySmallSemibold">{keybaseFM}</Kb.Text3>
+        <Kb.Text type="BodySmallSemibold">{keybaseFM}</Kb.Text>
         {` `}
         to get updates and new features.
       </NewFeatureRow>

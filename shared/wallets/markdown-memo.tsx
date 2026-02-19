@@ -35,7 +35,7 @@ const MarkdownMemo = (props: Props) =>
       style={Kb.Styles.collapseStyles([props.style, styles.container])}
     >
       {!props.hideDivider && <Kb.Divider vertical={true} style={styles.quoteMarker} />}
-      <Kb.Text3 type="Body" style={styles.memo}>
+      <Kb.Text type="Body" style={styles.memo}>
         <Kb.Markdown
           style={styles.memo}
           styleOverride={{...styleOverride, ...props.styleOverride}}
@@ -43,7 +43,7 @@ const MarkdownMemo = (props: Props) =>
         >
           {props.memo}
         </Kb.Markdown>
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   ) : null
 

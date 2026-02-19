@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type {Props as PropsCommon} from './copyable-text'
 import {useTimeout} from './use-timers'
-import {Text3} from './text3'
+import {Text} from './text'
 import {Box2} from './box'
 import {TouchableHighlight} from 'react-native'
 import * as Styles from '@/styles'
@@ -29,14 +29,14 @@ const CopyableText = (props: Props) => {
       style={props.style}
     >
       <Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.base}>
-        <Text3 style={{...styleText, ...props.textStyle}} type="BodySmall">
+        <Text style={{...styleText, ...props.textStyle}} type="BodySmall">
           {props.value}
-        </Text3>
+        </Text>
         <Box2 direction="vertical" alignItems="center" style={styles.copyToastContainer}>
           <Box2 direction="horizontal" alignItems="center" style={styles.copyToast}>
-            <Text3 style={styleCopyToastText} type="Body">
+            <Text style={styleCopyToastText} type="Body">
               {hasCopied ? 'Copied!' : 'Tap to copy'}
-            </Text3>
+            </Text>
           </Box2>
         </Box2>
       </Box2>

@@ -72,9 +72,9 @@ const DeleteChannel = (props: Props) => {
       onConfirm={onDelete}
       onCancel={onCancel}
       prompt={
-        <Kb.Text3 type="Header" center={true} style={styles.prompt}>
+        <Kb.Text type="Header" center={true} style={styles.prompt}>
           Delete {deleteMsg}?
-        </Kb.Text3>
+        </Kb.Text>
       }
       waitingKey={C.waitingKeyTeamsDeleteChannel(teamID)}
     />

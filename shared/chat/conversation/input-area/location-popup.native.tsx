@@ -80,9 +80,9 @@ const LocationPopup = () => {
     <Kb.Modal
       header={{
         leftButton: (
-          <Kb.Text3 type="BodyBigLink" onClick={onClose}>
+          <Kb.Text type="BodyBigLink" onClick={onClose}>
             Cancel
-          </Kb.Text3>
+          </Kb.Text>
         ),
         title: 'Location',
       }}
@@ -135,12 +135,12 @@ const LocationPopup = () => {
     >
       {locationDenied ? (
         <Kb.Box2 direction="vertical" style={styles.denied} gap="small">
-          <Kb.Text3 center={true} type="Body" style={styles.deniedText}>
+          <Kb.Text center={true} type="Body" style={styles.deniedText}>
             Location permission denied.
-          </Kb.Text3>
-          <Kb.Text3 center={true} type="Body" style={styles.deniedText}>
+          </Kb.Text>
+          <Kb.Text center={true} type="Body" style={styles.deniedText}>
             Enable location for Keybase to see your current position.
-          </Kb.Text3>
+          </Kb.Text>
           <Kb.Button label="Open settings" onClick={onSettings} />
         </Kb.Box2>
       ) : (

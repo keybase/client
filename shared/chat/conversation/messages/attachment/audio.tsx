@@ -40,23 +40,23 @@ const AudioAttachment = () => {
         </Kb.Box2>
         {!showInFinder && (
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-            <Kb.Text3 type="BodySmall" style={styles.progressLabelStyle}>
+            <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
               {progressLabel || '\u00A0'}
-            </Kb.Text3>
+            </Kb.Text>
             {hasProgress && <Kb.ProgressBar ratio={message.transferProgress} />}
           </Kb.Box2>
         )}
         {!!message.transferErrMsg && (
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-            <Kb.Text3 type="BodySmall" style={styles.error}>
+            <Kb.Text type="BodySmall" style={styles.error}>
               Failed to download attachment, please retry
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         )}
         {showInFinder && (
-          <Kb.Text3 type="BodySmallPrimaryLink" onClick={onShowInFinder} style={styles.linkStyle}>
+          <Kb.Text type="BodySmallPrimaryLink" onClick={onShowInFinder} style={styles.linkStyle}>
             Show in {Kb.Styles.fileUIName}
-          </Kb.Text3>
+          </Kb.Text>
         )}
       </Kb.Box2>
     </Kb.Box2>

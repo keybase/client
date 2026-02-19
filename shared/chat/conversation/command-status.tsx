@@ -54,12 +54,12 @@ const Container = () => {
           boxStyle={styles.close}
         />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
-          <Kb.Text3 type="BodySmall" style={Kb.Styles.collapseStyles([{color: textColor(props.displayType)}])}>
+          <Kb.Text type="BodySmall" style={Kb.Styles.collapseStyles([{color: textColor(props.displayType)}])}>
             {props.displayText}
-          </Kb.Text3>
+          </Kb.Text>
           {props.actions.map((a, i) => {
             return (
-              <Kb.Text3
+              <Kb.Text
                 key={i}
                 negative={true}
                 type="BodySmallSemiboldPrimaryLink"
@@ -68,7 +68,7 @@ const Container = () => {
                 underline={true}
               >
                 {a.displayText}
-              </Kb.Text3>
+              </Kb.Text>
             )
           })}
         </Kb.Box2>

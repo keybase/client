@@ -1,12 +1,12 @@
 import * as Chat from '@/stores/chat2'
 import * as T from '@/constants/types'
-import {Text3} from '@/common-adapters/text3'
-import type {StylesTextCrossPlatform} from '@/common-adapters/text3.shared'
+import {Text} from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import Mention from '../../mention-container'
 import TeamMention from './team'
 import UnknownMention from './unknown'
 
-const Kb = {Mention, Text3}
+const Kb = {Mention, Text}
 
 type Props = {
   channel: string
@@ -23,9 +23,9 @@ const MaybeMention = (props: Props) => {
       text += `#${props.channel}`
     }
     return (
-      <Kb.Text3 type="Body" style={props.style}>
+      <Kb.Text type="Body" style={props.style}>
         {text}
-      </Kb.Text3>
+      </Kb.Text>
     )
   }
   switch (props.info.status) {

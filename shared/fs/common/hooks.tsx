@@ -233,13 +233,13 @@ export const useFuseClosedSourceConsent = (disabled: boolean, invert = false) =>
         checkboxStyle={invert ? {backgroundColor: Kb.Styles.globalColors.white} : undefined}
         checkboxColor={invert ? Kb.Styles.globalColors.black : undefined}
         labelComponent={
-          <Kb.Text3
+          <Kb.Text
             type="BodySmall"
             style={invert ? {color: Kb.Styles.globalColors.white} : undefined}
             onClick={() => setAgreed(a => !a)}
           >
             {`I understand that a closed-source kernel extension (FUSE for macOS) will be installed.`}
-          </Kb.Text3>
+          </Kb.Text>
         }
       />
     ) : undefined

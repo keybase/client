@@ -21,13 +21,13 @@ const YouResult = React.memo(function YouResult(props: ResultProps) {
   switch (props.namespace) {
     case 'teams':
       bottomRow = (
-        <Kb.Text3 type="BodySmall">
+        <Kb.Text type="BodySmall">
           {props.isPreExistingTeamMember ? 'Already in team' : 'Add yourself to the team'}
-        </Kb.Text3>
+        </Kb.Text>
       )
       break
     case 'chat2':
-      bottomRow = <Kb.Text3 type="BodySmall">Write secure notes to yourself</Kb.Text3>
+      bottomRow = <Kb.Text type="BodySmall">Write secure notes to yourself</Kb.Text>
       onAddOverride.onAdd = onSelfChat
       break
     default:

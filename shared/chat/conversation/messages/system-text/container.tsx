@@ -8,9 +8,9 @@ const SystemTextContainer = React.memo(function SystemTextContainer(p: OwnProps)
   const {text} = p
   return (
     <UserNotice>
-      <Kb.Text3 type="BodySmall" style={styles.text}>
+      <Kb.Text type="BodySmall" style={styles.text}>
         {text}
-      </Kb.Text3>
+      </Kb.Text>
     </UserNotice>
   )
 })

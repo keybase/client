@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
-import {Text3} from './text3'
+import {Text} from './text'
 import Icon from './icon'
 import logger from '@/logger'
 import * as Styles from '@/styles'
@@ -30,11 +30,11 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
     <Box2 direction="vertical" style={Styles.collapseStyles([styles.container, style])}>
       <ScrollView style={styles.scroll}>
         <Box2 direction="vertical" gap="small" fullWidth={true}>
-          <Text3 type="Header">Something went wrong...</Text3>
-          <Text3 type="Body">
+          <Text type="Header">Something went wrong...</Text>
+          <Text type="Body">
             Please submit a bug report by
             {Styles.isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
-          </Text3>
+          </Text>
           {!Styles.isMobile && (
             <Box2
               direction="vertical"
@@ -45,26 +45,26 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
                 padding: 10,
               }}
             >
-              <Text3 type="Terminal" negative={true} selectable={true}>
+              <Text type="Terminal" negative={true} selectable={true}>
                 keybase log send
-              </Text3>
+              </Text>
             </Box2>
           )}
-          <Text3 type="BodySmall">Error details</Text3>
-          <Text3 type="BodySmall" selectable={true} style={{margin: 10}}>{`${name}: ${message}`}</Text3>
-          <Text3 type="BodySmall" style={{marginTop: 20}}>
+          <Text type="BodySmall">Error details</Text>
+          <Text type="BodySmall" selectable={true} style={{margin: 10}}>{`${name}: ${message}`}</Text>
+          <Text type="BodySmall" style={{marginTop: 20}}>
             Stack trace
-          </Text3>
+          </Text>
           <ScrollView style={detailContainerStyle}>
-            <Text3 type="BodySmall" selectable={true} style={styles.detailStyle}>
+            <Text type="BodySmall" selectable={true} style={styles.detailStyle}>
               {stack}
-            </Text3>
+            </Text>
           </ScrollView>
-          <Text3 type="BodySmall">Component stack trace</Text3>
+          <Text type="BodySmall">Component stack trace</Text>
           <ScrollView style={detailContainerStyle}>
-            <Text3 type="BodySmall" selectable={true} style={styles.detailStyle}>
+            <Text type="BodySmall" selectable={true} style={styles.detailStyle}>
               {componentStack}
-            </Text3>
+            </Text>
           </ScrollView>
         </Box2>
         {closeOnClick && (

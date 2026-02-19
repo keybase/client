@@ -37,24 +37,24 @@ export const TeamBotRow = (props: Props) => {
   const active = props.status === 'active'
   if (props.description.length > 0) {
     descriptionLabel = (
-      <Kb.Text3 style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
+      <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
         {props.description}
-      </Kb.Text3>
+      </Kb.Text>
     )
   }
 
   const usernameDisplay = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-      <Kb.Text3
+      <Kb.Text
         type="BodySmallSemibold"
         style={{color: Kb.Styles.globalColors.black}}
         onClick={props.onShowTracker}
       >
         {props.botAlias || props.username}
-      </Kb.Text3>
-      <Kb.Text3 type="BodySmall">&nbsp;• by&nbsp;</Kb.Text3>
+      </Kb.Text>
+      <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
       {props.ownerTeam ? (
-        <Kb.Text3 type="BodySmall">{`@${props.ownerTeam}`}</Kb.Text3>
+        <Kb.Text type="BodySmall">{`@${props.ownerTeam}`}</Kb.Text>
       ) : (
         <Kb.ConnectedUsernames
           prefix="@"

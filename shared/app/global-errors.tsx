@@ -135,9 +135,9 @@ const GlobalError = () => {
     return (
       <Kb.Box2 direction="vertical" style={styles.containerOverlay}>
         <Kb.Box2 direction="horizontal" style={styles.overlayRow}>
-          <Kb.Text3 center={true} type="BodySmallSemibold" style={styles.message}>
+          <Kb.Text center={true} type="BodySmallSemibold" style={styles.message}>
             {message}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.overlayFill}>
           <Kb.Animation animationType="disconnected" height={175} width={600} />
@@ -161,7 +161,7 @@ const GlobalError = () => {
             direction="horizontal"
             style={Kb.Styles.collapseStyles([styles.mobileSummaryRow, styles.mobileErrorTextContainer])}
           >
-            <Kb.Text3
+            <Kb.Text
               center={true}
               type="BodySmallSemibold"
               style={styles.mobileErrorText}
@@ -176,7 +176,7 @@ const GlobalError = () => {
               )}
               {'  '}
               An error occurred.
-            </Kb.Text3>
+            </Kb.Text>
             <Kb.Icon
               type="iconfont-close"
               onClick={onDismiss}
@@ -190,11 +190,11 @@ const GlobalError = () => {
         </Kb.Box2>
         {size === 'Big' && (
           <Kb.ScrollView>
-            <Kb.Text3 type="BodySmall" selectable={true} style={styles.mobileDetails}>
+            <Kb.Text type="BodySmall" selectable={true} style={styles.mobileDetails}>
               {error?.message}
               {'\n\n'}
               {cachedDetails}
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.ScrollView>
         )}
       </Kb.Box2>
@@ -217,9 +217,9 @@ const GlobalError = () => {
   return (
     <Kb.ClickableBox style={stylesContainer} onClick={onExpandClick}>
       <Kb.Box2 direction="horizontal" style={styles.innerContainer}>
-        <Kb.Text3 center={true} type="BodyBig" style={styles.summary}>
+        <Kb.Text center={true} type="BodyBig" style={styles.summary}>
           {summary}
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.Button
           label="Please tell us"
           onClick={onFeedback}
@@ -237,9 +237,9 @@ const GlobalError = () => {
         )}
       </Kb.Box2>
       <Kb.ScrollView>
-        <Kb.Text3 center={true} type="BodyBig" selectable={true} style={styles.details}>
+        <Kb.Text center={true} type="BodyBig" selectable={true} style={styles.details}>
           {details}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.ScrollView>
     </Kb.ClickableBox>
   )

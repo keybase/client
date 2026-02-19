@@ -67,9 +67,9 @@ const RoleRow = (p: RoleRowProps) => {
           selected={p.selected}
         />
         {p.icon}
-        <Kb.Text3 type="BodyBig" style={styles.text}>
+        <Kb.Text type="BodyBig" style={styles.text}>
           {p.title}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Box2
         style={Kb.Styles.collapseStyles([styles.rowBody])}
@@ -246,16 +246,16 @@ const roleAbilities = (
         boxStyle={!Kb.Styles.isMobile ? styles.abilityCheck : undefined}
         color={canDo ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.black_50}
       />
-      <Kb.Text3 type="BodySmall" style={canDo ? styles.canText : undefined}>
+      <Kb.Text type="BodySmall" style={canDo ? styles.canText : undefined}>
         {ability}
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   ))
 }
 
 const Header = () => (
   <Kb.Box2 direction="horizontal" style={styles.header}>
-    <Kb.Text3 type="Header">Pick a role</Kb.Text3>
+    <Kb.Text type="Header">Pick a role</Kb.Text>
   </Kb.Box2>
 )
 

@@ -83,9 +83,9 @@ const Container = () => {
         >
           {!!errorMessage && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.error}>
-              <Kb.Text3 center={true} negative={true} type="BodySemibold">
+              <Kb.Text center={true} negative={true} type="BodySemibold">
                 {errorMessage}
-              </Kb.Text3>
+              </Kb.Text>
             </Kb.Box2>
           )}
           <Kb.PlatformIcon
@@ -95,21 +95,21 @@ const Container = () => {
             overlayColor={Kb.Styles.globalColors.greyDark}
           />
           <>
-            <Kb.Text3 center={true} style={styles.blue} type="Header">
+            <Kb.Text center={true} style={styles.blue} type="Header">
               {platformUserName}
-            </Kb.Text3>
+            </Kb.Text>
             {!!platformSubtitle && (
-              <Kb.Text3 center={true} style={styles.grey} type="Body">
+              <Kb.Text center={true} style={styles.grey} type="Body">
                 {platformSubtitle}
-              </Kb.Text3>
+              </Kb.Text>
             )}
           </>
           <DescriptionView platformUserName={platformUserName} />
           {!!proofText && <Kb.CopyableText style={styles.proof} value={proofText} />}
           {!!noteText && (
-            <Kb.Text3 center={true} type="Body">
+            <Kb.Text center={true} type="Body">
               {noteText}
-            </Kb.Text3>
+            </Kb.Text>
           )}
           <Kb.Box2 direction={Kb.Styles.isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
             <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
@@ -160,70 +160,70 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
   const wellKnownUrlProps = Kb.useClickURL(`https://${wellKnown}`)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text3 center={true} type="BodySemibold">
-        Please serve the text below <Kb.Text3 type="BodySemiboldItalic">exactly as it appears</Kb.Text3>
+      <Kb.Text center={true} type="BodySemibold">
+        Please serve the text below <Kb.Text type="BodySemiboldItalic">exactly as it appears</Kb.Text>
         {" at one of these URL's."}
-      </Kb.Text3>
-      <Kb.Text3
+      </Kb.Text>
+      <Kb.Text
         type="BodyPrimaryLink"
         center={true}
         {...rootUrlProps}
         style={{color: Kb.Styles.globalColors.blueDark, marginTop: Kb.Styles.globalMargins.tiny}}
       >
         {root}
-      </Kb.Text3>
-      <Kb.Text3
+      </Kb.Text>
+      <Kb.Text
         type="BodyPrimaryLink"
         center={true}
         {...wellKnownUrlProps}
         style={{color: Kb.Styles.globalColors.blueDark}}
       >
         {wellKnown}
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   )
 }
 
 const descriptionMap = {
   dns: () => (
-    <Kb.Text3 center={true} type="BodySemibold">
+    <Kb.Text center={true} type="BodySemibold">
       Enter the following as a TXT entry in your DNS zone,{' '}
-      <Kb.Text3 type="BodySemibold">exactly as it appears</Kb.Text3>
+      <Kb.Text type="BodySemibold">exactly as it appears</Kb.Text>
       {'. If you need a "name" for your entry, give it "@".'}
-    </Kb.Text3>
+    </Kb.Text>
   ),
   facebook: () => null,
   github: () => (
-    <Kb.Text3 center={true} type="BodySemibold">
-      Login to GitHub and paste the text below into a <Kb.Text3 type="BodySemiboldItalic">public</Kb.Text3> gist
-      called <Kb.Text3 type="BodySemiboldItalic">keybase.md.</Kb.Text3>
-    </Kb.Text3>
+    <Kb.Text center={true} type="BodySemibold">
+      Login to GitHub and paste the text below into a <Kb.Text type="BodySemiboldItalic">public</Kb.Text> gist
+      called <Kb.Text type="BodySemiboldItalic">keybase.md.</Kb.Text>
+    </Kb.Text>
   ),
   hackernews: () => (
-    <Kb.Text3 center={true} type="BodySemibold">
+    <Kb.Text center={true} type="BodySemibold">
       Please add the below text{' '}
-      <Kb.Text3 type="BodySemibold" style={{...Kb.Styles.globalStyles.italic}}>
+      <Kb.Text type="BodySemibold" style={{...Kb.Styles.globalStyles.italic}}>
         exactly as it appears
-      </Kb.Text3>{' '}
+      </Kb.Text>{' '}
       to your profile.
-    </Kb.Text3>
+    </Kb.Text>
   ),
   http: WebDescription,
   https: WebDescription,
   reddit: () => (
-    <Kb.Text3 center={true} type="BodySemibold">
+    <Kb.Text center={true} type="BodySemibold">
       Click the button below and post the form in the subreddit{' '}
-      <Kb.Text3 type="BodySemiboldItalic">KeybaseProofs</Kb.Text3>.
-    </Kb.Text3>
+      <Kb.Text type="BodySemiboldItalic">KeybaseProofs</Kb.Text>.
+    </Kb.Text>
   ),
   rooter: () => null,
   twitter: () => (
-    <Kb.Text3 center={true} type="BodySemibold">
+    <Kb.Text center={true} type="BodySemibold">
       Please tweet the text below{' '}
-      <Kb.Text3 type="BodySemiboldItalic" style={{...Kb.Styles.globalStyles.italic}}>
+      <Kb.Text type="BodySemiboldItalic" style={{...Kb.Styles.globalStyles.italic}}>
         exactly as it appears.
-      </Kb.Text3>
-    </Kb.Text3>
+      </Kb.Text>
+    </Kb.Text>
   ),
   web: WebDescription,
 } as const

@@ -288,8 +288,8 @@ module.exports = {
   get TeamWithPopup() {
     return require('./team-with-popup').default
   },
-  get Text3() {
-    return require('./text3').Text3
+  get Text() {
+    return require('./text').Text
   },
   get TimelineMarker() {
     return require('./timeline-marker').default
@@ -328,7 +328,7 @@ module.exports = {
     return require('./icon').urlsToImgSet
   },
   get useClickURL() {
-    return require('./text3-url').useClickURL
+    return require('./text-url').useClickURL
   },
   get useHotKey() {
     return require('./hot-key').useHotKey

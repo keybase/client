@@ -44,9 +44,9 @@ const ServiceIcon = (props: IconProps) => {
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.label}>
             {props.label.map((label, i) => (
-              <Kb.Text3 key={i} center={true} type="BodyTiny" style={{color}}>
+              <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>
                 {label}
-              </Kb.Text3>
+              </Kb.Text>
             ))}
           </Kb.Box2>
         </Kb.Box2>
@@ -104,9 +104,9 @@ const MoreNetworksButton = (props: {
         >
           <Kb.WithTooltip tooltip="More networks" containerStyle={styles.moreNetworks2}>
             <Kb.ClickableBox onClick={showPopup} style={styles.moreNetworks3}>
-              <Kb.Text3 type="BodyBigExtrabold" style={styles.moreText}>
+              <Kb.Text type="BodyBigExtrabold" style={styles.moreText}>
                 •••
-              </Kb.Text3>
+              </Kb.Text>
             </Kb.ClickableBox>
           </Kb.WithTooltip>
         </Kb.Box2Measure>
@@ -126,7 +126,7 @@ const MoreNetworkItem = (props: {service: T.TB.ServiceIdWithContact}) => {
         color={serviceIdToAccentColor(props.service, isDarkMode)}
         type={serviceIdToIconFont(props.service)}
       />
-      <Kb.Text3 type="Body">{serviceIdToLongLabel(props.service).join(' ')}</Kb.Text3>
+      <Kb.Text type="Body">{serviceIdToLongLabel(props.service).join(' ')}</Kb.Text>
     </Kb.Box2>
   )
 }

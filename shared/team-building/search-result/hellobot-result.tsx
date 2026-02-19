@@ -13,7 +13,7 @@ const HellobotResult = React.memo(function HellobotResult(props: ResultProps) {
       previewConversation({participants: [props.username], reason: 'search'})
     }, 500)
   }
-  const bottomRow: React.ReactNode = <Kb.Text3 type="BodySmall">Say hi, play puzzles, or ask for help</Kb.Text3>
+  const bottomRow: React.ReactNode = <Kb.Text type="BodySmall">Say hi, play puzzles, or ask for help</Kb.Text>
 
   return <CommonResult {...props} onAdd={onSelfChat} rowStyle={styles.rowContainer} bottomRow={bottomRow} />
 })

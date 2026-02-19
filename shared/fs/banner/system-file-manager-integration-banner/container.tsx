@@ -131,14 +131,14 @@ const Banner = (props: BannerProps) => (
     />
     <Kb.Box2 direction="vertical" gap="small" fullHeight={true} style={styles.bodyContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-        <Kb.Text3 type="Header" style={backgroundToTextStyle(props.background)}>
+        <Kb.Text type="Header" style={backgroundToTextStyle(props.background)}>
           {props.title}
-        </Kb.Text3>
+        </Kb.Text>
         {props.body && (
           <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow}>
-            <Kb.Text3 type="Body" style={backgroundToTextStyle(props.background)}>
+            <Kb.Text type="Body" style={backgroundToTextStyle(props.background)}>
               {props.body}
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         )}
       </Kb.Box2>

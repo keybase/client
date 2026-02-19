@@ -102,15 +102,15 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           colorBroken={true}
           withProfileCardPopup={false /* part of store is not plumbed; also no space in widget*/}
         />
-        <Kb.Text3 type="BodyTiny" style={styles.tlfTime}>
+        <Kb.Text type="BodyTiny" style={styles.tlfTime}>
           {props.timestamp}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Text3 type="BodySmall" style={styles.tlfParticipants}>
+        <Kb.Text type="BodySmall" style={styles.tlfParticipants}>
           in&nbsp;
-        </Kb.Text3>
-        <Kb.Text3
+        </Kb.Text>
+        <Kb.Text
           className="hover-underline"
           type="BodySmall"
           style={styles.tlfParticipants}
@@ -126,7 +126,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           ) : (
             `${props.participants.join(',')}`
           )}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <ComposedFileUpdates updates={props.updates} />
     </Kb.Box2>
@@ -136,9 +136,9 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
 export const FilesPreview = (props: FilesPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfSectionHeaderContainer}>
-      <Kb.Text3 type="BodySmallSemibold" style={styles.tlfSectionHeader}>
+      <Kb.Text type="BodySmallSemibold" style={styles.tlfSectionHeader}>
         Recent files
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" fullWidth={true}>
       {props.userTlfUpdates.map(r => {

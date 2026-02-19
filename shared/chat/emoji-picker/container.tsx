@@ -134,7 +134,7 @@ const WrapperMobile = (props: Props) => {
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
         <Kb.ClickableBox onClick={onCancel} style={styles.cancelContainerMobile}>
-          <Kb.Text3 type="BodyBigLink">Cancel</Kb.Text3>
+          <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
         </Kb.ClickableBox>
         <Kb.SearchFilter
           focusOnMount={true}
@@ -250,21 +250,21 @@ export const EmojiPickerDesktop = (props: Props) => {
           />
           {hoveredEmoji.teamname ? (
             <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
-              <Kb.Text3 type="BodyBig" lineClamp={1}>
+              <Kb.Text type="BodyBig" lineClamp={1}>
                 {':' + hoveredEmoji.short_name + ':'}
-              </Kb.Text3>
-              <Kb.Text3 type="BodySmall" lineClamp={1}>
-                from <Kb.Text3 type="BodySmallSemibold">{hoveredEmoji.teamname}</Kb.Text3>
-              </Kb.Text3>
+              </Kb.Text>
+              <Kb.Text type="BodySmall" lineClamp={1}>
+                from <Kb.Text type="BodySmallSemibold">{hoveredEmoji.teamname}</Kb.Text>
+              </Kb.Text>
             </Kb.Box2>
           ) : (
             <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
-              <Kb.Text3 type="BodyBig" lineClamp={1}>
+              <Kb.Text type="BodyBig" lineClamp={1}>
                 {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name)}
-              </Kb.Text3>
-              <Kb.Text3 type="BodySmall" lineClamp={1}>
+              </Kb.Text>
+              <Kb.Text type="BodySmall" lineClamp={1}>
                 {hoveredEmoji.short_names.map(sn => `:${sn}:`).join('  ')}
-              </Kb.Text3>
+              </Kb.Text>
             </Kb.Box2>
           )}
           {canManageEmoji && (

@@ -74,7 +74,7 @@ type SbsTitleProps = {
 const SbsTitle = (p: SbsTitleProps) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
     {p.serviceIcon && <SiteIcon set={p.serviceIcon} full={false} />}
-    <Kb.Text3 type="HeaderBig">{p.sbsUsername}</Kb.Text3>
+    <Kb.Text type="HeaderBig">{p.sbsUsername}</Kb.Text>
   </Kb.Box2>
 )
 const BioLayout = (p: BioTeamProofsProps) => (
@@ -120,15 +120,15 @@ const ProveIt = (p: BioTeamProofsProps) => {
   const installUrlProps = Kb.useClickURL(url)
   return (
     <>
-      <Kb.Text3 type="BodySmall" style={styles.proveIt}>
+      <Kb.Text type="BodySmall" style={styles.proveIt}>
         Tell {p.fullName || p.name} to join Keybase and {doWhat}.
-      </Kb.Text3>
-      <Kb.Text3 type="BodySmall" style={styles.proveIt}>
+      </Kb.Text>
+      <Kb.Text type="BodySmall" style={styles.proveIt}>
         Send them this link:{' '}
-        <Kb.Text3 type="BodySmallPrimaryLink" {...installUrlProps} selectable={true}>
+        <Kb.Text type="BodySmallPrimaryLink" {...installUrlProps} selectable={true}>
           {url}
-        </Kb.Text3>
-      </Kb.Text3>
+        </Kb.Text>
+      </Kb.Text>
     </>
   )
 }
@@ -172,14 +172,14 @@ const Tabs = (p: TabsProps) => {
       style={Kb.Styles.collapseStyles([styles.followTab, tab === p.selectedTab && styles.followTabSelected])}
     >
       <Kb.Box2 direction="horizontal" gap="xtiny">
-        <Kb.Text3
+        <Kb.Text
           type="BodySmallSemibold"
           style={tab === p.selectedTab ? styles.followTabTextSelected : styles.followTabText}
         >
           {tab === 'following'
             ? `Following${!p.loadingFollowing ? ` (${p.numFollowing || 0})` : ''}`
             : `Followers${!p.loadingFollowers ? ` (${p.numFollowers || 0})` : ''}`}
-        </Kb.Text3>
+        </Kb.Text>
         {((tab === 'following' && p.loadingFollowing) || p.loadingFollowers) && (
           <Kb.ProgressIndicator style={styles.progress} />
         )}
@@ -248,14 +248,14 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
   return Kb.Styles.isMobile ? (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
       {!!props.reason && (
-        <Kb.Text3
+        <Kb.Text
           type="BodySmallSemibold"
           negative={true}
           center={true}
           style={Kb.Styles.collapseStyles([styles.reason, colorTypeToStyle(props.backgroundColorType)])}
         >
           {props.reason}
-        </Kb.Text3>
+        </Kb.Text>
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
         <Kb.Box2
@@ -287,9 +287,9 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
       <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
         <BioLayout {...props} />
         <Kb.Box2 direction="vertical" style={styles.proofs}>
-          <Kb.Text3 type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
+          <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
             {props.reason}
-          </Kb.Text3>
+          </Kb.Text>
           <Teams username={props.username} />
           <Proofs {...props} />
           {addIdentity}
@@ -416,7 +416,7 @@ const User = (props: {username: string}) => {
         }
         return p.notAUser ? null : (
           <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
-            <Kb.Text3 type="BodySmall">{item.text}</Kb.Text3>
+            <Kb.Text type="BodySmall">{item.text}</Kb.Text>
           </Kb.Box2>
         )
       },

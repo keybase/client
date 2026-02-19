@@ -37,8 +37,8 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
         direction="vertical"
         style={Kb.Styles.collapseStyles([styles.buttonText, waiting && Kb.Styles.globalStyles.opacity0])}
       >
-        <Kb.Text3 type="Body">{mainText}</Kb.Text3>
-        <Kb.Text3 type="BodySmall">{subText}</Kb.Text3>
+        <Kb.Text type="Body">{mainText}</Kb.Text>
+        <Kb.Text type="BodySmall">{subText}</Kb.Text>
       </Kb.Box2>
       {waiting && (
         <Kb.Box2 direction="vertical" style={styles.bigButtonWaiting} centerChildren={true}>
@@ -70,9 +70,9 @@ const Troubleshooting = (props: Props) => {
       header={{
         hideBorder: false,
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text3 type="BodySemiboldLink" onClick={onBack}>
+          <Kb.Text type="BodySemiboldLink" onClick={onBack}>
             Back
-          </Kb.Text3>
+          </Kb.Text>
         ) : null,
         title: 'Troubleshooting',
       }}
@@ -89,14 +89,14 @@ const Troubleshooting = (props: Props) => {
     >
       <Kb.Box2 direction="vertical" gap="small" alignItems="center">
         <Kb.Box2 direction="vertical" style={styles.bodyMargins}>
-          <Kb.Text3 type="Body" center={true}>
+          <Kb.Text type="Body" center={true}>
             This appears to be a new {Kb.Styles.isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
             backup or uninstalled Keybase. Either way, Keybase keys aren’t backed up, so this is now a totally
             new device.
-          </Kb.Text3>
-          <Kb.Text3 type="Body" center={true}>
+          </Kb.Text>
+          <Kb.Text type="Body" center={true}>
             How do you want to proceed?
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
         <Kb.Box2
           direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}

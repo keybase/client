@@ -28,12 +28,12 @@ const NoChats = (props: {onNewChat: () => void}) => (
     <Kb.Box2 direction="vertical" gapStart={true} gap="small" style={styles.noChatsContainer}>
       <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
       <Kb.Box2 direction="vertical">
-        <Kb.Text3 type="BodySmall" center={true}>
+        <Kb.Text type="BodySmall" center={true}>
           All conversations are
-        </Kb.Text3>
-        <Kb.Text3 type="BodySmall" center={true}>
+        </Kb.Text>
+        <Kb.Text type="BodySmall" center={true}>
           end-to-end encrypted.
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" gapStart={true} gap="medium" style={styles.newChat}>
@@ -305,9 +305,9 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
   }
 
   const debugWhichList = __DEV__ ? (
-    <Kb.Text3 type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
+    <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
       {usingFlashList ? 'FLASH' : 'old'}
-    </Kb.Text3>
+    </Kb.Text>
   ) : null
 
   const promptSmallTeamsNum = React.useCallback(() => {

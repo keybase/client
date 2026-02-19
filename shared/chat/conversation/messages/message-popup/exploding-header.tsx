@@ -62,14 +62,14 @@ const ExplodingPopupHeader = (props: Props) => {
             underline={true}
             type="BodySmallBold"
           />
-          <Kb.Text3 center={true} type="BodySmall">
+          <Kb.Text center={true} type="BodySmall">
             {deviceName}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
       {botUsername ? (
         <Kb.Box2 direction="horizontal">
-          <Kb.Text3 type="BodySmall">also encrypted for</Kb.Text3>
+          <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
           <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
             <Kb.Avatar username={botUsername} size={16} onClick="profile" />
             <Kb.ConnectedUsernames
@@ -84,9 +84,9 @@ const ExplodingPopupHeader = (props: Props) => {
         </Kb.Box2>
       ) : null}
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text3 center={true} type="BodySmall">
+        <Kb.Text center={true} type="BodySmall">
           {formatTimeForPopup(timestamp)}
-        </Kb.Text3>
+        </Kb.Text>
         {deviceRevokedAt ? (
           <Kb.PopupHeaderText
             color={Kb.Styles.globalColors.white}
@@ -113,9 +113,9 @@ const ExplodingPopupHeader = (props: Props) => {
       ])}
     >
       <Kb.Box2 direction="vertical">
-        <Kb.Text3 type="BodySmall" style={{color: Kb.Styles.globalColors.white}}>
+        <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.white}}>
           {props.explodesAt === 0 ? 'EXPLODED MESSAGE' : 'EXPLODING MESSAGE'}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       {props.explodesAt === 0 ? null : hideTimer ? (
         <Kb.ProgressIndicator white={true} style={{height: 17, width: 17}} />
@@ -126,9 +126,9 @@ const ExplodingPopupHeader = (props: Props) => {
             fontSize={Kb.Styles.isMobile ? 20 : 16}
             color={Kb.Styles.globalColors.white}
           />
-          <Kb.Text3 style={{alignSelf: 'center', color: Kb.Styles.globalColors.white}} type="BodySemibold">
+          <Kb.Text style={{alignSelf: 'center', color: Kb.Styles.globalColors.white}} type="BodySemibold">
             {msToDHMS(props.explodesAt - now)}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       )}
     </Kb.Box2>

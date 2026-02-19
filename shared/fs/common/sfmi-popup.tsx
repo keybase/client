@@ -38,13 +38,13 @@ const SFMIPopup = (props: Props) => {
             <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.fancyFinderIcon}>
               <Kb.Icon type="icon-fancy-finder-132-96" />
             </Kb.Box2>
-            <Kb.Text3 type="BodyBig" style={styles.text}>
+            <Kb.Text type="BodyBig" style={styles.text}>
               Enable Keybase in {C.fileUIName}?
-            </Kb.Text3>
-            <Kb.Text3 type="BodySmall" style={styles.text} center={true}>
+            </Kb.Text>
+            <Kb.Text type="BodySmall" style={styles.text} center={true}>
               Get access to your files and folders just like you normally do with your local files. It&apos;s
               encrypted and secure.
-            </Kb.Text3>
+            </Kb.Text>
             <Kb.Divider style={styles.divider} />
             {fuseConsentComponent}
             <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonBox}>

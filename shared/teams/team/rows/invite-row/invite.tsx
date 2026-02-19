@@ -24,10 +24,10 @@ export const TeamInviteRow = (props: Props) => {
       body={
         <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
           <Kb.Box2 direction="vertical">
-            <Kb.Text3 type="BodySemibold" lineClamp={1}>
+            <Kb.Text type="BodySemibold" lineClamp={1}>
               {label}
-            </Kb.Text3>
-            {!!text2 && <Kb.Text3 type="BodySmall">{text2}</Kb.Text3>}
+            </Kb.Text>
+            {!!text2 && <Kb.Text type="BodySmall">{text2}</Kb.Text>}
           </Kb.Box2>
         </Kb.Box2>
       }

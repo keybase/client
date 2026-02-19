@@ -81,15 +81,15 @@ const ChannelRow = (props: ChannelRowProps) => {
     : `${numParticipants.toLocaleString()} ${pluralize('member', numParticipants)}`
   const body = (
     <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start" style={styles.row}>
-      <Kb.Text3 type="BodySemibold" lineClamp={1}>
+      <Kb.Text type="BodySemibold" lineClamp={1}>
         #{channel.channelname}
-      </Kb.Text3>
-      <Kb.Text3 type="BodySmall" lineClamp={1}>
+      </Kb.Text>
+      <Kb.Text type="BodySmall" lineClamp={1}>
         {channel.description}
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
-        <Kb.Text3 type="BodySmall">{membersText}</Kb.Text3>
-        {!Kb.Styles.isMobile && activityLevel !== 'none' && <Kb.Text3 type="BodySmall">·</Kb.Text3>}
+        <Kb.Text type="BodySmall">{membersText}</Kb.Text>
+        {!Kb.Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
         <Activity level={activityLevel} />
       </Kb.Box2>
     </Kb.Box2>

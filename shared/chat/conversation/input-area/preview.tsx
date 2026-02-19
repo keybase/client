@@ -20,23 +20,23 @@ const Preview = () => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
-      <Kb.Text3 type="BodySemibold" negative={true}>
+      <Kb.Text type="BodySemibold" negative={true}>
         Would you like to join #{channelname}?
-      </Kb.Text3>
+      </Kb.Text>
       {!clicked && (
         <Kb.Box2 direction="horizontal" gap="tiny">
-          <Kb.Text3 type="BodySemiboldLink" negative={true} onClick={() => _onClick(true)}>
+          <Kb.Text type="BodySemiboldLink" negative={true} onClick={() => _onClick(true)}>
             Yes, join
-          </Kb.Text3>
-          <Kb.Text3 type="BodySemiboldLink" negative={true} onClick={() => _onClick(false)}>
+          </Kb.Text>
+          <Kb.Text type="BodySemiboldLink" negative={true} onClick={() => _onClick(false)}>
             No, thanks
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       )}
       {!!clicked && (
-        <Kb.Text3 type="BodySemibold" negative={true}>
+        <Kb.Text type="BodySemibold" negative={true}>
           {clicked === 'join' ? 'Joining...' : 'Leaving...'}
-        </Kb.Text3>
+        </Kb.Text>
       )}
     </Kb.Box2>
   )

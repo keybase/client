@@ -86,22 +86,22 @@ export const Bot = (props: BotProps) => {
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
       {description !== '' && (
-        <Kb.Text3 type="BodySmall" lineClamp={1} onClick={() => onClick(botUsername)}>
+        <Kb.Text type="BodySmall" lineClamp={1} onClick={() => onClick(botUsername)}>
           {description}
-        </Kb.Text3>
+        </Kb.Text>
       )}
     </Kb.Box2>
   )
 
   const usernameDisplay = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-      <Kb.Text3 type="BodySmall" lineClamp={1}>
-        <Kb.Text3 type="BodySmallSemibold" style={{color: Kb.Styles.globalColors.black}}>
+      <Kb.Text type="BodySmall" lineClamp={1}>
+        <Kb.Text type="BodySmallSemibold" style={{color: Kb.Styles.globalColors.black}}>
           {botAlias || botUsername}
-        </Kb.Text3>
-        <Kb.Text3 type="BodySmall">&nbsp;• by&nbsp;</Kb.Text3>
+        </Kb.Text>
+        <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
         {ownerTeam ? (
-          <Kb.Text3 type="BodySmall">{`${ownerTeam}`}</Kb.Text3>
+          <Kb.Text type="BodySmall">{`${ownerTeam}`}</Kb.Text>
         ) : (
           <Kb.ConnectedUsernames
             inline={true}
@@ -111,7 +111,7 @@ export const Bot = (props: BotProps) => {
             onUsernameClicked="profile"
           />
         )}
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   )
   return (
@@ -299,23 +299,23 @@ const BotTab = (props: Props) => {
         }
         if (item === inThisChannelHeader) {
           return (
-            <Kb.Text3 type="Header" style={styles.botHeaders}>
+            <Kb.Text type="Header" style={styles.botHeaders}>
               In this conversation
-            </Kb.Text3>
+            </Kb.Text>
           )
         }
         if (item === inThisTeamHeader) {
           return (
-            <Kb.Text3 type="Header" style={styles.botHeaders}>
+            <Kb.Text type="Header" style={styles.botHeaders}>
               Installed in this team
-            </Kb.Text3>
+            </Kb.Text>
           )
         }
         if (item === featuredBotsHeader) {
           return (
-            <Kb.Text3 type="Header" style={styles.botHeaders}>
+            <Kb.Text type="Header" style={styles.botHeaders}>
               Featured
-            </Kb.Text3>
+            </Kb.Text>
           )
         }
         if (item === featuredBotSpinner) {

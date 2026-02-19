@@ -167,18 +167,18 @@ const EditAvatar = (_p: Props) => {
       >
         {type === 'team' && createdTeam && !wizard && (
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.createdBanner}>
-            <Kb.Text3 type="BodySmallSemibold" negative={true}>
+            <Kb.Text type="BodySmallSemibold" negative={true}>
               Hoorah! Your team {teamname} was created.
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         )}
-        <Kb.Text3 center={true} type="Body" style={styles.instructions}>
+        <Kb.Text center={true} type="Body" style={styles.instructions}>
           Drag and drop a {type} avatar or{' '}
-          <Kb.Text3 type="BodyPrimaryLink" className="hover-underline" onClick={filePickerOpen}>
+          <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={filePickerOpen}>
             browse your computer
-          </Kb.Text3>{' '}
+          </Kb.Text>{' '}
           for one.
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.ClickableBox
           className={Kb.Styles.classNames('hoverbox', {filled: loading !== 'loaded'})}
           onClick={!loading ? filePickerOpen : undefined}
@@ -212,7 +212,7 @@ const EditAvatar = (_p: Props) => {
             />
           )}
         </Kb.ClickableBox>
-        {loading === 'loaded' ? <Kb.Text3 type="Body">Click to select. Scroll to zoom.</Kb.Text3> : null}
+        {loading === 'loaded' ? <Kb.Text type="Body">Click to select. Scroll to zoom.</Kb.Text> : null}
       </div>
     </Kb.Modal>
   )

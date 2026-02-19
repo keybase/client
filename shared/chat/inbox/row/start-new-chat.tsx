@@ -11,9 +11,9 @@ const StartNewChat = (props: Props) => {
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
         <Kb.ClickableBox style={styles.clickableBox} onClick={props.onNewChat}>
           <Kb.Icon type="iconfont-compose" style={styles.iconCompose} hoverColor="inital" />
-          <Kb.Text3 type="BodyBigLink" style={{margin: Kb.Styles.globalMargins.tiny}}>
+          <Kb.Text type="BodyBigLink" style={{margin: Kb.Styles.globalMargins.tiny}}>
             Start a new chat
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.ClickableBox>
       </Kb.Box2>
     )

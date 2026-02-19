@@ -143,9 +143,9 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     const showMore = resultsLength > 3 && !collapsed
     const label = (
       <Kb.Box2 direction="horizontal" gap="xtiny">
-        <Kb.Text3 type="BodySmallSemibold">{section.title}</Kb.Text3>
+        <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
         {showMore && (
-          <Kb.Text3
+          <Kb.Text
             onClick={(e: React.BaseSyntheticEvent) => {
               e.stopPropagation()
               toggleAll()
@@ -153,7 +153,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
             type="BodySmallSecondaryLink"
           >
             {!showAll ? '(more)' : '(less)'}
-          </Kb.Text3>
+          </Kb.Text>
         )}
       </Kb.Box2>
     )
@@ -185,13 +185,13 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
         />
         {textStatus === 'error' ? (
           <Kb.Box2 direction="horizontal" style={styles.percentContainer} fullWidth={true}>
-            <Kb.Text3 type="BodyTiny" style={styles.errorText} center={true}>
+            <Kb.Text type="BodyTiny" style={styles.errorText} center={true}>
               Search failed, please try again, or contact Keybase describing the problem.
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         ) : indexPercent > 0 && indexPercent < 100 ? (
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.percentContainer} fullWidth={true}>
-            <Kb.Text3 type="BodyTiny">Indexing...</Kb.Text3>
+            <Kb.Text type="BodyTiny">Indexing...</Kb.Text>
             {Kb.Styles.isMobile ? (
               <Kb.ProgressBar style={styles.progressBar} ratio={ratio} />
             ) : (
@@ -212,9 +212,9 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
   function renderHit(h: {item: Item; index: number; section: Section}) {
     if (h.item === emptyUnreadPlaceholder) {
       return (
-        <Kb.Text3 style={styles.emptyUnreadPlaceholder} type="BodySmall" center={true}>
+        <Kb.Text style={styles.emptyUnreadPlaceholder} type="BodySmall" center={true}>
           No unread messages or conversations
-        </Kb.Text3>
+        </Kb.Text>
       )
     }
 
@@ -444,7 +444,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
       >
         <TeamAvatar teamname={name} isMuted={false} isSelected={isSelected} isHovered={hovering} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-          <Kb.Text3
+          <Kb.Text
             type="BodySemibold"
             style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black}}
             title={name}
@@ -452,8 +452,8 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             ellipsizeMode="tail"
           >
             {name}
-          </Kb.Text3>
-          <Kb.Text3
+          </Kb.Text>
+          <Kb.Text
             type="BodySmall"
             style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}}
             title={`#${description}`}
@@ -461,7 +461,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             ellipsizeMode="tail"
           >
             {description}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2Measure>
       {popup}

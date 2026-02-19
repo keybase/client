@@ -1,7 +1,7 @@
 import * as Chat from '@/stores/chat2'
 import * as Styles from '@/styles'
 import {WithProfileCardPopup} from './profile-card'
-import {Text3} from './text3'
+import {Text} from './text'
 
 export type OwnProps = {
   username: string
@@ -14,7 +14,7 @@ export type Props = {
 } & OwnProps
 const Mention = ({username, theme, style, onClick}: Props) => {
   const renderText = (onLongPress?: () => void) => (
-    <Text3
+    <Text
       type="BodyBold"
       onClick={onClick || undefined}
       className={Styles.classNames({'hover-underline': !Styles.isMobile})}
@@ -22,7 +22,7 @@ const Mention = ({username, theme, style, onClick}: Props) => {
       onLongPress={onLongPress}
     >
       @{username}
-    </Text3>
+    </Text>
   )
   return Chat.isSpecialMention(username) ? (
     renderText()

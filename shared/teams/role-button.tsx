@@ -30,7 +30,7 @@ const RoleButton = (props: Props) => {
       label={
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.label}>
           {iconType ? <Kb.Icon type={iconType} style={styles.icon} sizeType="Small" /> : null}
-          <Kb.Text3 type="BodySmallSemibold">{capitalize(props.selectedRole)}</Kb.Text3>
+          <Kb.Text type="BodySmallSemibold">{capitalize(props.selectedRole)}</Kb.Text>
         </Kb.Box2>
       }
       onPress={props.onClick}

@@ -51,7 +51,7 @@ const NavMobileHeader = (props: Props) => {
   return props.path === FS.defaultPath ? (
     <Kb.SafeAreaViewTop>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer} centerChildren={true}>
-        <Kb.Text3 type="BodyBig">Files</Kb.Text3>
+        <Kb.Text type="BodyBig">Files</Kb.Text>
       </Kb.Box2>
       <MainBanner />
     </Kb.SafeAreaViewTop>

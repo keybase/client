@@ -87,9 +87,9 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
         )
       } else if (item.type === 'revokedNote') {
         return (
-          <Kb.Text3 center={true} type="BodySmall" style={styles.revokedNote}>
+          <Kb.Text center={true} type="BodySmall" style={styles.revokedNote}>
             Revoked devices are no longer able to access your Keybase account.
-          </Kb.Text3>
+          </Kb.Text>
         )
       } else {
         return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
@@ -188,13 +188,13 @@ const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
           type={Kb.Styles.isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
         />
         <Kb.Box2 direction="vertical" style={paperKeyNudgeStyles.flexOne}>
-          <Kb.Text3 type="BodySemibold">Create a paper key</Kb.Text3>
-          <Kb.Text3 type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
+          <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
+          <Kb.Text type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
             A paper key can be used to access your account in case you lose all your devices. Keep one in a
             safe place (like a wallet) to keep your data safe.
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
-        {!Kb.Styles.isMobile && <Kb.Text3 type="BodyBigLink">Create a paper key</Kb.Text3>}
+        {!Kb.Styles.isMobile && <Kb.Text type="BodyBigLink">Create a paper key</Kb.Text>}
       </Kb.Box2>
     </Kb.Box2>
   </Kb.ClickableBox>

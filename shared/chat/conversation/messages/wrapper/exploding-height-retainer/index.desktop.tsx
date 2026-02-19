@@ -60,10 +60,10 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
   let explodedTag: React.ReactNode = null
   if (doneExploding) {
     explodedTag = explodedBy ? (
-      <Kb.Text3 type="BodyTiny" style={styles.exploded}>
-        <Kb.Text3 type="BodyTiny" virtualText={true}>
+      <Kb.Text type="BodyTiny" style={styles.exploded}>
+        <Kb.Text type="BodyTiny" virtualText={true}>
           {'EXPLODED BY '}
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.ConnectedUsernames
           type="BodySmallBold"
           onUsernameClicked="profile"
@@ -74,11 +74,11 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
           underline={true}
           virtualText={true}
         />
-      </Kb.Text3>
+      </Kb.Text>
     ) : (
-      <Kb.Text3 type="BodyTiny" style={styles.exploded} virtualText={true}>
+      <Kb.Text type="BodyTiny" style={styles.exploded} virtualText={true}>
         EXPLODED
-      </Kb.Text3>
+      </Kb.Text>
     )
   }
 

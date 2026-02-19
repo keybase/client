@@ -62,16 +62,16 @@ const Container = () => {
     <Modal onCancel={onCancel} skipButton={true} title={C.isMobile ? headerText : undefined}>
       {!!errorText && (
         <Kb.Box2 direction="vertical" gap="small" style={styles.error} fullWidth={true}>
-          <Kb.Text3 center={true} negative={true} type="BodySemibold">
+          <Kb.Text center={true} negative={true} type="BodySemibold">
             {errorText}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
         {C.isMobile ? null : (
-          <Kb.Text3 center={true} type="Header">
+          <Kb.Text center={true} type="Header">
             {headerText}
-          </Kb.Text3>
+          </Kb.Text>
         )}
         <Kb.PlatformIcon
           style={styles.centered}
@@ -110,8 +110,8 @@ const Container = () => {
 const UsernameTips = ({platform}: {platform: T.More.PlatformsExpandedType}) =>
   platform === 'hackernews' ? (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tips}>
-      <Kb.Text3 type="BodySmallSemibold">&bull; You must have karma &ge; 2</Kb.Text3>
-      <Kb.Text3 type="BodySmallSemibold">&bull; You must enter your uSeRName with exact case</Kb.Text3>
+      <Kb.Text type="BodySmallSemibold">&bull; You must have karma &ge; 2</Kb.Text>
+      <Kb.Text type="BodySmallSemibold">&bull; You must enter your uSeRName with exact case</Kb.Text>
     </Kb.Box2>
   ) : null
 

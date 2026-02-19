@@ -177,7 +177,7 @@ const TeamMember = (props: OwnProps) => {
   const makeTitle = (label: string) => {
     return (
       <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
-        <Kb.Text3 type="BodySmallSemibold">{label}</Kb.Text3>
+        <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
         {loading && <Kb.ProgressIndicator type="Small" />}
       </Kb.Box2>
     )
@@ -331,14 +331,14 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
               styles.contentCollapsedFixedHeight,
             ])}
           >
-            <Kb.Text3 type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink} lineClamp={1}>
+            <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink} lineClamp={1}>
               {props.node.teamname}
-            </Kb.Text3>
-            <Kb.Text3 type="BodySmall">
+            </Kb.Text>
+            <Kb.Text type="BodySmall">
               {props.node.memberCount !== undefined
                 ? `${props.node.memberCount.toLocaleString()} ${pluralize('member', props.node.memberCount)}`
                 : 'Loading members...'}
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
 
@@ -374,13 +374,13 @@ const LastActivity = (props: {loading: boolean; teamID: T.Teams.TeamID; username
   )
 
   return (
-    <Kb.Text3 type="BodySmall">
+    <Kb.Text type="BodySmall">
       {props.loading
         ? 'Loading activity...'
         : lastActivity
           ? `Active ${formatTimeRelativeToNow(lastActivity)}`
           : 'No activity'}
-    </Kb.Text3>
+    </Kb.Text>
   )
 }
 type NodeInRowProps = {
@@ -521,13 +521,13 @@ const NodeInRow = (props: NodeInRowProps) => {
                       !expanded && styles.contentCollapsedFixedHeight,
                     ] as const)}
                   >
-                    <Kb.Text3 type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
+                    <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
                       {props.node.teamname}
-                    </Kb.Text3>
+                    </Kb.Text>
                     {!!props.node.joinTime && (
-                      <Kb.Text3 type="BodySmall">
+                      <Kb.Text type="BodySmall">
                         Joined {formatTimeForTeamMember(props.node.joinTime)}
-                      </Kb.Text3>
+                      </Kb.Text>
                     )}
                   </Kb.Box2>
                 </Kb.Box2>
@@ -559,14 +559,14 @@ const NodeInRow = (props: NodeInRowProps) => {
                       color={Kb.Styles.globalColors.black_20}
                       boxStyle={styles.membershipIcon}
                     />
-                    <Kb.Text3
+                    <Kb.Text
                       type="BodySmall"
                       style={Kb.Styles.globalStyles.flexOne}
                       lineClamp={4}
                       ellipsizeMode="tail"
                     >
                       {loadingChannels ? 'Loading channels...' : `Member of #${channelsJoined}`}
-                    </Kb.Text3>
+                    </Kb.Text>
                   </Kb.Box2>
                 )}
                 {expanded && (props.node.canAdminister || isMe) && (
@@ -659,12 +659,12 @@ export const TeamMemberHeader = (props: Props) => {
             alignSelf="flex-start"
           >
             <Kb.Avatar size={16} teamname={teamMeta.teamname} />
-            <Kb.Text3
+            <Kb.Text
               type={Kb.Styles.isPhone ? 'BodySmallSemibold' : 'BodySmallSemiboldSecondaryLink'}
               onClick={onViewTeam}
             >
               {teamMeta.teamname}
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
 
           <Kb.Box2
@@ -679,13 +679,13 @@ export const TeamMemberHeader = (props: Props) => {
               <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.headerText}>
                 <Kb.ConnectedUsernames type="Header" usernames={username} />
                 {!!member.fullName && (
-                  <Kb.Text3 type="BodySemibold" lineClamp={1}>
+                  <Kb.Text type="BodySemibold" lineClamp={1}>
                     {member.fullName}
-                  </Kb.Text3>
+                  </Kb.Text>
                 )}
-                <Kb.Text3 type="BodySmall">
+                <Kb.Text type="BodySmall">
                   Joined {member.joinTime ? formatTimeForTeamMember(member.joinTime) : 'this team'}
-                </Kb.Text3>
+                </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
             {!Kb.Styles.isPhone && buttons}

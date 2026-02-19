@@ -1,7 +1,7 @@
 import type * as CSS from '@/styles/css'
 import type * as React from 'react'
 import type {MeasureRef} from './measure-ref'
-import type {TextType} from './text3.shared'
+import type {TextType} from './text.shared'
 
 type Props = {
   type?: TextType
@@ -23,4 +23,4 @@ type Props = {
   virtualText?: boolean
   className?: string
 }
-export declare const Text3: (p: Props) => React.ReactNode
+export declare const Text: (p: Props) => React.ReactNode

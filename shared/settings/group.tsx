@@ -15,11 +15,11 @@ type GroupProps = {
 
 const Group = (props: GroupProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {!!props.title && <Kb.Text3 type="Header">{props.title}</Kb.Text3>}
+    {!!props.title && <Kb.Text type="Header">{props.title}</Kb.Text>}
     {!!props.label && (
-      <Kb.Text3 type="BodySmall" style={styles.label}>
+      <Kb.Text type="BodySmall" style={styles.label}>
         {props.label}
-      </Kb.Text3>
+      </Kb.Text>
     )}
     <Kb.Box2
       direction="vertical"
@@ -42,7 +42,7 @@ const Group = (props: GroupProps) => (
     </Kb.Box2>
     {!!props.unsub && (
       <Kb.Box2 direction="vertical" alignSelf="flex-start" fullWidth={true}>
-        <Kb.Text3 type="BodySmall">Or</Kb.Text3>
+        <Kb.Text type="BodySmall">Or</Kb.Text>
         <Kb.Checkbox
           style={{marginTop: Kb.Styles.globalMargins.xtiny}}
           onCheck={props.onToggleUnsubscribeAll}

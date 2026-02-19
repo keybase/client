@@ -41,10 +41,10 @@ const Row = (p: {account: Wallets.Account}) => {
       style={styles.row}
       fullWidth={Kb.Styles.isMobile}
     >
-      <Kb.Text3 type="BodyBold">
+      <Kb.Text type="BodyBold">
         {name}
         {isDefault ? ' (default)' : ''}
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.Box2
         direction="vertical"
         gap="tiny"
@@ -58,16 +58,16 @@ const Row = (p: {account: Wallets.Account}) => {
           gap={Kb.Styles.isMobile ? undefined : 'tiny'}
           style={styles.idContainer}
         >
-          <Kb.Text3 type="Body" title={accountID} lineClamp={1} style={styles.accountID}>
+          <Kb.Text type="Body" title={accountID} lineClamp={1} style={styles.accountID}>
             ID:
-          </Kb.Text3>
+          </Kb.Text>
           <Kb.BoxGrow2 style={styles.idCopy}>
             <Kb.CopyText withReveal={false} text={accountID} />
           </Kb.BoxGrow2>
         </Kb.Box2>
-        <Kb.Text3 type="BodyBold" lineClamp={1}>
+        <Kb.Text type="BodyBold" lineClamp={1}>
           Balance: {balanceDescription}
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.Box2
           direction="horizontal"
           gap="small"
@@ -76,13 +76,13 @@ const Row = (p: {account: Wallets.Account}) => {
           style={styles.reveal}
           fullWidth={true}
         >
-          <Kb.Text3 type="BodySmallSemibold" style={styles.label}>
+          <Kb.Text type="BodySmallSemibold" style={styles.label}>
             Secret key
-          </Kb.Text3>
+          </Kb.Text>
           {deviceReadOnly ? (
-            <Kb.Text3 type="Body">
+            <Kb.Text type="Body">
               You can only view your secret key on mobile devices because this is a mobile-only account.
-            </Kb.Text3>
+            </Kb.Text>
           ) : (
             <Kb.CopyText
               containerStyle={styles.copyText}
@@ -96,7 +96,7 @@ const Row = (p: {account: Wallets.Account}) => {
             />
           )}
         </Kb.Box2>
-        {err ? <Kb.Text3 type="Body">Error: {err}</Kb.Text3> : null}
+        {err ? <Kb.Text type="Body">Error: {err}</Kb.Text> : null}
       </Kb.Box2>
       <Kb.Button
         type="Danger"
@@ -149,21 +149,21 @@ const Container = () => {
     <Kb.ScrollView style={styles.scroll}>
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         {loading ? <Kb.ProgressIndicator /> : null}
-        <Kb.Text3 type="BodyBig">Stellar Transactions Are No Longer Supported in the Keybase App</Kb.Text3>
+        <Kb.Text type="BodyBig">Stellar Transactions Are No Longer Supported in the Keybase App</Kb.Text>
         {acceptedDisclaimer ? (
           <>
-            <Kb.Text3 type="Body">
+            <Kb.Text type="Body">
               Please export your stellar balances to alternative wallets using your secret keys below.
-            </Kb.Text3>
+            </Kb.Text>
             <Kb.Banner color="yellow" inline={true}>
               Only paste your secret key in 100% safe places. Anyone with this key could steal your Stellar
               account.
             </Kb.Banner>
           </>
         ) : (
-          <Kb.Text3 type="Body">
+          <Kb.Text type="Body">
             It looks like you never setup your Stellar wallet, enjoy this empty space for a little while
-          </Kb.Text3>
+          </Kb.Text>
         )}
         {acceptedDisclaimer ? rows : null}
       </Kb.Box2>

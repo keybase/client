@@ -39,16 +39,16 @@ const GiphySearch = () => {
         ])}
       >
         <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="xtiny">
-          <Kb.Text3 style={styles.instructions} type="BodySmall">
+          <Kb.Text style={styles.instructions} type="BodySmall">
             {"Tip: hit 'Enter' now to send a random GIF."}
-          </Kb.Text3>
-          <Kb.Text3
+          </Kb.Text>
+          <Kb.Text
             style={styles.instructions}
             type="BodySmallSecondaryLink"
             {...learnMoreUrlProps}
           >
             Learn more about GIFs & encryption
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
         {width &&
           (props.previews ? (

@@ -40,20 +40,20 @@ const Container = (ownProps: OwnProps) => {
         style={styles.innerContainer}
       >
         <ItemIcon path={path} size={96} />
-        <Kb.Text3 type="BodyBig" style={styles.filename}>
+        <Kb.Text type="BodyBig" style={styles.filename}>
           {pathItem.name}
-        </Kb.Text3>
-        <Kb.Text3 type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text3>
+        </Kb.Text>
+        <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
         {C.isMobile && <LastModifiedLine path={path} mode="default" />}
         {pathItem.type === T.FS.PathType.Symlink && (
-          <Kb.Text3 type="BodySmall" style={styles.symlink}>
+          <Kb.Text type="BodySmall" style={styles.symlink}>
             {'This is a symlink' + (pathItem.linkTarget ? ` to: ${pathItem.linkTarget}.` : '.')}
-          </Kb.Text3>
+          </Kb.Text>
         )}
         {C.isMobile && (
-          <Kb.Text3 center={true} type="BodySmall" style={styles.noOpenMobile}>
+          <Kb.Text center={true} type="BodySmall" style={styles.noOpenMobile}>
             This document can not be opened on mobile. You can still interact with it using the ••• menu.
-          </Kb.Text3>
+          </Kb.Text>
         )}
         {
           // Enable this button for desktop when we have in-app sharing.

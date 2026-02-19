@@ -187,12 +187,12 @@ const LogStats = (props: {num?: number}) => {
       fullWidth={true}
     >
       {!Kb.Styles.isMobile && (
-        <Kb.Text3 type="BodyTinyBold" style={styles.stat}>
+        <Kb.Text type="BodyTinyBold" style={styles.stat}>
           Logs
-        </Kb.Text3>
+        </Kb.Text>
       )}
       {buckets.map((b, i) => (
-        <Kb.Text3
+        <Kb.Text
           key={i}
           type={b.updated ? 'BodyTinyBold' : 'BodyTiny'}
           style={styles.logStat}
@@ -200,7 +200,7 @@ const LogStats = (props: {num?: number}) => {
           title={b.labelFull}
         >
           {b.label && b.count > 1 ? b.count : ''} {b.label}
-        </Kb.Text3>
+        </Kb.Text>
       ))}
     </Kb.Box2>
   )
@@ -232,22 +232,22 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
               stats.processStats?.map((stat, i) => {
                 return (
                   <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true} noShrink={true}>
-                    <Kb.Text3 type="BodyTinyBold" style={styles.stat}>
+                    <Kb.Text type="BodyTinyBold" style={styles.stat}>
                       {processTypeString(stat.type)}
-                    </Kb.Text3>
-                    <Kb.Text3
+                    </Kb.Text>
+                    <Kb.Text
                       style={Kb.Styles.collapseStyles([styles.stat, severityStyle(stat.cpuSeverity)])}
                       type="BodyTiny"
-                    >{`CPU: ${stat.cpu}`}</Kb.Text3>
-                    <Kb.Text3
+                    >{`CPU: ${stat.cpu}`}</Kb.Text>
+                    <Kb.Text
                       style={Kb.Styles.collapseStyles([styles.stat, severityStyle(stat.residentSeverity)])}
                       type="BodyTiny"
-                    >{`Res: ${stat.resident}`}</Kb.Text3>
-                    <Kb.Text3 style={styles.stat} type="BodyTiny">{`Virt: ${stat.virt}`}</Kb.Text3>
-                    <Kb.Text3 style={styles.stat} type="BodyTiny">{`Free: ${stat.free}`}</Kb.Text3>
-                    <Kb.Text3 style={styles.stat} type="BodyTiny">{`GoHeap: ${stat.goheap}`}</Kb.Text3>
-                    <Kb.Text3 style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stat.goheapsys}`}</Kb.Text3>
-                    <Kb.Text3 style={styles.stat} type="BodyTiny">{`GoReleased: ${stat.goreleased}`}</Kb.Text3>
+                    >{`Res: ${stat.resident}`}</Kb.Text>
+                    <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stat.virt}`}</Kb.Text>
+                    <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${stat.free}`}</Kb.Text>
+                    <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${stat.goheap}`}</Kb.Text>
+                    <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stat.goheapsys}`}</Kb.Text>
+                    <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stat.goreleased}`}</Kb.Text>
                     <Kb.Divider />
                     <Kb.Divider />
                   </Kb.Box2>
@@ -255,39 +255,39 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
               })}
             {!moreLogs && <Kb.Divider />}
             {!moreLogs && (
-              <Kb.Text3 type="BodyTinyBold" style={styles.stat}>
+              <Kb.Text type="BodyTinyBold" style={styles.stat}>
                 Chat Bkg Activity
-              </Kb.Text3>
+              </Kb.Text>
             )}
             {!moreLogs && (
-              <Kb.Text3
+              <Kb.Text
                 style={Kb.Styles.collapseStyles([
                   styles.stat,
                   stats.convLoaderActive ? styles.statWarning : styles.statNormal,
                 ])}
                 type="BodyTiny"
-              >{`BkgLoaderActive: ${yesNo(stats.convLoaderActive)}`}</Kb.Text3>
+              >{`BkgLoaderActive: ${yesNo(stats.convLoaderActive)}`}</Kb.Text>
             )}
             {!moreLogs && (
-              <Kb.Text3
+              <Kb.Text
                 style={Kb.Styles.collapseStyles([
                   styles.stat,
                   stats.selectiveSyncActive ? styles.statWarning : styles.statNormal,
                 ])}
                 type="BodyTiny"
-              >{`IndexerSyncActive: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text3>
+              >{`IndexerSyncActive: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
             )}
             {!moreLogs && <Kb.Divider />}
             {!moreLogs && (
-              <Kb.Text3 type="BodyTinyBold" style={styles.stat}>
+              <Kb.Text type="BodyTinyBold" style={styles.stat}>
                 LevelDB Compaction
-              </Kb.Text3>
+              </Kb.Text>
             )}
             {!moreLogs &&
               stats.dbStats?.map((stat, i) => {
                 return (
                   <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
-                    <Kb.Text3
+                    <Kb.Text
                       type="BodyTiny"
                       style={Kb.Styles.collapseStyles([
                         styles.stat,
@@ -295,7 +295,7 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
                       ])}
                     >
                       {`${dbTypeString(stat.type)}: ${yesNo(stat.memCompActive || stat.tableCompActive)}`}
-                    </Kb.Text3>
+                    </Kb.Text>
                   </Kb.Box2>
                 )
               })}
@@ -341,55 +341,55 @@ const RuntimeStatsMobile = ({stats}: Props) => {
         {processStat && (
           <Kb.Box2 direction="vertical">
             <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
-              <Kb.Text3
+              <Kb.Text
                 style={Kb.Styles.collapseStyles([styles.stat, severityStyle(processStat.cpuSeverity)])}
                 type="BodyTiny"
-              >{`C:${processStat.cpu}`}</Kb.Text3>
-              <Kb.Text3
+              >{`C:${processStat.cpu}`}</Kb.Text>
+              <Kb.Text
                 style={Kb.Styles.collapseStyles([styles.stat, severityStyle(processStat.residentSeverity)])}
                 type="BodyTiny"
-              >{`R:${processStat.resident}`}</Kb.Text3>
-              <Kb.Text3 style={styles.stat} type="BodyTiny">{`V:${processStat.virt}`}</Kb.Text3>
-              <Kb.Text3 style={styles.stat} type="BodyTiny">{`F:${processStat.free}`}</Kb.Text3>
+              >{`R:${processStat.resident}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`V:${processStat.virt}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`F:${processStat.free}`}</Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
-              <Kb.Text3 style={styles.stat} type="BodyTiny">{`GH:${processStat.goheap}`}</Kb.Text3>
-              <Kb.Text3 style={styles.stat} type="BodyTiny">{`GS:${processStat.goheapsys}`}</Kb.Text3>
-              <Kb.Text3 style={styles.stat} type="BodyTiny">{`GR:${processStat.goreleased}`}</Kb.Text3>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GH:${processStat.goheap}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GS:${processStat.goheapsys}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GR:${processStat.goreleased}`}</Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
         )}
         <Kb.Box2 direction="vertical">
-          <Kb.Text3
+          <Kb.Text
             style={Kb.Styles.collapseStyles([
               styles.stat,
               stats.convLoaderActive ? styles.statWarning : styles.statNormal,
             ])}
             type="BodyTiny"
-          >{`CLA: ${yesNo(stats.convLoaderActive)}`}</Kb.Text3>
-          <Kb.Text3
+          >{`CLA: ${yesNo(stats.convLoaderActive)}`}</Kb.Text>
+          <Kb.Text
             style={Kb.Styles.collapseStyles([
               styles.stat,
               stats.selectiveSyncActive ? styles.statWarning : styles.statNormal,
             ])}
             type="BodyTiny"
-          >{`SSA: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text3>
+          >{`SSA: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="vertical">
-          <Kb.Text3
+          <Kb.Text
             style={Kb.Styles.collapseStyles([
               styles.stat,
               coreCompaction ? styles.statWarning : styles.statNormal,
             ])}
             type="BodyTiny"
-          >{`LC: ${yesNo(coreCompaction)}`}</Kb.Text3>
-          <Kb.Text3
+          >{`LC: ${yesNo(coreCompaction)}`}</Kb.Text>
+          <Kb.Text
             style={Kb.Styles.collapseStyles([
               styles.stat,
               kbfsCompaction ? styles.statWarning : styles.statNormal,
             ])}
             type="BodyTiny"
-          >{`LK: ${yesNo(kbfsCompaction)}`}</Kb.Text3>
+          >{`LK: ${yesNo(kbfsCompaction)}`}</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     </>

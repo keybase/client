@@ -39,7 +39,7 @@ const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
       className="background_color_white hover_background_color_blueLighter2"
     >
       <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-        <Kb.Text3 type="BodyBig">Create a team</Kb.Text3>
+        <Kb.Text type="BodyBig">Create a team</Kb.Text>
         <Kb.Box2 direction="vertical" style={styles.relative}>
           <Kb.Avatar isTeam={true} size={96} />
           <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
@@ -52,15 +52,15 @@ const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
       className="background_color_white hover_background_color_blueLighter2"
     >
       <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-        <Kb.Text3 type="BodyBig">Join a team</Kb.Text3>
+        <Kb.Text type="BodyBig">Join a team</Kb.Text>
         <Kb.Icon type="icon-illustration-teams-96" />
       </Kb.Box2>
     </Kb.ClickableBox>
     {props.empty && !Kb.Styles.isMobile && (
-      <Kb.Text3 type="BodySmall" style={styles.emptyNote}>
+      <Kb.Text type="BodySmall" style={styles.emptyNote}>
         Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual friends to
         large communities.
-      </Kb.Text3>
+      </Kb.Text>
     )}
   </Kb.Box2>
 )
@@ -108,7 +108,7 @@ const SortHeader = () => {
       <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
           <Kb.Icon type="iconfont-arrow-full-down" />
-          <Kb.Text3 type="BodySmallSemibold">{sortOrderToTitle[sortOrder]}</Kb.Text3>
+          <Kb.Text type="BodySmallSemibold">{sortOrderToTitle[sortOrder]}</Kb.Text>
         </Kb.Box2>
       </Kb.ClickableBox>
       {popup}

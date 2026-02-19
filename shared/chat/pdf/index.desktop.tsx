@@ -22,7 +22,7 @@ const ChatPDF = (props: Props) => {
   return (
     <Kb.Modal2
       header={{
-        title: <Kb.Text3 type="BodyBig">{title}</Kb.Text3>,
+        title: <Kb.Text type="BodyBig">{title}</Kb.Text>,
       }}
       footer={{
         content: (

@@ -117,9 +117,9 @@ const NewTeamInfo = () => {
         leftButton:
           teamWizardState.teamType === 'subteam' ? (
             Kb.Styles.isMobile ? (
-              <Kb.Text3 type="BodyBigLink" onClick={onClose}>
+              <Kb.Text type="BodyBigLink" onClick={onClose}>
                 Cancel
-              </Kb.Text3>
+              </Kb.Text>
             ) : undefined
           ) : (
             <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
@@ -161,15 +161,15 @@ const NewTeamInfo = () => {
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.extraLineText}>
           {teamNameTaken ? (
-            <Kb.Text3 type="BodySmallError" style={styles.biggerOnTheInside}>
+            <Kb.Text type="BodySmallError" style={styles.biggerOnTheInside}>
               {getTeamTakenMessage(teamNameTakenStatus)}
-            </Kb.Text3>
+            </Kb.Text>
           ) : (
-            <Kb.Text3 type="BodySmall">
+            <Kb.Text type="BodySmall">
               {teamWizardState.teamType === 'subteam'
                 ? `Subteam names can be changed anytime.`
                 : `Choose wisely. Team names are unique and can't be changed in the future.`}
-            </Kb.Text3>
+            </Kb.Text>
           )}
         </Kb.Box2>
         <Kb.LabeledInput
@@ -190,8 +190,8 @@ const NewTeamInfo = () => {
         <Kb.Checkbox
           labelComponent={
             <Kb.Box2 direction="vertical" alignItems="flex-start" style={Kb.Styles.globalStyles.flexOne}>
-              <Kb.Text3 type="Body">Make it an open team</Kb.Text3>
-              <Kb.Text3 type="BodySmall">Anyone can join without admin approval.</Kb.Text3>
+              <Kb.Text type="Body">Make it an open team</Kb.Text>
+              <Kb.Text type="BodySmall">Anyone can join without admin approval.</Kb.Text>
               {(!Kb.Styles.isMobile || openTeam) && (
                 <Kb.Box2
                   direction="horizontal"
@@ -200,7 +200,7 @@ const NewTeamInfo = () => {
                   alignItems="center"
                   className={Kb.Styles.classNames('hideableDropdown', {hidden: !openTeam})}
                 >
-                  <Kb.Text3 type="BodySmall">People will join as</Kb.Text3>
+                  <Kb.Text type="BodySmall">People will join as</Kb.Text>
                   <FloatingRolePicker
                     presetRole={realRole}
                     floatingContainerStyle={styles.floatingRolePicker}

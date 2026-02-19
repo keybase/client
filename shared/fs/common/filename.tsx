@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import type {TextType} from '@/common-adapters/text3.shared'
+import type {TextType} from '@/common-adapters/text.shared'
 
 type Props = {
   path?: T.FS.Path
@@ -26,7 +26,7 @@ const Filename = (props: Props) => {
   )
   return (
     <Kb.Box2 direction="horizontal" style={props.style}>
-      <Kb.Text3
+      <Kb.Text
         className="hover-underline-child"
         type={props.type}
         style={styles.breakAll}
@@ -34,16 +34,16 @@ const Filename = (props: Props) => {
         selectable={props.selectable}
       >
         {fileNameWithoutExtension}
-      </Kb.Text3>
+      </Kb.Text>
       {fileExtension ? (
-        <Kb.Text3
+        <Kb.Text
           className="hover-underline-child"
           type={props.type}
           style={styles.noShrink}
           selectable={props.selectable}
         >
           {fileExtension}
-        </Kb.Text3>
+        </Kb.Text>
       ) : null}
     </Kb.Box2>
   )

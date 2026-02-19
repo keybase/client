@@ -32,9 +32,9 @@ const Container = (ownProps: OwnProps) => {
           colorFollowing={true}
           lineClamp={1}
         />
-        <Kb.Text3 type="BodySmall" lineClamp={1} style={styles.fullname}>
+        <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
           {fullname}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.ClickableBox>
   )

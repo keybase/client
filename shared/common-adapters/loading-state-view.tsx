@@ -1,5 +1,5 @@
 import * as Styles from '@/styles'
-import {Text3} from './text3'
+import {Text} from './text'
 import {Box2} from './box'
 import ProgressBar from './progress-bar'
 import ProgressIndicator from './progress-indicator'
@@ -8,7 +8,7 @@ const Kb = {
   Box2,
   ProgressBar,
   ProgressIndicator,
-  Text3,
+  Text,
 }
 
 type Props = {
@@ -29,9 +29,9 @@ const LoadingStateView = (props: Props) =>
     >
       <Kb.Box2 direction="horizontal" gap="tiny">
         <Kb.ProgressIndicator white={props.white} />
-        <Kb.Text3 type="BodySmall" style={props.white && {color: Styles.globalColors.white_40OrWhite_40}}>
+        <Kb.Text type="BodySmall" style={props.white && {color: Styles.globalColors.white_40OrWhite_40}}>
           Loading ...
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       {props.progress !== undefined && <Kb.ProgressBar ratio={props.progress} />}
     </Kb.Box2>

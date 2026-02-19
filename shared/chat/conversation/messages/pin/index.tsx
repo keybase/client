@@ -9,9 +9,9 @@ const Pin = (props: Props) => {
   const replyJump = Chat.useChatContext(s => s.dispatch.replyJump)
   const onReplyClick = () => replyJump(messageID)
   return (
-    <Kb.Text3 type="BodySmall" style={styles.text} onClick={onReplyClick}>
+    <Kb.Text type="BodySmall" style={styles.text} onClick={onReplyClick}>
       pinned a message to this chat.
-    </Kb.Text3>
+    </Kb.Text>
   )
 }
 

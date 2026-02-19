@@ -1,0 +1,355 @@
+/* Text desktop styles */
+
+.t_HeaderBig,
+.t_HeaderBigExtrabold,
+.t_Header,
+.t_HeaderItalic,
+.t_HeaderExtrabold,
+.t_HeaderLink,
+.t_BodyBig,
+.t_BodyBigExtrabold,
+.t_BodyBigLink,
+.t_Body,
+.t_BodyItalic,
+.t_BodySemibold,
+.t_BodyBold,
+.t_BodySemiboldItalic,
+.t_BodySemiboldLink,
+.t_BodyExtrabold,
+.t_BodyPrimaryLink,
+.t_BodySecondaryLink,
+.t_BodySmall,
+.t_BodySmallBold,
+.t_BodySmallItalic,
+.t_BodySmallPrimaryLink,
+.t_BodySmallExtrabold,
+.t_BodySmallSemiboldItalic,
+.t_BodySmallSemiboldPrimaryLink,
+.t_BodySmallSemiboldSecondaryLink,
+.t_BodySmallSecondaryLink,
+.t_BodySmallExtraboldSecondaryLink,
+.t_BodySmallError,
+.t_BodySmallSuccess,
+.t_BodySmallWallet,
+.t_BodyTiny,
+.t_BodyTinyLink,
+.t_BodyTinyBold,
+.t_BodyTinyExtrabold,
+.t_BodyTinySemibold,
+.t_BodyTinySemiboldItalic,
+.t_BodySmallSemibold,
+.t_Terminal,
+.t_TerminalComment,
+.t_TerminalEmpty,
+.t_TerminalInline {
+  color: rgba(0, 0, 0, 0.85);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Keybase;
+}
+
+/* Dark mode: primary-color types flip to white */
+@media (prefers-color-scheme: dark) {
+  .t_HeaderBig,
+  .t_HeaderBigExtrabold,
+  .t_Header,
+  .t_HeaderItalic,
+  .t_HeaderExtrabold,
+  .t_BodyBig,
+  .t_BodyBigExtrabold,
+  .t_BodyExtrabold,
+  .t_BodySemiboldItalic,
+  .t_BodyBold,
+  .t_BodySemibold,
+  .t_BodyItalic,
+  .t_Body {
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+/* Secondary color group */
+.t_BodySecondaryLink,
+.t_BodySmall,
+.t_BodySmallBold,
+.t_BodySmallItalic,
+.t_BodySmallExtrabold,
+.t_BodySmallSemiboldItalic,
+.t_BodySmallExtraboldSecondaryLink,
+.t_BodySmallSecondaryLink,
+.t_BodySmallSemiboldSecondaryLink,
+.t_BodyTiny,
+.t_BodyTinyLink,
+.t_BodyTinyBold,
+.t_BodyTinyExtrabold,
+.t_BodyTinySemibold,
+.t_BodyTinySemiboldItalic,
+.t_BodySmallSemibold {
+  color: var(--color-black_50OrWhite_40);
+}
+
+/* Link color group */
+.t_HeaderLink,
+.t_BodyBigLink,
+.t_BodySemiboldLink,
+.t_BodyPrimaryLink,
+.t_BodySmallPrimaryLink,
+.t_BodySmallSemiboldPrimaryLink {
+  color: var(--color-blueDark);
+}
+
+/* Special color types */
+.t_BodySmallError {
+  color: var(--color-redDark);
+}
+.t_BodySmallSuccess {
+  color: var(--color-greenDark);
+}
+.t_BodySmallWallet {
+  color: var(--color-purpleDark);
+}
+
+/* Italic group */
+.t_HeaderItalic,
+.t_BodyItalic,
+.t_BodySemiboldItalic,
+.t_BodySmallItalic,
+.t_BodySmallSemiboldItalic,
+.t_BodyTinySemiboldItalic {
+  font-style: italic;
+}
+
+/* Cursor pointer for link types */
+.t_HeaderLink,
+.t_BodyBigLink,
+.t_BodyPrimaryLink,
+.t_BodySecondaryLink,
+.t_BodySmallPrimaryLink,
+.t_BodySmallSemiboldPrimaryLink,
+.t_BodySmallSemiboldSecondaryLink,
+.t_BodySmallSecondaryLink,
+.t_BodySmallExtraboldSecondaryLink,
+.t_BodyTinyLink {
+  cursor: pointer;
+}
+
+/* Font size / line-height groups */
+:is(.t_HeaderBig, .t_HeaderBigExtrabold) {
+  font-size: 24px;
+  line-height: 28px;
+}
+
+:is(.t_Header, .t_HeaderItalic, .t_HeaderExtrabold, .t_HeaderLink) {
+  font-size: 18px;
+  line-height: 22px;
+}
+
+:is(.t_BodyBig, .t_BodyBigExtrabold, .t_BodyBigLink) {
+  font-size: 15px;
+  line-height: 19px;
+}
+
+.t_Body,
+.t_BodyItalic,
+.t_BodySemibold,
+.t_BodyBold,
+.t_BodySemiboldItalic,
+.t_BodySemiboldLink,
+.t_BodyExtrabold,
+.t_BodyPrimaryLink,
+.t_BodySecondaryLink {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.t_BodySmall,
+.t_BodySmallBold,
+.t_BodySmallItalic,
+.t_BodySmallPrimaryLink,
+.t_BodySmallExtrabold,
+.t_BodySmallSemiboldItalic,
+.t_BodySmallSemiboldPrimaryLink,
+.t_BodySmallSemiboldSecondaryLink,
+.t_BodySmallSecondaryLink,
+.t_BodySmallExtraboldSecondaryLink,
+.t_BodySmallError,
+.t_BodySmallSuccess,
+.t_BodySmallWallet,
+.t_BodySmallSemibold {
+  font-size: 13px;
+  line-height: 17px;
+}
+
+.t_BodyTiny,
+.t_BodyTinyLink,
+.t_BodyTinyBold,
+.t_BodyTinyExtrabold,
+.t_BodyTinySemibold,
+.t_BodyTinySemiboldItalic {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Font weight groups */
+.t_Body,
+.t_BodyItalic,
+.t_BodyPrimaryLink,
+.t_BodySecondaryLink,
+.t_BodySmall,
+.t_BodySmallItalic,
+.t_BodySmallPrimaryLink,
+.t_BodySmallSecondaryLink,
+.t_BodySmallError,
+.t_BodySmallSuccess,
+.t_BodySmallWallet,
+.t_BodyTiny,
+.t_BodyTinyLink {
+  font-weight: 400;
+}
+
+.t_BodyBig,
+.t_BodyBigLink,
+.t_BodySemibold,
+.t_BodySemiboldItalic,
+.t_BodySemiboldLink,
+.t_BodySmallSemiboldItalic,
+.t_BodySmallSemiboldPrimaryLink,
+.t_BodySmallSemiboldSecondaryLink,
+.t_BodyTinySemibold,
+.t_BodyTinySemiboldItalic,
+.t_BodySmallSemibold {
+  font-weight: 600;
+}
+
+.t_HeaderBig,
+.t_Header,
+.t_HeaderItalic,
+.t_HeaderLink,
+.t_BodyBold,
+.t_BodySmallBold,
+.t_BodyTinyBold {
+  font-weight: 700;
+}
+
+.t_HeaderBigExtrabold,
+.t_HeaderExtrabold,
+.t_BodyBigExtrabold,
+.t_BodyExtrabold,
+.t_BodySmallExtrabold,
+.t_BodySmallExtraboldSecondaryLink,
+.t_BodyTinyExtrabold {
+  font-weight: 800;
+}
+
+/* Terminal types */
+:is(.t_Terminal, .t_TerminalComment, .t_TerminalEmpty, .t_TerminalInline) {
+  font-size: 13px;
+  line-height: 20px;
+  font-family: Source Code Pro;
+}
+
+.t_Terminal {
+  color: light-dark(#a8ccff, #4c8eff);
+}
+
+.t_TerminalComment {
+  color: var(--color-blueLighter_40);
+}
+
+.t_TerminalEmpty {
+  color: var(--color-blueLighter_40);
+  height: 20px;
+}
+
+.t_TerminalInline {
+  line-height: 16px;
+  color: light-dark(#2645a3, #f00);
+  background-color: var(--color-blueLighter2);
+  border-radius: 2px;
+  height: 17px;
+  padding: 2px;
+  word-wrap: break-word;
+}
+
+/* Dark mode link override */
+@media (prefers-color-scheme: dark) {
+  .t_HeaderLink {
+    color: var(--color-blueDarker2_75);
+  }
+}
+
+/* Negative: white for most types */
+.t_negative {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Terminal types have non-white negative colors */
+.t_negative.t_Terminal {
+  color: light-dark(#a8ccff, #4c8eff) !important;
+}
+.t_negative.t_TerminalComment,
+.t_negative.t_TerminalEmpty {
+  color: var(--color-blueLighter_40) !important;
+}
+.t_negative.t_TerminalInline {
+  color: light-dark(#2645a3, #f00) !important;
+}
+
+/* Hover underline for link types */
+.t_hover-underline:hover {
+  text-decoration: underline;
+}
+
+/* Utility classes */
+.t_center {
+  display: inline-block;
+  text-align: center;
+}
+
+.t_selectable {
+  user-select: text;
+  cursor: text;
+}
+
+.t_clickable {
+  cursor: pointer;
+}
+
+:is(.t_lineClamp1, .t_lineClamp2, .t_lineClamp3, .t_lineClamp4, .t_lineClamp5) {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.t_lineClamp1 {
+  -webkit-line-clamp: 1;
+}
+
+.t_lineClamp2 {
+  -webkit-line-clamp: 2;
+}
+
+.t_lineClamp3 {
+  -webkit-line-clamp: 3;
+}
+
+.t_lineClamp4 {
+  -webkit-line-clamp: 4;
+}
+
+.t_lineClamp5 {
+  -webkit-line-clamp: 5;
+}
+
+.t_underline {
+  text-decoration: underline;
+}
+
+.t_underlineNever {
+  text-decoration: none !important;
+}
+
+.t_virtualText::before {
+  content: attr(data-virtual-text);
+}

@@ -167,13 +167,13 @@ function PendingInviteItem({
         <PendingURLContent invite={invite} />
       )}
       <Kb.Box2 direction="horizontal" style={{flex: 1}} />
-      <Kb.Text3
+      <Kb.Text
         type="BodyPrimaryLink"
         onClick={() => onReclaimInvitation(invite.id)}
         style={{color: Kb.Styles.globalColors.redDark}}
       >
         Reclaim
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   )
 }
@@ -189,12 +189,12 @@ function PendingEmailContent({
     <Kb.Box2 direction="horizontal" alignItems="center">
       <Kb.Avatar size={32} />
       <Kb.Box2 direction="vertical" style={{marginLeft: Kb.Styles.globalMargins.small}}>
-        <Kb.Text3 type="BodySemibold" onClick={() => onSelectPendingInvite(invite)}>
+        <Kb.Text type="BodySemibold" onClick={() => onSelectPendingInvite(invite)}>
           {invite.email}
-        </Kb.Text3>
-        <Kb.Text3 type="BodySmall">
+        </Kb.Text>
+        <Kb.Text type="BodySmall">
           Invited {dateFns.format(dateFns.fromUnixTime(invite.created), 'MMM d, yyyy')}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -212,9 +212,9 @@ function PendingURLContent({invite}: {invite: PendingInvite}) {
         color={Kb.Styles.globalColors.black_20}
         fontSize={13}
       />
-      <Kb.Text3 type="Body" selectable={true} style={{color: Kb.Styles.globalColors.blueDark}}>
+      <Kb.Text type="Body" selectable={true} style={{color: Kb.Styles.globalColors.blueDark}}>
         {invite.url}
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   )
 }

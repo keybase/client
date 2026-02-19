@@ -63,9 +63,9 @@ export const TeamMemberRow = (props: Props) => {
 
   const fullNameLabel =
     fullName && active ? (
-      <Kb.Text3 style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
+      <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
         {fullName} •
-      </Kb.Text3>
+      </Kb.Text>
     ) : null
 
   let resetLabel: string | undefined
@@ -137,10 +137,10 @@ export const TeamMemberRow = (props: Props) => {
               style={styles.lockedOutMeta}
             />
           )}
-          <Kb.Text3 type="BodySmall">
+          <Kb.Text type="BodySmall">
             {!!active && Teams.typeToLabel[roleType]}
             {resetLabel}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
@@ -155,8 +155,8 @@ export const TeamMemberRow = (props: Props) => {
           fullName={fullName}
           label={
             <Kb.Box2 direction="horizontal">
-              <Kb.Text3 type="BodySmall">{crown}</Kb.Text3>
-              <Kb.Text3 type="BodySmall">{roleLabel}</Kb.Text3>
+              <Kb.Text type="BodySmall">{crown}</Kb.Text>
+              <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
             </Kb.Box2>
           }
         />

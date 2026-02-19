@@ -12,18 +12,18 @@ export const HeaderTitle = () => {
       style={styles.headerTitle}
       className="hover-underline-container"
     >
-      <Kb.Text3 type="Header">Git repositories</Kb.Text3>
-      <Kb.Text3 type="BodySmall">
+      <Kb.Text type="Header">Git repositories</Kb.Text>
+      <Kb.Text type="BodySmall">
         All repositories are end-to-end encrypted.{' '}
-        <Kb.Text3
+        <Kb.Text
           type="BodySmall"
           {...readHowUrlProps}
           style={styles.headerTitleLink}
           className="hover-underline-child"
         >
           Read how it works.
-        </Kb.Text3>
-      </Kb.Text3>
+        </Kb.Text>
+      </Kb.Text>
     </Kb.Box2>
   )
 }

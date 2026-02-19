@@ -4,7 +4,7 @@ import {Box2} from '@/common-adapters/box'
 import ClickableBox from '@/common-adapters/clickable-box'
 import Divider from '@/common-adapters/divider'
 import Icon from '@/common-adapters/icon'
-import {Text3} from '@/common-adapters/text3'
+import {Text} from '@/common-adapters/text'
 import Meta from '@/common-adapters/meta'
 import Badge from '@/common-adapters/badge'
 import ProgressIndicator from '@/common-adapters/progress-indicator'
@@ -44,13 +44,13 @@ const MenuLayout = (props: MenuLayoutProps) => {
         {item.view}
         {!item.view && (
           <Box2 direction="horizontal" fullWidth={true}>
-            <Text3
+            <Text
               className="title"
               type="Body"
               style={Styles.collapseStyles([styles.itemBodyText, item.style, styleDisabled])}
             >
               {item.title}
-            </Text3>
+            </Text>
             {!!item.icon && item.iconIsVisible && <Icon style={styles.icon} type={item.icon} />}
             {item.newTag && (
               <Meta
@@ -74,14 +74,14 @@ const MenuLayout = (props: MenuLayoutProps) => {
           </Box2>
         )}
         {!item.view && item.subTitle && (
-          <Text3
+          <Text
             className="subtitle"
             key={item.subTitle}
             type="BodySmall"
             style={Styles.collapseStyles([styles.itemBodyText, item.style])}
           >
             {item.subTitle}
-          </Text3>
+          </Text>
         )}
         {!!item.progressIndicator && <ProgressIndicator type="Large" style={styles.progressIndicator} />}
       </ClickableBox>

@@ -28,7 +28,7 @@ const SystemInviteAcceptedContainer = React.memo(function SystemInviteAcceptedCo
   // just pretend they were added by the inviter for now.
   return (
     <UserNotice>
-      <Kb.Text3 type="BodySmall">
+      <Kb.Text type="BodySmall">
         was added by{' '}
         {you === inviter ? (
           'you'
@@ -43,7 +43,7 @@ const SystemInviteAcceptedContainer = React.memo(function SystemInviteAcceptedCo
           />
         )}
         {roleLabel && ` as a "${roleLabel.toLowerCase()}"`}.{' '}
-      </Kb.Text3>
+      </Kb.Text>
     </UserNotice>
   )
 })
@@ -52,10 +52,10 @@ const YouInviteAddedToTeamNotice = (props: {onViewTeam: () => void}) => {
   const {onViewTeam} = props
   return (
     <UserNotice>
-      <Kb.Text3 type="BodySmall">You joined the team.</Kb.Text3>
-      <Kb.Text3 type="BodySmallPrimaryLink" onClick={onViewTeam}>
+      <Kb.Text type="BodySmall">You joined the team.</Kb.Text>
+      <Kb.Text type="BodySmallPrimaryLink" onClick={onViewTeam}>
         View all members
-      </Kb.Text3>
+      </Kb.Text>
     </UserNotice>
   )
 }

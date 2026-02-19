@@ -12,13 +12,13 @@ const YouRekey = ({onRekey}: Props) => {
           justifyContent: 'center',
         }}
       >
-        <Kb.Text3
+        <Kb.Text
           negative={true}
           style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
           type="BodySemibold"
         >
           This conversation needs to be rekeyed.
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.ButtonBar>
         <Kb.Button backgroundColor="blue" onClick={onRekey} label="Rekey" />

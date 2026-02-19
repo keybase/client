@@ -44,14 +44,14 @@ const Notifications = () => {
         <EmailSection {...props} />
       ) : (
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text3 type="Header">Email notifications</Kb.Text3>
-          <Kb.Text3 type="BodySmall">
+          <Kb.Text type="Header">Email notifications</Kb.Text>
+          <Kb.Text type="BodySmall">
             Go to{' '}
-            <Kb.Text3 type="BodySmallSemiboldSecondaryLink" onClick={props.onClickYourAccount}>
+            <Kb.Text type="BodySmallSemiboldSecondaryLink" onClick={props.onClickYourAccount}>
               Your account
-            </Kb.Text3>{' '}
+            </Kb.Text>{' '}
             and add an email address.
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       )}
       {(!Kb.Styles.isMobile || mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (

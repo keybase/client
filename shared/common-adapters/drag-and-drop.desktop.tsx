@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as Styles from '@/styles'
 import {Box2} from './box'
 import Icon from './icon'
-import {Text3} from './text3'
+import {Text} from './text'
 import logger from '@/logger'
 import type {Props} from './drag-and-drop'
 import KB2 from '@/util/electron.desktop'
@@ -75,9 +75,9 @@ const DragAndDrop = (props: Props) => {
           <Icon type="iconfont-upload" color={Styles.globalColors.blue} sizeType="Huge" />
         )}
         {props.rejectReason ? (
-          <Text3 type="Header">{props.rejectReason}</Text3>
+          <Text type="Header">{props.rejectReason}</Text>
         ) : (
-          <Text3 type="Header">{props.prompt || 'Drop files to upload'}</Text3>
+          <Text type="Header">{props.prompt || 'Drop files to upload'}</Text>
         )}
       </Box2>
     </Box2>

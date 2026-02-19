@@ -35,9 +35,9 @@ const Info = () => {
     <Modal onCancel={onCancel} skipButton={true}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.content}>
         <Kb.PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styles.centered} />
-        <Kb.Text3 type="BodySemibold" style={styles.centered}>
+        <Kb.Text type="BodySemibold" style={styles.centered}>
           Fill in your public info.
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.LabeledInput
           autoFocus={true}
           placeholder="Your full name"
@@ -65,9 +65,9 @@ const Info = () => {
           value={data.pgpEmail3}
           error={data.pgpErrorEmail3}
         />
-        <Kb.Text3 type={data.pgpErrorText ? 'BodySmallError' : 'BodySmall'}>
+        <Kb.Text type={data.pgpErrorText ? 'BodySmallError' : 'BodySmall'}>
           {data.pgpErrorText || 'Include any addresses you plan to use for PGP encrypted email.'}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 fullWidth={true} direction="horizontal" gap="small">
         <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />

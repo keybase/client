@@ -11,9 +11,9 @@ const Row = (props: {username: string; onUsernameClicked: (s: string) => void}) 
       />
       <Kb.Box2 direction="vertical" style={styles.innerRow}>
         <Kb.ConnectedUsernames inline={true} type="BodyBold" usernames={props.username} />
-        <Kb.Text3 type="BodySmall" style={Kb.Styles.platformStyles({isElectron: {lineHeight: '17px'}})}>
+        <Kb.Text type="BodySmall" style={Kb.Styles.platformStyles({isElectron: {lineHeight: '17px'}})}>
           Can rekey this chat by opening the Keybase app.
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   </Kb.ClickableBox>
@@ -30,13 +30,13 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
           justifyContent: 'center',
         }}
       >
-        <Kb.Text3
+        <Kb.Text
           negative={true}
           style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
           type="BodySemibold"
         >
           This conversation is waiting for a participant to open their Keybase app.
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"

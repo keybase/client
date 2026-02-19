@@ -351,44 +351,44 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
 
   const cancel =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
-      <Kb.Text3 type="BodySmall" style={styles.failUnderline} onClick={onCancel} virtualText={true}>
+      <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel} virtualText={true}>
         Cancel
-      </Kb.Text3>
+      </Kb.Text>
     ) : null
 
   const or =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
-      <Kb.Text3 type="BodySmall" virtualText={true}>
+      <Kb.Text type="BodySmall" virtualText={true}>
         {' or '}
-      </Kb.Text3>
+      </Kb.Text>
     ) : null
 
   const action: React.ReactNode =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
-      <Kb.Text3
+      <Kb.Text
         type="BodySmall"
         style={styles.failUnderline}
         onClick={ecrType === EditCancelRetryType.EDIT_CANCEL ? onEdit : onRetry}
         virtualText={true}
       >
         {ecrType === EditCancelRetryType.EDIT_CANCEL ? 'Edit' : 'Retry'}
-      </Kb.Text3>
+      </Kb.Text>
     ) : null
 
   return (
-    <Kb.Text3 key="isFailed" type="BodySmall">
-      <Kb.Text3 type="BodySmall" style={exploding ? styles.failExploding : styles.fail}>
+    <Kb.Text key="isFailed" type="BodySmall">
+      <Kb.Text type="BodySmall" style={exploding ? styles.failExploding : styles.fail}>
         {exploding ? (
           <>
             <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
           </>
         ) : null}
         {`${failureDescription}. `}
-      </Kb.Text3>
+      </Kb.Text>
       {action}
       {or}
       {cancel}
-    </Kb.Text3>
+    </Kb.Text>
   )
 })
 

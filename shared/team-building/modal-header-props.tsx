@@ -11,9 +11,9 @@ export const modalHeaderProps = (
 ) => {
   const {onClose, namespace, hasTeamSoFar, teamID, onFinishTeamBuilding, title, goButtonLabel} = props
   const mobileCancel = Kb.Styles.isMobile ? (
-    <Kb.Text3 type="BodyBigLink" onClick={onClose}>
+    <Kb.Text type="BodyBigLink" onClick={onClose}>
       Cancel
-    </Kb.Text3>
+    </Kb.Text>
   ) : undefined
   switch (namespace) {
     case 'people': {
@@ -24,13 +24,13 @@ export const modalHeaderProps = (
         hideBorder: true,
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onClose} />,
         rightButton: Kb.Styles.isMobile ? (
-          <Kb.Text3
+          <Kb.Text
             type="BodyBigLink"
             onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
             style={!hasTeamSoFar && styles.hide}
           >
             Done
-          </Kb.Text3>
+          </Kb.Text>
         ) : undefined,
         title: <TeamsModalTitle teamID={teamID ?? T.Teams.noTeamID} title="Search people" />,
       }

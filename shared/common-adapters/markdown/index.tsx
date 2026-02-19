@@ -1,7 +1,7 @@
 import * as Styles from '@/styles'
 import * as React from 'react'
 import * as SM from '@khanacademy/simple-markdown'
-import {Text3} from '@/common-adapters/text3'
+import {Text} from '@/common-adapters/text'
 import logger from '@/logger'
 import type {Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
@@ -14,7 +14,7 @@ import {
   serviceOnlyNoWrapOutput,
 } from './react'
 import type * as T from '@/constants/types'
-import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/text3.shared'
+import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/text.shared'
 import isArray from 'lodash/isArray'
 import {ErrorBoundary} from 'react-error-boundary'
 
@@ -410,9 +410,9 @@ const shouldUseParser = (s: string) => {
 const ErrorComponent = (p: {children: React.ReactNode}) => {
   const {children} = p
   return (
-    <Text3 type="Body" style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle] as const)}>
+    <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle] as const)}>
       {children ?? ''}
-    </Text3>
+    </Text>
   )
 }
 
@@ -475,20 +475,20 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
         return output
       case serviceOnly:
         return (
-          <Text3 className={paragraphTextClassName} type="Body" style={style} lineClamp={lineClamp}>
+          <Text className={paragraphTextClassName} type="Body" style={style} lineClamp={lineClamp}>
             {output}
-          </Text3>
+          </Text>
         )
       case preview:
         return (
-          <Text3
+          <Text
             className={paragraphTextClassName}
             type={Styles.isMobile ? 'Body' : 'BodySmall'}
             style={Styles.collapseStyles([markdownStyles.neutralPreviewStyle, style, styleOverride.preview])}
             lineClamp={1 as const}
           >
             {output}
-          </Text3>
+          </Text>
         )
       default:
         return output
@@ -501,7 +501,7 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
       {Styles.isMobile ? (
         inner
       ) : (
-        <Text3
+        <Text
           className={paragraphTextClassName}
           type="Body"
           lineClamp={lineClamp}
@@ -509,7 +509,7 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
           selectable={selectable}
         >
           {inner}
-        </Text3>
+        </Text>
       )}
     </ErrorBoundary>
   )

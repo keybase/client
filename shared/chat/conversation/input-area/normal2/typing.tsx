@@ -13,27 +13,27 @@ const Names = (props: {names?: ReadonlySet<string>}) => {
     case 1:
       return (
         <>
-          <Kb.Text3 type={textType}>{names[0]}</Kb.Text3>
+          <Kb.Text type={textType}>{names[0]}</Kb.Text>
           {' is typing'}
         </>
       )
     case 2:
       return (
         <>
-          <Kb.Text3 type={textType}>{names[0]}</Kb.Text3>
+          <Kb.Text type={textType}>{names[0]}</Kb.Text>
           {' and '}
-          <Kb.Text3 type={textType}>{names[1]}</Kb.Text3>
+          <Kb.Text type={textType}>{names[1]}</Kb.Text>
           {' are typing'}
         </>
       )
     case 3:
       return (
         <>
-          <Kb.Text3 type={textType}>{names[0]}</Kb.Text3>
+          <Kb.Text type={textType}>{names[0]}</Kb.Text>
           {', '}
-          <Kb.Text3 type={textType}>{names[1]}</Kb.Text3>
+          <Kb.Text type={textType}>{names[1]}</Kb.Text>
           {', and '}
-          <Kb.Text3 type={textType}>{names[2]}</Kb.Text3>
+          <Kb.Text type={textType}>{names[2]}</Kb.Text>
           {' are typing'}
         </>
       )
@@ -63,9 +63,9 @@ const Typing = React.memo(function Typing() {
         </Kb.Box2>
       )}
       {names.size > 0 && (
-        <Kb.Text3 lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
+        <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
           <Names names={names} />
-        </Kb.Text3>
+        </Kb.Text>
       )}
     </Kb.Box2>
   )

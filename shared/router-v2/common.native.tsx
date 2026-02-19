@@ -61,9 +61,9 @@ export const defaultNavigationOptions = {
   headerStyle: headerDefaultStyle,
   headerTintColor: Kb.Styles.globalColors.black_50,
   headerTitle: (hp: {children: React.ReactNode}) => (
-    <Kb.Text3 type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
+    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
       {hp.children}
-    </Kb.Text3>
+    </Kb.Text>
   ),
   headerTitleAlign: Kb.Styles.isAndroid ? 'center' : undefined,
   headerTitleContainerStyle: {

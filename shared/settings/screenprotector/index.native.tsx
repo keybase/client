@@ -28,7 +28,7 @@ const Screenprotector = () => {
   }
 
   if (!isAndroid) {
-    return <Kb.Text3 type="Body">Screenprotector is only supported on Android</Kb.Text3>
+    return <Kb.Text type="Body">Screenprotector is only supported on Android</Kb.Text>
   }
 
   return (

@@ -32,9 +32,9 @@ const UseNativeFrame = () => {
         onCheck={x => onChangeUseNativeFrame(!x)}
       />
       {initialUseNativeFrame !== useNativeFrame && (
-        <Kb.Text3 type="BodySmall" style={styles.error}>
+        <Kb.Text type="BodySmall" style={styles.error}>
           Keybase needs to restart for this change to take effect.
-        </Kb.Text3>
+        </Kb.Text>
       )}
     </>
   )
@@ -60,13 +60,13 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
       onCheck={onChangeLockdownMode}
       labelComponent={
         <Kb.Box2 direction="vertical" alignItems="flex-start" style={Kb.Styles.globalStyles.flexOne}>
-          <Kb.Text3 type="Body">{label}</Kb.Text3>
-          <Kb.Text3 type="BodySmall">Prevent making account changes from the website.</Kb.Text3>
-          <Kb.Text3 type="BodySmall">
+          <Kb.Text type="Body">{label}</Kb.Text>
+          <Kb.Text type="BodySmall">Prevent making account changes from the website.</Kb.Text>
+          <Kb.Text type="BodySmall">
             With this setting on you will not be able to reset your account, even from the app. Protect your
             account by installing Keybase on several devices, or by keeping a paper key in a safe place.
-          </Kb.Text3>
-          <Kb.Text3 type="BodySmallPrimaryLink" {...readMoreUrlProps}>
+          </Kb.Text>
+          <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
             <Kb.Icon
               type="iconfont-open-browser"
@@ -74,7 +74,7 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
               boxStyle={styles.displayInline}
               color={Kb.Styles.globalColors.blueDark}
             />
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       }
     />
@@ -167,19 +167,19 @@ const Advanced = () => {
           {settingLockdownMode && <Kb.ProgressIndicator />}
           <LockdownCheckbox hasRandomPW={hasRandomPW} settingLockdownMode={settingLockdownMode} />
           {!!setLockdownModeError && (
-            <Kb.Text3 type="BodySmall" style={styles.error}>
+            <Kb.Text type="BodySmall" style={styles.error}>
               {setLockdownModeError}
-            </Kb.Text3>
+            </Kb.Text>
           )}
           {!hasRandomPW && (
             <Kb.Checkbox
               checked={rememberPassword}
               labelComponent={
                 <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
-                  <Kb.Text3 type="Body">Always stay logged in</Kb.Text3>
-                  <Kb.Text3 type="BodySmall">
+                  <Kb.Text type="Body">Always stay logged in</Kb.Text>
+                  <Kb.Text type="BodySmall">
                     {"You won't be asked for your password when restarting the app or your device."}
-                  </Kb.Text3>
+                  </Kb.Text>
                 </Kb.Box2>
               }
               onCheck={onChangeRememberPassword}
@@ -255,9 +255,9 @@ const Developer = () => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.developerContainer}>
-      <Kb.Text3 center={true} type="BodySmallSemibold" onClick={onLabelClick} style={styles.text}>
+      <Kb.Text center={true} type="BodySmallSemibold" onClick={onLabelClick} style={styles.text}>
         {"Please don't do anything below here unless instructed to by a developer."}
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.Divider style={styles.divider} />
       <Kb.Button style={styles.developerButtons} type="Danger" label="DB Nuke" onClick={onDBNuke} />
       {Kb.Styles.isIOS ? (
@@ -305,9 +305,9 @@ const Developer = () => {
             label={`CPU Profile (${traceDurationSeconds}s)`}
             onClick={() => onProcessorProfile(processorProfileDurationSeconds)}
           />
-          <Kb.Text3 center={true} type="BodySmallSemibold" style={styles.text}>
+          <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
             Trace and profile files are included in logs sent with feedback.
-          </Kb.Text3>
+          </Kb.Text>
         </>
       )}
       <Kb.Box2 direction="vertical" style={styles.filler} />

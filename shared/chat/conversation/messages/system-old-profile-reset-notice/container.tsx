@@ -1,6 +1,6 @@
 import * as Chat from '@/stores/chat2'
 import type * as T from '@/constants/types'
-import {Text3} from '@/common-adapters'
+import {Text} from '@/common-adapters'
 import UserNotice from '../user-notice'
 
 const SystemOldProfileResetNotice = () => {
@@ -22,15 +22,15 @@ const SystemOldProfileResetNotice = () => {
 
   return (
     <UserNotice>
-      <Text3 type="BodySmallSemibold" negative={true}>
+      <Text type="BodySmallSemibold" negative={true}>
         {username} reset their profile
-      </Text3>
-      <Text3 type="BodySmall" negative={true}>
+      </Text>
+      <Text type="BodySmall" negative={true}>
         Their encryption keys were replaced with new ones.
-      </Text3>
-      <Text3 type="BodySmallPrimaryLink" negative={true} onClick={onOpenNewerConversation}>
+      </Text>
+      <Text type="BodySmallPrimaryLink" negative={true} onClick={onOpenNewerConversation}>
         Jump to new conversation
-      </Text3>
+      </Text>
     </UserNotice>
   )
 }

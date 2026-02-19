@@ -248,7 +248,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
         usernames={username ?? ''}
         withProfileCardPopup={false}
       />
-      <Kb.Text3 type="BodySmall">{fullName}</Kb.Text3>
+      <Kb.Text type="BodySmall">{fullName}</Kb.Text>
     </Kb.Box2>
   )
 }

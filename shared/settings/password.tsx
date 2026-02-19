@@ -65,7 +65,7 @@ export const UpdatePassword = (props: Props) => {
   ) : password.length >= 8 && passwordConfirm.length >= 8 ? (
     <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.passwordFormat}>
       <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
-      <Kb.Text3 type="BodySmallSuccess">Passwords match.</Kb.Text3>
+      <Kb.Text type="BodySmallSuccess">Passwords match.</Kb.Text>
     </Kb.Box2>
   ) : (
     'Password must be at least 8 characters.'
@@ -117,9 +117,9 @@ export const UpdatePassword = (props: Props) => {
       header={{
         leftButton:
           Kb.Styles.isMobile && props.onCancel ? (
-            <Kb.Text3 type="BodyBigLink" onClick={props.onCancel}>
+            <Kb.Text type="BodyBigLink" onClick={props.onCancel}>
               Cancel
-            </Kb.Text3>
+            </Kb.Text>
           ) : null,
         title: props.hasRandomPW ? 'Set a password' : 'Change password',
       }}
@@ -131,9 +131,9 @@ export const UpdatePassword = (props: Props) => {
         fullHeight={true}
         style={styles.container}
       >
-        <Kb.Text3 type="Body" style={styles.bodyText} center={true}>
+        <Kb.Text type="Body" style={styles.bodyText} center={true}>
           A password is required for you to sign out and sign back in.
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.RoundedBox side="top">
           <Kb.PlainInput
             placeholder="New password"
@@ -158,9 +158,9 @@ export const UpdatePassword = (props: Props) => {
           />
         </Kb.RoundedBox>
         {typeof hintText === 'string' ? (
-          <Kb.Text3 style={styles.passwordFormat} type={hintType}>
+          <Kb.Text style={styles.passwordFormat} type={hintType}>
             {hintText}
-          </Kb.Text3>
+          </Kb.Text>
         ) : (
           hintText
         )}

@@ -86,12 +86,12 @@ export const CreateNewTeam = (props: Props) => {
           autoFocus={!Kb.Styles.isMobile /* keyboard can cover the "join subteam" box on mobile */}
         />
         {isSubteam && (
-          <Kb.Text3 type="BodySmall" style={!name && Kb.Styles.globalStyles.opacity0}>
+          <Kb.Text type="BodySmall" style={!name && Kb.Styles.globalStyles.opacity0}>
             This team will be named{' '}
-            <Kb.Text3 type="BodySmallSemibold" style={styles.wordBreak}>
+            <Kb.Text type="BodySmallSemibold" style={styles.wordBreak}>
               {props.baseTeam}.{name}
-            </Kb.Text3>
-          </Kb.Text3>
+            </Kb.Text>
+          </Kb.Text>
         )}
         {isSubteam && (
           <Kb.Checkbox checked={joinSubteam} onCheck={setJoinSubteam} label="Join this subteam." />

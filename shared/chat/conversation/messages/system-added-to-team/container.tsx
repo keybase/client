@@ -60,36 +60,36 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
   if (addee === you) {
     return (
       <UserNotice>
-        <Kb.Text3 type="BodySmall">
+        <Kb.Text type="BodySmall">
           {youOrUsername({capitalize: true, username: adder, you})}added{' '}
           {youOrUsername({adder, capitalize: false, username: addee, you})}
           {teamname && ` to `}
           {teamname && (
-            <Kb.Text3
+            <Kb.Text
               onClick={onViewTeam}
               style={{color: Kb.Styles.globalColors.black_50}}
               type="BodySmallSemiboldSecondaryLink"
             >
               {teamname}
-            </Kb.Text3>
+            </Kb.Text>
           )}
           {_role !== 'none' &&
             Teams.typeToLabel[_role] &&
             ` as ${indefiniteArticle(_role)} ${Teams.typeToLabel[_role].toLowerCase()}`}
           .
-        </Kb.Text3>
+        </Kb.Text>
         {mc}
       </UserNotice>
     )
   }
   return (
     <UserNotice>
-      <Kb.Text3 type="BodySmall">
+      <Kb.Text type="BodySmall">
         {youOrUsername({capitalize: true, username: adder, you: you})}added{' '}
         {getAddedUsernames(bulkAdds?.length ? bulkAdds : [addee])}
         {isTeam && ' to the team'}
         {role && ` as ${indefiniteArticle(role)} ${role}`}. {mc}
-      </Kb.Text3>
+      </Kb.Text>
     </UserNotice>
   )
 })
@@ -121,28 +121,28 @@ const ManageComponent = (props: Props) => {
   if (addee === you) {
     return (
       <Kb.Box2 direction="vertical">
-        <Kb.Text3 onClick={onManageNotifications} type={textType}>
+        <Kb.Text onClick={onManageNotifications} type={textType}>
           Manage phone and computer notifications
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     )
   } else if (bot) {
     return (
-      <Kb.Text3 onClick={onViewBot} type={textType}>
+      <Kb.Text onClick={onViewBot} type={textType}>
         View bot settings
-      </Kb.Text3>
+      </Kb.Text>
     )
   } else if (isAdmin) {
     return (
-      <Kb.Text3 onClick={onViewTeam} type={textType}>
+      <Kb.Text onClick={onViewTeam} type={textType}>
         Manage members
-      </Kb.Text3>
+      </Kb.Text>
     )
   } else {
     return (
-      <Kb.Text3 onClick={onViewTeam} type={textType}>
+      <Kb.Text onClick={onViewTeam} type={textType}>
         See all members
-      </Kb.Text3>
+      </Kb.Text>
     )
   }
 }

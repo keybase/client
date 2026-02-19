@@ -70,9 +70,9 @@ export const ContactRestricted = (props: Props) => {
         noShrink={true}
       >
         <Kb.Icon type="iconfont-warning" sizeType="Huge" color={Kb.Styles.globalColors.black_20} />
-        <Kb.Text3 center={true} style={styles.text} type="Header" lineClamp={2}>
+        <Kb.Text center={true} style={styles.text} type="Header" lineClamp={2}>
           {header}
-        </Kb.Text3>
+        </Kb.Text>
         {disallowedUsers.length > 0 && (
           <>
             {disallowedUsers.map((username, idx) => (
@@ -83,16 +83,16 @@ export const ContactRestricted = (props: Props) => {
                 firstItem={idx === 0}
                 body={
                   <Kb.Box2 direction="vertical" fullWidth={true}>
-                    <Kb.Text3 type="BodySemibold">{username}</Kb.Text3>
+                    <Kb.Text type="BodySemibold">{username}</Kb.Text>
                   </Kb.Box2>
                 }
               />
             ))}
           </>
         )}
-        <Kb.Text3 center={true} style={styles.text} type="BodyBig">
+        <Kb.Text center={true} style={styles.text} type="BodyBig">
           {description}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Modal>
   )

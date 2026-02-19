@@ -24,12 +24,12 @@ const SyncNotificationSetting = (
   const {spaceAvailableNotificationThreshold, areSettingsLoading} = p
   return (
     <Kb.Box2 direction="horizontal" alignItems="center">
-      <Kb.Text3 type="Body">Warn me if I have less than </Kb.Text3>
+      <Kb.Text type="Body">Warn me if I have less than </Kb.Text>
       <Kb.Dropdown
         items={allowedNotificationThresholds.map(i => (
-          <Kb.Text3 type="Body" key={i}>
+          <Kb.Text type="Body" key={i}>
             {FS.humanizeBytes(i, 0)}
-          </Kb.Text3>
+          </Kb.Text>
         ))}
         onChangedIdx={onChangedSyncNotifications}
         overlayStyle={styles.syncNotificationDropdownOverlay}
@@ -38,16 +38,16 @@ const SyncNotificationSetting = (
             direction="horizontal"
             key={spaceAvailableNotificationThreshold || defaultNotificationThreshold}
           >
-            <Kb.Text3 type="Body">
+            <Kb.Text type="Body">
               {FS.humanizeBytes(spaceAvailableNotificationThreshold || defaultNotificationThreshold, 0)}
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         }
         style={styles.syncNotificationSettingDropdown}
         itemBoxStyle={styles.syncNotificationDropdownItem}
         disabled={areSettingsLoading || spaceAvailableNotificationThreshold === 0}
       />
-      <Kb.Text3 type="Body">of storage space remaining</Kb.Text3>
+      <Kb.Text type="Body">of storage space remaining</Kb.Text>
     </Kb.Box2>
   )
 }
@@ -82,26 +82,26 @@ const FinderIntegration = () => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.finderIntegrationContent}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
-            <Kb.Text3 type="Header">{Platform.fileUIName} integration</Kb.Text3>
+            <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending && <Kb.ProgressIndicator style={styles.spinner} />}
             {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.kextPermissionError && (
               <Kb.ClickableBox style={styles.actionNeededBox} onClick={onShowKextPermissionPopup}>
-                <Kb.Text3 style={styles.actionNeededText} type="BodySmallSemibold">
+                <Kb.Text style={styles.actionNeededText} type="BodySmallSemibold">
                   Action needed!
-                </Kb.Text3>
+                </Kb.Text>
               </Kb.ClickableBox>
             )}
           </Kb.Box2>
           {driverStatus.type === T.FS.DriverStatusType.Enabled ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text3 type="Body">Keybase is enabled in {Platform.fileUIName}.</Kb.Text3>
-              <Kb.Text3 type="Body">
+              <Kb.Text type="Body">Keybase is enabled in {Platform.fileUIName}.</Kb.Text>
+              <Kb.Text type="Body">
                 Your files are accessible at{' '}
-                <Kb.Text3 type="BodyPrimaryLink" underline={false} onClick={openMount}>
+                <Kb.Text type="BodyPrimaryLink" underline={false} onClick={openMount}>
                   {displayingMountDir}
-                </Kb.Text3>
+                </Kb.Text>
                 .
-              </Kb.Text3>
+              </Kb.Text>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.buttonBox}>
                 <Kb.Button
                   mode="Secondary"
@@ -114,11 +114,11 @@ const FinderIntegration = () => {
             </Kb.Box2>
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text3 type="BodySmall">
+              <Kb.Text type="BodySmall">
                 {
                   "Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
                 }
-              </Kb.Text3>
+              </Kb.Text>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.buttonBox}>
                 <Kbfs.SystemFileManagerIntegrationPopup mode="Button" />
               </Kb.Box2>
@@ -143,7 +143,7 @@ const FilesSettings = () => {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
-              <Kb.Text3 type="Header">File sync</Kb.Text3>
+              <Kb.Text type="Header">File sync</Kb.Text>
             </Kb.Box2>
             <Kb.Checkbox
               onCheck={

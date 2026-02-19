@@ -36,9 +36,9 @@ const ChooseConversation = (props: Props) => {
     <>
       <Kb.DropdownButton
         selected={
-          <Kb.Text3 type="BodySemibold" style={styles.selectedText}>
+          <Kb.Text type="BodySemibold" style={styles.selectedText}>
             {text}
-          </Kb.Text3>
+          </Kb.Text>
         }
         popupAnchor={popupAnchor}
         toggleOpen={showPopup}

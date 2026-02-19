@@ -12,17 +12,17 @@ type Props = {
 const Participant = ({firstItem, fullname, isAdmin, isOwner, username, onShowProfile}: Props) => {
   const lower = (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="xtiny">
-      {fullname !== '' && <Kb.Text3 type="BodySmall">{fullname}</Kb.Text3>}
+      {fullname !== '' && <Kb.Text type="BodySmall">{fullname}</Kb.Text>}
       {(isAdmin || isOwner) && (
         <Kb.Box2 direction="horizontal" alignItems="center" gap="xxtiny">
-          <Kb.Text3 type="BodySmall">(</Kb.Text3>
+          <Kb.Text type="BodySmall">(</Kb.Text>
           <Kb.Icon
             color={isOwner ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
             fontSize={10}
             type="iconfont-crown-owner"
           />
-          <Kb.Text3 type="BodySmall">{isAdmin ? 'Admin' : 'Owner'}</Kb.Text3>
-          <Kb.Text3 type="BodySmall">)</Kb.Text3>
+          <Kb.Text type="BodySmall">{isAdmin ? 'Admin' : 'Owner'}</Kb.Text>
+          <Kb.Text type="BodySmall">)</Kb.Text>
         </Kb.Box2>
       )}
     </Kb.Box2>

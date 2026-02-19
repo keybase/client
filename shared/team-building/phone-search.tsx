@@ -81,15 +81,15 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                 <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
               )}
               {namespace === 'chat2' ? (
-                <Kb.Text3 type="BodySmall" style={styles.helperText}>
+                <Kb.Text type="BodySmall" style={styles.helperText}>
                   Start a chat with any phone contact, then tell them to install Keybase. Your messages will
                   unlock after they sign up.
-                </Kb.Text3>
+                </Kb.Text>
               ) : (
-                <Kb.Text3 type="BodySmall" style={styles.helperText}>
+                <Kb.Text type="BodySmall" style={styles.helperText}>
                   Add any phone contact, then tell them to install Keybase. They will automatically join the
                   team after they sign up.
-                </Kb.Text3>
+                </Kb.Text>
               )}
             </Kb.Box2>
           )}
@@ -107,7 +107,7 @@ type UserMatchMentionProps = {
 export const UserMatchMention = ({username}: UserMatchMentionProps) => (
   <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
     <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Kb.Styles.globalColors.greenDark} />
-    <Kb.Text3 type="BodySmall">
+    <Kb.Text type="BodySmall">
       {"Great! That's "}
       <Kb.ConnectedUsernames
         colorFollowing={true}
@@ -117,7 +117,7 @@ export const UserMatchMention = ({username}: UserMatchMentionProps) => (
         usernames={username}
       />
       {' on Keybase.'}
-    </Kb.Text3>
+    </Kb.Text>
   </Kb.Box2>
 )
 

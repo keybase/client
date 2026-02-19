@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import ButtonBar from './button-bar'
 import Icon from '@/common-adapters/icon'
 import Modal from './modal'
-import {Text3} from '@/common-adapters/text3'
+import {Text} from '@/common-adapters/text'
 import WaitingButton from './waiting-button'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import {Banner, BannerParagraph} from './banner'
@@ -32,9 +32,9 @@ const ConfirmModal = (props: Props) => (
       Styles.isMobile && props.onCancel
         ? {
             leftButton: (
-              <Text3 type="BodyBigLink" onClick={props.onCancel}>
+              <Text type="BodyBigLink" onClick={props.onCancel}>
                 Cancel
-              </Text3>
+              </Text>
             ),
           }
         : undefined
@@ -99,16 +99,16 @@ const ConfirmModal = (props: Props) => (
         </Box2>
       )}
       {typeof props.prompt === 'string' ? (
-        <Text3 center={true} style={styles.text} type="HeaderBig" lineClamp={2}>
+        <Text center={true} style={styles.text} type="HeaderBig" lineClamp={2}>
           {props.prompt}
-        </Text3>
+        </Text>
       ) : (
         props.prompt
       )}
       {!!props.description && (
-        <Text3 center={true} style={styles.text} type="Body">
+        <Text center={true} style={styles.text} type="Body">
           {props.description}
-        </Text3>
+        </Text>
       )}
       {props.content}
     </Box2>

@@ -66,22 +66,22 @@ const SelectOtherDevice = (props: Props) => {
         return (
           <Kb.Box2 direction="vertical" style={styles.headerText}>
             {!passwordRecovery && (
-              <Kb.Text3 center={true} type="Body">
+              <Kb.Text center={true} type="Body">
                 For security reasons, you need to authorize this{' '}
                 {Kb.Styles.isMobile ? 'phone' : 'computer'} with another device or a paper key.
-              </Kb.Text3>
+              </Kb.Text>
             )}
-            <Kb.Text3 center={true} type="Body">
+            <Kb.Text center={true} type="Body">
               Which do you have handy?
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         )
       case 'reset':
         return (
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text3 type="BodySmall" style={styles.or}>
+            <Kb.Text type="BodySmall" style={styles.or}>
               or
-            </Kb.Text3>
+            </Kb.Text>
             <Kb.ListItem2
               type="Small"
               firstItem={true}
@@ -89,8 +89,8 @@ const SelectOtherDevice = (props: Props) => {
               icon={<Kb.Icon type="icon-skull-32" />}
               body={
                 <Kb.Box2 direction="vertical" fullWidth={true}>
-                  <Kb.Text3 type="BodySemibold">I lost all my devices/paper keys</Kb.Text3>
-                  <Kb.Text3 type="BodySmall">Reset your account</Kb.Text3>
+                  <Kb.Text type="BodySemibold">I lost all my devices/paper keys</Kb.Text>
+                  <Kb.Text type="BodySmall">Reset your account</Kb.Text>
                 </Kb.Box2>
               }
             />
@@ -110,8 +110,8 @@ const SelectOtherDevice = (props: Props) => {
             icon={<DeviceIcon device={item.device} size={32} />}
             body={
               <Kb.Box2 direction="vertical" fullWidth={true}>
-                <Kb.Text3 type="BodySemibold">{item.device.name}</Kb.Text3>
-                <Kb.Text3 type="BodySmall">{descriptions[item.device.type]}</Kb.Text3>
+                <Kb.Text type="BodySemibold">{item.device.name}</Kb.Text>
+                <Kb.Text type="BodySmall">{descriptions[item.device.type]}</Kb.Text>
               </Kb.Box2>
             }
           />

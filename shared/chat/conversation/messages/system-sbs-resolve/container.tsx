@@ -13,10 +13,10 @@ const Container = (ownProps: OwnProps) => {
   const isYou = you === prover
   return (
     <UserNotice>
-      <Kb.Text3 type="BodySmall">
+      <Kb.Text type="BodySmall">
         {isYou && 'You '}can read this chat now because {isYou ? 'you' : 'they'}{' '}
         {assertionService && formatAssertion(assertionUsername, assertionService, isYou)}.
-      </Kb.Text3>
+      </Kb.Text>
     </UserNotice>
   )
 }

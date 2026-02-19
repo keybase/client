@@ -44,22 +44,22 @@ const Container = (ownProps: OwnProps) => {
           type={Kb.Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
           style={styles.icon}
         />
-        <Kb.Text3 center={true} style={styles.warningText} type="Header">
+        <Kb.Text center={true} style={styles.warningText} type="Header">
           This removes{' '}
-        </Kb.Text3>
-        <Kb.Text3 center={true} type="HeaderItalic" style={styles.warningText}>
+        </Kb.Text>
+        <Kb.Text center={true} type="HeaderItalic" style={styles.warningText}>
           {name}
-        </Kb.Text3>
-        <Kb.Text3
+        </Kb.Text>
+        <Kb.Text
           center={true}
           style={Kb.Styles.collapseStyles([styles.warningText, styles.marginBottomTiny])}
           type="Header"
         >
           {' '}
           from Keybase, but you can still use it elsewhere if you save the private key.
-        </Kb.Text3>
-        <Kb.Text3 type="BodySmall">Balance:</Kb.Text3>
-        <Kb.Text3 type="BodySmallExtrabold">{balance}</Kb.Text3>
+        </Kb.Text>
+        <Kb.Text type="BodySmall">Balance:</Kb.Text>
+        <Kb.Text type="BodySmallExtrabold">{balance}</Kb.Text>
       </Kb.Box2>
     </WalletPopup>
   )

@@ -69,20 +69,20 @@ const Container = () => {
       }
       buttons={[{label: 'Continue', onClick: onContinue, type: 'Success', waiting: verifyWaiting}]}
       titleComponent={
-        <Kb.Text3 type="BodyTinySemibold" style={styles.headerText} center={true}>
+        <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
           {displayPhone}
-        </Kb.Text3>
+        </Kb.Text>
       }
       containerStyle={styles.container}
       headerStyle={styles.container}
       header={
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerContainer}>
-          <Kb.Text3 type="BodyBigLink" style={styles.backButton} onClick={onBack}>
+          <Kb.Text type="BodyBigLink" style={styles.backButton} onClick={onBack}>
             Back
-          </Kb.Text3>
-          <Kb.Text3 type="BodyTinySemibold" style={styles.headerText} center={true}>
+          </Kb.Text>
+          <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
             {displayPhone}
-          </Kb.Text3>
+          </Kb.Text>
           <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
         </Kb.Box2>
       }

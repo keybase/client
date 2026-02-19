@@ -62,7 +62,7 @@ export const PaperKey = (props: Props) => {
       >
         <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
           <Kb.Icon type="icon-paper-key-64" />
-          <Kb.Text3 type="Header">{props.hint}</Kb.Text3>
+          <Kb.Text type="Header">{props.hint}</Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.inputContainer}>
           <Kb.PlainInput

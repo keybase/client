@@ -66,14 +66,14 @@ const ConfirmHeader = (props: {action: 'save-media' | 'send-to-other-app'; size:
     centerChildren={true}
     gap="small"
   >
-    <Kb.Text3 type="Header" style={styles.confirmText}>
+    <Kb.Text type="Header" style={styles.confirmText}>
       Continue to {props.action === 'save-media' ? 'save' : 'share'}?
-    </Kb.Text3>
-    <Kb.Text3 type="Body" style={styles.confirmText}>
+    </Kb.Text>
+    <Kb.Text type="Body" style={styles.confirmText}>
       {props.action === 'save-media'
         ? `You are about to download a ${FS.humanReadableFileSize(props.size)} file.`
         : `The file will be downloaded and its size is ${FS.humanReadableFileSize(props.size)}.`}
-    </Kb.Text3>
+    </Kb.Text>
   </Kb.Box2>
 )
 

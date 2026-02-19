@@ -88,7 +88,7 @@ const Container = (ownProps: OwnProps) => {
         )
       }
     >
-      <Kb.Text3 type="Body">{text}</Kb.Text3>
+      <Kb.Text type="Body">{text}</Kb.Text>
       {(!!confirmLabel || !!onDismiss) && (
         <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true} style={styles.container}>
           {!!confirmLabel && <Kb.Button small={true} label={confirmLabel} onClick={onConfirm} />}

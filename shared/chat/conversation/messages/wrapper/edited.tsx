@@ -14,14 +14,14 @@ export const useEdited = () => {
   const showCenteredHighlight = useIsHighlighted()
   const edited = React.useMemo(() => {
     return hasBeenEdited ? (
-      <Kb.Text3
+      <Kb.Text
         key="isEdited"
         type="BodyTiny"
         style={showCenteredHighlight ? styles.editedHighlighted : styles.edited}
         virtualText={true}
       >
         EDITED
-      </Kb.Text3>
+      </Kb.Text>
     ) : null
   }, [showCenteredHighlight, hasBeenEdited])
 

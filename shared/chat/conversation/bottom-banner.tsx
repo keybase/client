@@ -48,7 +48,7 @@ const Invite = () => {
   if (C.isMobile) {
     return (
       <BannerBox color={Kb.Styles.globalColors.blue} gap="xtiny">
-        <Kb.Text3 center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text3>
+        <Kb.Text center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
           <Kb.Button
             label="Send install link"
@@ -70,10 +70,10 @@ const Invite = () => {
 
   return (
     <BannerBox color={Kb.Styles.globalColors.blue}>
-      <Kb.Text3 center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text3>
-      <Kb.Text3 center={true} type="BodySmallSemibold" negative={true}>
+      <Kb.Text center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text>
+      <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
         Send them this link:
-        <Kb.Text3
+        <Kb.Text
           {...linkUrlProps}
           underline={true}
           type="BodySmallPrimaryLink"
@@ -82,8 +82,8 @@ const Invite = () => {
           style={{marginLeft: Kb.Styles.globalMargins.xtiny}}
         >
           https://keybase.io/app
-        </Kb.Text3>
-      </Kb.Text3>
+        </Kb.Text>
+      </Kb.Text>
     </BannerBox>
   )
 }

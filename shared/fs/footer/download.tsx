@@ -25,9 +25,9 @@ const getProgress = (dlState: T.FS.DownloadState) => (
         ])}
       />
     </Kb.Box2>
-    <Kb.Text3 type="BodyTinySemibold" negative={true}>
+    <Kb.Text type="BodyTinySemibold" negative={true}>
       {formatDurationFromNowTo(dlState.endEstimate)}
-    </Kb.Text3>
+    </Kb.Text>
   </Kb.Box2>
 )
 
@@ -64,14 +64,14 @@ const Download = (props: Props) => {
           />
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.nameAndProgress}>
-          <Kb.Text3
+          <Kb.Text
             type="BodySmallSemibold"
             onClick={C.isMobile ? undefined : open}
             style={styles.filename}
             lineClamp={C.isMobile ? 1 : undefined}
           >
             {dlInfo.filename}
-          </Kb.Text3>
+          </Kb.Text>
           {FS.downloadIsOngoing(dlState) && getProgress(dlState)}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>

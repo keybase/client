@@ -68,7 +68,7 @@ const AddContacts = () => {
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         rightButton: (
           <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.positionRelative}>
-            <Kb.Text3
+            <Kb.Text
               type="BodyBigLink"
               onClick={onDone}
               style={Kb.Styles.collapseStyles([
@@ -77,7 +77,7 @@ const AddContacts = () => {
               ])}
             >
               Done
-            </Kb.Text3>
+            </Kb.Text>
             {waiting && (
               <Kb.Box2
                 direction="horizontal"

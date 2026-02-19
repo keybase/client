@@ -16,7 +16,7 @@ const CoinFlipParticipants = (props: Props) => {
   const header = (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.container}>
-        <Kb.Text3 type="BodySmall">{participants?.length ?? 0} participants</Kb.Text3>
+        <Kb.Text type="BodySmall">{participants?.length ?? 0} participants</Kb.Text>
       </Kb.Box2>
       <Kb.Divider />
       <Kb.ScrollView style={styles.partContainer}>
@@ -34,9 +34,9 @@ const CoinFlipParticipants = (props: Props) => {
       </Kb.ScrollView>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
-        <Kb.Text3 type="BodySmallPrimaryLink" {...howThisWorksUrlProps}>
+        <Kb.Text type="BodySmallPrimaryLink" {...howThisWorksUrlProps}>
           How this works
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )

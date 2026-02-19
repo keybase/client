@@ -25,12 +25,12 @@ const ConnectedError = () => {
       onBack={onBack}
       title="Recover password"
     >
-      <Kb.Text3 center={true} type="Header" style={{maxWidth: 460, width: '80%'}}>
+      <Kb.Text center={true} type="Header" style={{maxWidth: 460, width: '80%'}}>
         Password recovery failed
-      </Kb.Text3>
-      <Kb.Text3 type="Body" center={true}>
+      </Kb.Text>
+      <Kb.Text type="Body" center={true}>
         {error}
-      </Kb.Text3>
+      </Kb.Text>
     </SignupScreen>
   )
 }

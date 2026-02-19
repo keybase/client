@@ -226,9 +226,9 @@ const TopLine = (p: TopLineProps) => {
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.nameContainer}>
           {teamDisplayName ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text3 type="BodySemibold" style={teamContainerStyle}>
+              <Kb.Text type="BodySemibold" style={teamContainerStyle}>
                 {teamDisplayName}
-              </Kb.Text3>
+              </Kb.Text>
             </Kb.Box2>
           ) : (
             <Kb.ConnectedUsernames
@@ -248,9 +248,9 @@ const TopLine = (p: TopLineProps) => {
           )}
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Text3 key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
+      <Kb.Text key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
         {timestampText}
-      </Kb.Text3>
+      </Kb.Text>
       {!Kb.Styles.isMobile && showGear && (
         <Kb.Icon
           type="iconfont-gear"
@@ -326,7 +326,7 @@ const BottomLine = (p: BottomLineProps) => {
     content = null
   } else if (youAreReset) {
     content = (
-      <Kb.Text3
+      <Kb.Text
         type="BodySmallSemibold"
         negative={true}
         style={Kb.Styles.collapseStyles([
@@ -335,7 +335,7 @@ const BottomLine = (p: BottomLineProps) => {
         ])}
       >
         You are locked out.
-      </Kb.Text3>
+      </Kb.Text>
     )
   } else if (participantNeedToRekey) {
     content = (
@@ -344,7 +344,7 @@ const BottomLine = (p: BottomLineProps) => {
   } else if (draft) {
     content = (
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
-        <Kb.Text3
+        <Kb.Text
           type="BodySmall"
           style={Kb.Styles.collapseStyles([
             styles.draftLabel,
@@ -352,7 +352,7 @@ const BottomLine = (p: BottomLineProps) => {
           ])}
         >
           Draft:
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.Markdown preview={true} style={style}>
           {draft}
         </Kb.Markdown>
@@ -421,12 +421,12 @@ const SnippetContent = (p: {
       break
     case T.RPCChat.SnippetDecoration.explodedMessage:
       decorationNode = (
-        <Kb.Text3
+        <Kb.Text
           type="BodySmall"
           style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}}
         >
           Message exploded.
-        </Kb.Text3>
+        </Kb.Text>
       )
       exploded = true
       break

@@ -61,9 +61,9 @@ const ChannelMemberRow = (props: Props) => {
   }, [active, roleType])
   const fullNameLabel =
     fullname && active ? (
-      <Kb.Text3 style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
+      <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
         {fullname} •
-      </Kb.Text3>
+      </Kb.Text>
     ) : null
   const resetLabel = !active
     ? teamMemberInfo.status === 'deleted'
@@ -119,10 +119,10 @@ const ChannelMemberRow = (props: Props) => {
               title={teamMemberInfo.status === 'reset' ? 'locked out' : 'deleted'}
             />
           )}
-          <Kb.Text3 type="BodySmall" style={styles.marginRight}>
+          <Kb.Text type="BodySmall" style={styles.marginRight}>
             {!!active && Teams.typeToLabel[teamMemberInfo.type]}
             {resetLabel}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
@@ -192,8 +192,8 @@ const ChannelMemberRow = (props: Props) => {
           fullName={fullname}
           label={
             <Kb.Box2 direction="horizontal">
-              <Kb.Text3 type="BodySmall">{crown}</Kb.Text3>
-              <Kb.Text3 type="BodySmall">{roleLabel}</Kb.Text3>
+              <Kb.Text type="BodySmall">{crown}</Kb.Text>
+              <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
             </Kb.Box2>
           }
         />

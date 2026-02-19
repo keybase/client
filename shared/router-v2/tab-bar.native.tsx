@@ -62,7 +62,7 @@ export const TabBarLabelWrapper = React.memo(function TabBarLabelWrapper(p: TabI
   const data = tabToData.get(p.routeName)
   const isDarkMode = useColorScheme() === 'dark'
   return (
-    <Kb.Text3
+    <Kb.Text
       style={Kb.Styles.collapseStyles([
         styles.label,
         isDarkMode
@@ -76,7 +76,7 @@ export const TabBarLabelWrapper = React.memo(function TabBarLabelWrapper(p: TabI
       type="BodyBig"
     >
       {data?.label}
-    </Kb.Text3>
+    </Kb.Text>
   )
 })
 

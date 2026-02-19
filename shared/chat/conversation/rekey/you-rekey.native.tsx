@@ -15,9 +15,9 @@ const YouRekey = ({onEnterPaperkey}: Props) => (
           justifyContent: 'center',
         }}
       >
-        <Kb.Text3 center={true} type="BodySmall" style={styles.text} negative={true}>
+        <Kb.Text center={true} type="BodySmall" style={styles.text} negative={true}>
           To unlock this conversation, open one of your other devices or enter a paperkey.
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.Button onClick={onEnterPaperkey} label="Enter a paper key" />
       </Kb.Box2>
     </Kb.Box2>

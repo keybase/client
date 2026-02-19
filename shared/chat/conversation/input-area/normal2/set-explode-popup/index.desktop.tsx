@@ -26,18 +26,18 @@ const Item = (props: ItemProps) => {
   } else {
     content = (
       <>
-        <Kb.Text3 type="Body" style={quantityTextStyle}>
+        <Kb.Text type="Body" style={quantityTextStyle}>
           {words[0]}
-        </Kb.Text3>
+        </Kb.Text>
         {' ' + words.slice(1).join(' ')}
       </>
     )
   }
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.Text3 type="Body" style={{flex: 1}}>
+      <Kb.Text type="Body" style={{flex: 1}}>
         {content}
-      </Kb.Text3>
+      </Kb.Text>
       {props.selected && <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.blue} />}
     </Kb.Box2>
   )
@@ -55,7 +55,7 @@ const SetExplodePopup = (p: Props) => {
     disabled: true,
     onClick: undefined,
     title: 'Explode message after:',
-    view: <Kb.Text3 type="BodySmallSemibold">Explode messages after:</Kb.Text3>,
+    view: <Kb.Text type="BodySmallSemibold">Explode messages after:</Kb.Text>,
   })
   return (
     <Kb.FloatingMenu

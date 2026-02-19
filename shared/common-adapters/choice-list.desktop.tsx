@@ -1,6 +1,6 @@
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
-import {Text3} from './text3'
+import {Text} from './text'
 import Icon from './icon'
 import * as Styles from '@/styles'
 import type {Props} from './choice-list'
@@ -10,7 +10,7 @@ const Kb = {
   Box2,
   ClickableBox,
   Icon,
-  Text3,
+  Text,
 }
 
 const ChoiceList = ({options}: Props) => {
@@ -36,8 +36,8 @@ const ChoiceList = ({options}: Props) => {
                 )}
               </Kb.Box2>
               <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.infoContainer}>
-                <Text3 type="BodyBigLink">{op.title}</Text3>
-                <Text3 type="Body">{op.description}</Text3>
+                <Text type="BodyBigLink">{op.title}</Text>
+                <Text type="Body">{op.description}</Text>
               </Kb.Box2>
             </Kb.Box2>
           </Kb.ClickableBox>

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box2} from './box'
 import Icon from './icon'
-import {Text3} from './text3'
+import {Text} from './text'
 import * as Styles from '@/styles'
 
 type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey' | 'white'
@@ -21,7 +21,7 @@ type BannerParagraphProps = {
 }
 
 export const BannerParagraph = (props: BannerParagraphProps) => (
-  <Text3
+  <Text
     type={props.small ? 'BodyTinySemibold' : 'BodySmallSemibold'}
     style={Styles.collapseStyles([styles.text, props.inline && styles.inlineText])}
   >
@@ -37,7 +37,7 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
         ) : (
           <React.Fragment key={index.toString()}>
             {segment.text.startsWith(' ') && <>&nbsp;</>}
-            <Text3
+            <Text
               selectable={props.selectable}
               type={props.small ? 'BodyTinySemibold' : 'BodySmallSemibold'}
               style={Styles.collapseStyles([
@@ -50,12 +50,12 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
               onClick={segment.onClick}
             >
               {segment.text.trim()}
-            </Text3>
+            </Text>
             {segment.text.endsWith(' ') && <>&nbsp;</>}
           </React.Fragment>
         )
       )}
-  </Text3>
+  </Text>
 )
 
 type BannerProps = {

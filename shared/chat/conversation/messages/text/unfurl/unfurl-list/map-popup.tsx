@@ -41,9 +41,9 @@ const UnfurlMapPopup = (props: Props) => {
       scrollViewContainerStyle={{maxWidth: undefined}}
       header={{
         leftButton: (
-          <Kb.Text3 type="BodyBigLink" onClick={onClose}>
+          <Kb.Text type="BodyBigLink" onClick={onClose}>
             Cancel
-          </Kb.Text3>
+          </Kb.Text>
         ),
         title: 'Location',
       }}

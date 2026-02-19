@@ -32,7 +32,7 @@ const Display = () => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="medium">
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-            <Kb.Text3 type="Header">Appearance</Kb.Text3>
+            <Kb.Text type="Header">Appearance</Kb.Text>
             {supported && (
               <Kb.RadioButton
                 label="Respect system settings"
@@ -46,13 +46,13 @@ const Display = () => {
               onSelect={() => onSetDarkModePreference('alwaysDark')}
             />
             <Kb.RadioButton
-              label={<Kb.Text3 type="Body">Light</Kb.Text3>}
+              label={<Kb.Text type="Body">Light</Kb.Text>}
               selected={darkModePreference === 'alwaysLight'}
               onSelect={() => onSetDarkModePreference('alwaysLight')}
             />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-            <Kb.Text3 type="Header">Emoji</Kb.Text3>
+            <Kb.Text type="Header">Emoji</Kb.Text>
             <Kb.Checkbox
               label="Allow animated emoji"
               checked={allowAnimatedEmojis}
@@ -61,7 +61,7 @@ const Display = () => {
           </Kb.Box2>
           {C.isElectron && (
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-              <Kb.Text3 type="Header">Navigation</Kb.Text3>
+              <Kb.Text type="Header">Navigation</Kb.Text>
               <Kb.Checkbox
                 label="Force small navigation"
                 checked={forceSmallNav}

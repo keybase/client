@@ -67,9 +67,9 @@ const ErrorMessage = () => {
       centerChildren={true}
     >
       <Kb.Icon color={Kb.Styles.globalColors.black_20} sizeType="Huge" type="iconfont-warning" />
-      <Kb.Text3 center={true} style={styles.errorText} type="Header">
+      <Kb.Text center={true} style={styles.errorText} type="Header">
         {createConversationErrorHeader}
-      </Kb.Text3>
+      </Kb.Text>
       {createConversationDisallowedUsers.length > 0 && (
         <>
           {createConversationDisallowedUsers.map((username, idx) => (
@@ -80,16 +80,16 @@ const ErrorMessage = () => {
               firstItem={idx === 0}
               body={
                 <Kb.Box2 direction="vertical" fullWidth={true}>
-                  <Kb.Text3 type="BodySemibold">{username}</Kb.Text3>
+                  <Kb.Text type="BodySemibold">{username}</Kb.Text>
                 </Kb.Box2>
               }
             />
           ))}
         </>
       )}
-      <Kb.Text3 center={true} type="BodyBig" style={styles.errorText} selectable={true}>
+      <Kb.Text center={true} type="BodyBig" style={styles.errorText} selectable={true}>
         {createConversationErrorDescription}
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.ButtonBar
         direction={Kb.Styles.isMobile ? 'column' : 'row'}
         fullWidth={true}
@@ -188,7 +188,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
-          <Kb.Text3 type="BodySmall">Loading...</Kb.Text3>
+          <Kb.Text type="BodySmall">Loading...</Kb.Text>
         </Kb.Box2>
       )}
       {pendingState === 'error' && <ErrorMessage />}
@@ -208,10 +208,10 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       )}
       {allowDigging && loadMoreType === 'moreToLoad' && pendingState === 'done' && (
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
-          <Kb.Text3 type="BodyBig">
+          <Kb.Text type="BodyBig">
             <Kb.NativeEmoji size={16} emojiName=":moyai:" />
-          </Kb.Text3>
-          <Kb.Text3 type="BodySmallSemibold">Digging ancient messages...</Kb.Text3>
+          </Kb.Text>
+          <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
         </Kb.Box2>
       )}
       {!Kb.Styles.isMobile || usingFlashList ? null : (

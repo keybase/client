@@ -4,7 +4,7 @@ import {Portal} from './portal.native'
 import {useTimeout} from './use-timers'
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
-import {Text3} from './text3'
+import {Text} from './text'
 import * as Styles from '@/styles'
 import type {Props} from './with-tooltip'
 import {View} from 'react-native'
@@ -20,7 +20,7 @@ const Kb = {
   Box2,
   ClickableBox,
   Portal,
-  Text3,
+  Text,
 }
 
 type Dims = {
@@ -128,14 +128,14 @@ const WithTooltip = (props: Props) => {
             ref={tooltipRef}
             collapsable={false}
           >
-            <Kb.Text3
+            <Kb.Text
               center={!props.multiline}
               type="BodySmall"
               style={Styles.collapseStyles([styles.text, props.textStyle])}
               lineClamp={props.multiline ? undefined : 1}
             >
               {props.tooltip}
-            </Kb.Text3>
+            </Kb.Text>
           </View>
         </View>
       </FloatingBox>

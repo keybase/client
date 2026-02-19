@@ -4,16 +4,16 @@ const EmojiHeader = () => {
   return (
     <>
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>
-        <Kb.Text3 type="BodyTiny" style={styles.emoji}>
+        <Kb.Text type="BodyTiny" style={styles.emoji}>
           Emoji
-        </Kb.Text3>
-        <Kb.Text3 type="BodyTiny">Alias</Kb.Text3>
-        <Kb.Text3 type="BodyTiny" style={styles.date}>
+        </Kb.Text>
+        <Kb.Text type="BodyTiny">Alias</Kb.Text>
+        <Kb.Text type="BodyTiny" style={styles.date}>
           Date added
-        </Kb.Text3>
-        <Kb.Text3 type="BodyTiny" style={styles.username}>
+        </Kb.Text>
+        <Kb.Text type="BodyTiny" style={styles.username}>
           Added by
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Divider style={styles.divider} />
     </>

@@ -69,15 +69,15 @@ const ConfirmReset = () => {
       >
         <Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
-          <Kb.Text3 type="Header">Go ahead with reset?</Kb.Text3>
+          <Kb.Text type="Header">Go ahead with reset?</Kb.Text>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xsmall" alignItems="flex-start">
             <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true}>
-              <Kb.Text3 type="Body" center={true}>
+              <Kb.Text type="Body" center={true}>
                 You can now fully reset your account.
-              </Kb.Text3>
-              <Kb.Text3 type="Body" center={true}>
+              </Kb.Text>
+              <Kb.Text type="Body" center={true}>
                 Please check the boxes below:
-              </Kb.Text3>
+              </Kb.Text>
             </Kb.Box2>
             <Kb.Checkbox
               label="You will lose your personal chats, files and git data."
@@ -92,10 +92,10 @@ const ConfirmReset = () => {
             {hasWallet && (
               <Kb.Checkbox
                 labelComponent={
-                  <Kb.Text3 type="Body" style={Kb.Styles.globalStyles.flexOne}>
-                    You will <Kb.Text3 type="BodyExtrabold">lose access to your wallet funds</Kb.Text3> if you
+                  <Kb.Text type="Body" style={Kb.Styles.globalStyles.flexOne}>
+                    You will <Kb.Text type="BodyExtrabold">lose access to your wallet funds</Kb.Text> if you
                     haven&apos;t backed up your Stellar private keys outside of Keybase.
-                  </Kb.Text3>
+                  </Kb.Text>
                 }
                 checked={checkWallet}
                 onCheck={onCheck('checkWallet')}
@@ -107,13 +107,13 @@ const ConfirmReset = () => {
               onCheck={onCheck('checkNewPerson')}
             />
           </Kb.Box2>
-          <Kb.Text3 type="Body">
+          <Kb.Text type="Body">
             Or you can{' '}
-            <Kb.Text3 type="BodyPrimaryLink" onClick={onCancelReset}>
+            <Kb.Text type="BodyPrimaryLink" onClick={onCancelReset}>
               cancel the reset
-            </Kb.Text3>
+            </Kb.Text>
             .
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>

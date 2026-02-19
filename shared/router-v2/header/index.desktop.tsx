@@ -39,9 +39,9 @@ type Props = {
 
 const PlainTitle = ({title}: {title: React.ReactNode}) => (
   <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
-    <Kb.Text3 style={styles.plainText} type="Header">
+    <Kb.Text style={styles.plainText} type="Header">
       {title}
-    </Kb.Text3>
+    </Kb.Text>
   </Kb.Box2>
 )
 

@@ -1,12 +1,12 @@
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
-import {Text3} from './text3'
+import {Text} from './text'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props} from './choice-list'
 
-const Kb = {Box2, ClickableBox, Icon, Text3}
+const Kb = {Box2, ClickableBox, Icon, Text}
 
 const ChoiceList = (props: Props) => {
   const [activeIndex, setActiveIndex] = React.useState<number | undefined>(undefined)
@@ -37,10 +37,10 @@ const ChoiceList = (props: Props) => {
                 )}
               </Kb.Box2>
               <Kb.Box2 direction="vertical" style={styleInfoContainer}>
-                <Kb.Text3 style={styleInfoTitle} type="Header">
+                <Kb.Text style={styleInfoTitle} type="Header">
                   {op.title}
-                </Kb.Text3>
-                <Kb.Text3 type="Body">{op.description}</Kb.Text3>
+                </Kb.Text>
+                <Kb.Text type="Body">{op.description}</Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
           </Kb.ClickableBox>

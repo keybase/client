@@ -39,7 +39,7 @@ const SelectableBigTeamChannel = (props: Props) => {
       <TeamAvatar teamname={props.teamname} isMuted={false} isSelected={false} isHovered={isHovered} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <Kb.Text3
+          <Kb.Text
             type="BodySemibold"
             style={Kb.Styles.collapseStyles([
               styles.teamname,
@@ -50,8 +50,8 @@ const SelectableBigTeamChannel = (props: Props) => {
             ellipsizeMode="tail"
           >
             {props.teamname}
-          </Kb.Text3>
-          <Kb.Text3
+          </Kb.Text>
+          <Kb.Text
             type="BodySemibold"
             style={Kb.Styles.collapseStyles([
               boldOverride,
@@ -64,7 +64,7 @@ const SelectableBigTeamChannel = (props: Props) => {
           >
             &nbsp;#
             {props.channelname}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
         {!props.numSearchHits && (
           <BottomLine
@@ -75,12 +75,12 @@ const SelectableBigTeamChannel = (props: Props) => {
           />
         )}
         {!!props.numSearchHits && (
-          <Kb.Text3
+          <Kb.Text
             type="BodySmall"
             style={Kb.Styles.collapseStyles([props.isSelected && styles.selectedText])}
           >
             {_getSearchHits()} {pluralize('result', props.numSearchHits)}
-          </Kb.Text3>
+          </Kb.Text>
         )}
       </Kb.Box2>
       {props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}

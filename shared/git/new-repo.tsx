@@ -50,7 +50,7 @@ const Container = (ownProps: OwnProps) => {
     if (!item) {
       return (
         <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem}>
-          <Kb.Text3 type="BodyBig">Pick a team</Kb.Text3>
+          <Kb.Text type="BodyBig">Pick a team</Kb.Text>
         </Kb.Box2>
       )
     }
@@ -65,7 +65,7 @@ const Container = (ownProps: OwnProps) => {
             paddingLeft: Kb.Styles.globalMargins.small,
           }}
         >
-          <Kb.Text3 type="Header">New team...</Kb.Text3>
+          <Kb.Text type="Header">New team...</Kb.Text>
         </Kb.Box2>
       )
     }
@@ -78,7 +78,7 @@ const Container = (ownProps: OwnProps) => {
           size={16}
           style={{marginRight: Kb.Styles.globalMargins.tiny}}
         />
-        <Kb.Text3
+        <Kb.Text
           type="Header"
           style={Kb.Styles.platformStyles({
             common: {
@@ -93,7 +93,7 @@ const Container = (ownProps: OwnProps) => {
           })}
         >
           {item}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     )
   }
@@ -120,23 +120,23 @@ const Container = (ownProps: OwnProps) => {
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
           {!!error && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.error}>
-              <Kb.Text3 type="Body" negative={true}>
+              <Kb.Text type="Body" negative={true}>
                 {error.message}
-              </Kb.Text3>
+              </Kb.Text>
             </Kb.Box2>
           )}
-          <Kb.Text3 type="Header" style={{marginBottom: 27}}>
+          <Kb.Text type="Header" style={{marginBottom: 27}}>
             New {isTeam ? 'team' : 'personal'} git repository
-          </Kb.Text3>
+          </Kb.Text>
           <Kb.Icon
             type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
             style={styles.addIcon}
           />
-          <Kb.Text3 type="Body" style={{marginBottom: 27}}>
+          <Kb.Text type="Body" style={{marginBottom: 27}}>
             {isTeam
               ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
               : 'Your repository will be encrypted and only accessible by you.'}
-          </Kb.Text3>
+          </Kb.Text>
           {isTeam && (
             <Kb.Dropdown
               items={makeDropdownItems()}

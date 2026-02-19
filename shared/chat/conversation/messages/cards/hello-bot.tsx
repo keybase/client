@@ -4,12 +4,12 @@ const HelloBot = () => (
   <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
     <Kb.Icon type="icon-fancy-hellobot-hi-96" style={styles.image} />
     <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
-      <Kb.Text3 type="BodySmallSemibold" style={styles.header} negative={true}>
+      <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
         {"Hi, I'm Hello Bot. You can play puzzles with me or ask for help."}
-      </Kb.Text3>
-      <Kb.Text3 type="BodySmallSemibold" style={styles.header} negative={true}>
+      </Kb.Text>
+      <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
         Everyday is an adventure.
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
 )

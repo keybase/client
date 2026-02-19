@@ -15,14 +15,14 @@ const InviteGeneratedRender = (props: Props) => {
       <Kb.Icon type="iconfont-close" style={styles.icon} onClick={onClose} />
       <Kb.Icon type="icon-invite-link-48" />
       {email ? (
-        <Kb.Text3 center={true} type="Body" style={styles.text}>
-          Yay! We emailed <Kb.Text3 type="BodySemibold">{email}</Kb.Text3>, but you can also give them the below
+        <Kb.Text center={true} type="Body" style={styles.text}>
+          Yay! We emailed <Kb.Text type="BodySemibold">{email}</Kb.Text>, but you can also give them the below
           link:
-        </Kb.Text3>
+        </Kb.Text>
       ) : (
-        <Kb.Text3 center={true} type="Body" style={styles.text}>
+        <Kb.Text center={true} type="Body" style={styles.text}>
           Yay! Please share the below link with your friend. It contains signup &amp; install instructions.
-        </Kb.Text3>
+        </Kb.Text>
       )}
       <Kb.Box2 direction="horizontal" alignItems="center" style={styles.linkContainer}>
         <Kb.Icon
@@ -30,9 +30,9 @@ const InviteGeneratedRender = (props: Props) => {
           style={{height: 14, marginRight: Kb.Styles.globalMargins.tiny}}
           color={Kb.Styles.globalColors.black_10}
         />
-        <Kb.Text3 type="BodySemibold" selectable={true} style={{color: Kb.Styles.globalColors.greenDark}}>
+        <Kb.Text type="BodySemibold" selectable={true} style={{color: Kb.Styles.globalColors.greenDark}}>
           {link}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Button style={{marginTop: Kb.Styles.globalMargins.medium}} label="Close" onClick={onClose} />
     </Kb.Box2>

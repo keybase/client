@@ -72,10 +72,10 @@ const ConnectedEnterUsername = () => {
             />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" alignItems="center" style={styles.serviceMeta}>
-            <Kb.Text3 type="BodySemibold">{serviceName}</Kb.Text3>
-            <Kb.Text3 type="BodySmall" center={true}>
+            <Kb.Text type="BodySemibold">{serviceName}</Kb.Text>
+            <Kb.Text type="BodySmall" center={true}>
               {serviceSub}
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
@@ -97,7 +97,7 @@ const ConnectedEnterUsername = () => {
               onEnterKeyDown={onSubmit}
             />
           )}
-          {!!error && <Kb.Text3 type="BodySmallError">{error}</Kb.Text3>}
+          {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
         </Kb.Box2>
         <Kb.Box2
           alignItems="center"
@@ -106,9 +106,9 @@ const ConnectedEnterUsername = () => {
           style={unreachable ? styles.buttonBarWarning : null}
         >
           {unreachable && (
-            <Kb.Text3 type="BodySmallSemibold" center={true} style={styles.warningText}>
+            <Kb.Text type="BodySmallSemibold" center={true} style={styles.warningText}>
               You need to authorize your proof on {serviceName}.
-            </Kb.Text3>
+            </Kb.Text>
           )}
           <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
             {!Kb.Styles.isMobile && !unreachable && (
@@ -176,9 +176,9 @@ const EnterUsernameInput = (props: InputProps) => {
       fullWidth={true}
     >
       {!!username && (
-        <Kb.Text3 type="BodySmallSemibold" style={styles.colorBlue}>
+        <Kb.Text type="BodySmallSemibold" style={styles.colorBlue}>
           {usernamePlaceholder}
-        </Kb.Text3>
+        </Kb.Text>
       )}
       <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true}>
         <SiteIcon
@@ -199,17 +199,17 @@ const EnterUsernameInput = (props: InputProps) => {
             style={styles.input}
           />
           <Kb.Box2 direction="horizontal" style={styles.inputPlaceholder} pointerEvents="none">
-            <Kb.Text3 type="BodySemibold" lineClamp={1} style={styles.paddingRightTiny}>
-              <Kb.Text3
+            <Kb.Text type="BodySemibold" lineClamp={1} style={styles.paddingRightTiny}>
+              <Kb.Text
                 type="BodySemibold"
                 style={Kb.Styles.collapseStyles([styles.placeholder, !!username && styles.invisible])}
               >
                 {username || usernamePlaceholder}
-              </Kb.Text3>
-              <Kb.Text3 type="BodySemibold" style={styles.placeholderService}>
+              </Kb.Text>
+              <Kb.Text type="BodySemibold" style={styles.placeholderService}>
                 {props.serviceSuffix}
-              </Kb.Text3>
-            </Kb.Text3>
+              </Kb.Text>
+            </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
@@ -235,12 +235,12 @@ const Unreachable = (props: {
       style={Kb.Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
     />
     <Kb.Box2 direction="vertical" style={styles.flexOne}>
-      <Kb.Text3 type="BodySemibold" style={styles.unreachablePlaceholder}>
-        <Kb.Text3 type="BodySemibold" style={styles.colorRed}>
+      <Kb.Text type="BodySemibold" style={styles.unreachablePlaceholder}>
+        <Kb.Text type="BodySemibold" style={styles.colorRed}>
           {props.username}
-        </Kb.Text3>
+        </Kb.Text>
         {props.serviceSuffix}
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.Meta title="unreachable" backgroundColor={Kb.Styles.globalColors.red} />
     </Kb.Box2>
     <Kb.Icon

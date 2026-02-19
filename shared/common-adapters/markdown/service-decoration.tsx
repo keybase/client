@@ -8,9 +8,9 @@ import KbfsPath from '@/fs/common/kbfs-path'
 import MaybeMention from './maybe-mention'
 import Mention from '../mention-container'
 import PaymentStatus from '../../chat/payments/status'
-import {Text3} from '@/common-adapters/text3'
-import type {StylesTextCrossPlatform} from '@/common-adapters/text3.shared'
-import {useClickURL} from '@/common-adapters/text3-url'
+import {Text} from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
+import {useClickURL} from '@/common-adapters/text-url'
 import WithTooltip from '../with-tooltip'
 import type {StyleOverride} from '.'
 import {RPCToEmojiData, default as Emoji} from '@/common-adapters/emoji'
@@ -36,7 +36,7 @@ const KeybaseLink = (props: KeybaseLinkProps) => {
   }, [props.link])
 
   return (
-    <Text3
+    <Text
       className="hover-underline hover_contained_color_blueDark"
       type="BodyPrimaryLink"
       style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
@@ -44,7 +44,7 @@ const KeybaseLink = (props: KeybaseLinkProps) => {
       onClick={onClick}
     >
       {props.link}
-    </Text3>
+    </Text>
   )
 }
 
@@ -62,7 +62,7 @@ const WarningLink = (props: WarningLinkProps) => {
   const urlProps = useClickURL(url)
   if (Styles.isMobile) {
     return (
-      <Text3
+      <Text
         className="hover-underline"
         type="BodyPrimaryLink"
         style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
@@ -72,11 +72,11 @@ const WarningLink = (props: WarningLinkProps) => {
         }
       >
         {display}
-      </Text3>
+      </Text>
     )
   }
   return (
-    <Text3
+    <Text
       className="hover-underline"
       type="BodyPrimaryLink"
       style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
@@ -91,7 +91,7 @@ const WarningLink = (props: WarningLinkProps) => {
       >
         {display}
       </WithTooltip>
-    </Text3>
+    </Text>
   )
 }
 
@@ -105,7 +105,7 @@ const URLText = (p: {
 }) => {
   const urlProps = useClickURL(p.url)
   return (
-    <Text3
+    <Text
       className={p.className}
       type={p.type as any}
       style={p.style}
@@ -113,7 +113,7 @@ const URLText = (p: {
       {...urlProps}
     >
       {p.children}
-    </Text3>
+    </Text>
   )
 }
 

@@ -79,26 +79,26 @@ const PromptReset = (props: Props) => {
       >
         <Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
         {props.resetPassword ? (
-          <Kb.Text3 type="Body" center={true} style={styles.main}>
+          <Kb.Text type="Body" center={true} style={styles.main}>
             If you have forgotten your password you can reset it here. You will keep your username, but{' '}
-            <Kb.Text3 type="BodyBold">
+            <Kb.Text type="BodyBold">
               lose all your encrypted data, including all of your uploaded private PGP keys
-            </Kb.Text3>
+            </Kb.Text>
             .
-          </Kb.Text3>
+          </Kb.Text>
         ) : (
           <>
-            <Kb.Text3 type="Body" center={true} style={styles.main}>
+            <Kb.Text type="Body" center={true} style={styles.main}>
               If you have lost all of your devices, or if you logged out or uninstalled Keybase from all of
               them and forgot your password, you can reset your account.
-            </Kb.Text3>
-            <Kb.Text3 type="Body" center={true} style={styles.main}>
+            </Kb.Text>
+            <Kb.Text type="Body" center={true} style={styles.main}>
               You will keep your username but{' '}
-              <Kb.Text3 type="BodyBold">
+              <Kb.Text type="BodyBold">
                 lose all your data (chat, files, git repos) and be removed from teams.
-              </Kb.Text3>{' '}
+              </Kb.Text>{' '}
               Teams for which you were the last admin or owner will be lost forever.
-            </Kb.Text3>
+            </Kb.Text>
           </>
         )}
       </Kb.Box2>

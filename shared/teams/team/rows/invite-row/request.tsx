@@ -97,19 +97,19 @@ export const TeamRequestRow = (props: Props) => {
               />
               {Kb.Styles.isMobile ? (
                 C.isLargeScreen && (
-                  <Kb.Text3 type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
+                  <Kb.Text type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
                     {fullName !== '' && `${fullName}`}
-                  </Kb.Text3>
+                  </Kb.Text>
                 )
               ) : (
-                <Kb.Text3 type="BodySmall" lineClamp={1}>
+                <Kb.Text type="BodySmall" lineClamp={1}>
                   {fullName !== '' && `${fullName}  • `}
                   {reset
                     ? fullName
                       ? 'Reset their account'
                       : 'reset their account'
                     : formatTimeRelativeToNow(ctime * 1000)}
-                </Kb.Text3>
+                </Kb.Text>
               )}
             </Kb.Box2>
           </Kb.Box2>

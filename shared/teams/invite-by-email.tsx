@@ -66,17 +66,17 @@ const Container = (ownProps: OwnProps) => {
           fullWidth={true}
           style={{margin: Kb.Styles.globalMargins.medium}}
         >
-          <Kb.Text3 style={styles.header} type="Header">
+          <Kb.Text style={styles.header} type="Header">
             Invite by email
-          </Kb.Text3>
+          </Kb.Text>
           <Kb.Box2
             direction="horizontal"
             alignItems="center"
             style={{margin: Kb.Styles.globalMargins.tiny}}
           >
-            <Kb.Text3 style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
+            <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
               Add these team members to {name} as:
-            </Kb.Text3>
+            </Kb.Text>
             <FloatingRolePicker
               presetRole={role}
               floatingContainerStyle={styles.floatingRolePicker}
@@ -105,9 +105,9 @@ const Container = (ownProps: OwnProps) => {
               value={invitees}
             />
             {!!errorMessage && (
-              <Kb.Text3 type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
+              <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
                 {errorMessage}
-              </Kb.Text3>
+              </Kb.Text>
             )}
           </Kb.Box2>
           <Kb.ButtonBar>
@@ -129,7 +129,7 @@ const _makeDropdownItem = (item: string) => (
       paddingRight: Kb.Styles.globalMargins.small,
     }}
   >
-    <Kb.Text3 type="BodyBig">{capitalize(item)}</Kb.Text3>
+    <Kb.Text type="BodyBig">{capitalize(item)}</Kb.Text>
   </Kb.Box2>
 )
 

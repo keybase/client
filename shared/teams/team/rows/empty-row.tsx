@@ -105,14 +105,14 @@ const EmptyRow = (props: Props) => {
       <Kb.Box2 direction="horizontal">
         <Kb.Icon type={icon[props.type]} style={styles.iconHeight} />
       </Kb.Box2>
-      <Kb.Text3 type="BodySmall" center={true} style={styles.text}>
+      <Kb.Text type="BodySmall" center={true} style={styles.text}>
         {getFirstText(props.type, teamOrChannel, teamOrChannelName, notIn)}
-      </Kb.Text3>
+      </Kb.Text>
       {props.type === 'subteams' && ( // Subteams has a second paragraph, putting it in a separate text so we get the Box2 gap
-        <Kb.Text3 type="BodySmall" center={true} style={styles.text}>
+        <Kb.Text type="BodySmall" center={true} style={styles.text}>
           Examples: {teamMeta.teamname}.legal, {teamMeta.teamname}.management, {teamMeta.teamname}
           .istanbul, ...
-        </Kb.Text3>
+        </Kb.Text>
       )}
       <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
         {props.type === 'members' && notIn && (

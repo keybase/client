@@ -55,17 +55,17 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => (
     body={
       <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([{flex: 1}, disabled && {opacity: 0.4}])}>
         <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-          <Kb.Text3 lineClamp={1} type="Body" style={styles.channelHash}>
+          <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
             #
-          </Kb.Text3>
-          <Kb.Text3 type="Body" style={styles.channelText}>
+          </Kb.Text>
+          <Kb.Text type="Body" style={styles.channelText}>
             {name}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
         {!!description && (
-          <Kb.Text3 type="Body" lineClamp={1} style={{color: Kb.Styles.globalColors.black_50}}>
+          <Kb.Text type="Body" lineClamp={1} style={{color: Kb.Styles.globalColors.black_50}}>
             {description}
-          </Kb.Text3>
+          </Kb.Text>
         )}
       </Kb.Box2>
     }
@@ -131,7 +131,7 @@ const ChannelPicker = (props: Props) => {
           <Kb.ListItem2
             type="Small"
             firstItem={true}
-            body={<Kb.Text3 type="BodyBold">All channels</Kb.Text3>}
+            body={<Kb.Text type="BodyBold">All channels</Kb.Text>}
             onClick={() => setAllSelected(!allSelected)}
             action={<Kb.CheckCircle checked={allSelected} onCheck={() => setAllSelected(!allSelected)} />}
           />

@@ -87,13 +87,13 @@ const SetPublicName = () => {
             style={styles.nameInput}
           />
           {showDisabled ? (
-            <Kb.Text3 type="BodySmall" style={styles.deviceNameError}>
+            <Kb.Text type="BodySmall" style={styles.deviceNameError}>
               {Provision.deviceNameInstructions}
-            </Kb.Text3>
+            </Kb.Text>
           ) : (
-            <Kb.Text3 type="BodySmall">
+            <Kb.Text type="BodySmall">
               Your device name will be public and can not be changed in the future.
-            </Kb.Text3>
+            </Kb.Text>
           )}
         </Kb.Box2>
       </Kb.Box2>

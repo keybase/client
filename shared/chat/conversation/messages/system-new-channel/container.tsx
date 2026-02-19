@@ -38,13 +38,13 @@ const SystemNewChannelContainer = React.memo(function SystemNewChannelContainer(
       >
         {message.text.stringValue()}
       </Kb.Markdown>
-      <Kb.Text3
+      <Kb.Text
         onClick={onManageChannels}
         type="BodySmallSemiboldSecondaryLink"
         style={{color: Kb.Styles.globalColors.blueDark}}
       >
         Browse other channels
-      </Kb.Text3>
+      </Kb.Text>
     </UserNotice>
   )
 })

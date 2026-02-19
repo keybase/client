@@ -22,7 +22,7 @@ const FilteredTopLine = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text3
+      <Kb.Text
         type="BodySemibold"
         lineClamp={1}
         style={Kb.Styles.collapseStyles([
@@ -32,11 +32,11 @@ const FilteredTopLine = (props: Props) => {
         ])}
       >
         {props.participants.join(', ')}
-      </Kb.Text3>
+      </Kb.Text>
       {!!props.numSearchHits && (
-        <Kb.Text3 type="BodySmall" style={Kb.Styles.collapseStyles([props.isSelected && styles.selectedText])}>
+        <Kb.Text type="BodySmall" style={Kb.Styles.collapseStyles([props.isSelected && styles.selectedText])}>
           {_getSearchHits()} {pluralize('result', props.numSearchHits)}
-        </Kb.Text3>
+        </Kb.Text>
       )}
     </Kb.Box2>
   )

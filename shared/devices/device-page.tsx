@@ -27,16 +27,16 @@ const TimelineLabel = (p: {
   const {desc, subDesc, subDescIsName, spacerOnBottom} = p
   return (
     <Kb.Box2 direction="vertical" style={styles.timelineLabel}>
-      <Kb.Text3 type="Body">{desc}</Kb.Text3>
+      <Kb.Text type="Body">{desc}</Kb.Text>
       {!!subDesc && subDescIsName && (
-        <Kb.Text3 type="BodySmall">
+        <Kb.Text type="BodySmall">
           by{' '}
-          <Kb.Text3 type="BodySmallItalic" style={styles.subDesc}>
+          <Kb.Text type="BodySmallItalic" style={styles.subDesc}>
             {subDesc}
-          </Kb.Text3>
-        </Kb.Text3>
+          </Kb.Text>
+        </Kb.Text>
       )}
-      {!!subDesc && !subDescIsName && <Kb.Text3 type="BodySmall">{subDesc}</Kb.Text3>}
+      {!!subDesc && !subDescIsName && <Kb.Text type="BodySmall">{subDesc}</Kb.Text>}
       {spacerOnBottom && <Kb.Box2 direction="vertical" style={{height: 15}} />}
     </Kb.Box2>
   )
@@ -150,7 +150,7 @@ const DevicePage = (ownProps: OwnProps) => {
           onClick={showRevokeDevicePage}
         />
       )}
-      {canRevoke ? null : <Kb.Text3 type="BodySmall">{"You can't revoke your last device."}</Kb.Text3>}
+      {canRevoke ? null : <Kb.Text type="BodySmall">{"You can't revoke your last device."}</Kb.Text>}
     </Kb.Box2>
   )
 }

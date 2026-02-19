@@ -50,9 +50,9 @@ function useAutocompleter<U>(
                 fullWidth={true}
                 style={Kb.Styles.collapseStyles([styles.option, selected === idx && styles.optionSelected])}
               >
-                <Kb.Text3 type="BodySemibold" lineClamp={1}>
+                <Kb.Text type="BodySemibold" lineClamp={1}>
                   {item.label}
-                </Kb.Text3>
+                </Kb.Text>
               </Kb.Box2>
             </Kb.ClickableBox>
           ))}

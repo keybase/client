@@ -1,9 +1,9 @@
 import * as Styles from '@/styles'
-import {typeStyles, negativeColors} from './text3.meta.native'
-import type {Props} from './text3'
+import {typeStyles, negativeColors} from './text.meta.native'
+import type {Props} from './text'
 import {Text as RNText} from 'react-native'
 
-export function Text3(p: Props) {
+export function Text(p: Props) {
   const type = p.type ?? 'BodySmall'
   const baseStyle = typeStyles[type]
   const negStyle = p.negative ? {color: negativeColors[type]} : undefined

@@ -31,9 +31,9 @@ const LoginRender = (props: Props) => {
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
           {C.isAndroid && !C.isDeviceSecureAndroid && !C.isAndroidNewerThanM && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.deviceNotSecureContainer}>
-              <Kb.Text3 center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
+              <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
                 {"Since you don't have a lock screen, you'll have to type your password everytime."}
-              </Kb.Text3>
+              </Kb.Text>
             </Kb.Box2>
           )}
           {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
@@ -67,7 +67,7 @@ const LoginRender = (props: Props) => {
               label="Log in"
               onClick={props.onSubmit}
             />
-            <Kb.Text3
+            <Kb.Text
               type="BodySmallSecondaryLink"
               center={true}
               onClick={props.onForgotPassword}
@@ -77,10 +77,10 @@ const LoginRender = (props: Props) => {
               }}
             >
               Forgot password?
-            </Kb.Text3>
-            <Kb.Text3 center={true} type="BodySmallSecondaryLink" onClick={props.onFeedback}>
+            </Kb.Text>
+            <Kb.Text center={true} type="BodySmallSecondaryLink" onClick={props.onFeedback}>
               Problems logging in?
-            </Kb.Text3>
+            </Kb.Text>
           </UserCard>
           <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.createAccountContainer}>

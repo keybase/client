@@ -11,7 +11,7 @@ export type OwnProps = {
 
 const Username = ({mode, lastWriter}: {mode: OwnProps['mode']; lastWriter: string}) =>
   mode === 'row' && Kb.Styles.isMobile ? (
-    <Kb.Text3 type="BodySmall">{lastWriter}</Kb.Text3>
+    <Kb.Text type="BodySmall">{lastWriter}</Kb.Text>
   ) : (
     <Kb.ConnectedUsernames
       type={mode === 'menu' ? 'BodyTinyLink' : 'BodySmallSecondaryLink'}
@@ -41,30 +41,30 @@ const Container = (ownProps: OwnProps) => {
     case 'menu':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          <Kb.Text3 type="BodyTiny" center={true}>
+          <Kb.Text type="BodyTiny" center={true}>
             {time}
-          </Kb.Text3>
-          <Kb.Text3 type="BodyTiny" center={true}>
+          </Kb.Text>
+          <Kb.Text type="BodyTiny" center={true}>
             {by}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       )
     case 'row':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text3 type="BodySmall" lineClamp={1}>
+          <Kb.Text type="BodySmall" lineClamp={1}>
             {time}
             {by}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       )
     case 'default':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          <Kb.Text3 type="BodySmall" center={true}>
+          <Kb.Text type="BodySmall" center={true}>
             {time}
             {by}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       )
   }

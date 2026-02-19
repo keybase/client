@@ -3,13 +3,13 @@ import * as Styles from '@/styles'
 import {Box2} from './box'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
-import {Text3} from './text3'
+import {Text} from './text'
 
 const Kb = {
   Box2,
   Icon,
   ProgressIndicator,
-  Text3,
+  Text,
 }
 
 type SaveState = 'init' | 'saving' | 'saved'
@@ -60,9 +60,9 @@ const SaveIndicator = (props: Props) => {
       content = (
         <>
           <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
-          <Kb.Text3 type="BodySmall" style={{color: Styles.globalColors.greenDark}}>
+          <Kb.Text type="BodySmall" style={{color: Styles.globalColors.greenDark}}>
             &nbsp; Saved
-          </Kb.Text3>
+          </Kb.Text>
         </>
       )
       break

@@ -24,9 +24,9 @@ const TextView = (props: Props) => {
   return (
     <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
       <Kb.Box2 style={styles.innerContainer} direction="horizontal" alignItems="flex-start">
-        <Kb.Text3 type="Terminal" selectable={true} style={styles.text}>
+        <Kb.Text type="Terminal" selectable={true} style={styles.text}>
           {content}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )

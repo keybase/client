@@ -41,9 +41,9 @@ const NewCard = React.memo(function NewCard(outerProps: Props) {
       alignItems="flex-start"
     >
       <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
-        <Kb.Text3 type="BodySmallSemibold" style={styles.header} negative={true}>
+        <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
           {props.text}
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.ClickableBox onClick={props.action}>
           <Kb.Box2
             direction="horizontal"
@@ -52,13 +52,13 @@ const NewCard = React.memo(function NewCard(outerProps: Props) {
             className="hover_container"
             gap="xtiny"
           >
-            <Kb.Text3
+            <Kb.Text
               type="BodySmallSemiboldPrimaryLink"
               style={styles.link}
               className="color_blueLighterOrWhite hover_contained_color_white"
             >
               {props.label}
-            </Kb.Text3>
+            </Kb.Text>
             <Kb.Icon
               color={Kb.Styles.globalColors.blueLighter}
               sizeType="Tiny"

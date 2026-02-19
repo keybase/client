@@ -18,11 +18,11 @@ const OfflineFolder = (props: Props) => (
         sizeType="Huge"
         color={Kb.Styles.globalColors.black_10}
       />
-      <Kb.Text3 type="BodySmall">
+      <Kb.Text type="BodySmall">
         {props.syncEnabled
           ? 'This folder will sync once you get back online.'
           : "You haven't synced this folder."}
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
 )

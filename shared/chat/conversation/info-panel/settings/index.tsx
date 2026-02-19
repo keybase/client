@@ -88,7 +88,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
       >
         {isPreview ? (
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text3 type="BodySmallSemibold">You are not in this channel.</Kb.Text3>
+            <Kb.Text type="BodySmallSemibold">You are not in this channel.</Kb.Text>
             <Kb.Button type="Success" mode="Primary" label="Join channel" style={styles.buttonStyle} />
           </Kb.Box2>
         ) : (
@@ -106,7 +106,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             iconColor={Kb.Styles.globalColors.blue}
           />
         )}
-        <Kb.Text3 type="Header">Conversation</Kb.Text3>
+        <Kb.Text type="Header">Conversation</Kb.Text>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <Kb.Button
             type="Default"
@@ -153,7 +153,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
         {(entityType === 'channel' || entityType === 'small team') && <MinWriterRole />}
         {showDangerZone ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-            <Kb.Text3 type="BodySmallSemibold">Danger zone</Kb.Text3>
+            <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
             {canDeleteHistory && (
               <Kb.Button
                 type="Danger"

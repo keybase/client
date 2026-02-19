@@ -28,15 +28,15 @@ const PathInfo_ = (props: PathInfoProps) => {
     <Kb.Box2 direction="vertical" style={props.containerStyle} fullWidth={true}>
       {pathInfo.deeplinkPath ? (
         <>
-          <Kb.Text3 type="BodySmallSemibold">Universal path:</Kb.Text3>
+          <Kb.Text type="BodySmallSemibold">Universal path:</Kb.Text>
           <Kb.CopyText containerStyle={styles.copyPath} multiline={1} text={pathInfo.deeplinkPath} />
         </>
       ) : null}
       {mountPointPath ? (
         <>
-          <Kb.Text3 type="BodySmallSemibold" style={styles.localPath}>
+          <Kb.Text type="BodySmallSemibold" style={styles.localPath}>
             Local path:
-          </Kb.Text3>
+          </Kb.Text>
           <Kb.CopyText containerStyle={styles.copyPath} multiline={1} text={mountPointPath} />
         </>
       ) : null}

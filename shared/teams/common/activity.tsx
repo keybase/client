@@ -34,9 +34,9 @@ const Activity = (p: Props) => {
         sizeType="Small"
       />
       {iconOnly ? null : (
-        <Kb.Text3 type="BodySmall" style={level === 'active' ? styles.activityActive : undefined}>
+        <Kb.Text type="BodySmall" style={level === 'active' ? styles.activityActive : undefined}>
           {activityToLabel[level]}
-        </Kb.Text3>
+        </Kb.Text>
       )}
     </Kb.Box2>
   )
@@ -52,11 +52,11 @@ export const ModalTitle = ({title, teamID}: MTProps) => {
   return Kb.Styles.isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">
       {!!teamname && (
-        <Kb.Text3 type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
+        <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
           {teamname}
-        </Kb.Text3>
+        </Kb.Text>
       )}
-      <Kb.Text3 type="BodyBig">{title}</Kb.Text3>
+      <Kb.Text type="BodyBig">{title}</Kb.Text>
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
@@ -69,10 +69,10 @@ export const ModalTitle = ({title, teamID}: MTProps) => {
         crop={isNewTeamWizard ? avatarCrop : undefined}
       />
       <Kb.Box2 direction="vertical" alignItems="center">
-        <Kb.Text3 type="BodySmall" lineClamp={1}>
+        <Kb.Text type="BodySmall" lineClamp={1}>
           {teamname}
-        </Kb.Text3>
-        <Kb.Text3 type="Header">{title}</Kb.Text3>
+        </Kb.Text>
+        <Kb.Text type="Header">{title}</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )

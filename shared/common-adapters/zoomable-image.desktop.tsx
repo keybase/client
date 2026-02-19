@@ -1,13 +1,13 @@
 import * as React from 'react'
 import Toast from './toast.desktop'
 import {Box2} from './box'
-import {Text3} from './text3'
+import {Text} from './text'
 import type {Props} from './zoomable-image'
 import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box2,
-  Text3,
+  Text,
   Toast,
 }
 
@@ -158,9 +158,9 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
         style={imgStyle}
       />
       <Kb.Toast visible={showToast} attachTo={containerRef}>
-        <Kb.Text3 type="Body" negative={true}>
+        <Kb.Text type="Body" negative={true}>
           Scroll to zoom. Move to pan
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Toast>
     </div>
   )

@@ -8,9 +8,9 @@ export type Props = {
 
 const ContinueButton = (props: Props) => (
   <Kb.Button fullWidth={true} style={styles.button} onClick={props.onClick} disabled={props.disabled}>
-    <Kb.Text3 type="BodyBig" style={styles.continueText}>
+    <Kb.Text type="BodyBig" style={styles.continueText}>
       {props.label}
-    </Kb.Text3>
+    </Kb.Text>
   </Kb.Button>
 )
 

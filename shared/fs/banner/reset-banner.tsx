@@ -66,7 +66,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
         style={{height: Kb.Styles.globalMargins.xlarge, margin: Kb.Styles.globalMargins.medium}}
       />
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textIntro}>
-        <Kb.Text3 type="BodySemibold" negative={true}>
+        <Kb.Text type="BodySemibold" negative={true}>
           <Kb.ConnectedUsernames
             type="BodySemiboldLink"
             showAnd={true}
@@ -87,23 +87,23 @@ const ConnectedBanner = (ownProps: OwnProps) => {
               (resetParticipants.length === 1 ? 'this account has' : 'these accounts have') +
               ' new keys.'
           }
-        </Kb.Text3>
-        <Kb.Text3 type="BodySemibold" negative={true}>
+        </Kb.Text>
+        <Kb.Text type="BodySemibold" negative={true}>
           If you want to let them into this folder and the matching chat, you should either:
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" style={styles.listTextContainer} gap="tiny" gapStart={true}>
-        <Kb.Text3 type="BodySemibold" negative={true}>
+        <Kb.Text type="BodySemibold" negative={true}>
           1. Be satisfied with their new proofs, or
-        </Kb.Text3>
-        <Kb.Text3 type="BodySemibold" negative={true}>
+        </Kb.Text>
+        <Kb.Text type="BodySemibold" negative={true}>
           2. Know them outside Keybase and have gotten a thumbs up from them.
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textDontLetThemIn}>
-        <Kb.Text3 type="BodySemibold" negative={true}>
+        <Kb.Text type="BodySemibold" negative={true}>
           {"Don't let them in until one of those is true."}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="small">
         {resetParticipants.map(p => (
@@ -126,12 +126,12 @@ const ConnectedBanner = (ownProps: OwnProps) => {
         ))}
       </Kb.Box2>
       {resetParticipants.length > 1 && (
-        <Kb.Text3 type="BodySemibold" negative={true} style={styles.textOrUntil}>
+        <Kb.Text type="BodySemibold" negative={true} style={styles.textOrUntil}>
           {"Or until you're sure, "}
-          <Kb.Text3 type="BodySemiboldLink" negative={true} onClick={onOpenWithoutResetUsers}>
+          <Kb.Text type="BodySemiboldLink" negative={true} onClick={onOpenWithoutResetUsers}>
             open a folder without any of them.
-          </Kb.Text3>
-        </Kb.Text3>
+          </Kb.Text>
+        </Kb.Text>
       )}
     </Kb.Box2>
   )

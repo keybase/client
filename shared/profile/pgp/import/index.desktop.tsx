@@ -10,19 +10,19 @@ export default function Import() {
   return (
     <Modal onCancel={onCancel}>
       <Kb.Icon type="icon-pgp-key-import-48" />
-      <Kb.Text3 style={styleHeader} type="Header">
+      <Kb.Text style={styleHeader} type="Header">
         Import a PGP key
-      </Kb.Text3>
-      <Kb.Text3 style={styleBody} type="Body">
+      </Kb.Text>
+      <Kb.Text style={styleBody} type="Body">
         To register your existing PGP public key on Keybase, please run the following command from your
         terminal:
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styleTerminal}>
-        <Kb.Text3 type="TerminalComment">{"# import a key from gpg's key chain"}</Kb.Text3>
-        <Kb.Text3 type="Terminal">keybase pgp select</Kb.Text3>
-        <Kb.Text3 type="TerminalEmpty" />
-        <Kb.Text3 type="TerminalComment"># for more options</Kb.Text3>
-        <Kb.Text3 type="Terminal">keybase pgp help</Kb.Text3>
+        <Kb.Text type="TerminalComment">{"# import a key from gpg's key chain"}</Kb.Text>
+        <Kb.Text type="Terminal">keybase pgp select</Kb.Text>
+        <Kb.Text type="TerminalEmpty" />
+        <Kb.Text type="TerminalComment"># for more options</Kb.Text>
+        <Kb.Text type="Terminal">keybase pgp help</Kb.Text>
       </Kb.Box2>
     </Modal>
   )

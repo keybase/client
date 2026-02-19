@@ -12,16 +12,16 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
       type={Kb.Styles.isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'}
     />
     <Kb.Box2 direction="vertical" style={styles.containerHeader}>
-      <Kb.Text3 negative={true} type="Header" style={styles.header}>
+      <Kb.Text negative={true} type="Header" style={styles.header}>
         Create a team on Keybase
-      </Kb.Text3>
-      <Kb.Text3 center={Kb.Styles.isMobile} negative={true} type="BodySmallSemibold" style={styles.text}>
+      </Kb.Text>
+      <Kb.Text center={Kb.Styles.isMobile} negative={true} type="BodySmallSemibold" style={styles.text}>
         Keybase team chats are encrypted - unlike Slack - and work for any size group, from casual friends to
         large communities.
-      </Kb.Text3>
-      <Kb.Text3 negative={true} type="BodySmallSemiboldPrimaryLink" className="underline" onClick={onReadMore}>
+      </Kb.Text>
+      <Kb.Text negative={true} type="BodySmallSemiboldPrimaryLink" className="underline" onClick={onReadMore}>
         Read more
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.closeIconContainer}>
       <Kb.Icon

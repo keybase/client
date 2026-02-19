@@ -19,8 +19,8 @@ export default {
     width: buttonWidth,
   } as Kb.Styles.StylesCrossPlatform,
   headerTitle: () => (
-    <Kb.Text3 type="BodyBig" center={true}>
+    <Kb.Text type="BodyBig" center={true}>
       Chats
-    </Kb.Text3>
+    </Kb.Text>
   ),
 }

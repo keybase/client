@@ -8,9 +8,9 @@ const MakeTeam = () => {
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
-        <Kb.Text3 type="BodySmallSemibold" style={styles.header} negative={true}>
+        <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
           Make it a team? You’ll be able to add and delete members as you wish.
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.ClickableBox onClick={onShowNewTeamDialog}>
           <Kb.Box2
             direction="horizontal"
@@ -19,13 +19,13 @@ const MakeTeam = () => {
             className="hover_container"
             gap="xtiny"
           >
-            <Kb.Text3
+            <Kb.Text
               type="BodySmallSemiboldPrimaryLink"
               style={styles.link}
               className="color_greenLightOrWhite hover_contained_color_white"
             >
               Enter a team name
-            </Kb.Text3>
+            </Kb.Text>
             <Kb.Icon
               color={Kb.Styles.globalColors.greenLight}
               sizeType="Tiny"

@@ -6,13 +6,13 @@ const ChannelRow = () => (
   <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
     <Kb.InfoNote>
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text3 type="BodySmall" center={true} style={styles.text}>
+        <Kb.Text type="BodySmall" center={true} style={styles.text}>
           {sentence1} {Kb.Styles.isMobile && sentence2}
-        </Kb.Text3>
+        </Kb.Text>
         {!Kb.Styles.isMobile && (
-          <Kb.Text3 type="BodySmall" center={true} style={styles.text}>
+          <Kb.Text type="BodySmall" center={true} style={styles.text}>
             {sentence2}
-          </Kb.Text3>
+          </Kb.Text>
         )}
       </Kb.Box2>
     </Kb.InfoNote>

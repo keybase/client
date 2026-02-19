@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Text3} from './text3'
-import {backgroundModeIsNegative} from './text3.shared'
-import type {TextType, Background, StylesTextCrossPlatform, AllowedColors, LineClampType, TextTypeBold} from './text3.shared'
+import {Text} from './text'
+import {backgroundModeIsNegative} from './text.shared'
+import type {TextType, Background, StylesTextCrossPlatform, AllowedColors, LineClampType, TextTypeBold} from './text.shared'
 import isArray from 'lodash/isArray'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import {useTrackerState} from '@/stores/tracker2'
@@ -54,7 +54,7 @@ const space = Styles.isMobile ? ` ` : <>&nbsp;</>
 // this here instead of importing directly to avoid an import cycle.
 type WithProfileCardPopupProps = {
   username: string
-  children: (onLongPress?: () => void) => React.ReactElement<typeof Text3>
+  children: (onLongPress?: () => void) => React.ReactElement<typeof Text>
   ellipsisStyle?: Styles.StylesCrossPlatform
 }
 let WithProfileCardPopup: React.ComponentType<WithProfileCardPopupProps> | null
@@ -156,13 +156,13 @@ const Username = React.memo(function Username(p: UsernameProps) {
     // line height is unset to prevent some text clipping issues
     // in children with larger text styles on Android (HOTPOT-2112)
     // see also https://github.com/keybase/client/pull/22331#discussion_r374224355
-    <Text3 className="noLineHeight" type="Body" style={styles.noLineHeight} key={username}>
+    <Text className="noLineHeight" type="Body" style={styles.noLineHeight} key={username}>
       {showAnd && (
-        <Text3 type={type} negative={isNegative} style={joinerStyle} underlineNever={true}>
+        <Text type={type} negative={isNegative} style={joinerStyle} underlineNever={true}>
           {'and '}
-        </Text3>
+        </Text>
       )}
-      <Text3
+      <Text
         type={type}
         negative={isNegative}
         className={Styles.classNames({'hover-underline': underline})}
@@ -174,19 +174,19 @@ const Username = React.memo(function Username(p: UsernameProps) {
         style={userStyle}
       >
         {assertionToDisplay(username)}
-      </Text3>
+      </Text>
       {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
       {showComma && (
-        <Text3 type={type} negative={isNegative} style={joinerStyle}>
+        <Text type={type} negative={isNegative} style={joinerStyle}>
           ,
-        </Text3>
+        </Text>
       )}
       {showSpace && (
-        <Text3 type={type} negative={isNegative} style={joinerStyle}>
+        <Text type={type} negative={isNegative} style={joinerStyle}>
           {space}
-        </Text3>
+        </Text>
       )}
-    </Text3>
+    </Text>
   )
 
   return withProfileCardPopup && WithProfileCardPopup ? (
@@ -280,7 +280,7 @@ const Usernames = React.memo(
     }, [usernames, skipSelf, you])
 
     return (
-      <Text3
+      <Text
         className={className}
         type={type}
         negative={isNegative}
@@ -291,9 +291,9 @@ const Usernames = React.memo(
         {...(inline ? inlineProps : {})}
       >
         {!!prefix && (
-          <Text3 type={type} negative={isNegative} style={style}>
+          <Text type={type} negative={isNegative} style={style}>
             {prefix}
-          </Text3>
+          </Text>
         )}
         <UsernamesText
           backgroundMode={backgroundMode}
@@ -315,15 +315,15 @@ const Usernames = React.memo(
           users={names}
         />
         {!!suffix && (
-          <Text3
+          <Text
             type={suffixType || type}
             negative={isNegative}
             style={Styles.collapseStyles([style, {marginLeft: Styles.globalMargins.xtiny}])}
           >
             {suffix}
-          </Text3>
+          </Text>
         )}
-      </Text3>
+      </Text>
     )
   },
   (p, n) => {

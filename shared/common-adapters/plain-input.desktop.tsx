@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {getTextStyle} from './text3.styles'
+import {getTextStyle} from './text.styles'
 import logger from '@/logger'
 import {checkTextInfo} from './input.shared'
 import type {InternalProps, TextInfo, Selection} from './plain-input'

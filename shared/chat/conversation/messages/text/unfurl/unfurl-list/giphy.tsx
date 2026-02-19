@@ -51,9 +51,9 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
         <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
           <Kb.Box2 direction="horizontal" gap="tiny">
             {favicon ? <Kb.Image2 src={favicon} style={styles.favicon} /> : null}
-            <Kb.Text3 type="BodySmall" style={styles.fastStyle}>
+            <Kb.Text type="BodySmall" style={styles.fastStyle}>
               Giphy
-            </Kb.Text3>
+            </Kb.Text>
             <Kb.Icon
               boxStyle={styles.collapseBox}
               style={styles.collapse}

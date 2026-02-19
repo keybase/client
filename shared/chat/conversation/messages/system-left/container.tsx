@@ -10,7 +10,7 @@ const LeftContainer = React.memo(function LeftContainer() {
 
   return (
     <UserNotice>
-      <Kb.Text3 type="BodySmall">{`left ${isBigTeam ? `#${channelname}` : teamname}.`}</Kb.Text3>
+      <Kb.Text type="BodySmall">{`left ${isBigTeam ? `#${channelname}` : teamname}.`}</Kb.Text>
     </UserNotice>
   )
 })

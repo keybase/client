@@ -120,15 +120,15 @@ const Upload = (props: UploadProps) => {
             />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.box}>
-            <Kb.Text3 key="files" type="BodySmallSemibold" style={styles.text}>
+            <Kb.Text key="files" type="BodySmallSemibold" style={styles.text}>
               {files
                 ? `Encrypting and uploading ${files} files...`
                 : totalSyncingBytes
                   ? 'Encrypting and uploading...'
                   : 'Done!'}
-            </Kb.Text3>
+            </Kb.Text>
             {!!timeLeft.length && (
-              <Kb.Text3 key="left" type="BodyTiny" style={styles.text}>{`${timeLeft} left`}</Kb.Text3>
+              <Kb.Text key="left" type="BodyTiny" style={styles.text}>{`${timeLeft} left`}</Kb.Text>
             )}
           </Kb.Box2>
         </NativeAnimated.View>

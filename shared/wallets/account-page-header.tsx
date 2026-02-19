@@ -15,13 +15,13 @@ const AccountPageHeader = (props: Props) => (
   <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.container}>
     <Kb.Box2 direction="vertical">
       {Kb.Styles.isMobile && !!props.accountName && (
-        <Kb.Text3 center={true} type="BodySmallSemibold">
+        <Kb.Text center={true} type="BodySmallSemibold">
           {props.accountName}
-        </Kb.Text3>
+        </Kb.Text>
       )}
-      <Kb.Text3 center={true} type="BodyBig">
+      <Kb.Text center={true} type="BodyBig">
         {props.title}
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
 )

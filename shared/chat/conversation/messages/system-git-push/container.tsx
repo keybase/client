@@ -91,13 +91,13 @@ type CreateProps = {
 const GitPushCreate = (props: CreateProps) => {
   const {you, pusher, repo, repoID, team, onViewGitRepo} = props
   return (
-    <Kb.Text3 type="BodySmall">
+    <Kb.Text type="BodySmall">
       {pusher === you ? 'You ' : ''}created a new team repository called{` `}
-      <Kb.Text3 type="BodySmallPrimaryLink" onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}>
+      <Kb.Text type="BodySmallPrimaryLink" onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}>
         {repo}
-      </Kb.Text3>
+      </Kb.Text>
       .
-    </Kb.Text3>
+    </Kb.Text>
   )
 }
 
@@ -116,16 +116,16 @@ const GitPushDefault = (props: PushDefaultProps) => {
   const {pusher, you, commitRef, repo, repoID, team, branchName, onViewGitRepo, onClickCommit} = props
   return (
     <Kb.Box2 direction="vertical" gap="xtiny" alignSelf="flex-start">
-      <Kb.Text3 type="BodySmall">
+      <Kb.Text type="BodySmall">
         {pusher === you ? 'You ' : ''}pushed {!!commitRef.commits && commitRef.commits.length}{' '}
         {`commit${!!commitRef.commits && commitRef.commits.length !== 1 ? 's' : ''}`} to
-        <Kb.Text3
+        <Kb.Text
           type="BodySmall"
           style={repoID ? styles.repoText : undefined}
           onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
-        >{` ${repo}/${branchName}`}</Kb.Text3>
+        >{` ${repo}/${branchName}`}</Kb.Text>
         :
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.Box2 direction="vertical" alignSelf="flex-start">
         {(commitRef.commits || []).map((commit, i) => (
           <Kb.Box2 direction="horizontal" key={commit.commitHash} alignSelf="flex-start">
@@ -136,18 +136,18 @@ const GitPushDefault = (props: PushDefaultProps) => {
             />
             <Kb.Box2 direction="horizontal" alignItems="flex-start" style={styles.hashAndMessage}>
               <Kb.Box2 direction="vertical" style={styles.dot}>
-                <Kb.Text3
+                <Kb.Text
                   type="Terminal"
                   style={styles.commitHash}
                   onClick={() => onClickCommit(commit.commitHash)}
                 >
                   {commit.commitHash.substring(0, 8)}
-                </Kb.Text3>
+                </Kb.Text>
               </Kb.Box2>
               <Kb.Box2 direction="vertical">
-                <Kb.Text3 type="BodySmall" selectable={true} style={styles.commitMessage} lineClamp={1}>
+                <Kb.Text type="BodySmall" selectable={true} style={styles.commitMessage} lineClamp={1}>
                   {commit.message}
-                </Kb.Text3>
+                </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
           </Kb.Box2>

@@ -56,9 +56,9 @@ const Container = (ownProps: OwnProps) => {
         hideBorder: success,
         leftButton:
           Kb.Styles.isMobile && !success ? (
-            <Kb.Text3 type="BodyBigLink" onClick={onBack}>
+            <Kb.Text type="BodyBigLink" onClick={onBack}>
               Cancel
-            </Kb.Text3>
+            </Kb.Text>
           ) : null,
         title: success ? 'Request sent' : 'Join a team',
       }}
@@ -74,11 +74,11 @@ const Container = (ownProps: OwnProps) => {
                 <Kb.Icon type="icon-illustration-teams-zen-460-96" />
               </Kb.Box2>
               <Kb.Box2 direction="vertical" style={styles.container}>
-                <Kb.Text3 center={true} type="Body">
+                <Kb.Text center={true} type="Body">
                   Your request was sent to the admins of{' '}
-                  {successTeamName ? <Kb.Text3 type="BodySemibold">{successTeamName}</Kb.Text3> : 'the team'}.
+                  {successTeamName ? <Kb.Text type="BodySemibold">{successTeamName}</Kb.Text> : 'the team'}.
                   {"Hang tight, you'll get notified as soon as you're let in."}
-                </Kb.Text3>
+                </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
           )}
@@ -94,7 +94,7 @@ const Container = (ownProps: OwnProps) => {
               value={name}
             />
           </Kb.RoundedBox>
-          <Kb.Text3 type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text3>
+          <Kb.Text type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text>
         </Kb.Box2>
       )}
     </Kb.Modal>
@@ -105,13 +105,13 @@ export const Success = (props: {teamname: string}) => (
   <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
     <Kb.Icon type="icon-illustration-welcome-96" />
     {!!props.teamname && (
-      <Kb.Text3 center={true} type="Header">
+      <Kb.Text center={true} type="Header">
         You’ve joined {props.teamname}!
-      </Kb.Text3>
+      </Kb.Text>
     )}
-    <Kb.Text3 center={true} type="Body">
+    <Kb.Text center={true} type="Body">
       The team may take a tiny while to appear as an admin needs to come online. But you’re in.
-    </Kb.Text3>
+    </Kb.Text>
   </Kb.Box2>
 )
 

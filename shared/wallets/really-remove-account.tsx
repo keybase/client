@@ -84,26 +84,26 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
           style={styles.icon}
         />
         <Kb.Box2 direction="vertical">
-          <Kb.Text3 center={true} style={styles.warningText} type="Header">
+          <Kb.Text center={true} style={styles.warningText} type="Header">
             One last thing! Make sure you keep a copy of your secret key before removing{' '}
-          </Kb.Text3>
-          <Kb.Text3
+          </Kb.Text>
+          <Kb.Text
             center={true}
             type="HeaderItalic"
             style={Kb.Styles.collapseStyles([styles.warningText, styles.mainText] as const)}
           >
             {name}.
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
-        <Kb.Text3 center={true} type="BodySmall" style={styles.warningText}>
+        <Kb.Text center={true} type="BodySmall" style={styles.warningText}>
           If you save this secret key, you can use it in other wallets outside Keybase
-        </Kb.Text3>
+        </Kb.Text>
 
         <Kb.Toast visible={showingToast} attachTo={attachmentRef} position="top center">
           {Kb.Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" />}
-          <Kb.Text3 center={true} type="BodySmall" style={styles.toastText}>
+          <Kb.Text center={true} type="BodySmall" style={styles.toastText}>
             Copied to clipboard
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Toast>
       </Kb.Box2>
       <Kb.SafeAreaView />

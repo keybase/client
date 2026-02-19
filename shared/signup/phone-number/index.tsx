@@ -41,7 +41,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
             style={styles.checkbox}
           />
         ) : (
-          <Kb.Text3 type="BodySmall">Allow your friends to find you.</Kb.Text3>
+          <Kb.Text type="BodySmall">Allow your friends to find you.</Kb.Text>
         )}
       </Kb.Box2>
     </Kb.Box2>

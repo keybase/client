@@ -4,7 +4,7 @@ import SafeAreaView from './safe-area-view'
 import {Picker} from '@react-native-picker/picker'
 import {Box2} from './box'
 import Overlay from './overlay'
-import {Text3} from './text3'
+import {Text} from './text'
 import type {Props} from './floating-picker'
 
 const Kb = {
@@ -12,7 +12,7 @@ const Kb = {
   Overlay,
   Picker,
   SafeAreaView,
-  Text3,
+  Text,
 }
 
 // semi-controller to work around issues where a fully controlled one will cause the wheel on ios
@@ -76,13 +76,13 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.menu}>
         {props.header}
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.actionButtons}>
-          <Kb.Text3 type="BodySemibold" style={styles.link} onClick={props.onCancel}>
+          <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onCancel}>
             Cancel
-          </Kb.Text3>
+          </Kb.Text>
           <Kb.Box2 direction="horizontal" style={styles.flexOne} />
-          <Kb.Text3 type="BodySemibold" style={styles.link} onClick={props.onDone}>
+          <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onDone}>
             Done
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
         {props.prompt}
         <WrapPicker<T>

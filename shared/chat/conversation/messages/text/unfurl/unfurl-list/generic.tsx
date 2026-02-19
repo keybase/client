@@ -67,12 +67,12 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
     <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
       {favicon ? <Kb.Image2 src={favicon} style={styles.favicon} /> : null}
       <Kb.BoxGrow style={styles.fastStyle}>
-        <Kb.Text3 type="BodySmall" lineClamp={1} style={styles.fastStyle}>
+        <Kb.Text type="BodySmall" lineClamp={1} style={styles.fastStyle}>
           {siteName}
           {publishTime ? (
-            <Kb.Text3 type="BodySmall"> • Published {formatTimeForMessages(publishTime)}</Kb.Text3>
+            <Kb.Text type="BodySmall"> • Published {formatTimeForMessages(publishTime)}</Kb.Text>
           ) : null}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.BoxGrow>
       {onClose ? (
         <Kb.Icon
@@ -88,7 +88,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   )
 
   const snippet = description ? (
-    <Kb.Text3 type="Body" lineClamp={5} selectable={true} style={styles.fastStyle}>
+    <Kb.Text type="Body" lineClamp={5} selectable={true} style={styles.fastStyle}>
       {description}
       {(imageLocation === 'collapsed' || imageLocation === 'bottom') && (
         <>
@@ -102,7 +102,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
           />
         </>
       )}
-    </Kb.Text3>
+    </Kb.Text>
   ) : null
 
   const bottomImage =
@@ -133,9 +133,9 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
       {!Kb.Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical" fullWidth={true}>
         {publisher}
-        <Kb.Text3 type="BodyPrimaryLink" style={styles.url} {...titleUrlProps}>
+        <Kb.Text type="BodyPrimaryLink" style={styles.url} {...titleUrlProps}>
           {title}
-        </Kb.Text3>
+        </Kb.Text>
         {snippet}
         {bottomImage}
       </Kb.Box2>

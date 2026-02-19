@@ -63,9 +63,9 @@ const ReallyLeaveTeam = (props: Props) => {
       onCancel={props.onBack}
       onConfirm={onLeave}
       prompt={
-        <Kb.Text3 type="Header" center={true} style={styles.prompt}>
+        <Kb.Text type="Header" center={true} style={styles.prompt}>
           Leave {props.name}?
-        </Kb.Text3>
+        </Kb.Text>
       }
       waitingKey={C.waitingKeyTeamsLeaveTeam(props.name)}
     />

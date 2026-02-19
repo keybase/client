@@ -93,16 +93,16 @@ const BigTeamChannelInner = (props: Props) => {
   ])
 
   const name = (
-    <Kb.Text3
+    <Kb.Text
       lineClamp={1}
       type="Body"
       style={Kb.Styles.collapseStyles([styles.channelHash, selected && styles.channelHashSelected])}
     >
       #{' '}
-      <Kb.Text3 type={selected ? 'BodySemibold' : 'Body'} style={nameStyle}>
+      <Kb.Text type={selected ? 'BodySemibold' : 'Body'} style={nameStyle}>
         {channelname}
-      </Kb.Text3>
-    </Kb.Text3>
+      </Kb.Text>
+    </Kb.Text>
   )
 
   const mutedIcon = isMuted ? (

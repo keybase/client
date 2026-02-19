@@ -4,7 +4,7 @@ import ClickableBox from './clickable-box'
 import Divider from './divider'
 import Icon, {type IconType} from './icon'
 import ProgressIndicator from './progress-indicator'
-import {Text3} from './text3'
+import {Text} from './text'
 import {Box2} from './box'
 import capitalize from 'lodash/capitalize'
 
@@ -15,7 +15,7 @@ const Kb = {
   Divider,
   Icon,
   ProgressIndicator,
-  Text3,
+  Text,
 }
 
 export type Tab<TitleT extends string> = {
@@ -38,9 +38,9 @@ type Props<TitleT extends string> = {
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
   <Kb.Box2 style={styles.tabTextContainer} direction="horizontal">
-    <Kb.Text3 type="BodySmallSemibold" style={selected ? styles.selected : undefined}>
+    <Kb.Text type="BodySmallSemibold" style={selected ? styles.selected : undefined}>
       {text}
-    </Kb.Text3>
+    </Kb.Text>
   </Kb.Box2>
 )
 

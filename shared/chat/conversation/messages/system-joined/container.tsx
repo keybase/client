@@ -40,9 +40,9 @@ const MultiUserJoinedNotice = (p: {
   const joinStr = ` ${join ? 'joined' : 'left'}${shorten ? '' : isBigTeam ? ` #${channelname}` : ` ${teamname}`}`
 
   const ts = timestamp ? (
-    <Kb.Text3 type="BodyTiny" style={styles.timestamp}>
+    <Kb.Text type="BodyTiny" style={styles.timestamp}>
       {' ' + formatTimeForChat(timestamp)}
-    </Kb.Text3>
+    </Kb.Text>
   ) : null
 
   return (
@@ -55,12 +55,12 @@ const MultiUserJoinedNotice = (p: {
           alignSelf="flex-start"
           style={{position: 'relative'}}
         >
-          <Kb.Text3 type="Body">•</Kb.Text3>
-          <Kb.Text3 type="BodySmall" lineClamp={2} title={who.join(', ')}>
+          <Kb.Text type="Body">•</Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={2} title={who.join(', ')}>
             {getAddedUsernames(who)}
             {joinStr}
             {shorten ? null : ts}
-          </Kb.Text3>
+          </Kb.Text>
           <Kb.AvatarLine usernames={who} maxShown={3} size={16} layout="horizontal" alignSelf="flex-start" />
         </Kb.Box2>
       </UserNotice>

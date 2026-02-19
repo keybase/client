@@ -6,8 +6,8 @@ import Avatar, {type AvatarSize} from './avatar'
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon, {type IconType} from './icon'
-import {Text3} from './text3'
-import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} from './text3.shared'
+import {Text} from './text'
+import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} from './text.shared'
 import ConnectedUsernames from './usernames'
 import {useTrackerState} from '@/stores/tracker2'
 import {useProfileState} from '@/stores/profile'
@@ -155,7 +155,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
   const metas = props.horizontal ? (
     <Box2 direction="horizontal" fullWidth={true} style={styles.metasBox}>
       {metaOne}
-      {!!(props.metaTwo && props.metaOne) && <Text3 type="BodySmall">&nbsp;·&nbsp;</Text3>}
+      {!!(props.metaTwo && props.metaOne) && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
       {metaTwo}
     </Box2>
   ) : (
@@ -219,9 +219,9 @@ const TextOrComponent = (props: {
 }): React.ReactNode => {
   if (typeof props.val === 'string') {
     return (
-      <Text3 style={props.style} lineClamp={1} type={props.textType}>
+      <Text style={props.style} lineClamp={1} type={props.textType}>
         {props.val}
-      </Text3>
+      </Text>
     )
   }
   return props.val
@@ -306,7 +306,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-// Get props to pass to subcomponents (Text3, Avatar, etc.)
+// Get props to pass to subcomponents (Text, Avatar, etc.)
 const getAdapterProps = (
   size: Size
 ): {

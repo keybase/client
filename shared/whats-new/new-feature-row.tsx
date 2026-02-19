@@ -61,9 +61,9 @@ const NewFeature = (props: Props) => {
         {props.unwrapped ? (
           props.children
         ) : (
-          <Kb.Text3 type="BodySmall">
+          <Kb.Text type="BodySmall">
             {props.children}
-          </Kb.Text3>
+          </Kb.Text>
         )}
         {props.image && (
           <Kb.Box2 direction="vertical" style={styles.imageContainer}>

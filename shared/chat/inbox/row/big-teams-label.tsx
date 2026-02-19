@@ -8,9 +8,9 @@ const BigTeamsLabel = () => (
     style={styles.container}
   >
     <Kb.Box2 direction="horizontal" alignItems="center" style={styles.bigTeamsLabelBox}>
-      <Kb.Text3 type="BodySmallSemibold" style={styles.text}>
+      <Kb.Text type="BodySmallSemibold" style={styles.text}>
         Big teams
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
 )

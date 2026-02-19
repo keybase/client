@@ -114,16 +114,16 @@ const AvatarUploadWrapper = (p: Props) => {
         banners={
           error ? (
             <Kb.Banner key="err" color="red">
-              <Kb.Text3 type="Body">{error}</Kb.Text3>
+              <Kb.Text type="Body">{error}</Kb.Text>
             </Kb.Banner>
           ) : null
         }
         header={{
           leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
           rightButton: wizard ? (
-            <Kb.Text3 type="BodyBigLink" onClick={onSkip}>
+            <Kb.Text type="BodyBigLink" onClick={onSkip}>
               Skip
-            </Kb.Text3>
+            </Kb.Text>
           ) : undefined,
 
           title: (
@@ -162,7 +162,7 @@ const AvatarUploadWrapper = (p: Props) => {
       <Kb.HeaderHocHeader onCancel={onClose} title={C.isIOS ? 'Zoom and pan' : 'Upload avatar'} />
       {error ? (
         <Kb.Banner color="red">
-          <Kb.Text3 type="Body">{error}</Kb.Text3>
+          <Kb.Text type="Body">{error}</Kb.Text>
         </Kb.Banner>
       ) : null}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>

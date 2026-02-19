@@ -74,13 +74,13 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
             {text}
           </Kb.Markdown>
         </Kb.Box2>
-        <Kb.Text3
+        <Kb.Text
           type="BodyTinyBold"
           virtualText={true}
           style={Kb.Styles.collapseStyles([styles.count, active && styles.countActive])}
         >
           {count}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.ClickableBox2>
   ) : (

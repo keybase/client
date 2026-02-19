@@ -299,7 +299,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
 
   const getSectionHeader = (title: string) => (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
-      <Kb.Text3 type="BodySmallSemibold">{title}</Kb.Text3>
+      <Kb.Text type="BodySmallSemibold">{title}</Kb.Text>
     </Kb.Box2>
   )
 
@@ -309,12 +309,12 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.notFoundContainer}>
       <Kb.Icon type="icon-empty-emoji-126-96" />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-        <Kb.Text3 type="BodySmall" center={true}>
+        <Kb.Text type="BodySmall" center={true}>
           Still haven’t found what you’re
-        </Kb.Text3>
-        <Kb.Text3 type="BodySmall" center={true}>
+        </Kb.Text>
+        <Kb.Text type="BodySmall" center={true}>
           looking for?
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Button mode="Secondary" label="Add custom emoji" small={true} onClick={props.addEmoji} />
     </Kb.Box2>

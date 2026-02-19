@@ -2,8 +2,8 @@ import * as React from 'react'
 import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
 import {Box2} from './box'
 import Icon, {type IconType} from './icon'
-import {Text3} from './text3'
-import {getTextStyle} from './text3.styles'
+import {Text} from './text'
+import {getTextStyle} from './text.styles'
 import * as Styles from '@/styles'
 import './input.css'
 
@@ -63,9 +63,9 @@ const NewInput = React.forwardRef<PlainInputRef, Props>(function NewInputInner(p
         </Box2>
       )}
       {!!prefix && (
-        <Text3 type={textType} style={styles.prefix}>
+        <Text type={textType} style={styles.prefix}>
           {prefix}
-        </Text3>
+        </Text>
       )}
       <PlainInput {...plainInputProps} onFocus={onFocus} onBlur={onBlur} ref={ref} style={plainInputStyle} />
       {props.decoration}

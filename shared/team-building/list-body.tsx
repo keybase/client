@@ -42,23 +42,23 @@ const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) 
         />
       )}
       {namespace === 'people' ? (
-        <Kb.Text3 center={true} style={styles.emptyServiceText} type="BodySmall">
+        <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
           Search for anyone on {Shared.serviceIdToLabel(selectedService)} and start a chat. Your messages will
           unlock after they install Keybase and prove their {Shared.serviceIdToLabel(selectedService)}{' '}
           username.
-        </Kb.Text3>
+        </Kb.Text>
       ) : namespace === 'teams' ? (
-        <Kb.Text3 center={true} style={styles.emptyServiceText} type="BodySmall">
+        <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
           Add anyone from {Shared.serviceIdToLabel(selectedService)}, then tell them to install Keybase. They
           will automatically join the team once they sign up and prove their{' '}
           {Shared.serviceIdToLabel(selectedService)} username.
-        </Kb.Text3>
+        </Kb.Text>
       ) : (
-        <Kb.Text3 center={true} style={styles.emptyServiceText} type="BodySmall">
+        <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
           Start a chat with anyone on {Shared.serviceIdToLabel(selectedService)}, then tell them to install
           Keybase. Your messages will unlock after they sign up and prove their{' '}
           {Shared.serviceIdToLabel(selectedService)} username.
-        </Kb.Text3>
+        </Kb.Text>
       )}
     </Kb.Box2>
   )
@@ -384,9 +384,9 @@ export const ListBody = (
           />
         </Kb.BoxGrow>
       ) : (
-        <Kb.Text3 type="BodySmall" style={styles.noResults}>
+        <Kb.Text type="BodySmall" style={styles.noResults}>
           Sorry, no results were found.
-        </Kb.Text3>
+        </Kb.Text>
       )}
     </>
   )

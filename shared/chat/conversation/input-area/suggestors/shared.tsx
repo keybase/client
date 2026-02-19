@@ -21,7 +21,7 @@ export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
   }
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.botCommandContainer}>
-      <Kb.Text3 type="BodyTiny">{statusText}</Kb.Text3>
+      <Kb.Text type="BodyTiny">{statusText}</Kb.Text>
     </Kb.Box2>
   )
 }

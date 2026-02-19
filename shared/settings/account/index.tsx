@@ -49,13 +49,13 @@ const EmailPhone = () => {
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
         <Kb.Box2 alignItems="center" direction="horizontal" gap="tiny" fullWidth={true}>
-          <Kb.Text3 type="Header">Email & phone</Kb.Text3>
+          <Kb.Text type="Header">Email & phone</Kb.Text>
           {waiting && <Kb.ProgressIndicator style={styles.progress} />}
         </Kb.Box2>
-        <Kb.Text3 type="BodySmall">
+        <Kb.Text type="BodySmall">
           Secures your account by letting us send important notifications, and allows friends and teammates to
           find you by phone number or email.{' '}
-          <Kb.Text3 type="BodySmallPrimaryLink" {...readMoreUrlProps}>
+          <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
             <Kb.Icon
               type="iconfont-open-browser"
@@ -63,8 +63,8 @@ const EmailPhone = () => {
               boxStyle={styles.displayInline}
               color={Kb.Styles.globalColors.blueDark}
             />
-          </Kb.Text3>
-        </Kb.Text3>
+          </Kb.Text>
+        </Kb.Text>
       </Kb.Box2>
       {!!contactKeys.length && (
         <Kb.Box2 direction="vertical" style={styles.contactRows} fullWidth={true}>
@@ -96,14 +96,14 @@ const Password = () => {
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-        <Kb.Text3 type="Header">Password</Kb.Text3>
-        <Kb.Text3 type="BodySmall">Allows you to sign out and sign back in.</Kb.Text3>
+        <Kb.Text type="Header">Password</Kb.Text>
+        <Kb.Text type="BodySmall">Allows you to sign out and sign back in.</Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
         {hasPassword && (
-          <Kb.Text3 type="BodySemibold" style={styles.password}>
+          <Kb.Text type="BodySemibold" style={styles.password}>
             ********************
-          </Kb.Text3>
+          </Kb.Text>
         )}
         <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
           <Kb.Button mode="Secondary" onClick={onSetPassword} label={passwordLabel} small={true} />
@@ -118,8 +118,8 @@ const WebAuthTokenLogin = () => {
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-        <Kb.Text3 type="Header">Website login</Kb.Text3>
-        <Kb.Text3 type="BodySmall">You can use your app to log your web browser into keybase.io.</Kb.Text3>
+        <Kb.Text type="Header">Website login</Kb.Text>
+        <Kb.Text type="BodySmall">You can use your app to log your web browser into keybase.io.</Kb.Text>
       </Kb.Box2>
       <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
         <Kb.Button
@@ -141,10 +141,10 @@ const DeleteAccount = () => {
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-        <Kb.Text3 type="Header">Delete account</Kb.Text3>
-        <Kb.Text3 type="BodySmall">
+        <Kb.Text type="Header">Delete account</Kb.Text>
+        <Kb.Text type="BodySmall">
           This can not be undone. You won’t be able to create a new account with the same username.
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
       <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
         <Kb.Button

@@ -25,10 +25,10 @@ const contactRow = (_: number, props: ContactRowProps) => {
           {!hasThumbnail && <Kb.Avatar size={48} style={styles.placeHolderAvatar} />}
           <Kb.Box2 direction="vertical">
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text3 type="BodySemibold">{props.name}</Kb.Text3>
+              <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text3 type="BodySmall">{props.valueFormatted || props.value}</Kb.Text3>
+              <Kb.Text type="BodySmall">{props.valueFormatted || props.value}</Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
@@ -93,9 +93,9 @@ export const InviteByContact = (props: InviteByContactProps) => {
       <Kb.HeaderHocHeader onBack={props.onBack} title="Invite contacts" />
       {!!props.errorMessage && (
         <Kb.Box2 direction="horizontal" style={styles.errorMessageContainer} fullWidth={true}>
-          <Kb.Text3 center={true} type="BodySemibold" negative={true}>
+          <Kb.Text center={true} type="BodySemibold" negative={true}>
             {props.errorMessage}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       )}
       {hasItems && (
@@ -121,10 +121,10 @@ export const InviteByContact = (props: InviteByContactProps) => {
             disabledRoles={{owner: 'Cannot invite an owner via email.'}}
           />
           <Kb.ClickableBox onClick={() => controlRolePicker(true)} style={styles.rolePickerBox}>
-            <Kb.Text3 center={true} type="BodySmall">
+            <Kb.Text center={true} type="BodySmall">
               Users will be invited to {props.teamName} as
-              <Kb.Text3 type="BodySmallPrimaryLink">{' ' + props.selectedRole + 's'}</Kb.Text3>.
-            </Kb.Text3>
+              <Kb.Text type="BodySmallPrimaryLink">{' ' + props.selectedRole + 's'}</Kb.Text>.
+            </Kb.Text>
           </Kb.ClickableBox>
           <Kb.List2
             keyProperty="id"

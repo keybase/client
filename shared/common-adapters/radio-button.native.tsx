@@ -1,12 +1,12 @@
 import type * as React from 'react'
 import ClickableBox from './clickable-box'
-import {Text3} from './text3'
+import {Text} from './text'
 import * as Styles from '@/styles'
 import type {Props} from './radio-button'
 
 const Kb = {
   ClickableBox,
-  Text3,
+  Text,
 }
 
 export const RADIOBUTTON_SIZE = 22
@@ -49,9 +49,9 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
         <RadioInnerCircle selected={selected} />
       </RadioOuterCircle>
       {typeof label === 'string' ? (
-        <Kb.Text3 type="Body" style={{color: Styles.globalColors.black}}>
+        <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
           {label}
-        </Kb.Text3>
+        </Kb.Text>
       ) : (
         label
       )}

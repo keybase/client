@@ -1,7 +1,7 @@
 import {Box2} from '@/common-adapters/box'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import Divider from '@/common-adapters/divider'
-import {Text3} from '@/common-adapters/text3'
+import {Text} from '@/common-adapters/text'
 import * as Styles from '@/styles'
 import FloatingMenu, {type MenuItems} from '@/common-adapters/floating-menu'
 
@@ -11,7 +11,7 @@ const Kb = {
   Divider,
   FloatingMenu,
   Styles,
-  Text3,
+  Text,
 }
 
 type Props = {
@@ -26,14 +26,14 @@ const items: MenuItems = []
 const PaymentStatusError = (props: Props) => {
   const header = (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text3 type="BodyExtrabold" style={styles.headerError}>
+      <Kb.Text type="BodyExtrabold" style={styles.headerError}>
         Failed to send payment
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.Divider />
       <Kb.Box2 style={styles.errorContainer} direction="vertical" centerChildren={true} fullWidth={true}>
-        <Kb.Text3 type="BodySemibold" style={styles.bodyError}>
+        <Kb.Text type="BodySemibold" style={styles.bodyError}>
           {props.error}
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )

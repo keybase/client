@@ -42,16 +42,16 @@ const RetentionWarning = (props: Props) => {
             type={props.exploding ? 'iconfont-bomb-solid' : 'iconfont-timer-solid'}
           />
         </Kb.Box2>
-        <Kb.Text3 center={true} type="Header" style={styles.headerStyle}>
+        <Kb.Text center={true} type="Header" style={styles.headerStyle}>
           {props.exploding ? 'Explode' : 'Auto-delete'} chat messages after {props.timePeriod}?
-        </Kb.Text3>
-        <Kb.Text3 center={true} type="Body" style={styles.bodyStyle}>
+        </Kb.Text>
+        <Kb.Text center={true} type="Body" style={styles.bodyStyle}>
           You are about to set the messages in this {convType} to{' '}
           {props.exploding ? 'explode after ' : 'be automatically deleted after '}
-          <Kb.Text3 type="BodyBold">{props.timePeriod}.</Kb.Text3>{' '}
+          <Kb.Text type="BodyBold">{props.timePeriod}.</Kb.Text>{' '}
           {showChannelWarnings &&
             "This will affect all the team's channels, except the ones you've set manually."}
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.Checkbox
           checked={enabled}
           onCheck={setEnabled}
@@ -59,12 +59,12 @@ const RetentionWarning = (props: Props) => {
           label=""
           labelComponent={
             <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
-              <Kb.Text3 type="Body">
+              <Kb.Text type="Body">
                 I understand that existing messages older than {props.timePeriod} will be deleted now, for
                 everyone.
-              </Kb.Text3>
+              </Kb.Text>
               {showChannelWarnings && (
-                <Kb.Text3 type="BodySmall">{"Channels you've set manually will not be affected."}</Kb.Text3>
+                <Kb.Text type="BodySmall">{"Channels you've set manually will not be affected."}</Kb.Text>
               )}
             </Kb.Box2>
           }

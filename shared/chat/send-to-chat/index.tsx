@@ -30,13 +30,13 @@ const MobileSendToChatRoutable = (props: Props) => {
       onClose={canBack ? onBack : onCancel}
       header={{
         leftButton: canBack ? (
-          <Kb.Text3 type="BodyBigLink" onClick={onBack}>
+          <Kb.Text type="BodyBigLink" onClick={onBack}>
             Back
-          </Kb.Text3>
+          </Kb.Text>
         ) : (
-          <Kb.Text3 type="BodyBigLink" onClick={onCancel}>
+          <Kb.Text type="BodyBigLink" onClick={onCancel}>
             Cancel
-          </Kb.Text3>
+          </Kb.Text>
         ),
         title: FS.getSharePathArrayDescription(sendPaths || []),
       }}
@@ -141,7 +141,7 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
     <>
       <Kb.Box2 direction="vertical" style={desktopStyles.container} centerChildren={true}>
         <Kb.Box2 direction="horizontal" centerChildren={true} style={desktopStyles.header} fullWidth={true}>
-          <Kb.Text3 type="Header">Attach in conversation</Kb.Text3>
+          <Kb.Text type="Header">Attach in conversation</Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={desktopStyles.belly} fullWidth={true}>
           <Kb.Box2
@@ -152,7 +152,7 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
             gap="tiny"
           >
             <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="iconfont-attachment" />
-            <Kb.Text3 type="BodySmall">{T.FS.getPathName(props.path)}</Kb.Text3>
+            <Kb.Text type="BodySmall">{T.FS.getPathName(props.path)}</Kb.Text>
           </Kb.Box2>
           <ChooseConversation
             convName={props.convName}

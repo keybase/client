@@ -97,18 +97,18 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
       onLayout={Kb.Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
       {Kb.Styles.isPhone && (
-        <Kb.Text3 style={styles.topLink} type="BodyBigLink" onClick={onCancel}>
+        <Kb.Text style={styles.topLink} type="BodyBigLink" onClick={onCancel}>
           Cancel
-        </Kb.Text3>
+        </Kb.Text>
       )}
-      <Kb.Text3 type="BodySmall">
+      <Kb.Text type="BodySmall">
         {selectedCount} {pluralize(selectableTabName, selectedCount)} selected.{' '}
         {!Kb.Styles.isPhone && (
-          <Kb.Text3 type="BodySmallPrimaryLink" onClick={onCancel}>
+          <Kb.Text type="BodySmallPrimaryLink" onClick={onCancel}>
             Unselect
-          </Kb.Text3>
+          </Kb.Text>
         )}
-      </Kb.Text3>
+      </Kb.Text>
 
       {!Kb.Styles.isPhone && <Kb.BoxGrow />}
       {children}

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Text3} from '@/common-adapters/text3'
+import {Text} from '@/common-adapters/text'
 
 type Props = {
   children: React.ReactNode
@@ -42,7 +42,7 @@ const Spoiler = (p: Props) => {
   }, [len])
 
   return (
-    <Text3
+    <Text
       className={shown ? undefined : 'spoiler'}
       type="BodySmall"
       onClick={onClick}
@@ -50,7 +50,7 @@ const Spoiler = (p: Props) => {
       title={shown ? '' : 'Click to reveal'}
     >
       {shown ? children || content : masked}
-    </Text3>
+    </Text>
   )
 }
 

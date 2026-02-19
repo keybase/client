@@ -144,7 +144,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
               fontSize={32}
               style={RowCommon.rowStyles.pathItemIcon}
             />
-            <Kb.Text3 type="BodySemibold">..</Kb.Text3>
+            <Kb.Text type="BodySemibold">..</Kb.Text>
           </Kb.ClickableBox>
         )}
         {!!onCopyHere && (
@@ -154,9 +154,9 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
               color={Kb.Styles.globalColors.blue}
               style={RowCommon.rowStyles.pathItemIcon}
             />
-            <Kb.Text3 type="BodySemibold" style={styles.actionText}>
+            <Kb.Text type="BodySemibold" style={styles.actionText}>
               {isShare ? 'Save here' : 'Copy here'}
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.ClickableBox>
         )}
         {!!onMoveHere && (
@@ -166,9 +166,9 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
               color={Kb.Styles.globalColors.blue}
               style={RowCommon.rowStyles.pathItemIcon}
             />
-            <Kb.Text3 type="BodySemibold" style={styles.actionText}>
+            <Kb.Text type="BodySemibold" style={styles.actionText}>
               Move here
-            </Kb.Text3>
+            </Kb.Text>
           </Kb.ClickableBox>
         )}
         {parentPath === FS.defaultPath ? (
@@ -202,9 +202,9 @@ const NewFolder = (p: {onNewFolder?: () => void}) => {
   return (
     <Kb.ClickableBox style={styles.newFolderBox} onClick={onNewFolder}>
       <Kb.Icon type="iconfont-folder-new" color={Kb.Styles.globalColors.blue} />
-      <Kb.Text3 type="BodyBig" style={styles.newFolderText}>
+      <Kb.Text type="BodyBig" style={styles.newFolderText}>
         Create new folder
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.ClickableBox>
   )
 }
@@ -215,16 +215,16 @@ const makeLeftButton = (onCancel?: () => void, onBack?: () => void) => {
   }
   if (onCancel) {
     return (
-      <Kb.Text3 type="BodyBigLink" onClick={onCancel}>
+      <Kb.Text type="BodyBigLink" onClick={onCancel}>
         Cancel
-      </Kb.Text3>
+      </Kb.Text>
     )
   }
   if (onBack) {
     return (
-      <Kb.Text3 type="BodyBigLink" onClick={onBack}>
+      <Kb.Text type="BodyBigLink" onClick={onBack}>
         Back
-      </Kb.Text3>
+      </Kb.Text>
     )
   }
   return undefined
@@ -235,20 +235,20 @@ const makeTitle = (targetName: string, parentPath: T.FS.Path) => {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <FsCommon.Filename type="BodyTiny" filename={targetName} />
-        <Kb.Text3 type="BodyBig">Save in...</Kb.Text3>
+        <Kb.Text type="BodyBig">Save in...</Kb.Text>
       </Kb.Box2>
     )
   }
   return (
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.desktopHeader} gap="xtiny">
-      <Kb.Text3 type="Header" style={{flexShrink: 0}}>
+      <Kb.Text type="Header" style={{flexShrink: 0}}>
         {'Move or Copy "'}
-      </Kb.Text3>
+      </Kb.Text>
       <FsCommon.ItemIcon size={16} path={T.FS.pathConcat(parentPath, targetName)} />
       <FsCommon.Filename type="Header" filename={targetName} />
-      <Kb.Text3 type="Header" style={{flexShrink: 0}}>
+      <Kb.Text type="Header" style={{flexShrink: 0}}>
         {'"'}
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   )
 }

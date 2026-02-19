@@ -49,9 +49,9 @@ const Breadcrumb = (props: Props) => {
               view: (
                 <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
                   <Kbfs.ItemIcon path={path} size={16} />
-                  <Kb.Text3 type="Body" lineClamp={1}>
+                  <Kb.Text type="Body" lineClamp={1}>
                     {T.FS.getPathName(path)}
-                  </Kb.Text3>
+                  </Kb.Text>
                 </Kb.Box2>
               ),
             }))}
@@ -69,29 +69,29 @@ const Breadcrumb = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       {ancestors.length > 2 && (
         <React.Fragment key="dropdown">
-          <Kb.Text3 key="dots" type="BodyTinyLink" onClick={showPopup} textRef={popupAnchor}>
+          <Kb.Text key="dots" type="BodyTinyLink" onClick={showPopup} textRef={popupAnchor}>
             •••
-          </Kb.Text3>
+          </Kb.Text>
           {popup}
         </React.Fragment>
       )}
       {ancestors.slice(-2).map(path => (
         <React.Fragment key={`text-${path}`}>
-          <Kb.Text3 key={`slash-${T.FS.pathToString(path)}`} type="BodyTiny" style={styles.slash}>
+          <Kb.Text key={`slash-${T.FS.pathToString(path)}`} type="BodyTiny" style={styles.slash}>
             /
-          </Kb.Text3>
-          <Kb.Text3
+          </Kb.Text>
+          <Kb.Text
             key={`name-${T.FS.pathToString(path)}`}
             type="BodyTinyLink"
             onClick={() => onOpenPath(path)}
           >
             {T.FS.getPathName(path)}
-          </Kb.Text3>
+          </Kb.Text>
         </React.Fragment>
       ))}
-      <Kb.Text3 key={`slash-end}`} type="BodyTiny" style={styles.slash}>
+      <Kb.Text key={`slash-end}`} type="BodyTiny" style={styles.slash}>
         /
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   )
 }
@@ -113,9 +113,9 @@ const MainTitle = (props: Props) => (
 
 const FsNavHeaderTitle = (props: Props) =>
   props.path === FS.defaultPath ? (
-    <Kb.Text3 type="Header" style={styles.rootTitle}>
+    <Kb.Text type="Header" style={styles.rootTitle}>
       Files
-    </Kb.Text3>
+    </Kb.Text>
   ) : (
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Breadcrumb {...props} />

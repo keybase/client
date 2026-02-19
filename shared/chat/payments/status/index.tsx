@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import * as Chat from '@/stores/chat2'
 import PaymentStatusError from './error'
-import {Text3} from '@/common-adapters/text3'
+import {Text} from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'
 import Icon from '@/common-adapters/icon'
 import type * as T from '@/constants/types'
@@ -16,7 +16,7 @@ const Kb = {
   Box2,
   Icon,
   Styles,
-  Text3,
+  Text,
 }
 
 type Status = 'error' | 'pending' | 'completed' | 'claimable'
@@ -71,13 +71,13 @@ const PaymentStatus = (props: Props) => {
     setShowPopup(false)
   }
   const text = (
-    <Kb.Text3
+    <Kb.Text
       textRef={statusRef}
       type="BodyExtrabold"
       onClick={_showPopup}
     >
       {' '}
-      <Kb.Text3 type="BodyExtrabold" style={styles[props.status]}>
+      <Kb.Text type="BodyExtrabold" style={styles[props.status]}>
         {props.text}{' '}
         <Kb.Icon
           type={getIcon(props.status)}
@@ -85,8 +85,8 @@ const PaymentStatus = (props: Props) => {
           boxStyle={styles.iconBoxStyle}
           color={statusColor(props.status)}
         />
-      </Kb.Text3>{' '}
-    </Kb.Text3>
+      </Kb.Text>{' '}
+    </Kb.Text>
   )
   const popups = props.isSendError ? (
     <PaymentStatusError

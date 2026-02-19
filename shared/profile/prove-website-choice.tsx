@@ -21,9 +21,9 @@ const ProveWebsiteChoice = () => {
   return (
     <Modal onCancel={onCancel}>
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text3 center={true} type="Header">
+        <Kb.Text center={true} type="Header">
           Prove your website in two ways:
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.ChoiceList
           options={[
             {

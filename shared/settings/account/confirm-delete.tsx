@@ -44,13 +44,13 @@ const DeleteModal = (props: OwnProps) => {
   const prompt =
     itemType === 'email' ? (
       <Kb.Box2 direction="vertical" alignItems="center">
-        <Kb.Text3 type="HeaderBig">Delete email</Kb.Text3>
-        <Kb.Text3 type="HeaderBig">{props.address}?</Kb.Text3>
+        <Kb.Text type="HeaderBig">Delete email</Kb.Text>
+        <Kb.Text type="HeaderBig">{props.address}?</Kb.Text>
       </Kb.Box2>
     ) : (
       <Kb.Box2 direction="vertical" alignItems="center">
-        <Kb.Text3 type="HeaderBig">Delete number</Kb.Text3>
-        <Kb.Text3 type="HeaderBig">{PhoneUtil.e164ToDisplay(props.address)}?</Kb.Text3>
+        <Kb.Text type="HeaderBig">Delete number</Kb.Text>
+        <Kb.Text type="HeaderBig">{PhoneUtil.e164ToDisplay(props.address)}?</Kb.Text>
       </Kb.Box2>
     )
 

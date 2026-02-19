@@ -36,7 +36,7 @@ const SelectChannel = (ownProps: OwnProps) => {
       <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
         <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer} gap="tiny">
-            <Kb.Text3 type="Header">Select a channel</Kb.Text3>
+            <Kb.Text type="Header">Select a channel</Kb.Text>
             {channelNames.map(name => (
               <Kb.Box2 key={name} direction="horizontal" fullWidth={true} style={styles.row}>
                 <Kb.RadioButton

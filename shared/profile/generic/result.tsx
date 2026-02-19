@@ -22,14 +22,14 @@ const GenericResult = () => {
   const iconType = success ? 'icon-proof-success' : 'icon-proof-broken'
   let frag = (
     <>
-      <Kb.Text3 type="Body">You are provably</Kb.Text3>
-      <Kb.Text3 type="BodySemibold">{proofUsername}</Kb.Text3>
+      <Kb.Text type="Body">You are provably</Kb.Text>
+      <Kb.Text type="BodySemibold">{proofUsername}</Kb.Text>
     </>
   )
   if (!success) {
     frag = (
       <>
-        <Kb.Text3 type="Body">{errorText}</Kb.Text3>
+        <Kb.Text type="Body">{errorText}</Kb.Text>
       </>
     )
   }

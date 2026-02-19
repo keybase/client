@@ -2,8 +2,8 @@ import * as React from 'react'
 import {Box2Measure} from './box'
 import Icon from './icon'
 import Button, {type Props as ButtonProps} from './button'
-import {Text3} from './text3'
-import type {LineClampType, TextType} from './text3.shared'
+import {Text} from './text'
+import type {LineClampType, TextType} from './text.shared'
 import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '@/styles'
@@ -15,7 +15,7 @@ const Kb = {
   Box2Measure,
   Button,
   Icon,
-  Text3,
+  Text,
   Toast,
 }
 
@@ -128,11 +128,11 @@ const CopyText = (props: Props) => {
     >
       <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
         {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
-        <Kb.Text3 type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
+        <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Toast>
-      <Kb.Text3
+      <Kb.Text
         lineClamp={lineClamp}
         type={props.textType || 'BodySmallSemibold'}
         selectable={true}
@@ -143,11 +143,11 @@ const CopyText = (props: Props) => {
         {isRevealed && (props.text || props.placeholderText)
           ? props.text || props.placeholderText
           : '••••••••••••'}
-      </Kb.Text3>
+      </Kb.Text>
       {!isRevealed && (
-        <Kb.Text3 type="BodySmallPrimaryLink" style={styles.reveal} onClick={reveal}>
+        <Kb.Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={reveal}>
           Reveal
-        </Kb.Text3>
+        </Kb.Text>
       )}
       {!props.disabled && (
         <Kb.Button

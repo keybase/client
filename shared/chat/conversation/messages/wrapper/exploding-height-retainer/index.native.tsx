@@ -151,9 +151,9 @@ const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value})
         }
       }
       children.push(
-        <Kb.Text3 key={i} type="Body">
+        <Kb.Text key={i} type="Body">
           {emoji}
-        </Kb.Text3>
+        </Kb.Text>
       )
     }
     setChildren(children)
@@ -179,11 +179,11 @@ const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: bool
 
   if (showExploded) {
     exploded = !explodedBy ? (
-      <Kb.Text3 type="BodyTiny" style={styles.exploded}>
+      <Kb.Text type="BodyTiny" style={styles.exploded}>
         EXPLODED
-      </Kb.Text3>
+      </Kb.Text>
     ) : (
-      <Kb.Text3 lineClamp={1} type="BodyTiny" style={styles.exploded}>
+      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.exploded}>
         EXPLODED BY{' '}
         <Kb.ConnectedUsernames
           type="BodySmallBold"
@@ -194,7 +194,7 @@ const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: bool
           colorYou={true}
           underline={true}
         />
-      </Kb.Text3>
+      </Kb.Text>
     )
   }
   return (

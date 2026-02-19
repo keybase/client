@@ -69,9 +69,9 @@ const useTooltip = () => {
     <Portal hostName="convOverlay" useFullScreenOverlay={false}>
       <Animated.View style={animatedStyles}>
         <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
-          <Kb.Text3 type="BodySmall" negative={true}>
+          <Kb.Text type="BodySmall" negative={true}>
             Hold to record audio.
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       </Animated.View>
     </Portal>
@@ -674,7 +674,7 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
   )
 }
 
-const AnimatedText = Animated.createAnimatedComponent(Kb.Text3)
+const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
 const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: () => void}) => {
   'use no memo'
@@ -790,7 +790,7 @@ const AudioCounter = () => {
     }, 1000)
     return () => clearTimeout(timer)
   }, [seconds, startTime])
-  return <Kb.Text3 type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text3>
+  return <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>
 }
 
 const micCenterRight = 54

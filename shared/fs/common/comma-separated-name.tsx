@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {TextType, StylesTextCrossPlatform} from '@/common-adapters/text3.shared'
+import type {TextType, StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 
 export type Props = {
   name: string
@@ -17,7 +17,7 @@ export type Props = {
 const CommaSeparatedName = (props: Props) => (
   <>
     {props.name.split(',').map<React.ReactElement>((elem, idx, {length}: Array<string>) => (
-      <Kb.Text3
+      <Kb.Text
         selectable={props.selectable}
         center={props.center}
         key={idx.toString()}
@@ -26,7 +26,7 @@ const CommaSeparatedName = (props: Props) => (
       >
         {elem}
         {idx !== length - 1 ? ',' : ''}
-      </Kb.Text3>
+      </Kb.Text>
     ))}
   </>
 )

@@ -42,38 +42,38 @@ const resetText = (props: Props) => {
         ? getOtherResetText(props.reset)
         : null
   return text ? (
-    <Kb.Text3
+    <Kb.Text
       type="BodySmallError"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
       lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
     >
       {text}
-    </Kb.Text3>
+    </Kb.Text>
   ) : null
 }
 
 const getPrefixText = (props: Props) =>
   props.mixedMode && props.tlfType ? (
     <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true}>
-      <Kb.Text3
+      <Kb.Text
         type="BodySmall"
         style={props.mode === 'default' ? styles.textDefault : styles.textRow}
         lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
       >
         {props.tlfType}/
-      </Kb.Text3>
+      </Kb.Text>
     </Kb.Box2>
   ) : null
 
 const timeText = (props: Props) =>
   props.tlfMtime ? (
-    <Kb.Text3
+    <Kb.Text
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
       lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
     >
       {formatTimeForFS(props.tlfMtime, props.mode !== 'row')}
-    </Kb.Text3>
+    </Kb.Text>
   ) : null
 
 const getText = (props: Props) => {
@@ -95,13 +95,13 @@ const getText = (props: Props) => {
 const TlfInfoLine = (props: Props) => {
   const prefix = getPrefixText(props)
   const dot = (
-    <Kb.Text3
+    <Kb.Text
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
       lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
     >
       •&nbsp;
-    </Kb.Text3>
+    </Kb.Text>
   )
 
   const newMeta = newMetaMaybe(props)

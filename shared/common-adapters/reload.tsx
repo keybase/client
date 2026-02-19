@@ -5,7 +5,7 @@ import * as Styles from '@/styles'
 import {Box2} from './box'
 import {HeaderHocHeader} from './header-hoc'
 import ScrollView from './scroll-view'
-import {Text3} from './text3'
+import {Text} from './text'
 import Button from './button'
 import Icon from './icon'
 import type {RPCError} from '@/util/errors'
@@ -18,7 +18,7 @@ const Kb = {
   HeaderHocHeader,
   Icon,
   ScrollView,
-  Text3,
+  Text,
 }
 
 type ReloadProps = {
@@ -39,19 +39,19 @@ const Reload = React.memo(function Reload(props: ReloadProps) {
       <Kb.ScrollView style={styles.container}>
         <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
           <Kb.Icon type="icon-illustration-zen-240-180" />
-          <Kb.Text3 center={true} type="Header">
+          <Kb.Text center={true} type="Header">
             {"We're having a hard time loading this page."}
-          </Kb.Text3>
+          </Kb.Text>
           {expanded && (
             <Kb.Box2 direction="vertical" style={styles.detailContainer}>
-              <Kb.Text3 type="Terminal" style={styles.details}>
+              <Kb.Text type="Terminal" style={styles.details}>
                 {props.reason}
-              </Kb.Text3>
+              </Kb.Text>
             </Kb.Box2>
           )}
-          <Kb.Text3 type="BodySecondaryLink" onClick={toggle}>
+          <Kb.Text type="BodySecondaryLink" onClick={toggle}>
             {expanded ? 'Hide details' : 'Show details'}
-          </Kb.Text3>
+          </Kb.Text>
           <Kb.Box2 direction="horizontal" gap="tiny">
             <Kb.Button label="Retry" mode="Secondary" onClick={() => props.onReload(true)} />
             <Kb.Button label="Feedback" mode="Primary" onClick={props.onFeedback} />

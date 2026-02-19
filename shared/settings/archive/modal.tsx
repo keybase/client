@@ -135,13 +135,13 @@ const ArchiveModal = (p: Props) => {
   let content: React.ReactNode = null
   switch (type) {
     case 'chatID':
-      content = <Kb.Text3 type="Body">Source: Chat conversation: {displayname}</Kb.Text3>
+      content = <Kb.Text type="Body">Source: Chat conversation: {displayname}</Kb.Text>
       break
     case 'chatTeam':
-      content = <Kb.Text3 type="Body">Source: Chat team: {p.teamname}</Kb.Text3>
+      content = <Kb.Text type="Body">Source: Chat team: {p.teamname}</Kb.Text>
       break
     case 'chatAll':
-      content = <Kb.Text3 type="Body">Source: All chats</Kb.Text3>
+      content = <Kb.Text type="Body">Source: All chats</Kb.Text>
       break
     case 'fsAll':
       content =
@@ -149,12 +149,12 @@ const ArchiveModal = (p: Props) => {
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
             <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
               <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
-              <Kb.Text3 type="Header">All Files</Kb.Text3>
+              <Kb.Text type="Header">All Files</Kb.Text>
             </Kb.Box2>
-            <Kb.Text3 type="Body">
+            <Kb.Text type="Body">
               Note: public folders that you are not a writer of will be skipped. Use{' '}
-              <Kb.Text3 type="TerminalInline">keybase fs archive</Kb.Text3> if you want to backup them.
-            </Kb.Text3>
+              <Kb.Text type="TerminalInline">keybase fs archive</Kb.Text> if you want to backup them.
+            </Kb.Text>
           </Kb.Box2>
         ) : archiveAllFilesResponseWaiter.state === 'waiting' ? (
           <Kb.LoadingLine />
@@ -162,14 +162,14 @@ const ArchiveModal = (p: Props) => {
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
             <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
               <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
-              <Kb.Text3 type="Header">All Files</Kb.Text3>
+              <Kb.Text type="Header">All Files</Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="vertical" centerChildren={true}>
-              <Kb.Text3 type="Body">
+              <Kb.Text type="Body">
                 Started {archiveAllFilesResponseWaiter.started} jobs successfully.
-              </Kb.Text3>
-              <Kb.Text3 type="Body">Skipped {archiveAllFilesResponseWaiter.skipped} folders.</Kb.Text3>
-              <Kb.Text3 type="Body">Encountered {archiveAllFilesResponseWaiter.errors.size} errors.</Kb.Text3>
+              </Kb.Text>
+              <Kb.Text type="Body">Skipped {archiveAllFilesResponseWaiter.skipped} folders.</Kb.Text>
+              <Kb.Text type="Body">Encountered {archiveAllFilesResponseWaiter.errors.size} errors.</Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
         )
@@ -179,7 +179,7 @@ const ArchiveModal = (p: Props) => {
         archiveAllGitResponseWaiter.state === 'idle' ? (
           <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
             <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
-            <Kb.Text3 type="Header">All Git Repos</Kb.Text3>
+            <Kb.Text type="Header">All Git Repos</Kb.Text>
           </Kb.Box2>
         ) : archiveAllGitResponseWaiter.state === 'waiting' ? (
           <Kb.LoadingLine />
@@ -187,11 +187,11 @@ const ArchiveModal = (p: Props) => {
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
             <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
               <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
-              <Kb.Text3 type="Header">All Git Repos</Kb.Text3>
+              <Kb.Text type="Header">All Git Repos</Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="vertical" centerChildren={true}>
-              <Kb.Text3 type="Body">Started {archiveAllGitResponseWaiter.started} jobs successfully.</Kb.Text3>
-              <Kb.Text3 type="Body">Encountered {archiveAllGitResponseWaiter.errors.size} errors.</Kb.Text3>
+              <Kb.Text type="Body">Started {archiveAllGitResponseWaiter.started} jobs successfully.</Kb.Text>
+              <Kb.Text type="Body">Encountered {archiveAllGitResponseWaiter.errors.size} errors.</Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
         )
@@ -207,9 +207,9 @@ const ArchiveModal = (p: Props) => {
       content = (
         <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
           <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
-          <Kb.Text3 type="TerminalInline" lineClamp={2}>
+          <Kb.Text type="TerminalInline" lineClamp={2}>
             {p.gitURL}
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
       )
       break
@@ -218,16 +218,16 @@ const ArchiveModal = (p: Props) => {
   const output = Kb.Styles.isMobile ? null : (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-        <Kb.Text3 type="Body">Save To</Kb.Text3>
+        <Kb.Text type="Body">Save To</Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Text3 type="BodyItalic" lineClamp={1} title={outpath} style={styles.outPath}>
+        <Kb.Text type="BodyItalic" lineClamp={1} title={outpath} style={styles.outPath}>
           {outpath}
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.BoxGrow />
-        <Kb.Text3 type="BodyPrimaryLink" onClick={selectPath}>
+        <Kb.Text type="BodyPrimaryLink" onClick={selectPath}>
           Change
-        </Kb.Text3>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -249,9 +249,9 @@ const ArchiveModal = (p: Props) => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
         {Kb.Styles.isMobile ? (
-          <Kb.Text3 type="Body">Share a copy of your content to another app</Kb.Text3>
+          <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
         ) : (
-          <Kb.Text3 type="Body">Save a copy of your content to your local drive</Kb.Text3>
+          <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
         )}
         <Kb.BoxGrow />
         {content}

@@ -58,22 +58,22 @@ const CheckPassphraseMobile = () => {
       }}
       header={{
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text3 type="BodyBigLink" onClick={onCancel}>
+          <Kb.Text type="BodyBigLink" onClick={onCancel}>
             Cancel
-          </Kb.Text3>
+          </Kb.Text>
         ) : null,
       }}
       onClose={onCancel}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
         {Kb.Styles.isMobile && (
-          <Kb.Text3 style={styles.headerText} type="Header">
+          <Kb.Text style={styles.headerText} type="Header">
             Do you know your password?
-          </Kb.Text3>
+          </Kb.Text>
         )}
-        <Kb.Text3 style={styles.bodyText} type="Body">
+        <Kb.Text style={styles.bodyText} type="Body">
           You will need it to delete this account.
-        </Kb.Text3>
+        </Kb.Text>
         <Kb.RoundedBox>
           <Kb.PlainInput
             keyboardType={keyboardType}

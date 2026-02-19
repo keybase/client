@@ -23,9 +23,9 @@ const VerifyBody = (props: BodyProps) => {
 
   return (
     <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} gap="small" style={styles.body}>
-      <Kb.Text3 type="Body" negative={true} center={true}>
+      <Kb.Text type="Body" negative={true} center={true}>
         Enter the code in the SMS you received:
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.PlainInput
         autoFocus={true}
         style={styles.input}
@@ -36,10 +36,10 @@ const VerifyBody = (props: BodyProps) => {
         textContentType="oneTimeCode"
       >
         {Kb.Styles.isAndroid ? undefined : (
-          <Kb.Text3 type="Header" style={styles.inputText}>
+          <Kb.Text type="Header" style={styles.inputText}>
             {/* We put this child in Input because some text styles don't work on RN input itself - the one we need here is letterSpacing */}
             {props.code}
-          </Kb.Text3>
+          </Kb.Text>
         )}
       </Kb.PlainInput>
       <Kb.ClickableBox
@@ -60,9 +60,9 @@ const VerifyBody = (props: BodyProps) => {
             color={Kb.Styles.globalColors.white}
             style={styles.iconVerticalAlign}
           />
-          <Kb.Text3 type="BodySemibold" negative={true}>
+          <Kb.Text type="BodySemibold" negative={true}>
             Resend SMS
-          </Kb.Text3>
+          </Kb.Text>
         </Kb.Box2>
         {props.resendWaiting && (
           <Kb.Box2 direction="horizontal" style={styles.progressContainer} centerChildren={true}>

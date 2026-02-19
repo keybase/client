@@ -12,17 +12,17 @@ const SignOutputBanner = () => {
   const outputType = Crypto.useCryptoState(s => s.sign.outputType)
   return (
     <OutputInfoBanner operation={operation}>
-      <Kb.Text3 type="BodySmallSemibold" center={true}>
+      <Kb.Text type="BodySmallSemibold" center={true}>
         This is your signed {outputType === 'file' ? 'file' : 'message'}, using{` `}
-        <Kb.Text3
+        <Kb.Text
           type="BodySecondaryLink"
           underline={true}
           onClick={() => openURL(Crypto.saltpackDocumentation)}
         >
           Saltpack
-        </Kb.Text3>
+        </Kb.Text>
         .{` `}Anyone who has it can verify you signed it.
-      </Kb.Text3>
+      </Kb.Text>
     </OutputInfoBanner>
   )
 }

@@ -11,19 +11,19 @@ type OwnProps = {deviceID: string}
 
 const _renderTLFEntry = (index: number, tlf: string) => (
   <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
-    <Kb.Text3 type="BodySemibold">•</Kb.Text3>
-    <Kb.Text3 type="BodySemibold" selectable={true} style={styles.tlf}>
+    <Kb.Text type="BodySemibold">•</Kb.Text>
+    <Kb.Text type="BodySemibold" selectable={true} style={styles.tlf}>
       {tlf}
-    </Kb.Text3>
+    </Kb.Text>
   </Kb.Box2>
 )
 const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
   if (!props.endangeredTLFs.length) return null
   return (
     <>
-      <Kb.Text3 center={true} type="Body">
+      <Kb.Text center={true} type="Body">
         You may lose access to these folders forever:
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.Box2 direction="vertical" style={styles.listContainer}>
         <Kb.List2
           items={props.endangeredTLFs}
@@ -167,25 +167,25 @@ const DeviceRevoke = (ownProps: OwnProps) => {
         titleStyle={styles.headerName}
         size="small"
       />
-      <Kb.Text3 center={true} type="Header">
+      <Kb.Text center={true} type="Header">
         Are you sure you want to revoke{' '}
         {device?.currentDevice ? (
           'your current device'
         ) : (
-          <Kb.Text3 type="Header" style={styles.italicName}>
+          <Kb.Text type="Header" style={styles.italicName}>
             {deviceName}
-          </Kb.Text3>
+          </Kb.Text>
         )}
         ?
-      </Kb.Text3>
+      </Kb.Text>
       <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Kb.Styles.isMobile}>
         {!props.waiting && <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />}
       </Kb.Box2>
       <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
       {props.waiting && (
-        <Kb.Text3 center={true} type="BodySmallItalic">
+        <Kb.Text center={true} type="BodySmallItalic">
           Calculating any side effects...
-        </Kb.Text3>
+        </Kb.Text>
       )}
     </Kb.Box2>
   )
