@@ -264,7 +264,7 @@ func (brq *blockRetrievalQueue) shutdownRetrievalLocked() bool {
 	}
 
 	// TODO: try to infer the block type from the requests in the retrieval?
-	bpLookup := blockPtrLookup{retrieval.blockPtr, reflect.TypeFor[untyped nil]()}
+	bpLookup := blockPtrLookup{retrieval.blockPtr, nil}
 	delete(brq.ptrs, bpLookup)
 	brq.finalizeRequestAfterPtrDeletion(
 		retrieval, nil, DiskBlockAnyCache, io.EOF)
