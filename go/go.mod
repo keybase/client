@@ -222,6 +222,7 @@ tool (
 	github.com/golang/mock/mockgen
 	golang.org/x/mobile/cmd/gobind
 	golang.org/x/mobile/cmd/gomobile
+	golang.org/x/tools/cmd/goimports
 	golang.org/x/vuln/cmd/govulncheck
 	mvdan.cc/gofumpt
 )

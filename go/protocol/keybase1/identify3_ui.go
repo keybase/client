@@ -6,8 +6,9 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type Identify3RowState int

@@ -5,9 +5,10 @@ package chat1
 
 import (
 	"context"
+	"time"
+
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"time"
 )
 
 type BlockConversationsArg struct {
