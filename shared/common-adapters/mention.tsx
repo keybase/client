@@ -1,30 +1,28 @@
 import * as Chat from '@/stores/chat2'
 import * as Styles from '@/styles'
 import {WithProfileCardPopup} from './profile-card'
-import Text from './text'
+import {Text3} from './text3'
 
 export type OwnProps = {
   username: string
   theme?: 'follow' | 'nonFollow' | 'highlight' | 'none'
   style?: Styles.StylesCrossPlatform
-  allowFontScaling?: boolean
 }
 
 export type Props = {
   onClick?: () => void
 } & OwnProps
-const Mention = ({username, theme, style, allowFontScaling, onClick}: Props) => {
+const Mention = ({username, theme, style, onClick}: Props) => {
   const renderText = (onLongPress?: () => void) => (
-    <Text
+    <Text3
       type="BodyBold"
       onClick={onClick || undefined}
       className={Styles.classNames({'hover-underline': !Styles.isMobile})}
       style={Styles.collapseStyles([style, styles[theme || 'none'], styles.text])}
-      allowFontScaling={allowFontScaling}
       onLongPress={onLongPress}
     >
       @{username}
-    </Text>
+    </Text3>
   )
   return Chat.isSpecialMention(username) ? (
     renderText()

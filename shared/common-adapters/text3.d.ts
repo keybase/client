@@ -19,6 +19,7 @@ type Props = {
   tooltip?: string
   textRef?: React.RefObject<MeasureRef | null>
   underline?: boolean
+  underlineNever?: boolean
   virtualText?: boolean
   className?: string
 }

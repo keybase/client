@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2Measure} from './box'
 import Toast from './toast'
-import Text from './text'
+import {Text3} from './text3'
 import type {Props} from './with-tooltip'
 import type {MeasureRef} from './measure-ref'
 
@@ -10,7 +10,7 @@ const IGNORE_FOR_PROFILING = false as boolean
 
 const Kb = {
   Box2Measure,
-  Text,
+  Text3,
   Toast,
 }
 
@@ -41,13 +41,13 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
         position={position || 'top center'}
         className={toastClassName}
       >
-        <Kb.Text
+        <Kb.Text3
           center={!Styles.isMobile}
           type="BodySmall"
           style={Styles.collapseStyles([styles.text, textStyle])}
         >
           {tooltip}
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Toast>
     )
   }, [backgroundColor, multiline, position, textStyle, toastClassName, toastStyle, tooltip])

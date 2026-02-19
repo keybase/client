@@ -4,14 +4,14 @@ import PopupDialog from './popup-dialog'
 import ScrollView, {type ScrollViewRef} from '@/common-adapters/scroll-view'
 import {Box2, type LayoutEvent} from '@/common-adapters/box'
 import BoxGrow from './box-grow'
-import Text from '@/common-adapters/text'
+import {Text3} from '@/common-adapters/text3'
 import {useTimeout} from './use-timers'
 
 const Kb = {
   Box2,
   BoxGrow,
   ScrollView,
-  Text,
+  Text3,
   useTimeout,
 }
 
@@ -133,9 +133,9 @@ const Header = (props: HeaderProps) => {
   if (props.subTitle) {
     subTitle =
       typeof props.subTitle === 'string' ? (
-        <Kb.Text type="BodyTiny" lineClamp={1} center={true}>
+        <Kb.Text3 type="BodyTiny" lineClamp={1} center={true}>
           {props.subTitle}
-        </Kb.Text>
+        </Kb.Text3>
       ) : (
         props.subTitle
       )
@@ -177,9 +177,9 @@ const Header = (props: HeaderProps) => {
           <Kb.Box2 direction="vertical" style={useMeasuredStyles ? styles.measured : undefined} centerChildren={useMeasuredStyles}>
             {!!subTitle && props.subTitleAbove && subTitle}
             {typeof props.title === 'string' ? (
-              <Kb.Text type={Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+              <Kb.Text3 type={Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
                 {props.title}
-              </Kb.Text>
+              </Kb.Text3>
             ) : (
               props.title
             )}
@@ -206,9 +206,9 @@ export const useModalHeaderTitleAndCancel = (title: string, onCancel: () => void
   React.useMemo(
     () => ({
       leftButton: (
-        <Kb.Text type="BodyBigLink" onClick={onCancel}>
+        <Kb.Text3 type="BodyBigLink" onClick={onCancel}>
           Cancel
-        </Kb.Text>
+        </Kb.Text3>
       ),
       title,
     }),

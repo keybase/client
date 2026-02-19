@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
 import {Box2} from './box'
 import ProgressIndicator from './progress-indicator'
-import Text from './text'
+import {Text3} from './text3'
 import SwitchToggle from './switch-toggle'
 import WithTooltip from './with-tooltip'
 import type {MeasureRef} from './measure-ref'
@@ -13,7 +13,7 @@ const Kb = {
   Box2,
   ClickableBox,
   ProgressIndicator,
-  Text,
+  Text3,
   WithTooltip,
 }
 
@@ -78,13 +78,13 @@ const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props,
       {!!props.gapSize && <Kb.Box2 direction="vertical" style={{width: props.gapSize}} />}
       {typeof props.label === 'string' ? (
         <LabelContainer {...props}>
-          <Kb.Text type={props.labelType ?? 'BodySemibold'}>{props.label}</Kb.Text>
-          {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
+          <Kb.Text3 type={props.labelType ?? 'BodySemibold'}>{props.label}</Kb.Text3>
+          {!!props.labelSubtitle && <Kb.Text3 type="BodySmall">{props.labelSubtitle}</Kb.Text3>}
         </LabelContainer>
       ) : props.labelSubtitle ? (
         <LabelContainer {...props}>
           {props.label}
-          <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>
+          <Kb.Text3 type="BodySmall">{props.labelSubtitle}</Kb.Text3>
         </LabelContainer>
       ) : (
         props.label

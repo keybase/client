@@ -1,11 +1,11 @@
 import * as React from 'react'
 import {Box2} from './box'
-import Text from './text'
+import {Text3} from './text3'
 import * as Styles from '@/styles'
 
 const Kb = {
   Box2,
-  Text,
+  Text3,
 }
 
 export type Badge2Props = {
@@ -60,7 +60,7 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
           ])}
         >
           {!!badgeNumber && (
-            <Kb.Text
+            <Kb.Text3
               center={true}
               type="BodyTinyBold"
               style={Styles.collapseStyles([
@@ -70,7 +70,7 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
               ])}
             >
               {badgeNumber}
-            </Kb.Text>
+            </Kb.Text3>
           )}
         </Kb.Box2>
       </Kb.Box2>
@@ -94,7 +94,7 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
         ])}
       >
         {!!badgeNumber && (
-          <Kb.Text
+          <Kb.Text3
             center={true}
             type="BodyTinyBold"
             style={Styles.collapseStyles([
@@ -108,7 +108,7 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
             ])}
           >
             {badgeNumber}
-          </Kb.Text>
+          </Kb.Text3>
         )}
       </Kb.Box2>
     )

@@ -3,7 +3,7 @@ import {TouchableOpacity, Keyboard} from 'react-native'
 import Badge from '@/common-adapters/badge'
 import {Box2} from '@/common-adapters/box'
 import Icon from '@/common-adapters/icon'
-import Text from '@/common-adapters/text'
+import {Text3} from '@/common-adapters/text3'
 import Meta from '@/common-adapters/meta'
 import Divider from '@/common-adapters/divider'
 import ScrollView from '@/common-adapters/scroll-view'
@@ -23,7 +23,7 @@ const Kb = {
   Meta,
   ProgressIndicator,
   SafeAreaView,
-  Text,
+  Text3,
   useSafeAreaInsets,
 }
 
@@ -96,12 +96,12 @@ const MenuRow = (props: MenuRowProps) => (
             style={{justifyContent: 'center'}}
           >
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text type="Body" style={Styles.collapseStyles([styleRowText(props), props.style])}>
+              <Kb.Text3 type="Body" style={Styles.collapseStyles([styleRowText(props), props.style])}>
                 {props.title}
                 {props.rightTitle ? (
-                  <Kb.Text type="BodyTinySemiboldItalic">{' ' + props.rightTitle}</Kb.Text>
+                  <Kb.Text3 type="BodyTinySemiboldItalic">{' ' + props.rightTitle}</Kb.Text3>
                 ) : null}
-              </Kb.Text>
+              </Kb.Text3>
               {props.newTag && (
                 <Kb.Meta
                   title="New"
@@ -114,7 +114,7 @@ const MenuRow = (props: MenuRowProps) => (
             </Kb.Box2>
             {!!props.subTitle && (
               <Kb.Box2 direction="horizontal" fullWidth={true}>
-                <Kb.Text type="BodyTiny">{props.subTitle}</Kb.Text>
+                <Kb.Text3 type="BodyTiny">{props.subTitle}</Kb.Text3>
               </Kb.Box2>
             )}
           </Kb.Box2>

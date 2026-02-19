@@ -1,17 +1,17 @@
 import * as Chat from '@/stores/chat2'
 import type * as T from '@/constants/types'
-import Text, {type StylesTextCrossPlatform} from '../text'
+import {Text3} from '../text3'
+import type {StylesTextCrossPlatform} from '../text'
 import * as React from 'react'
 
 type OwnProps = {
   name: string
   convID: T.Chat.ConversationIDKey
   style: StylesTextCrossPlatform
-  allowFontScaling?: boolean
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {name, convID, style, allowFontScaling} = ownProps
+  const {name, convID, style} = ownProps
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const _onClick = React.useCallback(
     (name: string, convID: T.Chat.ConversationIDKey) =>
@@ -26,9 +26,9 @@ const Container = (ownProps: OwnProps) => {
   const onClick = () => _onClick(name, convID)
 
   return (
-    <Text type="BodyPrimaryLink" onClick={onClick} style={style} allowFontScaling={!!allowFontScaling}>
+    <Text3 type="BodyPrimaryLink" onClick={onClick} style={style}>
       #{name}
-    </Text>
+    </Text3>
   )
 }
 

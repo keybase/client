@@ -1,7 +1,7 @@
 import * as Styles from '@/styles'
 import * as React from 'react'
 import * as SM from '@khanacademy/simple-markdown'
-import Text from '@/common-adapters/text'
+import {Text3} from '@/common-adapters/text3'
 import logger from '@/logger'
 import type {Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
@@ -89,7 +89,6 @@ export type Props = {
   //
   // TODO type this up or remove it
   style?: Styles.StylesCrossPlatform
-  allowFontScaling?: boolean
   messageType?: T.Chat.MessageType
   // This changes the specific style for specific types of text
   // for example you may want to make paragraphs, italics, etc to be black_50
@@ -411,14 +410,14 @@ const shouldUseParser = (s: string) => {
 const ErrorComponent = (p: {children: React.ReactNode}) => {
   const {children} = p
   return (
-    <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle] as const)}>
+    <Text3 type="Body" style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle] as const)}>
       {children ?? ''}
-    </Text>
+    </Text3>
   )
 }
 
 const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: MarkdownProps) {
-  const {allowFontScaling, styleOverride = {}, paragraphTextClassName, messageType, children} = p
+  const {styleOverride = {}, paragraphTextClassName, messageType, children} = p
   const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
   const {serviceOnlyNoWrap, disallowAnimation, context} = p
   let parseTree: Array<SM.SingleASTNode>
@@ -442,7 +441,6 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
     })()
 
     const state = {
-      allowFontScaling,
       context,
       disallowAnimation,
       messageType,
@@ -477,20 +475,20 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
         return output
       case serviceOnly:
         return (
-          <Text className={paragraphTextClassName} type="Body" style={style} lineClamp={lineClamp}>
+          <Text3 className={paragraphTextClassName} type="Body" style={style} lineClamp={lineClamp}>
             {output}
-          </Text>
+          </Text3>
         )
       case preview:
         return (
-          <Text
+          <Text3
             className={paragraphTextClassName}
             type={Styles.isMobile ? 'Body' : 'BodySmall'}
             style={Styles.collapseStyles([markdownStyles.neutralPreviewStyle, style, styleOverride.preview])}
             lineClamp={1 as const}
           >
             {output}
-          </Text>
+          </Text3>
         )
       default:
         return output
@@ -503,7 +501,7 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
       {Styles.isMobile ? (
         inner
       ) : (
-        <Text
+        <Text3
           className={paragraphTextClassName}
           type="Body"
           lineClamp={lineClamp}
@@ -511,7 +509,7 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
           selectable={selectable}
         >
           {inner}
-        </Text>
+        </Text3>
       )}
     </ErrorBoundary>
   )

@@ -16,7 +16,7 @@ import {useProfileState} from '@/stores/profile'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 import ProgressIndicator from './progress-indicator'
-import Text from './text'
+import {Text3} from './text3'
 import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
 import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
@@ -35,7 +35,7 @@ const Kb = {
   Icon,
   Meta,
   ProgressIndicator,
-  Text,
+  Text3,
   WithTooltip,
 }
 
@@ -215,9 +215,9 @@ const ProfileCard = ({
         <>
           <ServiceIcons userDetailsAssertions={userDetailsAssertions} />
           {!!userDetails.bio && (
-            <Kb.Text type="Body" center={true} lineClamp={4} ellipsizeMode="tail">
+            <Kb.Text3 type="Body" center={true} lineClamp={4} ellipsizeMode="tail">
               {(userDetails.bio || '').replace(/\s/g, ' ')}
-            </Kb.Text>
+            </Kb.Text3>
           )}
         </>
       )}
@@ -249,7 +249,7 @@ const ProfileCard = ({
 
 type WithProfileCardPopupProps = {
   username: string
-  children: (onLongPress?: () => void) => React.ReactElement<typeof Text>
+  children: (onLongPress?: () => void) => React.ReactElement<typeof Text3>
   ellipsisStyle?: Styles.StylesCrossPlatform
 }
 

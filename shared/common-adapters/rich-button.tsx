@@ -4,7 +4,7 @@ import * as Styles from '@/styles'
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Avatar from './avatar'
-import Text from './text'
+import {Text3} from './text3'
 import type {IconType} from './icon.constants-gen'
 import Icon from './icon'
 
@@ -20,7 +20,7 @@ const Kb = {
   Box2,
   ClickableBox,
   Icon,
-  Text,
+  Text3,
 }
 
 const RichButton = (props: Props) => {
@@ -38,14 +38,14 @@ const RichButton = (props: Props) => {
       <Kb.Icon type={props.icon} style={styles.thumbnail} />
 
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} gap="xtiny">
-        <Kb.Text
+        <Kb.Text3
           className="hover_contained_color_blueDark"
           style={isPressing ? styles.mobileTitle : undefined}
           type="BodySemibold"
         >
           {props.title}
-        </Kb.Text>
-        <Kb.Text type="BodySmall">{props.description}</Kb.Text>
+        </Kb.Text3>
+        <Kb.Text3 type="BodySmall">{props.description}</Kb.Text3>
       </Kb.Box2>
     </Kb.ClickableBox>
   )

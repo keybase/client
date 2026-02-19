@@ -39,7 +39,7 @@ const MarkdownMemo = (props: Props) =>
         <Kb.Markdown
           style={styles.memo}
           styleOverride={{...styleOverride, ...props.styleOverride}}
-          allowFontScaling={true}
+
         >
           {props.memo}
         </Kb.Markdown>

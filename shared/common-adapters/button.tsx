@@ -4,7 +4,8 @@ import * as Styles from '@/styles'
 import Badge from './badge'
 import ClickableBox from './clickable-box'
 import Icon, {type SizeType} from './icon'
-import Text, {type StylesTextCrossPlatform} from './text'
+import {Text3} from './text3'
+import type {StylesTextCrossPlatform} from './text'
 import WithTooltip from './with-tooltip'
 import type {IconType} from './icon.constants-gen'
 import {Box2} from './box'
@@ -16,7 +17,7 @@ const Kb = {
   Box2,
   ClickableBox,
   Icon,
-  Text,
+  Text3,
   WithTooltip,
 }
 
@@ -230,17 +231,17 @@ const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
             />
           )}
           {!!props.label && (
-            <Kb.Text type="BodySemibold" style={Styles.collapseStyles([labelStyle, props.labelStyle])}>
+            <Kb.Text3 type="BodySemibold" style={Styles.collapseStyles([labelStyle, props.labelStyle])}>
               {props.label}
-            </Kb.Text>
+            </Kb.Text3>
           )}
           {!!props.subLabel && (
-            <Kb.Text
+            <Kb.Text3
               type="BodyTiny"
               style={Styles.collapseStyles([props.waiting && styles.opacity0, props.subLabelStyle])}
             >
               {props.subLabel}
-            </Kb.Text>
+            </Kb.Text3>
           )}
         </Kb.Box2>
         {!!props.badgeNumber && <Kb.Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}

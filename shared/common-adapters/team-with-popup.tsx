@@ -3,7 +3,8 @@ import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import {Box2} from './box'
 import * as Styles from '@/styles'
-import Text, {type TextType} from './text'
+import {Text3} from './text3'
+import type {TextType} from './text'
 import DelayedMounting from './delayed-mounting'
 import {TeamDetailsSubscriber} from '../teams/subscriber'
 import type TeamInfoType from '../profile/user/teams/teaminfo'
@@ -12,7 +13,7 @@ import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box2,
-  Text,
+  Text3,
 }
 export type Props = {
   description: string
@@ -68,12 +69,12 @@ const TeamWithPopup = (props: Props) => {
       onMouseLeave={onHidePopup}
       style={inline && styles.inlineStyle}
     >
-      <Kb.Text type={type} textRef={popupRef}>
-        <Kb.Text type={type}>{prefix}</Kb.Text>
-        <Kb.Text type={type} className={Styles.classNames({'hover-underline': props.underline ?? true})}>
+      <Kb.Text3 type={type} textRef={popupRef}>
+        <Kb.Text3 type={type}>{prefix}</Kb.Text3>
+        <Kb.Text3 type={type} className={Styles.classNames({'hover-underline': props.underline ?? true})}>
           {teamName}
-        </Kb.Text>
-      </Kb.Text>
+        </Kb.Text3>
+      </Kb.Text3>
       {popup}
     </Kb.Box2>
   )

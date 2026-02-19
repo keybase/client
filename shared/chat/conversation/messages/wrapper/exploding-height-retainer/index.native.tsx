@@ -187,7 +187,6 @@ const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: bool
         EXPLODED BY{' '}
         <Kb.ConnectedUsernames
           type="BodySmallBold"
-          fixOverdraw="auto"
           onUsernameClicked="profile"
           usernames={explodedBy}
           inline={true}

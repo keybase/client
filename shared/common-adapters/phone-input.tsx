@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import NativeEmoji from './emoji/native-emoji'
-import Text from './text'
+import {Text3} from './text3'
 import {Box2, Box2Measure} from './box'
 import FloatingMenu from './floating-menu'
 import SearchFilter from './search-filter'
@@ -33,7 +33,7 @@ const Kb = {
   PlainInput,
   ProgressIndicator,
   SearchFilter,
-  Text,
+  Text3,
   usePopup2,
 }
 
@@ -146,10 +146,10 @@ const menuItems = (
 
 const MenuItem = (props: {emoji: string; text: string}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem} gap="xtiny" alignItems="center">
-    <Kb.Text type="Body" center={true}>
+    <Kb.Text3 type="Body" center={true}>
       <Kb.NativeEmoji size={18} emojiName={props.emoji} />
-    </Kb.Text>
-    <Kb.Text type="BodySemibold">{props.text}</Kb.Text>
+    </Kb.Text3>
+    <Kb.Text3 type="BodySemibold">{props.text}</Kb.Text3>
   </Kb.Box2>
 )
 
@@ -540,7 +540,7 @@ const PhoneInput = (p: Props) => {
     const isSmall = small ?? !Styles.isMobile
     if (!isSmall) {
       return (
-        <Kb.Text
+        <Kb.Text3
           type="BodySemibold"
           style={Styles.collapseStyles([styles.countrySelector, styles.countrySelectorBig])}
         >
@@ -549,18 +549,18 @@ const PhoneInput = (p: Props) => {
               ? '- Pick a country -'
               : '- Invalid country prefix -'
             : countryData()[country]?.emoji + ' ' + countryData()[country]?.name}
-        </Kb.Text>
+        </Kb.Text3>
       )
     }
 
     return (
       <>
-        <Kb.Text type="Body" style={styles.countrySelector}>
+        <Kb.Text3 type="Body" style={styles.countrySelector}>
           {getCountryEmoji(country)}
-        </Kb.Text>
-        <Kb.Text type="BodySemibold" style={styles.countrySelector}>
+        </Kb.Text3>
+        <Kb.Text3 type="BodySemibold" style={styles.countrySelector}>
           {'+' + prefix}
-        </Kb.Text>
+        </Kb.Text3>
       </>
     )
   }
@@ -608,9 +608,9 @@ const PhoneInput = (p: Props) => {
             direction="horizontal"
             style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInputBig])}
           >
-            <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
+            <Kb.Text3 type="BodySemibold" style={styles.prefixPlus}>
               {'+'}
-            </Kb.Text>
+            </Kb.Text3>
             <Kb.PlainInput
               style={Styles.collapseStyles([styles.plainInputBig, styles.prefixInput])}
               flexable={true}

@@ -1,7 +1,8 @@
 import * as React from 'react'
 import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
 import {Box2} from './box'
-import Text, {getTextStyle} from './text'
+import {Text3} from './text3'
+import {getTextStyle} from './text'
 import * as Styles from '@/styles'
 import {isMobile} from '@/constants/platform'
 import {useColorScheme} from 'react-native'
@@ -66,7 +67,7 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
         containerStyle,
       ])}
     >
-      <Text
+      <Text3
         type={collapsed ? 'BodyTinySemibold' : isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
         style={Styles.collapseStyles([
           styles.label,
@@ -76,7 +77,7 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
         ])}
       >
         {placeholder}
-      </Text>
+      </Text3>
       <PlainInput
         {...plainInputProps}
         onChangeText={_onChangeText}

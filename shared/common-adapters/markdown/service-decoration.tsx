@@ -8,7 +8,9 @@ import KbfsPath from '@/fs/common/kbfs-path'
 import MaybeMention from './maybe-mention'
 import Mention from '../mention-container'
 import PaymentStatus from '../../chat/payments/status'
-import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
+import {Text3} from '@/common-adapters/text3'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text'
+import {useClickURL} from '@/common-adapters/text3-url'
 import WithTooltip from '../with-tooltip'
 import type {StyleOverride} from '.'
 import {RPCToEmojiData, default as Emoji} from '@/common-adapters/emoji'
@@ -34,7 +36,7 @@ const KeybaseLink = (props: KeybaseLinkProps) => {
   }, [props.link])
 
   return (
-    <Text
+    <Text3
       className="hover-underline hover_contained_color_blueDark"
       type="BodyPrimaryLink"
       style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
@@ -42,7 +44,7 @@ const KeybaseLink = (props: KeybaseLinkProps) => {
       onClick={onClick}
     >
       {props.link}
-    </Text>
+    </Text3>
   )
 }
 
@@ -57,9 +59,10 @@ type WarningLinkProps = {
 const WarningLink = (props: WarningLinkProps) => {
   const {display, punycode, url} = props
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const urlProps = useClickURL(url)
   if (Styles.isMobile) {
     return (
-      <Text
+      <Text3
         className="hover-underline"
         type="BodyPrimaryLink"
         style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
@@ -69,17 +72,16 @@ const WarningLink = (props: WarningLinkProps) => {
         }
       >
         {display}
-      </Text>
+      </Text3>
     )
   }
   return (
-    <Text
+    <Text3
       className="hover-underline"
       type="BodyPrimaryLink"
       style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
       title={display}
-      onClickURL={url}
-      onLongPressURL={url}
+      {...urlProps}
     >
       <WithTooltip
         tooltip={punycode}
@@ -89,13 +91,34 @@ const WarningLink = (props: WarningLinkProps) => {
       >
         {display}
       </WithTooltip>
-    </Text>
+    </Text3>
+  )
+}
+
+const URLText = (p: {
+  url: string
+  className?: string
+  type?: string
+  style?: Styles.StylesCrossPlatform
+  title?: string
+  children?: React.ReactNode
+}) => {
+  const urlProps = useClickURL(p.url)
+  return (
+    <Text3
+      className={p.className}
+      type={p.type as any}
+      style={p.style}
+      title={p.title}
+      {...urlProps}
+    >
+      {p.children}
+    </Text3>
   )
 }
 
 export type Props = {
   json: string
-  allowFontScaling?: boolean
   styleOverride?: StyleOverride
   styles: {[K in string]: StylesTextCrossPlatform}
   disableBigEmojis: boolean
@@ -104,7 +127,7 @@ export type Props = {
 }
 
 const ServiceDecoration = (p: Props) => {
-  const {json, allowFontScaling, styles, styleOverride} = p
+  const {json, styles, styleOverride} = p
   const {disableBigEmojis, disableEmojiAnimation, messageType} = p
   // Parse JSON to get the type of the decoration
   let parsed: T.RPCChat.UITextDecoration
@@ -140,7 +163,6 @@ const ServiceDecoration = (p: Props) => {
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.atmention && parsed.atmention) {
     return (
       <Mention
-        allowFontScaling={allowFontScaling || false}
         style={styles['wrapStyle']}
         username={parsed.atmention}
       />
@@ -148,7 +170,6 @@ const ServiceDecoration = (p: Props) => {
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.maybemention) {
     return (
       <MaybeMention
-        allowFontScaling={allowFontScaling || false}
         style={styles['wrapStyle']}
         name={parsed.maybemention.name}
         channel={parsed.maybemention.channel}
@@ -171,37 +192,34 @@ const ServiceDecoration = (p: Props) => {
         wrapStyle={styles['wrapStyle']}
       />
     ) : (
-      <Text
+      <URLText
         className="hover-underline hover_contained_color_blueDark"
         type="BodyPrimaryLink"
         style={Styles.collapseStyles([styles['wrapStyle'], linkStyle, styleOverride?.link])}
         title={parsed.link.url}
-        onClickURL={openUrl}
-        onLongPressURL={openUrl}
+        url={openUrl}
       >
         {parsed.link.url}
-      </Text>
+      </URLText>
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.mailto) {
     const openUrl = parsed.mailto.url.toLowerCase().startsWith('mailto:')
       ? parsed.mailto.url
       : 'mailto:' + parsed.mailto.url
     return (
-      <Text
+      <URLText
         className="hover-underline hover_contained_color_blueDark"
         type="BodyPrimaryLink"
         style={Styles.collapseStyles([styles['wrapStyle'], linkStyle, styleOverride?.mailto])}
         title={parsed.mailto.url}
-        onClickURL={openUrl}
-        onLongPressURL={openUrl}
+        url={openUrl}
       >
         {parsed.mailto.url}
-      </Text>
+      </URLText>
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.channelnamemention) {
     return (
       <Channel
-        allowFontScaling={allowFontScaling || false}
         convID={parsed.channelnamemention.convID}
         name={parsed.channelnamemention.name}
         style={

@@ -1,7 +1,7 @@
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
-import Text from './text'
+import {Text3} from './text3'
 import type {Props} from './checkbox'
 import * as Styles from '@/styles'
 
@@ -10,7 +10,7 @@ const Kb = {
   ClickableBox,
   Icon,
   Styles,
-  Text,
+  Text3,
 }
 
 const CHECKBOX_SIZE = 13
@@ -42,11 +42,11 @@ const Checkbox = (props: Props) => {
       />
       <Kb.Box2 direction="vertical">
         {props.labelComponent || (typeof props.label === 'string' ? (
-          <Kb.Text type={props.labelType ?? 'Body'}>{props.label}</Kb.Text>
+          <Kb.Text3 type={props.labelType ?? 'Body'}>{props.label}</Kb.Text3>
         ) : (
           props.label
         ))}
-        {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
+        {!!props.labelSubtitle && <Kb.Text3 type="BodySmall">{props.labelSubtitle}</Kb.Text3>}
       </Kb.Box2>
     </Kb.ClickableBox>
   )

@@ -3,7 +3,7 @@ import * as Chat from '@/stores/chat2'
 import * as React from 'react'
 import {Box2} from './box'
 import Icon from './icon'
-import Text from './text'
+import {Text3} from './text3'
 import Button from './button'
 import NativeEmoji from './emoji/native-emoji'
 import * as Styles from '@/styles'
@@ -15,7 +15,7 @@ const Kb = {
   Button,
   Icon,
   NativeEmoji,
-  Text,
+  Text3,
 }
 
 type Props = {
@@ -80,7 +80,7 @@ const WaveButtonImpl = (props: Props) => {
       {hideButton && (
         <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.waved} gap="xtiny">
           <Kb.Icon type="iconfont-check" color={Styles.globalColors.black_50} sizeType="Tiny" />
-          <Kb.Text type="BodySmall"> Waved</Kb.Text>
+          <Kb.Text3 type="BodySmall"> Waved</Kb.Text3>
         </Kb.Box2>
       )}
       <Kb.Button
@@ -91,9 +91,9 @@ const WaveButtonImpl = (props: Props) => {
         waiting={waving}
         disabled={!!props.disabled}
       >
-        <Kb.Text type="BodySemibold" style={styles.blueText}>
+        <Kb.Text3 type="BodySemibold" style={styles.blueText}>
           {waveText}
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.NativeEmoji emojiName=":wave:" size={18} />
       </Kb.Button>
     </Kb.Box2>

@@ -6,11 +6,11 @@ import BoxGrow from '@/common-adapters/box-grow'
 import FloatingMenu from '@/common-adapters/floating-menu'
 import Icon, {type IconType} from '@/common-adapters/icon'
 import SafeAreaView, {SafeAreaViewTop} from '@/common-adapters/safe-area-view'
-import Text from '@/common-adapters/text'
+import {Text3} from '@/common-adapters/text3'
 import {useNavigation} from '@react-navigation/native'
 import type {Props, LeftActionProps} from '.'
 
-const Kb = {BackButton, Box2, BoxGrow, FloatingMenu, Icon, Text}
+const Kb = {BackButton, Box2, BoxGrow, FloatingMenu, Icon, Text3}
 
 type RightAction = {
   label?: string
@@ -62,9 +62,9 @@ export const HeaderHocHeader = (props: Props) => {
             },
           ])}
         >
-          <Text type="BodyBig" style={styles.title} lineClamp={1}>
+          <Text3 type="BodyBig" style={styles.title} lineClamp={1}>
             {props.title}
-          </Text>
+          </Text3>
         </Kb.Box2>
       )}
       <LeftAction
@@ -104,9 +104,9 @@ export const LeftAction = (p: LeftActionProps): React.ReactElement => {
   return (
     <Kb.Box2 direction="vertical" alignItems="flex-start" style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow, style])}>
       {onLeftAction && leftAction === 'cancel' ? (
-        <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
+        <Text3 type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
           {leftActionText || customCancelText || 'Cancel'}
-        </Text>
+        </Text3>
       ) : (
         (onLeftAction || leftAction === 'back') && (
           <Kb.BackButton
@@ -142,14 +142,14 @@ const renderAction = (action: RightAction, index: number): React.ReactNode =>
   action.icon ? (
     <Kb.Icon key={action.label || index} onClick={action.onPress} style={styles.action} type={action.icon} />
   ) : (
-    <Text
+    <Text3
       key={action.label}
       type="BodyBigLink"
       style={Styles.collapseStyles([styles.action, action.color && {color: action.color}])}
       onClick={action.onPress}
     >
       {action.label}
-    </Text>
+    </Text3>
   )
 
 /** TODO likely deprecate this **/

@@ -4,7 +4,8 @@ import {Box2, Box2Measure} from './box'
 import ClickableBox, {ClickableBox2} from './clickable-box'
 import NewInput from './new-input'
 import PlainInput, {type PlainInputRef} from './plain-input'
-import Text, {type AllowedColors} from './text'
+import {Text3} from './text3'
+import type {AllowedColors} from './text'
 import ProgressIndicator from './progress-indicator'
 import {useHotKey} from './hot-key'
 import Icon, {type IconType} from './icon'
@@ -23,7 +24,7 @@ const Kb = {
   NewInput,
   PlainInput,
   ProgressIndicator,
-  Text,
+  Text3,
   useHotKey,
 }
 
@@ -319,9 +320,9 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
       gap="xsmall"
     >
       {!!props.mobileCancelButton && typing() && (
-        <Kb.Text type={'BodyBigLink'} onClick={cancel}>
+        <Kb.Text3 type={'BodyBigLink'} onClick={cancel}>
           Cancel
-        </Kb.Text>
+        </Kb.Text3>
       )}
       {content}
     </Kb.Box2>

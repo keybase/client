@@ -4,11 +4,11 @@ import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import {Box2} from '@/common-adapters/box'
 import Icon from '@/common-adapters/icon'
-import Text from '@/common-adapters/text'
+import {Text3} from '@/common-adapters/text3'
 import {useNavigation} from '@react-navigation/native'
 import type {Props, LeftActionProps} from '.'
 
-const Kb = {BackButton, Box2, Icon, Text}
+const Kb = {BackButton, Box2, Icon, Text3}
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -29,7 +29,7 @@ export const HeaderHocHeader = ({
     )}
     {title && (
       <Kb.Box2 direction="horizontal" centerChildren={true} style={_titleStyle}>
-        <Kb.Text type="Header">{title}</Kb.Text>
+        <Kb.Text3 type="Header">{title}</Kb.Text3>
       </Kb.Box2>
     )}
     {titleComponent}
@@ -50,9 +50,9 @@ const LeftAction = ({
 }: LeftActionProps) => (
   <Kb.Box2 direction="vertical" alignItems="flex-start" style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction && leftAction === 'cancel' ? (
-      <Kb.Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
+      <Kb.Text3 type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
         {leftActionText || customCancelText || 'Cancel'}
-      </Kb.Text>
+      </Kb.Text3>
     ) : onLeftAction || leftAction === 'back' ? (
       <Kb.BackButton
         badgeNumber={badgeNumber}

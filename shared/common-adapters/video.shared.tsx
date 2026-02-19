@@ -1,11 +1,11 @@
 import type * as React from 'react'
 import {Box2} from './box'
-import Text from './text'
+import {Text3} from './text3'
 import URL from 'url-parse'
 
 const Kb = {
   Box2,
-  Text,
+  Text3,
 }
 
 const urlIsOK = (url: string, allowFile?: boolean) => {
@@ -31,7 +31,7 @@ export const useCheckURL = (children: React.ReactElement, url: string, allowFile
     children
   ) : (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} centerChildren={true}>
-      <Kb.Text type="BodySmall">Invalid URL: {url}</Kb.Text>
+      <Kb.Text3 type="BodySmall">Invalid URL: {url}</Kb.Text3>
     </Kb.Box2>
   )
 }

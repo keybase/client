@@ -1,10 +1,10 @@
 import * as Styles from '@/styles'
-import Text from './text'
+import {Text3} from './text3'
 import type {Props} from './radio-button'
 import './radio-button.css'
 
 const Kb = {
-  Text,
+  Text3,
 }
 
 const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
@@ -15,9 +15,9 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     <div className={Styles.classNames('radio-button', {disabled, selected})}>
       <div style={Styles.castStyleDesktop(styles.radio)} />
     </div>
-    <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
+    <Kb.Text3 type="Body" style={{color: Styles.globalColors.black}}>
       {label}
-    </Kb.Text>
+    </Kb.Text3>
   </div>
 )
 

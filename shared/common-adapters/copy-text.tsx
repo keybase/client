@@ -2,7 +2,8 @@ import * as React from 'react'
 import {Box2Measure} from './box'
 import Icon from './icon'
 import Button, {type Props as ButtonProps} from './button'
-import Text, {type TextMeasureRef, type LineClampType, type TextType} from './text'
+import {Text3} from './text3'
+import type {LineClampType, TextType} from './text'
 import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '@/styles'
@@ -14,7 +15,7 @@ const Kb = {
   Box2Measure,
   Button,
   Icon,
-  Text,
+  Text3,
   Toast,
 }
 
@@ -60,7 +61,6 @@ const CopyText = (props: Props) => {
   }, [withReveal, text, loadText])
 
   const popupAnchor = React.useRef<MeasureRef | null>(null)
-  const textRef = React.useRef<TextMeasureRef | null>(null)
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
   const copy = React.useCallback(() => {
@@ -75,7 +75,6 @@ const CopyText = (props: Props) => {
         showShareActionSheet?.('', text, 'text/plain')
       } else {
         setShowingToast(true)
-        textRef.current?.highlightText()
         copyToClipboard(text)
       }
       onCopy?.()
@@ -129,27 +128,26 @@ const CopyText = (props: Props) => {
     >
       <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
         {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
-        <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
+        <Kb.Text3 type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Toast>
-      <Kb.Text
+      <Kb.Text3
         lineClamp={lineClamp}
         type={props.textType || 'BodySmallSemibold'}
         selectable={true}
         center={true}
         style={Styles.collapseStyles([styles.text, props.disabled && styles.textDisabled])}
-        allowHighlightText={true}
-        textRef={textRef}
+
       >
         {isRevealed && (props.text || props.placeholderText)
           ? props.text || props.placeholderText
           : '••••••••••••'}
-      </Kb.Text>
+      </Kb.Text3>
       {!isRevealed && (
-        <Kb.Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={reveal}>
+        <Kb.Text3 type="BodySmallPrimaryLink" style={styles.reveal} onClick={reveal}>
           Reveal
-        </Kb.Text>
+        </Kb.Text3>
       )}
       {!props.disabled && (
         <Kb.Button

@@ -25,6 +25,7 @@ export function Text3(p: Props) {
     t3_negative: p.negative,
     t3_selectable: p.selectable,
     t3_underline: p.underline,
+    t3_underlineNever: p.underlineNever,
     t3_virtualText: p.virtualText,
     tooltip: !!p.tooltip,
   })

@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import Text from './text'
+import {Text3} from './text3'
 import * as Styles from '@/styles'
 
 export type HeaderTextProps = {
@@ -10,7 +10,7 @@ export type HeaderTextProps = {
 }
 
 const PopupHeaderText = (props: HeaderTextProps) => (
-  <Text
+  <Text3
     center={true}
     type="BodySmallSemibold"
     style={Styles.collapseStyles([
@@ -23,7 +23,7 @@ const PopupHeaderText = (props: HeaderTextProps) => (
     ])}
   >
     {props.children}
-  </Text>
+  </Text3>
 )
 
 const styles = Styles.styleSheetCreate(() => ({

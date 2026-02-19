@@ -3,16 +3,16 @@ import * as Chat from '@/stores/chat2'
 import * as T from '@/constants/types'
 import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
-import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
+import {Text3} from '@/common-adapters/text3'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'
 import * as Styles from '@/styles'
 import TeamInfo from '@/profile/user/teams/teaminfo'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 
-const Kb = {Box2, Styles, Text}
+const Kb = {Box2, Styles, Text3}
 
 type OwnProps = {
-  allowFontScaling?: boolean
   channel: string
   name: string
   style?: StylesTextCrossPlatform
@@ -21,7 +21,7 @@ type OwnProps = {
 const noAdmins: Array<string> = []
 
 const TeamMention = (ownProps: OwnProps) => {
-  const {allowFontScaling, name, channel, style} = ownProps
+  const {name, channel, style} = ownProps
   const maybeMentionInfo = Chat.useChatState(s =>
     s.maybeMentionMap.get(Chat.getTeamMentionName(name, channel))
   )
@@ -73,22 +73,20 @@ const TeamMention = (ownProps: OwnProps) => {
   }
 
   const content = (
-    <Kb.Text
+    <Kb.Text3
       textRef={mentionRef}
       type="BodyBold"
       className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
       style={Kb.Styles.collapseStyles([style, styles.text])}
-      allowFontScaling={allowFontScaling}
       onClick={handleClick}
     >
-      <Kb.Text
+      <Kb.Text3
         type="BodyBold"
         style={Kb.Styles.collapseStyles([style, styles.resolved, styles.text])}
-        allowFontScaling={allowFontScaling}
       >
         {text}
-      </Kb.Text>
-    </Kb.Text>
+      </Kb.Text3>
+    </Kb.Text3>
   )
 
   const popups = (
@@ -126,9 +124,9 @@ const TeamMention = (ownProps: OwnProps) => {
       </Kb.Box2>
     )
   ) : (
-    <Kb.Text type="BodySemibold" style={style} allowFontScaling={allowFontScaling}>
+    <Kb.Text3 type="BodySemibold" style={style}>
       {text}
-    </Kb.Text>
+    </Kb.Text3>
   )
 }
 

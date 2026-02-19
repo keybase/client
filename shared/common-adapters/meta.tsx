@@ -1,5 +1,5 @@
 import {Box2} from './box'
-import Text from './text'
+import {Text3} from './text3'
 import Icon from './icon'
 import type {IconType} from './icon.constants-gen'
 import * as Styles from '@/styles'
@@ -29,7 +29,7 @@ const Meta = (props: Props) => (
     ])}
   >
     {!!props.icon && <Icon color={props.iconColor} sizeType="Small" style={styles.icon} type={props.icon} />}
-    <Text
+    <Text3
       type={typeof props.title === 'number' ? 'BodySmallBold' : 'BodyTinyBold'}
       style={Styles.collapseStyles([
         styles.text,
@@ -38,7 +38,7 @@ const Meta = (props: Props) => (
       ] as const)}
     >
       {props.noUppercase || typeof props.title === 'number' ? props.title : props.title.toUpperCase()}
-    </Text>
+    </Text3>
   </Box2>
 )
 

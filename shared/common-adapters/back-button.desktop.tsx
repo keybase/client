@@ -2,12 +2,12 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import Icon from './icon'
-import Text from './text'
+import {Text3} from './text3'
 import type {Props} from './back-button'
 
 const Kb = {
   Icon,
-  Text,
+  Text3,
 }
 
 const BackButton = React.memo(function BackButton(props: Props) {
@@ -34,13 +34,13 @@ const BackButton = React.memo(function BackButton(props: Props) {
         color={props.iconColor}
       />
       {props.title !== undefined && !props.hideBackLabel && (
-        <Kb.Text
+        <Kb.Text3
           type={props.onClick ? 'BodyPrimaryLink' : 'Body'}
           style={Styles.collapseStyles([props.disabled && styles.disabledText, props.textStyle])}
           onClick={_onClick}
         >
           {props.title || 'Back'}
-        </Kb.Text>
+        </Kb.Text3>
       )}
     </div>
   )

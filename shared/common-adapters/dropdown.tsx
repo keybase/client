@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Box2, Box2Measure} from './box'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
-import Text from './text'
+import {Text3} from './text3'
 import Overlay from './overlay'
 import ScrollView from './scroll-view'
 import Icon from './icon'
@@ -21,7 +21,7 @@ const Kb = {
   Overlay,
   ProgressIndicator,
   ScrollView,
-  Text,
+  Text3,
   usePopup2,
   useSafeAreaInsets,
 }
@@ -183,7 +183,7 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
       direction="horizontal"
       style={Styles.collapseStyles([styles.inlineSelected, props.selectedStyle])}
     >
-      {props.textWrapperType ? <Kb.Text type={props.textWrapperType}>{props.label}</Kb.Text> : props.label}
+      {props.textWrapperType ? <Kb.Text3 type={props.textWrapperType}>{props.label}</Kb.Text3> : props.label}
     </Kb.Box2>
   )
   return (

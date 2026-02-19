@@ -65,7 +65,7 @@ export const Last = ({seen}: VersionProps) => {
           <Kb.Text3 type="BodySmall">
             Keybase now supports custom emoji{' '}
             <Kb.NativeEmoji
-              allowFontScaling={true}
+
               size={Kb.Styles.globalMargins.small}
               emojiName=":sparkles:"
             />
@@ -82,7 +82,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
       <VersionTitle title="Previous releases" />
       <NewFeatureRow image="release-5.3.0-ipad" noSeparator={true} seen={seen}>
         Keybase for iPad is here!{' '}
-        <Kb.NativeEmoji allowFontScaling={true} size={Kb.Styles.globalMargins.small} emojiName=":sparkles:" />{' '}
+        <Kb.NativeEmoji size={Kb.Styles.globalMargins.small} emojiName=":sparkles:" />{' '}
         Download it from the App Store.
       </NewFeatureRow>
       <NewFeatureRow image="release-5.3.0-open-teams" seen={seen}>
@@ -100,7 +100,6 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
       >
         Encrypt, decrypt, sign, and verify all from within Keybase.{' '}
         <Kb.NativeEmoji
-          allowFontScaling={true}
           size={Kb.Styles.globalMargins.small}
           emojiName=":closed_lock_with_key:"
         />
@@ -153,7 +152,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
       >
         You can now start a conversation with a phone number or email address.
         {` `}
-        <Kb.NativeEmoji allowFontScaling={true} size={Kb.Styles.globalMargins.small} emojiName=":phone:" />
+        <Kb.NativeEmoji size={Kb.Styles.globalMargins.small} emojiName=":phone:" />
       </NewFeatureRow>
       <NewFeatureRow seen={seen} image={'release-4.7.0-pinned-messages'}>
         Chat admins can now pin messages.

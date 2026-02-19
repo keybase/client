@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from './box'
-import Text from './text'
+import {Text3} from './text3'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
@@ -11,7 +11,7 @@ const Kb = {
   ClickableBox,
   Icon,
   ProgressIndicator,
-  Text,
+  Text3,
 }
 
 type Props = {
@@ -26,7 +26,7 @@ const SectionDivider = (props: Props) => {
   const children = (
     <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true} style={styles.container}>
       {typeof props.label === 'string' ? (
-        <Kb.Text type="BodySmallSemibold">{props.label}</Kb.Text>
+        <Kb.Text3 type="BodySmallSemibold">{props.label}</Kb.Text3>
       ) : (
         props.label
       )}

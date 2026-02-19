@@ -346,6 +346,10 @@
   text-decoration: underline;
 }
 
+.t3_underlineNever {
+  text-decoration: none !important;
+}
+
 .t3_virtualText::before {
   content: attr(data-virtual-text);
 }

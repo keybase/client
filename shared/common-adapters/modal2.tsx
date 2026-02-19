@@ -3,14 +3,14 @@ import * as Styles from '@/styles'
 import ScrollView from './scroll-view'
 import {Box2, type LayoutEvent} from './box'
 import BoxGrow from './box-grow'
-import Text from './text'
+import {Text3} from './text3'
 import {useTimeout} from './use-timers'
 
 const Kb = {
   Box2,
   BoxGrow,
   ScrollView,
-  Text,
+  Text3,
   useTimeout,
 }
 
@@ -70,9 +70,9 @@ const Header2 = (props: HeaderProps) => {
   if (props.subTitle) {
     subTitle =
       typeof props.subTitle === 'string' ? (
-        <Kb.Text type="BodyTiny" lineClamp={1} center={true}>
+        <Kb.Text3 type="BodyTiny" lineClamp={1} center={true}>
           {props.subTitle}
-        </Kb.Text>
+        </Kb.Text3>
       ) : (
         props.subTitle
       )
@@ -109,9 +109,9 @@ const Header2 = (props: HeaderProps) => {
           <Kb.Box2 direction="vertical">
             {!!subTitle && props.subTitleAbove && subTitle}
             {typeof props.title === 'string' ? (
-              <Kb.Text type={Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+              <Kb.Text3 type={Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
                 {props.title}
-              </Kb.Text>
+              </Kb.Text3>
             ) : (
               props.title
             )}

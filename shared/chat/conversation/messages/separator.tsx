@@ -129,7 +129,7 @@ const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUse
       colorFollowing={true}
       colorYou={true}
       onUsernameClicked={onAuthorClick}
-      fixOverdraw="auto"
+
       type="BodySmallBold"
       usernames={showUsername}
       virtualText={true}
