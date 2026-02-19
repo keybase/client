@@ -21,11 +21,11 @@ func HomeUIProtocol(i HomeUIInterface) rpc.Protocol {
 		Name: "keybase.1.homeUI",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"homeUIRefresh": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HomeUIRefreshArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.HomeUIRefresh(ctx)
 					return
 				},
@@ -39,6 +39,6 @@ type HomeUIClient struct {
 }
 
 func (c HomeUIClient) HomeUIRefresh(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.homeUI.homeUIRefresh", []interface{}{HomeUIRefreshArg{}}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.homeUI.homeUIRefresh", []any{HomeUIRefreshArg{}}, 0*time.Millisecond)
 	return
 }

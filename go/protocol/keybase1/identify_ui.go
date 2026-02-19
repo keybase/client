@@ -558,11 +558,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 		Name: "keybase.1.identifyUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"displayTLFCreateWithInvite": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DisplayTLFCreateWithInviteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DisplayTLFCreateWithInviteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DisplayTLFCreateWithInviteArg)(nil), args)
@@ -573,21 +573,21 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"delegateIdentifyUI": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DelegateIdentifyUIArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.DelegateIdentifyUI(ctx)
 					return
 				},
 			},
 			"start": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]StartArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]StartArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]StartArg)(nil), args)
@@ -598,11 +598,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"displayKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DisplayKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DisplayKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DisplayKeyArg)(nil), args)
@@ -613,11 +613,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"reportLastTrack": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ReportLastTrackArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ReportLastTrackArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ReportLastTrackArg)(nil), args)
@@ -628,11 +628,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"launchNetworkChecks": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LaunchNetworkChecksArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LaunchNetworkChecksArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LaunchNetworkChecksArg)(nil), args)
@@ -643,11 +643,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"displayTrackStatement": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DisplayTrackStatementArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DisplayTrackStatementArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DisplayTrackStatementArg)(nil), args)
@@ -658,11 +658,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"finishWebProofCheck": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FinishWebProofCheckArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FinishWebProofCheckArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FinishWebProofCheckArg)(nil), args)
@@ -673,11 +673,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"finishSocialProofCheck": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FinishSocialProofCheckArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FinishSocialProofCheckArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FinishSocialProofCheckArg)(nil), args)
@@ -688,11 +688,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"displayCryptocurrency": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DisplayCryptocurrencyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DisplayCryptocurrencyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DisplayCryptocurrencyArg)(nil), args)
@@ -703,11 +703,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"displayStellarAccount": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DisplayStellarAccountArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DisplayStellarAccountArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DisplayStellarAccountArg)(nil), args)
@@ -718,11 +718,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"reportTrackToken": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ReportTrackTokenArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ReportTrackTokenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ReportTrackTokenArg)(nil), args)
@@ -733,11 +733,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"displayUserCard": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DisplayUserCardArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DisplayUserCardArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DisplayUserCardArg)(nil), args)
@@ -748,11 +748,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"confirm": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ConfirmArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ConfirmArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ConfirmArg)(nil), args)
@@ -763,11 +763,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"cancel": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CancelArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CancelArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CancelArg)(nil), args)
@@ -778,11 +778,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"finish": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FinishArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FinishArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FinishArg)(nil), args)
@@ -793,11 +793,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 			},
 			"dismiss": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DismissArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DismissArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DismissArg)(nil), args)
@@ -816,88 +816,88 @@ type IdentifyUiClient struct {
 }
 
 func (c IdentifyUiClient) DisplayTLFCreateWithInvite(ctx context.Context, __arg DisplayTLFCreateWithInviteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayTLFCreateWithInvite", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayTLFCreateWithInvite", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DelegateIdentifyUI(ctx context.Context) (res int, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.delegateIdentifyUI", []interface{}{DelegateIdentifyUIArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.delegateIdentifyUI", []any{DelegateIdentifyUIArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) Start(ctx context.Context, __arg StartArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.start", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.start", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DisplayKey(ctx context.Context, __arg DisplayKeyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayKey", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayKey", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) ReportLastTrack(ctx context.Context, __arg ReportLastTrackArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportLastTrack", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportLastTrack", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) LaunchNetworkChecks(ctx context.Context, __arg LaunchNetworkChecksArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.launchNetworkChecks", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.launchNetworkChecks", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DisplayTrackStatement(ctx context.Context, __arg DisplayTrackStatementArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayTrackStatement", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayTrackStatement", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) FinishWebProofCheck(ctx context.Context, __arg FinishWebProofCheckArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finishWebProofCheck", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finishWebProofCheck", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) FinishSocialProofCheck(ctx context.Context, __arg FinishSocialProofCheckArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finishSocialProofCheck", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finishSocialProofCheck", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DisplayCryptocurrency(ctx context.Context, __arg DisplayCryptocurrencyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayCryptocurrency", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DisplayStellarAccount(ctx context.Context, __arg DisplayStellarAccountArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayStellarAccount", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayStellarAccount", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) ReportTrackToken(ctx context.Context, __arg ReportTrackTokenArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportTrackToken", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportTrackToken", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DisplayUserCard(ctx context.Context, __arg DisplayUserCardArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayUserCard", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayUserCard", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) Confirm(ctx context.Context, __arg ConfirmArg) (res ConfirmResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.confirm", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.confirm", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) Cancel(ctx context.Context, sessionID int) (err error) {
 	__arg := CancelArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.cancel", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.cancel", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) Finish(ctx context.Context, sessionID int) (err error) {
 	__arg := FinishArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finish", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finish", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) Dismiss(ctx context.Context, __arg DismissArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.dismiss", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.dismiss", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

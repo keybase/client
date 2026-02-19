@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"slices"
 	"testing"
 	"time"
 
@@ -126,10 +127,8 @@ type mockConverter struct {
 func (m mockConverter) ProcessSigchainState(mctx libkb.MetaContext,
 	teamName keybase1.TeamName, s *keybase1.TeamSigChainState,
 ) keybase1.TeamTreeMembershipResult {
-	for _, failureTeamID := range m.failureTeamIDs {
-		if failureTeamID == s.Id {
-			return m.loader.NewErrorResult(fmt.Errorf("mock failure"), teamName)
-		}
+	if slices.Contains(m.failureTeamIDs, s.Id) {
+		return m.loader.NewErrorResult(fmt.Errorf("mock failure"), teamName)
 	}
 	return m.loader.ProcessSigchainState(mctx, teamName, s)
 }

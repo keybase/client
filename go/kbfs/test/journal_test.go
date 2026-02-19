@@ -119,7 +119,7 @@ func TestJournalCrSimple(t *testing.T) {
 
 func makeBusyWork(filename string, iters int) (busyWork []fileOp) {
 	busyWork = append(busyWork, mkfile(filename, "hello"))
-	for i := 0; i < iters; i++ {
+	for i := range iters {
 		content := fmt.Sprintf("a%d", i)
 		busyWork = append(busyWork, write(filename, content))
 	}
@@ -395,7 +395,7 @@ func TestJournalCoalescingBasicCreates(t *testing.T) {
 	listing := m{"^a$": "DIR"}
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
 	unflushedPaths := []string{"/keybase/private/alice,bob"}
-	for i := 0; i < iters; i++ {
+	for i := range iters {
 		name := fmt.Sprintf("a%d", i)
 		contents := fmt.Sprintf("hello%d", i)
 		busyWork = append(busyWork, mkfile(name, contents))
@@ -444,7 +444,7 @@ func TestJournalCoalescingCreatesPlusCR(t *testing.T) {
 	listing := m{"^a$": "DIR", "^b$": "DIR"}
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
 	unflushedPaths := []string{"/keybase/private/alice,bob"}
-	for i := 0; i < iters; i++ {
+	for i := range iters {
 		name := fmt.Sprintf("a%d", i)
 		contents := fmt.Sprintf("hello%d", i)
 		busyWork = append(busyWork, mkfile(name, contents))
@@ -454,7 +454,7 @@ func TestJournalCoalescingCreatesPlusCR(t *testing.T) {
 	}
 
 	busyWork2 := []fileOp{}
-	for i := 0; i < iters; i++ {
+	for i := range iters {
 		name := fmt.Sprintf("a%d", i)
 		contents := fmt.Sprintf("hello%d", i+iters)
 		busyWork2 = append(busyWork2, write(name, contents))
@@ -516,7 +516,7 @@ func TestJournalCoalescingCreatesPlusMultiCR(t *testing.T) {
 	listing := m{}
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
 	targetMtime := time.Now().Add(1 * time.Minute)
-	for i := 0; i < iters; i++ {
+	for i := range iters {
 		name := fmt.Sprintf("%d", i)
 		contents := fmt.Sprintf("hello%d", i)
 		busyWork = append(busyWork, mkfile("a/"+name+".tmp", contents))
@@ -605,7 +605,7 @@ func TestJournalCoalescingWrites(t *testing.T) {
 	var busyWork []fileOp
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
 	var contents string
-	for i := 0; i < iters; i++ {
+	for i := range iters {
 		contents += fmt.Sprintf("hello%d", i)
 		busyWork = append(busyWork, write("a/b", contents))
 	}
@@ -818,7 +818,7 @@ func testJournalCoalescingConflictingCreates(t *testing.T, bSize int64) {
 	var busyWork []fileOp
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
 	listing := m{}
-	for i := 0; i < iters; i++ {
+	for i := range iters {
 		filename := fmt.Sprintf("%d", i)
 		fullname := fmt.Sprintf("a/b/c/d/%s", filename)
 		contents := fmt.Sprintf("hello%d", i)

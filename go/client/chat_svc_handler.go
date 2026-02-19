@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -266,7 +267,7 @@ func (c *chatServiceHandler) GetUnfurlSettingsV1(ctx context.Context) Reply {
 		return c.errReply(err)
 	}
 	return Reply{
-		Result: map[string]interface{}{
+		Result: map[string]any{
 			"mode":      strings.ToLower(chat1.UnfurlModeRevMap[res.Mode]),
 			"whitelist": res.Whitelist,
 		},
@@ -509,9 +510,7 @@ func (c *chatServiceHandler) reactionMapToUI(reactions chat1.ReactionMap) (res c
 		res.Reactions[emoji] = chat1.UIReactionDesc{
 			Users: make(map[string]chat1.Reaction),
 		}
-		for username, reaction := range users {
-			res.Reactions[emoji].Users[username] = reaction
-		}
+		maps.Copy(res.Reactions[emoji].Users, users)
 	}
 	return res
 }

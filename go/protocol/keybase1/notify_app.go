@@ -21,11 +21,11 @@ func NotifyAppProtocol(i NotifyAppInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyApp",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"exit": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ExitArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.Exit(ctx)
 					return
 				},
@@ -39,6 +39,6 @@ type NotifyAppClient struct {
 }
 
 func (c NotifyAppClient) Exit(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyApp.exit", []interface{}{ExitArg{}}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyApp.exit", []any{ExitArg{}}, 0*time.Millisecond)
 	return
 }

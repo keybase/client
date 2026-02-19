@@ -627,7 +627,7 @@ func (o UPKLiteV1AllIncarnations) DeepCopy() UPKLiteV1AllIncarnations {
 	}
 }
 
-type UPKInterface interface{}
+type UPKInterface any
 
 func UPKProtocol(i UPKInterface) rpc.Protocol {
 	return rpc.Protocol{

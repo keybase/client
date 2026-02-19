@@ -23,11 +23,11 @@ func NotifyInviteFriendsProtocol(i NotifyInviteFriendsInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyInviteFriends",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"updateInviteCounts": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UpdateInviteCountsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UpdateInviteCountsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UpdateInviteCountsArg)(nil), args)
@@ -47,6 +47,6 @@ type NotifyInviteFriendsClient struct {
 
 func (c NotifyInviteFriendsClient) UpdateInviteCounts(ctx context.Context, counts InviteCounts) (err error) {
 	__arg := UpdateInviteCountsArg{Counts: counts}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyInviteFriends.updateInviteCounts", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyInviteFriends.updateInviteCounts", []any{__arg}, 0*time.Millisecond)
 	return
 }

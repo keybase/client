@@ -20,7 +20,7 @@ const (
 )
 
 func htmlAnalyzerConstructor(
-	config map[string]interface{}, cache *registry.Cache) (
+	config map[string]any, cache *registry.Cache) (
 	*analysis.Analyzer, error,
 ) {
 	tokenizer, err := cache.TokenizerNamed(web.Name)

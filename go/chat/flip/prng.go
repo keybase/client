@@ -139,7 +139,7 @@ func (p *PRNG) Bool() bool {
 // already witnessed one. We bounty bugs like these, so let us know!
 func (p *PRNG) Permutation(n int) []int {
 	ret := make([]int, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		ret[i] = i
 	}
 	for i := n - 1; i >= 1; i-- {

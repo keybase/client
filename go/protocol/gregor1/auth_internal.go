@@ -21,11 +21,11 @@ func AuthInternalProtocol(i AuthInternalInterface) rpc.Protocol {
 		Name: "gregor.1.authInternal",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"createGregorSuperUserSessionToken": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CreateGregorSuperUserSessionTokenArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.CreateGregorSuperUserSessionToken(ctx)
 					return
 				},
@@ -39,6 +39,6 @@ type AuthInternalClient struct {
 }
 
 func (c AuthInternalClient) CreateGregorSuperUserSessionToken(ctx context.Context) (res SessionToken, err error) {
-	err = c.Cli.Call(ctx, "gregor.1.authInternal.createGregorSuperUserSessionToken", []interface{}{CreateGregorSuperUserSessionTokenArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "gregor.1.authInternal.createGregorSuperUserSessionToken", []any{CreateGregorSuperUserSessionTokenArg{}}, &res, 0*time.Millisecond)
 	return
 }

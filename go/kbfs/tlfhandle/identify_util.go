@@ -106,7 +106,7 @@ func (ei *ExtendedIdentify) makeTlfBreaksIfNeeded(
 	defer ei.lock.Unlock()
 
 	b := &keybase1.TLFBreak{}
-	for i := 0; i < numUserInTlf; i++ {
+	for range numUserInTlf {
 		select {
 		case ub, ok := <-ei.userBreaks:
 			if !ok {
@@ -308,7 +308,6 @@ func identifyUsers(
 	// TODO: implement a version of errgroup with limited concurrency.
 	for id, name := range names {
 		// Capture range variables.
-		id, name := id, name
 		eg.Go(func() error {
 			return identifyUser(ctx, nug, identifier, name, id, t, offline)
 		})
@@ -329,7 +328,6 @@ func IdentifyUserList(ctx context.Context, nug idutil.NormalizedUsernameGetter,
 	// TODO: implement concurrency limited version of errgroup.
 	for _, id := range ids {
 		// Capture range variable.
-		id := id
 		eg.Go(func() error {
 			return identifyUID(
 				ctx, nug, identifier, id, t, offline)

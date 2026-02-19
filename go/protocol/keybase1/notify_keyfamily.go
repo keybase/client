@@ -23,11 +23,11 @@ func NotifyKeyfamilyProtocol(i NotifyKeyfamilyInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyKeyfamily",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"keyfamilyChanged": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]KeyfamilyChangedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]KeyfamilyChangedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]KeyfamilyChangedArg)(nil), args)
@@ -47,6 +47,6 @@ type NotifyKeyfamilyClient struct {
 
 func (c NotifyKeyfamilyClient) KeyfamilyChanged(ctx context.Context, uid UID) (err error) {
 	__arg := KeyfamilyChangedArg{Uid: uid}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyKeyfamily.keyfamilyChanged", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyKeyfamily.keyfamilyChanged", []any{__arg}, 0*time.Millisecond)
 	return
 }

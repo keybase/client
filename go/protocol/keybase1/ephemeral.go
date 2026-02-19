@@ -424,7 +424,7 @@ func (o TeamEphemeralKeyBoxed) DeepCopy() TeamEphemeralKeyBoxed {
 	}
 }
 
-type EphemeralInterface interface{}
+type EphemeralInterface any
 
 func EphemeralProtocol(i EphemeralInterface) rpc.Protocol {
 	return rpc.Protocol{

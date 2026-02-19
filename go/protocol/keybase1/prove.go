@@ -74,11 +74,11 @@ func ProveProtocol(i ProveInterface) rpc.Protocol {
 		Name: "keybase.1.prove",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"startProof": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]StartProofArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]StartProofArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]StartProofArg)(nil), args)
@@ -89,11 +89,11 @@ func ProveProtocol(i ProveInterface) rpc.Protocol {
 				},
 			},
 			"checkProof": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CheckProofArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CheckProofArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CheckProofArg)(nil), args)
@@ -104,31 +104,31 @@ func ProveProtocol(i ProveInterface) rpc.Protocol {
 				},
 			},
 			"listSomeProofServices": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ListSomeProofServicesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.ListSomeProofServices(ctx)
 					return
 				},
 			},
 			"listProofServices": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ListProofServicesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.ListProofServices(ctx)
 					return
 				},
 			},
 			"validateUsername": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ValidateUsernameArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ValidateUsernameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ValidateUsernameArg)(nil), args)
@@ -147,26 +147,26 @@ type ProveClient struct {
 }
 
 func (c ProveClient) StartProof(ctx context.Context, __arg StartProofArg) (res StartProofResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.prove.startProof", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.prove.startProof", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveClient) CheckProof(ctx context.Context, __arg CheckProofArg) (res CheckProofStatus, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.prove.checkProof", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.prove.checkProof", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveClient) ListSomeProofServices(ctx context.Context) (res []string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.prove.listSomeProofServices", []interface{}{ListSomeProofServicesArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.prove.listSomeProofServices", []any{ListSomeProofServicesArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveClient) ListProofServices(ctx context.Context) (res []string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.prove.listProofServices", []interface{}{ListProofServicesArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.prove.listProofServices", []any{ListProofServicesArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveClient) ValidateUsername(ctx context.Context, __arg ValidateUsernameArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.prove.validateUsername", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.prove.validateUsername", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

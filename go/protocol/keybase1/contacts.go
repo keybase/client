@@ -163,11 +163,11 @@ func ContactsProtocol(i ContactsInterface) rpc.Protocol {
 		Name: "keybase.1.contacts",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"lookupContactList": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LookupContactListArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LookupContactListArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LookupContactListArg)(nil), args)
@@ -178,11 +178,11 @@ func ContactsProtocol(i ContactsInterface) rpc.Protocol {
 				},
 			},
 			"saveContactList": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaveContactListArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaveContactListArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaveContactListArg)(nil), args)
@@ -193,11 +193,11 @@ func ContactsProtocol(i ContactsInterface) rpc.Protocol {
 				},
 			},
 			"lookupSavedContactsList": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LookupSavedContactsListArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LookupSavedContactsListArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LookupSavedContactsListArg)(nil), args)
@@ -208,11 +208,11 @@ func ContactsProtocol(i ContactsInterface) rpc.Protocol {
 				},
 			},
 			"getContactsForUserRecommendations": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetContactsForUserRecommendationsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetContactsForUserRecommendationsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetContactsForUserRecommendationsArg)(nil), args)
@@ -231,23 +231,23 @@ type ContactsClient struct {
 }
 
 func (c ContactsClient) LookupContactList(ctx context.Context, __arg LookupContactListArg) (res []ProcessedContact, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupContactList", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupContactList", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ContactsClient) SaveContactList(ctx context.Context, __arg SaveContactListArg) (res ContactListResolutionResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.contacts.saveContactList", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.contacts.saveContactList", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ContactsClient) LookupSavedContactsList(ctx context.Context, sessionID int) (res []ProcessedContact, err error) {
 	__arg := LookupSavedContactsListArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupSavedContactsList", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupSavedContactsList", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ContactsClient) GetContactsForUserRecommendations(ctx context.Context, sessionID int) (res []ProcessedContact, err error) {
 	__arg := GetContactsForUserRecommendationsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.contacts.getContactsForUserRecommendations", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.contacts.getContactsForUserRecommendations", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

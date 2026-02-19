@@ -71,11 +71,11 @@ func NotifySaltpackProtocol(i NotifySaltpackInterface) rpc.Protocol {
 		Name: "keybase.1.NotifySaltpack",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"saltpackOperationStart": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackOperationStartArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackOperationStartArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackOperationStartArg)(nil), args)
@@ -86,11 +86,11 @@ func NotifySaltpackProtocol(i NotifySaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackOperationProgress": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackOperationProgressArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackOperationProgressArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackOperationProgressArg)(nil), args)
@@ -101,11 +101,11 @@ func NotifySaltpackProtocol(i NotifySaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackOperationDone": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackOperationDoneArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackOperationDoneArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackOperationDoneArg)(nil), args)
@@ -124,16 +124,16 @@ type NotifySaltpackClient struct {
 }
 
 func (c NotifySaltpackClient) SaltpackOperationStart(ctx context.Context, __arg SaltpackOperationStartArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifySaltpack.saltpackOperationStart", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySaltpack.saltpackOperationStart", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifySaltpackClient) SaltpackOperationProgress(ctx context.Context, __arg SaltpackOperationProgressArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifySaltpack.saltpackOperationProgress", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySaltpack.saltpackOperationProgress", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifySaltpackClient) SaltpackOperationDone(ctx context.Context, __arg SaltpackOperationDoneArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifySaltpack.saltpackOperationDone", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySaltpack.saltpackOperationDone", []any{__arg}, 0*time.Millisecond)
 	return
 }

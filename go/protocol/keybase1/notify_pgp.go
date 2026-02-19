@@ -21,11 +21,11 @@ func NotifyPGPProtocol(i NotifyPGPInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyPGP",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"pgpKeyInSecretStoreFile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPKeyInSecretStoreFileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.PGPKeyInSecretStoreFile(ctx)
 					return
 				},
@@ -39,6 +39,6 @@ type NotifyPGPClient struct {
 }
 
 func (c NotifyPGPClient) PGPKeyInSecretStoreFile(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyPGP.pgpKeyInSecretStoreFile", []interface{}{PGPKeyInSecretStoreFileArg{}}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyPGP.pgpKeyInSecretStoreFile", []any{PGPKeyInSecretStoreFileArg{}}, 0*time.Millisecond)
 	return
 }

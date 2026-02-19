@@ -1106,11 +1106,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 		Name: "stellar.1.remote",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"balances": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BalancesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BalancesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BalancesArg)(nil), args)
@@ -1121,11 +1121,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"details": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DetailsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DetailsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DetailsArg)(nil), args)
@@ -1136,11 +1136,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"recentPayments": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RecentPaymentsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RecentPaymentsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RecentPaymentsArg)(nil), args)
@@ -1151,11 +1151,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"pendingPayments": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PendingPaymentsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PendingPaymentsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PendingPaymentsArg)(nil), args)
@@ -1166,11 +1166,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"markAsRead": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]MarkAsReadArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]MarkAsReadArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]MarkAsReadArg)(nil), args)
@@ -1181,11 +1181,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"paymentDetails": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PaymentDetailsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PaymentDetailsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PaymentDetailsArg)(nil), args)
@@ -1196,11 +1196,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"accountSeqno": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AccountSeqnoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AccountSeqnoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AccountSeqnoArg)(nil), args)
@@ -1211,11 +1211,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"submitPayment": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SubmitPaymentArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SubmitPaymentArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SubmitPaymentArg)(nil), args)
@@ -1226,11 +1226,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"submitRelayPayment": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SubmitRelayPaymentArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SubmitRelayPaymentArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SubmitRelayPaymentArg)(nil), args)
@@ -1241,11 +1241,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"submitRelayClaim": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SubmitRelayClaimArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SubmitRelayClaimArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SubmitRelayClaimArg)(nil), args)
@@ -1256,11 +1256,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"submitPathPayment": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SubmitPathPaymentArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SubmitPathPaymentArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SubmitPathPaymentArg)(nil), args)
@@ -1271,11 +1271,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"submitMultiPayment": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SubmitMultiPaymentArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SubmitMultiPaymentArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SubmitMultiPaymentArg)(nil), args)
@@ -1286,11 +1286,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"acquireAutoClaimLock": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AcquireAutoClaimLockArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AcquireAutoClaimLockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AcquireAutoClaimLockArg)(nil), args)
@@ -1301,11 +1301,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"releaseAutoClaimLock": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ReleaseAutoClaimLockArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ReleaseAutoClaimLockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ReleaseAutoClaimLockArg)(nil), args)
@@ -1316,11 +1316,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"nextAutoClaim": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]NextAutoClaimArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]NextAutoClaimArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]NextAutoClaimArg)(nil), args)
@@ -1331,11 +1331,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"isMasterKeyActive": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]IsMasterKeyActiveArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]IsMasterKeyActiveArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]IsMasterKeyActiveArg)(nil), args)
@@ -1346,11 +1346,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"submitRequest": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SubmitRequestArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SubmitRequestArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SubmitRequestArg)(nil), args)
@@ -1361,11 +1361,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"requestDetails": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RequestDetailsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RequestDetailsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RequestDetailsArg)(nil), args)
@@ -1376,11 +1376,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"cancelRequest": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CancelRequestArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CancelRequestArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CancelRequestArg)(nil), args)
@@ -1391,11 +1391,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"setInflationDestination": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetInflationDestinationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetInflationDestinationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetInflationDestinationArg)(nil), args)
@@ -1406,21 +1406,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"ping": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PingArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.Ping(ctx)
 					return
 				},
 			},
 			"networkOptions": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]NetworkOptionsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]NetworkOptionsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]NetworkOptionsArg)(nil), args)
@@ -1431,11 +1431,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"detailsPlusPayments": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DetailsPlusPaymentsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DetailsPlusPaymentsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DetailsPlusPaymentsArg)(nil), args)
@@ -1446,11 +1446,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"allDetailsPlusPayments": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AllDetailsPlusPaymentsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AllDetailsPlusPaymentsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AllDetailsPlusPaymentsArg)(nil), args)
@@ -1461,11 +1461,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"assetSearch": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AssetSearchArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AssetSearchArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AssetSearchArg)(nil), args)
@@ -1476,11 +1476,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"fuzzyAssetSearch": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FuzzyAssetSearchArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FuzzyAssetSearchArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FuzzyAssetSearchArg)(nil), args)
@@ -1491,11 +1491,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"listPopularAssets": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ListPopularAssetsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ListPopularAssetsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ListPopularAssetsArg)(nil), args)
@@ -1506,11 +1506,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"changeTrustline": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChangeTrustlineArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChangeTrustlineArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChangeTrustlineArg)(nil), args)
@@ -1521,11 +1521,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"findPaymentPath": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FindPaymentPathArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FindPaymentPathArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FindPaymentPathArg)(nil), args)
@@ -1536,11 +1536,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"postAnyTransaction": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PostAnyTransactionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PostAnyTransactionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PostAnyTransactionArg)(nil), args)
@@ -1559,156 +1559,156 @@ type RemoteClient struct {
 }
 
 func (c RemoteClient) Balances(ctx context.Context, __arg BalancesArg) (res []Balance, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.balances", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.balances", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) Details(ctx context.Context, __arg DetailsArg) (res AccountDetails, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.details", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.details", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RecentPayments(ctx context.Context, __arg RecentPaymentsArg) (res PaymentsPage, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.recentPayments", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.recentPayments", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) PendingPayments(ctx context.Context, __arg PendingPaymentsArg) (res []PaymentSummary, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.pendingPayments", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.pendingPayments", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.markAsRead", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.markAsRead", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) PaymentDetails(ctx context.Context, __arg PaymentDetailsArg) (res PaymentDetails, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.paymentDetails", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.paymentDetails", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) AccountSeqno(ctx context.Context, __arg AccountSeqnoArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.accountSeqno", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.accountSeqno", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitPayment(ctx context.Context, __arg SubmitPaymentArg) (res PaymentResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitPayment", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitPayment", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitRelayPayment(ctx context.Context, __arg SubmitRelayPaymentArg) (res PaymentResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayPayment", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayPayment", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitRelayClaim(ctx context.Context, __arg SubmitRelayClaimArg) (res RelayClaimResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayClaim", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayClaim", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitPathPayment(ctx context.Context, __arg SubmitPathPaymentArg) (res PaymentResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitPathPayment", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitPathPayment", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitMultiPayment(ctx context.Context, __arg SubmitMultiPaymentArg) (res SubmitMultiRes, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitMultiPayment", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitMultiPayment", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) AcquireAutoClaimLock(ctx context.Context, caller keybase1.UserVersion) (res string, err error) {
 	__arg := AcquireAutoClaimLockArg{Caller: caller}
-	err = c.Cli.Call(ctx, "stellar.1.remote.acquireAutoClaimLock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.acquireAutoClaimLock", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) ReleaseAutoClaimLock(ctx context.Context, __arg ReleaseAutoClaimLockArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.releaseAutoClaimLock", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.releaseAutoClaimLock", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) NextAutoClaim(ctx context.Context, caller keybase1.UserVersion) (res *AutoClaim, err error) {
 	__arg := NextAutoClaimArg{Caller: caller}
-	err = c.Cli.Call(ctx, "stellar.1.remote.nextAutoClaim", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.nextAutoClaim", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) IsMasterKeyActive(ctx context.Context, __arg IsMasterKeyActiveArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.isMasterKeyActive", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.isMasterKeyActive", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitRequest(ctx context.Context, __arg SubmitRequestArg) (res KeybaseRequestID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitRequest", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitRequest", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RequestDetails(ctx context.Context, __arg RequestDetailsArg) (res RequestDetails, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.requestDetails", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.requestDetails", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) CancelRequest(ctx context.Context, __arg CancelRequestArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.cancelRequest", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.cancelRequest", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetInflationDestination(ctx context.Context, __arg SetInflationDestinationArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.setInflationDestination", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.setInflationDestination", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) Ping(ctx context.Context) (res string, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.ping", []interface{}{PingArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.ping", []any{PingArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) NetworkOptions(ctx context.Context, caller keybase1.UserVersion) (res NetworkOptions, err error) {
 	__arg := NetworkOptionsArg{Caller: caller}
-	err = c.Cli.Call(ctx, "stellar.1.remote.networkOptions", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.networkOptions", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) DetailsPlusPayments(ctx context.Context, __arg DetailsPlusPaymentsArg) (res DetailsPlusPayments, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.detailsPlusPayments", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.detailsPlusPayments", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) AllDetailsPlusPayments(ctx context.Context, caller keybase1.UserVersion) (res []DetailsPlusPayments, err error) {
 	__arg := AllDetailsPlusPaymentsArg{Caller: caller}
-	err = c.Cli.Call(ctx, "stellar.1.remote.allDetailsPlusPayments", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.allDetailsPlusPayments", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) AssetSearch(ctx context.Context, __arg AssetSearchArg) (res []Asset, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.assetSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.assetSearch", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) FuzzyAssetSearch(ctx context.Context, __arg FuzzyAssetSearchArg) (res []Asset, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.fuzzyAssetSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.fuzzyAssetSearch", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) ListPopularAssets(ctx context.Context, caller keybase1.UserVersion) (res AssetListResult, err error) {
 	__arg := ListPopularAssetsArg{Caller: caller}
-	err = c.Cli.Call(ctx, "stellar.1.remote.listPopularAssets", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.listPopularAssets", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) ChangeTrustline(ctx context.Context, __arg ChangeTrustlineArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.changeTrustline", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.changeTrustline", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) FindPaymentPath(ctx context.Context, __arg FindPaymentPathArg) (res PaymentPath, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.findPaymentPath", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.findPaymentPath", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) PostAnyTransaction(ctx context.Context, __arg PostAnyTransactionArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.postAnyTransaction", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.remote.postAnyTransaction", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

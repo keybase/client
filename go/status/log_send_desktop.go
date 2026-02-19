@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build !ios && !android
-// +build !ios,!android
 
 package status
 
@@ -13,18 +12,19 @@ import (
 	"os/exec"
 	"regexp"
 	"runtime"
+	"strings"
 	"time"
 
 	ps "github.com/keybase/go-ps"
 )
 
 func keybaseProcessList() string {
-	ret := ""
+	var ret strings.Builder
 	osinfo, err := getOSInfo()
 	if err == nil {
-		ret += osinfo + "\n\n"
+		ret.WriteString(osinfo + "\n\n")
 	} else {
-		ret += fmt.Sprintf("could not get OS info for platform %s: %s\n\n", runtime.GOOS, err)
+		ret.WriteString(fmt.Sprintf("could not get OS info for platform %s: %s\n\n", runtime.GOOS, err))
 	}
 
 	processes, err := pgrep(keybaseProcessRegexp)
@@ -36,9 +36,9 @@ func keybaseProcessList() string {
 		if err != nil {
 			path = "unable to get process path"
 		}
-		ret += fmt.Sprintf("%s (%+v)\n", path, process)
+		ret.WriteString(fmt.Sprintf("%s (%+v)\n", path, process))
 	}
-	return ret
+	return ret.String()
 }
 
 func getOSInfo() (string, error) {

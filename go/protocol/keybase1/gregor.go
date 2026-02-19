@@ -54,21 +54,21 @@ func GregorProtocol(i GregorInterface) rpc.Protocol {
 		Name: "keybase.1.gregor",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getState": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetStateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetState(ctx)
 					return
 				},
 			},
 			"injectItem": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]InjectItemArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]InjectItemArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]InjectItemArg)(nil), args)
@@ -79,11 +79,11 @@ func GregorProtocol(i GregorInterface) rpc.Protocol {
 				},
 			},
 			"dismissCategory": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DismissCategoryArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DismissCategoryArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DismissCategoryArg)(nil), args)
@@ -94,11 +94,11 @@ func GregorProtocol(i GregorInterface) rpc.Protocol {
 				},
 			},
 			"dismissItem": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DismissItemArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DismissItemArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DismissItemArg)(nil), args)
@@ -109,11 +109,11 @@ func GregorProtocol(i GregorInterface) rpc.Protocol {
 				},
 			},
 			"updateItem": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UpdateItemArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UpdateItemArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UpdateItemArg)(nil), args)
@@ -124,11 +124,11 @@ func GregorProtocol(i GregorInterface) rpc.Protocol {
 				},
 			},
 			"updateCategory": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UpdateCategoryArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UpdateCategoryArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UpdateCategoryArg)(nil), args)
@@ -147,33 +147,33 @@ type GregorClient struct {
 }
 
 func (c GregorClient) GetState(ctx context.Context) (res gregor1.State, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.gregor.getState", []interface{}{GetStateArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gregor.getState", []any{GetStateArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GregorClient) InjectItem(ctx context.Context, __arg InjectItemArg) (res gregor1.MsgID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.gregor.injectItem", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gregor.injectItem", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GregorClient) DismissCategory(ctx context.Context, category gregor1.Category) (err error) {
 	__arg := DismissCategoryArg{Category: category}
-	err = c.Cli.Call(ctx, "keybase.1.gregor.dismissCategory", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gregor.dismissCategory", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GregorClient) DismissItem(ctx context.Context, id gregor1.MsgID) (err error) {
 	__arg := DismissItemArg{Id: id}
-	err = c.Cli.Call(ctx, "keybase.1.gregor.dismissItem", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gregor.dismissItem", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GregorClient) UpdateItem(ctx context.Context, __arg UpdateItemArg) (res gregor1.MsgID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.gregor.updateItem", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gregor.updateItem", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GregorClient) UpdateCategory(ctx context.Context, __arg UpdateCategoryArg) (res gregor1.MsgID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.gregor.updateCategory", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gregor.updateCategory", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

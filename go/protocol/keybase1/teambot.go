@@ -55,7 +55,7 @@ func (o TeambotKey) DeepCopy() TeambotKey {
 	}
 }
 
-type TeambotInterface interface{}
+type TeambotInterface any
 
 func TeambotProtocol(i TeambotInterface) rpc.Protocol {
 	return rpc.Protocol{

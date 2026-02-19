@@ -34,21 +34,21 @@ func NotifySessionProtocol(i NotifySessionInterface) rpc.Protocol {
 		Name: "keybase.1.NotifySession",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"loggedOut": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoggedOutArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.LoggedOut(ctx)
 					return
 				},
 			},
 			"loggedIn": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoggedInArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoggedInArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoggedInArg)(nil), args)
@@ -59,11 +59,11 @@ func NotifySessionProtocol(i NotifySessionInterface) rpc.Protocol {
 				},
 			},
 			"clientOutOfDate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ClientOutOfDateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ClientOutOfDateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ClientOutOfDateArg)(nil), args)
@@ -82,16 +82,16 @@ type NotifySessionClient struct {
 }
 
 func (c NotifySessionClient) LoggedOut(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifySession.loggedOut", []interface{}{LoggedOutArg{}}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySession.loggedOut", []any{LoggedOutArg{}}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifySessionClient) LoggedIn(ctx context.Context, __arg LoggedInArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedIn", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedIn", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c NotifySessionClient) ClientOutOfDate(ctx context.Context, __arg ClientOutOfDateArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifySession.clientOutOfDate", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.NotifySession.clientOutOfDate", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

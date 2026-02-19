@@ -160,11 +160,11 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyTeam",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"teamChangedByID": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamChangedByIDArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamChangedByIDArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamChangedByIDArg)(nil), args)
@@ -175,11 +175,11 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 			},
 			"teamChangedByName": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamChangedByNameArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamChangedByNameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamChangedByNameArg)(nil), args)
@@ -190,11 +190,11 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 			},
 			"teamDeleted": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamDeletedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamDeletedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamDeletedArg)(nil), args)
@@ -205,11 +205,11 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 			},
 			"teamAbandoned": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamAbandonedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamAbandonedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamAbandonedArg)(nil), args)
@@ -220,11 +220,11 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 			},
 			"teamExit": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamExitArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamExitArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamExitArg)(nil), args)
@@ -235,11 +235,11 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 			},
 			"newlyAddedToTeam": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]NewlyAddedToTeamArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]NewlyAddedToTeamArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]NewlyAddedToTeamArg)(nil), args)
@@ -250,11 +250,11 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 			},
 			"teamRoleMapChanged": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamRoleMapChangedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamRoleMapChangedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamRoleMapChangedArg)(nil), args)
@@ -265,11 +265,11 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 			},
 			"avatarUpdated": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AvatarUpdatedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AvatarUpdatedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AvatarUpdatedArg)(nil), args)
@@ -280,21 +280,21 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 			},
 			"teamMetadataUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamMetadataUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.TeamMetadataUpdate(ctx)
 					return
 				},
 			},
 			"teamTreeMembershipsPartial": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamTreeMembershipsPartialArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamTreeMembershipsPartialArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamTreeMembershipsPartialArg)(nil), args)
@@ -305,11 +305,11 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 			},
 			"teamTreeMembershipsDone": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamTreeMembershipsDoneArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamTreeMembershipsDoneArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamTreeMembershipsDoneArg)(nil), args)
@@ -328,63 +328,63 @@ type NotifyTeamClient struct {
 }
 
 func (c NotifyTeamClient) TeamChangedByID(ctx context.Context, __arg TeamChangedByIDArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChangedByID", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChangedByID", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamChangedByName(ctx context.Context, __arg TeamChangedByNameArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChangedByName", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChangedByName", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamDeleted(ctx context.Context, teamID TeamID) (err error) {
 	__arg := TeamDeletedArg{TeamID: teamID}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamDeleted", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamDeleted", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamAbandoned(ctx context.Context, teamID TeamID) (err error) {
 	__arg := TeamAbandonedArg{TeamID: teamID}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamAbandoned", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamAbandoned", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamExit(ctx context.Context, teamID TeamID) (err error) {
 	__arg := TeamExitArg{TeamID: teamID}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamExit", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamExit", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) NewlyAddedToTeam(ctx context.Context, teamID TeamID) (err error) {
 	__arg := NewlyAddedToTeamArg{TeamID: teamID}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.newlyAddedToTeam", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.newlyAddedToTeam", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamRoleMapChanged(ctx context.Context, newVersion UserTeamVersion) (err error) {
 	__arg := TeamRoleMapChangedArg{NewVersion: newVersion}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamRoleMapChanged", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamRoleMapChanged", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) AvatarUpdated(ctx context.Context, __arg AvatarUpdatedArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.avatarUpdated", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.avatarUpdated", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamMetadataUpdate(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamMetadataUpdate", []interface{}{TeamMetadataUpdateArg{}}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamMetadataUpdate", []any{TeamMetadataUpdateArg{}}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamTreeMembershipsPartial(ctx context.Context, membership TeamTreeMembership) (err error) {
 	__arg := TeamTreeMembershipsPartialArg{Membership: membership}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamTreeMembershipsPartial", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamTreeMembershipsPartial", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamTreeMembershipsDone(ctx context.Context, result TeamTreeMembershipsDoneResult) (err error) {
 	__arg := TeamTreeMembershipsDoneArg{Result: result}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamTreeMembershipsDone", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamTreeMembershipsDone", []any{__arg}, 0*time.Millisecond)
 	return
 }

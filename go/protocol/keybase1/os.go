@@ -41,7 +41,7 @@ func (o RuntimeGroup) String() string {
 	return fmt.Sprintf("%v", int(o))
 }
 
-type RuntimeInterface interface{}
+type RuntimeInterface any
 
 func RuntimeProtocol(i RuntimeInterface) rpc.Protocol {
 	return rpc.Protocol{

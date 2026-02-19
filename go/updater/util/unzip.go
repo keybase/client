@@ -29,7 +29,7 @@ func removeAllWithRetry(path string, log Log) error {
 	if runtime.GOOS == "windows" && strings.Contains(err.Error(), "being used by another process") {
 		log.Infof("File locked on Windows, retrying removal of %s", path)
 		maxRetries := 3
-		for i := 0; i < maxRetries; i++ {
+		for i := range maxRetries {
 			time.Sleep(100 * time.Millisecond * time.Duration(i+1)) // Exponential backoff: 100ms, 200ms, 300ms
 			err = os.RemoveAll(path)
 			if err == nil {

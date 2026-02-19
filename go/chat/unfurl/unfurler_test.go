@@ -127,7 +127,7 @@ func TestUnfurler(t *testing.T) {
 	numPrefetched = unfurler.Prefetch(context.TODO(), uid, convID, strings.Repeat(msgBody, 5))
 	require.Equal(t, 1, numPrefetched)
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg)
 	}
 	var outboxID chat1.OutboxID

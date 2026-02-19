@@ -30,11 +30,11 @@ func NotifyEmailAddressProtocol(i NotifyEmailAddressInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyEmailAddress",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"emailAddressVerified": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]EmailAddressVerifiedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]EmailAddressVerifiedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]EmailAddressVerifiedArg)(nil), args)
@@ -45,11 +45,11 @@ func NotifyEmailAddressProtocol(i NotifyEmailAddressInterface) rpc.Protocol {
 				},
 			},
 			"emailsChanged": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]EmailsChangedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]EmailsChangedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]EmailsChangedArg)(nil), args)
@@ -69,11 +69,11 @@ type NotifyEmailAddressClient struct {
 
 func (c NotifyEmailAddressClient) EmailAddressVerified(ctx context.Context, emailAddress EmailAddress) (err error) {
 	__arg := EmailAddressVerifiedArg{EmailAddress: emailAddress}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyEmailAddress.emailAddressVerified", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyEmailAddress.emailAddressVerified", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyEmailAddressClient) EmailsChanged(ctx context.Context, __arg EmailsChangedArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyEmailAddress.emailsChanged", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyEmailAddress.emailsChanged", []any{__arg}, 0*time.Millisecond)
 	return
 }

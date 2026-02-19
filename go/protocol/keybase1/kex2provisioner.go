@@ -21,11 +21,11 @@ func Kex2ProvisionerProtocol(i Kex2ProvisionerInterface) rpc.Protocol {
 		Name: "keybase.1.Kex2Provisioner",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"kexStart": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]KexStartArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.KexStart(ctx)
 					return
 				},
@@ -39,6 +39,6 @@ type Kex2ProvisionerClient struct {
 }
 
 func (c Kex2ProvisionerClient) KexStart(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.Kex2Provisioner.kexStart", []interface{}{KexStartArg{}}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.Kex2Provisioner.kexStart", []any{KexStartArg{}}, 0*time.Millisecond)
 	return
 }

@@ -418,7 +418,7 @@ func (o ExternalServiceConfig) DeepCopy() ExternalServiceConfig {
 	}
 }
 
-type ProveCommonInterface interface{}
+type ProveCommonInterface any
 
 func ProveCommonProtocol(i ProveCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

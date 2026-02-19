@@ -1,5 +1,4 @@
 //go:build !windows
-// +build !windows
 
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
@@ -109,7 +108,7 @@ func TestTerminateBeforeWatchRace(t *testing.T) {
 	// set up a bunch of iterations of the same program
 	programName := "TestTerminateBeforeWatchRace"
 	otherIterations := make([]Program, 6)
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		otherIterations[i] = procProgram(t, programName, "sleep")
 	}
 	mainProgram := procProgram(t, programName, "sleep")
@@ -254,7 +253,7 @@ func TestWatchdogExitAllRace(t *testing.T) {
 
 	// spin up three watchdogs at the same time with the same three programs
 	var wg sync.WaitGroup
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

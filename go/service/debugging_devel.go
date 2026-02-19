@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 //
 //go:build !production
-// +build !production
 
 package service
 
@@ -10,7 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -33,7 +32,7 @@ func (t *DebuggingHandler) scriptExtras(ctx context.Context, arg keybase1.Script
 	ctx = libkb.WithLogTag(ctx, "DG")
 	m := libkb.NewMetaContext(ctx, t.G())
 	args := arg.Args
-	log := func(format string, args ...interface{}) {
+	log := func(format string, args ...any) {
 		t.G().Log.CInfof(ctx, format, args...)
 	}
 	defer time.Sleep(100 * time.Millisecond) // Without this CInfof often doesn't reach the CLI
@@ -100,9 +99,7 @@ func (t *DebuggingHandler) scriptExtras(ctx context.Context, arg keybase1.Script
 		for _, upak := range upak.AllIncarnations() {
 			upakEldestSeqnos = append(upakEldestSeqnos, upak.EldestSeqno)
 		}
-		sort.Slice(upakEldestSeqnos, func(i, j int) bool {
-			return upakEldestSeqnos[i] < upakEldestSeqnos[j]
-		})
+		slices.Sort(upakEldestSeqnos)
 
 		// Full user
 		them, err := libkb.LoadUser(libkb.NewLoadUserArgWithMetaContext(m).WithName(args[0]).WithPublicKeyOptional())
@@ -149,7 +146,7 @@ func (t *DebuggingHandler) scriptExtras(ctx context.Context, arg keybase1.Script
 		recipient := args[0]
 		count := 30
 		var wg sync.WaitGroup
-		for i := 0; i < count; i++ {
+		for i := range count {
 			i := i
 			wg.Add(1)
 			if i%5 == 0 {

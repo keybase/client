@@ -48,8 +48,7 @@ func TestCoalescingContext(t *testing.T) {
 
 	require.EqualError(t, cc.Err(), context.Canceled.Error())
 
-	ctx3, cancel3 := context.WithCancel(context.Background())
-	defer cancel3()
+	ctx3 := t.Context()
 	err = cc.AddContext(ctx3)
 	require.EqualError(t, err, context.Canceled.Error())
 }

@@ -1196,7 +1196,7 @@ func (o WotStatusType) String() string {
 	return fmt.Sprintf("%v", int(o))
 }
 
-type CommonInterface interface{}
+type CommonInterface any
 
 func CommonProtocol(i CommonInterface) rpc.Protocol {
 	return rpc.Protocol{

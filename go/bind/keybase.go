@@ -60,7 +60,7 @@ var (
 )
 
 // log writes to kbCtx.Log if available, otherwise falls back to fmt.Printf
-func log(format string, args ...interface{}) {
+func log(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	if kbCtx != nil && kbCtx.Log != nil {
 		kbCtx.Log.Info(msg)

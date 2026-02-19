@@ -189,11 +189,11 @@ func newBlockRetrievalQueue(
 			numWorkers+numPrefetchWorkers),
 	}
 	q.prefetcher = newBlockPrefetcher(q, config, nil, nil, appStateUpdater)
-	for i := 0; i < numWorkers; i++ {
+	for range numWorkers {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
 			config.blockGetter(), q, q.workerCh))
 	}
-	for i := 0; i < numPrefetchWorkers; i++ {
+	for range numPrefetchWorkers {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
 			config.blockGetter(), q, q.prefetchWorkerCh))
 	}
@@ -264,7 +264,7 @@ func (brq *blockRetrievalQueue) shutdownRetrievalLocked() bool {
 	}
 
 	// TODO: try to infer the block type from the requests in the retrieval?
-	bpLookup := blockPtrLookup{retrieval.blockPtr, reflect.TypeOf(nil)}
+	bpLookup := blockPtrLookup{retrieval.blockPtr, reflect.TypeFor[untyped nil]()}
 	delete(brq.ptrs, bpLookup)
 	brq.finalizeRequestAfterPtrDeletion(
 		retrieval, nil, DiskBlockAnyCache, io.EOF)

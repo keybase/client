@@ -556,7 +556,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	var msg *chat1.MessageBoxed
 	var err error
 	holes := 3
-	for i := 0; i < holes; i++ {
+	for i := range holes {
 		pt.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("MIKE: %d", i),
 		})
@@ -645,11 +645,11 @@ func TestConversationLocking(t *testing.T) {
 	ctx = globals.ChatCtx(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
 		NewCachingIdentifyNotifier(tc.Context()))
 	acquires := 5
-	for i := 0; i < acquires; i++ {
+	for range acquires {
 		_, err := timedAcquire(ctx, t, hcs, uid, conv.GetConvID())
 		require.NoError(t, err)
 	}
-	for i := 0; i < acquires; i++ {
+	for range acquires {
 		hcs.lockTab.Release(ctx, uid, conv.GetConvID())
 	}
 	require.Zero(t, hcs.lockTab.NumLocks())

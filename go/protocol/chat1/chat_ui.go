@@ -3220,11 +3220,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 		Name: "chat.1.chatUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"chatInboxLayout": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatInboxLayoutArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatInboxLayoutArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatInboxLayoutArg)(nil), args)
@@ -3235,11 +3235,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatInboxUnverified": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatInboxUnverifiedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatInboxUnverifiedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatInboxUnverifiedArg)(nil), args)
@@ -3250,11 +3250,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatInboxConversation": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatInboxConversationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatInboxConversationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatInboxConversationArg)(nil), args)
@@ -3265,11 +3265,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatInboxFailed": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatInboxFailedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatInboxFailedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatInboxFailedArg)(nil), args)
@@ -3280,11 +3280,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatThreadCached": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatThreadCachedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatThreadCachedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatThreadCachedArg)(nil), args)
@@ -3295,11 +3295,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatThreadFull": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatThreadFullArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatThreadFullArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatThreadFullArg)(nil), args)
@@ -3310,11 +3310,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatThreadStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatThreadStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatThreadStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatThreadStatusArg)(nil), args)
@@ -3325,11 +3325,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatSearchHit": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSearchHitArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSearchHitArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSearchHitArg)(nil), args)
@@ -3340,11 +3340,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatSearchDone": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSearchDoneArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSearchDoneArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSearchDoneArg)(nil), args)
@@ -3355,11 +3355,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatSearchInboxStart": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSearchInboxStartArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSearchInboxStartArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSearchInboxStartArg)(nil), args)
@@ -3370,11 +3370,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatSearchInboxHit": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSearchInboxHitArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSearchInboxHitArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSearchInboxHitArg)(nil), args)
@@ -3385,11 +3385,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatSearchInboxDone": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSearchInboxDoneArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSearchInboxDoneArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSearchInboxDoneArg)(nil), args)
@@ -3400,11 +3400,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatSearchIndexStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSearchIndexStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSearchIndexStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSearchIndexStatusArg)(nil), args)
@@ -3415,11 +3415,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatSearchConvHits": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSearchConvHitsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSearchConvHitsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSearchConvHitsArg)(nil), args)
@@ -3430,11 +3430,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatSearchTeamHits": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSearchTeamHitsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSearchTeamHitsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSearchTeamHitsArg)(nil), args)
@@ -3445,11 +3445,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatSearchBotHits": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSearchBotHitsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSearchBotHitsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSearchBotHitsArg)(nil), args)
@@ -3460,11 +3460,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatConfirmChannelDelete": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatConfirmChannelDeleteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatConfirmChannelDeleteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatConfirmChannelDeleteArg)(nil), args)
@@ -3475,11 +3475,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatStellarShowConfirm": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatStellarShowConfirmArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatStellarShowConfirmArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatStellarShowConfirmArg)(nil), args)
@@ -3490,11 +3490,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatStellarDataConfirm": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatStellarDataConfirmArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatStellarDataConfirmArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatStellarDataConfirmArg)(nil), args)
@@ -3505,11 +3505,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatStellarDataError": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatStellarDataErrorArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatStellarDataErrorArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatStellarDataErrorArg)(nil), args)
@@ -3520,11 +3520,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatStellarDone": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatStellarDoneArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatStellarDoneArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatStellarDoneArg)(nil), args)
@@ -3535,11 +3535,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatGiphySearchResults": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatGiphySearchResultsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatGiphySearchResultsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatGiphySearchResultsArg)(nil), args)
@@ -3550,11 +3550,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatGiphyToggleResultWindow": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatGiphyToggleResultWindowArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatGiphyToggleResultWindowArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatGiphyToggleResultWindowArg)(nil), args)
@@ -3565,11 +3565,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatShowManageChannels": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatShowManageChannelsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatShowManageChannelsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatShowManageChannelsArg)(nil), args)
@@ -3580,11 +3580,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatCoinFlipStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatCoinFlipStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatCoinFlipStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatCoinFlipStatusArg)(nil), args)
@@ -3595,11 +3595,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatCommandMarkdown": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatCommandMarkdownArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatCommandMarkdownArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatCommandMarkdownArg)(nil), args)
@@ -3610,11 +3610,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatMaybeMentionUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatMaybeMentionUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatMaybeMentionUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatMaybeMentionUpdateArg)(nil), args)
@@ -3625,11 +3625,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatLoadGalleryHit": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatLoadGalleryHitArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatLoadGalleryHitArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatLoadGalleryHitArg)(nil), args)
@@ -3640,11 +3640,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatWatchPosition": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatWatchPositionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatWatchPositionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatWatchPositionArg)(nil), args)
@@ -3655,11 +3655,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatClearWatch": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatClearWatchArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatClearWatchArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatClearWatchArg)(nil), args)
@@ -3670,11 +3670,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatCommandStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatCommandStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatCommandStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatCommandStatusArg)(nil), args)
@@ -3685,11 +3685,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"chatBotCommandsUpdateStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatBotCommandsUpdateStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatBotCommandsUpdateStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatBotCommandsUpdateStatusArg)(nil), args)
@@ -3700,11 +3700,11 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 			},
 			"triggerContactSync": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TriggerContactSyncArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TriggerContactSyncArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TriggerContactSyncArg)(nil), args)
@@ -3723,169 +3723,169 @@ type ChatUiClient struct {
 }
 
 func (c ChatUiClient) ChatInboxLayout(ctx context.Context, __arg ChatInboxLayoutArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxLayout", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxLayout", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatInboxUnverified(ctx context.Context, __arg ChatInboxUnverifiedArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxUnverified", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxUnverified", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatInboxConversation(ctx context.Context, __arg ChatInboxConversationArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxConversation", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxConversation", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatInboxFailed(ctx context.Context, __arg ChatInboxFailedArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxFailed", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxFailed", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatThreadCached(ctx context.Context, __arg ChatThreadCachedArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadCached", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadCached", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatThreadFull(ctx context.Context, __arg ChatThreadFullArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadFull", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadFull", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatThreadStatus(ctx context.Context, __arg ChatThreadStatusArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadStatus", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadStatus", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchHit(ctx context.Context, __arg ChatSearchHitArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchHit", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchHit", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchDone(ctx context.Context, __arg ChatSearchDoneArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchDone", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchDone", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchInboxStart(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatSearchInboxStartArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxStart", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxStart", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchInboxHit(ctx context.Context, __arg ChatSearchInboxHitArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxHit", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxHit", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchInboxDone(ctx context.Context, __arg ChatSearchInboxDoneArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxDone", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxDone", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchIndexStatus(ctx context.Context, __arg ChatSearchIndexStatusArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchIndexStatus", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchIndexStatus", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchConvHits(ctx context.Context, __arg ChatSearchConvHitsArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchConvHits", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchConvHits", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchTeamHits(ctx context.Context, __arg ChatSearchTeamHitsArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchTeamHits", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchTeamHits", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchBotHits(ctx context.Context, __arg ChatSearchBotHitsArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchBotHits", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchBotHits", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatConfirmChannelDelete(ctx context.Context, __arg ChatConfirmChannelDeleteArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatConfirmChannelDelete", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatConfirmChannelDelete", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatStellarShowConfirm(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatStellarShowConfirmArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarShowConfirm", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarShowConfirm", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatStellarDataConfirm(ctx context.Context, __arg ChatStellarDataConfirmArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataConfirm", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataConfirm", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatStellarDataError(ctx context.Context, __arg ChatStellarDataErrorArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataError", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataError", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatStellarDone(ctx context.Context, __arg ChatStellarDoneArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDone", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDone", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatGiphySearchResults(ctx context.Context, __arg ChatGiphySearchResultsArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphySearchResults", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphySearchResults", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatGiphyToggleResultWindow(ctx context.Context, __arg ChatGiphyToggleResultWindowArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphyToggleResultWindow", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphyToggleResultWindow", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatShowManageChannels(ctx context.Context, __arg ChatShowManageChannelsArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatShowManageChannels", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatShowManageChannels", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatCoinFlipStatus(ctx context.Context, __arg ChatCoinFlipStatusArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCoinFlipStatus", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCoinFlipStatus", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatCommandMarkdown(ctx context.Context, __arg ChatCommandMarkdownArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandMarkdown", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandMarkdown", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatMaybeMentionUpdate(ctx context.Context, __arg ChatMaybeMentionUpdateArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatMaybeMentionUpdate", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatMaybeMentionUpdate", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatLoadGalleryHit(ctx context.Context, __arg ChatLoadGalleryHitArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatLoadGalleryHit", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatLoadGalleryHit", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatWatchPosition(ctx context.Context, __arg ChatWatchPositionArg) (res LocationWatchID, err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatWatchPosition", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatWatchPosition", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatClearWatch(ctx context.Context, __arg ChatClearWatchArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatClearWatch", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatClearWatch", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatCommandStatus(ctx context.Context, __arg ChatCommandStatusArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandStatus", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandStatus", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatBotCommandsUpdateStatus(ctx context.Context, __arg ChatBotCommandsUpdateStatusArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatBotCommandsUpdateStatus", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatBotCommandsUpdateStatus", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) TriggerContactSync(ctx context.Context, sessionID int) (err error) {
 	__arg := TriggerContactSyncArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.triggerContactSync", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.triggerContactSync", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

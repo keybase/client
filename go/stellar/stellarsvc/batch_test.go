@@ -142,7 +142,7 @@ func TestBatchMultiDirect(t *testing.T) {
 	// recipient test contexts
 	const numRecips = 3
 	recipTC := make([]*TestContext, numRecips)
-	for i := 0; i < numRecips; i++ {
+	for i := range numRecips {
 		var c func()
 		recipTC[i], c = setupDesktopTest(t)
 		defer c()

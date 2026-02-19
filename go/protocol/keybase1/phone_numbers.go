@@ -127,11 +127,11 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 		Name: "keybase.1.phoneNumbers",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"addPhoneNumber": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AddPhoneNumberArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AddPhoneNumberArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AddPhoneNumberArg)(nil), args)
@@ -142,11 +142,11 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 				},
 			},
 			"editPhoneNumber": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]EditPhoneNumberArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]EditPhoneNumberArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]EditPhoneNumberArg)(nil), args)
@@ -157,11 +157,11 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 				},
 			},
 			"verifyPhoneNumber": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]VerifyPhoneNumberArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]VerifyPhoneNumberArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]VerifyPhoneNumberArg)(nil), args)
@@ -172,11 +172,11 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 				},
 			},
 			"resendVerificationForPhoneNumber": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ResendVerificationForPhoneNumberArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ResendVerificationForPhoneNumberArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ResendVerificationForPhoneNumberArg)(nil), args)
@@ -187,11 +187,11 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 				},
 			},
 			"getPhoneNumbers": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPhoneNumbersArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetPhoneNumbersArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetPhoneNumbersArg)(nil), args)
@@ -202,11 +202,11 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 				},
 			},
 			"deletePhoneNumber": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeletePhoneNumberArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeletePhoneNumberArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeletePhoneNumberArg)(nil), args)
@@ -217,11 +217,11 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 				},
 			},
 			"setVisibilityPhoneNumber": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetVisibilityPhoneNumberArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetVisibilityPhoneNumberArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetVisibilityPhoneNumberArg)(nil), args)
@@ -232,11 +232,11 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 				},
 			},
 			"setVisibilityAllPhoneNumber": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetVisibilityAllPhoneNumberArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetVisibilityAllPhoneNumberArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetVisibilityAllPhoneNumberArg)(nil), args)
@@ -255,42 +255,42 @@ type PhoneNumbersClient struct {
 }
 
 func (c PhoneNumbersClient) AddPhoneNumber(ctx context.Context, __arg AddPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.addPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.addPhoneNumber", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) EditPhoneNumber(ctx context.Context, __arg EditPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.editPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.editPhoneNumber", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) VerifyPhoneNumber(ctx context.Context, __arg VerifyPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.verifyPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.verifyPhoneNumber", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) ResendVerificationForPhoneNumber(ctx context.Context, __arg ResendVerificationForPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.resendVerificationForPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.resendVerificationForPhoneNumber", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) GetPhoneNumbers(ctx context.Context, sessionID int) (res []UserPhoneNumber, err error) {
 	__arg := GetPhoneNumbersArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.getPhoneNumbers", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.getPhoneNumbers", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) DeletePhoneNumber(ctx context.Context, __arg DeletePhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.deletePhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.deletePhoneNumber", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) SetVisibilityPhoneNumber(ctx context.Context, __arg SetVisibilityPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityPhoneNumber", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) SetVisibilityAllPhoneNumber(ctx context.Context, __arg SetVisibilityAllPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityAllPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityAllPhoneNumber", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

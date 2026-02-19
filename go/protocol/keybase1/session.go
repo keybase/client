@@ -44,11 +44,11 @@ func SessionProtocol(i SessionInterface) rpc.Protocol {
 		Name: "keybase.1.session",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"currentSession": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CurrentSessionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CurrentSessionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CurrentSessionArg)(nil), args)
@@ -59,11 +59,11 @@ func SessionProtocol(i SessionInterface) rpc.Protocol {
 				},
 			},
 			"sessionPing": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SessionPingArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.SessionPing(ctx)
 					return
 				},
@@ -78,11 +78,11 @@ type SessionClient struct {
 
 func (c SessionClient) CurrentSession(ctx context.Context, sessionID int) (res Session, err error) {
 	__arg := CurrentSessionArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.session.currentSession", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.session.currentSession", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SessionClient) SessionPing(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.session.sessionPing", []interface{}{SessionPingArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.session.sessionPing", []any{SessionPingArg{}}, nil, 0*time.Millisecond)
 	return
 }

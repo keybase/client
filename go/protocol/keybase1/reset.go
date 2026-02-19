@@ -119,7 +119,7 @@ func (o ResetSummary) DeepCopy() ResetSummary {
 	}
 }
 
-type ResetInterface interface{}
+type ResetInterface any
 
 func ResetProtocol(i ResetInterface) rpc.Protocol {
 	return rpc.Protocol{

@@ -258,11 +258,11 @@ func NotifyBadgesProtocol(i NotifyBadgesInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyBadges",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"badgeState": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BadgeStateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BadgeStateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BadgeStateArg)(nil), args)
@@ -282,6 +282,6 @@ type NotifyBadgesClient struct {
 
 func (c NotifyBadgesClient) BadgeState(ctx context.Context, badgeState BadgeState) (err error) {
 	__arg := BadgeStateArg{BadgeState: badgeState}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyBadges.badgeState", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyBadges.badgeState", []any{__arg}, 0*time.Millisecond)
 	return
 }

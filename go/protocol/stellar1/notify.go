@@ -58,11 +58,11 @@ func NotifyProtocol(i NotifyInterface) rpc.Protocol {
 		Name: "stellar.1.notify",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"paymentNotification": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PaymentNotificationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PaymentNotificationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PaymentNotificationArg)(nil), args)
@@ -73,11 +73,11 @@ func NotifyProtocol(i NotifyInterface) rpc.Protocol {
 				},
 			},
 			"paymentStatusNotification": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PaymentStatusNotificationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PaymentStatusNotificationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PaymentStatusNotificationArg)(nil), args)
@@ -88,11 +88,11 @@ func NotifyProtocol(i NotifyInterface) rpc.Protocol {
 				},
 			},
 			"requestStatusNotification": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RequestStatusNotificationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RequestStatusNotificationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RequestStatusNotificationArg)(nil), args)
@@ -103,11 +103,11 @@ func NotifyProtocol(i NotifyInterface) rpc.Protocol {
 				},
 			},
 			"accountDetailsUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AccountDetailsUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AccountDetailsUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AccountDetailsUpdateArg)(nil), args)
@@ -118,11 +118,11 @@ func NotifyProtocol(i NotifyInterface) rpc.Protocol {
 				},
 			},
 			"accountsUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AccountsUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AccountsUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AccountsUpdateArg)(nil), args)
@@ -133,11 +133,11 @@ func NotifyProtocol(i NotifyInterface) rpc.Protocol {
 				},
 			},
 			"pendingPaymentsUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PendingPaymentsUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PendingPaymentsUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PendingPaymentsUpdateArg)(nil), args)
@@ -148,11 +148,11 @@ func NotifyProtocol(i NotifyInterface) rpc.Protocol {
 				},
 			},
 			"recentPaymentsUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RecentPaymentsUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RecentPaymentsUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RecentPaymentsUpdateArg)(nil), args)
@@ -171,38 +171,38 @@ type NotifyClient struct {
 }
 
 func (c NotifyClient) PaymentNotification(ctx context.Context, __arg PaymentNotificationArg) (err error) {
-	err = c.Cli.Notify(ctx, "stellar.1.notify.paymentNotification", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "stellar.1.notify.paymentNotification", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyClient) PaymentStatusNotification(ctx context.Context, __arg PaymentStatusNotificationArg) (err error) {
-	err = c.Cli.Notify(ctx, "stellar.1.notify.paymentStatusNotification", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "stellar.1.notify.paymentStatusNotification", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyClient) RequestStatusNotification(ctx context.Context, reqID KeybaseRequestID) (err error) {
 	__arg := RequestStatusNotificationArg{ReqID: reqID}
-	err = c.Cli.Notify(ctx, "stellar.1.notify.requestStatusNotification", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "stellar.1.notify.requestStatusNotification", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyClient) AccountDetailsUpdate(ctx context.Context, __arg AccountDetailsUpdateArg) (err error) {
-	err = c.Cli.Notify(ctx, "stellar.1.notify.accountDetailsUpdate", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "stellar.1.notify.accountDetailsUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyClient) AccountsUpdate(ctx context.Context, accounts []WalletAccountLocal) (err error) {
 	__arg := AccountsUpdateArg{Accounts: accounts}
-	err = c.Cli.Notify(ctx, "stellar.1.notify.accountsUpdate", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "stellar.1.notify.accountsUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyClient) PendingPaymentsUpdate(ctx context.Context, __arg PendingPaymentsUpdateArg) (err error) {
-	err = c.Cli.Notify(ctx, "stellar.1.notify.pendingPaymentsUpdate", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "stellar.1.notify.pendingPaymentsUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyClient) RecentPaymentsUpdate(ctx context.Context, __arg RecentPaymentsUpdateArg) (err error) {
-	err = c.Cli.Notify(ctx, "stellar.1.notify.recentPaymentsUpdate", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "stellar.1.notify.recentPaymentsUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }

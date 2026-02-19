@@ -110,11 +110,11 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 		Name: "keybase.1.test",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"test": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TestArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TestArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TestArg)(nil), args)
@@ -125,11 +125,11 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 				},
 			},
 			"testCallback": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TestCallbackArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TestCallbackArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TestCallbackArg)(nil), args)
@@ -140,11 +140,11 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 				},
 			},
 			"panic": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PanicArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PanicArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PanicArg)(nil), args)
@@ -155,21 +155,21 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 				},
 			},
 			"testAirdropReg": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TestAirdropRegArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.TestAirdropReg(ctx)
 					return
 				},
 			},
 			"echo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]EchoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]EchoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]EchoArg)(nil), args)
@@ -191,32 +191,32 @@ type TestClient struct {
 // Will trigger the testCallback method, whose result will be set in the
 // returned Test object, reply property.
 func (c TestClient) Test(ctx context.Context, __arg TestArg) (res Test, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.test.test", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.test.test", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // This is a service callback triggered from test(..).
 // The name param is what was passed into test.
 func (c TestClient) TestCallback(ctx context.Context, __arg TestCallbackArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.test.testCallback", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.test.testCallback", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // For testing crashes.
 func (c TestClient) Panic(ctx context.Context, message string) (err error) {
 	__arg := PanicArg{Message: message}
-	err = c.Cli.Call(ctx, "keybase.1.test.panic", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.test.panic", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // For testing airdrop reg.
 func (c TestClient) TestAirdropReg(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.test.testAirdropReg", []interface{}{TestAirdropRegArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.test.testAirdropReg", []any{TestAirdropRegArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TestClient) Echo(ctx context.Context, arg Generic) (res Generic, err error) {
 	__arg := EchoArg{Arg: arg}
-	err = c.Cli.Call(ctx, "keybase.1.test.echo", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.test.echo", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -385,7 +385,7 @@ func TestLookupSelfAfterRemove(t *testing.T) {
 		// Fetch our contacts again, deleting should automatically affect our
 		// synced contacts.
 
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			// 1. Inspect saved contacts list,
 			// 2. sync contacts again,
 			// 3. inspect again to see if stale cache did not overwrite our

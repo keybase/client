@@ -389,7 +389,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	rmd := initialRmd
 	mdID := initialMdID
 	// Put several MDs after a local squash
-	for i := 0; i < mdCount; i++ {
+	for range mdCount {
 		rmd, err = rmd.MakeSuccessor(ctx, config.MetadataVersion(),
 			config.Codec(), config.KeyManager(),
 			config.KBPKI(), config.KBPKI(), config, mdID, true)

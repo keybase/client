@@ -200,7 +200,7 @@ func (o ConversationCommandGroups) DeepCopy() ConversationCommandGroups {
 	}
 }
 
-type CommandsInterface interface{}
+type CommandsInterface any
 
 func CommandsProtocol(i CommandsInterface) rpc.Protocol {
 	return rpc.Protocol{

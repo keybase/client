@@ -538,7 +538,7 @@ func (o SubteamRenameUpdate) DeepCopy() SubteamRenameUpdate {
 	}
 }
 
-type GregorInterface interface{}
+type GregorInterface any
 
 func GregorProtocol(i GregorInterface) rpc.Protocol {
 	return rpc.Protocol{

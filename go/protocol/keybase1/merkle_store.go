@@ -43,7 +43,7 @@ func (o MerkleStoreEntry) DeepCopy() MerkleStoreEntry {
 	}
 }
 
-type Merkle_storeInterface interface{}
+type Merkle_storeInterface any
 
 func Merkle_storeProtocol(i Merkle_storeInterface) rpc.Protocol {
 	return rpc.Protocol{

@@ -209,11 +209,11 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 		Name: "keybase.1.wot",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"wotVouch": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]WotVouchArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]WotVouchArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]WotVouchArg)(nil), args)
@@ -224,11 +224,11 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 				},
 			},
 			"wotVouchCLI": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]WotVouchCLIArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]WotVouchCLIArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]WotVouchCLIArg)(nil), args)
@@ -239,11 +239,11 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 				},
 			},
 			"wotReact": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]WotReactArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]WotReactArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]WotReactArg)(nil), args)
@@ -254,11 +254,11 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 				},
 			},
 			"dismissWotNotifications": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DismissWotNotificationsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DismissWotNotificationsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DismissWotNotificationsArg)(nil), args)
@@ -269,11 +269,11 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 				},
 			},
 			"wotFetchVouches": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]WotFetchVouchesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]WotFetchVouchesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]WotFetchVouchesArg)(nil), args)
@@ -292,26 +292,26 @@ type WotClient struct {
 }
 
 func (c WotClient) WotVouch(ctx context.Context, __arg WotVouchArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.wotVouch", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotVouch", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c WotClient) WotVouchCLI(ctx context.Context, __arg WotVouchCLIArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.wotVouchCLI", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotVouchCLI", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c WotClient) WotReact(ctx context.Context, __arg WotReactArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.wotReact", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotReact", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c WotClient) DismissWotNotifications(ctx context.Context, __arg DismissWotNotificationsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.dismissWotNotifications", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.wot.dismissWotNotifications", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c WotClient) WotFetchVouches(ctx context.Context, __arg WotFetchVouchesArg) (res []WotVouch, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.wotFetchVouches", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotFetchVouches", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -323,7 +323,7 @@ func (o RemoteProof) DeepCopy() RemoteProof {
 	}
 }
 
-type IdentifyCommonInterface interface{}
+type IdentifyCommonInterface any
 
 func IdentifyCommonProtocol(i IdentifyCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

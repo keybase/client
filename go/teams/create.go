@@ -264,7 +264,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 
 	mctx.Debug("makeSigAndPostRootTeam post sigs")
 	payload := make(libkb.JSONPayload)
-	payload["sigs"] = []interface{}{sigMultiItem}
+	payload["sigs"] = []any{sigMultiItem}
 	payload["per_team_key"] = secretboxes
 
 	_, err = mctx.G().API.PostJSON(mctx, libkb.APIArg{
@@ -421,7 +421,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	}
 
 	payload := make(libkb.JSONPayload)
-	payload["sigs"] = []interface{}{newSubteamSig, subteamHeadSig}
+	payload["sigs"] = []any{newSubteamSig, subteamHeadSig}
 	payload["per_team_key"] = secretboxes
 	ratchet.AddToJSONPayload(payload)
 

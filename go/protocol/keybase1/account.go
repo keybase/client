@@ -223,11 +223,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 		Name: "keybase.1.account",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"passphraseChange": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PassphraseChangeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PassphraseChangeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PassphraseChangeArg)(nil), args)
@@ -238,11 +238,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"passphrasePrompt": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PassphrasePromptArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PassphrasePromptArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PassphrasePromptArg)(nil), args)
@@ -253,11 +253,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"passphraseCheck": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PassphraseCheckArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PassphraseCheckArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PassphraseCheckArg)(nil), args)
@@ -268,11 +268,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"emailChange": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]EmailChangeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]EmailChangeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]EmailChangeArg)(nil), args)
@@ -283,11 +283,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"hasServerKeys": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HasServerKeysArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]HasServerKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]HasServerKeysArg)(nil), args)
@@ -298,11 +298,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"resetAccount": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ResetAccountArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ResetAccountArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ResetAccountArg)(nil), args)
@@ -313,11 +313,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"getLockdownMode": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetLockdownModeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetLockdownModeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetLockdownModeArg)(nil), args)
@@ -328,11 +328,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"setLockdownMode": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetLockdownModeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetLockdownModeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetLockdownModeArg)(nil), args)
@@ -343,11 +343,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"recoverUsernameWithEmail": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RecoverUsernameWithEmailArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RecoverUsernameWithEmailArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RecoverUsernameWithEmailArg)(nil), args)
@@ -358,11 +358,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"recoverUsernameWithPhone": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RecoverUsernameWithPhoneArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RecoverUsernameWithPhoneArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RecoverUsernameWithPhoneArg)(nil), args)
@@ -373,11 +373,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"enterResetPipeline": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]EnterResetPipelineArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]EnterResetPipelineArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]EnterResetPipelineArg)(nil), args)
@@ -388,11 +388,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"cancelReset": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CancelResetArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CancelResetArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CancelResetArg)(nil), args)
@@ -403,11 +403,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"timeTravelReset": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TimeTravelResetArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TimeTravelResetArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TimeTravelResetArg)(nil), args)
@@ -418,11 +418,11 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"guessCurrentLocation": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GuessCurrentLocationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GuessCurrentLocationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GuessCurrentLocationArg)(nil), args)
@@ -433,21 +433,21 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 			},
 			"userGetContactSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UserGetContactSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.UserGetContactSettings(ctx)
 					return
 				},
 			},
 			"userSetContactSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UserSetContactSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UserSetContactSettingsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UserSetContactSettingsArg)(nil), args)
@@ -469,12 +469,12 @@ type AccountClient struct {
 // then prompt at the UI for it. If old isn't set and force is true, then
 // we'll try to force a passphrase change.
 func (c AccountClient) PassphraseChange(ctx context.Context, __arg PassphraseChangeArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.passphraseChange", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.passphraseChange", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) PassphrasePrompt(ctx context.Context, __arg PassphrasePromptArg) (res GetPassphraseRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.passphrasePrompt", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.passphrasePrompt", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -482,13 +482,13 @@ func (c AccountClient) PassphrasePrompt(ctx context.Context, __arg PassphrasePro
 // * passphrase argument is empty. Returns `true` if passphrase is correct,
 // * false if not, or an error if something else went wrong.
 func (c AccountClient) PassphraseCheck(ctx context.Context, __arg PassphraseCheckArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.passphraseCheck", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.passphraseCheck", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // * change email to the new given email by signing a statement.
 func (c AccountClient) EmailChange(ctx context.Context, __arg EmailChangeArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.emailChange", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.emailChange", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -496,35 +496,35 @@ func (c AccountClient) EmailChange(ctx context.Context, __arg EmailChangeArg) (e
 // * Will error if not logged in.
 func (c AccountClient) HasServerKeys(ctx context.Context, sessionID int) (res HasServerKeysRes, err error) {
 	__arg := HasServerKeysArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.account.hasServerKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.hasServerKeys", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // resetAccount resets the user's account. It is used in the CLI.
 // passphrase is optional and will be prompted for if not supplied.
 func (c AccountClient) ResetAccount(ctx context.Context, __arg ResetAccountArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.resetAccount", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.resetAccount", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) GetLockdownMode(ctx context.Context, sessionID int) (res GetLockdownResponse, err error) {
 	__arg := GetLockdownModeArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.account.getLockdownMode", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.getLockdownMode", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) SetLockdownMode(ctx context.Context, __arg SetLockdownModeArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.setLockdownMode", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.setLockdownMode", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) RecoverUsernameWithEmail(ctx context.Context, __arg RecoverUsernameWithEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsernameWithEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsernameWithEmail", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) RecoverUsernameWithPhone(ctx context.Context, __arg RecoverUsernameWithPhoneArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsernameWithPhone", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsernameWithPhone", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -533,34 +533,34 @@ func (c AccountClient) RecoverUsernameWithPhone(ctx context.Context, __arg Recov
 // the process.
 // TODO: change this to just username
 func (c AccountClient) EnterResetPipeline(ctx context.Context, __arg EnterResetPipelineArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.enterResetPipeline", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.enterResetPipeline", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Aborts the reset process
 func (c AccountClient) CancelReset(ctx context.Context, sessionID int) (err error) {
 	__arg := CancelResetArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.account.cancelReset", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.cancelReset", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) TimeTravelReset(ctx context.Context, __arg TimeTravelResetArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.timeTravelReset", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.timeTravelReset", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) GuessCurrentLocation(ctx context.Context, __arg GuessCurrentLocationArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.guessCurrentLocation", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.guessCurrentLocation", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) UserGetContactSettings(ctx context.Context) (res ContactSettings, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.userGetContactSettings", []interface{}{UserGetContactSettingsArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.userGetContactSettings", []any{UserGetContactSettingsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) UserSetContactSettings(ctx context.Context, settings ContactSettings) (err error) {
 	__arg := UserSetContactSettingsArg{Settings: settings}
-	err = c.Cli.Call(ctx, "keybase.1.account.userSetContactSettings", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.account.userSetContactSettings", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

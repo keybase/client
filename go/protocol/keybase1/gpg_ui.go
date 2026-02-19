@@ -66,11 +66,11 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 		Name: "keybase.1.gpgUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"wantToAddGPGKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]WantToAddGPGKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]WantToAddGPGKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]WantToAddGPGKeyArg)(nil), args)
@@ -81,11 +81,11 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 				},
 			},
 			"confirmDuplicateKeyChosen": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ConfirmDuplicateKeyChosenArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ConfirmDuplicateKeyChosenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ConfirmDuplicateKeyChosenArg)(nil), args)
@@ -96,11 +96,11 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 				},
 			},
 			"confirmImportSecretToExistingKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ConfirmImportSecretToExistingKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ConfirmImportSecretToExistingKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ConfirmImportSecretToExistingKeyArg)(nil), args)
@@ -111,11 +111,11 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 				},
 			},
 			"selectKeyAndPushOption": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SelectKeyAndPushOptionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SelectKeyAndPushOptionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SelectKeyAndPushOptionArg)(nil), args)
@@ -126,11 +126,11 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 				},
 			},
 			"selectKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SelectKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SelectKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SelectKeyArg)(nil), args)
@@ -141,11 +141,11 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 				},
 			},
 			"sign": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SignArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SignArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SignArg)(nil), args)
@@ -156,11 +156,11 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 				},
 			},
 			"getTTY": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTTYArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetTTY(ctx)
 					return
 				},
@@ -175,38 +175,38 @@ type GpgUiClient struct {
 
 func (c GpgUiClient) WantToAddGPGKey(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := WantToAddGPGKeyArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.gpgUi.wantToAddGPGKey", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.wantToAddGPGKey", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GpgUiClient) ConfirmDuplicateKeyChosen(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := ConfirmDuplicateKeyChosenArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.gpgUi.confirmDuplicateKeyChosen", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.confirmDuplicateKeyChosen", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GpgUiClient) ConfirmImportSecretToExistingKey(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := ConfirmImportSecretToExistingKeyArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.gpgUi.confirmImportSecretToExistingKey", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.confirmImportSecretToExistingKey", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GpgUiClient) SelectKeyAndPushOption(ctx context.Context, __arg SelectKeyAndPushOptionArg) (res SelectKeyRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.gpgUi.selectKeyAndPushOption", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.selectKeyAndPushOption", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GpgUiClient) SelectKey(ctx context.Context, __arg SelectKeyArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.gpgUi.selectKey", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.selectKey", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GpgUiClient) Sign(ctx context.Context, __arg SignArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.gpgUi.sign", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.sign", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GpgUiClient) GetTTY(ctx context.Context) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.gpgUi.getTTY", []interface{}{GetTTYArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.getTTY", []any{GetTTYArg{}}, &res, 0*time.Millisecond)
 	return
 }

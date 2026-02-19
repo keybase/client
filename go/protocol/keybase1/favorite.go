@@ -361,11 +361,11 @@ func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
 		Name: "keybase.1.favorite",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"favoriteAdd": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FavoriteAddArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FavoriteAddArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FavoriteAddArg)(nil), args)
@@ -376,11 +376,11 @@ func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
 				},
 			},
 			"favoriteIgnore": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FavoriteIgnoreArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FavoriteIgnoreArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FavoriteIgnoreArg)(nil), args)
@@ -391,11 +391,11 @@ func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
 				},
 			},
 			"getFavorites": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetFavoritesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetFavoritesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetFavoritesArg)(nil), args)
@@ -415,19 +415,19 @@ type FavoriteClient struct {
 
 // Adds a folder to a user's list of favorite folders.
 func (c FavoriteClient) FavoriteAdd(ctx context.Context, __arg FavoriteAddArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteAdd", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteAdd", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Removes a folder from a user's list of favorite folders.
 func (c FavoriteClient) FavoriteIgnore(ctx context.Context, __arg FavoriteIgnoreArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteIgnore", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteIgnore", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Returns all of a user's favorite folders.
 func (c FavoriteClient) GetFavorites(ctx context.Context, sessionID int) (res FavoritesResult, err error) {
 	__arg := GetFavoritesArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.favorite.getFavorites", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.favorite.getFavorites", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

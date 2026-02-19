@@ -67,11 +67,11 @@ func SecretKeysProtocol(i SecretKeysInterface) rpc.Protocol {
 		Name: "keybase.1.SecretKeys",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getSecretKeys": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetSecretKeysArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetSecretKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetSecretKeysArg)(nil), args)
@@ -91,6 +91,6 @@ type SecretKeysClient struct {
 
 func (c SecretKeysClient) GetSecretKeys(ctx context.Context, sessionID int) (res SecretKeys, err error) {
 	__arg := GetSecretKeysArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.SecretKeys.getSecretKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.SecretKeys.getSecretKeys", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

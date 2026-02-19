@@ -520,7 +520,7 @@ func (f *JSONConfigFile) GetGpgOptions() []string {
 		// noop
 	} else {
 		ret = make([]string, 0, l)
-		for i := 0; i < l; i++ {
+		for i := range l {
 			if s, e := v.AtIndex(i).GetString(); e == nil {
 				ret = append(ret, s)
 			}
@@ -653,7 +653,7 @@ func (f *JSONConfigFile) GetRememberPassphrase(username NormalizedUsername) (boo
 	if username.IsNil() {
 		return f.GetTopLevelBool(legacyRememberPassphraseKey)
 	}
-	if m, ok := f.jw.AtKey("remember_passphrase_map").GetDataOrNil().(map[string]interface{}); ok {
+	if m, ok := f.jw.AtKey("remember_passphrase_map").GetDataOrNil().(map[string]any); ok {
 		if ret, mOk := m[username.String()]; mOk {
 			if boolRet, boolOk := ret.(bool); boolOk {
 				return boolRet, true
@@ -788,7 +788,7 @@ func (f *JSONConfigFile) getStringArray(v *jsonw.Wrapper) []string {
 	}
 
 	ret := make([]string, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		s, err := v.AtIndex(i).GetString()
 		if err != nil {
 			return nil
@@ -852,7 +852,7 @@ func (f *JSONConfigFile) GetProxyCACerts() (ret []string, err error) {
 	defer f.setMutex.RUnlock()
 	jw := f.jw.AtKey("proxy_ca_certs")
 	if l, e := jw.Len(); e == nil {
-		for i := 0; i < l; i++ {
+		for i := range l {
 			s, e2 := jw.AtIndex(i).GetString()
 			if e2 != nil {
 				err = ConfigError{

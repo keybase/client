@@ -397,7 +397,7 @@ func (o SessionToken) DeepCopy() SessionToken {
 	return o
 }
 
-type CommonInterface interface{}
+type CommonInterface any
 
 func CommonProtocol(i CommonInterface) rpc.Protocol {
 	return rpc.Protocol{

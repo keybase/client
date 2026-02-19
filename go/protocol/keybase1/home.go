@@ -924,11 +924,11 @@ func HomeProtocol(i HomeInterface) rpc.Protocol {
 		Name: "keybase.1.home",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"homeGetScreen": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HomeGetScreenArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]HomeGetScreenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]HomeGetScreenArg)(nil), args)
@@ -939,11 +939,11 @@ func HomeProtocol(i HomeInterface) rpc.Protocol {
 				},
 			},
 			"homeSkipTodoType": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HomeSkipTodoTypeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]HomeSkipTodoTypeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]HomeSkipTodoTypeArg)(nil), args)
@@ -954,11 +954,11 @@ func HomeProtocol(i HomeInterface) rpc.Protocol {
 				},
 			},
 			"homeDismissAnnouncement": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HomeDismissAnnouncementArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]HomeDismissAnnouncementArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]HomeDismissAnnouncementArg)(nil), args)
@@ -969,21 +969,21 @@ func HomeProtocol(i HomeInterface) rpc.Protocol {
 				},
 			},
 			"homeActionTaken": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HomeActionTakenArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.HomeActionTaken(ctx)
 					return
 				},
 			},
 			"homeMarkViewed": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HomeMarkViewedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.HomeMarkViewed(ctx)
 					return
 				},
@@ -1004,28 +1004,28 @@ type HomeClient struct {
 // the default number will be returned (10).  Otherwise, the caller should
 // specify.
 func (c HomeClient) HomeGetScreen(ctx context.Context, __arg HomeGetScreenArg) (res HomeScreen, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.home.homeGetScreen", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.home.homeGetScreen", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c HomeClient) HomeSkipTodoType(ctx context.Context, t HomeScreenTodoType) (err error) {
 	__arg := HomeSkipTodoTypeArg{T: t}
-	err = c.Cli.Call(ctx, "keybase.1.home.homeSkipTodoType", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.home.homeSkipTodoType", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c HomeClient) HomeDismissAnnouncement(ctx context.Context, i HomeScreenAnnouncementID) (err error) {
 	__arg := HomeDismissAnnouncementArg{I: i}
-	err = c.Cli.Call(ctx, "keybase.1.home.homeDismissAnnouncement", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.home.homeDismissAnnouncement", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c HomeClient) HomeActionTaken(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.home.homeActionTaken", []interface{}{HomeActionTakenArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.home.homeActionTaken", []any{HomeActionTakenArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c HomeClient) HomeMarkViewed(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.home.homeMarkViewed", []interface{}{HomeMarkViewedArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.home.homeMarkViewed", []any{HomeMarkViewedArg{}}, nil, 0*time.Millisecond)
 	return
 }

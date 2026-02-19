@@ -103,7 +103,7 @@ func (o GetPassphraseRes) DeepCopy() GetPassphraseRes {
 	}
 }
 
-type PassphraseCommonInterface interface{}
+type PassphraseCommonInterface any
 
 func PassphraseCommonProtocol(i PassphraseCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

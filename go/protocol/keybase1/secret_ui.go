@@ -61,11 +61,11 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 		Name: "keybase.1.secretUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getPassphrase": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPassphraseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetPassphraseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetPassphraseArg)(nil), args)
@@ -84,6 +84,6 @@ type SecretUiClient struct {
 }
 
 func (c SecretUiClient) GetPassphrase(ctx context.Context, __arg GetPassphraseArg) (res GetPassphraseRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.secretUi.getPassphrase", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.secretUi.getPassphrase", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

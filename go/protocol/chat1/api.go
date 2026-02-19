@@ -1059,7 +1059,7 @@ func (o GetDeviceInfoRes) DeepCopy() GetDeviceInfoRes {
 	}
 }
 
-type ApiInterface interface{}
+type ApiInterface any
 
 func ApiProtocol(i ApiInterface) rpc.Protocol {
 	return rpc.Protocol{

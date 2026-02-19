@@ -121,11 +121,11 @@ func FeaturedBotProtocol(i FeaturedBotInterface) rpc.Protocol {
 		Name: "keybase.1.featuredBot",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"featuredBots": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FeaturedBotsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FeaturedBotsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FeaturedBotsArg)(nil), args)
@@ -136,11 +136,11 @@ func FeaturedBotProtocol(i FeaturedBotInterface) rpc.Protocol {
 				},
 			},
 			"search": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SearchArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SearchArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SearchArg)(nil), args)
@@ -151,11 +151,11 @@ func FeaturedBotProtocol(i FeaturedBotInterface) rpc.Protocol {
 				},
 			},
 			"searchLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SearchLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SearchLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SearchLocalArg)(nil), args)
@@ -174,16 +174,16 @@ type FeaturedBotClient struct {
 }
 
 func (c FeaturedBotClient) FeaturedBots(ctx context.Context, __arg FeaturedBotsArg) (res FeaturedBotsRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.featuredBot.featuredBots", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.featuredBot.featuredBots", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c FeaturedBotClient) Search(ctx context.Context, __arg SearchArg) (res SearchRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.featuredBot.search", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.featuredBot.search", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c FeaturedBotClient) SearchLocal(ctx context.Context, __arg SearchLocalArg) (res SearchRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.featuredBot.searchLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.featuredBot.searchLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

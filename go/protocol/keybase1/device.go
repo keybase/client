@@ -109,11 +109,11 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 		Name: "keybase.1.device",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"deviceList": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeviceListArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeviceListArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeviceListArg)(nil), args)
@@ -124,11 +124,11 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 				},
 			},
 			"deviceHistoryList": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeviceHistoryListArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeviceHistoryListArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeviceHistoryListArg)(nil), args)
@@ -139,11 +139,11 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 				},
 			},
 			"deviceAdd": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeviceAddArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeviceAddArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeviceAddArg)(nil), args)
@@ -154,11 +154,11 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 				},
 			},
 			"checkDeviceNameFormat": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CheckDeviceNameFormatArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CheckDeviceNameFormatArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CheckDeviceNameFormatArg)(nil), args)
@@ -169,21 +169,21 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 				},
 			},
 			"dismissDeviceChangeNotifications": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DismissDeviceChangeNotificationsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.DismissDeviceChangeNotifications(ctx)
 					return
 				},
 			},
 			"checkDeviceNameForUser": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CheckDeviceNameForUserArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CheckDeviceNameForUserArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CheckDeviceNameForUserArg)(nil), args)
@@ -204,14 +204,14 @@ type DeviceClient struct {
 // List devices for the user.
 func (c DeviceClient) DeviceList(ctx context.Context, sessionID int) (res []Device, err error) {
 	__arg := DeviceListArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.device.deviceList", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.device.deviceList", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // List all devices with detailed history and status information.
 func (c DeviceClient) DeviceHistoryList(ctx context.Context, sessionID int) (res []DeviceDetail, err error) {
 	__arg := DeviceHistoryListArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.device.deviceHistoryList", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.device.deviceHistoryList", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -220,20 +220,20 @@ func (c DeviceClient) DeviceHistoryList(ctx context.Context, sessionID int) (res
 // This is for kex2.
 func (c DeviceClient) DeviceAdd(ctx context.Context, sessionID int) (err error) {
 	__arg := DeviceAddArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.device.deviceAdd", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.device.deviceAdd", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Checks the device name format.
 func (c DeviceClient) CheckDeviceNameFormat(ctx context.Context, __arg CheckDeviceNameFormatArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.device.checkDeviceNameFormat", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.device.checkDeviceNameFormat", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Dismisses the notifications for a new or revoked device
 // assuming this is not that device.
 func (c DeviceClient) DismissDeviceChangeNotifications(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.device.dismissDeviceChangeNotifications", []interface{}{DismissDeviceChangeNotificationsArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.device.dismissDeviceChangeNotifications", []any{DismissDeviceChangeNotificationsArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -242,6 +242,6 @@ func (c DeviceClient) DismissDeviceChangeNotifications(ctx context.Context) (err
 // for proper formatting. Return null error on success, and a non-null
 // error otherwise.
 func (c DeviceClient) CheckDeviceNameForUser(ctx context.Context, __arg CheckDeviceNameForUserArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.device.checkDeviceNameForUser", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.device.checkDeviceNameForUser", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

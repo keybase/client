@@ -147,11 +147,11 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 		Name: "gregor.1.incoming",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"sync": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SyncArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SyncArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SyncArg)(nil), args)
@@ -162,11 +162,11 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 			},
 			"consumeMessage": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ConsumeMessageArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ConsumeMessageArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ConsumeMessageArg)(nil), args)
@@ -177,11 +177,11 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 			},
 			"consumePublishMessage": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ConsumePublishMessageArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ConsumePublishMessageArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ConsumePublishMessageArg)(nil), args)
@@ -192,11 +192,11 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 			},
 			"consumeMessageMulti": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ConsumeMessageMultiArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ConsumeMessageMultiArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ConsumeMessageMultiArg)(nil), args)
@@ -207,21 +207,21 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 			},
 			"ping": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PingArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.Ping(ctx)
 					return
 				},
 			},
 			"version": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]VersionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]VersionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]VersionArg)(nil), args)
@@ -232,11 +232,11 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 			},
 			"state": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]StateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]StateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]StateArg)(nil), args)
@@ -247,11 +247,11 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 			},
 			"stateByCategoryPrefix": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]StateByCategoryPrefixArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]StateByCategoryPrefixArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]StateByCategoryPrefixArg)(nil), args)
@@ -262,11 +262,11 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 			},
 			"describeConnectedUsers": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DescribeConnectedUsersArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DescribeConnectedUsersArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DescribeConnectedUsersArg)(nil), args)
@@ -277,11 +277,11 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 			},
 			"describeConnectedUsersInternal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DescribeConnectedUsersInternalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DescribeConnectedUsersInternalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DescribeConnectedUsersInternalArg)(nil), args)
@@ -300,19 +300,19 @@ type IncomingClient struct {
 }
 
 func (c IncomingClient) Sync(ctx context.Context, __arg SyncArg) (res SyncResult, err error) {
-	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.sync", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.sync", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c IncomingClient) ConsumeMessage(ctx context.Context, m Message) (err error) {
 	__arg := ConsumeMessageArg{M: m}
-	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.consumeMessage", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.consumeMessage", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c IncomingClient) ConsumePublishMessage(ctx context.Context, m Message) (err error) {
 	__arg := ConsumePublishMessageArg{M: m}
-	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.consumePublishMessage", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.consumePublishMessage", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
@@ -320,41 +320,41 @@ func (c IncomingClient) ConsumePublishMessage(ctx context.Context, m Message) (e
 // in uids. This is so a gregor client can send the same message to many UIDs
 // with one call, as opposed to calling consumeMessage for each UID.
 func (c IncomingClient) ConsumeMessageMulti(ctx context.Context, __arg ConsumeMessageMultiArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.consumeMessageMulti", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.consumeMessageMulti", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c IncomingClient) Ping(ctx context.Context) (res string, err error) {
-	err = c.Cli.Call(ctx, "gregor.1.incoming.ping", []interface{}{PingArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "gregor.1.incoming.ping", []any{PingArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c IncomingClient) Version(ctx context.Context, uid UID) (res string, err error) {
 	__arg := VersionArg{Uid: uid}
-	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.version", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.version", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c IncomingClient) State(ctx context.Context, __arg StateArg) (res State, err error) {
-	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.state", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.state", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 // StateByCategoryPrefix loads the messages of the user's state whose
 // categories are prefixed by the given prefix
 func (c IncomingClient) StateByCategoryPrefix(ctx context.Context, __arg StateByCategoryPrefixArg) (res State, err error) {
-	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.stateByCategoryPrefix", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.stateByCategoryPrefix", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c IncomingClient) DescribeConnectedUsers(ctx context.Context, uids []UID) (res []ConnectedUser, err error) {
 	__arg := DescribeConnectedUsersArg{Uids: uids}
-	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.describeConnectedUsers", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.describeConnectedUsers", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c IncomingClient) DescribeConnectedUsersInternal(ctx context.Context, uids []UID) (res []ConnectedUser, err error) {
 	__arg := DescribeConnectedUsersInternalArg{Uids: uids}
-	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.describeConnectedUsersInternal", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.describeConnectedUsersInternal", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }

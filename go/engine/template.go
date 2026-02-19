@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build ignore
-// +build ignore
 
 //
 // This is a template for an engine.

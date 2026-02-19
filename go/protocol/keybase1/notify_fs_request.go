@@ -28,11 +28,11 @@ func NotifyFSRequestProtocol(i NotifyFSRequestInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyFSRequest",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"FSEditListRequest": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FSEditListRequestArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FSEditListRequestArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FSEditListRequestArg)(nil), args)
@@ -43,11 +43,11 @@ func NotifyFSRequestProtocol(i NotifyFSRequestInterface) rpc.Protocol {
 				},
 			},
 			"FSSyncStatusRequest": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FSSyncStatusRequestArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FSSyncStatusRequestArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FSSyncStatusRequestArg)(nil), args)
@@ -67,12 +67,12 @@ type NotifyFSRequestClient struct {
 
 func (c NotifyFSRequestClient) FSEditListRequest(ctx context.Context, req FSEditListRequest) (err error) {
 	__arg := FSEditListRequestArg{Req: req}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFSRequest.FSEditListRequest", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFSRequest.FSEditListRequest", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyFSRequestClient) FSSyncStatusRequest(ctx context.Context, req FSSyncStatusRequest) (err error) {
 	__arg := FSSyncStatusRequestArg{Req: req}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFSRequest.FSSyncStatusRequest", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFSRequest.FSSyncStatusRequest", []any{__arg}, 0*time.Millisecond)
 	return
 }

@@ -182,7 +182,7 @@ func (n NullConfiguration) GetStringAtPath(string) (string, bool) {
 	return "", false
 }
 
-func (n NullConfiguration) GetInterfaceAtPath(string) (interface{}, error) {
+func (n NullConfiguration) GetInterfaceAtPath(string) (any, error) {
 	return nil, nil
 }
 

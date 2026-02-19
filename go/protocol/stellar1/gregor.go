@@ -43,7 +43,7 @@ func (o PaymentNotificationMsg) DeepCopy() PaymentNotificationMsg {
 	}
 }
 
-type GregorInterface interface{}
+type GregorInterface any
 
 func GregorProtocol(i GregorInterface) rpc.Protocol {
 	return rpc.Protocol{

@@ -1850,11 +1850,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 		Name: "stellar.1.local",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getWalletAccountsLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetWalletAccountsLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetWalletAccountsLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetWalletAccountsLocalArg)(nil), args)
@@ -1865,11 +1865,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getWalletAccountLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetWalletAccountLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetWalletAccountLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetWalletAccountLocalArg)(nil), args)
@@ -1880,11 +1880,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getAccountAssetsLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetAccountAssetsLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetAccountAssetsLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetAccountAssetsLocalArg)(nil), args)
@@ -1895,11 +1895,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getPaymentsLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPaymentsLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetPaymentsLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetPaymentsLocalArg)(nil), args)
@@ -1910,11 +1910,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getPendingPaymentsLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPendingPaymentsLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetPendingPaymentsLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetPendingPaymentsLocalArg)(nil), args)
@@ -1925,11 +1925,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"markAsReadLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]MarkAsReadLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]MarkAsReadLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]MarkAsReadLocalArg)(nil), args)
@@ -1940,11 +1940,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getPaymentDetailsLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPaymentDetailsLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetPaymentDetailsLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetPaymentDetailsLocalArg)(nil), args)
@@ -1955,11 +1955,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getGenericPaymentDetailsLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetGenericPaymentDetailsLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetGenericPaymentDetailsLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetGenericPaymentDetailsLocalArg)(nil), args)
@@ -1970,11 +1970,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getDisplayCurrenciesLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetDisplayCurrenciesLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetDisplayCurrenciesLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetDisplayCurrenciesLocalArg)(nil), args)
@@ -1985,11 +1985,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"validateAccountIDLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ValidateAccountIDLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ValidateAccountIDLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ValidateAccountIDLocalArg)(nil), args)
@@ -2000,11 +2000,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"validateSecretKeyLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ValidateSecretKeyLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ValidateSecretKeyLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ValidateSecretKeyLocalArg)(nil), args)
@@ -2015,11 +2015,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"validateAccountNameLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ValidateAccountNameLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ValidateAccountNameLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ValidateAccountNameLocalArg)(nil), args)
@@ -2030,11 +2030,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"changeWalletAccountNameLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChangeWalletAccountNameLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChangeWalletAccountNameLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChangeWalletAccountNameLocalArg)(nil), args)
@@ -2045,11 +2045,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"setWalletAccountAsDefaultLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetWalletAccountAsDefaultLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetWalletAccountAsDefaultLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetWalletAccountAsDefaultLocalArg)(nil), args)
@@ -2060,11 +2060,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"deleteWalletAccountLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeleteWalletAccountLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeleteWalletAccountLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeleteWalletAccountLocalArg)(nil), args)
@@ -2075,11 +2075,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"linkNewWalletAccountLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LinkNewWalletAccountLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LinkNewWalletAccountLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LinkNewWalletAccountLocalArg)(nil), args)
@@ -2090,11 +2090,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"createWalletAccountLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CreateWalletAccountLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CreateWalletAccountLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CreateWalletAccountLocalArg)(nil), args)
@@ -2105,11 +2105,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"changeDisplayCurrencyLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChangeDisplayCurrencyLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChangeDisplayCurrencyLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChangeDisplayCurrencyLocalArg)(nil), args)
@@ -2120,11 +2120,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getDisplayCurrencyLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetDisplayCurrencyLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetDisplayCurrencyLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetDisplayCurrencyLocalArg)(nil), args)
@@ -2135,11 +2135,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"hasAcceptedDisclaimerLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HasAcceptedDisclaimerLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]HasAcceptedDisclaimerLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]HasAcceptedDisclaimerLocalArg)(nil), args)
@@ -2150,11 +2150,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"acceptDisclaimerLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AcceptDisclaimerLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AcceptDisclaimerLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AcceptDisclaimerLocalArg)(nil), args)
@@ -2165,11 +2165,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getWalletAccountPublicKeyLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetWalletAccountPublicKeyLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetWalletAccountPublicKeyLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetWalletAccountPublicKeyLocalArg)(nil), args)
@@ -2180,11 +2180,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getWalletAccountSecretKeyLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetWalletAccountSecretKeyLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetWalletAccountSecretKeyLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetWalletAccountSecretKeyLocalArg)(nil), args)
@@ -2195,11 +2195,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getSendAssetChoicesLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetSendAssetChoicesLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetSendAssetChoicesLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetSendAssetChoicesLocalArg)(nil), args)
@@ -2210,11 +2210,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"startBuildPaymentLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]StartBuildPaymentLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]StartBuildPaymentLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]StartBuildPaymentLocalArg)(nil), args)
@@ -2225,11 +2225,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"stopBuildPaymentLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]StopBuildPaymentLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]StopBuildPaymentLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]StopBuildPaymentLocalArg)(nil), args)
@@ -2240,11 +2240,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"buildPaymentLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BuildPaymentLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BuildPaymentLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BuildPaymentLocalArg)(nil), args)
@@ -2255,11 +2255,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"reviewPaymentLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ReviewPaymentLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ReviewPaymentLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ReviewPaymentLocalArg)(nil), args)
@@ -2270,11 +2270,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"sendPaymentLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SendPaymentLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SendPaymentLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SendPaymentLocalArg)(nil), args)
@@ -2285,11 +2285,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"sendPathLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SendPathLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SendPathLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SendPathLocalArg)(nil), args)
@@ -2300,11 +2300,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"buildRequestLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BuildRequestLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BuildRequestLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BuildRequestLocalArg)(nil), args)
@@ -2315,11 +2315,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getRequestDetailsLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetRequestDetailsLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetRequestDetailsLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetRequestDetailsLocalArg)(nil), args)
@@ -2330,11 +2330,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"cancelRequestLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CancelRequestLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CancelRequestLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CancelRequestLocalArg)(nil), args)
@@ -2345,11 +2345,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"makeRequestLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]MakeRequestLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]MakeRequestLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]MakeRequestLocalArg)(nil), args)
@@ -2360,11 +2360,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"setAccountMobileOnlyLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetAccountMobileOnlyLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetAccountMobileOnlyLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetAccountMobileOnlyLocalArg)(nil), args)
@@ -2375,11 +2375,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"setAccountAllDevicesLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetAccountAllDevicesLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetAccountAllDevicesLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetAccountAllDevicesLocalArg)(nil), args)
@@ -2390,11 +2390,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"isAccountMobileOnlyLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]IsAccountMobileOnlyLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]IsAccountMobileOnlyLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]IsAccountMobileOnlyLocalArg)(nil), args)
@@ -2405,11 +2405,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"cancelPaymentLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CancelPaymentLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CancelPaymentLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CancelPaymentLocalArg)(nil), args)
@@ -2420,11 +2420,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getPredefinedInflationDestinationsLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPredefinedInflationDestinationsLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetPredefinedInflationDestinationsLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetPredefinedInflationDestinationsLocalArg)(nil), args)
@@ -2435,11 +2435,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"setInflationDestinationLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetInflationDestinationLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetInflationDestinationLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetInflationDestinationLocalArg)(nil), args)
@@ -2450,11 +2450,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getInflationDestinationLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetInflationDestinationLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetInflationDestinationLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetInflationDestinationLocalArg)(nil), args)
@@ -2465,11 +2465,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"airdropDetailsLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AirdropDetailsLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AirdropDetailsLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AirdropDetailsLocalArg)(nil), args)
@@ -2480,11 +2480,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"airdropStatusLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AirdropStatusLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AirdropStatusLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AirdropStatusLocalArg)(nil), args)
@@ -2495,11 +2495,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"airdropRegisterLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AirdropRegisterLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AirdropRegisterLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AirdropRegisterLocalArg)(nil), args)
@@ -2510,11 +2510,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"fuzzyAssetSearchLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FuzzyAssetSearchLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FuzzyAssetSearchLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FuzzyAssetSearchLocalArg)(nil), args)
@@ -2525,11 +2525,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"listPopularAssetsLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ListPopularAssetsLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ListPopularAssetsLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ListPopularAssetsLocalArg)(nil), args)
@@ -2540,11 +2540,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"addTrustlineLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AddTrustlineLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AddTrustlineLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AddTrustlineLocalArg)(nil), args)
@@ -2555,11 +2555,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"deleteTrustlineLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeleteTrustlineLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeleteTrustlineLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeleteTrustlineLocalArg)(nil), args)
@@ -2570,11 +2570,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"changeTrustlineLimitLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChangeTrustlineLimitLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChangeTrustlineLimitLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChangeTrustlineLimitLocalArg)(nil), args)
@@ -2585,11 +2585,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getTrustlinesLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTrustlinesLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTrustlinesLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTrustlinesLocalArg)(nil), args)
@@ -2600,11 +2600,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getTrustlinesForRecipientLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTrustlinesForRecipientLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTrustlinesForRecipientLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTrustlinesForRecipientLocalArg)(nil), args)
@@ -2615,11 +2615,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"findPaymentPathLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FindPaymentPathLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FindPaymentPathLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FindPaymentPathLocalArg)(nil), args)
@@ -2630,11 +2630,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"assetDepositLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AssetDepositLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AssetDepositLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AssetDepositLocalArg)(nil), args)
@@ -2645,11 +2645,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"assetWithdrawLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AssetWithdrawLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AssetWithdrawLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AssetWithdrawLocalArg)(nil), args)
@@ -2660,11 +2660,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"balancesLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BalancesLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BalancesLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BalancesLocalArg)(nil), args)
@@ -2675,11 +2675,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"sendCLILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SendCLILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SendCLILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SendCLILocalArg)(nil), args)
@@ -2690,11 +2690,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"sendPathCLILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SendPathCLILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SendPathCLILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SendPathCLILocalArg)(nil), args)
@@ -2705,11 +2705,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"accountMergeCLILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AccountMergeCLILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AccountMergeCLILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AccountMergeCLILocalArg)(nil), args)
@@ -2720,11 +2720,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"claimCLILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ClaimCLILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ClaimCLILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ClaimCLILocalArg)(nil), args)
@@ -2735,11 +2735,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"recentPaymentsCLILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RecentPaymentsCLILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RecentPaymentsCLILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RecentPaymentsCLILocalArg)(nil), args)
@@ -2750,11 +2750,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"paymentDetailCLILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PaymentDetailCLILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PaymentDetailCLILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PaymentDetailCLILocalArg)(nil), args)
@@ -2765,41 +2765,41 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"walletInitLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]WalletInitLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.WalletInitLocal(ctx)
 					return
 				},
 			},
 			"walletDumpLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]WalletDumpLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.WalletDumpLocal(ctx)
 					return
 				},
 			},
 			"walletGetAccountsCLILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]WalletGetAccountsCLILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.WalletGetAccountsCLILocal(ctx)
 					return
 				},
 			},
 			"ownAccountLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]OwnAccountLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]OwnAccountLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]OwnAccountLocalArg)(nil), args)
@@ -2810,11 +2810,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"importSecretKeyLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ImportSecretKeyLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ImportSecretKeyLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ImportSecretKeyLocalArg)(nil), args)
@@ -2825,11 +2825,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"exportSecretKeyLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ExportSecretKeyLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ExportSecretKeyLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ExportSecretKeyLocalArg)(nil), args)
@@ -2840,11 +2840,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"setDisplayCurrency": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetDisplayCurrencyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetDisplayCurrencyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetDisplayCurrencyArg)(nil), args)
@@ -2855,11 +2855,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"exchangeRateLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ExchangeRateLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ExchangeRateLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ExchangeRateLocalArg)(nil), args)
@@ -2870,21 +2870,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getAvailableLocalCurrencies": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetAvailableLocalCurrenciesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetAvailableLocalCurrencies(ctx)
 					return
 				},
 			},
 			"formatLocalCurrencyString": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FormatLocalCurrencyStringArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FormatLocalCurrencyStringArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FormatLocalCurrencyStringArg)(nil), args)
@@ -2895,11 +2895,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"makeRequestCLILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]MakeRequestCLILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]MakeRequestCLILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]MakeRequestCLILocalArg)(nil), args)
@@ -2910,11 +2910,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"lookupCLILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LookupCLILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LookupCLILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LookupCLILocalArg)(nil), args)
@@ -2925,11 +2925,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"batchLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BatchLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BatchLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BatchLocalArg)(nil), args)
@@ -2940,11 +2940,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"validateStellarURILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ValidateStellarURILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ValidateStellarURILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ValidateStellarURILocalArg)(nil), args)
@@ -2955,11 +2955,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"approveTxURILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ApproveTxURILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ApproveTxURILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ApproveTxURILocalArg)(nil), args)
@@ -2970,11 +2970,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"approvePayURILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ApprovePayURILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ApprovePayURILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ApprovePayURILocalArg)(nil), args)
@@ -2985,11 +2985,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"approvePathURILocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ApprovePathURILocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ApprovePathURILocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ApprovePathURILocalArg)(nil), args)
@@ -3000,11 +3000,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getPartnerUrlsLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPartnerUrlsLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetPartnerUrlsLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetPartnerUrlsLocalArg)(nil), args)
@@ -3015,11 +3015,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"signTransactionXdrLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SignTransactionXdrLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SignTransactionXdrLocalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SignTransactionXdrLocalArg)(nil), args)
@@ -3030,11 +3030,11 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 			},
 			"getStaticConfigLocal": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetStaticConfigLocalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetStaticConfigLocal(ctx)
 					return
 				},
@@ -3049,422 +3049,422 @@ type LocalClient struct {
 
 func (c LocalClient) GetWalletAccountsLocal(ctx context.Context, sessionID int) (res []WalletAccountLocal, err error) {
 	__arg := GetWalletAccountsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetWalletAccountLocal(ctx context.Context, __arg GetWalletAccountLocalArg) (res WalletAccountLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetAccountAssetsLocal(ctx context.Context, __arg GetAccountAssetsLocalArg) (res []AccountAssetLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getAccountAssetsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getAccountAssetsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetPaymentsLocal(ctx context.Context, __arg GetPaymentsLocalArg) (res PaymentsPageLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetPendingPaymentsLocal(ctx context.Context, __arg GetPendingPaymentsLocalArg) (res []PaymentOrErrorLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getPendingPaymentsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getPendingPaymentsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.markAsReadLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.markAsReadLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetPaymentDetailsLocal(ctx context.Context, __arg GetPaymentDetailsLocalArg) (res PaymentDetailsLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentDetailsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentDetailsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetGenericPaymentDetailsLocal(ctx context.Context, __arg GetGenericPaymentDetailsLocalArg) (res PaymentDetailsLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getGenericPaymentDetailsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getGenericPaymentDetailsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (res []CurrencyLocal, err error) {
 	__arg := GetDisplayCurrenciesLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrenciesLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrenciesLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ValidateAccountIDLocal(ctx context.Context, __arg ValidateAccountIDLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.validateAccountIDLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.validateAccountIDLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ValidateSecretKeyLocal(ctx context.Context, __arg ValidateSecretKeyLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.validateSecretKeyLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.validateSecretKeyLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ValidateAccountNameLocal(ctx context.Context, __arg ValidateAccountNameLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.validateAccountNameLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.validateAccountNameLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ChangeWalletAccountNameLocal(ctx context.Context, __arg ChangeWalletAccountNameLocalArg) (res WalletAccountLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.changeWalletAccountNameLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.changeWalletAccountNameLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SetWalletAccountAsDefaultLocal(ctx context.Context, __arg SetWalletAccountAsDefaultLocalArg) (res []WalletAccountLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.setWalletAccountAsDefaultLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.setWalletAccountAsDefaultLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) DeleteWalletAccountLocal(ctx context.Context, __arg DeleteWalletAccountLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.deleteWalletAccountLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.deleteWalletAccountLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) LinkNewWalletAccountLocal(ctx context.Context, __arg LinkNewWalletAccountLocalArg) (res AccountID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.linkNewWalletAccountLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.linkNewWalletAccountLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) CreateWalletAccountLocal(ctx context.Context, __arg CreateWalletAccountLocalArg) (res AccountID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.createWalletAccountLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.createWalletAccountLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ChangeDisplayCurrencyLocal(ctx context.Context, __arg ChangeDisplayCurrencyLocalArg) (res CurrencyLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.changeDisplayCurrencyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.changeDisplayCurrencyLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetDisplayCurrencyLocal(ctx context.Context, __arg GetDisplayCurrencyLocalArg) (res CurrencyLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrencyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrencyLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) HasAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := HasAcceptedDisclaimerLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.hasAcceptedDisclaimerLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.hasAcceptedDisclaimerLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
 	__arg := AcceptDisclaimerLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.acceptDisclaimerLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.acceptDisclaimerLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetWalletAccountPublicKeyLocal(ctx context.Context, __arg GetWalletAccountPublicKeyLocalArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountPublicKeyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountPublicKeyLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetWalletAccountSecretKeyLocal(ctx context.Context, __arg GetWalletAccountSecretKeyLocalArg) (res SecretKey, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountSecretKeyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountSecretKeyLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetSendAssetChoicesLocal(ctx context.Context, __arg GetSendAssetChoicesLocalArg) (res []SendAssetChoiceLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getSendAssetChoicesLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getSendAssetChoicesLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) StartBuildPaymentLocal(ctx context.Context, sessionID int) (res BuildPaymentID, err error) {
 	__arg := StartBuildPaymentLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.startBuildPaymentLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.startBuildPaymentLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) StopBuildPaymentLocal(ctx context.Context, __arg StopBuildPaymentLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.stopBuildPaymentLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.stopBuildPaymentLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) BuildPaymentLocal(ctx context.Context, __arg BuildPaymentLocalArg) (res BuildPaymentResLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.buildPaymentLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.buildPaymentLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ReviewPaymentLocal(ctx context.Context, __arg ReviewPaymentLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.reviewPaymentLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.reviewPaymentLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SendPaymentLocal(ctx context.Context, __arg SendPaymentLocalArg) (res SendPaymentResLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.sendPaymentLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.sendPaymentLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SendPathLocal(ctx context.Context, __arg SendPathLocalArg) (res SendPaymentResLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.sendPathLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.sendPathLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) BuildRequestLocal(ctx context.Context, __arg BuildRequestLocalArg) (res BuildRequestResLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.buildRequestLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.buildRequestLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetRequestDetailsLocal(ctx context.Context, __arg GetRequestDetailsLocalArg) (res RequestDetailsLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getRequestDetailsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getRequestDetailsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) CancelRequestLocal(ctx context.Context, __arg CancelRequestLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.cancelRequestLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.cancelRequestLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) MakeRequestLocal(ctx context.Context, __arg MakeRequestLocalArg) (res KeybaseRequestID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SetAccountMobileOnlyLocal(ctx context.Context, __arg SetAccountMobileOnlyLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.setAccountMobileOnlyLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.setAccountMobileOnlyLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SetAccountAllDevicesLocal(ctx context.Context, __arg SetAccountAllDevicesLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.setAccountAllDevicesLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.setAccountAllDevicesLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) IsAccountMobileOnlyLocal(ctx context.Context, __arg IsAccountMobileOnlyLocalArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.isAccountMobileOnlyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.isAccountMobileOnlyLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) CancelPaymentLocal(ctx context.Context, __arg CancelPaymentLocalArg) (res RelayClaimResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.cancelPaymentLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.cancelPaymentLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetPredefinedInflationDestinationsLocal(ctx context.Context, sessionID int) (res []PredefinedInflationDestination, err error) {
 	__arg := GetPredefinedInflationDestinationsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.getPredefinedInflationDestinationsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getPredefinedInflationDestinationsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SetInflationDestinationLocal(ctx context.Context, __arg SetInflationDestinationLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.setInflationDestinationLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.setInflationDestinationLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetInflationDestinationLocal(ctx context.Context, __arg GetInflationDestinationLocalArg) (res InflationDestinationResultLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getInflationDestinationLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getInflationDestinationLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AirdropDetailsLocal(ctx context.Context, sessionID int) (res AirdropDetails, err error) {
 	__arg := AirdropDetailsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.airdropDetailsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.airdropDetailsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AirdropStatusLocal(ctx context.Context, sessionID int) (res AirdropStatus, err error) {
 	__arg := AirdropStatusLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.airdropStatusLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.airdropStatusLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AirdropRegisterLocal(ctx context.Context, __arg AirdropRegisterLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.airdropRegisterLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.airdropRegisterLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) FuzzyAssetSearchLocal(ctx context.Context, __arg FuzzyAssetSearchLocalArg) (res []Asset, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.fuzzyAssetSearchLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.fuzzyAssetSearchLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res AssetListResult, err error) {
 	__arg := ListPopularAssetsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.listPopularAssetsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.listPopularAssetsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AddTrustlineLocal(ctx context.Context, __arg AddTrustlineLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.addTrustlineLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.addTrustlineLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) DeleteTrustlineLocal(ctx context.Context, __arg DeleteTrustlineLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.deleteTrustlineLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.deleteTrustlineLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ChangeTrustlineLimitLocal(ctx context.Context, __arg ChangeTrustlineLimitLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.changeTrustlineLimitLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.changeTrustlineLimitLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetTrustlinesLocal(ctx context.Context, __arg GetTrustlinesLocalArg) (res []Balance, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getTrustlinesLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getTrustlinesLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetTrustlinesForRecipientLocal(ctx context.Context, __arg GetTrustlinesForRecipientLocalArg) (res RecipientTrustlinesLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getTrustlinesForRecipientLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getTrustlinesForRecipientLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) FindPaymentPathLocal(ctx context.Context, __arg FindPaymentPathLocalArg) (res PaymentPathLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.findPaymentPathLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.findPaymentPathLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AssetDepositLocal(ctx context.Context, __arg AssetDepositLocalArg) (res AssetActionResultLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.assetDepositLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.assetDepositLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AssetWithdrawLocal(ctx context.Context, __arg AssetWithdrawLocalArg) (res AssetActionResultLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.assetWithdrawLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.assetWithdrawLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (res []Balance, err error) {
 	__arg := BalancesLocalArg{AccountID: accountID}
-	err = c.Cli.Call(ctx, "stellar.1.local.balancesLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.balancesLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SendCLILocal(ctx context.Context, __arg SendCLILocalArg) (res SendResultCLILocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.sendCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.sendCLILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SendPathCLILocal(ctx context.Context, __arg SendPathCLILocalArg) (res SendResultCLILocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.sendPathCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.sendPathCLILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AccountMergeCLILocal(ctx context.Context, __arg AccountMergeCLILocalArg) (res TransactionID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.accountMergeCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.accountMergeCLILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ClaimCLILocal(ctx context.Context, __arg ClaimCLILocalArg) (res RelayClaimResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.claimCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.claimCLILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentOrErrorCLILocal, err error) {
 	__arg := RecentPaymentsCLILocalArg{AccountID: accountID}
-	err = c.Cli.Call(ctx, "stellar.1.local.recentPaymentsCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.recentPaymentsCLILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) PaymentDetailCLILocal(ctx context.Context, txID string) (res PaymentCLILocal, err error) {
 	__arg := PaymentDetailCLILocalArg{TxID: txID}
-	err = c.Cli.Call(ctx, "stellar.1.local.paymentDetailCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.paymentDetailCLILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) WalletInitLocal(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.walletInitLocal", []interface{}{WalletInitLocalArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.walletInitLocal", []any{WalletInitLocalArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) WalletDumpLocal(ctx context.Context) (res Bundle, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.walletDumpLocal", []interface{}{WalletDumpLocalArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.walletDumpLocal", []any{WalletDumpLocalArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) WalletGetAccountsCLILocal(ctx context.Context) (res []OwnAccountCLILocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.walletGetAccountsCLILocal", []interface{}{WalletGetAccountsCLILocalArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.walletGetAccountsCLILocal", []any{WalletGetAccountsCLILocalArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) OwnAccountLocal(ctx context.Context, accountID AccountID) (res bool, err error) {
 	__arg := OwnAccountLocalArg{AccountID: accountID}
-	err = c.Cli.Call(ctx, "stellar.1.local.ownAccountLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.ownAccountLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ImportSecretKeyLocal(ctx context.Context, __arg ImportSecretKeyLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.importSecretKeyLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.importSecretKeyLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ExportSecretKeyLocal(ctx context.Context, accountID AccountID) (res SecretKey, err error) {
 	__arg := ExportSecretKeyLocalArg{AccountID: accountID}
-	err = c.Cli.Call(ctx, "stellar.1.local.exportSecretKeyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.exportSecretKeyLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SetDisplayCurrency(ctx context.Context, __arg SetDisplayCurrencyArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.setDisplayCurrency", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.setDisplayCurrency", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ExchangeRateLocal(ctx context.Context, currency OutsideCurrencyCode) (res OutsideExchangeRate, err error) {
 	__arg := ExchangeRateLocalArg{Currency: currency}
-	err = c.Cli.Call(ctx, "stellar.1.local.exchangeRateLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.exchangeRateLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetAvailableLocalCurrencies(ctx context.Context) (res map[OutsideCurrencyCode]OutsideCurrencyDefinition, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getAvailableLocalCurrencies", []interface{}{GetAvailableLocalCurrenciesArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getAvailableLocalCurrencies", []any{GetAvailableLocalCurrenciesArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) FormatLocalCurrencyString(ctx context.Context, __arg FormatLocalCurrencyStringArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.formatLocalCurrencyString", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.formatLocalCurrencyString", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) MakeRequestCLILocal(ctx context.Context, __arg MakeRequestCLILocalArg) (res KeybaseRequestID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestCLILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) LookupCLILocal(ctx context.Context, name string) (res LookupResultCLILocal, err error) {
 	__arg := LookupCLILocalArg{Name: name}
-	err = c.Cli.Call(ctx, "stellar.1.local.lookupCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.lookupCLILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) BatchLocal(ctx context.Context, __arg BatchLocalArg) (res BatchResultLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.batchLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.batchLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ValidateStellarURILocal(ctx context.Context, __arg ValidateStellarURILocalArg) (res ValidateStellarURIResultLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.validateStellarURILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.validateStellarURILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ApproveTxURILocal(ctx context.Context, __arg ApproveTxURILocalArg) (res TransactionID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.approveTxURILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.approveTxURILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ApprovePayURILocal(ctx context.Context, __arg ApprovePayURILocalArg) (res TransactionID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.approvePayURILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.approvePayURILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ApprovePathURILocal(ctx context.Context, __arg ApprovePathURILocalArg) (res TransactionID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.approvePathURILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.approvePathURILocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []PartnerUrl, err error) {
 	__arg := GetPartnerUrlsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.getPartnerUrlsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getPartnerUrlsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SignTransactionXdrLocal(ctx context.Context, __arg SignTransactionXdrLocalArg) (res SignXdrResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.signTransactionXdrLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.signTransactionXdrLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetStaticConfigLocal(ctx context.Context) (res StaticConfig, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getStaticConfigLocal", []interface{}{GetStaticConfigLocalArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.local.getStaticConfigLocal", []any{GetStaticConfigLocalArg{}}, &res, 0*time.Millisecond)
 	return
 }

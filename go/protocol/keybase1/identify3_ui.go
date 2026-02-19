@@ -295,11 +295,11 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 		Name: "keybase.1.identify3Ui",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"identify3ShowTracker": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Identify3ShowTrackerArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Identify3ShowTrackerArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Identify3ShowTrackerArg)(nil), args)
@@ -310,11 +310,11 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 				},
 			},
 			"identify3Summary": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Identify3SummaryArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Identify3SummaryArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Identify3SummaryArg)(nil), args)
@@ -325,11 +325,11 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 				},
 			},
 			"identify3UpdateRow": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Identify3UpdateRowArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Identify3UpdateRowArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Identify3UpdateRowArg)(nil), args)
@@ -340,11 +340,11 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 				},
 			},
 			"identify3UserReset": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Identify3UserResetArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Identify3UserResetArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Identify3UserResetArg)(nil), args)
@@ -355,11 +355,11 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 				},
 			},
 			"identify3UpdateUserCard": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Identify3UpdateUserCardArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Identify3UpdateUserCardArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Identify3UpdateUserCardArg)(nil), args)
@@ -370,11 +370,11 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 				},
 			},
 			"identify3TrackerTimedOut": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Identify3TrackerTimedOutArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Identify3TrackerTimedOutArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Identify3TrackerTimedOutArg)(nil), args)
@@ -385,11 +385,11 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 				},
 			},
 			"identify3Result": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Identify3ResultArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Identify3ResultArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Identify3ResultArg)(nil), args)
@@ -408,40 +408,40 @@ type Identify3UiClient struct {
 }
 
 func (c Identify3UiClient) Identify3ShowTracker(ctx context.Context, __arg Identify3ShowTrackerArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify3Ui.identify3ShowTracker", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identify3Ui.identify3ShowTracker", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3Summary(ctx context.Context, summary Identify3Summary) (err error) {
 	__arg := Identify3SummaryArg{Summary: summary}
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3Summary", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3Summary", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3UpdateRow(ctx context.Context, row Identify3Row) (err error) {
 	__arg := Identify3UpdateRowArg{Row: row}
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateRow", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateRow", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3UserReset(ctx context.Context, guiID Identify3GUIID) (err error) {
 	__arg := Identify3UserResetArg{GuiID: guiID}
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UserReset", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UserReset", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3UpdateUserCard(ctx context.Context, __arg Identify3UpdateUserCardArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateUserCard", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateUserCard", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3TrackerTimedOut(ctx context.Context, guiID Identify3GUIID) (err error) {
 	__arg := Identify3TrackerTimedOutArg{GuiID: guiID}
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3TrackerTimedOut", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3TrackerTimedOut", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3Result(ctx context.Context, __arg Identify3ResultArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3Result", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3Result", []any{__arg}, 0*time.Millisecond)
 	return
 }

@@ -767,7 +767,7 @@ func (o StatusCode) String() string {
 	return fmt.Sprintf("%v", int(o))
 }
 
-type ConstantsInterface interface{}
+type ConstantsInterface any
 
 func ConstantsProtocol(i ConstantsInterface) rpc.Protocol {
 	return rpc.Protocol{

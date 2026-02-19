@@ -67,7 +67,7 @@ func (o InstrumentationStat) DeepCopy() InstrumentationStat {
 	}
 }
 
-type NetworkStatsInterface interface{}
+type NetworkStatsInterface any
 
 func NetworkStatsProtocol(i NetworkStatsInterface) rpc.Protocol {
 	return rpc.Protocol{

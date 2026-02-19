@@ -11,7 +11,7 @@ import (
 )
 
 type TimeTracer interface {
-	Stage(format string, args ...interface{})
+	Stage(format string, args ...any)
 	Finish()
 }
 
@@ -46,7 +46,7 @@ func (t *TimeTracerImpl) finishStage() {
 	t.log.CDebugf(t.ctx, "| %s:%s [time=%s]", t.label, t.stage, t.clock.Since(t.prev))
 }
 
-func (t *TimeTracerImpl) Stage(format string, args ...interface{}) {
+func (t *TimeTracerImpl) Stage(format string, args ...any) {
 	t.Lock()
 	defer t.Unlock()
 	t.finishStage()
@@ -70,6 +70,6 @@ func NewSilentTimeTracer() *SilentTimeTracer {
 	return &SilentTimeTracer{}
 }
 
-func (t *SilentTimeTracer) Stage(format string, args ...interface{}) {}
+func (t *SilentTimeTracer) Stage(format string, args ...any) {}
 
 func (t *SilentTimeTracer) Finish() {}

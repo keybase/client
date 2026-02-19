@@ -64,7 +64,7 @@ func (o ChallengeInfo) DeepCopy() ChallengeInfo {
 	}
 }
 
-type BackendCommonInterface interface{}
+type BackendCommonInterface any
 
 func BackendCommonProtocol(i BackendCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

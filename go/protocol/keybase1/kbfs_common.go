@@ -367,7 +367,7 @@ func (o FolderSyncStatus) DeepCopy() FolderSyncStatus {
 	}
 }
 
-type KbfsCommonInterface interface{}
+type KbfsCommonInterface any
 
 func KbfsCommonProtocol(i KbfsCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

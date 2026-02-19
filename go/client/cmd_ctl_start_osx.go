@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build darwin
-// +build darwin
 
 package client
 
@@ -55,8 +54,8 @@ func newCmdCtlStart(g *libkb.GlobalContext) *cmdCtlStart {
 func ctlParseArgv(ctx *cli.Context) map[string]bool {
 	components := defaultCtlComponents(true)
 	if ctx.String("exclude") != "" {
-		excluded := strings.Split(ctx.String("exclude"), ",")
-		for _, exclude := range excluded {
+		excluded := strings.SplitSeq(ctx.String("exclude"), ",")
+		for exclude := range excluded {
 			components[exclude] = false
 		}
 	}

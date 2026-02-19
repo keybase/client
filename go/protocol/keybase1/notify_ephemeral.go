@@ -38,11 +38,11 @@ func NotifyEphemeralProtocol(i NotifyEphemeralInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyEphemeral",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"newTeamEk": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]NewTeamEkArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]NewTeamEkArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]NewTeamEkArg)(nil), args)
@@ -53,11 +53,11 @@ func NotifyEphemeralProtocol(i NotifyEphemeralInterface) rpc.Protocol {
 				},
 			},
 			"newTeambotEk": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]NewTeambotEkArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]NewTeambotEkArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]NewTeambotEkArg)(nil), args)
@@ -68,11 +68,11 @@ func NotifyEphemeralProtocol(i NotifyEphemeralInterface) rpc.Protocol {
 				},
 			},
 			"teambotEkNeeded": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeambotEkNeededArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeambotEkNeededArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeambotEkNeededArg)(nil), args)
@@ -91,16 +91,16 @@ type NotifyEphemeralClient struct {
 }
 
 func (c NotifyEphemeralClient) NewTeamEk(ctx context.Context, __arg NewTeamEkArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyEphemeral.newTeamEk", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyEphemeral.newTeamEk", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyEphemeralClient) NewTeambotEk(ctx context.Context, __arg NewTeambotEkArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifyEphemeral.newTeambotEk", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.NotifyEphemeral.newTeambotEk", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyEphemeralClient) TeambotEkNeeded(ctx context.Context, __arg TeambotEkNeededArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifyEphemeral.teambotEkNeeded", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.NotifyEphemeral.teambotEkNeeded", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

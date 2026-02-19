@@ -466,11 +466,11 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 		Name: "keybase.1.git",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"putGitMetadata": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PutGitMetadataArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PutGitMetadataArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PutGitMetadataArg)(nil), args)
@@ -481,11 +481,11 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 			},
 			"deleteGitMetadata": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeleteGitMetadataArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeleteGitMetadataArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeleteGitMetadataArg)(nil), args)
@@ -496,11 +496,11 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 			},
 			"getGitMetadata": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetGitMetadataArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetGitMetadataArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetGitMetadataArg)(nil), args)
@@ -511,21 +511,21 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 			},
 			"getAllGitMetadata": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetAllGitMetadataArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetAllGitMetadata(ctx)
 					return
 				},
 			},
 			"createPersonalRepo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CreatePersonalRepoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CreatePersonalRepoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CreatePersonalRepoArg)(nil), args)
@@ -536,11 +536,11 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 			},
 			"createTeamRepo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CreateTeamRepoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CreateTeamRepoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CreateTeamRepoArg)(nil), args)
@@ -551,11 +551,11 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 			},
 			"deletePersonalRepo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeletePersonalRepoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeletePersonalRepoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeletePersonalRepoArg)(nil), args)
@@ -566,11 +566,11 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 			},
 			"deleteTeamRepo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeleteTeamRepoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeleteTeamRepoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeleteTeamRepoArg)(nil), args)
@@ -581,11 +581,11 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 			},
 			"gcPersonalRepo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GcPersonalRepoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GcPersonalRepoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GcPersonalRepoArg)(nil), args)
@@ -596,11 +596,11 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 			},
 			"gcTeamRepo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GcTeamRepoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GcTeamRepoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GcTeamRepoArg)(nil), args)
@@ -611,11 +611,11 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 			},
 			"getTeamRepoSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTeamRepoSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTeamRepoSettingsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTeamRepoSettingsArg)(nil), args)
@@ -626,11 +626,11 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 			},
 			"setTeamRepoSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetTeamRepoSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetTeamRepoSettingsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetTeamRepoSettingsArg)(nil), args)
@@ -649,64 +649,64 @@ type GitClient struct {
 }
 
 func (c GitClient) PutGitMetadata(ctx context.Context, __arg PutGitMetadataArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.putGitMetadata", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.putGitMetadata", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) DeleteGitMetadata(ctx context.Context, __arg DeleteGitMetadataArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.deleteGitMetadata", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.deleteGitMetadata", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) GetGitMetadata(ctx context.Context, folder FolderHandle) (res []GitRepoResult, err error) {
 	__arg := GetGitMetadataArg{Folder: folder}
-	err = c.Cli.Call(ctx, "keybase.1.git.getGitMetadata", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.getGitMetadata", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) GetAllGitMetadata(ctx context.Context) (res []GitRepoResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.getAllGitMetadata", []interface{}{GetAllGitMetadataArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.getAllGitMetadata", []any{GetAllGitMetadataArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) CreatePersonalRepo(ctx context.Context, repoName GitRepoName) (res RepoID, err error) {
 	__arg := CreatePersonalRepoArg{RepoName: repoName}
-	err = c.Cli.Call(ctx, "keybase.1.git.createPersonalRepo", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.createPersonalRepo", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) CreateTeamRepo(ctx context.Context, __arg CreateTeamRepoArg) (res RepoID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.createTeamRepo", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.createTeamRepo", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) DeletePersonalRepo(ctx context.Context, repoName GitRepoName) (err error) {
 	__arg := DeletePersonalRepoArg{RepoName: repoName}
-	err = c.Cli.Call(ctx, "keybase.1.git.deletePersonalRepo", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.deletePersonalRepo", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) DeleteTeamRepo(ctx context.Context, __arg DeleteTeamRepoArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.deleteTeamRepo", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.deleteTeamRepo", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) GcPersonalRepo(ctx context.Context, __arg GcPersonalRepoArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.gcPersonalRepo", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.gcPersonalRepo", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) GcTeamRepo(ctx context.Context, __arg GcTeamRepoArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.gcTeamRepo", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.gcTeamRepo", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) GetTeamRepoSettings(ctx context.Context, __arg GetTeamRepoSettingsArg) (res GitTeamRepoSettings, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.getTeamRepoSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.getTeamRepoSettings", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) SetTeamRepoSettings(ctx context.Context, __arg SetTeamRepoSettingsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.setTeamRepoSettings", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.git.setTeamRepoSettings", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

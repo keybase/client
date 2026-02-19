@@ -44,11 +44,11 @@ func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 		Name: "keybase.1.streamUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"close": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CloseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CloseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CloseArg)(nil), args)
@@ -59,11 +59,11 @@ func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 				},
 			},
 			"read": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ReadArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ReadArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ReadArg)(nil), args)
@@ -74,11 +74,11 @@ func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 				},
 			},
 			"reset": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ResetArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ResetArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ResetArg)(nil), args)
@@ -89,11 +89,11 @@ func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 				},
 			},
 			"write": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]WriteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]WriteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]WriteArg)(nil), args)
@@ -112,21 +112,21 @@ type StreamUiClient struct {
 }
 
 func (c StreamUiClient) Close(ctx context.Context, __arg CloseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.streamUi.close", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.streamUi.close", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c StreamUiClient) Read(ctx context.Context, __arg ReadArg) (res []byte, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.streamUi.read", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.streamUi.read", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c StreamUiClient) Reset(ctx context.Context, __arg ResetArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.streamUi.reset", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.streamUi.reset", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c StreamUiClient) Write(ctx context.Context, __arg WriteArg) (res int, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.streamUi.write", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.streamUi.write", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

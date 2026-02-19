@@ -79,7 +79,7 @@ type StorageEngineWithBlinding interface {
 }
 
 // Transaction references a DB transaction.
-type Transaction interface{}
+type Transaction any
 
 type GetValueWithProofResponse struct {
 	_struct struct{}             `codec:",toarray"` //nolint

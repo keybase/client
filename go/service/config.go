@@ -55,7 +55,7 @@ func (h ConfigHandler) GetValue(ctx context.Context, path string) (ret keybase1.
 }
 
 func (h ConfigHandler) getValue(_ context.Context, path string, reader libkb.JSONReader) (ret keybase1.ConfigValue, err error) {
-	var i interface{}
+	var i any
 	i, err = reader.GetInterfaceAtPath(path)
 	if err != nil {
 		return ret, err
@@ -356,7 +356,7 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	}
 	status := eng.Status()
 	h.G().Log.CDebugf(ctx, "GetBootstrapStatus: attempting to get HTTP server address")
-	for i := 0; i < 40; i++ { // wait at most 2 seconds
+	for range 40 { // wait at most 2 seconds
 		addr, err := h.svc.httpSrv.Addr()
 		if err != nil {
 			h.G().Log.CDebugf(ctx, "GetBootstrapStatus: failed to get HTTP server address: %s", err)

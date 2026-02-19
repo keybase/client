@@ -194,14 +194,14 @@ func makeBlockJournal(
 	journalPath := blockJournalDir(dir)
 	deferLog := log.CloneWithAddedDepth(1)
 	j, err := makeDiskJournal(
-		codec, journalPath, reflect.TypeOf(blockJournalEntry{}))
+		codec, journalPath, reflect.TypeFor[blockJournalEntry]())
 	if err != nil {
 		return nil, err
 	}
 
 	gcJournalPath := deferredGCBlockJournalDir(dir)
 	gcj, err := makeDiskJournal(
-		codec, gcJournalPath, reflect.TypeOf(blockJournalEntry{}))
+		codec, gcJournalPath, reflect.TypeFor[blockJournalEntry]())
 	if err != nil {
 		return nil, err
 	}
@@ -719,10 +719,10 @@ func (j *blockJournal) getNextEntriesToFlush(
 	entries.adds = newBlockPutStateMemory(int(end - first)) //nolint:gosec // G115: Journal entry counts are bounded by config limits
 	maxMDRevToFlush = kbfsmd.RevisionUninitialized
 
-	loopEnd := end
-	if first+journalOrdinal(maxToFlush) < end { //nolint:gosec // G115: maxToFlush is bounded by config limits
-		loopEnd = first + journalOrdinal(maxToFlush) //nolint:gosec // G115: maxToFlush is bounded by config limits
-	}
+	loopEnd := min(first+journalOrdinal(maxToFlush),
+		//nolint:gosec // G115: maxToFlush is bounded by config limits
+		//nolint:gosec // G115: maxToFlush is bounded by config limits
+		end)
 
 	for ordinal := first; ordinal < loopEnd; ordinal++ {
 		entry, err := j.readJournalEntry(ordinal)

@@ -1240,19 +1240,19 @@ func (ui *UI) ErrorWriter() io.Writer {
 	return logger.ErrorWriter()
 }
 
-func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
+func (ui *UI) Printf(format string, a ...any) (n int, err error) {
 	return fmt.Fprintf(ui.OutputWriter(), format, a...)
 }
 
-func (ui *UI) PrintfUnescaped(format string, a ...interface{}) (n int, err error) {
+func (ui *UI) PrintfUnescaped(format string, a ...any) (n int, err error) {
 	return fmt.Fprintf(ui.UnescapedOutputWriter(), format, a...)
 }
 
-func (ui *UI) Println(a ...interface{}) (int, error) {
+func (ui *UI) Println(a ...any) (int, error) {
 	return fmt.Fprintln(ui.OutputWriter(), a...)
 }
 
-func (ui *UI) PrintfStderr(format string, a ...interface{}) (n int, err error) {
+func (ui *UI) PrintfStderr(format string, a ...any) (n int, err error) {
 	return fmt.Fprintf(os.Stderr, format, a...)
 }
 

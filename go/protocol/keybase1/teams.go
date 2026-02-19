@@ -5030,11 +5030,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 		Name: "keybase.1.teams",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getUntrustedTeamInfo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetUntrustedTeamInfoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetUntrustedTeamInfoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetUntrustedTeamInfoArg)(nil), args)
@@ -5045,11 +5045,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamCreate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamCreateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamCreateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamCreateArg)(nil), args)
@@ -5060,11 +5060,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamCreateWithSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamCreateWithSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamCreateWithSettingsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamCreateWithSettingsArg)(nil), args)
@@ -5075,11 +5075,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamCreateFancy": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamCreateFancyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamCreateFancyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamCreateFancyArg)(nil), args)
@@ -5090,11 +5090,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamGetByID": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamGetByIDArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamGetByIDArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamGetByIDArg)(nil), args)
@@ -5105,11 +5105,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamGet": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamGetArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamGetArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamGetArg)(nil), args)
@@ -5120,11 +5120,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamGetMembersByID": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamGetMembersByIDArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamGetMembersByIDArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamGetMembersByIDArg)(nil), args)
@@ -5135,11 +5135,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamListUnverified": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamListUnverifiedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamListUnverifiedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamListUnverifiedArg)(nil), args)
@@ -5150,11 +5150,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamListTeammates": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamListTeammatesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamListTeammatesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamListTeammatesArg)(nil), args)
@@ -5165,11 +5165,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamListVerified": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamListVerifiedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamListVerifiedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamListVerifiedArg)(nil), args)
@@ -5180,11 +5180,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamListSubteamsRecursive": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamListSubteamsRecursiveArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamListSubteamsRecursiveArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamListSubteamsRecursiveArg)(nil), args)
@@ -5195,11 +5195,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamAddMember": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamAddMemberArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamAddMemberArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamAddMemberArg)(nil), args)
@@ -5210,11 +5210,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamAddMembers": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamAddMembersArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamAddMembersArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamAddMembersArg)(nil), args)
@@ -5225,11 +5225,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamAddMembersMultiRole": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamAddMembersMultiRoleArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamAddMembersMultiRoleArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamAddMembersMultiRoleArg)(nil), args)
@@ -5240,11 +5240,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamRemoveMember": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamRemoveMemberArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamRemoveMemberArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamRemoveMemberArg)(nil), args)
@@ -5255,11 +5255,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamRemoveMembers": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamRemoveMembersArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamRemoveMembersArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamRemoveMembersArg)(nil), args)
@@ -5270,11 +5270,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamLeave": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamLeaveArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamLeaveArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamLeaveArg)(nil), args)
@@ -5285,11 +5285,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamEditMember": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamEditMemberArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamEditMemberArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamEditMemberArg)(nil), args)
@@ -5300,11 +5300,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamEditMembers": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamEditMembersArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamEditMembersArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamEditMembersArg)(nil), args)
@@ -5315,11 +5315,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamGetBotSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamGetBotSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamGetBotSettingsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamGetBotSettingsArg)(nil), args)
@@ -5330,11 +5330,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamSetBotSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamSetBotSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamSetBotSettingsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamSetBotSettingsArg)(nil), args)
@@ -5345,11 +5345,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"untrustedTeamExists": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UntrustedTeamExistsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UntrustedTeamExistsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UntrustedTeamExistsArg)(nil), args)
@@ -5360,11 +5360,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamRename": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamRenameArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamRenameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamRenameArg)(nil), args)
@@ -5375,11 +5375,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamAcceptInvite": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamAcceptInviteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamAcceptInviteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamAcceptInviteArg)(nil), args)
@@ -5390,11 +5390,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamRequestAccess": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamRequestAccessArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamRequestAccessArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamRequestAccessArg)(nil), args)
@@ -5405,11 +5405,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamAcceptInviteOrRequestAccess": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamAcceptInviteOrRequestAccessArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamAcceptInviteOrRequestAccessArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamAcceptInviteOrRequestAccessArg)(nil), args)
@@ -5420,11 +5420,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamListRequests": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamListRequestsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamListRequestsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamListRequestsArg)(nil), args)
@@ -5435,11 +5435,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamListMyAccessRequests": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamListMyAccessRequestsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamListMyAccessRequestsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamListMyAccessRequestsArg)(nil), args)
@@ -5450,11 +5450,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamIgnoreRequest": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamIgnoreRequestArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamIgnoreRequestArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamIgnoreRequestArg)(nil), args)
@@ -5465,11 +5465,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamTreeUnverified": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamTreeUnverifiedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamTreeUnverifiedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamTreeUnverifiedArg)(nil), args)
@@ -5480,11 +5480,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamGetSubteamsUnverified": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamGetSubteamsUnverifiedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamGetSubteamsUnverifiedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamGetSubteamsUnverifiedArg)(nil), args)
@@ -5495,11 +5495,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamDelete": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamDeleteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamDeleteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamDeleteArg)(nil), args)
@@ -5510,11 +5510,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamSetSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamSetSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamSetSettingsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamSetSettingsArg)(nil), args)
@@ -5525,11 +5525,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamCreateSeitanToken": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamCreateSeitanTokenArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamCreateSeitanTokenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamCreateSeitanTokenArg)(nil), args)
@@ -5540,11 +5540,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamCreateSeitanTokenV2": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamCreateSeitanTokenV2Arg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamCreateSeitanTokenV2Arg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamCreateSeitanTokenV2Arg)(nil), args)
@@ -5555,11 +5555,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamCreateSeitanInvitelink": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamCreateSeitanInvitelinkArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamCreateSeitanInvitelinkArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamCreateSeitanInvitelinkArg)(nil), args)
@@ -5570,11 +5570,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamCreateSeitanInvitelinkWithDuration": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamCreateSeitanInvitelinkWithDurationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamCreateSeitanInvitelinkWithDurationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamCreateSeitanInvitelinkWithDurationArg)(nil), args)
@@ -5585,11 +5585,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"getInviteLinkDetails": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetInviteLinkDetailsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetInviteLinkDetailsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetInviteLinkDetailsArg)(nil), args)
@@ -5600,11 +5600,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamAddEmailsBulk": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamAddEmailsBulkArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamAddEmailsBulkArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamAddEmailsBulkArg)(nil), args)
@@ -5615,11 +5615,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"lookupImplicitTeam": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LookupImplicitTeamArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LookupImplicitTeamArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LookupImplicitTeamArg)(nil), args)
@@ -5630,11 +5630,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"lookupOrCreateImplicitTeam": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LookupOrCreateImplicitTeamArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LookupOrCreateImplicitTeamArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LookupOrCreateImplicitTeamArg)(nil), args)
@@ -5645,11 +5645,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamReAddMemberAfterReset": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamReAddMemberAfterResetArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamReAddMemberAfterResetArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamReAddMemberAfterResetArg)(nil), args)
@@ -5660,11 +5660,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"loadTeamPlusApplicationKeys": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadTeamPlusApplicationKeysArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadTeamPlusApplicationKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadTeamPlusApplicationKeysArg)(nil), args)
@@ -5675,11 +5675,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"getTeamRootID": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTeamRootIDArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTeamRootIDArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTeamRootIDArg)(nil), args)
@@ -5690,11 +5690,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"getTeamShowcase": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTeamShowcaseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTeamShowcaseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTeamShowcaseArg)(nil), args)
@@ -5705,11 +5705,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"getTeamAndMemberShowcase": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTeamAndMemberShowcaseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTeamAndMemberShowcaseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTeamAndMemberShowcaseArg)(nil), args)
@@ -5720,11 +5720,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"setTeamShowcase": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetTeamShowcaseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetTeamShowcaseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetTeamShowcaseArg)(nil), args)
@@ -5735,11 +5735,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"setTeamMemberShowcase": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetTeamMemberShowcaseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetTeamMemberShowcaseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetTeamMemberShowcaseArg)(nil), args)
@@ -5750,11 +5750,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"canUserPerform": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CanUserPerformArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CanUserPerformArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CanUserPerformArg)(nil), args)
@@ -5765,11 +5765,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamRotateKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamRotateKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamRotateKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamRotateKeyArg)(nil), args)
@@ -5780,11 +5780,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamDebug": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamDebugArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamDebugArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamDebugArg)(nil), args)
@@ -5795,11 +5795,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"getTarsDisabled": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTarsDisabledArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTarsDisabledArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTarsDisabledArg)(nil), args)
@@ -5810,11 +5810,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"setTarsDisabled": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetTarsDisabledArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetTarsDisabledArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetTarsDisabledArg)(nil), args)
@@ -5825,11 +5825,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"teamProfileAddList": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamProfileAddListArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamProfileAddListArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamProfileAddListArg)(nil), args)
@@ -5840,11 +5840,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"uploadTeamAvatar": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UploadTeamAvatarArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UploadTeamAvatarArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UploadTeamAvatarArg)(nil), args)
@@ -5855,11 +5855,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"tryDecryptWithTeamKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TryDecryptWithTeamKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TryDecryptWithTeamKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TryDecryptWithTeamKeyArg)(nil), args)
@@ -5870,11 +5870,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"findNextMerkleRootAfterTeamRemoval": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FindNextMerkleRootAfterTeamRemovalArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FindNextMerkleRootAfterTeamRemovalArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FindNextMerkleRootAfterTeamRemovalArg)(nil), args)
@@ -5885,11 +5885,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"findNextMerkleRootAfterTeamRemovalBySigningKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FindNextMerkleRootAfterTeamRemovalBySigningKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FindNextMerkleRootAfterTeamRemovalBySigningKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FindNextMerkleRootAfterTeamRemovalBySigningKeyArg)(nil), args)
@@ -5900,11 +5900,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"profileTeamLoad": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ProfileTeamLoadArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ProfileTeamLoadArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ProfileTeamLoadArg)(nil), args)
@@ -5915,11 +5915,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"getTeamID": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTeamIDArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTeamIDArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTeamIDArg)(nil), args)
@@ -5930,11 +5930,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"getTeamName": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTeamNameArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTeamNameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTeamNameArg)(nil), args)
@@ -5945,11 +5945,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"ftl": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FtlArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FtlArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FtlArg)(nil), args)
@@ -5960,21 +5960,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"getTeamRoleMap": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTeamRoleMapArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetTeamRoleMap(ctx)
 					return
 				},
 			},
 			"getAnnotatedTeam": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetAnnotatedTeamArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetAnnotatedTeamArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetAnnotatedTeamArg)(nil), args)
@@ -5985,11 +5985,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"getAnnotatedTeamByName": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetAnnotatedTeamByNameArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetAnnotatedTeamByNameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetAnnotatedTeamByNameArg)(nil), args)
@@ -6000,11 +6000,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"loadTeamTreeMembershipsAsync": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadTeamTreeMembershipsAsyncArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadTeamTreeMembershipsAsyncArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadTeamTreeMembershipsAsyncArg)(nil), args)
@@ -6015,11 +6015,11 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 			},
 			"findAssertionsInTeamNoResolve": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FindAssertionsInTeamNoResolveArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FindAssertionsInTeamNoResolveArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FindAssertionsInTeamNoResolveArg)(nil), args)
@@ -6039,214 +6039,214 @@ type TeamsClient struct {
 
 func (c TeamsClient) GetUntrustedTeamInfo(ctx context.Context, teamName TeamName) (res UntrustedTeamInfo, err error) {
 	__arg := GetUntrustedTeamInfoArg{TeamName: teamName}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getUntrustedTeamInfo", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getUntrustedTeamInfo", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (res TeamCreateResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreate", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreate", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamCreateWithSettings(ctx context.Context, __arg TeamCreateWithSettingsArg) (res TeamCreateResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateWithSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateWithSettings", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamCreateFancy(ctx context.Context, __arg TeamCreateFancyArg) (res TeamID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateFancy", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateFancy", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamGetByID(ctx context.Context, __arg TeamGetByIDArg) (res TeamDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetByID", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetByID", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamGetMembersByID(ctx context.Context, __arg TeamGetMembersByIDArg) (res []TeamMemberDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetMembersByID", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetMembersByID", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListUnverified(ctx context.Context, __arg TeamListUnverifiedArg) (res AnnotatedTeamList, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListUnverified", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListTeammates(ctx context.Context, __arg TeamListTeammatesArg) (res AnnotatedTeamList, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListTeammates", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListTeammates", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListVerified(ctx context.Context, __arg TeamListVerifiedArg) (res AnnotatedTeamList, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListVerified", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListVerified", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListSubteamsRecursive(ctx context.Context, __arg TeamListSubteamsRecursiveArg) (res []TeamIDAndName, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListSubteamsRecursive", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListSubteamsRecursive", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) (res TeamAddMemberResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAddMembers(ctx context.Context, __arg TeamAddMembersArg) (res TeamAddMembersResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembers", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembers", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAddMembersMultiRole(ctx context.Context, __arg TeamAddMembersMultiRoleArg) (res TeamAddMembersResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembersMultiRole", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembersMultiRole", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMemberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamRemoveMembers(ctx context.Context, __arg TeamRemoveMembersArg) (res TeamRemoveMembersResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMembers", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMembers", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamLeave(ctx context.Context, __arg TeamLeaveArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamLeave", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamLeave", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMember", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMember", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamEditMembers(ctx context.Context, __arg TeamEditMembersArg) (res TeamEditMembersResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMembers", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMembers", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamGetBotSettings(ctx context.Context, __arg TeamGetBotSettingsArg) (res TeamBotSettings, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetBotSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetBotSettings", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamSetBotSettings(ctx context.Context, __arg TeamSetBotSettingsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetBotSettings", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetBotSettings", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) UntrustedTeamExists(ctx context.Context, teamName TeamName) (res UntrustedTeamExistsResult, err error) {
 	__arg := UntrustedTeamExistsArg{TeamName: teamName}
-	err = c.Cli.Call(ctx, "keybase.1.teams.untrustedTeamExists", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.untrustedTeamExists", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamRename(ctx context.Context, __arg TeamRenameArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRename", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRename", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAcceptInvite(ctx context.Context, __arg TeamAcceptInviteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInvite", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInvite", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamRequestAccess(ctx context.Context, __arg TeamRequestAccessArg) (res TeamRequestAccessResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRequestAccess", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRequestAccess", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAcceptInviteOrRequestAccess(ctx context.Context, __arg TeamAcceptInviteOrRequestAccessArg) (res TeamAcceptOrRequestResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInviteOrRequestAccess", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInviteOrRequestAccess", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListRequests(ctx context.Context, __arg TeamListRequestsArg) (res []TeamJoinRequest, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListRequests", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListRequests", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListMyAccessRequests(ctx context.Context, __arg TeamListMyAccessRequestsArg) (res []TeamName, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListMyAccessRequests", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListMyAccessRequests", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamIgnoreRequest(ctx context.Context, __arg TeamIgnoreRequestArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamIgnoreRequest", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamIgnoreRequest", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamTreeUnverified(ctx context.Context, __arg TeamTreeUnverifiedArg) (res TeamTreeResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamTreeUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamTreeUnverified", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamGetSubteamsUnverified(ctx context.Context, __arg TeamGetSubteamsUnverifiedArg) (res SubteamListResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetSubteamsUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetSubteamsUnverified", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamDelete(ctx context.Context, __arg TeamDeleteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamDelete", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamSetSettings(ctx context.Context, __arg TeamSetSettingsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetSettings", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetSettings", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamCreateSeitanToken(ctx context.Context, __arg TeamCreateSeitanTokenArg) (res SeitanIKey, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanToken", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanToken", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamCreateSeitanTokenV2(ctx context.Context, __arg TeamCreateSeitanTokenV2Arg) (res SeitanIKeyV2, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanTokenV2", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanTokenV2", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamCreateSeitanInvitelink(ctx context.Context, __arg TeamCreateSeitanInvitelinkArg) (res Invitelink, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanInvitelink", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanInvitelink", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamCreateSeitanInvitelinkWithDuration(ctx context.Context, __arg TeamCreateSeitanInvitelinkWithDurationArg) (res Invitelink, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanInvitelinkWithDuration", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanInvitelinkWithDuration", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetInviteLinkDetails(ctx context.Context, inviteID TeamInviteID) (res InviteLinkDetails, err error) {
 	__arg := GetInviteLinkDetailsArg{InviteID: inviteID}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getInviteLinkDetails", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getInviteLinkDetails", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAddEmailsBulk(ctx context.Context, __arg TeamAddEmailsBulkArg) (res BulkRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddEmailsBulk", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddEmailsBulk", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) LookupImplicitTeam(ctx context.Context, __arg LookupImplicitTeamArg) (res LookupImplicitTeamRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.lookupImplicitTeam", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.lookupImplicitTeam", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, __arg LookupOrCreateImplicitTeamArg) (res LookupImplicitTeamRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.lookupOrCreateImplicitTeam", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.lookupOrCreateImplicitTeam", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamReAddMemberAfterReset(ctx context.Context, __arg TeamReAddMemberAfterResetArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamReAddMemberAfterReset", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamReAddMemberAfterReset", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -6256,78 +6256,78 @@ func (c TeamsClient) TeamReAddMemberAfterReset(ctx context.Context, __arg TeamRe
 // * client is currently offline (or thinks it's offline), then the refreshers are overridden
 // * and ignored, and stale data might still be returned.
 func (c TeamsClient) LoadTeamPlusApplicationKeys(ctx context.Context, __arg LoadTeamPlusApplicationKeysArg) (res TeamPlusApplicationKeys, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamPlusApplicationKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamPlusApplicationKeys", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetTeamRootID(ctx context.Context, id TeamID) (res TeamID, err error) {
 	__arg := GetTeamRootIDArg{Id: id}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamRootID", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamRootID", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetTeamShowcase(ctx context.Context, teamID TeamID) (res TeamShowcase, err error) {
 	__arg := GetTeamShowcaseArg{TeamID: teamID}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamShowcase", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamShowcase", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetTeamAndMemberShowcase(ctx context.Context, teamID TeamID) (res TeamAndMemberShowcase, err error) {
 	__arg := GetTeamAndMemberShowcaseArg{TeamID: teamID}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamAndMemberShowcase", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamAndMemberShowcase", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) SetTeamShowcase(ctx context.Context, __arg SetTeamShowcaseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamShowcase", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamShowcase", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) SetTeamMemberShowcase(ctx context.Context, __arg SetTeamMemberShowcaseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamMemberShowcase", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamMemberShowcase", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) CanUserPerform(ctx context.Context, name string) (res TeamOperation, err error) {
 	__arg := CanUserPerformArg{Name: name}
-	err = c.Cli.Call(ctx, "keybase.1.teams.canUserPerform", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.canUserPerform", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamRotateKey(ctx context.Context, __arg TeamRotateKeyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRotateKey", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRotateKey", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamDebug(ctx context.Context, teamID TeamID) (res TeamDebugRes, err error) {
 	__arg := TeamDebugArg{TeamID: teamID}
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamDebug", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamDebug", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetTarsDisabled(ctx context.Context, teamID TeamID) (res bool, err error) {
 	__arg := GetTarsDisabledArg{TeamID: teamID}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTarsDisabled", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTarsDisabled", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) SetTarsDisabled(ctx context.Context, __arg SetTarsDisabledArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.setTarsDisabled", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.setTarsDisabled", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamProfileAddList(ctx context.Context, __arg TeamProfileAddListArg) (res []TeamProfileAddEntry, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamProfileAddList", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamProfileAddList", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) UploadTeamAvatar(ctx context.Context, __arg UploadTeamAvatarArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.uploadTeamAvatar", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.uploadTeamAvatar", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TryDecryptWithTeamKey(ctx context.Context, __arg TryDecryptWithTeamKeyArg) (res []byte, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.tryDecryptWithTeamKey", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.tryDecryptWithTeamKey", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -6335,7 +6335,7 @@ func (c TeamsClient) TryDecryptWithTeamKey(ctx context.Context, __arg TryDecrypt
 // removed from the team at that given seqno in the team's chain. You should pass in a previous
 // Merkle root as a starting point for the binary search.
 func (c TeamsClient) FindNextMerkleRootAfterTeamRemoval(ctx context.Context, __arg FindNextMerkleRootAfterTeamRemovalArg) (res NextMerkleRootRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemoval", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemoval", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -6344,7 +6344,7 @@ func (c TeamsClient) FindNextMerkleRootAfterTeamRemoval(ctx context.Context, __a
 // we will return just the last one. When anyRoleAllowed is false, the team removal is any drop in
 // permissions from Writer (or above) to Reader (or below).
 func (c TeamsClient) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.Context, __arg FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (res NextMerkleRootRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -6352,7 +6352,7 @@ func (c TeamsClient) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.
 // the team load machinery.
 func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res ProfileTeamLoadRes, err error) {
 	__arg := ProfileTeamLoadArg{Arg: arg}
-	err = c.Cli.Call(ctx, "keybase.1.teams.profileTeamLoad", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.profileTeamLoad", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -6360,7 +6360,7 @@ func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res 
 // current user can't read the team.
 func (c TeamsClient) GetTeamID(ctx context.Context, teamName string) (res TeamID, err error) {
 	__arg := GetTeamIDArg{TeamName: teamName}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamID", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamID", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -6368,39 +6368,39 @@ func (c TeamsClient) GetTeamID(ctx context.Context, teamName string) (res TeamID
 // current user can't read the team.
 func (c TeamsClient) GetTeamName(ctx context.Context, teamID TeamID) (res TeamName, err error) {
 	__arg := GetTeamNameArg{TeamID: teamID}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamName", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamName", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) Ftl(ctx context.Context, arg FastTeamLoadArg) (res FastTeamLoadRes, err error) {
 	__arg := FtlArg{Arg: arg}
-	err = c.Cli.Call(ctx, "keybase.1.teams.ftl", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.ftl", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetTeamRoleMap(ctx context.Context) (res TeamRoleMapAndVersion, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamRoleMap", []interface{}{GetTeamRoleMapArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamRoleMap", []any{GetTeamRoleMapArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetAnnotatedTeam(ctx context.Context, teamID TeamID) (res AnnotatedTeam, err error) {
 	__arg := GetAnnotatedTeamArg{TeamID: teamID}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getAnnotatedTeam", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getAnnotatedTeam", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetAnnotatedTeamByName(ctx context.Context, teamName string) (res AnnotatedTeam, err error) {
 	__arg := GetAnnotatedTeamByNameArg{TeamName: teamName}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getAnnotatedTeamByName", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getAnnotatedTeamByName", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) LoadTeamTreeMembershipsAsync(ctx context.Context, __arg LoadTeamTreeMembershipsAsyncArg) (res TeamTreeInitial, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamTreeMembershipsAsync", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamTreeMembershipsAsync", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) FindAssertionsInTeamNoResolve(ctx context.Context, __arg FindAssertionsInTeamNoResolveArg) (res []string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.findAssertionsInTeamNoResolve", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teams.findAssertionsInTeamNoResolve", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

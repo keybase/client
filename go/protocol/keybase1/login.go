@@ -151,11 +151,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 		Name: "keybase.1.login",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getConfiguredAccounts": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetConfiguredAccountsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetConfiguredAccountsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetConfiguredAccountsArg)(nil), args)
@@ -166,11 +166,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"login": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoginArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoginArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoginArg)(nil), args)
@@ -181,11 +181,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"loginProvisionedDevice": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoginProvisionedDeviceArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoginProvisionedDeviceArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoginProvisionedDeviceArg)(nil), args)
@@ -196,11 +196,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"loginWithPaperKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoginWithPaperKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoginWithPaperKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoginWithPaperKeyArg)(nil), args)
@@ -211,11 +211,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"logout": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LogoutArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LogoutArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LogoutArg)(nil), args)
@@ -226,11 +226,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"deprovision": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeprovisionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeprovisionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeprovisionArg)(nil), args)
@@ -241,11 +241,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"recoverAccountFromEmailAddress": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RecoverAccountFromEmailAddressArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RecoverAccountFromEmailAddressArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RecoverAccountFromEmailAddressArg)(nil), args)
@@ -256,11 +256,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"recoverPassphrase": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RecoverPassphraseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RecoverPassphraseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RecoverPassphraseArg)(nil), args)
@@ -271,11 +271,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"paperKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PaperKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PaperKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PaperKeyArg)(nil), args)
@@ -286,11 +286,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"paperKeySubmit": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PaperKeySubmitArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PaperKeySubmitArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PaperKeySubmitArg)(nil), args)
@@ -301,11 +301,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"unlock": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UnlockArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UnlockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UnlockArg)(nil), args)
@@ -316,11 +316,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"unlockWithPassphrase": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UnlockWithPassphraseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UnlockWithPassphraseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UnlockWithPassphraseArg)(nil), args)
@@ -331,11 +331,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"accountDelete": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AccountDeleteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AccountDeleteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AccountDeleteArg)(nil), args)
@@ -346,11 +346,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"loginOneshot": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoginOneshotArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoginOneshotArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoginOneshotArg)(nil), args)
@@ -361,11 +361,11 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 			},
 			"isOnline": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]IsOnlineArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.IsOnline(ctx)
 					return
 				},
@@ -383,7 +383,7 @@ type LoginClient struct {
 // secrets, but this definition may be expanded in the future.
 func (c LoginClient) GetConfiguredAccounts(ctx context.Context, sessionID int) (res []ConfiguredAccount, err error) {
 	__arg := GetConfiguredAccountsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.login.getConfiguredAccounts", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.getConfiguredAccounts", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -391,7 +391,7 @@ func (c LoginClient) GetConfiguredAccounts(ctx context.Context, sessionID int) (
 // or keybase1.DeviceTypeV2_MOBILE. username is optional. If the current
 // device isn't provisioned, this function will provision it.
 func (c LoginClient) Login(ctx context.Context, __arg LoginArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.login", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.login", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -399,7 +399,7 @@ func (c LoginClient) Login(ctx context.Context, __arg LoginArg) (err error) {
 // If noPassphrasePrompt is set, then only a stored secret will be used to unlock
 // the device keys.
 func (c LoginClient) LoginProvisionedDevice(ctx context.Context, __arg LoginProvisionedDeviceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.loginProvisionedDevice", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.loginProvisionedDevice", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -407,30 +407,30 @@ func (c LoginClient) LoginProvisionedDevice(ctx context.Context, __arg LoginProv
 // - trying unlocked device keys if available
 // - prompting for a paper key and using that
 func (c LoginClient) LoginWithPaperKey(ctx context.Context, __arg LoginWithPaperKeyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPaperKey", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPaperKey", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginClient) Logout(ctx context.Context, __arg LogoutArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.logout", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.logout", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginClient) Deprovision(ctx context.Context, __arg DeprovisionArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.deprovision", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.deprovision", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginClient) RecoverAccountFromEmailAddress(ctx context.Context, email string) (err error) {
 	__arg := RecoverAccountFromEmailAddressArg{Email: email}
-	err = c.Cli.Call(ctx, "keybase.1.login.recoverAccountFromEmailAddress", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.recoverAccountFromEmailAddress", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Guide the user through possibilities of changing their passphrase.
 // Lets them change their passphrase using a paper key or enter the reset pipeline.
 func (c LoginClient) RecoverPassphrase(ctx context.Context, __arg RecoverPassphraseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.recoverPassphrase", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.recoverPassphrase", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -438,32 +438,32 @@ func (c LoginClient) RecoverPassphrase(ctx context.Context, __arg RecoverPassphr
 // It calls login_ui.displayPaperKeyPhrase with the phrase.
 func (c LoginClient) PaperKey(ctx context.Context, sessionID int) (err error) {
 	__arg := PaperKeyArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.login.paperKey", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.paperKey", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // paperKeySubmit checks that paperPhrase is a valid paper key
 // for the logged in user, caches the keys, and sends a notification.
 func (c LoginClient) PaperKeySubmit(ctx context.Context, __arg PaperKeySubmitArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.paperKeySubmit", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.paperKeySubmit", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Unlock restores access to local key store by priming passphrase stream cache.
 func (c LoginClient) Unlock(ctx context.Context, sessionID int) (err error) {
 	__arg := UnlockArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.login.unlock", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.unlock", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginClient) UnlockWithPassphrase(ctx context.Context, __arg UnlockWithPassphraseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.unlockWithPassphrase", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.unlockWithPassphrase", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // accountDelete deletes the current user's account.
 func (c LoginClient) AccountDelete(ctx context.Context, __arg AccountDeleteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.accountDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.accountDelete", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -471,13 +471,13 @@ func (c LoginClient) AccountDelete(ctx context.Context, __arg AccountDeleteArg) 
 // provisioning a device. It bootstraps credentials with the given
 // paperkey
 func (c LoginClient) LoginOneshot(ctx context.Context, __arg LoginOneshotArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.loginOneshot", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.loginOneshot", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // isOnline returns whether the device is able to open a connection to keybase.io.
 // Used for determining whether to offer proxy settings on the login screen.
 func (c LoginClient) IsOnline(ctx context.Context) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.isOnline", []interface{}{IsOnlineArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.login.isOnline", []any{IsOnlineArg{}}, &res, 0*time.Millisecond)
 	return
 }

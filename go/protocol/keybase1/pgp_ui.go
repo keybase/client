@@ -59,11 +59,11 @@ func PGPUiProtocol(i PGPUiInterface) rpc.Protocol {
 		Name: "keybase.1.pgpUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"outputPGPWarning": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]OutputPGPWarningArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]OutputPGPWarningArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]OutputPGPWarningArg)(nil), args)
@@ -74,11 +74,11 @@ func PGPUiProtocol(i PGPUiInterface) rpc.Protocol {
 				},
 			},
 			"outputSignatureSuccess": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]OutputSignatureSuccessArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]OutputSignatureSuccessArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]OutputSignatureSuccessArg)(nil), args)
@@ -89,11 +89,11 @@ func PGPUiProtocol(i PGPUiInterface) rpc.Protocol {
 				},
 			},
 			"outputSignatureNonKeybase": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]OutputSignatureNonKeybaseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]OutputSignatureNonKeybaseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]OutputSignatureNonKeybaseArg)(nil), args)
@@ -104,11 +104,11 @@ func PGPUiProtocol(i PGPUiInterface) rpc.Protocol {
 				},
 			},
 			"keyGenerated": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]KeyGeneratedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]KeyGeneratedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]KeyGeneratedArg)(nil), args)
@@ -119,11 +119,11 @@ func PGPUiProtocol(i PGPUiInterface) rpc.Protocol {
 				},
 			},
 			"shouldPushPrivate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ShouldPushPrivateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ShouldPushPrivateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ShouldPushPrivateArg)(nil), args)
@@ -134,11 +134,11 @@ func PGPUiProtocol(i PGPUiInterface) rpc.Protocol {
 				},
 			},
 			"finished": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FinishedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FinishedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FinishedArg)(nil), args)
@@ -157,32 +157,32 @@ type PGPUiClient struct {
 }
 
 func (c PGPUiClient) OutputPGPWarning(ctx context.Context, __arg OutputPGPWarningArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputPGPWarning", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputPGPWarning", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPUiClient) OutputSignatureSuccess(ctx context.Context, __arg OutputSignatureSuccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputSignatureSuccess", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputSignatureSuccess", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPUiClient) OutputSignatureNonKeybase(ctx context.Context, __arg OutputSignatureNonKeybaseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputSignatureNonKeybase", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputSignatureNonKeybase", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPUiClient) KeyGenerated(ctx context.Context, __arg KeyGeneratedArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.keyGenerated", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.keyGenerated", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPUiClient) ShouldPushPrivate(ctx context.Context, __arg ShouldPushPrivateArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.shouldPushPrivate", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.shouldPushPrivate", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c PGPUiClient) Finished(ctx context.Context, sessionID int) (err error) {
 	__arg := FinishedArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.finished", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.finished", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

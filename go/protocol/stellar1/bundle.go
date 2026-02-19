@@ -986,7 +986,7 @@ func (o AccountBundle) DeepCopy() AccountBundle {
 	}
 }
 
-type BundleInterface interface{}
+type BundleInterface any
 
 func BundleProtocol(i BundleInterface) rpc.Protocol {
 	return rpc.Protocol{

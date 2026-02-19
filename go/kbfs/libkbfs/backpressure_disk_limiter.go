@@ -1149,7 +1149,7 @@ type backpressureDiskLimiterStatus struct {
 
 func (bdl *backpressureDiskLimiter) getStatus(
 	ctx context.Context, chargedTo keybase1.UserOrTeamID,
-) interface{} {
+) any {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 

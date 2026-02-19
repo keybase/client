@@ -40,51 +40,51 @@ func KbfsMountProtocol(i KbfsMountInterface) rpc.Protocol {
 		Name: "keybase.1.kbfsMount",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"GetCurrentMountDir": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetCurrentMountDirArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetCurrentMountDir(ctx)
 					return
 				},
 			},
 			"WaitForMounts": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]WaitForMountsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.WaitForMounts(ctx)
 					return
 				},
 			},
 			"GetPreferredMountDirs": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPreferredMountDirsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetPreferredMountDirs(ctx)
 					return
 				},
 			},
 			"GetAllAvailableMountDirs": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetAllAvailableMountDirsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetAllAvailableMountDirs(ctx)
 					return
 				},
 			},
 			"SetCurrentMountDir": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetCurrentMountDirArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetCurrentMountDirArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetCurrentMountDirArg)(nil), args)
@@ -95,11 +95,11 @@ func KbfsMountProtocol(i KbfsMountInterface) rpc.Protocol {
 				},
 			},
 			"GetKBFSPathInfo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetKBFSPathInfoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetKBFSPathInfoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetKBFSPathInfoArg)(nil), args)
@@ -118,33 +118,33 @@ type KbfsMountClient struct {
 }
 
 func (c KbfsMountClient) GetCurrentMountDir(ctx context.Context) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetCurrentMountDir", []interface{}{GetCurrentMountDirArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetCurrentMountDir", []any{GetCurrentMountDirArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c KbfsMountClient) WaitForMounts(ctx context.Context) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.WaitForMounts", []interface{}{WaitForMountsArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.WaitForMounts", []any{WaitForMountsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c KbfsMountClient) GetPreferredMountDirs(ctx context.Context) (res []string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetPreferredMountDirs", []interface{}{GetPreferredMountDirsArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetPreferredMountDirs", []any{GetPreferredMountDirsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c KbfsMountClient) GetAllAvailableMountDirs(ctx context.Context) (res []string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetAllAvailableMountDirs", []interface{}{GetAllAvailableMountDirsArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetAllAvailableMountDirs", []any{GetAllAvailableMountDirsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c KbfsMountClient) SetCurrentMountDir(ctx context.Context, dir string) (err error) {
 	__arg := SetCurrentMountDirArg{Dir: dir}
-	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.SetCurrentMountDir", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.SetCurrentMountDir", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c KbfsMountClient) GetKBFSPathInfo(ctx context.Context, standardPath string) (res KBFSPathInfo, err error) {
 	__arg := GetKBFSPathInfoArg{StandardPath: standardPath}
-	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetKBFSPathInfo", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetKBFSPathInfo", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

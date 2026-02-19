@@ -317,7 +317,7 @@ func pollForNextMerkleRootAfterRemovalViaLibkb(t *testing.T, tc libkb.TestContex
 
 	// Unfortunately we need to poll here, since we don't know when merkled will mint a new root.
 	// Locally it is fast, but it might be slowish on CI.
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		res, err := libkb.FindNextMerkleRootAfterTeamRemoval(m, keybase1.FindNextMerkleRootAfterTeamRemovalArg{
 			Uid:               user.GetUID(),
 			Team:              team.ID,
@@ -963,7 +963,7 @@ func TestImplicitAdminBecomesExplicit(t *testing.T) {
 	t.Logf("U0 rotates the subteam 3 times")
 	subteam, err := GetForTestByID(context.TODO(), tcs[0].G, subteamID)
 	require.NoError(t, err)
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		err = subteam.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
 		require.NoError(t, err)
 		subteam, err = GetForTestByID(context.TODO(), tcs[0].G, subteamID)
@@ -1408,7 +1408,7 @@ func TestMemberAddRace(t *testing.T) {
 		return errCh
 	}
 
-	assertNoErr := func(errCh <-chan error, msgAndArgs ...interface{}) {
+	assertNoErr := func(errCh <-chan error, msgAndArgs ...any) {
 		select {
 		case err := <-errCh:
 			require.NoError(t, err, msgAndArgs...)
@@ -1417,7 +1417,7 @@ func TestMemberAddRace(t *testing.T) {
 		}
 	}
 
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		t.Logf("round %v", i)
 		doRotate := i%2 == 1
 
@@ -1480,7 +1480,7 @@ func TestMemberAddRaceConflict(t *testing.T) {
 		return errCh
 	}
 
-	assertNoErr := func(errCh <-chan error, msgAndArgs ...interface{}) {
+	assertNoErr := func(errCh <-chan error, msgAndArgs ...any) {
 		select {
 		case err := <-errCh:
 			require.NoError(t, err, msgAndArgs...)
@@ -1490,7 +1490,7 @@ func TestMemberAddRaceConflict(t *testing.T) {
 	}
 
 	// Exactly one error comes from the list of channels
-	assertOneErr := func(errChs []<-chan error, msgAndArgs ...interface{}) (retErr error) {
+	assertOneErr := func(errChs []<-chan error, msgAndArgs ...any) (retErr error) {
 		for i, errCh := range errChs {
 			select {
 			case err := <-errCh:
@@ -1506,7 +1506,7 @@ func TestMemberAddRaceConflict(t *testing.T) {
 		return retErr
 	}
 
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		t.Logf("round %v", i)
 
 		t.Logf("parallel start")
@@ -2344,7 +2344,7 @@ func TestFindAssertionsInTeamForInvites(t *testing.T) {
 	{
 		var assertions []string
 		assertions = append(assertions, fmt.Sprintf("[%s]@email", email2))
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			assertions = append(assertions, fmt.Sprintf("[%s]@email", kbtest.GenerateRandomEmailAddress()))
 		}
 		assertions = append(assertions, fmt.Sprintf("[%s]@email", email))
@@ -2550,7 +2550,7 @@ func TestTeamPlayerIdempotentChangesAssertRole(t *testing.T) {
 	require.NoError(t, err)
 
 	// Using memberLists, do bunch of idempotent role changes
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		for _, v := range memberLists {
 			teamSectionCM := makeTestSCTeamSection(team)
 			teamSectionCM.Members = v

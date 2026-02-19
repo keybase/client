@@ -38,6 +38,6 @@ func (cfi *diffFileInfo) IsDir() bool {
 	return false
 }
 
-func (cfi *diffFileInfo) Sys() interface{} {
+func (cfi *diffFileInfo) Sys() any {
 	return nil
 }

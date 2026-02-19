@@ -82,11 +82,11 @@ func InviteFriendsProtocol(i InviteFriendsInterface) rpc.Protocol {
 		Name: "keybase.1.inviteFriends",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"invitePeople": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]InvitePeopleArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]InvitePeopleArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]InvitePeopleArg)(nil), args)
@@ -97,21 +97,21 @@ func InviteFriendsProtocol(i InviteFriendsInterface) rpc.Protocol {
 				},
 			},
 			"getInviteCounts": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetInviteCountsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetInviteCounts(ctx)
 					return
 				},
 			},
 			"requestInviteCounts": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RequestInviteCountsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.RequestInviteCounts(ctx)
 					return
 				},
@@ -125,16 +125,16 @@ type InviteFriendsClient struct {
 }
 
 func (c InviteFriendsClient) InvitePeople(ctx context.Context, __arg InvitePeopleArg) (res int, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.invitePeople", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.invitePeople", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c InviteFriendsClient) GetInviteCounts(ctx context.Context) (res InviteCounts, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.getInviteCounts", []interface{}{GetInviteCountsArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.getInviteCounts", []any{GetInviteCountsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c InviteFriendsClient) RequestInviteCounts(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.requestInviteCounts", []interface{}{RequestInviteCountsArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.requestInviteCounts", []any{RequestInviteCountsArg{}}, nil, 0*time.Millisecond)
 	return
 }

@@ -1035,11 +1035,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 		Name: "keybase.1.config",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getCurrentStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetCurrentStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetCurrentStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetCurrentStatusArg)(nil), args)
@@ -1050,11 +1050,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"getClientStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetClientStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetClientStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetClientStatusArg)(nil), args)
@@ -1065,11 +1065,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"getFullStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetFullStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetFullStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetFullStatusArg)(nil), args)
@@ -1080,11 +1080,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"isServiceRunning": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]IsServiceRunningArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]IsServiceRunningArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]IsServiceRunningArg)(nil), args)
@@ -1095,11 +1095,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"isKBFSRunning": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]IsKBFSRunningArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]IsKBFSRunningArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]IsKBFSRunningArg)(nil), args)
@@ -1110,11 +1110,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"getNetworkStats": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetNetworkStatsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetNetworkStatsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetNetworkStatsArg)(nil), args)
@@ -1125,11 +1125,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"logSend": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LogSendArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LogSendArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LogSendArg)(nil), args)
@@ -1140,11 +1140,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"getAllProvisionedUsernames": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetAllProvisionedUsernamesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetAllProvisionedUsernamesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetAllProvisionedUsernamesArg)(nil), args)
@@ -1155,11 +1155,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"getConfig": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetConfigArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetConfigArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetConfigArg)(nil), args)
@@ -1170,11 +1170,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"setUserConfig": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetUserConfigArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetUserConfigArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetUserConfigArg)(nil), args)
@@ -1185,11 +1185,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"setPath": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetPathArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetPathArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetPathArg)(nil), args)
@@ -1200,11 +1200,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"helloIAm": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HelloIAmArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]HelloIAmArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]HelloIAmArg)(nil), args)
@@ -1215,11 +1215,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"setValue": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetValueArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetValueArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetValueArg)(nil), args)
@@ -1230,11 +1230,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"clearValue": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ClearValueArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ClearValueArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ClearValueArg)(nil), args)
@@ -1245,11 +1245,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"getValue": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetValueArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetValueArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetValueArg)(nil), args)
@@ -1260,11 +1260,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"guiSetValue": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GuiSetValueArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GuiSetValueArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GuiSetValueArg)(nil), args)
@@ -1275,11 +1275,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"guiClearValue": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GuiClearValueArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GuiClearValueArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GuiClearValueArg)(nil), args)
@@ -1290,11 +1290,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"guiGetValue": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GuiGetValueArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GuiGetValueArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GuiGetValueArg)(nil), args)
@@ -1305,41 +1305,41 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"checkAPIServerOutOfDateWarning": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CheckAPIServerOutOfDateWarningArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.CheckAPIServerOutOfDateWarning(ctx)
 					return
 				},
 			},
 			"getUpdateInfo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetUpdateInfoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetUpdateInfo(ctx)
 					return
 				},
 			},
 			"startUpdateIfNeeded": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]StartUpdateIfNeededArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.StartUpdateIfNeeded(ctx)
 					return
 				},
 			},
 			"waitForClient": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]WaitForClientArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]WaitForClientArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]WaitForClientArg)(nil), args)
@@ -1350,11 +1350,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"getBootstrapStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetBootstrapStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetBootstrapStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetBootstrapStatusArg)(nil), args)
@@ -1365,11 +1365,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"requestFollowingAndUnverifiedFollowers": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RequestFollowingAndUnverifiedFollowersArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RequestFollowingAndUnverifiedFollowersArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RequestFollowingAndUnverifiedFollowersArg)(nil), args)
@@ -1380,11 +1380,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"getRememberPassphrase": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetRememberPassphraseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetRememberPassphraseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetRememberPassphraseArg)(nil), args)
@@ -1395,11 +1395,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"setRememberPassphrase": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetRememberPassphraseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetRememberPassphraseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetRememberPassphraseArg)(nil), args)
@@ -1410,11 +1410,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"getUpdateInfo2": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetUpdateInfo2Arg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetUpdateInfo2Arg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetUpdateInfo2Arg)(nil), args)
@@ -1425,11 +1425,11 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"setProxyData": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetProxyDataArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetProxyDataArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetProxyDataArg)(nil), args)
@@ -1440,31 +1440,31 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"getProxyData": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetProxyDataArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetProxyData(ctx)
 					return
 				},
 			},
 			"toggleRuntimeStats": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ToggleRuntimeStatsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.ToggleRuntimeStats(ctx)
 					return
 				},
 			},
 			"appendGUILogs": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AppendGUILogsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AppendGUILogsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AppendGUILogsArg)(nil), args)
@@ -1475,21 +1475,21 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 			},
 			"generateWebAuthToken": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GenerateWebAuthTokenArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GenerateWebAuthToken(ctx)
 					return
 				},
 			},
 			"updateLastLoggedInAndServerConfig": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UpdateLastLoggedInAndServerConfigArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UpdateLastLoggedInAndServerConfigArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UpdateLastLoggedInAndServerConfigArg)(nil), args)
@@ -1509,53 +1509,53 @@ type ConfigClient struct {
 
 func (c ConfigClient) GetCurrentStatus(ctx context.Context, sessionID int) (res CurrentStatus, err error) {
 	__arg := GetCurrentStatusArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getCurrentStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getCurrentStatus", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetClientStatus(ctx context.Context, sessionID int) (res []ClientStatus, err error) {
 	__arg := GetClientStatusArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getClientStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getClientStatus", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetFullStatus(ctx context.Context, sessionID int) (res *FullStatus, err error) {
 	__arg := GetFullStatusArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getFullStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getFullStatus", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) IsServiceRunning(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := IsServiceRunningArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.isServiceRunning", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.isServiceRunning", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) IsKBFSRunning(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := IsKBFSRunningArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.isKBFSRunning", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.isKBFSRunning", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetNetworkStats(ctx context.Context, __arg GetNetworkStatsArg) (res []InstrumentationStat, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.getNetworkStats", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getNetworkStats", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) LogSend(ctx context.Context, __arg LogSendArg) (res LogSendID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.logSend", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.logSend", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res AllProvisionedUsernames, err error) {
 	__arg := GetAllProvisionedUsernamesArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getAllProvisionedUsernames", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getAllProvisionedUsernames", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetConfig(ctx context.Context, sessionID int) (res Config, err error) {
 	__arg := GetConfigArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getConfig", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getConfig", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -1563,136 +1563,136 @@ func (c ConfigClient) GetConfig(ctx context.Context, sessionID int) (res Config,
 // For example, to update primary picture source:
 // key=picture.source, value=twitter (or github)
 func (c ConfigClient) SetUserConfig(ctx context.Context, __arg SetUserConfigArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.setUserConfig", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.setUserConfig", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) SetPath(ctx context.Context, __arg SetPathArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.setPath", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.setPath", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) HelloIAm(ctx context.Context, details ClientDetails) (err error) {
 	__arg := HelloIAmArg{Details: details}
-	err = c.Cli.Call(ctx, "keybase.1.config.helloIAm", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.helloIAm", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) SetValue(ctx context.Context, __arg SetValueArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.setValue", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.setValue", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) ClearValue(ctx context.Context, path string) (err error) {
 	__arg := ClearValueArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.config.clearValue", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.clearValue", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetValue(ctx context.Context, path string) (res ConfigValue, err error) {
 	__arg := GetValueArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.config.getValue", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getValue", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GuiSetValue(ctx context.Context, __arg GuiSetValueArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.guiSetValue", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.guiSetValue", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GuiClearValue(ctx context.Context, path string) (err error) {
 	__arg := GuiClearValueArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.config.guiClearValue", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.guiClearValue", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GuiGetValue(ctx context.Context, path string) (res ConfigValue, err error) {
 	__arg := GuiGetValueArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.config.guiGetValue", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.guiGetValue", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Check whether the API server has told us we're out of date.
 func (c ConfigClient) CheckAPIServerOutOfDateWarning(ctx context.Context) (res OutOfDateInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.checkAPIServerOutOfDateWarning", []interface{}{CheckAPIServerOutOfDateWarningArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.checkAPIServerOutOfDateWarning", []any{CheckAPIServerOutOfDateWarningArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetUpdateInfo(ctx context.Context) (res UpdateInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo", []interface{}{GetUpdateInfoArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo", []any{GetUpdateInfoArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) StartUpdateIfNeeded(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.startUpdateIfNeeded", []interface{}{StartUpdateIfNeededArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.startUpdateIfNeeded", []any{StartUpdateIfNeededArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 // Wait for client type to connect to service.
 func (c ConfigClient) WaitForClient(ctx context.Context, __arg WaitForClientArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.waitForClient", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.waitForClient", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetBootstrapStatus(ctx context.Context, sessionID int) (res BootstrapStatus, err error) {
 	__arg := GetBootstrapStatusArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getBootstrapStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getBootstrapStatus", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) RequestFollowingAndUnverifiedFollowers(ctx context.Context, sessionID int) (err error) {
 	__arg := RequestFollowingAndUnverifiedFollowersArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.requestFollowingAndUnverifiedFollowers", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.requestFollowingAndUnverifiedFollowers", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetRememberPassphrase(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := GetRememberPassphraseArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getRememberPassphrase", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getRememberPassphrase", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) SetRememberPassphrase(ctx context.Context, __arg SetRememberPassphraseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.setRememberPassphrase", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.setRememberPassphrase", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
 // you are critically out of date.
 func (c ConfigClient) GetUpdateInfo2(ctx context.Context, __arg GetUpdateInfo2Arg) (res UpdateInfo2, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo2", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo2", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) SetProxyData(ctx context.Context, proxyData ProxyData) (err error) {
 	__arg := SetProxyDataArg{ProxyData: proxyData}
-	err = c.Cli.Call(ctx, "keybase.1.config.setProxyData", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.setProxyData", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetProxyData(ctx context.Context) (res ProxyData, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.getProxyData", []interface{}{GetProxyDataArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.getProxyData", []any{GetProxyDataArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) ToggleRuntimeStats(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.toggleRuntimeStats", []interface{}{ToggleRuntimeStatsArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.toggleRuntimeStats", []any{ToggleRuntimeStatsArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) AppendGUILogs(ctx context.Context, content string) (err error) {
 	__arg := AppendGUILogsArg{Content: content}
-	err = c.Cli.Call(ctx, "keybase.1.config.appendGUILogs", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.appendGUILogs", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GenerateWebAuthToken(ctx context.Context) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.generateWebAuthToken", []interface{}{GenerateWebAuthTokenArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.generateWebAuthToken", []any{GenerateWebAuthTokenArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) UpdateLastLoggedInAndServerConfig(ctx context.Context, serverConfigPath string) (err error) {
 	__arg := UpdateLastLoggedInAndServerConfigArg{ServerConfigPath: serverConfigPath}
-	err = c.Cli.Call(ctx, "keybase.1.config.updateLastLoggedInAndServerConfig", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.config.updateLastLoggedInAndServerConfig", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

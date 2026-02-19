@@ -205,11 +205,11 @@ func TlfKeysProtocol(i TlfKeysInterface) rpc.Protocol {
 		Name: "keybase.1.tlfKeys",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getTLFCryptKeys": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTLFCryptKeysArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTLFCryptKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTLFCryptKeysArg)(nil), args)
@@ -220,11 +220,11 @@ func TlfKeysProtocol(i TlfKeysInterface) rpc.Protocol {
 				},
 			},
 			"getPublicCanonicalTLFNameAndID": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPublicCanonicalTLFNameAndIDArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetPublicCanonicalTLFNameAndIDArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetPublicCanonicalTLFNameAndIDArg)(nil), args)
@@ -246,7 +246,7 @@ type TlfKeysClient struct {
 // TLF ID should not be cached or stored persistently.
 func (c TlfKeysClient) GetTLFCryptKeys(ctx context.Context, query TLFQuery) (res GetTLFCryptKeysRes, err error) {
 	__arg := GetTLFCryptKeysArg{Query: query}
-	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getTLFCryptKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getTLFCryptKeys", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -254,6 +254,6 @@ func (c TlfKeysClient) GetTLFCryptKeys(ctx context.Context, query TLFQuery) (res
 // TLF ID should not be cached or stored persistently.
 func (c TlfKeysClient) GetPublicCanonicalTLFNameAndID(ctx context.Context, query TLFQuery) (res CanonicalTLFNameAndIDWithBreaks, err error) {
 	__arg := GetPublicCanonicalTLFNameAndIDArg{Query: query}
-	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -72,11 +72,11 @@ func ReachabilityProtocol(i ReachabilityInterface) rpc.Protocol {
 		Name: "keybase.1.reachability",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"reachabilityChanged": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ReachabilityChangedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ReachabilityChangedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ReachabilityChangedArg)(nil), args)
@@ -87,21 +87,21 @@ func ReachabilityProtocol(i ReachabilityInterface) rpc.Protocol {
 				},
 			},
 			"startReachability": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]StartReachabilityArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.StartReachability(ctx)
 					return
 				},
 			},
 			"checkReachability": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CheckReachabilityArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.CheckReachability(ctx)
 					return
 				},
@@ -116,19 +116,19 @@ type ReachabilityClient struct {
 
 func (c ReachabilityClient) ReachabilityChanged(ctx context.Context, reachability Reachability) (err error) {
 	__arg := ReachabilityChangedArg{Reachability: reachability}
-	err = c.Cli.Notify(ctx, "keybase.1.reachability.reachabilityChanged", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.reachability.reachabilityChanged", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 // Start reachability checks and return current status, which
 // may be cached.
 func (c ReachabilityClient) StartReachability(ctx context.Context) (res Reachability, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.reachability.startReachability", []interface{}{StartReachabilityArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.reachability.startReachability", []any{StartReachabilityArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 // Performs a reachability check. This is not a cached response.
 func (c ReachabilityClient) CheckReachability(ctx context.Context) (res Reachability, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.reachability.checkReachability", []interface{}{CheckReachabilityArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.reachability.checkReachability", []any{CheckReachabilityArg{}}, &res, 0*time.Millisecond)
 	return
 }

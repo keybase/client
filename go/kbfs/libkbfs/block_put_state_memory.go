@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"maps"
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/pkg/errors"
@@ -85,9 +86,7 @@ func (bps *blockPutStateMemory) mergeOtherBps(
 		return errors.Errorf("Cannot remove other bps of type %T", other)
 	}
 
-	for ptr, bs := range otherMem.blockStates {
-		bps.blockStates[ptr] = bs
-	}
+	maps.Copy(bps.blockStates, otherMem.blockStates)
 	return nil
 }
 
@@ -169,9 +168,7 @@ func (bps *blockPutStateMemory) deepCopy(
 ) (blockPutStateCopiable, error) {
 	newBps := &blockPutStateMemory{}
 	newBps.blockStates = make(map[data.BlockPointer]blockState, len(bps.blockStates))
-	for ptr, bs := range bps.blockStates {
-		newBps.blockStates[ptr] = bs
-	}
+	maps.Copy(newBps.blockStates, bps.blockStates)
 	return newBps, nil
 }
 
@@ -180,10 +177,7 @@ func (bps *blockPutStateMemory) deepCopyWithBlacklist(
 	blockPutStateCopiable, error,
 ) {
 	newBps := &blockPutStateMemory{}
-	newLen := len(bps.blockStates) - len(blacklist)
-	if newLen < 0 {
-		newLen = 0
-	}
+	newLen := max(len(bps.blockStates)-len(blacklist), 0)
 	newBps.blockStates = make(map[data.BlockPointer]blockState, newLen)
 	for ptr, bs := range bps.blockStates {
 		// Only save the good pointers

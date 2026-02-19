@@ -74,7 +74,7 @@ func (o Process) DeepCopy() Process {
 	}
 }
 
-type ProcessInterface interface{}
+type ProcessInterface any
 
 func ProcessProtocol(i ProcessInterface) rpc.Protocol {
 	return rpc.Protocol{

@@ -212,11 +212,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 		Name: "keybase.1.ctl",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"stop": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]StopArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]StopArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]StopArg)(nil), args)
@@ -227,11 +227,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"stopService": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]StopServiceArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]StopServiceArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]StopServiceArg)(nil), args)
@@ -242,11 +242,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"logRotate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LogRotateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LogRotateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LogRotateArg)(nil), args)
@@ -257,11 +257,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"reload": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ReloadArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ReloadArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ReloadArg)(nil), args)
@@ -272,11 +272,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"dbNuke": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DbNukeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DbNukeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DbNukeArg)(nil), args)
@@ -287,11 +287,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"dbClean": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DbCleanArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DbCleanArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DbCleanArg)(nil), args)
@@ -302,11 +302,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"appExit": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AppExitArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AppExitArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AppExitArg)(nil), args)
@@ -317,11 +317,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"dbDelete": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DbDeleteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DbDeleteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DbDeleteArg)(nil), args)
@@ -332,11 +332,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"dbPut": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DbPutArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DbPutArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DbPutArg)(nil), args)
@@ -347,11 +347,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"dbGet": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DbGetArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DbGetArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DbGetArg)(nil), args)
@@ -362,11 +362,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"dbKeysWithPrefixes": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DbKeysWithPrefixesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DbKeysWithPrefixesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DbKeysWithPrefixesArg)(nil), args)
@@ -377,11 +377,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"setOnLoginStartup": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetOnLoginStartupArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetOnLoginStartupArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetOnLoginStartupArg)(nil), args)
@@ -392,11 +392,11 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 			},
 			"getOnLoginStartup": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetOnLoginStartupArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetOnLoginStartup(ctx)
 					return
 				},
@@ -410,71 +410,71 @@ type CtlClient struct {
 }
 
 func (c CtlClient) Stop(ctx context.Context, __arg StopArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.stop", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.stop", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) StopService(ctx context.Context, __arg StopServiceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.stopService", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.stopService", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) LogRotate(ctx context.Context, sessionID int) (err error) {
 	__arg := LogRotateArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.logRotate", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.logRotate", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) Reload(ctx context.Context, sessionID int) (err error) {
 	__arg := ReloadArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.reload", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.reload", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbNuke(ctx context.Context, sessionID int) (err error) {
 	__arg := DbNukeArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbNuke", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbNuke", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbClean(ctx context.Context, __arg DbCleanArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbClean", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbClean", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) AppExit(ctx context.Context, sessionID int) (err error) {
 	__arg := AppExitArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.appExit", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.appExit", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbDelete(ctx context.Context, __arg DbDeleteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbDelete", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbPut(ctx context.Context, __arg DbPutArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbPut", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbPut", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbGet(ctx context.Context, __arg DbGetArg) (res *DbValue, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbGet", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbGet", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbKeysWithPrefixes(ctx context.Context, __arg DbKeysWithPrefixesArg) (res []DbKey, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbKeysWithPrefixes", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbKeysWithPrefixes", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) SetOnLoginStartup(ctx context.Context, enabled bool) (err error) {
 	__arg := SetOnLoginStartupArg{Enabled: enabled}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.setOnLoginStartup", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.setOnLoginStartup", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) GetOnLoginStartup(ctx context.Context) (res OnLoginStartupStatus, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.getOnLoginStartup", []interface{}{GetOnLoginStartupArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.getOnLoginStartup", []any{GetOnLoginStartupArg{}}, &res, 0*time.Millisecond)
 	return
 }

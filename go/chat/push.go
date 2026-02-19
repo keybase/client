@@ -148,10 +148,9 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 				err, vers)
 		}
 		// add extra time if we are multiple updates behind
-		dur = time.Duration(newVers-vers-1) * time.Second //nolint:gosec // G115: Version difference for delay calculation, safe to convert
-		if dur < 0 {
-			dur = 0
-		}
+		dur = max(
+			//nolint:gosec // G115: Version difference for delay calculation, safe to convert
+			time.Duration(newVers-vers-1)*time.Second, 0)
 		// cap at a minute
 		if dur > time.Minute {
 			dur = time.Minute

@@ -281,12 +281,12 @@ func TestTeamTxMultipleMembers(t *testing.T) {
 	// user 1,2,3 - zzz, normal user
 	// user 4,5,6 - yyy, pukless user
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		user := tt.addUser("zzz")
 		t.Logf("Signed up normal user %d (%s, %v)", i, user.username, user.userVersion())
 	}
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		user := tt.addPuklessUser("yyy")
 		t.Logf("Signed up pukless user %d (%s, %v)", i, user.username, user.userVersion())
 	}

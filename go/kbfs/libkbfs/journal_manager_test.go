@@ -733,8 +733,7 @@ func TestJournalManagerMultiUser(t *testing.T) {
 }
 
 func TestJournalManagerEnableAuto(t *testing.T) {
-	delegateCtx, delegateCancel := context.WithCancel(context.Background())
-	defer delegateCancel()
+	delegateCtx := t.Context()
 
 	tempdir, ctx, cancel, config, _, jManager := setupJournalManagerTest(t)
 	defer teardownJournalManagerTest(ctx, t, tempdir, cancel, config)

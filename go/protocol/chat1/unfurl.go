@@ -847,7 +847,7 @@ func (o UnfurlSettingsDisplay) DeepCopy() UnfurlSettingsDisplay {
 	}
 }
 
-type UnfurlInterface interface{}
+type UnfurlInterface any
 
 func UnfurlProtocol(i UnfurlInterface) rpc.Protocol {
 	return rpc.Protocol{

@@ -374,7 +374,7 @@ func (o EmojiStorage) DeepCopy() EmojiStorage {
 	}
 }
 
-type EmojiInterface interface{}
+type EmojiInterface any
 
 func EmojiProtocol(i EmojiInterface) rpc.Protocol {
 	return rpc.Protocol{
