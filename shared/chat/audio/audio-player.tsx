@@ -106,7 +106,7 @@ const AudioPlayer = (props: Props) => {
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true}>
         <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} playedRatio={playedRatio} />
-        <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
+        <Kb.Text3 type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text3>
       </Kb.Box2>
       {url.length > 0 && (
         <AudioVideo url={url} paused={paused} onPositionUpdated={onPositionUpdated} onEnded={onEnded} />

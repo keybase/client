@@ -128,31 +128,31 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
         )}
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
           {!!progressLabel && (
-            <Kb.Text
+            <Kb.Text3
               type="BodySmall"
               style={{color: Kb.Styles.globalColors.black_50, marginRight: Kb.Styles.globalMargins.tiny}}
             >
               {progressLabel}
-            </Kb.Text>
+            </Kb.Text3>
           )}
           {!!progressLabel && <Kb.ProgressBar ratio={progress} />}
           {!progressLabel && onDownloadAttachment && !isDownloadError && (
-            <Kb.Text type="BodySmall" style={styles.link} onClick={onDownloadAttachment}>
+            <Kb.Text3 type="BodySmall" style={styles.link} onClick={onDownloadAttachment}>
               Download
-            </Kb.Text>
+            </Kb.Text3>
           )}
           {!progressLabel && onDownloadAttachment && isDownloadError && (
-            <Kb.Text type="BodySmall" style={styles.error} onClick={onDownloadAttachment}>
+            <Kb.Text3 type="BodySmall" style={styles.error} onClick={onDownloadAttachment}>
               Failed to download.{' '}
-              <Kb.Text type="BodySmall" style={styles.retry} onClick={onDownloadAttachment}>
+              <Kb.Text3 type="BodySmall" style={styles.retry} onClick={onDownloadAttachment}>
                 Retry
-              </Kb.Text>
-            </Kb.Text>
+              </Kb.Text3>
+            </Kb.Text3>
           )}
           {onShowInFinder && (
-            <Kb.Text type="BodySmall" style={styles.link} onClick={onShowInFinder}>
+            <Kb.Text3 type="BodySmall" style={styles.link} onClick={onShowInFinder}>
               Show in {Kb.Styles.fileUIName}
-            </Kb.Text>
+            </Kb.Text3>
           )}
         </Kb.Box2>
       </Kb.Box2>

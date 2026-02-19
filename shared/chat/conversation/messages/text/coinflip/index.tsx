@@ -59,30 +59,30 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   const statusText = showParticipants ? (
     <Kb.Box2Measure direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
       {!Kb.Styles.isMobile && (
-        <Kb.Text selectable={true} type="BodySmall">
+        <Kb.Text3 selectable={true} type="BodySmall">
           Secured by{' '}
-        </Kb.Text>
+        </Kb.Text3>
       )}
-      <Kb.Text selectable={true} type="BodySmallPrimaryLink" onClick={showPopup}>
+      <Kb.Text3 selectable={true} type="BodySmallPrimaryLink" onClick={showPopup}>
         {`${numParticipants} ${pluralize('participant', numParticipants)}`}
-      </Kb.Text>
+      </Kb.Text3>
       {popup}
     </Kb.Box2Measure>
   ) : (
     <Kb.Box2 direction="vertical">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-        <Kb.Text selectable={true} type="BodySmallSemibold">
+        <Kb.Text3 selectable={true} type="BodySmallSemibold">
           {!Kb.Styles.isMobile && 'Collecting '}commitments: {numParticipants}
-        </Kb.Text>
+        </Kb.Text3>
         {phase === T.RPCChat.UICoinFlipPhase.reveals && (
           <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
         )}
       </Kb.Box2>
       {phase === T.RPCChat.UICoinFlipPhase.reveals && (
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-          <Kb.Text selectable={true} type="BodySmallSemibold">
+          <Kb.Text3 selectable={true} type="BodySmallSemibold">
             {!Kb.Styles.isMobile && 'Collecting '}secrets: {revealSummary}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       )}
     </Kb.Box2>
@@ -130,9 +130,9 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
       </Kb.Box2>
       {isSendError || !!errorInfo ? (
         <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.flipAgainContainer}>
-          <Kb.Text type="BodySmallSecondaryLink" onClick={onFlipAgain} style={styles.error}>
+          <Kb.Text3 type="BodySmallSecondaryLink" onClick={onFlipAgain} style={styles.error}>
             Try again
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       ) : (
         <Kb.Box2
@@ -144,9 +144,9 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
               : styles.flipAgainContainerHidden
           }
         >
-          <Kb.Text type="BodySmallSecondaryLink" onClick={onFlipAgain}>
+          <Kb.Text3 type="BodySmallSecondaryLink" onClick={onFlipAgain}>
             Flip again
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       )}
     </Kb.Box2>

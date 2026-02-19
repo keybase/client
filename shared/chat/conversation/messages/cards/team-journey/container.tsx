@@ -88,14 +88,14 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
         }))
         textComponent = (
           <Kb.Box2 direction="vertical">
-            <Kb.Text type="BodySmall">
-              You are in <Kb.Text type="BodySmallBold">#{channelname}</Kb.Text>.
-            </Kb.Text>
-            <Kb.Text type="BodySmall">
+            <Kb.Text3 type="BodySmall">
+              You are in <Kb.Text3 type="BodySmallBold">#{channelname}</Kb.Text3>.
+            </Kb.Text3>
+            <Kb.Text3 type="BodySmall">
               {otherChannelsForPopular.length
                 ? `Other channels in this team are:`
                 : `And you're in all the other channels, nice.`}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         )
       }
@@ -200,15 +200,15 @@ const TeamJourneyHeader = (props: HeaderProps) => {
         alignSelf="flex-start"
         style={styles.bottomLine}
       >
-        <Kb.Text
+        <Kb.Text3
           style={styles.teamnameText}
           type="BodySmallBold"
           onClick={deactivateButtons ? undefined : onAuthorClick}
           className={deactivateButtons ? '' : 'hover-underline'}
         >
           {teamname}
-        </Kb.Text>
-        <Kb.Text type="BodyTiny">• System message</Kb.Text>
+        </Kb.Text3>
+        <Kb.Text3 type="BodyTiny">• System message</Kb.Text3>
       </Kb.Box2>
       {!Kb.Styles.isMobile && !deactivateButtons && (
         <Kb.Icon type="iconfont-close" onClick={onDismiss} fontSize={12} />

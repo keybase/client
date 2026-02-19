@@ -95,12 +95,12 @@ const Confirm = (props: {showPopup: () => void; disableSync: () => void; waiting
   }, [waiting, showPopup])
   return (
     <Kb.Box2 direction="vertical" style={styles.popupContainer} centerChildren={true}>
-      <Kb.Text key="title" type="BodyBig">
+      <Kb.Text3 key="title" type="BodyBig">
         Unsync this folder now?
-      </Kb.Text>
-      <Kb.Text key="explain" type="BodySmall" center={true} style={styles.explainText}>
+      </Kb.Text3>
+      <Kb.Text3 key="explain" type="BodySmall" center={true} style={styles.explainText}>
         This will delete your local copies of all the files in this folder.
-      </Kb.Text>
+      </Kb.Text3>
       {!Kb.Styles.isMobile && (
         <Kb.Box2
           direction="horizontal"

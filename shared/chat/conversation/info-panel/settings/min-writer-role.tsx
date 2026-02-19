@@ -52,7 +52,7 @@ const MinWriterRole = () => {
   return (
     <Kb.Box2 direction="vertical" gap={canSetMinWriterRole ? 'tiny' : 'xxtiny'} fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-        <Kb.Text type="BodySmallSemibold">Minimum role to post</Kb.Text>
+        <Kb.Text3 type="BodySmallSemibold">Minimum role to post</Kb.Text3>
       </Kb.Box2>
       {canSetMinWriterRole ? (
         <Dropdown minWriterRole={selected} items={items} saving={saving} />
@@ -98,7 +98,7 @@ const Dropdown = (p: DropdownProps) => {
         underlayColor={Style.globalColors.white_40}
       >
         <Kb.Box2 direction="horizontal" style={styles.label}>
-          <Kb.Text type="BodySemibold">{upperFirst(minWriterRole)}</Kb.Text>
+          <Kb.Text3 type="BodySemibold">{upperFirst(minWriterRole)}</Kb.Text3>
         </Kb.Box2>
         <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
       </Kb.ClickableBox>
@@ -109,10 +109,10 @@ const Dropdown = (p: DropdownProps) => {
 }
 
 const Display = ({minWriterRole}: {minWriterRole: T.Teams.TeamRoleType}) => (
-  <Kb.Text type="BodySmall">
+  <Kb.Text3 type="BodySmall">
     You must be at least {indefiniteArticle(minWriterRole)}{' '}
-    <Kb.Text type="BodySmallSemibold">“{minWriterRole}”</Kb.Text> to post in this channel.
-  </Kb.Text>
+    <Kb.Text3 type="BodySmallSemibold">“{minWriterRole}”</Kb.Text3> to post in this channel.
+  </Kb.Text3>
 )
 
 const styles = Style.styleSheetCreate(

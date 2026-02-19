@@ -54,31 +54,31 @@ const Container = (ownProps: OwnProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
       <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
-        <Kb.Text center={true} type="BodyBig" lineClamp={inTracker ? 1 : undefined} selectable={true}>
+        <Kb.Text3 center={true} type="BodyBig" lineClamp={inTracker ? 1 : undefined} selectable={true}>
           {fullname}
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
       <FollowText followThem={followThem} followsYou={followsYou} />
       {followersCount !== undefined && (
-        <Kb.Text type="BodySmall">
-          <Kb.Text type="BodySmall">
-            <Kb.Text type="BodySmall" style={styles.bold}>
+        <Kb.Text3 type="BodySmall">
+          <Kb.Text3 type="BodySmall">
+            <Kb.Text3 type="BodySmall" style={styles.bold}>
               {followersCount}
-            </Kb.Text>{' '}
+            </Kb.Text3>{' '}
             Followers{' '}
-          </Kb.Text>
-          <Kb.Text type="BodySmall"> · </Kb.Text>
-          <Kb.Text type="BodySmall">
+          </Kb.Text3>
+          <Kb.Text3 type="BodySmall"> · </Kb.Text3>
+          <Kb.Text3 type="BodySmall">
             {' '}
             Following{' '}
-            <Kb.Text type="BodySmall" style={styles.bold}>
+            <Kb.Text3 type="BodySmall" style={styles.bold}>
               {followingCount}{' '}
-            </Kb.Text>
-          </Kb.Text>
-        </Kb.Text>
+            </Kb.Text3>
+          </Kb.Text3>
+        </Kb.Text3>
       )}
       {!!bio && (
-        <Kb.Text
+        <Kb.Text3
           type="Body"
           center={true}
           lineClamp={inTracker ? 2 : undefined}
@@ -86,10 +86,10 @@ const Container = (ownProps: OwnProps) => {
           selectable={true}
         >
           {bio}
-        </Kb.Text>
+        </Kb.Text3>
       )}
       {!!location && (
-        <Kb.Text
+        <Kb.Text3
           type="BodySmall"
           center={true}
           lineClamp={inTracker ? 1 : undefined}
@@ -97,10 +97,10 @@ const Container = (ownProps: OwnProps) => {
           selectable={true}
         >
           {location}
-        </Kb.Text>
+        </Kb.Text3>
       )}
       {!!sbsDescription && (
-        <Kb.Text
+        <Kb.Text3
           type="BodySmall"
           center={true}
           lineClamp={inTracker ? 1 : undefined}
@@ -108,24 +108,24 @@ const Container = (ownProps: OwnProps) => {
           selectable={true}
         >
           {sbsDescription}
-        </Kb.Text>
+        </Kb.Text3>
       )}
       {blocked ? (
-        <Kb.Text type="BodySmallError" center={true} style={styles.blockedBackgroundText}>
-          <Kb.Text type="BodySmallError" center={true} style={styles.text} selectable={true}>
+        <Kb.Text3 type="BodySmallError" center={true} style={styles.blockedBackgroundText}>
+          <Kb.Text3 type="BodySmallError" center={true} style={styles.text} selectable={true}>
             You blocked them.{' '}
-          </Kb.Text>
-          <Kb.Text type="BodySmallError" center={true} style={styles.text} selectable={true}>
+          </Kb.Text3>
+          <Kb.Text3 type="BodySmallError" center={true} style={styles.text} selectable={true}>
             {username} won’t be able to chat with you or add you to teams.
-          </Kb.Text>
-        </Kb.Text>
+          </Kb.Text3>
+        </Kb.Text3>
       ) : (
         hidFromFollowers && (
-          <Kb.Text type="BodySmallError" center={true} style={styles.blockedBackgroundText}>
-            <Kb.Text type="BodySmallError" center={true} style={styles.text} selectable={true}>
+          <Kb.Text3 type="BodySmallError" center={true} style={styles.blockedBackgroundText}>
+            <Kb.Text3 type="BodySmallError" center={true} style={styles.text} selectable={true}>
               You hid them from your followers.
-            </Kb.Text>
-          </Kb.Text>
+            </Kb.Text3>
+          </Kb.Text3>
         )
       )}
     </Kb.Box2>
@@ -143,7 +143,7 @@ const FollowText = ({followThem, followsYou}: {followThem?: boolean; followsYou?
   } else if (followsYou) {
     text = 'FOLLOWS YOU'
   }
-  return text ? <Kb.Text type="BodySmall">{text}</Kb.Text> : null
+  return text ? <Kb.Text3 type="BodySmall">{text}</Kb.Text3> : null
 }
 
 const styles = Kb.Styles.styleSheetCreate(

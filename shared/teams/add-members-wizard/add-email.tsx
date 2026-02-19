@@ -81,7 +81,7 @@ const AddEmail = (props: Props) => {
         style={styles.body}
         gap={Kb.Styles.isMobile ? 'tiny' : 'xsmall'}
       >
-        <Kb.Text type="Body">Enter one or multiple email addresses:</Kb.Text>
+        <Kb.Text3 type="Body">Enter one or multiple email addresses:</Kb.Text3>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} alignItems="flex-start">
           <Kb.LabeledInput
             autoFocus={true}
@@ -96,12 +96,12 @@ const AddEmail = (props: Props) => {
             onKeyDown={maybeSubmit}
           />
           {!!props.errorMessage && (
-            <Kb.Text type="BodySmall" style={styles.errorText}>
+            <Kb.Text3 type="BodySmall" style={styles.errorText}>
               {props.errorMessage}
-            </Kb.Text>
+            </Kb.Text3>
           )}
         </Kb.Box2>
-        <Kb.Text type="BodySmall">Separate all addresses with commas.</Kb.Text>
+        <Kb.Text3 type="BodySmall">Separate all addresses with commas.</Kb.Text3>
       </Kb.Box2>
     </Kb.Modal>
   )

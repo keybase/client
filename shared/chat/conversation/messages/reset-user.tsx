@@ -23,27 +23,27 @@ const ResetUser = () => {
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Kb.Icon type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
       <Kb.Box2 direction="vertical" style={styles.textContainer}>
-        <Kb.Text center={true} type="BodySemibold" negative={true}>
-          <Kb.Text type="BodySemiboldLink" negative={true} onClick={viewProfile}>
+        <Kb.Text3 center={true} type="BodySemibold" negative={true}>
+          <Kb.Text3 type="BodySemiboldLink" negative={true} onClick={viewProfile}>
             {username}
-          </Kb.Text>{' '}
-          <Kb.Text type="BodySemibold" negative={true}>
+          </Kb.Text3>{' '}
+          <Kb.Text3 type="BodySemibold" negative={true}>
             {
               "lost all their devices and this account has new keys. If you want to let them into this chat and folder's history, you should either:"
             }
-          </Kb.Text>
-        </Kb.Text>
+          </Kb.Text3>
+        </Kb.Text3>
         <Kb.Box2 direction="vertical" style={styles.bullet} gap="tiny" gapStart={true}>
-          <Kb.Text type="BodySemibold" negative={true}>
+          <Kb.Text3 type="BodySemibold" negative={true}>
             1. Be satisfied with their new proofs, or
-          </Kb.Text>
-          <Kb.Text type="BodySemibold" negative={true}>
+          </Kb.Text3>
+          <Kb.Text3 type="BodySemibold" negative={true}>
             2. Know them outside Keybase and have gotten a thumbs up from them.
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
-        <Kb.Text type="BodySemibold" negative={true} style={styles.lastSentence}>
+        <Kb.Text3 type="BodySemibold" negative={true} style={styles.lastSentence}>
           Don&apos;t let them in until one of the above is&nbsp;true.
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonContainer}>
           <Kb.Button
             backgroundColor="red"
@@ -62,12 +62,12 @@ const ResetUser = () => {
           />
         </Kb.ButtonBar>
         {allowChatWithoutThem && (
-          <Kb.Text type="BodySemibold" negative={true}>
+          <Kb.Text3 type="BodySemibold" negative={true}>
             Or until you’re sure,{' '}
-            <Kb.Text type="BodySemiboldLink" negative={true} onClick={chatWithoutThem}>
+            <Kb.Text3 type="BodySemiboldLink" negative={true} onClick={chatWithoutThem}>
               chat without them
-            </Kb.Text>
-          </Kb.Text>
+            </Kb.Text3>
+          </Kb.Text3>
         )}
       </Kb.Box2>
     </Kb.Box2>

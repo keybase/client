@@ -41,10 +41,10 @@ const FilesAndFoldersCount = (props: Props) => {
   const pathItems = useFSState(s => s.pathItems)
   const {files, folders, loaded} = getNumberOfFilesAndFolders(pathItems, props.path)
   return loaded ? (
-    <Kb.Text type="BodySmall">
+    <Kb.Text3 type="BodySmall">
       {folders ? `${folders} ${pluralize('Folder')}${files ? ', ' : ''}` : undefined}
       {files ? `${files} ${pluralize('File')}` : undefined}
-    </Kb.Text>
+    </Kb.Text3>
   ) : (
     <Kb.ProgressIndicator />
   )
@@ -95,7 +95,7 @@ const PathItemInfo = (props: Props) => {
         <ItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
         <Kb.Box2 direction="horizontal" style={styles.nameTextBox}>{name}</Kb.Box2>
         {pathItem.type === T.FS.PathType.File && (
-          <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
+          <Kb.Text3 type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text3>
         )}
         {FS.isInTlf(props.path) && FS.isFolder(props.path, pathItem) && <FilesAndFoldersCount {...props} />}
         {getTlfInfoLineOrLastModifiedLine(props.path)}

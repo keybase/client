@@ -24,9 +24,9 @@ const Version = ({children}: {children: React.ReactNode}) => {
 
 const VersionTitle = ({title}: {title: string}) => (
   <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
-    <Kb.Text type="BodySmallSemibold" style={styles.versionTitle}>
+    <Kb.Text3 type="BodySmallSemibold" style={styles.versionTitle}>
       {title}
-    </Kb.Text>
+    </Kb.Text3>
   </Kb.Box2>
 )
 
@@ -170,7 +170,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
           sizeType={Kb.Styles.isMobile ? 'Small' : 'Default'}
         />
         {` `}
-        <Kb.Text type="BodySmallSemibold">{keybaseFM}</Kb.Text>
+        <Kb.Text3 type="BodySmallSemibold">{keybaseFM}</Kb.Text3>
         {` `}
         to get updates and new features.
       </NewFeatureRow>

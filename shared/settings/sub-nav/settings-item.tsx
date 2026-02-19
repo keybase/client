@@ -38,7 +38,7 @@ const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) 
         />
       ) : null}
       <Kb.Box2 direction="vertical">
-        <Kb.Text2
+        <Kb.Text3
           type="BodySemibold"
           style={Kb.Styles.collapseStyles([
             selected ? styles.selectedText : styles.itemText,
@@ -46,8 +46,8 @@ const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) 
           ])}
         >
           {props.text}
-        </Kb.Text2>
-        {props.text && props.subText && <Kb.Text2 type="BodySmall">{props.subText}</Kb.Text2>}
+        </Kb.Text3>
+        {props.text && props.subText && <Kb.Text3 type="BodySmall">{props.subText}</Kb.Text3>}
       </Kb.Box2>
       {props.inProgress && <Kb.ProgressIndicator style={styles.progress} />}
       {!!props.badgeNumber && props.badgeNumber > 0 && (

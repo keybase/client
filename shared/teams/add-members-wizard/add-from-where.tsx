@@ -14,9 +14,9 @@ const Skip = () => {
     return waiting ? (
       <Kb.ProgressIndicator />
     ) : (
-      <Kb.Text type="BodyBigLink" onClick={onSkip}>
+      <Kb.Text3 type="BodyBigLink" onClick={onSkip}>
         Skip
-      </Kb.Text>
+      </Kb.Text3>
     )
   } else {
     return <Kb.Button mode="Secondary" label="Skip" small={true} onClick={onSkip} waiting={waiting} />
@@ -52,9 +52,9 @@ const AddFromWhere = () => {
         leftButton: newTeam ? (
           <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
         ) : Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
+          <Kb.Text3 type="BodyBigLink" onClick={onClose}>
             Cancel
-          </Kb.Text>
+          </Kb.Text3>
         ) : undefined,
         rightButton: newTeam ? <Skip /> : undefined,
         title: (
@@ -73,9 +73,9 @@ const AddFromWhere = () => {
         style={styles.body}
         fullWidth={true}
       >
-        <Kb.Text type="Body">
+        <Kb.Text3 type="Body">
           {newTeam ? 'Where will your first team members come from?' : 'How would you like to add people?'}
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.RichButton
           icon="icon-teams-add-search-64"
           title="From Keybase"

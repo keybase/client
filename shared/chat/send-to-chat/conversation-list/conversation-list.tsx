@@ -47,9 +47,9 @@ const _itemRenderer = (index: number, row: Row) => {
             participantTwo={item.parts?.[1]}
           />
         )}
-        <Kb.Text type="Body" style={{alignSelf: 'center'}} lineClamp={1}>
+        <Kb.Text3 type="Body" style={{alignSelf: 'center'}} lineClamp={1}>
           {item.name}
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
     </Kb.ClickableBox>
   )

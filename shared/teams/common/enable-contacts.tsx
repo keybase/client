@@ -26,13 +26,13 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
     <Kb.MobilePopup>
       <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="Header" style={styles.header}>
+          <Kb.Text3 type="Header" style={styles.header}>
             Enable contact sync
-          </Kb.Text>
-          <Kb.Text type="Body">
+          </Kb.Text3>
+          <Kb.Text3 type="Body">
             You previously disallowed syncing your phone contacts with Keybase. To re-allow it, go to your
             phone settings under Keybase.
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <Kb.Button label="Open phone settings" onClick={onOpenSettings} fullWidth={true} />

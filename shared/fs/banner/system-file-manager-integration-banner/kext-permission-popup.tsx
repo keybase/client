@@ -26,28 +26,28 @@ const InstallSecurityPrefs = () => {
     <Kb.PopupWrapper onCancel={onCancel}>
       <>
         <Kb.Box2 direction="vertical" gap="small" centerChildren={true} style={styles.container}>
-          <Kb.Text type="HeaderBig" style={styles.title}>
+          <Kb.Text3 type="HeaderBig" style={styles.title}>
             You need to change your system security preferences.
-          </Kb.Text>
-          <Kb.Text type="Body">Open your macOS Security & Privacy Settings and follow these steps.</Kb.Text>
+          </Kb.Text3>
+          <Kb.Text3 type="Body">Open your macOS Security & Privacy Settings and follow these steps.</Kb.Text3>
           <Kb.Box2 direction="horizontal">
             <Kb.Box2 direction="vertical" style={styles.illustrationContainer}>
               <Kb.Icon style={styles.image} type="illustration-security-preferences" />
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullHeight={true} style={styles.numberListContainer}>
               <Kb.Box2 direction="horizontal">
-                <Kb.Text type="BodyBig" style={styles.numberList} negative={false}>
+                <Kb.Text3 type="BodyBig" style={styles.numberList} negative={false}>
                   •
-                </Kb.Text>
-                <Kb.Text type="BodySemibold" style={styles.listText}>
+                </Kb.Text3>
+                <Kb.Text3 type="BodySemibold" style={styles.listText}>
                   {'Change "Allow applications downloaded from" to "App Store and identified developers"'}
-                </Kb.Text>
+                </Kb.Text3>
               </Kb.Box2>
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Text type="BodySemiboldLink" onClick={openSecurityPrefs}>
+          <Kb.Text3 type="BodySemiboldLink" onClick={openSecurityPrefs}>
             Open Security & Privacy Settings
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
         {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling && (
           <Kb.Box2 direction="vertical" style={styles.enablingContainer}>
@@ -59,9 +59,9 @@ const InstallSecurityPrefs = () => {
               centerChildren={true}
             >
               <Kb.ProgressIndicator type="Small" white={true} />
-              <Kb.Text type="BodySmall" negative={true}>
+              <Kb.Text3 type="BodySmall" negative={true}>
                 Checking ...
-              </Kb.Text>
+              </Kb.Text3>
             </Kb.Box2>
           </Kb.Box2>
         )}

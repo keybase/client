@@ -38,9 +38,9 @@ const GiphySearch = () => {
         ])}
       >
         <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="xtiny">
-          <Kb.Text style={styles.instructions} type="BodySmall">
+          <Kb.Text3 style={styles.instructions} type="BodySmall">
             {"Tip: hit 'Enter' now to send a random GIF."}
-          </Kb.Text>
+          </Kb.Text3>
           <Kb.Text
             style={styles.instructions}
             type="BodySmallSecondaryLink"

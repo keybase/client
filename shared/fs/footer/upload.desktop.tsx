@@ -51,7 +51,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
           ])}
         >
           {smallMode ? (
-            <Kb.Text key="files" type="BodySemibold" style={styles.textOverflow} lineClamp={1}>
+            <Kb.Text3 key="files" type="BodySemibold" style={styles.textOverflow} lineClamp={1}>
               {files
                 ? fileName
                   ? `Encrypting ${fileName}.`
@@ -60,10 +60,10 @@ const Upload = React.memo(function Upload(props: UploadProps) {
                   ? 'Encrypting items.'
                   : 'Done!'}
               {timeLeft ? ` ${capitalize(timeLeft)} left` : ''}
-            </Kb.Text>
+            </Kb.Text3>
           ) : (
             <>
-              <Kb.Text key="files" type="BodySemibold" style={styles.textOverflow}>
+              <Kb.Text3 key="files" type="BodySemibold" style={styles.textOverflow}>
                 {files
                   ? fileName
                     ? `Encrypting and updating ${fileName}...`
@@ -71,9 +71,9 @@ const Upload = React.memo(function Upload(props: UploadProps) {
                   : totalSyncingBytes
                     ? 'Encrypting and updating items...'
                     : 'Done!'}
-              </Kb.Text>
+              </Kb.Text3>
               {!!timeLeft.length && (
-                <Kb.Text key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text>
+                <Kb.Text3 key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text3>
               )}
             </>
           )}

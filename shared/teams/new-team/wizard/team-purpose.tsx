@@ -16,9 +16,9 @@ const TeamPurpose = () => {
       onClose={onBack}
       header={{
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onBack}>
+          <Kb.Text3 type="BodyBigLink" onClick={onBack}>
             Cancel
-          </Kb.Text>
+          </Kb.Text3>
         ) : undefined,
         title: <ModalTitle teamID={T.Teams.noTeamID} title="New team" />,
       }}
@@ -31,7 +31,7 @@ const TeamPurpose = () => {
         style={styles.body}
         gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
-        <Kb.Text type="BodySemibold">What do you need a team for?</Kb.Text>
+        <Kb.Text3 type="BodySemibold">What do you need a team for?</Kb.Text3>
         <Kb.RichButton
           description="A small group of people, with no initial need for channels."
           icon="icon-teams-type-squad-64"

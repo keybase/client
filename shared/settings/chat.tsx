@@ -122,7 +122,7 @@ const Security = () => {
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
-        <Kb.Text type="Header">Security</Kb.Text>
+        <Kb.Text3 type="Header">Security</Kb.Text3>
       </Kb.Box2>
 
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
@@ -208,9 +208,9 @@ const Security = () => {
               waitingKey={C.waitingKeySettingsChatContactSettingsSave}
             />
             {!!contactSettingsError && (
-              <Kb.Text type="BodySmall" style={styles.error}>
+              <Kb.Text3 type="BodySmall" style={styles.error}>
                 {contactSettingsError}
-              </Kb.Text>
+              </Kb.Text3>
             )}
           </Kb.Box2>
         </Kb.Box2>
@@ -263,10 +263,10 @@ const Links = () => {
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.innerContainer}>
-        <Kb.Text type="Header">Link previews</Kb.Text>
-        <Kb.Text type="BodySmall">
+        <Kb.Text3 type="Header">Link previews</Kb.Text3>
+        <Kb.Text3 type="BodySmall">
           Your Keybase app will visit the links you share and automatically post previews.
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"
@@ -302,15 +302,15 @@ const Links = () => {
                       wlremoved ? {backgroundColor: Kb.Styles.globalColors.red_20} : undefined,
                     ])}
                   >
-                    <Kb.Text type="BodySemibold">{w}</Kb.Text>
+                    <Kb.Text3 type="BodySemibold">{w}</Kb.Text3>
                     {wlremoved ? (
-                      <Kb.Text
+                      <Kb.Text3
                         type="BodyPrimaryLink"
                         style={styles.removeText}
                         onClick={() => toggleUnfurlWhitelist(w)}
                       >
                         Restore
-                      </Kb.Text>
+                      </Kb.Text3>
                     ) : (
                       <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
                         <Kb.WithTooltip tooltip="Remove">
@@ -349,9 +349,9 @@ const Links = () => {
           waitingKey={C.waitingKeySettingsChatUnfurl}
         />
         {error ? (
-          <Kb.Text type="BodySmall" style={styles.error}>
+          <Kb.Text3 type="BodySmall" style={styles.error}>
             {error}
-          </Kb.Text>
+          </Kb.Text3>
         ) : null}
       </Kb.Box2>
     </>
@@ -379,7 +379,7 @@ const Sound = () => {
     <>
       <Kb.Divider style={styles.divider} />
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.innerContainer}>
-        <Kb.Text type="Header">Sounds</Kb.Text>
+        <Kb.Text3 type="Header">Sounds</Kb.Text3>
         <>
           {showDesktopSound && (
             <Kb.Checkbox onCheck={onToggleSound} checked={sound} label="Play a sound for new messages" />
@@ -413,7 +413,7 @@ const Misc = () => {
     <>
       <Kb.Divider style={styles.divider} />
       <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.innerContainer}>
-        <Kb.Text type="Header">Misc</Kb.Text>
+        <Kb.Text3 type="Header">Misc</Kb.Text3>
         <>
           {!!groups.get('misc')?.settings && (
             <Group
@@ -455,9 +455,9 @@ const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (
         <Kb.Avatar isTeam={true} size={Kb.Styles.isMobile ? 32 : 24} teamname={name} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
-            <Kb.Text type="BodySemibold" lineClamp={1}>
+            <Kb.Text3 type="BodySemibold" lineClamp={1}>
               {name}
-            </Kb.Text>
+            </Kb.Text3>
             {isOpen && (
               <Kb.Meta title="open" style={styles.teamMeta} backgroundColor={Kb.Styles.globalColors.green} />
             )}

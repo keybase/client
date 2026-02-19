@@ -12,7 +12,7 @@ const SignOutputBanner = () => {
   const outputType = Crypto.useCryptoState(s => s.sign.outputType)
   return (
     <OutputInfoBanner operation={operation}>
-      <Kb.Text type="BodySmallSemibold" center={true}>
+      <Kb.Text3 type="BodySmallSemibold" center={true}>
         This is your signed {outputType === 'file' ? 'file' : 'message'}, using{` `}
         <Kb.Text
           type="BodySecondaryLink"
@@ -22,7 +22,7 @@ const SignOutputBanner = () => {
           Saltpack
         </Kb.Text>
         .{` `}Anyone who has it can verify you signed it.
-      </Kb.Text>
+      </Kb.Text3>
     </OutputInfoBanner>
   )
 }

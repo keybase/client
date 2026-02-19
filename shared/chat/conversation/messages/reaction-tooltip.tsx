@@ -105,9 +105,9 @@ const ReactionTooltip = (p: OwnProps) => {
           >
             {Kb.Styles.isMobile && (
               <Kb.Box2 direction="horizontal">
-                <Kb.Text type="BodySemiboldLink" onClick={onHidden} style={styles.closeButton}>
+                <Kb.Text3 type="BodySemiboldLink" onClick={onHidden} style={styles.closeButton}>
                   Close
-                </Kb.Text>
+                </Kb.Text3>
                 <Kb.Box2 direction="horizontal" style={{flex: 1}} />
               </Kb.Box2>
             )}
@@ -176,9 +176,9 @@ const renderSectionHeader = ({
     style={styles.buttonContainer}
   >
     <ReactButton emoji={section.title} />
-    <Kb.Text type="Terminal" lineClamp={1} style={styles.emojiText}>
+    <Kb.Text3 type="Terminal" lineClamp={1} style={styles.emojiText}>
       {section.title}
-    </Kb.Text>
+    </Kb.Text3>
   </Kb.Box2>
 )
 

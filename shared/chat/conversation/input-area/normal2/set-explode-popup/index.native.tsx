@@ -4,7 +4,7 @@ import useHooks from './hooks'
 
 const Prompt = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
-    <Kb.Text type="BodySmallSemibold">Explode messages after:</Kb.Text>
+    <Kb.Text3 type="BodySmallSemibold">Explode messages after:</Kb.Text3>
   </Kb.Box2>
 )
 

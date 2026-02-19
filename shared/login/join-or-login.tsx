@@ -63,9 +63,9 @@ const Intro = () => {
       >
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
           <Kb.Icon type="icon-keybase-logo-64" />
-          <Kb.Text type="HeaderBig" style={styles.text}>
+          <Kb.Text3 type="HeaderBig" style={styles.text}>
             Join Keybase
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
         <Kb.ButtonBar direction="column" fullWidth={Kb.Styles.isMobile} style={styles.buttonBar}>
           <Kb.Button label="Create account" onClick={onSignup} fullWidth={true} />

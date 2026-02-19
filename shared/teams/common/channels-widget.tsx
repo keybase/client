@@ -117,9 +117,9 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
         style={styles.channelDummyInput}
       >
         <Kb.Icon type="iconfont-search" color={Kb.Styles.globalColors.black_50} sizeType="Small" />
-        <Kb.Text type="BodySemibold" style={styles.channelDummyInputText}>
+        <Kb.Text3 type="BodySemibold" style={styles.channelDummyInputText}>
           Add channels
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
       {showingPopup && (
         <ChannelPopup
@@ -138,7 +138,7 @@ const ChannelInput = Kb.Styles.isMobile ? ChannelInputMobile : ChannelInputDeskt
 
 const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: () => void}) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
-    <Kb.Text type={Kb.Styles.isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
+    <Kb.Text3 type={Kb.Styles.isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text3>
     {onRemove && (
       <Kb.Icon type="iconfont-remove" onClick={onRemove} color={Kb.Styles.globalColors.black_20} />
     )}

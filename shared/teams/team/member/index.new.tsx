@@ -177,7 +177,7 @@ const TeamMember = (props: OwnProps) => {
   const makeTitle = (label: string) => {
     return (
       <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
-        <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
+        <Kb.Text3 type="BodySmallSemibold">{label}</Kb.Text3>
         {loading && <Kb.ProgressIndicator type="Small" />}
       </Kb.Box2>
     )
@@ -331,14 +331,14 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
               styles.contentCollapsedFixedHeight,
             ])}
           >
-            <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink} lineClamp={1}>
+            <Kb.Text3 type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink} lineClamp={1}>
               {props.node.teamname}
-            </Kb.Text>
-            <Kb.Text type="BodySmall">
+            </Kb.Text3>
+            <Kb.Text3 type="BodySmall">
               {props.node.memberCount !== undefined
                 ? `${props.node.memberCount.toLocaleString()} ${pluralize('member', props.node.memberCount)}`
                 : 'Loading members...'}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         </Kb.Box2>
 
@@ -374,13 +374,13 @@ const LastActivity = (props: {loading: boolean; teamID: T.Teams.TeamID; username
   )
 
   return (
-    <Kb.Text type="BodySmall">
+    <Kb.Text3 type="BodySmall">
       {props.loading
         ? 'Loading activity...'
         : lastActivity
           ? `Active ${formatTimeRelativeToNow(lastActivity)}`
           : 'No activity'}
-    </Kb.Text>
+    </Kb.Text3>
   )
 }
 type NodeInRowProps = {
@@ -521,13 +521,13 @@ const NodeInRow = (props: NodeInRowProps) => {
                       !expanded && styles.contentCollapsedFixedHeight,
                     ] as const)}
                   >
-                    <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
+                    <Kb.Text3 type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
                       {props.node.teamname}
-                    </Kb.Text>
+                    </Kb.Text3>
                     {!!props.node.joinTime && (
-                      <Kb.Text type="BodySmall">
+                      <Kb.Text3 type="BodySmall">
                         Joined {formatTimeForTeamMember(props.node.joinTime)}
-                      </Kb.Text>
+                      </Kb.Text3>
                     )}
                   </Kb.Box2>
                 </Kb.Box2>
@@ -659,12 +659,12 @@ export const TeamMemberHeader = (props: Props) => {
             alignSelf="flex-start"
           >
             <Kb.Avatar size={16} teamname={teamMeta.teamname} />
-            <Kb.Text
+            <Kb.Text3
               type={Kb.Styles.isPhone ? 'BodySmallSemibold' : 'BodySmallSemiboldSecondaryLink'}
               onClick={onViewTeam}
             >
               {teamMeta.teamname}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
 
           <Kb.Box2
@@ -679,13 +679,13 @@ export const TeamMemberHeader = (props: Props) => {
               <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.headerText}>
                 <Kb.ConnectedUsernames type="Header" usernames={username} />
                 {!!member.fullName && (
-                  <Kb.Text type="BodySemibold" lineClamp={1}>
+                  <Kb.Text3 type="BodySemibold" lineClamp={1}>
                     {member.fullName}
-                  </Kb.Text>
+                  </Kb.Text3>
                 )}
-                <Kb.Text type="BodySmall">
+                <Kb.Text3 type="BodySmall">
                   Joined {member.joinTime ? formatTimeForTeamMember(member.joinTime) : 'this team'}
-                </Kb.Text>
+                </Kb.Text3>
               </Kb.Box2>
             </Kb.Box2>
             {!Kb.Styles.isPhone && buttons}

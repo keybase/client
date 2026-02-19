@@ -4,7 +4,6 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import _openSMS from '@/util/sms'
 import {assertionToDisplay} from '@/common-adapters/usernames'
-import type {Props as TextProps} from '@/common-adapters/text'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {showShareActionSheet} from '@/util/platform-specific'
@@ -148,7 +147,7 @@ const BannerBox = (props: {
   </Kb.Box2>
 )
 
-const BannerText = (props: Partial<TextProps>) => (
+const BannerText = (props: Partial<React.ComponentProps<typeof Kb.Text>>) => (
   <Kb.Text center={true} type="BodySmallSemibold" negative={true} {...props} />
 )
 

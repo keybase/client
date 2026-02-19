@@ -150,13 +150,13 @@ const Card = (props: CardType) => (
     title={cardToTitle(cards[props.card])}
   >
     <Kb.Box2 direction="horizontal">
-      <Kb.Text
+      <Kb.Text3
         selectable={true}
         type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'}
         style={{color: suits[cards[props.card].suit].color}}
       >
         {cards[props.card].value}
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
@@ -194,9 +194,9 @@ const CoinFlipResultCoin = (props: CoinType) => (
       <Kb.Icon type={props.coin ? 'icon-coin-heads-48-48' : 'icon-coin-tails-48-48'} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" centerChildren={true}>
-      <Kb.Text selectable={true} type="Header">
+      <Kb.Text3 selectable={true} type="Header">
         {props.coin ? 'Heads!' : 'Tails!'}
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -214,9 +214,9 @@ const CoinFlipResultHands = (props: HandType) => {
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.handTarget}>
           {handsWithCards.map(hand => (
             <Kb.Box2 key={hand.target} alignSelf="flex-start" alignItems="stretch" direction="vertical">
-              <Kb.Text selectable={true} type="BodyBig">
+              <Kb.Text3 selectable={true} type="BodyBig">
                 {hand.target}
-              </Kb.Text>
+              </Kb.Text3>
             </Kb.Box2>
           ))}
         </Kb.Box2>
@@ -238,10 +238,10 @@ const CoinFlipResultHands = (props: HandType) => {
       </Kb.Box2>
       {handsWithoutCards.length > 0 && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.commonContainer}>
-          <Kb.Text type="BodySmallSemibold">
+          <Kb.Text3 type="BodySmallSemibold">
             Not enough cards for:{' '}
-            <Kb.Text type="BodySmall">{handsWithoutCards.map(hand => hand.target).join(', ')}</Kb.Text>
-          </Kb.Text>
+            <Kb.Text3 type="BodySmall">{handsWithoutCards.map(hand => hand.target).join(', ')}</Kb.Text3>
+          </Kb.Text3>
         </Kb.Box2>
       )}
     </Kb.Box2>
@@ -254,9 +254,9 @@ type NumberType = {
 
 const CoinFlipResultNumber = (props: NumberType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.commonContainer}>
-    <Kb.Text selectable={true} type="Header" style={styles.break}>
+    <Kb.Text3 selectable={true} type="Header" style={styles.break}>
       {props.number}
-    </Kb.Text>
+    </Kb.Text3>
   </Kb.Box2>
 )
 
@@ -269,12 +269,12 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
     {props.shuffle?.slice(0, 5).map((item, i) => <CoinFlipResultShuffleItem key={i} item={item} index={i} />)}
     {props.shuffle && props.shuffle.length > 5 && (
       <Kb.Box2 direction="horizontal" style={styles.listFullContainer}>
-        <Kb.Text selectable={true} type="BodySmallBold" style={styles.listFull}>
+        <Kb.Text3 selectable={true} type="BodySmallBold" style={styles.listFull}>
           Full shuffle:{' '}
-          <Kb.Text selectable={true} type="BodySmall" style={styles.listFull}>
+          <Kb.Text3 selectable={true} type="BodySmall" style={styles.listFull}>
             {props.shuffle.join(', ')}
-          </Kb.Text>
-        </Kb.Text>
+          </Kb.Text3>
+        </Kb.Text3>
       </Kb.Box2>
     )}
   </Kb.Box2>
@@ -283,14 +283,14 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
 const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
   <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true}>
     <Kb.Box2 direction="vertical" centerChildren={true} alignItems="center" style={styles.listOrderContainer}>
-      <Kb.Text
+      <Kb.Text3
         selectable={true}
         center={true}
         type={props.index === 0 ? 'BodyBig' : 'BodyTiny'}
         style={Kb.Styles.collapseStyles([styles.listOrder, props.index === 0 && styles.listOrderFirst])}
       >
         {props.index + 1}
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
     <Kb.Markdown allowFontScaling={true} styleOverride={props.index === 0 ? paragraphOverrides : undefined}>
       {props.item}

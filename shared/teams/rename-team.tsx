@@ -72,13 +72,13 @@ const Container = (ownProps: OwnProps) => {
           <Kb.Avatar teamname={teamname} size={Kb.Styles.isMobile ? 64 : 48} />
           <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.teamnameHeader}>
             {!Kb.Styles.isMobile && (
-              <Kb.Text type="Header" center={true}>
+              <Kb.Text3 type="Header" center={true}>
                 Rename {teamname}
-              </Kb.Text>
+              </Kb.Text3>
             )}
-            <Kb.Text type="BodySmall" center={true}>
+            <Kb.Text3 type="BodySmall" center={true}>
               Subteam of {prefix}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
@@ -109,19 +109,19 @@ const Container = (ownProps: OwnProps) => {
             />
           </Kb.Box2>
           {(!!error || !!propError) && (
-            <Kb.Text type="BodySmall" style={styles.error}>
+            <Kb.Text3 type="BodySmall" style={styles.error}>
               {error || propError}
-            </Kb.Text>
+            </Kb.Text3>
           )}
           {newName ? (
-            <Kb.Text type="BodySmall">
+            <Kb.Text3 type="BodySmall">
               This team will be named{' '}
-              <Kb.Text type="BodySmallSemibold">
+              <Kb.Text3 type="BodySmallSemibold">
                 {prefix}.{newName.toLowerCase()}
-              </Kb.Text>
-            </Kb.Text>
+              </Kb.Text3>
+            </Kb.Text3>
           ) : (
-            <Kb.Text type="BodySmall">Write a name to see a preview.</Kb.Text>
+            <Kb.Text3 type="BodySmall">Write a name to see a preview.</Kb.Text3>
           )}
         </Kb.Box2>
         <Kb.ButtonBar direction="row" style={styles.buttonBar}>

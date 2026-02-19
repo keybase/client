@@ -190,7 +190,7 @@ const MediaThumb = (props: MediaThumbProps) => {
               />
             </Kb.Box2>
             {!!thumb.audioDuration && (
-              <Kb.Text type="BodyTiny">{formatAudioRecordDuration(thumb.audioDuration)}</Kb.Text>
+              <Kb.Text3 type="BodyTiny">{formatAudioRecordDuration(thumb.audioDuration)}</Kb.Text3>
             )}
           </Kb.Box2>
         ) : (
@@ -223,25 +223,25 @@ const DocViewRow = (props: DocViewRowProps) => {
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
           <Kb.Icon type="icon-file-32" style={styles.docIcon} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
-            <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
-            {item.name !== item.fileName && <Kb.Text type="BodyTiny">{item.fileName}</Kb.Text>}
-            <Kb.Text type="BodySmall">
+            <Kb.Text3 type="BodySemibold">{item.name}</Kb.Text3>
+            {item.name !== item.fileName && <Kb.Text3 type="BodyTiny">{item.fileName}</Kb.Text3>}
+            <Kb.Text3 type="BodySmall">
               Sent by {item.author} • {formatTimeForMessages(item.ctime)}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         </Kb.Box2>
       </Kb.ClickableBox>
       {item.downloading && (
         <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true} gap="tiny">
-          <Kb.Text type="BodySmall">Downloading...</Kb.Text>
+          <Kb.Text3 type="BodySmall">Downloading...</Kb.Text3>
           <Kb.ProgressBar ratio={item.progress} style={styles.docProgress} />
         </Kb.Box2>
       )}
       {item.onShowInFinder && (
         <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true}>
-          <Kb.Text type="BodySmallPrimaryLink" onClick={item.onShowInFinder}>
+          <Kb.Text3 type="BodySmallPrimaryLink" onClick={item.onShowInFinder}>
             Show in {Kb.Styles.fileUIName}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       )}
       {Kb.Styles.isMobile && item.message && popup}
@@ -269,9 +269,9 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
         getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.media),
       ])}
     >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media)}>
+      <Kb.Text3 type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media)}>
         Media
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.ClickableBox>
     <Kb.ClickableBox
       onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.doc)}
@@ -281,9 +281,9 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
         getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc),
       ])}
     >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc)}>
+      <Kb.Text3 type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc)}>
         Docs
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.ClickableBox>
     <Kb.ClickableBox
       onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.link)}
@@ -293,9 +293,9 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
         getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.link),
       ])}
     >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link)}>
+      <Kb.Text3 type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link)}>
         Links
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.ClickableBox>
   </Kb.Box2>
 )
@@ -534,7 +534,7 @@ export const useAttachmentSections = (
       data: [{type: 'no-attachments'}] as const,
       renderItem: () => (
         <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
-          <Kb.Text type="BodySmall">No attachments</Kb.Text>
+          <Kb.Text3 type="BodySmall">No attachments</Kb.Text3>
         </Kb.Box2>
       ),
     } satisfies Section
@@ -690,9 +690,9 @@ export const useAttachmentSections = (
                           username={item.author}
                           horizontal={true}
                         />
-                        <Kb.Text type="BodyTiny" style={styles.linkTime}>
+                        <Kb.Text3 type="BodyTiny" style={styles.linkTime}>
                           {formatTimeForMessages(item.ctime)}
-                        </Kb.Text>
+                        </Kb.Text3>
                       </Kb.Box2>
                       <Kb.Markdown
                         serviceOnly={true}

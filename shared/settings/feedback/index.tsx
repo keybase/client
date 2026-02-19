@@ -126,10 +126,10 @@ const Feedback = (props: Props) => {
           </Kb.Box2>
           {sendError && (
             <Kb.Box2 direction="vertical" gap="small">
-              <Kb.Text type="BodySmallError">Could not send log</Kb.Text>
-              <Kb.Text type="BodySmall" selectable={true}>
+              <Kb.Text3 type="BodySmallError">Could not send log</Kb.Text3>
+              <Kb.Text3 type="BodySmall" selectable={true}>
                 {sendError}
-              </Kb.Text>
+              </Kb.Text3>
             </Kb.Box2>
           )}
         </Kb.Box2>

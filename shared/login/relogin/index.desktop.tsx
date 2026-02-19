@@ -9,10 +9,10 @@ const other = 'Someone else...'
 
 const UserRow = ({user, hasStoredSecret}: {user: string; hasStoredSecret: boolean}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.userRow} gap="xtiny">
-    <Kb.Text type="Header" style={user === other ? styles.other : styles.provisioned}>
+    <Kb.Text3 type="Header" style={user === other ? styles.other : styles.provisioned}>
       {user}
-    </Kb.Text>
-    {hasStoredSecret && <Kb.Text type="BodySmall"> • Signed in</Kb.Text>}
+    </Kb.Text3>
+    {hasStoredSecret && <Kb.Text3 type="BodySmall"> • Signed in</Kb.Text3>}
   </Kb.Box2>
 )
 
@@ -68,13 +68,13 @@ const Login = (props: Props) => {
             </Kb.Box2>
           )}
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.forgotPasswordContainer}>
-            <Kb.Text
+            <Kb.Text3
               type="BodySmallSecondaryLink"
               onClick={props.onForgotPassword}
               style={styles.forgotPassword}
             >
               Forgot password?
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
           <Kb.Box2
             direction="vertical"

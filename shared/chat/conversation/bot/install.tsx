@@ -169,14 +169,14 @@ const InstallBotPopup = (props: Props) => {
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
-      <Kb.Text type="BodySemibold">Restricted bot (recommended)</Kb.Text>
-      <Kb.Text type="BodySmall">Customize which messages get encrypted for this bot.</Kb.Text>
+      <Kb.Text3 type="BodySemibold">Restricted bot (recommended)</Kb.Text3>
+      <Kb.Text3 type="BodySmall">Customize which messages get encrypted for this bot.</Kb.Text3>
     </Kb.Box2>
   )
   const unrestrictedButton = (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.dropdownButton}>
-      <Kb.Text type="BodySemibold">Unrestricted bot</Kb.Text>
-      <Kb.Text type="BodySmall">All messages will be encrypted for this bot.</Kb.Text>
+      <Kb.Text3 type="BodySemibold">Unrestricted bot</Kb.Text3>
+      <Kb.Text3 type="BodySmall">All messages will be encrypted for this bot.</Kb.Text3>
     </Kb.Box2>
   )
   const dropdownButtons = [restrictedButton, unrestrictedButton]
@@ -217,12 +217,12 @@ const InstallBotPopup = (props: Props) => {
         />
       )}
       {!inTeam && (
-        <Kb.Text type="BodySmall">
-          <Kb.Text type="BodySmallPrimaryLink" onClick={onLearn}>
+        <Kb.Text3 type="BodySmall">
+          <Kb.Text3 type="BodySmallPrimaryLink" onClick={onLearn}>
             Learn more
-          </Kb.Text>{' '}
+          </Kb.Text3>{' '}
           about bots in Keybase.
-        </Kb.Text>
+        </Kb.Text3>
       )}
     </Kb.Box2>
   )
@@ -250,7 +250,7 @@ const InstallBotPopup = (props: Props) => {
       />
       {installWithRestrict ? (
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-          <Kb.Text type="BodyBig">It will be able to read:</Kb.Text>
+          <Kb.Text3 type="BodyBig">It will be able to read:</Kb.Text3>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Checkbox
               checked={installWithCommands}
@@ -260,17 +260,17 @@ const InstallBotPopup = (props: Props) => {
             <Kb.Checkbox
               checked={installWithMentions}
               labelComponent={
-                <Kb.Text
+                <Kb.Text3
                   style={{flex: 1}}
                   type="Body"
-                >{`messages it has been mentioned in with @${botUsername}`}</Kb.Text>
+                >{`messages it has been mentioned in with @${botUsername}`}</Kb.Text3>
               }
               onCheck={() => setInstallWithMentions(!installWithMentions)}
             />
           </Kb.Box2>
           {teamID && teamname && (
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-              <Kb.Text type="BodyBig">In these channels:</Kb.Text>
+              <Kb.Text3 type="BodyBig">In these channels:</Kb.Text3>
               <Kb.DropdownButton
                 selected={
                   <Kb.Box2 direction="horizontal" alignItems="center">
@@ -279,34 +279,34 @@ const InstallBotPopup = (props: Props) => {
                       teamname={teamname}
                       style={{marginRight: Kb.Styles.globalMargins.tiny}}
                     />
-                    <Kb.Text type="BodySemibold">
+                    <Kb.Text3 type="BodySemibold">
                       {teamname}{' '}
                       {installInConvs.length === 1
                         ? `(#${channelMetas.get(installInConvs[0] ?? '')?.channelname ?? ''})`
                         : `(${installInConvs.length > 0 ? installInConvs.length : 'all'} channels)`}
-                    </Kb.Text>
+                    </Kb.Text3>
                   </Kb.Box2>
                 }
                 toggleOpen={() => setChannelPickerScreen(true)}
               />
             </Kb.Box2>
           )}
-          <Kb.Text type="BodySmall">
+          <Kb.Text3 type="BodySmall">
             This bot will not be able to read any other messages, channels, files, or repositories.
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       ) : (
         <Kb.Box2 direction="vertical" gap="tiny">
-          <Kb.Text type="Body">
-            <Kb.Text type="BodySemibold">Warning:</Kb.Text> This bot will be able to read all messages,
+          <Kb.Text3 type="Body">
+            <Kb.Text3 type="BodySemibold">Warning:</Kb.Text3> This bot will be able to read all messages,
             channels, files, and repositories.
-          </Kb.Text>
-          <Kb.Text type="Body">
-            <Kb.Text type="BodyPrimaryLink" onClick={() => setInstallWithRestrict(true)}>
+          </Kb.Text3>
+          <Kb.Text3 type="Body">
+            <Kb.Text3 type="BodyPrimaryLink" onClick={() => setInstallWithRestrict(true)}>
               Install as a restricted bot
-            </Kb.Text>{' '}
-            if you’d like to customize which messages are encrypted for this bot.
-          </Kb.Text>
+            </Kb.Text3>
+            {" if you’d like to customize which messages are encrypted for this bot."}
+          </Kb.Text3>
         </Kb.Box2>
       )}
     </Kb.Box2>
@@ -358,14 +358,14 @@ const InstallBotPopup = (props: Props) => {
   const reviewButton = showReviewButton && (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.reviewButton}>
       {readOnly ? (
-        <Kb.Text style={{alignSelf: 'center'}} type="BodySmall">
+        <Kb.Text3 style={{alignSelf: 'center'}} type="BodySmall">
           Ask an admin or owner to install this bot
-        </Kb.Text>
+        </Kb.Text3>
       ) : (
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
+          <Kb.Text3 type="BodySmall" style={{alignSelf: 'center'}}>
             Install as
-          </Kb.Text>
+          </Kb.Text3>
           {restrictPicker}
         </Kb.Box2>
       )}
@@ -433,13 +433,13 @@ const InstallBotPopup = (props: Props) => {
       onClose={!Kb.Styles.isMobile ? onClose : undefined}
       header={{
         leftButton: channelPickerScreen ? (
-          <Kb.Text type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
+          <Kb.Text3 type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
             Back
-          </Kb.Text>
+          </Kb.Text3>
         ) : Kb.Styles.isMobile || installScreen ? (
-          <Kb.Text type="BodyBigLink" onClick={onLeftAction}>
+          <Kb.Text3 type="BodyBigLink" onClick={onLeftAction}>
             {installScreen ? backButton : inTeam || readOnly ? 'Close' : 'Cancel'}
-          </Kb.Text>
+          </Kb.Text3>
         ) : undefined,
         title: channelPickerScreen ? 'Channels' : '',
       }}
@@ -457,7 +457,7 @@ const InstallBotPopup = (props: Props) => {
                     {removeButton}
                   </Kb.ButtonBar>
                   {!!error && (
-                    <Kb.Text type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
+                    <Kb.Text3 type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
                       {'Something went wrong! Please try again, or send '}
                       <Kb.Text
                         type="Body"
@@ -467,7 +467,7 @@ const InstallBotPopup = (props: Props) => {
                       >
                         {'feedback'}
                       </Kb.Text>
-                    </Kb.Text>
+                    </Kb.Text3>
                   )}
                 </Kb.Box2>
               ),
@@ -505,38 +505,38 @@ const CommandsLabel = (props: CommandsLabelProps) => {
     inner = <Kb.ProgressIndicator />
   } else if (props.commands.loadError) {
     inner = (
-      <Kb.Text type="BodySemibold" style={{color: Kb.Styles.globalColors.redDark}}>
+      <Kb.Text3 type="BodySemibold" style={{color: Kb.Styles.globalColors.redDark}}>
         Error loading bot public commands.
-      </Kb.Text>
+      </Kb.Text3>
     )
   } else {
     const numCommands = props.commands.commands.length
     inner = props.commands.commands.map((c: string, i: number) => {
       if (!expanded && i >= maxCommandsShown) {
         return i === maxCommandsShown ? (
-          <Kb.Text key={i} type="Body">
+          <Kb.Text3 key={i} type="Body">
             {'• and '}
-            <Kb.Text
+            <Kb.Text3
               type="BodyPrimaryLink"
               onClick={(e: React.BaseSyntheticEvent) => {
                 e.stopPropagation()
                 setExpanded(true)
               }}
-            >{`${numCommands - maxCommandsShown} more`}</Kb.Text>
-          </Kb.Text>
+            >{`${numCommands - maxCommandsShown} more`}</Kb.Text3>
+          </Kb.Text3>
         ) : null
       }
       return (
-        <Kb.Text key={i} type="Body">
+        <Kb.Text3 key={i} type="Body">
           {`• !${c}`}
-        </Kb.Text>
+        </Kb.Text3>
       )
     })
   }
   const punct = (props.commands?.commands.length ?? 0) > 0 ? ':' : '.'
   return (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-      <Kb.Text type="Body">{`messages that begin with bot commands${punct}`}</Kb.Text>
+      <Kb.Text3 type="Body">{`messages that begin with bot commands${punct}`}</Kb.Text3>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         {inner}
       </Kb.Box2>
@@ -554,30 +554,30 @@ type PermsListProps = {
 const PermsList = (props: PermsListProps) => {
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
-      <Kb.Text type="BodySemibold">This bot can currently read:</Kb.Text>
+      <Kb.Text3 type="BodySemibold">This bot can currently read:</Kb.Text3>
       {props.settings ? (
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             {!(props.settings.cmds || props.settings.mentions) && (
-              <Kb.Text type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text>
+              <Kb.Text3 type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text3>
             )}
             {props.settings.cmds && (
               <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-                <Kb.Text type="Body">{'•'}</Kb.Text>
+                <Kb.Text3 type="Body">{'•'}</Kb.Text3>
                 <CommandsLabel commands={props.commands} />
               </Kb.Box2>
             )}
             {props.settings.mentions && (
-              <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>
+              <Kb.Text3 type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text3>
             )}
           </Kb.Box2>
           {props.settings.convs && props.channelMetas && (
             <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-              <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
+              <Kb.Text3 type="BodySemibold">In these channels:</Kb.Text3>
               {props.settings.convs.map(convID => (
-                <Kb.Text type="Body" key={convID}>{`• #${
+                <Kb.Text3 type="Body" key={convID}>{`• #${
                   props.channelMetas?.get(convID)?.channelname ?? ''
-                }`}</Kb.Text>
+                }`}</Kb.Text3>
               ))}
             </Kb.Box2>
           )}

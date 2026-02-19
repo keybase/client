@@ -59,7 +59,7 @@ const PaperKey = () => {
               value={paperKey}
             />
           </Kb.Box2>
-          {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
+          {!!props.error && <Kb.Text3 type="BodySmallError">{props.error}</Kb.Text3>}
         </Kb.Box2>
       </Kb.Box2>
     </SignupScreen>

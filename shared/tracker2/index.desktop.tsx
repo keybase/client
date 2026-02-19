@@ -105,7 +105,7 @@ const getButtons = (props: Props) => {
 const TeamShowcase = ({name}: {name: string}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
     <Kb.Avatar size={32} teamname={name} isTeam={true} />
-    <Kb.Text type="BodySemibold">{name}</Kb.Text>
+    <Kb.Text3 type="BodySemibold">{name}</Kb.Text3>
   </Kb.Box2>
 )
 
@@ -182,9 +182,9 @@ const Tracker = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Kb.Text type="BodySmallSemibold" style={Kb.Styles.collapseStyles([styles.reason, {backgroundColor}])}>
+      <Kb.Text3 type="BodySmallSemibold" style={Kb.Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
-      </Kb.Text>
+      </Kb.Text3>
       {/* The header box must go after the reason text, so that the
        * close button's draggingClickable style goes on top of the
        * reason's draggable style, which matters on Linux. */}
@@ -197,9 +197,9 @@ const Tracker = (props: Props) => {
         showsHorizontalScrollIndicator={false}
       >
         <Kb.Box2 direction="vertical">
-          <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
+          <Kb.Text3 type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
-          </Kb.Text>
+          </Kb.Text3>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.avatarContainer}>
             <Kb.Box2 direction="vertical" style={styles.avatarBackground} />
             <Kb.Box2 direction="vertical" style={styles.nameWithIconContainer}>

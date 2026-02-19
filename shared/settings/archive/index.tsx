@@ -54,28 +54,28 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
   const {started, progress, outPath, context, status} = job
   const done = status === T.RPCChat.ArchiveChatJobStatus.complete
   const sub = Kb.Styles.isMobile ? (
-    <Kb.Text type="BodyBold" lineClamp={1}>
+    <Kb.Text3 type="BodyBold" lineClamp={1}>
       {context}
-    </Kb.Text>
+    </Kb.Text3>
   ) : (
-    <Kb.Text type="Body" lineClamp={1} title={`${context} => ${outPath}`}>
-      <Kb.Text type="BodyBold">{context}</Kb.Text>
-    </Kb.Text>
+    <Kb.Text3 type="Body" lineClamp={1} title={`${context} => ${outPath}`}>
+      <Kb.Text3 type="BodyBold">{context}</Kb.Text3>
+    </Kb.Text3>
   )
 
   let actions: React.ReactNode
   if (done) {
     actions = (
       <Kb.Box2 direction="vertical" style={styles.action}>
-        <Kb.Text type="BodySmall">{started.toLocaleString()}</Kb.Text>
+        <Kb.Text3 type="BodySmall">{started.toLocaleString()}</Kb.Text3>
         {Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyPrimaryLink" onClick={onShare}>
+          <Kb.Text3 type="BodyPrimaryLink" onClick={onShare}>
             Share
-          </Kb.Text>
+          </Kb.Text3>
         ) : (
-          <Kb.Text type="BodyPrimaryLink" onClick={onShowFinder}>
+          <Kb.Text3 type="BodyPrimaryLink" onClick={onShowFinder}>
             Show in {C.fileUIName}
-          </Kb.Text>
+          </Kb.Text3>
         )}
       </Kb.Box2>
     )
@@ -235,13 +235,13 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
               </Kb.Text>
               {C.isMobile ? null : <Kb.Box2 direction="horizontal" style={{flex: 1}} />}
               {C.isMobile ? null : job.bytesTotal ? (
-                <Kb.Text type="BodySmall">{FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
+                <Kb.Text3 type="BodySmall">{FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text3>
               ) : null}
-              <Kb.Text type="BodySmall" style={{flexShrink: 0}}>
+              <Kb.Text3 type="BodySmall" style={{flexShrink: 0}}>
                 {C.isMobile
                   ? formatTimeForConversationList(job.started.getTime())
                   : formatTimeForChat(job.started.getTime())}
-              </Kb.Text>
+              </Kb.Text3>
             </Kb.Box2>
             <Kb.Box2
               direction="horizontal"
@@ -251,7 +251,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
               gap="tiny"
             >
               <Kb.ProgressBar ratio={progress} />
-              <Kb.Text type="Body">{Math.round(progress * 100) + '%'}</Kb.Text>
+              <Kb.Text3 type="Body">{Math.round(progress * 100) + '%'}</Kb.Text3>
               <Kb.Box2 direction="horizontal" style={{flex: 1}} />
               {errorStr && (
                 <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>
@@ -267,7 +267,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
                   />
                 </Kb.WithTooltip>
               )}
-              <Kb.Text type={job.phase === 'Done' ? 'BodySmallSuccess' : 'BodySmall'}>{job.phase}</Kb.Text>
+              <Kb.Text3 type={job.phase === 'Done' ? 'BodySmallSuccess' : 'BodySmall'}>{job.phase}</Kb.Text3>
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2 direction="vertical" alignItems="flex-end" style={styles.kbfsJobRight}>
@@ -286,18 +286,18 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
             ) : (
               <Kb.Box2 direction="vertical" alignItems="center" style={styles.kbfsActions}>
                 {job.phase === 'Done' ? (
-                  <Kb.Text type="BodySmallPrimaryLink" onClick={onShowFinder}>
+                  <Kb.Text3 type="BodySmallPrimaryLink" onClick={onShowFinder}>
                     Show in {C.fileUIName}
-                  </Kb.Text>
+                  </Kb.Text3>
                 ) : (
-                  <Kb.Text style={styles.kbfsCancel} type="BodySmallPrimaryLink" onClick={onCancelOrDismiss}>
+                  <Kb.Text3 style={styles.kbfsCancel} type="BodySmallPrimaryLink" onClick={onCancelOrDismiss}>
                     Cancel
-                  </Kb.Text>
+                  </Kb.Text3>
                 )}
                 {job.phase === 'Done' ? (
-                  <Kb.Text type="BodySmallPrimaryLink" onClick={onCancelOrDismiss}>
+                  <Kb.Text3 type="BodySmallPrimaryLink" onClick={onCancelOrDismiss}>
                     Dismiss
-                  </Kb.Text>
+                  </Kb.Text3>
                 ) : null}
               </Kb.Box2>
             )}
@@ -362,13 +362,13 @@ const Archive = () => {
     <Kb.ScrollView style={styles.scroll}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
+          {Kb.Styles.isMobile ? null : <Kb.Text3 type="Header">Archive</Kb.Text3>}
           <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true} alignItems="center">
-            <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
+            <Kb.Text3 type="BodySmall" style={{alignSelf: 'center'}}>
               {
                 "Easily backup your Keybase data by choosing 'backup' in chat and files or click to backup all."
               }
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
           {C.isMobile ? (
             <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="xtiny">
@@ -389,7 +389,7 @@ const Archive = () => {
           )}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          <Kb.Text type="Header">Active backup jobs</Kb.Text>
+          <Kb.Text3 type="Header">Active backup jobs</Kb.Text3>
           {chatJobs.length + kbfsJobs.length ? (
             <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
               {chatJobs.map((id, idx) => (
@@ -409,7 +409,7 @@ const Archive = () => {
             </Kb.Box2>
           ) : (
             <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
-              <Kb.Text type="Body">• No active backup jobs</Kb.Text>
+              <Kb.Text3 type="Body">• No active backup jobs</Kb.Text3>
             </Kb.Box2>
           )}
         </Kb.Box2>

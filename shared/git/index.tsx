@@ -102,7 +102,7 @@ const Container = (ownProps: OwnProps) => {
               color={Kb.Styles.globalColors.blue}
               fontSize={20}
             />
-            <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
+            <Kb.Text3 type="BodyBigLink">New encrypted git repository...</Kb.Text3>
           </Kb.ClickableBox>
         )}
         <NewContext.Provider value={badged}>

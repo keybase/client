@@ -92,7 +92,7 @@ const AddAliasModal = (props: Props) => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          <Kb.Text type="BodySemibold">Choose an existing emoji:</Kb.Text>
+          <Kb.Text3 type="BodySemibold">Choose an existing emoji:</Kb.Text3>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="small">
             <SelectedEmoji chosen={emoji} />
             <ChooseEmoji onChoose={onChoose} />
@@ -104,7 +104,7 @@ const AddAliasModal = (props: Props) => {
           gap="tiny"
           style={Kb.Styles.collapseStyles([!emoji && styles.opacity40])}
         >
-          <Kb.Text type="BodySemibold">Enter an alias:</Kb.Text>
+          <Kb.Text3 type="BodySemibold">Enter an alias:</Kb.Text3>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <AliasInput
               ref={aliasInputRef}

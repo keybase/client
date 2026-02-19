@@ -20,9 +20,9 @@ const DbNukeConfirm = () => {
       fullWidth={true}
       style={{flex: 1, padding: Kb.Styles.globalMargins.medium}}
     >
-      <Kb.Text center={true} type="Header" style={{marginTop: Kb.Styles.globalMargins.medium, width: 320}}>
+      <Kb.Text3 center={true} type="Header" style={{marginTop: Kb.Styles.globalMargins.medium, width: 320}}>
         Are you sure you want to blast away your local database?
-      </Kb.Text>
+      </Kb.Text3>
       <Kb.ButtonBar>
         <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
         <Kb.Button type="Danger" label="Yes, blow it away" onClick={onDBNuke} />

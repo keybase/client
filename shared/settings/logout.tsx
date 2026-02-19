@@ -121,9 +121,9 @@ const LogoutContainer = () => {
                   className="hover-underline-container"
                 >
                   <Kb.Icon type="iconfont-leave" />
-                  <Kb.Text className="underline" style={styles.logout} type="BodySmallSecondaryLink">
+                  <Kb.Text3 className="underline" style={styles.logout} type="BodySmallSecondaryLink">
                     Just sign out
-                  </Kb.Text>
+                  </Kb.Text3>
                 </Kb.ClickableBox>
               )}
             </Kb.Box2>
@@ -140,9 +140,9 @@ const LogoutContainer = () => {
       }}
       header={{
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onCancel}>
+          <Kb.Text3 type="BodyBigLink" onClick={onCancel}>
             Cancel
-          </Kb.Text>
+          </Kb.Text3>
         ) : null,
         title: !Kb.Styles.isMobile && 'Do you know your password?',
       }}
@@ -150,13 +150,13 @@ const LogoutContainer = () => {
     >
       <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
         {Kb.Styles.isMobile && (
-          <Kb.Text style={styles.headerText} type="Header">
+          <Kb.Text3 style={styles.headerText} type="Header">
             Do you know your password?
-          </Kb.Text>
+          </Kb.Text3>
         )}
-        <Kb.Text style={styles.bodyText} type="Body">
+        <Kb.Text3 style={styles.bodyText} type="Body">
           You will need it to sign back in.
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.RoundedBox>
           <Kb.PlainInput
             keyboardType={keyboardType}

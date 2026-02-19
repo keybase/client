@@ -23,9 +23,9 @@ const Recipients = () => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.recipientsContainer}>
-        <Kb.Text type="BodyTinySemibold" style={styles.toField}>
+        <Kb.Text3 type="BodyTinySemibold" style={styles.toField}>
           To:
-        </Kb.Text>
+        </Kb.Text3>
         {recipients.length ? (
           <Kb.ConnectedUsernames type="BodyBold" usernames={recipients} colorFollowing={true} />
         ) : (

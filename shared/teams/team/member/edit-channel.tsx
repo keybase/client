@@ -83,7 +83,7 @@ const EditChannel = (props: Props) => {
           containerStyle={styles.channelNameinput}
         />
         {oldName === 'general' && (
-          <Kb.Text type="BodySmall">{"You can't edit the #general channel's name."}</Kb.Text>
+          <Kb.Text3 type="BodySmall">{"You can't edit the #general channel's name."}</Kb.Text3>
         )}
         <Kb.LabeledInput
           hoverPlaceholder="What is this channel about?"

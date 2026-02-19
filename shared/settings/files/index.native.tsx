@@ -41,9 +41,9 @@ const ThresholdDropdown = (p: Pick<Props, 'spaceAvailableNotificationThreshold'>
       <Kb.DropdownButton
         disabled={!spaceAvailableNotificationThreshold}
         selected={
-          <Kb.Text type="Body" style={styles.selectedText}>
+          <Kb.Text3 type="Body" style={styles.selectedText}>
             {humanizedNotificationThreshold}
-          </Kb.Text>
+          </Kb.Text3>
         }
         toggleOpen={toggleShowingMenu}
       />
@@ -54,7 +54,7 @@ const ThresholdDropdown = (p: Pick<Props, 'spaceAvailableNotificationThreshold'>
         promptString="Pick a threshold"
         prompt={
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
-            <Kb.Text type="BodySmallSemibold">Pick a threshold</Kb.Text>
+            <Kb.Text3 type="BodySmallSemibold">Pick a threshold</Kb.Text3>
           </Kb.Box2>
         }
         onCancel={hide}
@@ -88,7 +88,7 @@ const Files = () => {
       gap="small"
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
-        <Kb.Text type="Header">Sync</Kb.Text>
+        <Kb.Text3 type="Header">Sync</Kb.Text3>
         <Kb.Switch
           onClick={
             spaceAvailableNotificationThreshold === 0 ? onEnableSyncNotifications : onDisableSyncNotifications
@@ -99,7 +99,7 @@ const Files = () => {
           gapSize={Kb.Styles.globalMargins.small}
           style={styles.switch}
         />
-        {!!spaceAvailableNotificationThreshold && <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>}
+        {!!spaceAvailableNotificationThreshold && <Kb.Text3 type="BodySmallSemibold">Threshold:</Kb.Text3>}
         {!!spaceAvailableNotificationThreshold && (
           <ThresholdDropdown
             spaceAvailableNotificationThreshold={props.spaceAvailableNotificationThreshold}

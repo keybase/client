@@ -396,7 +396,7 @@ const Task = (props: Props) => (
     buttons={props.buttons}
   >
     <Kb.Markdown style={styles.instructions}>{props.instructions}</Kb.Markdown>
-    {!!props.subText && <Kb.Text type="BodySmall">{props.subText}</Kb.Text>}
+    {!!props.subText && <Kb.Text3 type="BodySmall">{props.subText}</Kb.Text3>}
   </PeopleItem>
 )
 

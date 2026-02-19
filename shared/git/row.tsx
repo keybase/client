@@ -123,9 +123,9 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                 username={teamname ? undefined : you}
                 style={styles.iconTiny}
               />
-              <Kb.Text lineClamp={1} type="BodySemibold" style={{color: Kb.Styles.globalColors.black}}>
+              <Kb.Text3 lineClamp={1} type="BodySemibold" style={{color: Kb.Styles.globalColors.black}}>
                 {teamname ? `${teamname}/${name}` : name}
-              </Kb.Text>
+              </Kb.Text3>
               {isNew && (
                 <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
               )}
@@ -142,7 +142,7 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                   position: 'relative',
                 }}
               >
-                <Kb.Text type="Body">Clone:</Kb.Text>
+                <Kb.Text3 type="Body">Clone:</Kb.Text3>
                 <Kb.Box2 direction="horizontal" style={styles.copyTextContainer}>
                   <Kb.CopyText text={url} containerStyle={{width: '100%'}} />
                 </Kb.Box2>
@@ -157,9 +157,9 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                   marginTop: Kb.Styles.globalMargins.tiny,
                 }}
               >
-                <Kb.Text type="BodySmall">
+                <Kb.Text3 type="BodySmall">
                   {`Last push ${lastEditTime}${!!teamname && !!lastEditUser ? ' by ' : ''}`}
-                </Kb.Text>
+                </Kb.Text3>
                 {!!teamname && !!lastEditUser && (
                   <Kb.Avatar
                     username={lastEditUser}
@@ -178,19 +178,19 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                     />
                   </Kb.Box2>
                 )}
-                {Kb.Styles.isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
-                <Kb.Text type="BodySmall">
-                  <Kb.Text type="BodySmall">
+                {Kb.Styles.isMobile && <Kb.Text3 type="BodySmall">. </Kb.Text3>}
+                <Kb.Text3 type="BodySmall">
+                  <Kb.Text3 type="BodySmall">
                     {Kb.Styles.isMobile
                       ? 'Signed and encrypted using device'
                       : ', signed and encrypted using device'}
-                  </Kb.Text>
-                  <Kb.Text type="BodySmall" style={styles.device} onClick={onClickDevice}>
+                  </Kb.Text3>
+                  <Kb.Text3 type="BodySmall" style={styles.device} onClick={onClickDevice}>
                     {' '}
                     {devicename}
-                  </Kb.Text>
-                  <Kb.Text type="BodySmall">.</Kb.Text>
-                </Kb.Text>
+                  </Kb.Text3>
+                  <Kb.Text3 type="BodySmall">.</Kb.Text3>
+                </Kb.Text3>
               </Kb.Box2>
               {!!teamname && (
                 <Kb.Box2 direction="horizontal" alignItems="center">
@@ -200,24 +200,24 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                       onCheck={onToggleChatEnabled}
                       label=""
                       labelComponent={
-                        <Kb.Text type="BodySmall">
+                        <Kb.Text3 type="BodySmall">
                           Announce pushes in{' '}
-                          <Kb.Text
+                          <Kb.Text3
                             type={chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
                             onClick={onChannelClick}
                           >
                             {channelNameToString(channelName)}
-                          </Kb.Text>
-                        </Kb.Text>
+                          </Kb.Text3>
+                        </Kb.Text3>
                       }
                     />
                   )}
                   {!canEdit && (
-                    <Kb.Text type="BodySmall">
+                    <Kb.Text3 type="BodySmall">
                       {chatDisabled
                         ? 'Pushes are not announced'
                         : `Pushes are announced in ${teamname}${channelNameToString(channelName)}`}
-                    </Kb.Text>
+                    </Kb.Text3>
                   )}
                 </Kb.Box2>
               )}

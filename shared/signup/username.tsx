@@ -58,7 +58,7 @@ const EnterUsername = (props: Props) => {
     props.onContinue(usernameTrimmed)
   }
   const eulaLabel = (
-    <Kb.Text type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'} style={{alignSelf: 'center'}}>
+    <Kb.Text3 type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'} style={{alignSelf: 'center'}}>
       I accept the{' '}
       <Kb.Text
         type={Kb.Styles.isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'}
@@ -66,7 +66,7 @@ const EnterUsername = (props: Props) => {
       >
         Keybase Acceptable Use Policy
       </Kb.Text>
-    </Kb.Text>
+    </Kb.Text3>
   )
   const eulaBlock = (
     <Kb.Checkbox label={eulaLabel} checked={acceptedEULA} onCheck={() => setAcceptedEULA(s => !s)} />
@@ -124,7 +124,7 @@ const EnterUsername = (props: Props) => {
               onChangeText={onChangeUsername}
               onEnterKeyDown={onContinue}
             />
-            <Kb.Text type="BodySmall">Your username is unique and can not be changed in the future.</Kb.Text>
+            <Kb.Text3 type="BodySmall">Your username is unique and can not be changed in the future.</Kb.Text3>
           </Kb.Box2>
           {!Kb.Styles.isMobile && eulaBlock}
         </Kb.Box2>

@@ -67,7 +67,7 @@ const SkinTonePicker = React.memo(function SkinTonePicker(props: Props) {
       <Kb.ClickableBox onClick={() => setExpanded(true)}>
         <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
           {circle(props.currentSkinTone, false, false)}
-          <Kb.Text type="BodySmallSemibold">Skin tone</Kb.Text>
+          <Kb.Text3 type="BodySmallSemibold">Skin tone</Kb.Text3>
         </Kb.Box2>
       </Kb.ClickableBox>
     )

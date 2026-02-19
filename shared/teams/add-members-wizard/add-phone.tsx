@@ -83,7 +83,7 @@ const AddPhone = () => {
       }
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
-        <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
+        <Kb.Text3 type="Body">Enter one or multiple phone numbers:</Kb.Text3>
         <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} alignItems="flex-start">
           {phoneNumbers.map((pn, idx) => (
             <Kb.PhoneInput

@@ -120,9 +120,9 @@ const Header2 = () => {
   )
   if (isTeam && !desc && canEditDesc) {
     description = (
-      <Kb.Text selectable={true} type="BodySmall" lineClamp={1}>
-        Set a description using the <Kb.Text type="BodySmallBold">/headline</Kb.Text> command.
-      </Kb.Text>
+      <Kb.Text3 selectable={true} type="BodySmall" lineClamp={1}>
+        Set a description using the <Kb.Text3 type="BodySmallBold">/headline</Kb.Text3> command.
+      </Kb.Text3>
     )
   }
   if (isTeam && desc && canEditDesc) {
@@ -171,18 +171,18 @@ const Header2 = () => {
   const topRow = (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       {channel ? (
-        <Kb.Text selectable={true} type="Header" lineClamp={1}>
+        <Kb.Text3 selectable={true} type="Header" lineClamp={1}>
           {channel}
-        </Kb.Text>
+        </Kb.Text3>
       ) : fullName ? (
-        <Kb.Text type="Header" lineClamp={1}>
+        <Kb.Text3 type="Header" lineClamp={1}>
           {fullName}
-        </Kb.Text>
+        </Kb.Text3>
       ) : withoutSelf ? (
         <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne}>
-          <Kb.Text type="Header" lineClamp={1}>
+          <Kb.Text3 type="Header" lineClamp={1}>
             {withoutSelf.map((part, i) => (
-              <Kb.Text type="Header" key={part}>
+              <Kb.Text3 type="Header" key={part}>
                 <Kb.ConnectedUsernames
                   colorFollowing={true}
                   underline={true}
@@ -192,10 +192,10 @@ const Header2 = () => {
                   usernames={part}
                   onUsernameClicked="profile"
                 />
-                {i !== withoutSelf.length - 1 && <Kb.Text type="Header">, </Kb.Text>}
-              </Kb.Text>
+                {i !== withoutSelf.length - 1 && <Kb.Text3 type="Header">, </Kb.Text3>}
+              </Kb.Text3>
             ))}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       ) : null}
       {!!muted && (
@@ -255,9 +255,9 @@ const Header2 = () => {
             />
             {description ? (
               <>
-                <Kb.Text type="BodySmall" style={styles.descDot}>
+                <Kb.Text3 type="BodySmall" style={styles.descDot}>
                   &nbsp;•&nbsp;
-                </Kb.Text>
+                </Kb.Text3>
                 {description}
               </>
             ) : null}

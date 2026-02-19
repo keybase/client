@@ -41,9 +41,9 @@ const Pinentry = (props: Props) => {
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <DragHeader icon={false} title="" onClose={props.onCancel} windowDragging={true} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={{paddingLeft: 30, paddingRight: 30}}>
-        <Kb.Text type="Body" center={true}>
+        <Kb.Text3 type="Body" center={true}>
           {props.prompt}
-        </Kb.Text>
+        </Kb.Text3>
         {isPaperKey && <Kb.Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
         <Kb.Box2
           alignSelf="center"
@@ -64,9 +64,9 @@ const Pinentry = (props: Props) => {
             value={password}
           />
           {props.retryLabel ? (
-            <Kb.Text style={styles.alignment} type="BodySmallError">
+            <Kb.Text3 style={styles.alignment} type="BodySmallError">
               {props.retryLabel}
-            </Kb.Text>
+            </Kb.Text3>
           ) : null}
           {props.showTyping && props.showTyping.allow && (
             <Kb.Checkbox

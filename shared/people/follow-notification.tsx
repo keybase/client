@@ -68,11 +68,11 @@ const FollowNotification = (props: Props) => {
         format="single"
       >
         {props.type === 'follow' ? (
-          <Kb.Text type="Body">{usernameComponent} followed you.</Kb.Text>
+          <Kb.Text3 type="Body">{usernameComponent} followed you.</Kb.Text3>
         ) : (
-          <Kb.Text type="Body">
+          <Kb.Text3 type="Body">
             Your contact {desc} joined Keybase as {usernameComponent}.
-          </Kb.Text>
+          </Kb.Text3>
         )}
       </PeopleItem>
     </Kb.ClickableBox>
@@ -101,13 +101,13 @@ const MultiFollowNotification = React.memo(function MultiFollowNotification(prop
   return (
     <PeopleItem format="multi" badged={props.badged} when={props.notificationTime}>
       {props.type === 'follow' ? (
-        <Kb.Text type="Body" style={styles.multiText}>
+        <Kb.Text3 type="Body" style={styles.multiText}>
           {usernamesComponent} started following you.
-        </Kb.Text>
+        </Kb.Text3>
       ) : (
-        <Kb.Text type="Body" style={styles.multiText}>
+        <Kb.Text3 type="Body" style={styles.multiText}>
           Your contacts {usernamesComponent} joined Keybase.
-        </Kb.Text>
+        </Kb.Text3>
       )}
       <Kb.ScrollView
         {...(Kb.Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop

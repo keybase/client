@@ -88,8 +88,8 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
   const header = React.useMemo(
     () => (
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
-        <Kb.Text type="BodySmallSemibold">{address}</Kb.Text>
-        {primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
+        <Kb.Text3 type="BodySmallSemibold">{address}</Kb.Text3>
+        {primary && <Kb.Text3 type="BodySmall">Primary</Kb.Text3>}
       </Kb.Box2>
     ),
     [address, primary]
@@ -151,13 +151,13 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
       <Kb.Box2 alignItems="flex-start" direction="vertical" style={{...Kb.Styles.globalStyles.flexOne}}>
-        <Kb.Text type="BodySemibold" selectable={true} lineClamp={1}>
+        <Kb.Text3 type="BodySemibold" selectable={true} lineClamp={1}>
           {address}
-        </Kb.Text>
+        </Kb.Text3>
         {(!!subtitle || !verified) && (
           <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny" fullWidth={true}>
             {!verified && <Kb.Meta backgroundColor={Kb.Styles.globalColors.red} title="UNVERIFIED" />}
-            {!!subtitle && <Kb.Text type="BodySmall">{subtitle}</Kb.Text>}
+            {!!subtitle && <Kb.Text3 type="BodySmall">{subtitle}</Kb.Text3>}
           </Kb.Box2>
         )}
       </Kb.Box2>

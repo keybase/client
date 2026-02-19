@@ -124,13 +124,13 @@ const EnterDevicename = (props: Props) => {
             onEnterKeyDown={onContinue}
           />
           {showDisabled ? (
-            <Kb.Text type="BodySmall" style={styles.deviceNameError}>
+            <Kb.Text3 type="BodySmall" style={styles.deviceNameError}>
               {Provision.deviceNameInstructions}
-            </Kb.Text>
+            </Kb.Text3>
           ) : (
-            <Kb.Text type="BodySmall">
+            <Kb.Text3 type="BodySmall">
               Your device name will be public and can not be changed in the future.
-            </Kb.Text>
+            </Kb.Text3>
           )}
         </Kb.Box2>
       </Kb.Box2>

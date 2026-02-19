@@ -9,9 +9,9 @@ export type Props = {
 
 const FollowSuggestions = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Text type="BodySmallSemibold" style={styles.text}>
+    <Kb.Text3 type="BodySmallSemibold" style={styles.text}>
       Consider following...
-    </Kb.Text>
+    </Kb.Text3>
     <Kb.ScrollView
       {...(Kb.Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
       contentContainerStyle={styles.scrollViewContainer}

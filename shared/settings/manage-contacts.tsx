@@ -41,10 +41,10 @@ const ManageContacts = () => {
         <ManageContactsBanner />
         <SettingsSection>
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-            <Kb.Text type="Header">Phone contacts</Kb.Text>
-            <Kb.Text type="BodySmall">
+            <Kb.Text3 type="Header">Phone contacts</Kb.Text3>
+            <Kb.Text3 type="BodySmall">
               {contactsImported && status === 'granted' ? enabledDescription : disabledDescription}
-            </Kb.Text>
+            </Kb.Text3>
             <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
               <Kb.Button
                 disabled={status === 'denied'}

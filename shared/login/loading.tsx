@@ -55,13 +55,13 @@ export const Splash = (p: SplashProps) => {
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">
       <Kb.Icon type={onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
       <Kb.Icon type="icon-keybase-wordmark-128-48" />
-      {!!status && <Kb.Text type="BodySmall">{status}</Kb.Text>}
+      {!!status && <Kb.Text3 type="BodySmall">{status}</Kb.Text3>}
       {!!failed && (
-        <Kb.Text type="BodySmall">
+        <Kb.Text3 type="BodySmall">
           Oops, we had a problem communicating with our services. This might be because you lost connectivity.
-        </Kb.Text>
+        </Kb.Text3>
       )}
-      {!!failed && <Kb.Text type="BodySmall">({failed})</Kb.Text>}
+      {!!failed && <Kb.Text3 type="BodySmall">({failed})</Kb.Text3>}
       {onRetry && (
         <Kb.ButtonBar>
           <Kb.Button label="Reload" onClick={onRetry} />
@@ -78,13 +78,13 @@ const Feedback = ({onFeedback}: {onFeedback?: () => void}) =>
       <Kb.Button type="Dim" label="Send us feedback" onClick={onFeedback} />
     </Kb.ButtonBar>
   ) : (
-    <Kb.Text type="BodySmall">
+    <Kb.Text3 type="BodySmall">
       Send us feedback! Run{' '}
-      <Kb.Text type="TerminalInline" selectable={true}>
+      <Kb.Text3 type="TerminalInline" selectable={true}>
         keybase log send
-      </Kb.Text>{' '}
+      </Kb.Text3>{' '}
       from the terminal.
-    </Kb.Text>
+    </Kb.Text3>
   )
 
 const styles = Kb.Styles.styleSheetCreate(

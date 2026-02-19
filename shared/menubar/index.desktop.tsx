@@ -319,9 +319,9 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
               style={styles.logo}
               color={Kb.Styles.globalColors.yellow}
             />
-            <Kb.Text type="Body" style={{alignSelf: 'center', marginTop: 6}}>
+            <Kb.Text3 type="Body" style={{alignSelf: 'center', marginTop: 6}}>
               {text}
-            </Kb.Text>
+            </Kb.Text3>
             {fullyLoggedOut ? (
               <Kb.ButtonBar direction="row">
                 <Kb.Button label="Log in" onClick={logIn} />
@@ -364,9 +364,9 @@ const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
         <Kb.Icon type={iconType} color={Kb.Styles.globalColors.blue} sizeType="Big" />
         {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
       </Kb.Box2>
-      <Kb.Text className="title" type="BodySemibold" style={Kb.Styles.collapseStyles([{color: undefined}])}>
+      <Kb.Text3 className="title" type="BodySemibold" style={Kb.Styles.collapseStyles([{color: undefined}])}>
         {title}
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
   )
 }

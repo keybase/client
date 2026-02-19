@@ -35,9 +35,9 @@ const TeamMenu = (props: Props) => {
       teamname={teamname}
       title={teamname}
       metaOne={
-        <Kb.Text type="BodySmall">
+        <Kb.Text3 type="BodySmall">
           {memberCount} {pluralize('member', memberCount)}
-        </Kb.Text>
+        </Kb.Text3>
       }
       metaTwo={
         <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny">
@@ -48,7 +48,7 @@ const TeamMenu = (props: Props) => {
               type="iconfont-crown-owner"
             />
           )}
-          <Kb.Text type="BodySmall">{capitalize(role)}</Kb.Text>
+          <Kb.Text3 type="BodySmall">{capitalize(role)}</Kb.Text3>
         </Kb.Box2>
       }
       containerStyle={styles.headerContainer}

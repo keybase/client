@@ -42,13 +42,13 @@ const resetText = (props: Props) => {
         ? getOtherResetText(props.reset)
         : null
   return text ? (
-    <Kb.Text
+    <Kb.Text3
       type="BodySmallError"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
       lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
     >
       {text}
-    </Kb.Text>
+    </Kb.Text3>
   ) : null
 }
 

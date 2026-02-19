@@ -64,7 +64,7 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
       </Kb.Box2>
       <Kb.Box2 direction="vertical" style={styles.rightBox}>
         <Kb.ConnectedUsernames colorFollowing={true} type="BodyBold" usernames={username} />
-        <Kb.Text type="BodySmall">{label}</Kb.Text>
+        <Kb.Text3 type="BodySmall">{label}</Kb.Text3>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.buttons}>
           <FollowButton username={username} small={true} />
           <Kb.WaveButton username={username} small={true} />
@@ -86,15 +86,15 @@ const ContactsJoinedModal = () => {
       header={{
         hideBorder: true,
         leftButton: (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
+          <Kb.Text3 type="BodyBigLink" onClick={onClose}>
             Done
-          </Kb.Text>
+          </Kb.Text3>
         ),
       }}
     >
-      <Kb.Text type="Body" style={styles.woot} center={true}>
+      <Kb.Text3 type="Body" style={styles.woot} center={true}>
         Woot! Some of your contacts are already on Keybase.
-      </Kb.Text>
+      </Kb.Text3>
       <Kb.List2 items={filteredPeople} renderItem={renderItem} indexAsKey={true} itemHeight={itemHeight} />
     </Kb.Modal>
   )

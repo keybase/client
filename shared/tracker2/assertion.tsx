@@ -202,10 +202,10 @@ const Container = (ownProps: OwnProps) => {
           </Kb.Box2>
           {!!timestamp && (
             <>
-              <Kb.Text type="BodySmall">Posted on</Kb.Text>
-              <Kb.Text center={true} type="BodySmall">
+              <Kb.Text3 type="BodySmall">Posted on</Kb.Text3>
+              <Kb.Text3 center={true} type="BodySmall">
                 {formatTimeForAssertionPopup(timestamp)}
-              </Kb.Text>
+              </Kb.Text3>
             </>
           )}
         </Kb.Box2>
@@ -278,7 +278,7 @@ const Container = (ownProps: OwnProps) => {
           onShowProof={onShowProof}
           isSuggestion={isSuggestion}
         />
-        <Kb.Text type="Body" style={styles.textContainer}>
+        <Kb.Text3 type="Body" style={styles.textContainer}>
           <Value
             isSuggestion={isSuggestion}
             type={type}
@@ -290,11 +290,11 @@ const Container = (ownProps: OwnProps) => {
             color={color}
           />
           {!isSuggestion && (
-            <Kb.Text type="Body" style={styles.site}>
+            <Kb.Text3 type="Body" style={styles.site}>
               @{type}
-            </Kb.Text>
+            </Kb.Text3>
           )}
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.ClickableBox onClick={items ? showPopup : onShowProof} style={styles.statusContainer}>
           <Kb.Box2Measure direction="horizontal" alignItems="center" gap="tiny" tooltip={tooltip}>
             <Kb.Icon
@@ -508,7 +508,7 @@ const Value = (p: {
     }
 
     content = (
-      <Kb.Text
+      <Kb.Text3
         type={p.notAUser ? 'Body' : 'BodyPrimaryLink'}
         onClick={p.onCreateProof || p.onShowSite}
         style={Kb.Styles.collapseStyles([
@@ -518,7 +518,7 @@ const Value = (p: {
         ])}
       >
         {str}
-      </Kb.Text>
+      </Kb.Text3>
     )
   }
 

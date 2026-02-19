@@ -93,9 +93,9 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
     <Kb.ClickableBox style={styles.explodingWrapper} onClick={toggleShowingMenu}>
       {isExploding ? (
         <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
-          <Kb.Text type="BodyTinyBold" negative={true} style={styles.explodingText}>
+          <Kb.Text3 type="BodyTinyBold" negative={true} style={styles.explodingText}>
             {formatDurationShort(explodingModeSeconds * 1000)}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       ) : (
         <Kb.Icon color={undefined} type="iconfont-timer" fixOverdraw={true} />

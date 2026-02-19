@@ -123,11 +123,11 @@ const getContentDescription = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>)
   }
   if (items.length > 1) {
     return items.some(({type}) => type !== items[0]?.type) ? (
-      <Kb.Text type="BodyTiny">{items.length} items</Kb.Text>
+      <Kb.Text3 type="BodyTiny">{items.length} items</Kb.Text3>
     ) : (
-      <Kb.Text type="BodyTiny">
+      <Kb.Text3 type="BodyTiny">
         {items.length} {incomingShareTypeToString(items[0]!.type, false, true)}
-      </Kb.Text>
+      </Kb.Text3>
     )
   }
 
@@ -136,9 +136,9 @@ const getContentDescription = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>)
 
   if (item.content) {
     return (
-      <Kb.Text type="BodyTiny" lineClamp={1}>
+      <Kb.Text3 type="BodyTiny" lineClamp={1}>
         {item.content}
-      </Kb.Text>
+      </Kb.Text3>
     )
   }
 
@@ -147,7 +147,7 @@ const getContentDescription = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>)
   return name ? (
     <FsCommon.Filename type="BodyTiny" filename={name} />
   ) : (
-    <Kb.Text type="BodyTiny">1 {incomingShareTypeToString(item.type, false, false)}</Kb.Text>
+    <Kb.Text3 type="BodyTiny">1 {incomingShareTypeToString(item.type, false, false)}</Kb.Text3>
   )
 }
 
@@ -156,15 +156,15 @@ const useHeader = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
   const onCancel = () => clearModals()
   return {
     leftButton: (
-      <Kb.Text type="BodyBigLink" onClick={onCancel}>
+      <Kb.Text3 type="BodyBigLink" onClick={onCancel}>
         Cancel
-      </Kb.Text>
+      </Kb.Text3>
     ),
     rightButton: <OriginalOrCompressedButton incomingShareItems={incomingShareItems} />,
     title: (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         {getContentDescription(incomingShareItems)}
-        <Kb.Text type="BodyBig">Share to...</Kb.Text>
+        <Kb.Text3 type="BodyBig">Share to...</Kb.Text3>
       </Kb.Box2>
     ),
   }
@@ -189,7 +189,7 @@ const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
         content: (
           <Kb.ClickableBox style={styles.footer} onClick={saveInFiles}>
             <Kb.Icon type="iconfont-file" color={Kb.Styles.globalColors.blue} style={styles.footerIcon} />
-            <Kb.Text type="BodyBigLink">Save in Files</Kb.Text>
+            <Kb.Text3 type="BodyBigLink">Save in Files</Kb.Text3>
           </Kb.ClickableBox>
         ),
       }
@@ -287,14 +287,14 @@ const IncomingShareError = () => {
     <Kb.Modal
       header={{
         leftButton: (
-          <Kb.Text type="BodyBigLink" onClick={onCancel}>
+          <Kb.Text3 type="BodyBigLink" onClick={onCancel}>
             Cancel
-          </Kb.Text>
+          </Kb.Text3>
         ),
       }}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
-        <Kb.Text type="BodySmall">Whoops! Something went wrong.</Kb.Text>
+        <Kb.Text3 type="BodySmall">Whoops! Something went wrong.</Kb.Text3>
         <Kb.Button label="Please let us know" onClick={erroredSendFeedback} />
       </Kb.Box2>
     </Kb.Modal>

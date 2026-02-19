@@ -37,7 +37,7 @@ export const TeamSuggestion = (p: {teamname: string; channelname: string | undef
     gap="tiny"
   >
     <Kb.Avatar teamname={p.teamname} size={32} />
-    <Kb.Text type="BodyBold">{p.channelname ? p.teamname + ' #' + p.channelname : p.teamname}</Kb.Text>
+    <Kb.Text3 type="BodyBold">{p.channelname ? p.teamname + ' #' + p.channelname : p.teamname}</Kb.Text3>
   </Kb.Box2>
 )
 

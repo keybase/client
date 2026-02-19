@@ -68,13 +68,13 @@ const AlphabetIndex = (props: Props) => {
           {...(index === 0 ? {ref: topSectionRef} : {})}
           collapsable={false}
         >
-          <Kb.Text type="BodyTiny">{label}</Kb.Text>
+          <Kb.Text3 type="BodyTiny">{label}</Kb.Text3>
         </View>
       ))}
       {props.showNumSection &&
         ['0', '•', '9'].map(label => (
           <View key={label} style={styles.gap}>
-            <Kb.Text type="BodyTiny">{label}</Kb.Text>
+            <Kb.Text3 type="BodyTiny">{label}</Kb.Text3>
           </View>
         ))}
     </View>

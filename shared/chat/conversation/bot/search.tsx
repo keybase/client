@@ -82,12 +82,12 @@ const SearchBotPopup = (props: Props) => {
     data: botData,
     renderItem: ({index, item}: {index: number; item: Item}) => {
       return item.type === 'dummy' && item.value === resultEmptyPlaceholder ? (
-        <Kb.Text
+        <Kb.Text3
           style={{...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)}}
           type="BodySmall"
         >
           No results were found
-        </Kb.Text>
+        </Kb.Text3>
       ) : item.type === 'bot' ? (
         <Bot {...item.bot} onClick={onSelect} firstItem={index === 0} />
       ) : null
@@ -116,9 +116,9 @@ const SearchBotPopup = (props: Props) => {
           style={{...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)}}
         >
           {item.type === 'dummy' && item.value === userEmptyPlaceholder ? (
-            <Kb.Text type="BodySmall">Enter a bot username above</Kb.Text>
+            <Kb.Text3 type="BodySmall">Enter a bot username above</Kb.Text3>
           ) : item.type === 'dummy' && item.value === resultEmptyPlaceholder ? (
-            <Kb.Text type="BodySmall">No results were found</Kb.Text>
+            <Kb.Text3 type="BodySmall">No results were found</Kb.Text3>
           ) : item.type === 'str' ? (
             <Kb.NameWithIcon
               username={item.str}
@@ -139,9 +139,9 @@ const SearchBotPopup = (props: Props) => {
       noScrollView={true}
       header={{
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
+          <Kb.Text3 type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
-          </Kb.Text>
+          </Kb.Text3>
         ) : undefined,
         title: 'Add a bot',
       }}

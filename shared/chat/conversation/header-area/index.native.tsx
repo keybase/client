@@ -279,7 +279,7 @@ const PhoneOrEmailHeader = () => {
         </Kb.Text>
         <ShhIcon />
       </Kb.Box2>
-      {!!name && <Kb.Text type="BodyTiny">{name}</Kb.Text>}
+      {!!name && <Kb.Text3 type="BodyTiny">{name}</Kb.Text3>}
     </Kb.Box2>
   )
 }

@@ -245,20 +245,20 @@ const AddEmojiPrompt = (props: AddEmojiPromptProps) => {
       gap="small"
     >
       {Kb.Styles.isMobile ? (
-        <Kb.Text type="Body" center={true}>
+        <Kb.Text3 type="Body" center={true}>
           Choose images from your library
-        </Kb.Text>
+        </Kb.Text3>
       ) : (
         <Kb.Box2 direction="vertical">
-          <Kb.Text type="Body" center={true}>
+          <Kb.Text3 type="Body" center={true}>
             Drag and drop images or
-          </Kb.Text>
-          <Kb.Text type="Body" center={true}>
-            <Kb.Text type="BodyPrimaryLink" onClick={pick}>
+          </Kb.Text3>
+          <Kb.Text3 type="Body" center={true}>
+            <Kb.Text3 type="BodyPrimaryLink" onClick={pick}>
               browse your computer
-            </Kb.Text>{' '}
+            </Kb.Text3>{' '}
             for some.
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       )}
       {!Kb.Styles.isMobile && (
@@ -273,7 +273,7 @@ const AddEmojiPrompt = (props: AddEmojiPromptProps) => {
           <Kb.Icon type="iconfont-emoji" fontSize={48} color={Kb.Styles.globalColors.black_10} />
         </Kb.Box2>
       )}
-      <Kb.Text type="BodySmall">Maximum 256KB per image.</Kb.Text>
+      <Kb.Text3 type="BodySmall">Maximum 256KB per image.</Kb.Text3>
     </Kb.Box2>
   )
 }
@@ -372,9 +372,9 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      <Kb.Text style={styles.textChooseAlias} type="BodySmall">
+      <Kb.Text3 style={styles.textChooseAlias} type="BodySmall">
         {items.length > 1 ? 'Choose aliases for these emoji:' : 'Choose an alias for this emoji:'}
-      </Kb.Text>
+      </Kb.Text3>
       <Kb.BoxGrow>
         <Kb.List2
           items={items}

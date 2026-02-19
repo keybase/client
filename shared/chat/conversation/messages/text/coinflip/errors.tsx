@@ -33,12 +33,12 @@ const CoinFlipGenericError = () => {
     navigateAppend('modalFeedback')
   }
   return (
-    <Kb.Text selectable={true} style={styles.error} type="BodySmall">
+    <Kb.Text3 selectable={true} style={styles.error} type="BodySmall">
       An unexpected error occurred, unable to determine the result of the flip.{' '}
       <Kb.Text onClick={sendFeedback} style={styles.error} type="BodySmallPrimaryLink" underline={true}>
         Please send feedback.
       </Kb.Text>
-    </Kb.Text>
+    </Kb.Text3>
   )
 }
 
@@ -48,18 +48,18 @@ type AbsenteeProps = {
 
 const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
-    <Kb.Text selectable={true} type="Body">
+    <Kb.Text3 selectable={true} type="Body">
       Uh oh, a participant disappeared:
-    </Kb.Text>
+    </Kb.Text3>
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
+      <Kb.Text3 selectable={true} style={styles.error} type="BodySemibold">
         {(props.error.absentees || []).map(a => `${a.user} (device: ${a.device})`).join(', ')}
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-      <Kb.Text selectable={true} type="Body">
+      <Kb.Text3 selectable={true} type="Body">
         It was likely a network problem, but they could be trying to pull a fast one.
-      </Kb.Text>
+      </Kb.Text3>
       <Kb.Text type="BodyPrimaryLink" onClickURL="https://keybase.io/coin-flip">
         Learn More
       </Kb.Text>
@@ -68,15 +68,15 @@ const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
 )
 
 const CoinFlipTimeoutError = () => (
-  <Kb.Text selectable={true} style={styles.error} type="BodySmall">
+  <Kb.Text3 selectable={true} style={styles.error} type="BodySmall">
     Flip timed out before a result was obtained.
-  </Kb.Text>
+  </Kb.Text3>
 )
 
 const CoinFlipAbortedError = () => (
-  <Kb.Text selectable={true} style={styles.error} type="BodySmall">
+  <Kb.Text3 selectable={true} style={styles.error} type="BodySmall">
     Flip aborted before a result was obtained.
-  </Kb.Text>
+  </Kb.Text3>
 )
 
 type DupProps = {
@@ -86,12 +86,12 @@ type DupProps = {
 
 const CoinFlipDupError = (props: DupProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
-    <Kb.Text selectable={true} type="Body">
+    <Kb.Text3 selectable={true} type="Body">
       Duplicate {props.desc} received from the following participant:
-    </Kb.Text>
-    <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
+    </Kb.Text3>
+    <Kb.Text3 selectable={true} style={styles.error} type="BodySemibold">
       {props.offender.user} (device: {props.offender.device})
-    </Kb.Text>
+    </Kb.Text3>
   </Kb.Box2>
 )
 
@@ -101,12 +101,12 @@ type CommitMismatchProps = {
 
 const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
-    <Kb.Text selectable={true} type="Body">
+    <Kb.Text3 selectable={true} type="Body">
       Commitment mismatch from the following participant:
-    </Kb.Text>
-    <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
+    </Kb.Text3>
+    <Kb.Text3 selectable={true} style={styles.error} type="BodySemibold">
       {props.offender.user} (device: {props.offender.device})
-    </Kb.Text>
+    </Kb.Text3>
   </Kb.Box2>
 )
 

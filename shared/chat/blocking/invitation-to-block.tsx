@@ -90,9 +90,9 @@ const BlockButtons = () => {
       fullWidth={true}
     >
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
-        <Kb.Text type="BodySmall">
+        <Kb.Text3 type="BodySmall">
           {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.Icon style={styles.dismissIcon} type="iconfont-close" onClick={onDismiss} />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.buttonContainer}>
@@ -101,9 +101,9 @@ const BlockButtons = () => {
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="horizontal" gap="xsmall" style={styles.container} centerChildren={false}>
-      <Kb.Text type="BodySmall">
+      <Kb.Text3 type="BodySmall">
         {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
-      </Kb.Text>
+      </Kb.Text3>
       {buttonRow}
       <Kb.Icon type="iconfont-remove" onClick={onDismiss} />
     </Kb.Box2>

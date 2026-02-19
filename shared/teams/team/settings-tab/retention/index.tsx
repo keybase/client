@@ -217,7 +217,7 @@ const RetentionPicker = (p: Props) => {
     <Kb.Box2 direction="vertical" style={containerStyle} fullWidth={true}>
       {popup}
       <Kb.Box2 direction="horizontal" alignItems="center" style={styles.heading} fullWidth={true}>
-        <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
+        <Kb.Text3 type="BodySmallSemibold">Message deletion</Kb.Text3>
       </Kb.Box2>
       <Kb.ClickableBox
         onClick={showPopup}
@@ -232,11 +232,11 @@ const RetentionPicker = (p: Props) => {
       </Kb.ClickableBox>
       {policyIsExploding && (
         <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
-          <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>
+          <Kb.Text3 type="BodySmall">Participants will see their message explode.</Kb.Text3>
           <Kb.Icon color={Kb.Styles.globalColors.black_50} sizeType="Big" type="iconfont-boom" />
         </Kb.Box2>
       )}
-      {showOverrideNotice && <Kb.Text type="BodySmall">Individual channels can override this.</Kb.Text>}
+      {showOverrideNotice && <Kb.Text3 type="BodySmall">Individual channels can override this.</Kb.Text3>}
       {showSaveIndicator && <SaveIndicator saving={saving} style={styles.saveState} />}
     </Kb.Box2>
   )
@@ -265,9 +265,9 @@ const RetentionDisplay = (
   return (
     <Kb.Box2 direction="vertical" style={props.containerStyle} fullWidth={true}>
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={Kb.Styles.collapseStyles([styles.heading, styles.displayHeading])}>
-        <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
+        <Kb.Text3 type="BodySmallSemibold">Message deletion</Kb.Text3>
       </Kb.Box2>
-      <Kb.Text type="BodySmall">{text}</Kb.Text>
+      <Kb.Text3 type="BodySmall">{text}</Kb.Text3>
     </Kb.Box2>
   )
 }
@@ -360,9 +360,9 @@ const policyToLabel = (p?: T.Retention.RetentionPolicy, parent?: T.Retention.Ret
   }
   return [
     timer ? <Kb.Icon color={Kb.Styles.globalColors.black} type="iconfont-timer" key="timer" /> : null,
-    <Kb.Text type="BodySemibold" key="label">
+    <Kb.Text3 type="BodySemibold" key="label">
       {text}
-    </Kb.Text>,
+    </Kb.Text3>,
   ]
 }
 // Use only for comparing policy durations

@@ -3,7 +3,7 @@ import type {Props} from '.'
 
 const Prompt = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.promptContainer}>
-    <Kb.Text type="BodySmallSemibold">Select attachment</Kb.Text>
+    <Kb.Text3 type="BodySmallSemibold">Select attachment</Kb.Text3>
   </Kb.Box2>
 )
 

@@ -121,7 +121,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       )
     }
     default:
-      return <Kb.Text type="Body">{'Unknown conflictState: ' + conflictState}</Kb.Text>
+      return <Kb.Text3 type="Body">{'Unknown conflictState: ' + conflictState}</Kb.Text3>
   }
 }
 

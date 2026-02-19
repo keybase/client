@@ -24,9 +24,9 @@ export const defaultNavigationOptions = {
   headerRightContainerStyle: {paddingRight: 8},
   headerStyle: headerDefaultStyle,
   headerTitle: (hp: {children: React.ReactNode}) => (
-    <Kb.Text type="Header" style={styles.headerTitle} lineClamp={1} center={true}>
+    <Kb.Text3 type="Header" style={styles.headerTitle} lineClamp={1} center={true}>
       {hp.children}
-    </Kb.Text>
+    </Kb.Text3>
   ),
   headerTitleContainerStyle: {
     alignItems: 'stretch' as const,

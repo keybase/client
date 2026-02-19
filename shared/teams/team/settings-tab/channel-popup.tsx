@@ -48,16 +48,16 @@ const ChannelPopup = (props: Props) => {
     <Kb.MobilePopup overlayStyle={Kb.Styles.globalStyles.fullHeight}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header} gap="tiny">
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerTop}>
-          <Kb.Text type="BodyBigLink" onClick={onCancel}>
+          <Kb.Text3 type="BodyBigLink" onClick={onCancel}>
             Cancel
-          </Kb.Text>
-          <Kb.Text
+          </Kb.Text3>
+          <Kb.Text3
             type="BodyBigLink"
             onClick={selected.length ? onAdd : undefined}
             style={!selected.length && styles.addDisabled}
           >
             Add{!!selected.length && ` (${selected.length})`}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
         <Kb.SearchFilter
           placeholderText={`Search ${channelsFiltered.length} ${pluralize(
@@ -82,9 +82,9 @@ const ChannelPopup = (props: Props) => {
             return (
               <Kb.ClickableBox key={channel.conversationIDKey} onClick={onClick}>
                 <Kb.Box2 direction="horizontal" style={styles.channelContainer} gap="tiny" fullWidth={true}>
-                  <Kb.Text type="Body" lineClamp={1} style={Kb.Styles.globalStyles.flexOne}>
+                  <Kb.Text3 type="Body" lineClamp={1} style={Kb.Styles.globalStyles.flexOne}>
                     #{channel.channelname}
-                  </Kb.Text>
+                  </Kb.Text3>
                   <Kb.CheckCircle
                     onCheck={onClick}
                     checked={

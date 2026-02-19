@@ -15,17 +15,17 @@ const SystemProfileResetNotice = () => {
   }
   return (
     <UserNotice>
-      <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Kb.Styles.globalColors.black_50}}>
+      <Kb.Text3 type="BodySmallSemibold" negative={true} style={{color: Kb.Styles.globalColors.black_50}}>
         {username} reset their profile
-      </Kb.Text>
-      <Kb.Text
+      </Kb.Text3>
+      <Kb.Text3
         type="BodySmallPrimaryLink"
         negative={true}
         style={{color: Kb.Styles.globalColors.black_50}}
         onClick={onOpenOlderConversation}
       >
         View older conversation
-      </Kb.Text>
+      </Kb.Text3>
     </UserNotice>
   )
 }

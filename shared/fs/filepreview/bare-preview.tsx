@@ -18,9 +18,9 @@ const ConnectedBarePreview = (ownProps: OwnProps) => {
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.header}>
         <Kb.ClickableBox onClick={onBack} style={styles.closeBox}>
-          <Kb.Text type="Body" style={styles.text}>
+          <Kb.Text3 type="Body" style={styles.text}>
             Close
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.ClickableBox>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer}>

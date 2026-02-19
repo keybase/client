@@ -79,18 +79,18 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
         style={Kb.Styles.collapseStyles([Common.styles.fixSuggestionHeight, {alignItems: 'flex-start'}])}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-          <Kb.Text type="BodySemibold">
+          <Kb.Text3 type="BodySemibold">
             {prefix}
             {command.name}
-          </Kb.Text>
-          <Kb.Text type="Body">{command.usage}</Kb.Text>
+          </Kb.Text3>
+          <Kb.Text3 type="Body">{command.usage}</Kb.Text3>
         </Kb.Box2>
         {enabled ? (
-          <Kb.Text type="BodySmall">{command.description}</Kb.Text>
+          <Kb.Text3 type="BodySmall">{command.description}</Kb.Text3>
         ) : (
-          <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
+          <Kb.Text3 type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
             Bot disabled from listening
-          </Kb.Text>
+          </Kb.Text3>
         )}
       </Kb.Box2>
     </Kb.Box2>

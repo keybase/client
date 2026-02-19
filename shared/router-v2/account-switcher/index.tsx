@@ -118,12 +118,12 @@ const MobileHeader = (props: Props) => (
     >
       <Kb.Avatar username={props.username} onClick={props.onProfileClick} size={128} />
       <Kb.Box2 direction="vertical" centerChildren={true}>
-        <Kb.Text type="BodyBig" onClick={props.onProfileClick}>
+        <Kb.Text3 type="BodyBig" onClick={props.onProfileClick}>
           {props.username}
-        </Kb.Text>
-        <Kb.Text type="BodySmall" lineClamp={1} onClick={props.onProfileClick}>
+        </Kb.Text3>
+        <Kb.Text3 type="BodySmall" lineClamp={1} onClick={props.onProfileClick}>
           {props.fullname}
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
       <Kb.Button fullWidth={true} label="View/Edit profile" mode="Secondary" onClick={props.onProfileClick} />
       <Kb.Divider style={styles.divider} />
@@ -167,16 +167,16 @@ const AccountRow = (props: AccountRowProps) => {
       firstItem={true}
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={waiting ? styles.waiting : undefined}>
-          <Kb.Text type="BodySemibold">{props.entry.account.username}</Kb.Text>
+          <Kb.Text3 type="BodySemibold">{props.entry.account.username}</Kb.Text3>
           {(props.entry.fullName || !props.entry.account.hasStoredSecret) && (
             <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
-              <Kb.Text type="BodySmall" lineClamp={1} style={styles.nameText}>
+              <Kb.Text3 type="BodySmall" lineClamp={1} style={styles.nameText}>
                 {props.entry.fullName}
-              </Kb.Text>
+              </Kb.Text3>
               {!props.entry.account.hasStoredSecret && (
-                <Kb.Text type="BodySmall" style={styles.text2}>
+                <Kb.Text3 type="BodySmall" style={styles.text2}>
                   {props.entry.fullName && ' · '}Signed out
-                </Kb.Text>
+                </Kb.Text3>
               )}
             </Kb.Box2>
           )}

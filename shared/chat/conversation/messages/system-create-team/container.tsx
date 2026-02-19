@@ -33,9 +33,9 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
 
   return (
     <UserNotice>
-      <Kb.Text type="BodySmall">
-        {youOrUsername(creator, you)}created the team <Kb.Text type="BodySmallBold">{team}</Kb.Text>.
-      </Kb.Text>
+      <Kb.Text3 type="BodySmall">
+        {youOrUsername(creator, you)}created the team <Kb.Text3 type="BodySmallBold">{team}</Kb.Text3>.
+      </Kb.Text3>
       <ManageComponent isAdmin={isAdmin} onViewTeam={onViewTeam} />
       <AddInvite isAdmin={isAdmin} teamID={teamID} />
     </UserNotice>
@@ -47,9 +47,9 @@ const ManageComponent = (props: {isAdmin: boolean; onViewTeam: () => void}) => {
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (isAdmin) {
     return (
-      <Kb.Text onClick={onViewTeam} type={textType}>
+      <Kb.Text3 onClick={onViewTeam} type={textType}>
         Manage team
-      </Kb.Text>
+      </Kb.Text3>
     )
   } else {
     return null
@@ -62,9 +62,9 @@ const AddInvite = (props: {teamID: string; isAdmin: boolean}) => {
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (isAdmin) {
     return (
-      <Kb.Text onClick={onAddInvite} type={textType}>
+      <Kb.Text3 onClick={onAddInvite} type={textType}>
         Add/invite people
-      </Kb.Text>
+      </Kb.Text3>
     )
   } else {
     return null

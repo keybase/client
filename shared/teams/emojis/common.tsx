@@ -44,9 +44,9 @@ export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>(function A
         )}
       </Kb.Box2>
       {!!props.error && (
-        <Kb.Text type="BodySmallError" lineClamp={1}>
+        <Kb.Text3 type="BodySmallError" lineClamp={1}>
           {props.error}
-        </Kb.Text>
+        </Kb.Text3>
       )}
     </Kb.Box2>
   )
@@ -87,7 +87,7 @@ export const Modal = (props: ModalProps) => {
                 onClick={props.backButtonOnClick}
               />
             )}
-            <Kb.Text type="Header">{props.title}</Kb.Text>
+            <Kb.Text3 type="Header">{props.title}</Kb.Text3>
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer}>

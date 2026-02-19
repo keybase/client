@@ -34,9 +34,9 @@ const ConfirmOrPending = () => {
   return (
     <Modal onCancel={onCancel} skipButton={true}>
       <Kb.Box2 direction="vertical" gap="small">
-        <Kb.Text negative={true} type="BodySemibold">
+        <Kb.Text3 negative={true} type="BodySemibold">
           {title}
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.PlatformIcon
           style={styles.center}
           platform={platform}
@@ -44,24 +44,24 @@ const ConfirmOrPending = () => {
           overlayColor={platformIconOverlayColor}
         />
         <>
-          <Kb.Text center={true} type="Header" style={styles.blue}>
+          <Kb.Text3 center={true} type="Header" style={styles.blue}>
             {username}
-          </Kb.Text>
+          </Kb.Text3>
           {platformSubtitle && (
-            <Kb.Text center={true} type="Body" style={styles.grey}>
+            <Kb.Text3 center={true} type="Body" style={styles.grey}>
               {platformSubtitle}
-            </Kb.Text>
+            </Kb.Text3>
           )}
         </>
         <>
-          <Kb.Text center={true} type="Body">
+          <Kb.Text3 center={true} type="Body">
             {message}
-          </Kb.Text>
+          </Kb.Text3>
           {platform === 'http' && (
-            <Kb.Text center={true} type="BodySmall">
+            <Kb.Text3 center={true} type="BodySmall">
               Note: {username} doesn&apos;t load over https. If you get a real SSL certificate (not
               self-signed) in the future, please replace this proof with a fresh one.
-            </Kb.Text>
+            </Kb.Text3>
           )}
         </>
         <Kb.Button onClick={onCancel} label="Reload profile" />

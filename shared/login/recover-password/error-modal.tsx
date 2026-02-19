@@ -25,9 +25,9 @@ const ConnectedErrorModal = () => {
       onClose={onBack}
     >
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.padding}>
-        <Kb.Text type="Body" center={true}>
+        <Kb.Text3 type="Body" center={true}>
           {error}
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
     </Kb.Modal>
   )

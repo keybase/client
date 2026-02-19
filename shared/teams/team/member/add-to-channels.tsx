@@ -185,18 +185,18 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
       header={{
         hideBorder: Kb.Styles.isMobile,
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onCancel} style={{flexShrink: 0}}>
+          <Kb.Text3 type="BodyBigLink" onClick={onCancel} style={{flexShrink: 0}}>
             Cancel
-          </Kb.Text>
+          </Kb.Text3>
         ) : undefined,
         rightButton:
           Kb.Styles.isMobile && mode === 'others' ? (
             waiting ? (
               <Kb.ProgressIndicator type="Large" />
             ) : (
-              <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
+              <Kb.Text3 type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
                 Add
-              </Kb.Text>
+              </Kb.Text3>
             )
           ) : undefined,
         title: <Common.ModalTitle teamID={teamID} title={title} />,
@@ -295,9 +295,9 @@ const HeaderRow = React.memo(function HeaderRow(p: {
       {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
         <Kb.Box2 direction="vertical" /> // box so that the other item aligns to the left
       ) : (
-        <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
+        <Kb.Text3 type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
           {onSelectAll ? 'Select all' : 'Clear'}
-        </Kb.Text>
+        </Kb.Text3>
       )}
     </Kb.Box2>
   )
@@ -481,9 +481,9 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
   return Kb.Styles.isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect} style={{height: rowHeight}}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="tiny">
-        <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
+        <Kb.Text3 type="Body" lineClamp={1} style={styles.channelText}>
           #{channelMeta.channelname}
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.Box2 direction="vertical">
           <Common.Activity level={activityLevel} iconOnly={true} />
         </Kb.Box2>
@@ -548,19 +548,19 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
       body={
         <Kb.Box2 direction="vertical" alignItems="stretch">
           <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
-            <Kb.Text type="BodySemibold" lineClamp={1}>
+            <Kb.Text3 type="BodySemibold" lineClamp={1}>
               #{channelMeta.channelname}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
           {selfMode && (
-            <Kb.Text
+            <Kb.Text3
               type="BodySmall"
               lineClamp={1}
               style={styles.description}
               title={channelMeta.description}
             >
               {channelMeta.description}
-            </Kb.Text>
+            </Kb.Text3>
           )}
         </Kb.Box2>
       }

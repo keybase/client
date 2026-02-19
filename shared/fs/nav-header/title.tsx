@@ -49,9 +49,9 @@ const Breadcrumb = (props: Props) => {
               view: (
                 <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
                   <Kbfs.ItemIcon path={path} size={16} />
-                  <Kb.Text type="Body" lineClamp={1}>
+                  <Kb.Text3 type="Body" lineClamp={1}>
                     {T.FS.getPathName(path)}
-                  </Kb.Text>
+                  </Kb.Text3>
                 </Kb.Box2>
               ),
             }))}
@@ -77,21 +77,21 @@ const Breadcrumb = (props: Props) => {
       )}
       {ancestors.slice(-2).map(path => (
         <React.Fragment key={`text-${path}`}>
-          <Kb.Text key={`slash-${T.FS.pathToString(path)}`} type="BodyTiny" style={styles.slash}>
+          <Kb.Text3 key={`slash-${T.FS.pathToString(path)}`} type="BodyTiny" style={styles.slash}>
             /
-          </Kb.Text>
-          <Kb.Text
+          </Kb.Text3>
+          <Kb.Text3
             key={`name-${T.FS.pathToString(path)}`}
             type="BodyTinyLink"
             onClick={() => onOpenPath(path)}
           >
             {T.FS.getPathName(path)}
-          </Kb.Text>
+          </Kb.Text3>
         </React.Fragment>
       ))}
-      <Kb.Text key={`slash-end}`} type="BodyTiny" style={styles.slash}>
+      <Kb.Text3 key={`slash-end}`} type="BodyTiny" style={styles.slash}>
         /
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
   )
 }
@@ -113,9 +113,9 @@ const MainTitle = (props: Props) => (
 
 const FsNavHeaderTitle = (props: Props) =>
   props.path === FS.defaultPath ? (
-    <Kb.Text type="Header" style={styles.rootTitle}>
+    <Kb.Text3 type="Header" style={styles.rootTitle}>
       Files
-    </Kb.Text>
+    </Kb.Text3>
   ) : (
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Breadcrumb {...props} />

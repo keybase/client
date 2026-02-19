@@ -90,11 +90,11 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
               showTooltip={false}
               size={Kb.Styles.isMobile ? 32 : 26}
             />
-            <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
+            <Kb.Text3 type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text3>
             {!Kb.Styles.isMobile && emoji.creationInfo && (
-              <Kb.Text type="Body" style={styles.date}>
+              <Kb.Text3 type="Body" style={styles.date}>
                 {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
-              </Kb.Text>
+              </Kb.Text3>
             )}
             {!Kb.Styles.isMobile && emoji.creationInfo && (
               <Kb.NameWithIcon

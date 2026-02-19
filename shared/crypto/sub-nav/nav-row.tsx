@@ -45,14 +45,14 @@ const NavRow = (props: Props) => {
             fullWidth={true}
             style={Kb.Styles.collapseStyles([styles.textContainer])}
           >
-            <Kb.Text
+            <Kb.Text3
               type="BodySemibold"
               style={{
                 color: isSelected ? Kb.Styles.globalColors.whiteOrWhite : Kb.Styles.globalColors.blackOrWhite,
               }}
             >
               {title}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         }
       />

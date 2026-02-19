@@ -63,9 +63,9 @@ const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonPr
         tooltip={explodingModeSeconds ? undefined : 'Timer'}
       >
         {explodingModeSeconds ? (
-          <Kb.Text type="BodyTinyBold" negative={true}>
+          <Kb.Text3 type="BodyTinyBold" negative={true}>
             {formatDurationShort(explodingModeSeconds * 1000)}
-          </Kb.Text>
+          </Kb.Text3>
         ) : (
           <Kb.Icon
             className={Kb.Styles.classNames('timer-icon', 'hover_color_black')}
@@ -195,9 +195,9 @@ const Footer = () => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.footerContainer}>
       <Typing />
-      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} selectable={true}>
+      <Kb.Text3 lineClamp={1} type="BodyTiny" style={styles.footer} selectable={true}>
         {`*bold*, _italics_, \`code\`, >quote, !>spoiler<!, @user, @team, #channel`}
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
   )
 }

@@ -35,9 +35,9 @@ const Container = () => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileFlex}>
         <Kb.Box2 direction="vertical" style={styles.container}>
           {!Kb.Styles.isMobile && (
-            <Kb.Text center={true} type="Header" style={styles.header}>
+            <Kb.Text3 center={true} type="Header" style={styles.header}>
               Prove your...
-            </Kb.Text>
+            </Kb.Text3>
           )}
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.inputContainer}>
             <Kb.Icon
@@ -112,17 +112,17 @@ const Providers = React.memo(function Providers({filter, providerClicked, provid
         >
           <SiteIcon set={provider.icon} style={styles.icon} full={true} />
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodySemibold" style={styles.title}>
+            <Kb.Text3 type="BodySemibold" style={styles.title}>
               {provider.name}
-            </Kb.Text>
+            </Kb.Text3>
             {(provider.new || !!provider.desc) && (
               <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
                 {provider.new && (
                   <Kb.Meta title="NEW" backgroundColor={Kb.Styles.globalColors.blue} style={styles.new} />
                 )}
-                <Kb.Text type="BodySmall" style={styles.description}>
+                <Kb.Text3 type="BodySmall" style={styles.description}>
                   {provider.desc}
-                </Kb.Text>
+                </Kb.Text3>
               </Kb.Box2>
             )}
           </Kb.Box2>

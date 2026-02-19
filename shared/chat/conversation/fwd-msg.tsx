@@ -135,9 +135,9 @@ const TeamPicker = (props: Props) => {
           ) : (
             <Avatars participantOne={item.parts?.[0]} participantTwo={item.parts?.[1]} />
           )}
-          <Kb.Text type="Body" style={{alignSelf: 'center'}}>
+          <Kb.Text3 type="Body" style={{alignSelf: 'center'}}>
             {item.name}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       </Kb.ClickableBox>
     )
@@ -160,9 +160,9 @@ const TeamPicker = (props: Props) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           {error.length > 0 ? (
-            <Kb.Text type="Body" style={{alignSelf: 'center', color: Kb.Styles.globalColors.redDark}}>
+            <Kb.Text3 type="Body" style={{alignSelf: 'center', color: Kb.Styles.globalColors.redDark}}>
               {error}
-            </Kb.Text>
+            </Kb.Text3>
           ) : (
             <Kb.List2
               indexAsKey={true}
@@ -205,9 +205,9 @@ const TeamPicker = (props: Props) => {
       onClose={onClose}
       header={{
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
+          <Kb.Text3 type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
-          </Kb.Text>
+          </Kb.Text3>
         ) : undefined,
         title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption',
       }}

@@ -38,7 +38,7 @@ const ChatPDF = (props: Props) => {
           style={styles.webViewContainer}
         />
       ) : (
-        <Kb.Text type="BodySmallError">Can&apos;t load this file {error}</Kb.Text>
+        <Kb.Text3 type="BodySmallError">Can&apos;t load this file {error}</Kb.Text3>
       )}
     </Kb.Box2>
   )

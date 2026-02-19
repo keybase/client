@@ -12,9 +12,9 @@ export const numSectionLabel = '0-9'
 
 const SearchHintText = () => (
   <Kb.Box2 direction="vertical" style={styles.searchHint}>
-    <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+    <Kb.Text3 type="BodySmall" style={{textAlign: 'center'}}>
       Search anyone on Keybase by typing a username or a full name.
-    </Kb.Text>
+    </Kb.Text3>
   </Kb.Box2>
 )
 

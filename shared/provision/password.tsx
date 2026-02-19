@@ -85,9 +85,9 @@ const Password = () => {
               textType="BodySemibold"
               type="password"
             />
-            <Kb.Text style={styles.forgotPassword} type="BodySmallSecondaryLink" onClick={_onForgotPassword}>
+            <Kb.Text3 style={styles.forgotPassword} type="BodySmallSecondaryLink" onClick={_onForgotPassword}>
               Forgot password?
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         </UserCard>
       </Kb.ScrollView>

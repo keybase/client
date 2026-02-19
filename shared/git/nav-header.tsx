@@ -10,8 +10,8 @@ export const HeaderTitle = () => (
     style={styles.headerTitle}
     className="hover-underline-container"
   >
-    <Kb.Text type="Header">Git repositories</Kb.Text>
-    <Kb.Text type="BodySmall">
+    <Kb.Text3 type="Header">Git repositories</Kb.Text3>
+    <Kb.Text3 type="BodySmall">
       All repositories are end-to-end encrypted.{' '}
       <Kb.Text
         type="BodySmall"
@@ -21,7 +21,7 @@ export const HeaderTitle = () => (
       >
         Read how it works.
       </Kb.Text>
-    </Kb.Text>
+    </Kb.Text3>
   </Kb.Box2>
 )
 

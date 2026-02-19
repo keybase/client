@@ -22,7 +22,7 @@ const OutOfDate = ({outOfDate}: Props) => {
       {outOfDate.updating ? (
         <Kb.BannerParagraph bannerColor={bannerColor} content="Updating…" />
       ) : (
-        <Kb.Text
+        <Kb.Text3
           type="BodySmallSemibold"
           style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}
         >
@@ -36,7 +36,7 @@ const OutOfDate = ({outOfDate}: Props) => {
             update now
           </Kb.Text>
           .
-        </Kb.Text>
+        </Kb.Text3>
       )}
     </Kb.Banner>
   )

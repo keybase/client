@@ -103,9 +103,9 @@ const Header = () => {
               username={username}
               onClick={onClickWrapper}
               metaTwo={
-                <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
+                <Kb.Text3 type="BodySmall" lineClamp={1} style={styles.fullname}>
                   {fullname}
-                </Kb.Text>
+                </Kb.Text3>
               }
             />
           </Kb.ClickableBox>
@@ -156,9 +156,9 @@ const Header = () => {
             style={styles.avatar}
           />
           <>
-            <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
+            <Kb.Text3 className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
               Hi {username}!
-            </Kb.Text>
+            </Kb.Text3>
             <Kb.Icon
               type="iconfont-arrow-down"
               color={Kb.Styles.globalColors.blueLighter}
@@ -335,9 +335,9 @@ const Tab = React.memo(function Tab(props: TabProps) {
           />
           {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>
-        <Kb.Text className="tab-label" type="BodySmallSemibold">
+        <Kb.Text3 className="tab-label" type="BodySmallSemibold">
           {label}
-        </Kb.Text>
+        </Kb.Text3>
         <TabBadge name={tab} />
       </Kb.Box2Measure>
     </Kb.ClickableBox>

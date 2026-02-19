@@ -5,7 +5,7 @@ import OpenMeta from './openmeta'
 import FloatingMenu from '@/common-adapters/floating-menu'
 import ConnectedUsernames from '@/common-adapters/usernames'
 import NameWithIcon from '@/common-adapters/name-with-icon'
-import Text from '@/common-adapters/text'
+import {Text3} from '@/common-adapters/text3'
 import {Box2} from '@/common-adapters/box'
 import WaitingButton from '@/common-adapters/waiting-button'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
@@ -16,7 +16,7 @@ const Kb = {
   FloatingMenu,
   NameWithIcon,
   Styles,
-  Text,
+  Text3,
   WaitingButton,
 }
 
@@ -85,11 +85,11 @@ const TeamInfo = (props: Props) => {
             teamname={props.name}
             title={props.name}
             metaOne={<OpenMeta isOpen={props.isOpen} />}
-            metaTwo={<Kb.Text type="BodySmall">{memberText}</Kb.Text>}
+            metaTwo={<Kb.Text3 type="BodySmall">{memberText}</Kb.Text3>}
           />
-          <Kb.Text type="Body" selectable={true} style={styles.description}>
+          <Kb.Text3 type="Body" selectable={true} style={styles.description}>
             {props.description}
-          </Kb.Text>
+          </Kb.Text3>
           {props.onChat && (
             <Kb.WaitingButton
               waitingKey={C.waitingKeyTracker}
@@ -115,7 +115,7 @@ const TeamInfo = (props: Props) => {
             />
           )}
           {!!props.publicAdmins.length && (
-            <Kb.Text center={true} type="BodySmall">
+            <Kb.Text3 center={true} type="BodySmall">
               Public admins:{' '}
               {
                 <Kb.ConnectedUsernames
@@ -128,7 +128,7 @@ const TeamInfo = (props: Props) => {
                   lineClamp={5}
                 />
               }
-            </Kb.Text>
+            </Kb.Text3>
           )}
         </Kb.Box2>
       }

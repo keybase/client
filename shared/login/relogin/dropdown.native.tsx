@@ -60,9 +60,9 @@ const Dropdown = (props: Props) => {
 
   const labelAndCaret = (
     <>
-      <Kb.Text key="text" type="Header" style={styles.orangeText}>
+      <Kb.Text3 key="text" type="Header" style={styles.orangeText}>
         {label(value)}
-      </Kb.Text>
+      </Kb.Text3>
       {Kb.Styles.isAndroid ? null : (
         <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.icon} sizeType="Tiny" />
       )}

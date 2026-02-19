@@ -42,9 +42,9 @@ const Container = () => {
       <Kb.ScrollView>
         <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
           {Kb.Styles.isMobile ? null : (
-            <Kb.Text type="Header" style={styles.header}>
+            <Kb.Text3 type="Header" style={styles.header}>
               Edit Profile
-            </Kb.Text>
+            </Kb.Text3>
           )}
           <Kb.RoundedBox side="top">
             <Kb.PlainInput
@@ -82,7 +82,7 @@ const Container = () => {
             disabled={disabled()}
             onClick={submit}
           />
-          {bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}
+          {bio.length > maxBio && <Kb.Text3 type="BodySmallError">Bio too long, sorry</Kb.Text3>}
         </Kb.Box2>
       </Kb.ScrollView>
     </Kb.PopupWrapper>

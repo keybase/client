@@ -167,12 +167,12 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
       <Kb.BoxGrow>{content}</Kb.BoxGrow>
       <Animated.View style={[styles.animated, {opacity: fadeAnim ?? 1}]}>
         <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.headerWrapper}>
-          <Kb.Text type="Body" onClick={onClose} style={styles.close}>
+          <Kb.Text3 type="Body" onClick={onClose} style={styles.close}>
             Close
-          </Kb.Text>
-          <Kb.Text type="Body" onClick={onAllMedia} style={styles.allMedia}>
+          </Kb.Text3>
+          <Kb.Text3 type="Body" onClick={onAllMedia} style={styles.allMedia}>
             All media
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       </Animated.View>
       <Kb.Button icon="iconfont-ellipsis" style={styles.headerFooter} onClick={showPopup} />

@@ -102,9 +102,9 @@ const ReportOptions = (props: ReportOptionsProps) => {
           !showIncludeTranscript && styles.feedbackPaddingBottom,
         ])}
       >
-        <Kb.Text type="BodySmall" style={{marginLeft: 4}}>
+        <Kb.Text3 type="BodySmall" style={{marginLeft: 4}}>
           We will review this report within 24 hours and take an action
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.NewInput
           multiline={true}
           placeholder="Extra notes"
@@ -410,9 +410,9 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
 
   const header = {
     leftButton: Kb.Styles.isMobile ? (
-      <Kb.Text onClick={onClose} type="BodyPrimaryLink">
+      <Kb.Text3 onClick={onClose} type="BodyPrimaryLink">
         Cancel
-      </Kb.Text>
+      </Kb.Text3>
     ) : undefined,
     title: <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />,
   }
@@ -473,7 +473,7 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
           {!!adderUsername && renderRowsForUsername(adderUsername, true, teamLabel)}
           {!!otherUsernames?.length && (
             <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
-              <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
+              <Kb.Text3 type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text3>
             </Kb.Box2>
           )}
         </>

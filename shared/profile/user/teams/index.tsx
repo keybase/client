@@ -59,7 +59,7 @@ const Container = (ownProps: OwnProps) => {
   return onEdit || teamShowcase.length > 0 ? (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-        <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
+        <Kb.Text3 type="BodySmallSemibold">Teams</Kb.Text3>
         {!!onEdit && <Kb.Icon type="iconfont-edit" onClick={onEdit} />}
       </Kb.Box2>
       {!!onEdit && !teamShowcase.length && <ShowcaseTeamsOffer onEdit={onEdit} />}
@@ -93,9 +93,9 @@ const TeamShowcase = (props: Omit<TIProps, 'visible' | 'onHidden'>) => {
           {popup}
           <Kb.Avatar size={32} teamname={props.name} isTeam={true} />
         </>
-        <Kb.Text type="BodySemiboldLink" style={styles.link}>
+        <Kb.Text3 type="BodySemiboldLink" style={styles.link}>
           {name}
-        </Kb.Text>
+        </Kb.Text3>
         <OpenMeta isOpen={isOpen} />
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -107,9 +107,9 @@ const ShowcaseTeamsOffer = (p: {onEdit: () => void}) => (
     <Kb.ClickableBox onClick={p.onEdit}>
       <Kb.Box2 direction="horizontal" gap="tiny">
         <Kb.Icon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
-        <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
+        <Kb.Text3 style={styles.youFeatureTeam} type="BodyPrimaryLink">
           {"Feature the teams you're in"}
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
     </Kb.ClickableBox>
   </Kb.Box2>

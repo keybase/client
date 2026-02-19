@@ -9,15 +9,15 @@ const CreateChannel = (p: Props) => {
     <Kb.PopupDialog onClose={props.onBack} styleCover={styles.cover} styleContainer={styles.container}>
       <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.boxTop}>
         <Kb.Avatar isTeam={true} teamname={props.teamname} size={32} />
-        <Kb.Text type="BodySmallSemibold" style={{marginTop: Kb.Styles.globalMargins.xtiny}}>
+        <Kb.Text3 type="BodySmallSemibold" style={{marginTop: Kb.Styles.globalMargins.xtiny}}>
           {props.teamname}
-        </Kb.Text>
-        <Kb.Text
+        </Kb.Text3>
+        <Kb.Text3
           type="Header"
           style={{marginBottom: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.tiny}}
         >
           New chat channel
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
       {!!props.errorText && (
         <Kb.Banner color="red">
@@ -27,7 +27,7 @@ const CreateChannel = (p: Props) => {
       <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.box}>
         <Kb.ClickableBox style={styles.back} onClick={props.onBack}>
           <Kb.Icon style={styles.backIcon} type="iconfont-arrow-left" />
-          <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
+          <Kb.Text3 type="BodyPrimaryLink">Back</Kb.Text3>
         </Kb.ClickableBox>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>
           <Kb.LabeledInput

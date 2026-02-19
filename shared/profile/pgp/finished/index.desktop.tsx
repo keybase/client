@@ -17,11 +17,11 @@ export const Finished = (props: Props) => {
     <Modal>
       <Kb.Box2 direction="vertical" alignItems="center" gap="tiny">
         <Kb.PlatformIcon platform="pgp" overlay="icon-proof-success" />
-        <Kb.Text type="Header">Here is your unique public key!</Kb.Text>
-        <Kb.Text type="Body">
+        <Kb.Text3 type="Header">Here is your unique public key!</Kb.Text3>
+        <Kb.Text3 type="Body">
           Your private key has been written to Keybase’s local keychain. You can learn to use it with `keybase
           pgp help` from your terminal. If you have GPG installed, it has also been written to GPG’s keychain.
-        </Kb.Text>
+        </Kb.Text3>
         <textarea
           style={Kb.Styles.castStyleDesktop(styles.pgpKeyString)}
           readOnly={true}
@@ -34,10 +34,10 @@ export const Finished = (props: Props) => {
               checked={shouldStoreKeyOnServer}
               label="Store encrypted private key on Keybase's server"
             />
-            <Kb.Text type="BodySmall">
+            <Kb.Text3 type="BodySmall">
               Allows you to download & import your key to other devices. You might need to enter your Keybase
               password.{' '}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         )}
         <Kb.Button

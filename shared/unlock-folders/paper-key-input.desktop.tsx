@@ -23,7 +23,7 @@ const PaperKeyInput = (props: Props) => {
         error={!!errorText}
         placeholder="Enter your paper key"
       />
-      {!!errorText && <Kb.Text type="BodySmallError">{errorText}</Kb.Text>}
+      {!!errorText && <Kb.Text3 type="BodySmallError">{errorText}</Kb.Text3>}
       <Kb.Button
         label="Continue"
         style={styles.button}

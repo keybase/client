@@ -53,8 +53,8 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.illustration}>
         <Kb.Icon type="icon-illustration-teams-feature-profile-460-64" />
       </Kb.Box2>
-      <Kb.Text type="BodySemibold">Feature team on your profile?</Kb.Text>
-      <Kb.Text type="BodySmall">{"So your friends or coworkers know of your team's existence."}</Kb.Text>
+      <Kb.Text3 type="BodySemibold">Feature team on your profile?</Kb.Text3>
+      <Kb.Text3 type="BodySmall">{"So your friends or coworkers know of your team's existence."}</Kb.Text3>
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
         <Kb.Button
           label="Yes, feature it"
@@ -144,9 +144,9 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           alignSelf="flex-start"
           style={styles.flexShrink}
         >
-          <Kb.Text type="Header" lineClamp={3} style={styles.header} selectable={true}>
+          <Kb.Text3 type="Header" lineClamp={3} style={styles.header} selectable={true}>
             {meta.teamname}
-          </Kb.Text>
+          </Kb.Text3>
           {!!onRename && <Kb.Icon type="iconfont-edit" onClick={onRename} />}
         </Kb.Box2>
         {meta.isOpen && (
@@ -166,13 +166,13 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           )}
           {!Kb.Styles.isPhone && (
             <>
-              <Kb.Text type="BodySmall">
+              <Kb.Text3 type="BodySmall">
                 {`You are ${roleDisplay[meta.role] || 'a member of'} this team. `}
-              </Kb.Text>
+              </Kb.Text3>
               {meta.role === 'none' && (
-                <Kb.Text type="BodySmallSecondaryLink" onClick={onAddSelf} style={styles.addSelfLink}>
+                <Kb.Text3 type="BodySmallSecondaryLink" onClick={onAddSelf} style={styles.addSelfLink}>
                   Add yourself
-                </Kb.Text>
+                </Kb.Text3>
               )}
             </>
           )}
@@ -187,7 +187,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     <>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Kb.Styles.isPhone}>
         {!!details?.description && (
-          <Kb.Text
+          <Kb.Text3
             type="Body"
             lineClamp={3}
             onClick={onEditDescription}
@@ -195,12 +195,12 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             style={styles.clickable}
           >
             {details.description}
-          </Kb.Text>
+          </Kb.Text3>
         )}
         {meta.memberCount !== -1 && (
-          <Kb.Text type="BodySmall">
+          <Kb.Text3 type="BodySmall">
             {meta.memberCount.toLocaleString()} {pluralize('member', meta.memberCount)}
-          </Kb.Text>
+          </Kb.Text3>
         )}
         <Activity level={activityLevel} style={styles.activity} />
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>

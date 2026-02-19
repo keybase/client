@@ -34,9 +34,9 @@ const Activity = (p: Props) => {
         sizeType="Small"
       />
       {iconOnly ? null : (
-        <Kb.Text type="BodySmall" style={level === 'active' ? styles.activityActive : undefined}>
+        <Kb.Text3 type="BodySmall" style={level === 'active' ? styles.activityActive : undefined}>
           {activityToLabel[level]}
-        </Kb.Text>
+        </Kb.Text3>
       )}
     </Kb.Box2>
   )
@@ -56,7 +56,7 @@ export const ModalTitle = ({title, teamID}: MTProps) => {
           {teamname}
         </Kb.Text>
       )}
-      <Kb.Text type="BodyBig">{title}</Kb.Text>
+      <Kb.Text3 type="BodyBig">{title}</Kb.Text3>
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
@@ -69,10 +69,10 @@ export const ModalTitle = ({title, teamID}: MTProps) => {
         crop={isNewTeamWizard ? avatarCrop : undefined}
       />
       <Kb.Box2 direction="vertical" alignItems="center">
-        <Kb.Text type="BodySmall" lineClamp={1}>
+        <Kb.Text3 type="BodySmall" lineClamp={1}>
           {teamname}
-        </Kb.Text>
-        <Kb.Text type="Header">{title}</Kb.Text>
+        </Kb.Text3>
+        <Kb.Text3 type="Header">{title}</Kb.Text3>
       </Kb.Box2>
     </Kb.Box2>
   )

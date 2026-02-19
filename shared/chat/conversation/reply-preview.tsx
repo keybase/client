@@ -40,15 +40,15 @@ const ReplyPreview = () => {
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
       <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny" fullWidth={true}>
         <Kb.Box2 direction="vertical" style={styles.title} fullWidth={true}>
-          <Kb.Text type="BodySmallSemibold">Replying to:</Kb.Text>
+          <Kb.Text3 type="BodySmallSemibold">Replying to:</Kb.Text3>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.replyContainer}>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={username} size={32} />
-              <Kb.Text type="BodyBold" style={styles.username}>
+              <Kb.Text3 type="BodyBold" style={styles.username}>
                 {username}
-              </Kb.Text>
+              </Kb.Text3>
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
               {!!imageURL && (
@@ -58,9 +58,9 @@ const ReplyPreview = () => {
                   </Kb.Box2>
                 </Kb.Box2>
               )}
-              <Kb.Text type="BodySmall" style={styles.text} lineClamp={1}>
+              <Kb.Text3 type="BodySmall" style={styles.text} lineClamp={1}>
                 {text}
-              </Kb.Text>
+              </Kb.Text3>
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Icon onClick={onCancel} type="iconfont-remove" style={styles.close} boxStyle={styles.close} />

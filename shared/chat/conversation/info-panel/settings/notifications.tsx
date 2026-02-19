@@ -31,10 +31,10 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
           label=""
           labelComponent={
             <Kb.Box2 direction="vertical" style={{flex: 1}}>
-              <Kb.Text type="Body">
-                Ignore <Kb.Text type="BodySemibold">@here</Kb.Text> and{' '}
-                <Kb.Text type="BodySemibold">@channel</Kb.Text> mentions {ignoreMentionsSuffix}
-              </Kb.Text>
+              <Kb.Text3 type="Body">
+                Ignore <Kb.Text3 type="BodySemibold">@here</Kb.Text3> and{' '}
+                <Kb.Text3 type="BodySemibold">@channel</Kb.Text3> mentions {ignoreMentionsSuffix}
+              </Kb.Text3>
             </Kb.Box2>
           }
           onCheck={toggleChannelWide}
@@ -42,7 +42,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
       )}
 
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text type="BodySmallSemibold">Desktop notifications</Kb.Text>
+        <Kb.Text3 type="BodySmallSemibold">Desktop notifications</Kb.Text3>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
           <Kb.RadioButton
             style={{marginTop: Kb.Styles.globalMargins.xtiny}}
@@ -70,7 +70,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
       </Kb.Box2>
 
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text type="BodySmallSemibold">Mobile notifications</Kb.Text>
+        <Kb.Text3 type="BodySmallSemibold">Mobile notifications</Kb.Text3>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
           <Kb.RadioButton
             style={{marginTop: Kb.Styles.globalMargins.xtiny}}

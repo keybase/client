@@ -43,7 +43,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   }
 
   if (pathItem.type !== T.FS.PathType.File) {
-    return <Kb.Text type="BodySmallError">{`This shouldn't happen type=${pathItem.type}`}</Kb.Text>
+    return <Kb.Text3 type="BodySmallError">{`This shouldn't happen type=${pathItem.type}`}</Kb.Text3>
   }
 
   if (fileContext === FS.emptyFileContext) {
@@ -51,7 +51,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
     // component to use.
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-        <Kb.Text type="BodySmall">Loading ...</Kb.Text>
+        <Kb.Text3 type="BodySmall">Loading ...</Kb.Text3>
       </Kb.Box2>
     )
   }
@@ -124,7 +124,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
         <DefaultView path={path} />
       )
     default:
-      return <Kb.Text type="BodySmallError">{"This shouldn't happen"}</Kb.Text>
+      return <Kb.Text3 type="BodySmallError">{"This shouldn't happen"}</Kb.Text3>
   }
 }
 

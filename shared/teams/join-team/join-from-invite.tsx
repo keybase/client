@@ -68,7 +68,7 @@ const JoinFromInvite = () => {
           gap="small"
           centerChildren={true}
         >
-          <Kb.Text type="BodySmallError">ERROR: {error}</Kb.Text>
+          <Kb.Text3 type="BodySmallError">ERROR: {error}</Kb.Text3>
         </Kb.Box2>
       ) : (
         <Kb.Box2
@@ -80,7 +80,7 @@ const JoinFromInvite = () => {
           centerChildren={true}
         >
           <Kb.ProgressIndicator type="Huge" />
-          <Kb.Text type="BodySmall">Loading...</Kb.Text>
+          <Kb.Text3 type="BodySmall">Loading...</Kb.Text3>
         </Kb.Box2>
       )
     ) : showSuccess ? (
@@ -122,11 +122,11 @@ const JoinFromInvite = () => {
             </Kb.Box2>
           )}
         </Kb.Box2>
-        <Kb.Text type="Header">Join {teamname}</Kb.Text>
-        <Kb.Text type="BodySmall">{details.teamNumMembers.toLocaleString()} members</Kb.Text>
-        <Kb.Text type="Body" lineClamp={3} style={styles.description}>
+        <Kb.Text3 type="Header">Join {teamname}</Kb.Text3>
+        <Kb.Text3 type="BodySmall">{details.teamNumMembers.toLocaleString()} members</Kb.Text3>
+        <Kb.Text3 type="Body" lineClamp={3} style={styles.description}>
           {details.teamDesc}
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
@@ -143,7 +143,7 @@ const JoinFromInvite = () => {
           />
           <Kb.Button type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
         </Kb.Box2>
-        {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
+        {!!error && <Kb.Text3 type="BodySmallError">{error}</Kb.Text3>}
         <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
         <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
           <Kb.Avatar
@@ -156,7 +156,7 @@ const JoinFromInvite = () => {
             usernames={[details.inviterUsername]}
             colorFollowing={true}
           />
-          <Kb.Text type="BodySmall"> invited you.</Kb.Text>
+          <Kb.Text3 type="BodySmall"> invited you.</Kb.Text3>
         </Kb.Box2>
         {Kb.Styles.isMobile && (
           <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.laterBox}>

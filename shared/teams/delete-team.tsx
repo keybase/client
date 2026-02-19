@@ -65,17 +65,17 @@ const DeleteTeamContainer = (op: OwnProps) => {
     return (
       <Kb.ConfirmModal
         content={
-          <Kb.Text type="Body" center={true} style={{marginTop: Kb.Styles.globalMargins.medium}}>
-            Before you can delete <Kb.Text type="BodySemibold">{teamname}</Kb.Text>, delete its{' '}
+          <Kb.Text3 type="Body" center={true} style={{marginTop: Kb.Styles.globalMargins.medium}}>
+            Before you can delete <Kb.Text3 type="BodySemibold">{teamname}</Kb.Text3>, delete its{' '}
             {subteamNames.length} {pluralize('subteam', subteamNames.length)}:{' '}
-            <Kb.Text type="BodySemibold">{subteamNames.join(', ')}</Kb.Text>.
-          </Kb.Text>
+            <Kb.Text3 type="BodySemibold">{subteamNames.join(', ')}</Kb.Text3>.
+          </Kb.Text3>
         }
         header={<Header teamname={teamname} />}
         prompt={
-          <Kb.Text type="Header" center={true} style={Kb.Styles.padding(0, Kb.Styles.globalMargins.small)}>
+          <Kb.Text3 type="Header" center={true} style={Kb.Styles.padding(0, Kb.Styles.globalMargins.small)}>
             {"You can't delete {teamname} because it has subteams."}
-          </Kb.Text>
+          </Kb.Text3>
         }
         onCancel={onBack}
       />

@@ -25,7 +25,7 @@ const Image2 = React.memo(function Image2(p: Props) {
   const filename = React.useMemo(() => {
     return Kb.Styles.isMobile || !fileName ? null : (
       <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
-        <Kb.Text type="BodySmall">{fileName}</Kb.Text>
+        <Kb.Text3 type="BodySmall">{fileName}</Kb.Text3>
         {collapseIcon}
       </Kb.Box2>
     )

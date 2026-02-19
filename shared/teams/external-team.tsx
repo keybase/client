@@ -56,12 +56,12 @@ const ExternalTeam = (props: Props) => {
           alignItems="center"
         >
           <Kb.ProgressIndicator />
-          <Kb.Text type="BodySmall">Loading team...</Kb.Text>
+          <Kb.Text3 type="BodySmall">Loading team...</Kb.Text3>
         </Kb.Box2>
       ) : (
-        <Kb.Text type="Body" style={styles.error}>
+        <Kb.Text3 type="Body" style={styles.error}>
           This team does not exist or it has no public information available.
-        </Kb.Text>
+        </Kb.Text3>
       )}
     </Kb.Box2>
   )
@@ -100,7 +100,7 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
             gapEnd={true}
             centerChildren={true}
           >
-            <Kb.Text type="BodySmall">This team has no public members.</Kb.Text>
+            <Kb.Text3 type="BodySmall">This team has no public members.</Kb.Text3>
           </Kb.Box2>
         ) : item.type === 'member' ? (
           <Member member={item.member} firstItem={index === 0} />
@@ -141,10 +141,10 @@ const Header = ({info}: ExternalTeamProps) => {
   const metaInfo = (
     <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Kb.Styles.isMobile ? 'small' : 'tiny'}>
       <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Kb.Styles.isMobile ? 'xtiny' : 'xxtiny'}>
-        {!!info.description && <Kb.Text type="Body">{info.description}</Kb.Text>}
-        <Kb.Text type="BodySmall">
+        {!!info.description && <Kb.Text3 type="Body">{info.description}</Kb.Text3>}
+        <Kb.Text3 type="BodySmall">
           {info.numMembers.toLocaleString()} {pluralize('member', info.numMembers)}
-        </Kb.Text>
+        </Kb.Text3>
         {/* TODO add activity */}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="tiny" fullWidth={true}>
@@ -161,7 +161,7 @@ const Header = ({info}: ExternalTeamProps) => {
         <Kb.Avatar size={96} teamname={teamname} />
         <Kb.Box2 direction="vertical" gap="xxtiny" alignSelf="flex-start">
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-            <Kb.Text type="Header">{teamname}</Kb.Text>
+            <Kb.Text3 type="Header">{teamname}</Kb.Text3>
             {!Kb.Styles.isMobile && openMeta}
           </Kb.Box2>
           {Kb.Styles.isMobile && openMeta}
@@ -189,14 +189,14 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
           <Kb.ConnectedUsernames type="BodyBold" usernames={member.username} colorFollowing={true} />
           <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="flex-start">
             {!!member.fullName && (
-              <Kb.Text type="BodySmall" style={{flexShrink: 1}} lineClamp={1}>
+              <Kb.Text3 type="BodySmall" style={{flexShrink: 1}} lineClamp={1}>
                 {member.fullName.trim()}
-              </Kb.Text>
+              </Kb.Text3>
             )}
             {!!member.fullName && (
-              <Kb.Text type="BodySmall" style={styles.middot}>
+              <Kb.Text3 type="BodySmall" style={styles.middot}>
                 •
-              </Kb.Text>
+              </Kb.Text3>
             )}
             {[T.RPCGen.TeamRole.admin, T.RPCGen.TeamRole.owner].includes(member.role) && (
               <Kb.Icon
@@ -205,7 +205,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
                 style={styles.crownIcon}
               />
             )}
-            <Kb.Text type="BodySmall">{capitalize(roleString)}</Kb.Text>
+            <Kb.Text3 type="BodySmall">{capitalize(roleString)}</Kb.Text3>
           </Kb.Box2>
         </Kb.Box2>
       }

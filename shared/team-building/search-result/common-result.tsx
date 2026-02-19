@@ -104,13 +104,13 @@ const CommonResult = (props: CommonResultProps) => {
             </>
           ) : (
             <>
-              <Kb.Text type="BodySemibold" lineClamp={1}>
+              <Kb.Text3 type="BodySemibold" lineClamp={1}>
                 {props.prettyName}
-              </Kb.Text>
+              </Kb.Text3>
               {!!props.displayLabel && props.displayLabel !== props.prettyName && (
-                <Kb.Text type="BodySmall" lineClamp={1}>
+                <Kb.Text3 type="BodySmall" lineClamp={1}>
                   {props.displayLabel}
-                </Kb.Text>
+                </Kb.Text3>
               )}
             </>
           )}
@@ -224,13 +224,13 @@ const FormatPrettyName = (props: {
   //   | chriscoyne
   //   | chris • chris (prettyName) • {serviceIcons}
   props.prettyName !== props.keybaseUsername ? (
-    <Kb.Text type="BodySmall" lineClamp={1}>
+    <Kb.Text3 type="BodySmall" lineClamp={1}>
       {textWithConditionalSeparator(props.prettyName, props.showServicesIcons && !!props.services.length)}
-    </Kb.Text>
+    </Kb.Text3>
   ) : props.displayLabel ? (
-    <Kb.Text type="BodySmall" lineClamp={1}>
+    <Kb.Text3 type="BodySmall" lineClamp={1}>
       {textWithConditionalSeparator(props.displayLabel, props.showServicesIcons && !!props.services.length)}
-    </Kb.Text>
+    </Kb.Text3>
   ) : null
 
 const MobileScrollView = ({children}: {children: React.ReactNode}) =>
@@ -262,16 +262,16 @@ const BottomRow = (props: {
   const showServicesIcons = props.isKeybaseResult || !!props.keybaseUsername
   const keybaseUsernameComponent = serviceUserIsAlsoKeybaseUser ? (
     <>
-      <Kb.Text
+      <Kb.Text3
         type="BodyBold"
         style={followingStateToStyle(props.keybaseUsername ? props.followingState : 'NoState')}
         lineClamp={1}
       >
         {props.keybaseUsername}
-      </Kb.Text>
-      <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
-      <Kb.Text type="BodySmall">{dotSeparator}</Kb.Text>
-      <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
+      </Kb.Text3>
+      <Kb.Text3 type="BodySmall">&nbsp;</Kb.Text3>
+      <Kb.Text3 type="BodySmall">{dotSeparator}</Kb.Text3>
+      <Kb.Text3 type="BodySmall">&nbsp;</Kb.Text3>
     </>
   ) : null
 
@@ -280,9 +280,9 @@ const BottomRow = (props: {
       <MobileScrollView>
         {keybaseUsernameComponent}
         {props.isPreExistingTeamMember ? (
-          <Kb.Text type="BodySmall" lineClamp={1}>
+          <Kb.Text3 type="BodySmall" lineClamp={1}>
             {isPreExistingTeamMemberText(props.prettyName, props.username)}
-          </Kb.Text>
+          </Kb.Text3>
         ) : (
           <>
             <FormatPrettyName
@@ -318,14 +318,14 @@ const Username = (props: {
   keybaseUsername?: string
   username: string
 }) => (
-  <Kb.Text
+  <Kb.Text3
     type={props.isKeybaseResult && props.keybaseUsername ? 'BodyBold' : 'BodySemibold'}
     style={followingStateToStyle(
       props.isKeybaseResult && props.keybaseUsername ? props.followingState : 'NoState'
     )}
   >
     {props.username}
-  </Kb.Text>
+  </Kb.Text3>
 )
 
 export const userResultHeight = Kb.Styles.isMobile ? Kb.Styles.globalMargins.xlarge : 48

@@ -63,14 +63,14 @@ const AddToChannel = (props: Props) => {
       header={{
         hideBorder: Kb.Styles.isMobile,
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
+          <Kb.Text3 type="BodyBigLink" onClick={onClose}>
             Cancel
-          </Kb.Text>
+          </Kb.Text3>
         ) : undefined,
         rightButton: Kb.Styles.isMobile && toAdd.size && (
-          <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : onAdd}>
+          <Kb.Text3 type="BodyBigLink" onClick={waiting ? undefined : onAdd}>
             Add
-          </Kb.Text>
+          </Kb.Text3>
         ),
         title: title({channelname, teamID}),
       }}
@@ -139,10 +139,10 @@ const AddToChannel = (props: Props) => {
                 body={
                   <Kb.Box2 direction="vertical" alignItems="flex-start">
                     <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={item.username} />
-                    <Kb.Text type="BodySmall" lineClamp={1}>
-                      {alreadyIn && <Kb.Text type="BodySmall">Already in{!!item.fullName && ' • '}</Kb.Text>}
+                    <Kb.Text3 type="BodySmall" lineClamp={1}>
+                      {alreadyIn && <Kb.Text3 type="BodySmall">Already in{!!item.fullName && ' • '}</Kb.Text3>}
                       {item.fullName}
-                    </Kb.Text>
+                    </Kb.Text3>
                   </Kb.Box2>
                 }
                 action={

@@ -11,7 +11,7 @@ export type OwnProps = {
 
 const Username = ({mode, lastWriter}: {mode: OwnProps['mode']; lastWriter: string}) =>
   mode === 'row' && Kb.Styles.isMobile ? (
-    <Kb.Text type="BodySmall">{lastWriter}</Kb.Text>
+    <Kb.Text3 type="BodySmall">{lastWriter}</Kb.Text3>
   ) : (
     <Kb.ConnectedUsernames
       type={mode === 'menu' ? 'BodyTinyLink' : 'BodySmallSecondaryLink'}

@@ -166,9 +166,9 @@ export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAtt
       gapStart={true}
     >
       {isTransferring ? (
-        <Kb.Text type="BodySmall" negative={true}>
+        <Kb.Text3 type="BodySmall" negative={true}>
           {transferState === 'uploading' ? 'Uploading' : 'Downloading'}
-        </Kb.Text>
+        </Kb.Text3>
       ) : null}
       {isTransferring ? <Kb.ProgressBar ratio={ratio} /> : null}
     </Kb.Box2>
@@ -312,9 +312,9 @@ export const Collapsed = () => {
   const collapseIcon = useCollapseIcon(false)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.Text type="BodyTiny" onClick={onCollapse}>
+      <Kb.Text3 type="BodyTiny" onClick={onCollapse}>
         Collapsed
-      </Kb.Text>
+      </Kb.Text3>
       {collapseIcon}
     </Kb.Box2>
   )

@@ -65,9 +65,9 @@ export const Email = () => {
       onClose={onClose}
       header={{
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
+          <Kb.Text3 type="BodySemiboldLink" onClick={onClose}>
             Close
-          </Kb.Text>
+          </Kb.Text3>
         ) : null,
         title: Kb.Styles.isMobile ? 'Add email address' : 'Add an email address',
       }}
@@ -181,9 +181,9 @@ export const Phone = () => {
       onClose={onClose}
       header={{
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
+          <Kb.Text3 type="BodySemiboldLink" onClick={onClose}>
             Close
-          </Kb.Text>
+          </Kb.Text3>
         ) : null,
         title: Kb.Styles.isMobile ? 'Add phone number' : 'Add a phone number',
       }}
@@ -298,9 +298,9 @@ export const VerifyPhone = () => {
         ) : null,
         style: styles.blueBackground,
         title: (
-          <Kb.Text type="BodySmall" negative={true} center={true}>
+          <Kb.Text3 type="BodySmall" negative={true} center={true}>
             {displayPhone || 'Unknown number'}
-          </Kb.Text>
+          </Kb.Text3>
         ),
       }}
       footer={{

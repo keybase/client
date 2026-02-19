@@ -78,13 +78,13 @@ const ResetModalImpl = () => {
               color={Kb.Styles.globalColors.black_20}
               fontSize={48}
             />
-            <Kb.Text type="Body" center={true}>
+            <Kb.Text3 type="Body" center={true}>
               {msg}
-            </Kb.Text>
-            <Kb.Text type="Body" center={true}>
+            </Kb.Text3>
+            <Kb.Text3 type="Body" center={true}>
               But... it looks like you’re already logged in. Congrats! You should cancel the reset, since
               clearly you have access to your devices.
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Modal>

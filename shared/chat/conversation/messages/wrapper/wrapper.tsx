@@ -376,19 +376,19 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
     ) : null
 
   return (
-    <Kb.Text key="isFailed" type="BodySmall">
-      <Kb.Text type="BodySmall" style={exploding ? styles.failExploding : styles.fail}>
+    <Kb.Text3 key="isFailed" type="BodySmall">
+      <Kb.Text3 type="BodySmall" style={exploding ? styles.failExploding : styles.fail}>
         {exploding ? (
           <>
             <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
           </>
         ) : null}
         {`${failureDescription}. `}
-      </Kb.Text>
+      </Kb.Text3>
       {action}
       {or}
       {cancel}
-    </Kb.Text>
+    </Kb.Text3>
   )
 })
 

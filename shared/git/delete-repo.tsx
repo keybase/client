@@ -59,15 +59,15 @@ const Container = (ownProps: OwnProps) => {
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
           {!!error && (
             <Kb.Box2 direction="vertical" style={styles.error}>
-              <Kb.Text type="Body" negative={true}>
+              <Kb.Text3 type="Body" negative={true}>
                 {error.message}
-              </Kb.Text>
+              </Kb.Text3>
             </Kb.Box2>
           )}
-          <Kb.Text center={true} type="Header" style={{marginBottom: 27}}>
+          <Kb.Text3 center={true} type="Header" style={{marginBottom: 27}}>
             Are you sure you want to delete this {teamname ? 'team ' : ''}
             repository?
-          </Kb.Text>
+          </Kb.Text3>
           <Kb.Icon type={teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
           <Kb.Box2 direction="horizontal" alignItems="center" style={styles.avatarBox}>
             {!!teamname && (
@@ -78,21 +78,21 @@ const Container = (ownProps: OwnProps) => {
                 style={{marginRight: Kb.Styles.globalMargins.xtiny}}
               />
             )}
-            <Kb.Text
+            <Kb.Text3
               type="BodySemibold"
               style={{color: Kb.Styles.globalColors.redDark, textDecorationLine: 'line-through'}}
             >
               {teamname ? `${teamname}/${_name}` : _name}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
-          <Kb.Text center={true} type="Body" style={{marginBottom: Kb.Styles.globalMargins.medium}}>
+          <Kb.Text3 center={true} type="Body" style={{marginBottom: Kb.Styles.globalMargins.medium}}>
             {teamname
               ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
               : 'This will permanently delete your remote files and history. This action cannot be undone.'}
-          </Kb.Text>
-          <Kb.Text style={styles.confirm} type="BodySemibold">
+          </Kb.Text3>
+          <Kb.Text3 style={styles.confirm} type="BodySemibold">
             Enter the name of the repository to&nbsp;confirm:
-          </Kb.Text>
+          </Kb.Text3>
           <Kb.LabeledInput
             autoFocus={true}
             value={name}

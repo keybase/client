@@ -60,9 +60,9 @@ const AddSubteamMembers = () => {
         body={
           <Kb.Box2 direction="vertical">
             <Kb.ConnectedUsernames type="BodySemibold" usernames={[m.username]} />
-            <Kb.Text type="BodySmall" lineClamp={1}>
+            <Kb.Text3 type="BodySmall" lineClamp={1}>
               {m.fullName}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         }
         action={<Kb.CheckCircle checked={selectedMembers.has(m.username)} onCheck={onSelect} />}
@@ -80,9 +80,9 @@ const AddSubteamMembers = () => {
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         rightButton: Kb.Styles.isMobile ? (
           <Kb.Box2 direction="horizontal" style={styles.noWrap}>
-            <Kb.Text type="BodyBigLink" onClick={onContinue}>
+            <Kb.Text3 type="BodyBigLink" onClick={onContinue}>
               {doneLabel}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         ) : undefined,
         title: <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />,
@@ -109,12 +109,12 @@ const AddSubteamMembers = () => {
         </Kb.Box2>
         {/* TODO: once it's easier to make a single different-height header, make this part of the list2 */}
         <Kb.Box2 direction="horizontal" style={styles.header} fullWidth={true}>
-          <Kb.Text type="BodySmallSemibold" lineClamp={1} style={styles.flexShrink}>
+          <Kb.Text3 type="BodySmallSemibold" lineClamp={1} style={styles.flexShrink}>
             Members of {parentTeamName}
-          </Kb.Text>
-          <Kb.Text type="BodyPrimaryLink" onClick={allSelected ? onSelectNone : onSelectAll}>
+          </Kb.Text3>
+          <Kb.Text3 type="BodyPrimaryLink" onClick={allSelected ? onSelectNone : onSelectAll}>
             Select {allSelected ? 'none' : 'all'}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
         <Kb.BoxGrow>
           <Kb.List2

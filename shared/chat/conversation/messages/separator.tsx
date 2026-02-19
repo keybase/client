@@ -154,9 +154,9 @@ const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUse
   ) : null
 
   const botAliasOrUsername = botAlias ? (
-    <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1} className="separator-text">
+    <Kb.Text3 type="BodySmallBold" style={styles.botAlias} lineClamp={1} className="separator-text">
       {botAlias} {' [' + showUsername + ']'}
-    </Kb.Text>
+    </Kb.Text3>
   ) : (
     usernameNode
   )
@@ -312,9 +312,9 @@ const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
       {orangeLineAbove ? (
         <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine}>
           {orangeTime ? (
-            <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
+            <Kb.Text3 type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
               {orangeTime}
-            </Kb.Text>
+            </Kb.Text3>
           ) : null}
         </Kb.Box2>
       ) : null}

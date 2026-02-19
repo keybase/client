@@ -5,10 +5,10 @@ const ConversationError = () => {
   const text = Chat.useChatContext(s => s.meta.snippet ?? '')
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
-      <Kb.Text type="Header">There was an error loading this conversation.</Kb.Text>
-      <Kb.Text type="Body">
+      <Kb.Text3 type="Header">There was an error loading this conversation.</Kb.Text3>
+      <Kb.Text3 type="Body">
         The error is:
-      </Kb.Text>
+      </Kb.Text3>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.CopyableText style={styles.errorText} value={text} />
       </Kb.Box2>

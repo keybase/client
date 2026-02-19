@@ -67,13 +67,13 @@ const ReplyText = () => {
         : ''
 
   return text ? (
-    <Kb.Text
+    <Kb.Text3
       type="BodySmall"
       style={showCenteredHighlight ? styles.textHighlighted : undefined}
       lineClamp={3}
     >
       {text}
-    </Kb.Text>
+    </Kb.Text3>
   ) : null
 }
 

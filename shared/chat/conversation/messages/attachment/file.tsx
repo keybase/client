@@ -137,7 +137,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
             {fileName === title ? (
               // if the title is the filename, don't try to parse it as markdown
-              <Kb.Text
+              <Kb.Text3
                 type="BodySemibold"
                 style={Kb.Styles.collapseStyles([
                   isSaltpackFile && styles.saltpackFileName,
@@ -146,7 +146,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
                 ])}
               >
                 {fileName}
-              </Kb.Text>
+              </Kb.Text3>
             ) : (
               <Kb.Markdown
                 messageType="attachment"
@@ -159,7 +159,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
               </Kb.Markdown>
             )}
             {fileName !== title && (
-              <Kb.Text
+              <Kb.Text3
                 type="BodyTiny"
                 onClick={onDownload}
                 style={Kb.Styles.collapseStyles([
@@ -168,7 +168,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
                 ])}
               >
                 {fileName}
-              </Kb.Text>
+              </Kb.Text3>
             )}
           </Kb.Box2>
         </Kb.Box2>
@@ -190,26 +190,26 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
         )}
         {!!progressLabel && (
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-            <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
+            <Kb.Text3 type="BodySmall" style={styles.progressLabelStyle}>
               {progressLabel}
-            </Kb.Text>
+            </Kb.Text3>
             {hasProgress && <Kb.ProgressBar ratio={progress} />}
           </Kb.Box2>
         )}
         {!!errorMsg && (
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-            <Kb.Text type="BodySmall" style={styles.error}>
+            <Kb.Text3 type="BodySmall" style={styles.error}>
               Failed to download.{' '}
-              <Kb.Text type="BodySmall" style={styles.retry} onClick={onDownload}>
+              <Kb.Text3 type="BodySmall" style={styles.retry} onClick={onDownload}>
                 Retry
-              </Kb.Text>
-            </Kb.Text>
+              </Kb.Text3>
+            </Kb.Text3>
           </Kb.Box2>
         )}
         {onShowInFinder && (
-          <Kb.Text type="BodySmallPrimaryLink" onClick={onShowInFinder} style={styles.linkStyle}>
+          <Kb.Text3 type="BodySmallPrimaryLink" onClick={onShowInFinder} style={styles.linkStyle}>
             Show in {Kb.Styles.fileUIName}
-          </Kb.Text>
+          </Kb.Text3>
         )}
       </Kb.Box2>
     </Kb.ClickableBox2>

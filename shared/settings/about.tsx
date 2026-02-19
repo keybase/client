@@ -29,19 +29,19 @@ const About = () => {
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.Icon type="icon-keybase-logo-64" />
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.version}>
-        <Kb.Text center={true} type="Body">
+        <Kb.Text3 center={true} type="Body">
           You are running version{' '}
-        </Kb.Text>
-        <Kb.Text type="BodySemibold" selectable={true}>
+        </Kb.Text3>
+        <Kb.Text3 type="BodySemibold" selectable={true}>
           {C.version}
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
-      <Kb.Text style={styles.terms} type="BodyPrimaryLink" onClick={onShowTerms}>
+      <Kb.Text3 style={styles.terms} type="BodyPrimaryLink" onClick={onShowTerms}>
         Terms and Conditions
-      </Kb.Text>
-      <Kb.Text type="BodyPrimaryLink" onClick={onShowPrivacyPolicy}>
+      </Kb.Text3>
+      <Kb.Text3 type="BodyPrimaryLink" onClick={onShowPrivacyPolicy}>
         Privacy Policy
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
   )
 }

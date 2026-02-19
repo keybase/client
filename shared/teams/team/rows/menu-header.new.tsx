@@ -12,12 +12,12 @@ const MenuHeader = (props: Props) => (
     <Kb.Avatar username={props.username} size={64} style={styles.avatar} />
     <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={props.username} />
     {!!props.fullName && (
-      <Kb.Text type="BodySmall" center={true}>
+      <Kb.Text3 type="BodySmall" center={true}>
         {props.fullName}
-      </Kb.Text>
+      </Kb.Text3>
     )}
     {!!props.label && typeof props.label === 'string' ? (
-      <Kb.Text type="BodySmall">{props.label}</Kb.Text>
+      <Kb.Text3 type="BodySmall">{props.label}</Kb.Text3>
     ) : (
       props.label
     )}

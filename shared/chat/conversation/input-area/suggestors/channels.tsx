@@ -35,7 +35,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
         {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
       ])}
     >
-      <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
+      <Kb.Text3 type="BodySemibold">#{channelname}</Kb.Text3>
     </Kb.Box2>
   )
 }

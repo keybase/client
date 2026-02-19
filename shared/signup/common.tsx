@@ -90,17 +90,17 @@ const Header = (props: HeaderProps) => (
               sizeType="Small"
               style={styles.fixIconAlignment}
             />
-            <Kb.Text
+            <Kb.Text3
               type="Body"
               style={props.negative ? undefined : styles.backText}
               negative={props.negative}
             >
               Back
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         </Kb.ClickableBox>
       )}
-      {props.titleComponent || <Kb.Text type="Header">{props.title}</Kb.Text>}
+      {props.titleComponent || <Kb.Text3 type="Header">{props.title}</Kb.Text3>}
       {props.onRightAction && !!props.rightActionLabel && (
         <Kb.Button
           type="Default"
@@ -183,20 +183,20 @@ export const SignupScreen = (props: SignupScreenProps) => (
       <Kb.ModalHeader
         leftButton={
           props.onBack ? (
-            <Kb.Text type="BodyBigLink" onClick={props.onBack}>
+            <Kb.Text3 type="BodyBigLink" onClick={props.onBack}>
               {(props.leftActionText ?? 'Back') || (props.leftAction ?? 'cancel')}
-            </Kb.Text>
+            </Kb.Text3>
           ) : null
         }
         rightButton={
           props.onRightAction ? (
-            <Kb.Text type="BodyBigLink" onClick={props.onRightAction}>
+            <Kb.Text3 type="BodyBigLink" onClick={props.onRightAction}>
               {props.rightActionLabel || props.rightActionComponent}
-            </Kb.Text>
+            </Kb.Text3>
           ) : null
         }
         style={props.headerStyle}
-        title={props.title ? <Kb.Text type="BodyBig">{props.title}</Kb.Text> : props.titleComponent}
+        title={props.title ? <Kb.Text3 type="BodyBig">{props.title}</Kb.Text3> : props.titleComponent}
       />
     )}
     {Kb.Styles.isMobile && props.header}

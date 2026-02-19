@@ -57,7 +57,7 @@ const TurnOnNotifications = () => {
       >
         <Kb.Icon type="illustration-turn-on-notifications" />
       </Kb.Box2>
-      <Kb.Text
+      <Kb.Text3
         type="BodySemibold"
         center={true}
         negative={true}
@@ -69,15 +69,15 @@ const TurnOnNotifications = () => {
         }}
       >
         You turned off native notifications for Keybase. It’s{' '}
-        <Kb.Text type="BodySemiboldItalic" negative={true}>
+        <Kb.Text3 type="BodySemiboldItalic" negative={true}>
           very
-        </Kb.Text>{' '}
+        </Kb.Text3>{' '}
         important you turn them back on.
         {'\n'}
-        <Kb.Text onClick={onEnable} type="BodySemiboldLink" negative={true}>
+        <Kb.Text3 onClick={onEnable} type="BodySemiboldLink" negative={true}>
           Enable notifications
-        </Kb.Text>
-      </Kb.Text>
+        </Kb.Text3>
+      </Kb.Text3>
     </Kb.Box2>
   )
 }

@@ -102,14 +102,14 @@ export const TeamRequestRow = (props: Props) => {
                   </Kb.Text>
                 )
               ) : (
-                <Kb.Text type="BodySmall" lineClamp={1}>
+                <Kb.Text3 type="BodySmall" lineClamp={1}>
                   {fullName !== '' && `${fullName}  • `}
                   {reset
                     ? fullName
                       ? 'Reset their account'
                       : 'reset their account'
                     : formatTimeRelativeToNow(ctime * 1000)}
-                </Kb.Text>
+                </Kb.Text3>
               )}
             </Kb.Box2>
           </Kb.Box2>

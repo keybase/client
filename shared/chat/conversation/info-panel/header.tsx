@@ -76,9 +76,9 @@ const TeamHeader = () => {
               fullWidth={true}
               style={styles.textWrapper}
             >
-              <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
-                # <Kb.Text type="BodyBold">{channelname}</Kb.Text>
-              </Kb.Text>
+              <Kb.Text3 lineClamp={1} type="Body" style={styles.channelName}>
+                # <Kb.Text3 type="BodyBold">{channelname}</Kb.Text3>
+              </Kb.Text3>
               {!isGeneralChannel && (
                 <Kb.Meta
                   backgroundColor={Kb.Styles.globalColors.blueGrey}
@@ -97,7 +97,7 @@ const TeamHeader = () => {
             >
               <Kb.Box2 direction="horizontal" gap="xtiny">
                 <Kb.Avatar teamname={teamname} size={16} />
-                <Kb.Text type="BodySmallSemibold">{teamname}</Kb.Text>
+                <Kb.Text3 type="BodySmallSemibold">{teamname}</Kb.Text3>
               </Kb.Box2>
               <Kb.Meta
                 backgroundColor={Kb.Styles.globalColors.blueGrey}
@@ -157,9 +157,9 @@ export const AdhocHeader = () => {
         style={styles.addMembers}
         onClick={onShowNewTeamDialog}
       />
-      <Kb.Text type="BodyTiny" center={true}>
+      <Kb.Text3 type="BodyTiny" center={true}>
         Add and delete members as you wish.
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
   )
 }

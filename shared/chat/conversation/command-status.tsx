@@ -54,9 +54,9 @@ const Container = () => {
           boxStyle={styles.close}
         />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
-          <Kb.Text type="BodySmall" style={Kb.Styles.collapseStyles([{color: textColor(props.displayType)}])}>
+          <Kb.Text3 type="BodySmall" style={Kb.Styles.collapseStyles([{color: textColor(props.displayType)}])}>
             {props.displayText}
-          </Kb.Text>
+          </Kb.Text3>
           {props.actions.map((a, i) => {
             return (
               <Kb.Text

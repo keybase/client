@@ -40,18 +40,18 @@ const ConnectedExplainDevice = () => {
       <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="small">
         <Kb.Icon type={explainingMobile ? 'icon-phone-96' : 'icon-computer-96'} />
         <Kb.Box2 alignItems="center" direction="vertical">
-          <Kb.Text type="Body">
-            On <Kb.Text type="BodySemiboldItalic">{deviceName}</Kb.Text>, go to
-          </Kb.Text>
+          <Kb.Text3 type="Body">
+            On <Kb.Text3 type="BodySemiboldItalic">{deviceName}</Kb.Text3>, go to
+          </Kb.Text3>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
             {explainingMobile ? (
               <Kb.Icon type="iconfont-nav-2-hamburger" color={Kb.Styles.globalColors.black} />
             ) : (
-              <Kb.Text type="Body">Settings</Kb.Text>
+              <Kb.Text3 type="Body">Settings</Kb.Text3>
             )}
-            <Kb.Text type="Body">{`> Your account, and change your`}</Kb.Text>
+            <Kb.Text3 type="Body">{`> Your account, and change your`}</Kb.Text3>
           </Kb.Box2>
-          <Kb.Text type="Body">password.</Kb.Text>
+          <Kb.Text3 type="Body">password.</Kb.Text3>
         </Kb.Box2>
       </Kb.Box2>
     </SignupScreen>

@@ -84,9 +84,9 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
           fullWidth={true}
         >
           <Kb.Box2 direction="vertical">
-            <Kb.Text type="BodyTinySemibold" style={styles.fastStyle}>
+            <Kb.Text3 type="BodyTinySemibold" style={styles.fastStyle}>
               Live location
-            </Kb.Text>
+            </Kb.Text3>
             <UpdateAge time={time} />
           </Kb.Box2>
           <LiveDuration liveLocationEndTime={liveLocationEndTime} isLiveLocationDone={isLiveLocationDone} />
@@ -120,9 +120,9 @@ const UpdateAge = (props: AgeProps) => {
     durationText = `updated ${formatDurationForLocation(duration)} ago`
   }
   return (
-    <Kb.Text type="BodyTiny" style={styles.fastStyle}>
+    <Kb.Text3 type="BodyTiny" style={styles.fastStyle}>
       {durationText}
-    </Kb.Text>
+    </Kb.Text3>
   )
 }
 
@@ -144,9 +144,9 @@ const LiveDuration = (props: DurationProps) => {
   }, [liveLocationEndTime])
 
   return (
-    <Kb.Text type="BodyTinySemibold" style={styles.fastStyle}>
+    <Kb.Text3 type="BodyTinySemibold" style={styles.fastStyle}>
       {props.isLiveLocationDone || duration <= 0 ? '(finished)' : formatDurationForLocation(duration)}
-    </Kb.Text>
+    </Kb.Text3>
   )
 }
 

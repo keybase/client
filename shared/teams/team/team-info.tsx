@@ -109,9 +109,9 @@ const TeamInfo = (props: Props) => {
             value={teamname}
           />
         )}
-        <Kb.Text type="BodySmall">
+        <Kb.Text3 type="BodySmall">
           {isSubteam ? `Subteam names are private.` : `Team names can't be changed.`}
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.LabeledInput
           hoverPlaceholder={isSubteam ? 'What is this subteam about?' : 'What is your team about?'}
           placeholder="Description"

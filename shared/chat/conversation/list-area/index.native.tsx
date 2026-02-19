@@ -87,9 +87,9 @@ const useScrolling = (p: {
 const maintainVisibleContentPosition = {autoscrollToTopThreshold: 1, minIndexForVisible: 0}
 const ConversationList = React.memo(function ConversationList() {
   const debugWhichList = __DEV__ ? (
-    <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
+    <Kb.Text3 type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
       {usingFlashList ? 'FLASH' : 'old'}
-    </Kb.Text>
+    </Kb.Text3>
   ) : null
 
   const conversationIDKey = Chat.useChatContext(s => s.id)

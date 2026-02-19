@@ -135,9 +135,9 @@ const ProxySettingsComponent = (props: Props) => {
 
   return (
     <>
-      <Kb.Text type="Header" style={styles.text}>
+      <Kb.Text3 type="Header" style={styles.text}>
         Proxy settings
-      </Kb.Text>
+      </Kb.Text3>
       {proxyTypeList.map(pt => (
         <Kb.RadioButton
           onSelect={() => proxyTypeSelected(pt)}
@@ -149,9 +149,9 @@ const ProxySettingsComponent = (props: Props) => {
       ))}
       {proxyType === 'noProxy' ? null : (
         <>
-          <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
+          <Kb.Text3 type="BodySmall">Proxy Address</Kb.Text3>
           <Kb.NewInput placeholder="127.0.0.1" onChangeText={setAddress} value={address} />
-          <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
+          <Kb.Text3 type="BodySmall">Proxy Port</Kb.Text3>
           <Kb.NewInput placeholder="8080" onChangeText={setPort} value={port} />
         </>
       )}

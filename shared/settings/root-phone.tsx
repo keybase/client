@@ -222,9 +222,9 @@ function SettingsNav() {
       }}
       renderSectionHeader={({section: {title}}) =>
         title ? (
-          <Kb.Text type="BodySmallSemibold" style={styles.sectionTitle}>
+          <Kb.Text3 type="BodySmallSemibold" style={styles.sectionTitle}>
             {title}
-          </Kb.Text>
+          </Kb.Text3>
         ) : null
       }
       style={Kb.Styles.globalStyles.fullHeight}

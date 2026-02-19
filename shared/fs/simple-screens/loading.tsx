@@ -10,7 +10,7 @@ const LoadingScreen = (p: {why?: string}) => (
     gap="small"
   >
     <Kb.ProgressIndicator type="Large" />
-    <Kb.Text type="BodySmall">Loading ...{p.why ?? ''}</Kb.Text>
+    <Kb.Text3 type="BodySmall">Loading ...{p.why ?? ''}</Kb.Text3>
   </Kb.Box2>
 )
 export default LoadingScreen

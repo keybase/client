@@ -71,9 +71,9 @@ const StillContainer = (p: OwnProps) => {
       }
       status={
         dismissUploadError ? (
-          <Kb.Text type="BodySmallError">
+          <Kb.Text3 type="BodySmallError">
             Upload has failed.{' '}
-            <Kb.Text
+            <Kb.Text3
               type="BodySmallPrimaryLink"
               style={styles.redDark}
               onClick={e => {
@@ -82,14 +82,14 @@ const StillContainer = (p: OwnProps) => {
               }}
             >
               Dismiss
-            </Kb.Text>
-          </Kb.Text>
+            </Kb.Text3>
+          </Kb.Text3>
         ) : intentIfDownloading ? (
-          <Kb.Text type="BodySmall">{getDownloadingText(intentIfDownloading)}</Kb.Text>
+          <Kb.Text3 type="BodySmall">{getDownloadingText(intentIfDownloading)}</Kb.Text3>
         ) : writingToJournal ? (
           <Kb.Meta title="Encrypting" backgroundColor={Kb.Styles.globalColors.blue} />
         ) : uploading ? (
-          <Kb.Text type="BodySmall">Uploading ...</Kb.Text>
+          <Kb.Text3 type="BodySmall">Uploading ...</Kb.Text3>
         ) : (
           type !== T.FS.PathType.Folder && <LastModifiedLine path={path} mode="row" />
         )

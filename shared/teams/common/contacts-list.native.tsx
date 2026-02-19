@@ -84,8 +84,8 @@ const ContactRow = React.memo(function ContactRow({
       firstItem={index === 0}
       body={
         <Kb.Box2 direction="vertical" alignItems="flex-start">
-          <Kb.Text type="BodySemibold">{topText}</Kb.Text>
-          {bottomText && <Kb.Text type="BodySmall">{bottomText}</Kb.Text>}
+          <Kb.Text3 type="BodySemibold">{topText}</Kb.Text3>
+          {bottomText && <Kb.Text3 type="BodySmall">{bottomText}</Kb.Text3>}
         </Kb.Box2>
       }
       onClick={disabled ? undefined : () => onCheck(!selected)}

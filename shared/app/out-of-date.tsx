@@ -66,9 +66,9 @@ const OutOfDate = () => {
 
   return status !== 'critical' ? null : (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
-      <Kb.Text center={true} type="Header" negative={true}>
+      <Kb.Text3 center={true} type="Header" negative={true}>
         Your version of Keybase is critically out of date!
-      </Kb.Text>
+      </Kb.Text3>
       <Kb.Box2 direction="vertical" style={styles.messageContainer} fullWidth={true}>
         <Kb.Markdown>{message}</Kb.Markdown>
       </Kb.Box2>

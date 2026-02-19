@@ -56,10 +56,10 @@ const CreateSubteams = () => {
         style={styles.body}
         gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
-        <Kb.Text type="BodySmall">
+        <Kb.Text3 type="BodySmall">
           Subteams are cryptographically distinct, and can welcome people who aren’t elsewhere in your team
           hierarchy.
-        </Kb.Text>
+        </Kb.Text3>
         {subteams.map((value, idx) => (
           <Kb.NewInput
             value={value}

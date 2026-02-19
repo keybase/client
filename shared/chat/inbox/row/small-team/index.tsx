@@ -226,9 +226,9 @@ const TopLine = (p: TopLineProps) => {
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.nameContainer}>
           {teamDisplayName ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text type="BodySemibold" style={teamContainerStyle}>
+              <Kb.Text3 type="BodySemibold" style={teamContainerStyle}>
                 {teamDisplayName}
-              </Kb.Text>
+              </Kb.Text3>
             </Kb.Box2>
           ) : (
             <Kb.ConnectedUsernames
@@ -248,9 +248,9 @@ const TopLine = (p: TopLineProps) => {
           )}
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Text2 key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
+      <Kb.Text3 key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
         {timestampText}
-      </Kb.Text2>
+      </Kb.Text3>
       {!Kb.Styles.isMobile && showGear && (
         <Kb.Icon
           type="iconfont-gear"
@@ -345,7 +345,7 @@ const BottomLine = (p: BottomLineProps) => {
   } else if (draft) {
     content = (
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
-        <Kb.Text2
+        <Kb.Text3
           type="BodySmall"
           style={Kb.Styles.collapseStyles([
             styles.draftLabel,
@@ -353,7 +353,7 @@ const BottomLine = (p: BottomLineProps) => {
           ])}
         >
           Draft:
-        </Kb.Text2>
+        </Kb.Text3>
         <Kb.Markdown preview={true} style={style}>
           {draft}
         </Kb.Markdown>
@@ -422,12 +422,12 @@ const SnippetContent = (p: {
       break
     case T.RPCChat.SnippetDecoration.explodedMessage:
       decorationNode = (
-        <Kb.Text
+        <Kb.Text3
           type="BodySmall"
           style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}}
         >
           Message exploded.
-        </Kb.Text>
+        </Kb.Text3>
       )
       exploded = true
       break

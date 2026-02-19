@@ -43,16 +43,16 @@ const SetMemberShowcase = (props: {
       disabled={!props.canShowcase}
       labelComponent={
         <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-          <Kb.Text style={props.canShowcase ? undefined : styles.grey} type="Body">
+          <Kb.Text3 style={props.canShowcase ? undefined : styles.grey} type="Body">
             Feature team on your own profile
-          </Kb.Text>
-          <Kb.Text type="BodySmall">
+          </Kb.Text3>
+          <Kb.Text3 type="BodySmall">
             {props.canShowcase
               ? 'Your profile will mention this team. Team description and number of members will be public.'
               : props.yourOperationsJoinTeam
                 ? 'You must join this team to feature it on your profile.'
                 : "Admins aren't allowing members to feature this team on their profile."}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       }
       onCheck={props.setNewPublicityMember}
@@ -71,8 +71,8 @@ const PublicityAnyMember = (props: {
         checked={props.newPublicityAnyMember}
         labelComponent={
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.shrink}>
-            <Kb.Text type="Body">Allow non-admin members to feature the team on their profile</Kb.Text>
-            <Kb.Text type="BodySmall">Team descriptions and number of members will be public.</Kb.Text>
+            <Kb.Text3 type="Body">Allow non-admin members to feature the team on their profile</Kb.Text3>
+            <Kb.Text3 type="BodySmall">Team descriptions and number of members will be public.</Kb.Text3>
           </Kb.Box2>
         }
         onCheck={props.setNewPublicityAnyMember}
@@ -90,13 +90,13 @@ const PublicityTeam = (props: {newPublicityTeam: boolean; setNewPublicityTeam: (
         checked={props.newPublicityTeam}
         labelComponent={
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.shrink}>
-            <Kb.Text type="Body">
+            <Kb.Text3 type="Body">
               Publicize this team on{' '}
               <Kb.Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
                 {teamsLink}
               </Kb.Text>
-            </Kb.Text>
-            <Kb.Text type="BodySmall">Team descriptions and number of members will be public.</Kb.Text>
+            </Kb.Text3>
+            <Kb.Text3 type="BodySmall">Team descriptions and number of members will be public.</Kb.Text3>
           </Kb.Box2>
         }
         onCheck={props.setNewPublicityTeam}
@@ -127,15 +127,15 @@ const OpenTeam = (props: {
         checked={props.newOpenTeam}
         labelComponent={
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.openTeam}>
-            <Kb.Text type="Body">Make this an open team</Kb.Text>
+            <Kb.Text3 type="Body">Make this an open team</Kb.Text3>
             <Kb.Box2
               direction={C.isMobile ? 'vertical' : 'horizontal'}
               alignItems={C.isMobile ? 'flex-start' : 'center'}
               alignSelf="flex-start"
             >
-              <Kb.Text style={styles.joinAs} type="BodySmall">
+              <Kb.Text3 style={styles.joinAs} type="BodySmall">
                 Anyone will be able to join immediately. Users will join as
-              </Kb.Text>
+              </Kb.Text3>
               <FloatingRolePicker
                 floatingContainerStyle={styles.floatingRolePicker}
                 onConfirm={props.onConfirmRolePicker}
@@ -172,10 +172,10 @@ const IgnoreAccessRequests = (props: {
         checked={props.newIgnoreAccessRequests}
         labelComponent={
           <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-            <Kb.Text type="Body">{"Don't allow requests to join this team"}</Kb.Text>
-            <Kb.Text type="BodySmall">
+            <Kb.Text3 type="Body">{"Don't allow requests to join this team"}</Kb.Text3>
+            <Kb.Text3 type="BodySmall">
               Requests to join this team will be silently ignored by all admins.
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         }
         onCheck={props.setNewIgnoreAccessRequests}
@@ -247,7 +247,7 @@ export const Settings = (p: Props) => {
           yourOperations.setPublicityAny) && (
           <>
             <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.teamPadding}>
-              <Kb.Text type="Header">Team</Kb.Text>
+              <Kb.Text3 type="Header">Team</Kb.Text3>
             </Kb.Box2>
             {yourOperations.setPublicityAny ? (
               <PublicityAnyMember

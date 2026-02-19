@@ -58,13 +58,13 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" style={styles.flexShrink}>
       <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" style={styles.flexShrink}>
         <Kb.Avatar editable={false} teamname={teamname} size={16} style={styles.alignSelfFlexStart} />
-        <Kb.Text className="hover-underline" type="BodySmallSemibold" onClick={onNavToTeam}>
+        <Kb.Text3 className="hover-underline" type="BodySmallSemibold" onClick={onNavToTeam}>
           {teamname}
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
-      <Kb.Text type="Header" lineClamp={1} style={styles.header}>
+      <Kb.Text3 type="Header" lineClamp={1} style={styles.header}>
         {'#' + channelname}
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
   )
 
@@ -112,15 +112,15 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     <>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Kb.Styles.isMobile}>
         {!!description && (
-          <Kb.Text type="Body" lineClamp={3}>
+          <Kb.Text3 type="Body" lineClamp={3}>
             {description}
-          </Kb.Text>
+          </Kb.Text3>
         )}
         {numParticipants !== -1 && (
-          <Kb.Text type="BodySmall">
+          <Kb.Text3 type="BodySmall">
             {numParticipants.toLocaleString()} {pluralize('member', numParticipants)}
             {!!newMemberCount && ' · ' + newMemberCount.toLocaleString() + ' new this week'}
-          </Kb.Text>
+          </Kb.Text3>
         )}
         <Kb.Box2 direction="horizontal" alignSelf="flex-start">
           <Activity level={activityLevel} />
@@ -158,7 +158,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const tip = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="tiny" style={styles.tipBox}>
       <Kb.Icon color={Kb.Styles.globalColors.black_20} type="iconfont-info" sizeType="Small" />
-      <Kb.Text type="BodySmall">Tip: Use @mentions to invite team members to channels from the chat.</Kb.Text>
+      <Kb.Text3 type="BodySmall">Tip: Use @mentions to invite team members to channels from the chat.</Kb.Text3>
     </Kb.Box2>
   )
 

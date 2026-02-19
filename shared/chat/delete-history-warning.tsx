@@ -26,12 +26,12 @@ const DeleteHistoryWarning = () => {
         ])}
       >
         <Kb.Icon type={Kb.Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
-        <Kb.Text style={{padding: Kb.Styles.globalMargins.small}} type="Header">
+        <Kb.Text3 style={{padding: Kb.Styles.globalMargins.small}} type="Header">
           Delete conversation history?
-        </Kb.Text>
-        <Kb.Text center={Kb.Styles.isMobile} style={styles.text} type="Body">
+        </Kb.Text3>
+        <Kb.Text3 center={Kb.Styles.isMobile} style={styles.text} type="Body">
           You are about to delete all the messages in this conversation. For everyone.
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.Box2 direction={Kb.Styles.isMobile ? 'verticalReverse' : 'horizontal'} style={styles.buttonBox}>
           <Kb.Button
             type="Dim"

@@ -20,24 +20,24 @@ const UnfurlPrompt = (p: Props) => {
       {!Kb.Styles.isMobile && <Kb.Icon type={promptIcon} style={styles.icon} />}
       <Kb.Box2 direction="vertical" style={styles.choiceContainer} gap="xtiny">
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>
-          <Kb.Text type="Body">Your Keybase app will visit the link and post a preview of it.</Kb.Text>
+          <Kb.Text3 type="BodySemibold">Would you like to post a preview?</Kb.Text3>
+          <Kb.Text3 type="Body">Your Keybase app will visit the link and post a preview of it.</Kb.Text3>
         </Kb.Box2>
-        <Kb.Text onClick={onAlways} type="BodyPrimaryLink">
+        <Kb.Text3 onClick={onAlways} type="BodyPrimaryLink">
           Always, for any site
-        </Kb.Text>
-        <Kb.Text onClick={onAccept} type="BodyPrimaryLink">
+        </Kb.Text3>
+        <Kb.Text3 onClick={onAccept} type="BodyPrimaryLink">
           Always, for {domain}
-        </Kb.Text>
-        <Kb.Text onClick={onOnetime} type="BodyPrimaryLink">
+        </Kb.Text3>
+        <Kb.Text3 onClick={onOnetime} type="BodyPrimaryLink">
           Yes, but ask me again for {domain}
-        </Kb.Text>
-        <Kb.Text onClick={onNotnow} type="BodyPrimaryLink">
+        </Kb.Text3>
+        <Kb.Text3 onClick={onNotnow} type="BodyPrimaryLink">
           Not now
-        </Kb.Text>
-        <Kb.Text onClick={onNever} type="BodyPrimaryLink">
+        </Kb.Text3>
+        <Kb.Text3 onClick={onNever} type="BodyPrimaryLink">
           Never, for any site
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
         <Kb.Icon type="iconfont-close" onClick={onNotnow} fontSize={16} padding="xtiny" />

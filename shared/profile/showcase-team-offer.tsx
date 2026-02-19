@@ -75,15 +75,15 @@ const TeamRow = (p: RowProps) => {
         <Kb.Avatar isTeam={true} size={Kb.Styles.isMobile ? 48 : 32} teamname={name} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
-            <Kb.Text type="BodySemibold" lineClamp={1}>
+            <Kb.Text3 type="BodySemibold" lineClamp={1}>
               {name}
-            </Kb.Text>
+            </Kb.Text3>
             {isOpen && (
               <Kb.Meta title="open" style={styles.meta} backgroundColor={Kb.Styles.globalColors.green} />
             )}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" style={styles.teamText}>
-            <Kb.Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text>
+            <Kb.Text3 type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text3>
           </Kb.Box2>
         </Kb.Box2>
         {showcased || canShowcase || waiting ? (
@@ -99,11 +99,11 @@ const TeamRow = (p: RowProps) => {
           </Kb.Box2>
         ) : (
           <Kb.Box2 direction="vertical" style={styles.membershipTextContainer}>
-            <Kb.Text style={styles.membershipText} type="BodySmall">
+            <Kb.Text3 style={styles.membershipText} type="BodySmall">
               {isExplicitMember
                 ? "Admins aren't allowing members to feature."
                 : 'Add yourself to the team first.'}
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         )}
       </Kb.Box2>
@@ -116,14 +116,14 @@ const ShowcaseTeamOfferHeader = () => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
     {!Kb.Styles.isMobile && (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerText}>
-        <Kb.Text type="Header">{"Feature the teams you're in"}</Kb.Text>
+        <Kb.Text3 type="Header">{"Feature the teams you're in"}</Kb.Text3>
       </Kb.Box2>
     )}
     <Kb.InfoNote containerStyle={styles.noteContainer}>
-      <Kb.Text center={true} style={styles.noteText} type="BodySmall">
+      <Kb.Text3 center={true} style={styles.noteText} type="BodySmall">
         Featuring a team will encourage others to ask to join. The team&apos;s description and number of
         members will be public.
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.InfoNote>
   </Kb.Box2>
 )

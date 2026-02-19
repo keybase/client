@@ -60,9 +60,9 @@ const ConfirmKickOut = (props: Props) => {
   }, [navigateUp, waiting])
 
   const prompt = (
-    <Kb.Text center={true} type="Header" style={styles.prompt}>
+    <Kb.Text3 center={true} type="Header" style={styles.prompt}>
       Kick {Teams.stringifyPeople(members)} out of {teamname}?
-    </Kb.Text>
+    </Kb.Text3>
   )
   const header = (
     <Kb.Box2 direction="vertical" style={styles.positionRelative}>
@@ -90,18 +90,18 @@ const ConfirmKickOut = (props: Props) => {
       prompt={prompt}
       content={
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-          <Kb.Text type="Body" center={true}>
+          <Kb.Text3 type="Body" center={true}>
             They will lose access to all the team chats and folders, and they won’t be able to get back unless
             an admin invites them.
-          </Kb.Text>
+          </Kb.Text3>
           {subteams.length !== 0 && (
             <Kb.Checkbox
               checked={subteamsToo}
               onCheck={setSubteamsToo}
               labelComponent={
-                <Kb.Text type="Body" style={Kb.Styles.globalStyles.flexOne}>
-                  Also kick them out of all subteams: <Kb.Text type="BodyBold">{subteams.join(', ')}</Kb.Text>
-                </Kb.Text>
+                <Kb.Text3 type="Body" style={Kb.Styles.globalStyles.flexOne}>
+                  Also kick them out of all subteams: <Kb.Text3 type="BodyBold">{subteams.join(', ')}</Kb.Text3>
+                </Kb.Text3>
               }
               style={Kb.Styles.globalStyles.fullWidth}
             />

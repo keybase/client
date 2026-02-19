@@ -15,12 +15,12 @@ const ConnectedSignupError = () => {
   }
   return (
     <Wrapper onBack={() => {}}>
-      <Kb.Text center={true} type="Header" style={{maxWidth: 460, width: '80%'}}>
+      <Kb.Text3 center={true} type="Header" style={{maxWidth: 460, width: '80%'}}>
         {header}
-      </Kb.Text>
-      <Kb.Text type="Body" center={true}>
+      </Kb.Text3>
+      <Kb.Text3 type="Body" center={true}>
         {body}
-      </Kb.Text>
+      </Kb.Text3>
       <ContinueButton label="Back" onClick={onBack} />
     </Wrapper>
   )

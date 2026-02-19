@@ -33,9 +33,9 @@ const RevokeProof = (ownProps: OwnProps) => {
     <Modal onCancel={onCancel} skipButton={true}>
       {!!errorMessage && (
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.errorBanner}>
-          <Kb.Text center={!Kb.Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
+          <Kb.Text3 center={!Kb.Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
             {errorMessage}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       )}
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer}>
@@ -43,20 +43,20 @@ const RevokeProof = (ownProps: OwnProps) => {
           <SiteIcon set={icon} full={true} style={styles.siteIcon} />
           <Kb.Icon type="icon-proof-broken" style={styles.revokeIcon} />
         </Kb.Box2>
-        <Kb.Text center={!Kb.Styles.isMobile} style={styles.platformUsername} type="Header">
+        <Kb.Text3 center={!Kb.Styles.isMobile} style={styles.platformUsername} type="Header">
           {platformHandle}
-        </Kb.Text>
+        </Kb.Text3>
         {!!platformHandleSubtitle && (
-          <Kb.Text style={styles.platformSubtitle} type="Body">
+          <Kb.Text3 style={styles.platformSubtitle} type="Body">
             {platformHandleSubtitle}
-          </Kb.Text>
+          </Kb.Text3>
         )}
-        <Kb.Text center={!Kb.Styles.isMobile} style={styles.descriptionText} type="Header">
+        <Kb.Text3 center={!Kb.Styles.isMobile} style={styles.descriptionText} type="Header">
           {formatMessage(platform)}
-        </Kb.Text>
-        <Kb.Text center={!Kb.Styles.isMobile} style={styles.reminderText} type="Body">
+        </Kb.Text3>
+        <Kb.Text3 center={!Kb.Styles.isMobile} style={styles.reminderText} type="Body">
           You can add it again later, if you change your mind.
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.ButtonBar>
           <Kb.WaitingButton type="Dim" onClick={onCancel} label="Cancel" waitingKey={C.waitingKeyProfile} />
           <Kb.WaitingButton

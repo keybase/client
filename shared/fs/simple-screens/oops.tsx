@@ -23,23 +23,23 @@ const Explain = (props: Props) => {
     case 'private':
       return (
         <Kb.Box2 direction="horizontal" style={styles.explainBox}>
-          <Kb.Text center={true} type="Body">
+          <Kb.Text3 center={true} type="Body">
             Only people in the private folder can access this.
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       )
     case 'team':
       return (
         <Kb.Box2 direction="horizontal" style={styles.explainBox}>
-          <Kb.Text center={true} type="Body">
+          <Kb.Text3 center={true} type="Body">
             Only members of
-          </Kb.Text>
-          <Kb.Text type="BodySemibold" style={styles.explainTextTeam}>
+          </Kb.Text3>
+          <Kb.Text3 type="BodySemibold" style={styles.explainTextTeam}>
             {elems[2]}
-          </Kb.Text>
-          <Kb.Text center={true} type="Body">
+          </Kb.Text3>
+          <Kb.Text3 center={true} type="Body">
             can access this.
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
       )
     default:
@@ -53,9 +53,9 @@ const NoAccess = (props: Props) => (
       <Kb.Icon
         type={C.isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
       />
-      <Kb.Text type="Header" style={styles.textYouDontHave}>
+      <Kb.Text3 type="Header" style={styles.textYouDontHave}>
         {"You don't have access to this folder or file."}
-      </Kb.Text>
+      </Kb.Text3>
       <Explain {...props} />
       <Kb.Button
         type="Default"
@@ -78,13 +78,13 @@ const NonExistent = (props: Props) => (
             : 'icon-fancy-folder-file-inexistant-desktop-153-94'
         }
       />
-      <Kb.Text type="Header" style={styles.textYouDontHave}>
+      <Kb.Text3 type="Header" style={styles.textYouDontHave}>
         {"This file or folder doesn't exist."}
-      </Kb.Text>
+      </Kb.Text3>
       <Kb.Box2 direction="horizontal" style={styles.explainBox}>
-        <Kb.Text center={true} type="Body">
+        <Kb.Text3 center={true} type="Body">
           Either it was deleted, or the path is incorrect.
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
       <Kb.Button
         type="Default"

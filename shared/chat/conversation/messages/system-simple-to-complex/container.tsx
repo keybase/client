@@ -19,36 +19,36 @@ const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplex
   const {team, author} = message
   return (
     <UserNotice>
-      <Kb.Text type="BodySmall">
-        {author === you ? 'You ' : ''}made <Kb.Text type="BodySmallBold">{team}</Kb.Text> a big team! Note
+      <Kb.Text3 type="BodySmall">
+        {author === you ? 'You ' : ''}made <Kb.Text3 type="BodySmallBold">{team}</Kb.Text3> a big team! Note
         that:
-      </Kb.Text>
+      </Kb.Text3>
       <Kb.Box2
         direction="vertical"
         alignSelf="flex-start"
         gap="tiny"
         style={{marginLeft: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.xtiny}}
       >
-        <Kb.Text type="BodySmall">
-          <Kb.Text type="BodySmall" style={styles.bullet}>
+        <Kb.Text3 type="BodySmall">
+          <Kb.Text3 type="BodySmall" style={styles.bullet}>
             {bullet}
-          </Kb.Text>
+          </Kb.Text3>
           {'Your team channels will now appear in the "Big teams" section of the inbox.'}
-        </Kb.Text>
+        </Kb.Text3>
 
-        <Kb.Text type="BodySmall">
-          <Kb.Text type="BodySmall" style={styles.bullet}>
+        <Kb.Text3 type="BodySmall">
+          <Kb.Text3 type="BodySmall" style={styles.bullet}>
             {bullet}
-          </Kb.Text>
+          </Kb.Text3>
           Everyone can now create and join channels.{' '}
-          <Kb.Text
+          <Kb.Text3
             onClick={onManageChannels}
             type="BodySmallSemiboldSecondaryLink"
             style={{color: Kb.Styles.globalColors.blueDark}}
           >
             Browse other channels
-          </Kb.Text>
-        </Kb.Text>
+          </Kb.Text3>
+        </Kb.Text3>
       </Kb.Box2>
     </UserNotice>
   )

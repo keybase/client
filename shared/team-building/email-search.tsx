@@ -80,15 +80,15 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
               <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
             )}
             {namespace === 'chat2' ? (
-              <Kb.Text type="BodySmall" style={styles.helperText}>
+              <Kb.Text3 type="BodySmall" style={styles.helperText}>
                 Start a chat with any email contact, then tell them to install Keybase. Your messages will
                 unlock after they sign up.
-              </Kb.Text>
+              </Kb.Text3>
             ) : (
-              <Kb.Text type="BodySmall" style={styles.helperText}>
+              <Kb.Text3 type="BodySmall" style={styles.helperText}>
                 Add any email contact, then tell them to install Keybase. They will automatically join the
                 team after they sign up.
-              </Kb.Text>
+              </Kb.Text3>
             )}
           </Kb.Box2>
         )}

@@ -60,7 +60,7 @@ const PeopleItem = (props: Props) => (
         props.format === 'multi' && styles.timestampContainerMulti,
       ])}
     >
-      {!!props.when && <Kb.Text type="BodyTiny">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
+      {!!props.when && <Kb.Text3 type="BodyTiny">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text3>}
       {props.badged && (
         <Kb.Badge badgeStyle={styles.badge} height={Kb.Styles.globalMargins.tiny} leftRightPadding={0} />
       )}

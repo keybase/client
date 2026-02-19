@@ -61,18 +61,18 @@ const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer() 
         <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={20} type={iconType} />
       </Kb.Box2>
       {!!explanation && (
-        <Kb.Text center={true} type="BodySmallSemibold">
+        <Kb.Text3 center={true} type="BodySmallSemibold">
           {explanation}
-        </Kb.Text>
+        </Kb.Text3>
       )}
       {canChange && (
-        <Kb.Text
+        <Kb.Text3
           type="BodySmallSemiboldPrimaryLink"
           style={{color: Kb.Styles.globalColors.blueDark}}
           onClick={onChange}
         >
           Change this
-        </Kb.Text>
+        </Kb.Text3>
       )}
     </Kb.Box2>
   )

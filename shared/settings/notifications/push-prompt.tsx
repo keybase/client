@@ -21,16 +21,16 @@ const PushPrompt = () => {
         hideBorder: true,
         rightButton: (
           <Kb.ClickableBox onClick={onNoPermissions}>
-            <Kb.Text type="BodyBig" negative={true}>
+            <Kb.Text3 type="BodyBig" negative={true}>
               Skip
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.ClickableBox>
         ),
         style: styles.header,
         title: (
-          <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>
+          <Kb.Text3 type="Header" lineClamp={1} center={true} negative={true}>
             Allow notifications
-          </Kb.Text>
+          </Kb.Text3>
         ),
       }}
       footer={{
@@ -51,13 +51,13 @@ const PushPrompt = () => {
     >
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
         <Kb.Icon type="illustration-turn-on-notifications" style={styles.image} />
-        <Kb.Text center={true} type="BodySemibold" negative={true}>
+        <Kb.Text3 center={true} type="BodySemibold" negative={true}>
           Notifications are very important.
-        </Kb.Text>
-        <Kb.Text center={true} type="Body" negative={true}>
+        </Kb.Text3>
+        <Kb.Text3 center={true} type="Body" negative={true}>
           Your device might need to be contacted, for example if you install Keybase on another device. This
           is a crucial security setting.
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
     </Kb.Modal>
   )

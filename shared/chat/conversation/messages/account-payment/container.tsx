@@ -136,9 +136,9 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
       gap={Kb.Styles.isMobile ? 'tiny' : 'small'}
     >
       {!!balanceChange && (
-        <Kb.Text type="BodyExtrabold" selectable={true} style={{color: balanceChangeColor}}>
+        <Kb.Text3 type="BodyExtrabold" selectable={true} style={{color: balanceChangeColor}}>
           {balanceChange}
-        </Kb.Text>
+        </Kb.Text3>
       )}
       {showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
     </Kb.Box2>
@@ -146,7 +146,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const contents = loading ? (
     <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.alignItemsCenter}>
       <Kb.ProgressIndicator style={styles.progressIndicator} />
-      <Kb.Text type="BodySmall">loading...</Kb.Text>
+      <Kb.Text3 type="BodySmall">loading...</Kb.Text3>
     </Kb.Box2>
   ) : (
     <>
@@ -167,7 +167,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
               fontSize={12}
             />
           )}
-          <Kb.Text
+          <Kb.Text3
             type="BodySmall"
             style={Kb.Styles.collapseStyles([
               {flexShrink: 1},
@@ -177,34 +177,34 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
             ])}
           >
             {action}{' '}
-            <Kb.Text
+            <Kb.Text3
               type="BodySmallExtrabold"
               selectable={true}
               style={Kb.Styles.collapseStyles([styles.purple, pending && styles.purpleOrWhite])}
             >
               {amount}
-            </Kb.Text>
+            </Kb.Text3>
             {approxWorth && (
-              <Kb.Text
+              <Kb.Text3
                 type="BodySmall"
                 style={Kb.Styles.collapseStyles([styles.purple, pending && styles.purpleOrWhite])}
               >
                 {' '}
                 (approximately{' '}
-                <Kb.Text
+                <Kb.Text3
                   type="BodySmallExtrabold"
                   selectable={true}
                   style={Kb.Styles.collapseStyles([styles.purple, pending && styles.purpleOrWhite])}
                 >
                   {approxWorth}
-                </Kb.Text>
+                </Kb.Text3>
                 )
-              </Kb.Text>
+              </Kb.Text3>
             )}
             {pending ? '...' : '.'}
-          </Kb.Text>
+          </Kb.Text3>
         </Kb.Box2>
-        {canceled && <Kb.Text type="BodySmall">CANCELED</Kb.Text>}
+        {canceled && <Kb.Text3 type="BodySmall">CANCELED</Kb.Text3>}
         {!Kb.Styles.isMobile && balanceChangeBox}
       </Kb.Box2>
       <MarkdownMemo memo={memo} style={styles.memo} />

@@ -78,7 +78,7 @@ const Rows = React.memo(function Rows(props: Props & {listKey: string}) {
         default:
           return (
             <WrapRow>
-              <Kb.Text type="BodySmallError">This should not happen.</Kb.Text>
+              <Kb.Text3 type="BodySmallError">This should not happen.</Kb.Text3>
             </WrapRow>
           )
       }
@@ -127,9 +127,9 @@ const Rows = React.memo(function Rows(props: Props & {listKey: string}) {
         items.map(item => item.rowType === RowTypes.RowType.Header && item.node)
       }
       <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true} gap="small">
-        <Kb.Text type="BodySmall">
+        <Kb.Text3 type="BodySmall">
           {emptyMode === 'empty' ? 'This folder is empty.' : 'Sorry, no folder or file was found.'}
-        </Kb.Text>
+        </Kb.Text3>
         {emptyMode === 'empty' && <UploadButton path={props.path} />}
       </Kb.Box2>
     </Kb.Box2>

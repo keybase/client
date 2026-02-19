@@ -96,12 +96,12 @@ const DefaultChannels = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="flex-start">
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-        <Kb.Text type="BodySmallSemibold">Default join channels</Kb.Text>
+        <Kb.Text3 type="BodySmallSemibold">Default join channels</Kb.Text3>
         {anyWaiting && <Kb.ProgressIndicator />}
       </Kb.Box2>
       {canEdit ? (
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-          <Kb.Text type="BodySmall">Define which channels new members will be added to.</Kb.Text>
+          <Kb.Text3 type="BodySmall">Define which channels new members will be added to.</Kb.Text3>
           <ChannelsWidget
             teamID={teamID}
             channels={defaultChannels}
@@ -111,17 +111,17 @@ const DefaultChannels = (props: Props) => {
           />
         </Kb.Box2>
       ) : (
-        <Kb.Text type="BodySmall">
+        <Kb.Text3 type="BodySmall">
           New members will be added to{' '}
           {defaultChannels.map((channel, index) => (
-            <Kb.Text key={channel.conversationIDKey} type="BodySmallSemibold">
+            <Kb.Text3 key={channel.conversationIDKey} type="BodySmallSemibold">
               #{channel.channelname}
               {defaultChannels.length > 2 && index < defaultChannels.length - 1 && ', '}
-              {index === defaultChannels.length - 2 && <Kb.Text type="BodySmall"> and </Kb.Text>}
-            </Kb.Text>
+              {index === defaultChannels.length - 2 && <Kb.Text3 type="BodySmall"> and </Kb.Text3>}
+            </Kb.Text3>
           ))}
           .
-        </Kb.Text>
+        </Kb.Text3>
       )}
     </Kb.Box2>
   )

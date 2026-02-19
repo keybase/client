@@ -4,13 +4,13 @@ const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
   <div style={styles.container}>
     <Kb.Icon type="icon-folder-success-48" />
     <Kb.Box2 direction="vertical">
-      <Kb.Text center={true} type="BodySemibold">
+      <Kb.Text3 center={true} type="BodySemibold">
         Success!
-      </Kb.Text>
-      <Kb.Text center={true} style={{paddingLeft: 40, paddingRight: 40}} type="Body">
+      </Kb.Text3>
+      <Kb.Text3 center={true} style={{paddingLeft: 40, paddingRight: 40}} type="Body">
         Your paper key is now rekeying folders for this computer. It takes just a couple minutes but lasts
         forever, like the decision to have a child
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
     <Kb.ButtonBar>
       <Kb.Button label="Okay" onClick={onClose} />

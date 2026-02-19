@@ -75,12 +75,12 @@ const SelectableBigTeamChannel = (props: Props) => {
           />
         )}
         {!!props.numSearchHits && (
-          <Kb.Text
+          <Kb.Text3
             type="BodySmall"
             style={Kb.Styles.collapseStyles([props.isSelected && styles.selectedText])}
           >
             {_getSearchHits()} {pluralize('result', props.numSearchHits)}
-          </Kb.Text>
+          </Kb.Text3>
         )}
       </Kb.Box2>
       {props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}

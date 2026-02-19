@@ -4,9 +4,9 @@ import * as Kb from '@/common-adapters'
 type Props = {message: T.Chat.MessageSetChannelname}
 
 const ChannelNameMessage = (props: Props) => (
-  <Kb.Text type="BodySmall" style={styles.text} selectable={true}>
+  <Kb.Text3 type="BodySmall" style={styles.text} selectable={true}>
     set the channel name to #{props.message.newChannelname}
-  </Kb.Text>
+  </Kb.Text3>
 )
 export default ChannelNameMessage
 

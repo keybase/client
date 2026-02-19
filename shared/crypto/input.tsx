@@ -121,15 +121,15 @@ const TextInput = (props: TextProps) => {
   const inputContainerStyle = value ? styles.inputContainer : styles.inputContainerEmpty
 
   const browseButton = value ? null : (
-    <Kb.Text type="BodyPrimaryLink" style={styles.browseFile} onClick={onOpenFile}>
+    <Kb.Text3 type="BodyPrimaryLink" style={styles.browseFile} onClick={onOpenFile}>
       browse
-    </Kb.Text>
+    </Kb.Text3>
   )
   const clearButton = value ? (
     <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
-      <Kb.Text type="BodySmallPrimaryLink" onClick={() => onChangeText('')}>
+      <Kb.Text3 type="BodySmallPrimaryLink" onClick={() => onChangeText('')}>
         Clear
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
   ) : null
 
@@ -194,19 +194,19 @@ const FileInput = (props: FileProps) => {
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.fileContainer}>
           <Kb.Icon type={fileIcon} sizeType="Huge" />
           <Kb.Box2 direction="vertical">
-            <Kb.Text type="BodySemibold">{path}</Kb.Text>
-            {size ? <Kb.Text type="BodySmallSemibold">{FS.humanReadableFileSize(size)}</Kb.Text> : null}
+            <Kb.Text3 type="BodySemibold">{path}</Kb.Text3>
+            {size ? <Kb.Text3 type="BodySmallSemibold">{FS.humanReadableFileSize(size)}</Kb.Text3> : null}
           </Kb.Box2>
         </Kb.Box2>
         {path && !waiting && (
           <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
-            <Kb.Text
+            <Kb.Text3
               type="BodySmallPrimaryLink"
               onClick={() => props.onClearFiles()}
               style={styles.clearButtonInput}
             >
               Clear
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
         )}
       </Kb.Box2>

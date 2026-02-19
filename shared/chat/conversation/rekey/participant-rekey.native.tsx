@@ -12,13 +12,13 @@ const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked
       />
       <Kb.Box2 direction="vertical" style={styles.innerRow}>
         <Kb.ConnectedUsernames inline={true} backgroundMode="Terminal" type="BodyBold" usernames={username} />
-        <Kb.Text
+        <Kb.Text3
           type="BodySmall"
           negative={true}
           style={{color: Kb.Styles.globalColors.blueLighter_40, lineHeight: 17}}
         >
           Can rekey this chat by opening the Keybase app.
-        </Kb.Text>
+        </Kb.Text3>
       </Kb.Box2>
     </Kb.Box2>
   </Kb.ClickableBox>
@@ -34,14 +34,14 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
         justifyContent: 'center',
       }}
     >
-      <Kb.Text
+      <Kb.Text3
         center={true}
         negative={true}
         style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
         type="BodySemibold"
       >
         This conversation is waiting for a participant to open their Keybase app.
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
     <NativeScrollView style={{flex: 1, paddingTop: 8}}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={{justifyContent: 'center', marginLeft: 8}}>

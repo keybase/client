@@ -60,9 +60,9 @@ const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
         />
       )}
       {!reallyShow && (
-        <Kb.Text type="BodySmallSemibold" style={styles.dividerText}>
+        <Kb.Text3 type="BodySmallSemibold" style={styles.dividerText}>
           Big teams
-        </Kb.Text>
+        </Kb.Text3>
       )}
     </Kb.Box2>
   )
