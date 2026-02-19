@@ -96,6 +96,7 @@ export type Props = {
   styleOverride?: StyleOverride
 
   virtualText?: boolean // desktop only, see text.desktop
+  allowFontScaling?: boolean
 }
 
 const serviceBeginDecorationTag = /\$>kb\$/
@@ -419,7 +420,7 @@ const ErrorComponent = (p: {children: React.ReactNode}) => {
 const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: MarkdownProps) {
   const {styleOverride = {}, paragraphTextClassName, messageType, children} = p
   const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
-  const {serviceOnlyNoWrap, disallowAnimation, context} = p
+  const {serviceOnlyNoWrap, disallowAnimation, context, allowFontScaling} = p
   let parseTree: Array<SM.SingleASTNode>
   let output: React.ReactNode
   try {
@@ -441,6 +442,7 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
     })()
 
     const state = {
+      allowFontScaling,
       context,
       disallowAnimation,
       messageType,

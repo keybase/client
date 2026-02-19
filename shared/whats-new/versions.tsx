@@ -53,19 +53,19 @@ export const Last = ({seen}: VersionProps) => {
       <VersionTitle title="Last release" />
       <NewFeatureRow image="release-5.4.0-emoji" noSeparator={true} seen={seen} unwrapped={true}>
         <Kb.Box2 alignSelf="flex-start" direction="vertical">
-          <Kb.Text type="BodySmall">
+          <Kb.Text type="BodySmall" allowFontScaling={true}>
             Browse your image library
           </Kb.Text>
           <Kb.Box2 direction="horizontal" style={styles.ponyAlignment}>
-            <Kb.Text type="BodySmall">
+            <Kb.Text type="BodySmall" allowFontScaling={true}>
               And unleash that cute little pony
             </Kb.Text>
             <Kb.Icon type="release-5.4.0-pony" style={styles.ponyIcon} />
           </Kb.Box2>
-          <Kb.Text type="BodySmall">
+          <Kb.Text type="BodySmall" allowFontScaling={true}>
             Keybase now supports custom emoji{' '}
             <Kb.NativeEmoji
-
+              allowFontScaling={true}
               size={Kb.Styles.globalMargins.small}
               emojiName=":sparkles:"
             />
@@ -82,7 +82,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
       <VersionTitle title="Previous releases" />
       <NewFeatureRow image="release-5.3.0-ipad" noSeparator={true} seen={seen}>
         Keybase for iPad is here!{' '}
-        <Kb.NativeEmoji size={Kb.Styles.globalMargins.small} emojiName=":sparkles:" />{' '}
+        <Kb.NativeEmoji allowFontScaling={true} size={Kb.Styles.globalMargins.small} emojiName=":sparkles:" />{' '}
         Download it from the App Store.
       </NewFeatureRow>
       <NewFeatureRow image="release-5.3.0-open-teams" seen={seen}>
@@ -100,6 +100,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
       >
         Encrypt, decrypt, sign, and verify all from within Keybase.{' '}
         <Kb.NativeEmoji
+          allowFontScaling={true}
           size={Kb.Styles.globalMargins.small}
           emojiName=":closed_lock_with_key:"
         />
@@ -152,12 +153,12 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
       >
         You can now start a conversation with a phone number or email address.
         {` `}
-        <Kb.NativeEmoji size={Kb.Styles.globalMargins.small} emojiName=":phone:" />
+        <Kb.NativeEmoji allowFontScaling={true} size={Kb.Styles.globalMargins.small} emojiName=":phone:" />
       </NewFeatureRow>
       <NewFeatureRow seen={seen} image={'release-4.7.0-pinned-messages'}>
         Chat admins can now pin messages.
         {` `}
-        <Kb.NativeEmoji size={Kb.Styles.globalMargins.small} emojiName=":pushpin:" />
+        <Kb.NativeEmoji allowFontScaling={true} size={Kb.Styles.globalMargins.small} emojiName=":pushpin:" />
       </NewFeatureRow>
       <NewFeatureRow seen={seen} image={'release-4.7.0-keybase-fm'}>
         Listen to

@@ -16,6 +16,7 @@ export function Text(p: Props) {
   return (
     <RNText
       style={mergedStyle}
+      allowFontScaling={p.allowFontScaling ?? false}
       onPress={p.onClick ?? undefined}
       onLongPress={p.onLongPress ?? undefined}
       selectable={p.selectable}

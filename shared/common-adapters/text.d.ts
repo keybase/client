@@ -7,6 +7,7 @@ export type Props = {
   type?: TextType
   children?: React.ReactNode
   style?: CSS.StylesCrossPlatform
+  allowFontScaling?: boolean
   onClick?: (e: React.BaseSyntheticEvent) => void
   onContextMenu?: (e: React.BaseSyntheticEvent) => void
   onLongPress?: () => void

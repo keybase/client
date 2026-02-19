@@ -22,6 +22,7 @@ const Kb = {
 type Status = 'error' | 'pending' | 'completed' | 'claimable'
 
 export type Props = {
+  allowFontScaling?: boolean
   allowPopup: boolean
   errorDetail?: string
   isSendError: boolean
@@ -74,10 +75,11 @@ const PaymentStatus = (props: Props) => {
     <Kb.Text
       textRef={statusRef}
       type="BodyExtrabold"
+      allowFontScaling={props.allowFontScaling}
       onClick={_showPopup}
     >
       {' '}
-      <Kb.Text type="BodyExtrabold" style={styles[props.status]}>
+      <Kb.Text type="BodyExtrabold" allowFontScaling={props.allowFontScaling} style={styles[props.status]}>
         {props.text}{' '}
         <Kb.Icon
           type={getIcon(props.status)}
@@ -159,6 +161,7 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 type OwnProps = {
+  allowFontScaling?: boolean
   error?: string
   paymentID?: WalletTypes.PaymentID
   text: string
@@ -183,7 +186,7 @@ const reduceStatus = (status: string): Status => {
 }
 
 const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: OwnProps) {
-  const {error, paymentID, text} = p
+  const {allowFontScaling, error, paymentID, text} = p
   const ordinal = useOrdinal()
   const paymentInfo = Chat.useChatState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
   const status = error ? 'error' : (paymentInfo?.status ?? 'pending')
@@ -197,6 +200,7 @@ const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: Own
   if (message?.type !== 'text') return null
 
   const props = {
+    allowFontScaling,
     allowPopup,
     errorDetail: error || paymentInfo?.statusDetail,
     isSendError: !!error,

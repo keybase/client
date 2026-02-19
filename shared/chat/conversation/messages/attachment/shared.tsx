@@ -199,7 +199,7 @@ export const Title = () => {
       <Kb.Markdown
         messageType="attachment"
         selectable={true}
-
+        allowFontScaling={true}
         styleOverride={styleOverride}
       >
         {title}

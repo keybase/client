@@ -13,6 +13,7 @@ import type {MeasureRef} from '@/common-adapters/measure-ref'
 const Kb = {Box2, Styles, Text}
 
 type OwnProps = {
+  allowFontScaling?: boolean
   channel: string
   name: string
   style?: StylesTextCrossPlatform
@@ -21,7 +22,7 @@ type OwnProps = {
 const noAdmins: Array<string> = []
 
 const TeamMention = (ownProps: OwnProps) => {
-  const {name, channel, style} = ownProps
+  const {allowFontScaling, name, channel, style} = ownProps
   const maybeMentionInfo = Chat.useChatState(s =>
     s.maybeMentionMap.get(Chat.getTeamMentionName(name, channel))
   )
@@ -76,12 +77,14 @@ const TeamMention = (ownProps: OwnProps) => {
     <Kb.Text
       textRef={mentionRef}
       type="BodyBold"
+      allowFontScaling={allowFontScaling}
       className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
       style={Kb.Styles.collapseStyles([style, styles.text])}
       onClick={handleClick}
     >
       <Kb.Text
         type="BodyBold"
+        allowFontScaling={allowFontScaling}
         style={Kb.Styles.collapseStyles([style, styles.resolved, styles.text])}
       >
         {text}
@@ -124,7 +127,7 @@ const TeamMention = (ownProps: OwnProps) => {
       </Kb.Box2>
     )
   ) : (
-    <Kb.Text type="BodySemibold" style={style}>
+    <Kb.Text type="BodySemibold" allowFontScaling={allowFontScaling} style={style}>
       {text}
     </Kb.Text>
   )

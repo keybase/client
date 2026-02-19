@@ -9,6 +9,7 @@ import UnknownMention from './unknown'
 const Kb = {Mention, Text}
 
 type Props = {
+  allowFontScaling?: boolean
   channel: string
   info?: T.RPCChat.UIMaybeMentionInfo
   name: string
@@ -23,7 +24,7 @@ const MaybeMention = (props: Props) => {
       text += `#${props.channel}`
     }
     return (
-      <Kb.Text type="Body" style={props.style}>
+      <Kb.Text type="Body" allowFontScaling={props.allowFontScaling} style={props.style}>
         {text}
       </Kb.Text>
     )
@@ -32,6 +33,7 @@ const MaybeMention = (props: Props) => {
     case T.RPCChat.UIMaybeMentionStatus.unknown:
       return (
         <UnknownMention
+          allowFontScaling={props.allowFontScaling}
           channel={props.channel}
           name={props.name}
           onResolve={props.onResolve}
@@ -39,10 +41,11 @@ const MaybeMention = (props: Props) => {
         />
       )
     case T.RPCChat.UIMaybeMentionStatus.user:
-      return <Kb.Mention username={props.name} />
+      return <Kb.Mention allowFontScaling={props.allowFontScaling} username={props.name} />
     case T.RPCChat.UIMaybeMentionStatus.team:
       return (
         <TeamMention
+          allowFontScaling={props.allowFontScaling}
           style={props.style}
           name={props.name}
           channel={props.channel}
@@ -52,6 +55,7 @@ const MaybeMention = (props: Props) => {
 }
 
 type OwnProps = {
+  allowFontScaling?: boolean
   channel: string
   name: string
   style?: StylesTextCrossPlatform
@@ -65,6 +69,7 @@ const Container = (ownProps: OwnProps) => {
     resolveMaybeMention(channel, name)
   }
   const props = {
+    allowFontScaling: ownProps.allowFontScaling,
     channel: ownProps.channel,
     info,
     name: ownProps.name,

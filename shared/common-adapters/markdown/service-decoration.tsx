@@ -118,6 +118,7 @@ const URLText = (p: {
 }
 
 export type Props = {
+  allowFontScaling?: boolean
   json: string
   styleOverride?: StyleOverride
   styles: {[K in string]: StylesTextCrossPlatform}
@@ -127,7 +128,7 @@ export type Props = {
 }
 
 const ServiceDecoration = (p: Props) => {
-  const {json, styles, styleOverride} = p
+  const {allowFontScaling, json, styles, styleOverride} = p
   const {disableBigEmojis, disableEmojiAnimation, messageType} = p
   // Parse JSON to get the type of the decoration
   let parsed: T.RPCChat.UITextDecoration
@@ -155,6 +156,7 @@ const ServiceDecoration = (p: Props) => {
     }
     return (
       <PaymentStatus
+        allowFontScaling={allowFontScaling}
         paymentID={paymentID}
         error={error}
         text={parsed.payment.paymentText}
@@ -163,6 +165,7 @@ const ServiceDecoration = (p: Props) => {
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.atmention && parsed.atmention) {
     return (
       <Mention
+        allowFontScaling={allowFontScaling}
         style={styles['wrapStyle']}
         username={parsed.atmention}
       />
@@ -170,6 +173,7 @@ const ServiceDecoration = (p: Props) => {
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.maybemention) {
     return (
       <MaybeMention
+        allowFontScaling={allowFontScaling}
         style={styles['wrapStyle']}
         name={parsed.maybemention.name}
         channel={parsed.maybemention.channel}
@@ -220,6 +224,7 @@ const ServiceDecoration = (p: Props) => {
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.channelnamemention) {
     return (
       <Channel
+        allowFontScaling={allowFontScaling}
         convID={parsed.channelnamemention.convID}
         name={parsed.channelnamemention.name}
         style={

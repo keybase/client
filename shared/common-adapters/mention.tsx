@@ -4,6 +4,7 @@ import {WithProfileCardPopup} from './profile-card'
 import Text from './text'
 
 export type OwnProps = {
+  allowFontScaling?: boolean
   username: string
   theme?: 'follow' | 'nonFollow' | 'highlight' | 'none'
   style?: Styles.StylesCrossPlatform
@@ -12,10 +13,11 @@ export type OwnProps = {
 export type Props = {
   onClick?: () => void
 } & OwnProps
-const Mention = ({username, theme, style, onClick}: Props) => {
+const Mention = ({allowFontScaling, username, theme, style, onClick}: Props) => {
   const renderText = (onLongPress?: () => void) => (
     <Text
       type="BodyBold"
+      allowFontScaling={allowFontScaling}
       onClick={onClick || undefined}
       className={Styles.classNames({'hover-underline': !Styles.isMobile})}
       style={Styles.collapseStyles([style, styles[theme || 'none'], styles.text])}

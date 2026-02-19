@@ -153,7 +153,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
                 selectable={true}
                 style={getEditStyle(isEditing)}
                 styleOverride={styleOverride}
-
+                allowFontScaling={true}
               >
                 {title}
               </Kb.Markdown>

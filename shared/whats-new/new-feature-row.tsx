@@ -61,7 +61,7 @@ const NewFeature = (props: Props) => {
         {props.unwrapped ? (
           props.children
         ) : (
-          <Kb.Text type="BodySmall">
+          <Kb.Text type="BodySmall" allowFontScaling={true}>
             {props.children}
           </Kb.Text>
         )}

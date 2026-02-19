@@ -50,7 +50,7 @@ const MessageMarkdown = React.memo(function MessageMarkdown(p: {style: Kb.Styles
       messageType="text"
       style={style}
       styleOverride={styleOverride as StyleOverride}
-
+      allowFontScaling={true}
       context={String(ordinal)}
     >
       {text}

@@ -21,8 +21,8 @@ const EmojiWrapper = React.memo(function EmojiWrapper(props: Props) {
   return (
     <Text
       type="Body"
+      allowFontScaling={props.allowFontScaling}
       style={Styles.collapseStyles([sizeStyle.get(size), props.style])}
-
     >
       {emojiIndexByName[emojiName] ? emojiIndexByName[emojiName] + emojiVariantSuffix : emojiName}
     </Text>

@@ -292,7 +292,7 @@ const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
         {props.index + 1}
       </Kb.Text>
     </Kb.Box2>
-    <Kb.Markdown styleOverride={props.index === 0 ? paragraphOverrides : undefined}>
+    <Kb.Markdown allowFontScaling={true} styleOverride={props.index === 0 ? paragraphOverrides : undefined}>
       {props.item}
     </Kb.Markdown>
   </Kb.Box2>
