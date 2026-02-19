@@ -24,7 +24,7 @@ func keybaseProcessList() string {
 	if err == nil {
 		ret.WriteString(osinfo + "\n\n")
 	} else {
-		ret.WriteString(fmt.Sprintf("could not get OS info for platform %s: %s\n\n", runtime.GOOS, err))
+		fmt.Fprintf(&ret, "could not get OS info for platform %s: %s\n\n", runtime.GOOS, err)
 	}
 
 	processes, err := pgrep(keybaseProcessRegexp)
@@ -36,7 +36,7 @@ func keybaseProcessList() string {
 		if err != nil {
 			path = "unable to get process path"
 		}
-		ret.WriteString(fmt.Sprintf("%s (%+v)\n", path, process))
+		fmt.Fprintf(&ret, "%s (%+v)\n", path, process)
 	}
 	return ret.String()
 }

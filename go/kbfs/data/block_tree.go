@@ -808,7 +808,7 @@ func (bt *blockTree) String() string {
 			}
 			for j := 0; j < block.NumIndirectPtrs(); j++ {
 				info, off := block.IndirectPtr(j)
-				res.WriteString(fmt.Sprintf("\"%s\" ", off))
+				fmt.Fprintf(&res, "\"%s\" ", off)
 				if info.DirectType == DirectBlock {
 					continue
 				}

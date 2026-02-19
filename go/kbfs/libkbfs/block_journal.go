@@ -719,10 +719,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 	entries.adds = newBlockPutStateMemory(int(end - first)) //nolint:gosec // G115: Journal entry counts are bounded by config limits
 	maxMDRevToFlush = kbfsmd.RevisionUninitialized
 
-	loopEnd := min(first+journalOrdinal(maxToFlush),
-		//nolint:gosec // G115: maxToFlush is bounded by config limits
-		//nolint:gosec // G115: maxToFlush is bounded by config limits
-		end)
+	loopEnd := min(first+journalOrdinal(maxToFlush), end) //nolint:gosec // G115: maxToFlush is bounded by config limits
 
 	for ordinal := first; ordinal < loopEnd; ordinal++ {
 		entry, err := j.readJournalEntry(ordinal)

@@ -335,10 +335,10 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(ctx context.Context, w http.Respon
 	galleryInfo := infoInt.(giphyGalleryInfo)
 	var videoStr strings.Builder
 	for _, res := range galleryInfo.Results {
-		videoStr.WriteString(fmt.Sprintf(`
+		fmt.Fprintf(&videoStr, `
 			<img style="height: 100%%" src="%s" onclick="sendMessage('%s')" />
 		`, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.ConvID, galleryInfo.TlfName,
-			res)))
+			res))
 	}
 	res := fmt.Sprintf(`
 	<html>

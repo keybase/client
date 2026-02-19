@@ -63,10 +63,10 @@ func (c *CmdDeviceRemove) confirmDelete(id keybase1.DeviceID) error {
 	n := len(res.EndangeredTLFs)
 	for i, tlf := range res.EndangeredTLFs {
 		if i == 10 && n > 11 {
-			out.WriteString(fmt.Sprintf("   .... and %d others\n", (n - 10)))
+			fmt.Fprintf(&out, "   .... and %d others\n", (n - 10))
 			break
 		}
-		out.WriteString(fmt.Sprintf(" * %s\n", tlf.Name))
+		fmt.Fprintf(&out, " * %s\n", tlf.Name)
 	}
 
 	_ = tui.OutputDesc(OutputDescriptorEndageredTLFs, out.String())
