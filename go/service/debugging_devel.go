@@ -147,7 +147,6 @@ func (t *DebuggingHandler) scriptExtras(ctx context.Context, arg keybase1.Script
 		count := 30
 		var wg sync.WaitGroup
 		for i := range count {
-			i := i
 			wg.Add(1)
 			if i%5 == 0 {
 				time.Sleep(100 * time.Millisecond)

@@ -403,7 +403,7 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (res *ht
 	}
 
 	var lastErr error
-	for i := 0; i < retries; i++ {
+	for i := range retries {
 		if i > 0 {
 			m.Debug("retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}

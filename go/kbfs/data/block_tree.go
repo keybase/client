@@ -1130,7 +1130,7 @@ func (bt *blockTree) readyHelper(
 			}
 			return nil
 		}
-		for i := 0; i < numWorkers; i++ {
+		for range numWorkers {
 			eg.Go(worker)
 		}
 

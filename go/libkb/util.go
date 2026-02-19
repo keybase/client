@@ -388,7 +388,7 @@ func RandBytesWithSuffix(length int, suffix byte) ([]byte, error) {
 
 func XORBytes(dst, a, b []byte) int {
 	n := min(len(b), len(a))
-	for i := 0; i < n; i++ {
+	for i := range n {
 		dst[i] = a[i] ^ b[i]
 	}
 	return n

@@ -149,7 +149,7 @@ func makeLocalTeams(
 		// If this is a subteam, set the root ID.
 		if strings.Contains(string(teams[index]), ".") {
 			parts := strings.SplitN(string(teams[index]), ".", 2)
-			for j := 0; j < index; j++ {
+			for j := range index {
 				if parts[0] == string(localTeams[j].Name) {
 					localTeams[index].RootID = localTeams[j].TID
 					break
