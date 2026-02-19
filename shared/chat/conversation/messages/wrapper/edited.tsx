@@ -17,7 +17,6 @@ export const useEdited = () => {
       <Kb.Text
         key="isEdited"
         type="BodyTiny"
-        fixOverdraw={!showCenteredHighlight}
         style={showCenteredHighlight ? styles.editedHighlighted : styles.edited}
         virtualText={true}
       >

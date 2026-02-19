@@ -12,6 +12,7 @@ const items: Kb.MenuItems = []
 
 const CoinFlipParticipants = (props: Props) => {
   const {attachTo, onHidden, participants, visible} = props
+  const howThisWorksUrlProps = Kb.useClickURL('https://keybase.io/coin-flip')
   const header = (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.container}>
@@ -33,7 +34,7 @@ const CoinFlipParticipants = (props: Props) => {
       </Kb.ScrollView>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
-        <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/coin-flip">
+        <Kb.Text type="BodySmallPrimaryLink" {...howThisWorksUrlProps}>
           How this works
         </Kb.Text>
       </Kb.Box2>

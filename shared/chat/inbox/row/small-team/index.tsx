@@ -248,9 +248,9 @@ const TopLine = (p: TopLineProps) => {
           )}
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Text2 key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
+      <Kb.Text key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
         {timestampText}
-      </Kb.Text2>
+      </Kb.Text>
       {!Kb.Styles.isMobile && showGear && (
         <Kb.Icon
           type="iconfont-gear"
@@ -328,7 +328,6 @@ const BottomLine = (p: BottomLineProps) => {
     content = (
       <Kb.Text
         type="BodySmallSemibold"
-        fixOverdraw={Kb.Styles.isPhone}
         negative={true}
         style={Kb.Styles.collapseStyles([
           styles.youAreResetText,
@@ -345,7 +344,7 @@ const BottomLine = (p: BottomLineProps) => {
   } else if (draft) {
     content = (
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
-        <Kb.Text2
+        <Kb.Text
           type="BodySmall"
           style={Kb.Styles.collapseStyles([
             styles.draftLabel,
@@ -353,7 +352,7 @@ const BottomLine = (p: BottomLineProps) => {
           ])}
         >
           Draft:
-        </Kb.Text2>
+        </Kb.Text>
         <Kb.Markdown preview={true} style={style}>
           {draft}
         </Kb.Markdown>

@@ -291,9 +291,6 @@ module.exports = {
   get Text() {
     return require('./text').default
   },
-  get Text2() {
-    return require('./text2').Text2
-  },
   get TimelineMarker() {
     return require('./timeline-marker').default
   },
@@ -329,6 +326,9 @@ module.exports = {
   },
   get urlsToImgSet() {
     return require('./icon').urlsToImgSet
+  },
+  get useClickURL() {
+    return require('./text-url').useClickURL
   },
   get useHotKey() {
     return require('./hot-key').useHotKey

@@ -94,9 +94,9 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
                 style={styles.bodyLeftText}
               >
                 <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
-                  <Kb.Text2 type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
+                  <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
                     {teamMeta.teamname}
-                  </Kb.Text2>
+                  </Kb.Text>
                   {teamMeta.isOpen && (
                     <Kb.Meta
                       title="open"
@@ -113,7 +113,7 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
                       style={styles.alignSelfCenter}
                     />
                   )}
-                  <Kb.Text fixOverdraw={true} type="BodySmall">
+                  <Kb.Text type="BodySmall">
                     {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
                   </Kb.Text>
                 </Kb.Box2>

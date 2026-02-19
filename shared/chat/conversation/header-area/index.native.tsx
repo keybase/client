@@ -238,7 +238,7 @@ const UsernameHeader = () => {
       style={Kb.Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
     >
       {!!theirFullname && (
-        <Kb.Text lineClamp={1} type="BodyBig" fixOverdraw={true}>
+        <Kb.Text lineClamp={1} type="BodyBig">
           {theirFullname}
         </Kb.Text>
       )}

@@ -14,7 +14,7 @@ import {
   serviceOnlyNoWrapOutput,
 } from './react'
 import type * as T from '@/constants/types'
-import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/text'
+import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/text.shared'
 import isArray from 'lodash/isArray'
 import {ErrorBoundary} from 'react-error-boundary'
 

@@ -3,27 +3,30 @@ import * as Git from '@/stores/git'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
-export const HeaderTitle = () => (
-  <Kb.Box2
-    direction="vertical"
-    alignItems="flex-start"
-    style={styles.headerTitle}
-    className="hover-underline-container"
-  >
-    <Kb.Text type="Header">Git repositories</Kb.Text>
-    <Kb.Text type="BodySmall">
-      All repositories are end-to-end encrypted.{' '}
-      <Kb.Text
-        type="BodySmall"
-        onClickURL="https://keybase.io/blog/encrypted-git-for-everyone"
-        style={styles.headerTitleLink}
-        className="hover-underline-child"
-      >
-        Read how it works.
+export const HeaderTitle = () => {
+  const readHowUrlProps = Kb.useClickURL('https://keybase.io/blog/encrypted-git-for-everyone')
+  return (
+    <Kb.Box2
+      direction="vertical"
+      alignItems="flex-start"
+      style={styles.headerTitle}
+      className="hover-underline-container"
+    >
+      <Kb.Text type="Header">Git repositories</Kb.Text>
+      <Kb.Text type="BodySmall">
+        All repositories are end-to-end encrypted.{' '}
+        <Kb.Text
+          type="BodySmall"
+          {...readHowUrlProps}
+          style={styles.headerTitleLink}
+          className="hover-underline-child"
+        >
+          Read how it works.
+        </Kb.Text>
       </Kb.Text>
-    </Kb.Text>
-  </Kb.Box2>
-)
+    </Kb.Box2>
+  )
+}
 
 export const HeaderRightActions = () => {
   const setError = Git.useGitState(s => s.dispatch.setError)

@@ -1,4 +1,4 @@
-/* Used by text on desktop to speed up perf */
+/* Text desktop styles */
 
 .text_HeaderBig,
 .text_HeaderBigExtrabold,
@@ -48,6 +48,7 @@
   font-family: Keybase;
 }
 
+/* Dark mode: primary-color types flip to white */
 @media (prefers-color-scheme: dark) {
   .text_HeaderBig,
   .text_HeaderBigExtrabold,
@@ -66,6 +67,7 @@
   }
 }
 
+/* Secondary color group */
 .text_BodySecondaryLink,
 .text_BodySmall,
 .text_BodySmallBold,
@@ -85,6 +87,7 @@
   color: var(--color-black_50OrWhite_40);
 }
 
+/* Link color group */
 .text_HeaderLink,
 .text_BodyBigLink,
 .text_BodySemiboldLink,
@@ -94,6 +97,18 @@
   color: var(--color-blueDark);
 }
 
+/* Special color types */
+.text_BodySmallError {
+  color: var(--color-redDark);
+}
+.text_BodySmallSuccess {
+  color: var(--color-greenDark);
+}
+.text_BodySmallWallet {
+  color: var(--color-purpleDark);
+}
+
+/* Italic group */
 .text_HeaderItalic,
 .text_BodyItalic,
 .text_BodySemiboldItalic,
@@ -103,6 +118,7 @@
   font-style: italic;
 }
 
+/* Cursor pointer for link types */
 .text_HeaderLink,
 .text_BodyBigLink,
 .text_BodyPrimaryLink,
@@ -116,11 +132,64 @@
   cursor: pointer;
 }
 
+/* Font size / line-height groups */
 :is(.text_HeaderBig, .text_HeaderBigExtrabold) {
   font-size: 24px;
   line-height: 28px;
 }
 
+:is(.text_Header, .text_HeaderItalic, .text_HeaderExtrabold, .text_HeaderLink) {
+  font-size: 18px;
+  line-height: 22px;
+}
+
+:is(.text_BodyBig, .text_BodyBigExtrabold, .text_BodyBigLink) {
+  font-size: 15px;
+  line-height: 19px;
+}
+
+.text_Body,
+.text_BodyItalic,
+.text_BodySemibold,
+.text_BodyBold,
+.text_BodySemiboldItalic,
+.text_BodySemiboldLink,
+.text_BodyExtrabold,
+.text_BodyPrimaryLink,
+.text_BodySecondaryLink {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.text_BodySmall,
+.text_BodySmallBold,
+.text_BodySmallItalic,
+.text_BodySmallPrimaryLink,
+.text_BodySmallExtrabold,
+.text_BodySmallSemiboldItalic,
+.text_BodySmallSemiboldPrimaryLink,
+.text_BodySmallSemiboldSecondaryLink,
+.text_BodySmallSecondaryLink,
+.text_BodySmallExtraboldSecondaryLink,
+.text_BodySmallError,
+.text_BodySmallSuccess,
+.text_BodySmallWallet,
+.text_BodySmallSemibold {
+  font-size: 13px;
+  line-height: 17px;
+}
+
+.text_BodyTiny,
+.text_BodyTinyLink,
+.text_BodyTinyBold,
+.text_BodyTinyExtrabold,
+.text_BodyTinySemibold,
+.text_BodyTinySemiboldItalic {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Font weight groups */
 .text_Body,
 .text_BodyItalic,
 .text_BodyPrimaryLink,
@@ -163,6 +232,7 @@
 
 .text_HeaderBigExtrabold,
 .text_HeaderExtrabold,
+.text_BodyBigExtrabold,
 .text_BodyExtrabold,
 .text_BodySmallExtrabold,
 .text_BodySmallExtraboldSecondaryLink,
@@ -170,77 +240,7 @@
   font-weight: 800;
 }
 
-:is(.text_Header, .text_HeaderItalic, .text_HeaderExtrabold, .text_HeaderLink) {
-  font-size: 18px;
-  line-height: 22px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .text_HeaderLink {
-    color: var(--color-blueDarker2_75);
-  }
-}
-
-:is(.text_BodyBig, .text_BodyBigExtrabold, .text_BodyBigLink) {
-  font-size: 15px;
-  line-height: 19px;
-}
-
-.text_Body,
-.text_BodyItalic,
-.text_BodySemibold,
-.text_BodyBold,
-.text_BodySemiboldItalic,
-.text_BodySemiboldLink,
-.text_BodyExtrabold,
-.text_BodyPrimaryLink,
-.text_BodySecondaryLink {
-  font-size: 14px;
-  line-height: 18px;
-}
-
-.text_BodySmall,
-.text_BodySmallBold,
-.text_BodySmallItalic,
-.text_BodySmallPrimaryLink,
-.text_BodySmallExtrabold,
-.text_BodySmallSemiboldItalic,
-.text_BodySmallSemiboldPrimaryLink,
-.text_BodySmallSemiboldSecondaryLink,
-.text_BodySmallSecondaryLink,
-.text_BodySmallExtraboldSecondaryLink,
-.text_BodySmallError,
-.text_BodySmallSuccess,
-.text_BodySmallWallet {
-  font-size: 13px;
-  line-height: 17px;
-}
-
-.text_BodySmallError {
-  color: var(--color-redDark);
-}
-.text_BodySmallSuccess {
-  color: var(--color-greenDark);
-}
-.text_BodySmallWallet {
-  color: var(--color-purpleDark);
-}
-
-.text_BodyTiny,
-.text_BodyTinyLink,
-.text_BodyTinyBold,
-.text_BodyTinyExtrabold,
-.text_BodyTinySemibold,
-.text_BodyTinySemiboldItalic {
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.text_BodySmallSemibold {
-  font-size: 13px;
-  line-height: 17px;
-}
-
+/* Terminal types */
 :is(.text_Terminal, .text_TerminalComment, .text_TerminalEmpty, .text_TerminalInline) {
   font-size: 13px;
   line-height: 20px;
@@ -270,45 +270,86 @@
   word-wrap: break-word;
 }
 
+/* Dark mode link override */
+@media (prefers-color-scheme: dark) {
+  .text_HeaderLink {
+    color: var(--color-blueDarker2_75);
+  }
+}
+
+/* Negative: white for most types */
+.text_negative {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Terminal types have non-white negative colors */
+.text_negative.text_Terminal {
+  color: light-dark(#a8ccff, #4c8eff) !important;
+}
+.text_negative.text_TerminalComment,
+.text_negative.text_TerminalEmpty {
+  color: var(--color-blueLighter_40) !important;
+}
+.text_negative.text_TerminalInline {
+  color: light-dark(#2645a3, #f00) !important;
+}
+
+/* Hover underline for link types */
+.text_hover-underline:hover {
+  text-decoration: underline;
+}
+
+/* Utility classes */
 .text_center {
   display: inline-block;
   text-align: center;
 }
 
-:is(.lineClamp1, .lineClamp2, .lineClamp3, .lineClamp4, .lineClamp5) {
+.text_selectable {
+  user-select: text;
+  cursor: text;
+}
+
+.text_clickable {
+  cursor: pointer;
+}
+
+:is(.text_lineClamp1, .text_lineClamp2, .text_lineClamp3, .text_lineClamp4, .text_lineClamp5) {
   -webkit-box-orient: vertical;
   display: -webkit-box;
-  /* in chrome this will complain about main thread hit scroll scroll issues and clip works but*/
-  /* not clear its worth trying it */
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
 }
 
-.lineClamp1 {
+.text_lineClamp1 {
   -webkit-line-clamp: 1;
 }
 
-.lineClamp2 {
+.text_lineClamp2 {
   -webkit-line-clamp: 2;
 }
 
-.lineClamp3 {
+.text_lineClamp3 {
   -webkit-line-clamp: 3;
 }
 
-.lineClamp4 {
+.text_lineClamp4 {
   -webkit-line-clamp: 4;
 }
 
-.lineClamp5 {
+.text_lineClamp5 {
   -webkit-line-clamp: 5;
 }
 
-.noLineHeight {
-  line-height: unset !important;
+.text_underline {
+  text-decoration: underline;
 }
 
-.virtualText::before {
+.text_underlineNever {
+  text-decoration: none !important;
+}
+
+.text_virtualText::before {
   content: attr(data-virtual-text);
 }

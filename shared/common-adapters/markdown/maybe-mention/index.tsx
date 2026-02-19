@@ -1,6 +1,7 @@
 import * as Chat from '@/stores/chat2'
 import * as T from '@/constants/types'
-import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import Mention from '../../mention-container'
 import TeamMention from './team'
 import UnknownMention from './unknown'
@@ -40,7 +41,7 @@ const MaybeMention = (props: Props) => {
         />
       )
     case T.RPCChat.UIMaybeMentionStatus.user:
-      return <Kb.Mention username={props.name} />
+      return <Kb.Mention allowFontScaling={props.allowFontScaling} username={props.name} />
     case T.RPCChat.UIMaybeMentionStatus.team:
       return (
         <TeamMention

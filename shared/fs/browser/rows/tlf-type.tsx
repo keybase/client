@@ -21,7 +21,6 @@ const TLFTypeContainer = (p: OwnProps) => {
       writingToJournal={false}
       content={
         <Kb.Text
-          fixOverdraw={true}
           type={FS.pathTypeToTextType(T.FS.PathType.Folder)}
           style={rowStyles.rowText}
           lineClamp={Kb.Styles.isMobile ? 1 : undefined}

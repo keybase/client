@@ -1,16 +1,7 @@
 import * as Styles from '@/styles'
-import type {MetaType, TextType} from './text'
+import type {MetaType, TextType, TextStyle} from './text.shared'
 
-export const lineClamp = (lines: number) => ({
-  WebkitBoxOrient: 'vertical',
-  WebkitLineClamp: lines,
-  display: '-webkit-box',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  wordBreak: 'break-word',
-})
-
-export function fontSizeToSizeStyle(fontSize: 12 | 13 | 14 | 15 | 16 | 17 | 18 | 20 | 24 | 28) {
+function fontSizeToSizeStyle(fontSize: 12 | 13 | 14 | 15 | 16 | 17 | 18 | 20 | 24 | 28) {
   const hm = {
     [12]: 16,
     [13]: 17,
@@ -331,7 +322,7 @@ const _metaData = (): {[K in TextType]: MetaType} => {
 let _darkMetaData: {[K in TextType]: MetaType} | undefined
 let _lightMetaData: {[K in TextType]: MetaType} | undefined
 
-export const metaData = (isDarkMode: boolean): {[K in TextType]: MetaType} => {
+const metaData = (isDarkMode: boolean): {[K in TextType]: MetaType} => {
   if (isDarkMode) {
     _darkMetaData = _darkMetaData || _metaData()
     return _darkMetaData
@@ -339,4 +330,23 @@ export const metaData = (isDarkMode: boolean): {[K in TextType]: MetaType} => {
     _lightMetaData = _lightMetaData || _metaData()
     return _lightMetaData
   }
+}
+
+export function getTextStyle(type: TextType, isDarkMode: boolean): TextStyle {
+  const meta = metaData(isDarkMode)[type]
+  const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
+  // pipe positive color through because caller probably isn't using class
+  const colorStyle = {color: meta.colorForBackground['positive']}
+  const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
+
+  return Styles.platformStyles({
+    common: {
+      ...meta.styleOverride,
+    },
+    isElectron: {
+      ...sizeStyle,
+      ...colorStyle,
+      ...cursorStyle,
+    },
+  })
 }

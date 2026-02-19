@@ -6,12 +6,8 @@ import Avatar, {type AvatarSize} from './avatar'
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon, {type IconType} from './icon'
-import Text, {
-  type TextType,
-  type StylesTextCrossPlatform,
-  type AllowedColors,
-  type TextTypeBold,
-} from './text'
+import Text from './text'
+import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} from './text.shared'
 import ConnectedUsernames from './usernames'
 import {useTrackerState} from '@/stores/tracker2'
 import {useProfileState} from '@/stores/profile'

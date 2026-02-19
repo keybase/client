@@ -4,7 +4,6 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import _openSMS from '@/util/sms'
 import {assertionToDisplay} from '@/common-adapters/usernames'
-import type {Props as TextProps} from '@/common-adapters/text'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {showShareActionSheet} from '@/util/platform-specific'
@@ -12,6 +11,7 @@ import {showShareActionSheet} from '@/util/platform-specific'
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
 const Invite = () => {
+  const linkUrlProps = Kb.useClickURL('https://keybase.io/app')
   const participantInfo = Chat.useChatContext(s => s.participants)
   const participantInfoAll = participantInfo.all
   const users = participantInfoAll.filter(p => p.includes('@'))
@@ -48,7 +48,7 @@ const Invite = () => {
   if (C.isMobile) {
     return (
       <BannerBox color={Kb.Styles.globalColors.blue} gap="xtiny">
-        <BannerText>{caption}</BannerText>
+        <Kb.Text center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
           <Kb.Button
             label="Send install link"
@@ -70,19 +70,20 @@ const Invite = () => {
 
   return (
     <BannerBox color={Kb.Styles.globalColors.blue}>
-      <BannerText>{caption}</BannerText>
-      <BannerText>
+      <Kb.Text center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text>
+      <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
         Send them this link:
-        <BannerText
-          onClickURL="https://keybase.io/app"
+        <Kb.Text
+          {...linkUrlProps}
           underline={true}
           type="BodySmallPrimaryLink"
           selectable={true}
+          negative={true}
           style={{marginLeft: Kb.Styles.globalMargins.xtiny}}
         >
           https://keybase.io/app
-        </BannerText>
-      </BannerText>
+        </Kb.Text>
+      </Kb.Text>
     </BannerBox>
   )
 }
@@ -146,10 +147,6 @@ const BannerBox = (props: {
   >
     {props.children}
   </Kb.Box2>
-)
-
-const BannerText = (props: Partial<TextProps>) => (
-  <Kb.Text center={true} type="BodySmallSemibold" negative={true} {...props} />
 )
 
 const styles = Kb.Styles.styleSheetCreate(

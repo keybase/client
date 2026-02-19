@@ -158,7 +158,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
       <NewFeatureRow seen={seen} image={'release-4.7.0-pinned-messages'}>
         Chat admins can now pin messages.
         {` `}
-        <Kb.NativeEmoji size={Kb.Styles.globalMargins.small} emojiName=":pushpin:" />
+        <Kb.NativeEmoji allowFontScaling={true} size={Kb.Styles.globalMargins.small} emojiName=":pushpin:" />
       </NewFeatureRow>
       <NewFeatureRow seen={seen} image={'release-4.7.0-keybase-fm'}>
         Listen to

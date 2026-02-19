@@ -2,7 +2,8 @@ import * as React from 'react'
 import {Box2Measure} from './box'
 import Icon from './icon'
 import Button, {type Props as ButtonProps} from './button'
-import Text, {type TextMeasureRef, type LineClampType, type TextType} from './text'
+import Text from './text'
+import type {LineClampType, TextType} from './text.shared'
 import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '@/styles'
@@ -60,7 +61,6 @@ const CopyText = (props: Props) => {
   }, [withReveal, text, loadText])
 
   const popupAnchor = React.useRef<MeasureRef | null>(null)
-  const textRef = React.useRef<TextMeasureRef | null>(null)
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
   const copy = React.useCallback(() => {
@@ -75,7 +75,6 @@ const CopyText = (props: Props) => {
         showShareActionSheet?.('', text, 'text/plain')
       } else {
         setShowingToast(true)
-        textRef.current?.highlightText()
         copyToClipboard(text)
       }
       onCopy?.()
@@ -139,8 +138,7 @@ const CopyText = (props: Props) => {
         selectable={true}
         center={true}
         style={Styles.collapseStyles([styles.text, props.disabled && styles.textDisabled])}
-        allowHighlightText={true}
-        textRef={textRef}
+
       >
         {isRevealed && (props.text || props.placeholderText)
           ? props.text || props.placeholderText

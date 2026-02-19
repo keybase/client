@@ -48,6 +48,7 @@ type Props = {
 const EnterUsername = (props: Props) => {
   const [username, onChangeUsername] = React.useState(props.initialUsername || '')
   const [acceptedEULA, setAcceptedEULA] = React.useState(false)
+  const eulaUrlProps = Kb.useClickURL('https://keybase.io/docs/acceptable-use-policy')
   const usernameTrimmed = username.trim()
   const disabled = !usernameTrimmed || usernameTrimmed === props.usernameTaken || !acceptedEULA
   const onContinue = () => {
@@ -62,7 +63,7 @@ const EnterUsername = (props: Props) => {
       I accept the{' '}
       <Kb.Text
         type={Kb.Styles.isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'}
-        onClickURL="https://keybase.io/docs/acceptable-use-policy"
+        {...eulaUrlProps}
       >
         Keybase Acceptable Use Policy
       </Kb.Text>

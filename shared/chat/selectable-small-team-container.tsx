@@ -1,6 +1,6 @@
 import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
-import type {AllowedColors} from '@/common-adapters/text'
+import type {AllowedColors} from '@/common-adapters/text.shared'
 import SelectableSmallTeam from './selectable-small-team'
 import {useCurrentUserState} from '@/stores/current-user'
 

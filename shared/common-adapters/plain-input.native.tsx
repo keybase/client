@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import {Box2} from './box'
 import {checkTextInfo} from './input.shared'
-import {getTextStyle} from './text'
+import {getTextStyle} from './text.styles'
 import {isIOS} from '@/constants/platform'
 import {stringToUint8Array} from 'uint8array-extras'
 import {useColorScheme} from 'react-native'

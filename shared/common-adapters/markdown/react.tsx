@@ -2,7 +2,8 @@ import * as React from 'react'
 import * as SM from '@khanacademy/simple-markdown'
 import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
-import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import {Box2} from '@/common-adapters/box'
 import Spoiler from './spoiler'
 import NativeEmoji from '@/common-adapters/emoji/native-emoji'
@@ -193,6 +194,7 @@ const Fence = (p: {children: React.ReactNode; state: State}) => {
     <Text
       type="Body"
       style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state.styleOverride?.fence])}
+      allowFontScaling={state.allowFontScaling}
     >
       {children}
     </Text>
@@ -265,6 +267,7 @@ const reactComponentsForMarkdownType = {
             state.insideStrong && markdownStyles.boldStyle,
             state.styleOverride?.em,
           ])}
+          allowFontScaling={state.allowFontScaling}
         >
           {output(node['content'], state)}
         </Text>
@@ -283,6 +286,7 @@ const reactComponentsForMarkdownType = {
         size={state.styleOverride?.emojiSize?.size ?? 16}
         key={state.key}
         disableSelecting={state.virtualText}
+        allowFontScaling={state.allowFontScaling}
         style={state.styleOverride?.emoji}
       />
     ),

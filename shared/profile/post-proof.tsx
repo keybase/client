@@ -156,6 +156,8 @@ const noteMap = new Map([
 const WebDescription = ({platformUserName}: {platformUserName: string}) => {
   const root = `${platformUserName}/keybase.txt`
   const wellKnown = `${platformUserName}/.well-known/keybase.txt`
+  const rootUrlProps = Kb.useClickURL(`https://${root}`)
+  const wellKnownUrlProps = Kb.useClickURL(`https://${wellKnown}`)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text center={true} type="BodySemibold">
@@ -165,7 +167,7 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
       <Kb.Text
         type="BodyPrimaryLink"
         center={true}
-        onClickURL={`https://${root}`}
+        {...rootUrlProps}
         style={{color: Kb.Styles.globalColors.blueDark, marginTop: Kb.Styles.globalMargins.tiny}}
       >
         {root}
@@ -173,7 +175,7 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
       <Kb.Text
         type="BodyPrimaryLink"
         center={true}
-        onClickURL={`https://${wellKnown}`}
+        {...wellKnownUrlProps}
         style={{color: Kb.Styles.globalColors.blueDark}}
       >
         {wellKnown}

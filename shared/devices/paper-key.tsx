@@ -46,13 +46,7 @@ const PaperKey = () => {
         </Kb.Text>
         <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true}>
           {paperkey ? (
-            <Kb.Text
-              center={true}
-              type="Header"
-              selectable={true}
-              style={styles.text}
-              textBreakStrategy="simple"
-            >
+            <Kb.Text center={true} type="Header" selectable={true} style={styles.text}>
               {paperkey}
             </Kb.Text>
           ) : (

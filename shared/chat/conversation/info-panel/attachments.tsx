@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat2'
 import * as Kb from '@/common-adapters'
-import type {StylesTextCrossPlatform} from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import chunk from 'lodash/chunk'
@@ -299,6 +299,22 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
     </Kb.ClickableBox>
   </Kb.Box2>
 )
+
+const LinkTitle = (p: {title: string; url?: string}) => {
+  const urlProps = Kb.useClickURL(p.url ?? '')
+  return (
+    <Kb.Text
+      type="BodySmallPrimaryLink"
+      {...urlProps}
+      style={Kb.Styles.collapseStyles([
+        styles.linkStyle,
+        {color: Kb.Styles.globalColors.blueDark},
+      ])}
+    >
+      {p.title}
+    </Kb.Text>
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -705,16 +721,7 @@ export const useAttachmentSections = (
                       </Kb.Markdown>
                     </Kb.Box2>
                     {!!item.title && (
-                      <Kb.Text
-                        type="BodySmallPrimaryLink"
-                        onClickURL={item.url}
-                        style={Kb.Styles.collapseStyles([
-                          styles.linkStyle,
-                          {color: Kb.Styles.globalColors.blueDark},
-                        ])}
-                      >
-                        {item.title}
-                      </Kb.Text>
+                      <LinkTitle title={item.title} url={item.url} />
                     )}
                     <Kb.Divider />
                   </Kb.Box2>

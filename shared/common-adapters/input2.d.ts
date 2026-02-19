@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type * as Styles from '@/styles'
-import type {TextType} from './text'
+import type {TextType} from './text.shared'
 import type {TextInputProps} from 'react-native'
 
 export type RefType = {

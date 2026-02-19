@@ -1,15 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Text, {
-  type TextType,
-  type Background,
-  type StylesTextCrossPlatform,
-  type AllowedColors,
-  type LineClampType,
-  type TextTypeBold,
-} from './text'
+import Text from './text'
 import {backgroundModeIsNegative} from './text.shared'
+import type {TextType, Background, StylesTextCrossPlatform, AllowedColors, LineClampType, TextTypeBold} from './text.shared'
 import isArray from 'lodash/isArray'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import {useTrackerState} from '@/stores/tracker2'
@@ -50,7 +44,6 @@ export type Props = {
   underline?: boolean
   usernames: ReadonlyArray<string> | string
   withProfileCardPopup?: boolean
-  fixOverdraw?: boolean | 'auto'
   virtualText?: boolean // desktop only see text.desktop
 } & ({colorFollowing?: false; type: TextType} | {colorFollowing: boolean; type: TextTypeBold})
 
@@ -265,14 +258,13 @@ const Usernames = React.memo(
     const {backgroundMode, commaColor, inline, containerStyle, className} = p
     const {joinerStyle, lineClamp, notFollowingColorOverride, onUsernameClicked, prefix, selectable} = p
     const {showAnd, inlineGrammar, colorYou, skipSelf, style, suffix, suffixType, title} = p
-    const {usernames, fixOverdraw, virtualText, type} = p
+    const {usernames, virtualText, type} = p
     const colorFollowing = p.colorFollowing ?? true
     const colorBroken = p.colorBroken ?? true
     const underline = p.underline ?? true
     const withProfileCardPopup = p.withProfileCardPopup ?? true
     const you = useCurrentUserState(s => s.username)
 
-    const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
     const containerStyle2: Styles.StylesCrossPlatform = inline ? styles.inlineStyle : styles.nonInlineStyle
     const bgMode = backgroundMode
     const isNegative = backgroundModeIsNegative(bgMode)
@@ -292,7 +284,6 @@ const Usernames = React.memo(
         className={className}
         type={type}
         negative={isNegative}
-        fixOverdraw={fixOverdraw === 'auto' ? canFixOverdraw : (fixOverdraw ?? false)}
         style={Styles.collapseStyles([containerStyle2, containerStyle])}
         title={title}
         ellipsizeMode="tail"

@@ -304,8 +304,8 @@ const InstallBotPopup = (props: Props) => {
           <Kb.Text type="Body">
             <Kb.Text type="BodyPrimaryLink" onClick={() => setInstallWithRestrict(true)}>
               Install as a restricted bot
-            </Kb.Text>{' '}
-            if you’d like to customize which messages are encrypted for this bot.
+            </Kb.Text>
+            {" if you’d like to customize which messages are encrypted for this bot."}
           </Kb.Text>
         </Kb.Box2>
       )}
