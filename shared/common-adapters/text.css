@@ -1,47 +1,47 @@
 /* Text desktop styles */
 
-.t_HeaderBig,
-.t_HeaderBigExtrabold,
-.t_Header,
-.t_HeaderItalic,
-.t_HeaderExtrabold,
-.t_HeaderLink,
-.t_BodyBig,
-.t_BodyBigExtrabold,
-.t_BodyBigLink,
-.t_Body,
-.t_BodyItalic,
-.t_BodySemibold,
-.t_BodyBold,
-.t_BodySemiboldItalic,
-.t_BodySemiboldLink,
-.t_BodyExtrabold,
-.t_BodyPrimaryLink,
-.t_BodySecondaryLink,
-.t_BodySmall,
-.t_BodySmallBold,
-.t_BodySmallItalic,
-.t_BodySmallPrimaryLink,
-.t_BodySmallExtrabold,
-.t_BodySmallSemiboldItalic,
-.t_BodySmallSemiboldPrimaryLink,
-.t_BodySmallSemiboldSecondaryLink,
-.t_BodySmallSecondaryLink,
-.t_BodySmallExtraboldSecondaryLink,
-.t_BodySmallError,
-.t_BodySmallSuccess,
-.t_BodySmallWallet,
-.t_BodyTiny,
-.t_BodyTinyLink,
-.t_BodyTinyBold,
-.t_BodyTinyExtrabold,
-.t_BodyTinySemibold,
-.t_BodyTinySemiboldItalic,
-.t_BodySmallSemibold,
-.t_Terminal,
-.t_TerminalComment,
-.t_TerminalEmpty,
-.t_TerminalInline {
+.text_HeaderBig,
+.text_HeaderBigExtrabold,
+.text_Header,
+.text_HeaderItalic,
+.text_HeaderExtrabold,
+.text_HeaderLink,
+.text_BodyBig,
+.text_BodyBigExtrabold,
+.text_BodyBigLink,
+.text_Body,
+.text_BodyItalic,
+.text_BodySemibold,
+.text_BodyBold,
+.text_BodySemiboldItalic,
+.text_BodySemiboldLink,
+.text_BodyExtrabold,
+.text_BodyPrimaryLink,
+.text_BodySecondaryLink,
+.text_BodySmall,
+.text_BodySmallBold,
+.text_BodySmallItalic,
+.text_BodySmallPrimaryLink,
+.text_BodySmallExtrabold,
+.text_BodySmallSemiboldItalic,
+.text_BodySmallSemiboldPrimaryLink,
+.text_BodySmallSemiboldSecondaryLink,
+.text_BodySmallSecondaryLink,
+.text_BodySmallExtraboldSecondaryLink,
+.text_BodySmallError,
+.text_BodySmallSuccess,
+.text_BodySmallWallet,
+.text_BodyTiny,
+.text_BodyTinyLink,
+.text_BodyTinyBold,
+.text_BodyTinyExtrabold,
+.text_BodyTinySemibold,
+.text_BodyTinySemiboldItalic,
+.text_BodySmallSemibold,
+.text_Terminal,
+.text_TerminalComment,
+.text_TerminalEmpty,
+.text_TerminalInline {
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -50,217 +50,217 @@
 
 /* Dark mode: primary-color types flip to white */
 @media (prefers-color-scheme: dark) {
-  .t_HeaderBig,
-  .t_HeaderBigExtrabold,
-  .t_Header,
-  .t_HeaderItalic,
-  .t_HeaderExtrabold,
-  .t_BodyBig,
-  .t_BodyBigExtrabold,
-  .t_BodyExtrabold,
-  .t_BodySemiboldItalic,
-  .t_BodyBold,
-  .t_BodySemibold,
-  .t_BodyItalic,
-  .t_Body {
+  .text_HeaderBig,
+  .text_HeaderBigExtrabold,
+  .text_Header,
+  .text_HeaderItalic,
+  .text_HeaderExtrabold,
+  .text_BodyBig,
+  .text_BodyBigExtrabold,
+  .text_BodyExtrabold,
+  .text_BodySemiboldItalic,
+  .text_BodyBold,
+  .text_BodySemibold,
+  .text_BodyItalic,
+  .text_Body {
     color: rgba(255, 255, 255, 0.85);
   }
 }
 
 /* Secondary color group */
-.t_BodySecondaryLink,
-.t_BodySmall,
-.t_BodySmallBold,
-.t_BodySmallItalic,
-.t_BodySmallExtrabold,
-.t_BodySmallSemiboldItalic,
-.t_BodySmallExtraboldSecondaryLink,
-.t_BodySmallSecondaryLink,
-.t_BodySmallSemiboldSecondaryLink,
-.t_BodyTiny,
-.t_BodyTinyLink,
-.t_BodyTinyBold,
-.t_BodyTinyExtrabold,
-.t_BodyTinySemibold,
-.t_BodyTinySemiboldItalic,
-.t_BodySmallSemibold {
+.text_BodySecondaryLink,
+.text_BodySmall,
+.text_BodySmallBold,
+.text_BodySmallItalic,
+.text_BodySmallExtrabold,
+.text_BodySmallSemiboldItalic,
+.text_BodySmallExtraboldSecondaryLink,
+.text_BodySmallSecondaryLink,
+.text_BodySmallSemiboldSecondaryLink,
+.text_BodyTiny,
+.text_BodyTinyLink,
+.text_BodyTinyBold,
+.text_BodyTinyExtrabold,
+.text_BodyTinySemibold,
+.text_BodyTinySemiboldItalic,
+.text_BodySmallSemibold {
   color: var(--color-black_50OrWhite_40);
 }
 
 /* Link color group */
-.t_HeaderLink,
-.t_BodyBigLink,
-.t_BodySemiboldLink,
-.t_BodyPrimaryLink,
-.t_BodySmallPrimaryLink,
-.t_BodySmallSemiboldPrimaryLink {
+.text_HeaderLink,
+.text_BodyBigLink,
+.text_BodySemiboldLink,
+.text_BodyPrimaryLink,
+.text_BodySmallPrimaryLink,
+.text_BodySmallSemiboldPrimaryLink {
   color: var(--color-blueDark);
 }
 
 /* Special color types */
-.t_BodySmallError {
+.text_BodySmallError {
   color: var(--color-redDark);
 }
-.t_BodySmallSuccess {
+.text_BodySmallSuccess {
   color: var(--color-greenDark);
 }
-.t_BodySmallWallet {
+.text_BodySmallWallet {
   color: var(--color-purpleDark);
 }
 
 /* Italic group */
-.t_HeaderItalic,
-.t_BodyItalic,
-.t_BodySemiboldItalic,
-.t_BodySmallItalic,
-.t_BodySmallSemiboldItalic,
-.t_BodyTinySemiboldItalic {
+.text_HeaderItalic,
+.text_BodyItalic,
+.text_BodySemiboldItalic,
+.text_BodySmallItalic,
+.text_BodySmallSemiboldItalic,
+.text_BodyTinySemiboldItalic {
   font-style: italic;
 }
 
 /* Cursor pointer for link types */
-.t_HeaderLink,
-.t_BodyBigLink,
-.t_BodyPrimaryLink,
-.t_BodySecondaryLink,
-.t_BodySmallPrimaryLink,
-.t_BodySmallSemiboldPrimaryLink,
-.t_BodySmallSemiboldSecondaryLink,
-.t_BodySmallSecondaryLink,
-.t_BodySmallExtraboldSecondaryLink,
-.t_BodyTinyLink {
+.text_HeaderLink,
+.text_BodyBigLink,
+.text_BodyPrimaryLink,
+.text_BodySecondaryLink,
+.text_BodySmallPrimaryLink,
+.text_BodySmallSemiboldPrimaryLink,
+.text_BodySmallSemiboldSecondaryLink,
+.text_BodySmallSecondaryLink,
+.text_BodySmallExtraboldSecondaryLink,
+.text_BodyTinyLink {
   cursor: pointer;
 }
 
 /* Font size / line-height groups */
-:is(.t_HeaderBig, .t_HeaderBigExtrabold) {
+:is(.text_HeaderBig, .text_HeaderBigExtrabold) {
   font-size: 24px;
   line-height: 28px;
 }
 
-:is(.t_Header, .t_HeaderItalic, .t_HeaderExtrabold, .t_HeaderLink) {
+:is(.text_Header, .text_HeaderItalic, .text_HeaderExtrabold, .text_HeaderLink) {
   font-size: 18px;
   line-height: 22px;
 }
 
-:is(.t_BodyBig, .t_BodyBigExtrabold, .t_BodyBigLink) {
+:is(.text_BodyBig, .text_BodyBigExtrabold, .text_BodyBigLink) {
   font-size: 15px;
   line-height: 19px;
 }
 
-.t_Body,
-.t_BodyItalic,
-.t_BodySemibold,
-.t_BodyBold,
-.t_BodySemiboldItalic,
-.t_BodySemiboldLink,
-.t_BodyExtrabold,
-.t_BodyPrimaryLink,
-.t_BodySecondaryLink {
+.text_Body,
+.text_BodyItalic,
+.text_BodySemibold,
+.text_BodyBold,
+.text_BodySemiboldItalic,
+.text_BodySemiboldLink,
+.text_BodyExtrabold,
+.text_BodyPrimaryLink,
+.text_BodySecondaryLink {
   font-size: 14px;
   line-height: 18px;
 }
 
-.t_BodySmall,
-.t_BodySmallBold,
-.t_BodySmallItalic,
-.t_BodySmallPrimaryLink,
-.t_BodySmallExtrabold,
-.t_BodySmallSemiboldItalic,
-.t_BodySmallSemiboldPrimaryLink,
-.t_BodySmallSemiboldSecondaryLink,
-.t_BodySmallSecondaryLink,
-.t_BodySmallExtraboldSecondaryLink,
-.t_BodySmallError,
-.t_BodySmallSuccess,
-.t_BodySmallWallet,
-.t_BodySmallSemibold {
+.text_BodySmall,
+.text_BodySmallBold,
+.text_BodySmallItalic,
+.text_BodySmallPrimaryLink,
+.text_BodySmallExtrabold,
+.text_BodySmallSemiboldItalic,
+.text_BodySmallSemiboldPrimaryLink,
+.text_BodySmallSemiboldSecondaryLink,
+.text_BodySmallSecondaryLink,
+.text_BodySmallExtraboldSecondaryLink,
+.text_BodySmallError,
+.text_BodySmallSuccess,
+.text_BodySmallWallet,
+.text_BodySmallSemibold {
   font-size: 13px;
   line-height: 17px;
 }
 
-.t_BodyTiny,
-.t_BodyTinyLink,
-.t_BodyTinyBold,
-.t_BodyTinyExtrabold,
-.t_BodyTinySemibold,
-.t_BodyTinySemiboldItalic {
+.text_BodyTiny,
+.text_BodyTinyLink,
+.text_BodyTinyBold,
+.text_BodyTinyExtrabold,
+.text_BodyTinySemibold,
+.text_BodyTinySemiboldItalic {
   font-size: 12px;
   line-height: 16px;
 }
 
 /* Font weight groups */
-.t_Body,
-.t_BodyItalic,
-.t_BodyPrimaryLink,
-.t_BodySecondaryLink,
-.t_BodySmall,
-.t_BodySmallItalic,
-.t_BodySmallPrimaryLink,
-.t_BodySmallSecondaryLink,
-.t_BodySmallError,
-.t_BodySmallSuccess,
-.t_BodySmallWallet,
-.t_BodyTiny,
-.t_BodyTinyLink {
+.text_Body,
+.text_BodyItalic,
+.text_BodyPrimaryLink,
+.text_BodySecondaryLink,
+.text_BodySmall,
+.text_BodySmallItalic,
+.text_BodySmallPrimaryLink,
+.text_BodySmallSecondaryLink,
+.text_BodySmallError,
+.text_BodySmallSuccess,
+.text_BodySmallWallet,
+.text_BodyTiny,
+.text_BodyTinyLink {
   font-weight: 400;
 }
 
-.t_BodyBig,
-.t_BodyBigLink,
-.t_BodySemibold,
-.t_BodySemiboldItalic,
-.t_BodySemiboldLink,
-.t_BodySmallSemiboldItalic,
-.t_BodySmallSemiboldPrimaryLink,
-.t_BodySmallSemiboldSecondaryLink,
-.t_BodyTinySemibold,
-.t_BodyTinySemiboldItalic,
-.t_BodySmallSemibold {
+.text_BodyBig,
+.text_BodyBigLink,
+.text_BodySemibold,
+.text_BodySemiboldItalic,
+.text_BodySemiboldLink,
+.text_BodySmallSemiboldItalic,
+.text_BodySmallSemiboldPrimaryLink,
+.text_BodySmallSemiboldSecondaryLink,
+.text_BodyTinySemibold,
+.text_BodyTinySemiboldItalic,
+.text_BodySmallSemibold {
   font-weight: 600;
 }
 
-.t_HeaderBig,
-.t_Header,
-.t_HeaderItalic,
-.t_HeaderLink,
-.t_BodyBold,
-.t_BodySmallBold,
-.t_BodyTinyBold {
+.text_HeaderBig,
+.text_Header,
+.text_HeaderItalic,
+.text_HeaderLink,
+.text_BodyBold,
+.text_BodySmallBold,
+.text_BodyTinyBold {
   font-weight: 700;
 }
 
-.t_HeaderBigExtrabold,
-.t_HeaderExtrabold,
-.t_BodyBigExtrabold,
-.t_BodyExtrabold,
-.t_BodySmallExtrabold,
-.t_BodySmallExtraboldSecondaryLink,
-.t_BodyTinyExtrabold {
+.text_HeaderBigExtrabold,
+.text_HeaderExtrabold,
+.text_BodyBigExtrabold,
+.text_BodyExtrabold,
+.text_BodySmallExtrabold,
+.text_BodySmallExtraboldSecondaryLink,
+.text_BodyTinyExtrabold {
   font-weight: 800;
 }
 
 /* Terminal types */
-:is(.t_Terminal, .t_TerminalComment, .t_TerminalEmpty, .t_TerminalInline) {
+:is(.text_Terminal, .text_TerminalComment, .text_TerminalEmpty, .text_TerminalInline) {
   font-size: 13px;
   line-height: 20px;
   font-family: Source Code Pro;
 }
 
-.t_Terminal {
+.text_Terminal {
   color: light-dark(#a8ccff, #4c8eff);
 }
 
-.t_TerminalComment {
+.text_TerminalComment {
   color: var(--color-blueLighter_40);
 }
 
-.t_TerminalEmpty {
+.text_TerminalEmpty {
   color: var(--color-blueLighter_40);
   height: 20px;
 }
 
-.t_TerminalInline {
+.text_TerminalInline {
   line-height: 16px;
   color: light-dark(#2645a3, #f00);
   background-color: var(--color-blueLighter2);
@@ -272,49 +272,49 @@
 
 /* Dark mode link override */
 @media (prefers-color-scheme: dark) {
-  .t_HeaderLink {
+  .text_HeaderLink {
     color: var(--color-blueDarker2_75);
   }
 }
 
 /* Negative: white for most types */
-.t_negative {
+.text_negative {
   color: rgba(255, 255, 255, 0.85) !important;
 }
 
 /* Terminal types have non-white negative colors */
-.t_negative.t_Terminal {
+.text_negative.text_Terminal {
   color: light-dark(#a8ccff, #4c8eff) !important;
 }
-.t_negative.t_TerminalComment,
-.t_negative.t_TerminalEmpty {
+.text_negative.text_TerminalComment,
+.text_negative.text_TerminalEmpty {
   color: var(--color-blueLighter_40) !important;
 }
-.t_negative.t_TerminalInline {
+.text_negative.text_TerminalInline {
   color: light-dark(#2645a3, #f00) !important;
 }
 
 /* Hover underline for link types */
-.t_hover-underline:hover {
+.text_hover-underline:hover {
   text-decoration: underline;
 }
 
 /* Utility classes */
-.t_center {
+.text_center {
   display: inline-block;
   text-align: center;
 }
 
-.t_selectable {
+.text_selectable {
   user-select: text;
   cursor: text;
 }
 
-.t_clickable {
+.text_clickable {
   cursor: pointer;
 }
 
-:is(.t_lineClamp1, .t_lineClamp2, .t_lineClamp3, .t_lineClamp4, .t_lineClamp5) {
+:is(.text_lineClamp1, .text_lineClamp2, .text_lineClamp3, .text_lineClamp4, .text_lineClamp5) {
   -webkit-box-orient: vertical;
   display: -webkit-box;
   overflow: hidden;
@@ -322,34 +322,34 @@
   word-break: break-word;
 }
 
-.t_lineClamp1 {
+.text_lineClamp1 {
   -webkit-line-clamp: 1;
 }
 
-.t_lineClamp2 {
+.text_lineClamp2 {
   -webkit-line-clamp: 2;
 }
 
-.t_lineClamp3 {
+.text_lineClamp3 {
   -webkit-line-clamp: 3;
 }
 
-.t_lineClamp4 {
+.text_lineClamp4 {
   -webkit-line-clamp: 4;
 }
 
-.t_lineClamp5 {
+.text_lineClamp5 {
   -webkit-line-clamp: 5;
 }
 
-.t_underline {
+.text_underline {
   text-decoration: underline;
 }
 
-.t_underlineNever {
+.text_underlineNever {
   text-decoration: none !important;
 }
 
-.t_virtualText::before {
+.text_virtualText::before {
   content: attr(data-virtual-text);
 }

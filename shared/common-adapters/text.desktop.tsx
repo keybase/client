@@ -13,20 +13,20 @@ export function Text(p: Props) {
           : null
       }
     : undefined
-  const cn = Styles.classNames(`t_${type}`, p.className, {
-    t_center: p.center,
-    t_clickable: !!p.onClick,
-    't_hover-underline': linkTypes.has(type),
-    t_lineClamp1: p.lineClamp === 1,
-    t_lineClamp2: p.lineClamp === 2,
-    t_lineClamp3: p.lineClamp === 3,
-    t_lineClamp4: p.lineClamp === 4,
-    t_lineClamp5: p.lineClamp === 5,
-    t_negative: p.negative,
-    t_selectable: p.selectable,
-    t_underline: p.underline,
-    t_underlineNever: p.underlineNever,
-    t_virtualText: p.virtualText,
+  const cn = Styles.classNames(`text_${type}`, p.className, {
+    text_center: p.center,
+    text_clickable: !!p.onClick,
+    'text_hover-underline': linkTypes.has(type),
+    text_lineClamp1: p.lineClamp === 1,
+    text_lineClamp2: p.lineClamp === 2,
+    text_lineClamp3: p.lineClamp === 3,
+    text_lineClamp4: p.lineClamp === 4,
+    text_lineClamp5: p.lineClamp === 5,
+    text_negative: p.negative,
+    text_selectable: p.selectable,
+    text_underline: p.underline,
+    text_underlineNever: p.underlineNever,
+    text_virtualText: p.virtualText,
     tooltip: !!p.tooltip,
   })
   const lcStyle: React.CSSProperties | undefined =
