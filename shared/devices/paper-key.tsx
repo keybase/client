@@ -39,22 +39,16 @@ const PaperKey = () => {
         style={styles.container}
         gap="medium"
       >
-        <Kb.Text type="Header">Paper key generated!</Kb.Text>
-        <Kb.Text type="Body" style={styles.intro}>
+        <Kb.Text3 type="Header">Paper key generated!</Kb.Text3>
+        <Kb.Text3 type="Body" style={styles.intro}>
           Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
           This is the only time you&apos;ll see this so be sure to write it down.
-        </Kb.Text>
+        </Kb.Text3>
         <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true}>
           {paperkey ? (
-            <Kb.Text
-              center={true}
-              type="Header"
-              selectable={true}
-              style={styles.text}
-              textBreakStrategy="simple"
-            >
+            <Kb.Text3 center={true} type="Header" selectable={true} style={styles.text}>
               {paperkey}
-            </Kb.Text>
+            </Kb.Text3>
           ) : (
             <Kb.ProgressIndicator type="Large" />
           )}

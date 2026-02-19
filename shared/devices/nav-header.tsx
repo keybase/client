@@ -9,10 +9,10 @@ export const HeaderTitle = () => {
   const numRevoked = Devices.useRevokedDeviceCounts()
   return (
     <Kb.Box2 direction="vertical" style={styles.headerTitle}>
-      <Kb.Text type="Header">Devices</Kb.Text>
-      <Kb.Text type="BodySmall">
+      <Kb.Text3 type="Header">Devices</Kb.Text3>
+      <Kb.Text3 type="BodySmall">
         {numActive} Active • {numRevoked} Revoked
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
   )
 }

@@ -53,10 +53,10 @@ export default function AddDevice(ownProps: OwnProps) {
           gapEnd={true}
         >
           <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-            {!Kb.Styles.isMobile && <Kb.Text type="Header">Add a device</Kb.Text>}
-            <Kb.Text type="Body" center={true}>
+            {!Kb.Styles.isMobile && <Kb.Text3 type="Header">Add a device</Kb.Text3>}
+            <Kb.Text3 type="Body" center={true}>
               Protect your account by having more devices and paper keys.
-            </Kb.Text>
+            </Kb.Text3>
           </Kb.Box2>
           <Kb.Box2
             direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
@@ -128,9 +128,9 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
       gapEnd={!Kb.Styles.isMobile}
     >
       <Kb.Icon type={getIconType(type, iconNumber)} />
-      <Kb.Text type="BodySemibold">
+      <Kb.Text3 type="BodySemibold">
         {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
-      </Kb.Text>
+      </Kb.Text3>
     </Kb.Box2>
   </Kb.ClickableBox>
 )

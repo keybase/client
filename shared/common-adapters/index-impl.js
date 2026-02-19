@@ -294,6 +294,9 @@ module.exports = {
   get Text2() {
     return require('./text2').Text2
   },
+  get Text3() {
+    return require('./text3').Text3
+  },
   get TimelineMarker() {
     return require('./timeline-marker').default
   },
